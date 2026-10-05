@@ -16,10 +16,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    # -I excludes the script directory; add only this repository-owned tool package.
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from runtime_acceptance.evaluator import evaluate
-    from runtime_acceptance.evidence import EvidenceError, EvidenceUnavailable, load_json
+    # -I excludes the script directory; add only this repository-owned acceptance package.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from acceptance.corpus import Corpus
+    from acceptance.evaluator import evaluate
+    from acceptance.evidence import EvidenceError, EvidenceUnavailable, load_evidence
+    from acceptance.results import Results
 
     args = parse_args()
     missing = [str(path) for path in (args.corpus, args.results) if not path.is_file()]
@@ -28,7 +30,9 @@ def main() -> int:
         exit_code = 2
     else:
         try:
-            report = evaluate(load_json(args.corpus), load_json(args.results), args.corpus, args.results)
+            report = evaluate(
+                load_evidence(args.corpus, Corpus), load_evidence(args.results, Results), args.corpus, args.results
+            )
             exit_code = 0 if report["status"] == "passed" else 2 if report["status"] == "unavailable" else 1
         except EvidenceUnavailable as error:
             report = _terminal_report("unavailable", str(error))
@@ -38,7 +42,9 @@ def main() -> int:
             exit_code = 1
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_name(f".{args.output.name}.tmp")
-    temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8"
+    )
     temporary.replace(args.output)
     return exit_code
 

@@ -439,7 +439,8 @@ and `UiButton.test.ts`. Name a cross-owner integration scenario for the user cap
 rather than pretending it maps to one source file. Shared test fixtures and mocks belong under that
 owner's `__tests__/support/`, so they remain outside production typechecking and business imports.
 Production source must not import test files, Vitest or Vue Test Utils.
-Python tests live in `python/tests/`, tooling policy tests in `tools/__tests__/`, and desktop E2E
+Python worker/qualification tests live in `python/tests/`, repository tooling policy tests (Python
+and Node) in `tools/__tests__/`, and desktop E2E
 scenarios in `tests/e2e/`. Test-specific imports belong in test files, not business modules.
 
 ## Automated checks

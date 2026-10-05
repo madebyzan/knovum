@@ -26,7 +26,7 @@ def test_implementation_owners_do_not_depend_on_runtime_composition_or_tools(own
                 else []
             )
             for imported in imports:
-                assert not imported.startswith(("runtime_packaging", "runtime_acceptance")), str(module)
+                assert not imported.startswith(("runtime_packaging", "acceptance")), str(module)
                 if imported.startswith("knovum_inference."):
                     dependency = imported.split(".")[1]
                     assert dependency in allowed, f"{module}: forbidden dependency {imported}"

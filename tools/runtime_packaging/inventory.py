@@ -9,6 +9,15 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+from cyclonedx.model import ExternalReference, ExternalReferenceType, XsUri
+from cyclonedx.model.bom import Bom
+from cyclonedx.model.component import Component, ComponentType
+from cyclonedx.model.license import LicenseExpression
+from cyclonedx.output.json import JsonV1Dot6
+from cyclonedx.schema import SchemaVersion
+from cyclonedx.validation.json import JsonStrictValidator
+from packageurl import PackageURL
+
 from runtime_packaging.artifacts import digest
 from runtime_packaging.binaries import compiled_binaries
 
@@ -17,21 +26,36 @@ def canonical(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_configuration: Path, target: str) -> None:
+def write_inventory(
+    root: Path,
+    lock_path: Path,
+    output: Path,
+    interpreter_configuration: Path,
+    target: str,
+) -> None:
+    root = root.resolve(strict=True)
     lock = tomllib.loads(lock_path.read_text())
     locked = {(canonical(package["name"]), package["version"]): package for package in lock["package"]}
     interpreter = interpreter_inventory(root, interpreter_configuration, target)
-    components = [
-        {
-            "type": "application",
-            "name": "CPython",
-            "version": interpreter["version"],
-            "externalReferences": [{"type": "distribution", "url": interpreter["source"]["url"]}],
-        }
-    ]
+    bom = Bom()
+    bom.components.add(
+        Component(
+            type=ComponentType.APPLICATION,
+            name="CPython",
+            version=interpreter["version"],
+            bom_ref=f"cpython@{interpreter['version']}",
+            external_references=[
+                ExternalReference(
+                    type=ExternalReferenceType.DISTRIBUTION,
+                    url=XsUri(interpreter["source"]["url"]),
+                )
+            ],
+        )
+    )
     licenses = []
     for distribution in sorted(
-        importlib.metadata.distributions(path=[str(root / "packages")]), key=lambda item: item.metadata["Name"]
+        importlib.metadata.distributions(path=[str(root / "packages")]),
+        key=lambda item: item.metadata["Name"],
     ):
         name, version = distribution.metadata["Name"], distribution.version
         package = locked.get((canonical(name), version))
@@ -39,7 +63,10 @@ def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_confi
             raise ValueError(f"Installed distribution is absent from uv.lock: {name}=={version}")
         binaries = []
         notices = []
-        for file in distribution.files or []:
+        files = distribution.files
+        if files is None:
+            raise ValueError(f"Installed distribution has no file record: {name}=={version}")
+        for file in files:
             path = Path(str(distribution.locate_file(file))).resolve(strict=True)
             if not path.is_relative_to(root.resolve()) or not path.is_file():
                 raise ValueError(f"Installed distribution declares an external/nonregular file: {name}/{file}")
@@ -73,22 +100,25 @@ def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_confi
                 "source": source,
             }
         )
-        component: dict[str, Any] = {
-            "type": "library",
-            "name": name,
-            "version": version,
-            "purl": f"pkg:pypi/{canonical(name)}@{version}",
-        }
-        if expression:
-            component["licenses"] = [{"expression": expression}]
-        components.append(component)
+        purl = PackageURL(type="pypi", name=canonical(name), version=version)
+        bom.components.add(
+            Component(
+                type=ComponentType.LIBRARY,
+                name=name,
+                version=version,
+                bom_ref=purl.to_string(),
+                purl=purl,
+                licenses=[LicenseExpression(expression)] if expression else [],
+            )
+        )
     if not licenses:
         raise ValueError("Runtime contains no installed distributions")
     output.mkdir()
-    (output / "sbom.cdx.json").write_text(
-        json.dumps({"bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1, "components": components}, indent=2)
-        + "\n"
-    )
+    serialized = JsonV1Dot6(bom).output_as_string(indent=2)
+    errors = JsonStrictValidator(SchemaVersion.V1_6).validate_str(serialized)
+    if errors:
+        raise ValueError(f"Generated CycloneDX inventory is invalid: {errors}")
+    (output / "sbom.cdx.json").write_text(serialized + "\n", encoding="utf-8")
     (output / "dependency-evidence.json").write_text(
         json.dumps(
             {

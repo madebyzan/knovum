@@ -104,6 +104,7 @@ vice versa).
 ## Controlled Python runtime producer
 
 `pnpm runtime:build --output <fresh-directory> --signing <adhoc|unsigned|production>`
+invokes `tools/build_python_runtime.py` with the frozen `publication` development group and
 runs only on macOS ARM64 or Windows x64. `python/runtime-source.json` pins the exact
 CPython 3.11.17 standalone release assets, size and SHA-256 for both native targets,
 independently of uv's managed-interpreter catalog. uv 0.12.23 exports the frozen
@@ -125,7 +126,11 @@ are not production-signing evidence.
 
 `.github/workflows/python-runtime.yml` emits the immutable target archive, SHA-256,
 GitHub build attestation, frozen requirements, actual installed dependency inventory,
-CycloneDX SBOM and source/license evidence. The existing provisioner validates the
+CycloneDX SBOM and source/license evidence. The official CycloneDX Python library serializes
+and validates schema 1.6 from the installed `packages` inventory; project code records the
+lock/source identities, native binary paths and notice-file hashes separately in
+`dependency-evidence.json`. Neither development dependencies nor metadata license declarations
+constitute approved runtime distribution evidence. The existing provisioner validates the
 producer identity against the interpreter source and dependency lock as well as all
 runtime bytes. There is no old opaque Python archive input path.
 

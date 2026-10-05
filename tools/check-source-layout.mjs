@@ -8,7 +8,6 @@ const sourceRoots = [
   "src-tauri/tests",
   "tools",
   "python/src",
-  "python/tools",
   "python/tests",
   "tests",
   "docs",

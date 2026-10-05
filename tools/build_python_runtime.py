@@ -16,7 +16,7 @@ from runtime_packaging.artifacts import archive_runtime, digest, download, extra
 from runtime_packaging.inventory import write_inventory
 from runtime_packaging.signing import sign_runtime
 
-REPOSITORY = Path(__file__).resolve().parents[2]
+REPOSITORY = Path(__file__).resolve().parents[1]
 PROJECT = REPOSITORY / "python"
 ISOLATED_PYTHON_ARGS = ("-I", "-B", "-X", "utf8")
 

@@ -32,6 +32,8 @@ knovum-runtime = "knovum_inference.server:main"
 
 [dependency-groups]
 runtime-build = ["setuptools==83.0.0", "wheel==0.48.0", "setuptools-scm==10.3.4"]
+publication = ["cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
+acceptance = ["jiwer==4.0.0", "numpy==2.4.6", "pydantic==2.12.3"]
 contracts = ["datamodel-code-generator==0.64.0"]
 quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.12.3", "pytest==9.1.1", "ruff==0.16.10"]
 
@@ -39,10 +41,13 @@ quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.12.3", "pytest==9.1.1", "
 target-version = "py311"
 line-length = 120
 src = ["src"]
-extend-exclude = ["src/knovum_inference/contracts/generated"]
+extend-exclude = ["**/knovum_inference/contracts/generated"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["knovum_inference", "acceptance", "runtime_packaging", "generate_python_contracts"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -50,8 +55,8 @@ strict = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "tools"]
-testpaths = ["tests"]
+pythonpath = ["src", "tests", "../tools"]
+testpaths = ["tests", "../tools/__tests__"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/knovum_inference"]
