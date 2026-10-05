@@ -2,6 +2,8 @@ pub(super) use render_commit::commit_render;
 mod render_commit;
 pub use recovery::reconcile_interrupted;
 mod recovery;
+#[cfg(test)]
+mod tests;
 use std::{
     fs,
     io::{Read, Write},
@@ -74,8 +76,10 @@ pub fn publish_segment(
     atomic_write(path, &audio.bytes)?;
     let actual = hash_file(path)?;
     if actual != audio.sha256 {
-        let _ = fs::remove_file(path);
-        return Err("invalid_output: published speech hash differs".to_owned());
+        return Err(cleanup_failed_output(
+            path,
+            "invalid_output: published speech hash differs".to_owned(),
+        ));
     }
     Ok(path.to_owned())
 }
@@ -146,10 +150,17 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
         file.sync_all().map_err(|error| error.to_string())?;
         fs::rename(&part, path).map_err(|error| error.to_string())
     })();
-    if publication.is_err() {
-        let _ = fs::remove_file(part);
+    drop(file);
+    publication.map_err(|cause| cleanup_failed_output(&part, cause))
+}
+
+fn cleanup_failed_output(path: &Path, mut cause: String) -> String {
+    if let Err(error) = fs::remove_file(path) {
+        if error.kind() != std::io::ErrorKind::NotFound {
+            cause.push_str(&format!("; failed to remove {}: {error}", path.display()));
+        }
     }
-    publication
+    cause
 }
 
 pub(super) fn hash_file(path: &Path) -> Result<String, String> {
@@ -169,68 +180,14 @@ pub(super) fn hash_file(path: &Path) -> Result<String, String> {
 fn validate_audio_payload(
     audio: &crate::ai::local_runtime::speech::SynthesizedAudio,
 ) -> Result<(), String> {
-    let bytes = &audio.bytes;
+    let metadata = crate::media::wav::inspect(std::io::Cursor::new(&audio.bytes))
+        .map_err(|cause| format!("invalid_output: {cause}"))?;
+    let expected = super::audio_format::WavPrecision::Float32.spec(audio.sample_rate, 1);
     if audio.sample_count == 0
-        || bytes.len() < 44
-        || bytes.get(0..4) != Some(b"RIFF".as_slice())
-        || bytes.get(8..12) != Some(b"WAVE".as_slice())
+        || metadata.spec != expected
+        || metadata.sample_count != audio.sample_count
     {
-        return Err("invalid_output: synthesized WAV container is invalid".to_owned());
-    }
-    let declared = usize::try_from(read_u32(bytes, 4)?)
-        .map_err(|_| "invalid_output: WAV size exceeds this platform")?
-        .checked_add(8)
-        .ok_or("invalid_output: WAV size overflow")?;
-    if declared != bytes.len() {
-        return Err("invalid_output: WAV container length differs".to_owned());
-    }
-    let mut offset = 12_usize;
-    let mut format_valid = false;
-    let mut data_samples = None;
-    while offset.checked_add(8).is_some_and(|end| end <= bytes.len()) {
-        let size = usize::try_from(read_u32(bytes, offset + 4)?)
-            .map_err(|_| "invalid_output: WAV chunk exceeds this platform")?;
-        let start = offset + 8;
-        let end = start
-            .checked_add(size)
-            .ok_or("invalid_output: WAV chunk overflow")?;
-        if end > bytes.len() {
-            return Err("invalid_output: WAV chunk exceeds its container".to_owned());
-        }
-        let chunk_id = &bytes[offset..offset + 4];
-        if chunk_id == b"fmt " && size >= 16 {
-            format_valid = read_u16(bytes, start)? == 3
-                && read_u16(bytes, start + 2)? == 1
-                && read_u32(bytes, start + 4)? == audio.sample_rate
-                && read_u16(bytes, start + 14)? == 32;
-        } else if chunk_id == b"data" && size % 4 == 0 {
-            data_samples = Some(
-                u64::try_from(size / 4)
-                    .map_err(|_| "invalid_output: WAV sample count exceeds protocol range")?,
-            );
-        }
-        offset = end + (size % 2);
-    }
-    if !format_valid || data_samples != Some(audio.sample_count) {
-        return Err("invalid_output: WAV audio metadata differs".to_owned());
+        return Err("invalid_output: WAV audio metadata differs".into());
     }
     Ok(())
-}
-
-fn read_u16(bytes: &[u8], offset: usize) -> Result<u16, String> {
-    let value: [u8; 2] = bytes
-        .get(offset..offset + 2)
-        .ok_or("invalid_output: WAV header is truncated")?
-        .try_into()
-        .map_err(|_| "invalid_output: WAV header is truncated")?;
-    Ok(u16::from_le_bytes(value))
-}
-
-fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, String> {
-    let value: [u8; 4] = bytes
-        .get(offset..offset + 4)
-        .ok_or("invalid_output: WAV header is truncated")?
-        .try_into()
-        .map_err(|_| "invalid_output: WAV header is truncated")?;
-    Ok(u32::from_le_bytes(value))
 }

@@ -129,3 +129,20 @@ fn precision_pause_and_book_metadata_are_in_published_containers() {
     assert!(diagnostic.contains("attached pic"));
     fs::remove_dir_all(work).unwrap();
 }
+
+#[test]
+fn chapter_pauses_belong_to_the_preceding_chapter() {
+    use super::assembly::chapter_metadata_keys;
+    let keys = vec![Some("one".into()), Some("two".into()), Some("three".into())];
+    assert_eq!(chapter_metadata_keys(&keys, false), keys);
+    assert_eq!(
+        chapter_metadata_keys(&keys, true),
+        vec![
+            Some("one".into()),
+            Some("one".into()),
+            Some("two".into()),
+            Some("two".into()),
+            Some("three".into()),
+        ]
+    );
+}

@@ -10,7 +10,7 @@ import { useCapturedWorkflowLibrary } from "../../workflows/use-captured-workflo
 import { useCapturedWorkflowRun } from "../../workflows/use-captured-workflow-run";
 import { useWorkflowBindings } from "../../workflows/use-workflow-bindings";
 import { useWorkflowChoices } from "../../workflows/use-workflow-choices";
-import SpaceWorkflowBinding from "./SpaceWorkflowBinding.vue";
+import SpaceWorkflowBindings from "./SpaceWorkflowBindings.vue";
 import SpaceWorkflowManagement from "./SpaceWorkflowManagement.vue";
 import SpaceWorkflowOutputs from "./SpaceWorkflowOutputs.vue";
 import SpaceWorkflowRunActions from "./SpaceWorkflowRunActions.vue";
@@ -145,23 +145,7 @@ function deletedWorkflow(id: string) {
         <template v-if="workflow">
           <p class="text-caption-sm text-fg-tertiary tabular-nums">v{{ workflow.version }}</p>
           <SpaceWorkflowOutputs :outputs="workflow.candidate.outputSlots" />
-          <section class="space-y-3">
-            <h3 class="text-caption font-semibold text-fg-secondary">
-              {{ t("spaces.creation.workflow.inputs.bind") }}
-            </h3>
-            <SpaceWorkflowBinding
-              v-for="slot in slots"
-              :key="slot.id"
-              :slot="slot"
-              :label="slot.label"
-              :options="slot.options"
-              :model-value="bindings[slot.id] ?? []"
-              @update:model-value="setBinding(slot.id, $event)"
-            />
-            <p v-if="slots.some((slot) => !slot.options.length)" class="text-caption text-fg-warning">
-              {{ t("spaces.creation.workflow.inputs.missing") }}
-            </p>
-          </section>
+          <SpaceWorkflowBindings :slots="slots" :bindings="bindings" @change="setBinding" />
           <SpaceWorkflowManagement
             :workflow="workflow"
             @renamed="renamed"

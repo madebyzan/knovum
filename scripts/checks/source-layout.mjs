@@ -51,9 +51,11 @@ function inspectSourceFile(file, extension) {
   if (!inTests && (testName || testCode)) {
     violations.push(`${file}: test code must live in a tests/ or __tests__/ directory`);
   }
-  if (extension === ".rs" || extension === ".py") {
+  if ([".rs", ".py", ".vue"].includes(extension)) {
     const lines = source.split("\n").filter((line) => line.trim()).length;
-    if (lines > 350) violations.push(`${file}: ${lines} nonblank lines exceeds the 350-line source limit`);
+    const limit = extension === ".vue" ? 180 : 350;
+    if (lines > limit)
+      violations.push(`${file}: ${lines} nonblank lines exceeds the ${limit}-line source limit`);
   }
   return violations;
 }

@@ -100,53 +100,18 @@ pub(super) fn workspace(app: &tauri::AppHandle, attempt_id: &str) -> Result<Path
 }
 
 pub(super) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u64), String> {
-    let mut file = fs::File::open(path).map_err(|error| error.to_string())?;
-    let mut bytes = [0_u8; 44];
-    file.read_exact(&mut bytes)
-        .map_err(|_| "FFmpeg source separation WAV header is truncated".to_string())?;
-    if bytes[0..4] != *b"RIFF"
-        || bytes[8..12] != *b"WAVE"
-        || bytes[12..16] != *b"fmt "
-        || u16::from_le_bytes(
-            bytes[20..22]
-                .try_into()
-                .map_err(|_| "WAV format is truncated")?,
-        ) != 1
-        || u16::from_le_bytes(
-            bytes[22..24]
-                .try_into()
-                .map_err(|_| "WAV channels are truncated")?,
-        ) != 2
-        || u32::from_le_bytes(
-            bytes[24..28]
-                .try_into()
-                .map_err(|_| "WAV rate is truncated")?,
-        ) != SAMPLE_RATE
-        || u16::from_le_bytes(
-            bytes[34..36]
-                .try_into()
-                .map_err(|_| "WAV depth is truncated")?,
-        ) != 16
-        || bytes[36..40] != *b"data"
-    {
+    let metadata = crate::media::wav::metadata(path)?;
+    let expected = super::super::audio_format::WavPrecision::Pcm16.spec(SAMPLE_RATE, 2);
+    if metadata.spec != expected {
         return Err("FFmpeg source separation audio is not 44.1 kHz stereo PCM16 WAV".into());
     }
-    let data_bytes = u64::from(u32::from_le_bytes(
-        bytes[40..44]
-            .try_into()
-            .map_err(|_| "WAV data size is truncated")?,
-    ));
-    let byte_length = file.metadata().map_err(|error| error.to_string())?.len();
-    if data_bytes.checked_add(44) != Some(byte_length) || data_bytes % 4 != 0 {
-        return Err("FFmpeg source separation WAV length differs".into());
-    }
-    let sample_count = data_bytes / 4;
+    let sample_count = metadata.sample_count;
     if sample_count == 0 || sample_count > MAX_SAMPLE_COUNT {
         return Err(
             "Source separation requires decoded audio lasting no more than ten minutes".into(),
         );
     }
-    Ok((byte_length, sample_count))
+    Ok((metadata.byte_length, sample_count))
 }
 
 pub(super) fn deadline(duration_ms: u64) -> Result<u64, String> {

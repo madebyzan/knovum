@@ -53,3 +53,16 @@ test("size policy caps handwritten and generated files by nonblank lines", (t) =
   assert.ok(violations.some((message) => /351 nonblank lines/.test(message)));
   assert.ok(violations.some((message) => /501 nonblank lines/.test(message)));
 });
+
+test("Vue size includes template and style, rather than only script", (t) => {
+  const root = fixture(t, {
+    "Dialog.vue":
+      '<script setup lang="ts">\nconst open = true;\n</script>\n<template>\n' +
+      "  <span>value</span>\n".repeat(180) +
+      "</template>\n",
+    "Small.vue": "<template>\n<div />\n</template>\n",
+  });
+  const violations = inspectSourceLayout(root);
+  assert.equal(violations.length, 1);
+  assert.match(violations[0], /Dialog\.vue: 185 nonblank lines exceeds the 180-line/);
+});

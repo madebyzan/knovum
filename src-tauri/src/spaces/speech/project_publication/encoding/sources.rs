@@ -78,23 +78,11 @@ pub(in crate::spaces::speech::project_publication) fn wav_sample_count(
     expected_rate: u32,
     precision: crate::spaces::speech::audio_format::WavPrecision,
 ) -> Result<u64, String> {
-    let reader = hound::WavReader::open(path).map_err(|error| error.to_string())?;
-    let spec = reader.spec();
-    let (bits, format) = match precision {
-        crate::spaces::speech::audio_format::WavPrecision::Pcm16 => (16, hound::SampleFormat::Int),
-        crate::spaces::speech::audio_format::WavPrecision::Pcm24 => (24, hound::SampleFormat::Int),
-        crate::spaces::speech::audio_format::WavPrecision::Float32 => {
-            (32, hound::SampleFormat::Float)
-        }
-    };
-    if spec.sample_rate != expected_rate
-        || spec.channels != 1
-        || spec.bits_per_sample != bits
-        || spec.sample_format != format
-    {
+    let metadata = crate::media::wav::metadata(path)?;
+    if metadata.spec != precision.spec(expected_rate, 1) {
         return Err("Speech WAV does not match the declared mono precision and sample rate".into());
     }
-    Ok(u64::from(reader.duration()))
+    Ok(metadata.sample_count)
 }
 
 pub(in crate::spaces::speech::project_publication) fn write_concat_file(

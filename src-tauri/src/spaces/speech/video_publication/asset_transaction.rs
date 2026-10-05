@@ -70,7 +70,7 @@ pub(super) async fn publish<R: Runtime>(
     let mux_part = part.clone();
     let mux_cancellation = cancellation.clone();
     let muxed = crate::blocking::run(move || {
-        super::media_pipeline::mux_video(
+        super::video_mux::mux_video(
             &mux_ffmpeg,
             &mux_source,
             &mux_audio,
@@ -93,7 +93,7 @@ pub(super) async fn publish<R: Runtime>(
         ) {
             verify_content_revision(path, revision)?;
         }
-        let final_video_us = super::media_pipeline::inspect_duration_us(
+        let final_video_us = crate::media::ffmpeg::duration_us(
             &verify_ffmpeg,
             &verify_part,
             "0:v:0",
@@ -102,7 +102,7 @@ pub(super) async fn publish<R: Runtime>(
         if final_video_us.abs_diff(video_duration_us) > 2_000 {
             return Err("Published video does not preserve the verified source EOF".into());
         }
-        let final_audio_us = super::media_pipeline::inspect_duration_us(
+        let final_audio_us = crate::media::ffmpeg::duration_us(
             &verify_ffmpeg,
             &verify_part,
             "0:a:0",

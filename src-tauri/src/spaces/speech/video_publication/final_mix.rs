@@ -1,4 +1,4 @@
-use super::{wav_stream, SAMPLE_RATE};
+use super::SAMPLE_RATE;
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -82,12 +82,14 @@ pub(super) fn mix_final(
         .arg(filter)
         .args(["-map", "[out]", "-c:a", "pcm_f32le", "-f", "wav"])
         .arg(output);
-    super::media_pipeline::run_ffmpeg(
+    crate::media::ffmpeg::run(
         &mut command,
         cancellation,
         "FFmpeg could not mix video dubbing audio",
     )?;
-    if wav_stream::sample_count(output, if background.is_some() { 2 } else { 1 })? != sample_count {
+    if super::policy::wav_sample_count(output, if background.is_some() { 2 } else { 1 })?
+        != sample_count
+    {
         return Err("Mixed video dubbing audio has an invalid duration".into());
     }
     Ok(())

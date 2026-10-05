@@ -1,10 +1,9 @@
-use crate::ai::transport::response;
+use crate::ai::transport::file_upload::{upload_file, UploadFile};
 use futures::future::BoxFuture;
-use reqwest::multipart::{Form, Part};
 
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    transport::{http_client, SecurityContext},
+    transport::SecurityContext,
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -19,35 +18,18 @@ impl FileUploadCapability for MoonshotFileUploadAdapter {
         file_name: &'a str,
     ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
-            let api_key = ctx.require_api_key()?;
-            let client = http_client();
-            let endpoint = moonshot_endpoint(&ctx.endpoint);
-            let upload_url = format!("{endpoint}/files");
-
-            let part = Part::bytes(bytes)
-                .file_name(file_name.to_string())
-                .mime_str(mime_type)
-                .map_err(|e| AppError::new("invalid_request", e.to_string()))?;
-
-            let form = Form::new()
-                .part("file", part)
-                .text("purpose", "file-extract");
-
-            let upload_response = client
-                .post(&upload_url)
-                .bearer_auth(api_key)
-                .multipart(form)
-                .send()
-                .await
-                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
-
-            if !upload_response.status().is_success() {
-                let error_text = response::read_text(upload_response).await?;
-                return Err(AppError::new("provider_request_failed", error_text));
-            }
-
-            let file_data: serde_json::Value =
-                response::read_json(upload_response, response::MAX_CONTROL_JSON_BYTES).await?;
+            let upload_url = format!("{}/files", moonshot_endpoint(&ctx.endpoint));
+            let file_data = upload_file(
+                ctx,
+                &upload_url,
+                UploadFile {
+                    bytes,
+                    mime_type,
+                    file_name,
+                },
+                "file-extract",
+            )
+            .await?;
 
             let file_id = file_data["id"]
                 .as_str()

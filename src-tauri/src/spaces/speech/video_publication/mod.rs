@@ -3,13 +3,13 @@ use std::fs;
 mod asset_transaction;
 mod dialogue_envelope;
 pub(in crate::spaces::speech) mod final_mix;
-pub(in crate::spaces::speech) mod media_pipeline;
 pub(in crate::spaces::speech) mod mixing;
 pub(in crate::spaces::speech) mod policy;
 mod recovery;
 #[cfg(test)]
 mod tests;
-mod wav_stream;
+mod video_mux;
+mod voice_lanes;
 
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
@@ -83,7 +83,7 @@ pub(super) async fn publish_video<R: Runtime>(
     let expected_video_ms = config.video.duration_ms;
     let inspect_cancellation = cancellation.clone();
     let video_duration_us = crate::blocking::run(move || {
-        media_pipeline::verified_duration_us(
+        policy::verified_duration_us(
             &inspect_ffmpeg,
             &inspect_video,
             "0:v:0",
@@ -98,7 +98,7 @@ pub(super) async fn publish_video<R: Runtime>(
         let expected_ms = source.duration_ms;
         let inspect_cancellation = cancellation.clone();
         crate::blocking::run(move || {
-            media_pipeline::verified_duration_us(
+            policy::verified_duration_us(
                 &inspect_ffmpeg,
                 &inspect_path,
                 "0:a:0",
@@ -108,7 +108,7 @@ pub(super) async fn publish_video<R: Runtime>(
         })
         .await?;
     }
-    let video_samples = media_pipeline::samples_for_duration(video_duration_us)?;
+    let video_samples = policy::samples_for_duration(video_duration_us)?;
     if let Some(output) =
         recovery::reusable_output(app, pool, project_id, revision_id, &digest, video_samples)
             .await?

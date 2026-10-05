@@ -1,6 +1,4 @@
 use std::{
-    cmp::Reverse,
-    collections::BinaryHeap,
     fs,
     path::{Path, PathBuf},
     process::Command,
@@ -14,13 +12,13 @@ use super::super::{
 };
 use super::{
     final_mix::{input_labels, mix_final, FinalMixSpec, MixOutput},
-    wav_stream, MAX_MIX_INPUTS, SAMPLE_RATE,
+    MAX_MIX_INPUTS, SAMPLE_RATE,
 };
 
 pub(in crate::spaces::speech) struct TimedRender {
-    render: SpeechSegmentRenderOutput,
-    start_sample: u64,
-    end_sample: u64,
+    pub(super) render: SpeechSegmentRenderOutput,
+    pub(super) start_sample: u64,
+    pub(super) end_sample: u64,
 }
 
 pub(in crate::spaces::speech) fn timed_renders(
@@ -130,15 +128,15 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
     for (index, item) in timed.iter().enumerate() {
         fitted.push(fit_render(ffmpeg, work, index, item, cancellation)?);
     }
-    let lanes = assign_lanes(timed);
+    let lanes = super::voice_lanes::assign(timed);
     let mut lane_paths = Vec::with_capacity(lanes.len());
     for (index, lane) in lanes.iter().enumerate() {
         if cancellation.is_cancelled() {
             return Err("cancelled".into());
         }
         let path = work.join(format!("lane-{index}.wav"));
-        write_lane(&path, lane, timed, &fitted, video_samples, cancellation)?;
-        if wav_stream::sample_count(&path, 1)? != video_samples {
+        super::voice_lanes::write(&path, lane, timed, &fitted, video_samples, cancellation)?;
+        if super::policy::wav_sample_count(&path, 1)? != video_samples {
             return Err("Video voice lane has an invalid duration".into());
         }
         lane_paths.push(path);
@@ -212,7 +210,7 @@ fn fit_render(
     let filter = format!(
         "aresample={SAMPLE_RATE},{tempo_filter}apad,atrim=end_sample={samples},aformat=sample_fmts=flt:channel_layouts=mono"
     );
-    super::media_pipeline::run_ffmpeg(
+    crate::media::ffmpeg::run(
         Command::new(ffmpeg)
             .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-n", "-i"])
             .arg(source)
@@ -230,69 +228,13 @@ fn fit_render(
         cancellation,
         "FFmpeg could not fit speech to its video window",
     )?;
-    if wav_stream::sample_count(&path, 1)? != samples {
+    if super::policy::wav_sample_count(&path, 1)? != samples {
         return Err(cleanup_failure(
             "Fitted speech does not match its target sample count".into(),
             &path,
         ));
     }
     Ok(path)
-}
-
-fn assign_lanes(timed: &[TimedRender]) -> Vec<Vec<usize>> {
-    let mut available = BinaryHeap::<Reverse<(u64, usize)>>::new();
-    let mut lanes: Vec<Vec<usize>> = Vec::new();
-    for (index, item) in timed.iter().enumerate() {
-        let lane = if let Some(Reverse((end, lane))) = available.peek().copied() {
-            if end <= item.start_sample {
-                available.pop();
-                lane
-            } else {
-                lanes.len()
-            }
-        } else {
-            0
-        };
-        if lane == lanes.len() {
-            lanes.push(Vec::new());
-        }
-        lanes[lane].push(index);
-        available.push(Reverse((item.end_sample, lane)));
-    }
-    lanes
-}
-
-fn write_lane(
-    path: &Path,
-    lane: &[usize],
-    timed: &[TimedRender],
-    fitted: &[PathBuf],
-    video_samples: u64,
-    cancellation: &CancellationToken,
-) -> Result<(), String> {
-    let part = path.with_extension("wav.part");
-    let data_bytes = video_samples
-        .checked_mul(4)
-        .ok_or("Video voice lane size overflow")?;
-    let mut output = fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&part)
-        .map_err(|error| error.to_string())?;
-    wav_stream::write_header(&mut output, data_bytes)?;
-    let mut cursor = 0_u64;
-    for index in lane {
-        wav_stream::write_silence(
-            &mut output,
-            timed[*index].start_sample - cursor,
-            cancellation,
-        )?;
-        wav_stream::copy_samples(&fitted[*index], &mut output, cancellation)?;
-        cursor = timed[*index].end_sample;
-    }
-    wav_stream::write_silence(&mut output, video_samples - cursor, cancellation)?;
-    output.sync_all().map_err(|error| error.to_string())?;
-    fs::rename(&part, path).map_err(|error| error.to_string())
 }
 
 fn reduce_mix_inputs(
@@ -335,7 +277,7 @@ fn mix_group(
         ))
         .args(["-map", "[out]", "-c:a", "pcm_f32le", "-f", "caf"])
         .arg(output);
-    super::media_pipeline::run_ffmpeg(
+    crate::media::ffmpeg::run(
         &mut command,
         cancellation,
         "FFmpeg could not combine video voice lanes",
