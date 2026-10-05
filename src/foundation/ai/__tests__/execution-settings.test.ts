@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { setDesktopAgentEnabled } from "../desktop-agent-settings";
+import { setDefaultExecutionTarget, setDesktopAgentEnabled } from "../execution-settings";
 import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
 
 const state = vi.hoisted(() => ({
@@ -35,4 +35,32 @@ it("restores the enabled Agent and its routes when saving fails", async () => {
   state.flush.mockRejectedValueOnce(failure);
   await expect(setDesktopAgentEnabled("codex", false)).rejects.toBe(failure);
   expect(state.settings).toEqual(previous);
+});
+
+it("queues route edits until a failed Agent mutation has rolled back", async () => {
+  let rejectSave!: (error: Error) => void;
+  state.flush.mockReturnValueOnce(
+    new Promise<void>((_resolve, reject) => {
+      rejectSave = reject;
+    }),
+  );
+  const disabling = setDesktopAgentEnabled("codex", false);
+  const failure = new Error("Agent save failed");
+  const result = disabling.catch((error: unknown) => error);
+  await vi.waitFor(() => expect(state.flush).toHaveBeenCalledOnce());
+  const target = { type: "agent", runtimeKind: "codex" } as const;
+  const route = setDefaultExecutionTarget("translation", target);
+  expect(state.settings.defaults.translation).toEqual({ type: "agent", runtimeKind: "gemini_cli" });
+  rejectSave(failure);
+  expect(await result).toBe(failure);
+  await route;
+  expect(state.settings.defaults.translation).toEqual(target);
+});
+
+it("restores only the changed route after persistence fails", async () => {
+  const previous = structuredClone(state.settings.defaults);
+  const failure = new Error("Route save failed");
+  state.flush.mockRejectedValueOnce(failure);
+  await expect(setDefaultExecutionTarget("writing", null)).rejects.toBe(failure);
+  expect(state.settings.defaults).toEqual(previous);
 });

@@ -58,6 +58,23 @@ describe("resource preparation task lifetime", () => {
     expect(useTaskStore().tasks[0]).toMatchObject({ status: "cancelled" });
   });
 
+  it("preserves a real preparation failure after cancellation was rejected", async () => {
+    let fail!: (error: Error) => void;
+    vi.mocked(prepareResources).mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        fail = reject;
+      }),
+    );
+    vi.mocked(cancelResourcePreparation).mockRejectedValueOnce(new Error("Cancellation rejected"));
+    const preparation = startResourcePreparation({ kind: "transcription" }, "Transcribe");
+    await expect(preparation.cancel()).rejects.toThrow("Cancellation rejected");
+    const failure = new Error("Disk write failed");
+    const result = preparation.completion.catch((error: unknown) => error);
+    fail(failure);
+    expect(await result).toBe(failure);
+    expect(useTaskStore().tasks[0]?.status).toBe("failed");
+  });
+
   it("restores a media tool request and observes its terminal state without another installation", async () => {
     const snapshot: ResourcePreparationSnapshot = {
       jobId: "resource:media-import",

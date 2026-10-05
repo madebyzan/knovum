@@ -37,9 +37,8 @@ function createPreset(): GenerationPreset | undefined {
     :save-label="t('spaces.creation.shared.presets.save')"
     :saved-success-message="t('spaces.creation.shared.presets.saved')"
     :save-disabled="!target || !name.trim()"
-    :select-presets="(library) => library.generationPresets.filter((preset) => preset.actionId === actionId)"
+    :action-id="actionId"
     :create-preset="createPreset"
-    :append-preset="(library, preset) => library.generationPresets.push(preset)"
     @apply="(preset) => emit('apply', preset)"
   />
 </template>

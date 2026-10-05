@@ -82,8 +82,9 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
   async function completeRecording(input: CompletedRecordingInput) {
     const { current, session, sessionGeneration, spaceId } = input;
     try {
-      await settleAudioRecording(current, recordingWriter.settle);
-      if (sessionGeneration === generation) cleanupMedia();
+      await settleAudioRecording(current, recordingWriter.settle).finally(() => {
+        if (sessionGeneration === generation) cleanupMedia();
+      });
       if (!isCurrent(sessionGeneration, spaceId)) return;
       if (recordingWriter.failure()) throw recordingWriter.failure();
       await saveRecording(session, sessionGeneration, spaceId);
@@ -97,10 +98,7 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
       }
       reportFailure(failure);
     } finally {
-      if (sessionGeneration === generation) {
-        cleanupMedia();
-        isSaving.value = false;
-      }
+      if (sessionGeneration === generation) isSaving.value = false;
     }
   }
 

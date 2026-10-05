@@ -1,6 +1,7 @@
 {
   "title": "外观",
   "description": "自定义主题、字号与界面密度。",
+  "saveFailed": "外观设置未能保存",
   "theme": {
     "label": "主题",
     "description": "自动同步操作系统的浅色或深色外观。"

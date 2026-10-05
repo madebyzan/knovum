@@ -1,6 +1,7 @@
 {
   "title": "Appearance",
   "description": "Customize theme, font scale, and layout density.",
+  "saveFailed": "Appearance settings could not be saved",
   "theme": {
     "label": "Theme",
     "description": "Automatically synchronize with system light or dark mode."

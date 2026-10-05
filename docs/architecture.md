@@ -256,6 +256,10 @@ Rename-only wrappers are rejected. `readClipboardText()` around Tauri `readText(
 
 Do not mirror the same state across several stores without an explicit synchronization design.
 
+`foundation/preferences/preferences-store` serializes preference changes and their native application
+before saving each snapshot. Its `flush` drains admitted changes and saves remaining dirty state;
+new changes are rejected during an application transition. Settings components own save-error presentation.
+
 For Spaces, SQLite Structure/Layout is the only authority for item identity, parentage, order,
 local transforms, Section frames, lock state, appearance and relation-style overrides. Content rows
 own knowledge payloads and source state. The Konva document is an ephemeral projection adapter and
@@ -457,15 +461,20 @@ distinguished from an ambiguous transport outcome.
 
 AI connection configuration, model edits and credential lifecycle belong to
 `foundation/ai/connection-settings`. `foundation/ai/settings-mutations` serializes connection/model
-edits, Agent toggles and reset through credential completion, and rejects new mutations during an
+edits, default-route changes, Agent toggles and reset through credential completion, and rejects new mutations during an
 application transition. The exit barrier drains admitted mutations before flushing settings.
 `integration-state` serializes load, save and reset, snapshots each saved revision, and clears errors
-on successful reset. `desktop-agent-settings` owns enablement: disabling an Agent clears defaults
+on successful reset. `execution-settings` owns default routing and Agent enablement: disabling an Agent clears defaults
 that reference it and restores its affected settings on persistence failure. Explicit creation presets
-remain user-owned and require their selected Agent to be enabled. Failures propagate to callers.
+remain user-owned and require their selected Agent to be enabled. Routing components emit intents;
+the owning capability applies and persists changes through the mutation queue. Failures propagate to callers.
 A credential save failure preserves committed configuration.
 A failed credential deletion restores the connection; independent restoration failure retains both
 causes in `AggregateError`. Settings components own drafts, confirmation and failure presentation.
+`creation-library-store` owns preset addition, editing, duplication and deletion. These synchronous
+mutations reuse `integration-state` revision saving and reject new changes and resets during an
+application transition. Preset components emit intents and report failed saves without discarding
+unsaved edits. Spaces' preset selector consumes this concrete generation-preset capability.
 
 Media container inspection and float sample streaming belong to `media/wav`, using the existing
 `hound` dependency. `media/ffmpeg` owns cancellable command execution and duration inspection.

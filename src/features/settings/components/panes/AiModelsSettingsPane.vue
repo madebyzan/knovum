@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
+import { computed, nextTick, onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
+import { setDefaultExecutionTarget } from "../../../../foundation/ai/execution-settings";
 import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
 import { resetAiSettings } from "../../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import type { AiRoutingDefaults } from "../../../../shared/contracts/generated/AiRoutingDefaults";
 import type { RoutingPurpose } from "../../../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
@@ -24,7 +27,7 @@ const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
 const { t } = useI18n();
 const aiStore = useAiSettingsStore();
 const creationStore = useCreationLibraryStore();
-const { settings, ready: aiReady, loadError, saveError } = storeToRefs(aiStore);
+const { settings, ready: aiReady, loadError } = storeToRefs(aiStore);
 const { ready: creationReady, loadError: creationLoadError } = storeToRefs(creationStore);
 const catalog = useQuery({
   queryKey: PROVIDER_CATALOG_KEY,
@@ -45,9 +48,13 @@ const failure = computed(() =>
 const ready = computed(() => aiReady.value && creationReady.value && !catalog.isPending.value);
 const { protectedConnectionIds, protectedModelTargets } = useProtectedExecutionTargets();
 
-watch(saveError, (error) => {
-  if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
-});
+async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTargetRef | null) {
+  try {
+    await setDefaultExecutionTarget(key, target);
+  } catch (error) {
+    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
+  }
+}
 
 async function hydrateStores() {
   await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
@@ -98,10 +105,11 @@ async function manageModels(purpose: RoutingPurpose) {
         :protected-model-targets="protectedModelTargets"
       />
       <AiRoutingSettings
-        v-model="settings.defaults"
+        :defaults="settings.defaults"
         :connections="settings.connections"
         :desktop-agents="settings.desktopAgents"
         @manage-models="manageModels"
+        @update-route="updateDefaultRoute"
       />
     </div>
   </div>
