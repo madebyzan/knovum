@@ -6,7 +6,7 @@ pub(crate) mod tracks;
 
 use super::{
     cancellation, publication,
-    video_publication::{final_mix::MixOutput, media_pipeline, mixing, policy},
+    video_publication::{final_mix::MixOutput, mixing, policy},
 };
 use crate::{
     app_error::AppError, file_inspection::verify_content_revision, local_resources::tools,
@@ -89,14 +89,14 @@ pub async fn export_video_dubbing_asset(
                         policy::verified_source(&app, &source.asset_path, &source.source_revision)
                     })
                     .transpose()?;
-                let duration = media_pipeline::verified_duration_us(
+                let duration = policy::verified_duration_us(
                     &ffmpeg,
                     &video,
                     "0:v:0",
                     config.video.duration_ms,
                     &cancellation,
                 )?;
-                let samples = media_pipeline::samples_for_duration(duration)?;
+                let samples = policy::samples_for_duration(duration)?;
                 let renders = renders
                     .into_iter()
                     .map(|render| publication::validate_cached(&app, render))

@@ -90,7 +90,7 @@ async function manageModels(purpose: RoutingPurpose) {
     <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
     <div class="grid gap-5">
       <AiConnectionsSettings
-        v-model="settings.connections"
+        :connections="settings.connections"
         :create-model-request="createModelRequest"
         :providers="providers"
         :protected-connection-ids="protectedConnectionIds"

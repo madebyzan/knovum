@@ -75,8 +75,7 @@ fn multiple_language_tracks_preserve_duration_and_stream_metadata() {
     )
     .unwrap();
     for stream in ["0:v:0", "0:a:0", "0:a:1", "0:a:2"] {
-        let duration =
-            media_pipeline::verified_duration_us(&tool, &output, stream, 2000, &cancel).unwrap();
+        let duration = policy::verified_duration_us(&tool, &output, stream, 2000, &cancel).unwrap();
         assert!(
             (1_900_000..=2_100_000).contains(&duration),
             "Wrong {stream} duration: {duration}"

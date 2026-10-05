@@ -3,7 +3,7 @@ use super::super::{
     publication::hash_file,
     video_config::{SourceDialogueInterval, SpeechMediaSource, VideoDubbingOutputConfig},
 };
-use super::{final_mix::MixOutput, media_pipeline, mixing, SAMPLE_RATE};
+use super::{final_mix::MixOutput, mixing, video_mux, SAMPLE_RATE};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -182,7 +182,7 @@ fn mux_retains_original_track_without_shortening_video() {
     let voice = work.child("voice.wav");
     wave(&voice, 2, &[0.1]);
     let output = work.child("dub.mp4");
-    media_pipeline::mux_video(
+    video_mux::mux_video(
         &tool,
         &video,
         &voice,
@@ -192,11 +192,11 @@ fn mux_retains_original_track_without_shortening_video() {
     )
     .unwrap();
     let duration =
-        media_pipeline::inspect_duration_us(&tool, &output, "0:v:0", &CancellationToken::new())
+        crate::media::ffmpeg::duration_us(&tool, &output, "0:v:0", &CancellationToken::new())
             .unwrap();
     assert!(duration >= 1_900_000);
     assert!(
-        media_pipeline::inspect_duration_us(&tool, &output, "0:a:1", &CancellationToken::new())
+        crate::media::ffmpeg::duration_us(&tool, &output, "0:a:1", &CancellationToken::new())
             .unwrap()
             >= 1_900_000
     );

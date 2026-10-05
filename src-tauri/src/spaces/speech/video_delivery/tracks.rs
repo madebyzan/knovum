@@ -1,8 +1,4 @@
-use super::super::{
-    cancellation,
-    publication::hash_file,
-    video_publication::{media_pipeline, policy},
-};
+use super::super::{cancellation, publication::hash_file, video_publication::policy};
 use super::{contracts::ExportVideoAudioTracksRequest, files, repository};
 use crate::{
     app_error::AppError,
@@ -194,7 +190,7 @@ fn mux_tracks(
         ])
         .args(["-t", &format!("{:.3}", duration_ms as f64 / 1000.0)])
         .arg(output);
-    media_pipeline::run_ffmpeg(
+    crate::media::ffmpeg::run(
         &mut command,
         cancellation,
         "Could not export video audio tracks",

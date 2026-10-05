@@ -389,7 +389,7 @@ Knovum targets Tauri desktop only. Required startup infrastructure fails explici
 
 ## Size/complexity gates
 
-Oxlint fails at 180 non-blank/non-comment lines per TS/Vue file, complexity above 10 and other correctness rules. These are ceilings, not targets. Function length is reviewed through responsibility, dependency direction and complexity instead of a physical line-count limit. dependency-cruiser, Knip and jscpd catch architecture violations, dead code and substantial copy/paste duplication.
+Oxlint fails at 180 non-blank/non-comment lines per TypeScript file or Vue script, complexity above 10 and other correctness rules. The source-layout gate additionally caps each complete Vue SFC, including template and style, at 180 nonblank lines. These are ceilings, not targets. Function length is reviewed through responsibility, dependency direction and complexity instead of a physical line-count limit. dependency-cruiser, Knip and jscpd catch architecture violations, dead code and substantial copy/paste duplication.
 
 No source path alias is configured. Relative paths intentionally expose ownership and dependency direction.
 
@@ -454,6 +454,18 @@ Tauri owns transport, serialization and Channels. It does not own UI notificatio
 query caching, retries, cancellation or business recovery. The Spaces mutation receipt
 protocol remains in `structure/confirmed-mutation`, where explicit command failures are
 distinguished from an ambiguous transport outcome.
+
+AI connection configuration, model edits and credential lifecycle belong to
+`foundation/ai/connection-settings`. Its private queue serializes catalog edits through credential
+completion; failures propagate to callers. A credential save failure preserves committed configuration.
+A failed credential deletion restores the connection; independent restoration failure retains both
+causes in `AggregateError`. Settings components own drafts, confirmation and failure presentation.
+
+Media container inspection and float sample streaming belong to `media/wav`, using the existing
+`hound` dependency. `media/ffmpeg` owns cancellable command execution and duration inspection.
+Speech owns expected format policy, dubbing lanes, track metadata and publication. Project publication
+coordinates asset staging and cleanup; its assembly module performs normalization and encoding in one
+blocking task. Generic media code does not depend on Spaces.
 
 Vue components and presentation modules consume capability-owned operations or query
 options, never the application command transport. For example, `video-editing/font-catalog`
@@ -521,5 +533,5 @@ and runs fixture-based policy regressions before inspecting the checkout.
 
 Rust and Python source files are limited to 350 nonblank lines, including generated Python
 contracts. Split by responsibility; keep bindings as reproducible modular generator output.
-Frontend files retain the Oxc 180-line and complexity limits. Declarative schemas, static fixtures and documentation
+Frontend files retain the Oxc 180-line and complexity limits; complete Vue SFCs also have a 180-nonblank-line source-layout ceiling. Declarative schemas, static fixtures and documentation
 are maintained according to their own contracts.

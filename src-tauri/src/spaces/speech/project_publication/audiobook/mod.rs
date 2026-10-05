@@ -108,8 +108,6 @@ pub(super) fn chapter_digest(
         digest.update(chapter.sha256.as_bytes());
         digest.update(chapter.sample_count.to_le_bytes());
     }
-    if let Ok(encoded) = serde_json::to_vec(output_config) {
-        digest.update(encoded);
-    }
+    digest.update(output_config.to_string().as_bytes());
     format!("{:x}", digest.finalize())
 }

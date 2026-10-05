@@ -3,7 +3,7 @@ import { Pencil, Plus, Trash2 } from "@lucide/vue";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
+import { removeAiConnectionModel, saveAiConnectionModel } from "../../../foundation/ai/connection-settings";
 import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import { requireProvider } from "../../../foundation/ai/providers";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -24,7 +24,6 @@ const props = defineProps<{
   createRequest?: { purpose: RoutingPurpose } | undefined;
 }>();
 const { t } = useI18n();
-const store = useAiSettingsStore();
 const selected = shallowRef<string | null>();
 const dirty = shallowRef(false);
 const busy = shallowRef(false);
@@ -88,24 +87,15 @@ async function saveModel(model: AiModelDefinition) {
   const connection = props.connection;
   busy.value = true;
   error.value = "";
-  const index = connection.models.findIndex(({ id }) => id === model.id);
   if (connection.models.some(({ id, model: identifier }) => id !== model.id && identifier === model.model)) {
     error.value = t("settings.ai.duplicateModelIdentifier");
     busy.value = false;
     return;
   }
-  const previous = index >= 0 ? connection.models[index] : undefined;
-  if (index >= 0) connection.models[index] = model;
-  else connection.models.push(model);
   try {
-    await store.flush();
+    await saveAiConnectionModel(connection.id, model);
     closeEditor();
   } catch (cause) {
-    if (previous) connection.models[index] = previous;
-    else {
-      const addedIndex = connection.models.findIndex(({ id }) => id === model.id);
-      if (addedIndex >= 0) connection.models.splice(addedIndex, 1);
-    }
     error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
@@ -124,16 +114,9 @@ async function removeModel(model: AiModelDefinition) {
   if (!confirmed) return;
   busy.value = true;
   error.value = "";
-  const index = connection.models.findIndex(({ id }) => id === model.id);
-  if (index < 0) {
-    busy.value = false;
-    return;
-  }
-  connection.models.splice(index, 1);
   try {
-    await store.flush();
+    await removeAiConnectionModel(connection.id, model.id);
   } catch (cause) {
-    connection.models.splice(index, 0, model);
     error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
