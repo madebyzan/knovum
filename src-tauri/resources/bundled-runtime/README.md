@@ -43,7 +43,7 @@ import. yt-dlp is the sole web media importer; Deno is supplied explicitly for y
 JavaScript challenge support.
 
 `pnpm runtime:provision` stages separately pinned FFmpeg and Python runtime archives and rejects archives
-that contain yt-dlp or Deno. `tools/package-desktop.mjs` applies the same boundary and enumerates the
+that contain yt-dlp or Deno. `scripts/desktop/package.mjs` applies the same boundary and enumerates the
 current target's files instead of using a catch-all glob.
 
 The runtime installer verifies the downloaded archive hash and extracted executable hash before

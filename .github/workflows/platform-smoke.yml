@@ -5,7 +5,7 @@ on:
     paths:
       - "src/**"
       - "src-tauri/**"
-      - "tools/**"
+      - "scripts/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "vite.config.ts"
@@ -37,7 +37,7 @@ jobs:
           check-latest: false
       - uses: ./.github/actions/setup-protoc
       - name: Test desktop launcher and configuration
-        run: node --test tools/desktop/__tests__/tauri.test.mjs tools/desktop/__tests__/tauri-config.test.mjs
+        run: node --test scripts/desktop/__tests__/tauri.test.mjs scripts/desktop/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         shell: bash
         run: |

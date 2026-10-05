@@ -54,7 +54,7 @@ rejects archives containing yt-dlp or Deno because those tools do not belong to 
 
 `python-runtime/runtime-manifest.json` enumerates every interpreter, extension and package file
 with exact size and SHA-256, and binds the package to the exact `python/uv.lock` digest.
-The runtime producer calls `tools/runtime/write-manifest.mjs` after signing the interpreter and native
+The runtime producer calls `scripts/runtime/write-manifest.mjs` after signing the interpreter and native
 extensions. This is an internal publication step, not a separate developer command.
 Build-time provisioning rejects links, undeclared files and an
 incorrect platform or protocol identity. Rust repeats the complete verification before launching
@@ -83,7 +83,7 @@ blocked until the distribution review records the exact target wheels, source ar
 installation information, license texts and notices. The corresponding-source bundle must include
 the sherpa 1.13.8 source plus its exact pinned eSpeak NG and piper-phonemize sources; the separate
 `espeak-ng-data` archive also needs source provenance matching the conveyed bytes. A source URL or
-hash is evidence material, not legal approval. `tools/desktop/package.mjs` must continue to fail a
+hash is evidence material, not legal approval. `scripts/desktop/package.mjs` must continue to fail a
 production build while that decision is unresolved.
 
 Background removal uses ONNX Runtime inside the private Python worker. U²-Net is a verified on-demand model resource; Rust owns image decoding, preprocessing, mask composition, and output publication.
@@ -91,11 +91,11 @@ Background removal uses ONNX Runtime inside the private Python worker. U²-Net i
 The provision command requires `KNOVUM_FFMPEG_<TARGET>_URL` / `_SHA256` and
 `KNOVUM_PYTHON_RUNTIME_<TARGET>_URL` / `_SHA256`; the optional
 `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` secret supplies an Authorization header for a private
-artifact host. `tools/runtime/provision.mjs` owns build-time provisioning for FFmpeg and
+artifact host. `scripts/runtime/provision.mjs` owns build-time provisioning for FFmpeg and
 the controlled Python runtime. On-demand yt-dlp/Deno installation belongs to
 `src-tauri/src/local_resources/tools/`; build scripts do not implement a second installer.
 
-All `pnpm package` invocations route through `tools/desktop/package.mjs`. It validates the runtime,
+All `pnpm package` invocations route through `scripts/desktop/package.mjs`. It validates the runtime,
 rejects on-demand tools in the resource tree, and passes Tauri an explicit file list for exactly one
 target plus the media import manifest. `src-tauri/tauri.conf.json` deliberately has no catch-all bundled-runtime glob, so
 a macOS package cannot accidentally contain Windows binaries or the other macOS architecture (and
@@ -104,7 +104,7 @@ vice versa).
 ## Controlled Python runtime producer
 
 `pnpm runtime:build --output <fresh-directory> --signing <adhoc|unsigned|production>`
-invokes `tools/runtime/build_python.py` with the frozen `publication` development group and
+invokes `scripts/runtime/build_python.py` with the frozen `publication` development group and
 runs only on macOS ARM64 or Windows x64. `python/runtime-source.json` pins the exact
 CPython 3.11.17 standalone release assets, size and SHA-256 for both native targets,
 independently of uv's managed-interpreter catalog. uv 0.12.23 exports the frozen

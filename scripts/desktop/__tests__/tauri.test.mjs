@@ -16,11 +16,11 @@ import test from "node:test";
 function fixture(context) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "knovum tauri runner ")));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  const tools = join(root, "tools", "desktop");
+  const scriptDirectory = join(root, "scripts", "desktop");
   const cli = join(root, "node_modules", "@tauri-apps", "cli");
-  mkdirSync(tools, { recursive: true });
+  mkdirSync(scriptDirectory, { recursive: true });
   mkdirSync(cli, { recursive: true });
-  copyFileSync(new URL("../tauri.mjs", import.meta.url), join(tools, "tauri.mjs"));
+  copyFileSync(new URL("../tauri.mjs", import.meta.url), join(scriptDirectory, "tauri.mjs"));
   writeFileSync(join(cli, "package.json"), JSON.stringify({ name: "@tauri-apps/cli" }));
   writeFileSync(
     join(cli, "tauri.js"),
@@ -37,7 +37,7 @@ function fixture(context) {
   return {
     root,
     run: (args, overrides = {}) =>
-      spawnSync(process.execPath, [join(tools, "tauri.mjs"), ...args], {
+      spawnSync(process.execPath, [join(scriptDirectory, "tauri.mjs"), ...args], {
         cwd: tmpdir(),
         env: { ...env, ...overrides },
         encoding: "utf8",

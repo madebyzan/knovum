@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def main() -> None:
-    # Isolated Python excludes tools/ from sys.path; authorize this tool package only.
+    # Isolated Python excludes scripts/ from sys.path; authorize this tool package only.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from runtime.signing import verify_runtime
 

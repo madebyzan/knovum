@@ -118,7 +118,7 @@ Spaces authorizes media assets and FFmpeg decodes each source revision to a 16 k
 
 Bundled FFmpeg and Python runtime discovery is centralized in `src-tauri/src/local_resources/tools/mod.rs`. Release/runtime configuration is explicit:
 
-During local desktop development, `tools/desktop/tauri.mjs` binds these variables to the single
+During local desktop development, `scripts/desktop/tauri.mjs` binds these variables to the single
 provisioned host runtime before launching Tauri. Packaged builds continue to resolve the same tools
 from their target-specific application resource directory.
 

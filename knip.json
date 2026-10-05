@@ -4,14 +4,14 @@
     "tests/e2e/**/*.e2e.ts",
     "src/foundation/secrets/secret-store.ts",
     "src/**/*.css",
-    "tools/*/__tests__/*.test.mjs",
-    "tools/*/__tests__/*.integration.mjs"
+    "scripts/*/__tests__/*.test.mjs",
+    "scripts/*/__tests__/*.integration.mjs"
   ],
   "project": [
     "src/**/*.{ts,tsx,vue}",
     "src/**/*.css",
     "tests/e2e/**/*.ts",
-    "tools/**/*.mjs",
+    "scripts/**/*.mjs",
     "*.config.{ts,mts,cjs,mjs}",
     ".*.cjs"
   ],

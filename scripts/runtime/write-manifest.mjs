@@ -9,7 +9,7 @@ const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
 if (args.length !== 4 || args[0] !== "--target" || args[2] !== "--directory") {
   throw new Error(
-    "Usage: node tools/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime>",
+    "Usage: node scripts/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime>",
   );
 }
 const target = args[1];

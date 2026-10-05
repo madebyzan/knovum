@@ -55,8 +55,8 @@ strict = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "tests", "../tools"]
-testpaths = ["tests", "../tools"]
+pythonpath = ["src", "tests", "../scripts"]
+testpaths = ["tests", "../scripts"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/knovum_inference"]

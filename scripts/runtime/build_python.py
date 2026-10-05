@@ -262,7 +262,7 @@ def build(output: Path, signing: str) -> None:
         (relocated / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
         run(
             "node",
-            str(REPOSITORY / "tools/runtime/write-manifest.mjs"),
+            str(REPOSITORY / "scripts/runtime/write-manifest.mjs"),
             "--target",
             target,
             "--directory",
