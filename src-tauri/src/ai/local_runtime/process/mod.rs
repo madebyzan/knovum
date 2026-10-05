@@ -1,0 +1,214 @@
+mod startup;
+use std::{
+    path::{Path, PathBuf},
+    sync::{Mutex, OnceLock},
+    time::{Duration, Instant},
+};
+
+#[cfg(windows)]
+use std::sync::Arc;
+
+use tokio::process::Child;
+
+use super::protocol::Protocol;
+use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeHealthParams, RuntimeHealthResult};
+
+#[cfg(windows)]
+#[path = "windows_job.rs"]
+mod windows_job;
+#[cfg(windows)]
+use windows_job::WindowsJob;
+
+pub(super) struct Worker {
+    pub(super) child: Child,
+    process_tree: ProcessTree,
+    memory_reservation: Option<super::admission::MemoryReservation>,
+    _kill_registration: KillRegistration,
+    pub(super) protocol: Protocol,
+    pub(super) session_id: String,
+    pub(super) runtime_digest: String,
+    pub(super) model_path: PathBuf,
+    pub(super) capability: RuntimeCapability,
+    pub(super) capability_spec_id: String,
+    pub(super) device_profile: crate::ai::contracts::runtime::RuntimeDeviceProfile,
+    work_directory: PathBuf,
+    pub(super) last_used: Instant,
+}
+
+impl Worker {
+    pub(super) fn work_directory(&self) -> &Path {
+        &self.work_directory
+    }
+
+    pub(super) fn matches(
+        &self,
+        runtime_digest: &str,
+        model_path: &Path,
+        capability: RuntimeCapability,
+        capability_spec_id: &str,
+        device_profile: &crate::ai::contracts::runtime::RuntimeDeviceProfile,
+    ) -> bool {
+        self.runtime_digest == runtime_digest
+            && self.model_path == model_path
+            && self.capability == capability
+            && self.capability_spec_id == capability_spec_id
+            && self.device_profile == *device_profile
+    }
+
+    pub(super) async fn resident_bytes(&mut self) -> Result<u64, String> {
+        let request_id = uuid::Uuid::new_v4().to_string();
+        let result = tokio::time::timeout(
+            Duration::from_secs(2),
+            self.protocol.request::<_, RuntimeHealthResult>(
+                &request_id,
+                "runtime.health",
+                &RuntimeHealthParams {
+                    session_id: self.session_id.clone(),
+                },
+            ),
+        )
+        .await
+        .map_err(|_| "deadline_exceeded: runtime health timed out".to_owned())??;
+        if result.session_id != self.session_id || result.current_request_id.is_some() {
+            return Err("invalid_output: runtime health identity or worker state differs".into());
+        }
+        if result.resident_bytes == 0 {
+            return Err("invalid_output: runtime health reported zero resident memory".into());
+        }
+        Ok(result.resident_bytes)
+    }
+
+    pub(super) async fn terminate(&mut self) {
+        self.process_tree.terminate();
+        self._kill_registration.clear();
+        let _ = self.child.kill().await;
+        let _ = self.child.wait().await;
+        let _ = tokio::fs::remove_dir_all(&self.work_directory).await;
+        if let Some(mut reservation) = self.memory_reservation.take() {
+            reservation.release();
+        }
+    }
+}
+
+impl Drop for Worker {
+    fn drop(&mut self) {
+        self.process_tree.terminate();
+        self._kill_registration.clear();
+    }
+}
+
+struct ProcessTree(Option<KillHandle>);
+
+#[derive(Clone)]
+enum KillHandle {
+    #[cfg(unix)]
+    ProcessGroup(i32),
+    #[cfg(windows)]
+    Job(Arc<WindowsJob>),
+}
+
+static ACTIVE_KILL: OnceLock<Mutex<Option<(String, KillHandle)>>> = OnceLock::new();
+
+struct KillRegistration {
+    session_id: String,
+}
+
+impl KillRegistration {
+    fn new(session_id: &str, handle: KillHandle) -> Self {
+        let registry = ACTIVE_KILL.get_or_init(|| Mutex::new(None));
+        if let Ok(mut active) = registry.lock() {
+            *active = Some((session_id.to_owned(), handle));
+        }
+        Self {
+            session_id: session_id.to_owned(),
+        }
+    }
+
+    fn clear(&self) {
+        if let Some(registry) = ACTIVE_KILL.get() {
+            if let Ok(mut active) = registry.lock() {
+                if active
+                    .as_ref()
+                    .is_some_and(|(id, _)| id == &self.session_id)
+                {
+                    *active = None;
+                }
+            }
+        }
+    }
+}
+
+impl Drop for KillRegistration {
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
+pub(super) fn force_terminate_active() {
+    if let Some(registry) = ACTIVE_KILL.get() {
+        if let Ok(active) = registry.lock() {
+            if let Some((_, handle)) = active.as_ref() {
+                handle.terminate();
+            }
+        }
+    }
+}
+
+impl KillHandle {
+    fn terminate(&self) {
+        #[cfg(unix)]
+        {
+            let Self::ProcessGroup(group) = self;
+            unsafe extern "C" {
+                fn kill(pid: i32, signal: i32) -> i32;
+            }
+            let _ = unsafe { kill(-group, 9) };
+        }
+        #[cfg(windows)]
+        {
+            let Self::Job(job) = self;
+            job.terminate();
+        }
+    }
+}
+
+impl ProcessTree {
+    fn new(child: &Child, #[cfg(windows)] job: WindowsJob) -> Result<Self, String> {
+        #[cfg(unix)]
+        let process_group = i32::try_from(
+            child
+                .id()
+                .ok_or("worker_crashed: worker process id unavailable")?,
+        )
+        .map_err(|_| "worker_crashed: worker process id exceeds platform range")?;
+        Ok(Self(Some({
+            #[cfg(unix)]
+            {
+                KillHandle::ProcessGroup(process_group)
+            }
+            #[cfg(windows)]
+            {
+                KillHandle::Job(Arc::new(job))
+            }
+        })))
+    }
+
+    fn handle(&self) -> KillHandle {
+        self.0
+            .as_ref()
+            .expect("process tree has a kill handle")
+            .clone()
+    }
+
+    fn terminate(&mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.terminate();
+        }
+    }
+}
+
+impl Drop for ProcessTree {
+    fn drop(&mut self) {
+        self.terminate();
+    }
+}

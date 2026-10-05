@@ -484,3 +484,14 @@ contracts are not edited independently.
 Independent Renderer runtime schemas use the owning capability or model’s `schema/<subject>.ts` layout, as specified in `naming-conventions.md`. Generated IPC contracts and database baselines retain their separate boundaries. In Rust, `spaces/knowledge/object_types/` owns custom Knowledge Type lifecycle and decoding; it is not a generic type container. Retrieval index schemas own Arrow structure, while `retrieval/validation.rs` owns query-vector input policy.
 
 Canvas editor/surface interfaces belong to `canvas/contracts/`; pure preview policy belongs to `canvas/preview/`. Workspace persistence state belongs to `workspace/`. Knowledge object type editing belongs to `knowledge/object-types/`, not a generic TypeScript types folder.
+
+## Source layout and size
+
+`naming-conventions.md` owns sibling-name uniqueness and test-directory conventions.
+`pnpm check:source-layout` verifies repository entry directories and all source roots,
+and runs fixture-based policy regressions before inspecting the checkout.
+
+Handwritten Rust and Python files are limited to 350 nonblank lines. Split by responsibility;
+keep protocol-generated bindings as reproducible generator output. Frontend files retain the
+Oxc 180-line and complexity limits. Declarative schemas, static fixtures and documentation
+are maintained according to their own contracts.

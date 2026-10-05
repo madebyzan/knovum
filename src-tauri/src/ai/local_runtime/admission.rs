@@ -258,5 +258,5 @@ impl Drop for Permit {
 }
 
 #[cfg(test)]
-#[path = "admission_tests.rs"]
+#[path = "tests/admission.rs"]
 mod tests;

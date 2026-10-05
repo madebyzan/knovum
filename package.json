@@ -45,7 +45,7 @@
     "smoke:cutout": "pnpm smoke:cutout:build && wdio run wdio.release.conf.ts",
     "check:capabilities": "node tools/check-capability-policy.mjs",
     "check:rust-boundaries": "node tools/check-rust-boundaries.mjs",
-    "check:source-layout": "node tools/check-source-layout.mjs"
+    "check:source-layout": "node --test tools/__tests__/source-layout.test.mjs && node tools/check-source-layout.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
