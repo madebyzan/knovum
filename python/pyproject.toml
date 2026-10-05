@@ -47,7 +47,7 @@ extend-exclude = ["**/knovum_inference/contracts/generated"]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["knovum_inference", "acceptance", "runtime_packaging", "generate_python_contracts"]
+known-first-party = ["knovum_inference", "acceptance", "runtime", "generate_python_contracts"]
 
 [tool.mypy]
 python_version = "3.11"

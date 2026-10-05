@@ -8,15 +8,19 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 import tempfile
 import tomllib
 from pathlib import Path
 
-from runtime_packaging.artifacts import archive_runtime, digest, download, extract_python
-from runtime_packaging.inventory import write_inventory
-from runtime_packaging.signing import sign_runtime
+# Standalone and isolated execution authorize only this repository-owned tooling package.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-REPOSITORY = Path(__file__).resolve().parents[1]
+from runtime.artifacts import archive_runtime, digest, download, extract_python
+from runtime.inventory import write_inventory
+from runtime.signing import sign_runtime
+
+REPOSITORY = Path(__file__).resolve().parents[2]
 PROJECT = REPOSITORY / "python"
 ISOLATED_PYTHON_ARGS = ("-I", "-B", "-X", "utf8")
 

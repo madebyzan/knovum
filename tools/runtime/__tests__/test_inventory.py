@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from runtime_packaging.inventory import interpreter_inventory, write_inventory
+from runtime.inventory import interpreter_inventory, write_inventory
 
 
 def sha256(path: Path) -> str:

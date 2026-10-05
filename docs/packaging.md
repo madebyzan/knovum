@@ -104,7 +104,7 @@ vice versa).
 ## Controlled Python runtime producer
 
 `pnpm runtime:build --output <fresh-directory> --signing <adhoc|unsigned|production>`
-invokes `tools/build_python_runtime.py` with the frozen `publication` development group and
+invokes `tools/runtime/build_python.py` with the frozen `publication` development group and
 runs only on macOS ARM64 or Windows x64. `python/runtime-source.json` pins the exact
 CPython 3.11.17 standalone release assets, size and SHA-256 for both native targets,
 independently of uv's managed-interpreter catalog. uv 0.12.23 exports the frozen
