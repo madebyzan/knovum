@@ -41,6 +41,24 @@ Full workstation and installer guidance: `docs/installation.md`.
 
 After the first successful install/build, commit both `pnpm-lock.yaml` and `src-tauri/Cargo.lock`.
 
+## Daily commands
+
+| Task                                | Command            |
+| ----------------------------------- | ------------------ |
+| Develop the desktop app             | `pnpm desktop:dev` |
+| Verify all code                     | `pnpm check`       |
+| Run frontend unit tests             | `pnpm test`        |
+| Format frontend/configuration files | `pnpm format`      |
+| Build the host's QA installers      | `pnpm package`     |
+
+Use flags for variants: `pnpm lint --fix`, `pnpm format --check`,
+`pnpm package --bundles msi`, or `pnpm package --release` with production signing configured.
+Focused gates remain `check:web`, `check:rust`, and `check:python`.
+`dev` and `build` are Vite hooks used by Tauri, not independent supported product runtimes.
+Specialized runtime, E2E and contract commands and every internal tool are described in
+[tools/README.md](tools/README.md). Signing and native acceptance follow
+[docs/packaging.md](docs/packaging.md) and [docs/release.md](docs/release.md).
+
 ## Gates
 
 ```bash

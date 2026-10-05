@@ -181,7 +181,7 @@ channel commit; fix/purge its cache and repeat the same promotion rather than re
 ## Signing decision and environment ownership
 
 Updater signatures and operating-system publisher signatures are separate requirements.
-`pnpm package:release` generates valid Tauri updater configuration before plugin initialization,
+`pnpm package --release` generates valid Tauri updater configuration before plugin initialization,
 requires a signing key and builds Cargo with its lockfile. Ordinary QA packages remain updater-disabled
 regardless of inherited updater environment variables. Missing production configuration fails the
 build; it never produces a silently disabled production updater.

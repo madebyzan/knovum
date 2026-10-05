@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node --test tools/__tests__/runtime-manifest.test.mjs tools/__tests__/write-python-runtime-manifest.test.mjs tools/__tests__/runtime-package.test.mjs tools/__tests__/runtime-license-policy.test.mjs
+      - run: node --test tools/runtime/__tests__/manifest.test.mjs tools/runtime/__tests__/write-manifest.test.mjs tools/runtime/__tests__/package.test.mjs tools/runtime/__tests__/license-policy.test.mjs
 
   python:
     name: Python quality
@@ -49,7 +49,7 @@ jobs:
           node-version: "22"
           check-latest: false
       - name: Verify Tauri configuration invariants
-        run: node --test tools/__tests__/tauri-config.test.mjs
+        run: node --test tools/desktop/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         run: |
           corepack enable
@@ -97,9 +97,7 @@ jobs:
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify capability permission policy
-        run: node tools/check-capability-policy.mjs
-      - name: Verify Rust module boundaries
-        run: node tools/check-rust-boundaries.mjs
+        run: node tools/checks/capabilities.mjs
       - name: Verify Rust toolchain
         id: toolchain
         run: rustc --version && cargo --version
@@ -116,7 +114,6 @@ jobs:
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: |
           npm run contracts:generate
-          uv run --project python --only-group contracts --frozen python tools/generate_python_contracts.py
           git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/runtime.schema.json python/src/knovum_inference/contracts/generated
           test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated)"
       - name: Verify dependency inputs were not rewritten

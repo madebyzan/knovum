@@ -15,14 +15,14 @@ jobs:
         include:
           - name: macOS
             os: macos-15
-            command: pnpm package:macos
+            command: pnpm package --bundles app,dmg
             artifact: knovum-macos-qa
             paths: |
               src-tauri/target/release/bundle/dmg/*.dmg
               src-tauri/target/release/bundle/macos/*.app
           - name: Windows
             os: windows-2025
-            command: pnpm package:windows
+            command: pnpm package --bundles nsis
             artifact: knovum-windows-qa
             paths: |
               src-tauri/target/release/bundle/nsis/*-setup.exe
