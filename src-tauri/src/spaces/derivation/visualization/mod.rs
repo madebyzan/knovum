@@ -91,7 +91,7 @@ async fn execute(
     target: &TaskExecutionTarget,
     stages: &Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<VisualizationResult, AppError> {
+) -> Result<VisualizationContent, AppError> {
     stage(stages, "retrieving")?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
@@ -141,10 +141,10 @@ async fn execute(
             cancellation,
         )
         .await
-        .map(VisualizationResult::from),
+        .map(VisualizationContent::from),
         TaskExecutionTarget::Agent { runtime_kind } => {
             let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio.as_str()), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
-            Ok(VisualizationResult {
+            Ok(VisualizationContent {
                 bytes,
                 execution_source: ExecutionSource::Agent {
                     runtime_kind: *runtime_kind,
@@ -155,13 +155,13 @@ async fn execute(
     }
 }
 
-pub(super) struct VisualizationResult {
+pub(super) struct VisualizationContent {
     bytes: Vec<u8>,
     execution_source: ExecutionSource,
     revised_prompt: Option<String>,
 }
 
-impl From<GeneratedImage> for VisualizationResult {
+impl From<GeneratedImage> for VisualizationContent {
     fn from(image: GeneratedImage) -> Self {
         Self {
             bytes: image.bytes,

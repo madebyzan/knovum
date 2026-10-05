@@ -13,7 +13,7 @@ pub(super) fn part_path(path: &Path) -> PathBuf {
 }
 
 pub(super) fn finish_assembly(
-    result: Result<SpeechAudioOutput, String>,
+    assembly: Result<SpeechAudioOutput, String>,
     part: &Path,
     work_directory: &Path,
 ) -> Result<SpeechAudioOutput, String> {
@@ -31,7 +31,7 @@ pub(super) fn finish_assembly(
             ));
         }
     }
-    match (result, cleanup_errors.is_empty()) {
+    match (assembly, cleanup_errors.is_empty()) {
         (Ok(output), true) => Ok(output),
         (Ok(_), false) => Err(cleanup_errors.join("; ")),
         (Err(error), true) => Err(error),

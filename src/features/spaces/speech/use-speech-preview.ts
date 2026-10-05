@@ -3,10 +3,11 @@ import { readonly, shallowRef } from "vue";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { SpeechAudioOutput } from "../contracts/generated/SpeechAudioOutput";
+import type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
 import type { VoicePreviewSource } from "../contracts/generated/VoicePreviewSource";
 import { useSpaceStore } from "../session/space-store";
-import type { SpeechAudioOutput, SpeechGenerationProgress } from "./contracts";
 import { cancelSpeechGeneration, discardSpeechPreview, previewVoice } from "./ipc";
 import { PreviewAudioQueue } from "./preview-audio-queue";
 

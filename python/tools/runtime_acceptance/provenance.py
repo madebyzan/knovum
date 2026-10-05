@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from runtime_acceptance.common import (
+from runtime_acceptance.evidence import (
     EvidenceError,
     require_keys,
     require_number,

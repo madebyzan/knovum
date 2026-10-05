@@ -29,7 +29,7 @@ pub struct DiarizationModelStatus {
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
-pub struct DiarizationModelImportResult {
+pub struct DiarizationModelImportReceipt {
     pub revision: String,
     pub installed_files: u8,
     pub total_bytes: u64,
@@ -81,7 +81,7 @@ pub fn require_verified_directory<R: Runtime>(
 pub(super) fn import<R: Runtime>(
     app: &AppHandle<R>,
     source_path: &str,
-) -> Result<DiarizationModelImportResult, String> {
+) -> Result<DiarizationModelImportReceipt, String> {
     let requested_source = PathBuf::from(source_path);
     let requested_metadata =
         fs::symlink_metadata(&requested_source).map_err(|error| error.to_string())?;
@@ -131,7 +131,7 @@ pub(super) fn import<R: Runtime>(
             .map_err(|error| error.to_string())?;
         verify_directory(&staging)?;
         fs::rename(&staging, &target).map_err(|error| error.to_string())?;
-        Ok(DiarizationModelImportResult {
+        Ok(DiarizationModelImportReceipt {
             revision: manifest::REVISION.into(),
             installed_files: 4,
             total_bytes: manifest::TOTAL_BYTES,

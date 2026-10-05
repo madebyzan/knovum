@@ -6,7 +6,7 @@ use sha2::{Digest, Sha256};
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::BoundResource;
-use crate::spaces::{db, workflows::capture::types::CandidateInputSlot};
+use crate::spaces::{db, workflows::capture::contracts::CandidateInputSlot};
 
 pub(super) async fn bind_inputs(
     tx: &mut Transaction<'_, Sqlite>,

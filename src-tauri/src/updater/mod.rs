@@ -65,7 +65,7 @@ async fn check(app: &AppHandle, service: &UpdateService) -> Result<UpdateSnapsho
         return Err("Finish the current update before checking again.".into());
     }
     service.publish(app, UpdateState::Checking)?;
-    let result = async {
+    let installation = async {
         let updater = app
             .updater_builder()
             .timeout(Duration::from_secs(30))
@@ -89,7 +89,7 @@ async fn check(app: &AppHandle, service: &UpdateService) -> Result<UpdateSnapsho
         Ok::<_, Error>(update)
     }
     .await;
-    match result {
+    match installation {
         Ok(update) => {
             let state = match &update {
                 Some(update) => UpdateState::Available {
@@ -133,8 +133,8 @@ pub async fn install_update(
         (update, bytes, release)
     };
     service.publish(&app, UpdateState::Installing { release })?;
-    let result = tauri::async_runtime::spawn_blocking(move || update.install(bytes)).await;
-    match result {
+    let installation = tauri::async_runtime::spawn_blocking(move || update.install(bytes)).await;
+    match installation {
         Ok(Ok(())) => app.restart(),
         Ok(Err(error)) => {
             service.fail(&app, UpdateFailure::Install, error)?;

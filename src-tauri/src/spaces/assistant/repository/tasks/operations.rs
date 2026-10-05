@@ -106,7 +106,7 @@ pub async fn start_tool_call(
             &serde_json::json!({
                 "toolCallId": provider_call_id,
                 "actionId": action_id,
-                "detail": arguments,
+                "context": arguments,
             }),
             now,
         )

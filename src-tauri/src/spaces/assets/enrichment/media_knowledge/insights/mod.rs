@@ -53,7 +53,7 @@ pub(super) async fn generate_with(
         let target = target.clone();
         let cancellation = chunk_cancellation.clone();
         async move {
-            let result = execute(
+            let insights = execute(
                 executor,
                 target,
                 TaskInput {
@@ -67,10 +67,10 @@ pub(super) async fn generate_with(
                 cancellation.clone(),
             )
             .await;
-            if result.is_err() {
+            if insights.is_err() {
                 cancellation.cancel();
             }
-            result
+            insights
         }
     }))
     .buffered(3)
@@ -79,7 +79,7 @@ pub(super) async fn generate_with(
     .await;
     if let Some(error) = completions
         .iter()
-        .filter_map(|result| result.as_ref().err())
+        .filter_map(|insights| insights.as_ref().err())
         .find(|error| error.code != "cancelled")
     {
         return Err(error.clone());
@@ -87,7 +87,7 @@ pub(super) async fn generate_with(
     let completions = completions.into_iter().collect::<Result<Vec<_>, _>>()?;
     let mut candidates = Vec::with_capacity(completions.len());
     for completion in &completions {
-        candidates.push(parse_candidate(&completion.text).map_err(invalid_result)?);
+        candidates.push(parse_candidate(&completion.text).map_err(invalid_output)?);
     }
     let first = completions.first().ok_or("Transcript has no content")?;
     let mut execution_source = first.execution_source.clone();
@@ -110,10 +110,10 @@ pub(super) async fn generate_with(
         )
         .await?;
         execution_source = completion.execution_source;
-        parse_candidate(&completion.text).map_err(invalid_result)?
+        parse_candidate(&completion.text).map_err(invalid_output)?
     };
     let mut next = knowledge.clone();
-    next["insights"] = json!({"summary":candidate["summary"],"chapters":chapters(&candidate["chapters"], transcript).map_err(invalid_result)?,"promptVersion":1,"generatedAt":crate::clock::unix_time_millis()?,"executionSource":execution_source});
+    next["insights"] = json!({"summary":candidate["summary"],"chapters":chapters(&candidate["chapters"], transcript).map_err(invalid_output)?,"promptVersion":1,"generatedAt":crate::clock::unix_time_millis()?,"executionSource":execution_source});
     transcription::send_progress(progress, "organizing", 95);
     Ok(next)
 }
@@ -161,7 +161,7 @@ fn instruction(final_pass: bool) -> String {
     format!("Structure the {source} into a searchable media knowledge record. Return JSON only, with exactly this shape: {{\"summary\":\"...\",\"chapters\":[{{\"startMs\":0,\"title\":\"...\",\"summary\":\"...\"}}]}} summary must capture the whole supplied material concisely. chapters must follow content order, use timestamps that exist in the supplied material, and describe topic changes rather than arbitrary time intervals. The first chapter must start at the first timestamp in the supplied material. Use the language of the supplied material. Do not add markdown or commentary outside the JSON object.")
 }
 
-fn invalid_result(message: String) -> AppError {
+fn invalid_output(message: String) -> AppError {
     AppError::new("invalid_response", message)
 }
 

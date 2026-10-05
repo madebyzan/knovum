@@ -11,7 +11,7 @@ export function transcriptFixture(
     language: "en",
     durationMs: parts.at(-1)?.endMs ?? 0,
     text: parts.map(({ text }) => text).join(" "),
-    provenance: { engineId: "whisper", modelSpecId: "small", modelRevision: "fixed", timing: "native_words" },
+    provenance: { engineId: "whisper", modelSpecId: "small", modelRevision: "fixed", timing: "engine_words" },
     speakerTracks: [],
     subtitleCues: parts.map(({ startMs, endMs, text }) => ({ startMs, endMs, text })),
     segments: parts.map((part, index) => ({

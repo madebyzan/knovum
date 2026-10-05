@@ -23,7 +23,7 @@ pub async fn edit_image(
     );
     let uploaded = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
-        result = upload => result.map_err(|error| error.to_string())?,
+        generation = upload => generation.map_err(|error| error.to_string())?,
     };
     let file_uri = uploaded
         .access_url
@@ -48,11 +48,11 @@ pub async fn edit_image(
         )
         .json(&body)
         .send();
-    let result = tokio::select! {
+    let generation = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
         response = request => response.map_err(|error| error.to_string())?,
     };
-    let edited: GeminiResponse = check_status(result)
+    let edited: GeminiResponse = check_status(generation)
         .await
         .map_err(|error| error.to_string())?;
     let encoded = edited

@@ -150,7 +150,7 @@ fn reclaim_when_idle(slot: WorkerSlot) {
                     Duration::from_secs(2),
                     worker
                         .protocol
-                        .request::<_, crate::ai::contracts::runtime::RuntimeShutdownResult>(
+                        .request::<_, crate::ai::contracts::runtime::RuntimeShutdownAcknowledgement>(
                             &worker.session_id.clone(),
                             "runtime.shutdown",
                             &crate::ai::contracts::runtime::RuntimeShutdownParams {

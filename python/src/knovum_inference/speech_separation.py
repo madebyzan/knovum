@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 from knovum_inference.contracts import AudioFileReference, SpeechSeparateParams
 from knovum_inference.errors import RpcError, invalid_params, server_error
-from knovum_inference.speech_common import attempt_directory, check_deadline, verify_audio
+from knovum_inference.speech_request import attempt_directory, check_deadline, verify_audio
 
 MODEL_SPEC_ID = "spleeter-2stems-fp16-cpu-v1"
 SAMPLE_RATE = 44_100
@@ -33,14 +33,14 @@ class SpleeterSourceSeparator:
         check_deadline(params.deadline_ms)
         if cancelled.is_set():
             raise server_error("cancelled", "Source separation was cancelled")
-        result = self._load().process(SAMPLE_RATE, source)
+        separation = self._load().process(SAMPLE_RATE, source)
         check_deadline(params.deadline_ms)
         if cancelled.is_set():
             raise server_error("cancelled", "Source separation was cancelled")
-        if result.sample_rate != SAMPLE_RATE or len(result.stems) != 2:
+        if separation.sample_rate != SAMPLE_RATE or len(separation.stems) != 2:
             raise server_error("invalid_output", "Source separation returned an invalid stem profile")
-        vocals = _validated_stem(result.stems[0].data)
-        background = _validated_stem(result.stems[1].data)
+        vocals = _validated_stem(separation.stems[0].data)
+        background = _validated_stem(separation.stems[1].data)
         if vocals.shape != background.shape:
             raise server_error("invalid_output", "Source separation stems have different timelines")
         directory = attempt_directory(self._work_directory, params.request_id)

@@ -12,7 +12,7 @@ const MAX_TEXT_BYTES: usize = 16 * 1024 * 1024;
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct BookArchiveEntry {
+pub struct BookArchiveMember {
     pub path: String,
     pub text: String,
 }
@@ -22,7 +22,7 @@ pub struct BookArchiveEntry {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AudiobookSource {
     Text { text: String },
-    Epub { entries: Vec<BookArchiveEntry> },
+    Epub { entries: Vec<BookArchiveMember> },
 }
 
 #[tauri::command]
@@ -41,7 +41,7 @@ pub async fn read_audiobook_source(
         if !metadata.is_file() || metadata.len() > MAX_SOURCE_BYTES { return Err("Audiobook source exceeds 128 MiB".into()); }
         let revision = file_inspection::content_revision(&source)?;
         let extension = source.extension().and_then(|extension| extension.to_str()).unwrap_or("").to_ascii_lowercase();
-        let result = match extension.as_str() {
+        let extraction = match extension.as_str() {
             "epub" => AudiobookSource::Epub { entries: read_epub(&source, &cancellation)? },
             "doc" | "docx" => {
                 let document = extraction::office::extract(&source, &cancellation)?;
@@ -60,14 +60,14 @@ pub async fn read_audiobook_source(
         };
         if cancellation.is_cancelled() { return Err("cancelled".into()); }
         file_inspection::verify_content_revision(&source, &revision)?;
-        Ok(result)
+        Ok(extraction)
     }).await?)
 }
 
 fn read_epub(
     source: &Path,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<Vec<BookArchiveEntry>, String> {
+) -> Result<Vec<BookArchiveMember>, String> {
     let file = fs::File::open(source).map_err(|error| error.to_string())?;
     let mut archive = zip::ZipArchive::new(file).map_err(|error| error.to_string())?;
     if archive.len() > 10_000 {
@@ -102,7 +102,7 @@ fn read_epub(
         if total > MAX_TEXT_BYTES || bytes.len() > 4 * 1024 * 1024 {
             return Err("EPUB extracted text exceeds 16 MiB".into());
         }
-        entries.push(BookArchiveEntry {
+        entries.push(BookArchiveMember {
             path: path.to_string_lossy().replace('\\', "/"),
             text: String::from_utf8(bytes).map_err(|error| error.to_string())?,
         });

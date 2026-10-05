@@ -57,8 +57,8 @@ pub(super) async fn execute(
     }
     let profile_id = uuid::Uuid::new_v4().to_string();
     let copied = copy_reference(app, pool, &source, &profile_id, &request.target_space_id).await?;
-    let result = persist(pool, request, &source, &profile_id, copied.as_ref()).await;
-    match result {
+    let publication = persist(pool, request, &source, &profile_id, copied.as_ref()).await;
+    match publication {
         Ok(()) => Ok(profile_id),
         Err(error) => {
             if let Some((publication_id, _)) = copied {
@@ -109,7 +109,7 @@ async fn copy_reference(
         },
     )
     .await?;
-    let copy_result = (|| {
+    let copy_transcription = (|| {
         let mut input = fs::File::open(&source_path).map_err(|error| error.to_string())?;
         let mut output = fs::OpenOptions::new()
             .create_new(true)
@@ -125,7 +125,7 @@ async fn copy_reference(
         fs::rename(&part, &target).map_err(|error| error.to_string())?;
         Ok(target.to_string_lossy().into_owned())
     })();
-    match copy_result {
+    match copy_transcription {
         Ok(path) => Ok(Some((publication_id, path))),
         Err(error) => {
             super::super::asset_publication::abandon(app, pool, &publication_id).await?;

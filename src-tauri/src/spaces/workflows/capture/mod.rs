@@ -1,6 +1,7 @@
 use crate::app_error::AppError;
 mod boundaries;
 mod candidate;
+pub(crate) mod contracts;
 mod fingerprint;
 mod inspect;
 pub(crate) mod library;
@@ -9,11 +10,10 @@ mod management;
 mod order;
 mod run;
 mod selection;
-pub(crate) mod types;
 
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
-pub use self::types::CapturePreview;
+pub use self::contracts::CapturePreview;
 use crate::spaces::db;
 pub(crate) use library::{
     CapturedWorkflowLibrary, SaveCapturedWorkflowRequest, SavedCapturedWorkflow,

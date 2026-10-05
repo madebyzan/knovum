@@ -1,12 +1,14 @@
 import { computed, shallowRef, watch, type DeepReadonly } from "vue";
 
+import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { WavPrecision } from "../contracts/generated/WavPrecision";
-import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { defaultVoiceRevisionId } from "./voice-options";
 
 export function useShortDubbingDraft(
-  project: () => DeepReadonly<SpeechProjectDetail>,
+  project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
 ) {
   const text = shallowRef("");
@@ -24,18 +26,19 @@ export function useShortDubbingDraft(
   watch(
     () => project().revision.id,
     () => {
-      const detail = project();
+      const projectSnapshot = project();
       wavPrecision.value = (
-        JSON.parse(detail.revision.outputConfig) as { wavPrecision: typeof wavPrecision.value }
+        JSON.parse(projectSnapshot.revision.outputConfig) as { wavPrecision: typeof wavPrecision.value }
       ).wavPrecision;
-      text.value = detail.segments.map((segment) => segment.text).join("\n\n");
-      voiceRevisionId.value = detail.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());
+      text.value = projectSnapshot.segments.map((segment) => segment.text).join("\n\n");
+      voiceRevisionId.value =
+        projectSnapshot.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());
       saved.value = snapshot();
     },
     { immediate: true },
   );
 
-  function revisionInput(): Omit<SaveSpeechProjectRevisionInput, "projectId" | "expectedRevision"> {
+  function revisionInput(): Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision"> {
     const voice = selectedVoice.value;
     if (!voice) throw new Error("A valid voice is required");
     return {

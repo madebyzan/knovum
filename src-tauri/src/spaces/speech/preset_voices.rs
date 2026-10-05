@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct PresetVoice {
     pub speaker_id: String,
     pub name: String,
-    pub native_language: String,
+    pub primary_language: String,
     pub gender: String,
 }
 

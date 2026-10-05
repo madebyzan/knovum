@@ -194,7 +194,7 @@ fn write(root: &Path, manifest: &OutputProjectionManifest) -> AppResult<()> {
         uuid::Uuid::new_v4()
     ));
     let target = root.join(MANIFEST_NAME);
-    let result = (|| {
+    let projection = (|| {
         let mut file = fs::File::create(&pending)?;
         use std::io::Write;
         file.write_all(&bytes)?;
@@ -202,7 +202,7 @@ fn write(root: &Path, manifest: &OutputProjectionManifest) -> AppResult<()> {
         drop(file);
         fs::rename(&pending, target)
     })();
-    if let Err(error) = result {
+    if let Err(error) = projection {
         let _ = fs::remove_file(&pending);
         return Err(AppError::internal(format!(
             "Cannot save Agent output projection: {error}"

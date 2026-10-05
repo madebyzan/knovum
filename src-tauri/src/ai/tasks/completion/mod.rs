@@ -68,7 +68,7 @@ pub(crate) async fn execute(
     if cancellation.is_cancelled() {
         return Err(AppError::cancelled("AI task was cancelled"));
     }
-    let result = match target {
+    let completion = match target {
         TaskExecutionTarget::Model(target) => {
             executor.model(target, input, cancellation.clone()).await
         }
@@ -81,7 +81,7 @@ pub(crate) async fn execute(
     if cancellation.is_cancelled() {
         return Err(AppError::cancelled("AI task was cancelled"));
     }
-    Ok(result)
+    Ok(completion)
 }
 
 pub(crate) struct ProductExecutor<'a>(pub &'a AppHandle);

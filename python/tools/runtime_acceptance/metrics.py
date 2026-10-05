@@ -4,7 +4,7 @@ import math
 import re
 import unicodedata
 
-from runtime_acceptance.common import EvidenceError
+from runtime_acceptance.evidence import EvidenceError
 
 
 def cosine(left: list[float], right: list[float]) -> float:

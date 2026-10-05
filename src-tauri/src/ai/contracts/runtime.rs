@@ -75,7 +75,7 @@ pub struct RuntimeLimits {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeInitializeResult {
+pub struct RuntimeSession {
     pub protocol_version: u32,
     pub runtime_digest: String,
     pub session_id: String,
@@ -94,7 +94,7 @@ pub struct RuntimeHealthParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeHealthResult {
+pub struct RuntimeHealthObservation {
     pub session_id: String,
     pub current_request_id: Option<String>,
     pub resident_bytes: u64,
@@ -109,7 +109,7 @@ pub struct RuntimeCancelParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeCancelResult {
+pub struct RuntimeCancellationAcknowledgement {
     pub accepted: bool,
 }
 
@@ -130,6 +130,6 @@ pub struct RuntimeShutdownParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeShutdownResult {
+pub struct RuntimeShutdownAcknowledgement {
     pub accepted: bool,
 }

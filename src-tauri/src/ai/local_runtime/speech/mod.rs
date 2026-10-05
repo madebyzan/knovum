@@ -17,11 +17,10 @@ use crate::{
     ai::contracts::{
         runtime::{RuntimeCapability, RuntimeDeviceProfile},
         speech_wire::{
-            AsrEngine, InferenceRequestIdentity, SpeechAlignParams, SpeechAlignResult,
-            SpeechDiarizeParams, SpeechDiarizeResult, SpeechProgressEvent, SpeechSeparateParams,
-            SpeechSeparateResult, SpeechSynthesisEngine, SpeechSynthesizeParams,
-            SpeechSynthesizeResult, SpeechTranscribeParams, SpeechTranscribeResult,
-            SpeechTranscriptArtifact,
+            AsrEngine, InferenceRequestIdentity, SpeechAlignParams, SpeechAlignment,
+            SpeechDiarization, SpeechDiarizeParams, SpeechProgressEvent, SpeechSeparateParams,
+            SpeechSeparation, SpeechSynthesis, SpeechSynthesisEngine, SpeechSynthesizeParams,
+            SpeechTranscribeParams, SpeechTranscriptArtifact, SpeechTranscription,
         },
     },
     local_resources::{
@@ -259,31 +258,31 @@ macro_rules! speech_request {
 
 speech_request!(
     SpeechTranscribeParams,
-    SpeechTranscribeResult,
+    SpeechTranscription,
     RuntimeCapability::SpeechTranscription,
     "speech.transcribe"
 );
 speech_request!(
     SpeechSynthesizeParams,
-    SpeechSynthesizeResult,
+    SpeechSynthesis,
     RuntimeCapability::SpeechSynthesis,
     "speech.synthesize"
 );
 speech_request!(
     SpeechAlignParams,
-    SpeechAlignResult,
+    SpeechAlignment,
     RuntimeCapability::SpeechAlignment,
     "speech.align"
 );
 speech_request!(
     SpeechDiarizeParams,
-    SpeechDiarizeResult,
+    SpeechDiarization,
     RuntimeCapability::SpeechDiarization,
     "speech.diarize"
 );
 speech_request!(
     SpeechSeparateParams,
-    SpeechSeparateResult,
+    SpeechSeparation,
     RuntimeCapability::SpeechSeparation,
     "speech.separate"
 );

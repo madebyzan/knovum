@@ -50,7 +50,7 @@ pub async fn create_candidate_voice(
             .await?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
-    let result = async {
+    let creation = async {
         let mut tx = db::begin_write(pool).await?;
         sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,active_revision_id,created_at,updated_at) VALUES(?,?,?,?,NULL,?,?)")
             .bind(&request.candidate_id).bind(&request.space_id).bind(request.name.trim())
@@ -84,7 +84,7 @@ pub async fn create_candidate_voice(
         super::asset_publication::remove_in_transaction(&mut tx, &persisted.publication_id).await?;
         tx.commit().await.map_err(db::sql_error)
     }.await;
-    if let Err(error) = result {
+    if let Err(error) = creation {
         let selected: bool = sqlx::query_scalar(
             "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND space_id=? AND status='selected')",
         )

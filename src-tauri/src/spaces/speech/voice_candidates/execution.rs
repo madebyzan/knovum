@@ -48,9 +48,9 @@ pub(crate) async fn execute(
     let paths = artifacts::CandidatePaths::new(app, claim)?;
     paths.require_available()?;
     artifacts::verify_source_snapshot(app, &configuration).await?;
-    let result = execute_inner(app, pool, claim, &configuration, &paths).await;
+    let generation = execute_inner(app, pool, claim, &configuration, &paths).await;
     paths.cleanup_working();
-    if result.is_err() {
+    if generation.is_err() {
         let persisted: bool = sqlx::query_scalar(
             "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND space_id=?)",
         )
@@ -64,7 +64,7 @@ pub(crate) async fn execute(
             paths.cleanup_published();
         }
     }
-    result
+    generation
 }
 
 async fn execute_inner(

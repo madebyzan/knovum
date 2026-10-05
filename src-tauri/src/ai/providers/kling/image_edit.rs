@@ -33,17 +33,17 @@ pub async fn edit_image(
         .bearer_auth(ctx.require_api_key().map_err(|error| error.to_string())?)
         .json(&body)
         .send();
-    let result = tokio::select! {
+    let generation = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
         response = request => response.map_err(|error| error.to_string())?,
     };
-    if !result.status().is_success() {
-        return Err(response::read_text(result)
+    if !generation.status().is_success() {
+        return Err(response::read_text(generation)
             .await
             .map_err(|error| error.to_string())?);
     }
     let submission: serde_json::Value =
-        response::read_json(result, response::MAX_CONTROL_JSON_BYTES)
+        response::read_json(generation, response::MAX_CONTROL_JSON_BYTES)
             .await
             .map_err(|error| error.to_string())?;
     if submission["code"].as_i64() != Some(0) {
@@ -57,6 +57,6 @@ pub async fn edit_image(
         .ok_or("Kling image edit returned no task ID")?;
     tokio::select! {
         _ = cancellation.cancelled() => Err("Image operation was cancelled".into()),
-        result = image_task::poll(ctx, "omni-image", task_id) => result.map_err(|error| error.to_string()),
+        generation = image_task::poll(ctx, "omni-image", task_id) => generation.map_err(|error| error.to_string()),
     }
 }

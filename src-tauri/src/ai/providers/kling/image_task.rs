@@ -26,20 +26,20 @@ pub(super) async fn poll(
         if interval < Duration::from_secs(5) {
             interval += Duration::from_secs(1);
         }
-        let result = client
+        let image_download = client
             .get(&url)
             .bearer_auth(ctx.require_api_key()?)
             .send()
             .await
             .map_err(provider_error)?;
-        if !result.status().is_success() {
+        if !image_download.status().is_success() {
             return Err(AppError::new(
                 "provider_request_failed",
-                response::read_text(result).await?,
+                response::read_text(image_download).await?,
             ));
         }
         let body: serde_json::Value =
-            response::read_json(result, response::MAX_CONTROL_JSON_BYTES).await?;
+            response::read_json(image_download, response::MAX_CONTROL_JSON_BYTES).await?;
         if body["code"].as_i64().is_some_and(|code| code != 0) {
             return Err(AppError::new(
                 "provider_request_failed",

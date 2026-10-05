@@ -71,7 +71,7 @@ pub async fn export_video_audio_tracks(
     )?;
     let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
-        let result = (|| {
+        let encoding = (|| {
             for track in &tracks {
                 verify_track(track)?;
             }
@@ -95,7 +95,7 @@ pub async fn export_video_audio_tracks(
             }
             files::commit(&output, &destination, &cancellation)
         })();
-        files::finish(result, &work)
+        files::finish(encoding, &work)
     })
     .await?)
 }

@@ -16,11 +16,11 @@ use crate::ai::contracts::{
 };
 
 pub fn messages(history: Vec<Message>, prompt: Message) -> Result<Vec<ModelMessage>, String> {
-    let mut result = Vec::new();
+    let mut messages = Vec::new();
     for item in history.into_iter().chain(std::iter::once(prompt)) {
-        result.extend(message(item)?);
+        messages.extend(message(item)?);
     }
-    Ok(result)
+    Ok(messages)
 }
 
 pub fn prompt(message: ModelMessage) -> Result<RigMessage, String> {
@@ -77,19 +77,19 @@ fn message(message: Message) -> Result<Vec<ModelMessage>, String> {
             for part in content {
                 match part {
                     UserContent::ToolResult(reply) => {
-                        let mut result = Vec::new();
+                        let mut tool_content = Vec::new();
                         for item in reply.content {
                             match item {
                                 ToolResultContent::Image(image) => {
                                     materials.push(super::media::from_image(image)?)
                                 }
-                                item => result.push(item),
+                                item => tool_content.push(item),
                             }
                         }
                         tools.push(ModelContentPart::ToolResult {
                             call_id: reply.call.into_string(),
                             name: reply.name,
-                            result: serde_json::to_value(result)
+                            result: serde_json::to_value(tool_content)
                                 .map_err(|error| error.to_string())?,
                         });
                     }

@@ -10,11 +10,12 @@ use super::process::Worker;
 use crate::{
     ai::contracts::{
         embedding_wire::{
-            EmbeddingEncodeParams, EmbeddingEncodeResult, EmbeddingExecutionIdentity, EmbeddingRole,
+            EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingExecutionIdentity, EmbeddingRole,
         },
         runtime::{
             RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
-            RuntimeModelPaths, RuntimeShutdownParams, RuntimeShutdownResult, PROTOCOL_VERSION,
+            RuntimeModelPaths, RuntimeShutdownAcknowledgement, RuntimeShutdownParams,
+            PROTOCOL_VERSION,
         },
     },
     local_resources::{
@@ -33,7 +34,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
     identity: &EmbeddingExecutionIdentity,
     resources: &PreparedModels,
     cancellation: &CancellationToken,
-) -> Result<EmbeddingEncodeResult, String> {
+) -> Result<EmbeddingEncoding, String> {
     super::deadline_duration(identity.deadline_ms)?;
     let exit = super::exit_token();
     let priority = match role {
@@ -144,17 +145,17 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         biased;
         _ = exit.cancelled() => Err("cancelled".into()),
         _ = cancellation.cancelled() => Err("cancelled".into()),
-        result = tokio::time::timeout(
+        encoding = tokio::time::timeout(
             super::deadline_duration(identity.deadline_ms)?,
             worker.protocol.send_request(&request_id, "embedding.encode", &params),
-        ) => result.map_err(|_| "deadline_exceeded".to_owned())?,
+        ) => encoding.map_err(|_| "deadline_exceeded".to_owned())?,
     };
     if let Err(error) = send {
         worker.terminate().await;
         *guard = None;
         return Err(error);
     }
-    let result = tokio::select! {
+    let encoding = tokio::select! {
         biased;
         _ = exit.cancelled() => {
             cancel(worker, &request_id, identity.attempt_epoch).await;
@@ -166,8 +167,8 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             *guard = None;
             return Err("cancelled".into());
         }
-        result = tokio::time::timeout(super::deadline_duration(identity.deadline_ms)?, worker.protocol.read_response::<EmbeddingEncodeResult>(&request_id)) => {
-            match result {
+        encoding = tokio::time::timeout(super::deadline_duration(identity.deadline_ms)?, worker.protocol.read_response::<EmbeddingEncoding>(&request_id)) => {
+            match encoding {
                 Ok(value) => value,
                 Err(_) => {
                     cancel(worker, &request_id, identity.attempt_epoch).await;
@@ -178,7 +179,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         }
     };
     worker.last_used = Instant::now();
-    let output = match result {
+    let output = match encoding {
         Ok(output) => output,
         Err(error) => {
             worker.terminate().await;
@@ -220,13 +221,15 @@ pub(crate) async fn shutdown() {
     if let Some(worker) = guard.as_mut() {
         let _ = tokio::time::timeout(
             Duration::from_secs(2),
-            worker.protocol.request::<_, RuntimeShutdownResult>(
-                &worker.session_id.clone(),
-                "runtime.shutdown",
-                &RuntimeShutdownParams {
-                    session_id: worker.session_id.clone(),
-                },
-            ),
+            worker
+                .protocol
+                .request::<_, RuntimeShutdownAcknowledgement>(
+                    &worker.session_id.clone(),
+                    "runtime.shutdown",
+                    &RuntimeShutdownParams {
+                        session_id: worker.session_id.clone(),
+                    },
+                ),
         )
         .await;
         worker.terminate().await;
@@ -262,7 +265,7 @@ async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
             .await?;
         worker
             .protocol
-            .read_response::<EmbeddingEncodeResult>(request_id)
+            .read_response::<EmbeddingEncoding>(request_id)
             .await
     })
     .await;

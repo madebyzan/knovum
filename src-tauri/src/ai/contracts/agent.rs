@@ -32,7 +32,7 @@ pub struct AgentDescriptor {
 #[derive(Debug, Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentConnectionKind {
-    NativeCli,
+    ExecutableCli,
     NodeAdapter,
     StandaloneServer,
 }

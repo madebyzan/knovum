@@ -18,8 +18,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     # -I excludes the script directory; add only this repository-owned tool package.
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from runtime_acceptance.common import EvidenceError, EvidenceUnavailable, load_json
     from runtime_acceptance.evaluator import evaluate
+    from runtime_acceptance.evidence import EvidenceError, EvidenceUnavailable, load_json
 
     args = parse_args()
     missing = [str(path) for path in (args.corpus, args.results) if not path.is_file()]

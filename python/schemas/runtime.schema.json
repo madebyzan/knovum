@@ -7,19 +7,19 @@
       "$ref": "#/$defs/RuntimeInitializeParams"
     },
     "initialize_result": {
-      "$ref": "#/$defs/RuntimeInitializeResult"
+      "$ref": "#/$defs/RuntimeSession"
     },
     "health_params": {
       "$ref": "#/$defs/RuntimeHealthParams"
     },
     "health_result": {
-      "$ref": "#/$defs/RuntimeHealthResult"
+      "$ref": "#/$defs/RuntimeHealthObservation"
     },
     "cancel_params": {
       "$ref": "#/$defs/RuntimeCancelParams"
     },
     "cancel_result": {
-      "$ref": "#/$defs/RuntimeCancelResult"
+      "$ref": "#/$defs/RuntimeCancellationAcknowledgement"
     },
     "ack_chunk_params": {
       "$ref": "#/$defs/RuntimeAckChunkParams"
@@ -28,25 +28,25 @@
       "$ref": "#/$defs/RuntimeShutdownParams"
     },
     "shutdown_result": {
-      "$ref": "#/$defs/RuntimeShutdownResult"
+      "$ref": "#/$defs/RuntimeShutdownAcknowledgement"
     },
     "embedding_params": {
       "$ref": "#/$defs/EmbeddingEncodeParams"
     },
     "embedding_result": {
-      "$ref": "#/$defs/EmbeddingEncodeResult"
+      "$ref": "#/$defs/EmbeddingEncoding"
     },
     "image_segment_params": {
       "$ref": "#/$defs/ImageSegmentParams"
     },
     "image_segment_result": {
-      "$ref": "#/$defs/ImageSegmentResult"
+      "$ref": "#/$defs/ImageSegmentation"
     },
     "speech_transcribe_params": {
       "$ref": "#/$defs/SpeechTranscribeParams"
     },
     "speech_transcribe_result": {
-      "$ref": "#/$defs/SpeechTranscribeResult"
+      "$ref": "#/$defs/SpeechTranscription"
     },
     "speech_transcript_artifact": {
       "$ref": "#/$defs/SpeechTranscriptArtifact"
@@ -61,13 +61,13 @@
       "$ref": "#/$defs/SpeechAlignParams"
     },
     "speech_align_result": {
-      "$ref": "#/$defs/SpeechAlignResult"
+      "$ref": "#/$defs/SpeechAlignment"
     },
     "speech_diarize_params": {
       "$ref": "#/$defs/SpeechDiarizeParams"
     },
     "speech_diarize_result": {
-      "$ref": "#/$defs/SpeechDiarizeResult"
+      "$ref": "#/$defs/SpeechDiarization"
     },
     "speech_synthesize_params": {
       "$ref": "#/$defs/SpeechSynthesizeParams"
@@ -79,13 +79,13 @@
       "$ref": "#/$defs/SpeechSynthesisChunkGranularity"
     },
     "speech_synthesize_result": {
-      "$ref": "#/$defs/SpeechSynthesizeResult"
+      "$ref": "#/$defs/SpeechSynthesis"
     },
     "speech_separate_params": {
       "$ref": "#/$defs/SpeechSeparateParams"
     },
     "speech_separate_result": {
-      "$ref": "#/$defs/SpeechSeparateResult"
+      "$ref": "#/$defs/SpeechSeparation"
     }
   },
   "required": [
@@ -244,7 +244,7 @@
       },
       "additionalProperties": false
     },
-    "RuntimeInitializeResult": {
+    "RuntimeSession": {
       "type": "object",
       "properties": {
         "protocolVersion": {
@@ -341,7 +341,7 @@
         "sessionId"
       ]
     },
-    "RuntimeHealthResult": {
+    "RuntimeHealthObservation": {
       "type": "object",
       "properties": {
         "sessionId": {
@@ -383,7 +383,7 @@
         "attemptEpoch"
       ]
     },
-    "RuntimeCancelResult": {
+    "RuntimeCancellationAcknowledgement": {
       "type": "object",
       "properties": {
         "accepted": {
@@ -437,7 +437,7 @@
         "sessionId"
       ]
     },
-    "RuntimeShutdownResult": {
+    "RuntimeShutdownAcknowledgement": {
       "type": "object",
       "properties": {
         "accepted": {
@@ -515,7 +515,7 @@
         "document"
       ]
     },
-    "EmbeddingEncodeResult": {
+    "EmbeddingEncoding": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -651,7 +651,7 @@
         "float32_little_endian"
       ]
     },
-    "ImageSegmentResult": {
+    "ImageSegmentation": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -827,7 +827,7 @@
         "fixed"
       ]
     },
-    "SpeechTranscribeResult": {
+    "SpeechTranscription": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -1137,7 +1137,7 @@
         "device"
       ]
     },
-    "SpeechAlignResult": {
+    "SpeechAlignment": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -1303,7 +1303,7 @@
       },
       "additionalProperties": false
     },
-    "SpeechDiarizeResult": {
+    "SpeechDiarization": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -1600,7 +1600,7 @@
         "sampleFormat"
       ]
     },
-    "SpeechSynthesizeResult": {
+    "SpeechSynthesis": {
       "type": "object",
       "properties": {
         "requestId": {
@@ -1703,7 +1703,7 @@
         "audioRef"
       ]
     },
-    "SpeechSeparateResult": {
+    "SpeechSeparation": {
       "type": "object",
       "properties": {
         "requestId": {

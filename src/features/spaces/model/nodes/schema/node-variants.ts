@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { KNOWLEDGE_OBJECT_STATUSES } from "../../../knowledge/model/object-types";
 import { SPACE_CREDENTIAL_KINDS } from "../../schema/credential";
-import { baseSpaceNodeFields } from "./base-fields";
 import { tiptapContentSchema } from "./content";
+import { baseSpaceNodeFields } from "./node-fields";
 import { spaceResourceNodeSchemas } from "./resource-variants";
 import { spaceWebsitePayloadSchema } from "./website";
 

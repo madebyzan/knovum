@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
-import type { VoiceLibraryRevision } from "../speech/contracts";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { selectBackground, selectSeparatedBackground } from "../speech/video-background-selection";
 import { applyTranslation, translationInputs, type VideoLineDraft } from "../speech/video-dubbing-draft";
 import { isLocalTranslationTarget, persistedTranslationTarget } from "../speech/video-translation-targets";

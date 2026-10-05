@@ -35,7 +35,7 @@ pub(super) fn start<R: Runtime>(
         return;
     }
     let id = uuid::Uuid::new_v4().to_string();
-    let result = (|| {
+    let capture = (|| {
         let target = insertion::capture_target()?;
         let directory = app
             .path()
@@ -47,7 +47,7 @@ pub(super) fn start<R: Runtime>(
         let recorder = Recorder::start(&id, sender.clone())?;
         Ok::<_, String>((target, wav, recorder))
     })();
-    match result {
+    match capture {
         Ok((target, wav, recorder)) => {
             let target_name = target.display_name().to_owned();
             *active = ActiveSession::Recording {
@@ -134,7 +134,7 @@ fn spawn_transcription<R: Runtime>(
     cancellation: CancellationToken,
 ) {
     tauri::async_runtime::spawn(async move {
-        let result =
+        let capture =
             transcription::transcribe(&app, &id, wav.clone(), recording, &cancellation).await;
         if let Err(error) = tokio::fs::remove_file(&wav).await {
             if error.kind() != std::io::ErrorKind::NotFound {
@@ -144,7 +144,7 @@ fn spawn_transcription<R: Runtime>(
         let _ = sender.send(DictationAction::Finished {
             session_id: id,
             target,
-            result,
+            transcription: capture,
         });
     });
 }

@@ -7,8 +7,8 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
         .invoke_handler(tauri::generate_handler![
             get_state,
             cancel,
-            dismiss_result,
-            copy_result
+            dismiss_transcription,
+            copy_transcription
         ])
         .build()
 }
@@ -24,12 +24,12 @@ fn cancel() -> AppResult<()> {
 }
 
 #[tauri::command]
-fn dismiss_result() -> AppResult<()> {
+fn dismiss_transcription() -> AppResult<()> {
     Err(unsupported())
 }
 
 #[tauri::command]
-fn copy_result() -> AppResult<()> {
+fn copy_transcription() -> AppResult<()> {
     Err(unsupported())
 }
 

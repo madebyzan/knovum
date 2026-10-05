@@ -141,15 +141,15 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
         .create_new(true)
         .open(&part)
         .map_err(|error| error.to_string())?;
-    let result = (|| {
+    let publication = (|| {
         file.write_all(bytes).map_err(|error| error.to_string())?;
         file.sync_all().map_err(|error| error.to_string())?;
         fs::rename(&part, path).map_err(|error| error.to_string())
     })();
-    if result.is_err() {
+    if publication.is_err() {
         let _ = fs::remove_file(part);
     }
-    result
+    publication
 }
 
 pub(super) fn hash_file(path: &Path) -> Result<String, String> {

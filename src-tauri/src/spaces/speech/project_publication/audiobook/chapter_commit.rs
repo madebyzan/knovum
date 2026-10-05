@@ -42,7 +42,7 @@ pub(super) async fn commit<R: Runtime>(
         }
     };
     let mut commit_outcome_uncertain = false;
-    let result: Result<ChapterCheckpoint, String> = async {
+    let publication: Result<ChapterCheckpoint, String> = async {
         fs::rename(&rendered.part, &rendered.output).map_err(|error| error.to_string())?;
         if hash_file(&rendered.output)? != rendered.sha256 {
             return Err("Audiobook chapter hash changed during atomic publication".into());
@@ -111,7 +111,7 @@ pub(super) async fn commit<R: Runtime>(
         })
     }
     .await;
-    match result {
+    match publication {
         Ok(checkpoint) => Ok(checkpoint),
         Err(mut error) => {
             if !commit_outcome_uncertain {

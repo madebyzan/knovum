@@ -96,7 +96,7 @@ pub(crate) async fn align_media(
     })
     .await?;
     let request_id = uuid::Uuid::new_v4().to_string();
-    let result = speech::align(
+    let alignment = speech::align(
         app,
         &resources,
         RuntimeDeviceProfile {
@@ -132,7 +132,7 @@ pub(crate) async fn align_media(
     super::send_progress(progress, "aligning", 92);
 
     let mut by_segment = HashMap::<String, Vec<_>>::new();
-    for unit in result.units {
+    for unit in alignment.units {
         by_segment
             .entry(unit.segment_id.clone())
             .or_default()

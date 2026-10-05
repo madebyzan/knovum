@@ -75,7 +75,7 @@ python-build-standalone `20261003` CPython 3.11.17 target artifacts recorded wit
 `python/runtime-source.json`; it does not copy a development virtual environment or infer a
 runtime from uv's managed catalog. The temporary runtime-build group pins `setuptools==83.0.0`,
 `wheel==0.48.0`, and `setuptools-scm==10.3.4` for required source builds, including VoxCPM, with
-build isolation disabled. `python/native-source-evidence.json` pins the sherpa-onnx, eSpeak NG,
+build isolation disabled. `python/compiled-source-evidence.json` pins the sherpa-onnx, eSpeak NG,
 and piper source archives collected by the producer; this evidence does not claim that the
 unversioned 2023 Kokoro data archive corresponds to an approved eSpeak source release.
 The `python/uv.lock` quality group pins Ruff, Mypy and pytest separately from the packaged

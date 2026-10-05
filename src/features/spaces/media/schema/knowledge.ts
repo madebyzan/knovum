@@ -1,12 +1,7 @@
 import { z } from "zod";
 
 import { executionSourceSchema } from "../../../../foundation/ai/schema/models";
-import {
-  mediaSourceRevisionSchema,
-  spaceMediaTranscriptSchema,
-  type SpaceMediaTranscript,
-  type SpaceTranscriptSegment,
-} from "./transcript";
+import { mediaSourceRevisionSchema, spaceMediaTranscriptSchema } from "./transcript";
 import { validateMediaTranscript } from "./transcript-validation";
 
 const spaceMediaChapterSchema = z
@@ -69,7 +64,6 @@ export const spaceMediaKnowledgeSchema = z
     }
   });
 
-export type { SpaceMediaTranscript, SpaceTranscriptSegment };
 export interface SpaceTranscriptEdit {
   index: number;
   text: string;

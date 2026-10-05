@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 
 import pytest
-from runtime_acceptance.common import EvidenceError, EvidenceUnavailable, resolve_hashed_file
 from runtime_acceptance.evaluator import _evaluate_or_unavailable
+from runtime_acceptance.evidence import EvidenceError, EvidenceUnavailable, resolve_hashed_file
 from runtime_acceptance.metrics import (
     character_tokens,
     cosine,

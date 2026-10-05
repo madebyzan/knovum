@@ -1,5 +1,6 @@
 use super::{
-    types::NormalizedTranscriptSegment, units, MediaTranscript, SubtitleCue, TranscriptProvenance,
+    contracts::NormalizedTranscriptSegment, units, MediaTranscript, SubtitleCue,
+    TranscriptProvenance,
 };
 use crate::{
     ai::contracts::speech_wire::SpeechTranscriptArtifact,
@@ -22,7 +23,7 @@ pub(crate) fn from_speech(
         return Err("invalid_output: ASR duration exceeds the source audio".into());
     }
     let transcript_id = units::stable_id(source_revision, &provenance.model_spec_id);
-    let mut has_native_words = false;
+    let mut has_engine_words = false;
     let mut segments = Vec::with_capacity(artifact.segments.len());
     let mut tokens = Vec::new();
     let mut previous_start = 0;
@@ -41,7 +42,7 @@ pub(crate) fn from_speech(
             &format!("{index}:{}:{}", segment.start_ms, segment.end_ms),
         );
         let normalized_units = units::from_words(&segment_id, text, &segment.words)?;
-        has_native_words |= normalized_units.iter().any(|unit| unit.start_ms.is_some());
+        has_engine_words |= normalized_units.iter().any(|unit| unit.start_ms.is_some());
         let mut previous_word_start = segment.start_ms;
         for word in &segment.words {
             if word.text.trim().is_empty()
@@ -108,8 +109,8 @@ pub(crate) fn from_speech(
         .map(|segment| segment.text.as_str())
         .collect::<Vec<_>>()
         .join(" ");
-    provenance.timing = if has_native_words {
-        "native_words"
+    provenance.timing = if has_engine_words {
+        "engine_words"
     } else {
         "segment_only"
     }

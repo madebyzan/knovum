@@ -21,7 +21,7 @@ MACHO = {
 }
 
 
-def native_files(root: Path, target: str) -> list[Path]:
+def compiled_binaries(root: Path, target: str) -> list[Path]:
     files = []
     for path in sorted(root.rglob("*")):
         if path.is_file():
@@ -54,7 +54,7 @@ def _windows_thumbprint() -> str:
     return identity
 
 
-def _verify_native(path: Path, target: str, *, production: bool) -> None:
+def _verify_binary_signature(path: Path, target: str, *, production: bool) -> None:
     if target == "macos-arm64":
         requirement = ["-R", _mac_requirement()] if production else []
         subprocess.run(["codesign", "--verify", "--strict", *requirement, str(path)], check=True)
@@ -79,14 +79,14 @@ def _verify_native(path: Path, target: str, *, production: bool) -> None:
 
 
 def verify_runtime(root: Path, target: str) -> int:
-    files = native_files(root, target)
+    files = compiled_binaries(root, target)
     for path in files:
-        _verify_native(path, target, production=True)
+        _verify_binary_signature(path, target, production=True)
     return len(files)
 
 
 def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
-    files = native_files(root, target)
+    files = compiled_binaries(root, target)
     if target == "macos-arm64":
         if mode == "unsigned":
             raise ValueError("macOS runtime requires explicit ad-hoc or production signing")
@@ -96,7 +96,7 @@ def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
         for path in files:
             options = ["--options", "runtime", "--timestamp"] if mode == "production" else []
             subprocess.run(["codesign", "--force", "--sign", identity, *options, str(path)], check=True)
-            _verify_native(path, target, production=mode == "production")
+            _verify_binary_signature(path, target, production=mode == "production")
     else:
         if mode == "adhoc":
             raise ValueError("Ad-hoc signing is not a Windows signing mode")
@@ -112,8 +112,8 @@ def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
                     [tool, "sign", "/sha1", identity, "/fd", "SHA256", "/tr", timestamp, "/td", "SHA256", str(path)],
                     check=True,
                 )
-                _verify_native(path, target, production=True)
-    return {"mode": mode, "identity": identity, "nativeFileCount": len(files)}
+                _verify_binary_signature(path, target, production=True)
+    return {"mode": mode, "identity": identity, "compiledBinaryCount": len(files)}
 
 
 def main() -> None:

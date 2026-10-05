@@ -3,14 +3,14 @@ import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import type { SpeechProjectDetail } from "./contracts";
 import { exportSpeechRender, generateSpeechProject } from "./ipc";
 import { useSpeechPreview } from "./use-speech-preview";
 
 interface SpeechGenerationOwner {
-  project: () => SpeechProjectDetail | undefined;
+  project: () => SpeechProjectSnapshot | undefined;
   reloadProject: (projectId: string) => Promise<void>;
   setError: (message?: string) => void;
 }

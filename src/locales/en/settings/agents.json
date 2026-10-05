@@ -20,8 +20,8 @@
   "detectionBoundary": "Detection confirms command entries, not sign-in or ACP connectivity.",
   "documentationOpenFailed": "Could not open the Agent's official link",
   "connections": {
-    "nativeCli": {
-      "title": "Native ACP",
+    "executableCli": {
+      "title": "Direct ACP",
       "requirements": "Install an official CLI with ACP support and add its command directory to PATH."
     },
     "nodeAdapter": {

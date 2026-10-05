@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from runtime_acceptance.common import (
+from runtime_acceptance.evidence import (
     EvidenceError,
     percentile,
     require_keys,
@@ -28,7 +28,7 @@ def evaluate_alignment(
         "speech.align",
         "alignment",
         provenance,
-        {"native_worker"},
+        {"bundled_worker"},
     )
     require_keys(values, "alignment values", {"samples"})
     output_samples = require_object(values["samples"], "alignment.values.samples")

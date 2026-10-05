@@ -20,8 +20,8 @@
   "detectionBoundary": "检测仅确认命令入口，不验证登录或 ACP 连接。",
   "documentationOpenFailed": "无法打开 Agent 官方链接",
   "connections": {
-    "nativeCli": {
-      "title": "原生 ACP",
+    "executableCli": {
+      "title": "直接 ACP 接入",
       "requirements": "安装支持 ACP 的官方 CLI，并将命令目录加入 PATH。"
     },
     "nodeAdapter": {

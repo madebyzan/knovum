@@ -4,7 +4,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{validation, GenerateVisualizationRequest, VisualizationOutput, VisualizationResult};
+use super::{validation, GenerateVisualizationRequest, VisualizationContent, VisualizationOutput};
 use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
     ai::tasks::TaskExecutionTarget,
@@ -76,7 +76,7 @@ pub async fn start(
 pub async fn complete(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
-    generated: VisualizationResult,
+    generated: VisualizationContent,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VisualizationOutput, AppError> {
@@ -139,7 +139,7 @@ pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), AppError
 async fn persist_completion(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVisualizationRequest,
-    generated: &VisualizationResult,
+    generated: &VisualizationContent,
     data: &mut Value,
     bytes: &[u8],
     width: u32,

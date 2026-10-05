@@ -10,7 +10,7 @@ import type { AgentDescriptor } from "../../../shared/contracts/generated/AgentD
 const props = defineProps<{ agent: AgentDescriptor }>();
 const { t } = useI18n();
 const connectionMessageKeys: Record<AgentDescriptor["help"]["connection"], string> = {
-  native_cli: "settings.agents.connections.nativeCli",
+  executable_cli: "settings.agents.connections.executableCli",
   node_adapter: "settings.agents.connections.nodeAdapter",
   standalone_server: "settings.agents.connections.standaloneServer",
 };

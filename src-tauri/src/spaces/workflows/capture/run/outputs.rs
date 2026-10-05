@@ -2,7 +2,7 @@ use serde::Serialize;
 use serde_json::Value;
 use sqlx::{Row, SqlitePool};
 
-use super::super::types::CaptureCandidate;
+use super::super::contracts::CaptureCandidate;
 use crate::spaces::db;
 
 #[derive(Serialize, ts_rs::TS)]

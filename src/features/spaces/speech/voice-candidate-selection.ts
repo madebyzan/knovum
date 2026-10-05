@@ -1,6 +1,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 
-import type { VoiceCandidate, VoiceLibraryRevision } from "./contracts";
+import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import {
   createCandidateVoice,
   discardVoiceCandidate,

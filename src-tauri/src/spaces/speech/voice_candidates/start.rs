@@ -46,8 +46,8 @@ pub(super) async fn start(
     }
     let frozen =
         super::source_snapshot::freeze(app, pool, request.clone(), incoming_digest).await?;
-    let result = create(pool, &request, &frozen).await;
-    if let Err(error) = result {
+    let creation = create(pool, &request, &frozen).await;
+    if let Err(error) = creation {
         if let Some(publication_id) = frozen.publication_id {
             super::super::asset_publication::abandon(app, pool, &publication_id)
                 .await

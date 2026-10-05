@@ -1,8 +1,8 @@
-use crate::spaces::workflows::capture::types::CaptureIssueReason;
+use crate::spaces::workflows::capture::contracts::CaptureIssueReason;
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::types::{CaptureIssue, CapturedInput, RecordedExecutionSpec};
+use super::contracts::{CaptureIssue, CapturedInput, RecordedExecutionSpec};
 use crate::ai::tasks::TaskTargetSelection;
 use crate::spaces::{actions::input_selection::source_node_ids, db};
 
@@ -138,7 +138,7 @@ pub(super) async fn derivation_inputs(
             (Some(node_id), Some(kind)) => inputs.push(CapturedInput {
                 node_id,
                 kind,
-                role: super::types::CaptureInputRole::parse(
+                role: super::contracts::CaptureInputRole::parse(
                     &row.try_get::<String, _>("role").map_err(db::sql_error)?,
                 )?,
                 position: row.try_get("position").map_err(db::sql_error)?,

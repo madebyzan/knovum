@@ -69,7 +69,7 @@ must say `completed` or `unavailable` with a reason; omission is invalid evidenc
 
 Completed capabilities refer to hash-bound raw JSON files beside the result manifest. Each raw file
 uses schema version 1 with `source`, `values`, and one or more request identities/timestamps. Candidate
-sources must identify `native_worker`, the actual JSON-RPC method, the candidate runtime digest, frozen
+sources must identify `bundled_worker`, the actual JSON-RPC method, the candidate runtime digest, frozen
 model spec and config. Reference embedding evidence identifies `official_python_reference`; ASR
 comparison evidence identifies `product_baseline`. The raw value shapes are:
 

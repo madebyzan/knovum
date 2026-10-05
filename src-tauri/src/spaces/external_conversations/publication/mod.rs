@@ -40,7 +40,7 @@ pub(super) async fn publish(
     db::require_one(claim, "Agent output publication is already active")?;
     super::staging::cleanup(app, pool, run_id).await?;
     let outputs = super::staging::stage(app, pool, run_id, workspace).await?;
-    let result = commit(
+    let publication = commit(
         pool,
         conversation_id,
         run_id,
@@ -49,7 +49,7 @@ pub(super) async fn publish(
         crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await;
-    if let Err(error) = result {
+    if let Err(error) = publication {
         return match super::staging::cleanup(app, pool, run_id).await {
             Ok(()) => Err(error),
             Err(cleanup) => {
@@ -274,13 +274,16 @@ async fn attach_outputs(
     outputs: &[AssistantMessageOutput],
 ) -> Result<(), AppError> {
     let encoded = serde_json::to_string(outputs).map_err(db::json_error)?;
-    let result = sqlx::query("UPDATE spaces_assistant_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT assistant_message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
+    let publication = sqlx::query("UPDATE spaces_assistant_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT assistant_message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
         .bind(encoded)
         .bind(conversation_id)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    db::require_one(result, "Agent output has no completed conversation turn")?;
+    db::require_one(
+        publication,
+        "Agent output has no completed conversation turn",
+    )?;
     Ok(())
 }
 

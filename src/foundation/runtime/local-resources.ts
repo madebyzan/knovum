@@ -1,6 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
 
-import type { DiarizationModelImportResult } from "../../shared/contracts/generated/DiarizationModelImportResult";
+import type { DiarizationModelImportReceipt } from "../../shared/contracts/generated/DiarizationModelImportReceipt";
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
@@ -12,7 +12,7 @@ export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
 }
 
 export function importDiarizationModel(sourcePath: string, acceptedTerms: boolean) {
-  return invokeCommand<DiarizationModelImportResult>("plugin:local-resources|import_diarization_model", {
+  return invokeCommand<DiarizationModelImportReceipt>("plugin:local-resources|import_diarization_model", {
     sourcePath,
     acceptedTerms,
   });

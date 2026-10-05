@@ -82,7 +82,7 @@ fn validated_chunks_advance_in_order_and_finish_removes_attempt_directory() {
         model_spec_id: "voxcpm2-2b-v2_0".into(),
         deadline_ms: u64::MAX,
     };
-    let result = SpeechSynthesizeResult {
+    let result = SpeechSynthesis {
         request_id,
         attempt_epoch: 4,
         model_spec_id: identity.model_spec_id.clone(),

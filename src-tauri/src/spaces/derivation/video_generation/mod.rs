@@ -102,14 +102,14 @@ async fn execute(
             move |stage| stages.send(stage.into()).map_err(|error| error.to_string()),
         )
         .await
-        .map(VideoResult::from),
+        .map(VideoContent::from),
         TaskExecutionTarget::Agent { runtime_kind } => {
             super::stage(&stages, "generatingVideo")?;
             crate::external_agents::task::artifact(app, *runtime_kind,
                 format!("Produce an MP4 video, requested duration {} seconds and ratio {}, using your own tools/Skills.\n{}", request.duration_seconds, request.aspect_ratio.as_str(), prepared.provider_prompt),
                 prepared.reference_images.iter().map(std::path::PathBuf::from).collect(),
                 crate::external_agents::task::ArtifactFormat::Mp4, cancellation.clone(),
-            ).await.map(|bytes| VideoResult { bytes, execution_source: target.source(), operation_id: None })
+            ).await.map(|bytes| VideoContent { bytes, execution_source: target.source(), operation_id: None })
         }
     };
     let generated = match generated {
@@ -144,12 +144,12 @@ async fn execute(
     completion
 }
 
-pub(super) struct VideoResult {
+pub(super) struct VideoContent {
     bytes: Vec<u8>,
     execution_source: ExecutionSource,
     operation_id: Option<String>,
 }
-impl From<GeneratedVideo> for VideoResult {
+impl From<GeneratedVideo> for VideoContent {
     fn from(value: GeneratedVideo) -> Self {
         Self {
             bytes: value.bytes,

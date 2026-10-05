@@ -9,7 +9,7 @@ import { invokeCommand } from "../ipc/invoke-command";
 import { runApplicationTransition } from "../lifecycle/application-transition";
 import { flushWindowCloseCommits } from "../lifecycle/window-close-coordinator";
 import { useTaskStore } from "../tasks/task-store";
-import { updateSnapshotSchema } from "./update-schema";
+import { updateSnapshotSchema } from "./schema/snapshot";
 
 export const applicationUpdateTaskId = "application-update";
 

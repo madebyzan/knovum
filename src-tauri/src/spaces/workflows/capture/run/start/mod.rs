@@ -9,7 +9,7 @@ use crate::spaces::{
     authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
-    workflows::capture::{library::SavedCapturedWorkflow, types::CandidateSource},
+    workflows::capture::{contracts::CandidateSource, library::SavedCapturedWorkflow},
 };
 
 pub(crate) async fn start(
@@ -155,7 +155,7 @@ async fn create(
 async fn insert_step(
     tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,
-    step: &super::super::types::CandidateStep,
+    step: &super::super::contracts::CandidateStep,
     dependencies: &[String],
     now: i64,
 ) -> Result<(), String> {

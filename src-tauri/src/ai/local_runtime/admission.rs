@@ -178,23 +178,23 @@ pub(crate) async fn acquire(
         }
         (id, receiver)
     };
-    let result = tokio::select! {
+    let reservation = tokio::select! {
         biased;
         _ = shutdown.cancelled() => Err("cancelled".to_owned()),
         _ = cancellation.cancelled() => Err("cancelled".to_owned()),
-        result = tokio::time::timeout(deadline, receiver) => match result {
+        admission = tokio::time::timeout(deadline, receiver) => match admission {
             Ok(Ok(permit)) => Ok(permit),
             Ok(Err(_)) => Err("worker_crashed".to_owned()),
             Err(_) => Err("deadline_exceeded".to_owned()),
         },
     };
-    if result.is_err() {
+    if reservation.is_err() {
         if let Ok(mut state) = admission.state.lock() {
             state.interactive.retain(|waiter| waiter.id != id);
             state.background.retain(|waiter| waiter.id != id);
         }
     }
-    match result {
+    match reservation {
         Ok(permit) => {
             ensure_runtime_headroom(&admission)?;
             Ok(permit)

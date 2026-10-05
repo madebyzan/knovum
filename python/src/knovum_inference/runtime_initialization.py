@@ -36,7 +36,7 @@ def prepare_session(params: RuntimeInitializeParams) -> Session:
         raise invalid_params("Work directory must be an existing absolute directory")
     verify_runtime_digest(params.runtime_digest)
     model_path = _selected_model_path(params)
-    _configure_native_threads(params)
+    _configure_engine_threads(params)
     engine = _create_engine(params, model_path, work_directory)
     return Session(
         params.session_id,
@@ -47,7 +47,7 @@ def prepare_session(params: RuntimeInitializeParams) -> Session:
     )
 
 
-def _configure_native_threads(params: RuntimeInitializeParams) -> None:
+def _configure_engine_threads(params: RuntimeInitializeParams) -> None:
     threads = str(params.device_profile.cpu_threads)
     for name in (
         "OMP_NUM_THREADS",

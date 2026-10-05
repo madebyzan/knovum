@@ -80,7 +80,7 @@ pub struct CreateSpeechProjectRequest {
 #[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct SpeechProjectSummary {
+pub struct SpeechProjectOverview {
     pub id: String,
     pub space_id: String,
     pub project_type: String,
@@ -204,8 +204,8 @@ pub struct SpeechSegment {
 #[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct SpeechProjectDetail {
-    pub project: SpeechProjectSummary,
+pub struct SpeechProjectSnapshot {
+    pub project: SpeechProjectOverview,
     pub revision: SpeechProjectRevision,
     pub segments: Vec<SpeechSegment>,
 }

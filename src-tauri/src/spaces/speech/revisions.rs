@@ -48,7 +48,7 @@ fn validate_segment(segment: &SpeechSegmentInput) -> Result<(), String> {
 pub async fn save_speech_project_revision(
     app: tauri::AppHandle,
     request: SaveSpeechProjectRevisionRequest,
-) -> Result<SpeechProjectDetail, AppError> {
+) -> Result<SpeechProjectSnapshot, AppError> {
     if request.source_revision.trim().is_empty() {
         return Err("Source revision must not be empty".into());
     }

@@ -6,7 +6,7 @@ mod repository;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use contracts::{TranslateVideoDubbingRequest, VideoTranslationResult};
+pub(crate) use contracts::{TranslateVideoDubbingRequest, VideoTranslation};
 pub(crate) use execution::execute;
 pub(crate) use provenance::{validate_saved_provenance, SaveContext};
 

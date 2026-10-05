@@ -100,10 +100,10 @@ def test_inventory_binds_interpreter_native_files_notices_lock_and_direct_source
         },
     ]
     assert evidence["dependencyLockSha256"] == sha256(lock)
-    assert evidence["interpreter"]["nativeFiles"] == ["bin/python.exe"]
+    assert evidence["interpreter"]["compiledBinaries"] == ["bin/python.exe"]
     assert evidence["interpreter"]["notices"][0]["path"] == "LICENSE.python.txt"
     distribution = evidence["distributions"][0]
-    assert distribution["nativeFiles"] == ["packages/demo_native.pyd"]
+    assert distribution["compiledBinaries"] == ["packages/demo_native.pyd"]
     assert distribution["notices"][0]["path"].endswith("LICENSE.txt")
     assert distribution["source"]["origin"] == {"registry": "https://pypi.org/simple"}
     assert distribution["source"]["installedDirectUrl"]["vcs_info"]["commit_id"] == "b" * 40

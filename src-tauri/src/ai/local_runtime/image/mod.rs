@@ -10,7 +10,7 @@ use super::process::Worker;
 use crate::{
     ai::contracts::{
         image_wire::{
-            ImageSegmentParams, ImageSegmentResult, ImageSegmentationExecutionIdentity,
+            ImageSegmentParams, ImageSegmentation, ImageSegmentationExecutionIdentity,
             TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_INPUT_BYTES,
             IMAGE_SEGMENTATION_MASK_BYTES, IMAGE_SEGMENTATION_RESOLUTION,
             IMAGE_SEGMENTATION_SPEC_ID,
@@ -214,7 +214,7 @@ async fn request(
     params: &ImageSegmentParams,
     cancellation: &CancellationToken,
     exit: &CancellationToken,
-) -> Result<ImageSegmentResult, String> {
+) -> Result<ImageSegmentation, String> {
     let send: Result<(), String> = tokio::select! {
         biased;
         _ = exit.cancelled() => Err("cancelled".into()),
@@ -240,7 +240,7 @@ async fn request(
         }
         result = tokio::time::timeout(
             super::deadline_duration(deadline_ms)?,
-            worker.protocol.read_response::<ImageSegmentResult>(request_id),
+            worker.protocol.read_response::<ImageSegmentation>(request_id),
         ) => match result {
             Ok(value) => value,
             Err(_) => {
@@ -265,7 +265,7 @@ async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
             .await?;
         worker
             .protocol
-            .read_response::<ImageSegmentResult>(request_id)
+            .read_response::<ImageSegmentation>(request_id)
             .await
     })
     .await;

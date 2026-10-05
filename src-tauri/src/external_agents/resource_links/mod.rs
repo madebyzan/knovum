@@ -87,7 +87,7 @@ async fn persist_response(
         .map_err(|error| error.to_string())?;
     let mut content_identity = Sha256::new();
     let mut written = 0_usize;
-    let result = async {
+    let publication = async {
         while let Some(chunk) = response
             .chunk()
             .await
@@ -112,10 +112,10 @@ async fn persist_response(
         Ok(target)
     }
     .await;
-    if result.is_err() {
+    if publication.is_err() {
         let _ = tokio::fs::remove_file(&pending).await;
     }
-    result
+    publication
 }
 
 fn remote_size_limit(

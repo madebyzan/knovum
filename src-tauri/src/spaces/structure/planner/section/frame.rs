@@ -1,6 +1,6 @@
 use crate::spaces::structure::edit_contract::SpaceRect;
 use crate::spaces::structure::planner::bounds::bounds_for_roots;
-use crate::spaces::structure::planner::section::common::{
+use crate::spaces::structure::planner::section::layout::{
     frame_for_bounds, replace_layouts, shift_local,
 };
 use crate::spaces::structure::planner::spatial::layout_keeping_world;

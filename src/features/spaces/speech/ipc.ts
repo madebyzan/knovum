@@ -3,7 +3,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { safeExportFileName } from "../assets/export";
+import type { ArchiveVoiceProfileRequest } from "../contracts/generated/ArchiveVoiceProfileRequest";
 import type { CopyVoiceProfileRequest } from "../contracts/generated/CopyVoiceProfileRequest";
+import type { CreatePresetVoiceRequest } from "../contracts/generated/CreatePresetVoiceRequest";
+import type { CreateSpeechProjectRequest } from "../contracts/generated/CreateSpeechProjectRequest";
 import type { DeleteVoiceProfileRequest } from "../contracts/generated/DeleteVoiceProfileRequest";
 import type { GenerateSpeechProjectRequest } from "../contracts/generated/GenerateSpeechProjectRequest";
 import type { PresetVoice } from "../contracts/generated/PresetVoice";
@@ -12,30 +15,26 @@ import type { RenameVoiceProfileRequest } from "../contracts/generated/RenameVoi
 import type { ReviewSpeechSourceSeparationRequest } from "../contracts/generated/ReviewSpeechSourceSeparationRequest";
 import type { ReviseVoiceProfileRequest } from "../contracts/generated/ReviseVoiceProfileRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import type { SetVoiceProfileArchivedRequest } from "../contracts/generated/SetVoiceProfileArchivedRequest";
+import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
+import type { SpeechAudioOutput } from "../contracts/generated/SpeechAudioOutput";
+import type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
+import type { SpeechProjectOverview } from "../contracts/generated/SpeechProjectOverview";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
 import type { StartSpeechSourceSeparationRequest } from "../contracts/generated/StartSpeechSourceSeparationRequest";
 import type { TranslateVideoDubbingRequest } from "../contracts/generated/TranslateVideoDubbingRequest";
-import type { VideoTranslationResult } from "../contracts/generated/VideoTranslationResult";
-import type {
-  CreatePresetVoiceInput,
-  CreateSpeechProjectInput,
-  SpeechProjectSummary,
-  SpeechProjectDetail,
-  SaveSpeechProjectRevisionInput,
-  VoiceLibraryRevision,
-  VoiceProfileDetail,
-  SpeechGenerationProgress,
-  SpeechAudioOutput,
-} from "./contracts";
+import type { UnarchiveVoiceProfileRequest } from "../contracts/generated/UnarchiveVoiceProfileRequest";
+import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
+import type { VoiceProfileHistory } from "../contracts/generated/VoiceProfileHistory";
 
 export function listVoiceRevisions(spaceId: string) {
   return invokeCommand<VoiceLibraryRevision[]>("plugin:spaces|list_voice_revisions", { spaceId });
 }
 
-export function listVoiceProfilesForManagement(spaceId: string) {
-  return invokeCommand<VoiceProfileDetail[]>("plugin:spaces|list_voice_profiles_for_management", { spaceId });
+export function listVoiceProfiles(spaceId: string) {
+  return invokeCommand<VoiceProfileHistory[]>("plugin:spaces|list_voice_profiles", { spaceId });
 }
 
 export function renameVoiceProfile(request: RenameVoiceProfileRequest) {
@@ -46,8 +45,12 @@ export function reviseVoiceProfile(request: ReviseVoiceProfileRequest) {
   return invokeCommand<void>("plugin:spaces|revise_voice_profile", { request });
 }
 
-export function setVoiceProfileArchived(request: SetVoiceProfileArchivedRequest) {
-  return invokeCommand<void>("plugin:spaces|set_voice_profile_archived", { request });
+export function archiveVoiceProfile(request: ArchiveVoiceProfileRequest) {
+  return invokeCommand<void>("plugin:spaces|archive_voice_profile", { request });
+}
+
+export function unarchiveVoiceProfile(request: UnarchiveVoiceProfileRequest) {
+  return invokeCommand<void>("plugin:spaces|unarchive_voice_profile", { request });
 }
 
 export function deleteVoiceProfile(request: DeleteVoiceProfileRequest) {
@@ -107,11 +110,11 @@ export async function exportSpeechRender(sourcePath: string, projectTitle: strin
 }
 
 export function getSpeechProject(projectId: string) {
-  return invokeCommand<SpeechProjectDetail>("plugin:spaces|get_speech_project", { projectId });
+  return invokeCommand<SpeechProjectSnapshot>("plugin:spaces|get_speech_project", { projectId });
 }
 
-export function saveSpeechProjectRevision(request: SaveSpeechProjectRevisionInput) {
-  return invokeCommand<SpeechProjectDetail>("plugin:spaces|save_speech_project_revision", { request });
+export function saveSpeechProjectRevision(request: SaveSpeechProjectRevisionRequest) {
+  return invokeCommand<SpeechProjectSnapshot>("plugin:spaces|save_speech_project_revision", { request });
 }
 
 export function translateVideoDubbing(request: TranslateVideoDubbingRequest) {
@@ -125,8 +128,8 @@ export function getVideoTranslationRun(projectId: string, expectedRevision: numb
   });
 }
 
-export function getVideoTranslationResult(runId: string) {
-  return invokeCommand<VideoTranslationResult>("plugin:spaces|get_video_translation_result", { runId });
+export function getVideoTranslation(runId: string) {
+  return invokeCommand<VideoTranslation>("plugin:spaces|get_video_translation", { runId });
 }
 
 export function startSpeechSourceSeparation(request: StartSpeechSourceSeparationRequest) {
@@ -145,16 +148,16 @@ export function reviewSpeechSourceSeparation(request: ReviewSpeechSourceSeparati
   });
 }
 
-export function createPresetVoice(request: CreatePresetVoiceInput) {
+export function createPresetVoice(request: CreatePresetVoiceRequest) {
   return invokeCommand<VoiceLibraryRevision>("plugin:spaces|create_preset_voice", { request });
 }
 
 export function listSpeechProjects(spaceId: string) {
-  return invokeCommand<SpeechProjectSummary[]>("plugin:spaces|list_speech_projects", { spaceId });
+  return invokeCommand<SpeechProjectOverview[]>("plugin:spaces|list_speech_projects", { spaceId });
 }
 
-export function createSpeechProject(request: CreateSpeechProjectInput) {
-  return invokeCommand<SpeechProjectSummary>("plugin:spaces|create_speech_project", { request });
+export function createSpeechProject(request: CreateSpeechProjectRequest) {
+  return invokeCommand<SpeechProjectOverview>("plugin:spaces|create_speech_project", { request });
 }
 
 export function listPresetVoices() {

@@ -1,7 +1,8 @@
 import { readonly, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import type { CreatePresetVoiceInput, VoiceLibraryRevision } from "./contracts";
+import type { CreatePresetVoiceRequest } from "../contracts/generated/CreatePresetVoiceRequest";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { createPresetVoice, listVoiceRevisions } from "./ipc";
 
 interface VoiceLibraryOwner {
@@ -25,7 +26,7 @@ export function useSpeechVoices(owner: VoiceLibraryOwner) {
     voices.value = [voice, ...voices.value];
   }
 
-  async function addPreset(input: Omit<CreatePresetVoiceInput, "spaceId">) {
+  async function addPreset(input: Omit<CreatePresetVoiceRequest, "spaceId">) {
     if (creating.value) return;
     const spaceId = owner.activeSpaceId();
     const epoch = owner.contextEpoch();

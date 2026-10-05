@@ -1,6 +1,6 @@
-import type { VideoTranslationResult } from "../contracts/generated/VideoTranslationResult";
+import type { SpeechSegment } from "../contracts/generated/SpeechSegment";
+import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import type { VideoTranslationSegmentInput } from "../contracts/generated/VideoTranslationSegmentInput";
-import type { SpeechSegment } from "./contracts";
 
 export interface VideoLineDraft {
   key: string;
@@ -57,14 +57,14 @@ export function translationInputs(
 
 export function applyTranslation(
   lines: readonly VideoLineDraft[],
-  result: VideoTranslationResult,
+  translation: VideoTranslation,
   alreadyTranslated: boolean,
 ): VideoLineDraft[] {
   const inputs = translationInputs(lines, alreadyTranslated);
   if (
-    inputs.length !== result.segments.length ||
+    inputs.length !== translation.segments.length ||
     inputs.some((input, index) => {
-      const output = result.segments[index];
+      const output = translation.segments[index];
       return (
         !output ||
         output.sourceSegmentId !== input.sourceSegmentId ||
@@ -74,13 +74,15 @@ export function applyTranslation(
     })
   )
     throw new Error("Translation result does not match the current video script");
-  const bySource = new Map(result.segments.map((segment) => [segment.sourceSegmentId, segment]));
-  if (bySource.size !== lines.length) {
+  const translationBySourceSegmentId = new Map(
+    translation.segments.map((segment) => [segment.sourceSegmentId, segment]),
+  );
+  if (translationBySourceSegmentId.size !== lines.length) {
     throw new Error("Translation result does not match the current video script");
   }
   return lines.map((line) => {
     const sourceSegmentId = line.sourceSegmentId ?? line.key;
-    const translated = bySource.get(sourceSegmentId);
+    const translated = translationBySourceSegmentId.get(sourceSegmentId);
     if (!translated) throw new Error("Translation result does not match the current video script");
     return {
       ...line,

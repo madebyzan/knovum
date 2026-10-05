@@ -1,7 +1,7 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{
-    SpeechProjectDetail, SpeechProjectSummary, SpeechSegment, VoiceLibraryRevision,
+    SpeechProjectOverview, SpeechProjectSnapshot, SpeechSegment, VoiceLibraryRevision,
 };
 use crate::spaces::db;
 
@@ -24,7 +24,7 @@ pub async fn list_voices(
 pub async fn list_projects(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Vec<SpeechProjectSummary>, String> {
+) -> Result<Vec<SpeechProjectOverview>, String> {
     sqlx::query_as(
         "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
@@ -46,8 +46,8 @@ pub async fn list_projects(
 pub async fn load_project(
     pool: &sqlx::SqlitePool,
     project_id: &str,
-) -> Result<SpeechProjectDetail, String> {
-    let project: SpeechProjectSummary = sqlx::query_as(
+) -> Result<SpeechProjectSnapshot, String> {
+    let project: SpeechProjectOverview = sqlx::query_as(
         "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
            WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
@@ -74,7 +74,7 @@ pub async fn load_project(
     .await
     .map_err(db::sql_error)?;
     let segments = load_segments(pool, &project.active_revision_id).await?;
-    Ok(SpeechProjectDetail {
+    Ok(SpeechProjectSnapshot {
         project,
         revision,
         segments,

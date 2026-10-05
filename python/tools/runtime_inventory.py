@@ -1,4 +1,4 @@
-"""Record the installed dependency graph, including native and license evidence."""
+"""Record the installed dependency graph, including binaries and license evidence."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from runtime_artifacts import digest
-from runtime_signing import native_files
+from runtime_signing import compiled_binaries
 
 
 def canonical(name: str) -> str:
@@ -37,7 +37,7 @@ def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_confi
         package = locked.get((canonical(name), version))
         if package is None:
             raise ValueError(f"Installed distribution is absent from uv.lock: {name}=={version}")
-        native = []
+        binaries = []
         notices = []
         for file in distribution.files or []:
             path = Path(str(distribution.locate_file(file))).resolve(strict=True)
@@ -45,7 +45,7 @@ def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_confi
                 raise ValueError(f"Installed distribution declares an external/nonregular file: {name}/{file}")
             relative = path.relative_to(root).as_posix()
             if path.suffix.lower() in {".so", ".dylib", ".dll", ".pyd", ".exe"}:
-                native.append(relative)
+                binaries.append(relative)
             if any(token in path.name.lower() for token in ("license", "copying", "notice")):
                 notices.append({"path": relative, "sha256": digest(path)})
         source: dict[str, Any] = {"origin": package["source"]}
@@ -69,7 +69,7 @@ def write_inventory(root: Path, lock_path: Path, output: Path, interpreter_confi
                 "metadataLicense": license_text,
                 "classifiers": classifiers,
                 "notices": notices,
-                "nativeFiles": native,
+                "compiledBinaries": binaries,
                 "source": source,
             }
         )
@@ -113,16 +113,16 @@ def interpreter_inventory(root: Path, configuration_path: Path, target: str) -> 
             notices.append({"path": path.relative_to(root).as_posix(), "sha256": digest(path)})
     binaries = [
         path.relative_to(root).as_posix()
-        for path in native_files(root, target)
+        for path in compiled_binaries(root, target)
         if not path.is_relative_to(root / "packages")
     ]
     if not binaries:
-        raise ValueError("Interpreter inventory has no native files")
+        raise ValueError("Interpreter inventory has no binaries files")
     return {
         "version": configuration["version"],
         "standaloneRelease": configuration["standaloneRelease"],
         "target": target,
         "source": configuration["targets"][target],
-        "nativeFiles": binaries,
+        "compiledBinaries": binaries,
         "notices": notices,
     }

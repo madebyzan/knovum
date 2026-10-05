@@ -89,7 +89,7 @@ impl TranscriptionPipeline<'_> {
             },
         };
         send_progress(self.progress, "transcribing", 18);
-        let result = speech::transcribe(
+        let transcription = speech::transcribe(
             self.app,
             self.resources,
             RuntimeDeviceProfile {
@@ -120,7 +120,7 @@ impl TranscriptionPipeline<'_> {
         )
         .await?;
         let transcript = from_speech(
-            result,
+            transcription,
             audio.analysis.duration_ms,
             self.source_revision,
             provenance,

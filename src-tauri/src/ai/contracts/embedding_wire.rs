@@ -36,7 +36,7 @@ pub struct EmbeddingEncodeParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct EmbeddingEncodeResult {
+pub struct EmbeddingEncoding {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub embedding_spec_id: String,

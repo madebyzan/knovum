@@ -71,7 +71,7 @@ def test_windows_native_extensions_are_signed_and_verified(monkeypatch: pytest.M
     commands = Mock(return_value=Mock(stdout="A" * 40))
     monkeypatch.setattr("runtime_signing.subprocess.run", commands)
     result = sign_runtime(tmp_path, "windows-x64", "production")
-    assert result["nativeFileCount"] == 3
+    assert result["compiledBinaryCount"] == 3
     signed = [Path(call.args[0][-1]).name for call in commands.call_args_list if call.args[0][1] == "sign"]
     assert set(signed) == {"python.exe", "lib.dll", "extension.pyd"}
     commands.reset_mock()

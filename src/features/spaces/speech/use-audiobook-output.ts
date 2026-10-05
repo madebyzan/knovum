@@ -1,8 +1,8 @@
 import { shallowRef } from "vue";
 
 import type { AudiobookMetadata } from "../contracts/generated/AudiobookMetadata";
+import type { AudiobookOutputConfig } from "../contracts/generated/AudiobookOutputConfig";
 import type { WavPrecision } from "../contracts/generated/WavPrecision";
-import type { AudiobookOutputConfig } from "./contracts";
 
 export function useAudiobookOutput() {
   const format = shallowRef<"wav" | "mp3" | "m4b">("m4b");

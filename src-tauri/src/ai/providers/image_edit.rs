@@ -18,16 +18,16 @@ pub(crate) enum ImageEditApi {
 
 #[derive(Deserialize)]
 struct ImageResponse {
-    data: Vec<ImageData>,
+    data: Vec<ImageContentReference>,
 }
 
 #[derive(Deserialize)]
 struct SiliconFlowImageResponse {
-    images: Vec<ImageData>,
+    images: Vec<ImageContentReference>,
 }
 
 #[derive(Deserialize)]
-struct ImageData {
+struct ImageContentReference {
     b64_json: Option<String>,
     url: Option<String>,
 }
@@ -50,7 +50,7 @@ pub(crate) async fn edit_image(
             );
             let uploaded = tokio::select! {
                 _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
-                result = upload => result.map_err(|error| error.to_string())?,
+                edited_image = upload => edited_image.map_err(|error| error.to_string())?,
             };
             (
                 "images/edits",
@@ -95,26 +95,26 @@ pub(crate) async fn edit_image(
         .bearer_auth(ctx.require_api_key().map_err(|error| error.to_string())?)
         .json(&body)
         .send();
-    let result = tokio::select! {
+    let edited_image = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
         response = send => response.map_err(|error| error.to_string())?,
     };
-    if !result.status().is_success() {
-        return Err(response::read_text(result)
+    if !edited_image.status().is_success() {
+        return Err(response::read_text(edited_image)
             .await
             .map_err(|error| error.to_string())?);
     }
     let image = match api {
         ImageEditApi::SiliconFlow => {
             let response: SiliconFlowImageResponse =
-                response::read_json(result, response::MAX_IMAGE_JSON_BYTES)
+                response::read_json(edited_image, response::MAX_IMAGE_JSON_BYTES)
                     .await
                     .map_err(|error| error.to_string())?;
             response.images.into_iter().next()
         }
         ImageEditApi::Grok | ImageEditApi::Doubao | ImageEditApi::OpenRouter => {
             let response: ImageResponse =
-                response::read_json(result, response::MAX_IMAGE_JSON_BYTES)
+                response::read_json(edited_image, response::MAX_IMAGE_JSON_BYTES)
                     .await
                     .map_err(|error| error.to_string())?;
             response.data.into_iter().next()
@@ -126,14 +126,14 @@ pub(crate) async fn edit_image(
     }
     let url = image.url.ok_or("Image edit returned no image")?;
     let download = http_client().get(url).send();
-    let result = tokio::select! {
+    let edited_image = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
         response = download => response.map_err(|error| error.to_string())?,
     };
-    let result = result
+    let edited_image = edited_image
         .error_for_status()
         .map_err(|error| error.to_string())?;
-    response::read_bytes(result, response::MAX_IMAGE_BYTES)
+    response::read_bytes(edited_image, response::MAX_IMAGE_BYTES)
         .await
         .map_err(|error| error.to_string())
 }

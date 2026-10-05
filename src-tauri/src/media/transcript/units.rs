@@ -2,7 +2,7 @@ use sha2::{Digest, Sha256};
 
 use crate::ai::contracts::speech_wire::SpeechWordTiming;
 
-use super::types::TranscriptUnit;
+use super::contracts::TranscriptUnit;
 
 pub(super) fn stable_id(scope: &str, key: &str) -> String {
     let mut hash = Sha256::new();

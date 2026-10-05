@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
-use super::types::CaptureCandidate;
+use super::contracts::CaptureCandidate;
 use crate::spaces::db;
 
 #[derive(Deserialize, ts_rs::TS)]

@@ -14,7 +14,7 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const record = JSON.parse(readFileSync(path, "utf8"));
   validateProducerIdentity(record, manifest, configuration);
   validateEvidenceFiles(manifest);
-  validateNativeSources(manifest, dependencyLock);
+  validateCompiledSources(manifest, dependencyLock);
   validateVoxCpm(record.voxcpm, manifest, dependencyLock);
   validateWorkerSource(manifest, dependencyLock);
 }
@@ -44,8 +44,8 @@ function validateSigningRecord(signing, target) {
   const modes = target === "macos-arm64" ? ["adhoc", "production"] : ["unsigned", "production"];
   if (
     !modes.includes(signing?.mode) ||
-    !Number.isSafeInteger(signing?.nativeFileCount) ||
-    signing.nativeFileCount < 1
+    !Number.isSafeInteger(signing?.compiledBinaryCount) ||
+    signing.compiledBinaryCount < 1
   )
     throw new Error("Runtime producer signing record is invalid");
 }
@@ -58,7 +58,7 @@ function validateEvidenceFiles(manifest) {
     "requirements.txt",
     "build-requirements.txt",
     "voxcpm-source.tar",
-    "native-source-evidence.json",
+    "compiled-source-evidence.json",
   ]) {
     const file = `build-evidence/${name}`;
     if (!manifest.files.some((entry) => entry.path === file))
@@ -66,17 +66,17 @@ function validateEvidenceFiles(manifest) {
   }
 }
 
-function validateNativeSources(manifest, dependencyLock) {
-  const policy = join(dirname(dependencyLock), "native-source-evidence.json");
+function validateCompiledSources(manifest, dependencyLock) {
+  const policy = join(dirname(dependencyLock), "compiled-source-evidence.json");
   const declaration = manifest.files.find(
-    (file) => file.path === "build-evidence/native-source-evidence.json",
+    (file) => file.path === "build-evidence/compiled-source-evidence.json",
   );
   if (declaration.sha256 !== sha256File(policy))
     throw new Error("Native source review evidence differs from the application");
-  const nativeSources = JSON.parse(readFileSync(policy, "utf8"));
-  for (const source of nativeSources.sources) {
+  const compiledSources = JSON.parse(readFileSync(policy, "utf8"));
+  for (const source of compiledSources.sources) {
     const entry = manifest.files.find(
-      (file) => file.path === `build-evidence/native-sources/${source.fileName}`,
+      (file) => file.path === `build-evidence/compiled-sources/${source.fileName}`,
     );
     if (!entry || entry.sha256 !== source.sha256 || entry.size !== source.size)
       throw new Error(`Native source archive differs: ${source.name}`);

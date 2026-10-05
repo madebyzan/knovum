@@ -44,7 +44,7 @@ pub async fn embed<R: Runtime>(
     let provider = active_text_provider();
     validate_inputs(&texts, provider)?;
     let expected = texts.len();
-    let result = crate::ai::local_runtime::encode_embedding(
+    let encoding = crate::ai::local_runtime::encode_embedding(
         app,
         texts,
         role,
@@ -53,21 +53,21 @@ pub async fn embed<R: Runtime>(
         cancellation,
     )
     .await?;
-    validate_vectors(&result.vectors, expected, provider.dimensions())?;
+    validate_vectors(&encoding.vectors, expected, provider.dimensions())?;
     crate::ai::usage::record(
         crate::ai::usage::UsagePurpose::KnowledgeIndexing,
         "local",
         provider.model_id(),
         &crate::ai::contracts::TokenUsage {
-            prompt_tokens: result.input_tokens,
+            prompt_tokens: encoding.input_tokens,
             completion_tokens: 0,
-            total_tokens: result.input_tokens,
+            total_tokens: encoding.input_tokens,
         },
     )
     .await
     .map_err(|error| error.to_string())?;
     Ok(EmbeddingResponse {
-        vectors: result.vectors,
+        vectors: encoding.vectors,
     })
 }
 

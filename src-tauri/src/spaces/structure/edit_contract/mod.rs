@@ -2,8 +2,8 @@ use super::{LocalTransform, RelationColor, Size, SizingMode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-mod types;
-pub(crate) use types::{
+mod contracts;
+pub(crate) use contracts::{
     AlignmentEdge, AutoLayoutDirection, DistributionAxis, ExecuteSpaceEditRequest, FieldUpdate,
     ReorderDirection, SpaceEditHistoryReceipt, SpaceEditHistoryRequest, SpaceEditReceipt,
     SpaceEditSnapshotResponse, SpacePoint, SpaceRect,

@@ -11,7 +11,9 @@ use std::sync::Arc;
 use tokio::process::Child;
 
 use super::protocol::Protocol;
-use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeHealthParams, RuntimeHealthResult};
+use crate::ai::contracts::runtime::{
+    RuntimeCapability, RuntimeHealthObservation, RuntimeHealthParams,
+};
 
 #[cfg(windows)]
 #[path = "windows_job.rs"]
@@ -57,9 +59,9 @@ impl Worker {
 
     pub(super) async fn resident_bytes(&mut self) -> Result<u64, String> {
         let request_id = uuid::Uuid::new_v4().to_string();
-        let result = tokio::time::timeout(
+        let health = tokio::time::timeout(
             Duration::from_secs(2),
-            self.protocol.request::<_, RuntimeHealthResult>(
+            self.protocol.request::<_, RuntimeHealthObservation>(
                 &request_id,
                 "runtime.health",
                 &RuntimeHealthParams {
@@ -69,13 +71,13 @@ impl Worker {
         )
         .await
         .map_err(|_| "deadline_exceeded: runtime health timed out".to_owned())??;
-        if result.session_id != self.session_id || result.current_request_id.is_some() {
+        if health.session_id != self.session_id || health.current_request_id.is_some() {
             return Err("invalid_output: runtime health identity or worker state differs".into());
         }
-        if result.resident_bytes == 0 {
+        if health.resident_bytes == 0 {
             return Err("invalid_output: runtime health reported zero resident memory".into());
         }
-        Ok(result.resident_bytes)
+        Ok(health.resident_bytes)
     }
 
     pub(super) async fn terminate(&mut self) {

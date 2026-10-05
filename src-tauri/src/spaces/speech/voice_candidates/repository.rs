@@ -8,7 +8,7 @@ use crate::{
     spaces::{db, runs::AttemptClaim},
 };
 
-pub(crate) struct CandidateRecord {
+pub(crate) struct StoredVoiceCandidate {
     pub candidate: VoiceCandidate,
     pub reference_asset_path: String,
     pub reference_sha256: String,
@@ -123,7 +123,7 @@ pub(crate) async fn load_record(
     pool: &SqlitePool,
     candidate_id: &str,
     space_id: &str,
-) -> Result<CandidateRecord, String> {
+) -> Result<StoredVoiceCandidate, String> {
     let row = sqlx::query(
         "SELECT id,run_id,space_id,source_kind,language,sample_text,design_description,reference_text, \
          reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
@@ -144,7 +144,7 @@ pub(crate) async fn load_record_optional(
     pool: &SqlitePool,
     candidate_id: &str,
     space_id: &str,
-) -> Result<Option<CandidateRecord>, String> {
+) -> Result<Option<StoredVoiceCandidate>, String> {
     let exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND space_id=?)",
     )
@@ -241,7 +241,7 @@ pub(crate) async fn select_candidate(
     )
 }
 
-fn decode(row: sqlx::sqlite::SqliteRow) -> Result<CandidateRecord, String> {
+fn decode(row: sqlx::sqlite::SqliteRow) -> Result<StoredVoiceCandidate, String> {
     let status: String = row.try_get("status").map_err(db::sql_error)?;
     let status = match status.as_str() {
         "ready" => VoiceCandidateStatus::Ready,
@@ -264,7 +264,7 @@ fn decode(row: sqlx::sqlite::SqliteRow) -> Result<CandidateRecord, String> {
             .map_err(db::sql_error)?,
     )
     .map_err(|_| "Persisted voice candidate reference length is invalid")?;
-    Ok(CandidateRecord {
+    Ok(StoredVoiceCandidate {
         reference_asset_path: row.try_get("reference_asset_path").map_err(db::sql_error)?,
         reference_sha256: row.try_get("reference_sha256").map_err(db::sql_error)?,
         reference_byte_length,

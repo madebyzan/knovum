@@ -3,10 +3,10 @@ import { onScopeDispose, readonly, shallowRef } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
-import type { SpeechMediaSource } from "./contracts";
 import { getSpeechSourceSeparation, reviewSpeechSourceSeparation, startSpeechSourceSeparation } from "./ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);

@@ -27,8 +27,8 @@ const searchResponseSchema = z
   .passthrough();
 const parsed = computed(() => searchResponseSchema.safeParse(props.value));
 const matches = computed(() => {
-  const result = parsed.value;
-  return result.success ? result.data.result : [];
+  const response = parsed.value;
+  return response.success ? response.data.result : [];
 });
 </script>
 

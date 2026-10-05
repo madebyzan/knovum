@@ -49,7 +49,7 @@ pub struct ImageSegmentParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ImageSegmentResult {
+pub struct ImageSegmentation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,

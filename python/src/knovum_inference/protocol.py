@@ -48,8 +48,8 @@ class ProtocolWriter:
     def __init__(self) -> None:
         self._lock = asyncio.Lock()
 
-    async def result(self, request_id: str | int, result: dict[str, Any]) -> None:
-        value = {"jsonrpc": "2.0", "id": request_id, "result": result}
+    async def send_response(self, request_id: str | int, response: dict[str, Any]) -> None:
+        value = {"jsonrpc": "2.0", "id": request_id, "result": response}
         encoded = self._encode(value)
         if len(encoded) >= MAX_MESSAGE_BYTES:
             await self.error(
