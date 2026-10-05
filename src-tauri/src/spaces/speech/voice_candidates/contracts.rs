@@ -13,6 +13,9 @@ use super::super::contracts::SpeechAudioOutput;
 pub enum VoiceCandidateSource {
     Reference {
         source_path: String,
+        source_revision: String,
+        start_ms: u64,
+        end_ms: u64,
         reference_text: Option<String>,
         reference_text_confirmed: bool,
     },
@@ -29,6 +32,7 @@ pub struct DraftVoiceCandidateRequest {
     pub space_id: String,
     pub language: String,
     pub text: String,
+    pub seed: u32,
     pub source: VoiceCandidateSource,
     pub authorized: bool,
 }
@@ -52,6 +56,7 @@ pub struct VoiceCandidate {
     pub source_kind: String,
     pub language: String,
     pub sample_text: String,
+    pub seed: u32,
     pub design_description: Option<String>,
     pub reference_text: Option<String>,
     pub audio: SpeechAudioOutput,

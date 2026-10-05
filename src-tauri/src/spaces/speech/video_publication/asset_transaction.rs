@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -27,6 +29,7 @@ pub(super) struct Publication<'a, R: Runtime> {
     pub background_revision: Option<String>,
     pub video_duration_us: u64,
     pub video_samples: u64,
+    pub retain_original_track: bool,
     pub cancellation: &'a CancellationToken,
 }
 
@@ -50,6 +53,7 @@ pub(super) async fn publish<R: Runtime>(
         background_revision,
         video_duration_us,
         video_samples,
+        retain_original_track,
         cancellation,
     } = request;
     let output = directory.join(format!("full-{digest}-{}.mp4", claim.attempt_id));
@@ -72,6 +76,7 @@ pub(super) async fn publish<R: Runtime>(
             &mux_audio,
             &mux_part,
             &mux_cancellation,
+            retain_original_track,
         )
     })
     .await;
@@ -123,7 +128,7 @@ pub(super) async fn publish<R: Runtime>(
         pool,
         claim,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "project_output",
+            owner_kind: PublicationOwnerKind::ProjectOutput,
             owner_id: revision_id,
             asset_path: &output,
             part_path: Some(&part),

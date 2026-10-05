@@ -1,7 +1,5 @@
 use super::{
-    repository::{
-        load_candidate, load_latest_ready, load_record, mark_auditioned, reject_candidate,
-    },
+    repository::{list_ready, load_candidate, load_record, mark_auditioned, reject_candidate},
     DraftVoiceCandidateRequest, VoiceCandidate, WORKFLOW,
 };
 use crate::{app_error::AppError, spaces::db, spaces::runs::RunObservation};
@@ -25,11 +23,11 @@ pub async fn get_voice_candidate(
 }
 
 #[tauri::command]
-pub async fn get_latest_voice_candidate(
+pub async fn list_voice_candidates(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Option<VoiceCandidate>, AppError> {
-    Ok(load_latest_ready(db::pool(&app).await?, &space_id).await?)
+) -> Result<Vec<VoiceCandidate>, AppError> {
+    Ok(list_ready(db::pool(&app).await?, &space_id).await?)
 }
 
 #[tauri::command]

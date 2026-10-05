@@ -54,7 +54,7 @@ pub async fn revise_voice_profile(
     let mut tx = db::begin_write(pool).await?;
     let current: RevisionSource = sqlx::query_as(
         "SELECT r.revision,r.engine_id,r.model_spec_id,r.preset_voice_id,r.reference_asset_id, \
-         r.reference_source_revision,r.reference_text,r.design_description,r.authorization \
+         r.reference_source_revision,r.reference_text,r.design_description,r.authorization,r.synthesis_config \
          FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.id=p.active_revision_id \
          WHERE p.id=? AND p.active_revision_id=? AND p.archived_at IS NULL",
     )
@@ -64,7 +64,10 @@ pub async fn revise_voice_profile(
     .await
     .map_err(db::sql_error)?
     .ok_or("Voice profile changed or is archived")?;
-    let config = revision_config(&current.engine_id, request.speed)?;
+    let previous = super::contracts::parse_synthesis_config(
+        &serde_json::from_str(&current.synthesis_config).map_err(db::json_error)?,
+    )?;
+    let config = revision_config(&current.engine_id, request.speed, previous.seed)?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
@@ -136,9 +139,10 @@ struct RevisionSource {
     reference_text: Option<String>,
     design_description: Option<String>,
     authorization: String,
+    synthesis_config: String,
 }
 
-fn revision_config(engine_id: &str, speed: f32) -> Result<String, String> {
+fn revision_config(engine_id: &str, speed: f32, seed: u32) -> Result<String, String> {
     let sample_rate = match engine_id {
         "kokoro" if speed.is_finite() && (0.5..=2.0).contains(&speed) => 24_000,
         "voxcpm2" if speed == 1.0 => 48_000,
@@ -146,6 +150,10 @@ fn revision_config(engine_id: &str, speed: f32) -> Result<String, String> {
         "voxcpm2" => return Err("VoxCPM2 uses its fixed speed profile".into()),
         _ => return Err("Voice engine is unsupported".into()),
     };
-    serde_json::to_string(&super::contracts::PresetSynthesisConfig { speed, sample_rate })
-        .map_err(db::json_error)
+    serde_json::to_string(&super::contracts::VoiceSynthesisConfig {
+        speed,
+        sample_rate,
+        seed,
+    })
+    .map_err(db::json_error)
 }

@@ -2,8 +2,8 @@
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { versionedMediaSource } from "../../media/media-element-source";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
-import { versionedMediaSource } from "../media/media-element-source";
 
 defineProps<{
   data: SpaceVideoPayload;

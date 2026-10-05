@@ -2,10 +2,10 @@
 import { AudioLines, BookOpenText, Mic2, Video } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import type { SpeechProjectSummary, VoiceProfileSummary } from "./contracts";
+import type { SpeechProjectSummary, VoiceLibraryRevision } from "./contracts";
 
 defineProps<{
-  voices: readonly VoiceProfileSummary[];
+  voices: readonly VoiceLibraryRevision[];
   projects: readonly SpeechProjectSummary[];
 }>();
 const emit = defineEmits<{ selectProject: [projectId: string] }>();
@@ -33,7 +33,7 @@ function projectTypeLabel(project: SpeechProjectSummary) {
       <div v-else class="space-y-1">
         <div
           v-for="voice in voices"
-          :key="voice.id"
+          :key="voice.revisionId"
           class="flex items-center gap-2 rounded-md bg-surface-control px-2 py-1.5"
         >
           <Mic2 class="size-3.5 text-fg-tertiary" />

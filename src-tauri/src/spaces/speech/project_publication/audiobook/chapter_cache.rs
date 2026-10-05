@@ -35,7 +35,13 @@ pub(super) async fn load<R: Runtime>(
     if let Ok(path) = assets::authorize_spaces_asset(app, Path::new(&stored_path)) {
         if hash_file(&path).ok().as_deref() == Some(sha256.as_str())
             && rate == i64::from(sample_rate)
-            && wav_sample_count(&path, sample_rate).ok() == u64::try_from(samples).ok()
+            && wav_sample_count(
+                &path,
+                sample_rate,
+                super::super::super::audio_format::WavPrecision::Float32,
+            )
+            .ok()
+                == u64::try_from(samples).ok()
         {
             return Ok(Some(ChapterCheckpoint {
                 chapter_key: chapter_key.into(),

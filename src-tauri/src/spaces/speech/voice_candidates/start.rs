@@ -210,6 +210,9 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
         }
         VoiceCandidateSource::Reference {
             source_path,
+            source_revision,
+            start_ms,
+            end_ms,
             reference_text,
             reference_text_confirmed,
         } => {
@@ -217,7 +220,12 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
                 .as_deref()
                 .map(str::trim)
                 .filter(|text| !text.is_empty());
-            if source_path.trim().is_empty()
+            if source_revision.len() != 71
+                || !source_revision.starts_with("sha256:")
+                || end_ms <= start_ms
+                || !(5_000..=30_000).contains(&(end_ms - start_ms))
+                || *end_ms > 43_200_000
+                || source_path.trim().is_empty()
                 || text.is_some_and(|text| text.chars().count() > 3_000)
                 || (text.is_some() && !reference_text_confirmed)
             {

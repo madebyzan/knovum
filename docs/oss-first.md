@@ -258,3 +258,18 @@ pdf-inspector 1.20.0 提供文本及 Display 坐标，不提供公开嵌入图�
 必要区域由 CoreGraphics / Windows.Data.Pdf 渲染；不引入第二套 PDF 引擎。
 macOS 位图翻转原地进行；Windows 页面、流、读取器在作用域退出时释放，
 包括错误路径，不增加常驻原生渲染线程或跨线程句柄缓存。
+
+## Audio production reviewed 2026-10-05
+
+VoiceStudio was compared at commit `c4d63ef207f345b4405f8e8320a73d273ce7187f` for production
+workflows, precision and delivery contracts. Its implementation is not imported into Knovum.
+Knovum retains the existing Tauri native authorization, managed assets and durable Run model.
+
+Audio processing uses the already bundled FFmpeg filters/encoders; media playback reuses VueUse
+and the feature's existing playback composable. Manuscripts reuse MarkdownIt, the existing ZIP
+reader and native Office/PDF extraction. EPUB parsing needs only its bounded XML manifest/spine
+and paragraph mapping, so native DOMParser suffices without another archive/XML/document parser
+or a speculative dependency. Parsed markup remains inert and is never inserted into the UI.
+The [Kokoro model documentation](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html)
+provides the canonical voice mapping for the pinned archive; catalog membership is validated by
+creation, preview, execution and package restore. Model/license release gates remain authoritative.

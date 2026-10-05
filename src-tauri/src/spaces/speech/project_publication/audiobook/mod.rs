@@ -40,6 +40,7 @@ pub(in crate::spaces::speech) struct ChapterPublicationRequest<'a> {
     pub revision_id: &'a str,
     pub chapter_key: &'a str,
     pub sample_rate: u32,
+    pub paragraph_pause_ms: u32,
     pub renders: &'a [SpeechSegmentRenderOutput],
 }
 

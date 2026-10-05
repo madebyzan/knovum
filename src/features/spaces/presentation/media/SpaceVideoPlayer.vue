@@ -4,11 +4,11 @@ import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { formatDurationMs } from "../../media/format-duration";
+import { versionedMediaSource } from "../../media/media-element-source";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
+import { useMediaPlayback } from "../../media/use-media-playback";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
-import { versionedMediaSource } from "./media-element-source";
 import SpaceMediaControls from "./SpaceMediaControls.vue";
-import { useMediaPlayback } from "./use-media-playback";
 
 const props = defineProps<{ data: SpaceVideoPayload }>();
 const emit = defineEmits<{

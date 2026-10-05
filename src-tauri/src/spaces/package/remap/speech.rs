@@ -58,6 +58,14 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
                 config["backgroundSeparation"]["source"]["assetPath"] =
                     json!(maps.asset(reference)?);
             }
+            if let Some(reference) = config
+                .get("metadata")
+                .and_then(|metadata| metadata.get("cover"))
+                .and_then(|cover| cover.get("assetPath"))
+                .and_then(Value::as_str)
+            {
+                config["metadata"]["cover"]["assetPath"] = json!(maps.asset(reference)?);
+            }
             for key in ["video", "background"] {
                 if let Some(reference) = config
                     .get(key)

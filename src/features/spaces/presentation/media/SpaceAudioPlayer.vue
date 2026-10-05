@@ -5,11 +5,11 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { formatDurationMs } from "../../media/format-duration";
+import { versionedMediaSource } from "../../media/media-element-source";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
 import { mediaProviderDisplayName } from "../../media/provider-display-name";
+import { useMediaPlayback } from "../../media/use-media-playback";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
-import { versionedMediaSource } from "./media-element-source";
-import { useMediaPlayback } from "./use-media-playback";
 
 const WAVEFORM_BAR_COUNT = 52;
 

@@ -25,6 +25,17 @@ pub struct VideoDubbingOutputConfig {
     pub voice_gain_db: f32,
     pub background_gain_db: f32,
     pub translation: Option<VideoTranslationProvenance>,
+    pub preserve_original_outside_dialogue: bool,
+    pub source_dialogue_intervals: Vec<SourceDialogueInterval>,
+    pub retain_original_track: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct SourceDialogueInterval {
+    pub start_ms: u64,
+    pub end_ms: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
@@ -64,6 +75,16 @@ pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfi
         {
             return Err("Video dubbing sources require a managed asset, SHA-256 revision and duration up to twelve hours".into());
         }
+    }
+    if config.source_dialogue_intervals.len() > 10_000
+        || config.source_dialogue_intervals.iter().any(|window| {
+            window.end_ms <= window.start_ms || window.end_ms > config.video.duration_ms
+        })
+        || (config.preserve_original_outside_dialogue
+            && (config.background_separation.is_none()
+                || config.source_dialogue_intervals.is_empty()))
+    {
+        return Err("Preserving original ambience requires source dialogue intervals and an accepted separation".into());
     }
     separation::validate(&config)?;
     if let Some(translation) = &config.translation {

@@ -18,7 +18,14 @@ fn accepts_redacted_designed_and_selected_reference_candidate_packages() {
 
 #[test]
 fn rejects_tampered_candidate_execution_provenance() {
-    for mutation in ["workflow", "attempt", "config", "authorization", "output"] {
+    for mutation in [
+        "workflow",
+        "attempt",
+        "config",
+        "authorization",
+        "output",
+        "seed",
+    ] {
         let (mut manifest, assets) = fixture::package(false);
         match mutation {
             "workflow" => manifest["runs"][0]["inputSnapshot"]["workflow"] = json!("other"),
@@ -29,6 +36,7 @@ fn rejects_tampered_candidate_execution_provenance() {
             "authorization" => {
                 manifest["voiceCandidates"][0]["authorization"]["declared"] = json!(false)
             }
+            "seed" => manifest["voiceCandidates"][0]["synthesisConfig"]["seed"] = json!(1),
             "output" => {
                 manifest["runAttempts"][0]["result"]["audio"]["sha256"] = json!("f".repeat(64))
             }
@@ -74,4 +82,14 @@ fn rejects_unknown_selected_revision_and_misplaced_candidate_contract_fields() {
         "imported-space"
     )
     .is_err());
+}
+
+#[test]
+fn rejects_reference_selection_outside_supported_interval() {
+    let (mut manifest, assets) = fixture::package(true);
+    manifest["runSteps"][0]["configuration"]["request"]["source"]["endMs"] = json!(1000);
+    let result =
+        crate::spaces::package::remap::prepare(&manifest.to_string(), &assets, "imported-space")
+            .and_then(|request| super::super::validate_request_shape(&request));
+    assert!(result.is_err());
 }

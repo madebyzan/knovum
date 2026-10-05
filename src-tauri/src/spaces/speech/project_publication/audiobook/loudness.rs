@@ -37,7 +37,11 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
         .map(|chapter| {
             let path = assets::authorize_spaces_asset(app, Path::new(&chapter.path))?;
             if hash_file(&path)? != chapter.sha256
-                || wav_sample_count(&path, chapter.sample_rate)? != chapter.sample_count
+                || wav_sample_count(
+                    &path,
+                    chapter.sample_rate,
+                    super::super::super::audio_format::WavPrecision::Float32,
+                )? != chapter.sample_count
                 || chapter.sample_rate != config.sample_rate
             {
                 return Err("Audiobook chapter checkpoint is corrupt".into());

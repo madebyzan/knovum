@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{
     fs,
     io::Read,
@@ -23,6 +25,46 @@ pub(super) fn prepare_reference(
     expected_byte_length: u64,
     cancellation: &CancellationToken,
 ) -> Result<AudioFileReference, String> {
+    decode_reference(
+        app,
+        source,
+        output,
+        expected_byte_length,
+        cancellation,
+        None,
+    )
+}
+
+pub(super) fn prepare_reference_clip(
+    app: &AppHandle,
+    source: &Path,
+    output: &Path,
+    expected_byte_length: u64,
+    cancellation: &CancellationToken,
+    interval: (u64, u64),
+) -> Result<AudioFileReference, String> {
+    if interval.1 <= interval.0 || !(5000..=30000).contains(&(interval.1 - interval.0)) {
+        return Err("Reference selection must contain 5–30 seconds".into());
+    }
+    decode_reference(
+        app,
+        source,
+        output,
+        expected_byte_length,
+        cancellation,
+        Some(interval),
+    )
+}
+
+fn decode_reference(
+    app: &AppHandle,
+    source: &Path,
+    output: &Path,
+    expected_byte_length: u64,
+    cancellation: &CancellationToken,
+    selection: Option<(u64, u64)>,
+) -> Result<AudioFileReference, String> {
+    let interval = selection.unwrap_or((0, 31000));
     let source = authorize_managed_source(app, source, expected_byte_length)?;
     authorize_managed_output(app, output)?;
     let digest = hash_exact(&source, expected_byte_length)?;
@@ -38,9 +80,11 @@ pub(super) fn prepare_reference(
     let child = Command::new(ffmpeg)
         .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-n", "-i"])
         .arg(&source)
+        .arg("-ss")
+        .arg(format!("{:.3}", interval.0 as f64 / 1000.0))
+        .arg("-t")
+        .arg(format!("{:.3}", (interval.1 - interval.0) as f64 / 1000.0))
         .args([
-            "-t",
-            "31",
             "-map",
             "0:a:0",
             "-vn",
@@ -70,7 +114,18 @@ pub(super) fn prepare_reference(
         if hash_exact(&source, expected_byte_length)? != digest {
             return Err("Reference source changed while decoding".into());
         }
-        reference_metadata(output)
+        let metadata = reference_metadata(output)?;
+        if let Some((start, end)) = selection {
+            let samples = u64::from(
+                hound::WavReader::open(output)
+                    .map_err(|error| error.to_string())?
+                    .duration(),
+            );
+            if samples.abs_diff((end - start) * 16) > 16 {
+                return Err("Reference selection extends beyond its source audio".into());
+            }
+        }
+        Ok(metadata)
     })();
     if result.is_err() && output.exists() {
         fs::remove_file(output).map_err(|error| error.to_string())?;
@@ -209,7 +264,7 @@ pub(super) async fn persist_reference(
         pool,
         space_id,
         super::asset_publication::PendingAsset {
-            owner_kind: "voice_reference",
+            owner_kind: PublicationOwnerKind::VoiceReference,
             owner_id: profile_id,
             asset_path: &target,
             part_path: Some(&part),

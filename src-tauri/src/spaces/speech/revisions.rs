@@ -100,6 +100,16 @@ pub async fn save_speech_project_revision(
     super::project_config::validate(&project_type, &request.output_config)?;
     if project_type == "audiobook" {
         let config = super::project_config::parse_audiobook(&request.output_config)?;
+        super::book_assets::require_cover(
+            &mut tx,
+            &space_id,
+            Some(&request.project_id),
+            config.metadata.cover.as_ref(),
+        )
+        .await?;
+    }
+    if project_type == "audiobook" {
+        let config = super::project_config::parse_audiobook(&request.output_config)?;
         super::project_config::validate_chapter_order(
             &config,
             request

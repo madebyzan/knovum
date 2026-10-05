@@ -1,16 +1,11 @@
 import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
 
-import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { cancelResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import type { DraftVoiceCandidateRequest, VoiceProfileSummary } from "./contracts";
-import {
-  draftVoiceCandidate,
-  getActiveVoiceCandidateRun,
-  getLatestVoiceCandidate,
-} from "./voice-candidate-ipc";
+import type { DraftVoiceCandidateRequest, VoiceLibraryRevision } from "./contracts";
+import { draftVoiceCandidate, getActiveVoiceCandidateRun, listVoiceCandidates } from "./voice-candidate-ipc";
 import { observeVoiceCandidateRun } from "./voice-candidate-run";
 import {
   auditionVoiceCandidate,
@@ -20,72 +15,37 @@ import {
   selectVoiceCandidate,
 } from "./voice-candidate-selection";
 
-export function useVoiceCandidates(created: (voice: VoiceProfileSummary) => void) {
+export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => void) {
   const store = useSpaceStore();
-  const candidate = shallowRef<PlayableVoiceCandidate>();
+  const candidates = shallowRef<PlayableVoiceCandidate[]>([]);
   const activeRunId = shallowRef<string>();
-  const saving = shallowRef(false);
-  const restoring = shallowRef(false);
+  const submitting = shallowRef(false);
   const error = shallowRef<string>();
-  const busy = computed(() => Boolean(activeRunId.value) || saving.value || restoring.value);
-  let stopObservation: (() => unknown) | undefined;
+  const busy = computed(() => Boolean(activeRunId.value) || submitting.value);
   let epoch = 0;
+  let stopObservation: (() => unknown) | undefined;
 
-  function resetLocal() {
+  function reset() {
     epoch += 1;
     stopObservation?.();
     stopObservation = undefined;
-    candidate.value = undefined;
+    candidates.value = [];
     activeRunId.value = undefined;
-    saving.value = false;
-    restoring.value = false;
+    submitting.value = false;
     error.value = undefined;
   }
-
-  async function restore(spaceId: string) {
-    const current = ++epoch;
-    restoring.value = true;
-    try {
-      const run = await getActiveVoiceCandidateRun(spaceId);
-      if (current !== epoch || store.activeSpaceId !== spaceId) return;
-      if (run) {
-        activeRunId.value = run.id;
-        observe(run, current, spaceId);
-      } else {
-        const loaded = await getLatestVoiceCandidate(spaceId);
-        if (current === epoch && loaded) candidate.value = presentVoiceCandidate(loaded);
-      }
-    } catch (cause) {
-      if (current === epoch) error.value = getErrorMessage(cause);
-    } finally {
-      if (current === epoch) restoring.value = false;
-    }
+  function current(spaceId: string, version: number) {
+    return store.activeSpaceId === spaceId && epoch === version;
   }
-
-  async function draft(input: Omit<DraftVoiceCandidateRequest, "requestId" | "spaceId">) {
-    const spaceId = store.activeSpaceId;
-    if (!spaceId || busy.value || candidate.value) return;
-    const current = ++epoch;
-    error.value = undefined;
-    try {
-      const run = await draftVoiceCandidate({
-        ...input,
-        requestId: crypto.randomUUID(),
-        spaceId,
-      });
-      if (current !== epoch || store.activeSpaceId !== spaceId) return;
-      activeRunId.value = run.id;
-      observe(run, current, spaceId);
-    } catch (cause) {
-      if (current === epoch && decodeAppError(cause)?.code !== "cancelled") {
-        error.value = getErrorMessage(cause);
-      }
-    }
+  async function reload(spaceId: string, version: number) {
+    const loaded = await listVoiceCandidates(spaceId);
+    if (current(spaceId, version)) candidates.value = loaded.map(presentVoiceCandidate);
   }
-
-  function observe(run: RunObservation, current: number, spaceId: string) {
+  function observe(run: RunObservation, spaceId: string, version: number) {
     stopObservation?.();
+    activeRunId.value = run.id;
     const settle = () => {
+      if (!current(spaceId, version)) return;
       stopObservation?.();
       stopObservation = undefined;
       activeRunId.value = undefined;
@@ -94,56 +54,65 @@ export function useVoiceCandidates(created: (voice: VoiceProfileSummary) => void
       run,
       spaceId,
       (loaded) => {
-        if (current !== epoch || store.activeSpaceId !== spaceId) return;
+        if (!current(spaceId, version)) return;
         settle();
-        candidate.value = presentVoiceCandidate(loaded);
+        candidates.value = [presentVoiceCandidate(loaded), ...candidates.value];
       },
       (message) => {
-        if (current !== epoch) return;
         settle();
-        error.value = message;
+        if (current(spaceId, version)) error.value = message;
       },
     );
   }
-
-  function ownsCandidate(candidateId: string, spaceId: string, current: number) {
-    return (
-      current === epoch && store.activeSpaceId === spaceId && candidate.value?.candidateId === candidateId
-    );
-  }
-
-  async function audition() {
-    const current = candidate.value;
-    if (!current || current.auditionedAt !== null) return;
-    const currentEpoch = epoch;
-    const { candidateId, spaceId } = current;
-    try {
-      const auditioned = await auditionVoiceCandidate(current);
-      if (ownsCandidate(candidateId, spaceId, currentEpoch)) candidate.value = auditioned;
-    } catch (cause) {
-      if (ownsCandidate(candidateId, spaceId, currentEpoch)) error.value = getErrorMessage(cause);
-    }
-  }
-
-  async function save(name: string, authorized: boolean) {
-    const current = candidate.value;
-    const currentEpoch = epoch;
-    if (!current || saving.value || current.auditionedAt === null) return;
-    saving.value = true;
+  async function operation(action: (spaceId: string, version: number) => Promise<void>) {
+    const spaceId = store.activeSpaceId;
+    const version = epoch;
+    if (!spaceId || busy.value) return;
+    submitting.value = true;
     error.value = undefined;
     try {
-      const voice = await selectVoiceCandidate(current, name, authorized);
-      if (currentEpoch === epoch && store.activeSpaceId === current.spaceId) {
-        candidate.value = undefined;
-        created(voice);
-      }
+      await action(spaceId, version);
     } catch (cause) {
-      if (currentEpoch === epoch) error.value = getErrorMessage(cause);
+      if (current(spaceId, version)) error.value = getErrorMessage(cause);
     } finally {
-      if (currentEpoch === epoch) saving.value = false;
+      if (current(spaceId, version)) submitting.value = false;
     }
   }
-
+  function selected(id: string) {
+    const candidate = candidates.value.find((item) => item.candidateId === id);
+    if (!candidate) throw new Error("Voice candidate is no longer available");
+    return candidate;
+  }
+  const draft = (input: Omit<DraftVoiceCandidateRequest, "requestId" | "spaceId">) =>
+    operation(async (spaceId, version) => {
+      const run = await draftVoiceCandidate({ ...input, requestId: crypto.randomUUID(), spaceId });
+      if (current(spaceId, version)) observe(run, spaceId, version);
+    });
+  async function audition(id: string) {
+    const spaceId = store.activeSpaceId;
+    const version = epoch;
+    if (!spaceId) return;
+    try {
+      const updated = await auditionVoiceCandidate(selected(id));
+      if (current(spaceId, version))
+        candidates.value = candidates.value.map((item) => (item.candidateId === id ? updated : item));
+    } catch (cause) {
+      if (current(spaceId, version)) error.value = getErrorMessage(cause);
+    }
+  }
+  const save = (id: string, name: string, authorized: boolean) =>
+    operation(async (spaceId, version) => {
+      const voice = await selectVoiceCandidate(selected(id), name, authorized);
+      if (!current(spaceId, version)) return;
+      candidates.value = candidates.value.filter((item) => item.candidateId !== id);
+      created(voice);
+    });
+  const discard = (id: string) =>
+    operation(async (spaceId, version) => {
+      await rejectVoiceCandidate(selected(id));
+      if (current(spaceId, version))
+        candidates.value = candidates.value.filter((item) => item.candidateId !== id);
+    });
   async function cancel() {
     if (!activeRunId.value) return;
     try {
@@ -152,33 +121,22 @@ export function useVoiceCandidates(created: (voice: VoiceProfileSummary) => void
       error.value = getErrorMessage(cause);
     }
   }
-
-  async function discard() {
-    const current = candidate.value;
-    if (!current) return;
-    const currentEpoch = epoch;
-    const { candidateId, spaceId } = current;
-    try {
-      await rejectVoiceCandidate(current);
-      if (ownsCandidate(candidateId, spaceId, currentEpoch)) candidate.value = undefined;
-    } catch (cause) {
-      if (ownsCandidate(candidateId, spaceId, currentEpoch)) error.value = getErrorMessage(cause);
-    }
-  }
-
   watch(
     () => store.activeSpaceId,
     (spaceId) => {
-      resetLocal();
-      if (spaceId) void restore(spaceId);
+      reset();
+      if (!spaceId) return;
+      void operation(async (owner, version) => {
+        const [run] = await Promise.all([getActiveVoiceCandidateRun(owner), reload(owner, version)]);
+        if (run && current(owner, version)) observe(run, owner, version);
+      });
     },
     { immediate: true },
   );
-  onScopeDispose(resetLocal);
+  onScopeDispose(reset);
   return {
-    candidate: readonly(candidate),
+    candidates: readonly(candidates),
     activeRunId: readonly(activeRunId),
-    saving: readonly(saving),
     busy,
     error: readonly(error),
     draft,

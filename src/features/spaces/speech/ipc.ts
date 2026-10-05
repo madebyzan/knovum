@@ -6,6 +6,7 @@ import { safeExportFileName } from "../assets/export";
 import type { CopyVoiceProfileRequest } from "../contracts/generated/CopyVoiceProfileRequest";
 import type { DeleteVoiceProfileRequest } from "../contracts/generated/DeleteVoiceProfileRequest";
 import type { GenerateSpeechProjectRequest } from "../contracts/generated/GenerateSpeechProjectRequest";
+import type { PresetVoice } from "../contracts/generated/PresetVoice";
 import type { PreviewVoiceRequest } from "../contracts/generated/PreviewVoiceRequest";
 import type { RenameVoiceProfileRequest } from "../contracts/generated/RenameVoiceProfileRequest";
 import type { ReviewSpeechSourceSeparationRequest } from "../contracts/generated/ReviewSpeechSourceSeparationRequest";
@@ -23,14 +24,14 @@ import type {
   SpeechProjectSummary,
   SpeechProjectDetail,
   SaveSpeechProjectRevisionInput,
-  VoiceProfileSummary,
+  VoiceLibraryRevision,
   VoiceProfileDetail,
   SpeechGenerationProgress,
   SpeechAudioOutput,
 } from "./contracts";
 
-export function listVoiceProfiles(spaceId: string) {
-  return invokeCommand<VoiceProfileSummary[]>("plugin:spaces|list_voice_profiles", { spaceId });
+export function listVoiceRevisions(spaceId: string) {
+  return invokeCommand<VoiceLibraryRevision[]>("plugin:spaces|list_voice_revisions", { spaceId });
 }
 
 export function listVoiceProfilesForManagement(spaceId: string) {
@@ -145,7 +146,7 @@ export function reviewSpeechSourceSeparation(request: ReviewSpeechSourceSeparati
 }
 
 export function createPresetVoice(request: CreatePresetVoiceInput) {
-  return invokeCommand<VoiceProfileSummary>("plugin:spaces|create_preset_voice", { request });
+  return invokeCommand<VoiceLibraryRevision>("plugin:spaces|create_preset_voice", { request });
 }
 
 export function listSpeechProjects(spaceId: string) {
@@ -154,4 +155,8 @@ export function listSpeechProjects(spaceId: string) {
 
 export function createSpeechProject(request: CreateSpeechProjectInput) {
   return invokeCommand<SpeechProjectSummary>("plugin:spaces|create_speech_project", { request });
+}
+
+export function listPresetVoices() {
+  return invokeCommand<PresetVoice[]>("plugin:spaces|list_preset_voices");
 }

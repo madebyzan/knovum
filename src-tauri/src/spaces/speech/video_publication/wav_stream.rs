@@ -8,15 +8,15 @@ use tokio_util::sync::CancellationToken;
 
 const SAMPLE_RATE: u32 = 48_000;
 
-pub(super) fn sample_count(path: &Path) -> Result<u64, String> {
+pub(super) fn sample_count(path: &Path, channels: u16) -> Result<u64, String> {
     let reader = hound::WavReader::open(path).map_err(|error| error.to_string())?;
     let spec = reader.spec();
     if spec.sample_rate != SAMPLE_RATE
-        || spec.channels != 1
-        || spec.bits_per_sample != 16
-        || spec.sample_format != hound::SampleFormat::Int
+        || spec.channels != channels
+        || spec.bits_per_sample != 32
+        || spec.sample_format != hound::SampleFormat::Float
     {
-        return Err("Video dubbing WAV is not mono PCM16 at 48 kHz".into());
+        return Err("Video dubbing WAV is not float32 with the declared channels at 48 kHz".into());
     }
     Ok(u64::from(reader.duration()))
 }
@@ -31,12 +31,12 @@ pub(super) fn write_header(output: &mut fs::File, data_bytes: u64) -> Result<(),
         .and_then(|_| output.write_all(&riff.to_le_bytes()))
         .and_then(|_| output.write_all(b"WAVEfmt "))
         .and_then(|_| output.write_all(&16_u32.to_le_bytes()))
-        .and_then(|_| output.write_all(&1_u16.to_le_bytes()))
+        .and_then(|_| output.write_all(&3_u16.to_le_bytes()))
         .and_then(|_| output.write_all(&1_u16.to_le_bytes()))
         .and_then(|_| output.write_all(&SAMPLE_RATE.to_le_bytes()))
-        .and_then(|_| output.write_all(&(SAMPLE_RATE * 2).to_le_bytes()))
-        .and_then(|_| output.write_all(&2_u16.to_le_bytes()))
-        .and_then(|_| output.write_all(&16_u16.to_le_bytes()))
+        .and_then(|_| output.write_all(&(SAMPLE_RATE * 4).to_le_bytes()))
+        .and_then(|_| output.write_all(&4_u16.to_le_bytes()))
+        .and_then(|_| output.write_all(&32_u16.to_le_bytes()))
         .and_then(|_| output.write_all(b"data"))
         .and_then(|_| output.write_all(&data.to_le_bytes()))
         .map_err(|error| error.to_string())
@@ -48,7 +48,7 @@ pub(super) fn write_silence(
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let mut bytes = samples
-        .checked_mul(2)
+        .checked_mul(4)
         .ok_or("Video silence size overflow")?;
     let zeros = [0_u8; 1024 * 1024];
     while bytes > 0 {

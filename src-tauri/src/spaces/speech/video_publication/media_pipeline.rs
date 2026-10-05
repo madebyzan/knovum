@@ -14,7 +14,13 @@ pub(super) fn mux_video(
     audio: &Path,
     output: &Path,
     cancellation: &CancellationToken,
+    retain_original: bool,
 ) -> Result<(), String> {
+    let filter = if retain_original {
+        "[1:a:0]apad[audio];[0:a:0]apad[original]"
+    } else {
+        "[1:a:0]apad[audio]"
+    };
     let mut command = Command::new(ffmpeg);
     command
         .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
@@ -23,15 +29,21 @@ pub(super) fn mux_video(
         .arg(audio)
         .args([
             "-filter_complex",
-            "[1:a:0]apad[audio]",
+            filter,
             "-map",
             "0:v:0",
             "-map",
             "[audio]",
+            "-disposition:a:0",
+            "default",
+            "-metadata:s:a:0",
+            "title=Dubbed",
             "-c:v",
             "copy",
             "-c:a",
             "aac",
+            "-ac",
+            "2",
             "-b:a",
             "192k",
             "-shortest",
@@ -39,8 +51,18 @@ pub(super) fn mux_video(
             "+faststart",
             "-f",
             "mp4",
-        ])
-        .arg(output);
+        ]);
+    if retain_original {
+        command.args([
+            "-map",
+            "[original]",
+            "-disposition:a:1",
+            "0",
+            "-metadata:s:a:1",
+            "title=Original",
+        ]);
+    }
+    command.arg(output);
     run_ffmpeg(
         &mut command,
         cancellation,
@@ -48,7 +70,7 @@ pub(super) fn mux_video(
     )
 }
 
-pub(super) fn run_ffmpeg(
+pub(in crate::spaces::speech) fn run_ffmpeg(
     command: &mut Command,
     cancellation: &CancellationToken,
     message: &str,
@@ -66,7 +88,7 @@ pub(super) fn run_ffmpeg(
     }
 }
 
-pub(super) fn verified_duration_us(
+pub(in crate::spaces::speech) fn verified_duration_us(
     ffmpeg: &Path,
     source: &Path,
     stream: &str,
@@ -131,7 +153,7 @@ pub(super) fn inspect_duration_us(
     Ok(maximum_us)
 }
 
-pub(super) fn samples_for_duration(duration_us: u64) -> Result<u64, String> {
+pub(in crate::spaces::speech) fn samples_for_duration(duration_us: u64) -> Result<u64, String> {
     let samples = u128::from(duration_us)
         .checked_mul(u128::from(SAMPLE_RATE))
         .ok_or("Video duration sample count overflow")?

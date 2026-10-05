@@ -1,30 +1,38 @@
 <script setup lang="ts">
-import { open } from "@tauri-apps/plugin-dialog";
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
-import type { VoiceProfileSummary } from "./contracts";
+import type { PreparedVoiceReference } from "../contracts/generated/PreparedVoiceReference";
+import type { VoiceLibraryRevision } from "./contracts";
 import { useVoiceCandidates } from "./use-voice-candidates";
+import VoiceCandidateCard from "./VoiceCandidateCard.vue";
+import VoiceReferenceEditor from "./VoiceReferenceEditor.vue";
 
-const emit = defineEmits<{ created: [voice: VoiceProfileSummary] }>();
+const emit = defineEmits<{ created: [voice: VoiceLibraryRevision] }>();
 const { t } = useI18n();
 const mode = shallowRef("reference");
-const name = shallowRef("");
+const seed = shallowRef("0");
+function newSeed() {
+  seed.value = String(crypto.getRandomValues(new Uint32Array(1))[0]);
+}
 const language = shallowRef("zh-CN");
 const description = shallowRef("");
-const referencePath = shallowRef("");
+const reference = shallowRef<PreparedVoiceReference>();
+const preparingReference = shallowRef(false);
 const transcript = shallowRef("");
 const transcriptConfirmed = shallowRef(false);
 const authorized = shallowRef(false);
 const text = shallowRef(t("spaces.speech.candidateSample"));
-const dialogError = shallowRef<string>();
-const { candidate, activeRunId, busy, error, draft, save, cancel, discard, audition } = useVoiceCandidates(
+watch(reference, (prepared) => {
+  transcript.value = prepared?.transcript ?? "";
+  transcriptConfirmed.value = false;
+});
+const { candidates, activeRunId, busy, error, draft, save, cancel, discard, audition } = useVoiceCandidates(
   (voice) => emit("created", voice),
 );
 const modes = computed(() => [
@@ -37,46 +45,42 @@ const languages = [
 ];
 const ready = computed(
   () =>
+    /^\d+$/u.test(seed.value) &&
+    Number(seed.value) <= 4_294_967_295 &&
     authorized.value &&
     text.value.trim() &&
     (mode.value === "designed"
       ? description.value.trim()
-      : referencePath.value && (!transcript.value.trim() || transcriptConfirmed.value)),
+      : reference.value &&
+        !preparingReference.value &&
+        (!transcript.value.trim() || transcriptConfirmed.value)),
 );
 
-async function chooseReference() {
-  try {
-    const path = await open({
-      multiple: false,
-      directory: false,
-      filters: [
-        { name: t("spaces.speech.referenceAudio"), extensions: ["wav", "flac", "mp3", "m4a", "ogg"] },
-      ],
-    });
-    if (typeof path === "string") {
-      referencePath.value = path;
-      transcriptConfirmed.value = false;
-    }
-    dialogError.value = undefined;
-  } catch (cause) {
-    dialogError.value = getErrorMessage(cause);
-  }
-}
 function generate() {
   if (!ready.value || busy.value) return;
+  const prepared = reference.value;
+  if (mode.value === "reference" && !prepared) return;
+  const source =
+    mode.value === "designed"
+      ? { kind: "designed" as const, description: description.value.trim() }
+      : prepared
+        ? {
+            kind: "reference" as const,
+            sourcePath: prepared.sourcePath,
+            sourceRevision: prepared.sourceRevision,
+            startMs: prepared.startMs,
+            endMs: prepared.endMs,
+            referenceText: transcript.value.trim() || null,
+            referenceTextConfirmed: transcriptConfirmed.value,
+          }
+        : undefined;
+  if (!source) return;
   void draft({
     language: language.value,
     text: text.value.trim(),
     authorized: authorized.value,
-    source:
-      mode.value === "designed"
-        ? { kind: "designed", description: description.value.trim() }
-        : {
-            kind: "reference",
-            sourcePath: referencePath.value,
-            referenceText: transcript.value.trim() || null,
-            referenceTextConfirmed: transcriptConfirmed.value,
-          },
+    seed: Number(seed.value),
+    source,
   });
 }
 </script>
@@ -101,12 +105,12 @@ function generate() {
       />
     </div>
     <template v-if="mode === 'reference'">
-      <UiButton size="sm" :disabled="busy" @click="chooseReference">{{
-        t("spaces.speech.chooseReference")
-      }}</UiButton>
-      <p v-if="referencePath" class="truncate text-caption text-fg-secondary" :title="referencePath">
-        {{ referencePath }}
-      </p>
+      <VoiceReferenceEditor
+        v-model="reference"
+        :language="language"
+        :disabled="busy"
+        @busy="preparingReference = $event"
+      />
       <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.referenceRequirements") }}</p>
       <UiTextarea
         v-model="transcript"
@@ -132,32 +136,35 @@ function generate() {
     <UiTextarea v-model="text" :rows="3" :disabled="busy" :placeholder="t('spaces.speech.candidateText')" />
     <UiCheckbox v-model="authorized" :disabled="busy" :label="t('spaces.speech.voiceAuthorization')" />
     <div class="flex gap-2">
-      <UiButton size="sm" :disabled="busy || !ready || Boolean(candidate)" @click="generate">{{
+      <UiInput
+        v-model="seed"
+        size="sm"
+        type="number"
+        min="0"
+        max="4294967295"
+        :disabled="busy"
+        :aria-label="t('spaces.speech.candidateSeed')"
+      />
+      <UiButton size="sm" :disabled="busy" @click="newSeed">{{ t("spaces.speech.newSeed") }}</UiButton>
+    </div>
+    <div class="flex gap-2">
+      <UiButton size="sm" :disabled="busy || !ready || candidates.length >= 16" @click="generate">{{
         t("spaces.speech.generateCandidate")
       }}</UiButton>
       <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" @click="cancel">{{
         t("spaces.speech.cancel")
       }}</UiButton>
     </div>
-    <p v-if="error || dialogError" class="text-caption text-fg-danger">{{ error || dialogError }}</p>
-    <div v-if="candidate" class="space-y-2">
-      <audio class="h-8 w-full" controls :src="candidate.source" @ended="audition" />
-      <p v-if="candidate.auditionedAt === null" class="text-caption text-fg-tertiary">
-        {{ t("spaces.speech.candidateAuditionRequired") }}
-      </p>
-      <UiInput v-model="name" size="sm" :disabled="busy" :placeholder="t('spaces.speech.voiceName')" />
-      <div class="flex gap-2">
-        <UiButton
-          size="sm"
-          variant="primary"
-          :disabled="busy || !name.trim() || !authorized || candidate.auditionedAt === null"
-          @click="save(name.trim(), authorized)"
-          >{{ t("spaces.speech.saveCandidate") }}</UiButton
-        >
-        <UiButton size="sm" :disabled="busy" @click="discard">{{
-          t("spaces.speech.discardCandidate")
-        }}</UiButton>
-      </div>
-    </div>
+    <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
+    <VoiceCandidateCard
+      v-for="candidate in candidates"
+      :key="candidate.candidateId"
+      :candidate="candidate"
+      :disabled="busy"
+      :authorized="authorized"
+      @audition="audition(candidate.candidateId)"
+      @save="save(candidate.candidateId, $event, authorized)"
+      @discard="discard(candidate.candidateId)"
+    />
   </section>
 </template>

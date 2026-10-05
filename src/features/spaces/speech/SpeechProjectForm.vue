@@ -40,7 +40,7 @@ function submit() {
   const video = videos.value.find((source) => source.id === videoId.value);
   const background = backgrounds.value.find((source) => source.id === backgroundId.value);
   let outputConfig: CreateSpeechProjectInput["outputConfig"];
-  if (projectType.value === "short_dubbing") outputConfig = { format: "wav" };
+  if (projectType.value === "short_dubbing") outputConfig = { format: "wav", wavPrecision: "pcm16" };
   else if (projectType.value === "video_dubbing") {
     if (!video) return;
     outputConfig = {
@@ -51,6 +51,9 @@ function submit() {
       voiceGainDb: 0,
       backgroundGainDb: -12,
       translation: null,
+      preserveOriginalOutsideDialogue: false,
+      sourceDialogueIntervals: [],
+      retainOriginalTrack: true,
     };
   } else {
     outputConfig = {
@@ -58,6 +61,10 @@ function submit() {
       sampleRate: 48_000,
       loudnessLufs: -20,
       truePeakDb: -2,
+      paragraphPauseMs: 250,
+      chapterPauseMs: 1000,
+      wavPrecision: "pcm16",
+      metadata: { title: title.value.trim(), author: "", narrator: "", cover: null },
       chapters: [],
       roles: [],
     };

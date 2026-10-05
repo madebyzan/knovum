@@ -58,7 +58,22 @@ export function translationInputs(
 export function applyTranslation(
   lines: readonly VideoLineDraft[],
   result: VideoTranslationResult,
+  alreadyTranslated: boolean,
 ): VideoLineDraft[] {
+  const inputs = translationInputs(lines, alreadyTranslated);
+  if (
+    inputs.length !== result.segments.length ||
+    inputs.some((input, index) => {
+      const output = result.segments[index];
+      return (
+        !output ||
+        output.sourceSegmentId !== input.sourceSegmentId ||
+        output.sourceSegmentRevision !== input.sourceSegmentRevision ||
+        output.sourceText !== input.text.trim()
+      );
+    })
+  )
+    throw new Error("Translation result does not match the current video script");
   const bySource = new Map(result.segments.map((segment) => [segment.sourceSegmentId, segment]));
   if (bySource.size !== lines.length) {
     throw new Error("Translation result does not match the current video script");

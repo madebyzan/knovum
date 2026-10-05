@@ -1,7 +1,7 @@
 import type { DeepReadonly } from "vue";
 
-import type { ImportedAudiobookScript } from "./audiobook-script-import";
-import type { AudiobookOutputConfig, SpeechProjectDetail, VoiceProfileSummary } from "./contracts";
+import type { ImportedAudiobookScript } from "./audiobook-script";
+import type { AudiobookOutputConfig, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 
 export interface ParagraphDraft {
   key: string;
@@ -65,9 +65,11 @@ export function readAudiobookRevision(detail: DeepReadonly<SpeechProjectDetail>)
   return {
     config,
     chapters,
-    roles: config.roles.map((role) => ({ id: crypto.randomUUID(), ...role })),
-    voiceLanguages: new Map(detail.segments.map((segment) => [segment.voiceRevisionId, segment.language])),
-    voiceRevisionIds: new Set(config.roles.map((role) => role.voiceRevisionId)),
+    roles: config.roles.map((role) => ({
+      id: crypto.randomUUID(),
+      key: role.key,
+      voiceRevisionId: role.voiceRevisionId,
+    })),
   };
 }
 
@@ -136,17 +138,14 @@ export function audiobookDraftIsValid(input: {
 export function audiobookSegments(
   chapters: readonly ChapterDraft[],
   roles: readonly AudiobookRoleDraft[],
-  voices: readonly VoiceProfileSummary[],
-  savedVoiceLanguages: ReadonlyMap<string, string>,
+  voices: readonly VoiceLibraryRevision[],
 ) {
-  const voiceLanguages = new Map(voices.map((voice) => [voice.activeRevisionId, voice.language]));
+  const voiceLanguages = new Map(voices.map((voice) => [voice.revisionId, voice.language]));
   const roleVoices = new Map(roles.map((role) => [role.key, role.voiceRevisionId]));
   return chapters.flatMap((chapter) =>
     chapter.paragraphs.map((paragraph) => {
       const voiceRevisionId = roleVoices.get(paragraph.speakerKey);
-      const language = voiceRevisionId
-        ? (voiceLanguages.get(voiceRevisionId) ?? savedVoiceLanguages.get(voiceRevisionId))
-        : undefined;
+      const language = voiceRevisionId ? voiceLanguages.get(voiceRevisionId) : undefined;
       if (!voiceRevisionId || !language)
         throw new Error("A valid role voice is required for every paragraph");
       return {

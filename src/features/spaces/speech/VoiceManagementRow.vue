@@ -8,6 +8,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import type { VoiceProfileDetail } from "./contracts";
+import VoiceRevisionHistory from "./VoiceRevisionHistory.vue";
 
 const props = defineProps<{
   profile: DeepReadonly<VoiceProfileDetail>;
@@ -112,17 +113,7 @@ function archiveLabel() {
         >{{ t("spaces.speech.newVoiceRevision") }}</UiButton
       >
     </div>
-    <details>
-      <summary class="cursor-pointer text-caption text-fg-secondary">
-        {{ t("spaces.speech.voiceHistory") }} ({{ profile.revisions.length }})
-      </summary>
-      <ul class="mt-1 space-y-1 text-caption-sm text-fg-tertiary">
-        <li v-for="revision in profile.revisions" :key="revision.id">
-          v{{ revision.revision }} · {{ revision.language }} · {{ revision.speed }}× ·
-          {{ revision.modelSpecId }}
-        </li>
-      </ul>
-    </details>
+    <VoiceRevisionHistory :profile :disabled />
     <div v-if="targets.length" class="flex gap-2">
       <UiSelect
         v-model="targetSpaceId"

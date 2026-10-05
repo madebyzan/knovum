@@ -126,7 +126,7 @@ async fn execute_inner(
                 design_prompt: description.clone(),
             },
             style: None,
-            seed: 0,
+            seed: u64::from(request.seed),
             profile: SynthesisProfile {
                 engine: SpeechSynthesisEngine::VoxCpm2,
                 language: request.language.clone(),
@@ -220,6 +220,8 @@ async fn prepare_source(
         )),
         VoiceCandidateSource::Reference {
             source_path,
+            start_ms,
+            end_ms,
             reference_text,
             ..
         } => {
@@ -227,12 +229,13 @@ async fn prepare_source(
                 .reference_source
                 .as_ref()
                 .ok_or("Voice candidate reference snapshot is missing")?;
-            let audio = super::super::voice_assets::prepare_reference(
+            let audio = super::super::voice_assets::prepare_reference_clip(
                 app,
                 Path::new(source_path),
                 reference_part,
                 snapshot.byte_length,
                 &claim.cancellation,
+                (*start_ms, *end_ms),
             )?;
             let text = reference_text
                 .as_deref()

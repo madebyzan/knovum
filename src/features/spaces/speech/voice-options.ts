@@ -1,19 +1,22 @@
-import type { VoiceProfileSummary } from "./contracts";
+import type { VoiceLibraryRevision } from "./contracts";
 
-export function activeVoiceProfiles(voices: readonly VoiceProfileSummary[]) {
+export function activeVoiceRevisions(voices: readonly VoiceLibraryRevision[]) {
   return voices.filter((voice) => voice.isActive && voice.archivedAt == null);
 }
 
 export function voiceRevisionOptions(
-  voices: readonly VoiceProfileSummary[],
+  voices: readonly VoiceLibraryRevision[],
   selectedRevisionIds: Iterable<string>,
 ) {
   const selected = new Set(selectedRevisionIds);
   return voices
-    .filter((voice) => (voice.isActive && voice.archivedAt == null) || selected.has(voice.activeRevisionId))
-    .map((voice) => ({ value: voice.activeRevisionId, label: voice.name }));
+    .filter((voice) => (voice.isActive && voice.archivedAt == null) || selected.has(voice.revisionId))
+    .map((voice) => ({
+      value: voice.revisionId,
+      label: `${voice.name} · v${voice.revision} · ${voice.language}`,
+    }));
 }
 
-export function defaultVoiceRevisionId(voices: readonly VoiceProfileSummary[]) {
-  return activeVoiceProfiles(voices)[0]?.activeRevisionId ?? "";
+export function defaultVoiceRevisionId(voices: readonly VoiceLibraryRevision[]) {
+  return activeVoiceRevisions(voices)[0]?.revisionId ?? "";
 }

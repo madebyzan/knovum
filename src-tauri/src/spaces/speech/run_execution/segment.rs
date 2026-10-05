@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use serde::Deserialize;
 use sqlx::Row;
 
@@ -224,7 +226,7 @@ pub(super) async fn execute(
         pool,
         claim,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "segment_render",
+            owner_kind: PublicationOwnerKind::SegmentRender,
             owner_id: &render_id,
             asset_path: &target_path,
             part_path: Some(&part_path),

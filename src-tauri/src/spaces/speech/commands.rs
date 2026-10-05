@@ -20,10 +20,10 @@ fn object_json(value: serde_json::Value, field: &str) -> Result<String, String> 
 }
 
 #[tauri::command]
-pub async fn list_voice_profiles(
+pub async fn list_voice_revisions(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<VoiceProfileSummary>, AppError> {
+) -> Result<Vec<VoiceLibraryRevision>, AppError> {
     Ok(repository::list_voices(db::pool(&app).await?, &space_id).await?)
 }
 
@@ -31,7 +31,7 @@ pub async fn list_voice_profiles(
 pub async fn create_preset_voice(
     app: tauri::AppHandle,
     request: CreatePresetVoiceRequest,
-) -> Result<VoiceProfileSummary, AppError> {
+) -> Result<VoiceLibraryRevision, AppError> {
     required(&request.name, "Voice name", 120)?;
     required(&request.preset_voice_id, "Preset voice", 120)?;
     required(&request.engine_id, "Engine identity", 160)?;
@@ -43,10 +43,7 @@ pub async fn create_preset_voice(
     if request.model_spec_id != super::execution::KOKORO_MODEL_SPEC_ID {
         return Err("Preset voice model specification is not supported".into());
     }
-    request
-        .preset_voice_id
-        .parse::<u32>()
-        .map_err(|_| "Kokoro speaker identity must be an unsigned integer")?;
+    super::preset_voices::require(&request.preset_voice_id, &request.language)?;
     let parsed_config = parse_synthesis_config(&request.synthesis_config)?;
     if parsed_config.sample_rate != 24_000 {
         return Err("Kokoro voices require 24 kHz synthesis".into());
@@ -94,7 +91,7 @@ pub async fn create_preset_voice(
     Ok(repository::list_voices(pool, &request.space_id)
         .await?
         .into_iter()
-        .find(|profile| profile.id == profile_id)
+        .find(|profile| profile.profile_id == profile_id)
         .ok_or("Created voice profile could not be loaded")?)
 }
 
@@ -126,6 +123,16 @@ pub async fn create_speech_project(
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
+    if request.project_type == "audiobook" {
+        let config = super::project_config::parse_audiobook(&request.output_config)?;
+        super::book_assets::require_cover(
+            &mut tx,
+            &request.space_id,
+            None,
+            config.metadata.cover.as_ref(),
+        )
+        .await?;
+    }
     if request.project_type == "video_dubbing" {
         let config = super::video_config::parse(&request.output_config)?;
         super::video_config::require_sources(&mut tx, &request.space_id, None, &config).await?;

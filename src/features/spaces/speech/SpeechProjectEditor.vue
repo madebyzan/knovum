@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Download, Square, WandSparkles } from "@lucide/vue";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Square, WandSparkles } from "@lucide/vue";
 import { computed, shallowRef, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,14 +12,16 @@ import type {
   SpeechAudioOutput,
   SpeechGenerationProgress,
   SpeechProjectDetail,
-  VoiceProfileSummary,
+  VoiceLibraryRevision,
 } from "./contracts";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
+import SpeechOutputPanel from "./SpeechOutputPanel.vue";
+import VideoDeliveryPanel from "./VideoDeliveryPanel.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
 
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectDetail>;
-  voices: readonly VoiceProfileSummary[];
+  voices: readonly VoiceLibraryRevision[];
   preview?: (SpeechAudioOutput & { source: string }) | undefined;
   output?: SpeechAudioOutput | undefined;
   progress?: SpeechGenerationProgress | undefined;
@@ -41,6 +42,11 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const dirty = shallowRef(false);
+const videoHasBackground = computed(
+  () =>
+    props.project.project.projectType === "video_dubbing" &&
+    Boolean((JSON.parse(props.project.revision.outputConfig) as { background: unknown }).background),
+);
 const editorDisabled = computed(() => props.running || props.saving || props.submitting);
 const canGenerate = computed(
   () =>
@@ -128,28 +134,19 @@ function forwardPreview(text: string, voiceRevisionId: string, pronunciationLexi
       :src="preview.source"
       @play="emit('stopListening')"
     />
-    <div v-if="output && !dirty" class="space-y-2 border-t border-stroke-divider pt-2">
-      <p class="text-caption font-medium text-fg-secondary">
-        {{
-          t(
-            project.project.projectType === "video_dubbing"
-              ? "spaces.speech.generatedVideo"
-              : "spaces.speech.generatedSegments",
-          )
-        }}
-      </p>
-      <div class="flex items-center gap-2">
-        <video
-          v-if="project.project.projectType === 'video_dubbing'"
-          class="min-w-0 flex-1 rounded"
-          controls
-          :src="convertFileSrc(output.path)"
-        />
-        <audio v-else class="h-8 min-w-0 flex-1" controls :src="convertFileSrc(output.path)" />
-        <UiButton size="sm" variant="ghost" @click="emit('export', output.path)">
-          <Download class="size-3.5" />{{ t("spaces.speech.export") }}
-        </UiButton>
-      </div>
-    </div>
+    <VideoDeliveryPanel
+      v-if="project.project.projectType === 'video_dubbing' && !dirty"
+      :project-id="project.project.id"
+      :revision-id="project.revision.id"
+      :title="project.project.title"
+      :generated="Boolean(output)"
+      :has-background="videoHasBackground"
+    />
+    <SpeechOutputPanel
+      v-if="output && !dirty"
+      :project="project"
+      :output="output"
+      @export="emit('export', $event)"
+    />
   </section>
 </template>

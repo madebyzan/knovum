@@ -12,15 +12,16 @@ fn empty_object() -> serde_json::Value {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct PresetSynthesisConfig {
+pub(crate) struct VoiceSynthesisConfig {
     pub speed: f32,
     pub sample_rate: u32,
+    pub seed: u32,
 }
 
 pub(crate) fn parse_synthesis_config(
     value: &serde_json::Value,
-) -> Result<PresetSynthesisConfig, String> {
-    let config: PresetSynthesisConfig =
+) -> Result<VoiceSynthesisConfig, String> {
+    let config: VoiceSynthesisConfig =
         serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?;
     if !config.speed.is_finite() || !(0.5..=2.0).contains(&config.speed) || config.sample_rate == 0
     {
@@ -46,11 +47,11 @@ pub struct CreatePresetVoiceRequest {
 #[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct VoiceProfileSummary {
-    pub id: String,
+pub struct VoiceLibraryRevision {
+    pub profile_id: String,
     pub name: String,
     pub source_kind: String,
-    pub active_revision_id: String,
+    pub revision_id: String,
     pub revision: i64,
     pub is_active: bool,
     pub engine_id: String,
@@ -240,9 +241,24 @@ pub struct SpeechPreviewAudioChunk {
 pub struct PreviewVoiceRequest {
     pub job_id: String,
     pub space_id: String,
-    pub voice_revision_id: String,
+    pub source: VoicePreviewSource,
     pub text: String,
     pub pronunciation_lexicon: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum VoicePreviewSource {
+    Revision {
+        #[serde(rename = "revisionId")]
+        revision_id: String,
+    },
+    Preset {
+        #[serde(rename = "speakerId")]
+        speaker_id: String,
+        language: String,
+    },
 }
 
 pub use super::voice_candidates::{

@@ -235,6 +235,12 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
                     "Package preset voice does not match the supported Kokoro contract".into(),
                 );
             }
+            crate::spaces::speech::preset_voices::require(
+                row.preset_voice_id
+                    .as_deref()
+                    .ok_or("Package preset speaker is unavailable")?,
+                &row.language,
+            )?;
             let config =
                 crate::spaces::speech::contracts::parse_synthesis_config(&row.synthesis_config)?;
             if config.sample_rate != 24_000 {

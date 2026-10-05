@@ -2,9 +2,9 @@ import { useMediaControls } from "@vueuse/core";
 import { clamp } from "es-toolkit";
 import { computed, nextTick, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import type { SpaceMediaPlaybackState } from "../../media/playback";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { waitForMediaMetadata } from "./media-element-source";
+import type { SpaceMediaPlaybackState } from "./playback";
 
 interface UseMediaPlaybackOptions {
   sourceRevision?: MaybeRefOrGetter<string | number | undefined> | undefined;

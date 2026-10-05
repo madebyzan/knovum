@@ -10,7 +10,7 @@ use crate::ai::contracts::speech_wire::{
     SpeechSynthesizeResult,
 };
 
-const MAX_AUDIO_BYTES: u64 = 16 * 1024 * 1024;
+const MAX_AUDIO_BYTES: u64 = 32 * 1024 * 1024;
 
 pub(in crate::ai::local_runtime) struct SynthesisStream {
     pcm: Vec<u8>,
@@ -71,9 +71,9 @@ pub(super) fn finish_synthesis(
         || result.sha256 != digest
         || result.sample_rate != sample_rate
         || result.channels != 1
-        || result.sample_format != "pcm_s16le"
+        || result.sample_format != "pcm_f32le"
         || result.sample_count == 0
-        || result.sample_count.checked_mul(2) != Some(byte_length)
+        || result.sample_count.checked_mul(4) != Some(byte_length)
     {
         return Err("invalid_output: synthesized audio summary differs from its chunks".into());
     }
@@ -95,19 +95,19 @@ fn wave_from_pcm(pcm: &[u8], sample_rate: u32) -> Result<Vec<u8>, String> {
         .checked_add(36)
         .ok_or("resource_exhausted: synthesized audio exceeds WAV limits")?;
     let byte_rate = sample_rate
-        .checked_mul(2)
+        .checked_mul(4)
         .ok_or("invalid_output: synthesis sample rate is invalid")?;
     let mut output = Vec::with_capacity(pcm.len() + 44);
     output.extend_from_slice(b"RIFF");
     output.extend_from_slice(&riff_size.to_le_bytes());
     output.extend_from_slice(b"WAVEfmt ");
     output.extend_from_slice(&16_u32.to_le_bytes());
-    output.extend_from_slice(&1_u16.to_le_bytes());
+    output.extend_from_slice(&3_u16.to_le_bytes());
     output.extend_from_slice(&1_u16.to_le_bytes());
     output.extend_from_slice(&sample_rate.to_le_bytes());
     output.extend_from_slice(&byte_rate.to_le_bytes());
-    output.extend_from_slice(&2_u16.to_le_bytes());
-    output.extend_from_slice(&16_u16.to_le_bytes());
+    output.extend_from_slice(&4_u16.to_le_bytes());
+    output.extend_from_slice(&32_u16.to_le_bytes());
     output.extend_from_slice(b"data");
     output.extend_from_slice(&data_size.to_le_bytes());
     output.extend_from_slice(pcm);
@@ -125,12 +125,12 @@ pub(super) fn consume_synthesis_chunk(
     if event.request_id != request_id
         || event.attempt_epoch != attempt_epoch
         || event.seq != stream.next_seq
-        || event.chunk_ref.media_type != "application/vnd.knovum.pcm-s16le"
+        || event.chunk_ref.media_type != "application/vnd.knovum.pcm-f32le"
         || event.chunk_ref.channels != 1
-        || event.chunk_ref.sample_format != "pcm_s16le"
+        || event.chunk_ref.sample_format != "pcm_f32le"
         || event.chunk_ref.sample_rate == 0
         || event.sample_count == 0
-        || event.sample_count.checked_mul(2) != Some(event.chunk_ref.byte_length)
+        || event.sample_count.checked_mul(4) != Some(event.chunk_ref.byte_length)
         || stream
             .sample_rate
             .is_some_and(|sample_rate| sample_rate != event.chunk_ref.sample_rate)
@@ -157,12 +157,13 @@ pub(super) fn consume_synthesis_chunk(
         MAX_AUDIO_BYTES,
         false,
     )?;
+    let preview = float_preview(&bytes)?;
     if let Some(callback) = on_chunk {
         callback(
             event.seq,
             event.chunk_ref.sample_rate,
             event.sample_count,
-            &bytes,
+            &preview,
         )?;
     }
     stream.digest.update(&bytes);
@@ -171,6 +172,19 @@ pub(super) fn consume_synthesis_chunk(
     stream.granularity = Some(event.granularity);
     stream.next_seq += 1;
     Ok(event.chunk_ref.byte_length)
+}
+
+fn float_preview(bytes: &[u8]) -> Result<Vec<u8>, String> {
+    let mut preview = Vec::with_capacity(bytes.len() / 2);
+    for chunk in bytes.chunks_exact(4) {
+        let value = f32::from_le_bytes(chunk.try_into().map_err(|_| "Invalid float sample")?);
+        if !value.is_finite() {
+            return Err("invalid_output: synthesis returned a non-finite sample".into());
+        }
+        let sample = (value.clamp(-1.0, 1.0) * 32767.0).round() as i16;
+        preview.extend_from_slice(&sample.to_le_bytes());
+    }
+    Ok(preview)
 }
 
 #[cfg(test)]
@@ -203,7 +217,10 @@ mod tests {
         let request_id = uuid::Uuid::new_v4().to_string();
         let attempt = root.0.join(format!("attempt-{request_id}"));
         fs::create_dir(&attempt).expect("attempt directory should be created");
-        let pcm = vec![0_u8, 0, 0xff, 0x7f];
+        let pcm: Vec<u8> = [0.0_f32, 1.25]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
         let file_name = "chunk-00000001.pcm";
         fs::write(attempt.join(file_name), &pcm).expect("chunk should be written");
         let mut event = SpeechSynthesisChunkEvent {
@@ -213,12 +230,12 @@ mod tests {
             granularity: SpeechSynthesisChunkGranularity::ModelChunk,
             chunk_ref: SynthesizedAudioFileReference {
                 file_name: format!("attempt-{request_id}/{file_name}"),
-                media_type: "application/vnd.knovum.pcm-s16le".into(),
+                media_type: "application/vnd.knovum.pcm-f32le".into(),
                 byte_length: pcm.len() as u64,
                 sha256: format!("{:x}", Sha256::digest(&pcm)),
                 sample_rate: 48_000,
                 channels: 1,
-                sample_format: "pcm_s16le".into(),
+                sample_format: "pcm_f32le".into(),
             },
             sample_count: 2,
         };
@@ -231,7 +248,7 @@ mod tests {
         event.seq = 1;
         let mut callback = |seq, sample_rate, sample_count, bytes: &[u8]| {
             assert_eq!((seq, sample_rate, sample_count), (1, 48_000, 2));
-            assert_eq!(bytes, pcm);
+            assert_eq!(bytes, &[0, 0, 255, 127]);
             Ok(())
         };
         assert_eq!(
@@ -244,7 +261,7 @@ mod tests {
                 Some(&mut callback),
             )
             .expect("valid chunk should be consumed"),
-            4
+            8
         );
         assert!(!attempt.join(file_name).exists());
 
@@ -262,11 +279,11 @@ mod tests {
             request_id,
             attempt_epoch: 4,
             model_spec_id: identity.model_spec_id.clone(),
-            byte_length: 4,
+            byte_length: 8,
             sha256: format!("{:x}", Sha256::digest(&pcm)),
             sample_rate: 48_000,
             channels: 1,
-            sample_format: "pcm_s16le".into(),
+            sample_format: "pcm_f32le".into(),
             sample_count: 2,
         };
         let audio = finish_synthesis(result, &root.0, &identity, Some(stream))

@@ -16,8 +16,9 @@ pub(super) fn validate_metadata(candidate: &PackageVoiceCandidate) -> Result<(),
         .as_object()
         .ok_or("Package voice candidate authorization is invalid")?;
     if candidate.model_spec_id != crate::spaces::speech::voice_candidates::MODEL_SPEC_ID
-        || candidate.seed != 0
-        || config.len() != 2
+        || u32::try_from(candidate.seed).is_err()
+        || config.len() != 3
+        || config.get("seed").and_then(Value::as_i64) != Some(candidate.seed)
         || config.get("speed").and_then(Value::as_f64) != Some(1.0)
         || config.get("sampleRate").and_then(Value::as_i64) != Some(48_000)
         || authorization.len() != 3
@@ -47,6 +48,7 @@ pub(super) fn validate_output(
         || field(output, "sourceKind")? != candidate.source_kind
         || field(output, "language")? != candidate.language
         || field(output, "sampleText")? != candidate.sample_text
+        || output.get("seed").and_then(Value::as_i64) != Some(candidate.seed)
         || output.get("designDescription").and_then(Value::as_str)
             != candidate.design_description.as_deref()
         || output.get("referenceText").and_then(Value::as_str)

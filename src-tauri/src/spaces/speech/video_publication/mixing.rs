@@ -12,21 +12,18 @@ use super::super::{
     contracts::SpeechSegmentRenderOutput, publication::hash_file,
     video_config::VideoDubbingOutputConfig,
 };
-use super::{wav_stream, MAX_MIX_INPUTS, SAMPLE_RATE};
+use super::{
+    final_mix::{input_labels, mix_final, FinalMixSpec, MixOutput},
+    wav_stream, MAX_MIX_INPUTS, SAMPLE_RATE,
+};
 
-pub(super) struct TimedRender {
+pub(in crate::spaces::speech) struct TimedRender {
     render: SpeechSegmentRenderOutput,
     start_sample: u64,
     end_sample: u64,
 }
 
-struct FinalMixSpec {
-    sample_count: u64,
-    voice_gain_db: f32,
-    background_gain_db: f32,
-}
-
-pub(super) fn timed_renders(
+pub(in crate::spaces::speech) fn timed_renders(
     renders: &[SpeechSegmentRenderOutput],
     windows: &[(Option<i64>, Option<i64>)],
     video_samples: u64,
@@ -66,7 +63,7 @@ pub(super) fn timed_renders(
     Ok(timed)
 }
 
-pub(super) fn build_mix(
+pub(in crate::spaces::speech) fn build_mix(
     ffmpeg: &Path,
     work: &Path,
     timed: &[TimedRender],
@@ -75,6 +72,60 @@ pub(super) fn build_mix(
     config: &VideoDubbingOutputConfig,
     cancellation: &CancellationToken,
 ) -> Result<PathBuf, String> {
+    build_artifact(
+        MixRequest {
+            ffmpeg,
+            work,
+            timed,
+            video_samples,
+            background,
+            config,
+            cancellation,
+        },
+        MixOutput::Combined,
+    )
+}
+
+pub(in crate::spaces::speech) struct MixRequest<'a> {
+    pub ffmpeg: &'a Path,
+    pub work: &'a Path,
+    pub timed: &'a [TimedRender],
+    pub video_samples: u64,
+    pub background: Option<&'a Path>,
+    pub config: &'a VideoDubbingOutputConfig,
+    pub cancellation: &'a CancellationToken,
+}
+
+pub(in crate::spaces::speech) fn build_stem(
+    request: MixRequest<'_>,
+    kind: MixOutput,
+) -> Result<PathBuf, String> {
+    build_artifact(request, kind)
+}
+
+fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, String> {
+    let MixRequest {
+        ffmpeg,
+        work,
+        timed,
+        video_samples,
+        background,
+        config,
+        cancellation,
+    } = request;
+    let timed = if kind == MixOutput::Background {
+        &[]
+    } else {
+        timed
+    };
+    let background = if kind == MixOutput::Dialogue {
+        None
+    } else {
+        background
+    };
+    if kind == MixOutput::Background && background.is_none() {
+        return Err("This dubbing revision has no background audio".into());
+    }
     let mut fitted = Vec::with_capacity(timed.len());
     for (index, item) in timed.iter().enumerate() {
         fitted.push(fit_render(ffmpeg, work, index, item, cancellation)?);
@@ -87,12 +138,24 @@ pub(super) fn build_mix(
         }
         let path = work.join(format!("lane-{index}.wav"));
         write_lane(&path, lane, timed, &fitted, video_samples, cancellation)?;
-        if wav_stream::sample_count(&path)? != video_samples {
+        if wav_stream::sample_count(&path, 1)? != video_samples {
             return Err("Video voice lane has an invalid duration".into());
         }
         lane_paths.push(path);
     }
     let voice_inputs = reduce_mix_inputs(ffmpeg, work, lane_paths, cancellation)?;
+    let envelope = if config.preserve_original_outside_dialogue && background.is_some() {
+        let path = work.join("dialogue-envelope.wav");
+        super::dialogue_envelope::write(
+            &path,
+            video_samples,
+            &config.source_dialogue_intervals,
+            cancellation,
+        )?;
+        Some(path)
+    } else {
+        None
+    };
     let mixed = work.join("mixed.wav");
     mix_final(
         ffmpeg,
@@ -101,8 +164,13 @@ pub(super) fn build_mix(
         &mixed,
         FinalMixSpec {
             sample_count: video_samples,
+            output_kind: kind,
             voice_gain_db: config.voice_gain_db,
             background_gain_db: config.background_gain_db,
+            original: envelope
+                .as_ref()
+                .map(|_| Path::new(&config.video.asset_path)),
+            envelope: envelope.as_deref(),
         },
         cancellation,
     )?;
@@ -136,8 +204,13 @@ fn fit_render(
     if !(0.9..=1.1).contains(&tempo) {
         return Err("Video speech segment no longer fits its target window".into());
     }
+    let tempo_filter = if tempo == 1.0 {
+        String::new()
+    } else {
+        format!("atempo={tempo:.9},")
+    };
     let filter = format!(
-        "aresample={SAMPLE_RATE},atempo={tempo:.9},apad,atrim=end_sample={samples},aformat=sample_fmts=s16:channel_layouts=mono"
+        "aresample={SAMPLE_RATE},{tempo_filter}apad,atrim=end_sample={samples},aformat=sample_fmts=flt:channel_layouts=mono"
     );
     super::media_pipeline::run_ffmpeg(
         Command::new(ffmpeg)
@@ -149,7 +222,7 @@ fn fit_render(
                 "-af",
                 &filter,
                 "-c:a",
-                "pcm_s16le",
+                "pcm_f32le",
                 "-f",
                 "wav",
             ])
@@ -157,7 +230,7 @@ fn fit_render(
         cancellation,
         "FFmpeg could not fit speech to its video window",
     )?;
-    if wav_stream::sample_count(&path)? != samples {
+    if wav_stream::sample_count(&path, 1)? != samples {
         return Err(cleanup_failure(
             "Fitted speech does not match its target sample count".into(),
             &path,
@@ -199,7 +272,7 @@ fn write_lane(
 ) -> Result<(), String> {
     let part = path.with_extension("wav.part");
     let data_bytes = video_samples
-        .checked_mul(2)
+        .checked_mul(4)
         .ok_or("Video voice lane size overflow")?;
     let mut output = fs::OpenOptions::new()
         .write(true)
@@ -267,63 +340,4 @@ fn mix_group(
         cancellation,
         "FFmpeg could not combine video voice lanes",
     )
-}
-
-fn mix_final(
-    ffmpeg: &Path,
-    voices: &[PathBuf],
-    background: Option<&Path>,
-    output: &Path,
-    spec: FinalMixSpec,
-    cancellation: &CancellationToken,
-) -> Result<(), String> {
-    let FinalMixSpec {
-        sample_count,
-        voice_gain_db,
-        background_gain_db,
-    } = spec;
-    let mut command = Command::new(ffmpeg);
-    command.args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y"]);
-    for input in voices {
-        command.arg("-i").arg(input);
-    }
-    if let Some(background) = background {
-        command.arg("-i").arg(background);
-    }
-    let voice = format!(
-        "{}amix=inputs={}:duration=longest:normalize=0,volume={voice_gain_db}dB[voice];",
-        input_labels(voices.len()),
-        voices.len(),
-    );
-    let filter = if background.is_some() {
-        format!(
-            "{voice}[{}:a:0]aresample={SAMPLE_RATE},volume={background_gain_db}dB,apad,atrim=end_sample={sample_count}[background];[voice][background]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95,atrim=end_sample={sample_count},aformat=sample_fmts=s16:channel_layouts=mono[out]",
-            voices.len(),
-        )
-    } else {
-        format!(
-            "{voice}[voice]alimiter=limit=0.95,atrim=end_sample={sample_count},aformat=sample_fmts=s16:channel_layouts=mono[out]"
-        )
-    };
-    command
-        .arg("-filter_complex")
-        .arg(filter)
-        .args(["-map", "[out]", "-c:a", "pcm_s16le", "-f", "wav"])
-        .arg(output);
-    super::media_pipeline::run_ffmpeg(
-        &mut command,
-        cancellation,
-        "FFmpeg could not mix video dubbing audio",
-    )?;
-    if wav_stream::sample_count(output)? != sample_count {
-        return Err("Mixed video dubbing audio has an invalid duration".into());
-    }
-    Ok(())
-}
-
-fn input_labels(count: usize) -> String {
-    (0..count).fold(String::new(), |mut labels, index| {
-        labels.push_str(&format!("[{index}:a:0]"));
-        labels
-    })
 }

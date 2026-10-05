@@ -4,6 +4,7 @@ import { readonly, shallowRef } from "vue";
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
+import type { VoicePreviewSource } from "../contracts/generated/VoicePreviewSource";
 import { useSpaceStore } from "../session/space-store";
 import type { SpeechAudioOutput, SpeechGenerationProgress } from "./contracts";
 import { cancelSpeechGeneration, discardSpeechPreview, previewVoice } from "./ipc";
@@ -60,9 +61,9 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     }
   }
 
-  async function previewSelection(
+  async function previewSource(
     text: string,
-    voiceRevisionId: string,
+    source: VoicePreviewSource,
     pronunciationLexicon: Record<string, string>,
   ) {
     const spaceId = store.activeSpaceId;
@@ -75,7 +76,7 @@ export function useSpeechPreview(setError: (message?: string) => void) {
       const started = await audioQueue.start(nextJobId);
       if (!started || jobId.value !== nextJobId || store.activeSpaceId !== spaceId) return;
       const output = await previewVoice(
-        { jobId: nextJobId, spaceId, voiceRevisionId, text, pronunciationLexicon },
+        { jobId: nextJobId, spaceId, source, text, pronunciationLexicon },
         (value) => {
           if (jobId.value === nextJobId) progress.value = value;
         },
@@ -116,7 +117,9 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     progress: readonly(progress),
     jobId: readonly(jobId),
     listening: readonly(listening),
-    previewSelection,
+    previewSource,
+    previewSelection: (text: string, revisionId: string, lexicon: Record<string, string>) =>
+      previewSource(text, { kind: "revision", revisionId }, lexicon),
     clearPreview,
     reset,
     cancel,

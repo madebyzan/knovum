@@ -1,7 +1,7 @@
 use crate::{ai::contracts::speech_wire::AudioFileReference, app_error::AppError, spaces::db};
 
 use super::{
-    contracts::{CreateCandidateVoiceRequest, VoiceProfileSummary},
+    contracts::{CreateCandidateVoiceRequest, VoiceLibraryRevision},
     voice_assets,
     voice_candidates::{self, VoiceCandidateStatus, MODEL_SPEC_ID},
 };
@@ -10,7 +10,7 @@ use super::{
 pub async fn create_candidate_voice(
     app: tauri::AppHandle,
     request: CreateCandidateVoiceRequest,
-) -> Result<VoiceProfileSummary, AppError> {
+) -> Result<VoiceLibraryRevision, AppError> {
     if !request.authorized {
         return Err("Voice creation requires explicit authorization".into());
     }
@@ -67,7 +67,7 @@ pub async fn create_candidate_voice(
             .bind(&revision_id).bind(&request.candidate_id).bind(MODEL_SPEC_ID)
             .bind(&record.candidate.language).bind(persisted.path.to_string_lossy().as_ref())
             .bind(format!("sha256:{}", reference.sha256)).bind(&record.candidate.reference_text)
-            .bind(&record.candidate.design_description).bind(r#"{"speed":1.0,"sampleRate":48000}"#)
+            .bind(&record.candidate.design_description).bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":record.candidate.seed}).to_string())
             .bind(serde_json::to_string(&authorization).map_err(db::json_error)?).bind(now)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
         sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id=? WHERE id=?")
@@ -106,9 +106,9 @@ pub async fn create_candidate_voice(
 async fn load_selected(
     pool: &sqlx::SqlitePool,
     request: &CreateCandidateVoiceRequest,
-) -> Result<VoiceProfileSummary, String> {
-    sqlx::query_as::<_, VoiceProfileSummary>(
-        "SELECT p.id,p.name,p.source_kind,p.active_revision_id,r.revision,1 AS is_active,r.engine_id,r.model_spec_id, \
+) -> Result<VoiceLibraryRevision, String> {
+    sqlx::query_as::<_, VoiceLibraryRevision>(
+        "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision,1 AS is_active,r.engine_id,r.model_spec_id, \
          r.language,r.preset_voice_id,p.archived_at,p.updated_at FROM spaces_voice_profiles p \
          JOIN spaces_voice_revisions r ON r.id=p.active_revision_id \
          JOIN spaces_voice_candidates c ON c.selected_voice_profile_id=p.id AND c.selected_voice_revision_id=r.id \

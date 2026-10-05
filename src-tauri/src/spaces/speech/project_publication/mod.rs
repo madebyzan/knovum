@@ -1,5 +1,10 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 mod audiobook;
 mod encoding;
+mod pauses;
+#[cfg(test)]
+mod production_tests;
 
 use std::{
     fs,
@@ -78,11 +83,25 @@ async fn publish_project_with_measurement<R: Runtime>(
         return Err("Speech project has no complete ordered render set".into());
     }
     let (format, sample_rate, audiobook) = output_profile(project_type, output_config, renders)?;
+    let wav_precision = if let Some(config) = &audiobook {
+        config.wav_precision
+    } else {
+        serde_json::from_value::<super::project_config::ShortOutputConfig>(output_config.clone())
+            .map_err(db::json_error)?
+            .wav_precision
+    };
     if let Some(config) = audiobook.as_ref() {
         super::project_config::validate_chapter_order(
             config,
             chapter_keys.iter().map(Option::as_deref),
         )?;
+    }
+    if let Some(cover) = audiobook
+        .as_ref()
+        .and_then(|config| config.metadata.cover.as_ref())
+    {
+        let path = assets::authorize_spaces_asset(app, Path::new(&cover.asset_path))?;
+        crate::file_inspection::verify_content_revision(&path, &cover.source_revision)?;
     }
     let digest = digest_render_order(renders, output_config);
     let directory = assets::asset_directory(app)?
@@ -93,11 +112,14 @@ async fn publish_project_with_measurement<R: Runtime>(
     if let Some(output) = reusable_committed_output(
         app,
         pool,
-        project_id,
-        revision_id,
-        &digest,
-        &format,
-        sample_rate,
+        CommittedOutputSpec {
+            project_id,
+            revision_id,
+            digest: &digest,
+            format: &format,
+            sample_rate,
+            wav_precision,
+        },
     )
     .await?
     {
@@ -138,7 +160,7 @@ async fn publish_project_with_measurement<R: Runtime>(
         let normalize_renders = renders.to_vec();
         let normalize_directory = work_directory.clone();
         let normalize_cancellation = cancellation.clone();
-        let normalized = crate::blocking::run(move || {
+        let mut normalized = crate::blocking::run(move || {
             normalize_sources(
                 &normalize_ffmpeg,
                 &input_sources,
@@ -149,17 +171,51 @@ async fn publish_project_with_measurement<R: Runtime>(
             )
         })
         .await?;
+        if let Some(config) = &audiobook {
+            let pause_directory = work_directory.clone();
+            let pause_cancellation = cancellation.clone();
+            let pause_ms = config.chapter_pause_ms;
+            normalized = crate::blocking::run(move || {
+                pauses::insert(
+                    &normalized,
+                    sample_rate,
+                    pause_ms,
+                    &pause_directory,
+                    &pause_cancellation,
+                )
+            })
+            .await?;
+        }
         let sample_count = normalized.iter().try_fold(0_u64, |total, source| {
             total
                 .checked_add(source.sample_count)
                 .ok_or_else(|| "Speech project sample count overflow".to_owned())
         })?;
         let concat_path = write_concat_file(&work_directory, &normalized)?;
-        let metadata_path = if let Some(config) = audiobook.as_ref().filter(|_| format == "m4b") {
+        let metadata_chapter_keys = if audiobook
+            .as_ref()
+            .is_some_and(|config| config.chapter_pause_ms > 0)
+        {
+            chapter_keys
+                .iter()
+                .enumerate()
+                .flat_map(|(index, key)| {
+                    let mut keys = Vec::new();
+                    if index > 0 {
+                        keys.push(chapter_keys[index - 1].clone());
+                    }
+                    keys.push(key.clone());
+                    keys
+                })
+                .collect::<Vec<_>>()
+        } else {
+            chapter_keys.to_vec()
+        };
+        let metadata_path = if let Some(config) = audiobook.as_ref() {
             Some(write_chapter_metadata(
                 &work_directory,
                 config,
-                chapter_keys,
+                &metadata_chapter_keys,
                 &normalized,
                 sample_rate,
             )?)
@@ -170,7 +226,7 @@ async fn publish_project_with_measurement<R: Runtime>(
         let encode_concat = concat_path;
         let encode_output = part.clone();
         let encode_format = format;
-        let encode_audiobook = audiobook;
+        let encode_audiobook = audiobook.clone();
         let encode_metadata = metadata_path;
         let encode_cancellation = cancellation.clone();
         crate::blocking::run(move || {
@@ -181,6 +237,7 @@ async fn publish_project_with_measurement<R: Runtime>(
                     output: &encode_output,
                     format: &encode_format,
                     sample_rate,
+                    wav_precision,
                     audiobook: encode_audiobook.as_ref(),
                     measurement: measurement.as_ref(),
                     metadata: encode_metadata.as_deref(),
@@ -189,6 +246,15 @@ async fn publish_project_with_measurement<R: Runtime>(
             )
         })
         .await?;
+        if let Some(cover) = audiobook
+            .as_ref()
+            .and_then(|config| config.metadata.cover.as_ref())
+        {
+            crate::file_inspection::verify_content_revision(
+                Path::new(&cover.asset_path),
+                &cover.source_revision,
+            )?;
+        }
         for (source, render) in sources.iter().zip(renders) {
             if cancellation.is_cancelled() {
                 return Err("cancelled".into());
@@ -206,7 +272,7 @@ async fn publish_project_with_measurement<R: Runtime>(
         let sha256 = hash_file(&part)?;
         let sample_count =
             if output_path.extension().and_then(|value| value.to_str()) == Some("wav") {
-                wav_sample_count(&part, sample_rate)?
+                wav_sample_count(&part, sample_rate, wav_precision)?
             } else {
                 sample_count
             };
@@ -215,7 +281,7 @@ async fn publish_project_with_measurement<R: Runtime>(
                 pool,
                 claim,
                 super::asset_publication::PendingAsset {
-                    owner_kind: "project_output",
+                    owner_kind: PublicationOwnerKind::ProjectOutput,
                     owner_id: revision_id,
                     asset_path: &output_path,
                     part_path: Some(&part),
@@ -260,15 +326,28 @@ async fn publish_project_with_measurement<R: Runtime>(
     }
 }
 
+struct CommittedOutputSpec<'a> {
+    project_id: &'a str,
+    revision_id: &'a str,
+    digest: &'a str,
+    format: &'a str,
+    sample_rate: u32,
+    wav_precision: super::audio_format::WavPrecision,
+}
+
 async fn reusable_committed_output<R: Runtime>(
     app: &AppHandle<R>,
     pool: &sqlx::SqlitePool,
-    project_id: &str,
-    revision_id: &str,
-    digest: &str,
-    format: &str,
-    sample_rate: u32,
+    expected: CommittedOutputSpec<'_>,
 ) -> Result<Option<SpeechAudioOutput>, String> {
+    let CommittedOutputSpec {
+        project_id,
+        revision_id,
+        digest,
+        format,
+        sample_rate,
+        wav_precision,
+    } = expected;
     let stored = sqlx::query_as::<_, StoredProjectOutput>(
         "SELECT output_asset_path,output_sha256,output_sample_rate,output_sample_count \
          FROM spaces_speech_project_revisions WHERE id=? AND project_id=?",
@@ -318,7 +397,7 @@ async fn reusable_committed_output<R: Runtime>(
     let sample_count =
         u64::try_from(samples).map_err(|_| "Stored speech sample count is invalid")?;
     if format == "wav" {
-        let Ok(actual_samples) = wav_sample_count(&canonical, sample_rate) else {
+        let Ok(actual_samples) = wav_sample_count(&canonical, sample_rate, wav_precision) else {
             return Ok(None);
         };
         if actual_samples != sample_count {
