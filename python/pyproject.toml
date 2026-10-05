@@ -39,7 +39,7 @@ quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.12.3", "pytest==9.1.1", "
 target-version = "py311"
 line-length = 120
 src = ["src"]
-extend-exclude = ["src/knovum_inference/contracts.py"]
+extend-exclude = ["src/knovum_inference/contracts/generated"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

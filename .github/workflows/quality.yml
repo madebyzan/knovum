@@ -117,7 +117,8 @@ jobs:
         run: |
           npm run contracts:generate
           uv run --project python --only-group contracts --frozen python python/tools/generate_contracts.py
-          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/runtime.schema.json python/src/knovum_inference/contracts.py
+          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/runtime.schema.json python/src/knovum_inference/contracts/generated
+          test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated)"
       - name: Verify dependency inputs were not rewritten
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock

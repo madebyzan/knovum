@@ -358,7 +358,10 @@ including model loading. Interactive work takes priority while queued background
 service. It launches only a verified, application-bundled CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
 and is recycled on capability change, cancellation timeout, idle expiry or application exit.
-Python session preparation, including native imports and thread configuration, runs off the
+Python `runtime/` composes the process lifecycle and capability dispatch; `transport/` owns stdio
+framing and validation, and `speech/` owns its engines and synthesis stream. Capability modules
+do not depend on transport or worker state. Session preparation, including native imports and
+thread configuration, runs off the
 asyncio control loop. Only one initialization may be pending, and a preparation result cannot
 activate a session after transport closure. Closing the transport stops admission, cancels current
 computation and waits at most five seconds for pending initialization and request handlers before

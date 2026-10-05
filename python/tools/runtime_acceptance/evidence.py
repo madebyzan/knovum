@@ -80,11 +80,8 @@ def require_list(value: object, location: str) -> list[Any]:
 
 
 def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
     with path.open("rb") as source:
-        for chunk in iter(lambda: source.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+        return hashlib.file_digest(source, "sha256").hexdigest()
 
 
 def resolve_hashed_file(reference: object, base: Path, location: str) -> Path:
@@ -93,9 +90,7 @@ def resolve_hashed_file(reference: object, base: Path, location: str) -> Path:
     relative = Path(require_string(item["path"], f"{location}.path"))
     if relative.is_absolute() or ".." in relative.parts:
         raise EvidenceError(f"{location}.path must stay below its evidence directory")
-    expected = require_string(item["sha256"], f"{location}.sha256").lower()
-    if len(expected) != 64 or any(character not in "0123456789abcdef" for character in expected):
-        raise EvidenceError(f"{location}.sha256 must be lowercase SHA-256")
+    expected = require_sha256(require_string(item["sha256"], f"{location}.sha256").lower(), f"{location}.sha256")
     root = base.resolve()
     candidate = root / relative
     current = root
@@ -112,17 +107,6 @@ def resolve_hashed_file(reference: object, base: Path, location: str) -> Path:
     if actual != expected:
         raise EvidenceError(f"{location} hash mismatch: expected {expected}, got {actual}")
     return path
-
-
-def percentile(values: list[float], percentile_value: float) -> float:
-    if not values:
-        raise EvidenceError("cannot calculate a percentile from no observations")
-    ordered = sorted(values)
-    rank = (len(ordered) - 1) * percentile_value
-    lower = int(rank)
-    upper = min(lower + 1, len(ordered) - 1)
-    fraction = rank - lower
-    return ordered[lower] * (1.0 - fraction) + ordered[upper] * fraction
 
 
 def require_sha256(value: object, location: str) -> str:

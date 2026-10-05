@@ -12,9 +12,9 @@ import tempfile
 import tomllib
 from pathlib import Path
 
-from runtime_artifacts import archive_runtime, digest, download, extract_python
-from runtime_inventory import write_inventory
-from runtime_signing import sign_runtime
+from runtime_packaging.artifacts import archive_runtime, digest, download, extract_python
+from runtime_packaging.inventory import write_inventory
+from runtime_packaging.signing import sign_runtime
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 PROJECT = REPOSITORY / "python"
@@ -22,10 +22,10 @@ ISOLATED_PYTHON_ARGS = ("-I", "-B", "-X", "utf8")
 
 
 def run(*arguments: str, cwd: Path | None = None, capture: bool = False, env: dict[str, str] | None = None) -> str:
-    result = subprocess.run(
+    command = subprocess.run(
         arguments, cwd=cwd, env=env, check=True, text=True, stdout=subprocess.PIPE if capture else None
     )
-    return result.stdout.strip() if capture else ""
+    return command.stdout.strip() if capture else ""
 
 
 def host_target() -> str:

@@ -96,6 +96,21 @@ libraries and return temporary results. Python cannot write Space data, publish 
 choose a replacement model after failure. `spaces` owns durable Attempts, input revisions,
 checkpoints and publication. The WebView never starts or addresses Python directly.
 
+Inside `python/src/knovum_inference`, `runtime/` owns worker admission, session preparation,
+request lifecycle and capability dispatch; `transport/` owns bounded stdio framing, JSON-RPC
+and wire validation. `speech/` owns transcription, alignment, diarization and separation;
+`speech/synthesis/` separates engine selection, Kokoro, VoxCPM2 and stream credits/publication.
+The focused embedding and image segmentation implementations remain file owners.
+Capability implementations depend on their own modules, generated contracts and neutral errors;
+they do not import worker lifecycle or transport. Only runtime composition connects these owners.
+Package `__init__.py` files do not re-export implementation symbols.
+
+`python/tools/` contains development/build CLI entries, `runtime_packaging/` owns artifact handling,
+binary inspection, inventory and signing, and `runtime_acceptance/` owns provenance and per-capability
+scoring. Metric helpers stay with the capability scorer that uses them; invocation and run
+identity validation share the provenance owner. Tools are excluded from the worker package. Tests live under `python/tests/`, grouped by
+runtime, transport, speech and tooling ownership.
+
 `file_inspection/classification` is the single authority for imported resource classification.
 Inspection, Space import and system-thumbnail eligibility consume its typed result; they must not
 maintain parallel extension lists or infer semantic categories from persisted node-kind strings.
@@ -478,8 +493,12 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 
 Rust DTOs generate the TypeScript IPC contracts and the Python runtime JSON schema through
 `pnpm contracts:generate`. `python/tools/generate_contracts.py` then produces strict Pydantic
-models from that schema. CI regenerates both outputs and requires zero differences; generated
-contracts are not edited independently.
+models under `python/src/knovum_inference/contracts/generated/` from that schema. The existing
+[generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit
+ownership map changes Python file placement only, never canonical wire names or field definitions.
+Consumers import defining modules directly. `contracts/wire_model.py` owns strict Pydantic policy.
+CI regenerates both outputs and requires zero differences; generated contracts are not edited
+independently. Every Rust schema definition must have exactly one module owner.
 
 Independent Renderer runtime schemas use the owning capability or model’s `schema/<subject>.ts` layout, as specified in `naming-conventions.md`. Generated IPC contracts and database baselines retain their separate boundaries. In Rust, `spaces/knowledge/object_types/` owns custom Knowledge Type lifecycle and decoding; it is not a generic type container. Retrieval index schemas own Arrow structure, while `retrieval/validation.rs` owns query-vector input policy.
 
@@ -491,7 +510,7 @@ Canvas editor/surface interfaces belong to `canvas/contracts/`; pure preview pol
 `pnpm check:source-layout` verifies repository entry directories and all source roots,
 and runs fixture-based policy regressions before inspecting the checkout.
 
-Handwritten Rust and Python files are limited to 350 nonblank lines. Split by responsibility;
-keep protocol-generated bindings as reproducible generator output. Frontend files retain the
-Oxc 180-line and complexity limits. Declarative schemas, static fixtures and documentation
+Rust and Python source files are limited to 350 nonblank lines, including generated Python
+contracts. Split by responsibility; keep bindings as reproducible modular generator output.
+Frontend files retain the Oxc 180-line and complexity limits. Declarative schemas, static fixtures and documentation
 are maintained according to their own contracts.

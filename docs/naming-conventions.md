@@ -47,15 +47,16 @@ mechanically repeat the complete parent path in a file name. Once a capability o
 a directory and move its implementation under that directory instead of retaining prefixed sibling
 files.
 
-| Source object              | Rule                                            | Example                                  |
-| -------------------------- | ----------------------------------------------- | ---------------------------------------- |
-| Rust directory/module/file | `snake_case`                                    | `status/parser.rs`                       |
-| TypeScript directory/file  | `kebab-case`                                    | `relation-repository.ts`                 |
-| Vue SFC                    | `PascalCase.vue`                                | `SpaceRelationEditor.vue`                |
-| Composable file/export     | `use-<capability>.ts` / `useCapability`         | `use-media-player.ts` / `useMediaPlayer` |
-| Type/interface/enum        | `PascalCase`                                    | `SpaceRelation`                          |
-| Function/variable          | `camelCase` in TypeScript, `snake_case` in Rust | `restoreSpace` / `restore_space`         |
-| Constant                   | `SCREAMING_SNAKE_CASE`                          | `DEFAULT_NODE_WIDTH`                     |
+| Source object              | Rule                                                   | Example                                  |
+| -------------------------- | ------------------------------------------------------ | ---------------------------------------- |
+| Python directory/module    | `snake_case`, named within its concrete owner          | `speech/synthesis/kokoro.py`             |
+| Rust directory/module/file | `snake_case`                                           | `status/parser.rs`                       |
+| TypeScript directory/file  | `kebab-case`                                           | `relation-repository.ts`                 |
+| Vue SFC                    | `PascalCase.vue`                                       | `SpaceRelationEditor.vue`                |
+| Composable file/export     | `use-<capability>.ts` / `useCapability`                | `use-media-player.ts` / `useMediaPlayer` |
+| Type/interface/enum        | `PascalCase`                                           | `SpaceRelation`                          |
+| Function/variable          | `camelCase` in TypeScript, `snake_case` in Rust/Python | `restoreSpace` / `restore_space`         |
+| Constant                   | `SCREAMING_SNAKE_CASE`                                 | `DEFAULT_NODE_WIDTH`                     |
 
 Avoid `index.ts`: it hides responsibility and can become a barrel without changing its path. Import
 the named owner directly. Prefer conventional Rust module paths over `#[path]` indirection, and keep

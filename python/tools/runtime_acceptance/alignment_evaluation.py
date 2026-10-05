@@ -6,14 +6,13 @@ from typing import Any
 
 from runtime_acceptance.evidence import (
     EvidenceError,
-    percentile,
     require_keys,
     require_list,
     require_number,
     require_object,
     require_string,
 )
-from runtime_acceptance.execution_evidence import load_execution_evidence
+from runtime_acceptance.provenance import load_execution_evidence
 
 
 def evaluate_alignment(
@@ -102,8 +101,8 @@ def _alignment_metrics(aligned: int, total: int, errors: list[float]) -> dict[st
         raise EvidenceError("alignment corpus must contain annotated units for each language")
     return {
         "coverage": aligned / total,
-        "medianBoundaryErrorMs": percentile(errors, 0.5) if errors else None,
-        "p95BoundaryErrorMs": percentile(errors, 0.95) if errors else None,
+        "medianBoundaryErrorMs": _percentile(errors, 0.5) if errors else None,
+        "p95BoundaryErrorMs": _percentile(errors, 0.95) if errors else None,
     }
 
 
@@ -117,3 +116,14 @@ def _alignment_passes(metrics: dict[str, Any], thresholds: dict[str, Any]) -> bo
         and median <= thresholds["maximumMedianBoundaryErrorMs"]
         and p95 <= thresholds["maximumP95BoundaryErrorMs"]
     )
+
+
+def _percentile(values: list[float], percentile_value: float) -> float:
+    if not values:
+        raise EvidenceError("cannot calculate a percentile from no observations")
+    ordered = sorted(values)
+    rank = (len(ordered) - 1) * percentile_value
+    lower = int(rank)
+    upper = min(lower + 1, len(ordered) - 1)
+    fraction = rank - lower
+    return ordered[lower] * (1.0 - fraction) + ordered[upper] * fraction

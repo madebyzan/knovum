@@ -1,6 +1,6 @@
 import asyncio
 
-from knovum_inference.worker import Worker
+from knovum_inference.runtime.worker import Worker
 
 
 def main() -> None:
