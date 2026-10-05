@@ -4,7 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
-import { downloadPublicFile, fileDigest, safeFilename, verifyReleaseFiles } from "./files.mjs";
+import {
+  downloadPublicArtifact,
+  artifactSha256,
+  safeArtifactFilename,
+  verifyReleaseArtifacts,
+} from "./artifacts.mjs";
 import { github, readStableChannel, requireDistributionRepository, writeStableChannel } from "./github.mjs";
 import { httpsUrl, publicKey, requireValue, stableVersion } from "./policy.mjs";
 import { assertPromotion, createManifest } from "./update-manifest.mjs";
@@ -30,10 +35,12 @@ try {
     throw new Error("Candidate does not match the approved version, permanent endpoint and signing key");
   }
   if (release.prerelease) throw new Error("A prerelease cannot be promoted to stable");
-  await verifyReleaseFiles(directory, candidate.artifacts, pubkey);
+  await verifyReleaseArtifacts(directory, candidate.artifacts, pubkey);
   await Promise.all(
     candidate.installers.map(async (installer) => {
-      if ((await fileDigest(join(directory, safeFilename(installer.file)))) !== installer.sha256) {
+      if (
+        (await artifactSha256(join(directory, safeArtifactFilename(installer.file)))) !== installer.sha256
+      ) {
         throw new Error("Installer hash does not match the approved candidate");
       }
     }),
@@ -53,15 +60,15 @@ try {
   // Verify the anonymous path, including a new COS/CDN host, before exposing it to old clients.
   await Promise.all(
     candidate.artifacts.map(async (artifact) => {
-      const file = join(directory, `public-${safeFilename(artifact.file)}`);
-      downloadPublicFile(manifest.platforms[artifact.target].url, file);
-      if ((await fileDigest(file)) !== artifact.sha256)
+      const file = join(directory, `public-${safeArtifactFilename(artifact.file)}`);
+      downloadPublicArtifact(manifest.platforms[artifact.target].url, file);
+      if ((await artifactSha256(file)) !== artifact.sha256)
         throw new Error("Public artifact differs from the approved candidate");
     }),
   );
   await writeStableChannel(repository, previous, manifest);
   const published = join(directory, "published-channel.json");
-  downloadPublicFile(endpoint, published);
+  downloadPublicArtifact(endpoint, published);
   const observed = JSON.parse(readFileSync(published, "utf8"));
   if (!isDeepStrictEqual(observed, manifest)) {
     throw new Error(

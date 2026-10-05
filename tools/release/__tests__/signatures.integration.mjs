@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { fileDigest, verifyReleaseFiles, verifySignature } from "../files.mjs";
+import { artifactSha256, verifyReleaseArtifacts, verifyArtifactSignature } from "../artifacts.mjs";
 
 // CI installs the official verifier. Missing minisign is a failure, never a skipped security test.
 const directory = mkdtempSync(join(tmpdir(), "knovum-signature-test-"));
@@ -26,18 +26,18 @@ execFileSync("minisign", ["-S", "-s", signer.secret, "-m", file], { stdio: "pipe
 const signature = readFileSync(`${file}.minisig`).toString("base64");
 
 test("the official verifier accepts the approved key and exact Tauri-encoded signature", async () => {
-  const artifact = { file: "application.exe", sha256: await fileDigest(file), signature };
-  await verifyReleaseFiles(directory, [artifact], signer.key);
-  await assert.rejects(verifyReleaseFiles(directory, [artifact, artifact], signer.key), /Duplicate/);
+  const artifact = { file: "application.exe", sha256: await artifactSha256(file), signature };
+  await verifyReleaseArtifacts(directory, [artifact], signer.key);
+  await assert.rejects(verifyReleaseArtifacts(directory, [artifact, artifact], signer.key), /Duplicate/);
 });
 
 test("a valid signature made with a different key cannot be promoted", () => {
-  assert.throws(() => verifySignature(file, signature, other.key));
+  assert.throws(() => verifyArtifactSignature(file, signature, other.key));
 });
 
 test("tampering is rejected even when the manifest hash is also changed", async () => {
   const tampered = join(directory, "tampered.exe");
   writeFileSync(tampered, "attacker-controlled replacement");
-  const artifact = { file: "tampered.exe", sha256: await fileDigest(tampered), signature };
-  await assert.rejects(verifyReleaseFiles(directory, [artifact], signer.key));
+  const artifact = { file: "tampered.exe", sha256: await artifactSha256(tampered), signature };
+  await assert.rejects(verifyReleaseArtifacts(directory, [artifact], signer.key));
 });

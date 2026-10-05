@@ -12,8 +12,8 @@ import {
 } from "../release/policy.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
 import { validatePythonRuntime } from "../runtime/manifest.mjs";
-import { verifyWindowsRuntimePackage } from "../runtime/package.mjs";
 import { verifyRuntimeSignatures } from "../runtime/signatures.mjs";
+import { verifyWindowsRuntimePackage } from "../runtime/windows-package-verification.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
@@ -137,10 +137,10 @@ function runtimeResources(runtimeTarget) {
 function option(name) {
   const index = args.indexOf(name);
   if (index < 0) return undefined;
-  const result = args[index + 1];
-  if (!result || result.startsWith("--")) fail(`Missing value for ${name}`);
+  const optionValue = args[index + 1];
+  if (!optionValue || optionValue.startsWith("--")) fail(`Missing value for ${name}`);
   args.splice(index, 2);
-  return result;
+  return optionValue;
 }
 
 function value(name) {

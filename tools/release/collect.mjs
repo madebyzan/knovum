@@ -1,7 +1,7 @@
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { fileDigest, safeFilename } from "./files.mjs";
+import { artifactSha256, safeArtifactFilename } from "./artifacts.mjs";
 import { httpsUrl, publicKey, readVersion, releaseTargets, requireValue } from "./policy.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -14,7 +14,7 @@ const mac = target.startsWith("darwin-");
 const source = findOne(join(bundle, mac ? "macos" : "nsis"), mac ? ".app.tar.gz" : "-setup.exe");
 const directory = join(root, "release-artifacts", target);
 mkdirSync(directory, { recursive: true });
-const file = safeFilename(`Knovum_${version}_${target}${mac ? ".app.tar.gz" : "-setup.exe"}`);
+const file = safeArtifactFilename(`Knovum_${version}_${target}${mac ? ".app.tar.gz" : "-setup.exe"}`);
 copyFileSync(source, join(directory, file));
 copyFileSync(`${source}.sig`, join(directory, `${file}.sig`));
 const artifact = {
@@ -22,14 +22,14 @@ const artifact = {
   version,
   file,
   signature: readFileSync(`${source}.sig`, "utf8").trim(),
-  sha256: await fileDigest(source),
+  sha256: await artifactSha256(source),
 };
 const installers = [];
 if (mac) {
   const dmg = findOne(join(bundle, "dmg"), ".dmg");
-  const installer = safeFilename(`Knovum_${version}_${target}.dmg`);
+  const installer = safeArtifactFilename(`Knovum_${version}_${target}.dmg`);
   copyFileSync(dmg, join(directory, installer));
-  installers.push({ file: installer, sha256: await fileDigest(dmg) });
+  installers.push({ file: installer, sha256: await artifactSha256(dmg) });
 }
 writeFileSync(
   join(directory, "platform.json"),

@@ -34,7 +34,7 @@ acceptance development environment. The scoring libraries are not installed in t
 
 ```text
 pnpm inference:acceptance \
-  --corpus <corpus.json> --results <native-results.json> --output <acceptance-report.json>
+  --corpus <corpus.json> --capture <native-capture.json> --output <acceptance-report.json>
 ```
 
 The release workflows build candidate artifacts; they do not capture this corpus or run the evaluator
@@ -47,7 +47,7 @@ is release evidence; `unavailable` is deliberately not treated as a skip or succ
 
 The corpus manifest is schema version 1 and has exactly these top-level fields: `schemaVersion`,
 `corpusId`, `corpusVersion`, `description`, `embedding`, `asr`, `alignment` and `tts`. Its bytes are
-SHA-256 bound into the result provenance. The versioned corpus must contain:
+SHA-256 bound into the capture provenance. The versioned corpus must contain:
 
 - embedding documents, notes, code and transcripts with non-empty query relevance judgments, plus the official
   Sentence Transformers CPU/float32 reference profile;
@@ -65,13 +65,13 @@ declared digest. Licensed/private recordings may live in the controlled QA evide
 Git, but the immutable corpus manifest, audio bytes and annotations must remain reviewable under the
 recorded corpus version. Missing assets make the run unavailable.
 
-The native result manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
+The native capture manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
 capability states and provenance containing the application version/full commit, runtime version/digest, target, model
 spec IDs and identity digests, execution config IDs and parameters, corpus digest, and complete device,
 OS, driver and power-mode information. It accepts only `macos-arm64` and `windows-x64`. Every capability
 must say `completed` or `unavailable` with a reason; omission is invalid evidence.
 
-Completed capabilities refer to hash-bound raw JSON files beside the result manifest. Each raw file
+Completed capabilities refer to hash-bound raw JSON files beside the capture manifest. Each raw file
 uses schema version 1 with `source`, `values`, and one or more request identities/timestamps. Candidate
 sources must identify `bundled_worker`, the actual JSON-RPC method, the candidate runtime digest, frozen
 model spec and config. Reference embedding evidence identifies `official_python_reference`; ASR
@@ -95,7 +95,7 @@ Every generated sample must receive one complete score set from at least three d
 duplicate reviews from one rater do not count. The evaluator verifies all audio hashes and requires each
 review's `reviewedAt` to precede assignment disclosure. It reports criterion means and applies the
 preregistered limits. An ASR round-trip score cannot replace these human
-records. The result report remains attached to the exact candidate artifacts and is regenerated for
+records. The acceptance report remains attached to the exact candidate artifacts and is regenerated for
 every runtime, model, execution-config or corpus change.
 
 Kokoro blocks production promotion independently of functional QA until the distribution review

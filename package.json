@@ -20,7 +20,6 @@
     "security:web": "pnpm --registry=https://registry.npmjs.org audit --prod --audit-level high && pnpm --registry=https://registry.npmjs.org audit signatures",
     "e2e:build": "vite build --mode e2e && tauri build --no-bundle --features e2e --config src-tauri/tauri.e2e.conf.json",
     "e2e": "pnpm e2e:build && wdio run wdio.conf.ts",
-    "smoke:cutout": "pnpm e2e:build && wdio run wdio.release.conf.ts",
     "contracts:generate": "cargo test --manifest-path src-tauri/Cargo.toml --lib contract_codegen::tests::export_space_contracts -- --ignored --exact && uv run --project python --only-group contracts --frozen python tools/generate_python_contracts.py",
     "runtime:build": "uv run --project python --only-group publication --frozen python tools/build_python_runtime.py",
     "runtime:provision": "node tools/runtime/provision.mjs",

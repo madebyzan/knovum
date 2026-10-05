@@ -50,8 +50,8 @@ function fixture(context) {
 
 test("manifest binds every file to the exact dependency lock", { skip: !supportedHost }, (context) => {
   const sample = fixture(context);
-  const result = sample.run();
-  assert.equal(result.status, 0, result.stderr);
+  const execution = sample.run();
+  assert.equal(execution.status, 0, execution.stderr);
   const manifest = JSON.parse(readFileSync(join(sample.runtime, "runtime-manifest.json"), "utf8"));
   const lock = readFileSync(join(sample.root, "python", "uv.lock"));
   assert.equal(manifest.target, target);
@@ -63,14 +63,14 @@ test("manifest binds every file to the exact dependency lock", { skip: !supporte
 test("manifest refuses links inside the runtime", { skip: !supportedHost }, (context) => {
   const sample = fixture(context);
   symlinkSync(join(sample.root, "python", "uv.lock"), join(sample.runtime, "outside-link"));
-  const result = sample.run();
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /contains a link/);
+  const execution = sample.run();
+  assert.notEqual(execution.status, 0);
+  assert.match(execution.stderr, /contains a link/);
 });
 
 test("manifest rejects a target outside the release scope", { skip: !platform }, (context) => {
   const sample = fixture(context);
-  const result = sample.run("macos-x64");
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /Unsupported runtime target/);
+  const execution = sample.run("macos-x64");
+  assert.notEqual(execution.status, 0);
+  assert.match(execution.stderr, /Unsupported runtime target/);
 });

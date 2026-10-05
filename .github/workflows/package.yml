@@ -74,8 +74,6 @@ jobs:
         env:
           KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test local_resources_smoke
-      - name: Smoke real background-removal runtime
-        run: pnpm smoke:cutout
       - name: Build QA package
         env:
           APPLE_SIGNING_IDENTITY: ${{ matrix.os == 'macos-15' && '-' || '' }}

@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { fileDigest, safeFilename, verifyReleaseFiles } from "./files.mjs";
+import { artifactSha256, safeArtifactFilename, verifyReleaseArtifacts } from "./artifacts.mjs";
 import { github, requireDistributionRepository } from "./github.mjs";
 import { httpsUrl, publicKey, readVersion, requireValue } from "./policy.mjs";
 import { createManifest } from "./update-manifest.mjs";
@@ -39,12 +39,12 @@ for (const entry of readdirSync(input, { withFileTypes: true })) {
   }
   const payloads = [part.artifact, ...part.installers];
   for (const payload of payloads) {
-    const name = safeFilename(payload.file);
+    const name = safeArtifactFilename(payload.file);
     const source = join(directory, name);
     copyFileSync(source, join(output, name));
   }
   copyFileSync(
-    join(directory, `${safeFilename(part.artifact.file)}.sig`),
+    join(directory, `${safeArtifactFilename(part.artifact.file)}.sig`),
     join(output, `${part.artifact.file}.sig`),
   );
   artifacts.push(part.artifact);
@@ -61,10 +61,10 @@ const candidate = {
   installers,
 };
 createManifest({ ...candidate, baseUrl: `https://github.com/${repository}/releases/download/${tag}/` });
-await verifyReleaseFiles(output, artifacts, pubkey);
+await verifyReleaseArtifacts(output, artifacts, pubkey);
 await Promise.all(
   installers.map(async (installer) => {
-    if ((await fileDigest(join(output, installer.file))) !== installer.sha256) {
+    if ((await artifactSha256(join(output, installer.file))) !== installer.sha256) {
       throw new Error(`Installer hash mismatch: ${installer.file}`);
     }
   }),

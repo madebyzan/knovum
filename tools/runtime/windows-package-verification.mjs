@@ -109,7 +109,7 @@ function extractArchive(executable, archive, destination) {
 }
 
 function findFiles(root, matches) {
-  const result = [];
+  const matchingFiles = [];
   let entries = 0;
   const visit = (directory) => {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -120,11 +120,11 @@ function findFiles(root, matches) {
       if (entry.isSymbolicLink())
         throw new Error(`Windows package extraction contains a link: ${entry.name}`);
       if (entry.isDirectory()) visit(path);
-      else if (entry.isFile() && matches(basename(path))) result.push(path);
+      else if (entry.isFile() && matches(basename(path))) matchingFiles.push(path);
     }
   };
   visit(resolve(root));
-  return result;
+  return matchingFiles;
 }
 
 function requireRegularFile(path, label) {

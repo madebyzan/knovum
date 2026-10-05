@@ -10,7 +10,7 @@ from pathlib import Path
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate real native inference evidence against a fixed corpus")
     parser.add_argument("--corpus", type=Path, required=True)
-    parser.add_argument("--results", type=Path, required=True)
+    parser.add_argument("--capture", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -18,20 +18,23 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     # -I excludes the script directory; add only this repository-owned acceptance package.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from acceptance.capture_manifest import CaptureManifest
     from acceptance.corpus import Corpus
     from acceptance.evaluator import evaluate
     from acceptance.evidence import EvidenceError, EvidenceUnavailable, load_evidence
-    from acceptance.results import Results
 
     args = parse_args()
-    missing = [str(path) for path in (args.corpus, args.results) if not path.is_file()]
+    missing = [str(path) for path in (args.corpus, args.capture) if not path.is_file()]
     if missing:
         report = _terminal_report("unavailable", f"required acceptance input is unavailable: {', '.join(missing)}")
         exit_code = 2
     else:
         try:
             report = evaluate(
-                load_evidence(args.corpus, Corpus), load_evidence(args.results, Results), args.corpus, args.results
+                load_evidence(args.corpus, Corpus),
+                load_evidence(args.capture, CaptureManifest),
+                args.corpus,
+                args.capture,
             )
             exit_code = 0 if report["status"] == "passed" else 2 if report["status"] == "unavailable" else 1
         except EvidenceUnavailable as error:

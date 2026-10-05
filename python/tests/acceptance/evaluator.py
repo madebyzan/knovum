@@ -5,25 +5,25 @@ from pathlib import Path
 from typing import Any, TypeVar
 
 from acceptance.alignment_evaluation import evaluate_alignment
+from acceptance.capture_manifest import CaptureManifest, Unavailable
 from acceptance.corpus import Corpus
 from acceptance.embedding_evaluation import evaluate_embedding
 from acceptance.evidence import EvidenceError, resolve_hashed_file, sha256_file
-from acceptance.results import Results, Unavailable
 from acceptance.transcription_evaluation import evaluate_transcription
 from acceptance.tts_evaluation import evaluate_tts
 
 Section = TypeVar("Section")
 
 
-def evaluate(corpus: Corpus, results: Results, corpus_path: Path, results_path: Path) -> dict[str, Any]:
-    provenance = results.provenance
+def evaluate(corpus: Corpus, capture: CaptureManifest, corpus_path: Path, capture_path: Path) -> dict[str, Any]:
+    provenance = capture.provenance
     if provenance.corpus_sha256 != sha256_file(corpus_path):
-        raise EvidenceError("results provenance does not match the supplied corpus bytes")
+        raise EvidenceError("capture provenance does not match the supplied corpus bytes")
     for samples in (corpus.asr.samples, corpus.alignment.samples):
         for sample in samples:
             resolve_hashed_file(sample.audio, corpus_path.parent, f"corpus.{sample.id}.audio")
-    capabilities = results.capabilities
-    base = results_path.parent
+    capabilities = capture.capabilities
+    base = capture_path.parent
     evaluations = {
         "embedding": evaluate_or_unavailable(
             capabilities.embedding, lambda section: evaluate_embedding(corpus.embedding, section, base, provenance)
@@ -43,8 +43,8 @@ def evaluate(corpus: Corpus, results: Results, corpus_path: Path, results_path: 
     return {
         "schemaVersion": 1,
         "status": overall,
-        "runId": results.run_id,
-        "capturedAt": results.captured_at.isoformat(),
+        "runId": capture.run_id,
+        "capturedAt": capture.captured_at.isoformat(),
         "corpus": {"id": corpus.corpus_id, "version": corpus.corpus_version, "sha256": provenance.corpus_sha256},
         "provenance": provenance.model_dump(mode="json", by_alias=True),
         "capabilities": evaluations,

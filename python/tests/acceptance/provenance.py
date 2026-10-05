@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TypeVar
 
+from acceptance.capture_manifest import Provenance
 from acceptance.contracts import Capability, EvidenceModel, HashedFile
 from acceptance.evidence import EvidenceError, load_evidence, resolve_hashed_file
 from acceptance.execution import ExecutionEvidence, SourceKind
-from acceptance.results import Provenance
 
 Values = TypeVar("Values", bound=EvidenceModel)
 

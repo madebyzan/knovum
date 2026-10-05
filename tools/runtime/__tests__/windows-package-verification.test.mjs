@@ -13,7 +13,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { locatePackagedPythonRuntime, verifyWindowsRuntimePackage } from "../package.mjs";
+import {
+  locatePackagedPythonRuntime,
+  verifyWindowsRuntimePackage,
+} from "../windows-package-verification.mjs";
 
 function extraction(context) {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-package-test-"));

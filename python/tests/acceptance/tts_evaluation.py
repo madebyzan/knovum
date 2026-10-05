@@ -6,15 +6,15 @@ from typing import Any
 
 import numpy as np
 
+from acceptance.capture_manifest import Provenance, SynthesisEvidence
 from acceptance.corpus import SynthesisCorpus
 from acceptance.evidence import EvidenceError, resolve_hashed_file
 from acceptance.execution import ExecutionEvidence, SynthesisValues
 from acceptance.provenance import load_execution_evidence
-from acceptance.results import Provenance, SynthesisResult
 
 
 def evaluate_tts(
-    corpus: SynthesisCorpus, section: SynthesisResult, base: Path, provenance: Provenance
+    corpus: SynthesisCorpus, section: SynthesisEvidence, base: Path, provenance: Provenance
 ) -> dict[str, Any]:
     values = load_execution_evidence(
         section.candidate_output,
