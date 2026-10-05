@@ -5,11 +5,6 @@ use std::{
 
 use tokio_util::sync::CancellationToken;
 
-#[derive(Clone, Copy)]
-pub enum JobKind {
-    Preview,
-}
-
 struct ActiveJob {
     token: CancellationToken,
 }
@@ -19,7 +14,7 @@ fn jobs() -> &'static Mutex<HashMap<String, ActiveJob>> {
     JOBS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub fn acquire(job_id: &str, _kind: JobKind) -> Result<JobLease, String> {
+pub fn acquire(job_id: &str) -> Result<JobLease, String> {
     uuid::Uuid::parse_str(job_id).map_err(|_| "Speech job identity is invalid")?;
     let token = CancellationToken::new();
     let mut active = jobs()
@@ -40,7 +35,7 @@ pub fn acquire(job_id: &str, _kind: JobKind) -> Result<JobLease, String> {
     })
 }
 
-pub fn cancel(job_id: &str, _persisted: bool) -> Result<bool, String> {
+pub fn cancel(job_id: &str) -> Result<bool, String> {
     uuid::Uuid::parse_str(job_id).map_err(|_| "Speech job identity is invalid")?;
     let active = jobs()
         .lock()

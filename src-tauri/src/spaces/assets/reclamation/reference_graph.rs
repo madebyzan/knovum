@@ -73,7 +73,9 @@ pub(super) async fn all(
          UNION ALL SELECT json_extract(output_config,'$.video.assetPath') FROM spaces_speech_project_revisions \
          WHERE json_type(output_config,'$.video.assetPath')='text' \
          UNION ALL SELECT json_extract(output_config,'$.background.assetPath') FROM spaces_speech_project_revisions \
-         WHERE json_type(output_config,'$.background.assetPath')='text'",
+         WHERE json_type(output_config,'$.background.assetPath')='text' \
+         UNION ALL SELECT json_extract(output_config,'$.metadata.cover.assetPath') FROM spaces_speech_project_revisions \
+         WHERE json_type(output_config,'$.metadata.cover.assetPath')='text'",
     )
     .fetch_all(&mut **tx)
     .await
@@ -184,7 +186,10 @@ pub(crate) async fn for_space(
          WHERE p.space_id=$1 AND json_type(r.output_config,'$.video.assetPath')='text' \
          UNION ALL SELECT json_extract(r.output_config,'$.background.assetPath') FROM spaces_speech_project_revisions r \
          JOIN spaces_speech_projects p ON p.id=r.project_id \
-         WHERE p.space_id=$1 AND json_type(r.output_config,'$.background.assetPath')='text'",
+         WHERE p.space_id=$1 AND json_type(r.output_config,'$.background.assetPath')='text' \
+         UNION ALL SELECT json_extract(r.output_config,'$.metadata.cover.assetPath') FROM spaces_speech_project_revisions r \
+         JOIN spaces_speech_projects p ON p.id=r.project_id \
+         WHERE p.space_id=$1 AND json_type(r.output_config,'$.metadata.cover.assetPath')='text'",
     )
     .bind(space_id)
     .fetch_all(&mut **tx)

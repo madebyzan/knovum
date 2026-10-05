@@ -2,18 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
-import type { VoiceProfileSummary } from "../speech/contracts";
+import type { VoiceLibraryRevision } from "../speech/contracts";
 import { selectBackground, selectSeparatedBackground } from "../speech/video-background-selection";
 import { applyTranslation, translationInputs, type VideoLineDraft } from "../speech/video-dubbing-draft";
 import { isLocalTranslationTarget, persistedTranslationTarget } from "../speech/video-translation-targets";
 import { voiceRevisionOptions } from "../speech/voice-options";
 
-function voice(id: string, revision: number, isActive: boolean, archivedAt?: number): VoiceProfileSummary {
-  const result: VoiceProfileSummary = {
-    id: `profile-${id}`,
+function voice(id: string, revision: number, isActive: boolean, archivedAt?: number): VoiceLibraryRevision {
+  const result: VoiceLibraryRevision = {
+    profileId: `profile-${id}`,
     name: `Voice ${id}`,
     sourceKind: "preset",
-    activeRevisionId: id,
+    revisionId: id,
     revision,
     isActive,
     engineId: "kokoro",
@@ -92,24 +92,28 @@ describe("speech architecture policies", () => {
     const request = translationInputs(lines, false);
     expect(request).toEqual([{ sourceSegmentId: "source-1", sourceSegmentRevision: 4, text: "Original" }]);
     expect(() =>
-      applyTranslation(lines, {
-        provenance: {
-          runId: "translation-run",
-          targetLanguage: "zh-CN",
-          provider: "ollama",
-          model: "qwen",
-          localOnly: true,
-        },
-        segments: [
-          {
-            stepId: "translation-step",
-            sourceSegmentId: "stale-source",
-            sourceSegmentRevision: 4,
-            sourceText: "Original",
-            translatedText: "译文",
+      applyTranslation(
+        lines,
+        {
+          provenance: {
+            runId: "translation-run",
+            targetLanguage: "zh-CN",
+            provider: "ollama",
+            model: "qwen",
+            localOnly: true,
           },
-        ],
-      }),
+          segments: [
+            {
+              stepId: "translation-step",
+              sourceSegmentId: "stale-source",
+              sourceSegmentRevision: 4,
+              sourceText: "Original",
+              translatedText: "译文",
+            },
+          ],
+        },
+        false,
+      ),
     ).toThrow("does not match");
   });
 
@@ -128,6 +132,9 @@ describe("speech architecture policies", () => {
       voiceGainDb: 0,
       backgroundGainDb: -12,
       translation: null,
+      preserveOriginalOutsideDialogue: false,
+      sourceDialogueIntervals: [{ startMs: 0, endMs: 1000 }],
+      retainOriginalTrack: true,
     };
     const candidate: SpeechSourceSeparationCandidate = {
       separationId: "separation",

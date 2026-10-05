@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{fs, path::Path};
 
 use sqlx::FromRow;
@@ -99,7 +101,7 @@ async fn copy_reference(
         pool,
         target_space_id,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "voice_reference",
+            owner_kind: PublicationOwnerKind::VoiceReference,
             owner_id: profile_id,
             asset_path: &target,
             part_path: Some(&part),

@@ -78,8 +78,8 @@ pub(crate) async fn persist_candidate(
     .bind(i64::from(preview_sample_rate))
     .bind(preview_sample_count)
     .bind(MODEL_SPEC_ID)
-    .bind(0_i64)
-    .bind(r#"{"speed":1.0,"sampleRate":48000}"#)
+    .bind(i64::from(request.seed))
+    .bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":request.seed}).to_string())
     .bind(authorization)
     .bind(now)
     .bind(&claim.attempt_id)
@@ -127,7 +127,7 @@ pub(crate) async fn load_record(
     let row = sqlx::query(
         "SELECT id,run_id,space_id,source_kind,language,sample_text,design_description,reference_text, \
          reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
-         preview_sample_rate,preview_sample_count,status,auditioned_at,selected_voice_profile_id, \
+         preview_sample_rate,preview_sample_count,seed,status,auditioned_at,selected_voice_profile_id, \
          selected_voice_revision_id,selected_at,rejected_at,created_at \
          FROM spaces_voice_candidates WHERE id=? AND space_id=?",
     )
@@ -160,22 +160,15 @@ pub(crate) async fn load_record_optional(
     }
 }
 
-pub(crate) async fn load_latest_ready(
+pub(crate) async fn list_ready(
     pool: &SqlitePool,
     space_id: &str,
-) -> Result<Option<VoiceCandidate>, String> {
-    let id: Option<String> = sqlx::query_scalar(
-        "SELECT id FROM spaces_voice_candidates WHERE space_id=? AND status='ready' \
-         ORDER BY created_at DESC,id DESC LIMIT 1",
-    )
-    .bind(space_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?;
-    match id {
-        Some(id) => Ok(Some(load_candidate(pool, &id, space_id).await?)),
-        None => Ok(None),
-    }
+) -> Result<Vec<VoiceCandidate>, String> {
+    let rows = sqlx::query("SELECT * FROM spaces_voice_candidates WHERE space_id=? AND status='ready' ORDER BY created_at DESC,id DESC LIMIT 16")
+        .bind(space_id).fetch_all(pool).await.map_err(db::sql_error)?;
+    rows.into_iter()
+        .map(|row| decode(row).map(|record| record.candidate))
+        .collect()
 }
 
 pub(crate) async fn mark_auditioned(
@@ -282,6 +275,8 @@ fn decode(row: sqlx::sqlite::SqliteRow) -> Result<CandidateRecord, String> {
             source_kind: row.try_get("source_kind").map_err(db::sql_error)?,
             language: row.try_get("language").map_err(db::sql_error)?,
             sample_text: row.try_get("sample_text").map_err(db::sql_error)?,
+            seed: u32::try_from(row.try_get::<i64, _>("seed").map_err(db::sql_error)?)
+                .map_err(|_| "Voice candidate seed is invalid")?,
             design_description: row.try_get("design_description").map_err(db::sql_error)?,
             reference_text: row.try_get("reference_text").map_err(db::sql_error)?,
             audio: SpeechAudioOutput {

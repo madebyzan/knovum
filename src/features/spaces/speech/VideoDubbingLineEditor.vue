@@ -6,7 +6,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
-import type { VideoLineDraft } from "./video-dubbing-draft";
+import { milliseconds, type VideoLineDraft } from "./video-dubbing-draft";
 
 const line = defineModel<VideoLineDraft>({ required: true });
 defineProps<{
@@ -15,7 +15,11 @@ defineProps<{
   showSource: boolean;
   disabled: boolean;
 }>();
-const emit = defineEmits<{ preview: [text: string, voiceRevisionId: string]; remove: [] }>();
+const emit = defineEmits<{
+  preview: [text: string, voiceRevisionId: string];
+  remove: [];
+  source: [startMs: number, endMs: number];
+}>();
 const { t } = useI18n();
 
 function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[K]) {
@@ -61,6 +65,16 @@ function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[
     <p v-if="showSource && line.sourceText" class="text-caption text-fg-tertiary">
       {{ t("spaces.speech.translationSource") }}: {{ line.sourceText }}
     </p>
+    <UiButton
+      size="sm"
+      :disabled="
+        disabled ||
+        !Number.isFinite(milliseconds(line.startSeconds)) ||
+        milliseconds(line.endSeconds) <= milliseconds(line.startSeconds)
+      "
+      @click="emit('source', milliseconds(line.startSeconds), milliseconds(line.endSeconds))"
+      >{{ t("spaces.speech.auditionSourceWindow") }}</UiButton
+    >
     <div class="flex items-center gap-1">
       <UiInput
         :model-value="line.speakerKey"

@@ -1,8 +1,8 @@
 import { readonly, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import type { CreatePresetVoiceInput, VoiceProfileSummary } from "./contracts";
-import { createPresetVoice, listVoiceProfiles } from "./ipc";
+import type { CreatePresetVoiceInput, VoiceLibraryRevision } from "./contracts";
+import { createPresetVoice, listVoiceRevisions } from "./ipc";
 
 interface VoiceLibraryOwner {
   activeSpaceId: () => string | undefined;
@@ -12,15 +12,16 @@ interface VoiceLibraryOwner {
 }
 
 export function useSpeechVoices(owner: VoiceLibraryOwner) {
-  const voices = shallowRef<VoiceProfileSummary[]>([]);
+  const voices = shallowRef<VoiceLibraryRevision[]>([]);
   const creating = shallowRef(false);
 
-  function replace(next: VoiceProfileSummary[]) {
+  function replace(next: VoiceLibraryRevision[]) {
     voices.value = next;
   }
 
-  function accept(voice: VoiceProfileSummary) {
-    if (!owner.activeSpaceId() || voices.value.some((current) => current.id === voice.id)) return;
+  function accept(voice: VoiceLibraryRevision) {
+    if (!owner.activeSpaceId() || voices.value.some((current) => current.revisionId === voice.revisionId))
+      return;
     voices.value = [voice, ...voices.value];
   }
 
@@ -47,7 +48,7 @@ export function useSpeechVoices(owner: VoiceLibraryOwner) {
     const epoch = owner.contextEpoch();
     if (!spaceId) return;
     try {
-      const next = await listVoiceProfiles(spaceId);
+      const next = await listVoiceRevisions(spaceId);
       if (owner.isCurrent(spaceId, epoch)) replace(next);
     } catch (cause) {
       if (owner.isCurrent(spaceId, epoch)) owner.setError(getErrorMessage(cause));
@@ -57,7 +58,7 @@ export function useSpeechVoices(owner: VoiceLibraryOwner) {
   return {
     voices: readonly(voices),
     creating: readonly(creating),
-    load: listVoiceProfiles,
+    load: listVoiceRevisions,
     replace,
     accept,
     addPreset,

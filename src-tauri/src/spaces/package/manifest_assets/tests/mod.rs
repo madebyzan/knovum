@@ -61,3 +61,26 @@ fn only_the_managed_asset_must_match_the_node_digest() {
     assert_eq!(assets.source_revisions.len(), 1);
     assert!(assets.used_tokens.contains("preview-token"));
 }
+
+#[test]
+fn audiobook_cover_tokens_carry_exact_digests_and_reject_external_paths() {
+    let revision = digest('a');
+    let mut manifest = json!({
+        "nodes":[], "layouts":[], "voiceRevisions":[], "voiceCandidates":[],
+        "speechRenders":[], "speechSourceSeparations":[],
+        "speechProjectRevisions":[{"outputConfig":{"metadata":{"cover":{
+            "assetPath":"knovum-package-asset:cover", "sourceRevision":revision
+        }}}}]
+    });
+    let assets = parse(&manifest.to_string()).unwrap();
+    assert!(assets.used_tokens.contains("cover"));
+    assert_eq!(assets.source_revisions["cover"], revision);
+    manifest["speechProjectRevisions"][0]["outputConfig"]["metadata"]["cover"]["assetPath"] =
+        json!("/external/cover.png");
+    assert!(parse(&manifest.to_string()).is_err());
+    manifest["speechProjectRevisions"][0]["outputConfig"]["metadata"]["cover"]["assetPath"] =
+        json!("knovum-package-asset:cover");
+    manifest["speechProjectRevisions"][0]["outputConfig"]["metadata"]["cover"]["sourceRevision"] =
+        json!("sha256:invalid");
+    assert!(parse(&manifest.to_string()).is_err());
+}

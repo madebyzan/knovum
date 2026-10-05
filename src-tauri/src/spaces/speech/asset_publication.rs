@@ -8,8 +8,32 @@ use tauri::{AppHandle, Runtime};
 
 use crate::spaces::{assets, db, runs::AttemptClaim};
 
+#[derive(Clone, Copy)]
+pub(crate) enum PublicationOwnerKind {
+    SegmentRender,
+    ChapterCheckpoint,
+    ProjectOutput,
+    VoiceReference,
+    VoiceCandidate,
+    VoiceCandidateInput,
+    SourceSeparation,
+}
+impl PublicationOwnerKind {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::SegmentRender => "segment_render",
+            Self::ChapterCheckpoint => "chapter_checkpoint",
+            Self::ProjectOutput => "project_output",
+            Self::VoiceReference => "voice_reference",
+            Self::VoiceCandidate => "voice_candidate",
+            Self::VoiceCandidateInput => "voice_candidate_input",
+            Self::SourceSeparation => "source_separation",
+        }
+    }
+}
+
 pub(crate) struct PendingAsset<'a> {
-    pub owner_kind: &'a str,
+    pub owner_kind: PublicationOwnerKind,
     pub owner_id: &'a str,
     pub asset_path: &'a Path,
     pub part_path: Option<&'a Path>,
@@ -38,7 +62,7 @@ pub(crate) async fn stage_for_attempt(
     )
     .bind(&id)
     .bind(&claim.home_space_id)
-    .bind(asset.owner_kind)
+    .bind(asset.owner_kind.as_str())
     .bind(asset.owner_id)
     .bind(asset.asset_path.to_string_lossy().as_ref())
     .bind(
@@ -79,7 +103,7 @@ pub(crate) async fn stage_unowned(
     )
     .bind(&id)
     .bind(space_id)
-    .bind(asset.owner_kind)
+    .bind(asset.owner_kind.as_str())
     .bind(asset.owner_id)
     .bind(asset.asset_path.to_string_lossy().as_ref())
     .bind(

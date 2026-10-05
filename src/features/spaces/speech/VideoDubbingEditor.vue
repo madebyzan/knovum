@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { Plus, Save } from "@lucide/vue";
-import { computed, watch, type DeepReadonly } from "vue";
+import { computed, useTemplateRef, watch, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceProfileSummary } from "./contracts";
+import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import { useSpeechMediaSources } from "./use-speech-media-sources";
 import { useVideoDubbingDraft } from "./use-video-dubbing-draft";
-import VideoDubbingLineEditor from "./VideoDubbingLineEditor.vue";
+import VideoDubbingLines from "./VideoDubbingLines.vue";
+import VideoSourceControls from "./VideoSourceControls.vue";
 import VideoSourceSeparationPanel from "./VideoSourceSeparationPanel.vue";
 import VideoTranslationPanel from "./VideoTranslationPanel.vue";
 import { voiceRevisionOptions } from "./voice-options";
 
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectDetail>;
-  voices: readonly VoiceProfileSummary[];
+  voices: readonly VoiceLibraryRevision[];
   disabled: boolean;
 }>();
 const emit = defineEmits<{
@@ -26,6 +27,7 @@ const emit = defineEmits<{
   dirty: [value: boolean];
 }>();
 const { t } = useI18n();
+const sourceControls = useTemplateRef("sourceControls");
 const draft = useVideoDubbingDraft(
   () => props.project,
   () => props.voices,
@@ -77,6 +79,16 @@ function sameSource(
 
 <template>
   <div class="space-y-3">
+    <VideoSourceControls
+      v-if="draft.config.value"
+      ref="sourceControls"
+      v-model="draft.config.value"
+      :lines="draft.lines.value"
+      :voice-options="voiceOptions"
+      :disabled
+      @bind="draft.bindSpeaker"
+      @imported="draft.importSubtitles"
+    />
     <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoTimingRule") }}</p>
     <div class="grid grid-cols-2 gap-2">
       <label class="text-caption text-fg-secondary"
@@ -137,17 +149,16 @@ function sameSource(
     >
       {{ t("spaces.speech.importTranscript") }}
     </UiButton>
-    <VideoDubbingLineEditor
-      v-for="(line, index) in draft.lines.value"
-      :key="line.key"
-      :model-value="line"
+    <VideoDubbingLines
+      :lines="draft.lines.value"
       :voice-options="voiceOptions"
       :lexicon-valid="draft.lexicon.valid.value"
       :show-source="Boolean(draft.config.value?.translation)"
-      :disabled="disabled"
+      :disabled
       @preview="(text, voiceRevisionId) => emit('preview', text, voiceRevisionId, draft.lexicon.value())"
-      @remove="draft.removeLine(index)"
-      @update:model-value="draft.updateLine(index, $event)"
+      @source="(start, end) => sourceControls?.audition(start, end)"
+      @remove="draft.removeLine"
+      @update="draft.updateLine"
     />
     <div class="flex gap-2">
       <UiButton size="sm" :disabled="disabled" @click="draft.addLine()"

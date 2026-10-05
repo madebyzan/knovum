@@ -38,7 +38,7 @@ pub(super) async fn render<R: Runtime>(
         .collect::<Result<Vec<_>, String>>()?;
     let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
         .ok_or("The bundled FFmpeg tool is unavailable")?;
-    let normalized = crate::blocking::run({
+    let mut normalized = crate::blocking::run({
         let ffmpeg = ffmpeg.clone();
         let sources = sources.clone();
         let renders = request.renders.to_vec();
@@ -55,6 +55,20 @@ pub(super) async fn render<R: Runtime>(
                 &cancellation,
             )
         }
+    })
+    .await?;
+    let pause_rate = request.sample_rate;
+    let pause_ms = request.paragraph_pause_ms;
+    let pause_directory = work.to_owned();
+    let pause_cancellation = cancellation.clone();
+    normalized = crate::blocking::run(move || {
+        super::super::pauses::insert(
+            &normalized,
+            pause_rate,
+            pause_ms,
+            &pause_directory,
+            &pause_cancellation,
+        )
     })
     .await?;
     let sample_count = normalized.iter().try_fold(0_u64, |total, source| {
@@ -75,6 +89,7 @@ pub(super) async fn render<R: Runtime>(
                     output: &part,
                     format: "wav",
                     sample_rate,
+                    wav_precision: super::super::super::audio_format::WavPrecision::Float32,
                     audiobook: None,
                     measurement: None,
                     metadata: None,

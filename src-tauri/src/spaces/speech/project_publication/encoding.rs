@@ -81,7 +81,11 @@ pub(super) fn normalize_sources(
             return Err("cancelled".into());
         }
         if render.sample_rate == sample_rate {
-            let actual = wav_sample_count(source, sample_rate)?;
+            let actual = wav_sample_count(
+                source,
+                sample_rate,
+                super::super::audio_format::WavPrecision::Float32,
+            )?;
             if actual != render.sample_count {
                 return Err("Speech segment frame count differs from its render metadata".into());
             }
@@ -98,7 +102,7 @@ pub(super) fn normalize_sources(
             .arg(source)
             .args(["-map", "0:a:0", "-vn", "-ac", "1", "-ar"])
             .arg(sample_rate.to_string())
-            .args(["-c:a", "pcm_s16le", "-f", "wav"])
+            .args(["-c:a", "pcm_f32le", "-f", "wav"])
             .arg(&part)
             .stdout(Stdio::null())
             .stderr(Stdio::piped())
@@ -113,22 +117,35 @@ pub(super) fn normalize_sources(
         }
         fs::rename(&part, &path).map_err(|error| error.to_string())?;
         normalized.push(NormalizedSource {
-            sample_count: wav_sample_count(&path, sample_rate)?,
+            sample_count: wav_sample_count(
+                &path,
+                sample_rate,
+                super::super::audio_format::WavPrecision::Float32,
+            )?,
             path,
         });
     }
     Ok(normalized)
 }
 
-pub(super) fn wav_sample_count(path: &Path, expected_rate: u32) -> Result<u64, String> {
+pub(super) fn wav_sample_count(
+    path: &Path,
+    expected_rate: u32,
+    precision: super::super::audio_format::WavPrecision,
+) -> Result<u64, String> {
     let reader = hound::WavReader::open(path).map_err(|error| error.to_string())?;
     let spec = reader.spec();
+    let (bits, format) = match precision {
+        super::super::audio_format::WavPrecision::Pcm16 => (16, hound::SampleFormat::Int),
+        super::super::audio_format::WavPrecision::Pcm24 => (24, hound::SampleFormat::Int),
+        super::super::audio_format::WavPrecision::Float32 => (32, hound::SampleFormat::Float),
+    };
     if spec.sample_rate != expected_rate
         || spec.channels != 1
-        || spec.bits_per_sample != 16
-        || spec.sample_format != hound::SampleFormat::Int
+        || spec.bits_per_sample != bits
+        || spec.sample_format != format
     {
-        return Err("Speech assembly input is not mono PCM16 at the target sample rate".into());
+        return Err("Speech WAV does not match the declared mono precision and sample rate".into());
     }
     Ok(u64::from(reader.duration()))
 }
@@ -173,6 +190,7 @@ pub(super) struct EncodeRequest<'a> {
     pub output: &'a Path,
     pub format: &'a str,
     pub sample_rate: u32,
+    pub wav_precision: super::super::audio_format::WavPrecision,
     pub audiobook: Option<&'a AudiobookOutputConfig>,
     pub measurement: Option<&'a LoudnessMeasurement>,
     pub metadata: Option<&'a Path>,
@@ -212,6 +230,27 @@ pub(super) fn encode(
     if let Some(metadata) = request.metadata {
         command.args(["-f", "ffmetadata", "-i"]).arg(metadata);
     }
+    let cover = request
+        .audiobook
+        .and_then(|config| config.metadata.cover.as_ref());
+    if let Some(cover) = cover {
+        crate::file_inspection::verify_content_revision(
+            Path::new(&cover.asset_path),
+            &cover.source_revision,
+        )?;
+        let format = image::ImageReader::open(&cover.asset_path)
+            .map_err(|error| error.to_string())?
+            .with_guessed_format()
+            .map_err(|error| error.to_string())?
+            .format();
+        if !matches!(
+            format,
+            Some(image::ImageFormat::Jpeg | image::ImageFormat::Png)
+        ) {
+            return Err("Audiobook cover must be PNG or JPEG".into());
+        }
+        command.arg("-i").arg(&cover.asset_path);
+    }
     command
         .arg("-filter_complex")
         .arg(filter_graph(
@@ -222,9 +261,26 @@ pub(super) fn encode(
     if request.metadata.is_some() {
         command.args(["-map_metadata", "1", "-map_chapters", "1"]);
     }
+    if cover.is_some() {
+        let cover_index = if request.metadata.is_some() {
+            "2:v:0"
+        } else {
+            "1:v:0"
+        };
+        command.args([
+            "-map",
+            cover_index,
+            "-c:v",
+            "copy",
+            "-disposition:v:0",
+            "attached_pic",
+            "-metadata:s:v:0",
+            "title=Cover",
+        ]);
+    }
     match request.format {
         "wav" => {
-            command.args(["-c:a", "pcm_s16le", "-f", "wav"]);
+            command.args(["-c:a", request.wav_precision.codec(), "-f", "wav"]);
         }
         "mp3" => {
             command.args(["-c:a", "libmp3lame", "-q:a", "2", "-f", "mp3"]);
@@ -315,12 +371,12 @@ fn filter_graph(
 ) -> String {
     if let Some((config, measured)) = loudness {
         format!(
-            "[0:a]loudnorm=I={}:TP={}:LRA=11:measured_I={}:measured_TP={}:measured_LRA={}:measured_thresh={}:offset={}:linear=true:print_format=summary,aresample={sample_rate},aformat=sample_fmts=s16:channel_layouts=mono[out]",
+            "[0:a]loudnorm=I={}:TP={}:LRA=11:measured_I={}:measured_TP={}:measured_LRA={}:measured_thresh={}:offset={}:linear=true:print_format=summary,aresample={sample_rate},aformat=sample_fmts=flt:channel_layouts=mono[out]",
             config.loudness_lufs, config.true_peak_db, measured.input_i, measured.input_tp,
             measured.input_lra, measured.input_thresh, measured.target_offset,
         )
     } else {
-        format!("[0:a]aresample={sample_rate},aformat=sample_fmts=s16:channel_layouts=mono[out]")
+        format!("[0:a]aresample={sample_rate},aformat=sample_fmts=flt:channel_layouts=mono[out]")
     }
 }
 
@@ -342,6 +398,14 @@ pub(super) fn write_chapter_metadata(
         .map_err(|error| error.to_string())?;
     file.write_all(b";FFMETADATA1\n")
         .map_err(|error| error.to_string())?;
+    for (key, value) in [
+        ("title", &config.metadata.title),
+        ("artist", &config.metadata.narrator),
+        ("album_artist", &config.metadata.author),
+        ("composer", &config.metadata.author),
+    ] {
+        writeln!(file, "{key}={}", ffmetadata_value(value)).map_err(|error| error.to_string())?;
+    }
     let mut end_samples = 0_u64;
     let mut source_index = 0_usize;
     for chapter in &config.chapters {

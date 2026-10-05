@@ -4,7 +4,7 @@ export type { SaveSpeechProjectRevisionRequest as SaveSpeechProjectRevisionInput
 export type { SpeechProjectSummary } from "../contracts/generated/SpeechProjectSummary";
 export type { SpeechProjectDetail } from "../contracts/generated/SpeechProjectDetail";
 export type { SpeechSegment } from "../contracts/generated/SpeechSegment";
-export type { VoiceProfileSummary } from "../contracts/generated/VoiceProfileSummary";
+export type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 export type { VoiceProfileDetail } from "../contracts/generated/VoiceProfileDetail";
 export type { VoiceRevisionSummary } from "../contracts/generated/VoiceRevisionSummary";
 export type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";

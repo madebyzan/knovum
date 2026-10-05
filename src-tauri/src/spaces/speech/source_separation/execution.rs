@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{fs, path::Path};
 
 use serde::Deserialize;
@@ -92,7 +94,7 @@ pub(crate) async fn execute(
         pool,
         claim,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "source_separation",
+            owner_kind: PublicationOwnerKind::SourceSeparation,
             owner_id: &claim.run_id,
             asset_path: &background,
             part_path: Some(&background_part),

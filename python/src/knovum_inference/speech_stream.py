@@ -12,7 +12,7 @@ from knovum_inference.speech_common import attempt_directory, check_deadline
 
 MAX_UNCONSUMED_FILES = 8
 MAX_UNCONSUMED_BYTES = 16 * 1024 * 1024
-MAX_SYNTHESIZED_AUDIO_BYTES = 16 * 1024 * 1024
+MAX_SYNTHESIZED_AUDIO_BYTES = 32 * 1024 * 1024
 
 
 class ChunkCredits:
@@ -124,7 +124,7 @@ class SynthesisChunkPublisher:
             raise server_error("invalid_output", "Synthesis returned empty or non-finite audio")
         if sample_rate <= 0 or self._sample_rate not in {None, sample_rate}:
             raise server_error("invalid_output", "Synthesis chunk sample rate differs")
-        pcm = np.rint(np.clip(values, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
+        pcm = values.astype("<f4", copy=False).tobytes()
         byte_length = len(pcm)
         if self._byte_length + byte_length + 44 > MAX_SYNTHESIZED_AUDIO_BYTES:
             raise server_error("resource_exhausted", "Synthesized audio exceeds its byte limit")
@@ -154,19 +154,19 @@ class SynthesisChunkPublisher:
                 "granularity": granularity,
                 "chunkRef": {
                     "fileName": f"{self._directory.name}/{file_name}",
-                    "mediaType": "application/vnd.knovum.pcm-s16le",
+                    "mediaType": "application/vnd.knovum.pcm-f32le",
                     "byteLength": byte_length,
                     "sha256": digest,
                     "sampleRate": sample_rate,
                     "channels": 1,
-                    "sampleFormat": "pcm_s16le",
+                    "sampleFormat": "pcm_f32le",
                 },
-                "sampleCount": len(pcm) // 2,
+                "sampleCount": len(pcm) // 4,
             }
         )
         self._digest.update(pcm)
         self._byte_length += byte_length
-        self._sample_count += len(pcm) // 2
+        self._sample_count += len(pcm) // 4
         self._sample_rate = sample_rate
 
     def finish(self) -> dict[str, Any]:
@@ -180,6 +180,6 @@ class SynthesisChunkPublisher:
             "sha256": self._digest.hexdigest(),
             "sampleRate": self._sample_rate,
             "channels": 1,
-            "sampleFormat": "pcm_s16le",
+            "sampleFormat": "pcm_f32le",
             "sampleCount": self._sample_count,
         }

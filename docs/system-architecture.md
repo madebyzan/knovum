@@ -511,3 +511,52 @@ transcription, dictation, embedding, image segmentation and synthesis. The permi
 running Python worker until the calculation ends or its process tree exits. Feature owners keep
 their own job leases and publication checks. Resource preparation completes before admission, so
 network waits do not occupy a compute permit.
+
+### Audio production contracts
+
+The speech feature exposes a revision catalog (`profileId`, `revisionId`, revision number),
+including historical and archived revisions. Editors offer active revisions and their exact
+already-bound historical revisions; library history can audition each immutable revision.
+Preset audition resolves the pinned Kokoro catalog directly without creating a throwaway profile.
+The pinned v1_0 archive has 53 speakers (0–52). Its owned display catalog records native voice
+language and gender; production language remains the supported Chinese/English profile.
+
+Reference preparation authorizes the selected file, freezes a private snapshot, decodes the
+chosen 5–30 second interval to the ASR/reference PCM16 profile and returns a review transcript.
+A clip must be completely present in the source. Candidate creation verifies the reviewed
+content digest, freezes the selected interval and confirmed text in its Run, and persists the
+explicit uint32 synthesis seed. A Space can retain at most 16 unselected candidates for audition.
+Saving, revising, copying, exporting and restoring a voice preserve its synthesis seed.
+
+Synthesis chunks and retained masters are mono float32; finite values outside ±1 are retained.
+The Rust preview channel sends a separately clamped PCM16 projection. Short and audiobook WAV
+publication encodes the selected PCM16, PCM24 or float32 precision from float masters. Reference
+and ASR audio continue to use their separate mono PCM16 input contract.
+
+Audiobook imports use existing Office and PDF extraction for supported local documents,
+MarkdownIt for TXT/Markdown paragraphs and inert DOM parsing of EPUB container/manifest/spine
+markup read with the existing ZIP dependency. Image-only PDF pages reject script import rather
+than producing an incomplete manuscript. Scripts obey the same current v1 paragraph/role bounds.
+Paragraph and chapter pauses contribute actual samples and chapter boundaries, including
+checkpoint/cache identities. Title, author and narrator are written as container metadata;
+PNG/JPEG covers attach to MP3/M4B output. WAV rejects a configured cover. Cover content revisions
+participate in authorization, asset retention, package token/digest validation and remapping.
+
+Video projects bind voices per speaker and retain source-dialogue intervals independently from
+translated text. Accepted separation can preserve stereo original sound outside those intervals,
+with 10 ms transitions inside dialogue edges. Dialogue and background stems use the same render
+and mixing code as final publication; stems remain float32. Separate original audio is an explicit
+MP4 track choice. MP4 delivery encodes stereo AAC tracks. Speech that already fits its time
+window bypasses tempo processing to preserve samples. Subtitle import/export
+uses SRT/WebVTT timings. Multiple audio-track exports
+select at most eight published revisions sharing an identical source video; their order determines
+track order. Exports authorize native save-dialog destinations, validate immutable asset digests
+before/after processing, support cancellation and use disposable, startup-reconciled workspaces.
+Replacing a destination uses [Rust's native file rename](https://doc.rust-lang.org/std/fs/fn.rename.html)
+after completing its sibling temporary file; an existing destination is not deleted first.
+
+Signal inspection uses FFmpeg astats over 100 ms windows, bounded to two hours and 100 reported
+findings. Silence, near-full-scale peaks, invalid samples and volume changes relative to median
+active RMS provide seekable listening cues. It does not score naturalness, alter the master or
+reject intentional pauses. Jobs remain feature-owned; no second inference queue or global audio
+service was added. Changed pre-release configuration shapes are strict and fail visibly.

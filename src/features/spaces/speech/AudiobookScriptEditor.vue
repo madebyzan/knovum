@@ -7,17 +7,18 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import AudiobookChapterHeader from "./AudiobookChapterHeader.vue";
+import AudiobookMetadataEditor from "./AudiobookMetadataEditor.vue";
 import AudiobookOutputSettings from "./AudiobookOutputSettings.vue";
 import AudiobookRoleBindings from "./AudiobookRoleBindings.vue";
 import AudiobookScriptImport from "./AudiobookScriptImport.vue";
-import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceProfileSummary } from "./contracts";
+import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import { useAudiobookDraft } from "./use-audiobook-draft";
 import { voiceRevisionOptions } from "./voice-options";
 
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectDetail>;
-  voices: readonly VoiceProfileSummary[];
+  voices: readonly VoiceLibraryRevision[];
   disabled: boolean;
 }>();
 const emit = defineEmits<{
@@ -30,24 +31,9 @@ const draft = useAudiobookDraft(
   () => props.project,
   () => props.voices,
 );
-const voiceOptions = computed(() =>
-  withBoundRevisions(
-    voiceRevisionOptions(props.voices, draft.selectedVoiceRevisionIds.value),
-    draft.selectedVoiceRevisionIds.value,
-  ),
-);
+const voiceOptions = computed(() => voiceRevisionOptions(props.voices, draft.selectedVoiceRevisionIds.value));
 const roleOptions = computed(() => draft.roles.value.map((role) => ({ value: role.key, label: role.key })));
 watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
-
-function withBoundRevisions(options: { value: string; label: string }[], selected: readonly string[]) {
-  const result = [...options];
-  for (const id of selected) {
-    if (id && !result.some((option) => option.value === id)) {
-      result.push({ value: id, label: t("spaces.speech.boundVoiceRevision", { id: id.slice(0, 8) }) });
-    }
-  }
-  return result;
-}
 </script>
 
 <template>
@@ -57,8 +43,15 @@ function withBoundRevisions(options: { value: string; label: string }[], selecte
       v-model:sample-rate="draft.sampleRate.value"
       v-model:loudness="draft.loudness.value"
       v-model:peak="draft.peak.value"
+      v-model:paragraph-pause="draft.paragraphPause.value"
+      v-model:chapter-pause="draft.chapterPause.value"
+      v-model:wav-precision="draft.wavPrecision.value"
       :disabled="disabled"
     />
+    <p v-if="draft.format.value === 'wav' && draft.metadata.value.cover" class="text-caption text-fg-danger">
+      {{ t("spaces.speech.coverRequiresEncodedOutput") }}
+    </p>
+    <AudiobookMetadataEditor v-model="draft.metadata.value" :disabled />
     <PronunciationLexiconEditor
       v-model="draft.lexicon.entries.value"
       :valid="draft.lexicon.valid.value"

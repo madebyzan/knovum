@@ -1,10 +1,14 @@
 use std::fs;
 
 mod asset_transaction;
-mod media_pipeline;
-mod mixing;
-mod policy;
+mod dialogue_envelope;
+pub(in crate::spaces::speech) mod final_mix;
+pub(in crate::spaces::speech) mod media_pipeline;
+pub(in crate::spaces::speech) mod mixing;
+pub(in crate::spaces::speech) mod policy;
 mod recovery;
+#[cfg(test)]
+mod tests;
 mod wav_stream;
 
 use tauri::{AppHandle, Runtime};
@@ -167,6 +171,7 @@ pub(super) async fn publish_video<R: Runtime>(
         background_revision,
         video_duration_us,
         video_samples,
+        retain_original_track: config.retain_original_track,
         cancellation,
     })
     .await

@@ -6,7 +6,7 @@ use tauri::{AppHandle, Runtime};
 use super::super::contracts::SpeechSegmentRenderOutput;
 use crate::{file_inspection::verify_content_revision, spaces::assets};
 
-pub(super) fn verified_source<R: Runtime>(
+pub(in crate::spaces::speech) fn verified_source<R: Runtime>(
     app: &AppHandle<R>,
     path: &str,
     revision: &str,

@@ -4,7 +4,7 @@ import { onMounted, useTemplateRef, watch } from "vue";
 
 import { renderEditedImage } from "../../image-editing/canvas-image-renderer";
 import type { ImageEdit } from "../../image-editing/image-edit";
-import { versionedMediaSource } from "../media/media-element-source";
+import { versionedMediaSource } from "../../media/media-element-source";
 
 const props = defineProps<{ path: string; revision?: string | undefined; edit: ImageEdit }>();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");

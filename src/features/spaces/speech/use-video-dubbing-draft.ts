@@ -7,8 +7,9 @@ import type {
   SpeechMediaSource,
   SpeechProjectDetail,
   VideoDubbingOutputConfig,
-  VoiceProfileSummary,
+  VoiceLibraryRevision,
 } from "./contracts";
+import type { DubbingSubtitle } from "./dubbing-subtitles";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { selectBackground, selectSeparatedBackground } from "./video-background-selection";
 import {
@@ -19,10 +20,11 @@ import {
   videoLineFromSegment,
   type VideoLineDraft,
 } from "./video-dubbing-draft";
+import { videoRevisionInput } from "./video-revision-input";
 import { defaultVoiceRevisionId } from "./voice-options";
 export function useVideoDubbingDraft(
   project: () => DeepReadonly<SpeechProjectDetail>,
-  voices: () => readonly VoiceProfileSummary[],
+  voices: () => readonly VoiceLibraryRevision[],
 ) {
   const lines = ref<VideoLineDraft[]>([]);
   const config = shallowRef<VideoDubbingOutputConfig>();
@@ -69,7 +71,34 @@ export function useVideoDubbingDraft(
       sourceSegmentRevision: segment.revision,
       sourceText: segment.text,
     }));
-    if (config.value) config.value = { ...config.value, translation: null };
+    if (config.value)
+      config.value = {
+        ...config.value,
+        translation: null,
+        sourceDialogueIntervals: transcript.segments.map(({ startMs, endMs }) => ({ startMs, endMs })),
+      };
+  }
+  function importSubtitles(cues: readonly DubbingSubtitle[]) {
+    lines.value = cues.map((cue) => ({
+      key: crypto.randomUUID(),
+      text: cue.text,
+      speakerKey: cue.speakerKey,
+      voiceRevisionId: defaultVoiceRevisionId(voices()),
+      startSeconds: String(cue.startMs / 1000),
+      endSeconds: String(cue.endMs / 1000),
+      needsTimingEdit: false,
+    }));
+    if (config.value)
+      config.value = {
+        ...config.value,
+        translation: null,
+        sourceDialogueIntervals: cues.map(({ startMs, endMs }) => ({ startMs, endMs })),
+      };
+  }
+  function bindSpeaker(speakerKey: string, voiceRevisionId: string) {
+    lines.value = lines.value.map((line) =>
+      line.speakerKey.trim() === speakerKey ? { ...line, voiceRevisionId } : line,
+    );
   }
   function removeLine(index: number) {
     lines.value.splice(index, 1);
@@ -93,7 +122,7 @@ export function useVideoDubbingDraft(
         const end = milliseconds(line.endSeconds);
         return (
           line.text.trim() &&
-          voices().some((voice) => voice.activeRevisionId === line.voiceRevisionId) &&
+          voices().some((voice) => voice.revisionId === line.voiceRevisionId) &&
           line.startSeconds.trim() &&
           line.endSeconds.trim() &&
           validVideoWindow(start, end, config.value?.video.durationMs ?? 0)
@@ -104,59 +133,18 @@ export function useVideoDubbingDraft(
         (gain) => gain.trim() && Number.isFinite(Number(gain)) && Number(gain) >= -30 && Number(gain) <= 6,
       ),
   );
-  function revisionInput() {
-    const currentConfig = config.value;
-    if (!currentConfig) throw new Error("Video dubbing output configuration is unavailable");
-    const voiceLanguages = new Map(voices().map((voice) => [voice.activeRevisionId, voice.language]));
-    return {
-      sourceRevision: crypto.randomUUID(),
-      pronunciationLexicon: lexicon.value(),
-      outputConfig: {
-        ...currentConfig,
-        voiceGainDb: Number(voiceGain.value),
-        backgroundGainDb: Number(backgroundGain.value),
-      },
-      segments: lines.value.map((line) => {
-        const language = voiceLanguages.get(line.voiceRevisionId);
-        if (!language) throw new Error("A valid voice is required for every timed line");
-        const speakerKey = line.speakerKey.trim();
-        return {
-          id: crypto.randomUUID(),
-          text: line.text.trim(),
-          ...(speakerKey ? { speakerKey } : {}),
-          voiceRevisionId: line.voiceRevisionId,
-          language,
-          targetStartMs: milliseconds(line.startSeconds),
-          targetEndMs: milliseconds(line.endSeconds),
-          ...(line.sourceSegmentId && line.sourceSegmentRevision && line.sourceText
-            ? {
-                sourceSegmentId: line.sourceSegmentId,
-                sourceSegmentRevision: line.sourceSegmentRevision,
-                sourceText: line.sourceText,
-              }
-            : {}),
-        };
-      }),
-    };
-  }
+  const revisionInput = () =>
+    videoRevisionInput({
+      config: config.value,
+      lines: lines.value,
+      voices: voices(),
+      lexicon: lexicon.value(),
+      voiceGain: voiceGain.value,
+      backgroundGain: backgroundGain.value,
+    });
   const translationInputs = () => buildTranslationInputs(lines.value, Boolean(config.value?.translation));
   function applyTranslation(result: VideoTranslationResult) {
-    const inputs = buildTranslationInputs(lines.value, Boolean(config.value?.translation));
-    if (
-      inputs.length !== result.segments.length ||
-      inputs.some((input, index) => {
-        const output = result.segments[index];
-        return (
-          !output ||
-          output.sourceSegmentId !== input.sourceSegmentId ||
-          output.sourceSegmentRevision !== input.sourceSegmentRevision ||
-          output.sourceText !== input.text.trim()
-        );
-      })
-    ) {
-      throw new Error("Translation result no longer matches the editable video script");
-    }
-    lines.value = applyTranslatedLines(lines.value, result);
+    lines.value = applyTranslatedLines(lines.value, result, Boolean(config.value?.translation));
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
     config.value = { ...config.value, translation: result.provenance };
   }
@@ -174,6 +162,8 @@ export function useVideoDubbingDraft(
     setBackground,
     setSeparatedBackground,
     importTranscript,
+    importSubtitles,
+    bindSpeaker,
     translationInputs,
     applyTranslation,
     revisionInput,

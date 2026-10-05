@@ -39,7 +39,7 @@ pub(super) fn package(selected: bool) -> (Value, Vec<ImportedPackageAsset>) {
     let reference_sha = "2".repeat(64);
     let preview_sha = "3".repeat(64);
     let source = if selected {
-        json!({"kind":"reference","sourcePath":null,"referenceText":"sample","referenceTextConfirmed":true})
+        json!({"kind":"reference","sourcePath":null,"sourceRevision":source_revision.clone(),"startMs":0,"endMs":10000,"referenceText":"sample","referenceTextConfirmed":true})
     } else {
         json!({"kind":"designed","description":"calm narrator"})
     };
@@ -70,7 +70,7 @@ pub(super) fn package(selected: bool) -> (Value, Vec<ImportedPackageAsset>) {
             "modelSpecId":crate::spaces::speech::voice_candidates::MODEL_SPEC_ID,
             "language":"zh-CN","presetVoiceId":null,"referenceAssetId":"knovum-package-asset:voice",
             "referenceSourceRevision":format!("sha256:{reference_sha}"),"referenceText":"sample",
-            "designDescription":null,"synthesisConfig":{"speed":1.0,"sampleRate":48000},
+            "designDescription":null,"synthesisConfig":{"speed":1.0,"sampleRate":48000,"seed":0},
             "authorization":{"declared":true,"declaredAt":4,"referenceTranscriptConfirmed":true,
                 "candidateId":"run","candidateRunId":"run"},"createdAt":4
         }]);
@@ -113,7 +113,7 @@ fn step(source: Value, frozen: Option<Value>, output: Value) -> Value {
         "id":"step","runId":"run","definitionNodeId":"candidate","instancePath":"candidate",
         "nodeKind":"speech_voice_candidate","dependsOn":[],"configuration":{"request":{
             "requestId":"run","spaceId":"original","language":"zh-CN","text":"sample",
-            "source":source,"authorized":true},"referenceSource":frozen},
+            "source":source,"authorized":true,"seed":0},"referenceSource":frozen},
         "state":"succeeded","stateVersion":2,"resolvedInput":{},"output":output,
         "createdAt":1,"updatedAt":3
     })
@@ -144,7 +144,7 @@ fn candidate(
         "referenceByteLength":32044,"previewAssetPath":"knovum-package-asset:preview",
         "previewSha256":preview_sha,"previewSampleRate":48000,"previewSampleCount":48000,
         "modelSpecId":crate::spaces::speech::voice_candidates::MODEL_SPEC_ID,"seed":0,
-        "synthesisConfig":{"speed":1.0,"sampleRate":48000},
+        "synthesisConfig":{"speed":1.0,"sampleRate":48000,"seed":0},
         "authorization":{"declared":true,"declaredAt":3,"referenceTranscriptConfirmed":true},
         "status":if selected {"selected"} else {"ready"},
         "auditionedAt":if selected {json!(4)} else {Value::Null},
@@ -156,7 +156,7 @@ fn candidate(
 
 fn output(source_kind: &str, description: Option<&str>, preview_sha: &str) -> Value {
     json!({
-        "candidateId":"run","runId":"run","spaceId":"original","sourceKind":source_kind,
+        "candidateId":"run","runId":"run","spaceId":"original","sourceKind":source_kind,"seed":0,
         "language":"zh-CN","sampleText":"sample","designDescription":description,
         "referenceText":"sample","audio":{"sha256":preview_sha,"sampleRate":48000,
             "sampleCount":48000},"status":"ready","auditionedAt":null,

@@ -75,6 +75,9 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         },
         background: None,
         background_separation: None,
+        preserve_original_outside_dialogue: false,
+        source_dialogue_intervals: Vec::new(),
+        retain_original_track: false,
         voice_gain_db: 0.0,
         background_gain_db: 0.0,
         translation: Some(VideoTranslationProvenance {

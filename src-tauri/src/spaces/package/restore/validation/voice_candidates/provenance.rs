@@ -16,7 +16,7 @@ pub(super) fn validate(
         .get("request")
         .ok_or("Package voice candidate request snapshot is unavailable")?;
     if configuration.as_object().map(serde_json::Map::len) != Some(2)
-        || draft.as_object().map(serde_json::Map::len) != Some(6)
+        || draft.as_object().map(serde_json::Map::len) != Some(7)
     {
         return Err("Package voice candidate configuration shape is invalid".into());
     }
@@ -46,6 +46,7 @@ fn validate_draft(
         || field(draft, "language")? != candidate.language
         || field(draft, "text")?.trim() != candidate.sample_text
         || draft.get("authorized").and_then(Value::as_bool) != Some(true)
+        || draft.get("seed").and_then(Value::as_i64) != Some(candidate.seed)
         || run.id != candidate.id
     {
         return Err("Package voice candidate differs from its request snapshot".into());
@@ -78,7 +79,7 @@ fn validate_source(
                     == candidate.design_description.as_deref()
                 && run_source.is_some_and(Value::is_null) => {}
         "reference"
-            if source.as_object().map(serde_json::Map::len) == Some(4)
+            if source.as_object().map(serde_json::Map::len) == Some(7)
                 && field(source, "kind")? == "reference"
                 && source.get("sourcePath").is_some_and(Value::is_null)
                 && source
@@ -91,6 +92,22 @@ fn validate_source(
                     .and_then(Value::as_bool)
                     .is_some_and(|confirmed| candidate.reference_text.is_none() || confirmed) =>
         {
+            let start = source
+                .get("startMs")
+                .and_then(Value::as_u64)
+                .ok_or("Package reference selection start is unavailable")?;
+            let end = source
+                .get("endMs")
+                .and_then(Value::as_u64)
+                .ok_or("Package reference selection end is unavailable")?;
+            if end <= start
+                || !(5000..=30000).contains(&(end - start))
+                || end > 43_200_000
+                || source.get("sourceRevision").and_then(Value::as_str)
+                    != candidate.input_source_revision.as_deref()
+            {
+                return Err("Package reference selection differs from its frozen source".into());
+            }
             let snapshot = run_source
                 .filter(|value| value.is_object())
                 .ok_or("Package voice candidate frozen source is unavailable")?;

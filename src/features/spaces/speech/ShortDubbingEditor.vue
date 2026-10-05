@@ -6,14 +6,15 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
-import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceProfileSummary } from "./contracts";
+import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import { useShortDubbingDraft } from "./use-short-dubbing-draft";
 import { voiceRevisionOptions } from "./voice-options";
+import WavPrecisionSelect from "./WavPrecisionSelect.vue";
 
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectDetail>;
-  voices: readonly VoiceProfileSummary[];
+  voices: readonly VoiceLibraryRevision[];
   disabled: boolean;
 }>();
 const emit = defineEmits<{
@@ -22,7 +23,7 @@ const emit = defineEmits<{
   dirty: [value: boolean];
 }>();
 const { t } = useI18n();
-const { text, voiceRevisionId, lexicon, dirty, valid, revisionInput } = useShortDubbingDraft(
+const { text, voiceRevisionId, wavPrecision, lexicon, dirty, valid, revisionInput } = useShortDubbingDraft(
   () => props.project,
   () => props.voices,
 );
@@ -51,6 +52,7 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
       :options="voiceOptions"
       :disabled="disabled || voices.length === 0"
     />
+    <WavPrecisionSelect v-model="wavPrecision" :disabled />
     <PronunciationLexiconEditor
       v-model="lexicon.entries.value"
       :valid="lexicon.valid.value"

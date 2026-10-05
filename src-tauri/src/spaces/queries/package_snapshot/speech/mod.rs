@@ -190,6 +190,17 @@ fn project_revision(
             }
         }
     }
+    if let Some(cover) = config
+        .get("metadata")
+        .and_then(|metadata| metadata.get("cover"))
+        .filter(|value| !value.is_null())
+    {
+        let path = cover
+            .get("assetPath")
+            .and_then(Value::as_str)
+            .ok_or("Audiobook cover asset is unavailable")?;
+        config["metadata"]["cover"]["assetPath"] = json!(assets.reference(path));
+    }
     Ok(json!({
         "id":decode_text(row,"id")?, "projectId":decode_text(row,"project_id")?, "revision":decode_integer(row,"revision")?,
         "sourceRevision":decode_text(row,"source_revision")?, "pronunciationLexicon":decode_json(row,"pronunciation_lexicon")?,

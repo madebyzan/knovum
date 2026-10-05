@@ -9,8 +9,9 @@ import {
   type ChapterDraft,
 } from "./audiobook-draft";
 import { nextAudiobookRoleKey, renamedAudiobookDraft } from "./audiobook-role-draft";
-import type { ImportedAudiobookScript } from "./audiobook-script-import";
-import type { SpeechProjectDetail, VoiceProfileSummary } from "./contracts";
+import type { ImportedAudiobookScript } from "./audiobook-script";
+import type { SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
+import { useAudiobookOutput } from "./use-audiobook-output";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { defaultVoiceRevisionId } from "./voice-options";
 
@@ -18,19 +19,15 @@ export type { AudiobookRoleDraft, ChapterDraft } from "./audiobook-draft";
 
 export function useAudiobookDraft(
   project: () => DeepReadonly<SpeechProjectDetail>,
-  voices: () => readonly VoiceProfileSummary[],
+  voices: () => readonly VoiceLibraryRevision[],
 ) {
   const chapters = ref<ChapterDraft[]>([]);
   const roles = ref<AudiobookRoleDraft[]>([]);
-  const format = shallowRef<"wav" | "mp3" | "m4b">("m4b");
-  const sampleRate = shallowRef<"24000" | "48000">("48000");
-  const loudness = shallowRef("-20");
-  const peak = shallowRef("-2");
+  const output = useAudiobookOutput();
+  const { format, sampleRate, loudness, peak, paragraphPause, chapterPause, wavPrecision, metadata } = output;
   const configurationError = shallowRef<string>();
   const lexicon = usePronunciationLexicon(() => project().revision);
   let saved = "";
-  let savedVoiceLanguages = new Map<string, string>();
-  let savedVoiceRevisionIds = new Set<string>();
   const snapshot = () =>
     JSON.stringify([
       chapters.value,
@@ -38,7 +35,7 @@ export function useAudiobookDraft(
       format.value,
       sampleRate.value,
       loudness.value,
-      peak.value,
+      output.value(),
       lexicon.entries.value,
     ]);
   const dirty = computed(() => snapshot() !== saved);
@@ -53,20 +50,13 @@ export function useAudiobookDraft(
     try {
       const loaded = readAudiobookRevision(detail);
       const config = loaded.config;
-      format.value = config.format as "wav" | "mp3" | "m4b";
-      sampleRate.value = String(config.sampleRate) as "24000" | "48000";
-      loudness.value = String(config.loudnessLufs);
-      peak.value = String(config.truePeakDb);
+      output.load(config);
       roles.value = loaded.roles;
       chapters.value = loaded.chapters;
-      savedVoiceLanguages = loaded.voiceLanguages;
-      savedVoiceRevisionIds = loaded.voiceRevisionIds;
       configurationError.value = undefined;
     } catch (cause) {
       chapters.value = [];
       roles.value = [];
-      savedVoiceLanguages = new Map();
-      savedVoiceRevisionIds = new Set();
       configurationError.value = cause instanceof Error ? cause.message : String(cause);
     }
     saved = snapshot();
@@ -109,7 +99,7 @@ export function useAudiobookDraft(
   ]);
   const selectedVoiceRevisionIds = computed(() => roles.value.map((role) => role.voiceRevisionId));
   const valid = computed(() => {
-    const available = new Set([...voices().map((voice) => voice.activeRevisionId), ...savedVoiceRevisionIds]);
+    const available = new Set(voices().map((voice) => voice.revisionId));
     return (
       !configurationError.value &&
       audiobookDraftIsValid({
@@ -118,6 +108,7 @@ export function useAudiobookDraft(
         availableVoiceRevisionIds: available,
       }) &&
       lexicon.valid.value &&
+      output.valid() &&
       Number(loudness.value) >= -24 &&
       Number(loudness.value) <= -16 &&
       Number(peak.value) >= -3 &&
@@ -130,14 +121,11 @@ export function useAudiobookDraft(
       sourceRevision: crypto.randomUUID(),
       pronunciationLexicon: lexicon.value(),
       outputConfig: {
-        format: format.value,
-        sampleRate: Number(sampleRate.value),
-        loudnessLufs: Number(loudness.value),
-        truePeakDb: Number(peak.value),
+        ...output.value(),
         chapters: chapters.value.map(({ key, title }) => ({ key, title: title.trim() })),
         roles: roles.value.map(({ key, voiceRevisionId }) => ({ key, voiceRevisionId })),
       },
-      segments: audiobookSegments(chapters.value, roles.value, voices(), savedVoiceLanguages),
+      segments: audiobookSegments(chapters.value, roles.value, voices()),
     };
   }
   function roleVoiceRevisionId(speakerKey: string) {
@@ -159,6 +147,10 @@ export function useAudiobookDraft(
     sampleRate,
     loudness,
     peak,
+    paragraphPause,
+    chapterPause,
+    wavPrecision,
+    metadata,
     lexicon,
     configurationError,
     dirty,

@@ -44,13 +44,41 @@ pub async fn preview_voice(
     on_progress: Channel<SpeechGenerationProgress>,
     on_audio_chunk: Channel<SpeechPreviewAudioChunk>,
 ) -> Result<SpeechAudioOutput, AppError> {
-    let lease = cancellation::acquire(&request.job_id, cancellation::JobKind::Preview)?;
-    let voice = load_voice(
-        db::pool(&app).await?,
-        &request.voice_revision_id,
-        &request.space_id,
-    )
-    .await?;
+    let lease = cancellation::acquire(&request.job_id)?;
+    let pool = db::pool(&app).await?;
+    let voice = match &request.source {
+        VoicePreviewSource::Revision { revision_id } => {
+            load_voice(pool, revision_id, &request.space_id).await?
+        }
+        VoicePreviewSource::Preset {
+            speaker_id,
+            language,
+        } => {
+            let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=?)")
+                .bind(&request.space_id)
+                .fetch_one(pool)
+                .await
+                .map_err(db::sql_error)?;
+            if !exists {
+                return Err("Voice preview Space is unavailable".into());
+            }
+            super::preset_voices::require(speaker_id, language)?;
+            VoiceExecution {
+                revision_id: format!("kokoro-preset:{speaker_id}"),
+                source_kind: "preset".into(),
+                engine_id: "kokoro".into(),
+                model_spec_id: KOKORO_MODEL_SPEC_ID.into(),
+                language: language.clone(),
+                preset_voice_id: Some(speaker_id.clone()),
+                reference_asset_id: None,
+                reference_source_revision: None,
+                reference_text: None,
+                design_description: None,
+                synthesis_config: serde_json::json!({ "speed": 1, "sampleRate": 24000, "seed": 0 })
+                    .to_string(),
+            }
+        }
+    };
     let text = request.text.trim();
     if text.is_empty() || text.chars().count() > 500 {
         return Err("Voice preview text must contain between 1 and 500 characters".into());
@@ -179,7 +207,7 @@ pub async fn generate_speech_project(
 #[tauri::command]
 pub async fn cancel_speech_generation(job_id: String) -> Result<bool, AppError> {
     uuid::Uuid::parse_str(&job_id).map_err(|_| "Speech job identity is invalid")?;
-    Ok(cancellation::cancel(&job_id, false)?)
+    Ok(cancellation::cancel(&job_id)?)
 }
 
 #[tauri::command]
@@ -240,7 +268,7 @@ pub(super) fn synthesis_params(
             design_prompt: voice.design_description.clone(),
         },
         style: None,
-        seed: 0,
+        seed: u64::from(config.seed),
         profile: SynthesisProfile {
             engine,
             language: voice.language.clone(),
@@ -275,7 +303,7 @@ fn reference_audio(
     Ok(reference)
 }
 
-pub(super) fn parse_config(value: &str) -> Result<PresetSynthesisConfig, String> {
+pub(super) fn parse_config(value: &str) -> Result<VoiceSynthesisConfig, String> {
     parse_synthesis_config(&serde_json::from_str(value).map_err(db::json_error)?)
 }
 
@@ -341,7 +369,15 @@ pub(super) async fn load_voice(
     .bind(revision_id).bind(space_id).fetch_optional(pool).await.map_err(db::sql_error)?
     .ok_or("Voice revision is unavailable")?;
     match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
-        ("kokoro", "preset") if voice.model_spec_id == KOKORO_MODEL_SPEC_ID => {}
+        ("kokoro", "preset") if voice.model_spec_id == KOKORO_MODEL_SPEC_ID => {
+            super::preset_voices::require(
+                voice
+                    .preset_voice_id
+                    .as_deref()
+                    .ok_or("Preset speaker is unavailable")?,
+                &voice.language,
+            )?;
+        }
         ("voxcpm2", "reference" | "designed")
             if voice.model_spec_id == super::voice_candidates::MODEL_SPEC_ID
                 && voice.reference_asset_id.is_some()
@@ -363,7 +399,7 @@ pub(super) async fn load_voice(
 pub(super) fn input_digest(
     segment: &SpeechSegmentExecution,
     voice: &VoiceExecution,
-    config: &PresetSynthesisConfig,
+    config: &VoiceSynthesisConfig,
     runtime_digest: &str,
 ) -> Result<String, String> {
     let execution_profile_id = match voice.engine_id.as_str() {
@@ -380,7 +416,7 @@ pub(super) fn input_digest(
         "sourceRevision": voice.reference_source_revision,
         "synthesis": config,
         "executionProfileId": execution_profile_id,
-        "seed": 0,
+        "seed": config.seed,
         "engineVersion": env!("CARGO_PKG_VERSION"),
         "runtimeDigest": runtime_digest,
         "preprocessingVersion": "speech-text-v1",

@@ -88,6 +88,7 @@ pub(super) async fn execute_chapter(
             revision_id: &config.revision_id,
             chapter_key: &config.chapter_key,
             sample_rate: audiobook.sample_rate,
+            paragraph_pause_ms: audiobook.paragraph_pause_ms,
             renders: &renders,
         },
         &claim.cancellation,

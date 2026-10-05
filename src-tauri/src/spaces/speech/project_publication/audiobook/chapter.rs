@@ -22,6 +22,7 @@ pub(in crate::spaces::speech) async fn publish_chapter_checkpoint<R: Runtime>(
         &serde_json::json!({
             "chapterKey": request.chapter_key,
             "sampleRate": request.sample_rate,
+            "paragraphPauseMs": request.paragraph_pause_ms,
         }),
     );
     let directory = assets::asset_directory(app)?

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import struct
 import threading
 import time
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 
@@ -100,3 +102,23 @@ def test_expired_request_never_reserves_or_finishes(operation: Callable[[ChunkCr
     with pytest.raises(RpcError) as caught:
         operation(window)
     assert caught.value.stable_code == "deadline_exceeded"
+
+
+def test_float_master_preserves_samples_outside_preview_range(tmp_path: Path) -> None:
+    from knovum_inference.speech_stream import SynthesisChunkPublisher
+
+    events: list[dict[str, object]] = []
+    work = tmp_path
+    request_id = "00000000-0000-0000-0000-000000000001"
+    window = ChunkCredits(request_id, 3, int(time.time() * 1000) + 5000, threading.Event())
+    publisher = SynthesisChunkPublisher(work, request_id, 3, int(time.time() * 1000) + 5000, window, events.append)
+    publisher.publish([0.25, -0.25, 1.25], 48000, "model_chunk")
+    event = events[0]
+    reference = event["chunkRef"]
+    assert isinstance(reference, dict)
+    payload = (work / str(reference["fileName"])).read_bytes()
+    assert struct.unpack("<fff", payload) == (0.25, -0.25, 1.25)
+    assert reference["sampleFormat"] == "pcm_f32le"
+    assert reference["byteLength"] == 12
+    window.acknowledge(request_id, 3, 1, 12)
+    assert publisher.finish()["sampleCount"] == 3

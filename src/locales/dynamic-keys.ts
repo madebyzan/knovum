@@ -43,10 +43,13 @@ export const dynamicLocaleKeyPrefixes = [
   "spaces.richtext.heading",
   "spaces.richtext.highlightColor.",
   "spaces.speech.separationStatus.",
+  "spaces.speech.signal.",
 ] as const;
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
 export const dynamicLocaleKeys = [
+  "spaces.speech.female",
+  "spaces.speech.male",
   "spaces.media.import.downloading",
   "spaces.media.import.finalizing",
   "spaces.media.import.preparing",

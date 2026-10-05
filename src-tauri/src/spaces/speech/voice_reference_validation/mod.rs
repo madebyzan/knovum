@@ -29,7 +29,7 @@ pub(super) async fn validate<R: Runtime>(
     reference: AudioFileReference,
     confirmed_text: Option<&str>,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<String, String> {
     let profile = platform_profile()?;
     let reader = hound::WavReader::open(&reference.path).map_err(|error| error.to_string())?;
     let expected_duration_ms = u64::from(reader.duration()) * 1_000 / 16_000;
@@ -87,7 +87,12 @@ pub(super) async fn validate<R: Runtime>(
     if let Some(expected) = confirmed_text {
         validate_confirmed_text(expected, &artifact)?;
     }
-    Ok(())
+    Ok(artifact
+        .segments
+        .iter()
+        .map(|segment| segment.text.trim())
+        .collect::<Vec<_>>()
+        .join(" "))
 }
 
 fn validate_artifact(

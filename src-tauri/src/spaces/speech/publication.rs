@@ -430,13 +430,13 @@ fn validate_audio_payload(
         }
         let chunk_id = &bytes[offset..offset + 4];
         if chunk_id == b"fmt " && size >= 16 {
-            format_valid = read_u16(bytes, start)? == 1
+            format_valid = read_u16(bytes, start)? == 3
                 && read_u16(bytes, start + 2)? == 1
                 && read_u32(bytes, start + 4)? == audio.sample_rate
-                && read_u16(bytes, start + 14)? == 16;
-        } else if chunk_id == b"data" && size % 2 == 0 {
+                && read_u16(bytes, start + 14)? == 32;
+        } else if chunk_id == b"data" && size % 4 == 0 {
             data_samples = Some(
-                u64::try_from(size / 2)
+                u64::try_from(size / 4)
                     .map_err(|_| "invalid_output: WAV sample count exceeds protocol range")?,
             );
         }

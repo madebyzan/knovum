@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import struct
 import sys
 import threading
 import types
@@ -32,11 +33,7 @@ class RecordingPublisher:
 
     def finish(self) -> dict[str, object]:
         sample_count = sum(len(samples) for samples, _, _ in self.chunks)
-        payload = b"".join(
-            round(sample * 32767).to_bytes(2, "little", signed=True)
-            for samples, _, _ in self.chunks
-            for sample in samples
-        )
+        payload = b"".join(struct.pack("<f", sample) for samples, _, _ in self.chunks for sample in samples)
         return {
             "requestId": self._params.request_id,
             "attemptEpoch": self._params.attempt_epoch,
@@ -44,7 +41,7 @@ class RecordingPublisher:
             "sha256": hashlib.sha256(payload).hexdigest(),
             "sampleRate": self.chunks[0][1],
             "channels": 1,
-            "sampleFormat": "pcm_s16le",
+            "sampleFormat": "pcm_f32le",
             "sampleCount": sample_count,
         }
 
@@ -189,10 +186,10 @@ def test_synthesis_engine_routes_generated_vox_enum_to_vox_adapter(tmp_path: Pat
     assert result["attemptEpoch"] == params.attempt_epoch
     assert result["modelSpecId"] == params.model_spec_id
     assert result["sampleCount"] == 2
-    assert result["byteLength"] == 4
+    assert result["byteLength"] == 8
     assert result["sampleRate"] == 48_000
     assert result["channels"] == 1
-    assert result["sampleFormat"] == "pcm_s16le"
+    assert result["sampleFormat"] == "pcm_f32le"
     assert publisher.chunks == [([0.25, -0.25], 48_000, "model_chunk")]
 
 

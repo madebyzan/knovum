@@ -40,6 +40,7 @@ pub(in crate::spaces::speech) fn reconcile_workspaces<R: Runtime>(
                 let metadata = fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
                 if [
                     "video-assembly-",
+                    "video-delivery-",
                     "assembly-",
                     "chapter-assembly-",
                     "loudness-",

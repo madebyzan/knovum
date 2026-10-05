@@ -1,25 +1,19 @@
 use sqlx::{Sqlite, Transaction};
 
-use super::contracts::{SpeechProjectDetail, SpeechProjectSummary, VoiceProfileSummary};
+use super::contracts::{
+    SpeechProjectDetail, SpeechProjectSummary, SpeechSegment, VoiceLibraryRevision,
+};
 use crate::spaces::db;
 
 pub async fn list_voices(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Vec<VoiceProfileSummary>, String> {
+) -> Result<Vec<VoiceLibraryRevision>, String> {
     sqlx::query_as(
-        "SELECT p.id,p.name || CASE WHEN r.id=p.active_revision_id AND p.archived_at IS NULL \
-           THEN '' ELSE ' · v' || r.revision END AS name,p.source_kind,r.id AS active_revision_id,r.revision, \
+        "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision, \
          r.id=p.active_revision_id AS is_active,r.engine_id,r.model_spec_id,r.language,r.preset_voice_id, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.profile_id=p.id \
-         WHERE p.space_id=? AND (p.archived_at IS NULL OR EXISTS( \
-           SELECT 1 FROM spaces_speech_segments s WHERE s.voice_revision_id=r.id) OR EXISTS( \
-           SELECT 1 FROM spaces_speech_projects project \
-           JOIN spaces_speech_project_revisions revision ON revision.project_id=project.id \
-           JOIN json_each(revision.output_config,'$.roles') role \
-           WHERE project.space_id=p.space_id \
-             AND json_extract(role.value,'$.voiceRevisionId')=r.id)) \
-         ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
+         WHERE p.space_id=? ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
     )
     .bind(space_id)
     .fetch_all(pool)
@@ -79,16 +73,7 @@ pub async fn load_project(
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
-    let segments = sqlx::query_as(
-        "SELECT id, ordinal, chapter_key, speaker_key, text, normalized_text, voice_revision_id, \
-         language, target_start_ms, target_end_ms,source_segment_id,source_segment_revision, \
-         source_text,state, state_reason \
-         FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
-    )
-    .bind(&project.active_revision_id)
-    .fetch_all(pool)
-    .await
-    .map_err(db::sql_error)?;
+    let segments = load_segments(pool, &project.active_revision_id).await?;
     Ok(SpeechProjectDetail {
         project,
         revision,
@@ -121,4 +106,20 @@ pub async fn require_voice_in_space(
     .await
     .map_err(db::sql_error)?;
     language.ok_or_else(|| "A compatible voice revision is required in this Space".to_owned())
+}
+
+pub(super) async fn load_segments(
+    pool: &sqlx::SqlitePool,
+    revision_id: &str,
+) -> Result<Vec<SpeechSegment>, String> {
+    sqlx::query_as(
+        "SELECT id, ordinal, chapter_key, speaker_key, text, normalized_text, voice_revision_id, \
+         language, target_start_ms, target_end_ms,source_segment_id,source_segment_revision, \
+         source_text,state, state_reason \
+         FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
+    )
+    .bind(revision_id)
+    .fetch_all(pool)
+    .await
+    .map_err(db::sql_error)
 }

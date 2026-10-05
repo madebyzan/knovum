@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{
     fs,
     io::Write,
@@ -84,7 +86,7 @@ pub(super) async fn stage(
         pool,
         claim,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "voice_candidate",
+            owner_kind: PublicationOwnerKind::VoiceCandidate,
             owner_id: &claim.run_id,
             asset_path: asset,
             part_path: Some(part),

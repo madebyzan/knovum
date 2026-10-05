@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::io::{Read, Write};
 
 use sha2::{Digest, Sha256};
@@ -57,6 +59,17 @@ async fn freeze_reference(
     let source_revision =
         crate::blocking::run(move || crate::file_inspection::content_revision(&revision_path))
             .await?;
+    if let VoiceCandidateSource::Reference {
+        source_revision: reviewed,
+        ..
+    } = &request.source
+    {
+        if reviewed != &source_revision {
+            return Err(
+                "stale_revision: Reference changed after preparation and transcript review".into(),
+            );
+        }
+    }
     let verify_path = path.clone();
     let expected_revision = source_revision.clone();
     crate::blocking::run(move || {
@@ -95,7 +108,7 @@ async fn publish_snapshot(
         pool,
         &request.space_id,
         super::super::asset_publication::PendingAsset {
-            owner_kind: "voice_candidate_input",
+            owner_kind: PublicationOwnerKind::VoiceCandidateInput,
             owner_id: &request.request_id,
             asset_path: &target,
             part_path: Some(&part),

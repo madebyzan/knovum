@@ -1,3 +1,5 @@
+use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+
 use std::{fs, path::Path};
 
 use tauri::{AppHandle, Runtime};
@@ -21,7 +23,7 @@ pub(super) async fn commit<R: Runtime>(
         pool,
         claim,
         asset_publication::PendingAsset {
-            owner_kind: "chapter_checkpoint",
+            owner_kind: PublicationOwnerKind::ChapterCheckpoint,
             owner_id: request.revision_id,
             asset_path: &rendered.output,
             part_path: Some(&rendered.part),

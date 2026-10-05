@@ -4,13 +4,14 @@ use serde::Deserialize;
 
 pub(crate) use audiobook::{
     parse as parse_audiobook, role_voice, validate_chapter_order, validate_role_bindings,
-    AudiobookOutputConfig, AudiobookRoleBinding,
+    AudiobookCover, AudiobookMetadata, AudiobookOutputConfig, AudiobookRoleBinding,
 };
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ShortOutputConfig {
-    format: String,
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct ShortOutputConfig {
+    pub format: String,
+    pub wav_precision: super::audio_format::WavPrecision,
 }
 
 pub(crate) fn validate(project_type: &str, value: &serde_json::Value) -> Result<(), String> {

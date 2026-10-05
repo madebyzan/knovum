@@ -1,6 +1,6 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 
-import type { VoiceCandidate, VoiceProfileSummary } from "./contracts";
+import type { VoiceCandidate, VoiceLibraryRevision } from "./contracts";
 import {
   createCandidateVoice,
   discardVoiceCandidate,
@@ -21,7 +21,7 @@ export function selectVoiceCandidate(
   candidate: VoiceCandidate,
   name: string,
   authorized: boolean,
-): Promise<VoiceProfileSummary> {
+): Promise<VoiceLibraryRevision> {
   return createCandidateVoice({
     candidateId: candidate.candidateId,
     spaceId: candidate.spaceId,

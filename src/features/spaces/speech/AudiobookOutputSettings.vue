@@ -3,12 +3,17 @@ import { useI18n } from "vue-i18n";
 
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
+import type { WavPrecision } from "../contracts/generated/WavPrecision";
+import WavPrecisionSelect from "./WavPrecisionSelect.vue";
 
 defineProps<{ disabled: boolean }>();
 const format = defineModel<"wav" | "mp3" | "m4b">("format", { required: true });
 const sampleRate = defineModel<"24000" | "48000">("sampleRate", { required: true });
 const loudness = defineModel<string>("loudness", { required: true });
 const peak = defineModel<string>("peak", { required: true });
+const paragraphPause = defineModel<string>("paragraphPause", { required: true });
+const chapterPause = defineModel<string>("chapterPause", { required: true });
+const wavPrecision = defineModel<WavPrecision>("wavPrecision", { required: true });
 const { t } = useI18n();
 const formats = [
   { value: "m4b", label: "M4B" },
@@ -39,5 +44,14 @@ const sampleRates = [
       {{ t("spaces.speech.truePeak") }}
       <UiInput v-model="peak" size="sm" type="number" min="-3" max="-1" :disabled />
     </label>
+    <label class="text-caption text-fg-secondary"
+      >{{ t("spaces.speech.paragraphPause")
+      }}<UiInput v-model="paragraphPause" size="sm" type="number" min="0" max="10000" :disabled
+    /></label>
+    <label class="text-caption text-fg-secondary"
+      >{{ t("spaces.speech.chapterPause")
+      }}<UiInput v-model="chapterPause" size="sm" type="number" min="0" max="30000" :disabled
+    /></label>
+    <WavPrecisionSelect v-if="format === 'wav'" v-model="wavPrecision" :disabled />
   </div>
 </template>

@@ -30,6 +30,28 @@ pub struct AudiobookOutputConfig {
     pub true_peak_db: f32,
     pub chapters: Vec<SpeechChapter>,
     pub roles: Vec<AudiobookRoleBinding>,
+    pub paragraph_pause_ms: u32,
+    pub chapter_pause_ms: u32,
+    pub wav_precision: super::super::audio_format::WavPrecision,
+    pub metadata: AudiobookMetadata,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct AudiobookMetadata {
+    pub title: String,
+    pub author: String,
+    pub narrator: String,
+    pub cover: Option<AudiobookCover>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct AudiobookCover {
+    pub asset_path: String,
+    pub source_revision: String,
 }
 
 pub(crate) fn parse(value: &serde_json::Value) -> Result<AudiobookOutputConfig, String> {
@@ -45,6 +67,34 @@ pub(crate) fn parse(value: &serde_json::Value) -> Result<AudiobookOutputConfig, 
         || config.roles.len() > 1_000
     {
         return Err("Audiobook output configuration is invalid".to_owned());
+    }
+    if config.paragraph_pause_ms > 10_000
+        || config.chapter_pause_ms > 30_000
+        || [
+            &config.metadata.title,
+            &config.metadata.author,
+            &config.metadata.narrator,
+        ]
+        .into_iter()
+        .any(|value| value.chars().count() > 200)
+    {
+        return Err("Audiobook pause or metadata exceeds its supported bounds".into());
+    }
+    if let Some(cover) = &config.metadata.cover {
+        if config.format == "wav" {
+            return Err("WAV audiobook output cannot embed a book cover; choose MP3 or M4B".into());
+        }
+        if cover.asset_path.is_empty()
+            || cover.source_revision.len() != 71
+            || !cover.source_revision.starts_with("sha256:")
+            || !cover.source_revision[7..]
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return Err(
+                "Audiobook cover requires a managed asset and exact content revision".into(),
+            );
+        }
     }
     validate_chapters(&config.chapters)?;
     validate_roles(&config.roles)?;

@@ -68,12 +68,12 @@ pub(super) async fn publish_cached(
     let attempt_epoch = next_epoch(&mut tx, &segment.id).await?;
     let now = crate::clock::unix_time_millis()?;
     sqlx::query(
-        "INSERT INTO spaces_speech_renders(id,segment_id,attempt_epoch,run_id,run_step_id,run_attempt_id,run_execution_epoch,          input_digest,model_spec_id,engine_version,seed,synthesis_config,state,asset_path,output_sha256,          sample_rate,sample_count,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,?,?,0,?,'published',?,?,?,?,?,?)",
+        "INSERT INTO spaces_speech_renders(id,segment_id,attempt_epoch,run_id,run_step_id,run_attempt_id,run_execution_epoch,          input_digest,model_spec_id,engine_version,seed,synthesis_config,state,asset_path,output_sha256,          sample_rate,sample_count,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,'published',?,?,?,?,?,?)",
     )
     .bind(uuid::Uuid::new_v4().to_string()).bind(&segment.id).bind(attempt_epoch)
     .bind(&claim.run_id).bind(&claim.step_instance_id).bind(&claim.attempt_id).bind(claim.execution_epoch)
     .bind(input_digest).bind(&voice.model_spec_id).bind(env!("CARGO_PKG_VERSION"))
-    .bind(&voice.synthesis_config).bind(&cached.path).bind(&cached.sha256)
+    .bind(i64::from(super::contracts::parse_synthesis_config(&serde_json::from_str(&voice.synthesis_config).map_err(db::json_error)?)?.seed)).bind(&voice.synthesis_config).bind(&cached.path).bind(&cached.sha256)
     .bind(cached.sample_rate).bind(cached.sample_count).bind(now).bind(now)
     .execute(&mut *tx).await.map_err(db::sql_error)?;
     mark_segment_rendered(&mut tx, &segment.id, now).await?;
@@ -100,12 +100,12 @@ pub(super) async fn stage_render(
     let render_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     sqlx::query(
-        "INSERT INTO spaces_speech_renders(id,segment_id,attempt_epoch,run_id,run_step_id,run_attempt_id,run_execution_epoch,          input_digest,model_spec_id,engine_version,seed,synthesis_config,state,asset_path,created_at)          VALUES(?,?,?,?,?,?,?,?,?,?,0,?,'staged',?,?)",
+        "INSERT INTO spaces_speech_renders(id,segment_id,attempt_epoch,run_id,run_step_id,run_attempt_id,run_execution_epoch,          input_digest,model_spec_id,engine_version,seed,synthesis_config,state,asset_path,created_at)          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,'staged',?,?)",
     )
     .bind(&render_id).bind(&segment.id).bind(attempt_epoch).bind(&claim.run_id)
     .bind(&claim.step_instance_id).bind(&claim.attempt_id).bind(claim.execution_epoch)
     .bind(input_digest).bind(&voice.model_spec_id).bind(env!("CARGO_PKG_VERSION"))
-    .bind(&voice.synthesis_config).bind(target_path.to_string_lossy().as_ref()).bind(now)
+    .bind(i64::from(super::contracts::parse_synthesis_config(&serde_json::from_str(&voice.synthesis_config).map_err(db::json_error)?)?.seed)).bind(&voice.synthesis_config).bind(target_path.to_string_lossy().as_ref()).bind(now)
     .execute(&mut *tx).await.map_err(db::sql_error)?;
     let claimed = sqlx::query(
         "UPDATE spaces_speech_segments SET state='rendering',state_reason=NULL,updated_at=?          WHERE id=? AND state IN ('ready','failed','rendered')",

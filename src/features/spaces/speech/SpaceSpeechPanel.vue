@@ -6,7 +6,7 @@ import SpeechCatalog from "./SpeechCatalog.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
 import SpeechProjectForm from "./SpeechProjectForm.vue";
 import { useSpeechWorkspace } from "./use-speech-workspace";
-import { activeVoiceProfiles } from "./voice-options";
+import { activeVoiceRevisions } from "./voice-options";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
 import VoiceManagement from "./VoiceManagement.vue";
 import VoiceProfileForm from "./VoiceProfileForm.vue";
@@ -58,7 +58,7 @@ const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
     sampleCount: revision.outputSampleCount,
   };
 });
-const catalogVoices = computed(() => activeVoiceProfiles(voices.value));
+const catalogVoices = computed(() => activeVoiceRevisions(voices.value));
 </script>
 
 <template>

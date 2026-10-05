@@ -180,6 +180,25 @@ fn collect_speech_assets(
                 )?;
             }
         }
+        if let Some(cover) = revision
+            .get("outputConfig")
+            .and_then(|config| config.get("metadata"))
+            .and_then(|metadata| metadata.get("cover"))
+            .filter(|value| !value.is_null())
+        {
+            let reference = cover
+                .get("assetPath")
+                .and_then(Value::as_str)
+                .ok_or("Package audiobook cover asset is unavailable")?;
+            let token = package_token(reference)?
+                .ok_or("Package audiobook cover requires a managed asset token")?;
+            let revision = cover
+                .get("sourceRevision")
+                .and_then(Value::as_str)
+                .filter(|value| valid_revision(value))
+                .ok_or("Package audiobook cover requires an exact content revision")?;
+            record_digest(used_tokens, source_revisions, token, revision)?;
+        }
         let Some(reference) = revision.get("outputAssetPath").and_then(Value::as_str) else {
             continue;
         };

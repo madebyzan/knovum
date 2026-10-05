@@ -1,7 +1,7 @@
 import { clamp } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
-import { versionedMediaSource } from "../media/media-element-source";
+import { versionedMediaSource } from "../../media/media-element-source";
 
 export interface TimelineFrame {
   startMs: number;
