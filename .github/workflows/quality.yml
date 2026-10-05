@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node --test tools/runtime/__tests__/manifest.test.mjs tools/runtime/__tests__/write-manifest.test.mjs tools/runtime/__tests__/package.test.mjs tools/runtime/__tests__/license-policy.test.mjs
+      - run: node --test scripts/runtime/__tests__/manifest.test.mjs scripts/runtime/__tests__/write-manifest.test.mjs scripts/runtime/__tests__/windows-package-verification.test.mjs scripts/runtime/__tests__/license-policy.test.mjs
 
   python:
     name: Python quality
@@ -49,7 +49,7 @@ jobs:
           node-version: "22"
           check-latest: false
       - name: Verify Tauri configuration invariants
-        run: node --test tools/desktop/__tests__/tauri-config.test.mjs
+        run: node --test scripts/desktop/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         run: |
           corepack enable
@@ -97,7 +97,7 @@ jobs:
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify capability permission policy
-        run: node tools/checks/capabilities.mjs
+        run: node scripts/checks/capabilities.mjs
       - name: Verify Rust toolchain
         id: toolchain
         run: rustc --version && cargo --version

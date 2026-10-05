@@ -105,11 +105,11 @@ Capability implementations depend on their own modules, generated contracts and 
 they do not import worker lifecycle or transport. Only runtime composition connects these owners.
 Package `__init__.py` files do not re-export implementation symbols.
 
-Repository tooling owns `tools/generate_python_contracts.py` and the native runtime publication
-entries `tools/runtime/build_python.py` / `tools/runtime/verify_signatures.py`.
-`tools/runtime/` owns the bundled runtime toolchain: controlled artifact handling, binary inspection,
+Repository tooling owns `scripts/generate_python_contracts.py` and the native runtime publication
+entries `scripts/runtime/build_python.py` / `scripts/runtime/verify_signatures.py`.
+`scripts/runtime/` owns the bundled runtime toolchain: controlled artifact handling, binary inspection,
 installed inventory, signing, manifest generation, provisioning and package verification. Python and
-Node modules share this lifecycle owner; their tests live in `tools/runtime/__tests__/`.
+Node modules share this lifecycle owner; their tests live in `scripts/runtime/__tests__/`.
 Model qualification belongs to `python/tests/acceptance/`: strict corpus/capture-manifest/execution contracts,
 hash-bound provenance and the four capability scorers. Pydantic owns structural validation,
 NumPy owns vector arithmetic and percentiles, and JiWER owns transcription error counts.
@@ -437,7 +437,7 @@ dialogs, receive session-scoped authorization, and are never covered by a broad 
 
 ### Resource lifecycle composition
 
-`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Source directories must not contain a file and a sibling directory with the same basename. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. `tools/checks/source-layout.mjs` enforces the naming rule for `src/`, `src-tauri/src/` and `tools/`, and runs through both `pnpm check:web` and `pnpm check:rust`. Stable wire IDs are explicitly mapped to UI translation keys.
+`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Source directories must not contain a file and a sibling directory with the same basename. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. `scripts/checks/source-layout.mjs` enforces the naming rule for `src/`, `src-tauri/src/` and `scripts/`, and runs through both `pnpm check:web` and `pnpm check:rust`. Stable wire IDs are explicitly mapped to UI translation keys.
 
 ### IPC error boundary
 
@@ -501,7 +501,7 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 ### Schema ownership and supporting modules
 
 Rust DTOs generate the TypeScript IPC contracts and the Python runtime JSON schema through
-`pnpm contracts:generate`. `tools/generate_python_contracts.py` then produces strict Pydantic
+`pnpm contracts:generate`. `scripts/generate_python_contracts.py` then produces strict Pydantic
 models under `python/src/knovum_inference/contracts/generated/` from that schema. The existing
 [generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit
 ownership map changes Python file placement only, never canonical wire names or field definitions.
@@ -516,7 +516,7 @@ Canvas editor/surface interfaces belong to `canvas/contracts/`; pure preview pol
 ## Source layout and size
 
 `naming-conventions.md` owns sibling-name uniqueness and test-directory conventions.
-`tools/checks/source-layout.mjs` verifies repository entry directories and all source roots,
+`scripts/checks/source-layout.mjs` verifies repository entry directories and all source roots,
 and runs fixture-based policy regressions before inspecting the checkout.
 
 Rust and Python source files are limited to 350 nonblank lines, including generated Python

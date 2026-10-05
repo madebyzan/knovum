@@ -22,14 +22,17 @@ const supportedHost = ["macos-arm64", "windows-x64"].includes(target);
 function fixture(context) {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-manifest-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  const tools = join(root, "tools", "runtime");
+  const scriptDirectory = join(root, "scripts", "runtime");
   const python = join(root, "python");
   const runtime = join(root, "runtime");
-  mkdirSync(tools, { recursive: true });
+  mkdirSync(scriptDirectory, { recursive: true });
   mkdirSync(python);
   mkdirSync(join(runtime, "packages", "knovum_inference"), { recursive: true });
-  copyFileSync(new URL("../write-manifest.mjs", import.meta.url), join(tools, "write-manifest.mjs"));
-  copyFileSync(new URL("../files.mjs", import.meta.url), join(tools, "files.mjs"));
+  copyFileSync(
+    new URL("../write-manifest.mjs", import.meta.url),
+    join(scriptDirectory, "write-manifest.mjs"),
+  );
+  copyFileSync(new URL("../files.mjs", import.meta.url), join(scriptDirectory, "files.mjs"));
   writeFileSync(join(python, "uv.lock"), "locked dependency fixture\n");
   const executable = platform === "windows" ? join(runtime, "python.exe") : join(runtime, "bin", "python3");
   mkdirSync(join(runtime, "bin"), { recursive: true });
@@ -42,7 +45,7 @@ function fixture(context) {
     run: (requestedTarget = target) =>
       spawnSync(
         process.execPath,
-        [join(tools, "write-manifest.mjs"), "--target", requestedTarget, "--directory", runtime],
+        [join(scriptDirectory, "write-manifest.mjs"), "--target", requestedTarget, "--directory", runtime],
         { encoding: "utf8" },
       ),
   };

@@ -1,6 +1,6 @@
-# Repository tooling
+# Repository scripts
 
-These files support development, verification and desktop publication. They are not bundled business
+These scripts support development, verification and desktop publication. They are not bundled business
 code and do not run on end-user machines. A tool is retained for a concrete project policy or workflow;
 vendor CLIs, standard libraries and existing packages perform the underlying work.
 
@@ -83,7 +83,7 @@ The release contract and approvals are owned by [release.md](../docs/release.md)
 | `checks/source-layout.mjs`     | Enforce sibling-name, test-placement and Rust/Python size rules absent from vendor linters; language gates. |
 | `checks/capabilities.mjs`      | Reject explicitly prohibited WebView permissions in Tauri capability JSON; Rust/CI gates.                   |
 
-Each directory's `__tests__/` owns its regression tests. `tools/__tests__/test_contracts.py` covers the
+Each directory's `__tests__/` owns its regression tests. `scripts/__tests__/test_contracts.py` covers the
 standalone contract generator. Python model qualification belongs to `python/tests/acceptance/`.
 
 ## Removed duplication

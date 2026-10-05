@@ -12,7 +12,7 @@ PACKAGE = SOURCE / "knovum_inference"
 
 
 @pytest.mark.parametrize("owner", ["contracts", "transport", "speech", "embedding.py", "image_segmentation.py"])
-def test_implementation_owners_do_not_depend_on_runtime_composition_or_tools(owner: str) -> None:
+def test_implementation_owners_do_not_depend_on_runtime_composition_or_scripts(owner: str) -> None:
     path = PACKAGE / owner
     modules = [path] if path.is_file() else list(path.rglob("*.py"))
     allowed = {"errors", owner.split(".")[0], "contracts"}
