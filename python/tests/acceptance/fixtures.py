@@ -7,9 +7,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from acceptance.capture_manifest import Provenance
 from acceptance.contracts import HashedFile, VoiceScores
 from acceptance.corpus import ASR_COVERAGE_TAGS
-from acceptance.results import Provenance
 
 
 def write_json(directory: Path, name: str, values: dict[str, Any]) -> HashedFile:
@@ -177,7 +177,7 @@ def acceptance_files(directory: Path) -> tuple[Path, Path]:
         ),
     }
     references = {name: write_json(directory, f"{name}.json", values).model_dump() for name, values in outputs.items()}
-    results = {
+    capture = {
         "schemaVersion": 1,
         "runId": "unit-fixture",
         "capturedAt": "2026-10-03T13:00:00Z",
@@ -213,5 +213,5 @@ def acceptance_files(directory: Path) -> tuple[Path, Path]:
             },
         },
     }
-    write_json(directory, "results.json", results)
-    return directory / "corpus.json", directory / "results.json"
+    write_json(directory, "capture.json", capture)
+    return directory / "corpus.json", directory / "capture.json"

@@ -50,8 +50,8 @@ function fixture(context) {
 test("forwards exact arguments and uses the repository cwd without a pnpm shim", (context) => {
   const sample = fixture(context);
   const args = ["build", "--config", '{"productName":"Knovum & $HOME %PATH%"}', "a b", 'a"b', ""];
-  const result = sample.run(args, { KNOVUM_FFMPEG_PATH: "explicit ffmpeg path" });
-  assert.equal(result.status, 0, result.stderr);
+  const execution = sample.run(args, { KNOVUM_FFMPEG_PATH: "explicit ffmpeg path" });
+  assert.equal(execution.status, 0, execution.stderr);
   assert.deepEqual(sample.read(), {
     args,
     cwd: sample.root,
@@ -61,17 +61,17 @@ test("forwards exact arguments and uses the repository cwd without a pnpm shim",
 
 test("non-development commands do not require a provisioned runtime", (context) => {
   const sample = fixture(context);
-  const result = sample.run(["--version"]);
-  assert.equal(result.status, 0, result.stderr);
+  const execution = sample.run(["--version"]);
+  assert.equal(execution.status, 0, execution.stderr);
   assert.deepEqual(sample.read().args, ["--version"]);
 });
 
 test("a failed Tauri command cannot be reported as success", (context) => {
   const sample = fixture(context);
-  const result = sample.run(["build"], { KNOVUM_TEST_EXIT: "23" });
-  assert.equal(result.error, undefined);
-  assert.equal(result.signal, null);
-  assert.notEqual(result.status, 0);
+  const execution = sample.run(["build"], { KNOVUM_TEST_EXIT: "23" });
+  assert.equal(execution.error, undefined);
+  assert.equal(execution.signal, null);
+  assert.notEqual(execution.status, 0);
 });
 
 const platform = { darwin: "macos", win32: "windows" }[process.platform];
@@ -83,17 +83,17 @@ if (platform) {
     mkdirSync(directory, { recursive: true });
     const ffmpeg = join(directory, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
     writeFileSync(ffmpeg, "fixture");
-    const result = sample.run(["dev"]);
-    assert.equal(result.status, 0, result.stderr);
+    const execution = sample.run(["dev"]);
+    assert.equal(execution.status, 0, execution.stderr);
     assert.deepEqual(sample.read(), { args: ["dev"], cwd: sample.root, ffmpeg });
   });
 
   test("development preserves explicit runtime overrides", (context) => {
     const sample = fixture(context);
-    const result = sample.run(["dev"], {
+    const execution = sample.run(["dev"], {
       KNOVUM_FFMPEG_PATH: "custom ffmpeg",
     });
-    assert.equal(result.status, 0, result.stderr);
+    assert.equal(execution.status, 0, execution.stderr);
     assert.deepEqual(sample.read(), {
       args: ["dev"],
       cwd: sample.root,
@@ -103,15 +103,15 @@ if (platform) {
 
   test("development rejects a missing runtime", (context) => {
     const sample = fixture(context);
-    const result = sample.run(["dev"]);
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /Development runtime is missing/);
+    const execution = sample.run(["dev"]);
+    assert.notEqual(execution.status, 0);
+    assert.match(execution.stderr, /Development runtime is missing/);
   });
 } else {
   test("development rejects unsupported hosts", (context) => {
     const sample = fixture(context);
-    const result = sample.run(["dev"]);
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /Unsupported desktop development host/);
+    const execution = sample.run(["dev"]);
+    assert.notEqual(execution.status, 0);
+    assert.match(execution.stderr, /Unsupported desktop development host/);
   });
 }

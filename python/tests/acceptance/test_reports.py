@@ -8,29 +8,29 @@ from typing import Any
 
 import pytest
 
+from acceptance.capture_manifest import CaptureManifest
 from acceptance.corpus import Corpus
 from acceptance.evaluator import evaluate
 from acceptance.evidence import EvidenceError, load_evidence
 from acceptance.fixtures import acceptance_files, write_json
-from acceptance.results import Results
 
 
-def evaluate_files(corpus: Path, results: Path) -> dict[str, Any]:
-    return evaluate(load_evidence(corpus, Corpus), load_evidence(results, Results), corpus, results)
+def evaluate_files(corpus: Path, capture: Path) -> dict[str, Any]:
+    return evaluate(load_evidence(corpus, Corpus), load_evidence(capture, CaptureManifest), corpus, capture)
 
 
-def change_output(results: Path, capability: str, values: dict[str, Any]) -> None:
-    manifest = json.loads(results.read_text())
+def change_output(capture: Path, capability: str, values: dict[str, Any]) -> None:
+    manifest = json.loads(capture.read_text())
     output = manifest["capabilities"][capability]["candidateOutput"]["path"]
-    payload = json.loads((results.parent / output).read_text())
+    payload = json.loads((capture.parent / output).read_text())
     payload["values"] = values
-    manifest["capabilities"][capability]["candidateOutput"] = write_json(results.parent, output, payload).model_dump()
-    results.write_text(json.dumps(manifest))
+    manifest["capabilities"][capability]["candidateOutput"] = write_json(capture.parent, output, payload).model_dump()
+    capture.write_text(json.dumps(manifest))
 
 
 def run_report(directory: Path) -> tuple[int, dict[str, Any]]:
     report = directory / "report.json"
-    result = subprocess.run(
+    execution = subprocess.run(
         [
             sys.executable,
             "-I",
@@ -40,8 +40,8 @@ def run_report(directory: Path) -> tuple[int, dict[str, Any]]:
             str(Path(__file__).with_name("report.py")),
             "--corpus",
             str(directory / "corpus.json"),
-            "--results",
-            str(directory / "results.json"),
+            "--capture",
+            str(directory / "capture.json"),
             "--output",
             str(report),
         ],
@@ -49,13 +49,13 @@ def run_report(directory: Path) -> tuple[int, dict[str, Any]]:
         text=True,
         timeout=20,
     )
-    assert report.is_file(), result.stderr
-    return result.returncode, json.loads(report.read_text())
+    assert report.is_file(), execution.stderr
+    return execution.returncode, json.loads(report.read_text())
 
 
 def test_complete_synthetic_evidence_chain_passes_and_preserves_all_metrics(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
-    report = evaluate_files(corpus, results)
+    corpus, capture = acceptance_files(tmp_path)
+    report = evaluate_files(corpus, capture)
     assert report["status"] == "passed"
     assert report["capabilities"]["embedding"]["minimumPairedCosine"] == 1
     assert report["capabilities"]["embedding"]["candidateRecallAt10"] == 1
@@ -70,13 +70,13 @@ def test_complete_synthetic_evidence_chain_passes_and_preserves_all_metrics(tmp_
 
 
 def test_silence_hallucinations_are_micro_aggregated_into_english_wer(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
+    corpus, capture = acceptance_files(tmp_path)
     change_output(
-        results,
+        capture,
         "asr",
         {"transcripts": {"zh-CN": "你好世界", "en-US": "It's a test", "silence": "hallucinated on silence"}},
     )
-    metrics = evaluate_files(corpus, results)["capabilities"]["asr"]
+    metrics = evaluate_files(corpus, capture)["capabilities"]["asr"]
     assert metrics["cer"]["candidate"] == 0
     assert metrics["wer"]["candidate"] == 1  # Three insertions / three reference words, not a per-sample mean.
     assert metrics["status"] == "failed"
@@ -84,9 +84,9 @@ def test_silence_hallucinations_are_micro_aggregated_into_english_wer(tmp_path: 
 
 
 def test_alignment_language_threshold_cannot_be_hidden_by_overall_average(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
+    corpus, capture = acceptance_files(tmp_path)
     change_output(
-        results,
+        capture,
         "alignment",
         {
             "samples": {
@@ -95,7 +95,7 @@ def test_alignment_language_threshold_cannot_be_hidden_by_overall_average(tmp_pa
             }
         },
     )
-    report = evaluate_files(corpus, results)["capabilities"]["alignment"]
+    report = evaluate_files(corpus, capture)["capabilities"]["alignment"]
     assert report["overall"]["medianBoundaryErrorMs"] == 15
     assert report["byLanguage"]["zh-CN"]["medianBoundaryErrorMs"] == 30
     assert report["status"] == "failed"
@@ -111,8 +111,8 @@ def test_alignment_language_threshold_cannot_be_hidden_by_overall_average(tmp_pa
     ],
 )
 def test_tts_requires_three_distinct_reviews_before_reveal(tmp_path: Path, change: str, message: str) -> None:
-    corpus, results = acceptance_files(tmp_path)
-    payload = json.loads(results.read_text())
+    corpus, capture = acceptance_files(tmp_path)
+    payload = json.loads(capture.read_text())
     reviews = payload["capabilities"]["tts"]["reviews"]
     if change == "duplicate-rater":
         reviews[0]["raterId"] = reviews[1]["raterId"]
@@ -122,20 +122,20 @@ def test_tts_requires_three_distinct_reviews_before_reveal(tmp_path: Path, chang
         reviews[0]["sampleId"] = "unknown"
     else:
         reviews.pop()
-    results.write_text(json.dumps(payload))
+    capture.write_text(json.dumps(payload))
     with pytest.raises(EvidenceError, match=message):
-        evaluate_files(corpus, results)
+        evaluate_files(corpus, capture)
 
 
 def test_unavailable_cannot_hide_failed_scores(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
-    manifest = json.loads(results.read_text())
+    corpus, capture = acceptance_files(tmp_path)
+    manifest = json.loads(capture.read_text())
     manifest["capabilities"]["tts"] = {"status": "unavailable", "reason": "native audio absent"}
-    results.write_text(json.dumps(manifest))
-    assert evaluate_files(corpus, results)["status"] == "unavailable"
+    capture.write_text(json.dumps(manifest))
+    assert evaluate_files(corpus, capture)["status"] == "unavailable"
     assert run_report(tmp_path)[0] == 2
-    change_output(results, "asr", {"transcripts": {"zh-CN": "错", "en-US": "wrong", "silence": ""}})
-    assert evaluate_files(corpus, results)["status"] == "failed"
+    change_output(capture, "asr", {"transcripts": {"zh-CN": "错", "en-US": "wrong", "silence": ""}})
+    assert evaluate_files(corpus, capture)["status"] == "failed"
     assert run_report(tmp_path)[0] == 1
 
 
@@ -143,7 +143,7 @@ def test_isolated_report_distinguishes_missing_and_invalid_evidence(tmp_path: Pa
     code, report = run_report(tmp_path)
     assert code == 2 and report["status"] == "unavailable"
     acceptance_files(tmp_path)
-    (tmp_path / "results.json").write_text("{broken")
+    (tmp_path / "capture.json").write_text("{broken")
     code, report = run_report(tmp_path)
     assert code == 1 and report["status"] == "failed"
 
@@ -202,17 +202,17 @@ def test_corpus_enforces_preregistered_coverage(tmp_path: Path, change: str) -> 
 
 
 def test_candidate_vectors_require_finite_numbers_and_complete_identities(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
-    change_output(results, "embedding", {"queries": {"query": [float("nan"), 0]}, "documents": {}})
+    corpus, capture = acceptance_files(tmp_path)
+    change_output(capture, "embedding", {"queries": {"query": [float("nan"), 0]}, "documents": {}})
     with pytest.raises(EvidenceError, match="finite"):
-        evaluate_files(corpus, results)
-    change_output(results, "embedding", {"queries": {"other-query": [1, 0]}, "documents": {}})
+        evaluate_files(corpus, capture)
+    change_output(capture, "embedding", {"queries": {"other-query": [1, 0]}, "documents": {}})
     with pytest.raises(EvidenceError, match="identities"):
-        evaluate_files(corpus, results)
+        evaluate_files(corpus, capture)
 
 
 def test_changed_corpus_bytes_invalidate_candidate_provenance(tmp_path: Path) -> None:
-    corpus, results = acceptance_files(tmp_path)
+    corpus, capture = acceptance_files(tmp_path)
     corpus.write_text(corpus.read_text() + "\n")
     with pytest.raises(EvidenceError, match="corpus bytes"):
-        evaluate_files(corpus, results)
+        evaluate_files(corpus, capture)

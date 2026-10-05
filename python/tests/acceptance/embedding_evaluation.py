@@ -6,15 +6,15 @@ from typing import Any
 
 import numpy as np
 
+from acceptance.capture_manifest import EmbeddingEvidence, Provenance
 from acceptance.corpus import EmbeddingCorpus
 from acceptance.evidence import EvidenceError
 from acceptance.execution import EmbeddingValues, ExecutionEvidence
 from acceptance.provenance import load_execution_evidence
-from acceptance.results import EmbeddingResult, Provenance
 
 
 def evaluate_embedding(
-    corpus: EmbeddingCorpus, section: EmbeddingResult, base: Path, provenance: Provenance
+    corpus: EmbeddingCorpus, section: EmbeddingEvidence, base: Path, provenance: Provenance
 ) -> dict[str, Any]:
     profile = corpus.reference_profile
     reference = load_execution_evidence(

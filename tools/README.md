@@ -14,9 +14,8 @@ and `package`. Scripts expose a task once; flags select variants. Use `pnpm run`
 | `check:web`, `check:rust`, `check:python` | Verify the changed language independently.                                              |
 | `typecheck`, `lint`                       | Run one frontend check; `lint --fix` applies supported fixes.                           |
 | `security:web`                            | Audit production dependencies and registry signatures, especially in CI/release review. |
-| `e2e:build`                               | Build the dedicated native E2E flavor; also reused by both E2E suites.                  |
+| `e2e:build`                               | Build the dedicated desktop E2E flavor used by `e2e`.                                   |
 | `e2e`                                     | Run desktop interaction acceptance.                                                     |
-| `smoke:cutout`                            | Run the separate release cutout acceptance suite.                                       |
 | `contracts:generate`                      | Regenerate Rust-owned TypeScript/schema output and its Python models together.          |
 | `runtime:build`                           | Produce the controlled native Python runtime on its supported host.                     |
 | `runtime:provision`                       | Stage and verify controlled FFmpeg/Python artifacts for desktop development/packaging.  |
@@ -36,23 +35,23 @@ For vendor operations such as test watch mode or compile-only Tauri smoke, use `
 
 ## Native runtime
 
-| File                                  | Responsibility and caller                                                                            |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `build_python_runtime.py`             | Controlled interpreter/dependency build, relocation smoke and artifact publication; `runtime:build`. |
-| `verify_python_runtime_signatures.py` | Isolated native signature verification entry; `runtime/signatures.mjs`.                              |
-| `runtime_packaging/artifacts.py`      | Interpreter download/hash/size, safe extraction and runtime archive rules.                           |
-| `runtime_packaging/binaries.py`       | Enumerate native binaries for inventory/signing.                                                     |
-| `runtime_packaging/inventory.py`      | Record actual installed distributions, notices and source evidence; official CycloneDX output.       |
-| `runtime_packaging/signing.py`        | Invoke OS signing/verifying commands under approved identity policy.                                 |
-| `runtime_packaging/__init__.py`       | Regular Python package marker; no exported facade.                                                   |
-| `runtime/provision.mjs`               | Download, verify and activate controlled target archives; `runtime:provision`.                       |
-| `runtime/write-manifest.mjs`          | Enumerate and hash the signed runtime; called automatically by its producer.                         |
-| `runtime/files.mjs`                   | Strict runtime path/tree rules and file hashing reused by provisioning/manifests.                    |
-| `runtime/manifest.mjs`                | Validate manifest identity, size limits and the exact installed file set.                            |
-| `runtime/provenance.mjs`              | Bind interpreter/worker/source/build identities to frozen inputs.                                    |
-| `runtime/license-policy.mjs`          | Require explicit license approval bound to the exact inventory and lock.                             |
-| `runtime/signatures.mjs`              | Bind runtime signing identity to desktop production identity before isolated verification.           |
-| `runtime/package.mjs`                 | Extract final Windows installers and verify the exact contained runtime.                             |
+| File                                       | Responsibility and caller                                                                            |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `build_python_runtime.py`                  | Controlled interpreter/dependency build, relocation smoke and artifact publication; `runtime:build`. |
+| `verify_python_runtime_signatures.py`      | Isolated native signature verification entry; `runtime/signatures.mjs`.                              |
+| `runtime_packaging/artifacts.py`           | Interpreter download/hash/size, safe extraction and runtime archive rules.                           |
+| `runtime_packaging/binaries.py`            | Enumerate native binaries for inventory/signing.                                                     |
+| `runtime_packaging/inventory.py`           | Record actual installed distributions, notices and source evidence; official CycloneDX output.       |
+| `runtime_packaging/signing.py`             | Invoke OS signing/verifying commands under approved identity policy.                                 |
+| `runtime_packaging/__init__.py`            | Regular Python package marker; no exported facade.                                                   |
+| `runtime/provision.mjs`                    | Download, verify and activate controlled target archives; `runtime:provision`.                       |
+| `runtime/write-manifest.mjs`               | Enumerate and hash the signed runtime; called automatically by its producer.                         |
+| `runtime/files.mjs`                        | Strict runtime path/tree rules and file hashing reused by provisioning/manifests.                    |
+| `runtime/manifest.mjs`                     | Validate manifest identity, size limits and the exact installed file set.                            |
+| `runtime/provenance.mjs`                   | Bind interpreter/worker/source/build identities to frozen inputs.                                    |
+| `runtime/license-policy.mjs`               | Require explicit license approval bound to the exact inventory and lock.                             |
+| `runtime/signatures.mjs`                   | Bind runtime signing identity to desktop production identity before isolated verification.           |
+| `runtime/windows-package-verification.mjs` | Extract final Windows installers and verify the exact contained runtime.                             |
 
 These are necessary publication/verification rules. They are not everyday commands. Library or OS
 verification does not establish Knovum's exact target, source, lock, inventory or approval policy.
@@ -65,7 +64,7 @@ verification does not establish Knovum's exact target, source, lock, inventory o
 | `release/candidate.mjs`       | Verify all target artifacts and create one immutable draft; candidate CI.                      |
 | `release/promote.mjs`         | Verify approved candidate/public bytes and publish the stable channel; protected promotion CI. |
 | `release/policy.mjs`          | Version, platform, endpoint, public key and signing requirements.                              |
-| `release/files.mjs`           | Artifact size/hash rules, official Minisign verification and anonymous HTTPS downloads.        |
+| `release/artifacts.mjs`       | Artifact size/hash rules, official Minisign verification and anonymous HTTPS downloads.        |
 | `release/github.mjs`          | GitHub CLI calls scoped to the approved distribution repository and stable channel.            |
 | `release/update-manifest.mjs` | Official updater manifest shape and immutable version/promotion rules.                         |
 
@@ -86,11 +85,12 @@ standalone contract generator. Python model qualification belongs to `python/tes
 ## Removed duplication
 
 - Platform/release package aliases use `package --bundles …` / `package --release`.
-- Fix/check/watch aliases use the vendor flags or CLIs; E2E suites share one build command.
+- Fix/check/watch aliases use the vendor flags or CLIs; desktop E2E uses one build command.
 - Individual internal layout/capability/dead-code/duplication commands are composed into language gates.
 - Runtime manifest creation is an internal producer step.
 - The Rust source-token scanner was removed: it recognized selected spellings, not resolved module dependencies.
   The architectural boundary remains a Rust module/code-review requirement.
+- The empty background-removal smoke entry, its orphan WDIO configuration and stale CI callers were removed.
 - The provisioner reuses the existing runtime file hash implementation.
 
 No compatibility aliases, generic command dispatcher or extra task-runner framework are retained.

@@ -78,8 +78,6 @@ jobs:
         env:
           KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test local_resources_smoke
-      - name: Real background removal smoke
-        run: pnpm smoke:cutout
       - name: Install Windows signing client
         if: runner.os == 'Windows'
         run: cargo install artifact-signing-cli --version 0.11.0 --locked

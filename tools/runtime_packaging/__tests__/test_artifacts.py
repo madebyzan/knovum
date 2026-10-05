@@ -39,9 +39,9 @@ def test_internal_interpreter_alias_is_materialized_before_publication(
     root = extract_python(source, tmp_path / "unpacked")
     assert (root / "bin/python3").read_bytes() == b"interpreter"
     assert not (root / "bin/python3").is_symlink()
-    result = tmp_path / "runtime.tar.gz"
-    archive_runtime(root, result)
-    with tarfile.open(result) as output:
+    archive_path = tmp_path / "runtime.tar.gz"
+    archive_runtime(root, archive_path)
+    with tarfile.open(archive_path) as output:
         assert all(item.isfile() or item.isdir() for item in output.getmembers())
 
 
@@ -79,8 +79,8 @@ def test_windows_native_extensions_are_signed_and_verified(monkeypatch: pytest.M
     monkeypatch.setenv("KNOVUM_WINDOWS_TIMESTAMP_URL", "https://timestamp.example")
     commands = Mock(return_value=Mock(stdout="A" * 40))
     monkeypatch.setattr("runtime_packaging.signing.subprocess.run", commands)
-    result = sign_runtime(tmp_path, "windows-x64", "production")
-    assert result["compiledBinaryCount"] == 3
+    signing_evidence = sign_runtime(tmp_path, "windows-x64", "production")
+    assert signing_evidence["compiledBinaryCount"] == 3
     signed = [Path(call.args[0][-1]).name for call in commands.call_args_list if call.args[0][1] == "sign"]
     assert set(signed) == {"python.exe", "lib.dll", "extension.pyd"}
     commands.reset_mock()

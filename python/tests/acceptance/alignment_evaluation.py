@@ -5,15 +5,15 @@ from typing import Any
 
 import numpy as np
 
+from acceptance.capture_manifest import AlignmentEvidence, Provenance
 from acceptance.corpus import AlignmentCorpus, AlignmentThresholds
 from acceptance.evidence import EvidenceError
 from acceptance.execution import AlignmentValues, ExecutionEvidence
 from acceptance.provenance import load_execution_evidence
-from acceptance.results import AlignmentResult, Provenance
 
 
 def evaluate_alignment(
-    corpus: AlignmentCorpus, section: AlignmentResult, base: Path, provenance: Provenance
+    corpus: AlignmentCorpus, section: AlignmentEvidence, base: Path, provenance: Provenance
 ) -> dict[str, Any]:
     values = load_execution_evidence(
         section.candidate_output,

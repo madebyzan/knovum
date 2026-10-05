@@ -7,15 +7,15 @@ from typing import Any
 
 from jiwer import process_characters, process_words
 
+from acceptance.capture_manifest import Provenance, TranscriptionEvidence
 from acceptance.corpus import TranscriptionCorpus
 from acceptance.evidence import EvidenceError
 from acceptance.execution import ExecutionEvidence, TranscriptionValues
 from acceptance.provenance import load_execution_evidence
-from acceptance.results import Provenance, TranscriptionResult
 
 
 def evaluate_transcription(
-    corpus: TranscriptionCorpus, section: TranscriptionResult, base: Path, provenance: Provenance
+    corpus: TranscriptionCorpus, section: TranscriptionEvidence, base: Path, provenance: Provenance
 ) -> dict[str, Any]:
     profile = corpus.baseline_profile
     parameters = provenance.configs.asr.parameters

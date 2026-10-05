@@ -109,7 +109,7 @@ Repository tooling owns `tools/generate_python_contracts.py` and the native runt
 entries `tools/build_python_runtime.py` / `tools/verify_python_runtime_signatures.py`.
 `tools/runtime_packaging/` owns controlled artifact handling, binary inspection, installed inventory
 and native signing policy. Its tests live in `tools/runtime_packaging/__tests__/`.
-Model qualification belongs to `python/tests/acceptance/`: strict corpus/result/execution contracts,
+Model qualification belongs to `python/tests/acceptance/`: strict corpus/capture-manifest/execution contracts,
 hash-bound provenance and the four capability scorers. Pydantic owns structural validation,
 NumPy owns vector arithmetic and percentiles, and JiWER owns transcription error counts.
 Only corpus coverage, release identity, retrieval judgments, thresholds and blind-review rules remain

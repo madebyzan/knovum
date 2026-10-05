@@ -6,24 +6,24 @@ import { join } from "node:path";
 
 import { decodeSigningText, httpsUrl, publicKey } from "./policy.mjs";
 
-export const maxUpdateBytes = 1024 * 1024 * 1024;
+export const MAX_ARTIFACT_BYTES = 1024 * 1024 * 1024;
 
-export function safeFilename(value) {
+export function safeArtifactFilename(value) {
   if (typeof value !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(value)) {
     throw new Error("Release assets must use safe, flat filenames");
   }
   return value;
 }
 
-export async function fileDigest(file) {
+export async function artifactSha256(file) {
   const size = statSync(file).size;
-  if (!size || size > maxUpdateBytes) throw new Error("Release asset must be between 1 byte and 1 GiB");
+  if (!size || size > MAX_ARTIFACT_BYTES) throw new Error("Release asset must be between 1 byte and 1 GiB");
   const hash = createHash("sha256");
   for await (const chunk of createReadStream(file)) hash.update(chunk);
   return hash.digest("hex");
 }
 
-export function verifySignature(file, signature, key) {
+export function verifyArtifactSignature(file, signature, key) {
   const directory = mkdtempSync(join(tmpdir(), "knovum-signature-"));
   try {
     const publicKeyFile = join(directory, "public.key");
@@ -36,21 +36,21 @@ export function verifySignature(file, signature, key) {
   }
 }
 
-export async function verifyReleaseFiles(directory, artifacts, key) {
-  const names = artifacts.map((artifact) => safeFilename(artifact.file));
+export async function verifyReleaseArtifacts(directory, artifacts, key) {
+  const names = artifacts.map((artifact) => safeArtifactFilename(artifact.file));
   if (new Set(names).size !== names.length) throw new Error("Duplicate release asset filename");
   await Promise.all(
     artifacts.map(async (artifact) => {
       const file = join(directory, artifact.file);
-      if ((await fileDigest(file)) !== artifact.sha256) {
+      if ((await artifactSha256(file)) !== artifact.sha256) {
         throw new Error(`Release asset hash mismatch: ${artifact.file}`);
       }
-      verifySignature(file, artifact.signature, key);
+      verifyArtifactSignature(file, artifact.signature, key);
     }),
   );
 }
 
-export function downloadPublicFile(url, file) {
+export function downloadPublicArtifact(url, file) {
   const source = httpsUrl(url, "Public release asset").href;
   // No GitHub token is ever sent to public artifact hosts or their redirects.
   execFileSync(
@@ -69,7 +69,7 @@ export function downloadPublicFile(url, file) {
       "--max-time",
       "1800",
       "--max-filesize",
-      String(maxUpdateBytes),
+      String(MAX_ARTIFACT_BYTES),
       "--output",
       file,
       "--",

@@ -7,6 +7,7 @@ import pytest
 from jiwer import process_characters, process_words
 
 from acceptance.alignment_evaluation import alignment_metrics
+from acceptance.capture_manifest import Unavailable
 from acceptance.contracts import HashedFile
 from acceptance.embedding_evaluation import cosine, ndcg_at_10, ranked_document_ids, recall_at_10
 from acceptance.evaluator import evaluate_or_unavailable
@@ -14,7 +15,6 @@ from acceptance.evidence import EvidenceError, EvidenceUnavailable, resolve_hash
 from acceptance.execution import ExecutionEvidence, TranscriptionValues
 from acceptance.fixtures import execution_fixture, provenance_fixture, write_json
 from acceptance.provenance import load_execution_evidence
-from acceptance.results import Unavailable
 from acceptance.transcription_evaluation import character_tokens, word_tokens
 
 
@@ -143,7 +143,7 @@ def test_invocation_contract_rejects_coercion_and_invalid_times(change: dict[str
 def test_configuration_rejects_non_json_numbers_inside_nested_parameters(number: float) -> None:
     from pydantic import ValidationError
 
-    from acceptance.results import ExecutionConfiguration
+    from acceptance.capture_manifest import ExecutionConfiguration
 
     with pytest.raises(ValidationError):
         ExecutionConfiguration.model_validate_json(json.dumps({"id": "profile", "parameters": {"nested": [number]}}))

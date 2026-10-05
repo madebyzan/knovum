@@ -1,4 +1,4 @@
-"""Candidate identity and capability evidence manifests."""
+"""Native inference capture manifest and capability evidence."""
 
 from __future__ import annotations
 
@@ -69,20 +69,20 @@ class Unavailable(EvidenceModel):
     reason: Text
 
 
-class EmbeddingResult(EvidenceModel):
+class EmbeddingEvidence(EvidenceModel):
     status: Literal["completed"]
     comparison_mode: Literal["cpu_float32", "release_profile"]
     reference_output: HashedFile
     candidate_output: HashedFile
 
 
-class TranscriptionResult(EvidenceModel):
+class TranscriptionEvidence(EvidenceModel):
     status: Literal["completed"]
     baseline_output: HashedFile
     candidate_output: HashedFile
 
 
-class AlignmentResult(EvidenceModel):
+class AlignmentEvidence(EvidenceModel):
     status: Literal["completed"]
     candidate_output: HashedFile
 
@@ -100,23 +100,23 @@ class VoiceReview(EvidenceModel):
     reviewed_at: AwareDatetime
 
 
-class SynthesisResult(EvidenceModel):
+class SynthesisEvidence(EvidenceModel):
     status: Literal["completed"]
     candidate_output: HashedFile
     blinding: Blinding
     reviews: list[VoiceReview]
 
 
-class CapabilityResults(EvidenceModel):
-    embedding: Annotated[EmbeddingResult | Unavailable, Field(discriminator="status")]
-    asr: Annotated[TranscriptionResult | Unavailable, Field(discriminator="status")]
-    alignment: Annotated[AlignmentResult | Unavailable, Field(discriminator="status")]
-    tts: Annotated[SynthesisResult | Unavailable, Field(discriminator="status")]
+class CapabilityEvidence(EvidenceModel):
+    embedding: Annotated[EmbeddingEvidence | Unavailable, Field(discriminator="status")]
+    asr: Annotated[TranscriptionEvidence | Unavailable, Field(discriminator="status")]
+    alignment: Annotated[AlignmentEvidence | Unavailable, Field(discriminator="status")]
+    tts: Annotated[SynthesisEvidence | Unavailable, Field(discriminator="status")]
 
 
-class Results(EvidenceModel):
+class CaptureManifest(EvidenceModel):
     schema_version: SchemaVersion
     run_id: Text
     captured_at: AwareDatetime
     provenance: Provenance
-    capabilities: CapabilityResults
+    capabilities: CapabilityEvidence
