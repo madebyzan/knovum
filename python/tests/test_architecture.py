@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -8,28 +9,88 @@ from pathlib import Path
 import pytest
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
-PACKAGE = SOURCE / "knovum_inference"
+DEPENDENCIES = {
+    "knovum_inference": {
+        "__init__": set(),
+        "__main__": {"server"},
+        "server": {"runtime"},
+        "runtime": {"contracts", "embedding", "errors", "image_segmentation", "speech", "transport"},
+        "transport": {"contracts", "errors"},
+        "contracts": set(),
+        "errors": set(),
+        "speech": {"contracts", "errors"},
+        "embedding": {"errors"},
+        "image_segmentation": {"errors"},
+    },
+}
+TOOLING_PACKAGES = {"scripts", "tests", "acceptance", "runtime", "generate_python_contracts"}
 
 
-@pytest.mark.parametrize("owner", ["contracts", "transport", "speech", "embedding.py", "image_segmentation.py"])
-def test_implementation_owners_do_not_depend_on_runtime_composition_or_scripts(owner: str) -> None:
-    path = PACKAGE / owner
-    modules = [path] if path.is_file() else list(path.rglob("*.py"))
-    allowed = {"errors", owner.split(".")[0], "contracts"}
-    for module in modules:
-        for node in ast.walk(ast.parse(module.read_text())):
-            imports = (
-                [node.module or ""]
-                if isinstance(node, ast.ImportFrom)
-                else [alias.name for alias in node.names]
-                if isinstance(node, ast.Import)
-                else []
-            )
-            for imported in imports:
-                assert imported.split(".")[0] not in {"runtime", "acceptance"}, str(module)
-                if imported.startswith("knovum_inference."):
-                    dependency = imported.split(".")[1]
-                    assert dependency in allowed, f"{module}: forbidden dependency {imported}"
+def imports(source: str, package: str) -> set[str]:
+    dependencies: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            dependencies.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            if node.level:
+                module = importlib.util.resolve_name("." * node.level + module, package)
+            dependencies.add(module)
+            dependencies.update(f"{module}.{alias.name}" for alias in node.names if alias.name != "*")
+    return dependencies
+
+
+def check_dependencies(source: str, module: str, owner: str) -> None:
+    package = module.rsplit(".", 1)[0]
+    root = module.split(".")[0]
+    allowed = DEPENDENCIES[root][owner] | {owner}
+    for dependency in imports(source, package):
+        parts = dependency.split(".")
+        assert parts[0] not in TOOLING_PACKAGES, f"{module}: tooling dependency {dependency}"
+        if not parts[0].startswith("knovum_"):
+            continue
+        assert parts[0] == root, f"{module}: undeclared cross-capability dependency {dependency}"
+        if len(parts) > 1 and parts[1] in DEPENDENCIES[root]:
+            assert parts[1] in allowed, f"{module}: forbidden dependency {dependency}"
+
+
+def test_all_source_packages_have_explicit_dependency_and_test_ownership() -> None:
+    packages = {path.name for path in SOURCE.iterdir() if path.is_dir() and path.name != "__pycache__"}
+    assert packages == DEPENDENCIES.keys()
+    for package in packages:
+        assert (SOURCE.parent / "tests" / package.removeprefix("knovum_")).is_dir()
+        modules = list((SOURCE / package).rglob("*.py"))
+        owners = {path.relative_to(SOURCE / package).parts[0].removesuffix(".py") for path in modules}
+        assert owners == DEPENDENCIES[package].keys()
+        for path in modules:
+            module = ".".join(path.relative_to(SOURCE).with_suffix("").parts)
+            owner = path.relative_to(SOURCE / package).parts[0].removesuffix(".py")
+            check_dependencies(path.read_text(), module, owner)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "import knovum_inference.runtime.worker",
+        "from knovum_inference import runtime",
+        "from ..runtime import worker",
+        "from .. import runtime",
+        "import knovum_agent_runtime",
+        "from scripts.runtime import artifacts",
+        "from acceptance import evaluator",
+    ],
+)
+def test_capability_boundary_rejects_absolute_relative_and_package_imports(source: str) -> None:
+    with pytest.raises(AssertionError):
+        check_dependencies(source, "knovum_inference.speech.alignment", "speech")
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["from ..errors import server_error", "from .request import verify_audio", "from ..contracts import wire_model"],
+)
+def test_capability_boundary_accepts_owned_dependencies(source: str) -> None:
+    check_dependencies(source, "knovum_inference.speech.alignment", "speech")
 
 
 def test_worker_entry_import_does_not_load_unselected_inference_libraries() -> None:

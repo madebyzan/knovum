@@ -84,6 +84,8 @@ export function validateRuntimeDistribution(
       "--no-default-groups",
       "--no-header",
       "--no-annotate",
+      "--extra",
+      "inference",
       "--no-emit-package",
       "voxcpm",
     ],

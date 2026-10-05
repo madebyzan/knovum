@@ -46,14 +46,16 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 
 ## Distribution boundaries
 
-The desktop installer includes FFmpeg, the application-owned `knovum_inference` Worker and
+The desktop installer includes FFmpeg, application-owned Python capability source from `python/src` and
 `resources/python-runtime-descriptor.json`. It excludes CPython and third-party Python packages.
-The small Worker follows the application version. One immutable shared Python runtime per target
+The small application source payload follows the application version. `knovum_inference` currently
+provides the `knovum-inference` process entry; future capability entries have their own lifecycle. One immutable shared Python runtime per target
 contains the interpreter, third-party inference dependencies, notices/licenses,
 `runtime-requirements.txt` and the complete `runtime-manifest.json` (schema version 2).
 Worker source and its private IPC protocol are not part of the third-party runtime identity.
 
-The native runtime producer exports frozen runtime requirements without project, development
+The native runtime producer explicitly selects the `inference` extra and exports frozen
+requirements without project, development
 or quality dependencies, and records the pinned VoxCPM Git revision separately. Application
 packaging compares these actual requirements to the selected publication. Changing the Worker
 or unrelated quality dependencies does not require users to download a new runtime.
@@ -141,7 +143,7 @@ materials must accompany the reviewed publication.
 
 Packaging verifies the external runtime and its production signatures before Tauri, copies only
 current `.py` Worker files and the trusted descriptor, then checks the actual macOS `.app` or
-extracted Windows NSIS/MSI contents. Each must contain the exact Worker/descriptor and no
+extracted Windows NSIS/MSI contents. Each must contain the exact application source payload/descriptor and no
 interpreter/runtime manifest. NSIS extraction uses pinned 7-Zip 26.03; MSI uses Windows Installer's
 administrative image. Temporary extraction is removed on success and failure. Runtime imports
 are smoke-tested separately with the current application Worker. Qualification binds both

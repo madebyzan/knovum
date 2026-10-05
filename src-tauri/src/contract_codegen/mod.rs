@@ -46,7 +46,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let config = Config::new().with_out_dir(&output).with_large_int("number");
     bindings::export(&config)?;
     export_runtime_values(&output)?;
-    let wire_schema = project_root.join("python/schemas/runtime.schema.json");
+    let wire_schema = project_root.join("python/schemas/inference.schema.json");
     std::fs::create_dir_all(
         wire_schema
             .parent()

@@ -71,7 +71,7 @@ CONTRACT_MODULES = {
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1] / "python"
-    schema = json.loads((root / "schemas/runtime.schema.json").read_text())
+    schema = json.loads((root / "schemas/inference.schema.json").read_text())
     owners = {name: module for module, names in CONTRACT_MODULES.items() for name in names}
     if len(owners) != sum(len(names) for names in CONTRACT_MODULES.values()) or owners.keys() != schema["$defs"].keys():
         raise ValueError("Every Rust wire definition must have exactly one Python contract module")
@@ -80,7 +80,7 @@ def main() -> None:
     schema["title"] = "schema.InferenceWireSchemas"
     output = root / "src/knovum_inference/contracts/generated"
     with tempfile.TemporaryDirectory(prefix="knovum-contracts-") as directory:
-        source = Path(directory) / "runtime.schema.json"
+        source = Path(directory) / "inference.schema.json"
         source.write_text(json.dumps(schema))
         generated = Path(directory) / "generated"
         subprocess.run(

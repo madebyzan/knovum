@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, TypeAlias
 
 from knovum_inference import PROTOCOL_VERSION
 from knovum_inference.contracts.generated.control import RuntimeCapability, RuntimeInitializeParams
@@ -15,6 +15,20 @@ from knovum_inference.speech.diarization import DiarizationEngine
 from knovum_inference.speech.synthesis.engine import SynthesisEngine
 from knovum_inference.speech.transcription import TranscriptionEngine
 
+if TYPE_CHECKING:
+    from knovum_inference.image_segmentation import ImageSegmentationEngine
+    from knovum_inference.speech.separation import SpleeterSourceSeparator
+
+    InferenceEngine: TypeAlias = (
+        EmbeddingEngine
+        | TranscriptionEngine
+        | AlignmentEngine
+        | DiarizationEngine
+        | SynthesisEngine
+        | SpleeterSourceSeparator
+        | ImageSegmentationEngine
+    )
+
 _TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1"})
 
 
@@ -23,7 +37,7 @@ class Session:
     session_id: str
     capability: RuntimeCapability
     capability_spec_id: str
-    engine: Any
+    engine: InferenceEngine
     work_directory: Path
 
 
@@ -101,7 +115,7 @@ def _selected_model_path(params: RuntimeInitializeParams) -> Path:
     return model_path.resolve(strict=True)
 
 
-def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_directory: Path) -> Any:
+def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_directory: Path) -> InferenceEngine:
     capability = params.capability
     device = params.device_profile.device
     threads = params.device_profile.cpu_threads

@@ -11,7 +11,7 @@ from knovum_inference import PROTOCOL_VERSION
 
 
 def test_closed_transport_terminates_stuck_native_initialization() -> None:
-    source = Path(__file__).resolve().parents[2] / "src"
+    source = Path(__file__).resolve().parents[3] / "src"
     script = """
 import asyncio
 import sys

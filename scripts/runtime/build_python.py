@@ -72,7 +72,7 @@ def install_dependencies(runtime: Path, scratch: Path, executable: Path) -> dict
     build_python = build_environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     build_requirements, requirements = scratch / "build-requirements.txt", scratch / "requirements.txt"
     export_requirements(build_requirements, "--only-group", "runtime-build")
-    export_requirements(requirements, "--no-emit-package", "voxcpm")
+    export_requirements(requirements, "--extra", "inference", "--no-emit-package", "voxcpm")
     run(
         "uv",
         "pip",
