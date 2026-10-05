@@ -63,6 +63,7 @@ pub async fn complete(
     app: &AppHandle,
     request: &GenerateImageLayersRequest,
     layers: &[PreparedLayer],
+    generation: &super::registry::Generation,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -98,6 +99,7 @@ pub async fn complete(
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
+    generation.begin_publication()?;
     tx.commit()
         .await
         .map_err(db::sql_error)

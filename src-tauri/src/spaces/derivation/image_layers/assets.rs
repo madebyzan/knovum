@@ -3,6 +3,7 @@ use std::{fs, io::Cursor, path::PathBuf};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
+use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 const MAX_SOURCE_BYTES: usize = 10 * 1024 * 1024;
@@ -26,11 +27,15 @@ pub fn encode_source_image_uri(bytes: &[u8]) -> Result<String, String> {
     Ok(format!("data:image/png;base64,{}", STANDARD.encode(bytes)))
 }
 
-pub fn prepare(app: &AppHandle, layers: Vec<Vec<u8>>) -> Result<Vec<PreparedLayer>, String> {
+pub fn prepare(
+    app: &AppHandle,
+    layers: Vec<Vec<u8>>,
+    cancellation: &CancellationToken,
+) -> Result<Vec<PreparedLayer>, String> {
     let directory = crate::spaces::assets::asset_directory(app)?;
     let mut prepared = Vec::with_capacity(layers.len());
     for bytes in layers {
-        let prepared_layer = prepare_one(&directory, bytes);
+        let prepared_layer = prepare_one(&directory, bytes, cancellation);
         match prepared_layer {
             Ok(layer) => prepared.push(layer),
             Err(error) => {
@@ -42,13 +47,23 @@ pub fn prepare(app: &AppHandle, layers: Vec<Vec<u8>>) -> Result<Vec<PreparedLaye
     Ok(prepared)
 }
 
-fn prepare_one(directory: &std::path::Path, bytes: Vec<u8>) -> Result<PreparedLayer, String> {
+fn prepare_one(
+    directory: &std::path::Path,
+    bytes: Vec<u8>,
+    cancellation: &CancellationToken,
+) -> Result<PreparedLayer, String> {
+    if cancellation.is_cancelled() {
+        return Err("Image layer split was cancelled".into());
+    }
     if bytes.is_empty() || bytes.len() > MAX_LAYER_BYTES {
         return Err("fal returned an invalid layer size".into());
     }
     let decoded = decode_png(&bytes, "fal layer")?;
     if !decoded.color().has_alpha() {
         return Err("fal returned a layer without an alpha channel".into());
+    }
+    if cancellation.is_cancelled() {
+        return Err("Image layer split was cancelled".into());
     }
     let path = directory.join(format!("layer-{}.png", Uuid::new_v4()));
     if let Err(error) = fs::write(&path, &bytes) {

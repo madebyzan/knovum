@@ -32,7 +32,8 @@ pub async fn generate(
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     contracts::validate(&request)?;
     let api_key = require_api_key().await?;
-    let (cancellation, _lease) = registry::acquire(&request.generation_id)?;
+    let (generation, _lease) = registry::acquire(&request.generation_id)?;
+    let cancellation = generation.cancellation();
     persistence::start(&app, &request).await?;
     let encode_source_image_uri = match source::load_image_uri(&app, &request).await {
         Ok(data_uri) => data_uri,
@@ -45,7 +46,7 @@ pub async fn generate(
         &encode_source_image_uri,
         request.output_node_ids.len(),
         request.prompt.as_deref(),
-        &cancellation,
+        cancellation,
         || stage(&on_stage, "downloading"),
     )
     .await
@@ -53,12 +54,18 @@ pub async fn generate(
         Ok(layers) => layers,
         Err(error) => return failed(&app, &request, error.into()).await,
     };
-    let prepared = match assets::prepare(&app, layers) {
+    let preparation_app = app.clone();
+    let preparation_cancellation = cancellation.clone();
+    let prepared = match crate::blocking::run(move || {
+        assets::prepare(&preparation_app, layers, &preparation_cancellation)
+    })
+    .await
+    {
         Ok(prepared) => prepared,
         Err(error) => return failed(&app, &request, error.into()).await,
     };
     stage(&on_stage, "publishing");
-    match persistence::complete(&app, &request, &prepared).await {
+    match persistence::complete(&app, &request, &prepared, &generation).await {
         Ok(completed) => Ok(completed),
         Err(error) => {
             assets::remove(&prepared);

@@ -128,20 +128,23 @@ where
     let mut last_event_seq = 0;
     let mut synthesis_stream =
         (capability == RuntimeCapability::SpeechSynthesis).then(SynthesisStream::new);
-    let send = tokio::select! {
-        biased;
-        _ = exit.cancelled() => Err("cancelled".into()),
-        _ = cancellation.cancelled() => Err("cancelled".into()),
-        result = tokio::time::timeout(
-            super::super::deadline_duration(identity.deadline_ms)?,
-            worker.protocol.send_request(&request_id, params.method(), &params),
-        ) => result.map_err(|_| "deadline_exceeded".to_owned())?,
+    let deadline = match worker
+        .send_request(
+            &request_id,
+            params.method(),
+            &params,
+            identity.deadline_ms,
+            cancellation,
+            exit,
+        )
+        .await
+    {
+        Ok(deadline) => deadline,
+        Err(error) => {
+            *guard = None;
+            return Err(error);
+        }
     };
-    if let Err(error) = send {
-        worker.terminate().await;
-        *guard = None;
-        return Err(error);
-    }
     let response = tokio::select! {
         biased;
         _ = exit.cancelled() => {
@@ -154,8 +157,8 @@ where
             *guard = None;
             return Err("cancelled".into());
         }
-        result = tokio::time::timeout(
-            super::super::deadline_duration(identity.deadline_ms)?,
+        result = tokio::time::timeout_at(
+            deadline,
             async {
                 loop {
                     let message = worker.protocol.read().await?;

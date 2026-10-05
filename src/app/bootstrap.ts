@@ -15,6 +15,7 @@ import { usePreferencesStore } from "../foundation/preferences/preferences-store
 import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
 import { installTaskbarProgress } from "../foundation/tasks/taskbar-progress";
 import { installWindowActivityState } from "../foundation/window/window-activity";
+import { installIntegrationSettingsPersistence } from "./integration-settings-lifecycle";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 
 const WATCHDOG_TIMEOUT_MS = 25000;
@@ -28,6 +29,7 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
   }, WATCHDOG_TIMEOUT_MS);
 
   try {
+    installIntegrationSettingsPersistence(pinia);
     await initializeExitCoordination();
     installRuntimeDiagnostics();
     installTaskbarProgress(pinia);

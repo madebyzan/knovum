@@ -8,6 +8,7 @@ from knovum_inference.contracts.wire_model import WireModel
 from . import (
     alignment,
     control,
+    diagnostics,
     diarization,
     embedding,
     image,
@@ -18,6 +19,7 @@ from . import (
 
 
 class InferenceWireSchemas(WireModel):
+    diagnostic: diagnostics.RuntimeDiagnostic
     initialize_params: control.RuntimeInitializeParams
     initialize_result: control.RuntimeSession
     health_params: control.RuntimeHealthParams

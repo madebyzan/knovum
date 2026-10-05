@@ -7,6 +7,7 @@ use ts_rs::Config;
 #[allow(dead_code)]
 #[derive(schemars::JsonSchema)]
 struct InferenceWireSchemas {
+    diagnostic: crate::ai::contracts::diagnostics::RuntimeDiagnostic,
     initialize_params: crate::ai::contracts::runtime::RuntimeInitializeParams,
     initialize_result: crate::ai::contracts::runtime::RuntimeSession,
     health_params: crate::ai::contracts::runtime::RuntimeHealthParams,

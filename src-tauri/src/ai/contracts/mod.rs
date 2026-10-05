@@ -1,5 +1,6 @@
 pub mod agent;
 pub mod chat;
+pub mod diagnostics;
 pub mod embedding;
 pub mod embedding_wire;
 pub mod files;

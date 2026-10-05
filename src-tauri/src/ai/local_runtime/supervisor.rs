@@ -141,20 +141,23 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         texts,
         embedding_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
     };
-    let send = tokio::select! {
-        biased;
-        _ = exit.cancelled() => Err("cancelled".into()),
-        _ = cancellation.cancelled() => Err("cancelled".into()),
-        encoding = tokio::time::timeout(
-            super::deadline_duration(identity.deadline_ms)?,
-            worker.protocol.send_request(&request_id, "embedding.encode", &params),
-        ) => encoding.map_err(|_| "deadline_exceeded".to_owned())?,
+    let deadline = match worker
+        .send_request(
+            &request_id,
+            "embedding.encode",
+            &params,
+            identity.deadline_ms,
+            cancellation,
+            exit,
+        )
+        .await
+    {
+        Ok(deadline) => deadline,
+        Err(error) => {
+            *guard = None;
+            return Err(error);
+        }
     };
-    if let Err(error) = send {
-        worker.terminate().await;
-        *guard = None;
-        return Err(error);
-    }
     let encoding = tokio::select! {
         biased;
         _ = exit.cancelled() => {
@@ -167,7 +170,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             *guard = None;
             return Err("cancelled".into());
         }
-        encoding = tokio::time::timeout(super::deadline_duration(identity.deadline_ms)?, worker.protocol.read_response::<EmbeddingEncoding>(&request_id)) => {
+        encoding = tokio::time::timeout_at(deadline, worker.protocol.read_response::<EmbeddingEncoding>(&request_id)) => {
             match encoding {
                 Ok(value) => value,
                 Err(_) => {

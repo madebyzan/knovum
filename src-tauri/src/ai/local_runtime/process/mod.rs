@@ -1,3 +1,5 @@
+mod diagnostics;
+mod request;
 mod startup;
 use std::{
     path::{Path, PathBuf},
@@ -214,3 +216,6 @@ impl Drop for ProcessTree {
         self.terminate();
     }
 }
+
+#[cfg(test)]
+mod tests;

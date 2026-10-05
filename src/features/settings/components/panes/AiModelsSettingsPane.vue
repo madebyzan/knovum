@@ -8,6 +8,7 @@ import { toast } from "vue-sonner";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
+import { resetAiSettings } from "../../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { RoutingPurpose } from "../../../../shared/contracts/generated/RoutingPurpose";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -65,7 +66,7 @@ async function resetSection() {
   });
   if (!confirmed) return;
   if (failure.value?.source === "creation") await creationStore.reset();
-  else await aiStore.reset();
+  else await resetAiSettings();
 }
 
 onMounted(hydrateStores);

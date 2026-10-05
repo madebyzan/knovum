@@ -3,6 +3,9 @@
   "title": "InferenceWireSchemas",
   "type": "object",
   "properties": {
+    "diagnostic": {
+      "$ref": "#/$defs/RuntimeDiagnostic"
+    },
     "initialize_params": {
       "$ref": "#/$defs/RuntimeInitializeParams"
     },
@@ -89,6 +92,7 @@
     }
   },
   "required": [
+    "diagnostic",
     "initialize_params",
     "initialize_result",
     "health_params",
@@ -119,6 +123,101 @@
     "speech_separate_result"
   ],
   "$defs": {
+    "RuntimeDiagnostic": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/RuntimeDiagnosticEvent"
+        },
+        "code": {
+          "$ref": "#/$defs/RuntimeDiagnosticCode"
+        },
+        "method": {
+          "$ref": "#/$defs/RuntimeDiagnosticMethod"
+        },
+        "requestId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exceptionType": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RuntimeDiagnosticFrame"
+          },
+          "maxItems": 8
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "event",
+        "code",
+        "method",
+        "exceptionType",
+        "frames"
+      ]
+    },
+    "RuntimeDiagnosticEvent": {
+      "type": "string",
+      "enum": [
+        "requestFailed"
+      ]
+    },
+    "RuntimeDiagnosticCode": {
+      "type": "string",
+      "enum": [
+        "invalid_output",
+        "runtime_mismatch",
+        "resource_exhausted"
+      ]
+    },
+    "RuntimeDiagnosticMethod": {
+      "type": "string",
+      "enum": [
+        "runtime.initialize",
+        "runtime.health",
+        "runtime.cancel",
+        "runtime.ackChunk",
+        "runtime.shutdown",
+        "embedding.encode",
+        "image.segment",
+        "speech.transcribe",
+        "speech.align",
+        "speech.diarize",
+        "speech.synthesize",
+        "speech.separate",
+        "unknown"
+      ]
+    },
+    "RuntimeDiagnosticFrame": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "function": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "function",
+        "line"
+      ]
+    },
     "RuntimeInitializeParams": {
       "type": "object",
       "properties": {
