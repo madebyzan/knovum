@@ -124,6 +124,8 @@ storage layout; `validation` names validation policy; `decode` names persistence
 for a module containing lifecycle operations instead of calling it `types`. Rust file and directory
 modules follow the same responsibilities: split into a directory only when there are actual
 submodules, and keep the `mod.rs` entry focused on composition where practical.
+A sibling file and directory must not share the same stem, including case-only differences;
+this applies to repository entry documents and local resource folders as well as source modules.
 
 ## Domain verbs
 
@@ -416,13 +418,14 @@ Short local names such as `row`, `value`, `save`, `start`, `busy`, and `editing`
 
 ## Tests
 
-Keep Rust unit tests close to the owning module, in separate files. A test file may sit beside
-the business entry only when those are the directory's only two entries, both files. Otherwise,
-test suites, fixtures and helpers belong under the owner's `tests/` directory, with `tests/mod.rs`
+Keep Rust unit tests close to the owning module, in dedicated directories. Test suites, fixtures
+and helpers belong under the owner's `tests/` directory, with `tests/mod.rs`
 as the test module entry. Split suites use concrete subject names inside that directory.
 The business module contains only the `#[cfg(test)] mod tests;` declaration; do not embed test
 bodies in business files. A module that gains test submodules follows the same `<name>/mod.rs`
-layout as other split modules. Test-only helpers remain behind `#[cfg(test)]`. Child unit-test
+layout as other split modules. Leaf modules may declare a test module with an explicit path into
+their owner's `tests/` directory; the module remains a child of the tested implementation.
+Test-only helpers remain behind `#[cfg(test)]`. Child unit-test
 modules can exercise private implementation without widening the production API. Use
 `src-tauri/tests/` for integration tests through the crate's public interface; tests requiring
 private interfaces remain unit tests within their owning module.
@@ -433,17 +436,23 @@ and `UiButton.test.ts`. Name a cross-owner integration scenario for the user cap
 rather than pretending it maps to one source file. Shared test fixtures and mocks belong under that
 owner's `__tests__/support/`, so they remain outside production typechecking and business imports.
 Production source must not import test files, Vitest or Vue Test Utils.
+Python tests live in `python/tests/`, tooling policy tests in `tools/__tests__/`, and desktop E2E
+scenarios in `tests/e2e/`. Test-specific imports belong in test files, not business modules.
 
 ## Automated checks
 
 A repository-specific check earns its maintenance cost only when it reads authoritative structured
-configuration or when an established tool already provides the rule. What remains:
+configuration, uses an established tool's rule, or verifies an explicit source-layout contract
+that existing language tools do not enforce. Source-layout gates have fixture-based regression
+coverage and do not attempt to infer business behavior. What remains:
 
 - the capability policy check rejects WebView SQL, `fs:default` on the main window and persistent
   filesystem mutation in the Spaces capability by reading the capability JSON directly;
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment lines, complexity 10 and four
   parameters;
-- Knip reports dead code and unused dependencies.
+- Knip reports dead code and unused dependencies;
+- `check:source-layout` checks sibling stems, test placement and the handwritten Rust/Python
+  size limit specified in `architecture.md`.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
 catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging

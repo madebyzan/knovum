@@ -1,7 +1,8 @@
-use super::{
-    filter_graph, TextOverlay, TextPlacement, TextPreset, TextStyle, TextTrack, VideoClip,
-    VideoEditProject, VideoTrack, VideoTransform,
+use super::contracts::{
+    TextOverlay, TextPlacement, TextPreset, TextStyle, TextTrack, VideoClip, VideoTrack,
+    VideoTransform,
 };
+use super::{filter_graph, VideoEditProject};
 
 fn project() -> VideoEditProject {
     VideoEditProject {

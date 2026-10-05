@@ -20,8 +20,6 @@ use crate::{app_error::AppError, blocking};
 pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
 };
-#[cfg(test)]
-use contracts::{TextOverlay, TextStyle, TextTrack, VideoClip, VideoTrack, VideoTransform};
 use contracts::{TextPlacement, TextPreset};
 
 pub const CANCELLED: &str = "video-edit-render-cancelled";

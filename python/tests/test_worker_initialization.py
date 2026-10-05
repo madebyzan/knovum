@@ -11,6 +11,7 @@ import pytest
 from knovum_inference import PROTOCOL_VERSION, runtime_initialization, worker
 from knovum_inference.errors import RpcError
 from knovum_inference.protocol import Request
+from knovum_inference.request_contract import validate_params
 from knovum_inference.runtime_initialization import Session
 
 
@@ -150,7 +151,7 @@ def test_failed_preparation_never_exposes_a_ready_session(monkeypatch: pytest.Mo
 
 @pytest.mark.parametrize("threads", [0, 5, 255])
 def test_initialization_rejects_thread_budgets_outside_the_runtime_policy(tmp_path: Path, threads: int) -> None:
-    params = worker._validated(worker.RuntimeInitializeParams, initialization(tmp_path, threads).params)
+    params = validate_params(worker.RuntimeInitializeParams, initialization(tmp_path, threads).params)
     with pytest.raises(RpcError) as captured:
         runtime_initialization.prepare_session(params)
     assert captured.value.stable_code == "unsupported_device"
