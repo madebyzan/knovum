@@ -107,4 +107,33 @@ describe("task store", () => {
       retryable: true,
     });
   });
+
+  it("keeps the producer running when it rejects a cancellation request", async () => {
+    const store = useTaskStore();
+    const id = store.start("Publish", undefined, async () => {
+      throw new Error("Publication already started");
+    });
+    await store.cancel(id);
+    expect(store.tasks[0]).toMatchObject({ status: "running", cancelling: false, cancellable: true });
+    store.succeed(id);
+    expect(store.tasks[0]?.status).toBe("succeeded");
+  });
+
+  it("preserves completion when a cancellation response arrives later", async () => {
+    const store = useTaskStore();
+    let rejectCancellation!: (error: Error) => void;
+    const id = store.start(
+      "Publish",
+      undefined,
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectCancellation = reject;
+        }),
+    );
+    const cancelling = store.cancel(id);
+    store.succeed(id);
+    rejectCancellation(new Error("Already completed"));
+    await cancelling;
+    expect(store.tasks[0]).toMatchObject({ status: "succeeded", cancellable: false, cancelling: false });
+  });
 });

@@ -89,6 +89,28 @@ it("releases capture and the backend session when stopping fails", async () => {
   expect(failed).toHaveBeenCalledOnce();
 });
 
+it("releases the microphone before waiting for failed-session cancellation", async () => {
+  recorder.stop.mockImplementationOnce(() => {
+    throw new Error("stop failed");
+  });
+  let release!: () => void;
+  calls.cancel.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      release = resolve;
+    }),
+  );
+  const { controller } = createController();
+  await controller.start();
+  const stopping = controller.stop();
+  await vi.advanceTimersByTimeAsync(0);
+  const releasedBeforeCancellation = calls.stop.mock.calls.length;
+  const recordingBeforeCancellation = controller.isRecording.value;
+  release();
+  await stopping;
+  expect(releasedBeforeCancellation).toBe(1);
+  expect(recordingBeforeCancellation).toBe(false);
+});
+
 it("reports the original failure and cancellation failure while clearing UI state", async () => {
   recorder.stop.mockImplementationOnce(() => {
     throw new Error("stop failed");

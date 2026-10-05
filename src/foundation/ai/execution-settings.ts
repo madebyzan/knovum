@@ -1,8 +1,27 @@
 import { cloneDeep } from "es-toolkit";
 
 import type { AgentKind } from "../../shared/contracts/generated/AgentKind";
+import type { AiRoutingDefaults } from "../../shared/contracts/generated/AiRoutingDefaults";
+import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { mutateAiSettings } from "./settings-mutations";
+
+export function setDefaultExecutionTarget(
+  key: keyof AiRoutingDefaults,
+  target: TaskTargetRef | null,
+): Promise<void> {
+  return mutateAiSettings(async () => {
+    const store = useAiSettingsStore();
+    const previous = store.settings.defaults[key];
+    store.settings.defaults[key] = target;
+    try {
+      await store.flush();
+    } catch (error) {
+      store.settings.defaults[key] = previous;
+      throw error;
+    }
+  });
+}
 
 export function setDesktopAgentEnabled(kind: AgentKind, enabled: boolean): Promise<void> {
   return mutateAiSettings(async () => {

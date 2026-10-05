@@ -1,11 +1,11 @@
-<script setup lang="ts" generic="T extends { id: string; name: string }">
+<script setup lang="ts">
 import { cloneDeep } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, shallowRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
-import type { CreationLibrary } from "../../../../foundation/ai/schema/creation-library";
+import type { GenerationPreset } from "../../../../foundation/ai/schema/models";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
@@ -16,20 +16,21 @@ const props = defineProps<{
   placeholder: string;
   saveLabel: string;
   savedSuccessMessage: string;
-  selectPresets: (library: CreationLibrary) => T[];
-  createPreset: () => T | undefined;
-  appendPreset: (library: CreationLibrary, preset: T) => void;
+  actionId: string;
+  createPreset: () => GenerationPreset | undefined;
   saveDisabled: boolean;
 }>();
 
 const emit = defineEmits<{
-  apply: [preset: T];
+  apply: [preset: GenerationPreset];
 }>();
 
 const store = useCreationLibraryStore();
-const { library, ready, saveError } = storeToRefs(store);
+const { library, ready } = storeToRefs(store);
 const selected = shallowRef("");
-const presets = computed(() => props.selectPresets(library.value));
+const presets = computed(() =>
+  library.value.generationPresets.filter((preset) => preset.actionId === props.actionId),
+);
 const options = computed(() => presets.value.map(({ id, name }) => ({ value: id, label: name })));
 
 onMounted(store.ensureLoaded);
@@ -44,10 +45,10 @@ async function save() {
   if (!ready.value || props.saveDisabled) return;
   const preset = props.createPreset();
   if (!preset) return;
-  props.appendPreset(library.value, preset);
-  await store.flush();
-  if (saveError.value) {
-    toast.error(getErrorMessage(saveError.value));
+  try {
+    await store.addPreset(preset);
+  } catch (error) {
+    toast.error(getErrorMessage(error));
     return;
   }
   selected.value = preset.id;

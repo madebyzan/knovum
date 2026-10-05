@@ -39,8 +39,8 @@ export function startResourcePreparation(
   const jobId = `runtime-resource:${crypto.randomUUID()}`;
   let cancelled = false;
   const cancel = async () => {
-    cancelled = true;
     await cancelResourcePreparation(jobId);
+    cancelled = true;
   };
   tasks.restoreRunning({ id: jobId, title, startedAt: Date.now() }, cancel);
   return {

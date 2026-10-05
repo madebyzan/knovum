@@ -75,6 +75,7 @@ async fn execute_inner(
     paths: &artifacts::CandidatePaths,
 ) -> Result<StepOutcome, AppError> {
     let request = &configuration.request;
+    let device_profile = crate::ai::local_runtime::device_profiles::voxcpm2()?;
     let (reference, reference_text, description, source_kind) =
         prepare_source(app, claim, configuration, &paths.reference_part).await?;
     artifacts::verify_source_snapshot(app, configuration).await?;
@@ -99,7 +100,7 @@ async fn execute_inner(
     let audio = speech::synthesize_voxcpm2(
         app,
         &models,
-        crate::ai::local_runtime::device_profiles::voxcpm2()?,
+        device_profile,
         SpeechSynthesizeParams {
             identity: InferenceRequestIdentity {
                 request_id: claim.run_id.clone(),

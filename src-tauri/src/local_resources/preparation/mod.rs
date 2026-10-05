@@ -138,7 +138,6 @@ pub async fn prepare_voxcpm2_for_job<R: Runtime>(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedVoxCpm2Model, String> {
-    crate::ai::local_runtime::device_profiles::voxcpm2()?;
     if job_id.trim().is_empty() {
         return Err("VoxCPM2 preparation requires a job identifier".to_string());
     }

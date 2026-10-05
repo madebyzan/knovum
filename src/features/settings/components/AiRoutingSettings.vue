@@ -10,12 +10,19 @@ import type { AiConnectionSettings } from "../../../shared/contracts/generated/A
 import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import SettingsSection from "./SettingsSection.vue";
 
-const props = defineProps<{ connections: AiConnectionSettings[]; desktopAgents: DesktopAgentSettings[] }>();
-const routes = defineModel<AiRoutingDefaults>({ required: true });
-const emit = defineEmits<{ manageModels: [purpose: RoutingPurpose] }>();
+const props = defineProps<{
+  defaults: AiRoutingDefaults;
+  connections: AiConnectionSettings[];
+  desktopAgents: DesktopAgentSettings[];
+}>();
+const emit = defineEmits<{
+  manageModels: [purpose: RoutingPurpose];
+  updateRoute: [key: keyof AiRoutingDefaults, target: TaskTargetRef | null];
+}>();
 const { t } = useI18n();
 const UNASSIGNED = "__unassigned__";
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
@@ -45,7 +52,7 @@ const routeRows = computed(() =>
   })),
 );
 function update(key: keyof AiRoutingDefaults, value: string) {
-  routes.value[key] = value === UNASSIGNED ? null : decodeExecutionTarget(value);
+  emit("updateRoute", key, value === UNASSIGNED ? null : decodeExecutionTarget(value));
 }
 const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
   target ? encodeExecutionTarget(target) : UNASSIGNED;
@@ -72,7 +79,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
       </div>
       <UiSelect
         v-if="row.options.length"
-        :model-value="selected(routes[row.key])"
+        :model-value="selected(defaults[row.key])"
         :label="row.label"
         :options="[
           {

@@ -2,10 +2,13 @@ import { getCurrentWindow, type Theme } from "@tauri-apps/api/window";
 import { locale as getOsLocale } from "@tauri-apps/plugin-os";
 import { load } from "@tauri-apps/plugin-store";
 import { isNil, pick } from "es-toolkit";
+import pLimit from "p-limit";
 import { defineStore } from "pinia";
+import { reactive, toRefs } from "vue";
 
 import { i18n, systemLocale, type AppLocale } from "../i18n/i18n";
 import { invokeCommand } from "../ipc/invoke-command";
+import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import {
   decodePreferences,
   defaultPreferences,
@@ -56,10 +59,15 @@ function applyPreferences(state: Preferences): void {
   i18n.global.locale.value = locale;
 }
 
-export const usePreferencesStore = defineStore("preferences", {
-  state: () => ({ ...defaultPreferences }),
-  actions: {
-    async load() {
+export const usePreferencesStore = defineStore("preferences", () => {
+  const preferences = reactive({ ...defaultPreferences });
+  const serialize = pLimit(1);
+  let loaded = false;
+  let dirty = false;
+
+  function loadPreferences() {
+    return serialize(async () => {
+      loaded = false;
       const store = await load(SETTINGS_FILE, { autoSave: false });
       const [theme, locale, raw] = await Promise.all([
         currentWindow.theme(),
@@ -71,48 +79,79 @@ export const usePreferencesStore = defineStore("preferences", {
       osLocale = systemLocale(locale);
 
       if (!isNil(raw)) {
-        Object.assign(this, decodePreferences(raw));
+        Object.assign(preferences, decodePreferences(raw));
       }
 
-      await Promise.all([
-        currentWindow.setTheme(this.theme === "system" ? null : this.theme),
-        syncSystemLocale(this.locale),
-      ]);
-      applyPreferences(snapshot(this));
+      await currentWindow.setTheme(preferences.theme === "system" ? null : preferences.theme);
+      await syncSystemLocale(preferences.locale);
+      applyPreferences(snapshot(preferences));
 
       if (!stopThemeListener) {
         stopThemeListener = await currentWindow.onThemeChanged(({ payload }) => {
           systemTheme = payload;
-          if (this.theme === "system") applyPreferences(snapshot(this));
+          if (preferences.theme === "system") applyPreferences(snapshot(preferences));
         });
       }
-    },
-    async setTheme(theme: ThemePreference) {
-      this.theme = theme;
+      loaded = true;
+      dirty = false;
+    });
+  }
+
+  function mutate(change: () => void | Promise<void>): Promise<void> {
+    if (isApplicationTransitioning()) return Promise.reject(new Error("Preferences are transitioning"));
+    return serialize(async () => {
+      await change();
+      dirty = true;
+      const state = snapshot(preferences);
+      applyPreferences(state);
+      await persist(state);
+      dirty = false;
+    });
+  }
+
+  function flush(): Promise<void> {
+    return serialize(async () => {
+      if (!loaded || !dirty) return;
+      await persist(snapshot(preferences));
+      dirty = false;
+    });
+  }
+
+  function setTheme(theme: ThemePreference) {
+    return mutate(async () => {
       await currentWindow.setTheme(theme === "system" ? null : theme);
-      const state = snapshot(this);
-      applyPreferences(state);
-      await persist(state);
-    },
-    async setDensity(density: DensityPreference) {
-      this.density = density;
-      const state = snapshot(this);
-      applyPreferences(state);
-      await persist(state);
-    },
-    async setTextSize(textSize: TextSizePreference) {
-      this.textSize = textSize;
-      const state = snapshot(this);
-      applyPreferences(state);
-      await persist(state);
-    },
-    async setLocale(locale: LocalePreference) {
-      this.locale = locale;
-      const state = snapshot(this);
-      applyPreferences(state);
-      await Promise.all([syncSystemLocale(locale), persist(state)]);
-    },
-  },
+      preferences.theme = theme;
+    });
+  }
+
+  function setDensity(density: DensityPreference) {
+    return mutate(() => {
+      preferences.density = density;
+    });
+  }
+
+  function setTextSize(textSize: TextSizePreference) {
+    return mutate(() => {
+      preferences.textSize = textSize;
+    });
+  }
+
+  function setLocale(locale: LocalePreference) {
+    return mutate(async () => {
+      await syncSystemLocale(locale);
+      preferences.locale = locale;
+    });
+  }
+
+  return {
+    ...toRefs(preferences),
+    load: loadPreferences,
+    flush,
+    setTheme,
+    setDensity,
+    setTextSize,
+    setLocale,
+  };
 });
 
 if (import.meta.hot) {

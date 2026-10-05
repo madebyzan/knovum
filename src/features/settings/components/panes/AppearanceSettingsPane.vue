@@ -2,7 +2,9 @@
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { usePreferencesStore } from "../../../../foundation/preferences/preferences-store";
 import type {
   DensityPreference,
@@ -18,6 +20,14 @@ import SettingsSection from "../SettingsSection.vue";
 const { t } = useI18n();
 const preferences = usePreferencesStore();
 const { theme, density, textSize, locale } = storeToRefs(preferences);
+
+async function updatePreference(operation: () => Promise<void>) {
+  try {
+    await operation();
+  } catch (error) {
+    toast.error(`${t("settings.appearance.saveFailed")}: ${getErrorMessage(error)}`);
+  }
+}
 
 const themes = computed<readonly SelectOption<ThemePreference>[]>(() => [
   { value: "system", label: t("settings.appearance.options.followSystem") },
@@ -52,7 +62,7 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :model-value="theme"
         :label="t('settings.appearance.theme.label')"
         :options="themes"
-        @update:model-value="preferences.setTheme($event)"
+        @update:model-value="updatePreference(() => preferences.setTheme($event))"
       />
     </PreferenceField>
     <PreferenceField
@@ -65,7 +75,7 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :model-value="textSize"
         :label="t('settings.appearance.textSize.label')"
         :options="textSizes"
-        @update:model-value="preferences.setTextSize($event)"
+        @update:model-value="updatePreference(() => preferences.setTextSize($event))"
       />
     </PreferenceField>
     <PreferenceField
@@ -78,7 +88,7 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :model-value="density"
         :label="t('settings.appearance.density.label')"
         :options="densities"
-        @update:model-value="preferences.setDensity($event)"
+        @update:model-value="updatePreference(() => preferences.setDensity($event))"
       />
     </PreferenceField>
     <PreferenceField
@@ -91,7 +101,7 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :model-value="locale"
         :label="t('settings.appearance.language.label')"
         :options="languages"
-        @update:model-value="preferences.setLocale($event)"
+        @update:model-value="updatePreference(() => preferences.setLocale($event))"
       />
     </PreferenceField>
   </SettingsSection>

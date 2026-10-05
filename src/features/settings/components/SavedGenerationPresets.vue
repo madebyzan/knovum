@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Copy, Pencil, Trash2 } from "@lucide/vue";
-import { cloneDeep, camelCase } from "es-toolkit";
-import { shallowRef } from "vue";
+import { camelCase } from "es-toolkit";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { GenerationPreset } from "../../../foundation/ai/schema/models";
@@ -12,38 +12,38 @@ import type { GenerationActionOption } from "../generation-action-option";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";
 import SettingsSection from "./SettingsSection.vue";
 
-const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
-const presets = defineModel<GenerationPreset[]>({ required: true });
+const props = defineProps<{
+  presets: GenerationPreset[];
+  loadGenerationActions: () => Promise<GenerationActionOption[]>;
+}>();
+const emit = defineEmits<{
+  remove: [id: string];
+  duplicate: [id: string, name: string];
+  rename: [id: string, name: string];
+  save: [preset: GenerationPreset];
+}>();
 const { t } = useI18n();
-const editingIndex = shallowRef<number>();
+const editingId = shallowRef<string>();
+const editingPreset = computed(() => props.presets.find((preset) => preset.id === editingId.value));
 const editorOpen = shallowRef(false);
 
-async function removePreset(index: number) {
+async function removePreset(id: string) {
   const confirmed = await confirmAction({
     title: t("common.delete"),
     description: t("settings.creation.presets.deleteConfirm"),
     confirmLabel: t("common.delete"),
     danger: true,
   });
-  if (confirmed) presets.value.splice(index, 1);
+  if (confirmed) emit("remove", id);
 }
 
-function duplicatePreset(index: number) {
-  const source = presets.value[index]!;
-  presets.value.splice(index + 1, 0, {
-    ...cloneDeep(source),
-    id: crypto.randomUUID(),
-    name: t("settings.creation.copyName", { name: source.name }),
-  });
+function duplicatePreset(source: GenerationPreset) {
+  emit("duplicate", source.id, t("settings.creation.copyName", { name: source.name }));
 }
 
-function editPreset(index: number) {
-  editingIndex.value = index;
+function editPreset(id: string) {
+  editingId.value = id;
   editorOpen.value = true;
-}
-
-function savePreset(preset: GenerationPreset) {
-  if (editingIndex.value !== undefined) presets.value.splice(editingIndex.value, 1, preset);
 }
 </script>
 
@@ -58,30 +58,34 @@ function savePreset(preset: GenerationPreset) {
       {{ t("settings.creation.presets.empty") }}
     </p>
     <div v-else class="divide-y divide-stroke-divider">
-      <div v-for="(preset, index) in presets" :key="preset.id" class="flex items-center gap-3 px-4 py-3">
+      <div v-for="preset in presets" :key="preset.id" class="flex items-center gap-3 px-4 py-3">
         <div class="min-w-0 flex-1">
-          <UiInput v-model="preset.name" :aria-label="t('settings.creation.presets.name')" />
+          <UiInput
+            :model-value="preset.name"
+            :aria-label="t('settings.creation.presets.name')"
+            @update:model-value="emit('rename', preset.id, $event)"
+          />
           <p class="mt-0.5 text-caption text-fg-secondary">
             {{ t(`settings.creation.knowledgeActions.${camelCase(preset.actionId)}`) }}
           </p>
         </div>
-        <UiIconButton :label="t('common.duplicate')" size="sm" @click="duplicatePreset(index)">
+        <UiIconButton :label="t('common.duplicate')" size="sm" @click="duplicatePreset(preset)">
           <Copy class="size-3.5" />
         </UiIconButton>
-        <UiIconButton :label="t('common.edit')" size="sm" @click="editPreset(index)">
+        <UiIconButton :label="t('common.edit')" size="sm" @click="editPreset(preset.id)">
           <Pencil class="size-3.5" />
         </UiIconButton>
-        <UiIconButton :label="t('common.delete')" size="sm" @click="removePreset(index)">
+        <UiIconButton :label="t('common.delete')" size="sm" @click="removePreset(preset.id)">
           <Trash2 class="size-3.5" />
         </UiIconButton>
       </div>
     </div>
     <GenerationPresetEditor
-      v-if="editingIndex !== undefined && presets[editingIndex]"
+      v-if="editingPreset"
       v-model:open="editorOpen"
-      :preset="presets[editingIndex]!"
+      :preset="editingPreset"
       :load-generation-actions="props.loadGenerationActions"
-      @save="savePreset"
+      @save="emit('save', $event)"
     />
   </SettingsSection>
 </template>

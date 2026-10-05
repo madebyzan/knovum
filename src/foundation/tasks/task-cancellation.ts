@@ -8,7 +8,7 @@ interface TaskCancellationOptions {
   tasks: Ref<AppTask[]>;
   handlers: TaskExecutionHandlers;
   externallySettled: Set<string>;
-  finish: (id: string, status: "cancelled" | "failed", message?: string) => AppTask | undefined;
+  finish: (id: string, status: "cancelled") => AppTask | undefined;
 }
 
 export function createTaskCancellation({
@@ -28,11 +28,10 @@ export function createTaskCancellation({
       await handler();
       if (!externallySettled.has(id)) finish(id, "cancelled");
     } catch (error) {
-      if (externallySettled.has(id)) {
-        task.cancelling = false;
-        task.cancellable = true;
-        task.statusMessage = getErrorMessage(error);
-      } else finish(id, "failed", getErrorMessage(error));
+      if (!["queued", "running", "attention"].includes(task.status)) return;
+      task.cancelling = false;
+      task.cancellable = true;
+      task.statusMessage = getErrorMessage(error);
     }
   };
 }
