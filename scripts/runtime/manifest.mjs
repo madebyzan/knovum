@@ -12,8 +12,8 @@ const manifestKeys = [
   "schemaVersion",
   "runtimeId",
   "version",
-  "protocolVersion",
-  "dependencyLockSha256",
+  "dependencyRequirementsSha256",
+  "voxcpmCommit",
   "target",
   "executable",
   "packageRoot",
@@ -23,12 +23,17 @@ const manifestKeys = [
 export function validatePythonRuntime(directory, runtimeTarget, dependencyLock) {
   const manifest = readManifest(directory, runtimeTarget);
   const executable = runtimeTarget.startsWith("windows-") ? "python.exe" : "bin/python3";
-  validateManifestHeader(manifest, runtimeTarget, executable, dependencyLock);
+  validateManifestHeader(manifest, runtimeTarget, executable, directory);
   const declared = validateManifestFiles(manifest.files, directory, runtimeTarget, executable);
   assertRequiredFiles(declared, executable);
   const actual = listRuntimeFiles(directory, { excludeManifest: true });
   if (actual.length !== declared.size || actual.some((path) => !declared.has(path))) {
     throw new Error(`Python runtime contains files not declared by its manifest for ${runtimeTarget}`);
+  }
+  if (
+    actual.some((path) => path.startsWith("packages/knovum_inference/") || path.startsWith("build-evidence/"))
+  ) {
+    throw new Error("Third-party runtime must exclude application Worker and external build evidence");
   }
   validateRuntimeProvenance(directory, manifest, dependencyLock);
 }
@@ -42,24 +47,26 @@ function readManifest(directory, runtimeTarget) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function validateManifestHeader(manifest, target, executable, dependencyLock) {
+function validateManifestHeader(manifest, target, executable, directory) {
   if (!validManifestShape(manifest, target, executable)) {
     throw new Error(`Python runtime manifest is invalid for ${target}`);
   }
-  if (manifest.dependencyLockSha256 !== sha256File(dependencyLock)) {
+  if (manifest.dependencyRequirementsSha256 !== sha256File(join(directory, "runtime-requirements.txt"))) {
     throw new Error(`Python runtime manifest is invalid for ${target}`);
   }
 }
 
 function validManifestShape(manifest, target, executable) {
-  if (!exactKeys(manifest, manifestKeys) || manifest.schemaVersion !== 1) return false;
+  if (!exactKeys(manifest, manifestKeys) || manifest.schemaVersion !== 2) return false;
   if (manifest.runtimeId !== "cpython" || manifest.version !== "3.11.17") return false;
-  if (manifest.protocolVersion !== 1 || manifest.packageRoot !== "packages") return false;
+  if (!/^[a-f0-9]{40}$/u.test(manifest.voxcpmCommit ?? "") || manifest.packageRoot !== "packages")
+    return false;
   if (manifest.target !== target || manifest.executable !== executable) return false;
-  return Array.isArray(manifest.files) && manifest.files.length <= maxRuntimeFiles;
+  return Array.isArray(manifest.files);
 }
 
 function validateManifestFiles(files, directory, target, executable) {
+  if (files.length > maxRuntimeFiles) throw new Error(`Python runtime contains too many files for ${target}`);
   const declared = new Set();
   let totalSize = 0;
   for (const file of files) {
@@ -101,7 +108,7 @@ function validateRuntimeFile(directory, file, target, executable) {
 }
 
 function assertRequiredFiles(declared, executable) {
-  for (const required of [executable, "packages/knovum_inference/__main__.py"]) {
+  for (const required of [executable, "runtime-requirements.txt"]) {
     if (!declared.has(required)) throw new Error(`Python runtime manifest does not declare ${required}`);
   }
 }

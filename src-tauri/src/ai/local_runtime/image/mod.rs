@@ -1,3 +1,4 @@
+use crate::local_resources::runtimes::python;
 use tensor::{encode_f32, read_mask, stage_tensor, valid_sha256, validate_input};
 mod tensor;
 use std::time::{Duration, Instant};
@@ -20,7 +21,7 @@ use crate::{
             RuntimeModelPaths, PROTOCOL_VERSION,
         },
     },
-    local_resources::{models::catalog::ModelKind, preparation::PreparedModels, tools},
+    local_resources::{models::catalog::ModelKind, preparation::PreparedModels},
 };
 
 const CANCEL_GRACE: Duration = Duration::from_secs(5);
@@ -46,7 +47,7 @@ pub(crate) async fn segment_image<R: Runtime>(
 ) -> Result<Vec<f32>, String> {
     validate_input(&input)?;
     let exit = super::exit_token();
-    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let runtime = python::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
     let model_path = resources.path(ModelKind::ImageSegmentation)?;
     let threads = std::thread::available_parallelism()
         .map(|count| count.get().min(4) as u8)
@@ -96,6 +97,7 @@ pub(crate) async fn segment_image<R: Runtime>(
         let session_id = uuid::Uuid::new_v4().to_string();
         let work_directory = inference_directory(app, &session_id)?;
         let params = RuntimeInitializeParams {
+            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
             protocol_version: PROTOCOL_VERSION,
             runtime_digest: runtime.digest.clone(),
             session_id,

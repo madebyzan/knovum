@@ -23,5 +23,6 @@
   "cancelling": "正在取消…",
   "forceDismiss": "从列表移除",
   "failed": "此任务未能完成。",
-  "verifyingResource": "校验完整性中…"
+  "verifyingResource": "校验完整性中…",
+  "preparingLocalInference": "准备本地 AI 组件中…"
 }

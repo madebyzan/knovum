@@ -22,6 +22,7 @@ def initialization(directory: Path, threads: int = 4) -> Request:
         "runtime.initialize",
         {
             "protocolVersion": PROTOCOL_VERSION,
+            "runtimeManifestPath": str(directory / "runtime-manifest.json"),
             "runtimeDigest": "a" * 64,
             "sessionId": "session",
             "capability": "embedding",

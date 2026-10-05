@@ -37,7 +37,7 @@ def prepare_session(params: RuntimeInitializeParams) -> Session:
     work_directory = Path(params.work_directory)
     if not work_directory.is_absolute() or not work_directory.is_dir():
         raise invalid_params("Work directory must be an existing absolute directory")
-    verify_runtime_digest(params.runtime_digest)
+    verify_runtime_digest(params.runtime_digest, Path(params.runtime_manifest_path))
     model_path = _selected_model_path(params)
     _configure_engine_threads(params)
     engine = _create_engine(params, model_path, work_directory)

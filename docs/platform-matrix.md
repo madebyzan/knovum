@@ -57,6 +57,10 @@ Any change to lifecycle, window, menu, keyboard, file, notification, updater or 
 
 ## Optional runtime resources
 
+Python components are a shared, verified on-demand resource; the installer carries only the
+application Worker and trusted platform descriptor. Resource absence is a preparation state, not
+an unsupported-device state. First-download/offline acceptance is required on both targets.
+
 The approved desktop release scope for native Python inference is macOS 14+ arm64 and Windows x64.
 Qualification is tracked per architecture, not only per OS:
 

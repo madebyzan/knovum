@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { validateDependencyLicenseReview } from "./license-policy.mjs";
 
 export function verifyRuntimeSignatures(directory, runtimeTarget, repository) {
-  const record = JSON.parse(readFileSync(join(directory, "build-evidence", "producer.json"), "utf8"));
+  const record = JSON.parse(readFileSync(join(directory, "..", "build-evidence", "producer.json"), "utf8"));
   if (record.signing?.mode !== "production")
     throw new Error("Production packages require a production-signed Python runtime");
   if (runtimeTarget === "macos-arm64" && record.signing.identity !== process.env.APPLE_SIGNING_IDENTITY) {

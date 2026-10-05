@@ -1,20 +1,18 @@
-use crate::{
-    ai::{
-        contracts::runtime::{
-            RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams, RuntimeModelPaths,
-            PROTOCOL_VERSION,
-        },
-        local_runtime::process::Worker,
+use crate::ai::{
+    contracts::runtime::{
+        RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams, RuntimeModelPaths,
+        PROTOCOL_VERSION,
     },
-    local_resources::tools,
+    local_runtime::process::Worker,
 };
+use crate::local_resources::runtimes::python;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager, Runtime};
 use tokio_util::sync::CancellationToken;
 
 pub(super) struct WorkerStart<'a, R: Runtime> {
     pub(super) app: &'a AppHandle<R>,
-    pub(super) runtime: &'a tools::PythonRuntimePaths,
+    pub(super) runtime: &'a python::PythonRuntimePaths,
     pub(super) model_path: &'a Path,
     pub(super) capability: RuntimeCapability,
     pub(super) model_spec_id: String,
@@ -65,6 +63,7 @@ pub(super) async fn start_worker<R: Runtime>(
         _ => return Err("runtime_mismatch: capability is not a speech method".into()),
     }
     let params = RuntimeInitializeParams {
+        runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
         protocol_version: PROTOCOL_VERSION,
         runtime_digest: runtime.digest.clone(),
         session_id,

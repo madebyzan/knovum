@@ -8,8 +8,10 @@ use models::{catalog::ModelKind, ModelStatus};
 
 mod configured_path;
 mod download;
+mod filesystem;
 pub(crate) mod models;
 pub(crate) mod preparation;
+pub(crate) mod runtimes;
 #[cfg(test)]
 mod tests;
 pub(crate) mod tools;
@@ -22,6 +24,7 @@ pub struct LocalResourcesStatus {
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
+    python: runtimes::python::RuntimeStatus,
     models: ModelStatuses,
     kokoro: models::kokoro::KokoroPackageStatus,
 }
@@ -62,6 +65,7 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
+        python: runtimes::python::status(app)?,
         models: model_statuses(app)?,
         kokoro: models::kokoro::status(app)?,
     })

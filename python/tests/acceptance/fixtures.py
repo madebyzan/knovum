@@ -25,6 +25,7 @@ def provenance_fixture(corpus_digest: str = "a" * 64) -> Provenance:
                 "appVersion": "unit-fixture",
                 "appCommit": "a" * 40,
                 "runtimeVersion": "unit-fixture",
+                "workerDigest": "a" * 64,
                 "runtimeDigest": "a" * 64,
                 "target": "macos-arm64",
                 "corpusSha256": corpus_digest,
@@ -61,6 +62,7 @@ def execution_fixture(
         "source": {
             "kind": kind,
             "method": method,
+            "workerDigest": "a" * 64,
             "runtimeDigest": "a" * 64,
             "modelSpecId": f"{capability}-model",
             "configId": f"{capability}-profile",

@@ -88,6 +88,7 @@ def test_unavailable_capability_is_reported_without_calculating_a_pass() -> None
     [
         ({}, None),
         ({"method": "embedding.encode"}, "required native execution path"),
+        ({"workerDigest": "b" * 64}, "Worker digest differs"),
         ({"runtimeDigest": "b" * 64}, "runtime digest differs"),
         ({"modelSpecId": "different-model"}, "frozen candidate model"),
         ({"configId": "different-config"}, "frozen candidate config"),

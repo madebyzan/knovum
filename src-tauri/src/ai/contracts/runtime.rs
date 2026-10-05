@@ -53,6 +53,7 @@ pub struct RuntimeModelPaths {
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RuntimeInitializeParams {
+    pub runtime_manifest_path: String,
     pub protocol_version: u32,
     pub runtime_digest: String,
     pub session_id: String,

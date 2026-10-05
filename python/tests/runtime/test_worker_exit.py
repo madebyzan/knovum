@@ -31,6 +31,7 @@ asyncio.run(worker.Worker().serve())
         "method": "runtime.initialize",
         "params": {
             "protocolVersion": PROTOCOL_VERSION,
+            "runtimeManifestPath": "unused",
             "runtimeDigest": "digest",
             "sessionId": "session",
             "capability": "embedding",

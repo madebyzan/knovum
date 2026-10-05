@@ -1,9 +1,13 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use tokio_util::sync::CancellationToken;
 
-use super::{PythonRuntimePaths, MANIFEST_NAME};
+use super::MANIFEST_NAME;
 
 mod filesystem;
 
@@ -15,8 +19,8 @@ struct RuntimeManifest {
     schema_version: u8,
     runtime_id: String,
     version: String,
-    protocol_version: u32,
-    dependency_lock_sha256: String,
+    dependency_requirements_sha256: String,
+    voxcpm_commit: String,
     target: String,
     executable: String,
     package_root: String,
@@ -50,7 +54,9 @@ pub(super) fn verify_runtime(
     manifest_path: &Path,
     manifest_bytes: &[u8],
     manifest_digest: String,
-) -> Result<PythonRuntimePaths, String> {
+    cancellation: &CancellationToken,
+    descriptor: Option<&super::descriptor::Descriptor>,
+) -> Result<(PathBuf, PathBuf), String> {
     let root = manifest_path
         .parent()
         .ok_or_else(|| "python-runtime-invalid: manifest has no parent directory".to_string())?;
@@ -61,18 +67,33 @@ pub(super) fn verify_runtime(
     let manifest: RuntimeManifest = serde_json::from_slice(manifest_bytes)
         .map_err(|error| format!("python-runtime-invalid: {error}"))?;
     validate_identity(&manifest)?;
+    if let Some(descriptor) = descriptor {
+        if manifest_digest != descriptor.manifest_sha256
+            || manifest.dependency_requirements_sha256 != descriptor.dependency_requirements_sha256
+            || manifest.voxcpm_commit != descriptor.voxcpm_commit
+            || manifest.version != descriptor.version
+        {
+            return Err(
+                "python-runtime-invalid: runtime differs from the trusted descriptor".into(),
+            );
+        }
+    }
+    if !manifest.files.iter().any(|file| {
+        file.path == "runtime-requirements.txt"
+            && file.sha256 == manifest.dependency_requirements_sha256
+    }) {
+        return Err(
+            "python-runtime-invalid: requirements identity differs from declared files".into(),
+        );
+    }
     let (executable, package_root) = filesystem::verify(
         root,
         &manifest.files,
         &manifest.executable,
         &manifest.package_root,
+        cancellation,
     )?;
-    Ok(PythonRuntimePaths {
-        manifest_path: manifest_path.to_owned(),
-        executable,
-        package_root,
-        digest: manifest_digest,
-    })
+    Ok((executable, package_root))
 }
 
 fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
@@ -81,16 +102,12 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
     } else {
         "bin/python3"
     };
-    if manifest.schema_version != 1
+    if manifest.schema_version != 2
         || manifest.runtime_id != "cpython"
         || manifest.version != "3.11.17"
-        || manifest.protocol_version != 1
-        || manifest.dependency_lock_sha256
-            != digest(include_bytes!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../python/uv.lock"
-            )))
-        || manifest.target != super::super::platform_directory()
+        || manifest.dependency_requirements_sha256.len() != 64
+        || manifest.voxcpm_commit.len() != 40
+        || manifest.target != crate::local_resources::tools::platform_directory()
         || manifest.executable != executable
         || manifest.package_root != "packages"
     {
@@ -100,3 +117,6 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

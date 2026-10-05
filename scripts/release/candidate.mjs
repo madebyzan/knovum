@@ -25,6 +25,7 @@ const output = join(root, "release-candidate");
 mkdirSync(output, { recursive: false });
 const artifacts = [];
 const installers = [];
+const localInference = [];
 for (const entry of readdirSync(input, { withFileTypes: true })) {
   if (!entry.isDirectory()) throw new Error("Expected one release artifact directory per target");
   const directory = join(input, entry.name);
@@ -47,6 +48,9 @@ for (const entry of readdirSync(input, { withFileTypes: true })) {
     join(directory, `${safeArtifactFilename(part.artifact.file)}.sig`),
     join(output, `${part.artifact.file}.sig`),
   );
+  if (!part.localInference || !/^[a-f0-9]{64}$/u.test(part.localInference.workerDigest ?? ""))
+    throw new Error("Candidate requires the packaged Worker and Python publication identities");
+  localInference.push(part.localInference);
   artifacts.push(part.artifact);
   installers.push(...part.installers);
 }
@@ -59,6 +63,7 @@ const candidate = {
   pubDate: new Date().toISOString(),
   artifacts,
   installers,
+  localInference,
 };
 createManifest({ ...candidate, baseUrl: `https://github.com/${repository}/releases/download/${tag}/` });
 await verifyReleaseArtifacts(output, artifacts, pubkey);

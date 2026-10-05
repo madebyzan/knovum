@@ -6,7 +6,7 @@ use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
 };
-use crate::local_resources::tools::PythonRuntimePaths;
+use crate::local_resources::runtimes::python::PythonRuntimePaths;
 use std::{
     path::Path,
     process::Stdio,
@@ -67,12 +67,13 @@ impl Worker {
         }
         let bootstrap = concat!(
             "import sys; ",
-            "sys.path.insert(0, sys.argv[1]); ",
+            "sys.path[:0] = [sys.argv[1], sys.argv[2]]; ",
             "from knovum_inference.server import main; main()"
         );
         let mut command = Command::new(&runtime.executable);
         command
             .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
+            .arg(&runtime.worker_root)
             .arg(&runtime.package_root)
             .current_dir(work_directory)
             .stdin(Stdio::piped())
@@ -198,6 +199,7 @@ impl Worker {
             process_tree,
             memory_reservation: Some(memory_reservation),
             _kill_registration: kill_registration,
+            _runtime_lease: runtime.lease.clone(),
             protocol,
             session_id: params.session_id,
             runtime_digest: runtime.digest.clone(),
@@ -219,7 +221,7 @@ async fn verify_runtime_for_spawn(runtime: PythonRuntimePaths) -> Result<(), Str
         let gate = VERIFY_GATE.get_or_init(|| tokio::sync::Mutex::new(()));
         let _guard = gate.lock().await;
         let startup = tokio::task::spawn_blocking(move || {
-            crate::local_resources::tools::verify_before_spawn(&runtime)
+            crate::local_resources::runtimes::python::verify_before_spawn(&runtime)
         })
         .await
         .map_err(|error| format!("python-runtime-invalid: verification task failed: {error}"))

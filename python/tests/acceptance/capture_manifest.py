@@ -55,6 +55,7 @@ class Device(EvidenceModel):
 class Provenance(EvidenceModel):
     app_version: Text
     app_commit: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    worker_digest: Sha256
     runtime_version: Text
     runtime_digest: Sha256
     target: Literal["macos-arm64", "windows-x64"]

@@ -34,6 +34,8 @@ def load_execution_evidence(
     if expected_config is not None and source.config_id != expected_config:
         raise EvidenceError(f"{location} config differs from the fixed reference profile")
     if source.kind == "bundled_worker":
+        if source.worker_digest != provenance.worker_digest:
+            raise EvidenceError(f"{location} Worker digest differs from the application")
         if source.runtime_digest != provenance.runtime_digest:
             raise EvidenceError(f"{location} runtime digest differs from the candidate runtime")
         if source.model_spec_id != provenance.models.select(capability).spec_id:

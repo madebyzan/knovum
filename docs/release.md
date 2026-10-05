@@ -12,7 +12,7 @@ The candidate workflow requires the tag to match all three application versions,
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, native
 builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
 macOS arm64 and Windows x64. A partial matrix cannot enter the stable manifest.
-The bundled CPython interpreter, native extension modules and dependent dynamic libraries are
+The independently published, on-demand CPython interpreter, native extension modules and dependent dynamic libraries are
 part of the application trust boundary. Each target must verify the complete runtime manifest,
 native loadability, signing/notarization or Authenticode conditions, and an installed inference
 smoke on a clean machine without a system Python installation. A matching hash alone does not
@@ -66,14 +66,14 @@ Git, but the immutable corpus manifest, audio bytes and annotations must remain 
 recorded corpus version. Missing assets make the run unavailable.
 
 The native capture manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
-capability states and provenance containing the application version/full commit, runtime version/digest, target, model
+capability states and provenance containing the application version/full commit, shipped Worker digest, runtime version/digest, target, model
 spec IDs and identity digests, execution config IDs and parameters, corpus digest, and complete device,
 OS, driver and power-mode information. It accepts only `macos-arm64` and `windows-x64`. Every capability
 must say `completed` or `unavailable` with a reason; omission is invalid evidence.
 
 Completed capabilities refer to hash-bound raw JSON files beside the capture manifest. Each raw file
 uses schema version 1 with `source`, `values`, and one or more request identities/timestamps. Candidate
-sources must identify `bundled_worker`, the actual JSON-RPC method, the candidate runtime digest, frozen
+sources must identify `bundled_worker`, the actual JSON-RPC method, the shipped `workerDigest`, candidate runtime manifest digest, frozen
 model spec and config. Reference embedding evidence identifies `official_python_reference`; ASR
 comparison evidence identifies `product_baseline`. The raw value shapes are:
 
@@ -312,3 +312,18 @@ Prefer a higher-version forward fix. Never automatically run an older binary aga
 database. After the first public persisted schema is frozen, maintain reviewed migration, backup and
 recovery policy and test restored data against the intended binary. Keep rescue installers and the
 previous release available. Do not claim automatic application/database rollback without evidence.
+
+## Python distribution acceptance
+
+The desktop installer excludes CPython/third-party packages and includes the current application
+Worker and trusted runtime descriptor. Native acceptance must cover anonymous first download,
+cancellation/retry, concurrent sharing and offline use after preparation, with all existing local
+AI profiles. Runtime components are prepared before models and inference deadlines. Release
+`platform.json`/`candidate.json` retain the descriptor and Worker digest beside installer identities.
+The candidate Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
+with paths relative to `knovum_inference`. `scripts/runtime/application-resources.mjs` owns this
+calculation. Capture provenance and each candidate execution source must record that digest and
+the descriptor's `manifestSha256`; an output from either another Worker or runtime is rejected.
+Runtime archives and corresponding evidence/source attachments must be published at the actual
+immutable URLs before distributing an application that requires them. Workflow artifact uploads
+are build outputs, not confirmation that those public locations exist.

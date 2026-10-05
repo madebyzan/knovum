@@ -6,10 +6,9 @@ import type { ResourcePreparationSnapshot } from "../../shared/contracts/generat
 import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { createAppError, decodeAppError } from "../errors/app-error";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
-import { formatBytes } from "../format/bytes";
-import { i18n } from "../i18n/i18n";
 import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
+import { updateTaskProgress } from "./resource-progress";
 import { invalidateLocalResources } from "./resource-query";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
@@ -154,29 +153,4 @@ function snapshotTask(snapshot: ResourcePreparationSnapshot) {
     ...(snapshot.error === null ? {} : { statusMessage: snapshot.error.message }),
     ...(snapshot.progress.percent === null ? {} : { progress: snapshot.progress.percent }),
   };
-}
-
-function updateTaskProgress(
-  tasks: ReturnType<typeof useTaskStore>,
-  taskId: string,
-  progress: ResourcePreparationProgress,
-) {
-  if (progress.stage === "queued" || progress.stage === "installing") {
-    tasks.indeterminate(taskId);
-    return;
-  }
-  if (progress.stage === "verifying") {
-    tasks.indeterminate(taskId, i18n.global.t("tasks.verifyingResource"));
-    return;
-  }
-  if (progress.stage === "ready") {
-    tasks.progress(taskId, 100);
-    return;
-  }
-  const statusMessage =
-    progress.total && progress.total > 0
-      ? `${formatBytes(progress.downloaded)} / ${formatBytes(progress.total)}`
-      : undefined;
-  if (progress.percent === null) tasks.indeterminate(taskId, statusMessage);
-  else tasks.progress(taskId, progress.percent, statusMessage);
 }

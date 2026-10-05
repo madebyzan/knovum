@@ -1,3 +1,4 @@
+use crate::local_resources::runtimes::python;
 use worker_start::{start_worker, WorkerStart};
 mod worker_start;
 use std::{
@@ -11,17 +12,14 @@ use tokio_util::sync::CancellationToken;
 
 use super::super::{admission::Priority, process::Worker};
 use super::stream::{consume_synthesis_chunk, SynthesisChunkCallback, SynthesisStream};
-use crate::{
-    ai::contracts::{
-        runtime::{
-            RuntimeAckChunkParams, RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile,
-        },
-        speech_wire::{
-            InferenceRequestIdentity, SpeechProgressEvent, SpeechProgressEventType,
-            SpeechSynthesisChunkEvent,
-        },
+use crate::ai::contracts::{
+    runtime::{
+        RuntimeAckChunkParams, RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile,
     },
-    local_resources::tools,
+    speech_wire::{
+        InferenceRequestIdentity, SpeechProgressEvent, SpeechProgressEventType,
+        SpeechSynthesisChunkEvent,
+    },
 };
 
 const CANCEL_GRACE: Duration = Duration::from_secs(5);
@@ -71,7 +69,7 @@ where
     let identity = params.identity();
     let deadline = super::super::deadline_duration(identity.deadline_ms)?;
     let exit = super::super::exit_token();
-    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let runtime = python::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
     let capability = params.capability();
     super::super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(

@@ -6,9 +6,7 @@ from pathlib import Path
 from knovum_inference.errors import server_error
 
 
-def verify_runtime_digest(expected: str) -> None:
-    packages_directory = Path(__file__).resolve().parents[2]
-    manifest = packages_directory.parent / "runtime-manifest.json"
+def verify_runtime_digest(expected: str, manifest: Path) -> None:
     try:
         actual = hashlib.sha256(manifest.read_bytes()).hexdigest()
     except OSError as error:

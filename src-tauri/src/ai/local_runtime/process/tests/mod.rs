@@ -51,6 +51,7 @@ async fn worker() -> Worker {
         child,
         process_tree,
         memory_reservation: None,
+        _runtime_lease: None,
         protocol,
         session_id,
         runtime_digest: "test-runtime".into(),

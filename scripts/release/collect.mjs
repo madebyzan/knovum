@@ -1,6 +1,8 @@
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { workerDigest } from "../runtime/application-resources.mjs";
+import { distributionDirectory, readRuntimeDescriptor } from "../runtime/distribution.mjs";
 import { artifactSha256, safeArtifactFilename } from "./artifacts.mjs";
 import { httpsUrl, publicKey, readVersion, releaseTargets, requireValue } from "./policy.mjs";
 
@@ -17,6 +19,15 @@ mkdirSync(directory, { recursive: true });
 const file = safeArtifactFilename(`Knovum_${version}_${target}${mac ? ".app.tar.gz" : "-setup.exe"}`);
 copyFileSync(source, join(directory, file));
 copyFileSync(`${source}.sig`, join(directory, `${file}.sig`));
+const runtimeTarget = mac ? "macos-arm64" : "windows-x64";
+const runtimeDescriptor = readRuntimeDescriptor(
+  join(distributionDirectory(root, runtimeTarget), "runtime-descriptor.json"),
+  runtimeTarget,
+);
+const localInference = {
+  ...runtimeDescriptor,
+  workerDigest: workerDigest(join(root, "src-tauri/resources/python-worker/knovum_inference")),
+};
 const artifact = {
   target,
   version,
@@ -41,6 +52,7 @@ writeFileSync(
       pubkey: publicKey(process.env.KNOVUM_UPDATER_PUBKEY),
       artifact,
       installers,
+      localInference,
     },
     null,
     2,

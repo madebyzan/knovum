@@ -1,11 +1,10 @@
 use std::{
     collections::HashMap,
     fs,
-    io::Read,
     path::{Component, Path, PathBuf},
 };
 
-use sha2::{Digest, Sha256};
+use tokio_util::sync::CancellationToken;
 
 use super::{RuntimeFile, MANIFEST_NAME};
 
@@ -18,11 +17,12 @@ pub(super) fn verify(
     files: &[RuntimeFile],
     executable: &str,
     package_root: &str,
+    cancellation: &CancellationToken,
 ) -> Result<(PathBuf, PathBuf), String> {
-    let declared = verify_declared_files(root, files)?;
+    let declared = verify_declared_files(root, files, cancellation)?;
     let executable = required_file(root, executable, &declared)?;
     ensure_executable(&executable)?;
-    required_file(root, "packages/knovum_inference/__main__.py", &declared)?;
+    required_file(root, "runtime-requirements.txt", &declared)?;
     let package_root = runtime_path(root, package_root)?;
     if !checked_metadata(&package_root)?.is_dir() {
         return Err("python-runtime-invalid: package root is not a directory".to_string());
@@ -34,6 +34,7 @@ pub(super) fn verify(
 fn verify_declared_files<'a>(
     root: &Path,
     files: &'a [RuntimeFile],
+    cancellation: &CancellationToken,
 ) -> Result<HashMap<&'a str, &'a RuntimeFile>, String> {
     if files.len() > MAX_RUNTIME_FILES {
         return Err("python-runtime-invalid: manifest declares too many files".to_string());
@@ -53,7 +54,7 @@ fn verify_declared_files<'a>(
         {
             return Err("python-runtime-invalid: invalid or duplicate file entry".to_string());
         }
-        verify_file(root, file)?;
+        verify_file(root, file, cancellation)?;
     }
     Ok(declared)
 }
@@ -71,10 +72,22 @@ fn required_file(
     runtime_path(root, relative)
 }
 
-fn verify_file(root: &Path, file: &RuntimeFile) -> Result<(), String> {
+fn verify_file(
+    root: &Path,
+    file: &RuntimeFile,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
     let path = runtime_path(root, &file.path)?;
     let metadata = checked_metadata(&path)?;
-    if !metadata.is_file() || metadata.len() != file.size || sha256_file(&path)? != file.sha256 {
+    if !metadata.is_file()
+        || metadata.len() != file.size
+        || !crate::local_resources::verification::verify_cancellable(
+            &path,
+            &file.sha256,
+            cancellation,
+            crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED,
+        )?
+    {
         return Err(format!(
             "python-runtime-invalid: file mismatch: {}",
             file.path
@@ -148,19 +161,6 @@ fn valid_sha256(value: &str) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-}
-
-fn sha256_file(path: &Path) -> Result<String, String> {
-    let mut file = fs::File::open(path).map_err(|error| error.to_string())?;
-    let mut hash = Sha256::new();
-    let mut buffer = [0_u8; 1024 * 1024];
-    loop {
-        let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
-        if read == 0 {
-            return Ok(format!("{:x}", hash.finalize()));
-        }
-        hash.update(&buffer[..read]);
-    }
 }
 
 pub(super) fn checked_metadata(path: &Path) -> Result<fs::Metadata, String> {

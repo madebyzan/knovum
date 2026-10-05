@@ -200,8 +200,8 @@ async fn execute_inner(
     extract_audio(&ffmpeg, source, extracted, &claim.cancellation)?;
     crate::file_inspection::verify_content_revision(source, &source_ref.source_revision)?;
     let (byte_length, sample_count) = pcm_wav_metadata(extracted)?;
-    let request_deadline = deadline(source_ref.duration_ms)?;
-    let sha256 = hash_file(extracted, &claim.cancellation, request_deadline)?;
+    let hash_deadline = deadline(source_ref.duration_ms)?;
+    let sha256 = hash_file(extracted, &claim.cancellation, hash_deadline)?;
     let models = preparation::prepare_models_for_job(
         app,
         preparation::contracts::ResourcePreparationTarget::SpeechSeparation,
@@ -211,6 +211,7 @@ async fn execute_inner(
         &mut |_| {},
     )
     .await?;
+    let request_deadline = deadline(source_ref.duration_ms)?;
     let identity = InferenceRequestIdentity {
         request_id: claim.run_id.clone(),
         owner_kind: "speech_source_separation".into(),

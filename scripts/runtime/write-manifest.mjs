@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { lstatSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,22 +25,26 @@ if (!rootMetadata.isDirectory() || rootMetadata.isSymbolicLink()) {
 }
 const executable = target.startsWith("windows-") ? "python.exe" : "bin/python3";
 const files = collectRuntimeFiles(root);
-for (const required of [executable, "packages/knovum_inference/__main__.py"]) {
+for (const required of [executable, "runtime-requirements.txt"]) {
   if (!files.some((file) => file.path === required)) {
     throw new Error(`Python runtime is missing ${required}`);
   }
 }
 if (!target.startsWith("windows-")) {
   const python = lstatSync(join(root, executable));
-  if (!(python.mode & 0o111)) throw new Error("Bundled Python is not executable");
+  if (!(python.mode & 0o111)) throw new Error("Runtime Python is not executable");
 }
 
+const voxcpmCommit = readFileSync(join(repository, "python", "uv.lock"), "utf8").match(
+  /VoxCPM\.git\?rev=[a-f0-9]{40}#([a-f0-9]{40})/u,
+)?.[1];
+if (!voxcpmCommit) throw new Error("Runtime source requires a frozen VoxCPM revision");
 const manifest = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   runtimeId: "cpython",
   version: "3.11.17",
-  protocolVersion: 1,
-  dependencyLockSha256: sha256File(join(repository, "python", "uv.lock")),
+  dependencyRequirementsSha256: sha256File(join(root, "runtime-requirements.txt")),
+  voxcpmCommit,
   target,
   executable,
   packageRoot: "packages",

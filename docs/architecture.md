@@ -85,10 +85,12 @@ and generation (including the sole PPTX engine under `generation/pptx.rs`), `med
 operations. `file_inspection/`, `web_capture/`, `system_preview/` and `local_resources/` remain
 separate capabilities. `local_resources/models` owns downloaded model installation and integrity;
 `local_resources/tools` owns fixed tool identity, verified app-data installation and bundled executable discovery;
-`local_resources/preparation` coordinates shared model installation and execution leases. None depends on `spaces` or emits
+`local_resources/runtimes/python` owns the trusted platform publication, immutable installation and runtime leases;
+`local_resources/preparation` coordinates shared resource installation and execution leases. None depends on `spaces` or emits
 Space domain types. A Space command authorizes an asset before calling `system_preview`; the preview
 engine never becomes a general Renderer file capability.
 
+The application-owned Python Worker is packaged separately from the on-demand third-party runtime.
 `ai/local_runtime` owns the verified private CPython process, bounded JSON-RPC transport,
 one heavy-compute permit and process cleanup. It keeps no Run or project state. Capability
 modules authorize model paths and map typed requests; Python adapters invoke upstream model

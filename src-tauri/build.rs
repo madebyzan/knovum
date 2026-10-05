@@ -1,4 +1,5 @@
 fn main() {
+    embed_python_runtime_descriptor();
     tauri_build::try_build(
         tauri_build::Attributes::new()
             .app_manifest(tauri_build::AppManifest::new().commands(&[
@@ -256,4 +257,26 @@ fn main() {
             ),
     )
     .expect("failed to build Tauri application manifest");
+}
+
+fn embed_python_runtime_descriptor() {
+    println!("cargo:rerun-if-env-changed=KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH");
+    let bytes = match std::env::var_os("KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH") {
+        Some(path) => {
+            println!(
+                "cargo:rerun-if-changed={}",
+                std::path::Path::new(&path).display()
+            );
+            std::fs::read(path).expect("read trusted Python runtime descriptor")
+        }
+        None if std::env::var("PROFILE").as_deref() == Ok("release")
+            && std::env::var_os("CARGO_FEATURE_E2E").is_none() =>
+        {
+            panic!("release requires KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH")
+        }
+        None => b"null".to_vec(),
+    };
+    let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap())
+        .join("python-runtime-descriptor.json");
+    std::fs::write(destination, bytes).expect("embed trusted Python runtime descriptor");
 }

@@ -50,6 +50,15 @@ pub async fn prepare_resources(
                 .await
                 .map(|_| ())
             }
+            ResourcePreparationTarget::PythonRuntime => {
+                super::prepare_python_for_request(
+                    &app,
+                    request,
+                    &CancellationToken::new(),
+                    &mut |progress| observe(&on_progress, progress),
+                )
+                .await
+            }
             ResourcePreparationTarget::MediaImportTools => {
                 crate::local_resources::tools::prepare_media_import_tools_for_request(
                     &app,
