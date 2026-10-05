@@ -1,7 +1,9 @@
 import type { DeepReadonly } from "vue";
 
+import type { AudiobookOutputConfig } from "../contracts/generated/AudiobookOutputConfig";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { ImportedAudiobookScript } from "./audiobook-script";
-import type { AudiobookOutputConfig, SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 
 export interface ParagraphDraft {
   key: string;
@@ -18,8 +20,8 @@ export interface AudiobookRoleDraft {
   key: string;
   voiceRevisionId: string;
 }
-export function readAudiobookRevision(detail: DeepReadonly<SpeechProjectDetail>) {
-  const config = JSON.parse(detail.revision.outputConfig) as AudiobookOutputConfig;
+export function readAudiobookRevision(snapshot: DeepReadonly<SpeechProjectSnapshot>) {
+  const config = JSON.parse(snapshot.revision.outputConfig) as AudiobookOutputConfig;
   if (!Array.isArray(config.roles)) throw new Error("Audiobook role bindings are missing");
   const roleKeys = config.roles.map((role) => role.key);
   if (
@@ -37,7 +39,7 @@ export function readAudiobookRevision(detail: DeepReadonly<SpeechProjectDetail>)
     throw new Error("Audiobook role bindings are invalid");
   }
   const chapterKeys = config.chapters.map((chapter) => chapter.key);
-  const segmentChapterKeys = detail.segments.map((segment) => segment.chapterKey);
+  const segmentChapterKeys = snapshot.segments.map((segment) => segment.chapterKey);
   const sequence = segmentChapterKeys.filter(
     (key, index): key is string =>
       typeof key === "string" && (index === 0 || key !== segmentChapterKeys[index - 1]),
@@ -53,7 +55,7 @@ export function readAudiobookRevision(detail: DeepReadonly<SpeechProjectDetail>)
   const chapters = config.chapters.map((chapter) => ({
     key: chapter.key,
     title: chapter.title,
-    paragraphs: detail.segments
+    paragraphs: snapshot.segments
       .filter((segment) => segment.chapterKey === chapter.key)
       .map((segment) => {
         if (!segment.speakerKey || roleVoices.get(segment.speakerKey) !== segment.voiceRevisionId) {

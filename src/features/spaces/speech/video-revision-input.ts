@@ -1,4 +1,5 @@
-import type { VideoDubbingOutputConfig, VoiceLibraryRevision } from "./contracts";
+import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { milliseconds, type VideoLineDraft } from "./video-dubbing-draft";
 
 export function videoRevisionInput(input: {

@@ -7,7 +7,8 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
-import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/schema/knowledge";
+import type { SpaceTranscriptEdit } from "../../media/schema/knowledge";
+import type { SpaceTranscriptSegment } from "../../media/schema/transcript";
 import SpaceTranscriptSegmentEditor from "./SpaceTranscriptSegmentEditor.vue";
 
 const props = defineProps<{

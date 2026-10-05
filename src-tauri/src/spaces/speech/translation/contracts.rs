@@ -40,7 +40,7 @@ pub struct VideoTranslationSegmentOutput {
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct VideoTranslationResult {
+pub struct VideoTranslation {
     pub provenance: VideoTranslationProvenance,
     pub segments: Vec<VideoTranslationSegmentOutput>,
 }

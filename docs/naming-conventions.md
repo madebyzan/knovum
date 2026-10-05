@@ -235,6 +235,8 @@ Ending async work keeps three verbs apart: `cancel` abandons a job that has not 
 terminates a service that is still running, and `fail` records that the work already ended in error.
 A command that only writes a failure record is `fail_*`, not `stop_*`.
 
+Voice profiles expose `archive_voice_profile` and `unarchive_voice_profile` as separate public intents. Their shared private persistence operation may accept a boolean; the public request contracts do not. Conversation tool activity uses `context` for invocation inputs or execution context and `output` for the displayed tool response. Vendor tool-result payloads retain their protocol fields.
+
 ### Persistence and Renderer-local verbs
 
 These name work inside persistence or Renderer-local APIs. Persistence implementation verbs such as

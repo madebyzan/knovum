@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from runtime_acceptance.common import (
+from runtime_acceptance.evidence import (
     EvidenceError,
     require_keys,
     require_list,
@@ -28,7 +28,7 @@ def evaluate_tts(corpus: object, section: dict[str, Any], base: Path, provenance
         "speech.synthesize",
         "tts",
         provenance,
-        {"native_worker"},
+        {"bundled_worker"},
     )
     require_keys(values, "TTS values", {"artifacts"})
     samples = {

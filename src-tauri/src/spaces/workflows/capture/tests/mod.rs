@@ -1,4 +1,4 @@
-use super::types::{CandidateBinding, CandidateSource, CaptureInputRole};
+use super::contracts::{CandidateBinding, CandidateSource, CaptureInputRole};
 use crate::spaces::derivation::input_revision::RevisionBasis;
 
 #[test]

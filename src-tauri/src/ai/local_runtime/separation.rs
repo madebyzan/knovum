@@ -16,7 +16,7 @@ use crate::{
     ai::contracts::{
         runtime::RuntimeDeviceProfile,
         speech_wire::{
-            InferenceRequestIdentity, SpeechSeparateParams, SpeechSeparateResult,
+            InferenceRequestIdentity, SpeechSeparateParams, SpeechSeparation,
             SynthesizedAudioFileReference,
         },
     },
@@ -67,36 +67,38 @@ pub(crate) async fn separate_to_paths<R: Runtime>(
         params,
         None,
         None,
-        |result, work_directory, identity, _| {
-            finish(result, work_directory, identity, cancellation, targets)
+        |separation, work_directory, identity, _| {
+            finish(separation, work_directory, identity, cancellation, targets)
         },
     )
     .await
 }
 
 fn finish(
-    result: SpeechSeparateResult,
+    separation: SpeechSeparation,
     work_directory: &Path,
     identity: &InferenceRequestIdentity,
     cancellation: &CancellationToken,
     targets: SeparationTargets<'_>,
 ) -> Result<SeparatedAudioMetadata, String> {
-    if result.request_id != identity.request_id
-        || result.attempt_epoch != identity.attempt_epoch
-        || result.model_spec_id != identity.model_spec_id
+    if separation.request_id != identity.request_id
+        || separation.attempt_epoch != identity.attempt_epoch
+        || separation.model_spec_id != identity.model_spec_id
     {
         return Err("invalid_output: source separation response identity differs".into());
     }
-    validate_reference(&result.vocals_ref)?;
-    validate_reference(&result.background_ref)?;
-    if result.sample_count == 0 || result.sample_count > SAMPLE_RATE as u64 * MAX_DURATION_SECONDS {
+    validate_reference(&separation.vocals_ref)?;
+    validate_reference(&separation.background_ref)?;
+    if separation.sample_count == 0
+        || separation.sample_count > SAMPLE_RATE as u64 * MAX_DURATION_SECONDS
+    {
         return Err("invalid_output: source separation returned an invalid timeline".into());
     }
     let vocals = copy_artifact(
         work_directory,
         &identity.request_id,
-        &result.vocals_ref,
-        result.sample_count,
+        &separation.vocals_ref,
+        separation.sample_count,
         identity.deadline_ms,
         cancellation,
         targets.vocals,
@@ -104,8 +106,8 @@ fn finish(
     let background = match copy_artifact(
         work_directory,
         &identity.request_id,
-        &result.background_ref,
-        result.sample_count,
+        &separation.background_ref,
+        separation.sample_count,
         identity.deadline_ms,
         cancellation,
         targets.background,

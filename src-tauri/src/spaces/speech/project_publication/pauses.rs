@@ -34,18 +34,18 @@ pub(super) fn insert(
         }
         writer.finalize().map_err(|error| error.to_string())?;
     }
-    let mut result = Vec::with_capacity(sources.len().saturating_mul(2));
+    let mut sources_with_pauses = Vec::with_capacity(sources.len().saturating_mul(2));
     for (index, source) in sources.iter().enumerate() {
         if index > 0 && samples > 0 {
-            result.push(NormalizedSource {
+            sources_with_pauses.push(NormalizedSource {
                 path: silence.clone(),
                 sample_count: samples,
             });
         }
-        result.push(NormalizedSource {
+        sources_with_pauses.push(NormalizedSource {
             path: source.path.clone(),
             sample_count: source.sample_count,
         });
     }
-    Ok(result)
+    Ok(sources_with_pauses)
 }

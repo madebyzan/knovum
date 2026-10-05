@@ -1,20 +1,21 @@
 import { readonly, shallowRef, watch, type DeepReadonly } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { VoiceProfileHistory } from "../contracts/generated/VoiceProfileHistory";
 import { useSpaceStore } from "../session/space-store";
-import type { VoiceProfileDetail } from "./contracts";
 import {
   copyVoiceProfile,
   deleteVoiceProfile,
-  listVoiceProfilesForManagement,
+  listVoiceProfiles,
   renameVoiceProfile,
   reviseVoiceProfile,
-  setVoiceProfileArchived,
+  archiveVoiceProfile,
+  unarchiveVoiceProfile,
 } from "./ipc";
 
 export function useVoiceManagement(changed: () => void) {
   const store = useSpaceStore();
-  const profiles = shallowRef<VoiceProfileDetail[]>([]);
+  const profiles = shallowRef<VoiceProfileHistory[]>([]);
   const busyProfileId = shallowRef<string>();
   const error = shallowRef<string>();
   let epoch = 0;
@@ -24,7 +25,7 @@ export function useVoiceManagement(changed: () => void) {
     const current = ++epoch;
     if (!spaceId) return void (profiles.value = []);
     try {
-      const next = await listVoiceProfilesForManagement(spaceId);
+      const next = await listVoiceProfiles(spaceId);
       if (current === epoch && store.activeSpaceId === spaceId) profiles.value = next;
     } catch (cause) {
       if (current === epoch) error.value = getErrorMessage(cause);
@@ -51,11 +52,11 @@ export function useVoiceManagement(changed: () => void) {
     profiles: readonly(profiles),
     busyProfileId: readonly(busyProfileId),
     error: readonly(error),
-    rename: (profile: DeepReadonly<VoiceProfileDetail>, name: string) =>
+    rename: (profile: DeepReadonly<VoiceProfileHistory>, name: string) =>
       mutate(profile.id, () =>
         renameVoiceProfile({ profileId: profile.id, expectedUpdatedAt: profile.updatedAt, name }),
       ),
-    revise: (profile: DeepReadonly<VoiceProfileDetail>, language: string, speed: number) =>
+    revise: (profile: DeepReadonly<VoiceProfileHistory>, language: string, speed: number) =>
       mutate(profile.id, () =>
         reviseVoiceProfile({
           profileId: profile.id,
@@ -64,19 +65,22 @@ export function useVoiceManagement(changed: () => void) {
           speed,
         }),
       ),
-    archive: (profile: DeepReadonly<VoiceProfileDetail>, archived: boolean) =>
+    archive: (profile: DeepReadonly<VoiceProfileHistory>) =>
       mutate(profile.id, () =>
-        setVoiceProfileArchived({
+        archiveVoiceProfile({
           profileId: profile.id,
           expectedUpdatedAt: profile.updatedAt,
-          archived,
         }),
       ),
-    remove: (profile: DeepReadonly<VoiceProfileDetail>) =>
+    unarchive: (profile: DeepReadonly<VoiceProfileHistory>) =>
+      mutate(profile.id, () =>
+        unarchiveVoiceProfile({ profileId: profile.id, expectedUpdatedAt: profile.updatedAt }),
+      ),
+    remove: (profile: DeepReadonly<VoiceProfileHistory>) =>
       mutate(profile.id, () =>
         deleteVoiceProfile({ profileId: profile.id, expectedUpdatedAt: profile.updatedAt }),
       ),
-    copy: (profile: DeepReadonly<VoiceProfileDetail>, targetSpaceId: string, name: string) =>
+    copy: (profile: DeepReadonly<VoiceProfileHistory>, targetSpaceId: string, name: string) =>
       mutate(profile.id, () =>
         copyVoiceProfile({
           profileId: profile.id,

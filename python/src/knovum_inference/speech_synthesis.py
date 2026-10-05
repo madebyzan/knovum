@@ -6,7 +6,7 @@ from typing import Any
 
 from knovum_inference.contracts import SpeechSynthesisEngine, SpeechSynthesizeParams, VoiceSourceKind
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech_common import check_deadline
+from knovum_inference.speech_request import check_deadline
 from knovum_inference.speech_stream import SynthesisChunkPublisher
 from knovum_inference.speech_synthesis_voxcpm2 import VoxCpm2SynthesisEngine
 

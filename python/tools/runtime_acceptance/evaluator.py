@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from runtime_acceptance.alignment_evaluation import evaluate_alignment
-from runtime_acceptance.common import (
+from runtime_acceptance.evidence import (
     EvidenceError,
     require_keys,
     require_list,
@@ -113,7 +113,7 @@ def _embedding(corpus: object, section: dict[str, Any], base: Path, provenance: 
         "embedding.encode",
         "embedding",
         provenance,
-        {"native_worker"},
+        {"bundled_worker"},
     )
     corpus_section = require_object(corpus, "corpus.embedding")
     query_relevance = {
@@ -216,7 +216,7 @@ def _asr(corpus: object, section: dict[str, Any], base: Path, provenance: dict[s
         "speech.transcribe",
         "asr",
         provenance,
-        {"native_worker"},
+        {"bundled_worker"},
     )
     samples = require_list(require_object(corpus, "corpus.asr")["samples"], "corpus.asr.samples")
     references = {item["id"]: item for item in samples}

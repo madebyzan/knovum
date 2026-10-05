@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated
 
-from knovum_inference.contract_base import WireModel
+from knovum_inference.wire_model import WireModel
 from pydantic import ConfigDict, Field, RootModel
 
 
@@ -66,7 +66,7 @@ class RuntimeHealthParams(WireModel):
     session_id: Annotated[str, Field(alias="sessionId")]
 
 
-class RuntimeHealthResult(WireModel):
+class RuntimeHealthObservation(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -83,7 +83,7 @@ class RuntimeCancelParams(WireModel):
     attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
 
 
-class RuntimeCancelResult(WireModel):
+class RuntimeCancellationAcknowledgement(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -107,7 +107,7 @@ class RuntimeShutdownParams(WireModel):
     session_id: Annotated[str, Field(alias="sessionId")]
 
 
-class RuntimeShutdownResult(WireModel):
+class RuntimeShutdownAcknowledgement(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -119,7 +119,7 @@ class EmbeddingRole(StrEnum):
     document = "document"
 
 
-class EmbeddingEncodeResult(WireModel):
+class EmbeddingEncoding(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -256,7 +256,7 @@ class SynthesizedAudioFileReference(WireModel):
     sample_format: Annotated[str, Field(alias="sampleFormat")]
 
 
-class SpeechSynthesizeResult(WireModel):
+class SpeechSynthesis(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -286,7 +286,7 @@ class SpeechSeparateParams(WireModel):
     audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
 
 
-class SpeechSeparateResult(WireModel):
+class SpeechSeparation(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -314,7 +314,7 @@ class RuntimeInitializeParams(WireModel):
     model_paths: Annotated[RuntimeModelPaths, Field(alias="modelPaths")]
 
 
-class RuntimeInitializeResult(WireModel):
+class RuntimeSession(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -356,7 +356,7 @@ class TensorFileReference(WireModel):
     data_type: Annotated[TensorDataType, Field(alias="dataType")]
 
 
-class ImageSegmentResult(WireModel):
+class ImageSegmentation(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -379,7 +379,7 @@ class AsrProfile(WireModel):
     vad_enabled: Annotated[bool, Field(alias="vadEnabled")]
 
 
-class SpeechTranscribeResult(WireModel):
+class SpeechTranscription(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -461,7 +461,7 @@ class SpeechDiarizeParams(WireModel):
     ]
 
 
-class SpeechDiarizeResult(WireModel):
+class SpeechDiarization(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -548,7 +548,7 @@ class SpeechTranscriptArtifact(WireModel):
     segments: list[SpeechTranscriptSegment]
 
 
-class SpeechAlignResult(WireModel):
+class SpeechAlignment(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -580,30 +580,30 @@ class SpeechSynthesizeParams(WireModel):
 
 class InferenceWireSchemas(WireModel):
     initialize_params: RuntimeInitializeParams
-    initialize_result: RuntimeInitializeResult
+    initialize_result: RuntimeSession
     health_params: RuntimeHealthParams
-    health_result: RuntimeHealthResult
+    health_result: RuntimeHealthObservation
     cancel_params: RuntimeCancelParams
-    cancel_result: RuntimeCancelResult
+    cancel_result: RuntimeCancellationAcknowledgement
     ack_chunk_params: RuntimeAckChunkParams
     shutdown_params: RuntimeShutdownParams
-    shutdown_result: RuntimeShutdownResult
+    shutdown_result: RuntimeShutdownAcknowledgement
     embedding_params: EmbeddingEncodeParams
-    embedding_result: EmbeddingEncodeResult
+    embedding_result: EmbeddingEncoding
     image_segment_params: ImageSegmentParams
-    image_segment_result: ImageSegmentResult
+    image_segment_result: ImageSegmentation
     speech_transcribe_params: SpeechTranscribeParams
-    speech_transcribe_result: SpeechTranscribeResult
+    speech_transcribe_result: SpeechTranscription
     speech_transcript_artifact: SpeechTranscriptArtifact
     speech_progress_event: SpeechProgressEvent
     speech_progress_event_type: SpeechProgressEventType
     speech_align_params: SpeechAlignParams
-    speech_align_result: SpeechAlignResult
+    speech_align_result: SpeechAlignment
     speech_diarize_params: SpeechDiarizeParams
-    speech_diarize_result: SpeechDiarizeResult
+    speech_diarize_result: SpeechDiarization
     speech_synthesize_params: SpeechSynthesizeParams
     speech_synthesis_chunk_event: SpeechSynthesisChunkEvent
     speech_synthesis_chunk_granularity: SpeechSynthesisChunkGranularity
-    speech_synthesize_result: SpeechSynthesizeResult
+    speech_synthesize_result: SpeechSynthesis
     speech_separate_params: SpeechSeparateParams
-    speech_separate_result: SpeechSeparateResult
+    speech_separate_result: SpeechSeparation

@@ -43,9 +43,9 @@ impl PreparationRequest {
     }
 
     pub(crate) fn finish(mut self, error: Option<&String>) -> Result<(), String> {
-        let result = finish_request(&self.job_id, &self.active, error);
+        let completion = finish_request(&self.job_id, &self.active, error);
         self.finished = true;
-        result
+        completion
     }
 }
 

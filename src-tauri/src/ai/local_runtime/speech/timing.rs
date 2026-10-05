@@ -4,7 +4,7 @@ use crate::{
         contracts::{
             runtime::RuntimeDeviceProfile,
             speech_wire::{
-                SpeechAlignParams, SpeechAlignResult, SpeechDiarizeParams, SpeechDiarizeResult,
+                SpeechAlignParams, SpeechAlignment, SpeechDiarization, SpeechDiarizeParams,
             },
         },
         local_runtime::admission::Priority,
@@ -24,7 +24,7 @@ pub(crate) async fn align<R: Runtime>(
     params: SpeechAlignParams,
     cancellation: &CancellationToken,
     priority: Priority,
-) -> Result<SpeechAlignResult, String> {
+) -> Result<SpeechAlignment, String> {
     validate_alignment_platform()?;
     if device_profile.device != "cpu" || params.profile.device != "cpu" {
         return Err("unsupported_device: Qwen3 forced alignment requires CPU".into());
@@ -52,17 +52,17 @@ pub(crate) async fn align<R: Runtime>(
         params,
         None,
         None,
-        move |result: SpeechAlignResult, _, identity, _| {
+        move |alignment: SpeechAlignment, _, identity, _| {
             validate_identity(
-                &result.request_id,
-                result.attempt_epoch,
-                &result.model_spec_id,
+                &alignment.request_id,
+                alignment.attempt_epoch,
+                &alignment.model_spec_id,
                 identity,
             )?;
-            if !result.coverage.is_finite() || !(0.0..=1.0).contains(&result.coverage) {
+            if !alignment.coverage.is_finite() || !(0.0..=1.0).contains(&alignment.coverage) {
                 return Err("invalid_output: forced alignment coverage is invalid".into());
             }
-            for unit in &result.units {
+            for unit in &alignment.units {
                 let alignment_state_valid =
                     match (unit.start_ms, unit.end_ms, unit.unaligned_reason.as_deref()) {
                         (Some(start), Some(end), None) => end > start,
@@ -79,7 +79,7 @@ pub(crate) async fn align<R: Runtime>(
                     return Err("invalid_output: forced alignment unit is invalid".into());
                 }
             }
-            Ok(result)
+            Ok(alignment)
         },
     )
     .await
@@ -92,7 +92,7 @@ pub(crate) async fn diarize<R: Runtime>(
     params: SpeechDiarizeParams,
     cancellation: &CancellationToken,
     priority: Priority,
-) -> Result<SpeechDiarizeResult, String> {
+) -> Result<SpeechDiarization, String> {
     validate_diarization_platform()?;
     if device_profile.device != "cpu"
         || device_profile.execution_profile_id != "community1-knovum-cpu-v1"
@@ -117,15 +117,15 @@ pub(crate) async fn diarize<R: Runtime>(
         params,
         None,
         None,
-        |result: SpeechDiarizeResult, _, identity, _| {
+        |diarization: SpeechDiarization, _, identity, _| {
             validate_identity(
-                &result.request_id,
-                result.attempt_epoch,
-                &result.model_spec_id,
+                &diarization.request_id,
+                diarization.attempt_epoch,
+                &diarization.model_spec_id,
                 identity,
             )?;
             let mut previous_start = 0;
-            for (index, turn) in result.turns.iter().enumerate() {
+            for (index, turn) in diarization.turns.iter().enumerate() {
                 if turn.speaker_id.trim().is_empty()
                     || turn.speaker_id.len() > 120
                     || turn.end_ms <= turn.start_ms
@@ -135,7 +135,7 @@ pub(crate) async fn diarize<R: Runtime>(
                 }
                 previous_start = turn.start_ms;
             }
-            Ok(result)
+            Ok(diarization)
         },
     )
     .await

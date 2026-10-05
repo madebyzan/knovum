@@ -56,9 +56,10 @@ pub(in crate::spaces::speech) async fn publish_chapter_checkpoint<R: Runtime>(
             Ok(rendered) => rendered,
             Err(error) => return Err(cleanup::paths(error, &[&part], &[&work])),
         };
-    let result = chapter_commit::commit(app, pool, claim, request, &digest, &rendered, &work).await;
-    if result.is_ok() {
+    let publication =
+        chapter_commit::commit(app, pool, claim, request, &digest, &rendered, &work).await;
+    if publication.is_ok() {
         fs::remove_dir_all(&work).map_err(|error| error.to_string())?;
     }
-    result
+    publication
 }

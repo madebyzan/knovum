@@ -1,9 +1,7 @@
 #[cfg(windows)]
 use super::windows_job::WindowsJob;
 use super::{KillRegistration, ProcessTree, Worker};
-use crate::ai::contracts::runtime::{
-    RuntimeInitializeParams, RuntimeInitializeResult, PROTOCOL_VERSION,
-};
+use crate::ai::contracts::runtime::{RuntimeInitializeParams, RuntimeSession, PROTOCOL_VERSION};
 use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
@@ -28,7 +26,7 @@ impl Worker {
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
-        let result = Self::start_inner(
+        let startup = Self::start_inner(
             runtime,
             work_directory,
             model_path,
@@ -38,10 +36,10 @@ impl Worker {
             exit,
         )
         .await;
-        if result.is_err() {
+        if startup.is_err() {
             let _ = tokio::fs::remove_dir_all(work_directory).await;
         }
-        result
+        startup
     }
 
     async fn start_inner(
@@ -59,13 +57,13 @@ impl Worker {
             biased;
             _ = exit.cancelled() => return Err("cancelled".into()),
             _ = cancellation.cancelled() => return Err("cancelled".into()),
-            result = tokio::time::timeout(crate::ai::local_runtime::deadline_duration(deadline_ms)?, async {
+            startup = tokio::time::timeout(crate::ai::local_runtime::deadline_duration(deadline_ms)?, async {
                 crate::ai::local_runtime::prepare_inference_root(work_directory).await?;
                 verify_runtime_for_spawn(runtime.clone()).await?;
                 tokio::fs::create_dir(work_directory)
                     .await
                     .map_err(|error| format!("resource_exhausted: {error}"))
-            }) => result.map_err(|_| "deadline_exceeded".to_owned())??,
+            }) => startup.map_err(|_| "deadline_exceeded".to_owned())??,
         }
         let bootstrap = concat!(
             "import sys; ",
@@ -179,23 +177,23 @@ impl Worker {
         });
         let mut protocol = Protocol::new(input, output);
         // Once spawned, cancellation must settle the child before releasing its reservation.
-        let initialization: Result<RuntimeInitializeResult, String> =
+        let initialization: Result<RuntimeSession, String> =
             match crate::ai::local_runtime::deadline_duration(deadline_ms) {
                 Err(error) => Err(error),
                 Ok(remaining) => tokio::select! {
                     biased;
                     _ = exit.cancelled() => Err("cancelled".into()),
                     _ = cancellation.cancelled() => Err("cancelled".into()),
-                    result = tokio::time::timeout(
+                    startup = tokio::time::timeout(
                         remaining.min(Duration::from_secs(15)),
                         protocol.request(&params.session_id, "runtime.initialize", &params),
-                    ) => result
+                    ) => startup
                         .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
                         .and_then(std::convert::identity),
                 },
             };
-        let result = match initialization {
-            Ok(result) => result,
+        let startup = match initialization {
+            Ok(startup) => startup,
             Err(error) => {
                 process_tree.terminate();
                 let _ = child.kill().await;
@@ -204,22 +202,22 @@ impl Worker {
                 return Err(error);
             }
         };
-        if result.protocol_version != PROTOCOL_VERSION
-            || result.runtime_digest != params.runtime_digest
-            || result.session_id != params.session_id
-            || result.capability != params.capability
-            || result.capability_spec_id != params.capability_spec_id
-            || result.device_profile.device != params.device_profile.device
-            || result.device_profile.execution_profile_id
+        if startup.protocol_version != PROTOCOL_VERSION
+            || startup.runtime_digest != params.runtime_digest
+            || startup.session_id != params.session_id
+            || startup.capability != params.capability
+            || startup.capability_spec_id != params.capability_spec_id
+            || startup.device_profile.device != params.device_profile.device
+            || startup.device_profile.execution_profile_id
                 != params.device_profile.execution_profile_id
-            || result.device_profile.cpu_threads != params.device_profile.cpu_threads
-            || result.capabilities.len() != 1
-            || result.capabilities[0] != params.capability.method()
-            || result.limits.max_message_bytes != 1_048_576
-            || result.limits.max_embedding_texts != 32
-            || result.limits.max_embedding_tokens != 2048
-            || result.limits.max_unconsumed_chunk_files != 8
-            || result.limits.max_unconsumed_chunk_bytes != 16 * 1024 * 1024
+            || startup.device_profile.cpu_threads != params.device_profile.cpu_threads
+            || startup.capabilities.len() != 1
+            || startup.capabilities[0] != params.capability.method()
+            || startup.limits.max_message_bytes != 1_048_576
+            || startup.limits.max_embedding_texts != 32
+            || startup.limits.max_embedding_tokens != 2048
+            || startup.limits.max_unconsumed_chunk_files != 8
+            || startup.limits.max_unconsumed_chunk_bytes != 16 * 1024 * 1024
         {
             process_tree.terminate();
             let _ = child.kill().await;
@@ -252,13 +250,13 @@ async fn verify_runtime_for_spawn(runtime: PythonRuntimePaths) -> Result<(), Str
     tokio::spawn(async move {
         let gate = VERIFY_GATE.get_or_init(|| tokio::sync::Mutex::new(()));
         let _guard = gate.lock().await;
-        let result = tokio::task::spawn_blocking(move || {
+        let startup = tokio::task::spawn_blocking(move || {
             crate::local_resources::tools::verify_before_spawn(&runtime)
         })
         .await
         .map_err(|error| format!("python-runtime-invalid: verification task failed: {error}"))
         .and_then(std::convert::identity);
-        let _ = sender.send(result);
+        let _ = sender.send(startup);
     });
     receiver
         .await

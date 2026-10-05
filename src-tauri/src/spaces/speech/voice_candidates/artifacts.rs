@@ -58,7 +58,7 @@ pub(super) fn cleanup_source_snapshot(
 pub(super) fn validate_persisted(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
-    record: &repository::CandidateRecord,
+    record: &repository::StoredVoiceCandidate,
 ) -> Result<(), String> {
     if record.candidate.run_id != claim.run_id || record.candidate.space_id != claim.home_space_id {
         return Err("stale_revision: persisted voice candidate differs from its Run".into());

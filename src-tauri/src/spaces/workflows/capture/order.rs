@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::types::CapturedStep;
+use super::contracts::CapturedStep;
 
 pub(super) fn order_steps(steps: Vec<CapturedStep>) -> Result<Vec<CapturedStep>, String> {
     fn visit(

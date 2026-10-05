@@ -4,9 +4,9 @@ from typing import Any
 
 import pytest
 
-from knovum_inference.contracts import ImageSegmentResult, RuntimeHealthResult
+from knovum_inference.contracts import ImageSegmentation, RuntimeHealthObservation
 from knovum_inference.errors import RpcError
-from knovum_inference.request_contract import validate_result
+from knovum_inference.request_contract import validate_response
 
 
 def mask_result(data_type: str) -> dict[str, Any]:
@@ -26,17 +26,17 @@ def mask_result(data_type: str) -> dict[str, Any]:
 
 def test_result_accepts_the_generated_json_enum_contract() -> None:
     value = mask_result("float32_little_endian")
-    assert validate_result(ImageSegmentResult, value) == value
+    assert validate_response(ImageSegmentation, value) == value
 
 
 def test_result_rejects_unknown_enum_values() -> None:
     with pytest.raises(RpcError) as captured:
-        validate_result(ImageSegmentResult, mask_result("float64_little_endian"))
+        validate_response(ImageSegmentation, mask_result("float64_little_endian"))
     assert captured.value.stable_code == "invalid_output"
 
 
 @pytest.mark.parametrize("resident_bytes", ["1024", True, -1, float("nan"), float("inf")])
 def test_result_preserves_strict_numeric_validation(resident_bytes: Any) -> None:
     with pytest.raises(RpcError) as captured:
-        validate_result(RuntimeHealthResult, {"sessionId": "session", "residentBytes": resident_bytes})
+        validate_response(RuntimeHealthObservation, {"sessionId": "session", "residentBytes": resident_bytes})
     assert captured.value.stable_code == "invalid_output"

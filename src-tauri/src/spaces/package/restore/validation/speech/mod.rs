@@ -155,13 +155,13 @@ fn validate_runtime_snapshots(request: &RestorePackageRequest) -> Result<(), Str
 }
 
 fn ids<'a>(values: impl Iterator<Item = &'a str>, label: &str) -> Result<HashSet<&'a str>, String> {
-    let mut result = HashSet::new();
+    let mut unique_ids = HashSet::new();
     for value in values {
-        if value.is_empty() || !result.insert(value) {
+        if value.is_empty() || !unique_ids.insert(value) {
             return Err(format!("Package {label} IDs must be nonempty and unique"));
         }
     }
-    Ok(result)
+    Ok(unique_ids)
 }
 
 fn reference(ids: &HashSet<&str>, id: &str, label: &str) -> Result<(), String> {

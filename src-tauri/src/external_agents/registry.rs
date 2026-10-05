@@ -53,7 +53,7 @@ pub(super) fn runtime(kind: AgentKind, path: &str) -> AppResult<AcpAgent> {
             "CLAUDE_CODE_EXECUTABLE",
             &executable,
         ),
-        AcpLaunch::Native { arguments } => AcpAgentConfig::new(executable)
+        AcpLaunch::Executable { arguments } => AcpAgentConfig::new(executable)
             .args(arguments.iter().copied())
             .env("PATH", path),
         AcpLaunch::Server => AcpAgentConfig::new(executable).env("PATH", path),

@@ -46,7 +46,7 @@ pub(super) async fn execute(
         ImageOperation::RemoveObject { .. } => "Remove the objects selected by white pixels in the second (mask) image. Inpaint the background naturally; preserve all unselected content and output dimensions. Do not erase to transparency.".into(),
         ImageOperation::RemoveObjectPrompt { prompt } => format!("Remove the following object(s) from the input image and naturally complete their background. Preserve unselected content and dimensions: {prompt}"),
     };
-    let result = task::artifact(
+    let artifact = task::artifact(
         app,
         kind,
         format!(
@@ -58,7 +58,7 @@ pub(super) async fn execute(
     )
     .await;
     drop(mask_file);
-    result
+    artifact
 }
 
 pub(crate) fn discard_interrupted(app: &AppHandle) -> Result<(), String> {

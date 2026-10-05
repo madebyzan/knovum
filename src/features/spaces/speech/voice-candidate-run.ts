@@ -1,9 +1,9 @@
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
 import { observeResourceRun } from "../runs/resource-run-observation";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
-import type { VoiceCandidate } from "./contracts";
 import { getVoiceCandidate } from "./voice-candidate-ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
@@ -14,12 +14,12 @@ export function observeVoiceCandidateRun(
   succeeded: (candidate: VoiceCandidate) => void,
   failed: (message: string) => void,
 ) {
-  const finished = (result: RunObservation) => {
-    if (result.state !== "succeeded") {
-      failed(i18n.global.t(workflowStateLabelKey(result.state)));
+  const finished = (observation: RunObservation) => {
+    if (observation.state !== "succeeded") {
+      failed(i18n.global.t(workflowStateLabelKey(observation.state)));
       return;
     }
-    void getVoiceCandidate(result.id, spaceId)
+    void getVoiceCandidate(observation.id, spaceId)
       .then(succeeded)
       .catch((cause: unknown) => {
         failed(getErrorMessage(cause));

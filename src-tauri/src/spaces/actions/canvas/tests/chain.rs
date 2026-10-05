@@ -77,7 +77,7 @@ async fn completed_branching_derivation_chain_captures_one_replaceable_note_inpu
     assert_eq!(video.inputs.len(), 2);
     assert!(video.inputs.iter().all(|input| matches!(
         input.source,
-        capture::types::CandidateSource::StepOutput { .. }
+        capture::contracts::CandidateSource::StepOutput { .. }
     )));
     let saved = capture::save(
         &pool,

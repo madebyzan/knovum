@@ -60,7 +60,7 @@ const transcriptProvenanceSchema = z
     engineId: boundedIdentifier,
     modelSpecId: boundedIdentifier,
     modelRevision: boundedIdentifier,
-    timing: z.enum(["native_words", "segment_only"]),
+    timing: z.enum(["engine_words", "segment_only"]),
   })
   .strict();
 

@@ -50,8 +50,8 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
         .invoke_handler(tauri::generate_handler![
             get_state,
             cancel,
-            dismiss_result,
-            copy_result
+            dismiss_transcription,
+            copy_transcription
         ])
         .build()
 }
@@ -67,12 +67,12 @@ fn cancel(service: State<'_, Arc<DictationService>>) {
 }
 
 #[tauri::command]
-fn dismiss_result(service: State<'_, Arc<DictationService>>) {
+fn dismiss_transcription(service: State<'_, Arc<DictationService>>) {
     service.dispatch(DictationAction::Dismiss);
 }
 
 #[tauri::command]
-async fn copy_result(service: State<'_, Arc<DictationService>>) -> AppResult<()> {
+async fn copy_transcription(service: State<'_, Arc<DictationService>>) -> AppResult<()> {
     let text = service
         .snapshot()
         .map_err(AppError::from)?

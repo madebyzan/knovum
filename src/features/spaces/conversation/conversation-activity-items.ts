@@ -7,17 +7,17 @@ export type ActivityItem = {
   id: string;
   title: string;
   status: string;
-  detail?: unknown;
-  result?: unknown;
-  resultName?: string;
+  context?: unknown;
+  output?: unknown;
+  outputName?: string;
 };
 
-const toolPayload = z.object({
+const toolPayload = z.strictObject({
   toolCallId: z.string(),
   title: z.string().nullish(),
   actionId: z.string().nullish(),
   status: z.enum(["pending", "in_progress", "completed", "failed"]).nullish(),
-  detail: z.unknown().optional(),
+  context: z.unknown().optional(),
 });
 const textPayload = z.object({ text: z.string() });
 const toolEvents = new Set([
@@ -27,18 +27,19 @@ const toolEvents = new Set([
   "assistant_tool_finished",
 ]);
 
-function toolResults(messages: readonly AssistantMessage[], runId: string) {
-  const results = new Map<string, { name: string; value: unknown }>();
+function toolOutputs(messages: readonly AssistantMessage[], runId: string) {
+  const outputByCallId = new Map<string, { name: string; value: unknown }>();
   for (const message of messages) {
     if (message.role !== "tool" || message.content.runId !== runId) continue;
     for (const part of message.content.parts) {
-      if (part.type === "tool_result") results.set(part.callId, { name: part.name, value: part.result });
+      if (part.type === "tool_result")
+        outputByCallId.set(part.callId, { name: part.name, value: part.result });
     }
   }
-  return results;
+  return outputByCallId;
 }
 
-type ActivityState = { items: ActivityItem[]; positions: Map<string, number>; commentary: string };
+type ActivityState = { items: ActivityItem[]; indexByCallId: Map<string, number>; commentary: string };
 type ToolLabels = { action: (id: string) => string; default: string };
 
 function appendCommentary(state: ActivityState, event: RunEvent) {
@@ -66,27 +67,27 @@ function toolStatus(event: RunEvent, status: z.infer<typeof toolPayload>["status
 function appendTool(
   state: ActivityState,
   event: RunEvent,
-  results: Map<string, { name: string; value: unknown }>,
+  outputByCallId: Map<string, { name: string; value: unknown }>,
   labels: ToolLabels,
 ) {
   if (!toolEvents.has(event.kind)) return;
   const parsed = toolPayload.safeParse(event.payload);
   if (!parsed.success) return;
   appendCommentary(state, event);
-  const { toolCallId, detail } = parsed.data;
-  const index = state.positions.get(toolCallId);
+  const { toolCallId, context } = parsed.data;
+  const index = state.indexByCallId.get(toolCallId);
   const previous = index === undefined ? undefined : state.items[index];
-  const result = results.get(toolCallId);
+  const output = outputByCallId.get(toolCallId);
   const item: ActivityItem = {
     id: toolCallId,
     title: toolTitle(parsed.data, previous, labels),
     status: toolStatus(event, parsed.data.status, previous),
-    detail: detail == null ? previous?.detail : detail,
-    result: result?.value,
-    ...(result && { resultName: result.name }),
+    context: context == null ? previous?.context : context,
+    output: output?.value,
+    ...(output && { outputName: output.name }),
   };
   if (index === undefined) {
-    state.positions.set(toolCallId, state.items.length);
+    state.indexByCallId.set(toolCallId, state.items.length);
     state.items.push(item);
   } else state.items[index] = item;
 }
@@ -99,13 +100,13 @@ interface ConversationActivityInput {
 }
 
 export function conversationActivityItems({ events, messages, runId, labels }: ConversationActivityInput) {
-  const results = toolResults(messages, runId);
-  const state: ActivityState = { items: [], positions: new Map(), commentary: "" };
+  const outputByCallId = toolOutputs(messages, runId);
+  const state: ActivityState = { items: [], indexByCallId: new Map(), commentary: "" };
   for (const event of events) {
     if (event.kind === "external_agent_message") {
       const parsed = textPayload.safeParse(event.payload);
       if (parsed.success) state.commentary += parsed.data.text;
-    } else appendTool(state, event, results, labels);
+    } else appendTool(state, event, outputByCallId, labels);
   }
   return state.items;
 }

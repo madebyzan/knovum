@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use super::types::{BoundaryInput, BoundaryUse, CapturedStep};
+use super::contracts::{BoundaryInput, BoundaryUse, CapturedStep};
 
 pub(super) fn insert(
     boundaries: &mut HashMap<String, BoundaryInput>,

@@ -29,7 +29,7 @@ const groups = computed(() => {
   yesterday.setDate(today.getDate() - 1);
   const todayKey = today.toDateString();
   const yesterdayKey = yesterday.toDateString();
-  const result = new Map<string, { key: string; label: string; items: AssistantConversation[] }>();
+  const groupsByDate = new Map<string, { key: string; label: string; items: AssistantConversation[] }>();
   for (const conversation of props.conversations) {
     const date = new Date(conversation.updatedAt);
     const key = date.toDateString();
@@ -39,10 +39,10 @@ const groups = computed(() => {
         : key === yesterdayKey
           ? t("spaces.assistant.conversations.yesterday")
           : dateFormatter.value.format(date);
-    if (!result.has(key)) result.set(key, { key, label, items: [] });
-    result.get(key)?.items.push(conversation);
+    if (!groupsByDate.has(key)) groupsByDate.set(key, { key, label, items: [] });
+    groupsByDate.get(key)?.items.push(conversation);
   }
-  return [...result.values()];
+  return [...groupsByDate.values()];
 });
 const emit = defineEmits<{
   select: [id: string];

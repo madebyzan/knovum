@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { baseSpaceNodeFields } from "./base-fields";
 import { httpUrlSchema } from "./content";
+import { baseSpaceNodeFields } from "./node-fields";
 
 export const spaceWebsitePayloadSchema = z
   .object({

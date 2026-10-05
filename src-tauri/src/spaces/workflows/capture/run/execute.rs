@@ -9,7 +9,7 @@ use super::BoundResource;
 use crate::spaces::{
     db,
     runs::{AttemptClaim, StepOutcome},
-    workflows::capture::types::{CandidateSource, CandidateStep},
+    workflows::capture::contracts::{CandidateSource, CandidateStep},
 };
 
 pub(crate) async fn execute_step(

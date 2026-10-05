@@ -4,15 +4,15 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { TranslateVideoDubbingRequest } from "../contracts/generated/TranslateVideoDubbingRequest";
-import type { VideoTranslationResult } from "../contracts/generated/VideoTranslationResult";
+import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
-import { getVideoTranslationResult, getVideoTranslationRun, translateVideoDubbing } from "./ipc";
+import { getVideoTranslation, getVideoTranslationRun, translateVideoDubbing } from "./ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
 
 export function useVideoTranslationRun(
-  apply: (result: VideoTranslationResult) => void,
+  apply: (translation: VideoTranslation) => void,
   report: (message: string) => void,
 ) {
   const activeRunId = shallowRef<string>();
@@ -76,8 +76,8 @@ export function useVideoTranslationRun(
 
   async function load(runId: string, current: number) {
     try {
-      const result = await getVideoTranslationResult(runId);
-      if (current === epoch) apply(result);
+      const translation = await getVideoTranslation(runId);
+      if (current === epoch) apply(translation);
     } catch (cause) {
       if (current === epoch) report(getErrorMessage(cause));
     }

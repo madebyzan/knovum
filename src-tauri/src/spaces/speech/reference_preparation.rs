@@ -88,7 +88,7 @@ pub async fn prepare_voice_reference(
         },
     )
     .await?;
-    let result: Result<PreparedVoiceReference, String> = async {
+    let preparation: Result<PreparedVoiceReference, String> = async {
         let original = source.to_owned();
         let snapshot = input.clone();
         let reference = output.clone();
@@ -131,11 +131,13 @@ pub async fn prepare_voice_reference(
     if let Err(cleanup) = asset_publication::abandon(&app, pool, &publication_id).await {
         return Err(format!(
             "{}; reference preparation cleanup failed: {cleanup}",
-            result.err().unwrap_or_else(|| "Reference prepared".into())
+            preparation
+                .err()
+                .unwrap_or_else(|| "Reference prepared".into())
         )
         .into());
     }
-    result.map_err(Into::into)
+    preparation.map_err(Into::into)
 }
 
 #[tauri::command]

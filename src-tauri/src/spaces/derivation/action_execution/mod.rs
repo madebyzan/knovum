@@ -152,7 +152,7 @@ async fn render_document(
         "id",
     )?
     .to_owned();
-    let result: Result<Value, AppError> = async {
+    let execution: Result<Value, AppError> = async {
         let bytes = crate::blocking::run(move || (format.render)(&source)).await?;
         Ok(serialize(
             super::document_publication::publish(
@@ -167,10 +167,10 @@ async fn render_document(
         )?)
     }
     .await;
-    if let Err(error) = &result {
+    if let Err(error) = &execution {
         super::failure::fail_message(app, &run_id, &error.message).await?;
     }
-    result
+    execution
 }
 
 pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {

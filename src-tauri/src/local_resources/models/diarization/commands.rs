@@ -3,14 +3,14 @@ use tauri::AppHandle;
 
 use crate::{app_error::AppError, local_resources::preparation::locks};
 
-use super::DiarizationModelImportResult;
+use super::DiarizationModelImportReceipt;
 
 #[tauri::command]
 pub async fn import_diarization_model(
     app: AppHandle,
     source_path: String,
     accepted_terms: bool,
-) -> Result<DiarizationModelImportResult, AppError> {
+) -> Result<DiarizationModelImportReceipt, AppError> {
     if !accepted_terms {
         return Err(AppError::invalid(
             "Diarization import requires the user's declaration that official model terms were accepted",

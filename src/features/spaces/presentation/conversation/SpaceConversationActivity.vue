@@ -64,12 +64,12 @@ const unfinished = computed(
     ),
 );
 
-function resultText(value: unknown) {
+function formatToolContent(value: unknown) {
   return typeof value === "string" ? value : JSON.stringify(value, null, 2);
 }
 
-function hasDetails(item: ActivityItem) {
-  return item.detail !== undefined || item.result !== undefined;
+function hasToolContent(item: ActivityItem) {
+  return item.context !== undefined || item.output !== undefined;
 }
 
 function toggleTool(event: Event, id: string) {
@@ -115,16 +115,16 @@ function toggleTool(event: Event, id: string) {
           {{ item.title }}
         </p>
         <component
-          :is="hasDetails(item) ? 'details' : 'div'"
+          :is="hasToolContent(item) ? 'details' : 'div'"
           v-else
           class="group/tool min-w-0"
           @toggle="toggleTool($event, item.id)"
         >
           <component
-            :is="hasDetails(item) ? 'summary' : 'div'"
+            :is="hasToolContent(item) ? 'summary' : 'div'"
             class="flex list-none items-center gap-2 rounded-md py-1"
             :class="
-              hasDetails(item)
+              hasToolContent(item)
                 ? 'cursor-pointer select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus'
                 : ''
             "
@@ -144,27 +144,30 @@ function toggleTool(event: Event, id: string) {
             >
             <span v-else class="min-w-0 flex-1 truncate">{{ item.title }}</span>
             <ChevronRight
-              v-if="hasDetails(item)"
+              v-if="hasToolContent(item)"
               class="size-3.5 shrink-0 transition-transform group-open/tool:rotate-90"
             />
           </component>
-          <div v-if="expanded.has(item.id) && hasDetails(item)" class="min-w-0 pb-1 pl-5 text-fg-tertiary">
-            <p v-if="item.detail !== undefined" class="wrap-break-word whitespace-pre-wrap">
-              {{ resultText(item.detail) }}
+          <div
+            v-if="expanded.has(item.id) && hasToolContent(item)"
+            class="min-w-0 pb-1 pl-5 text-fg-tertiary"
+          >
+            <p v-if="item.context !== undefined" class="wrap-break-word whitespace-pre-wrap">
+              {{ formatToolContent(item.context) }}
             </p>
             <SpaceConversationSearchMatches
-              v-if="item.resultName === 'search-knowledge'"
-              :value="item.result"
+              v-if="item.outputName === 'search-knowledge'"
+              :value="item.output"
             />
             <pre
-              v-else-if="item.result !== undefined"
+              v-else-if="item.output !== undefined"
               class="font-mono text-caption-sm wrap-break-word whitespace-pre-wrap"
-              >{{ resultText(item.result) }}</pre>
+              >{{ formatToolContent(item.output) }}</pre>
             <button
-              v-if="createdNodeId(item.result)"
+              v-if="createdNodeId(item.output)"
               type="button"
               class="mt-1 text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus"
-              @click="store.requestReveal([createdNodeId(item.result)!], 'focus')"
+              @click="store.requestReveal([createdNodeId(item.output)!], 'focus')"
             >
               {{ $t("spaces.assistant.actions.viewCreated") }}
             </button>

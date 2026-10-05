@@ -140,7 +140,7 @@ pub enum SpeechProgressEventType {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SpeechTranscribeResult {
+pub struct SpeechTranscription {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
@@ -203,7 +203,7 @@ pub struct AlignedSpeechUnit {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SpeechAlignResult {
+pub struct SpeechAlignment {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
@@ -237,7 +237,7 @@ pub struct SpeakerTurn {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SpeechDiarizeResult {
+pub struct SpeechDiarization {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
@@ -293,7 +293,7 @@ pub struct SpeechSynthesizeParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SpeechSynthesizeResult {
+pub struct SpeechSynthesis {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
@@ -315,7 +315,7 @@ pub struct SpeechSeparateParams {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SpeechSeparateResult {
+pub struct SpeechSeparation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,

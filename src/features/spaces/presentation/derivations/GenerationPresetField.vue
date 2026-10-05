@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import type { GenerationPreset } from "../../../../foundation/ai/schema/models";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
-import CreationLibraryRecordField from "./CreationLibraryRecordField.vue";
+import GenerationPresetLibrary from "./GenerationPresetLibrary.vue";
 
 interface GenerationPresetFieldProps {
   actionId: string;
@@ -30,16 +30,16 @@ function createPreset(): GenerationPreset | undefined {
 </script>
 
 <template>
-  <CreationLibraryRecordField
+  <GenerationPresetLibrary
     :label="t('spaces.creation.shared.presets.label')"
     :empty-label="t('spaces.creation.shared.presets.empty')"
     :placeholder="t('spaces.creation.shared.presets.select')"
     :save-label="t('spaces.creation.shared.presets.save')"
     :saved-success-message="t('spaces.creation.shared.presets.saved')"
     :save-disabled="!target || !name.trim()"
-    :filter-records="(library) => library.generationPresets.filter((preset) => preset.actionId === actionId)"
-    :create-record="createPreset"
-    :add-record-to-library="(library, preset) => library.generationPresets.push(preset)"
+    :select-presets="(library) => library.generationPresets.filter((preset) => preset.actionId === actionId)"
+    :create-preset="createPreset"
+    :append-preset="(library, preset) => library.generationPresets.push(preset)"
     @apply="(preset) => emit('apply', preset)"
   />
 </template>

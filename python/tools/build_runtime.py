@@ -155,12 +155,12 @@ def install_dependencies(runtime: Path, scratch: Path, executable: Path) -> dict
     shutil.copy2(requirements, evidence / "requirements.txt")
     shutil.copy2(build_requirements, evidence / "build-requirements.txt")
     shutil.copy2(source_archive, evidence / "voxcpm-source.tar")
-    native_sources = json.loads((PROJECT / "native-source-evidence.json").read_text())
-    sources_directory = evidence / "native-sources"
+    compiled_sources = json.loads((PROJECT / "compiled-source-evidence.json").read_text())
+    sources_directory = evidence / "compiled-sources"
     sources_directory.mkdir()
-    for dependency_source in native_sources["sources"]:
+    for dependency_source in compiled_sources["sources"]:
         download(dependency_source, sources_directory / dependency_source["fileName"])
-    shutil.copy2(PROJECT / "native-source-evidence.json", evidence / "native-source-evidence.json")
+    shutil.copy2(PROJECT / "compiled-source-evidence.json", evidence / "compiled-source-evidence.json")
     return {
         "commit": commit,
         "tree": run("git", "-C", str(source), "rev-parse", "HEAD^{tree}", capture=True),

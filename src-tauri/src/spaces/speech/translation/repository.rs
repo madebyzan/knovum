@@ -5,7 +5,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use super::{
     contracts::{
         TranslateVideoDubbingRequest, TranslationRunInput, TranslationStepConfiguration,
-        VideoTranslationResult, VideoTranslationSegmentOutput,
+        VideoTranslation, VideoTranslationSegmentOutput,
     },
     WORKFLOW,
 };
@@ -238,10 +238,10 @@ pub(super) async fn latest_recoverable_run(
     .map_err(db::sql_error)
 }
 
-pub(super) async fn load_result(
+pub(super) async fn load_translation(
     pool: &SqlitePool,
     run_id: &str,
-) -> Result<VideoTranslationResult, String> {
+) -> Result<VideoTranslation, String> {
     let row: Option<(String, String)> =
         sqlx::query_as("SELECT state,input_snapshot FROM spaces_runs WHERE id=?")
             .bind(run_id)
@@ -306,7 +306,7 @@ pub(super) async fn load_result(
         }
         segments.push(output);
     }
-    Ok(VideoTranslationResult {
+    Ok(VideoTranslation {
         provenance: super::super::video_config::VideoTranslationProvenance {
             run_id: run_id.to_owned(),
             target_language: input.target_language,

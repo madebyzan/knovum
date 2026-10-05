@@ -1,6 +1,6 @@
-mod common;
 mod draw;
 mod frame;
+mod layout;
 mod wrap;
 
 pub(in crate::spaces::structure) use draw::draw;

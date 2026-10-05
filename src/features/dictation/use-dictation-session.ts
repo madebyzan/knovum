@@ -22,11 +22,11 @@ async function cancel() {
 }
 
 async function dismiss() {
-  await invokeCommand("plugin:dictation|dismiss_result");
+  await invokeCommand("plugin:dictation|dismiss_transcription");
 }
 
 async function copy() {
-  await invokeCommand("plugin:dictation|copy_result");
+  await invokeCommand("plugin:dictation|copy_transcription");
 }
 
 export function useDictationSession() {

@@ -114,7 +114,7 @@ pub(crate) async fn install<R: Runtime>(
     remove_directory_if_exists(&staging)?;
     let url = reqwest::Url::parse(&manifest.archive_url).map_err(|error| error.to_string())?;
     let client = download::client()?;
-    let result = download::to_path(
+    let download = download::to_path(
         &client,
         url,
         &archive_path,
@@ -134,7 +134,7 @@ pub(crate) async fn install<R: Runtime>(
         },
     )
     .await;
-    if let Err(error) = result {
+    if let Err(error) = download {
         remove_file_if_exists(&archive_path)?;
         return Err(error.message());
     }

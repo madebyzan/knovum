@@ -72,7 +72,7 @@ pub(crate) async fn execute(
     let workspace = workspace(app, &claim.attempt_id)?;
     let extracted = workspace.join("source.wav");
     let vocals = workspace.join("vocals.wav");
-    let result = execute_inner(
+    let separation = execute_inner(
         app,
         claim,
         &config.source,
@@ -82,7 +82,7 @@ pub(crate) async fn execute(
         &background_part,
     )
     .await;
-    let metadata = match result {
+    let metadata = match separation {
         Ok(metadata) => metadata,
         Err(error) => {
             let _ = fs::remove_dir_all(&workspace);

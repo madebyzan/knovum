@@ -32,7 +32,7 @@ function fixture(context) {
     JSON.stringify({ targets: { [target]: source }, uvVersion: "0.12.23", standaloneRelease: "20261003" }),
   );
   const native = { sources: [{ fileName: "native.zip", name: "native", sha256: hash("native"), size: 6 }] };
-  write(python, "native-source-evidence.json", JSON.stringify(native));
+  write(python, "compiled-source-evidence.json", JSON.stringify(native));
   write(python, "src/knovum_inference/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
@@ -47,7 +47,7 @@ function fixture(context) {
     appCommit: commit,
     interpreterSource: source,
     relocationVerified: true,
-    signing: { mode: "adhoc", identity: "-", nativeFileCount: 1 },
+    signing: { mode: "adhoc", identity: "-", compiledBinaryCount: 1 },
     voxcpm: {
       commit,
       tree: commit,
@@ -64,8 +64,8 @@ function fixture(context) {
     ["requirements.txt", "requirements"],
     ["build-requirements.txt", "build"],
     ["voxcpm-source.tar", "source"],
-    ["native-source-evidence.json", JSON.stringify(native)],
-    ["native-sources/native.zip", "native"],
+    ["compiled-source-evidence.json", JSON.stringify(native)],
+    ["compiled-sources/native.zip", "native"],
   ])
     write(runtime, `build-evidence/${name}`, bytes);
   function manifest() {

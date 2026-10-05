@@ -16,11 +16,11 @@ function describe(reason: unknown, seen: Set<Error>): string {
   }
   if (seen.has(reason)) return "[Circular error cause]";
   seen.add(reason);
-  const details = [reason.stack ?? `${reason.name}: ${reason.message}`];
-  if (reason.cause !== undefined) details.push(`Cause: ${describe(reason.cause, seen)}`);
+  const diagnosticLines = [reason.stack ?? `${reason.name}: ${reason.message}`];
+  if (reason.cause !== undefined) diagnosticLines.push(`Cause: ${describe(reason.cause, seen)}`);
   if (reason instanceof AggregateError) {
-    details.push(...reason.errors.map((error: unknown) => describe(error, seen)));
+    diagnosticLines.push(...reason.errors.map((error: unknown) => describe(error, seen)));
   }
   seen.delete(reason);
-  return details.join("\n");
+  return diagnosticLines.join("\n");
 }

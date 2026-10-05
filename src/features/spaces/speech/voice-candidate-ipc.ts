@@ -1,11 +1,9 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { CreateCandidateVoiceRequest } from "../contracts/generated/CreateCandidateVoiceRequest";
+import type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import type {
-  CreateCandidateVoiceRequest,
-  DraftVoiceCandidateRequest,
-  VoiceCandidate,
-  VoiceLibraryRevision,
-} from "./contracts";
+import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 
 export function draftVoiceCandidate(request: DraftVoiceCandidateRequest) {
   return invokeCommand<RunObservation>("plugin:spaces|draft_voice_candidate", { request });

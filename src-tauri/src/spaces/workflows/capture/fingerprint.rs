@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use sha2::{Digest, Sha256};
 use sqlx::{QueryBuilder, Row, Sqlite, Transaction};
 
-use super::types::{BoundaryInput, CapturedStep};
+use super::contracts::{BoundaryInput, CapturedStep};
 use crate::spaces::db;
 
 pub(super) async fn calculate(

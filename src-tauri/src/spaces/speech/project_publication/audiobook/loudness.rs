@@ -85,7 +85,7 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
         fs::remove_dir_all(&directory).map_err(|error| error.to_string())?;
     }
     fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
-    let result: Result<LoudnessCheckpoint, String> = async {
+    let normalization: Result<LoudnessCheckpoint, String> = async {
         let concat = write_concat_file(&directory, &normalized)?;
         let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
             .ok_or("The bundled FFmpeg tool is unavailable")?;
@@ -130,9 +130,9 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
     }
     .await;
     match fs::remove_dir_all(&directory) {
-        Ok(()) => result,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => result,
-        Err(error) => match result {
+        Ok(()) => normalization,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => normalization,
+        Err(error) => match normalization {
             Ok(_) => Err(error.to_string()),
             Err(mut failure) => {
                 failure.push_str(&format!(

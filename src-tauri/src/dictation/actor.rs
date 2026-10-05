@@ -50,8 +50,18 @@ pub(super) async fn run<R: Runtime>(
             DictationAction::Finished {
                 session_id,
                 target,
-                result,
-            } => completion::finish(&app, &snapshot, &mut active, session_id, target, result).await,
+                transcription,
+            } => {
+                completion::finish(
+                    &app,
+                    &snapshot,
+                    &mut active,
+                    session_id,
+                    target,
+                    transcription,
+                )
+                .await
+            }
             DictationAction::Shutdown => {
                 lifecycle::cancel(&app, &snapshot, &mut active);
                 break;

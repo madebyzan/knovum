@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
+import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import { useSpaceStore } from "../session/space-store";
-import type { SpeechMediaSource } from "./contracts";
 
 export function useSpeechMediaSources() {
   const store = useSpaceStore();

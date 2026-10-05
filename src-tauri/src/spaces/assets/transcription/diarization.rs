@@ -78,7 +78,7 @@ pub(crate) async fn diarize_media(
     })
     .await?;
     let request_id = uuid::Uuid::new_v4().to_string();
-    let result = speech::diarize(
+    let diarization = speech::diarize(
         app,
         &model,
         RuntimeDeviceProfile {
@@ -110,14 +110,14 @@ pub(crate) async fn diarize_media(
         Priority::Background,
     )
     .await?;
-    if result
+    if diarization
         .turns
         .iter()
         .any(|turn| turn.end_ms > transcript.duration_ms)
     {
         return Err("invalid_output: diarization turn exceeds media duration".into());
     }
-    publish(transcript, result.turns, data)?;
+    publish(transcript, diarization.turns, data)?;
     super::send_progress(progress, "done", 100);
     Ok(())
 }

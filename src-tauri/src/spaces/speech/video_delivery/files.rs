@@ -52,7 +52,7 @@ pub(super) fn commit(
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let part = destination.with_file_name(format!(".knovum-export-{}.part", uuid::Uuid::new_v4()));
-    let result = (|| {
+    let delivery = (|| {
         let mut input = fs::File::open(source).map_err(|error| error.to_string())?;
         let mut output = fs::OpenOptions::new()
             .write(true)
@@ -84,14 +84,14 @@ pub(super) fn commit(
             format!("Export failed; temporary file cleanup failed: {cleanup}")
         })?;
     }
-    result
+    delivery
 }
-pub(super) fn finish(result: Result<(), String>, work: &Path) -> Result<(), String> {
+pub(super) fn finish(delivery: Result<(), String>, work: &Path) -> Result<(), String> {
     match fs::remove_dir_all(work) {
-        Ok(()) => result,
+        Ok(()) => delivery,
         Err(error) => Err(format!(
             "{}; delivery workspace cleanup failed: {error}",
-            result.err().unwrap_or_else(|| "Export completed".into())
+            delivery.err().unwrap_or_else(|| "Export completed".into())
         )),
     }
 }

@@ -37,7 +37,7 @@ class CapturingWriter:
         self.results: list[dict[str, Any]] = []
         self.errors: list[RpcError] = []
 
-    async def result(self, request_id: str | int, result: dict[str, Any]) -> None:
+    async def send_response(self, request_id: str | int, result: dict[str, Any]) -> None:
         self.results.append(result)
 
     async def error(self, request_id: str | int | None, error: RpcError) -> None:

@@ -25,7 +25,7 @@ const errorMessages: Record<string, string> = {
   dictation_failed: "dictation.errors.dictationFailed",
 };
 const busy = computed(() => ["recording", "transcribing"].includes(session.state.value.phase));
-const resultOpen = computed({
+const isTranscriptDialogOpen = computed({
   get: () =>
     session.state.value.phase === "failed" ||
     (session.state.value.phase === "result" && session.state.value.insertion !== "inserted"),
@@ -36,7 +36,7 @@ const resultOpen = computed({
 const status = computed(() =>
   session.state.value.phase === "recording" ? t("dictation.recording") : t("dictation.transcribing"),
 );
-const resultDescription = computed(() => {
+const transcriptDescription = computed(() => {
   const value = session.state.value;
   const key = value.errorCode ? errorMessages[value.errorCode] : undefined;
   return t(key ?? "dictation.result.description");
@@ -98,7 +98,11 @@ function reportFailure(error: unknown) {
     </UiButton>
   </div>
 
-  <UiDialog v-model:open="resultOpen" :title="t('dictation.result.title')" :description="resultDescription">
+  <UiDialog
+    v-model:open="isTranscriptDialogOpen"
+    :title="t('dictation.result.title')"
+    :description="transcriptDescription"
+  >
     <textarea
       v-if="session.state.value.text"
       readonly

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use super::types::CapturedStep;
+use super::contracts::CapturedStep;
 
 pub(super) fn groups(selected: &HashSet<String>, steps: &[CapturedStep]) -> Vec<Vec<String>> {
     let mut adjacent: HashMap<&str, Vec<&str>> = HashMap::new();

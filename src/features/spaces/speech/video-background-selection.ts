@@ -1,5 +1,6 @@
+import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
-import type { SpeechMediaSource, VideoDubbingOutputConfig } from "./contracts";
+import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
 
 export function selectBackground(
   config: VideoDubbingOutputConfig,

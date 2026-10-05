@@ -99,7 +99,7 @@ pub async fn create_preset_voice(
 pub async fn list_speech_projects(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<SpeechProjectSummary>, AppError> {
+) -> Result<Vec<SpeechProjectOverview>, AppError> {
     Ok(repository::list_projects(db::pool(&app).await?, &space_id).await?)
 }
 
@@ -107,7 +107,7 @@ pub async fn list_speech_projects(
 pub async fn create_speech_project(
     app: tauri::AppHandle,
     request: CreateSpeechProjectRequest,
-) -> Result<SpeechProjectSummary, AppError> {
+) -> Result<SpeechProjectOverview, AppError> {
     required(&request.title, "Project title", 200)?;
     super::project_config::validate(&request.project_type, &request.output_config)?;
     if request.project_type == "audiobook" {
@@ -180,6 +180,6 @@ pub async fn create_speech_project(
 pub async fn get_speech_project(
     app: tauri::AppHandle,
     project_id: String,
-) -> Result<SpeechProjectDetail, AppError> {
+) -> Result<SpeechProjectSnapshot, AppError> {
     Ok(repository::load_project(db::pool(&app).await?, &project_id).await?)
 }

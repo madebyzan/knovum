@@ -26,7 +26,7 @@ def validate_params(model: type[T], value: Any) -> T:
         raise invalid_params("Parameters do not match the runtime contract") from error
 
 
-def validate_result(model: type[T], value: dict[str, Any]) -> dict[str, Any]:
+def validate_response(model: type[T], value: dict[str, Any]) -> dict[str, Any]:
     try:
         return _decode_wire_model(model, value).model_dump(by_alias=True, mode="json")
     except (TypeError, ValueError, ValidationError) as error:

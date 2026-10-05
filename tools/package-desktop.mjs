@@ -93,8 +93,8 @@ function productionConfiguration() {
   if (kokoro.licenseReview?.status !== "approved") {
     fail("Kokoro archive license review is unresolved; release packaging is blocked");
   }
-  const nativeSources = readJson("python/native-source-evidence.json");
-  if (nativeSources.reviewStatus !== "approved") {
+  const compiledSources = readJson("python/compiled-source-evidence.json");
+  if (compiledSources.reviewStatus !== "approved") {
     fail("Python native corresponding-source review is unresolved; release packaging is blocked");
   }
   const production = readJson("src-tauri/tauri.release.conf.json");

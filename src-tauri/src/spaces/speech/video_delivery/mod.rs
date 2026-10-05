@@ -69,7 +69,7 @@ pub async fn export_video_dubbing_asset(
     )?;
     let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
-        let result = (|| {
+        let delivery = (|| {
             let output = if let Some(subtitle) = subtitle {
                 let path = work.join(format!("subtitles.{extension}"));
                 fs::write(&path, subtitle).map_err(|error| error.to_string())?;
@@ -130,7 +130,7 @@ pub async fn export_video_dubbing_asset(
             };
             files::commit(&output, &destination, &cancellation)
         })();
-        files::finish(result, &work)
+        files::finish(delivery, &work)
     })
     .await?)
 }

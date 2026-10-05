@@ -1,14 +1,12 @@
 import { computed, ref, shallowRef, watch, type DeepReadonly } from "vue";
 
+import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
-import type { VideoTranslationResult } from "../contracts/generated/VideoTranslationResult";
+import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
+import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { SpaceMediaTranscript } from "../media/schema/transcript";
-import type {
-  SpeechMediaSource,
-  SpeechProjectDetail,
-  VideoDubbingOutputConfig,
-  VoiceLibraryRevision,
-} from "./contracts";
 import type { DubbingSubtitle } from "./dubbing-subtitles";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { selectBackground, selectSeparatedBackground } from "./video-background-selection";
@@ -23,7 +21,7 @@ import {
 import { videoRevisionInput } from "./video-revision-input";
 import { defaultVoiceRevisionId } from "./voice-options";
 export function useVideoDubbingDraft(
-  project: () => DeepReadonly<SpeechProjectDetail>,
+  project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
 ) {
   const lines = ref<VideoLineDraft[]>([]);
@@ -38,11 +36,11 @@ export function useVideoDubbingDraft(
   watch(
     () => project().revision.id,
     () => {
-      const detail = project();
-      config.value = JSON.parse(detail.revision.outputConfig) as VideoDubbingOutputConfig;
+      const projectSnapshot = project();
+      config.value = JSON.parse(projectSnapshot.revision.outputConfig) as VideoDubbingOutputConfig;
       voiceGain.value = String(config.value.voiceGainDb);
       backgroundGain.value = String(config.value.backgroundGainDb);
-      lines.value = detail.segments.map(videoLineFromSegment);
+      lines.value = projectSnapshot.segments.map(videoLineFromSegment);
       saved = snapshot();
     },
     { immediate: true },
@@ -143,10 +141,10 @@ export function useVideoDubbingDraft(
       backgroundGain: backgroundGain.value,
     });
   const translationInputs = () => buildTranslationInputs(lines.value, Boolean(config.value?.translation));
-  function applyTranslation(result: VideoTranslationResult) {
-    lines.value = applyTranslatedLines(lines.value, result, Boolean(config.value?.translation));
+  function applyTranslation(translation: VideoTranslation) {
+    lines.value = applyTranslatedLines(lines.value, translation, Boolean(config.value?.translation));
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
-    config.value = { ...config.value, translation: result.provenance };
+    config.value = { ...config.value, translation: translation.provenance };
   }
   return {
     lines,

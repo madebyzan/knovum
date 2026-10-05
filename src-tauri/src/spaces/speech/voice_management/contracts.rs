@@ -22,10 +22,17 @@ pub struct ReviseVoiceProfileRequest {
 #[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct SetVoiceProfileArchivedRequest {
+pub struct ArchiveVoiceProfileRequest {
     pub profile_id: String,
     pub expected_updated_at: i64,
-    pub archived: bool,
+}
+
+#[derive(Debug, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct UnarchiveVoiceProfileRequest {
+    pub profile_id: String,
+    pub expected_updated_at: i64,
 }
 
 #[derive(Debug, Deserialize, ts_rs::TS)]
@@ -49,7 +56,7 @@ pub struct CopyVoiceProfileRequest {
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct VoiceRevisionSummary {
+pub struct VoiceRevision {
     pub id: String,
     pub revision: i64,
     pub engine_id: String,
@@ -65,7 +72,7 @@ pub struct VoiceRevisionSummary {
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct VoiceProfileDetail {
+pub struct VoiceProfileHistory {
     pub id: String,
     pub space_id: String,
     pub name: String,
@@ -74,5 +81,5 @@ pub struct VoiceProfileDetail {
     pub archived_at: Option<i64>,
     pub updated_at: i64,
     pub referenced_segment_count: i64,
-    pub revisions: Vec<VoiceRevisionSummary>,
+    pub revisions: Vec<VoiceRevision>,
 }

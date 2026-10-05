@@ -17,27 +17,29 @@ pub(super) async fn finish<R: Runtime>(
     active: &mut ActiveSession,
     session_id: String,
     target: TargetApplication,
-    result: Result<TranscriptionOutcome, String>,
+    transcription: Result<TranscriptionOutcome, String>,
 ) {
     if !matches!(active, ActiveSession::Transcribing { id, .. } if id == &session_id) {
         return;
     }
     *active = ActiveSession::Idle;
-    match result {
-        Ok(result) => publish_result(app, snapshot, session_id, target, result).await,
+    match transcription {
+        Ok(transcription) => {
+            publish_transcription(app, snapshot, session_id, target, transcription).await
+        }
         Err(error) if error == "cancelled" => publish(app, snapshot, DictationSnapshot::default()),
         Err(error) => fail(app, snapshot, Some(session_id), error),
     }
 }
 
-async fn publish_result<R: Runtime>(
+async fn publish_transcription<R: Runtime>(
     app: &AppHandle<R>,
     snapshot: &Arc<RwLock<DictationSnapshot>>,
     session_id: String,
     target: TargetApplication,
-    result: TranscriptionOutcome,
+    transcription: TranscriptionOutcome,
 ) {
-    let text = result.text.clone();
+    let text = transcription.text.clone();
     let insertion =
         crate::blocking::run(move || Ok::<_, String>(insertion::insert(&target, &text)))
             .await
@@ -59,8 +61,8 @@ async fn publish_result<R: Runtime>(
         DictationSnapshot {
             phase: DictationPhase::Result,
             session_id: Some(session_id),
-            text: Some(result.text),
-            language: Some(result.language),
+            text: Some(transcription.text),
+            language: Some(transcription.language),
             insertion: Some(insertion.outcome),
             error_code: error_code.map(str::to_owned),
             error_message: insertion.message,

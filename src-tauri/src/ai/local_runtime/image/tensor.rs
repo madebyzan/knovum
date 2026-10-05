@@ -41,14 +41,14 @@ pub(super) async fn stage_tensor(path: &std::path::Path, bytes: &[u8]) -> Result
         .open(&part)
         .await
         .map_err(|error| format!("resource_exhausted: {error}"))?;
-    let result = async {
+    let tensor_write = async {
         file.write_all(bytes).await?;
         file.sync_all().await?;
         drop(file);
         tokio::fs::rename(&part, path).await
     }
     .await;
-    if let Err(error) = result {
+    if let Err(error) = tensor_write {
         let _ = tokio::fs::remove_file(&part).await;
         return Err(format!("resource_exhausted: {error}"));
     }

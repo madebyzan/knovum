@@ -6,7 +6,7 @@ from typing import Any
 
 from knovum_inference.contracts import SpeechDiarizeParams
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech_common import check_deadline, milliseconds, verify_audio
+from knovum_inference.speech_request import check_deadline, milliseconds, verify_audio
 
 
 class DiarizationEngine:

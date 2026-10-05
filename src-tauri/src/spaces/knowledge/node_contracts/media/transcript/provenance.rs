@@ -61,7 +61,7 @@ pub(super) fn validate_provenance(provenance: &TranscriptProvenance) -> Result<(
         240,
         "Transcript provenance modelRevision",
     )?;
-    if !matches!(provenance.timing.as_str(), "native_words" | "segment_only") {
+    if !matches!(provenance.timing.as_str(), "engine_words" | "segment_only") {
         return Err("Transcript provenance timing is invalid".into());
     }
     Ok(())

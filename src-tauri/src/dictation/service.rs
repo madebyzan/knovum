@@ -22,7 +22,7 @@ pub(crate) enum DictationAction {
     Finished {
         session_id: String,
         target: TargetApplication,
-        result: Result<TranscriptionOutcome, String>,
+        transcription: Result<TranscriptionOutcome, String>,
     },
 }
 

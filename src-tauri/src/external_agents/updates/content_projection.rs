@@ -128,7 +128,7 @@ pub(super) fn tool_status(status: ToolCallStatus) -> Result<&'static str, Error>
     }
 }
 
-pub(super) fn tool_detail(
+pub(super) fn tool_context(
     content: &[ToolCallContent],
     raw: Option<&serde_json::Value>,
 ) -> Option<String> {
@@ -151,10 +151,10 @@ pub(super) fn compact_value(value: &serde_json::Value) -> String {
 
 fn compact(value: &str) -> String {
     let mut chars = value.chars();
-    let result: String = chars.by_ref().take(4_000).collect();
+    let excerpt: String = chars.by_ref().take(4_000).collect();
     if chars.next().is_some() {
-        format!("{result}…")
+        format!("{excerpt}…")
     } else {
-        result
+        excerpt
     }
 }

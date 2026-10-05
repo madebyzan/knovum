@@ -90,18 +90,18 @@ fn enqueue_update(sender: &UpdateSender, update: AgentSessionUpdate) -> Result<(
             id,
             title,
             status,
-            detail,
-        } => id.len() + title.len() + status.len() + detail.as_ref().map_or(0, String::len),
+            context,
+        } => id.len() + title.len() + status.len() + context.as_ref().map_or(0, String::len),
         AgentSessionUpdate::ToolUpdate {
             id,
             title,
             status,
-            detail,
+            context,
         } => {
             id.len()
                 + title.as_ref().map_or(0, String::len)
                 + status.as_ref().map_or(0, String::len)
-                + detail.as_ref().map_or(0, String::len)
+                + context.as_ref().map_or(0, String::len)
         }
     };
     if size > MAX_UPDATE_TEXT_BYTES {
@@ -195,20 +195,20 @@ fn durable(
             id,
             title,
             status,
-            detail,
+            context,
         } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolStarted,
-            serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
+            serde_json::json!({"toolCallId": id, "title": title, "status": status, "context": context}),
             None,
         )),
         AgentSessionUpdate::ToolUpdate {
             id,
             title,
             status,
-            detail,
+            context,
         } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
-            serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
+            serde_json::json!({"toolCallId": id, "title": title, "status": status, "context": context}),
             None,
         )),
     }

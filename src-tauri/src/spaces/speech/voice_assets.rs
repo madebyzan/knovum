@@ -103,7 +103,7 @@ fn decode_reference(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| format!("Failed to start reference audio conversion: {error}"))?;
-    let result = (|| {
+    let publication = (|| {
         let process_output = wait_with_stderr(child, cancellation, "cancelled", |_| Ok(()))?;
         if !process_output.status.success() {
             return Err(diagnostic_error(
@@ -127,10 +127,10 @@ fn decode_reference(
         }
         Ok(metadata)
     })();
-    if result.is_err() && output.exists() {
+    if publication.is_err() && output.exists() {
         fs::remove_file(output).map_err(|error| error.to_string())?;
     }
-    result
+    publication
 }
 
 fn authorize_managed_source(
@@ -272,7 +272,7 @@ pub(super) async fn persist_reference(
         },
     )
     .await?;
-    let result = (|| {
+    let publication = (|| {
         copy_exact(&source, &part, reference.byte_length)?;
         if hash_exact(&source, reference.byte_length)? != reference.sha256
             || hash_exact(&part, reference.byte_length)? != reference.sha256
@@ -282,7 +282,7 @@ pub(super) async fn persist_reference(
         fs::rename(&part, &target).map_err(|error| error.to_string())?;
         Ok(target.clone())
     })();
-    match result {
+    match publication {
         Ok(path) => Ok(PersistedReference {
             path,
             publication_id,

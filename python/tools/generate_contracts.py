@@ -21,7 +21,7 @@ def main() -> None:
             "3.11",
             "--disable-timestamp",
             "--base-class",
-            "knovum_inference.contract_base.WireModel",
+            "knovum_inference.wire_model.WireModel",
             "--snake-case-field",
             "--use-annotated",
             "--use-union-operator",

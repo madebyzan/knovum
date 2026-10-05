@@ -136,17 +136,17 @@ async fn attempt_rows(
             .map_err(db::sql_error)?;
     rows.iter().map(|row| {
         let mut checkpoint = decode_optional_json(row,"checkpoint")?;
-        let mut result = decode_optional_json(row,"result")?;
+        let mut attempt_output = decode_optional_json(row,"result")?;
         if voice_candidate {
             checkpoint.iter_mut().for_each(redact_operational_paths);
-            result.iter_mut().for_each(redact_operational_paths);
+            attempt_output.iter_mut().for_each(redact_operational_paths);
         }
         Ok(json!({
         "id": decode_text(row,"id")?, "runId": run_id, "stepInstanceId": decode_text(row,"step_instance_id")?,
         "attemptNumber": decode_integer(row,"attempt_number")?, "state": decode_text(row,"state")?,
         "requestDigest": decode_text(row,"request_digest")?, "idempotencyKey": decode_text(row,"idempotency_key")?,
         "externalTaskId": decode_optional_text(row,"external_task_id")?, "checkpoint": checkpoint,
-        "result": result, "errorCode": decode_optional_text(row,"error_code")?,
+        "result": attempt_output, "errorCode": decode_optional_text(row,"error_code")?,
         "startedAt": decode_integer(row,"started_at")?, "finishedAt": decode_optional_integer(row,"finished_at")?,
     }))}).collect()
 }

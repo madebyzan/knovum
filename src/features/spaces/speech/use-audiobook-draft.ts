@@ -1,5 +1,7 @@
 import { computed, ref, shallowRef, watch, type DeepReadonly } from "vue";
 
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import {
   audiobookDraftIsValid,
   audiobookSegments,
@@ -10,15 +12,12 @@ import {
 } from "./audiobook-draft";
 import { nextAudiobookRoleKey, renamedAudiobookDraft } from "./audiobook-role-draft";
 import type { ImportedAudiobookScript } from "./audiobook-script";
-import type { SpeechProjectDetail, VoiceLibraryRevision } from "./contracts";
 import { useAudiobookOutput } from "./use-audiobook-output";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { defaultVoiceRevisionId } from "./voice-options";
 
-export type { AudiobookRoleDraft, ChapterDraft } from "./audiobook-draft";
-
 export function useAudiobookDraft(
-  project: () => DeepReadonly<SpeechProjectDetail>,
+  project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
 ) {
   const chapters = ref<ChapterDraft[]>([]);
@@ -46,9 +45,9 @@ export function useAudiobookDraft(
     { immediate: true },
   );
 
-  function hydrate(detail: DeepReadonly<SpeechProjectDetail>) {
+  function hydrate(projectSnapshot: DeepReadonly<SpeechProjectSnapshot>) {
     try {
-      const loaded = readAudiobookRevision(detail);
+      const loaded = readAudiobookRevision(projectSnapshot);
       const config = loaded.config;
       output.load(config);
       roles.value = loaded.roles;

@@ -8,42 +8,42 @@ use ts_rs::Config;
 #[derive(schemars::JsonSchema)]
 struct InferenceWireSchemas {
     initialize_params: crate::ai::contracts::runtime::RuntimeInitializeParams,
-    initialize_result: crate::ai::contracts::runtime::RuntimeInitializeResult,
+    initialize_result: crate::ai::contracts::runtime::RuntimeSession,
     health_params: crate::ai::contracts::runtime::RuntimeHealthParams,
-    health_result: crate::ai::contracts::runtime::RuntimeHealthResult,
+    health_result: crate::ai::contracts::runtime::RuntimeHealthObservation,
     cancel_params: crate::ai::contracts::runtime::RuntimeCancelParams,
-    cancel_result: crate::ai::contracts::runtime::RuntimeCancelResult,
+    cancel_result: crate::ai::contracts::runtime::RuntimeCancellationAcknowledgement,
     ack_chunk_params: crate::ai::contracts::runtime::RuntimeAckChunkParams,
     shutdown_params: crate::ai::contracts::runtime::RuntimeShutdownParams,
-    shutdown_result: crate::ai::contracts::runtime::RuntimeShutdownResult,
+    shutdown_result: crate::ai::contracts::runtime::RuntimeShutdownAcknowledgement,
     embedding_params: crate::ai::contracts::embedding_wire::EmbeddingEncodeParams,
-    embedding_result: crate::ai::contracts::embedding_wire::EmbeddingEncodeResult,
+    embedding_result: crate::ai::contracts::embedding_wire::EmbeddingEncoding,
     image_segment_params: crate::ai::contracts::image_wire::ImageSegmentParams,
-    image_segment_result: crate::ai::contracts::image_wire::ImageSegmentResult,
+    image_segment_result: crate::ai::contracts::image_wire::ImageSegmentation,
     speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
-    speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscribeResult,
+    speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscription,
     speech_transcript_artifact: crate::ai::contracts::speech_wire::SpeechTranscriptArtifact,
     speech_progress_event: crate::ai::contracts::speech_wire::SpeechProgressEvent,
     speech_progress_event_type: crate::ai::contracts::speech_wire::SpeechProgressEventType,
     speech_align_params: crate::ai::contracts::speech_wire::SpeechAlignParams,
-    speech_align_result: crate::ai::contracts::speech_wire::SpeechAlignResult,
+    speech_align_result: crate::ai::contracts::speech_wire::SpeechAlignment,
     speech_diarize_params: crate::ai::contracts::speech_wire::SpeechDiarizeParams,
-    speech_diarize_result: crate::ai::contracts::speech_wire::SpeechDiarizeResult,
+    speech_diarize_result: crate::ai::contracts::speech_wire::SpeechDiarization,
     speech_synthesize_params: crate::ai::contracts::speech_wire::SpeechSynthesizeParams,
     speech_synthesis_chunk_event: crate::ai::contracts::speech_wire::SpeechSynthesisChunkEvent,
     speech_synthesis_chunk_granularity:
         crate::ai::contracts::speech_wire::SpeechSynthesisChunkGranularity,
-    speech_synthesize_result: crate::ai::contracts::speech_wire::SpeechSynthesizeResult,
+    speech_synthesize_result: crate::ai::contracts::speech_wire::SpeechSynthesis,
     speech_separate_params: crate::ai::contracts::speech_wire::SpeechSeparateParams,
-    speech_separate_result: crate::ai::contracts::speech_wire::SpeechSeparateResult,
+    speech_separate_result: crate::ai::contracts::speech_wire::SpeechSeparation,
 }
 
-mod types;
+mod bindings;
 
 pub fn export(project_root: &Path) -> Result<(), String> {
     let output = project_root.join("src/shared/contracts/generated");
     let config = Config::new().with_out_dir(&output).with_large_int("number");
-    types::export(&config)?;
+    bindings::export(&config)?;
     export_runtime_values(&output)?;
     let wire_schema = project_root.join("python/schemas/runtime.schema.json");
     std::fs::create_dir_all(

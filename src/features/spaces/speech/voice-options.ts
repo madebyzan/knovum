@@ -1,4 +1,4 @@
-import type { VoiceLibraryRevision } from "./contracts";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 
 export function activeVoiceRevisions(voices: readonly VoiceLibraryRevision[]) {
   return voices.filter((voice) => voice.isActive && voice.archivedAt == null);

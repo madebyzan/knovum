@@ -4,9 +4,9 @@ import { spaceMediaAnalysisSchema } from "../../../media/schema/analysis";
 import { spaceMediaKnowledgeSchema, type SpaceMediaKnowledge } from "../../../media/schema/knowledge";
 import { spaceMediaOriginSchema } from "../../../media/schema/origin";
 import { spaceVisualKnowledgeSchema } from "../../../media/schema/visual-knowledge";
-import { baseSpaceNodeFields } from "./base-fields";
 import { documentCoverageSchema } from "./document-coverage";
 import { imageEditSchema } from "./image-edit";
+import { baseSpaceNodeFields } from "./node-fields";
 import { videoEditProjectSchema } from "./video-edit";
 
 const assetFields = {

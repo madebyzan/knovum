@@ -13,9 +13,9 @@ pub(super) fn copy_then<T>(
     target: &Path,
     finish: impl FnOnce() -> Result<T, String>,
 ) -> Result<T, String> {
-    let result = copy::copy_resource(source, target, &CancellationToken::new(), |_| Ok(()))
+    let transfer = copy::copy_resource(source, target, &CancellationToken::new(), |_| Ok(()))
         .and_then(|_| finish());
-    match result {
+    match transfer {
         Ok(value) => Ok(value),
         Err(error) => match remove_path(target) {
             Ok(()) => Err(error),

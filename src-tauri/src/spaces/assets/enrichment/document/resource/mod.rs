@@ -106,10 +106,10 @@ fn store_at(
     } else {
         let partial = path.with_extension(format!("{}.partial", uuid::Uuid::new_v4()));
         claim_managed_path(&partial)?;
-        let result = fs::write(&partial, bytes)
+        let publication = fs::write(&partial, bytes)
             .and_then(|()| fs::rename(&partial, path))
             .map_err(|error| error.to_string());
-        if let Err(error) = result {
+        if let Err(error) = publication {
             return if partial.exists() {
                 match fs::remove_file(&partial) {
                     Ok(()) => Err(error),

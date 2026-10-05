@@ -786,7 +786,7 @@
 - [x] `src/features/spaces/presentation/conversation/SpaceConversationTargetField.vue`
 - [x] `src/features/spaces/presentation/deletion/SpaceDeletedStructureRecovery.vue`
 - [x] `src/features/spaces/presentation/deletion/SpaceRecentlyDeleted.vue`
-- [x] `src/features/spaces/presentation/derivations/CreationLibraryRecordField.vue`
+- [x] `src/features/spaces/presentation/derivations/GenerationPresetLibrary.vue`
 - [x] `src/features/spaces/presentation/derivations/GenerationPresetField.vue`
 - [x] `src/features/spaces/presentation/derivations/GroundedDocumentDialog.vue`
 - [x] `src/features/spaces/presentation/derivations/SpaceDerivationDialogs.vue`

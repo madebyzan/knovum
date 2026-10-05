@@ -1,5 +1,5 @@
 use content_projection::{
-    compact_value, persist_content, persist_tool_content, projection_error, tool_detail,
+    compact_value, persist_content, persist_tool_content, projection_error, tool_context,
     tool_status,
 };
 mod content_projection;
@@ -28,13 +28,13 @@ pub enum AgentSessionUpdate {
         id: String,
         title: String,
         status: String,
-        detail: Option<String>,
+        context: Option<String>,
     },
     ToolUpdate {
         id: String,
         title: Option<String>,
         status: Option<String>,
-        detail: Option<String>,
+        context: Option<String>,
     },
 }
 pub(super) async fn receive_message(
@@ -93,7 +93,7 @@ pub async fn receive(
                 id: call.tool_call_id.0.to_string(),
                 title: call.title,
                 status: tool_status(call.status)?.to_owned(),
-                detail: tool_detail(
+                context: tool_context(
                     &call.content,
                     call.raw_output.as_ref().or(call.raw_input.as_ref()),
                 ),
@@ -112,12 +112,12 @@ pub async fn receive(
                     .map(tool_status)
                     .transpose()?
                     .map(str::to_owned),
-                detail: update
+                context: update
                     .fields
                     .content
                     .as_deref()
                     .and_then(|content| {
-                        tool_detail(
+                        tool_context(
                             content,
                             update
                                 .fields

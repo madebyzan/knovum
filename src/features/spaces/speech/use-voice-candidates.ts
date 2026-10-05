@@ -1,10 +1,11 @@
 import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { cancelResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import type { DraftVoiceCandidateRequest, VoiceLibraryRevision } from "./contracts";
 import { draftVoiceCandidate, getActiveVoiceCandidateRun, listVoiceCandidates } from "./voice-candidate-ipc";
 import { observeVoiceCandidateRun } from "./voice-candidate-run";
 import {

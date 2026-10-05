@@ -1,4 +1,4 @@
-mod result;
+mod artifact;
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager};
@@ -9,7 +9,7 @@ use crate::ai::{
 };
 use crate::app_error::{AppError, AppResult};
 
-const RESULT_FILE: &str = "result.txt";
+const TEXT_OUTPUT_FILE: &str = "response.txt";
 const TASK_TIMEOUT: Duration = Duration::from_secs(900);
 
 struct TaskWorkspace(PathBuf);
@@ -44,7 +44,7 @@ pub(crate) async fn complete(
         kind,
         task_prompt(&input),
         input.image.into_iter().collect(),
-        RESULT_FILE,
+        TEXT_OUTPUT_FILE,
         4 * 1024 * 1024,
         cancellation,
     )
@@ -74,8 +74,8 @@ pub(crate) async fn artifact(
     cancellation: CancellationToken,
 ) -> AppResult<Vec<u8>> {
     let (name, limit) = match format {
-        ArtifactFormat::Png => ("result.png", 32 * 1024 * 1024),
-        ArtifactFormat::Mp4 => ("result.mp4", 512 * 1024 * 1024),
+        ArtifactFormat::Png => ("image.png", 32 * 1024 * 1024),
+        ArtifactFormat::Mp4 => ("video.mp4", 512 * 1024 * 1024),
     };
     delegate(app, kind, instruction, sources, name, limit, cancellation).await
 }
@@ -144,7 +144,7 @@ async fn delegate(
         crate::file_inspection::verify_content_revision(path, &revision)
             .map_err(AppError::invalid)?;
     }
-    result::read(&workspace.0, name, limit)
+    artifact::read(&workspace.0, name, limit)
 }
 
 fn task_prompt(input: &TaskInput) -> String {

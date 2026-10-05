@@ -1,9 +1,9 @@
-use crate::spaces::workflows::capture::types::CaptureIssueReason;
+use crate::spaces::workflows::capture::contracts::CaptureIssueReason;
 use std::collections::{HashMap, HashSet};
 
 use serde_json::Value;
 
-use super::types::{
+use super::contracts::{
     BoundaryInput, CandidateBinding, CandidateInputSlot, CandidateOutputSlot, CandidateSource,
     CandidateStep, CaptureCandidate, CapturedStep,
 };

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use super::super::types::{CandidateSource, CaptureCandidate};
+use super::super::contracts::{CandidateSource, CaptureCandidate};
 use crate::spaces::actions::{self, SpaceActionExecutionMode, SpaceActionOutputContract};
 
 pub(crate) fn candidate(definition: &CaptureCandidate) -> Result<(), String> {

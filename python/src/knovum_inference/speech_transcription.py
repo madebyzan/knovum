@@ -12,7 +12,7 @@ from typing import Any
 
 from knovum_inference.contracts import AsrEngine, SpeechTranscribeParams, SpeechTranscriptArtifact
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech_common import attempt_directory, check_deadline, milliseconds, verify_audio
+from knovum_inference.speech_request import attempt_directory, check_deadline, milliseconds, verify_audio
 
 Progress = Callable[[str, int, str | None, dict[str, Any] | None], None]
 MAX_TRANSCRIPT_BYTES = 64 * 1024 * 1024
@@ -142,7 +142,7 @@ class TranscriptionEngine:
                 "segments": [],
             }
         progress("transcribing", 0, None, None)
-        result = mlx_whisper.transcribe(
+        transcription = mlx_whisper.transcribe(
             str(audio_path),
             path_or_hf_repo=str(self._model_directory),
             language=params.profile.language,
@@ -150,11 +150,11 @@ class TranscriptionEngine:
             condition_on_previous_text=True,
         )
         segments = []
-        for item in result.get("segments", []):
+        for item in transcription.get("segments", []):
             part = _mlx_segment(item)
             if _overlaps_speech(part, speech_intervals):
                 segments.append(part)
-        language = result.get("language")
+        language = transcription.get("language")
         if not isinstance(language, str) or not language:
             raise server_error("invalid_output", "mlx-whisper omitted the language")
         for part in segments:

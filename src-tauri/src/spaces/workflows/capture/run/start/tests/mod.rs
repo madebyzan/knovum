@@ -3,7 +3,7 @@ use crate::ai::{contracts::AgentKind, tasks::TaskTargetSelection};
 use crate::spaces::{
     knowledge::indexing::revision,
     runs::{AttemptClaim, StepOutcome},
-    workflows::capture::types::*,
+    workflows::capture::contracts::*,
 };
 use serde_json::Value;
 

@@ -5,8 +5,8 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use super::{
+    contracts::{CandidateOutputSlot, CandidateSource},
     library::SavedCapturedWorkflow,
-    types::{CandidateOutputSlot, CandidateSource},
 };
 use crate::spaces::db;
 

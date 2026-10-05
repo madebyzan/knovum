@@ -8,7 +8,7 @@ from typing import Any
 
 from knovum_inference.contracts import AudioFileReference, SpeechSynthesizeParams, VoiceSourceKind
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech_common import verify_audio
+from knovum_inference.speech_request import verify_audio
 from knovum_inference.speech_stream import SynthesisChunkPublisher
 
 SAMPLE_RATE = 48_000

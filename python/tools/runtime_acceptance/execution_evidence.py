@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from runtime_acceptance.common import (
+from runtime_acceptance.evidence import (
     EvidenceError,
     require_keys,
     require_list,
@@ -27,7 +27,7 @@ def load_execution_evidence(
     expected_config: str | None = None,
 ) -> dict[str, Any]:
     output_path = resolve_hashed_file(reference, base, location)
-    from runtime_acceptance.common import load_json
+    from runtime_acceptance.evidence import load_json
 
     output = load_json(output_path)
     require_keys(output, location, {"schemaVersion", "source", "values"})
@@ -41,7 +41,7 @@ def load_execution_evidence(
     method = require_string(source["method"], f"{location}.source.method")
     if source_kind not in allowed_kinds or method != expected_method:
         raise EvidenceError(f"{location} is not evidence from the required native execution path")
-    if source["runtimeDigest"] != provenance["runtimeDigest"] and source_kind == "native_worker":
+    if source["runtimeDigest"] != provenance["runtimeDigest"] and source_kind == "bundled_worker":
         raise EvidenceError(f"{location} runtime digest differs from the candidate runtime")
     require_sha256(source["runtimeDigest"], f"{location}.source.runtimeDigest")
     for key in {"modelSpecId", "configId"}:
@@ -50,7 +50,7 @@ def load_execution_evidence(
         raise EvidenceError(f"{location} model differs from the fixed reference profile")
     if expected_config is not None and source["configId"] != expected_config:
         raise EvidenceError(f"{location} config differs from the fixed reference profile")
-    if source_kind == "native_worker":
+    if source_kind == "bundled_worker":
         if source["modelSpecId"] != provenance["models"][capability]["specId"]:
             raise EvidenceError(f"{location} model differs from the frozen candidate model")
         if source["configId"] != provenance["configs"][capability]["id"]:

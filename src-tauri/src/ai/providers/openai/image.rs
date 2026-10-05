@@ -36,16 +36,16 @@ pub async fn edit_mask(
         .bearer_auth(ctx.require_api_key().map_err(|error| error.to_string())?)
         .multipart(form)
         .send();
-    let result = tokio::select! {
+    let generation = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
         response = request => response.map_err(|error| error.to_string())?,
     };
-    if !result.status().is_success() {
-        return Err(response::read_text(result)
+    if !generation.status().is_success() {
+        return Err(response::read_text(generation)
             .await
             .map_err(|error| error.to_string())?);
     }
-    let body: ImageResponse = response::read_json(result, response::MAX_IMAGE_JSON_BYTES)
+    let body: ImageResponse = response::read_json(generation, response::MAX_IMAGE_JSON_BYTES)
         .await
         .map_err(|error| error.to_string())?;
     let encoded = body

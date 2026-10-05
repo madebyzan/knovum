@@ -108,11 +108,11 @@ pub async fn get_video_translation_run(
 }
 
 #[tauri::command]
-pub async fn get_video_translation_result(
+pub async fn get_video_translation(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<super::VideoTranslationResult, AppError> {
-    Ok(repository::load_result(db::pool(&app).await?, &run_id).await?)
+) -> Result<super::VideoTranslation, AppError> {
+    Ok(repository::load_translation(db::pool(&app).await?, &run_id).await?)
 }
 
 fn input_revision(

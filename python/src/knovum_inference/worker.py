@@ -13,21 +13,21 @@ from knovum_inference import PROTOCOL_VERSION
 from knovum_inference.active_request import ActiveRequest
 from knovum_inference.contracts import (
     RuntimeAckChunkParams,
+    RuntimeCancellationAcknowledgement,
     RuntimeCancelParams,
-    RuntimeCancelResult,
     RuntimeCapability,
+    RuntimeHealthObservation,
     RuntimeHealthParams,
-    RuntimeHealthResult,
     RuntimeInitializeParams,
-    RuntimeInitializeResult,
+    RuntimeSession,
+    RuntimeShutdownAcknowledgement,
     RuntimeShutdownParams,
-    RuntimeShutdownResult,
 )
 from knovum_inference.errors import RpcError, invalid_params, server_error
 from knovum_inference.inference_methods import INFERENCE_METHODS
 from knovum_inference.input_stream import OVERSIZED, InputStream
 from knovum_inference.protocol import MAX_MESSAGE_BYTES, ProtocolWriter, Request, parse_request
-from knovum_inference.request_contract import report_request_error, validate_params, validate_result
+from knovum_inference.request_contract import report_request_error, validate_params, validate_response
 from knovum_inference.runtime_health import current_process_resident_bytes
 from knovum_inference.runtime_initialization import Session, capability_method, prepare_session
 
@@ -89,10 +89,10 @@ class Worker:
 
     async def _handle(self, request: Request) -> None:
         try:
-            result = await self._dispatch(request)
+            response = await self._dispatch(request)
             if request.request_id is None:
                 return
-            await self._writer.result(request.request_id, result)
+            await self._writer.send_response(request.request_id, response)
             if request.method == "runtime.shutdown":
                 self._terminate.set()
         except Exception as error:
@@ -123,7 +123,7 @@ class Worker:
             try:
                 value = await method.execute(params, session, active, self._writer)
                 self._check_active(params, active)
-                return validate_result(method.result_model, value)
+                return validate_response(method.response_model, value)
             finally:
                 self._complete(active)
         handler = handlers.get(request.method)
@@ -145,8 +145,8 @@ class Worker:
             self._session = session
         finally:
             self._initializing = False
-        return validate_result(
-            RuntimeInitializeResult,
+        return validate_response(
+            RuntimeSession,
             {
                 "protocolVersion": PROTOCOL_VERSION,
                 "runtimeDigest": params.runtime_digest,
@@ -168,8 +168,8 @@ class Worker:
     async def _health(self, raw: dict[str, Any]) -> dict[str, Any]:
         params = validate_params(RuntimeHealthParams, raw)
         self._require_session(params.session_id)
-        return validate_result(
-            RuntimeHealthResult,
+        return validate_response(
+            RuntimeHealthObservation,
             {
                 "sessionId": params.session_id,
                 "currentRequestId": self._active.request_id if self._active else None,
@@ -187,7 +187,7 @@ class Worker:
         )
         if accepted and active is not None:
             active.cancelled.set()
-        return validate_result(RuntimeCancelResult, {"accepted": accepted})
+        return validate_response(RuntimeCancellationAcknowledgement, {"accepted": accepted})
 
     async def _ack_chunk(self, raw: dict[str, Any]) -> dict[str, Any]:
         params = validate_params(RuntimeAckChunkParams, raw)
@@ -210,7 +210,7 @@ class Worker:
         if active is not None:
             active.cancelled.set()
             await active.done.wait()
-        return validate_result(RuntimeShutdownResult, {"accepted": True})
+        return validate_response(RuntimeShutdownAcknowledgement, {"accepted": True})
 
     def _begin(self, params: Any, capability: RuntimeCapability) -> tuple[Session, ActiveRequest]:
         if params.attempt_epoch > U64_MAX or params.deadline_ms > U64_MAX:

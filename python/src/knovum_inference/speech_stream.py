@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from knovum_inference.errors import server_error
-from knovum_inference.speech_common import attempt_directory, check_deadline
+from knovum_inference.speech_request import attempt_directory, check_deadline
 
 MAX_UNCONSUMED_FILES = 8
 MAX_UNCONSUMED_BYTES = 16 * 1024 * 1024

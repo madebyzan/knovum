@@ -9,12 +9,12 @@ class RpcError(Exception):
     code: int
     message: str
     stable_code: str
-    details: dict[str, Any] | None = None
+    context: dict[str, Any] | None = None
 
     def as_object(self) -> dict[str, Any]:
         data: dict[str, Any] = {"code": self.stable_code}
-        if self.details:
-            data.update(self.details)
+        if self.context:
+            data.update(self.context)
         return {"code": self.code, "message": self.message, "data": data}
 
 

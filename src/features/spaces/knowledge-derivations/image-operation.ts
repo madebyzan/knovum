@@ -68,7 +68,7 @@ export async function deriveImage(
   );
   if (!pending) throw new Error("Image operation output node was not created");
   const id = crypto.randomUUID();
-  const result = runDerivation<ImageOperationOutput>({
+  const generation = runDerivation<ImageOperationOutput>({
     store,
     pendingId: pending.id,
     task: {
@@ -119,5 +119,5 @@ export async function deriveImage(
     },
   });
   onOutputCreated?.();
-  return result;
+  return generation;
 }

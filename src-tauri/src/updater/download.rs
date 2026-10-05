@@ -87,10 +87,10 @@ pub async fn download_update(
             }
         },
     );
-    let result = tokio::select! {
+    let download = tokio::select! {
         biased;
         _ = cancellation.cancelled() => Ok(None),
-        result = download => result.map(Some),
+        download = download => download.map(Some),
     };
     if oversized.load(Ordering::Relaxed) {
         service.fail(
@@ -100,7 +100,7 @@ pub async fn download_update(
         )?;
         return Ok(service.snapshot()?);
     }
-    match result {
+    match download {
         Ok(bytes) => Ok(service.complete_download(&app, release, bytes)?),
         Err(error) => {
             let reason = if matches!(

@@ -2,319 +2,319 @@
   {
     "speakerId": "0",
     "name": "Alloy",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "1",
     "name": "Aoede",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "2",
     "name": "Bella",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "3",
     "name": "Heart",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "4",
     "name": "Jessica",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "5",
     "name": "Kore",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "6",
     "name": "Nicole",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "7",
     "name": "Nova",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "8",
     "name": "River",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "9",
     "name": "Sarah",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "10",
     "name": "Sky",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "female"
   },
   {
     "speakerId": "11",
     "name": "Adam",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "12",
     "name": "Echo",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "13",
     "name": "Eric",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "14",
     "name": "Fenrir",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "15",
     "name": "Liam",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "16",
     "name": "Michael",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "17",
     "name": "Onyx",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "18",
     "name": "Puck",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "19",
     "name": "Santa",
-    "nativeLanguage": "en-US",
+    "primaryLanguage": "en-US",
     "gender": "male"
   },
   {
     "speakerId": "20",
     "name": "Alice",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "female"
   },
   {
     "speakerId": "21",
     "name": "Emma",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "female"
   },
   {
     "speakerId": "22",
     "name": "Isabella",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "female"
   },
   {
     "speakerId": "23",
     "name": "Lily",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "female"
   },
   {
     "speakerId": "24",
     "name": "Daniel",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "male"
   },
   {
     "speakerId": "25",
     "name": "Fable",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "male"
   },
   {
     "speakerId": "26",
     "name": "George",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "male"
   },
   {
     "speakerId": "27",
     "name": "Lewis",
-    "nativeLanguage": "en-GB",
+    "primaryLanguage": "en-GB",
     "gender": "male"
   },
   {
     "speakerId": "28",
     "name": "Dora",
-    "nativeLanguage": "es",
+    "primaryLanguage": "es",
     "gender": "female"
   },
   {
     "speakerId": "29",
     "name": "Alex",
-    "nativeLanguage": "es",
+    "primaryLanguage": "es",
     "gender": "male"
   },
   {
     "speakerId": "30",
     "name": "Siwis",
-    "nativeLanguage": "fr",
+    "primaryLanguage": "fr",
     "gender": "female"
   },
   {
     "speakerId": "31",
     "name": "Alpha",
-    "nativeLanguage": "hi",
+    "primaryLanguage": "hi",
     "gender": "female"
   },
   {
     "speakerId": "32",
     "name": "Beta",
-    "nativeLanguage": "hi",
+    "primaryLanguage": "hi",
     "gender": "female"
   },
   {
     "speakerId": "33",
     "name": "Omega",
-    "nativeLanguage": "hi",
+    "primaryLanguage": "hi",
     "gender": "male"
   },
   {
     "speakerId": "34",
     "name": "Psi",
-    "nativeLanguage": "hi",
+    "primaryLanguage": "hi",
     "gender": "male"
   },
   {
     "speakerId": "35",
     "name": "Sara",
-    "nativeLanguage": "it",
+    "primaryLanguage": "it",
     "gender": "female"
   },
   {
     "speakerId": "36",
     "name": "Nicola",
-    "nativeLanguage": "it",
+    "primaryLanguage": "it",
     "gender": "male"
   },
   {
     "speakerId": "37",
     "name": "Alpha",
-    "nativeLanguage": "ja",
+    "primaryLanguage": "ja",
     "gender": "female"
   },
   {
     "speakerId": "38",
     "name": "Gongitsune",
-    "nativeLanguage": "ja",
+    "primaryLanguage": "ja",
     "gender": "female"
   },
   {
     "speakerId": "39",
     "name": "Nezumi",
-    "nativeLanguage": "ja",
+    "primaryLanguage": "ja",
     "gender": "female"
   },
   {
     "speakerId": "40",
     "name": "Tebukuro",
-    "nativeLanguage": "ja",
+    "primaryLanguage": "ja",
     "gender": "female"
   },
   {
     "speakerId": "41",
     "name": "Kumo",
-    "nativeLanguage": "ja",
+    "primaryLanguage": "ja",
     "gender": "male"
   },
   {
     "speakerId": "42",
     "name": "Dora",
-    "nativeLanguage": "pt-BR",
+    "primaryLanguage": "pt-BR",
     "gender": "female"
   },
   {
     "speakerId": "43",
     "name": "Alex",
-    "nativeLanguage": "pt-BR",
+    "primaryLanguage": "pt-BR",
     "gender": "male"
   },
   {
     "speakerId": "44",
     "name": "Santa",
-    "nativeLanguage": "pt-BR",
+    "primaryLanguage": "pt-BR",
     "gender": "male"
   },
   {
     "speakerId": "45",
     "name": "Xiaobei",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "female"
   },
   {
     "speakerId": "46",
     "name": "Xiaoni",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "female"
   },
   {
     "speakerId": "47",
     "name": "Xiaoxiao",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "female"
   },
   {
     "speakerId": "48",
     "name": "Xiaoyi",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "female"
   },
   {
     "speakerId": "49",
     "name": "Yunjian",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "male"
   },
   {
     "speakerId": "50",
     "name": "Yunxi",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "male"
   },
   {
     "speakerId": "51",
     "name": "Yunxia",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "male"
   },
   {
     "speakerId": "52",
     "name": "Yunyang",
-    "nativeLanguage": "zh-CN",
+    "primaryLanguage": "zh-CN",
     "gender": "male"
   }
 ]

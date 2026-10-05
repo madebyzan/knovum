@@ -2,7 +2,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{GenerateVideoRequest, VideoOutput, VideoResult};
+use super::{GenerateVideoRequest, VideoContent, VideoOutput};
 use crate::{
     app_error::AppError,
     spaces::{
@@ -16,7 +16,7 @@ pub async fn complete(
     app: &AppHandle,
     request: &GenerateVideoRequest,
     expected_path: &str,
-    generated: VideoResult,
+    generated: VideoContent,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VideoOutput, AppError> {

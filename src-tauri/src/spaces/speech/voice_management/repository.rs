@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use sqlx::Row;
 
-use super::contracts::{VoiceProfileDetail, VoiceRevisionSummary};
+use super::contracts::{VoiceProfileHistory, VoiceRevision};
 use crate::spaces::{db, speech::contracts::parse_synthesis_config};
 
 pub(super) async fn list(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Vec<VoiceProfileDetail>, String> {
+) -> Result<Vec<VoiceProfileHistory>, String> {
     let rows = sqlx::query(
         "SELECT p.id,p.space_id,p.name,p.source_kind,p.active_revision_id,p.archived_at,p.updated_at, \
          (SELECT COUNT(*) FROM spaces_speech_segments s JOIN spaces_voice_revisions sr \
@@ -23,7 +23,7 @@ pub(super) async fn list(
     let mut profiles = Vec::with_capacity(rows.len());
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
-        profiles.push(VoiceProfileDetail {
+        profiles.push(VoiceProfileHistory {
             revisions: revisions.remove(&id).unwrap_or_default(),
             id,
             space_id: row.try_get("space_id").map_err(db::sql_error)?,
@@ -46,7 +46,7 @@ pub(super) async fn list(
 async fn revisions_by_profile(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<HashMap<String, Vec<VoiceRevisionSummary>>, String> {
+) -> Result<HashMap<String, Vec<VoiceRevision>>, String> {
     let rows = sqlx::query(
         "SELECT r.profile_id,r.id,r.revision,r.engine_id,r.model_spec_id,r.language,r.synthesis_config, \
          r.reference_source_revision,r.design_description,r.created_at FROM spaces_voice_revisions r \
@@ -57,7 +57,7 @@ async fn revisions_by_profile(
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    let mut revisions = HashMap::<String, Vec<VoiceRevisionSummary>>::new();
+    let mut revisions = HashMap::<String, Vec<VoiceRevision>>::new();
     for row in rows {
         let stored_config: String = row.try_get("synthesis_config").map_err(db::sql_error)?;
         let config =
@@ -65,7 +65,7 @@ async fn revisions_by_profile(
         revisions
             .entry(row.try_get("profile_id").map_err(db::sql_error)?)
             .or_default()
-            .push(VoiceRevisionSummary {
+            .push(VoiceRevision {
                 id: row.try_get("id").map_err(db::sql_error)?,
                 revision: row.try_get("revision").map_err(db::sql_error)?,
                 engine_id: row.try_get("engine_id").map_err(db::sql_error)?,

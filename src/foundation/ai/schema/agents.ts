@@ -22,7 +22,7 @@ export const agentDescriptorSchema: z.ZodType<AgentDescriptor> = z
     executableNames: z.array(z.string().min(1)).min(1),
     help: z
       .object({
-        connection: z.enum(["native_cli", "node_adapter", "standalone_server"]),
+        connection: z.enum(["executable_cli", "node_adapter", "standalone_server"]),
         documentationUrl: z.string().url().startsWith("https://"),
         setupUrl: z.string().url().startsWith("https://"),
       })

@@ -1,7 +1,7 @@
-use crate::spaces::workflows::capture::types::CaptureIssueReason;
+use crate::spaces::workflows::capture::contracts::CaptureIssueReason;
 use std::collections::{HashMap, HashSet};
 
-use super::super::types::{CandidateSource, CaptureCandidate};
+use super::super::contracts::{CandidateSource, CaptureCandidate};
 use crate::spaces::actions;
 
 pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), CaptureIssueReason> {

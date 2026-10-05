@@ -1,11 +1,11 @@
-use crate::spaces::workflows::capture::types::CaptureIssueReason;
+use crate::spaces::workflows::capture::contracts::CaptureIssueReason;
 use std::collections::{HashMap, HashSet};
 
 use sqlx::{Row, Sqlite, Transaction};
 
+use super::contracts::{CaptureIssue, CapturePreview, CapturedStep};
 use super::lookup::{completed_action_spec, derivation_inputs, node_kind, sources_match};
 use super::order::order_steps;
-use super::types::{CaptureIssue, CapturePreview, CapturedStep};
 use super::{boundaries, candidate, fingerprint, selection};
 use crate::spaces::db;
 

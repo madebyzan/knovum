@@ -6,8 +6,8 @@ use tokio_util::sync::CancellationToken;
 use super::super::admission::Priority;
 use super::{artifact::read_artifact, validate_identity};
 use crate::ai::contracts::speech_wire::{
-    InferenceRequestIdentity, SpeechSynthesisChunkEvent, SpeechSynthesisChunkGranularity,
-    SpeechSynthesizeResult,
+    InferenceRequestIdentity, SpeechSynthesis, SpeechSynthesisChunkEvent,
+    SpeechSynthesisChunkGranularity,
 };
 
 const MAX_AUDIO_BYTES: u64 = 32 * 1024 * 1024;
@@ -49,15 +49,15 @@ pub(crate) struct SynthesisExecution<'a> {
 }
 
 pub(super) fn finish_synthesis(
-    result: SpeechSynthesizeResult,
+    synthesis: SpeechSynthesis,
     work_directory: &Path,
     identity: &InferenceRequestIdentity,
     stream: Option<SynthesisStream>,
 ) -> Result<SynthesizedAudio, String> {
     validate_identity(
-        &result.request_id,
-        result.attempt_epoch,
-        &result.model_spec_id,
+        &synthesis.request_id,
+        synthesis.attempt_epoch,
+        &synthesis.model_spec_id,
         identity,
     )?;
     let stream = stream.ok_or("invalid_output: synthesis returned no chunk stream")?;
@@ -67,13 +67,13 @@ pub(super) fn finish_synthesis(
         .sample_rate
         .ok_or("invalid_output: synthesis returned no audio chunks")?;
     let digest = format!("{:x}", stream.digest.finalize());
-    if result.byte_length != byte_length
-        || result.sha256 != digest
-        || result.sample_rate != sample_rate
-        || result.channels != 1
-        || result.sample_format != "pcm_f32le"
-        || result.sample_count == 0
-        || result.sample_count.checked_mul(4) != Some(byte_length)
+    if synthesis.byte_length != byte_length
+        || synthesis.sha256 != digest
+        || synthesis.sample_rate != sample_rate
+        || synthesis.channels != 1
+        || synthesis.sample_format != "pcm_f32le"
+        || synthesis.sample_count == 0
+        || synthesis.sample_count.checked_mul(4) != Some(byte_length)
     {
         return Err("invalid_output: synthesized audio summary differs from its chunks".into());
     }
@@ -84,7 +84,7 @@ pub(super) fn finish_synthesis(
         sha256: format!("{:x}", Sha256::digest(&bytes)),
         bytes,
         sample_rate,
-        sample_count: result.sample_count,
+        sample_count: synthesis.sample_count,
     })
 }
 

@@ -1,9 +1,14 @@
+mod archive;
 mod contracts;
 mod copy;
 mod delete;
 mod repository;
 
-pub use contracts::*;
+pub use contracts::{
+    ArchiveVoiceProfileRequest, CopyVoiceProfileRequest, DeleteVoiceProfileRequest,
+    RenameVoiceProfileRequest, ReviseVoiceProfileRequest, UnarchiveVoiceProfileRequest,
+    VoiceProfileHistory, VoiceRevision,
+};
 
 use crate::{app_error::AppError, spaces::db};
 
@@ -15,10 +20,10 @@ pub(super) fn validate_name(name: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn list_voice_profiles_for_management(
+pub async fn list_voice_profiles(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<VoiceProfileDetail>, AppError> {
+) -> Result<Vec<VoiceProfileHistory>, AppError> {
     Ok(repository::list(db::pool(&app).await?, &space_id).await?)
 }
 
@@ -88,26 +93,32 @@ pub async fn revise_voice_profile(
 }
 
 #[tauri::command]
-pub async fn set_voice_profile_archived(
+pub async fn archive_voice_profile(
     app: tauri::AppHandle,
-    request: SetVoiceProfileArchivedRequest,
+    request: ArchiveVoiceProfileRequest,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
-    let archived_at = request.archived.then_some(now);
-    let changed = sqlx::query(
-        "UPDATE spaces_voice_profiles SET archived_at=?,updated_at=? WHERE id=? AND updated_at=?",
+    archive::update_state(
+        db::pool(&app).await?,
+        &request.profile_id,
+        request.expected_updated_at,
+        true,
     )
-    .bind(archived_at)
-    .bind(now)
-    .bind(&request.profile_id)
-    .bind(request.expected_updated_at)
-    .execute(db::pool(&app).await?)
-    .await
-    .map_err(db::sql_error)?;
-    db::require_one(
-        changed,
-        "Voice profile changed before its archive state could be updated",
-    )?;
+    .await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn unarchive_voice_profile(
+    app: tauri::AppHandle,
+    request: UnarchiveVoiceProfileRequest,
+) -> Result<(), AppError> {
+    archive::update_state(
+        db::pool(&app).await?,
+        &request.profile_id,
+        request.expected_updated_at,
+        false,
+    )
+    .await?;
     Ok(())
 }
 

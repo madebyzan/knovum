@@ -4,7 +4,7 @@ use crate::ai::contracts::{AgentConnectionKind, AgentDescriptor, AgentKind};
 pub(super) enum AcpLaunch {
     Codex,
     Claude,
-    Native { arguments: &'static [&'static str] },
+    Executable { arguments: &'static [&'static str] },
     Server,
 }
 
@@ -13,14 +13,14 @@ impl AcpLaunch {
         match self {
             Self::Codex => Some("full-access"),
             Self::Claude => Some("bypassPermissions"),
-            Self::Native { .. } | Self::Server => None,
+            Self::Executable { .. } | Self::Server => None,
         }
     }
 
     const fn connection(self) -> AgentConnectionKind {
         match self {
             Self::Codex | Self::Claude => AgentConnectionKind::NodeAdapter,
-            Self::Native { .. } => AgentConnectionKind::NativeCli,
+            Self::Executable { .. } => AgentConnectionKind::ExecutableCli,
             Self::Server => AgentConnectionKind::StandaloneServer,
         }
     }
@@ -74,7 +74,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::GeminiCli,
         "Google Gemini CLI",
         &["gemini"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp"],
         },
     ),
@@ -82,7 +82,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::GithubCopilot,
         "GitHub Copilot",
         &["copilot"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp"],
         },
     ),
@@ -90,7 +90,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::OpenCode,
         "OpenCode",
         &["opencode"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["acp"],
         },
     ),
@@ -98,7 +98,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::QwenCode,
         "Qwen Code",
         &["qwen"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp", "--experimental-skills"],
         },
     ),
@@ -106,7 +106,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::QoderCli,
         "Qoder CLI",
         &["qodercli"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp"],
         },
     ),
@@ -114,7 +114,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::KimiCli,
         "Kimi CLI",
         &["kimi"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["acp"],
         },
     ),
@@ -122,7 +122,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::AuggieCli,
         "Augment Auggie",
         &["auggie"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp"],
         },
     ),
@@ -130,7 +130,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::Cline,
         "Cline",
         &["cline"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["--acp"],
         },
     ),
@@ -138,7 +138,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         AgentKind::Cursor,
         "Cursor",
         &["cursor-agent"],
-        AcpLaunch::Native {
+        AcpLaunch::Executable {
             arguments: &["acp"],
         },
     ),

@@ -69,7 +69,7 @@ pub(crate) async fn execute(
     if translated_text.is_empty() || translated_text.chars().count() > 10_000 {
         return Err("Translated speech segment must contain between 1 and 10000 characters".into());
     }
-    let result = VideoTranslationSegmentOutput {
+    let translation = VideoTranslationSegmentOutput {
         step_id: claim.step_instance_id.clone(),
         source_segment_id: config.segment.source_segment_id,
         source_segment_revision: config.segment.source_segment_revision,
@@ -77,7 +77,7 @@ pub(crate) async fn execute(
         translated_text: translated_text.to_owned(),
     };
     Ok(StepOutcome::Completed {
-        output: serde_json::to_value(result).map_err(db::json_error)?,
+        output: serde_json::to_value(translation).map_err(db::json_error)?,
         selected_branch: None,
     })
 }
