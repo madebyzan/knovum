@@ -46,4 +46,4 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version }}
           UPGRADE_EVIDENCE_URL: ${{ inputs.upgrade_evidence_url }}
           ARTIFACT_BASE_URL: ${{ inputs.artifact_base_url }}
-        run: node tools/promote-update.mjs
+        run: node tools/release/promote.mjs

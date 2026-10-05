@@ -108,7 +108,7 @@ Package `__init__.py` files do not re-export implementation symbols.
 Repository tooling owns `tools/generate_python_contracts.py` and the native runtime publication
 entries `tools/build_python_runtime.py` / `tools/verify_python_runtime_signatures.py`.
 `tools/runtime_packaging/` owns controlled artifact handling, binary inspection, installed inventory
-and native signing policy. Its tests live in `tools/__tests__/`.
+and native signing policy. Its tests live in `tools/runtime_packaging/__tests__/`.
 Model qualification belongs to `python/tests/acceptance/`: strict corpus/result/execution contracts,
 hash-bound provenance and the four capability scorers. Pydantic owns structural validation,
 NumPy owns vector arithmetic and percentiles, and JiWER owns transcription error counts.
@@ -168,8 +168,9 @@ implementation from low-level Rust primitives.
 `knowledge/`, `knowledge/indexing/` and infrastructure adapters; semantic policy must not be duplicated in
 a command, derivation capability or query adapter. `knowledge/` never depends on
 `derivation/`: governance and provenance policy remain independent of the use cases that
-produce derivative resources. It also does not depend on `assets/` or `queries/`; the Rust boundary
-check in `pnpm check:rust` guards those imports. Action query dispatch calls `queries/` directly.
+produce derivative resources. It also does not depend on `assets/` or `queries/`; the Rust dependency
+boundary is reviewed through Rust module ownership and code review. The removed source-token scanner
+could not resolve relative imports or aliases and therefore did not enforce this dependency rule. Action query dispatch calls `queries/` directly.
 
 Read and write files for the same aggregate are not duplicate implementations when they form an
 intentional command/query split. Two files are duplicate capability implementations only when both
@@ -435,7 +436,7 @@ dialogs, receive session-scoped authorization, and are never covered by a broad 
 
 ### Resource lifecycle composition
 
-`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Source directories must not contain a file and a sibling directory with the same basename. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. `pnpm check:source-layout` enforces the naming rule for `src/`, `src-tauri/src/` and `tools/`, and runs through both `pnpm architecture` and `pnpm check:rust`. Stable wire IDs are explicitly mapped to UI translation keys.
+`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Source directories must not contain a file and a sibling directory with the same basename. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. `tools/checks/source-layout.mjs` enforces the naming rule for `src/`, `src-tauri/src/` and `tools/`, and runs through both `pnpm check:web` and `pnpm check:rust`. Stable wire IDs are explicitly mapped to UI translation keys.
 
 ### IPC error boundary
 
@@ -514,7 +515,7 @@ Canvas editor/surface interfaces belong to `canvas/contracts/`; pure preview pol
 ## Source layout and size
 
 `naming-conventions.md` owns sibling-name uniqueness and test-directory conventions.
-`pnpm check:source-layout` verifies repository entry directories and all source roots,
+`tools/checks/source-layout.mjs` verifies repository entry directories and all source roots,
 and runs fixture-based policy regressions before inspecting the checkout.
 
 Rust and Python source files are limited to 350 nonblank lines, including generated Python

@@ -440,7 +440,7 @@ rather than pretending it maps to one source file. Shared test fixtures and mock
 owner's `__tests__/support/`, so they remain outside production typechecking and business imports.
 Production source must not import test files, Vitest or Vue Test Utils.
 Python worker/qualification tests live in `python/tests/`, repository tooling policy tests (Python
-and Node) in `tools/__tests__/`, and desktop E2E
+and Node) in each tooling owner's `__tests__/` (the standalone generator uses `tools/__tests__/`), and desktop E2E
 scenarios in `tests/e2e/`. Test-specific imports belong in test files, not business modules.
 
 ## Automated checks
@@ -455,7 +455,7 @@ coverage and do not attempt to infer business behavior. What remains:
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment lines, complexity 10 and four
   parameters;
 - Knip reports dead code and unused dependencies;
-- `check:source-layout` checks sibling stems, test placement and the handwritten Rust/Python
+- `tools/checks/source-layout.mjs` checks sibling stems, test placement and the handwritten Rust/Python
   size limit specified in `architecture.md`.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider

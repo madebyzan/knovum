@@ -102,7 +102,7 @@ Only the `main` window is authorized today. A multi-window feature must define i
 
 ## Updater and signing
 
-The updater plugin is registered only when the build contains validated updater configuration. `package:release` embeds the permanent HTTPS manifest URL and verification key before plugin initialization, requires signing configuration and generates updater artifacts. QA builds remain disabled. Rust owns scheduled checks, the selected version, download/verification and installation; a shared Pinia snapshot projects that state into About and Task Center. Installation uses the existing registered-save barrier and explicit user confirmation. Signing, candidate promotion, native acceptance and GitHub/COS migration are owned by `release.md`.
+The updater plugin is registered only when the build contains validated updater configuration. `pnpm package --release` embeds the permanent HTTPS manifest URL and verification key before plugin initialization, requires signing configuration and generates updater artifacts. QA builds remain disabled. Rust owns scheduled checks, the selected version, download/verification and installation; a shared Pinia snapshot projects that state into About and Task Center. Installation uses the existing registered-save barrier and explicit user confirmation. Signing, candidate promotion, native acceptance and GitHub/COS migration are owned by `release.md`.
 
 ## Cross-platform compile gate
 
@@ -118,7 +118,7 @@ Spaces authorizes media assets and FFmpeg decodes each source revision to a 16 k
 
 Bundled FFmpeg and Python runtime discovery is centralized in `src-tauri/src/local_resources/tools/mod.rs`. Release/runtime configuration is explicit:
 
-During local desktop development, `tools/run-tauri.mjs` binds these variables to the single
+During local desktop development, `tools/desktop/tauri.mjs` binds these variables to the single
 provisioned host runtime before launching Tauri. Packaged builds continue to resolve the same tools
 from their target-specific application resource directory.
 

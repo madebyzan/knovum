@@ -53,7 +53,7 @@ jobs:
       - name: Validate tag and reviewed release notes
         shell: bash
         run: |
-          node --input-type=module -e 'import { readVersion } from "./tools/release-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
+          node --input-type=module -e 'import { readVersion } from "./tools/release/policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
       - name: Provision controlled bundled runtime
         env:
           KNOVUM_FFMPEG_MACOS_ARM64_URL: ${{ vars.KNOVUM_FFMPEG_MACOS_ARM64_URL }}
@@ -88,7 +88,7 @@ jobs:
         env:
           APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
         run: |
-          node --input-type=module -e 'import { writeFileSync, appendFileSync } from "node:fs"; import { join } from "node:path"; import { requireValue } from "./tools/release-policy.mjs"; const file = join(process.env.RUNNER_TEMP, "knovum-notary.p8"); writeFileSync(file, requireValue(process.env.APPLE_API_PRIVATE_KEY, "APPLE_API_PRIVATE_KEY"), { mode: 0o600 }); appendFileSync(process.env.GITHUB_ENV, `APPLE_API_KEY_PATH=${file}\n`);'
+          node --input-type=module -e 'import { writeFileSync, appendFileSync } from "node:fs"; import { join } from "node:path"; import { requireValue } from "./tools/release/policy.mjs"; const file = join(process.env.RUNNER_TEMP, "knovum-notary.p8"); writeFileSync(file, requireValue(process.env.APPLE_API_PRIVATE_KEY, "APPLE_API_PRIVATE_KEY"), { mode: 0o600 }); appendFileSync(process.env.GITHUB_ENV, `APPLE_API_KEY_PATH=${file}\n`);'
       - name: Build signed update-enabled package
         env:
           KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
@@ -107,7 +107,7 @@ jobs:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        run: pnpm package:release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+        run: pnpm package --release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
       - name: Verify macOS distribution signature and notarization
         if: runner.os == 'macOS'
         run: |
@@ -117,12 +117,12 @@ jobs:
           xcrun stapler validate "$app"
       - name: Verify Windows distribution signatures
         if: runner.os == 'Windows'
-        run: ./tools/verify-windows-package.ps1 -Target '${{ matrix.target }}'
+        run: ./tools/desktop/verify-windows-signatures.ps1 -Target '${{ matrix.target }}'
       - name: Stage immutable release artifacts
         env:
           KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
           KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
-        run: node tools/collect-release.mjs ${{ matrix.target }}
+        run: node tools/release/collect.mjs ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.target }}
@@ -157,5 +157,5 @@ jobs:
           KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
           KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
         run: |
-          node --test tools/__tests__/*.test.mjs
-          node tools/release-candidate.mjs downloaded "docs/release-notes/${GITHUB_REF_NAME#v}.md"
+          node --test tools/*/__tests__/*.test.mjs
+          node tools/release/candidate.mjs downloaded "docs/release-notes/${GITHUB_REF_NAME#v}.md"

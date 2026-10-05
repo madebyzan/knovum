@@ -34,10 +34,10 @@ Use `pnpm install --frozen-lockfile` in CI and normal reproducible setup after t
 
 ```bash
 pnpm check
-pnpm desktop:build
+pnpm exec tauri build --no-bundle
 ```
 
-`desktop:build` compiles the desktop application without creating installers. Packaging is documented in `packaging.md`.
+`pnpm exec tauri build --no-bundle` compiles the desktop application without creating installers. Packaging is documented in `packaging.md`.
 
 ## End-user installation
 
