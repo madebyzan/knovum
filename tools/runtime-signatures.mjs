@@ -33,7 +33,7 @@ export function verifyRuntimeSignatures(directory, runtimeTarget, repository) {
       "-B",
       "-X",
       "utf8",
-      join(repository, "python", "tools", "runtime_signing.py"),
+      join(repository, "python", "tools", "verify_runtime_signatures.py"),
       "--directory",
       directory,
       "--target",

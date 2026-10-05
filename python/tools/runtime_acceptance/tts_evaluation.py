@@ -14,7 +14,7 @@ from runtime_acceptance.evidence import (
     require_timestamp,
     resolve_hashed_file,
 )
-from runtime_acceptance.execution_evidence import load_execution_evidence
+from runtime_acceptance.provenance import load_execution_evidence
 from runtime_acceptance.schema import TTS_CRITERIA
 
 
