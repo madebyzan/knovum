@@ -3,6 +3,8 @@ pub(super) mod authorization;
 pub(crate) mod cleanup;
 pub(super) mod commands;
 mod credential_store;
+pub(super) mod definition_commands;
+pub(crate) mod definitions;
 mod oauth_http;
 pub(crate) mod requirements;
 pub(crate) use authorization::credentials;
@@ -14,3 +16,7 @@ mod oauth_tests;
 #[cfg(test)]
 #[path = "tests/accounts.rs"]
 mod account_tests;
+
+#[cfg(test)]
+#[path = "tests/definitions.rs"]
+mod definition_tests;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TabsRoot, TabsList, TabsTrigger, TabsContent } from "reka-ui";
 
-import McpConnectionSettings from "./connections/McpConnectionSettings.vue";
+import ConnectorSettings from "./connectors/ConnectorSettings.vue";
 import PluginSettings from "./plugins/PluginSettings.vue";
 import SkillSettings from "./skills/SkillSettings.vue";
 </script>
@@ -12,7 +12,7 @@ import SkillSettings from "./skills/SkillSettings.vue";
     <TabsRoot default-value="plugins">
       <TabsList class="mb-4 flex gap-2" :aria-label="$t('extensions.title')">
         <TabsTrigger
-          v-for="tab in ['plugins', 'skills', 'connections']"
+          v-for="tab in ['plugins', 'skills', 'connectors']"
           :key="tab"
           :value="tab"
           class="rounded-sm px-3 py-2 text-body text-fg-secondary hover:bg-surface-control data-[state=active]:bg-surface-control data-[state=active]:text-fg-primary"
@@ -22,7 +22,7 @@ import SkillSettings from "./skills/SkillSettings.vue";
       </TabsList>
       <TabsContent value="plugins"><PluginSettings /></TabsContent>
       <TabsContent value="skills"><SkillSettings /></TabsContent>
-      <TabsContent value="connections"><McpConnectionSettings /></TabsContent>
+      <TabsContent value="connectors"><ConnectorSettings /></TabsContent>
     </TabsRoot>
   </section>
 </template>

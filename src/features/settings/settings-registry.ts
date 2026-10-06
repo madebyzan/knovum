@@ -86,7 +86,7 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "extensions.title",
     descriptionKey: "extensions.description",
-    searchKeys: ["extensions.plugins", "extensions.skills", "extensions.connections"],
+    searchKeys: ["extensions.plugins", "extensions.skills", "extensions.connectors"],
     icon: Puzzle,
   },
   {

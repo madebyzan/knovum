@@ -48,8 +48,12 @@ pub enum ConnectorAuthorization {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ConnectorDefinition {
     pub id: String,
+    pub revision: String,
     pub name: String,
+    pub description: String,
     pub plugin_id: Option<String>,
+    pub component_name: Option<String>,
+    pub endpoint: McpEndpoint,
     pub authorization: ConnectorAuthorization,
 }
 
@@ -91,10 +95,7 @@ pub struct McpConnection {
     pub id: String,
     pub connector_id: String,
     pub name: String,
-    pub plugin_id: Option<String>,
-    pub component_name: Option<String>,
     pub revision: String,
-    pub endpoint: McpEndpoint,
     pub account_id: Option<String>,
     pub enabled: bool,
     pub tools: Vec<McpToolPermission>,

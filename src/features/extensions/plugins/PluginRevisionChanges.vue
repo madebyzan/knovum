@@ -13,7 +13,7 @@ const changes = computed(() => {
   return {
     added: [...next.keys()].filter((key) => !old.has(key)),
     removed: [...old.keys()].filter((key) => !next.has(key)),
-    connectionsChanged: JSON.stringify(props.before.connections) !== JSON.stringify(props.after.connections),
+    connectorsChanged: JSON.stringify(props.before.connectors) !== JSON.stringify(props.after.connectors),
   };
 });
 </script>
@@ -23,13 +23,13 @@ const changes = computed(() => {
     <p>{{ $t("extensions.revisionChange") }}: {{ before.sourceRevision }} → {{ after.sourceRevision }}</p>
     <p v-if="changes.added.length">{{ $t("extensions.added") }}: {{ changes.added.join(", ") }}</p>
     <p v-if="changes.removed.length">{{ $t("extensions.removed") }}: {{ changes.removed.join(", ") }}</p>
-    <div v-if="changes.connectionsChanged" class="space-y-1">
-      <p>{{ $t("extensions.reviewConnectionChanges") }}</p>
+    <div v-if="changes.connectorsChanged" class="space-y-1">
+      <p>{{ $t("extensions.reviewConnectorChanges") }}</p>
       <pre class="max-h-48 overflow-auto whitespace-pre-wrap">{{
-        JSON.stringify(before.connections, null, 2)
+        JSON.stringify(before.connectors, null, 2)
       }}</pre>
       <pre class="max-h-48 overflow-auto whitespace-pre-wrap">{{
-        JSON.stringify(after.connections, null, 2)
+        JSON.stringify(after.connectors, null, 2)
       }}</pre>
     </div>
   </section>

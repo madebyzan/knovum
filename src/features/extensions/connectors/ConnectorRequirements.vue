@@ -3,6 +3,7 @@ import { computed } from "vue";
 
 import type { ConnectorAuthorization } from "../../../shared/contracts/generated/ConnectorAuthorization";
 import UiInput from "../../../shared/ui/UiInput.vue";
+defineProps<{ http: boolean }>();
 const authorization = defineModel<ConnectorAuthorization>({ required: true });
 function select(event: Event) {
   const type = (event.target as HTMLSelectElement).value;
@@ -43,9 +44,9 @@ const names = computed({
         @change="select"
       >
         <option value="none">{{ $t("extensions.noAuthorization") }}</option>
-        <option value="bearer">API Token</option>
+        <option value="bearer" :disabled="!http">API Token</option>
         <option value="secret_fields">{{ $t("extensions.secretFields") }}</option>
-        <option value="oauth">OAuth + PKCE</option>
+        <option value="oauth" :disabled="!http">OAuth + PKCE</option>
       </select></label
     >
     <template v-if="authorization.type === 'oauth'">

@@ -192,13 +192,21 @@ immutable voice revision used by later Runs.
 
 Workflows are personal reusable chains captured from completed Action derivations, with explicit replaceable input slots and named outputs. Built-in production templates and their graph compiler are removed. Atomic generation, subtitle burn-in and document export use the same Action Run and publication facilities as workflow steps. The runtime accepts captured steps and durable Actions only; removed recipe graph kinds fail explicitly. Terminal Space packages preserve Run history for inspection without replay.
 The built-in Agent exposes declared Space Actions and the user's selected MCP tools through
-one typed catalog. The `extensions` owner maintains plugins, Skills, connections and connector
-accounts in `extensions.db`; credentials remain in `secrets.db`. Rust uses official rmcp for
+one typed catalog. The `extensions` owner maintains plugins, Skills, reusable external service
+connector definitions, connection instances and connector accounts in `extensions.db`; credentials remain in `secrets.db`. Rust uses official rmcp for
 inbound and outbound MCP. Python receives reviewed Skill bytes and authorized tool definitions,
-with no upstream endpoint, process path or credentials. Each task freezes revisions, schemas,
+with no upstream endpoint, process path or credentials. Each task freezes connector and connection revisions, schemas,
 account bindings, authorization revisions and explicit tool/resource/prompt selection; each invocation rechecks revocation.
 Reauthorization atomically changes the account revision and clears bound tool permissions for fresh
 review. A frozen checkpoint cannot use replacement credentials, even when the account ID is unchanged.
+Settings presents connectors as external services with capabilities, accounts and independent
+connection instances. MCP transport configuration and public authorization requirements belong
+to the service definition. Definitions are delivered by plugins or configured by the user; tools,
+resources and prompts are discovered through rmcp. Definition updates revoke old task sessions;
+endpoint or authorization changes disable every affected instance, remove account bindings and
+clear tool review. Plugin component updates preserve definition identity and all instances.
+Deleting a connection does not remove a reusable definition or its accounts. Removing a service
+or uninstalling its plugin retires all instances and clears orphan credentials.
 ACP sessions receive the existing private Knovum MCP endpoint, projecting the same selected
 capabilities. Upstream tokens never enter ACP configuration or vendor global settings.
 The Builtin Agent conversation and message tables own the single user-visible history. A model task

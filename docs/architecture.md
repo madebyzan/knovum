@@ -605,7 +605,14 @@ resource publication. Spaces resolves a Run's snapshot identity and calls extens
 extension reclamation never queries a Spaces database. `features/extensions` owns management UI; `app/router.ts` injects that
 pane into Settings. Settings and Spaces do not import extension business UI. The foundation
 extension modules contain shared IPC/query contracts, not extension policy or presentation.
-Task snapshots carry reviewed bytes and exact connection/account/catalog identities. There is
+Connector definitions own external service identity, purpose, plugin component ownership,
+revision, MCP endpoint and public authorization requirements. Connection instances reference a
+reusable definition and own names, revisions, account bindings, enabled state and tool policies.
+Accounts belong to definitions and can be explicitly shared between their instances. The MCP
+owner operates the protocol; it does not own service definitions. Plugins publish definitions by
+stable component identity and preserve all user instances during updates. Deleting an instance
+retains its definition and accounts. Removing a definition retires all instances and credentials.
+Task snapshots carry reviewed bytes and exact connector/connection/account/catalog identities. There is
 one connection-selection list, containing each connection's selected tools, resources and prompts.
 Resource and prompt tool bindings retain the selected identities; inbound MCP projection does
 not recover business selection from the generated tool input Schema. There is

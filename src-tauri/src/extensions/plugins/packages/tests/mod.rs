@@ -10,7 +10,7 @@ fn malformed_component_does_not_discard_valid_skills() {
     files.insert("mcp.json".into(), b"{invalid}".to_vec());
     let reviewed = super::inspect(&files, "revision".into()).unwrap();
     assert_eq!(reviewed.skills.len(), 1);
-    assert!(reviewed.mcp_servers.is_empty());
+    assert!(reviewed.inspection.connectors.is_empty());
     assert!(reviewed
         .inspection
         .components
@@ -59,4 +59,23 @@ fn skill_directory_identity_and_duplicate_frontmatter_are_rejected() {
             .iter()
             .any(|item| item.kind == "skill" && !item.supported));
     }
+}
+
+#[test]
+fn plugin_service_metadata_is_bound_to_the_standard_mcp_component() {
+    let mut files = package();
+    let mut manifest: serde_json::Value = serde_json::from_slice(&files["plugin.json"]).unwrap();
+    manifest["extensions"] = json!({"com.zand.knovum":{"connectors":{"github":{"name":"GitHub","description":"Read issues and repositories","authorization":{"type":"bearer"}}}}});
+    files.insert("plugin.json".into(), serde_json::to_vec(&manifest).unwrap());
+    files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"github":{"type":"streamable-http","url":"https://example.com/mcp"}}})).unwrap());
+    let reviewed = super::inspect(&files, "revision".into()).unwrap();
+    let connector = &reviewed.inspection.connectors[0];
+    assert_eq!(connector.component_name, "github");
+    assert_eq!(connector.name, "GitHub");
+    assert_eq!(connector.description, "Read issues and repositories");
+    assert_eq!(
+        connector.authorization,
+        crate::extensions::contracts::ConnectorAuthorization::Bearer
+    );
+    assert_eq!(connector.configuration["url"], "https://example.com/mcp");
 }

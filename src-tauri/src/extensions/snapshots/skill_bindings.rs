@@ -31,8 +31,13 @@ pub(super) fn resolve(
                     .iter()
                     .find(|connection| &connection.id == connection_id)
                     .expect("projected connection");
-                if connection.plugin_id == skill.plugin_id
-                    && connection.component_name.as_deref() == Some(component)
+                let connector = snapshot
+                    .connectors
+                    .iter()
+                    .find(|connector| connector.id == connection.connector_id)
+                    .expect("snapshot connector definition");
+                if connector.plugin_id == skill.plugin_id
+                    && connector.component_name.as_deref() == Some(component)
                     && tool_name.is_none_or(|name| name == actual)
                 {
                     names.push(tool.name.clone());

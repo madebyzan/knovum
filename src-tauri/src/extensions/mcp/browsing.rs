@@ -19,7 +19,12 @@ pub(crate) async fn read_resource(
         return Err("mcp-browse-connection-revised".into());
     }
     super::connections::require_current(app, &connection).await?;
-    let session = super::client::connect(app, &connection, None).await?;
+    let connector = super::super::connectors::definitions::load(
+        &database::pool(app).await?,
+        &connection.connector_id,
+    )
+    .await?;
+    let session = super::client::connect(app, &connection, &connector, None).await?;
     let read = async {
         let catalog = super::catalog::read(&session.service).await?;
         if catalog.digest != catalog_digest {
@@ -94,7 +99,12 @@ pub async fn get_mcp_prompt(
         return Err("mcp-browse-connection-revised".into());
     }
     super::connections::require_current(&app, &connection).await?;
-    let session = super::client::connect(&app, &connection, None).await?;
+    let connector = super::super::connectors::definitions::load(
+        &database::pool(&app).await?,
+        &connection.connector_id,
+    )
+    .await?;
+    let session = super::client::connect(&app, &connection, &connector, None).await?;
     let read = async {
         let catalog = super::catalog::read(&session.service).await?;
         if catalog.digest != catalog_digest

@@ -1,4 +1,5 @@
 pub(super) mod commands;
+mod connectors;
 mod installation;
 pub(in crate::extensions) mod marketplaces;
 pub(in crate::extensions) mod operations;

@@ -1,33 +1,22 @@
-use super::super::{database, mcp::connections};
+use super::super::database;
 use std::collections::BTreeSet;
 use tauri::AppHandle;
 
 pub(crate) async fn collect(app: &AppHandle) -> Result<(), String> {
     let pool = database::pool(app).await?;
-    let retained = connections::list(&pool)
+    let retained = super::definitions::list(&pool)
         .await?
         .into_iter()
-        .map(|connection| connection.connector_id)
+        .map(|connector| connector.id)
         .collect::<BTreeSet<_>>();
-    for connector in super::accounts::definitions(&pool)
+    for account in super::accounts::list(&pool)
         .await?
         .into_iter()
-        .filter(|connector| !retained.contains(&connector.id))
+        .filter(|account| !retained.contains(&account.connector_id))
     {
-        for account in super::accounts::list(&pool)
-            .await?
-            .into_iter()
-            .filter(|account| account.connector_id == connector.id)
-        {
-            super::commands::disconnect_connector_account(app.clone(), account.id.clone()).await?;
-            sqlx::query("DELETE FROM connector_accounts WHERE id=$1")
-                .bind(&account.id)
-                .execute(&pool)
-                .await
-                .map_err(|error| error.to_string())?;
-        }
-        sqlx::query("DELETE FROM connectors WHERE id=$1")
-            .bind(connector.id)
+        super::commands::disconnect_connector_account(app.clone(), account.id.clone()).await?;
+        sqlx::query("DELETE FROM connector_accounts WHERE id=$1")
+            .bind(&account.id)
             .execute(&pool)
             .await
             .map_err(|error| error.to_string())?;

@@ -21,14 +21,15 @@ const emit = defineEmits<{ install: []; cancel: [] }>();
       </li>
     </ul>
     <section
-      v-for="connection in inspection.connections"
-      :key="connection.name"
+      v-for="connector in inspection.connectors"
+      :key="connector.componentName"
       class="space-y-1 text-caption"
     >
-      <h3 class="font-medium">{{ connection.name }}</h3>
+      <h3 class="font-medium">{{ connector.name }}</h3>
+      <p v-if="connector.description" class="text-fg-secondary">{{ connector.description }}</p>
       <pre class="max-h-40 overflow-auto whitespace-pre-wrap">{{
         JSON.stringify(
-          { configuration: connection.configuration, authorization: connection.authorization },
+          { configuration: connector.configuration, authorization: connector.authorization },
           null,
           2,
         )

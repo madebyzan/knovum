@@ -1,5 +1,5 @@
 use super::super::{
-    contracts::{ConnectorAccount, ConnectorAuthorization, ConnectorDefinition, McpEndpoint},
+    contracts::{ConnectorAccount, ConnectorAuthorization, McpEndpoint},
     database, ExtensionState,
 };
 use super::{accounts, authorization, credential_store::key};
@@ -12,16 +12,9 @@ pub async fn list_connector_accounts(app: AppHandle) -> Result<Vec<ConnectorAcco
 }
 
 #[tauri::command]
-pub async fn list_connector_definitions(
-    app: AppHandle,
-) -> Result<Vec<ConnectorDefinition>, String> {
-    accounts::definitions(&database::pool(&app).await?).await
-}
-
-#[tauri::command]
 pub async fn create_connector_account(
     app: AppHandle,
-    connection_id: String,
+    connector_id: String,
     display_name: String,
 ) -> Result<ConnectorAccount, String> {
     let state = app.state::<ExtensionState>();
@@ -30,18 +23,13 @@ pub async fn create_connector_account(
         return Err("connector-account-display-name-required".into());
     }
     let pool = database::pool(&app).await?;
-    let connection = super::super::mcp::connections::load(&pool, &connection_id).await?;
-    let connector = accounts::definitions(&pool)
-        .await?
-        .into_iter()
-        .find(|connector| connector.id == connection.connector_id)
-        .ok_or("connector-definition-missing")?;
+    let connector = super::definitions::load(&pool, &connector_id).await?;
     let account = ConnectorAccount {
         id: uuid::Uuid::new_v4().to_string(),
         revision: uuid::Uuid::new_v4().to_string(),
         connector_id: connector.id,
         display_name,
-        resource: super::super::mcp::endpoint::resource(&connection.endpoint),
+        resource: super::super::mcp::endpoint::resource(&connector.endpoint),
         issuer: None,
         scopes: Vec::new(),
         authorization: connector.authorization,
@@ -73,23 +61,14 @@ pub async fn authorize_connector_account(
                 if !secret_fields.is_empty() {
                     return Err("oauth-credentials-must-not-be-provided-manually".into());
                 }
-                let connections = super::super::mcp::connections::list(&pool).await?;
-                let allow_local = connections
-                    .iter()
-                    .find(|connection| {
-                        connection.connector_id == account.connector_id
-                            && super::super::mcp::endpoint::resource(&connection.endpoint)
-                                == account.resource
-                    })
-                    .is_some_and(|connection| {
-                        matches!(
-                            connection.endpoint,
-                            McpEndpoint::StreamableHttp {
-                                allow_local_network: true,
-                                ..
-                            }
-                        )
-                    });
+                let connector = super::definitions::load(&pool, &account.connector_id).await?;
+                let allow_local = matches!(
+                    connector.endpoint,
+                    McpEndpoint::StreamableHttp {
+                        allow_local_network: true,
+                        ..
+                    }
+                );
                 authorization::authorize(&app, &mut account, allow_local).await?;
             }
             ConnectorAuthorization::Bearer => {

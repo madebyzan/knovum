@@ -11,7 +11,7 @@ pub(crate) fn resource(endpoint: &McpEndpoint) -> String {
     }
 }
 
-pub(super) fn validate(endpoint: &McpEndpoint) -> Result<(), String> {
+pub(in crate::extensions) fn validate(endpoint: &McpEndpoint) -> Result<(), String> {
     match endpoint {
         McpEndpoint::StreamableHttp { url, headers, .. } => {
             let parsed = url::Url::parse(url).map_err(|error| error.to_string())?;
