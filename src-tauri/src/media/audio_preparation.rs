@@ -1,3 +1,4 @@
+use crate::subprocess::{diagnostic_error, wait_with_stderr};
 use std::{
     path::Path,
     process::{Command, Stdio},
@@ -5,12 +6,7 @@ use std::{
 
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    subprocess::{diagnostic_error, wait_with_stderr},
-    waveform::read_waveform,
-    workspace::AnalysisWorkspace,
-    TRANSCRIPTION_CANCELLED,
-};
+use super::{waveform::read_waveform, workspace::AnalysisWorkspace, TRANSCRIPTION_CANCELLED};
 
 const SAMPLE_RATE: u64 = 16_000;
 const AUDIO_FILTER: &str =

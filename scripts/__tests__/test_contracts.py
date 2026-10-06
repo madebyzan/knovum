@@ -32,3 +32,23 @@ def test_modular_contracts_cover_rust_definitions_without_aliases_or_duplicate_t
                     field.alias or name for name, field in model.model_fields.items() if field.is_required()
                 } == set(definition.get("required", []))
     assert generated.keys() == definitions.keys()
+
+
+def test_model_resource_contract_matches_rust_request_and_provider_inventory() -> None:
+    from knovum_model_resources.contracts import DownloadRequest, HuggingFaceSource, ModelScopeSource, SnapshotFile
+
+    source = Path(__file__).resolve().parents[2] / "python/schemas/model-resources.schema.json"
+    schema = json.loads(source.read_text())
+    sources = {variant["title"]: variant for variant in schema["$defs"]["HubSource"]["oneOf"]}
+    for model, definition in [
+        (DownloadRequest, schema),
+        (SnapshotFile, schema["$defs"]["SnapshotFile"]),
+        (HuggingFaceSource, sources["HuggingFaceSource"]),
+        (ModelScopeSource, sources["ModelScopeSource"]),
+    ]:
+        assert model.model_fields.keys() == definition["properties"].keys()
+        assert model.model_config["strict"] is True
+        assert model.model_config["extra"] == "forbid"
+        assert {name for name, field in model.model_fields.items() if field.is_required()} == set(
+            definition["required"]
+        )

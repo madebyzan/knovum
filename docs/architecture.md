@@ -100,7 +100,7 @@ checkpoints and publication. The WebView never starts or addresses Python direct
 
 `python/` is the `knovum-python` project for application-owned Python capabilities. Production
 code uses the standard `src/` layout and capability packages named `knovum_<capability>`;
-`knovum_inference` owns current model computation. Additional capabilities own their own entry,
+`knovum_inference` owns current model computation; `knovum_model_resources` owns official Hub SDK execution. Additional capabilities own their own entry,
 contracts and lifecycle. Source packages do not import peer capability internals; composition
 belongs to their process entry or the existing Rust capability orchestration. A shared module
 requires actual consumers and a concrete responsibility. Agent implementation remains a future
@@ -109,7 +109,7 @@ capability; no SDK, empty package or generic runtime layer is preinstalled.
 Hatch and desktop packaging select application code from `python/src`, while inference release
 qualification hashes only `knovum_inference`. Default project dependencies are empty;
 `project.optional-dependencies.inference` declares the existing inference libraries. The producer
-and application verifier explicitly export that frozen extra. Other capabilities must define
+and application verifier explicitly export the frozen `inference` and `model-resources` extras. Other capabilities must define
 and qualify their dependency selection before release, rather than inherit the inference bundle.
 Their SDK execution cannot create a competing authority for Space authorization, durable Runs
 or publication. Those contracts remain Rust-owned unless their owning documents are revised.
@@ -127,6 +127,13 @@ they do not import worker lifecycle or transport. Only runtime composition conne
 method binding checks the parameter-model/execution signature statically, while the Worker
 validates the wire model and admits only the initialized capability before execution.
 Package `__init__.py` files do not re-export implementation symbols.
+
+`knovum_model_resources/server.py` owns one bounded download request and structured progress;
+`hugging_face.py` and `model_scope.py` invoke their vendor SDKs directly. These modules cannot
+import inference engines or another capability's contracts. Rust's `local_resources/models/`
+owns inventory, region mapping, integrity verification and snapshot publication. `subprocess/`
+is the neutral bounded process runner shared by media and SDK execution, not a media dependency
+of resource installation.
 
 Repository tooling owns `scripts/generate_python_contracts.py` and the native runtime publication
 entries `scripts/runtime/build_python.py` / `scripts/runtime/verify_signatures.py`.
@@ -559,7 +566,9 @@ models under `python/src/knovum_inference/contracts/generated/` from that schema
 [generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit
 ownership map changes Python file placement only, never canonical wire names or field definitions.
 Consumers import defining modules directly. `contracts/wire_model.py` owns strict Pydantic policy.
-CI regenerates both outputs and requires zero differences; generated contracts are not edited
+`python/schemas/model-resources.schema.json` separately generates the downloader contract at
+`python/src/knovum_model_resources/contracts.py`; its wire policy belongs to that capability.
+CI regenerates these outputs and requires zero differences; generated contracts are not edited
 independently. Every Rust schema definition must have exactly one module owner.
 
 Independent Renderer runtime schemas use the owning capability or model’s `schema/<subject>.ts` layout, as specified in `naming-conventions.md`. Generated IPC contracts and database baselines retain their separate boundaries. In Rust, `spaces/knowledge/object_types/` owns custom Knowledge Type lifecycle and decoding; it is not a generic type container. Retrieval index schemas own Arrow structure, while `retrieval/validation.rs` owns query-vector input policy.

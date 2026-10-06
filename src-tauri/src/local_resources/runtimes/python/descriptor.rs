@@ -11,10 +11,43 @@ pub(super) struct Descriptor {
     pub(super) version: String,
     pub(super) dependency_requirements_sha256: String,
     pub(super) voxcpm_commit: String,
-    pub(super) url: String,
+    pub(super) sources: RuntimeSources,
     pub(super) size: u64,
     pub(super) sha256: String,
     pub(super) manifest_sha256: String,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct RuntimeSources {
+    pub(super) global: String,
+    pub(super) china: String,
+}
+
+impl RuntimeSources {
+    fn validate(&self) -> Result<(), String> {
+        for value in [&self.global, &self.china] {
+            let url = reqwest::Url::parse(value).map_err(|error| error.to_string())?;
+            if url.scheme() != "https"
+                || !url.username().is_empty()
+                || url.password().is_some()
+                || url.fragment().is_some()
+            {
+                return Err("python-runtime-invalid: regional archive source is invalid".into());
+            }
+        }
+        Ok(())
+    }
+
+    pub(super) fn url(
+        &self,
+        region: crate::local_resources::preferences::ResourceDownloadRegion,
+    ) -> &str {
+        match region {
+            crate::local_resources::preferences::ResourceDownloadRegion::Global => &self.global,
+            crate::local_resources::preferences::ResourceDownloadRegion::China => &self.china,
+        }
+    }
 }
 
 pub(super) fn embedded() -> Result<Option<Descriptor>, String> {
@@ -24,13 +57,10 @@ pub(super) fn embedded() -> Result<Option<Descriptor>, String> {
     )))
     .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
     if let Some(value) = &descriptor {
-        let url = reqwest::Url::parse(&value.url).map_err(|error| error.to_string())?;
+        value.sources.validate()?;
         if value.schema_version != 1
             || value.target != crate::local_resources::tools::platform_directory()
             || value.version != "3.11.17"
-            || url.scheme() != "https"
-            || !url.username().is_empty()
-            || url.password().is_some()
             || value.size == 0
             || value.size > 4 * 1024 * 1024 * 1024
             || [

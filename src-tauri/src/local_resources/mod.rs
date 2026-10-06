@@ -10,6 +10,7 @@ mod configured_path;
 mod download;
 mod filesystem;
 pub(crate) mod models;
+pub(crate) mod preferences;
 pub(crate) mod preparation;
 pub(crate) mod runtimes;
 #[cfg(test)]
@@ -21,6 +22,7 @@ mod verification;
 #[serde(rename_all = "camelCase")]
 pub struct LocalResourcesStatus {
     platform: &'static str,
+    download_region: preferences::ResourceDownloadRegion,
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
@@ -62,6 +64,7 @@ pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError
 fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
+        download_region: preferences::region(app)?,
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),

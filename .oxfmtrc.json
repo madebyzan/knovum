@@ -17,7 +17,7 @@
     "src-tauri/target/**",
     "src-tauri/gen/**",
     "src/shared/contracts/generated/**",
-    "python/schemas/inference.schema.json",
+    "python/schemas/*.schema.json",
     "src/features/spaces/contracts/generated/**"
   ]
 }

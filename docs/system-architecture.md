@@ -344,7 +344,25 @@ requests, while each request owns its cancellation demand. The last cancelled de
 unfinished installation; observer loss does not. Execution holds verified model leases, so removal
 cannot race inference. Resource snapshots include measured progress, real phases and bounded terminal
 history. Settings and first-use capability consumers use the same foundation IPC and query.
-Model groups and the optional media-import tool pair are observed as Rust-owned preparation requests with aggregate transfer progress. Active download snapshots survive WebView reloads, allowing Task Center to reconstruct the same task identity and cancellation action without restarting or duplicating the download. Model catalog entries describe immutable Hub artifacts (repository, full commit revision, filename, size and SHA-256), independently of transport endpoints. For these public, unauthenticated artifacts, the default order is Hugging Face then the third-party hf-mirror.com community mirror; connection/header failures advance to the next source with a bounded 15-second header deadline. Body transport failures restart from zero on the next source, truncating the temporary file rather than mixing bytes. Cancellation, disk and integrity failures stop the installation; progress observer disconnection does not. KNOVUM_MODEL_ENDPOINT takes precedence over HF_ENDPOINT; an explicit HTTPS endpoint is exclusive and can include a corporate proxy path prefix. Invalid endpoint settings fail visibly. No model download sends credentials. Each connection has a 10-second connect timeout and a 30-second read idle timeout, without a total time limit for large weights. Installation still requires the catalog SHA-256 before publishing the file. Community mirror availability is not guaranteed; users can explicitly choose a mirror, official Hub or corporate endpoint without changing artifact identity.
+Model groups and the optional media-import tool pair are Rust-owned preparation requests.
+Active snapshots survive WebView reloads so Task Center reconstructs the same identity and
+cancellation action. Settings persists an explicit international/mainland-China download profile;
+a new installation captures that profile and never changes provider after a transport failure.
+The Python runtime descriptor contains both regional archive URLs for the same immutable bytes.
+
+`knovum_model_resources` invokes official Hugging Face/ModelScope SDKs in a bounded subprocess;
+`knovum_inference` receives verified local paths and cannot download. Rust catalog snapshots group
+all required model parts. Installations share one `(snapshot, region)` identity, use a snapshot
+write lease, and retain SDK staging metadata on cancellation/failure for resume. Each file must
+match the recorded size and SHA-256 before the completed directory is renamed into
+`local-resources/models/<model>/<inventory-digest>/`. Inference holds one read lease per snapshot.
+SDK state belongs to `local-resources/models/hub-cache/`, independently of personal Hub accounts.
+Download-region preferences use the current v1 Tauri Store envelope. Reads check disk-load errors
+explicitly, and reads/writes are serialized; only absent settings select the initial global profile.
+No old-layout reader, automatic source switch or alternate model is installed. The current China
+profile's U²-Net/Spleeter community endpoints remain a documented regional release gap; see
+`oss-first.md` and `release.md` for required evidence. Kokoro's archive and gated diarization imports
+retain their separate reviewed resource contracts.
 
 Node writes derive enrichment intent inside the same Rust database transaction, so a WebView reload
 cannot lose required work. Rust owns enrichment dispatch, per-node serialization, concurrency lanes,

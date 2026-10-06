@@ -48,7 +48,10 @@ impl Fixture {
             version: "3.11.17".into(),
             dependency_requirements_sha256: requirements,
             voxcpm_commit: "a".repeat(40),
-            url: "https://example.test/runtime.tar.gz".into(),
+            sources: crate::local_resources::runtimes::python::descriptor::RuntimeSources {
+                global: "https://example.test/runtime.tar.gz".into(),
+                china: "https://china.example.test/runtime.tar.gz".into(),
+            },
             size: 1,
             sha256: "b".repeat(64),
             manifest_sha256: digest(&bytes),

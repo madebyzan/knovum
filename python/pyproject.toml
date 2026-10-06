@@ -10,6 +10,7 @@ requires-python = "==3.11.17"
 dependencies = []
 
 [project.optional-dependencies]
+model-resources = ["huggingface-hub==1.33.0", "modelscope-hub==0.4.5", "pydantic==2.12.3", "tqdm==4.70.1"]
 inference = [
   "av==18.1.0; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
   "ctranslate2==4.8.2; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
@@ -31,6 +32,7 @@ inference = [
 ]
 
 [project.scripts]
+knovum-model-resources = "knovum_model_resources.server:main"
 knovum-inference = "knovum_inference.server:main"
 
 [dependency-groups]
@@ -44,13 +46,19 @@ quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.12.3", "pytest==9.1.1", "
 target-version = "py311"
 line-length = 120
 src = ["src"]
-extend-exclude = ["**/knovum_inference/contracts/generated"]
+extend-exclude = ["**/knovum_inference/contracts/generated", "**/knovum_model_resources/contracts.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["knovum_inference", "acceptance", "runtime", "generate_python_contracts"]
+known-first-party = [
+  "knovum_inference",
+  "knovum_model_resources",
+  "acceptance",
+  "runtime",
+  "generate_python_contracts",
+]
 
 [tool.mypy]
 python_version = "3.11"

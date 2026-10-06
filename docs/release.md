@@ -327,3 +327,14 @@ the descriptor's `manifestSha256`; an output from either another Worker or runti
 Runtime archives and corresponding evidence/source attachments must be published at the actual
 immutable URLs before distributing an application that requires them. Workflow artifact uploads
 are build outputs, not confirmation that those public locations exist.
+
+Regional resource acceptance requires both descriptor archive URLs to serve the same SHA-256
+without credentials, and each selected Hub source to pass native download/cancel/resume and
+offline inference acceptance in its target region. ModelScope metadata equality for five
+snapshots is established; full transfer and native execution are separate evidence. U²-Net and
+Spleeter's current China community endpoints redirected small probes to `us.aws.cdn.hf.co`;
+full mainland transfers remain unqualified. Geographic naming alone does not establish
+inaccessibility. If that route fails actual regional acceptance, publish and catalogue an
+identical qualified regional copy before release.
+Kokoro's existing archive/license gates and user-authorized diarization import remain unchanged.
+No provider failover, compatibility endpoint precedence or replacement model satisfies this gate.

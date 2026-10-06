@@ -32,7 +32,7 @@ impl Installation {
         let (state, _) = watch::channel(InstallationState::Progress(ResourcePreparationProgress {
             stage: ResourcePreparationStage::Queued,
             downloaded: 0,
-            total: Some(catalog::descriptor(kind).download_size),
+            total: Some(catalog::descriptor(kind).snapshot.total_bytes()),
             percent: Some(0),
         }));
         Arc::new(Self {
@@ -119,7 +119,7 @@ pub(super) async fn join_installation<R: Runtime>(
     kind: ModelKind,
     request_cancellation: &CancellationToken,
 ) -> Result<InstallationWaiter, String> {
-    let identity = ModelIdentity::for_kind(kind);
+    let identity = ModelIdentity::for_kind(kind, crate::local_resources::preferences::region(app)?);
     loop {
         let outcome = {
             let mut active = installations()
@@ -141,7 +141,7 @@ pub(super) async fn join_installation<R: Runtime>(
         match outcome {
             Ok((installation, waiter, should_start)) => {
                 if should_start {
-                    installation::start(app.clone(), kind, identity, installation);
+                    installation::start(app.clone(), identity, installation);
                 }
                 return Ok(waiter);
             }

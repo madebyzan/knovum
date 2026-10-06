@@ -29,6 +29,7 @@ mod public_network;
 mod secrets;
 mod spaces;
 mod sqlite;
+mod subprocess;
 mod system_font;
 mod system_preview;
 mod updater;

@@ -23,7 +23,10 @@ function fixture(context) {
     version: "3.11.17",
     dependencyRequirementsSha256: "a".repeat(64),
     voxcpmCommit: "b".repeat(40),
-    url: "https://example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
+    sources: {
+      global: "https://example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
+      china: "https://china.example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
+    },
     size: 123,
     sha256: "c".repeat(64),
     manifestSha256: "d".repeat(64),
@@ -87,9 +90,12 @@ test("descriptor rejects unsupported platform and insecure download source", (co
     () => readRuntimeDescriptor(sample.path, "windows-arm64"),
     /Invalid Python runtime descriptor/,
   );
-  sample.descriptor.url = "http://example.test/runtime.tar.gz";
+  sample.descriptor.sources.china = "http://example.test/runtime.tar.gz";
   sample.save();
-  assert.throws(() => readRuntimeDescriptor(sample.path, "windows-x64"), /Invalid Python runtime descriptor/);
+  assert.throws(
+    () => readRuntimeDescriptor(sample.path, "windows-x64"),
+    /Runtime archive sources must be HTTPS/,
+  );
 });
 
 test("Worker changes have their own identity without changing the runtime descriptor", (context) => {

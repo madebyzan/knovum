@@ -1,16 +1,13 @@
-use crate::local_resources::models::ModelDescriptor;
+use crate::local_resources::models::{snapshots::SnapshotKind, ModelDescriptor};
 
-const QWEN3_FORCED_ALIGNER_REPOSITORY: &str = "Qwen/Qwen3-ForcedAligner-0.6B";
-pub const QWEN3_FORCED_ALIGNER_REVISION: &str = "c7cbfc2048c462b0d63a45797104fc9db3ad62b7";
+pub(crate) const QWEN3_FORCED_ALIGNER_REVISION: &str = "c7cbfc2048c462b0d63a45797104fc9db3ad62b7";
 
 macro_rules! qwen3_forced_aligner_descriptor {
     ($name:ident, $file:literal, $env:literal, $sha:literal, $size:literal) => {
-        pub const $name: ModelDescriptor = ModelDescriptor {
-            directory: "qwen3-forced-aligner-0.6b",
+        pub(crate) const $name: ModelDescriptor = ModelDescriptor {
+            snapshot: SnapshotKind::SpeechAlignment,
             file: $file,
             env_key: $env,
-            repository: QWEN3_FORCED_ALIGNER_REPOSITORY,
-            revision: QWEN3_FORCED_ALIGNER_REVISION,
             sha256: $sha,
             download_size: $size,
         };

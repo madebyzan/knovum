@@ -53,7 +53,7 @@ pub(super) fn extract_audio(
         .spawn()
         .map_err(|error| format!("failed to launch FFmpeg: {error}"))?;
     let max_bytes = MAX_SAMPLE_COUNT * 4 + 44;
-    let output = crate::media::subprocess::wait_with_output(
+    let output = crate::subprocess::wait_with_output(
         child,
         cancellation,
         "Source separation was cancelled",
@@ -70,7 +70,7 @@ pub(super) fn extract_audio(
         |_| Ok(()),
     )?;
     if !output.status.success() {
-        return Err(crate::media::subprocess::diagnostic_error(
+        return Err(crate::subprocess::diagnostic_error(
             &output.diagnostics,
             "FFmpeg could not decode the video audio track",
         ));

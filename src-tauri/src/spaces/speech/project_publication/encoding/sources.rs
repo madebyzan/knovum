@@ -1,4 +1,4 @@
-use crate::{media::subprocess, spaces::speech::contracts::SpeechSegmentRenderOutput};
+use crate::{spaces::speech::contracts::SpeechSegmentRenderOutput, subprocess};
 use std::{
     fs,
     io::Write,

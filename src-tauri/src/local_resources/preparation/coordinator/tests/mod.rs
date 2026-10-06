@@ -63,7 +63,10 @@ async fn terminal_progress_reaches_remaining_waiter() {
 #[test]
 fn cancelled_installation_remains_registered_until_runner_finishes() {
     let kind = ModelKind::FasterWhisperConfig;
-    let identity = ModelIdentity::for_kind(kind);
+    let identity = ModelIdentity::for_kind(
+        kind,
+        crate::local_resources::preferences::ResourceDownloadRegion::Global,
+    );
     let installation = Installation::new(kind);
     let waiter = installation.join();
     installations()
@@ -83,4 +86,23 @@ fn cancelled_installation_remains_registered_until_runner_finishes() {
         InstallationState::Failed("cancelled".into()),
     );
     assert!(!installations().lock().unwrap().contains_key(&identity));
+}
+
+#[test]
+fn snapshot_parts_share_installation_but_regions_do_not() {
+    use crate::local_resources::preferences::ResourceDownloadRegion;
+    let weights = ModelIdentity::for_kind(
+        ModelKind::FasterWhisperWeights,
+        ResourceDownloadRegion::Global,
+    );
+    let config = ModelIdentity::for_kind(
+        ModelKind::FasterWhisperConfig,
+        ResourceDownloadRegion::Global,
+    );
+    assert!(weights == config);
+    let china = ModelIdentity::for_kind(
+        ModelKind::FasterWhisperConfig,
+        ResourceDownloadRegion::China,
+    );
+    assert!(china != config);
 }

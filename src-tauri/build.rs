@@ -23,6 +23,7 @@ fn main() {
                 "local-resources",
                 tauri_build::InlinedPlugin::new().commands(&[
                     "get_status",
+                    "set_download_region",
                     "prepare_resources",
                     "cancel_resource_preparation",
                     "list_resource_preparations",

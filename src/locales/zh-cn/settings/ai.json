@@ -75,6 +75,13 @@
     "download": "尚未准备 · 下载 {size}",
     "preparing": "准备本地 AI 组件",
     "prepare": "准备",
-    "cancel": "取消"
+    "cancel": "取消",
+    "source": {
+      "label": "下载地区",
+      "description": "新下载使用所选地区的资源来源，正在进行的下载继续使用原来源。",
+      "global": "国际",
+      "china": "中国大陆",
+      "chinaNote": "图片背景移除和音频分离目前使用社区镜像，下载仍可能需要访问海外服务器。"
+    }
   }
 }
