@@ -13,9 +13,12 @@ pub(crate) async fn validate_structure_targets(
          ON s.id=json_extract(p.data,'$.targetStructureNodeId') \
          AND s.space_id=json_extract(p.data,'$.targetSpaceId') \
          AND s.deleted_at IS NULL AND s.kind IN ('group','section') \
-         WHERE p.kind='portal' AND p.deleted_at IS NULL \
-         AND (p.space_id IN (SELECT value FROM json_each($1)) \
-              OR json_extract(p.data,'$.targetSpaceId') IN (SELECT value FROM json_each($1))) \
+         WHERE p.id IN (\
+           SELECT id FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL \
+           AND space_id IN (SELECT value FROM json_each($1)) \
+           UNION SELECT id FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL \
+           AND json_extract(data,'$.targetSpaceId') IN (SELECT value FROM json_each($1))\
+         ) \
          AND json_type(p.data,'$.targetStructureNodeId')='text' AND s.id IS NULL LIMIT 1",
     )
     .bind(serde_json::to_string(changed_space_ids).map_err(db::json_error)?)
