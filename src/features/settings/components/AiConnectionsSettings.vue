@@ -13,7 +13,7 @@ import type { RoutingPurpose } from "../../../shared/contracts/generated/Routing
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import type { AiConnectionSubmission } from "../ai-connection-draft";
-import AiConnectionCard from "./AiConnectionCard.vue";
+import AiConnectionConfiguration from "./AiConnectionConfiguration.vue";
 import AiConnectionEditor from "./AiConnectionEditor.vue";
 
 const props = defineProps<{
@@ -149,7 +149,7 @@ async function removeConnection(connection: AiConnectionSettings) {
       >
     </header>
     <div v-if="connections.length" class="grid gap-2.5">
-      <AiConnectionCard
+      <AiConnectionConfiguration
         v-for="connection in connections"
         :key="connection.id"
         :connection="connection"
