@@ -18,7 +18,7 @@ export function readRuntimeDescriptor(path, target) {
     "version",
     "dependencyRequirementsSha256",
     "voxcpmCommit",
-    "url",
+    "sources",
     "size",
     "sha256",
     "manifestSha256",
@@ -35,25 +35,28 @@ function validateIdentity(value, target, keys) {
     value.target !== target ||
     value.version !== "3.11.17" ||
     [value.sha256, value.manifestSha256, value.dependencyRequirementsSha256].some(
-      (hash) => !/^[a-f0-9]{64}$/u.test(hash ?? ""),
+      (hash) => !/^[a-f0-9]{64}$/u.test(hash),
     ) ||
-    !/^[a-f0-9]{40}$/u.test(value.voxcpmCommit ?? "")
+    !/^[a-f0-9]{40}$/u.test(value.voxcpmCommit) ||
+    !Number.isSafeInteger(value.size) ||
+    value.size < 1 ||
+    value.size > 4 * 1024 ** 3
   )
     throw new Error(`Invalid Python runtime descriptor for ${target}`);
 }
 
 function validateArchiveSource(value) {
-  const url = new URL(value.url);
   if (
-    url.protocol !== "https:" ||
-    url.username ||
-    url.password ||
-    url.hash ||
-    !Number.isSafeInteger(value.size) ||
-    value.size < 1 ||
-    value.size > 4 * 1024 ** 3
+    Object.keys(value.sources ?? {})
+      .toSorted()
+      .join() !== "china,global"
   )
-    throw new Error(`Invalid Python runtime descriptor for ${value.target}`);
+    throw new Error("Runtime descriptor requires global and China archive sources");
+  for (const source of Object.values(value.sources)) {
+    const url = new URL(source);
+    if (url.protocol !== "https:" || url.username || url.password || url.hash)
+      throw new Error("Runtime archive sources must be HTTPS without credentials or fragments");
+  }
 }
 
 export function validateRuntimeDistribution(
@@ -86,6 +89,8 @@ export function validateRuntimeDistribution(
       "--no-annotate",
       "--extra",
       "inference",
+      "--extra",
+      "model-resources",
       "--no-emit-package",
       "voxcpm",
     ],

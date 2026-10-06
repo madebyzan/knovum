@@ -75,14 +75,6 @@ pub(crate) fn record(path: &Path, sha256: &str) -> Result<(), String> {
     fs::rename(temporary, target).map_err(|error| error.to_string())
 }
 
-pub(crate) fn remove_receipt(path: &Path) -> Result<(), String> {
-    match fs::remove_file(receipt_path(path)) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
 fn receipt_path(path: &Path) -> PathBuf {
     let mut name = path
         .file_name()

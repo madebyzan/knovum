@@ -23,6 +23,15 @@ DEPENDENCIES = {
         "image_segmentation": {"errors"},
     },
 }
+DEPENDENCIES["knovum_model_resources"] = {
+    "__init__": set(),
+    "wire_model": set(),
+    "contracts": {"wire_model"},
+    "progress": set(),
+    "hugging_face": {"contracts", "progress"},
+    "model_scope": {"contracts", "progress"},
+    "server": {"contracts", "progress", "hugging_face", "model_scope"},
+}
 TOOLING_PACKAGES = {"scripts", "tests", "acceptance", "runtime", "generate_python_contracts"}
 
 
@@ -110,6 +119,7 @@ class RejectEngineImports(importlib.abc.MetaPathFinder):
 
 sys.meta_path.insert(0, RejectEngineImports())
 import knovum_inference.server
+import knovum_model_resources.server
 """
     process = subprocess.run(
         [sys.executable, "-I", "-B", "-c", script, str(SOURCE)], capture_output=True, text=True, timeout=10, check=False

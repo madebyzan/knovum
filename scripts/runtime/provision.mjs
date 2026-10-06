@@ -68,7 +68,10 @@ try {
   const descriptorPath = join(distribution, "runtime-descriptor.json");
   copyFileSync(archives[2], descriptorPath);
   const descriptor = readRuntimeDescriptor(descriptorPath, target);
-  if (descriptor.sha256 !== sources[1].expectedHash || descriptor.url !== sources[1].url)
+  if (
+    descriptor.sha256 !== sources[1].expectedHash ||
+    !Object.values(descriptor.sources).includes(sources[1].url)
+  )
     throw new Error("Runtime descriptor differs from the controlled archive source");
   if ((await import("node:fs")).statSync(archives[1]).size !== descriptor.size)
     throw new Error("Runtime archive size differs from its descriptor");

@@ -46,6 +46,7 @@ pub async fn prepare_models<R: Runtime>(
         return Err("Model preparation contains duplicate model parts".to_string());
     }
     let mut waiters = Vec::with_capacity(kinds.len());
+    let mut snapshots = HashSet::new();
     for &kind in kinds {
         let descriptor = catalog::descriptor(kind);
         let status = super::models::status(app, descriptor)?;
@@ -57,7 +58,7 @@ pub async fn prepare_models<R: Runtime>(
                 descriptor.file
             ));
         }
-        if !status.verified {
+        if !status.verified && snapshots.insert(descriptor.snapshot) {
             waiters.push((
                 kind,
                 coordinator::join_installation(app, kind, request_cancellation).await?,
@@ -67,7 +68,7 @@ pub async fn prepare_models<R: Runtime>(
 
     let total = waiters
         .iter()
-        .map(|(kind, _)| catalog::descriptor(*kind).download_size)
+        .map(|(kind, _)| catalog::descriptor(*kind).snapshot.total_bytes())
         .sum::<u64>();
     if waiters.is_empty() {
         progress(ResourcePreparationProgress {

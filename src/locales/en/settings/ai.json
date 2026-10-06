@@ -75,6 +75,13 @@
     "download": "Not prepared · {size} download",
     "preparing": "Prepare local AI components",
     "prepare": "Prepare",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "source": {
+      "label": "Download region",
+      "description": "New downloads use the selected regional sources. Active downloads keep their current source.",
+      "global": "International",
+      "china": "Mainland China",
+      "chinaNote": "Image background removal and audio separation currently use a community mirror; downloads may still require access to overseas servers."
+    }
   }
 }

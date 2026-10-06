@@ -12,12 +12,16 @@ import {
 import { useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import PreferenceField from "./PreferenceField.vue";
+import ResourceDownloadSettings from "./ResourceDownloadSettings.vue";
 import SettingsSection from "./SettingsSection.vue";
 
 const { t } = useI18n();
 const resources = useLocalResourcesQuery();
 const preparation = shallowRef<ResourcePreparationHandle>();
 const error = shallowRef<string>();
+const errorMessage = computed(
+  () => error.value ?? (resources.error.value ? getErrorMessage(resources.error.value) : undefined),
+);
 const runtime = computed(() => resources.data.value?.python);
 const description = computed(() => {
   if (runtime.value?.available) return t("settings.ai.localInference.ready");
@@ -58,6 +62,7 @@ async function cancel() {
     :title="t('settings.ai.localInference.title')"
     :description="t('settings.ai.localInference.description')"
   >
+    <ResourceDownloadSettings />
     <PreferenceField :label="t('settings.ai.localInference.components')" :description="description">
       <UiButton v-if="preparation" size="sm" variant="ghost" @click="cancel">{{
         t("settings.ai.localInference.cancel")
@@ -71,6 +76,6 @@ async function cancel() {
         >{{ t("settings.ai.localInference.prepare") }}</UiButton
       >
     </PreferenceField>
-    <p v-if="error" role="alert" class="p-4 text-caption text-fg-danger">{{ error }}</p>
+    <p v-if="errorMessage" role="alert" class="p-4 text-caption text-fg-danger">{{ errorMessage }}</p>
   </SettingsSection>
 </template>

@@ -11,7 +11,7 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use super::PrepareVideoEditProxyRequest;
-use crate::{blocking, local_resources::tools, media::subprocess, spaces::db};
+use crate::{blocking, local_resources::tools, spaces::db, subprocess};
 
 const CANCELLED: &str = "VIDEO_EDIT_PREPARATION_CANCELLED";
 

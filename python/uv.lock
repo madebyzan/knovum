@@ -1381,6 +1381,12 @@ inference = [
     { name = "transformers" },
     { name = "voxcpm" },
 ]
+model-resources = [
+    { name = "huggingface-hub" },
+    { name = "modelscope-hub" },
+    { name = "pydantic" },
+    { name = "tqdm" },
+]
 
 [package.dev-dependencies]
 acceptance = [
@@ -1413,22 +1419,26 @@ requires-dist = [
     { name = "av", marker = "(platform_machine == 'AMD64' and sys_platform == 'win32' and extra == 'inference') or (platform_machine == 'x86_64' and sys_platform == 'win32' and extra == 'inference')", specifier = "==18.1.0" },
     { name = "ctranslate2", marker = "(platform_machine == 'AMD64' and sys_platform == 'win32' and extra == 'inference') or (platform_machine == 'x86_64' and sys_platform == 'win32' and extra == 'inference')", specifier = "==4.8.2" },
     { name = "faster-whisper", marker = "(platform_machine == 'AMD64' and sys_platform == 'win32' and extra == 'inference') or (platform_machine == 'x86_64' and sys_platform == 'win32' and extra == 'inference')", specifier = "==1.2.1" },
+    { name = "huggingface-hub", marker = "extra == 'model-resources'", specifier = "==1.33.0" },
     { name = "mlx", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'inference'", specifier = "==0.29.4" },
     { name = "mlx-whisper", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'inference'", specifier = "==0.4.3" },
+    { name = "modelscope-hub", marker = "extra == 'model-resources'", specifier = "==0.4.5" },
     { name = "numpy", marker = "extra == 'inference'", specifier = "==2.4.6" },
     { name = "onnxruntime", marker = "extra == 'inference'", specifier = "==1.23.2" },
     { name = "pyannote-audio", marker = "extra == 'inference'", specifier = "==4.0.7" },
     { name = "pydantic", marker = "extra == 'inference'", specifier = "==2.12.3" },
+    { name = "pydantic", marker = "extra == 'model-resources'", specifier = "==2.12.3" },
     { name = "sentence-transformers", marker = "extra == 'inference'", specifier = "==6.1.0" },
     { name = "sherpa-onnx", marker = "extra == 'inference'", specifier = "==1.13.8" },
     { name = "silero-vad", marker = "extra == 'inference'", specifier = "==6.2.3" },
     { name = "torch", marker = "extra == 'inference'", specifier = "==2.13.0" },
     { name = "torchaudio", marker = "extra == 'inference'", specifier = "==2.11.0" },
     { name = "torchcodec", marker = "extra == 'inference'", specifier = "==0.12.0" },
+    { name = "tqdm", marker = "extra == 'model-resources'", specifier = "==4.70.1" },
     { name = "transformers", marker = "extra == 'inference'", specifier = "==5.13.1" },
     { name = "voxcpm", marker = "extra == 'inference'", git = "https://github.com/OpenBMB/VoxCPM.git?rev=19b6bf7590025418821a86dcb817504e0ad7e5df" },
 ]
-provides-extras = ["inference"]
+provides-extras = ["model-resources", "inference"]
 
 [package.metadata.requires-dev]
 acceptance = [

@@ -34,14 +34,14 @@ pub(super) async fn validate(
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|error| format!("Could not launch generated video validation: {error}"))?;
-        let output = crate::media::subprocess::wait_with_stderr(
+        let output = crate::subprocess::wait_with_stderr(
             child,
             &cancellation,
             "Video validation was cancelled",
             |_| Ok(()),
         )?;
         if !output.status.success() {
-            return Err(crate::media::subprocess::diagnostic_error(
+            return Err(crate::subprocess::diagnostic_error(
                 &output.diagnostics,
                 "Generated video is not decodable",
             ));

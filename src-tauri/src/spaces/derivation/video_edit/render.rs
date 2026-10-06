@@ -11,7 +11,6 @@ use uuid::Uuid;
 use super::{ass, filter_graph, report, start::VideoEditSource, VideoEditProgress, CANCELLED};
 use crate::{
     local_resources::tools,
-    media::subprocess,
     spaces::{
         assets::asset_directory,
         derivation::{
@@ -19,6 +18,7 @@ use crate::{
             video_output::{self, RenderedVideo},
         },
     },
+    subprocess,
 };
 
 pub fn render(

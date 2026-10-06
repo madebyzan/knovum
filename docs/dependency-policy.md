@@ -222,3 +222,10 @@ every actually installed distribution, its notices, native code
 and corresponding-source obligations; package metadata alone is not approval. Changed runtime dependencies, source revision or conveyed inventory invalidate the review;
 unrelated development dependencies and application Worker source do not. This gate complements the separately
 owned Kokoro and native-source gates; QA artifacts do not represent license approval.
+
+Model resource downloads use `project.optional-dependencies.model-resources`: official
+huggingface-hub 1.33.0 (Apache-2.0), modelscope-hub 0.4.5 (Apache-2.0), and the already selected
+Pydantic 2.12.3 plus tqdm 4.70.1 for its public progress interface. They belong to the prepared runtime, not the desktop installer. Their public
+Hub APIs own resume/transfer metadata; Rust owns product inventory, SHA-256 and publication.
+Provider commits can differ only when every required file matches the same recorded identity.
+Regional source qualification and the current acceptance gaps are recorded in `oss-first.md`.

@@ -14,8 +14,8 @@ use tokio_util::sync::CancellationToken;
 use crate::{
     ai::contracts::speech_wire::AudioFileReference,
     local_resources::tools,
-    media::subprocess::{diagnostic_error, wait_with_stderr},
     spaces::assets,
+    subprocess::{diagnostic_error, wait_with_stderr},
 };
 
 pub(super) fn prepare_reference(

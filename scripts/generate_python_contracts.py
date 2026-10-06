@@ -69,7 +69,27 @@ CONTRACT_MODULES = {
 }
 
 
-def main() -> None:
+def codegen_options(base_class: str) -> list[str]:
+    return [
+        "--output-model-type",
+        "pydantic_v2.BaseModel",
+        "--target-python-version",
+        "3.11",
+        "--disable-timestamp",
+        "--base-class",
+        base_class,
+        "--use-annotated",
+        "--use-union-operator",
+        "--use-standard-collections",
+        "--use-double-quotes",
+        "--use-title-as-name",
+        "--formatters",
+        "black",
+        "isort",
+    ]
+
+
+def generate_inference() -> None:
     root = Path(__file__).resolve().parents[1] / "python"
     schema = json.loads((root / "schemas/inference.schema.json").read_text())
     owners = {name: module for module, names in CONTRACT_MODULES.items() for name in names}
@@ -92,24 +112,10 @@ def main() -> None:
                 "jsonschema",
                 "--output",
                 str(generated),
-                "--output-model-type",
-                "pydantic_v2.BaseModel",
-                "--target-python-version",
-                "3.11",
-                "--disable-timestamp",
-                "--base-class",
-                "knovum_inference.contracts.wire_model.WireModel",
+                *codegen_options("knovum_inference.contracts.wire_model.WireModel"),
                 "--snake-case-field",
-                "--use-annotated",
-                "--use-union-operator",
-                "--use-standard-collections",
                 "--use-default",
-                "--use-double-quotes",
-                "--use-title-as-name",
                 "--treat-dot-as-module",
-                "--formatters",
-                "black",
-                "isort",
             ],
             check=True,
         )
@@ -119,6 +125,29 @@ def main() -> None:
                 stale.unlink()
         for module in generated.glob("*.py"):
             (output / module.name).write_text(module.read_text())
+
+
+def generate_model_resources() -> None:
+    root = Path(__file__).resolve().parents[1] / "python"
+    subprocess.run(
+        [
+            "datamodel-codegen",
+            "--input",
+            str(root / "schemas/model-resources.schema.json"),
+            "--input-file-type",
+            "jsonschema",
+            "--output",
+            str(root / "src/knovum_model_resources/contracts.py"),
+            *codegen_options("knovum_model_resources.wire_model.WireModel"),
+            "--collapse-root-models",
+        ],
+        check=True,
+    )
+
+
+def main() -> None:
+    generate_inference()
+    generate_model_resources()
 
 
 if __name__ == "__main__":

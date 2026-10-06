@@ -5,6 +5,7 @@
   "windows": ["main"],
   "permissions": [
     "local-resources:allow-get-status",
+    "local-resources:allow-set-download-region",
     "local-resources:allow-prepare-resources",
     "local-resources:allow-cancel-resource-preparation",
     "local-resources:allow-list-resource-preparations",

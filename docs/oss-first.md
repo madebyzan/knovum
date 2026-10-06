@@ -241,11 +241,37 @@ Space catalog covers and Saved View previews are separate from file previews. `h
 - Windows document thumbnails use `IShellItemImageFactory` through the target-only `windows` crate with only Foundation, GDI, COM and Shell features enabled. `THUMBNAILONLY` deliberately rejects generic icons. Extraction runs on a dedicated STA worker and publishes a PNG into the existing private preview cache.
 - Windows full preview remains a separate `IPreviewHandler` host capability because it requires a native HWND, STA message loop and deterministic handler lifecycle. It is not approximated with a Vue panel or custom Office renderer.
 
-## Regional model downloads reviewed 2026-09-17
+## Regional model downloads reviewed 2026-10-06
 
-Hugging Face supports endpoint overrides and full commit revisions in its [download API](https://huggingface.co/docs/huggingface_hub/main/en/package_reference/file_download#huggingface_hub.hf_hub_url). The official Rust [hf-hub client](https://github.com/huggingface/hf-hub) also supports `HF_ENDPOINT`; [hf-mirror](https://hf-mirror.com/) documents that same mechanism for its third-party community mirror. ModelScope was not selected as an interchangeable endpoint: different repository identities and revision schemes require independently verified artifact mappings.
+The official [huggingface-hub 1.33.0 download API](https://huggingface.co/docs/huggingface_hub/en/guides/download)
+and [modelscope-hub 0.4.5](https://github.com/modelscope/modelscope-hub/tree/v0.4.5) own Hub metadata,
+partial transfers, resume and download locking. Knovum calls only public `snapshot_download` and
+`HubApi.download_repo` APIs with an exact file allowlist and a full repository commit.
+The published Rust hf-hub 1.0.0 plain HTTP file path creates a fresh output file; adopting it would
+still leave Knovum owning the required resume behavior. The full `modelscope` framework would add
+unrelated inference machinery. Neither is selected for this download capability.
 
-Knovum retains its existing reqwest transport and model installation/receipt policy rather than adding a second Hub cache, authentication and installation lifecycle. Reqwest already owns HTTPS, redirects, proxy environment handling and [connection/read timeout primitives](https://docs.rs/reqwest/0.12.28/reqwest/struct.ClientBuilder.html). Knovum-specific code owns only endpoint precedence, bounded source selection and fresh-file restart after transport failures for public artifacts, and catalog size enforcement. It does not implement HTTP, resumable transfers or a generic mirror framework. Full commit revision and independently recorded SHA-256 remain identical across endpoints; no access token is sent. Explicit endpoint configuration disables automatic source switching.
+`knovum_model_resources` is independent of `knovum_inference`. Rust owns the selected regional
+source, file inventory/SHA-256, cancellation, shared installation and immutable snapshot
+publication. SDK metadata stays with its staging directory, allowing another attempt to resume;
+model weights are not duplicated in a global Hub cache. SDK configuration/cache homes are private
+to Knovum, and public downloads use no personal Hub credentials. Inference receives local paths
+and remains offline.
+
+International uses the official Hugging Face Hub. Mainland China uses separately pinned
+ModelScope repositories for faster-whisper, MLX Whisper, Qwen3 Embedding, VoxCPM2 and Qwen3 Forced
+Aligner. All 28 required files have matching upstream size and SHA-256 metadata; the five config
+files were also downloaded through the official ModelScope SDK and hashed. A repository head commit is used, not a file's last-change
+revision. The profile is persisted explicitly; a failed request never switches provider.
+
+U²-Net and Spleeter currently use explicitly selected HF-Mirror endpoints in the China profile.
+Small ranged probes redirected to `us.aws.cdn.hf.co`; a mirror domain alone therefore does not
+establish mainland-China availability. No matching ModelScope copy has been qualified. Release
+requires full anonymous download/cancel/resume acceptance on an actual mainland network. An
+overseas CDN name alone does not prove inaccessibility; if the selected route fails acceptance,
+publish a qualified regional copy with the same audited bytes and update the source catalog.
+Kokoro remains an independently verified upstream archive with its existing blocked eSpeak data
+license review; no unqualified Hub copy or replacement model is substituted.
 
 # 文档提取与原生资源生命周期
 

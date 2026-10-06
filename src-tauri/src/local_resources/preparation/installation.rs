@@ -7,24 +7,20 @@ use super::{
     coordinator::{complete, Installation, InstallationState},
     locks::{resource_lock, ModelIdentity},
 };
-use crate::local_resources::models::{
-    self,
-    catalog::{self, ModelKind},
-};
+use crate::local_resources::models;
 
 pub(super) fn start<R: Runtime>(
     app: AppHandle<R>,
-    kind: ModelKind,
     identity: ModelIdentity,
     installation: Arc<Installation>,
 ) {
     tauri::async_runtime::spawn(async move {
-        let outcome = run(&app, kind, identity, &installation).await;
+        let outcome = run(&app, identity, &installation).await;
         let state = match outcome {
             Ok(()) => InstallationState::Progress(ResourcePreparationProgress {
                 stage: ResourcePreparationStage::Ready,
-                downloaded: catalog::descriptor(kind).download_size,
-                total: Some(catalog::descriptor(kind).download_size),
+                downloaded: identity.snapshot.total_bytes(),
+                total: Some(identity.snapshot.total_bytes()),
                 percent: Some(100),
             }),
             Err(error) => InstallationState::Failed(error.into()),
@@ -35,14 +31,13 @@ pub(super) fn start<R: Runtime>(
 
 async fn run<R: Runtime>(
     app: &AppHandle<R>,
-    kind: ModelKind,
     identity: ModelIdentity,
     installation: &Installation,
 ) -> Result<(), String> {
-    if models::status(app, catalog::descriptor(kind))?.verified {
+    if models::installation::ready(app, identity.snapshot)? {
         return Ok(());
     }
-    let lock = resource_lock(identity)?;
+    let lock = resource_lock(identity.snapshot)?;
     let _exclusive = tokio::select! {
         biased;
         _ = installation.cancellation.cancelled() => {
@@ -50,12 +45,13 @@ async fn run<R: Runtime>(
         }
         guard = lock.write_owned() => guard,
     };
-    if models::status(app, catalog::descriptor(kind))?.verified {
+    if models::installation::ready(app, identity.snapshot)? {
         return Ok(());
     }
-    models::install(
+    models::installation::install(
         app,
-        catalog::descriptor(kind),
+        identity.snapshot,
+        identity.region,
         &mut |update| {
             installation.publish(InstallationState::Progress(update));
         },

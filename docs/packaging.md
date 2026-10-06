@@ -105,7 +105,7 @@ The provisioner requires these real, immutable URLs and SHA-256 values (`TARGET`
 
 The optional `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` applies only to build-time FFmpeg inputs.
 Python publication downloads are anonymous, matching user-side installation. The descriptor's
-archive URL/hash/size must match the provisioned source, and its manifest/dependency identities
+selected regional archive URL/hash/size must match the provisioned source, and its manifest/dependency identities
 must match the actual runtime and checkout's frozen runtime requirements.
 
 On-demand yt-dlp/Deno remain in `local_resources/tools`; they are not packaged. Their existing
@@ -116,14 +116,15 @@ Background removal continues to use ONNX Runtime with the verified on-demand U²
 
 ```bash
 pnpm runtime:build --output <fresh-directory> --signing <adhoc|unsigned|production> \
-  --archive-url <immutable-public-https-archive-url>
+  --global-archive-url <immutable-global-https-archive-url> \
+  --china-archive-url <immutable-china-https-archive-url>
 ```
 
 The native producer uses the frozen publication group and pinned CPython 3.11.17 standalone
 archives from `python/runtime-source.json`. uv 0.12.23 installs hash-bound dependencies in a
 frozen build environment. VoxCPM builds from its exact Git commit with source/tree/wheel evidence.
 No development environment or application Worker is copied into the runtime. Relocation checks
-import the actual third-party inference libraries from a path with spaces and Chinese characters.
+import the actual third-party inference libraries and both official Hub SDKs from a path with spaces and Chinese characters.
 Signing precedes file-manifest creation. QA signing is explicitly ad-hoc on macOS/unsigned on
 Windows; production signing and signer/timestamp verification remain mandatory.
 
@@ -132,8 +133,8 @@ separate target evidence archive containing producer provenance, frozen requirem
 installed dependency inventory, CycloneDX 1.6 SBOM and pinned corresponding-source archives.
 These evidence/source attachments are offered beside the same immutable runtime version with
 equivalent access. Runtime licenses/notices stay in the conveyed runtime; moving evidence is
-not distribution approval. The workflow's `archive_base_url` must be the actual immutable public
-publication directory. Workflow upload artifacts alone do not publish that URL.
+not distribution approval. The workflow's `global_archive_base_url` and `china_archive_base_url` must be actual immutable
+public publication directories serving identical archive bytes. Workflow upload artifacts alone do not publish that URL.
 
 `python/dependency-license-review.json` must approve the runtime requirements digest, VoxCPM
 revision and exact per-target installed inventory. The unresolved sherpa/eSpeak/piper native-source

@@ -12,7 +12,6 @@ use super::persistence::VideoSubtitleSource;
 use super::{progress, SubtitledVideoProgress, CANCELLED};
 use crate::{
     local_resources::tools,
-    media::subprocess,
     spaces::{
         assets::asset_directory,
         derivation::{
@@ -20,6 +19,7 @@ use crate::{
             video_output::{self, RenderedVideo},
         },
     },
+    subprocess,
     system_font::SYSTEM_SANS_FAMILY,
 };
 

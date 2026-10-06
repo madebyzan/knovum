@@ -44,7 +44,7 @@ Names are part of the architecture contract. Prefer domain language over impleme
 
 Application-owned Python import packages use `knovum_<capability>` under `python/src/`.
 The `knovum-python` distribution names the product's Python project; capability process entries
-name their operation boundary, such as `knovum-inference`. `knovum_inference/runtime` means
+name their operation boundary, such as `knovum-inference` and `knovum-model-resources`. `knovum_inference/runtime` means
 inference Worker lifecycle; managed Python runtime resources mean CPython and frozen third-party
 packages. These are separate owners. Python capability tests use `python/tests/<capability>/`,
 and Rust-owned wire schemas use `python/schemas/<capability>.schema.json`.

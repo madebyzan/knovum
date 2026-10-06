@@ -54,6 +54,10 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     )
     .map_err(io_error)?;
     write_json(&wire_schema, &schema_for!(InferenceWireSchemas))?;
+    write_json(
+        &project_root.join("python/schemas/model-resources.schema.json"),
+        &schema_for!(crate::local_resources::models::contracts::DownloadRequest),
+    )?;
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
     let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);

@@ -68,6 +68,7 @@ fn committed_contracts_match_rust_sources() {
     for directory in [
         "src/shared/contracts/generated",
         "src/features/spaces/contracts/generated",
+        "python/schemas",
     ] {
         std::fs::create_dir_all(temporary.0.join(directory)).expect("temporary contract directory");
     }
@@ -75,6 +76,7 @@ fn committed_contracts_match_rust_sources() {
     for directory in [
         "src/shared/contracts/generated",
         "src/features/spaces/contracts/generated",
+        "python/schemas",
     ] {
         let committed = files(&repository.join(directory));
         let generated = files(&temporary.0.join(directory));

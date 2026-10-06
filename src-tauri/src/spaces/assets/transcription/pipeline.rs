@@ -55,8 +55,8 @@ impl TranscriptionPipeline<'_> {
             .into(),
             model_spec_id: profile_id.into(),
             model_revision: crate::local_resources::models::catalog::descriptor(model_kind)
-                .revision
-                .into(),
+                .snapshot
+                .digest(),
             timing: String::new(),
         };
         let vad_enabled = true;

@@ -72,7 +72,9 @@ def install_dependencies(runtime: Path, scratch: Path, executable: Path) -> dict
     build_python = build_environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     build_requirements, requirements = scratch / "build-requirements.txt", scratch / "requirements.txt"
     export_requirements(build_requirements, "--only-group", "runtime-build")
-    export_requirements(requirements, "--extra", "inference", "--no-emit-package", "voxcpm")
+    export_requirements(
+        requirements, "--extra", "inference", "--extra", "model-resources", "--no-emit-package", "voxcpm"
+    )
     run(
         "uv",
         "pip",
@@ -179,7 +181,7 @@ def relocated_smoke(runtime: Path, target: str, version: str) -> None:
     code = (
         "import sys; sys.path.insert(0, sys.argv[1]); "
         "assert '.'.join(map(str,sys.version_info[:3]))==sys.argv[2]; "
-        "import torch,onnxruntime,sherpa_onnx,voxcpm,sentence_transformers; "
+        "import torch,onnxruntime,sherpa_onnx,voxcpm,sentence_transformers,huggingface_hub,modelscope_hub; "
         "from pyannote.audio import Pipeline; from importlib.metadata import version; print(version('torch'))"
     )
     environment = dict(
@@ -215,10 +217,11 @@ def relocated_smoke(runtime: Path, target: str, version: str) -> None:
     )
 
 
-def build(output: Path, signing: str, archive_url: str) -> None:
-    url = urlparse(archive_url)
-    if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
-        raise ValueError("Runtime publication requires an immutable HTTPS archive URL")
+def build(output: Path, signing: str, global_archive_url: str, china_archive_url: str) -> None:
+    for archive_url in (global_archive_url, china_archive_url):
+        url = urlparse(archive_url)
+        if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
+            raise ValueError("Runtime publication requires immutable global and China HTTPS archive URLs")
     target = host_target()
     config = json.loads((PROJECT / "runtime-source.json").read_text())
     actual_uv = run("uv", "--version", capture=True).split()[1]
@@ -286,7 +289,7 @@ def build(output: Path, signing: str, archive_url: str) -> None:
             "version": config["version"],
             "dependencyRequirementsSha256": manifest["dependencyRequirementsSha256"],
             "voxcpmCommit": dependencies["commit"],
-            "url": archive_url,
+            "sources": {"global": global_archive_url, "china": china_archive_url},
             "size": artifact.stat().st_size,
             "sha256": digest(artifact),
             "manifestSha256": digest(relocated / "runtime-manifest.json"),
@@ -299,6 +302,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--signing", choices=("adhoc", "unsigned", "production"), required=True)
-    parser.add_argument("--archive-url", required=True, help="Immutable HTTPS location of the produced archive")
+    parser.add_argument("--global-archive-url", required=True, help="Immutable global HTTPS location of the archive")
+    parser.add_argument("--china-archive-url", required=True, help="Immutable China HTTPS location of the same archive")
     args = parser.parse_args()
-    build(args.output.resolve(), args.signing, args.archive_url)
+    build(args.output.resolve(), args.signing, args.global_archive_url, args.china_archive_url)
