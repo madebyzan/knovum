@@ -1,9 +1,8 @@
 {
   "title": "Extensions",
-  "description": "Manage plugins, Skills and MCP connections. Conversations use only selected, authorized capabilities.",
+  "description": "Manage plugins, Skills and external service connectors. Conversations use only selected, authorized capabilities.",
   "plugins": "Plugins",
   "skills": "Skills",
-  "connections": "Connections",
   "source": "Source",
   "localDirectory": "Local directory",
   "location": "URL or absolute path",
@@ -17,7 +16,6 @@
   "revisionChange": "Source revision changes",
   "added": "Added components",
   "removed": "Removed components",
-  "reviewConnectionChanges": "Endpoint or authorization identity changes require rebinding the account and reviewing tool permissions.",
   "loading": "Loading…",
   "builtin": "Bundled with Knovum",
   "publisherUnverified": "Publisher identity unverified",
@@ -79,7 +77,7 @@
   "addAccount": "Add account",
   "selectedAccount": "Account used by this connection",
   "noAccount": "No account bound",
-  "addConnection": "Add MCP connection",
+  "addConnection": "Add connection",
   "externalServiceBilling": "External services may charge under their own policies; Knovum does not count those charges as model tokens.",
   "configure": "Configure",
   "accountsAndTools": "Accounts and tools",
@@ -117,7 +115,7 @@
   "noOperations": "No tool execution recorded",
   "emptyPlugins": "No installed plugins",
   "emptySkills": "No Skills available",
-  "emptyConnections": "No MCP connections configured",
+  "emptyConnections": "No connections for this service",
   "taskInspect": "Inspect plugin",
   "taskInstall": "Install plugin",
   "taskUpdate": "Update plugin",
@@ -127,5 +125,15 @@
     "reading": "Reading package or catalog",
     "validating": "Validating reviewed content",
     "committing": "Committing changes"
-  }
+  },
+  "connectors": "Connectors",
+  "reviewConnectorChanges": "Endpoint or authorization identity changes require rebinding the account and reviewing tool permissions.",
+  "connectorName": "Service name",
+  "connectorDescription": "What this service provides",
+  "connectorPurpose": "Connect external services to give agents access to their data and operations. Select an account and review permissions for each connection.",
+  "addConnector": "Add custom connector",
+  "emptyConnectors": "No external service connectors configured",
+  "pluginConnector": "Provided by plugin",
+  "customConnector": "Custom service",
+  "accountBindingChanges": "Changing the account disables this connection and clears tool permissions. Review permissions and enable it again."
 }

@@ -153,7 +153,12 @@ pub async fn uninstall_plugin(app: AppHandle, id: String) -> Result<(), String> 
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
-    sqlx::query("DELETE FROM connections WHERE json_extract(document,'$.pluginId')=$1")
+    sqlx::query("DELETE FROM connections WHERE json_extract(document,'$.connectorId') IN (SELECT id FROM connectors WHERE json_extract(document,'$.pluginId')=$1)")
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| error.to_string())?;
+    sqlx::query("DELETE FROM connectors WHERE json_extract(document,'$.pluginId')=$1")
         .bind(&id)
         .execute(&mut *tx)
         .await

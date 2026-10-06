@@ -28,6 +28,7 @@ pub(crate) async fn prepare(
         skills: Vec::new(),
         files: Vec::new(),
         skill_tool_bindings: Default::default(),
+        connectors: Vec::new(),
         connections: Vec::new(),
         accounts: Vec::new(),
         catalogs: Default::default(),
@@ -94,7 +95,9 @@ pub(crate) async fn prepare(
         }
         let connection = super::mcp::connections::load(&pool, id).await?;
         super::mcp::connections::require_current(app, &connection).await?;
-        if let Some(plugin_id) = &connection.plugin_id {
+        let connector =
+            super::connectors::definitions::load(&pool, &connection.connector_id).await?;
+        if let Some(plugin_id) = &connector.plugin_id {
             let plugin = super::plugins::load(&pool, plugin_id).await?;
             retained.insert(format!(
                 "plugins/{plugin_id}/revisions/{}",
@@ -112,13 +115,23 @@ pub(crate) async fn prepare(
                     .push(super::connectors::accounts::load(&pool, account_id).await?);
             }
         }
+        if !snapshot
+            .connectors
+            .iter()
+            .any(|definition| definition.id == connector.id)
+        {
+            snapshot.connectors.push(connector);
+        }
         snapshot.connections.push(connection);
     }
     for skill in &snapshot.skills {
         for name in &skill.requirements {
             if !snapshot.connections.iter().any(|connection| {
-                connection.plugin_id == skill.plugin_id
-                    && connection.component_name.as_ref() == Some(name)
+                snapshot.connectors.iter().any(|connector| {
+                    connector.id == connection.connector_id
+                        && connector.plugin_id == skill.plugin_id
+                        && connector.component_name.as_ref() == Some(name)
+                })
             }) {
                 return Err(format!(
                     "selected-skill-requires-connection: {}: {name}",
@@ -153,6 +166,7 @@ pub(crate) async fn prepare(
                 &snapshot.skills,
                 &snapshot.files,
                 &snapshot.skill_tool_bindings,
+                &snapshot.connectors,
                 &snapshot.connections,
                 &snapshot.accounts,
                 &snapshot.catalogs,
@@ -190,6 +204,9 @@ pub(crate) async fn require_current(
                 return Err("skill-plugin-disabled".into());
             }
         }
+    }
+    for connector in &snapshot.connectors {
+        super::connectors::definitions::require_current(&pool, connector).await?;
     }
     for connection in &snapshot.connections {
         super::mcp::connections::require_current(app, connection).await?;

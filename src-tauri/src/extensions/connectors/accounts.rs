@@ -1,7 +1,4 @@
-use super::super::{
-    contracts::{ConnectorAccount, ConnectorDefinition},
-    database,
-};
+use super::super::{contracts::ConnectorAccount, database};
 use sqlx::SqlitePool;
 
 pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<ConnectorAccount>, String> {
@@ -29,18 +26,6 @@ pub(super) async fn save(pool: &SqlitePool, account: &ConnectorAccount) -> Resul
     sqlx::query("INSERT INTO connector_accounts(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
         .bind(&account.id).bind(database::encode(account)?).execute(pool).await.map_err(|error| error.to_string())?;
     Ok(())
-}
-
-pub(in crate::extensions) async fn definitions(
-    pool: &SqlitePool,
-) -> Result<Vec<ConnectorDefinition>, String> {
-    sqlx::query_scalar::<_, String>("SELECT document FROM connectors ORDER BY id")
-        .fetch_all(pool)
-        .await
-        .map_err(|error| error.to_string())?
-        .iter()
-        .map(|document| database::decode(document))
-        .collect()
 }
 
 pub(super) async fn set_status(
@@ -85,6 +70,22 @@ pub(in crate::extensions) async fn require_current(
     let current = load(pool, &frozen.id).await?;
     if !current.enabled || current.cleanup_pending || current.revision != frozen.revision {
         return Err("connector-account-authorization-revised-or-revoked".into());
+    }
+    Ok(())
+}
+
+pub(in crate::extensions) fn validate_binding(
+    connector: &super::super::contracts::ConnectorDefinition,
+    account: &ConnectorAccount,
+) -> Result<(), String> {
+    if account.connector_id != connector.id
+        || account.resource != super::super::mcp::endpoint::resource(&connector.endpoint)
+        || account.authorization != connector.authorization
+    {
+        return Err("connector-account-binding-mismatch".into());
+    }
+    if !account.enabled || account.cleanup_pending {
+        return Err("connector-account-not-authorized".into());
     }
     Ok(())
 }

@@ -1,6 +1,6 @@
 use super::super::{
     connectors,
-    contracts::{ConnectorAuthorization, McpConnection, McpEndpoint},
+    contracts::{ConnectorAuthorization, ConnectorDefinition, McpConnection, McpEndpoint},
     ExtensionState,
 };
 use futures::future::BoxFuture;
@@ -106,12 +106,30 @@ impl McpSession {
 pub(super) async fn connect(
     app: &AppHandle,
     connection: &McpConnection,
+    connector: &ConnectorDefinition,
     interaction: Option<Arc<dyn McpInteraction>>,
 ) -> Result<McpSession, String> {
-    super::endpoint::validate(&connection.endpoint)?;
+    let pool = super::super::database::pool(app).await?;
+    connectors::definitions::require_current(&pool, connector).await?;
+    connectors::requirements::validate_access(&connector.endpoint, &connector.authorization)?;
+    if let Some(id) = &connector.plugin_id {
+        if !super::super::plugins::load(&pool, id).await?.enabled {
+            return Err("mcp-plugin-disabled".into());
+        }
+    }
+    let account = if let Some(id) = &connection.account_id {
+        let account = connectors::accounts::load(&pool, id).await?;
+        connectors::accounts::validate_binding(connector, &account)?;
+        Some(account)
+    } else {
+        if !matches!(connector.authorization, ConnectorAuthorization::None) {
+            return Err("connector-authorized-account-required".into());
+        }
+        None
+    };
     let handler = ExtensionClient { interaction };
     let cancellation = app.state::<ExtensionState>().shutdown.child_token();
-    let (service, process) = match &connection.endpoint {
+    let (service, process) = match &connector.endpoint {
         McpEndpoint::StreamableHttp {
             url,
             headers,
@@ -136,14 +154,6 @@ pub(super) async fn connect(
                         .map_err(|_| "mcp-header-value-invalid")?,
                 );
             }
-            let account = if let Some(id) = &connection.account_id {
-                Some(
-                    connectors::accounts::load(&super::super::database::pool(app).await?, id)
-                        .await?,
-                )
-            } else {
-                None
-            };
             let service = if account.as_ref().is_some_and(|account| {
                 matches!(account.authorization, ConnectorAuthorization::OAuth { .. })
             }) {
@@ -203,12 +213,12 @@ pub(super) async fn connect(
             environment,
         } => {
             let plugin_environment =
-                super::super::plugins::process_configuration::environment(app, connection).await?;
+                super::super::plugins::process_configuration::environment(app, connector).await?;
             let secrets = if let Some(id) = &connection.account_id {
                 connectors::credentials(
                     app,
                     id,
-                    &super::endpoint::resource(&connection.endpoint),
+                    &super::endpoint::resource(&connector.endpoint),
                     false,
                 )
                 .await?

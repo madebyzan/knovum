@@ -8,17 +8,11 @@ pub async fn get_agent_extension_availability(
     super::plugins::ensure_builtin(&app).await?;
     let pool = database::pool(&app).await?;
     let plugins = super::plugins::list(&pool).await?;
+    let connectors = super::connectors::definitions::list(&pool).await?;
     let candidates = super::mcp::connections::list(&pool)
         .await?
         .into_iter()
-        .filter(|connection| {
-            connection.enabled
-                && connection.plugin_id.as_ref().is_none_or(|id| {
-                    plugins
-                        .iter()
-                        .any(|plugin| &plugin.id == id && plugin.enabled)
-                })
-        })
+        .filter(|connection| connection.enabled)
         .collect::<Vec<_>>();
     let mut diagnostics = Vec::new();
     let mut connections = Vec::new();
@@ -52,8 +46,11 @@ pub async fn get_agent_extension_availability(
                 .iter()
                 .filter(|name| {
                     !connections.iter().any(|connection| {
-                        connection.plugin_id == skill.plugin_id
-                            && connection.component_name.as_ref() == Some(name)
+                        connectors.iter().any(|connector| {
+                            connector.id == connection.connector_id
+                                && connector.plugin_id == skill.plugin_id
+                                && connector.component_name.as_ref() == Some(name)
+                        })
                     })
                 })
                 .collect::<Vec<_>>();
@@ -83,6 +80,7 @@ pub async fn get_agent_extension_availability(
     Ok(AgentExtensionAvailability {
         default_selection,
         skills,
+        connectors,
         connections,
         diagnostics,
     })

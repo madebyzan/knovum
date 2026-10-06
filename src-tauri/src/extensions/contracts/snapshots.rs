@@ -99,6 +99,7 @@ pub struct AgentExtensionSnapshot {
     pub skills: Vec<SkillRevision>,
     pub files: Vec<AgentSkillFile>,
     pub skill_tool_bindings: std::collections::BTreeMap<String, Vec<String>>,
+    pub connectors: Vec<super::ConnectorDefinition>,
     pub connections: Vec<McpConnection>,
     pub accounts: Vec<super::ConnectorAccount>,
     pub catalogs: std::collections::BTreeMap<String, super::McpConnectionCatalog>,
@@ -110,6 +111,7 @@ pub struct AgentExtensionSnapshot {
 pub struct AgentExtensionAvailability {
     pub default_selection: AgentExtensionSelection,
     pub skills: Vec<SkillRevision>,
+    pub connectors: Vec<super::ConnectorDefinition>,
     pub connections: Vec<McpConnection>,
     pub diagnostics: Vec<String>,
 }

@@ -21,6 +21,7 @@ fn snapshot() -> AgentExtensionSnapshot {
         skills: vec![],
         files: vec![],
         skill_tool_bindings: Default::default(),
+        connectors: vec![],
         connections: vec![],
         accounts: vec![],
         tools: vec![

@@ -3,7 +3,7 @@ mod manifest;
 use super::super::{
     content::{self, PackageFiles},
     contracts::{
-        ConnectorAuthorization, PluginComponent, PluginConnectionDeclaration, PluginInspection,
+        ConnectorAuthorization, PluginComponent, PluginConnectorDeclaration, PluginInspection,
         SkillRevision,
     },
 };
@@ -23,15 +23,13 @@ struct KnovumManifestExtension {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ConnectorDeclaration {
     name: String,
+    description: String,
     authorization: ConnectorAuthorization,
 }
 
 pub(super) struct ReviewedPackage {
     pub inspection: PluginInspection,
     pub skills: Vec<SkillRevision>,
-    pub mcp_servers: BTreeMap<String, Value>,
-    pub authorizations: BTreeMap<String, ConnectorAuthorization>,
-    pub connector_names: BTreeMap<String, String>,
 }
 
 pub(super) fn inspect(
@@ -163,33 +161,28 @@ pub(super) fn inspect(
             }
         }
     }
-    let mut authorizations = BTreeMap::new();
-    let mut connections = Vec::new();
-    let mut connector_names = BTreeMap::new();
-    for (name, configuration) in &mcp_servers {
-        let authorization = extension
-            .connectors
-            .get(name)
+    let mut connectors = Vec::new();
+    for (name, configuration) in mcp_servers {
+        let declaration = extension.connectors.get(&name);
+        let authorization = declaration
             .map(|declaration| declaration.authorization.clone())
             .unwrap_or(ConnectorAuthorization::None);
         super::super::connectors::requirements::validate(&authorization)?;
-        authorizations.insert(name.clone(), authorization.clone());
-        let display_name = extension
-            .connectors
-            .get(name)
+        let display_name = declaration
             .map(|declaration| declaration.name.clone())
             .unwrap_or_else(|| name.clone());
         if display_name.trim().is_empty() {
             return Err("connector-display-name-required".into());
         }
-        connector_names.insert(name.clone(), display_name);
-        connections.push(PluginConnectionDeclaration {
-            name: extension
-                .connectors
-                .get(name)
-                .map(|declaration| declaration.name.clone())
-                .unwrap_or_else(|| name.clone()),
-            configuration: configuration.clone(),
+        let description = declaration
+            .map(|declaration| declaration.description.clone())
+            .or_else(|| manifest.description.clone())
+            .unwrap_or_default();
+        connectors.push(PluginConnectorDeclaration {
+            component_name: name,
+            name: display_name,
+            description,
+            configuration,
             authorization,
         });
     }
@@ -199,14 +192,11 @@ pub(super) fn inspect(
             digest: content::files_digest(files),
             source_revision,
             components,
-            connections,
+            connectors,
             file_count: files.len() as u32,
             byte_length: files.values().map(Vec::len).sum::<usize>() as u32,
         },
         skills,
-        mcp_servers,
-        authorizations,
-        connector_names,
     })
 }
 

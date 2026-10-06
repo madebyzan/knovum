@@ -17,14 +17,7 @@ fn fixture() -> (
         id: "connection".into(),
         connector_id: "connector".into(),
         name: "Fixture".into(),
-        plugin_id: None,
-        component_name: None,
         revision: "revision".into(),
-        endpoint: McpEndpoint::StreamableHttp {
-            url: "https://example.com/mcp".into(),
-            headers: Default::default(),
-            allow_local_network: false,
-        },
         account_id: Some("selected-account".into()),
         enabled: true,
         tools: vec![McpToolPermission {

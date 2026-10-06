@@ -51,7 +51,9 @@ pub struct PluginComponent {
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PluginConnectionDeclaration {
+pub struct PluginConnectorDeclaration {
+    pub component_name: String,
+    pub description: String,
     pub name: String,
     #[ts(type = "unknown")]
     pub configuration: Value,
@@ -65,7 +67,7 @@ pub struct PluginInspection {
     pub digest: String,
     pub source_revision: String,
     pub components: Vec<PluginComponent>,
-    pub connections: Vec<PluginConnectionDeclaration>,
+    pub connectors: Vec<PluginConnectorDeclaration>,
     pub file_count: u32,
     pub byte_length: u32,
 }

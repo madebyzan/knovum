@@ -2,7 +2,8 @@ import { queryOptions } from "@tanstack/vue-query";
 
 import type { AgentExtensionAvailability } from "../../shared/contracts/generated/AgentExtensionAvailability";
 import { invokeCommand } from "../ipc/invoke-command";
-import { listMcpConnections, listConnectorAccounts, listConnectorDefinitions } from "./connection-operations";
+import { listMcpConnections } from "./connection-operations";
+import { listConnectorDefinitions, listConnectorAccounts } from "./connector-operations";
 import { listPluginInstallations, searchPlugins } from "./plugin-operations";
 import { listSkills } from "./skill-operations";
 

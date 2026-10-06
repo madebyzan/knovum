@@ -1,6 +1,6 @@
 use super::super::{
     content,
-    contracts::{McpConnection, McpEndpoint},
+    contracts::{ConnectorDefinition, McpEndpoint},
     database,
 };
 use serde_json::Value;
@@ -69,9 +69,9 @@ pub(super) fn endpoint(
 
 pub(crate) async fn environment(
     app: &AppHandle,
-    connection: &McpConnection,
+    connector: &ConnectorDefinition,
 ) -> Result<BTreeMap<String, String>, String> {
-    let Some(id) = &connection.plugin_id else {
+    let Some(id) = &connector.plugin_id else {
         return Ok(BTreeMap::new());
     };
     let plugin = super::load(&database::pool(app).await?, id).await?;
@@ -85,7 +85,7 @@ pub(crate) async fn environment(
     if !root.starts_with(&owned) || !data.starts_with(&owned) {
         return Err("plugin-content-root-escaped".into());
     }
-    if let McpEndpoint::Stdio { cwd: Some(cwd), .. } = &connection.endpoint {
+    if let McpEndpoint::Stdio { cwd: Some(cwd), .. } = &connector.endpoint {
         let cwd = Path::new(cwd)
             .canonicalize()
             .map_err(|error| error.to_string())?;

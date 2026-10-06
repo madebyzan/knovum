@@ -88,7 +88,7 @@ function toggleSkill(id: string) {
           }}<span class="block text-caption text-fg-secondary">{{ skill.description }}</span></span
         ></label
       >
-      <h3 class="text-caption font-medium">MCP</h3>
+      <h3 class="text-caption font-medium">{{ $t("extensions.connectors") }}</h3>
       <label
         v-for="connection in availability?.connections"
         :key="connection.id"

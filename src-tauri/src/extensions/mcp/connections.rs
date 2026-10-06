@@ -49,7 +49,9 @@ pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> 
     {
         return Err("mcp-connection-revoked-or-revised".into());
     }
-    if let Some(id) = &current.plugin_id {
+    let connector =
+        super::super::connectors::definitions::load(&pool, &current.connector_id).await?;
+    if let Some(id) = &connector.plugin_id {
         let plugin = super::super::plugins::load(&pool, id).await?;
         if !plugin.enabled {
             return Err("mcp-plugin-disabled".into());
@@ -57,12 +59,12 @@ pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> 
     }
     if let Some(id) = &current.account_id {
         let account = super::super::connectors::accounts::load(&pool, id).await?;
-        if !account.enabled
-            || account.cleanup_pending
-            || account.resource != super::endpoint::resource(&current.endpoint)
-        {
-            return Err("connector-account-revoked-or-resource-changed".into());
-        }
+        super::super::connectors::accounts::validate_binding(&connector, &account)?;
+    } else if !matches!(
+        connector.authorization,
+        super::super::contracts::ConnectorAuthorization::None
+    ) {
+        return Err("connector-authorized-account-required".into());
     }
     Ok(())
 }

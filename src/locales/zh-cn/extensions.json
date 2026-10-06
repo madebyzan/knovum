@@ -1,9 +1,8 @@
 {
   "title": "扩展",
-  "description": "管理插件、Skills 和 MCP 连接。对话只使用你选择并授权的能力。",
+  "description": "管理插件、Skills 和外部服务连接器。对话仅使用选定并获授权的能力。",
   "plugins": "插件",
   "skills": "Skills",
-  "connections": "连接",
   "source": "来源",
   "localDirectory": "本地目录",
   "location": "地址或绝对路径",
@@ -17,7 +16,6 @@
   "revisionChange": "来源修订变化",
   "added": "新增组件",
   "removed": "移除组件",
-  "reviewConnectionChanges": "端点或授权身份变化需要重新绑定账号，并审核工具权限。",
   "loading": "正在加载…",
   "builtin": "应用内置",
   "publisherUnverified": "发布者身份未验证",
@@ -79,7 +77,7 @@
   "addAccount": "添加账号",
   "selectedAccount": "当前连接使用的账号",
   "noAccount": "不绑定账号",
-  "addConnection": "添加 MCP 连接",
+  "addConnection": "添加连接实例",
   "externalServiceBilling": "外部服务可能按其自己的政策计费；Knovum 不将其费用计为模型 token。",
   "configure": "配置",
   "accountsAndTools": "账号与工具",
@@ -117,7 +115,7 @@
   "noOperations": "尚无工具执行记录",
   "emptyPlugins": "尚未安装插件",
   "emptySkills": "暂无可用 Skill",
-  "emptyConnections": "尚未配置 MCP 连接",
+  "emptyConnections": "该服务尚未添加连接实例",
   "taskInspect": "检查插件",
   "taskInstall": "安装插件",
   "taskUpdate": "更新插件",
@@ -127,5 +125,15 @@
     "reading": "读取包或目录源",
     "validating": "验证待确认内容",
     "committing": "提交更改"
-  }
+  },
+  "connectors": "连接器",
+  "reviewConnectorChanges": "端点或授权身份变化需要重新绑定账号，并审核工具权限。",
+  "connectorName": "服务名称",
+  "connectorDescription": "服务用途与能力说明",
+  "connectorPurpose": "连接外部服务，让 Agent 使用其中的数据与操作能力。为连接实例选择账号并审查工具权限。",
+  "addConnector": "添加自定义连接器",
+  "emptyConnectors": "尚未配置外部服务连接器",
+  "pluginConnector": "由插件提供",
+  "customConnector": "自定义服务",
+  "accountBindingChanges": "更换账号会停用该连接并清除工具权限，请重新审查权限后启用。"
 }

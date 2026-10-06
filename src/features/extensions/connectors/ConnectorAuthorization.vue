@@ -7,7 +7,7 @@ import {
   authorizeConnectorAccount,
   cancelConnectorAuthorization,
   disconnectConnectorAccount,
-} from "../../../foundation/extensions/connection-operations";
+} from "../../../foundation/extensions/connector-operations";
 import { extensionQueryKey } from "../../../foundation/extensions/extension-query";
 import type { ConnectorAccount } from "../../../shared/contracts/generated/ConnectorAccount";
 import UiButton from "../../../shared/ui/UiButton.vue";
