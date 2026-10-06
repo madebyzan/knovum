@@ -21,7 +21,7 @@ export function useShortDubbingDraft(
     JSON.stringify([text.value.trim(), voiceRevisionId.value, wavPrecision.value, lexicon.entries.value]);
   const dirty = computed(() => snapshot() !== saved.value);
   const selectedVoice = computed(() => voices().find((voice) => voice.revisionId === voiceRevisionId.value));
-  const valid = computed(() => Boolean(text.value.trim() && selectedVoice.value && lexicon.valid.value));
+  const valid = computed(() => Boolean(text.value.trim() && selectedVoice.value && lexicon.isValid.value));
 
   watch(
     () => project().revision.id,
@@ -44,7 +44,7 @@ export function useShortDubbingDraft(
     if (!voice) throw new Error("A valid voice is required");
     return {
       sourceRevision: crypto.randomUUID(),
-      pronunciationLexicon: lexicon.value(),
+      pronunciationLexicon: lexicon.serializeLexicon(),
       outputConfig: { format: "wav", wavPrecision: wavPrecision.value },
       segments: [
         {

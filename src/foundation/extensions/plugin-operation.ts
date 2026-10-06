@@ -26,9 +26,13 @@ export async function runPluginOperation<T>(
     if (stage === "committing") tasks.setCancellation(jobId);
   });
   try {
-    const result = await invokeCommand<T>(`plugin:extensions|${command}`, { ...payload, jobId, onProgress });
+    const response = await invokeCommand<T>(`plugin:extensions|${command}`, {
+      ...payload,
+      jobId,
+      onProgress,
+    });
     tasks.succeed(jobId);
-    return result;
+    return response;
   } catch (error) {
     const message = getErrorMessage(error);
     if (message === "plugin-operation-cancelled") {

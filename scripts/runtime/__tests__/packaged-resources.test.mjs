@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { validateApplicationResources, workerDigest } from "../application-resources.mjs";
 import { readRuntimeDescriptor } from "../distribution.mjs";
+import { validatePackagedResources, workerDigest } from "../packaged-resources.mjs";
 
 function fixture(context) {
   const repository = mkdtempSync(join(tmpdir(), "knovum-small-package-"));
@@ -49,7 +49,7 @@ function fixture(context) {
     path,
     descriptor,
     save,
-    verify: () => validateApplicationResources(resources, repository, "windows-x64"),
+    verify: () => validatePackagedResources(resources, repository, "windows-x64"),
   };
 }
 

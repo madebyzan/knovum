@@ -26,11 +26,11 @@ export class CanvasDocumentModel {
     return this.current.value;
   }
 
-  get documentRef(): Readonly<ShallowRef<CanvasDocumentV1>> {
+  get documentState(): Readonly<ShallowRef<CanvasDocumentV1>> {
     return this.current;
   }
 
-  get sceneDocumentRef(): Readonly<ShallowRef<CanvasDocumentV1>> {
+  get sceneDocumentState(): Readonly<ShallowRef<CanvasDocumentV1>> {
     return this.sceneCurrent;
   }
 

@@ -132,7 +132,7 @@ function sameSource(
     />
     <PronunciationLexiconEditor
       v-model="draft.lexicon.entries.value"
-      :valid="draft.lexicon.valid.value"
+      :valid="draft.lexicon.isValid.value"
       :disabled="disabled"
     />
     <VideoTranslationPanel
@@ -154,10 +154,12 @@ function sameSource(
     <VideoDubbingLines
       :lines="draft.lines.value"
       :voice-options="voiceOptions"
-      :lexicon-valid="draft.lexicon.valid.value"
+      :lexicon-valid="draft.lexicon.isValid.value"
       :show-source="Boolean(draft.config.value?.translation)"
       :disabled
-      @preview="(text, voiceRevisionId) => emit('preview', text, voiceRevisionId, draft.lexicon.value())"
+      @preview="
+        (text, voiceRevisionId) => emit('preview', text, voiceRevisionId, draft.lexicon.serializeLexicon())
+      "
       @source="(start, end) => sourceControls?.audition(start, end)"
       @remove="draft.removeLine"
       @update="draft.updateLine"

@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue";
 
-export interface PronunciationEntry {
+export interface PronunciationRule {
   id: string;
   word: string;
   pronunciation: string;
@@ -9,7 +9,7 @@ export interface PronunciationEntry {
 export function usePronunciationLexicon(
   revision: () => Readonly<{ id: string; pronunciationLexicon: Readonly<Record<string, string>> }>,
 ) {
-  const entries = ref<PronunciationEntry[]>([]);
+  const entries = ref<PronunciationRule[]>([]);
 
   watch(
     () => revision().id,
@@ -23,7 +23,7 @@ export function usePronunciationLexicon(
     { immediate: true },
   );
 
-  const valid = computed(() => {
+  const isValid = computed(() => {
     if (entries.value.length > 1_000) return false;
     const words = new Set<string>();
     for (const entry of entries.value) {
@@ -42,14 +42,14 @@ export function usePronunciationLexicon(
     return true;
   });
 
-  function value() {
-    if (!valid.value) throw new Error("Pronunciation lexicon entries are invalid");
+  function serializeLexicon() {
+    if (!isValid.value) throw new Error("Pronunciation lexicon entries are invalid");
     return Object.fromEntries(
       entries.value.map((entry) => [normalize(entry.word), normalize(entry.pronunciation)]),
     );
   }
 
-  return { entries, valid, value };
+  return { entries, isValid, serializeLexicon };
 }
 
 function normalize(value: string) {

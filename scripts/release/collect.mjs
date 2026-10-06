@@ -1,8 +1,8 @@
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { workerDigest } from "../runtime/application-resources.mjs";
 import { distributionDirectory, readRuntimeDescriptor } from "../runtime/distribution.mjs";
+import { workerDigest } from "../runtime/packaged-resources.mjs";
 import { artifactSha256, safeArtifactFilename } from "./artifacts.mjs";
 import { httpsUrl, publicKey, readVersion, releaseTargets, requireValue } from "./policy.mjs";
 

@@ -5,22 +5,24 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import type { PronunciationEntry } from "../../speech/use-pronunciation-lexicon";
+import type { PronunciationRule } from "../../speech/use-pronunciation-lexicon";
 
-const entries = defineModel<PronunciationEntry[]>({ required: true });
+const entries = defineModel<PronunciationRule[]>({ required: true });
 defineProps<{ disabled: boolean; valid: boolean }>();
 const { t } = useI18n();
 
-function addEntry() {
+function addRule() {
   entries.value = [...entries.value, { id: crypto.randomUUID(), word: "", pronunciation: "" }];
 }
 
-function removeEntry(id: string) {
-  entries.value = entries.value.filter((entry) => entry.id !== id);
+function removeRule(ruleId: string) {
+  entries.value = entries.value.filter((entry) => entry.id !== ruleId);
 }
 
-function updateEntry(id: string, patch: Partial<Pick<PronunciationEntry, "word" | "pronunciation">>) {
-  entries.value = entries.value.map((entry) => (entry.id === id ? Object.assign({}, entry, patch) : entry));
+function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word" | "pronunciation">>) {
+  entries.value = entries.value.map((entry) =>
+    entry.id === ruleId ? Object.assign({}, entry, patch) : entry,
+  );
 }
 </script>
 
@@ -33,7 +35,7 @@ function updateEntry(id: string, patch: Partial<Pick<PronunciationEntry, "word" 
         </h3>
         <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.pronunciationHint") }}</p>
       </div>
-      <UiButton size="sm" variant="ghost" :disabled="disabled || entries.length >= 1000" @click="addEntry">
+      <UiButton size="sm" variant="ghost" :disabled="disabled || entries.length >= 1000" @click="addRule">
         <Plus class="size-3.5" />{{ t("spaces.speech.addPronunciation") }}
       </UiButton>
     </div>
@@ -44,7 +46,7 @@ function updateEntry(id: string, patch: Partial<Pick<PronunciationEntry, "word" 
         size="sm"
         :disabled="disabled"
         :placeholder="t('spaces.speech.pronunciationWord')"
-        @update:model-value="updateEntry(entry.id, { word: $event })"
+        @update:model-value="updateRule(entry.id, { word: $event })"
       />
       <UiInput
         :model-value="entry.pronunciation"
@@ -52,13 +54,13 @@ function updateEntry(id: string, patch: Partial<Pick<PronunciationEntry, "word" 
         size="sm"
         :disabled="disabled"
         :placeholder="t('spaces.speech.pronunciationReading')"
-        @update:model-value="updateEntry(entry.id, { pronunciation: $event })"
+        @update:model-value="updateRule(entry.id, { pronunciation: $event })"
       />
       <UiIconButton
         size="sm"
         :disabled="disabled"
         :label="t('spaces.speech.removePronunciation')"
-        @click="removeEntry(entry.id)"
+        @click="removeRule(entry.id)"
       >
         <Trash2 class="size-3.5" />
       </UiIconButton>

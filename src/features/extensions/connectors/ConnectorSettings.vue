@@ -32,11 +32,11 @@ function edit(connector?: ConnectorDefinition) {
 function save() {
   void changes
     .mutateAsync(async () => {
-      const result = draft.value.id
+      const change = draft.value.id
         ? await updateConnectorDefinition(draft.value)
         : await createConnectorDefinition(draft.value);
       editing.value = false;
-      return result;
+      return change;
     })
     .catch(() => {});
 }

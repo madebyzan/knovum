@@ -24,12 +24,15 @@ export const createConnectorAccount = (connectorId: string, displayName: string)
 
 export const listConnectorAccounts = () =>
   invokeCommand<ConnectorAccount[]>("plugin:extensions|list_connector_accounts");
-export const authorizeConnectorAccount = (id: string, secretFields: Record<string, string>) =>
-  invokeCommand<ConnectorAccount>("plugin:extensions|authorize_connector_account", { id, secretFields });
-export const cancelConnectorAuthorization = (id: string) =>
-  invokeCommand<void>("plugin:extensions|cancel_connector_authorization", { id });
-export const disconnectConnectorAccount = (id: string) =>
-  invokeCommand<void>("plugin:extensions|disconnect_connector_account", { id });
+export const authorizeConnectorAccount = (accountId: string, secretFields: Record<string, string>) =>
+  invokeCommand<ConnectorAccount>("plugin:extensions|authorize_connector_account", {
+    id: accountId,
+    secretFields,
+  });
+export const cancelConnectorAuthorization = (accountId: string) =>
+  invokeCommand<void>("plugin:extensions|cancel_connector_authorization", { id: accountId });
+export const disconnectConnectorAccount = (accountId: string) =>
+  invokeCommand<void>("plugin:extensions|disconnect_connector_account", { id: accountId });
 
 export const configurePluginConnector = (
   definition: ConnectorDefinition,

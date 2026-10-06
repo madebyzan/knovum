@@ -23,23 +23,27 @@ export const installPlugin = (
     expectedDigest,
     publication,
   });
-export const updatePlugin = (id: string, expectedDigest: string) =>
+export const updatePlugin = (pluginId: string, expectedDigest: string) =>
   runPluginOperation<ExtensionChange<PluginInstallation>>("update_plugin", "extensions.taskUpdate", {
-    id,
+    id: pluginId,
     expectedDigest,
   });
-export const setPluginEnabled = (id: string, enabled: boolean) =>
-  invokeCommand<void>("plugin:extensions|set_plugin_enabled", { id, enabled });
-export const uninstallPlugin = (id: string) =>
-  invokeCommand<ExtensionChange<null>>("plugin:extensions|uninstall_plugin", { id });
+export const setPluginEnabled = (pluginId: string, enabled: boolean) =>
+  invokeCommand<void>("plugin:extensions|set_plugin_enabled", { id: pluginId, enabled });
+export const uninstallPlugin = (pluginId: string) =>
+  invokeCommand<ExtensionChange<null>>("plugin:extensions|uninstall_plugin", { id: pluginId });
 export const searchPlugins = (query: string) =>
   invokeCommand<PluginMarketplace[]>("plugin:extensions|search_plugins", { query });
 export const addPluginMarketplace = (source: MarketplaceSource) =>
   runPluginOperation<PluginMarketplace>("add_plugin_marketplace", "extensions.taskMarketplace", { source });
-export const refreshPluginMarketplace = (id: string) =>
-  runPluginOperation<PluginMarketplace>("refresh_plugin_marketplace", "extensions.taskMarketplace", { id });
-export const removePluginMarketplace = (id: string) =>
-  invokeCommand<void>("plugin:extensions|remove_plugin_marketplace", { id });
+export const refreshPluginMarketplace = (marketplaceId: string) =>
+  runPluginOperation<PluginMarketplace>("refresh_plugin_marketplace", "extensions.taskMarketplace", {
+    id: marketplaceId,
+  });
+export const removePluginMarketplace = (marketplaceId: string) =>
+  invokeCommand<void>("plugin:extensions|remove_plugin_marketplace", { id: marketplaceId });
 
-export const inspectPluginUpdate = (id: string) =>
-  runPluginOperation<PluginUpdatePreview>("inspect_plugin_update", "extensions.taskInspect", { id });
+export const inspectPluginUpdate = (pluginId: string) =>
+  runPluginOperation<PluginUpdatePreview>("inspect_plugin_update", "extensions.taskInspect", {
+    id: pluginId,
+  });

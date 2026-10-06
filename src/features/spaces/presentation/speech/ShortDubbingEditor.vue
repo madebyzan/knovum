@@ -33,7 +33,12 @@ const voiceOptions = computed(() => voiceRevisionOptions(props.voices, [voiceRev
 
 function preview() {
   if (!valid.value) return;
-  emit("preview", [...text.value.trim()].slice(0, 500).join(""), voiceRevisionId.value, lexicon.value());
+  emit(
+    "preview",
+    [...text.value.trim()].slice(0, 500).join(""),
+    voiceRevisionId.value,
+    lexicon.serializeLexicon(),
+  );
 }
 
 watch(dirty, (value) => emit("dirty", value), { immediate: true });
@@ -57,7 +62,7 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
     <WavPrecisionSelect v-model="wavPrecision" :disabled />
     <PronunciationLexiconEditor
       v-model="lexicon.entries.value"
-      :valid="lexicon.valid.value"
+      :valid="lexicon.isValid.value"
       :disabled="disabled"
     />
     <div class="flex gap-2">

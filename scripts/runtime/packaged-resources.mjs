@@ -6,7 +6,7 @@ import { distributionDirectory, readRuntimeDescriptor } from "./distribution.mjs
 import { listRuntimeFiles, sha256File } from "./files.mjs";
 import { runtimeProfiles } from "./profiles.mjs";
 
-export function validateApplicationResources(resources, repository, target) {
+export function validatePackagedResources(resources, repository, target) {
   for (const profile of runtimeProfiles) {
     const path = join(resources, `python-${profile}-descriptor.json`);
     readRuntimeDescriptor(path, target, profile);

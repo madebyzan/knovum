@@ -19,9 +19,9 @@ import {
   updaterConfiguration,
   validateReleaseArguments,
 } from "../release/policy.mjs";
-import { validateApplicationResources } from "../runtime/application-resources.mjs";
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
+import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { verifyRuntimeSignatures } from "../runtime/signatures.mjs";
 import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
@@ -55,7 +55,7 @@ cpSync(join(repository, "python", "src"), worker, {
   recursive: true,
   filter: (path) => !path.includes("__pycache__") && (lstatSync(path).isDirectory() || path.endsWith(".py")),
 });
-validateApplicationResources(join(repository, "src-tauri", "resources"), repository, target);
+validatePackagedResources(join(repository, "src-tauri", "resources"), repository, target);
 
 const bundleResources = [
   "resources/agent-plugins/**/*",
@@ -103,7 +103,7 @@ if (target === "windows-x64") {
 if (target === "macos-arm64") {
   const name = readJson("src-tauri/tauri.conf.json").productName;
   const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
-  validateApplicationResources(packaged, repository, target);
+  validatePackagedResources(packaged, repository, target);
 }
 
 function productionConfiguration() {

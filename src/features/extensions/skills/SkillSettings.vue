@@ -50,18 +50,18 @@ async function importDirectory() {
   const path = await open({ directory: true, multiple: false });
   if (typeof path === "string") return importSkill(path);
 }
-async function exportDirectory(id: string) {
+async function exportDirectory(skillId: string) {
   const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") await exportSkill(id, path);
+  if (typeof path === "string") await exportSkill(skillId, path);
 }
 async function save() {
   await changes
     .mutateAsync(async () => {
-      const result = selected.value
+      const change = selected.value
         ? await saveSkillRevision(selected.value.skill.id, selected.value.skill.digest, markdown.value)
         : await createSkill(name.value, markdown.value);
       editing.value = false;
-      return result;
+      return change;
     })
     .catch(() => {});
 }
