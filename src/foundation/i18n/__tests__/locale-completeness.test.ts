@@ -78,7 +78,7 @@ function collectStaticTranslationKeys() {
 // and translated later through a variable.
 function collectReferencedKeyLiterals() {
   const literal =
-    /["'`]((?:spaces|settings|shell|common|ai|tasks|errors|dictation)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
+    /["'`]((?:spaces|settings|shell|common|ai|tasks|errors|dictation|extensions)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
   const keys = new Set<string>();
   for (const [path, source] of Object.entries(sourceModules)) {
     if (path.includes("/locales/") || path.endsWith("locale-completeness.test.ts")) continue;

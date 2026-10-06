@@ -427,3 +427,15 @@ termination, application exit, checkpoint/input recovery, Task Center waiting/pa
 asset publication. The producer performs relocation imports from a path with spaces and Chinese
 characters before and after signing. Verify native binary signers/timestamps, app signing,
 install/uninstall and upgrade separately. macOS x64 development checks do not satisfy this matrix.
+
+## Agent extension qualification
+
+Code verification covers package component isolation/path boundaries, immutable revisions,
+SDK MCP catalog/invocation, OAuth credential lifecycle, durable approval/unknown attempts,
+selected Skill bytes and ACP task isolation. Real provider OAuth registration, actual service
+side effects and both target operating systems require separately recorded release evidence.
+Do not treat SDK fixtures as certification of every third-party service. Include the bundled
+standard plugin in resource/signature inventories and dependency SBOM/license review. Measure
+the release binary/package delta for gix and rmcp client/auth features on each target; no package
+size result is inferred from source or a development binary. Signing, installer acceptance and
+physical platform qualification are maintainer release tasks.

@@ -1,0 +1,108 @@
+use super::{content, database};
+use std::collections::BTreeSet;
+use tauri::{AppHandle, Manager};
+
+pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
+    let pool = database::pool(app).await?;
+    let root = content::root(app)?;
+    let mut retained = BTreeSet::new();
+    let mut plugin_data = BTreeSet::new();
+    for plugin in super::plugins::list(&pool).await? {
+        plugin_data.insert(plugin.id.clone());
+        retained.insert(format!(
+            "plugins/{}/revisions/{}",
+            plugin.id, plugin.revision.digest
+        ));
+    }
+    for skill in super::skills::list(&pool)
+        .await?
+        .into_iter()
+        .filter(|skill| skill.plugin_id.is_none())
+    {
+        retained.insert(format!("skills/{}/revisions/{}", skill.id, skill.digest));
+    }
+    let leases: Vec<String> = sqlx::query_scalar("SELECT document FROM content_leases")
+        .fetch_all(&pool)
+        .await
+        .map_err(|error| error.to_string())?;
+    for lease in leases {
+        retained.extend(database::decode::<Vec<String>>(&lease)?);
+    }
+    crate::blocking::run(move || {
+        for kind in ["plugins", "skills"] {
+            let directory = root.join(kind);
+            if !directory.exists() {
+                continue;
+            }
+            for entity in std::fs::read_dir(&directory).map_err(|error| error.to_string())? {
+                let entity = entity.map_err(|error| error.to_string())?;
+                let revisions = entity.path().join("revisions");
+                if !revisions.exists() {
+                    continue;
+                }
+                for revision in std::fs::read_dir(&revisions).map_err(|error| error.to_string())? {
+                    let revision = revision.map_err(|error| error.to_string())?;
+                    let relative = format!(
+                        "{kind}/{}/revisions/{}",
+                        entity.file_name().to_string_lossy(),
+                        revision.file_name().to_string_lossy()
+                    );
+                    if !retained.contains(&relative) {
+                        std::fs::remove_dir_all(revision.path())
+                            .map_err(|error| error.to_string())?;
+                    } else if kind == "plugins" {
+                        plugin_data.insert(entity.file_name().to_string_lossy().into_owned());
+                    }
+                }
+                if std::fs::read_dir(&revisions)
+                    .map_err(|error| error.to_string())?
+                    .next()
+                    .is_none()
+                {
+                    std::fs::remove_dir_all(entity.path()).map_err(|error| error.to_string())?;
+                }
+            }
+        }
+        let data = root.join("plugin-data");
+        if data.exists() {
+            for directory in std::fs::read_dir(&data).map_err(|error| error.to_string())? {
+                let directory = directory.map_err(|error| error.to_string())?;
+                if !plugin_data.contains(directory.file_name().to_string_lossy().as_ref()) {
+                    std::fs::remove_dir_all(directory.path()).map_err(|error| error.to_string())?;
+                }
+            }
+        }
+        Ok(())
+    })
+    .await
+}
+
+pub(crate) async fn release(app: &AppHandle, snapshot_id: &str) -> Result<(), String> {
+    let state = app.state::<super::ExtensionState>();
+    let _guard = state.content_lock.lock().await;
+    sqlx::query("DELETE FROM content_leases WHERE snapshot_id=$1")
+        .bind(snapshot_id)
+        .execute(&database::pool(app).await?)
+        .await
+        .map_err(|error| error.to_string())?;
+    super::mcp::sessions::release(app, snapshot_id).await;
+    collect(app).await
+}
+
+pub(crate) async fn release_run(
+    app: &AppHandle,
+    pool: &sqlx::SqlitePool,
+    run_id: &str,
+) -> Result<(), String> {
+    let snapshot: Option<String> = sqlx::query_scalar(
+        "SELECT json_extract(input_snapshot,'$.extensions.id') FROM spaces_runs WHERE id=$1",
+    )
+    .bind(run_id)
+    .fetch_one(pool)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    if let Some(snapshot) = snapshot {
+        release(app, &snapshot).await?;
+    }
+    Ok(())
+}

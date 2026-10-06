@@ -526,3 +526,15 @@ budgets. Image texture adjustment expresses sharpness, clarity and grain process
 HTML `<details>`, DOM/library event `detail`, vendor message fields and fixed external protocol
 spelling remain unchanged. Natural-language copy and user-provided text are not identifiers.
 Evaluate a persisted or external field before renaming it; do not add compatibility readers.
+
+## Agent extension vocabulary
+
+`PluginInstallation` identifies an installed package; its `PluginInspection` is reviewed immutable
+revision content. `PluginPublication` binds an explicit catalog, publisher ID and package name.
+`SkillRevision` identifies personal or plugin-owned Skill content. `McpConnection` is a protocol
+instance; `ConnectorDefinition` describes authorization requirements and `ConnectorAccount`
+is one selected identity. `AgentExtensionSelection` is user choice; `AgentExtensionSnapshot`
+is frozen execution input. `AgentToolBinding` distinguishes real Space Actions, MCP tools,
+resource reads and prompt retrieval. `ConversationToolOperation` records durable attempts
+for both built-in and ACP runs. Protocol `assistant`, `result`, `data` and `content` fields keep
+their upstream meanings; they do not rename a product Agent to an Assistant.

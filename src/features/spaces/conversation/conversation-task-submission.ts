@@ -1,6 +1,7 @@
 import type { Ref, ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
@@ -34,6 +35,7 @@ export interface ConversationSubmissionState {
 
 export interface ConversationSubmissionInput {
   mode: Ref<ConversationMode>;
+  extensions: Ref<AgentExtensionSelection>;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   conversation: Ref<Conversation | undefined>;
@@ -133,6 +135,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       prompt: input.prompt.value,
       target: input.target.value,
       attachments: input.attachments.value,
+      extensions: input.extensions.value,
     });
     if (!request) return;
     const submitted = ++generation;

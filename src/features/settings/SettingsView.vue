@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, watch } from "vue";
+import { computed, nextTick, watch, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
@@ -19,7 +19,10 @@ import type { GenerationActionOption } from "./generation-action-option";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
 import { settingsDefinition } from "./settings-registry";
 
-const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
+const props = defineProps<{
+  loadGenerationActions: () => Promise<GenerationActionOption[]>;
+  extensionsComponent: Component;
+}>();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
@@ -56,6 +59,7 @@ watch(
 const paneComponentMap = {
   aiModels: AiModelsSettingsPane,
   desktopAgents: DesktopAgentsSettingsPane,
+  extensions: props.extensionsComponent,
   usage: UsageSettingsPane,
   creation: CreationSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,

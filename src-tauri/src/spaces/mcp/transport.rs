@@ -25,6 +25,9 @@ pub(super) fn router(
     grant_id: String,
     parent_run_id: String,
     cancellation: CancellationToken,
+    conversation_extensions: Option<
+        std::sync::Arc<crate::extensions::contracts::AgentExtensionSnapshot>,
+    >,
 ) -> Router {
     let mcp_transport: StreamableHttpService<SpaceMcpServer, LocalSessionManager> =
         StreamableHttpService::new(
@@ -34,6 +37,7 @@ pub(super) fn router(
                     space_scope: space_scope.clone(),
                     grant_id: grant_id.clone(),
                     parent_run_id: parent_run_id.clone(),
+                    conversation_extensions: conversation_extensions.clone(),
                 })
             },
             Default::default(),

@@ -31,6 +31,9 @@ pub(crate) async fn start(
     space_id: String,
     actor_id: String,
     parent_run_id: String,
+    conversation_extensions: Option<
+        std::sync::Arc<crate::extensions::contracts::AgentExtensionSnapshot>,
+    >,
 ) -> Result<AgentMcpBinding, String> {
     let grant_id =
         crate::spaces::authorization::create_external_agent_grant(&app, &space_id, &actor_id)
@@ -51,6 +54,7 @@ pub(crate) async fn start(
         grant_id,
         parent_run_id,
         cancellation.child_token(),
+        conversation_extensions,
     );
     let shutdown = cancellation.clone();
     tauri::async_runtime::spawn(async move {

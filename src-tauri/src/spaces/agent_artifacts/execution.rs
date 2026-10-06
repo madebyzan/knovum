@@ -43,6 +43,7 @@ pub(super) async fn run(
         request.space_id.clone(),
         request.session_id.clone(),
         request.session_id.clone(),
+        None,
     )
     .await
     .map_err(AppError::internal)?;

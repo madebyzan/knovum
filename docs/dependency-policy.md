@@ -240,3 +240,30 @@ startup before SDK clients, using the native OS trust store. Credentials/telemet
 are not inherited through process environment. Production dependencies and native wheels for both
 release targets require the same inventory/SBOM/license/relocation gates as inference. The
 Builtin Agent review policy lives beside its own lock and must bind each conveyed platform inventory.
+
+## Agent extension dependency record
+
+| Dependency            | Exact version | Responsibility                             | License           |
+| --------------------- | ------------- | ------------------------------------------ | ----------------- |
+| rmcp                  | 3.1.3         | Existing server + official client/OAuth    | Apache-2.0        |
+| gix                   | 0.88.0        | HTTPS isolated Git object acquisition      | MIT OR Apache-2.0 |
+| yaml-rust2            | 0.13.0        | Skill frontmatter, duplicate-key rejection | MIT OR Apache-2.0 |
+| iri-string            | 0.7.10        | RFC 6570 URI template expansion            | MIT OR Apache-2.0 |
+| unicode-normalization | 0.1.25        | NFC portable package identity              | MIT OR Apache-2.0 |
+| oauth2                | 5.0.0         | rmcp OAuth HTTP public request types       | MIT OR Apache-2.0 |
+| sse-stream            | 0.2.5         | Bounded MCP HTTP event parsing             | MIT OR Apache-2.0 |
+| async-trait           | 0.1.92        | SDK CredentialStore implementation         | MIT OR Apache-2.0 |
+| url                   | 2.5.8         | Explicit origin/destination validation     | MIT OR Apache-2.0 |
+| tokio-util            | 0.7.19        | Cancellation and public SDK framing        | MIT               |
+
+Existing transitive dependencies become direct only where production code imports their public
+APIs. Git configuration remains isolated and has no checkout/submodule/credential-helper path.
+rmcp client features do not add a second protocol implementation. Frontend controls use existing
+Vue, TanStack, Zod, Tauri dialogs and product UI primitives. No frontend plugin framework or
+Python MCP dependency is added. Registry crate licenses and target feature graphs must be
+reviewed from the refreshed lockfile/SBOM before release.
+
+Pinned Agent Plugins 1.0.0 validation schemas (upstream agent-plugins.org):
+
+- `plugin.schema.json`: SHA-256 `0a4aad95ce337878ad38802ebf0daa3fde76abe3f65400c86bcbb1ec0b3ab883`.
+- `mcp.schema.json`: SHA-256 `6539175bfcdf43085855183e86da40ea94b166547a72b47ae9a0a390516d3acb`.

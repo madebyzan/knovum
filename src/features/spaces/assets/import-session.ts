@@ -22,8 +22,14 @@ interface SpaceImportSourceInput {
 
 export async function importSpaceSource(input: SpaceImportSourceInput): Promise<SpaceCanvasNode[]> {
   const { context, spaceId, source, position, labels, reveal = true } = input;
-  await context.ensureImportTarget(spaceId);
-  const operation = await prepareSpaceImportSource(source, labels, "scoped");
+  let operation: PreparedSpaceImportOperation;
+  try {
+    await context.ensureImportTarget(spaceId);
+    operation = await prepareSpaceImportSource(source, labels, "scoped");
+  } catch (error) {
+    if (typeof source !== "string") await source.dispose?.();
+    throw error;
+  }
   return commitPreparedSpaceImport({ context, spaceId, operation, position, reveal });
 }
 
@@ -46,12 +52,16 @@ interface PreparedSpaceImportInput {
   reveal?: boolean;
 }
 
-export function commitPreparedSpaceImport(input: PreparedSpaceImportInput): Promise<SpaceCanvasNode[]> {
+export async function commitPreparedSpaceImport(input: PreparedSpaceImportInput): Promise<SpaceCanvasNode[]> {
   const { context, operation, position, spaceId, reveal = true } = input;
   const { prepared, source, taskId } = operation;
-  if (!prepared.jobId)
-    return finalizePreparedImport({ context, source, position, reveal, spaceId, taskId, prepared });
-  return commitManagedImport({ context, spaceId, taskId, prepared, position, reveal, source });
+  try {
+    if (!prepared.jobId)
+      return await finalizePreparedImport({ context, source, position, reveal, spaceId, taskId, prepared });
+    return await commitManagedImport({ context, spaceId, taskId, prepared, position, reveal, source });
+  } finally {
+    if (typeof source !== "string") await source.dispose?.();
+  }
 }
 
 async function prepareImportSource(
@@ -79,10 +89,13 @@ async function finalizePreparedImport(options: CommitManagedImportOptions) {
   try {
     nodes = await context.createPendingContentForSpace(
       spaceId,
-      importedSpaceNodePayload(prepared.asset),
+      importedSpaceNodePayload(
+        prepared.asset,
+        typeof source === "string" ? undefined : source.externalSource,
+      ),
       position,
     );
-    if (typeof source !== "string") await source.finalize();
+    if (typeof source !== "string") await source.finalize?.();
     context.finalizePendingContent(spaceId, nodes, reveal);
   } catch (error) {
     await Promise.all(nodes.map((node) => context.discardPendingContent(spaceId, node.id)));

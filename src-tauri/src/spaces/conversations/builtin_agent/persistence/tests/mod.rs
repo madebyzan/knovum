@@ -26,6 +26,7 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         max_total_tokens: 100_000,
         max_duration_seconds: 900,
         attachments: vec![],
+        extensions: Default::default(),
     };
     let catalog = crate::spaces::conversations::tools::project(request.mode).unwrap();
     let ids = super::identity::TaskIds::new(&request);
@@ -73,6 +74,7 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
             ids: &ids,
             grant: &grant,
             catalog: &catalog,
+            extensions: &serde_json::from_value(json!({"id":"snapshot","digest":"digest","skills":[],"files":[],"skillToolBindings":{},"connections":[],"accounts":[],"catalogs":{},"tools":[]})).unwrap(),
             context_manifest: &attachments,
             space_context: &space,
             attachment_summaries: &[],

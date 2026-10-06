@@ -24,6 +24,18 @@ const recoveryMessage = computed(() => {
       return undefined;
   }
 });
+const toolWaitMessage = computed(() => {
+  switch (props.waitReason) {
+    case "tool_approval":
+      return t("extensions.toolApproval");
+    case "tool_outcome_unknown":
+      return t("extensions.toolOutcomeUnknown");
+    case "mcp_elicitation":
+      return t("extensions.externalUserInput");
+    default:
+      return undefined;
+  }
+});
 </script>
 
 <template>
@@ -52,6 +64,6 @@ const recoveryMessage = computed(() => {
     }}</UiButton>
   </div>
   <p v-else-if="state === 'waiting'" class="shrink-0 px-3 py-2 text-caption text-fg-secondary">
-    {{ t("spaces.conversation.tasks.waitingForResult") }}
+    {{ toolWaitMessage ?? t("spaces.conversation.tasks.waitingForResult") }}
   </p>
 </template>

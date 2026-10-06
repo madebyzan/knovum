@@ -100,6 +100,16 @@ pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> 
     if control.is_some_and(|(_, cancel)| cancel.is_some()) {
         return Ok(());
     }
+    let unknown: i64 = sqlx::query_scalar("SELECT count(*) FROM spaces_conversation_tool_operations WHERE run_id=$1 AND state='outcome_unknown' AND resolution IS NULL")
+        .bind(run_id).fetch_one(pool).await.map_err(db::sql_error)?;
+    if unknown != 0 {
+        return super::model_recovery::wait(
+            pool,
+            run_id,
+            crate::spaces::runs::WaitReason::ToolOutcomeUnknown,
+        )
+        .await;
+    }
     if let Some(reason) = super::model_recovery::reason(pool, run_id).await? {
         return super::model_recovery::wait(pool, run_id, reason).await;
     }

@@ -136,4 +136,17 @@ describe("task store", () => {
     await cancelling;
     expect(store.tasks[0]).toMatchObject({ status: "succeeded", cancellable: false, cancelling: false });
   });
+  it("does not restore a cancellation handler withdrawn during commit admission", async () => {
+    const store = useTaskStore();
+    let rejectCancellation!: (reason: Error) => void;
+    const pending = new Promise<void>((_resolve, reject) => {
+      rejectCancellation = reject;
+    });
+    const id = store.start("Install plugin", undefined, () => pending);
+    const cancelling = store.cancel(id);
+    store.setCancellation(id);
+    rejectCancellation(new Error("commit already admitted"));
+    await cancelling;
+    expect(store.tasks[0]).toMatchObject({ status: "running", cancelling: false, cancellable: false });
+  });
 });

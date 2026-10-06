@@ -35,6 +35,7 @@ pub struct SubmitConversationTaskRequest {
     pub target: TaskTargetSelection,
     #[serde(default)]
     pub attachments: Vec<ConversationAttachment>,
+    pub extensions: crate::extensions::contracts::AgentExtensionSelection,
 }
 
 #[derive(Clone, Debug)]
@@ -50,6 +51,7 @@ pub struct StartBuiltinAgentTaskRequest {
     pub max_total_tokens: u32,
     pub max_duration_seconds: u32,
     pub attachments: Vec<ConversationAttachment>,
+    pub extensions: crate::extensions::contracts::AgentExtensionSelection,
 }
 
 impl SubmitConversationTaskRequest {
@@ -66,6 +68,7 @@ impl SubmitConversationTaskRequest {
             max_total_tokens: 100_000,
             max_duration_seconds: 900,
             attachments: self.attachments,
+            extensions: self.extensions,
         }
     }
 }

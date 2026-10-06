@@ -190,3 +190,18 @@ Those values are intentionally not filled with placeholders in source control. S
 ## Updater artifacts
 
 Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers both supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.
+
+## Bundled Agent plugin content
+
+`src-tauri/resources/agent-plugins/knowledge-workflows` is the single bundled standard package;
+Tauri and `scripts/desktop/package.mjs` include this same directory. Debug reads the source
+resource; release resolves the packaged Tauri resource. The common installer publishes its
+immutable content into application data and preserves the user's enabled state. Application
+updates own the bundled revision; it cannot be uninstalled independently.
+
+Plugin installation never downloads executables or runs lifecycle scripts. stdio MCP requires
+an explicitly configured installed absolute executable and explicit connection enablement.
+Processes use existing process-group/Windows-job ownership and are killed when their task or
+account is revoked. External HTTPS package downloads and MCP endpoints pin validated DNS
+addresses and do not inherit environment proxies that bypass that policy. Release support remains
+macOS ARM64 and Windows x64. Agent RPC/graph v2 and profile v6 reject obsolete internal envelopes.

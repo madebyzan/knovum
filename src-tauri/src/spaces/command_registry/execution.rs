@@ -2,6 +2,11 @@ use tauri::ipc::Invoke;
 
 pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        crate::spaces::conversations::tool_operations::intervention::list_conversation_tool_operations,
+        crate::spaces::conversations::tool_operations::intervention::decide_conversation_tool_operation,
+        crate::spaces::conversations::tool_operations::interactions::list_mcp_user_interactions,
+        crate::spaces::conversations::tool_operations::interactions::answer_mcp_user_interaction,
+
         crate::spaces::conversations::commands::runs::start_conversation_task,
         crate::spaces::conversations::commands::runs::retry_builtin_agent_model,
         crate::spaces::conversations::upload::inspect_conversation_upload,

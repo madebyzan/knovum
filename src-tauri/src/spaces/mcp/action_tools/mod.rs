@@ -7,6 +7,7 @@ use super::{
     SpaceMcpServer,
 };
 use crate::spaces::actions;
+mod invocation;
 
 #[tool_router(router = action_router, vis = "pub(super)")]
 impl SpaceMcpServer {
@@ -34,8 +35,8 @@ impl SpaceMcpServer {
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
         require_platform_action(&args.action_id).map_err(mcp_error)?;
-        let outcome = actions::invoke_with_app(
-            &self.app,
+        let outcome = invocation::invoke(
+            self,
             actions::ActionInvocationRequest {
                 invocation_id: uuid::Uuid::new_v4().to_string(),
                 idempotency_key: args.idempotency_key,
@@ -48,6 +49,7 @@ impl SpaceMcpServer {
                 expected_revisions: args.expected_revisions,
                 parent_run_id: Some(self.parent_run_id.clone()),
             },
+            "invoke_space_action",
         )
         .await
         .map_err(mcp_error)?;
@@ -60,8 +62,8 @@ impl SpaceMcpServer {
         Parameters(args): Parameters<CommitKnowledgeArgs>,
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
-        let outcome = actions::invoke_with_app(
-            &self.app,
+        let outcome = invocation::invoke(
+            self,
             actions::ActionInvocationRequest {
                 invocation_id: uuid::Uuid::new_v4().to_string(),
                 idempotency_key: args.idempotency_key,
@@ -74,6 +76,7 @@ impl SpaceMcpServer {
                 expected_revisions: json!({}),
                 parent_run_id: Some(self.parent_run_id.clone()),
             },
+            "commit_knowledge_changes",
         )
         .await
         .map_err(mcp_error)?;

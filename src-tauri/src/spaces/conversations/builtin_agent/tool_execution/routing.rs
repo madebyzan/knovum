@@ -13,7 +13,7 @@ pub(super) async fn selection(
         return Ok(None);
     };
     let previous: Option<String> = sqlx::query_scalar(
-        "SELECT target_selection FROM spaces_builtin_agent_tool_operations WHERE invocation_id=$1",
+        "SELECT target_selection FROM spaces_conversation_tool_operations WHERE invocation_id=$1",
     )
     .bind(invocation_id)
     .fetch_optional(&host.pool)

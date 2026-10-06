@@ -1,3 +1,5 @@
+import { copyExtensionSelection } from "../../../foundation/extensions/extension-selection";
+import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
@@ -11,6 +13,7 @@ interface ConversationTaskRequestInput {
   prompt: string;
   target: TaskTargetRef | undefined;
   attachments: ConversationAttachment[];
+  extensions: AgentExtensionSelection;
 }
 
 export function conversationTaskRequest(
@@ -26,5 +29,6 @@ export function conversationTaskRequest(
     prompt: text,
     target: input.target.type === "model" ? { ...input.target, temperature: 0.2 } : input.target,
     attachments: [...input.attachments],
+    extensions: copyExtensionSelection(input.extensions),
   };
 }

@@ -21,8 +21,11 @@ pub(super) fn launch(
     let ids = host.ids.clone();
     let pool = host.pool.clone();
     let updates = host.updates.clone();
+    let app = host.app.clone();
+    let snapshot_id = host.extensions.id.clone();
     tauri::async_runtime::spawn(async move {
         let state = match driver::drive(host, messages, resume, cancellation).await {
+            Ok(DriveOutcome::Waiting) => Ok(ConversationTaskFinishedState::Waiting),
             Ok(DriveOutcome::Paused) => Ok(ConversationTaskFinishedState::Paused),
             Ok(DriveOutcome::Completed) => completion::complete(&pool, &ids).await,
             Err(error) => Err(error),
@@ -37,12 +40,23 @@ pub(super) fn launch(
                     Ok(state) => state,
                     Err(error) => {
                         log::error!("Builtin Agent final state unavailable: {error}");
+                        crate::extensions::mcp::sessions::release(&app, &snapshot_id).await;
                         super::cancellation::remove(&ids.run_id);
                         return;
                     }
                 }
             }
         };
+        let resumable = matches!(
+            state,
+            ConversationTaskFinishedState::Paused | ConversationTaskFinishedState::Waiting
+        );
+        if resumable {
+            crate::extensions::mcp::sessions::release(&app, &snapshot_id).await;
+        } else if let Err(error) = crate::extensions::reclamation::release(&app, &snapshot_id).await
+        {
+            log::error!("Agent extension release failed: {error}");
+        }
         super::cancellation::remove(&ids.run_id);
         if let Some(channel) = updates {
             let _ = channel.send(ConversationTaskUpdate::Finished { state });

@@ -52,6 +52,9 @@ pub enum WaitReason {
     ModelOutcomeUnknown,
     ModelResponseUncommitted,
     ModelUsageUnknown,
+    ToolApproval,
+    ToolOutcomeUnknown,
+    McpElicitation,
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

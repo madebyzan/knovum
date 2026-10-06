@@ -16,15 +16,15 @@ const toolPayload = z.strictObject({
   toolCallId: z.string(),
   title: z.string().nullish(),
   actionId: z.string().nullish(),
-  status: z.enum(["pending", "in_progress", "completed", "failed"]).nullish(),
+  status: z.enum(["pending", "in_progress", "completed", "failed", "outcome_unknown"]).nullish(),
   context: z.unknown().optional(),
 });
 const textPayload = z.object({ text: z.string() });
 const toolEvents = new Set([
   "external_agent_tool_started",
   "external_agent_tool_updated",
-  "builtin_agent_tool_started",
-  "builtin_agent_tool_finished",
+  "conversation_tool_started",
+  "conversation_tool_finished",
 ]);
 
 function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
@@ -61,7 +61,7 @@ function toolTitle(
 function toolStatus(event: RunEvent, status: z.infer<typeof toolPayload>["status"], previous?: ActivityItem) {
   return (
     status ??
-    (event.kind === "builtin_agent_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
+    (event.kind === "conversation_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
   );
 }
 

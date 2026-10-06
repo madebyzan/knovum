@@ -3,11 +3,12 @@ pub(crate) mod commands;
 mod context;
 mod contract;
 mod execution;
+mod extensions;
 mod external_agent;
 pub(crate) mod outputs;
 pub(crate) mod queries;
 mod repository;
-mod skills;
+pub(crate) mod tool_operations;
 mod tools;
 pub(crate) mod upload;
 

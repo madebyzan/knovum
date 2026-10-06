@@ -1,8 +1,16 @@
+import type { ExternalContentSource } from "../contracts/generated/ExternalContentSource";
 import type { PreparedAsset as ImportedSpaceAsset } from "../contracts/generated/PreparedAsset";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { extractImportedMarkdownDocument } from "./markdown-document";
 
-export function importedSpaceNodePayload(asset: ImportedSpaceAsset): SpaceNodePayload {
+export function importedSpaceNodePayload(
+  asset: ImportedSpaceAsset,
+  externalSource?: ExternalContentSource,
+): SpaceNodePayload {
+  const payload = importedPayload(asset);
+  return externalSource ? { ...payload, externalSource } : payload;
+}
+function importedPayload(asset: ImportedSpaceAsset): SpaceNodePayload {
   if (asset.kind === "markdown") return importedMarkdownPayload(asset);
   const common = importedAssetCommon(asset);
   if (asset.kind === "image") return { ...common, kind: "image", ...intrinsicSize(asset) };

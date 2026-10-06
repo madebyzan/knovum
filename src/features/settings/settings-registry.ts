@@ -1,4 +1,4 @@
-import { Activity, Archive, Boxes, Info, MonitorCog, Terminal, WandSparkles } from "@lucide/vue";
+import { Activity, Archive, Boxes, Info, MonitorCog, Puzzle, Terminal, WandSparkles } from "@lucide/vue";
 import type { Component } from "vue";
 
 import type { SettingsPaneId } from "./settings-pane";
@@ -80,6 +80,14 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         descriptionKey: "settings.agents.description",
       },
     ],
+  },
+  {
+    id: "extensions",
+    group: "intelligence",
+    titleKey: "extensions.title",
+    descriptionKey: "extensions.description",
+    searchKeys: ["extensions.plugins", "extensions.skills", "extensions.connections"],
+    icon: Puzzle,
   },
   {
     id: "usage",

@@ -9,9 +9,14 @@ use crate::{
     spaces::actions::{self, SpaceActionDefinition},
 };
 
+pub struct CatalogToolBinding {
+    pub source: crate::extensions::contracts::AgentToolBinding,
+    pub read_only: bool,
+}
+
 pub struct ToolCatalog {
     pub tools: Vec<ModelToolDefinition>,
-    pub by_wire_name: HashMap<String, &'static SpaceActionDefinition>,
+    pub by_wire_name: HashMap<String, CatalogToolBinding>,
     pub digest: String,
 }
 
@@ -38,7 +43,16 @@ pub fn project(mode: ConversationMode) -> Result<ToolCatalog, String> {
             description: description(definition),
             input_schema: schema(definition),
         });
-        by_wire_name.insert(wire_name, definition);
+        by_wire_name.insert(
+            wire_name,
+            CatalogToolBinding {
+                source: crate::extensions::contracts::AgentToolBinding::SpaceAction {
+                    action_id: definition.id.into(),
+                    action_version: definition.version,
+                },
+                read_only: definition.impact == actions::SpaceActionImpact::ReadOnly,
+            },
+        );
     }
     let encoded = serde_json::to_vec(&(mode, &tools)).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
@@ -46,6 +60,59 @@ pub fn project(mode: ConversationMode) -> Result<ToolCatalog, String> {
         by_wire_name,
         digest: format!("{:x}", Sha256::digest(encoded)),
     })
+}
+
+impl ToolCatalog {
+    pub fn extend(
+        &mut self,
+        snapshot: &crate::extensions::contracts::AgentExtensionSnapshot,
+    ) -> Result<(), String> {
+        for tool in &snapshot.tools {
+            if self.by_wire_name.contains_key(&tool.name) {
+                return Err("agent-tool-wire-name-collision".into());
+            }
+            self.tools.push(ModelToolDefinition {
+                name: tool.name.clone(),
+                description: tool.description.clone(),
+                input_schema: tool.input_schema.clone(),
+            });
+            self.by_wire_name.insert(
+                tool.name.clone(),
+                CatalogToolBinding {
+                    source: tool.binding.clone(),
+                    read_only: tool.read_only,
+                },
+            );
+        }
+        self.digest = format!(
+            "{:x}",
+            Sha256::digest(
+                serde_json::to_vec(&(&self.digest, &snapshot.digest, &self.tools))
+                    .map_err(|error| error.to_string())?
+            )
+        );
+        Ok(())
+    }
+    pub fn action(&self, name: &str) -> Result<&'static SpaceActionDefinition, String> {
+        match &self
+            .by_wire_name
+            .get(name)
+            .ok_or("agent-tool-not-selected")?
+            .source
+        {
+            crate::extensions::contracts::AgentToolBinding::SpaceAction {
+                action_id,
+                action_version,
+            } => {
+                let definition = actions::require(action_id)?;
+                if definition.version != *action_version {
+                    return Err("space-action-version-changed".into());
+                }
+                Ok(definition)
+            }
+            _ => Err("agent-tool-is-not-space-action".into()),
+        }
+    }
 }
 
 fn wire_name(definition: &SpaceActionDefinition) -> String {

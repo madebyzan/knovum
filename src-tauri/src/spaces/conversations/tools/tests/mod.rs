@@ -18,7 +18,7 @@ fn discovery_tools_do_not_require_preselected_resource_ids() {
             let tool = catalog
                 .tools
                 .iter()
-                .find(|tool| catalog.by_wire_name[&tool.name].id == id)
+                .find(|tool| matches!(&catalog.by_wire_name[&tool.name].source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == id))
                 .unwrap();
             assert!(tool.input_schema["properties"]
                 .get("inputNodeIds")
@@ -29,7 +29,7 @@ fn discovery_tools_do_not_require_preselected_resource_ids() {
         let create = catalog
             .by_wire_name
             .values()
-            .any(|definition| definition.id == "create-note");
+            .any(|definition| matches!(&definition.source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == "create-note"));
         assert_eq!(create, matches!(mode, super::ConversationMode::Execute));
     }
 }

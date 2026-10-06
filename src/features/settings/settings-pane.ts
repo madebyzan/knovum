@@ -4,6 +4,7 @@ const settingsPaneIds = [
   "appearance",
   "aiModels",
   "desktopAgents",
+  "extensions",
   "usage",
   "creation",
   "archivedSpaces",

@@ -11,6 +11,8 @@ from ._internal import (
     AgentInitialize,
     AgentPruneThreads,
     AgentReady,
+    AgentSkillFile,
+    SkillFileEncoding,
 )
 
 __all__ = [
@@ -23,4 +25,6 @@ __all__ = [
     "AgentInitialize",
     "AgentPruneThreads",
     "AgentReady",
+    "AgentSkillFile",
+    "SkillFileEncoding",
 ]

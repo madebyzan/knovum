@@ -569,7 +569,9 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 ### Schema ownership and supporting modules
 
 Rust DTOs generate the TypeScript IPC contracts and `python/schemas/inference.schema.json` through
-`pnpm contracts:generate`. `scripts/generate_python_contracts.py` then produces strict Pydantic
+`pnpm contracts:generate`, using the existing `export_space_contracts` CLI. Contract regression
+tests export to a temporary directory and compare committed output; tests never write into the repository.
+`scripts/generate_python_contracts.py` then produces strict Pydantic
 models under `python/src/knovum_inference/contracts/generated/` from that schema. The existing
 [generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit
 ownership map changes Python file placement only, never canonical wire names or field definitions.
@@ -593,3 +595,16 @@ Rust and Python source files are limited to 350 nonblank lines, including genera
 contracts. Split by responsibility; keep bindings as reproducible modular generator output.
 Frontend files retain the Oxc 180-line and complexity limits; complete Vue SFCs also have a 180-nonblank-line source-layout ceiling. Declarative schemas, static fixtures and documentation
 are maintained according to their own contracts.
+
+## Agent extension ownership
+
+Rust `extensions/{plugins,skills,connectors,mcp,snapshots}` owns install content, v1 metadata,
+authorization and outbound protocol access. It has no dependency on Spaces. Spaces composes
+snapshots and owns task grants, the common conversation tool ledger, user interventions and
+resource publication. `features/extensions` owns management UI; `app/router.ts` injects that
+pane into Settings. Settings and Spaces do not import extension business UI. The foundation
+extension modules contain shared IPC/query contracts, not extension policy or presentation.
+Task snapshots carry reviewed bytes and exact connection/account/catalog identities. There is
+one plugin installation path, one SDK client and one tool-operation ledger; old fixed Skills and
+Action-only tool-operation persistence are removed. Current pre-release SQLite baselines are
+strict and incompatible development databases require an explicit reset.

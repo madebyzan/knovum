@@ -10,17 +10,6 @@ use crate::{
     },
 };
 
-mod operations;
-pub use operations::{
-    complete_tool_call, start_tool_call, BuiltinAgentToolCallCompletion, BuiltinAgentToolCallStart,
-};
-
-pub struct BuiltinAgentToolCallOutcome {
-    pub id: String,
-    pub output: Option<Value>,
-    pub target_selection: Option<Value>,
-}
-
 pub(in crate::spaces::conversations) struct RecoverableTask {
     pub task_id: String,
     pub run_id: String,
@@ -37,6 +26,7 @@ pub(in crate::spaces::conversations) struct RecoverableTask {
     pub catalog_digest: String,
     pub session: Session,
     pub messages: Vec<AgentInputMessage>,
+    pub extensions: crate::extensions::contracts::AgentExtensionSnapshot,
     pub max_turns: u16,
     pub max_tool_calls: u16,
     pub max_total_tokens: u32,
@@ -110,6 +100,7 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
             input_id: row.try_get("input_id").map_err(db::sql_error)?,
         },
         messages: serde_json::from_value(input["messages"].clone()).map_err(db::json_error)?,
+        extensions: serde_json::from_value(input["extensions"].clone()).map_err(db::json_error)?,
         max_turns: u16::try_from(number(&budget, "maxTurns")?)
             .map_err(|_| "builtin-agent-budget-invalid")?,
         max_tool_calls: u16::try_from(number(&budget, "maxTools")?)

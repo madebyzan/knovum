@@ -1,6 +1,7 @@
 #[cfg(windows)]
 use super::windows_job::WindowsJob;
-#[cfg(windows)]
+#[cfg(unix)]
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::process::Child;
 
@@ -9,7 +10,10 @@ pub(crate) struct ProcessTree(Option<KillHandle>);
 #[derive(Clone)]
 pub(crate) enum KillHandle {
     #[cfg(unix)]
-    ProcessGroup(i32),
+    ProcessGroup {
+        id: i32,
+        terminated: Arc<AtomicBool>,
+    },
     #[cfg(windows)]
     Job(Arc<WindowsJob>),
 }
@@ -18,11 +22,14 @@ impl KillHandle {
     pub(crate) fn terminate(&self) {
         #[cfg(unix)]
         {
-            let Self::ProcessGroup(group) = self;
+            let Self::ProcessGroup { id, terminated } = self;
+            if terminated.swap(true, Ordering::AcqRel) {
+                return;
+            }
             unsafe extern "C" {
                 fn kill(pid: i32, signal: i32) -> i32;
             }
-            let _ = unsafe { kill(-group, 9) };
+            let _ = unsafe { kill(-id, 9) };
         }
         #[cfg(windows)]
         {
@@ -44,7 +51,10 @@ impl ProcessTree {
         Ok(Self(Some({
             #[cfg(unix)]
             {
-                KillHandle::ProcessGroup(process_group)
+                KillHandle::ProcessGroup {
+                    id: process_group,
+                    terminated: Arc::new(AtomicBool::new(false)),
+                }
             }
             #[cfg(windows)]
             {

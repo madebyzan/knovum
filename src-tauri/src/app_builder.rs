@@ -1,6 +1,6 @@
 use tauri::{Builder, Wry};
 
-use crate::{ai, app_resources, app_window, desktop, secrets, spaces, updater};
+use crate::{ai, app_resources, app_window, desktop, extensions, secrets, spaces, updater};
 
 pub(crate) fn run() {
     let builder = platform_builder(base_builder());
@@ -35,6 +35,7 @@ fn base_builder() -> Builder<Wry> {
         .plugin(app_resources::plugin())
         .plugin(secrets::plugin())
         .plugin(ai::plugin())
+        .plugin(extensions::plugin())
         .plugin(spaces::plugin());
     dictation_builder(builder)
 }

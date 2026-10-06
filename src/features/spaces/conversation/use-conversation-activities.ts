@@ -61,5 +61,5 @@ export function useConversationActivities(
     }
   }
 
-  return { eventsByRun, error, inspect };
+  return { eventsByRun, activityError: error, inspectActivity: inspect };
 }

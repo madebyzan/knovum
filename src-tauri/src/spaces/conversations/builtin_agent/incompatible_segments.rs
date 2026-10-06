@@ -20,16 +20,18 @@ pub(super) async fn retire(app: &AppHandle, pool: &sqlx::SqlitePool) -> Result<(
         )
         .await?;
     }
-    for mode in [
-        ConversationMode::Ask,
-        ConversationMode::Plan,
-        ConversationMode::Execute,
-    ] {
-        let digest = tools::project(mode)?.digest;
-        let incompatible: Vec<String> = sqlx::query_scalar("SELECT r.id FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id
-            WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND json_extract(r.policy_snapshot,'$.mode')=$1 AND t.catalog_digest!=$2")
-            .bind(mode.as_str()).bind(digest).fetch_all(pool).await.map_err(db::sql_error)?;
-        for run_id in incompatible {
+    let records: Vec<(String,String,String,String)> = sqlx::query_as("SELECT r.id,r.policy_snapshot,r.input_snapshot,t.catalog_digest FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL")
+        .fetch_all(pool).await.map_err(db::sql_error)?;
+    for (run_id, policy, input, expected) in records {
+        let policy: serde_json::Value = serde_json::from_str(&policy).map_err(db::json_error)?;
+        let input: serde_json::Value = serde_json::from_str(&input).map_err(db::json_error)?;
+        let mode: ConversationMode =
+            serde_json::from_value(policy["mode"].clone()).map_err(db::json_error)?;
+        let snapshot: crate::extensions::contracts::AgentExtensionSnapshot =
+            serde_json::from_value(input["extensions"].clone()).map_err(db::json_error)?;
+        let mut catalog = tools::project(mode)?;
+        catalog.extend(&snapshot)?;
+        if catalog.digest != expected {
             cancel(
                 app,
                 pool,

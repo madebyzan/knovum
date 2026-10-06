@@ -11,6 +11,7 @@ import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationAttachments } from "./use-conversation-attachments";
 import { useConversationBranches } from "./use-conversation-branches";
 import { useConversationDraftSession } from "./use-conversation-draft-session";
+import { useConversationExtensions } from "./use-conversation-extensions";
 import { useConversationMessagePages } from "./use-conversation-message-pages";
 import { useConversationTask } from "./use-conversation-task";
 import { useImageCommentDraft } from "./use-image-comment-draft";
@@ -18,11 +19,11 @@ import { useImageCommentDraft } from "./use-image-comment-draft";
 export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const attachmentSession = useConversationAttachments();
-  const { attachments, addNodeAttachments } = attachmentSession;
   const conversations = shallowRef<Conversation[]>([]);
   const selectedSnapshot = shallowRef<Conversation>();
   const messages = shallowRef<ConversationMessage[]>([]);
   const selectedConversationId = shallowRef("");
+  const extensionSession = useConversationExtensions(spaceId, selectedConversationId);
   const prompt = shallowRef("");
   const mode = shallowRef<ConversationMode>("execute");
   const target = shallowRef<TaskTargetRef>();
@@ -48,8 +49,13 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedConversation,
     messages,
   });
-  const draftSession = useConversationDraftSession({ spaceId, selectedConversationId, prompt, attachments });
-  draftSession.restore("");
+  const draftSession = useConversationDraftSession({
+    spaceId,
+    selectedConversationId,
+    prompt,
+    attachments: attachmentSession.attachments,
+    extensions: extensionSession.extensionSelection,
+  });
   const { refreshConversations, selectConversation } = createConversationSelection({
     spaceId,
     query: conversationQuery,
@@ -84,7 +90,8 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     mode,
     prompt,
     target,
-    attachments,
+    attachments: attachmentSession.attachments,
+    extensions: extensionSession.extensionSelection,
     visibleAttachments: attachmentSession.visibleAttachments,
     messages,
     refresh: refreshConversations,
@@ -93,11 +100,11 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     clearDraft: draftSession.clearSubmitted,
     restoreDraft: draftSession.restoreSubmitted,
   });
-  const {
-    eventsByRun,
-    error: activityError,
-    inspect: inspectActivity,
-  } = useConversationActivities(selectedConversationId, task.activeRunId, task.activityRevision);
+  const activitySession = useConversationActivities(
+    selectedConversationId,
+    task.activeRunId,
+    task.activityRevision,
+  );
 
   watch(
     spaceId,
@@ -121,7 +128,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
       const requestedSpace = spaceId.value;
       if (request.restart) await selectConversation("");
       if (spaceId.value !== requestedSpace) return;
-      if (request.scope === "selection") addNodeAttachments(request.nodeIds);
+      if (request.scope === "selection") attachmentSession.addNodeAttachments(request.nodeIds);
     },
     { immediate: true },
   );
@@ -136,17 +143,17 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     send: task.send,
   });
   return {
+    ...extensionSession,
     conversations,
     messages,
     branches: branchSession.branches,
-    eventsByRun,
-    activityError,
-    inspectActivity,
+    ...activitySession,
     selectedConversationId,
     selectedConversation,
     mode,
     prompt,
     target,
+    activityRevision: task.activityRevision,
     activeRunId: task.activeRunId,
     activeConversationId: task.activeConversationId,
     visibleTaskState: task.visibleTaskState,

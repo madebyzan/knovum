@@ -18,6 +18,9 @@ pub async fn start(
     lifecycle::validate(&request)?;
     crate::ai::settings::ensure_agent_enabled(&app, request.runtime_kind)
         .map_err(|error| error.to_string())?;
+    let extensions: crate::extensions::contracts::AgentExtensionSnapshot =
+        serde_json::from_value(request.input_snapshot["extensions"].clone())
+            .map_err(db::json_error)?;
     let id = uuid::Uuid::new_v4().to_string();
     let run_id = uuid::Uuid::new_v4().to_string();
     let workspace = capabilities::agent_artifacts::workspace(&app, &request.space_id, &id)
@@ -42,6 +45,7 @@ pub async fn start(
         request.space_id.clone(),
         id.clone(),
         run_id.clone(),
+        Some(Arc::new(extensions)),
     )
     .await
     {

@@ -48,6 +48,11 @@ class AgentExecutionIdentity(WireModel):
     control_epoch: Annotated[int, Field(alias="controlEpoch", ge=0)]
 
 
+class SkillFileEncoding(StrEnum):
+    utf8 = "utf8"
+    base64 = "base64"
+
+
 class AgentExecutionState(StrEnum):
     completed = "completed"
     interrupted = "interrupted"
@@ -56,6 +61,16 @@ class AgentExecutionState(StrEnum):
 class AgentControlOperation(StrEnum):
     pause = "pause"
     cancel = "cancel"
+
+
+class AgentSkillFile(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    path: str
+    encoding: SkillFileEncoding
+    content: str
+    digest: str
 
 
 class AgentExecutionResult(WireModel):
@@ -88,7 +103,10 @@ class AgentExecute(WireModel):
     input_id: Annotated[str, Field(alias="inputId")]
     after_checkpoint_id: Annotated[str | None, Field(alias="afterCheckpointId")] = None
     resume: Any | None = None
-    skills: dict[str, str]
+    skills: list[AgentSkillFile]
+    skill_tool_bindings: Annotated[
+        dict[str, list[str]], Field(alias="skillToolBindings")
+    ]
     memory: dict[str, str]
     plan: bool
     research: bool

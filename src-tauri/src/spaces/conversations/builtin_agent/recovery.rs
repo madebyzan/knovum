@@ -8,6 +8,16 @@ pub(super) async fn recover_all(app: AppHandle) -> Result<(), String> {
     let pool = crate::spaces::db::pool(&app).await?;
     super::incompatible_segments::retire(&app, pool).await?;
     for task in repository::recoverable_tasks(pool).await? {
+        let run = crate::spaces::runs::load_run(pool, &task.run_id).await?;
+        if matches!(
+            run.wait_reason,
+            Some(
+                crate::spaces::runs::WaitReason::ToolApproval
+                    | crate::spaces::runs::WaitReason::ToolOutcomeUnknown
+            )
+        ) {
+            continue;
+        }
         recover_task(&app, pool, task, false, None).await?;
     }
     Ok(())
@@ -35,7 +45,9 @@ async fn recover_task(
     if task.profile_version != super::BUILTIN_AGENT_PROFILE_VERSION {
         return Err("builtin-agent-profile-changed: start a new execution segment".into());
     }
-    let catalog = tools::project(task.mode)?;
+    crate::extensions::snapshots::require_current(app, &task.extensions).await?;
+    let mut catalog = tools::project(task.mode)?;
+    catalog.extend(&task.extensions)?;
     if catalog.digest != task.catalog_digest {
         return Err("builtin-agent-action-catalog-changed: start a new execution segment".into());
     }
@@ -51,6 +63,7 @@ async fn recover_task(
         max_total_tokens: task.max_total_tokens,
         max_duration_seconds: task.max_duration_seconds,
         attachments: Vec::new(),
+        extensions: Default::default(),
     };
     let ids = super::identity::TaskIds {
         task_id: task.task_id,
@@ -91,6 +104,7 @@ async fn recover_task(
             request,
             ids,
             catalog,
+            extensions: task.extensions,
             session,
             updates: None,
             last_message: std::sync::Mutex::new(None),
@@ -121,14 +135,18 @@ pub(super) async fn prepare(
     if active != 0 {
         return Err("builtin-agent-busy: another built-in execution is active".into());
     }
+    let pending: i64=sqlx::query_scalar("SELECT count(*) FROM spaces_conversation_tool_operations WHERE run_id=$1 AND ((state='prepared' AND approval IS NULL) OR (state='outcome_unknown' AND resolution IS NULL))").bind(run_id).fetch_one(&mut *tx).await.map_err(crate::spaces::db::sql_error)?;
+    if pending != 0 {
+        return Err("builtin-agent-tool-intervention-required".into());
+    }
     let now = crate::clock::unix_time_millis()?;
     if let Some(version) = expected_retry_version {
         super::model_recovery::authorize_retry(&mut tx, run_id, version, now).await?;
     }
     let sql = if user_resume {
         "UPDATE spaces_runs SET state='running',wait_reason=NULL,pause_requested_at=NULL,state_version=state_version+1,updated_at=$1
-         WHERE id=$2 AND state='paused' AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NOT NULL
-         AND EXISTS(SELECT 1 FROM spaces_run_events e WHERE e.run_id=spaces_runs.id AND e.kind='builtin_agent_paused_checkpoint' AND e.created_at>=spaces_runs.pause_requested_at)"
+         WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND ((state='waiting' AND pause_requested_at IS NULL AND wait_reason IN ('tool_approval','tool_outcome_unknown')) OR (state='paused' AND pause_requested_at IS NOT NULL
+         AND EXISTS(SELECT 1 FROM spaces_run_events e WHERE e.run_id=spaces_runs.id AND e.kind='builtin_agent_paused_checkpoint' AND e.created_at>=spaces_runs.pause_requested_at)))"
     } else {
         "UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1,updated_at=$1
          WHERE id=$2 AND state IN ('queued','running','waiting') AND completed_at IS NULL AND pause_requested_at IS NULL AND cancel_requested_at IS NULL"

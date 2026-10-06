@@ -8,6 +8,7 @@
       "capabilities": [
         "main-desktop",
         "spaces",
+        "agent-extensions",
         {
           "identifier": "e2e",
           "description": "Test-only WebdriverIO capability enabled only by the E2E build flavor.",

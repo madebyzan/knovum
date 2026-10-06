@@ -32,6 +32,10 @@ pub(crate) struct AgentToolInvocation {
     deny_unknown_fields
 )]
 pub(crate) enum AgentToolOutcome {
+    AwaitUser {
+        operation_id: String,
+        reason: String,
+    },
     Completed {
         value: Value,
         media: Vec<AgentContentPart>,

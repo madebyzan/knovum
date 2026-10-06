@@ -5,6 +5,8 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
+import AgentExtensionPicker from "./AgentExtensionPicker.vue";
+import ConversationToolInterventions from "./ConversationToolInterventions.vue";
 import SpaceConversationComposer from "./SpaceConversationComposer.vue";
 import SpaceConversationHeader from "./SpaceConversationHeader.vue";
 import SpaceConversationMessages from "./SpaceConversationMessages.vue";
@@ -13,6 +15,10 @@ import SpaceConversationRunStatus from "./SpaceConversationRunStatus.vue";
 const conversationSession = useConversationSessionStore();
 const {
   messages,
+  extensionSelection,
+  extensionAvailability,
+  extensionsLoading,
+  extensionsError,
   eventsByRun,
   activityError,
   selectedConversationId,
@@ -86,6 +92,18 @@ async function previewAttachment(key: string) {
         @inspect-activity="conversationSession.inspectActivity"
       />
     </div>
+    <ConversationToolInterventions
+      v-if="activeRunId && visibleTaskState === 'waiting'"
+      :run-id="activeRunId"
+      :revision="conversationSession.activityRevision"
+    />
+    <AgentExtensionPicker
+      v-model="extensionSelection"
+      :availability="extensionAvailability"
+      :read-only="mode !== 'execute'"
+      :disabled="loading || Boolean(activeRunId) || extensionsLoading"
+      :error="extensionsError"
+    />
     <SpaceConversationRunStatus
       :can-pause="canPause"
       @pause="conversationSession.pause"
@@ -103,7 +121,7 @@ async function previewAttachment(key: string) {
       :attachment-candidates="attachmentCandidates"
       :attachment-error="attachmentError"
       :picking-files="pickingFiles"
-      :busy="loading || Boolean(activeRunId)"
+      :busy="loading || Boolean(activeRunId) || extensionsLoading || Boolean(extensionsError)"
       @add-selection="conversationSession.addSelectedAttachments"
       @add-attachment="(id) => conversationSession.addNodeAttachments([id])"
       @choose-files="conversationSession.chooseFiles"

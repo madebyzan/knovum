@@ -42,6 +42,16 @@ pub(crate) async fn read_secret(secret_key: &str) -> Result<Option<String>, Stri
     store::get(database().await?, secret_key).await
 }
 
+pub(crate) async fn write_secret(secret_key: &str, secret: &str) -> Result<(), String> {
+    validate_key(secret_key)?;
+    store::set(database().await?, secret_key, secret).await
+}
+
+pub(crate) async fn remove_secret(secret_key: &str) -> Result<(), String> {
+    validate_key(secret_key)?;
+    store::delete(database().await?, secret_key).await
+}
+
 #[tauri::command]
 pub async fn get(secret_key: String) -> Result<Option<String>, AppError> {
     Ok((read_secret(&secret_key).await)?)
@@ -49,14 +59,12 @@ pub async fn get(secret_key: String) -> Result<Option<String>, AppError> {
 
 #[tauri::command]
 pub async fn set(secret_key: String, secret: String) -> Result<(), AppError> {
-    validate_key(&secret_key)?;
-    Ok((store::set(database().await?, &secret_key, &secret).await)?)
+    Ok(write_secret(&secret_key, &secret).await?)
 }
 
 #[tauri::command]
 pub async fn delete(secret_key: String) -> Result<(), AppError> {
-    validate_key(&secret_key)?;
-    Ok((store::delete(database().await?, &secret_key).await)?)
+    Ok(remove_secret(&secret_key).await?)
 }
 
 pub fn plugin() -> TauriPlugin<Wry> {
