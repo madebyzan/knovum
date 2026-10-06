@@ -2,12 +2,13 @@
 import { computed, shallowRef, watch } from "vue";
 
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
+import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import McpEndpointFields from "../connections/McpEndpointFields.vue";
 import ConnectorRequirements from "./ConnectorRequirements.vue";
-const connector = defineModel<ConnectorDefinition>({ required: true });
+const connector = defineModel<ConnectorDefinition & { endpoint: McpEndpoint }>({ required: true });
 defineProps<{ busy: boolean }>();
 const emit = defineEmits<{ save: []; close: [] }>();
 const publicFields = shallowRef("{}");

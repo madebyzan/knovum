@@ -14,6 +14,7 @@ import UiInput from "../../../shared/ui/UiInput.vue";
 import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import ConnectorAccounts from "./ConnectorAccounts.vue";
+import PluginConnectorConfiguration from "./PluginConnectorConfiguration.vue";
 
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
 defineEmits<{ edit: []; remove: [] }>();
@@ -25,7 +26,11 @@ const connections = computed(() =>
 );
 const selected = computed(() => connections.value.find((connection) => connection.id === selectedId.value));
 function mutate(operation: () => Promise<unknown>) {
-  void changes.mutateAsync(operation).catch(() => {});
+  void changes
+    .mutateAsync(async () => {
+      await operation();
+    })
+    .catch(() => {});
 }
 function create() {
   mutate(async () => {
@@ -65,7 +70,11 @@ function create() {
         >
       </div>
     </header>
-    <ConnectorAccounts v-if="connector.authorization.type !== 'none'" :connector="connector" />
+    <PluginConnectorConfiguration v-if="connector.pluginId" :connector="connector" />
+    <ConnectorAccounts
+      v-if="connector.endpoint && connector.authorization.type !== 'none'"
+      :connector="connector"
+    />
     <form class="flex items-end gap-2" @submit.prevent="create">
       <label class="min-w-0 flex-1 text-caption"
         >{{ $t("extensions.connectionName") }}<UiInput v-model="name" data-testid="connection-instance-name"

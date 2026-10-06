@@ -24,8 +24,8 @@ pub(crate) async fn read_resource(
         &connection.connector_id,
     )
     .await?;
-    let session = super::client::connect(app, &connection, &connector, None).await?;
-    let read = async {
+    let connection = &connection;
+    super::sessions::with_inspection(app, connection, &connector, |session| async move {
         let catalog = super::catalog::read(&session.service).await?;
         if catalog.digest != catalog_digest {
             return Err("mcp-browse-catalog-revised".into());
@@ -45,7 +45,7 @@ pub(crate) async fn read_resource(
                 super::resource_selection::expand(&catalog, selection)?
             }
         };
-        super::connections::require_current(app, &connection).await?;
+        super::connections::require_current(app, connection).await?;
         let response = tokio::time::timeout(
             std::time::Duration::from_secs(120),
             session
@@ -68,10 +68,8 @@ pub(crate) async fn read_resource(
             contents,
             digest: content::digest(&encoded),
         })
-    }
-    .await;
-    session.close().await;
-    read
+    })
+    .await
 }
 
 #[tauri::command]
@@ -104,8 +102,9 @@ pub async fn get_mcp_prompt(
         &connection.connector_id,
     )
     .await?;
-    let session = super::client::connect(&app, &connection, &connector, None).await?;
-    let read = async {
+    let connection = &connection;
+    let app = &app;
+    super::sessions::with_inspection(app, connection, &connector, |session| async move {
         let catalog = super::catalog::read(&session.service).await?;
         if catalog.digest != catalog_digest
             || !catalog.prompts.iter().any(|prompt| prompt.name == name)
@@ -118,7 +117,7 @@ pub async fn get_mcp_prompt(
             .map_err(|error| error.to_string())?
             .validate(&serde_json::json!({"name":name,"arguments":arguments}))
             .map_err(|error| error.to_string())?;
-        super::connections::require_current(&app, &connection).await?;
+        super::connections::require_current(app, connection).await?;
         let response = tokio::time::timeout(
             std::time::Duration::from_secs(120),
             session
@@ -136,8 +135,6 @@ pub async fn get_mcp_prompt(
             return Err("mcp-prompt-content-exceeds-8-mib".into());
         }
         serde_json::to_value(response).map_err(|error| error.to_string())
-    }
-    .await;
-    session.close().await;
-    read
+    })
+    .await
 }

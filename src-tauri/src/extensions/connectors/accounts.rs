@@ -41,6 +41,18 @@ pub(super) async fn set_status(
     Ok(())
 }
 
+pub(super) async fn begin_authorization(
+    pool: &SqlitePool,
+    account: &ConnectorAccount,
+) -> Result<(), String> {
+    let updated = sqlx::query("UPDATE connector_accounts SET document=json_set(document,'$.enabled',json('false')) WHERE id=$1 AND document=$2")
+        .bind(&account.id).bind(database::encode(account)?).execute(pool).await.map_err(|error| error.to_string())?;
+    if updated.rows_affected() != 1 {
+        return Err("connector-account-revoked-during-authorization".into());
+    }
+    Ok(())
+}
+
 pub(super) async fn commit_authorization(
     pool: &SqlitePool,
     account: &ConnectorAccount,
@@ -78,14 +90,23 @@ pub(in crate::extensions) fn validate_binding(
     connector: &super::super::contracts::ConnectorDefinition,
     account: &ConnectorAccount,
 ) -> Result<(), String> {
+    validate_identity(connector, account)?;
+    if !account.enabled || account.cleanup_pending {
+        return Err("connector-account-not-authorized".into());
+    }
+    Ok(())
+}
+
+pub(super) fn validate_identity(
+    connector: &super::super::contracts::ConnectorDefinition,
+    account: &ConnectorAccount,
+) -> Result<(), String> {
     if account.connector_id != connector.id
-        || account.resource != super::super::mcp::endpoint::resource(&connector.endpoint)
+        || account.resource
+            != super::super::mcp::endpoint::resource(connector.configured_endpoint()?)
         || account.authorization != connector.authorization
     {
         return Err("connector-account-binding-mismatch".into());
-    }
-    if !account.enabled || account.cleanup_pending {
-        return Err("connector-account-not-authorized".into());
     }
     Ok(())
 }

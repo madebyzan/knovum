@@ -35,7 +35,11 @@ const releases = computed(() =>
     ),
 );
 function mutate(operation: () => Promise<unknown>) {
-  void changes.mutateAsync(operation).catch(() => {});
+  void changes
+    .mutateAsync(async () => {
+      await operation();
+    })
+    .catch(() => {});
 }
 function add(source: MarketplaceSource) {
   mutate(() => addPluginMarketplace(source));

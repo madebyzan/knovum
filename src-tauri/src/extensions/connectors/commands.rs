@@ -24,12 +24,13 @@ pub async fn create_connector_account(
     }
     let pool = database::pool(&app).await?;
     let connector = super::definitions::load(&pool, &connector_id).await?;
+    let resource = super::super::mcp::endpoint::resource(connector.configured_endpoint()?);
     let account = ConnectorAccount {
         id: uuid::Uuid::new_v4().to_string(),
         revision: uuid::Uuid::new_v4().to_string(),
         connector_id: connector.id,
         display_name,
-        resource: super::super::mcp::endpoint::resource(&connector.endpoint),
+        resource,
         issuer: None,
         scopes: Vec::new(),
         authorization: connector.authorization,
@@ -53,17 +54,15 @@ pub async fn authorize_connector_account(
     if account.cleanup_pending {
         return Err("connector-account-disconnect-in-progress".into());
     }
-    accounts::set_status(&pool, &id, false, false).await?;
+    let connector = super::definitions::load(&pool, &account.connector_id).await?;
+    let fields =
+        super::authorization_admission::admit(&pool, &account, &connector, secret_fields).await?;
     super::super::mcp::sessions::revoke_account(&app, &id).await;
     let authorization = async {
         match &account.authorization {
             ConnectorAuthorization::OAuth { .. } => {
-                if !secret_fields.is_empty() {
-                    return Err("oauth-credentials-must-not-be-provided-manually".into());
-                }
-                let connector = super::definitions::load(&pool, &account.connector_id).await?;
                 let allow_local = matches!(
-                    connector.endpoint,
+                    connector.configured_endpoint()?,
                     McpEndpoint::StreamableHttp {
                         allow_local_network: true,
                         ..
@@ -71,34 +70,10 @@ pub async fn authorize_connector_account(
                 );
                 authorization::authorize(&app, &mut account, allow_local).await?;
             }
-            ConnectorAuthorization::Bearer => {
-                let token = secret_fields
-                    .get("token")
-                    .filter(|value| !value.is_empty())
-                    .ok_or("connector-bearer-token-required")?;
-                if secret_fields.len() != 1 {
-                    return Err("connector-secret-fields-invalid".into());
-                }
-                let fields = [("Authorization", format!("Bearer {token}"))]
-                    .into_iter()
-                    .collect::<BTreeMap<_, _>>();
+            ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
                 crate::secrets::write_secret(&key(&id), &database::encode(&fields)?).await?;
             }
-            ConnectorAuthorization::SecretFields { names } => {
-                if names.len() != secret_fields.len()
-                    || names
-                        .iter()
-                        .any(|name| secret_fields.get(name).is_none_or(String::is_empty))
-                {
-                    return Err("connector-required-secret-fields-mismatch".into());
-                }
-                crate::secrets::write_secret(&key(&id), &database::encode(&secret_fields)?).await?;
-            }
-            ConnectorAuthorization::None => {
-                if !secret_fields.is_empty() {
-                    return Err("unauthenticated-connector-does-not-accept-secrets".into());
-                }
-            }
+            ConnectorAuthorization::None => {}
         }
         Ok::<_, String>(())
     }

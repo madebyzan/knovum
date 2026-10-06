@@ -135,5 +135,9 @@
   "emptyConnectors": "No external service connectors configured",
   "pluginConnector": "Provided by plugin",
   "customConnector": "Custom service",
-  "accountBindingChanges": "Changing the account disables this connection and clears tool permissions. Review permissions and enable it again."
+  "accountBindingChanges": "Changing the account disables this connection and clears tool permissions. Review permissions and enable it again.",
+  "changeCommittedCleanupPending": "Changes were saved. Some cleanup could not finish; affected accounts remain unavailable.",
+  "declaredCommand": "Program requested by plugin",
+  "localConfigurationRequired": "Choose an installed program before using this connector.",
+  "chooseInstalledExecutable": "Choose installed program"
 }

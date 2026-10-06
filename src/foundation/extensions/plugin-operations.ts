@@ -1,3 +1,4 @@
+import type { ExtensionChange } from "../../shared/contracts/generated/ExtensionChange";
 import type { MarketplaceSource } from "../../shared/contracts/generated/MarketplaceSource";
 import type { PluginInspection } from "../../shared/contracts/generated/PluginInspection";
 import type { PluginInstallation } from "../../shared/contracts/generated/PluginInstallation";
@@ -17,17 +18,20 @@ export const installPlugin = (
   expectedDigest: string,
   publication: PluginPublication | null,
 ) =>
-  runPluginOperation<PluginInstallation>("install_plugin", "extensions.taskInstall", {
+  runPluginOperation<ExtensionChange<PluginInstallation>>("install_plugin", "extensions.taskInstall", {
     source,
     expectedDigest,
     publication,
   });
 export const updatePlugin = (id: string, expectedDigest: string) =>
-  runPluginOperation<PluginInstallation>("update_plugin", "extensions.taskUpdate", { id, expectedDigest });
+  runPluginOperation<ExtensionChange<PluginInstallation>>("update_plugin", "extensions.taskUpdate", {
+    id,
+    expectedDigest,
+  });
 export const setPluginEnabled = (id: string, enabled: boolean) =>
   invokeCommand<void>("plugin:extensions|set_plugin_enabled", { id, enabled });
 export const uninstallPlugin = (id: string) =>
-  invokeCommand<void>("plugin:extensions|uninstall_plugin", { id });
+  invokeCommand<ExtensionChange<null>>("plugin:extensions|uninstall_plugin", { id });
 export const searchPlugins = (query: string) =>
   invokeCommand<PluginMarketplace[]>("plugin:extensions|search_plugins", { query });
 export const addPluginMarketplace = (source: MarketplaceSource) =>

@@ -197,6 +197,15 @@ connector definitions, connection instances and connector accounts in `extension
 inbound and outbound MCP. Python receives reviewed Skill bytes and authorized tool definitions,
 with no upstream endpoint, process path or credentials. Each task freezes connector and connection revisions, schemas,
 account bindings, authorization revisions and explicit tool/resource/prompt selection; each invocation rechecks revocation.
+Plugin stdio declarations install without starting or discovering a process. Users select an
+installed executable through the native dialog; the host resolves the declared parameters into
+one configured endpoint. HTTP local-network access requires explicit user consent. Unconfigured
+services remain visible and cannot be enabled for execution. Inspection and browsing sessions use
+the same registry and account/plugin/connector revocation as task sessions.
+Committed extension changes report post-commit cleanup failures separately. The UI refreshes
+authoritative queries on both success and failure and shows pending cleanup without treating the
+committed value as absent. Authorization validates submitted fields before disabling current
+authority; changing an account binding disables the connection and clears its reviewed policies.
 Reauthorization atomically changes the account revision and clears bound tool permissions for fresh
 review. A frozen checkpoint cannot use replacement credentials, even when the account ID is unchanged.
 Settings presents connectors as external services with capabilities, accounts and independent

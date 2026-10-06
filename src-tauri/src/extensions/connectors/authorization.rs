@@ -9,7 +9,7 @@ use super::{
 use rmcp::transport::auth::{
     AuthorizationManager, AuthorizationRequest, InMemoryStateStore, OAuthState,
 };
-use std::{collections::BTreeMap, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
@@ -166,46 +166,6 @@ fn error_category(error: &rmcp::transport::auth::AuthError) -> &'static str {
         AuthError::TokenExchangeFailed(_) => "authorization code exchange was rejected",
         AuthError::HttpError(_) => "authorization endpoint request failed",
         _ => "authorization state or provider metadata was rejected",
-    }
-}
-
-pub(crate) async fn credentials(
-    app: &AppHandle,
-    id: &str,
-    resource: &str,
-    allow_local: bool,
-) -> Result<BTreeMap<String, String>, String> {
-    let lock = account_lock(app, id).await;
-    let _guard = lock.lock().await;
-    let account = accounts::load(&database::pool(app).await?, id).await?;
-    if !account.enabled || account.cleanup_pending || account.resource != resource {
-        return Err("connector-account-revoked-or-resource-changed".into());
-    }
-    match &account.authorization {
-        ConnectorAuthorization::None => Ok(BTreeMap::new()),
-        ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
-            let document = crate::secrets::read_secret(&key(id))
-                .await?
-                .ok_or("connector-authorization-required")?;
-            serde_json::from_str(&document).map_err(|_| "connector-secret-fields-invalid".into())
-        }
-        ConnectorAuthorization::OAuth { .. } => {
-            let mut manager = manager(app, &account, allow_local, None).await?;
-            if !manager
-                .initialize_from_store()
-                .await
-                .map_err(|_| "connector-oauth-stored-identity-rejected")?
-            {
-                return Err("connector-authorization-required".into());
-            }
-            let token = manager
-                .get_access_token()
-                .await
-                .map_err(|_| "connector-oauth-token-refresh-failed-reauthorize")?;
-            Ok([("Authorization".into(), format!("Bearer {token}"))]
-                .into_iter()
-                .collect())
-        }
     }
 }
 

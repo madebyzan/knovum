@@ -79,3 +79,61 @@ fn plugin_service_metadata_is_bound_to_the_standard_mcp_component() {
     );
     assert_eq!(connector.configuration["url"], "https://example.com/mcp");
 }
+
+#[test]
+fn stdio_declaration_preserves_valid_skills_before_machine_configuration() {
+    let mut files = package();
+    files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"local":{"type":"stdio","command":"node","args":["server.js"]}}})).unwrap());
+    let reviewed = super::inspect(&files, "one".into()).unwrap();
+    assert_eq!(reviewed.skills.len(), 1);
+    assert_eq!(reviewed.inspection.connectors.len(), 1);
+    assert_eq!(
+        reviewed.inspection.connectors[0].configuration["command"],
+        "node"
+    );
+    assert!(reviewed
+        .inspection
+        .components
+        .iter()
+        .any(|component| component.kind == "mcp" && component.supported));
+}
+
+#[test]
+fn incompatible_stdio_auth_is_diagnosed_without_discarding_independent_skills() {
+    let mut files = package();
+    let mut manifest: serde_json::Value = serde_json::from_slice(&files["plugin.json"]).unwrap();
+    manifest["extensions"] = json!({"com.zand.knovum":{"connectors":{"local":{"name":"Local","description":"Reference","authorization":{"type":"bearer"}}}}});
+    files.insert("plugin.json".into(), serde_json::to_vec(&manifest).unwrap());
+    files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"local":{"type":"stdio","command":"node"}}})).unwrap());
+    let reviewed = super::inspect(&files, "one".into()).unwrap();
+    assert_eq!(reviewed.skills.len(), 1);
+    assert!(reviewed.inspection.connectors.is_empty());
+    assert!(reviewed
+        .inspection
+        .components
+        .iter()
+        .any(|component| component.name == "local" && !component.supported));
+}
+
+#[test]
+fn invalid_http_secret_fields_are_diagnosed_before_installation() {
+    for names in [
+        vec!["bad name"],
+        vec!["mcp-session-id"],
+        vec!["X-Key", "x-key"],
+        vec![],
+    ] {
+        let mut files = package();
+        let mut manifest: serde_json::Value =
+            serde_json::from_slice(&files["plugin.json"]).unwrap();
+        manifest["extensions"] = json!({"com.zand.knovum":{"connectors":{"remote":{"name":"Remote","description":"Reference","authorization":{"type":"secret_fields","names":names}}}}});
+        files.insert("plugin.json".into(), serde_json::to_vec(&manifest).unwrap());
+        files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"remote":{"type":"streamable-http","url":"https://example.com/mcp"}}})).unwrap());
+        let reviewed = super::inspect(&files, "one".into()).unwrap();
+        assert_eq!(reviewed.skills.len(), 1);
+        assert!(reviewed.inspection.connectors.is_empty());
+        assert!(reviewed.inspection.components.iter().any(|component| {
+            component.kind == "mcp" && component.name == "remote" && !component.supported
+        }));
+    }
+}

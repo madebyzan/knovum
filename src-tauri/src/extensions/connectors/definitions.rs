@@ -36,8 +36,7 @@ pub(in crate::extensions) async fn replace_on(
     tx: &mut SqliteConnection,
     definition: &ConnectorDefinition,
     previous: Option<&ConnectorDefinition>,
-) -> Result<Vec<String>, String> {
-    let mut revoked = Vec::new();
+) -> Result<(), String> {
     if let Some(previous) = previous {
         let current: String = sqlx::query_scalar(
             "SELECT json_extract(document,'$.revision') FROM connectors WHERE id=$1",
@@ -60,7 +59,9 @@ pub(in crate::extensions) async fn replace_on(
                 account.enabled = false;
                 account.cleanup_pending = true;
                 account.revision = uuid::Uuid::new_v4().to_string();
-                account.resource = super::super::mcp::endpoint::resource(&definition.endpoint);
+                if let Some(endpoint) = &definition.endpoint {
+                    account.resource = super::super::mcp::endpoint::resource(endpoint);
+                }
                 account.authorization = definition.authorization.clone();
                 account.issuer = None;
                 account.scopes.clear();
@@ -70,7 +71,6 @@ pub(in crate::extensions) async fn replace_on(
                     .execute(&mut *tx)
                     .await
                     .map_err(|error| error.to_string())?;
-                revoked.push(account.id);
             }
             sqlx::query("UPDATE connections SET document=json_set(document,'$.enabled',json('false'),'$.accountId',NULL,'$.tools',json('[]')) WHERE json_extract(document,'$.connectorId')=$1")
                 .bind(&definition.id).execute(&mut *tx).await.map_err(|error| error.to_string())?;
@@ -80,7 +80,7 @@ pub(in crate::extensions) async fn replace_on(
     }
     sqlx::query("INSERT INTO connectors(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
         .bind(&definition.id).bind(database::encode(definition)?).execute(tx).await.map_err(|error| error.to_string())?;
-    Ok(revoked)
+    Ok(())
 }
 
 pub(in crate::extensions) async fn delete_on(

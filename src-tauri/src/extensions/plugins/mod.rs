@@ -49,6 +49,9 @@ pub(crate) async fn ensure_builtin(app: &AppHandle) -> Result<(), String> {
         path: "builtin:knowledge-workflows".into(),
     };
     let reviewed = packages::inspect(&files, digest)?;
-    installation::commit(app, BUILTIN_ID, source, reviewed, files, true, None).await?;
+    let change = installation::commit(app, BUILTIN_ID, source, reviewed, files, true, None).await?;
+    if !change.cleanup_errors.is_empty() {
+        return Err(change.cleanup_errors.join("\n"));
+    }
     Ok(())
 }

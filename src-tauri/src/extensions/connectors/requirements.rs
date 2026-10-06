@@ -1,7 +1,7 @@
 use super::super::contracts::{ConnectorAuthorization, McpEndpoint};
 use std::collections::BTreeSet;
 
-pub(crate) fn validate(authorization: &ConnectorAuthorization) -> Result<(), String> {
+fn validate(authorization: &ConnectorAuthorization) -> Result<(), String> {
     match authorization {
         ConnectorAuthorization::SecretFields { names } => {
             let mut unique = BTreeSet::new();
@@ -33,22 +33,37 @@ pub(in crate::extensions) fn validate_access(
     authorization: &ConnectorAuthorization,
 ) -> Result<(), String> {
     super::super::mcp::endpoint::validate(endpoint)?;
-    validate(authorization)?;
-    match (endpoint, authorization) {
-        (
-            McpEndpoint::Stdio { .. },
-            ConnectorAuthorization::OAuth { .. } | ConnectorAuthorization::Bearer,
-        ) => Err("connector-token-authorization-requires-http-endpoint".into()),
-        (McpEndpoint::StreamableHttp { .. }, ConnectorAuthorization::SecretFields { names }) => {
-            for name in names {
-                reqwest::header::HeaderName::from_bytes(name.as_bytes())
-                    .map_err(|_| "connector-secret-header-name-invalid")?;
-                if super::super::mcp::endpoint::reserved_header(name) {
-                    return Err("connector-cannot-override-mcp-transport-header".into());
-                }
-            }
-            Ok(())
-        }
-        _ => Ok(()),
+    match endpoint {
+        McpEndpoint::Stdio { .. } => validate_stdio(authorization),
+        McpEndpoint::StreamableHttp { .. } => validate_http(authorization),
     }
+}
+
+pub(in crate::extensions) fn validate_stdio(
+    authorization: &ConnectorAuthorization,
+) -> Result<(), String> {
+    validate(authorization)?;
+    if matches!(
+        authorization,
+        ConnectorAuthorization::OAuth { .. } | ConnectorAuthorization::Bearer
+    ) {
+        return Err("connector-token-authorization-requires-http-endpoint".into());
+    }
+    Ok(())
+}
+
+pub(in crate::extensions) fn validate_http(
+    authorization: &ConnectorAuthorization,
+) -> Result<(), String> {
+    validate(authorization)?;
+    if let ConnectorAuthorization::SecretFields { names } = authorization {
+        for name in names {
+            reqwest::header::HeaderName::from_bytes(name.as_bytes())
+                .map_err(|_| "connector-secret-header-name-invalid")?;
+            if super::super::mcp::endpoint::reserved_header(name) {
+                return Err("connector-cannot-override-mcp-transport-header".into());
+            }
+        }
+    }
+    Ok(())
 }

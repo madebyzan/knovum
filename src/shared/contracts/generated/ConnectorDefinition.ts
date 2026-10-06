@@ -2,4 +2,4 @@
 import type { ConnectorAuthorization } from "./ConnectorAuthorization";
 import type { McpEndpoint } from "./McpEndpoint";
 
-export type ConnectorDefinition = { id: string, revision: string, name: string, description: string, pluginId: string | null, componentName: string | null, endpoint: McpEndpoint, authorization: ConnectorAuthorization, };
+export type ConnectorDefinition = { id: string, revision: string, name: string, description: string, pluginId: string | null, componentName: string | null, endpoint: McpEndpoint | null, authorization: ConnectorAuthorization, };

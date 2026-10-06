@@ -14,7 +14,7 @@ async fn pool() -> SqlitePool {
         .unwrap();
     pool
 }
-fn component(name: &str) -> (PluginConnectorDeclaration, McpEndpoint) {
+fn component(name: &str) -> (PluginConnectorDeclaration, Option<McpEndpoint>) {
     (
         PluginConnectorDeclaration {
             component_name: name.into(),
@@ -23,17 +23,17 @@ fn component(name: &str) -> (PluginConnectorDeclaration, McpEndpoint) {
             configuration: json!({}),
             authorization: ConnectorAuthorization::None,
         },
-        McpEndpoint::StreamableHttp {
+        Some(McpEndpoint::StreamableHttp {
             url: "https://example.com/mcp".into(),
             headers: Default::default(),
             allow_local_network: false,
-        },
+        }),
     )
 }
 async fn publish(
     pool: &SqlitePool,
     revision: &str,
-    components: &[(PluginConnectorDeclaration, McpEndpoint)],
+    components: &[(PluginConnectorDeclaration, Option<McpEndpoint>)],
 ) {
     let mut tx = pool.begin().await.unwrap();
     super::publish_on(&mut tx, "plugin", revision, components)
@@ -112,4 +112,79 @@ async fn removed_plugin_component_retires_its_instances_without_recreating_user_
     assert_eq!(current.len(), 1);
     assert_eq!(current[0].id, retained.id);
     assert!(connections::list(&pool).await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn unconfigured_stdio_component_is_published_as_an_inactive_service() {
+    let pool = pool().await;
+    let (mut declaration, _) = component("local-server");
+    declaration.configuration = json!({"type":"stdio","command":"node"});
+    publish(&pool, "one", &[(declaration, None)]).await;
+    let definition = definitions::list(&pool).await.unwrap().remove(0);
+    assert!(definition.configured_endpoint().is_err());
+    let instance = connections::list(&pool).await.unwrap().remove(0);
+    assert!(!instance.enabled);
+    assert_eq!(instance.connector_id, definition.id);
+}
+
+#[test]
+fn installed_program_binding_survives_same_command_and_expires_when_command_changes() {
+    let (mut declaration, _) = component("local-server");
+    declaration.configuration = json!({"type":"stdio","command":"node","args":["one"]});
+    let endpoint = Some(McpEndpoint::Stdio {
+        executable: "/installed/node".into(),
+        args: vec!["one".into()],
+        cwd: None,
+        environment: Default::default(),
+    });
+    let definition = ConnectorDefinition {
+        id: "service".into(),
+        revision: "one".into(),
+        name: declaration.name.clone(),
+        description: declaration.description.clone(),
+        plugin_id: Some("plugin".into()),
+        component_name: Some(declaration.component_name.clone()),
+        endpoint,
+        authorization: ConnectorAuthorization::None,
+    };
+    let mut changed = declaration.clone();
+    changed.configuration["args"] = json!(["two"]);
+    assert!(
+        matches!(super::retained_configuration(&changed, Some(&declaration), Some(&definition)), Some(PluginConnectorConfiguration::Stdio { executable }) if executable == "/installed/node")
+    );
+    changed.configuration["command"] = json!("python");
+    assert!(
+        super::retained_configuration(&changed, Some(&declaration), Some(&definition)).is_none()
+    );
+}
+
+#[test]
+fn network_permission_is_not_transferred_to_a_different_service_url() {
+    let (mut declaration, _) = component("remote");
+    declaration.configuration = json!({"type":"streamable-http","url":"https://example.com/mcp"});
+    let definition = ConnectorDefinition {
+        id: "service".into(),
+        revision: "one".into(),
+        name: declaration.name.clone(),
+        description: declaration.description.clone(),
+        plugin_id: Some("plugin".into()),
+        component_name: Some(declaration.component_name.clone()),
+        endpoint: Some(McpEndpoint::StreamableHttp {
+            url: "https://example.com/mcp".into(),
+            headers: Default::default(),
+            allow_local_network: true,
+        }),
+        authorization: ConnectorAuthorization::None,
+    };
+    assert!(matches!(
+        super::retained_configuration(&declaration, Some(&declaration), Some(&definition)),
+        Some(PluginConnectorConfiguration::StreamableHttp {
+            allow_local_network: true
+        })
+    ));
+    let mut changed = declaration.clone();
+    changed.configuration["url"] = json!("https://other.example.com/mcp");
+    assert!(
+        super::retained_configuration(&changed, Some(&declaration), Some(&definition)).is_none()
+    );
 }

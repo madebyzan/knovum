@@ -1,5 +1,5 @@
 use super::super::{
-    contracts::{AgentExtensionSnapshot, McpConnection},
+    contracts::{AgentExtensionSnapshot, ConnectorDefinition, McpConnection},
     ExtensionState,
 };
 use super::{
@@ -19,6 +19,88 @@ pub(in crate::extensions) struct SessionSlot {
 }
 pub(in crate::extensions) type Sessions = HashMap<(String, String), Arc<SessionSlot>>;
 
+async fn register(
+    sessions: &Mutex<Sessions>,
+    shutdown: &CancellationToken,
+    scope: &str,
+    connection: &McpConnection,
+    connector: &ConnectorDefinition,
+) -> Arc<SessionSlot> {
+    sessions
+        .lock()
+        .await
+        .entry((scope.into(), connection.id.clone()))
+        .or_insert_with(|| {
+            Arc::new(SessionSlot {
+                connection: connection.clone(),
+                plugin_id: connector.plugin_id.clone(),
+                cancellation: shutdown.child_token(),
+                session: Mutex::new(None),
+            })
+        })
+        .clone()
+}
+
+pub(super) async fn with_inspection<T, F, Fut>(
+    app: &AppHandle,
+    connection: &McpConnection,
+    connector: &ConnectorDefinition,
+    operation: F,
+) -> Result<T, String>
+where
+    F: FnOnce(Arc<McpSession>) -> Fut,
+    Fut: std::future::Future<Output = Result<T, String>>,
+{
+    super::connections::require_reviewable(app, connection).await?;
+    let pool = super::super::database::pool(app).await?;
+    let account = match &connection.account_id {
+        Some(id) => Some(super::super::connectors::accounts::load(&pool, id).await?),
+        None => None,
+    };
+    let scope = uuid::Uuid::new_v4().to_string();
+    let state = app.state::<ExtensionState>();
+    let slot = register(
+        &state.sessions,
+        &state.shutdown,
+        &scope,
+        connection,
+        connector,
+    )
+    .await;
+    let inspect = async {
+        let session = Arc::new(
+            client::connect(
+                app,
+                connection,
+                connector,
+                None,
+                slot.cancellation.child_token(),
+            )
+            .await?,
+        );
+        *slot.session.lock().await = Some(session.clone());
+        super::connections::require_reviewable(app, connection).await?;
+        super::super::connectors::definitions::require_current(&pool, connector).await?;
+        if let Some(account) = &account {
+            super::super::connectors::accounts::require_current(&pool, account).await?;
+        }
+        let value = operation(session).await?;
+        super::connections::require_reviewable(app, connection).await?;
+        super::super::connectors::definitions::require_current(&pool, connector).await?;
+        if let Some(account) = &account {
+            super::super::connectors::accounts::require_current(&pool, account).await?;
+        }
+        Ok(value)
+    };
+    let result = tokio::select! {
+        biased;
+        _ = slot.cancellation.cancelled() => Err("mcp-inspection-session-revoked".into()),
+        result = inspect => result,
+    };
+    release(app, &scope).await;
+    result
+}
+
 pub(crate) async fn acquire(
     app: &AppHandle,
     snapshot: &AgentExtensionSnapshot,
@@ -37,20 +119,14 @@ pub(crate) async fn acquire(
     )
     .await?;
     let state = app.state::<ExtensionState>();
-    let slot = state
-        .sessions
-        .lock()
-        .await
-        .entry((snapshot.id.clone(), connection.id.clone()))
-        .or_insert_with(|| {
-            Arc::new(SessionSlot {
-                connection: connection.clone(),
-                plugin_id: connector.plugin_id.clone(),
-                cancellation: state.shutdown.child_token(),
-                session: Mutex::new(None),
-            })
-        })
-        .clone();
+    let slot = register(
+        &state.sessions,
+        &state.shutdown,
+        &snapshot.id,
+        connection,
+        connector,
+    )
+    .await;
     let mut stored = slot.session.lock().await;
     if slot.cancellation.is_cancelled() {
         return Err("mcp-task-session-revoked".into());
@@ -62,7 +138,16 @@ pub(crate) async fn acquire(
         return Ok(session.clone());
     }
     let connected = async {
-        let session = Arc::new(client::connect(app, connection, connector, interaction).await?);
+        let session = Arc::new(
+            client::connect(
+                app,
+                connection,
+                connector,
+                interaction,
+                slot.cancellation.child_token(),
+            )
+            .await?,
+        );
         super::connections::require_current(app, connection).await?;
         super::super::connectors::definitions::require_current(
             &super::super::database::pool(app).await?,
@@ -78,6 +163,7 @@ pub(crate) async fn acquire(
         Ok::<_, String>(session)
     };
     let session = tokio::select! {
+        biased;
         _ = slot.cancellation.cancelled() => return Err("mcp-task-session-revoked".into()),
         connected = connected => connected?,
     };
@@ -96,9 +182,15 @@ pub(crate) async fn inspect(
 }
 
 async fn revoke(app: &AppHandle, predicate: impl Fn(&(String, String), &SessionSlot) -> bool) {
-    let state = app.state::<ExtensionState>();
+    revoke_matching(&app.state::<ExtensionState>().sessions, predicate).await;
+}
+
+async fn revoke_matching(
+    sessions: &Mutex<Sessions>,
+    predicate: impl Fn(&(String, String), &SessionSlot) -> bool,
+) {
     let removed = {
-        let mut sessions = state.sessions.lock().await;
+        let mut sessions = sessions.lock().await;
         let keys: Vec<_> = sessions
             .iter()
             .filter(|(key, slot)| predicate(key, slot))
@@ -112,6 +204,9 @@ async fn revoke(app: &AppHandle, predicate: impl Fn(&(String, String), &SessionS
         slot.cancellation.cancel();
         if let Some(session) = slot.session.lock().await.take() {
             session.cancel();
+            if let Ok(session) = Arc::try_unwrap(session) {
+                session.close().await;
+            }
         }
     }
 }
@@ -143,3 +238,7 @@ pub(crate) async fn revoke_plugin(app: &AppHandle, plugin_id: &str) {
 pub(in crate::extensions) async fn revoke_connector(app: &AppHandle, connector_id: &str) {
     revoke(app, |_, slot| slot.connection.connector_id == connector_id).await;
 }
+
+#[cfg(test)]
+#[path = "tests/sessions.rs"]
+mod tests;

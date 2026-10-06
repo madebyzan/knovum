@@ -1,5 +1,5 @@
 use super::super::{
-    contracts::{SkillContent, SkillRevision},
+    contracts::{ExtensionChange, SkillContent, SkillRevision},
     database, ExtensionState,
 };
 use super::revisions;
@@ -29,7 +29,7 @@ pub async fn create_skill(
     app: AppHandle,
     name: String,
     markdown: String,
-) -> Result<SkillRevision, String> {
+) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let files = [("SKILL.md".into(), markdown.into_bytes())]
@@ -37,19 +37,25 @@ pub async fn create_skill(
         .collect();
     let skill = super::review(&files, &name)?;
     revisions::publish(&app, &skill, files).await?;
-    super::super::reclamation::collect(&app).await?;
-    Ok(skill)
+    Ok(ExtensionChange::committed(
+        skill,
+        [super::super::reclamation::collect(&app).await],
+    ))
 }
 
 #[tauri::command]
 pub async fn save_skill_revision(
     app: AppHandle,
     id: String,
+    expected_digest: String,
     markdown: String,
-) -> Result<SkillRevision, String> {
+) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let previous = super::load(&database::pool(&app).await?, &id).await?;
+    if previous.digest != expected_digest {
+        return Err("skill-revised-refresh-before-saving".into());
+    }
     if previous.plugin_id.is_some() {
         return Err("plugin-skill-is-read-only-copy-to-edit".into());
     }
@@ -59,12 +65,17 @@ pub async fn save_skill_revision(
     skill.id = previous.id;
     skill.enabled = previous.enabled;
     revisions::publish(&app, &skill, files).await?;
-    super::super::reclamation::collect(&app).await?;
-    Ok(skill)
+    Ok(ExtensionChange::committed(
+        skill,
+        [super::super::reclamation::collect(&app).await],
+    ))
 }
 
 #[tauri::command]
-pub async fn import_skill(app: AppHandle, path: String) -> Result<SkillRevision, String> {
+pub async fn import_skill(
+    app: AppHandle,
+    path: String,
+) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let directory = std::path::PathBuf::from(path);
@@ -82,20 +93,27 @@ pub async fn import_skill(app: AppHandle, path: String) -> Result<SkillRevision,
     .await?;
     let skill = super::review(&files, &name)?;
     revisions::publish(&app, &skill, files).await?;
-    super::super::reclamation::collect(&app).await?;
-    Ok(skill)
+    Ok(ExtensionChange::committed(
+        skill,
+        [super::super::reclamation::collect(&app).await],
+    ))
 }
 
 #[tauri::command]
-pub async fn copy_skill(app: AppHandle, id: String) -> Result<SkillRevision, String> {
+pub async fn copy_skill(
+    app: AppHandle,
+    id: String,
+) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let previous = super::load(&database::pool(&app).await?, &id).await?;
     let files = super::files(&app, &previous).await?;
     let skill = super::review(&files, &previous.name)?;
     revisions::publish(&app, &skill, files).await?;
-    super::super::reclamation::collect(&app).await?;
-    Ok(skill)
+    Ok(ExtensionChange::committed(
+        skill,
+        [super::super::reclamation::collect(&app).await],
+    ))
 }
 
 #[tauri::command]
@@ -120,7 +138,7 @@ pub async fn set_skill_enabled(app: AppHandle, id: String, enabled: bool) -> Res
 }
 
 #[tauri::command]
-pub async fn delete_skill(app: AppHandle, id: String) -> Result<(), String> {
+pub async fn delete_skill(app: AppHandle, id: String) -> Result<ExtensionChange<()>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
@@ -133,7 +151,10 @@ pub async fn delete_skill(app: AppHandle, id: String) -> Result<(), String> {
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;
-    super::super::reclamation::collect(&app).await
+    Ok(ExtensionChange::committed(
+        (),
+        [super::super::reclamation::collect(&app).await],
+    ))
 }
 
 #[tauri::command]

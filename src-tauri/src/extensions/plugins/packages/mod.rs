@@ -47,7 +47,29 @@ pub(super) fn inspect(
         .transpose()
         .map_err(|error| error.to_string())?
         .unwrap_or_default();
-    let mcp_servers = configuration::read(files, &mut components);
+    let mut mcp_servers = configuration::read(files, &mut components);
+    mcp_servers.retain(|name, server| {
+        let authorization = extension
+            .connectors
+            .get(name)
+            .map(|declaration| &declaration.authorization)
+            .unwrap_or(&ConnectorAuthorization::None);
+        let validation = if server["type"] == "stdio" {
+            super::super::connectors::requirements::validate_stdio(authorization)
+        } else {
+            super::super::connectors::requirements::validate_http(authorization)
+        };
+        if let Err(error) = validation {
+            let component = components
+                .iter_mut()
+                .find(|component| component.kind == "mcp" && component.name == *name)
+                .expect("parsed MCP component");
+            component.supported = false;
+            component.diagnostic = Some(error);
+            return false;
+        }
+        true
+    });
     let mut skills = Vec::new();
     if files.contains_key("skills") {
         manifest::diagnostic(
@@ -167,7 +189,6 @@ pub(super) fn inspect(
         let authorization = declaration
             .map(|declaration| declaration.authorization.clone())
             .unwrap_or(ConnectorAuthorization::None);
-        super::super::connectors::requirements::validate(&authorization)?;
         let display_name = declaration
             .map(|declaration| declaration.name.clone())
             .unwrap_or_else(|| name.clone());

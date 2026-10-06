@@ -1,6 +1,7 @@
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
+import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
 
-export function connectorDraft(): ConnectorDefinition {
+export function connectorDraft(): ConnectorDefinition & { endpoint: McpEndpoint } {
   return {
     id: "",
     revision: "",

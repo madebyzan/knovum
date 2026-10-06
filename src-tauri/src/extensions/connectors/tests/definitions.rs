@@ -14,11 +14,11 @@ fn definition(id: &str) -> ConnectorDefinition {
         description: "Read issues and manage repositories".into(),
         plugin_id: None,
         component_name: None,
-        endpoint: McpEndpoint::StreamableHttp {
+        endpoint: Some(McpEndpoint::StreamableHttp {
             url: "https://example.com/mcp".into(),
             headers: Default::default(),
             allow_local_network: false,
-        },
+        }),
         authorization: ConnectorAuthorization::Bearer,
     }
 }
@@ -98,10 +98,9 @@ async fn service_description_changes_preserve_shared_accounts_and_instance_polic
     updated.description = "Updated service description".into();
     updated.revision = "service-two".into();
     let mut tx = pool.begin().await.unwrap();
-    assert!(definitions::replace_on(&mut tx, &updated, Some(&old))
+    definitions::replace_on(&mut tx, &updated, Some(&old))
         .await
-        .unwrap()
-        .is_empty());
+        .unwrap();
     tx.commit().await.unwrap();
     assert!(definitions::require_current(&pool, &old).await.is_err());
     definitions::require_current(&pool, &updated).await.unwrap();
@@ -127,30 +126,27 @@ async fn endpoint_or_authorization_changes_revoke_all_shared_instances_atomicall
         let mut updated = old.clone();
         updated.revision = "service-two".into();
         if change_endpoint {
-            updated.endpoint = McpEndpoint::StreamableHttp {
+            updated.endpoint = Some(McpEndpoint::StreamableHttp {
                 url: "https://new.example.com/mcp".into(),
                 headers: Default::default(),
                 allow_local_network: false,
-            };
+            });
         } else {
             updated.authorization = ConnectorAuthorization::SecretFields {
                 names: vec!["X-API-Key".into()],
             };
         }
         let mut tx = pool.begin().await.unwrap();
-        assert_eq!(
-            definitions::replace_on(&mut tx, &updated, Some(&old))
-                .await
-                .unwrap(),
-            vec!["account"]
-        );
+        definitions::replace_on(&mut tx, &updated, Some(&old))
+            .await
+            .unwrap();
         tx.commit().await.unwrap();
         let account = accounts::load(&pool, "account").await.unwrap();
         assert!(!account.enabled);
         assert!(account.cleanup_pending);
         assert_eq!(
             account.resource,
-            crate::extensions::mcp::endpoint::resource(&updated.endpoint)
+            crate::extensions::mcp::endpoint::resource(updated.configured_endpoint().unwrap())
         );
         assert_eq!(account.authorization, updated.authorization);
         assert_ne!(account.revision, frozen_account.revision);

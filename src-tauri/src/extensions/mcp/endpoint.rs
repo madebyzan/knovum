@@ -91,14 +91,34 @@ pub(in crate::extensions) fn validate(endpoint: &McpEndpoint) -> Result<(), Stri
 
 pub(in crate::extensions) fn secret_name(name: &str) -> bool {
     let name = name.to_ascii_lowercase().replace('-', "_");
-    name.contains("token")
-        || name.contains("secret")
-        || name.contains("password")
-        || name.contains("api_key")
-        || matches!(
-            name.as_str(),
-            "authorization" | "cookie" | "proxy_authorization"
-        )
+    matches!(
+        name.as_str(),
+        "authorization"
+            | "cookie"
+            | "proxy_authorization"
+            | "token"
+            | "secret"
+            | "password"
+            | "api_key"
+            | "private_key"
+            | "access_key"
+            | "apikey"
+            | "accesstoken"
+            | "refreshtoken"
+            | "clientsecret"
+            | "privatekey"
+            | "secretaccesskey"
+    ) || [
+        "_token",
+        "_secret",
+        "_password",
+        "_api_key",
+        "_private_key",
+        "_access_key",
+        "_secret_access_key",
+    ]
+    .iter()
+    .any(|suffix| name.ends_with(suffix))
 }
 
 pub(crate) async fn http_client(value: &str, allow_local: bool) -> Result<reqwest::Client, String> {
@@ -149,3 +169,7 @@ pub(in crate::extensions) fn reserved_header(name: &str) -> bool {
             | "transfer-encoding"
     )
 }
+
+#[cfg(test)]
+#[path = "tests/endpoint.rs"]
+mod tests;

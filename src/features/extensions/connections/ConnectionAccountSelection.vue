@@ -17,9 +17,9 @@ const accounts = computed(() =>
 function bind(event: Event) {
   const id = (event.target as HTMLSelectElement).value;
   void changes
-    .mutateAsync(() =>
-      updateMcpConnection({ ...props.connection, accountId: id || null, enabled: false, tools: [] }),
-    )
+    .mutateAsync(async () => {
+      await updateMcpConnection({ ...props.connection, accountId: id || null });
+    })
     .catch(() => {});
 }
 </script>

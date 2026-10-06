@@ -1,6 +1,6 @@
 use super::super::{
     content::{self, PackageFiles},
-    contracts::{PluginInstallation, PluginPublication, PluginSource},
+    contracts::{ExtensionChange, PluginInstallation, PluginPublication, PluginSource},
     database,
 };
 use super::packages::ReviewedPackage;
@@ -35,7 +35,7 @@ pub(super) async fn commit(
     files: PackageFiles,
     builtin: bool,
     publication: Option<PluginPublication>,
-) -> Result<PluginInstallation, String> {
+) -> Result<ExtensionChange<PluginInstallation>, String> {
     let pool = database::pool(app).await?;
     let previous = list(&pool)
         .await?
@@ -59,7 +59,12 @@ pub(super) async fn commit(
         .join("revisions")
         .join(&installation.revision.digest);
     crate::blocking::run(move || content::publish(&directory, &files)).await?;
-    let components = super::connectors::resolve(app, &installation)?;
+    let components = super::connectors::resolve(
+        app,
+        &installation,
+        previous.as_ref(),
+        &super::super::connectors::definitions::list(&pool).await?,
+    )?;
     let previous_skills = super::super::skills::list(&pool).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     sqlx::query("INSERT INTO plugins(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
@@ -84,7 +89,7 @@ pub(super) async fn commit(
             .await
             .map_err(|error| error.to_string())?;
     }
-    let revoked = super::connectors::publish_on(
+    super::connectors::publish_on(
         &mut tx,
         &installation.id,
         &installation.revision.digest,
@@ -93,11 +98,11 @@ pub(super) async fn commit(
     .await?;
     tx.commit().await.map_err(|error| error.to_string())?;
     super::super::mcp::sessions::revoke_plugin(app, id).await;
-    for account in revoked {
-        super::super::connectors::commands::disconnect_connector_account(app.clone(), account)
-            .await?;
-    }
-    super::super::connectors::cleanup::collect(app).await?;
-    super::super::reclamation::collect(app).await?;
-    Ok(installation)
+    Ok(ExtensionChange::committed(
+        installation,
+        [
+            super::super::connectors::cleanup::collect(app).await,
+            super::super::reclamation::collect(app).await,
+        ],
+    ))
 }

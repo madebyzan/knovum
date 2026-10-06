@@ -12,11 +12,13 @@ import {
   setPluginEnabled,
   uninstallPlugin,
 } from "../../../foundation/extensions/plugin-operations";
+import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import type { PluginInspection } from "../../../shared/contracts/generated/PluginInspection";
 import type { PluginInstallation } from "../../../shared/contracts/generated/PluginInstallation";
 import type { PluginPublication } from "../../../shared/contracts/generated/PluginPublication";
 import type { PluginSource } from "../../../shared/contracts/generated/PluginSource";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import PluginDiscovery from "./PluginDiscovery.vue";
 import PluginInstallationPreview from "./PluginInstallationPreview.vue";
@@ -61,13 +63,15 @@ async function commit() {
   if (!reviewed) return;
   await changes
     .mutateAsync(async () => {
-      if (reviewed.previous) await updatePlugin(reviewed.previous.id, reviewed.inspection.digest);
-      else await installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication);
+      const result = reviewed.previous
+        ? await updatePlugin(reviewed.previous.id, reviewed.inspection.digest)
+        : await installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication);
       preview.value = undefined;
+      return result;
     })
     .catch(() => {});
 }
-function mutate(operation: () => Promise<unknown>) {
+function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
   void changes.mutateAsync(operation).catch(() => {});
 }
 </script>
@@ -86,6 +90,7 @@ function mutate(operation: () => Promise<unknown>) {
     >
       {{ getErrorMessage(query.error.value || changes.error.value || inspecting.error.value) }}
     </p>
+    <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
     <template v-if="preview">
       <PluginRevisionChanges
         v-if="preview.previous"
