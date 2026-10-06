@@ -17,13 +17,17 @@
     "CARGO_BUILD_JOBS": "4"
   },
   "cSpell.words": [
+    "genai",
+    "groq",
     "KNOVUM",
     "konva",
     "linkify",
     "lucide",
+    "ollama",
     "pinia",
     "rbush",
     "reka",
+    "rmcp",
     "sonner",
     "tauri",
     "vueuse",
