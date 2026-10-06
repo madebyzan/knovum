@@ -32,8 +32,8 @@ pub(crate) async fn prepare(
 ) -> Result<PreparedInvocation, String> {
     let connection_id = match &tool.binding {
         AgentToolBinding::McpTool { connection_id, .. }
-        | AgentToolBinding::McpReadResource { connection_id }
-        | AgentToolBinding::McpGetPrompt { connection_id } => connection_id,
+        | AgentToolBinding::McpReadResource { connection_id, .. }
+        | AgentToolBinding::McpGetPrompt { connection_id, .. } => connection_id,
         AgentToolBinding::SpaceAction { .. } => return Err("mcp-invocation-source-mismatch".into()),
     };
     if !arguments.is_object() {

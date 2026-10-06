@@ -1,7 +1,7 @@
+import { cloneDeep } from "es-toolkit";
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 
-import { copyExtensionSelection } from "../../../foundation/extensions/extension-selection";
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 
@@ -20,7 +20,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
       draft && {
         prompt: draft.prompt,
         attachments: [...draft.attachments],
-        extensions: copyExtensionSelection(draft.extensions),
+        extensions: cloneDeep(draft.extensions),
       }
     );
   }
@@ -31,7 +31,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
       [`${spaceId}:${conversationId}`]: {
         prompt: draft.prompt,
         attachments: [...draft.attachments],
-        extensions: copyExtensionSelection(draft.extensions),
+        extensions: cloneDeep(draft.extensions),
       },
     };
   }
@@ -42,7 +42,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
     next[`${spaceId}:${toId}`] = {
       prompt: draft.prompt,
       attachments: [...draft.attachments],
-      extensions: copyExtensionSelection(draft.extensions),
+      extensions: cloneDeep(draft.extensions),
     };
     drafts.value = next;
   }

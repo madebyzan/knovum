@@ -88,21 +88,3 @@ pub(crate) async fn release(app: &AppHandle, snapshot_id: &str) -> Result<(), St
     super::mcp::sessions::release(app, snapshot_id).await;
     collect(app).await
 }
-
-pub(crate) async fn release_run(
-    app: &AppHandle,
-    pool: &sqlx::SqlitePool,
-    run_id: &str,
-) -> Result<(), String> {
-    let snapshot: Option<String> = sqlx::query_scalar(
-        "SELECT json_extract(input_snapshot,'$.extensions.id') FROM spaces_runs WHERE id=$1",
-    )
-    .bind(run_id)
-    .fetch_one(pool)
-    .await
-    .map_err(crate::spaces::db::sql_error)?;
-    if let Some(snapshot) = snapshot {
-        release(app, &snapshot).await?;
-    }
-    Ok(())
-}

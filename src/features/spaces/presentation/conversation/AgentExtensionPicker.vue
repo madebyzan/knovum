@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 
 import type { AgentExtensionAvailability } from "../../../../shared/contracts/generated/AgentExtensionAvailability";
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
+import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import ConversationConnectionSelection from "./ConversationConnectionSelection.vue";
@@ -15,44 +16,48 @@ const props = defineProps<{
   error?: string | undefined;
 }>();
 const router = useRouter();
-const count = computed(() => selection.value.skillIds.length + selection.value.connectionIds.length);
+const count = computed(() => selection.value.skillIds.length + selection.value.connections.length);
+const selectedConnections = computed(() =>
+  props.availability?.connections.filter((connection) => isConnectionSelected(connection.id)),
+);
+function isConnectionSelected(id: string) {
+  return selection.value.connections.some((connection) => connection.connectionId === id);
+}
 const unavailable = computed(
   () =>
     props.availability &&
     (selection.value.skillIds.some((id) => !props.availability?.skills.some((skill) => skill.id === id)) ||
-      selection.value.connectionIds.some(
-        (id) => !props.availability?.connections.some((connection) => connection.id === id),
+      selection.value.connections.some(
+        (selected) =>
+          !props.availability?.connections.some((connection) => connection.id === selected.connectionId),
       )),
 );
-function toggle(kind: "skillIds" | "connectionIds", id: string) {
-  const previous = selection.value[kind];
-  if (kind === "connectionIds") {
-    const selected = previous.includes(id);
-    const connection = props.availability?.connections.find((candidate) => candidate.id === id);
-    selection.value = {
-      ...selection.value,
-      connectionIds: selected ? previous.filter((value) => value !== id) : [...previous, id],
-      connections: selected
-        ? selection.value.connections.filter((candidate) => candidate.connectionId !== id)
-        : [
-            ...selection.value.connections,
-            {
-              connectionId: id,
-              toolNames:
-                connection?.tools
-                  .filter((tool) => tool.policy !== "deny" && (!props.readOnly || tool.readOnly))
-                  .map((tool) => tool.name) ?? [],
-              resourceUris: [],
-              resourceTemplates: [],
-              promptNames: [],
-            },
-          ],
-    };
-    return;
-  }
+function toggleConnection(connection: McpConnection) {
+  const id = connection.id;
+  const selected = isConnectionSelected(id);
   selection.value = {
     ...selection.value,
-    [kind]: previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id],
+    connections: selected
+      ? selection.value.connections.filter((candidate) => candidate.connectionId !== id)
+      : [
+          ...selection.value.connections,
+          {
+            connectionId: id,
+            toolNames: connection.tools
+              .filter((tool) => tool.policy !== "deny" && (!props.readOnly || tool.readOnly))
+              .map((tool) => tool.name),
+            resourceUris: [],
+            resourceTemplates: [],
+            promptNames: [],
+          },
+        ],
+  };
+}
+function toggleSkill(id: string) {
+  const previous = selection.value.skillIds;
+  selection.value = {
+    ...selection.value,
+    skillIds: previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id],
   };
 }
 </script>
@@ -77,7 +82,7 @@ function toggle(kind: "skillIds" | "connectionIds", id: string) {
         ><input
           type="checkbox"
           :checked="selection.skillIds.includes(skill.id)"
-          @change="toggle('skillIds', skill.id)"
+          @change="toggleSkill(skill.id)"
         /><span
           >{{ skill.name
           }}<span class="block text-caption text-fg-secondary">{{ skill.description }}</span></span
@@ -90,14 +95,12 @@ function toggle(kind: "skillIds" | "connectionIds", id: string) {
         class="flex items-center gap-2 text-body"
         ><input
           type="checkbox"
-          :checked="selection.connectionIds.includes(connection.id)"
-          @change="toggle('connectionIds', connection.id)"
+          :checked="isConnectionSelected(connection.id)"
+          @change="toggleConnection(connection)"
         />{{ connection.name }}</label
       >
       <ConversationConnectionSelection
-        v-for="connection in availability?.connections.filter((connection) =>
-          selection.connectionIds.includes(connection.id),
-        )"
+        v-for="connection in selectedConnections"
         :key="connection.id"
         v-model="selection"
         :connection="connection"

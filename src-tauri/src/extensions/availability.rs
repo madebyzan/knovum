@@ -78,7 +78,6 @@ pub async fn get_agent_extension_availability(
             })
             .map(|skill| skill.id.clone())
             .collect(),
-        connection_ids: Vec::new(),
         connections: Vec::new(),
     };
     Ok(AgentExtensionAvailability {

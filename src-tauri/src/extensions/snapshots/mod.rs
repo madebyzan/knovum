@@ -87,7 +87,8 @@ pub(crate) async fn prepare(
         return Err("selected-skills-exceed-8-mib-snapshot-budget".into());
     }
     let mut selected_connections = BTreeSet::new();
-    for id in &selection.connection_ids {
+    for choices in &selection.connections {
+        let id = &choices.connection_id;
         if !selected_connections.insert(id) {
             return Err("selected-mcp-connection-duplicated".into());
         }
@@ -113,9 +114,6 @@ pub(crate) async fn prepare(
         }
         snapshot.connections.push(connection);
     }
-    if selection.connections.len() != snapshot.connections.len() {
-        return Err("connection-tool-selection-identity-mismatch".into());
-    }
     for skill in &snapshot.skills {
         for name in &skill.requirements {
             if !snapshot.connections.iter().any(|connection| {
@@ -137,23 +135,15 @@ pub(crate) async fn prepare(
         .map_err(|error| error.to_string())?;
     drop(_guard);
     let result = async {
-        for connection in &snapshot.connections {
+        for (connection, choices) in snapshot.connections.iter().zip(&selection.connections) {
             let catalog =
                 super::mcp::sessions::inspect(app, &snapshot, connection, interaction.clone())
                     .await?;
-            let choices = selection
-                .connections
-                .iter()
-                .filter(|choices| choices.connection_id == connection.id)
-                .collect::<Vec<_>>();
-            if choices.len() != 1 {
-                return Err("selected-connection-requires-one-explicit-tool-selection".into());
-            }
             snapshot.tools.extend(tools::project(
                 connection,
                 catalog.clone(),
                 read_only,
-                choices[0],
+                choices,
             )?);
             snapshot.catalogs.insert(connection.id.clone(), catalog);
         }

@@ -93,10 +93,27 @@ fn resource_and_prompt_schemas_bind_exact_user_selected_content() {
     let (connection, catalog, selection) = fixture();
     let projected = super::tools::project(&connection, catalog, true, &selection).unwrap();
     let resource = jsonschema::validator_for(&projected[0].input_schema).unwrap();
+    assert!(matches!(&projected[0].binding,
+        AgentToolBinding::McpReadResource { connection_id, resource_uris }
+        if connection_id == "connection" && resource_uris == &selection.resource_uris));
     assert!(resource.is_valid(&json!({"uri":"fixture://selected"})));
     assert!(!resource.is_valid(&json!({"uri":"fixture://unselected"})));
     let prompt = jsonschema::validator_for(&projected[1].input_schema).unwrap();
+    assert!(matches!(&projected[1].binding,
+        AgentToolBinding::McpGetPrompt { connection_id, prompt_names }
+        if connection_id == "connection" && prompt_names == &selection.prompt_names));
     assert!(prompt.is_valid(&json!({"name":"draft","arguments":{"subject":"Reviewed"}})));
     assert!(!prompt.is_valid(&json!({"name":"draft"})));
     assert!(!prompt.is_valid(&json!({"name":"other","arguments":{"subject":"Reviewed"}})));
+}
+
+#[test]
+fn extension_selection_has_one_connection_identity_and_rejects_obsolete_payloads() {
+    let (_, _, connection) = fixture();
+    let selected = json!({"skillIds":[],"connections":[connection]});
+    let selection: AgentExtensionSelection = serde_json::from_value(selected.clone()).unwrap();
+    assert_eq!(selection.connections[0].connection_id, "connection");
+    let mut obsolete = selected;
+    obsolete["connectionIds"] = json!(["other"]);
+    assert!(serde_json::from_value::<AgentExtensionSelection>(obsolete).is_err());
 }

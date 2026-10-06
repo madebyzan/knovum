@@ -21,7 +21,7 @@ pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError
         record_publication_failure(pool, conversation_id, &error.message).await?;
         return Err(error);
     }
-    crate::extensions::reclamation::release_run(&app, pool, &row.0).await?;
+    crate::spaces::conversations::extensions::release_run(&app, pool, &row.0).await?;
     Ok(())
 }
 
@@ -87,7 +87,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     let workspace = capabilities::agent_artifacts::workspace(app, &space_id, &conversation_id)
         .map_err(|error| error.to_string())?;
     capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
-    crate::extensions::reclamation::release_run(app, pool, run_id).await?;
+    crate::spaces::conversations::extensions::release_run(app, pool, run_id).await?;
     Ok(true)
 }
 
@@ -111,7 +111,7 @@ pub async fn delete(app: &AppHandle, conversation_id: &str) -> Result<(), String
             .map_err(db::sql_error)?
             .ok_or("external-conversation-unavailable")?;
     super::staging::cleanup(app, pool, &run_id).await?;
-    crate::extensions::reclamation::release_run(app, pool, &run_id).await?;
+    crate::spaces::conversations::extensions::release_run(app, pool, &run_id).await?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query("DELETE FROM spaces_action_invocations WHERE principal_kind='external_agent' AND principal_id=$1")
         .bind(conversation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
@@ -204,7 +204,7 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
     let finished_runs: Vec<String> = sqlx::query_scalar("SELECT c.run_id FROM spaces_external_agent_conversations c JOIN spaces_runs r ON r.id=c.run_id WHERE r.completed_at IS NOT NULL")
         .fetch_all(pool).await.map_err(db::sql_error)?;
     for id in finished_runs {
-        crate::extensions::reclamation::release_run(&app, pool, &id).await?;
+        crate::spaces::conversations::extensions::release_run(&app, pool, &id).await?;
     }
     crate::spaces::runs::announce_change();
     Ok(())
