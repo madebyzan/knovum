@@ -128,7 +128,11 @@ pub(crate) async fn import_nodes<R: Runtime>(
         &snapshot,
     )
     .await?;
-    crate::spaces::structure::portal_integrity::validate_structure_targets(&mut tx).await?;
+    crate::spaces::structure::portal_integrity::validate_structure_targets(
+        &mut tx,
+        &[&request.space_id],
+    )
+    .await?;
     let after =
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
     crate::spaces::structure::history::record(

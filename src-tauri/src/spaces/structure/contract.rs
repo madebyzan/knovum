@@ -32,7 +32,7 @@ impl RelationColor {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",
     rename_all = "lowercase",

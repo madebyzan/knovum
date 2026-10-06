@@ -9,6 +9,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph.state import CompiledStateGraph
 
+from knovum_agent_runtime.checkpoints import latest_namespace_checkpoints
 from knovum_agent_runtime.contracts.generated.messages import (
     AgentPlanItem,
     AgentPlanState,
@@ -61,12 +62,8 @@ async def export_projection(
     for state in reversed(snapshots):
         append_messages(state.values.get("messages", []), messages, input_ids)
     model_checkpoints = []
-    scopes: set[str] = set()
-    async for checkpoint in saver.alist(config):
+    async for checkpoint in latest_namespace_checkpoints(saver, thread_id):
         namespace = checkpoint.config["configurable"]["checkpoint_ns"]
-        if namespace in scopes:
-            continue
-        scopes.add(namespace)
         values = checkpoint.checkpoint["channel_values"]
         receipts = list(values.get("model_receipts", []))
         model_messages = list(values.get("messages", []))

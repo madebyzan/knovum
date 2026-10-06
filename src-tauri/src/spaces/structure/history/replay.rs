@@ -76,7 +76,7 @@ pub(in crate::spaces::structure) async fn apply(
     crate::spaces::nodes::fit_content_sizes_in_snapshot(tx, space_id, &mut snapshot, &node_ids)
         .await?;
     let next = repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
-    portal_integrity::validate_structure_targets(tx).await?;
+    portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
     let deletion_batch_id: Option<String> =
         row.try_get("deletion_batch_id").map_err(db::sql_error)?;
     if let Some(batch_id) = deletion_batch_id {

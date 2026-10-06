@@ -8,6 +8,32 @@ use crate::spaces::{
 };
 
 #[tokio::test]
+async fn invalidation_drain_settles_multiple_bounded_batches() {
+    let fixture = Fixture::new().await;
+    publish_embeddings(&fixture.pool, &fixture.index, fixture.input())
+        .await
+        .unwrap();
+    let nodes = std::iter::once("node".to_owned())
+        .chain((0..300).map(|id| format!("other-{id}")))
+        .collect::<Vec<_>>();
+    let mut tx = db::begin_write(&fixture.pool).await.unwrap();
+    invalidation_outbox::enqueue_nodes(&mut tx, "space", &nodes, 2)
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    invalidation_outbox::drain_with_connection(&fixture.index, &fixture.pool)
+        .await
+        .unwrap();
+    let remaining: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_retrieval_invalidations")
+        .fetch_one(&fixture.pool)
+        .await
+        .unwrap();
+    assert_eq!(remaining, 0);
+    assert_eq!(fixture.rows().await, 0);
+    assert_eq!(fixture.markers().await, 0);
+}
+
+#[tokio::test]
 async fn publication_drains_old_invalidations_before_writing_new_vectors() {
     let fixture = Fixture::new().await;
     publish_embeddings(&fixture.pool, &fixture.index, fixture.input())

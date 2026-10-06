@@ -119,15 +119,15 @@ function policy(
 
 function fitImageNode(ratio: number) {
   const preview = fitIntrinsicRatio(ratio, 280, 128, 480);
-  return previewCard(preview, 0);
+  return previewSizePolicy(preview, 0);
 }
 
 function fitVideoNode(ratio: number) {
-  return previewCard(fitIntrinsicRatio(ratio, 304, 156, 560), 0);
+  return previewSizePolicy(fitIntrinsicRatio(ratio, 304, 156, 560), 0);
 }
 
 function fitDocumentNode(ratio: number) {
-  return previewCard(fitIntrinsicRatio(ratio, 272, 150, 480));
+  return previewSizePolicy(fitIntrinsicRatio(ratio, 272, 150, 480));
 }
 
 function fitIntrinsicRatio(
@@ -153,7 +153,10 @@ function fitIntrinsicRatio(
   return { width, height };
 }
 
-function previewCard(preview: { width: number; height: number }, captionHeight = PREVIEW_CAPTION_HEIGHT) {
+function previewSizePolicy(
+  preview: { width: number; height: number },
+  captionHeight = PREVIEW_CAPTION_HEIGHT,
+) {
   const width = Math.round(preview.width);
   const height = Math.round(preview.height + captionHeight);
   return {

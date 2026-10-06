@@ -30,8 +30,18 @@ pub fn state_field_for(action_kind: &str) -> &'static str {
 
 pub(super) async fn fail_message(app: &AppHandle, id: &str, message: &str) -> Result<(), String> {
     let pool = db::pool(app).await?;
+    fail_messages(pool, &[id.to_owned()], message).await
+}
+
+pub(super) async fn fail_messages(
+    pool: &sqlx::SqlitePool,
+    ids: &[String],
+    message: &str,
+) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
-    mark_failed(&mut tx, id, message).await?;
+    for id in ids {
+        mark_failed(&mut tx, id, message).await?;
+    }
     tx.commit().await.map_err(db::sql_error)
 }
 

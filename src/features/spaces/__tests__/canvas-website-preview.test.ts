@@ -9,8 +9,8 @@ const presentationContext = {
   mode: "preview",
 } as const;
 
-describe("saved website canvas card", () => {
-  it("presents source, page title and description as one knowledge card", () => {
+describe("saved website canvas node", () => {
+  it("presents source, page title and description in one website node", () => {
     const wrapper = mount(SpaceCanvasWebsite, {
       props: {
         id: "website-1",

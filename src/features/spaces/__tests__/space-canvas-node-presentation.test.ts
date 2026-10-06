@@ -6,7 +6,7 @@ import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { spaceCanvasNodePresentation } from "../presentation/canvas/nodes/space-canvas-node-presentation";
 
 describe("Konva node presentation", () => {
-  it("keeps type-specific content instead of flattening every node into one card", () => {
+  it("keeps type-specific node content", () => {
     const note = spaceCanvasNodePresentation(createSpaceNotePayload("Note", "Body"));
     const website = spaceCanvasNodePresentation({
       kind: "website",

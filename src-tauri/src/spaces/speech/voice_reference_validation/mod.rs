@@ -3,18 +3,18 @@ use tauri::Runtime;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
+    ai::local_runtime::compute_budget::ComputeBudget,
     ai::{
         contracts::{
             runtime::RuntimeDeviceProfile,
             speech_wire::{
-                AsrEngine, AsrProfile, AudioFileReference, InferenceRequestIdentity,
-                LanguagePolicy, SpeechTranscribeParams, SpeechTranscriptArtifact,
+                AsrProfile, AudioFileReference, InferenceRequestIdentity, LanguagePolicy,
+                SpeechTranscribeParams, SpeechTranscriptArtifact,
             },
         },
         local_runtime::{admission::Priority, speech},
     },
     local_resources::{models::catalog, preparation},
-    media::compute_budget::ComputeBudget,
 };
 
 const MIN_SPEECH_PERCENT: u64 = 60;
@@ -30,7 +30,7 @@ pub(super) async fn validate<R: Runtime>(
     confirmed_text: Option<&str>,
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
-    let profile = platform_profile()?;
+    let profile = speech::transcription_profile()?;
     let reader = hound::WavReader::open(&reference.path).map_err(|error| error.to_string())?;
     let expected_duration_ms = u64::from(reader.duration()) * 1_000 / 16_000;
     drop(reader);
@@ -185,41 +185,6 @@ fn deadline_ms() -> Result<u64, String> {
         .map_err(|_| "Clock exceeds speech protocol range".to_owned())?
         .checked_add(120_000)
         .ok_or_else(|| "Voice reference deadline exceeds speech protocol range".to_owned())
-}
-
-struct PlatformProfile {
-    engine: AsrEngine,
-    device: &'static str,
-    compute_type: &'static str,
-    id: &'static str,
-}
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Ok(PlatformProfile {
-        engine: AsrEngine::MlxWhisper,
-        device: "mps",
-        compute_type: "float16",
-        id: "mlx-whisper-small-mps-v1",
-    })
-}
-
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Ok(PlatformProfile {
-        engine: AsrEngine::FasterWhisper,
-        device: "cpu",
-        compute_type: "int8",
-        id: "faster-whisper-small-cpu-int8-v1",
-    })
-}
-
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Err("unsupported_device: Voice reference validation requires macOS ARM64 or Windows x64".into())
 }
 
 #[cfg(test)]

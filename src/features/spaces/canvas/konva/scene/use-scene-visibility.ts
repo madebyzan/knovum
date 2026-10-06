@@ -2,7 +2,7 @@ import { useThrottleFn } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
 import type { CanvasScene } from "./canvas-scene";
-import { visibleSceneNodeIds, visibleSceneRelationIds } from "./viewport-culling";
+import { createSceneVisibilityIndex, visibleSceneIds } from "./viewport-culling";
 
 interface SceneVisibilityOptions {
   nodeIds: Readonly<Ref<ReadonlySet<string>>>;
@@ -29,17 +29,14 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     return ids;
   });
 
+  const visibilityIndex = computed(() =>
+    createSceneVisibilityIndex(options.scene.value.nodes, options.scene.value.relations),
+  );
+
   function updateVisibility() {
-    culledNodeIds.value = visibleSceneNodeIds(
-      options.scene.value.nodes,
-      options.viewport.value,
-      options.size,
-    );
-    culledRelationIds.value = visibleSceneRelationIds(
-      options.scene.value.relations,
-      options.viewport.value,
-      options.size,
-    );
+    const visible = visibleSceneIds(visibilityIndex.value, options.viewport.value, options.size);
+    culledNodeIds.value = visible.nodes;
+    culledRelationIds.value = visible.relations;
   }
 
   const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, 80, true, true);

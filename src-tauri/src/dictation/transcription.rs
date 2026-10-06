@@ -10,18 +10,18 @@ use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
+    ai::local_runtime::compute_budget::ComputeBudget,
     ai::{
         contracts::{
             runtime::RuntimeDeviceProfile,
             speech_wire::{
-                AsrEngine, AsrProfile, AudioFileReference, InferenceRequestIdentity,
-                LanguagePolicy, SpeechTranscribeParams,
+                AsrProfile, AudioFileReference, InferenceRequestIdentity, LanguagePolicy,
+                SpeechTranscribeParams,
             },
         },
         local_runtime::{admission::Priority, speech},
     },
     local_resources::{models::catalog, preparation},
-    media::compute_budget::ComputeBudget,
 };
 
 use super::recorder::RecordedAudio;
@@ -38,7 +38,7 @@ pub(crate) async fn transcribe<R: Runtime>(
     recording: RecordedAudio,
     cancellation: &CancellationToken,
 ) -> Result<TranscriptionOutcome, String> {
-    let profile = platform_profile()?;
+    let profile = speech::transcription_profile()?;
     let resources = preparation::prepare_models(
         app,
         catalog::TRANSCRIPTION_MODELS,
@@ -103,41 +103,6 @@ pub(crate) async fn transcribe<R: Runtime>(
         text: join_segments(artifact.segments.into_iter().map(|segment| segment.text)),
         language: artifact.language,
     })
-}
-
-struct PlatformProfile {
-    engine: AsrEngine,
-    device: &'static str,
-    compute_type: &'static str,
-    id: &'static str,
-}
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Ok(PlatformProfile {
-        engine: AsrEngine::MlxWhisper,
-        device: "mps",
-        compute_type: "float16",
-        id: "mlx-whisper-small-mps-v1",
-    })
-}
-
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Ok(PlatformProfile {
-        engine: AsrEngine::FasterWhisper,
-        device: "cpu",
-        compute_type: "int8",
-        id: "faster-whisper-small-cpu-int8-v1",
-    })
-}
-
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
-fn platform_profile() -> Result<PlatformProfile, String> {
-    Err("unsupported_device: native ASR dictation has not been qualified for this platform".into())
 }
 
 fn audio_reference(path: &Path, recording: RecordedAudio) -> Result<AudioFileReference, String> {

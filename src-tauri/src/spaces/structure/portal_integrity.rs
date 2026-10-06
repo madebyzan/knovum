@@ -1,47 +1,31 @@
 use std::collections::HashSet;
 
-use serde_json::Value;
-use sqlx::{Row, Sqlite, Transaction};
+use sqlx::{Sqlite, Transaction};
 
 use crate::spaces::db;
 
 pub(crate) async fn validate_structure_targets(
     tx: &mut Transaction<'_, Sqlite>,
+    changed_space_ids: &[&str],
 ) -> Result<(), String> {
-    let rows =
-        sqlx::query("SELECT id,data FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL")
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    for row in rows {
-        let portal_id: String = row.try_get("id").map_err(db::sql_error)?;
-        let raw: String = row.try_get("data").map_err(db::sql_error)?;
-        let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let Some(structure_node_id) = data.get("targetStructureNodeId").and_then(Value::as_str)
-        else {
-            continue;
-        };
-        let space_id = data
-            .get("targetSpaceId")
-            .and_then(Value::as_str)
-            .ok_or_else(|| format!("Portal {portal_id} has no target Space"))?;
-        let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM spaces_structure_nodes \
-             WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL \
-             AND kind IN ('group','section')",
-        )
-        .bind(structure_node_id)
-        .bind(space_id)
-        .fetch_one(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-        if count != 1 {
-            return Err(format!(
-                "Portal {portal_id} targets a missing structure container"
-            ));
-        }
+    let invalid: Option<String> = sqlx::query_scalar(
+        "SELECT p.id FROM spaces_nodes p LEFT JOIN spaces_structure_nodes s \
+         ON s.id=json_extract(p.data,'$.targetStructureNodeId') \
+         AND s.space_id=json_extract(p.data,'$.targetSpaceId') \
+         AND s.deleted_at IS NULL AND s.kind IN ('group','section') \
+         WHERE p.kind='portal' AND p.deleted_at IS NULL \
+         AND (p.space_id IN (SELECT value FROM json_each($1)) \
+              OR json_extract(p.data,'$.targetSpaceId') IN (SELECT value FROM json_each($1))) \
+         AND json_type(p.data,'$.targetStructureNodeId')='text' AND s.id IS NULL LIMIT 1",
+    )
+    .bind(serde_json::to_string(changed_space_ids).map_err(db::json_error)?)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    match invalid {
+        Some(id) => Err(format!("Portal {id} targets a missing structure container")),
+        None => Ok(()),
     }
-    Ok(())
 }
 
 pub(crate) async fn reject_structure_targets(
@@ -49,31 +33,22 @@ pub(crate) async fn reject_structure_targets(
     target_space_id: &str,
     target_structure_node_ids: &HashSet<&str>,
 ) -> Result<(), String> {
-    if target_structure_node_ids.is_empty() {
-        return Ok(());
+    let portal: Option<String> = sqlx::query_scalar(
+        "SELECT id FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL \
+         AND json_extract(data,'$.targetSpaceId')=$1 \
+         AND json_extract(data,'$.targetStructureNodeId') IN (SELECT value FROM json_each($2)) LIMIT 1",
+    )
+    .bind(target_space_id)
+    .bind(serde_json::to_string(target_structure_node_ids).map_err(db::json_error)?)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    match portal {
+        Some(id) => Err(format!(
+            "Portal {id} must be removed before permanently deleting its target container"
+        )),
+        None => Ok(()),
     }
-    let rows =
-        sqlx::query("SELECT id,data FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL")
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    for row in rows {
-        let raw: String = row.try_get("data").map_err(db::sql_error)?;
-        let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let targets_space =
-            data.get("targetSpaceId").and_then(Value::as_str) == Some(target_space_id);
-        let targets_structure = data
-            .get("targetStructureNodeId")
-            .and_then(Value::as_str)
-            .is_some_and(|id| target_structure_node_ids.contains(id));
-        if targets_space && targets_structure {
-            let portal_id: String = row.try_get("id").map_err(db::sql_error)?;
-            return Err(format!(
-                "Portal {portal_id} must be removed before permanently deleting its target container"
-            ));
-        }
-    }
-    Ok(())
 }
 
 pub(crate) async fn reject_node_targets(
@@ -81,29 +56,20 @@ pub(crate) async fn reject_node_targets(
     target_space_id: &str,
     target_node_ids: &HashSet<&str>,
 ) -> Result<(), String> {
-    if target_node_ids.is_empty() {
-        return Ok(());
+    let portal: Option<String> = sqlx::query_scalar(
+        "SELECT id FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL \
+         AND json_extract(data,'$.targetSpaceId')=$1 \
+         AND json_extract(data,'$.targetNodeId') IN (SELECT value FROM json_each($2)) LIMIT 1",
+    )
+    .bind(target_space_id)
+    .bind(serde_json::to_string(target_node_ids).map_err(db::json_error)?)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    match portal {
+        Some(id) => Err(format!(
+            "Portal {id} must be removed before discarding its target content"
+        )),
+        None => Ok(()),
     }
-    let rows =
-        sqlx::query("SELECT id,data FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL")
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    for row in rows {
-        let raw: String = row.try_get("data").map_err(db::sql_error)?;
-        let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let targets_space =
-            data.get("targetSpaceId").and_then(Value::as_str) == Some(target_space_id);
-        let targets_node = data
-            .get("targetNodeId")
-            .and_then(Value::as_str)
-            .is_some_and(|id| target_node_ids.contains(id));
-        if targets_space && targets_node {
-            let portal_id: String = row.try_get("id").map_err(db::sql_error)?;
-            return Err(format!(
-                "Portal {portal_id} must be removed before discarding its target content"
-            ));
-        }
-    }
-    Ok(())
 }

@@ -46,7 +46,8 @@ DEPENDENCIES["knovum_agent_runtime"] = {
     "host_tools": {"contracts", "control"},
     "budget": {"contracts", "control"},
     "model_binding": {"budget", "contracts"},
-    "projection": {"contracts", "transport"},
+    "checkpoints": set(),
+    "projection": {"checkpoints", "contracts", "transport"},
 }
 TOOLING_PACKAGES = {"scripts", "tests", "acceptance", "runtime", "generate_python_contracts"}
 

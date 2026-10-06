@@ -6,15 +6,15 @@ use super::super::contract::StructureNode;
 use super::SpaceStructureSnapshot;
 use crate::spaces::db;
 
-pub(super) async fn replace_active(
+pub(super) async fn persist_snapshot(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     snapshot: &SpaceStructureSnapshot,
 ) -> Result<(), String> {
     let existing = existing_structure(tx, space_id).await?;
     for structure_node in &snapshot.structure {
-        if let Some((kind, _deleted, node_id)) = existing.get(structure_node.id()) {
-            if kind != structure_node.kind_name() {
+        if let Some((current, _deleted)) = existing.get(structure_node.id()) {
+            if current.kind_name() != structure_node.kind_name() {
                 return Err(format!(
                     "Structure node ID cannot be reused or change kind: {}",
                     structure_node.id()
@@ -24,7 +24,8 @@ pub(super) async fn replace_active(
                 node_id: requested, ..
             } = structure_node
             {
-                if node_id.as_deref() != Some(requested) {
+                if !matches!(current, StructureNode::Content { node_id, .. } if node_id == requested)
+                {
                     return Err(format!(
                         "Content reference cannot change for structure_node: {}",
                         structure_node.id()
@@ -34,22 +35,42 @@ pub(super) async fn replace_active(
         }
     }
     let now = crate::clock::unix_time_millis()?;
+    let moving_ids = snapshot
+        .structure
+        .iter()
+        .filter(|node| {
+            existing.get(node.id()).is_some_and(|(current, deleted)| {
+                !deleted
+                    && (current.parent_id() != node.parent_id() || current.order() != node.order())
+            })
+        })
+        .map(StructureNode::id)
+        .collect::<Vec<_>>();
     sqlx::query(
-        "UPDATE spaces_structure_nodes SET deleted_at=$1 WHERE space_id=$2 AND deleted_at IS NULL",
+        "UPDATE spaces_structure_nodes SET deleted_at=$1 WHERE space_id=$2 AND deleted_at IS NULL \
+         AND (id NOT IN (SELECT value FROM json_each($3)) OR id IN (SELECT value FROM json_each($4)))",
     )
     .bind(now)
     .bind(space_id)
+    .bind(serde_json::to_string(&snapshot.structure.iter().map(StructureNode::id).collect::<Vec<_>>()).map_err(db::json_error)?)
+    .bind(serde_json::to_string(&moving_ids).map_err(db::json_error)?)
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     for structure_node in &snapshot.structure {
-        upsert_structure_node(tx, space_id, structure_node).await?;
+        if !existing
+            .get(structure_node.id())
+            .is_some_and(|(current, deleted)| !deleted && current == structure_node)
+        {
+            upsert_structure_node(tx, space_id, structure_node).await?;
+        }
     }
     for layout in &snapshot.layouts {
         let data = serde_json::to_string(layout).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_structure_layouts(space_id,structure_node_id,kind,data) VALUES($1,$2,$3,$4) \
-             ON CONFLICT(space_id,structure_node_id) DO UPDATE SET data=excluded.data,kind=excluded.kind",
+             ON CONFLICT(space_id,structure_node_id) DO UPDATE SET data=excluded.data,kind=excluded.kind \
+             WHERE spaces_structure_layouts.data<>excluded.data OR spaces_structure_layouts.kind<>excluded.kind",
         )
         .bind(space_id)
         .bind(layout.structure_node_id())
@@ -59,14 +80,17 @@ pub(super) async fn replace_active(
         .await
         .map_err(db::sql_error)?;
     }
-    sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1")
+    sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id NOT IN (SELECT value FROM json_each($2))")
         .bind(space_id)
+        .bind(serde_json::to_string(&snapshot.relation_styles.iter().map(|style| &style.relation_id).collect::<Vec<_>>()).map_err(db::json_error)?)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
     for style in &snapshot.relation_styles {
         sqlx::query(
-            "INSERT INTO spaces_relation_styles(space_id,relation_id,color) VALUES($1,$2,$3)",
+            "INSERT INTO spaces_relation_styles(space_id,relation_id,color) VALUES($1,$2,$3) \
+             ON CONFLICT(space_id,relation_id) DO UPDATE SET color=excluded.color \
+             WHERE spaces_relation_styles.color<>excluded.color",
         )
         .bind(space_id)
         .bind(&style.relation_id)
@@ -112,9 +136,9 @@ pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
 async fn existing_structure(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-) -> Result<HashMap<String, (String, bool, Option<String>)>, String> {
+) -> Result<HashMap<String, (StructureNode, bool)>, String> {
     let rows = sqlx::query(
-        "SELECT id,kind,node_id,deleted_at FROM spaces_structure_nodes WHERE space_id=$1",
+        "SELECT id,kind,node_id,parent_id,order_index,title,locked,deleted_at FROM spaces_structure_nodes WHERE space_id=$1",
     )
     .bind(space_id)
     .fetch_all(&mut **tx)
@@ -122,11 +146,9 @@ async fn existing_structure(
     .map_err(db::sql_error)?;
     rows.into_iter()
         .map(|row| {
-            let id: String = row.try_get("id").map_err(db::sql_error)?;
-            let kind: String = row.try_get("kind").map_err(db::sql_error)?;
-            let node_id: Option<String> = row.try_get("node_id").map_err(db::sql_error)?;
             let deleted: Option<i64> = row.try_get("deleted_at").map_err(db::sql_error)?;
-            Ok((id, (kind, deleted.is_some(), node_id)))
+            let node = super::read::decode_structure_node(row)?;
+            Ok((node.id().to_owned(), (node, deleted.is_some())))
         })
         .collect()
 }

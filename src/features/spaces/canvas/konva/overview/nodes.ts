@@ -27,7 +27,7 @@ export function drawCanvasOverviewNode(options: CanvasOverviewNodeOptions) {
     drawTextNode(group, sceneNode, palette, scale);
     return;
   }
-  drawNodeCard(group, sceneNode, palette);
+  drawNodeBackground(group, sceneNode, palette);
   if (image) drawPreviewImage(group, sceneNode, image);
   if (data.kind === "image") return;
   if (frame.width * scale < 38 || frame.height * scale < 24) return;
@@ -53,7 +53,7 @@ function drawTextNode(group: Konva.Group, sceneNode: CanvasSceneNode, palette: C
   );
 }
 
-function drawNodeCard(group: Konva.Group, sceneNode: CanvasSceneNode, palette: CanvasPalette) {
+function drawNodeBackground(group: Konva.Group, sceneNode: CanvasSceneNode, palette: CanvasPalette) {
   const { frame, appearance } = sceneNode.layout;
   const note = sceneNode.node.data.kind === "note";
   const fill =

@@ -3,7 +3,7 @@ use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use super::super::{commands::execute_in_transaction, edit_contract::ExecuteSpaceEditRequest};
 use crate::spaces::db;
 
-async fn database() -> SqlitePool {
+pub(super) async fn database() -> SqlitePool {
     let pool = SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
@@ -20,7 +20,7 @@ async fn database() -> SqlitePool {
     pool
 }
 
-fn request(title: &str) -> ExecuteSpaceEditRequest {
+pub(super) fn request(title: &str) -> ExecuteSpaceEditRequest {
     serde_json::from_value(serde_json::json!({
         "spaceId": "space", "mutationId": "mutation", "expectedEditRevision": 0,
         "command": {"kind": "section.create-empty", "sectionId": "section", "title": title,

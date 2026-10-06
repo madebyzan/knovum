@@ -77,7 +77,11 @@ pub(super) async fn complete(
         context.target_snapshot,
     )
     .await?;
-    structure::portal_integrity::validate_structure_targets(tx).await?;
+    structure::portal_integrity::validate_structure_targets(
+        tx,
+        &[&request.source_space_id, &request.target_space_id],
+    )
+    .await?;
     let source_after =
         structure::history::capture(tx, &request.source_space_id, context.source_snapshot).await?;
     let target_after =

@@ -1,4 +1,5 @@
 mod document_formats;
+mod failure;
 
 #[test]
 fn prepared_document_metadata_accepts_resolved_action_fields() {

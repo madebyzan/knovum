@@ -8,6 +8,7 @@ use tokio_util::sync::CancellationToken;
 
 pub(crate) mod admission;
 mod artifact;
+pub(crate) mod compute_budget;
 pub(crate) mod device_profiles;
 mod image;
 mod process;

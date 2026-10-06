@@ -1,3 +1,4 @@
+use crate::ai::local_runtime::compute_budget::ComputeBudget;
 use std::{
     path::Path,
     time::{SystemTime, UNIX_EPOCH},
@@ -21,7 +22,6 @@ use crate::{
     blocking, file_inspection,
     local_resources::preparation::PreparedModels,
     media::{
-        compute_budget::ComputeBudget,
         prepared_audio::PreparedMediaAudio,
         transcript::{from_speech, MediaTranscript, TranscriptProvenance},
     },
@@ -38,7 +38,11 @@ pub struct TranscriptionPipeline<'a> {
 
 impl TranscriptionPipeline<'_> {
     pub async fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
-        let (engine, device, compute_type, profile_id) = platform_profile()?;
+        let profile = speech::transcription_profile()?;
+        let engine = profile.engine;
+        let device = profile.device;
+        let compute_type = profile.compute_type;
+        let profile_id = profile.id;
         let model_kind = match &engine {
             AsrEngine::MlxWhisper => {
                 crate::local_resources::models::catalog::ModelKind::MlxWhisperWeights
@@ -164,35 +168,4 @@ fn deadline(duration_ms: u64) -> Result<(u64, u64), String> {
         .checked_add(allowance)
         .ok_or("ASR deadline exceeds the supported range")?;
     Ok((now_ms, deadline_ms))
-}
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-pub(super) fn platform_profile(
-) -> Result<(AsrEngine, &'static str, &'static str, &'static str), String> {
-    Ok((
-        AsrEngine::MlxWhisper,
-        "mps",
-        "float16",
-        "mlx-whisper-small-mps-v1",
-    ))
-}
-
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-pub(super) fn platform_profile(
-) -> Result<(AsrEngine, &'static str, &'static str, &'static str), String> {
-    Ok((
-        AsrEngine::FasterWhisper,
-        "cpu",
-        "int8",
-        "faster-whisper-small-cpu-int8-v1",
-    ))
-}
-
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
-pub(super) fn platform_profile(
-) -> Result<(AsrEngine, &'static str, &'static str, &'static str), String> {
-    Err("unsupported_device: native ASR runtime has not been qualified for this platform".into())
 }
