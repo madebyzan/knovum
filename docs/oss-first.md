@@ -244,12 +244,20 @@ Space catalog covers and Saved View previews are separate from file previews. `h
 ## Regional model downloads reviewed 2026-10-06
 
 The official [huggingface-hub 1.33.0 download API](https://huggingface.co/docs/huggingface_hub/en/guides/download)
-and [modelscope-hub 0.4.5](https://github.com/modelscope/modelscope-hub/tree/v0.4.5) own Hub metadata,
+and [modelscope-hub 0.4.5](https://pypi.org/project/modelscope-hub/0.4.5/) own Hub metadata,
 partial transfers, resume and download locking. Knovum calls only public `snapshot_download` and
 `HubApi.download_repo` APIs with an exact file allowlist and a full repository commit.
 The published Rust hf-hub 1.0.0 plain HTTP file path creates a fresh output file; adopting it would
 still leave Knovum owning the required resume behavior. The full `modelscope` framework would add
 unrelated inference machinery. Neither is selected for this download capability.
+
+The two SDKs serve different repository protocols; their download features overlap. Both are
+retained because the currently qualified sources span both platforms. Provider-specific code
+only invokes the public SDK and translates download progress; Knovum's installation lifecycle
+remains shared. A single SDK would be preferable if sources using its protocol covered every
+approved snapshot and passed complete download/resume acceptance in both regions. Consolidation
+must account for mirror publication, redistribution permissions and maintenance, rather than
+only the number of client libraries. Using two SDKs does not establish regional availability.
 
 `knovum_model_resources` is independent of `knovum_inference`. Rust owns the selected regional
 source, file inventory/SHA-256, cancellation, shared installation and immutable snapshot
