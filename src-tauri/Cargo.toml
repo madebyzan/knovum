@@ -66,7 +66,7 @@ typst-layout = "=0.15.1"
 typst-pdf = "=0.15.1"
 fontdb = "=0.23.0"
 futures = "0.3"
-office_oxide = { version = "=0.1.8", default-features = false }
+office_oxide = { version = "=0.1.13", default-features = false }
 pdf-inspector = { version = "=1.20.0", default-features = false }
 
 serde_json = "1"
