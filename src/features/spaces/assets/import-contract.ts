@@ -1,3 +1,4 @@
+import type { ExternalContentSource } from "../contracts/generated/ExternalContentSource";
 import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceImport";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
@@ -22,8 +23,10 @@ export interface SpaceImportSessionLabels {
 }
 
 export interface PreparedSpaceImportSource {
+  externalSource?: ExternalContentSource;
+  dispose?(): Promise<void>;
   prepare(): Promise<PreparedSpaceImport>;
-  finalize(): Promise<void>;
+  finalize?(): Promise<void>;
 }
 
 export type SpaceImportSource = string | PreparedSpaceImportSource;

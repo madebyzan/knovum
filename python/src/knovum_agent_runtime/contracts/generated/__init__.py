@@ -36,12 +36,21 @@ class AgentToolOutcome1(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
+    operation_id: Annotated[str, Field(alias="operationId")]
+    reason: str
+    type: Literal["await_user"]
+
+
+class AgentToolOutcome2(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     value: Any
     media: list[AgentContentPart]
     type: Literal["completed"]
 
 
-class AgentToolOutcome2(WireModel):
+class AgentToolOutcome3(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -49,7 +58,10 @@ class AgentToolOutcome2(WireModel):
     type: Literal["await_child"]
 
 
-class AgentToolOutcome(RootModel[AgentToolOutcome1 | AgentToolOutcome2]):
+class AgentToolOutcome(
+    RootModel[AgentToolOutcome1 | AgentToolOutcome2 | AgentToolOutcome3]
+):
     root: Annotated[
-        AgentToolOutcome1 | AgentToolOutcome2, Field(title="tools.AgentToolOutcome")
+        AgentToolOutcome1 | AgentToolOutcome2 | AgentToolOutcome3,
+        Field(title="tools.AgentToolOutcome"),
     ]

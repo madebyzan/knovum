@@ -33,6 +33,7 @@ use crate::{
 pub(super) enum DriveOutcome {
     Completed,
     Paused,
+    Waiting,
 }
 
 pub(super) async fn drive(
@@ -80,12 +81,13 @@ pub(super) async fn drive(
     let memory = std::collections::BTreeMap::from([("/space.json".into(), memory_snapshot)]);
     let execute = AgentExecute {
         identity: host.session.identity(&host.ids.run_id), model,
-        system_prompt: format!("You are Knovum's built-in knowledge agentRuntime. Mode: {}. {} Use provided Actions for business changes. The user authorizes execution of the available Actions; do not ask for redundant confirmation. Publish only through Knovum Actions and never claim success without a completed Action receipt.", host.request.mode.as_str(), crate::spaces::conversations::prompt_policy::SPACE_READING),
+        system_prompt: format!("You are Knovum's built-in knowledge agent. Mode: {}. {} Use provided Actions for business changes. The user authorizes execution of the available Actions; do not ask for redundant confirmation. Publish only through Knovum Actions and never claim success without a completed Action receipt.", host.request.mode.as_str(), crate::spaces::conversations::prompt_policy::SPACE_READING),
         tools: host.catalog.tools.iter().map(|tool| AgentToolDefinition {
             name: tool.name.clone(), description: tool.description.clone(), parameters: tool.input_schema.clone(),
-            read_only: host.catalog.by_wire_name[&tool.name].impact == crate::spaces::actions::SpaceActionImpact::ReadOnly,
+            read_only: host.catalog.by_wire_name[&tool.name].read_only,
         }).collect(), messages, input_id: host.session.input_id.clone(), after_checkpoint_id: host.session.projection_checkpoint_id.clone(), resume,
-        skills: crate::spaces::conversations::skills::snapshots(),
+        skills: host.extensions.files.clone(),
+        skill_tool_bindings: host.extensions.skill_tool_bindings.clone(),
         memory,
         plan: !matches!(host.request.mode, ConversationMode::Ask), research: true,
     };
@@ -161,6 +163,17 @@ async fn execute_loop(
         {
             paused(host).await?;
             return Ok(DriveOutcome::Paused);
+        }
+        if let Some(interrupt) = outcome
+            .interrupts
+            .iter()
+            .find(|value| value["type"] == "tool_intervention")
+        {
+            let reason = interrupt["reason"]
+                .as_str()
+                .ok_or("agent-tool-intervention-reason-missing")?;
+            set_state(host, "waiting", Some(reason)).await?;
+            return Ok(DriveOutcome::Waiting);
         }
         let children = outcome
             .interrupts

@@ -17,6 +17,7 @@ pub(super) struct NewBuiltinAgentTaskState<'a> {
     pub ids: &'a identity::TaskIds,
     pub grant: &'a AuthorizationContext,
     pub catalog: &'a tools::ToolCatalog,
+    pub extensions: &'a crate::extensions::contracts::AgentExtensionSnapshot,
     pub context_manifest: &'a serde_json::Value,
     pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
     pub attachment_summaries: &'a [crate::spaces::conversations::ConversationMessageAttachment],
@@ -42,6 +43,7 @@ pub(super) async fn persist_task(
         ids,
         grant,
         catalog,
+        extensions,
         context_manifest,
         space_context,
         attachment_summaries,
@@ -89,7 +91,7 @@ pub(super) async fn persist_task(
         Vec::new()
     };
     inputs.extend_from_slice(messages);
-    let input = json!({"prompt": request.prompt, "contextManifest": context_manifest, "spaceContext": space_context, "messages": inputs});
+    let input = json!({"prompt": request.prompt, "extensions": extensions, "contextManifest": context_manifest, "spaceContext": space_context, "messages": inputs});
     let budget = json!({
         "maxTurns": request.max_turns, "maxTools": request.max_tool_calls,
         "maxTotalTokens": request.max_total_tokens,

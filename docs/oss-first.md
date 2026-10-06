@@ -217,7 +217,7 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 - Builtin Agent uses Deep Agents 0.7.22 / LangGraph 1.2.13 / SQLite saver 3.1.1 in a dedicated locked Python process. These upstream APIs own planning, context summaries, private workspace, bounded research and graph durability. Rust owns Actions, grants, Runs, fee admission and public-history transactions. `rig-agent` and its Rust control loop have been removed; direct `genai` consumers remain. No Agent Server, framework fork, custom checkpointer/outbox or transport fallback is introduced.
 - Official LangChain model integrations preserve provider protocols and reasoning/tool structures. Protocol and qualified context limits are explicit model settings, frozen per segment; disabled automatic retries do not become model failover. `truststore` 0.10.4 gives the application native OS TLS trust at its process entry, rather than implementing certificate parsing. Local public-interface proofs live in `python/tests/agent_runtime`; real providers and target platforms have separate qualification gates.
 - Personal workflows reuse verified derivation ordering and the existing Action Run scheduler. Removing built-in recipe graphs removes the direct `petgraph` dependency; there is no second compiler or execution framework.
-- `rmcp` 3.1.3 remains the official Rust MCP transport for the inbound Space knowledge server used by desktop Agents. `agent-client-protocol` 2.1.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
+- `rmcp` 3.1.3 is the official Rust MCP transport for the inbound Space knowledge server and outbound selected Agent connections. `agent-client-protocol` 2.1.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
 - `schemars` 1.2.2, `ts-rs` 12.0.1 and `jsonschema` 0.56.0 share Rust-owned static contracts with TypeScript and validate untrusted dynamic tool schemas in Rust. Remote schema references are not fetched, and Vue does not become a second dynamic-schema authority.
 - Space Action parameters are generated from typed Rust contracts with `schemars`, emitted as JSON Schema 2020-12 and validated by `jsonschema`. The former hand-written `text/number/json` descriptor was removed because it duplicated the standard while losing enums, ranges and object structure.
 - The existing Konva canvas owns workflow selection and spatial context. The former Vue Flow Studio and its dependency were removed because a separate graph editor duplicated canvas interaction.
@@ -308,3 +308,22 @@ or a speculative dependency. Parsed markup remains inert and is never inserted i
 The [Kokoro model documentation](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html)
 provides the canonical voice mapping for the pinned archive; catalog membership is validated by
 creation, preview, execution and package restore. Model/license release gates remain authoritative.
+
+## Agent extension implementation choices
+
+Outbound MCP reuses official rmcp 3.1.3, alongside the existing server, including public OAuth
+state, PKCE, token refresh and credential-store APIs. Deep Agents 0.7.22 public SkillsMiddleware,
+StoreBackend and skill_tool_resolver load reviewed content; there is no Python MCP client.
+gix 0.88.0 reads HTTPS Git objects without an external Git process or checkout. yaml-rust2
+0.13.0 reads Skill frontmatter and detects duplicate keys. iri-string 0.7.10 performs RFC 6570
+resource-template expansion; unicode-normalization 0.1.25 supplies NFC identities for portable
+package paths. Existing ZIP, JSON Schema, SHA-256, SQLite and native dialogs are reused.
+
+Policy adapters have concrete boundaries: Git HTTPS pins the reviewed public destination and
+bounds request/response streams; MCP HTTP bounds JSON/SSE and rejects malformed responses
+instead of treating them as accepted requests. SDKs still own Git/MCP framing and semantics.
+No parallel harness, transport downgrade, package installation command or vendor global config
+writer is added. References: https://github.com/modelcontextprotocol/rust-sdk,
+https://github.com/GitoxideLabs/gitoxide, https://github.com/Ethiraric/yaml-rust2,
+https://github.com/lo48576/iri-string, https://github.com/unicode-rs/unicode-normalization,
+https://agent-plugins.org/ and https://skills.sh/.

@@ -18,7 +18,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 5;
+pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 6;
 
 pub(super) struct NewBuiltinAgentTask<'a> {
     pub task_id: &'a str,
@@ -54,56 +54,90 @@ pub async fn start(
     let (target, profile) =
         crate::ai::settings::resolve_builtin_agent(&app, request.target.clone(), capability)
             .map_err(|error| error.to_string())?;
-    let catalog = tools::project(request.mode)?;
-    let ids = identity::TaskIds::new(&request);
-    let history = repository::load_history(pool, &ids.conversation_id, &ids.branch_id).await?;
-    let now = crate::clock::unix_time_millis()?;
-    let grant = identity::grant(&request, &ids, &catalog, now);
-    let messages = vec![context.initial_message(ids.input_id(), &request.prompt, None)];
-    let (session, messages) = persistence::persist_task(
-        pool,
-        persistence::NewBuiltinAgentTaskState {
-            request: &request,
-            ids: &ids,
-            grant: &grant,
-            catalog: &catalog,
-            context_manifest: &context.manifest,
-            space_context: &context.space,
-            attachment_summaries: &context.summaries,
-            target: &target,
-            profile: &profile,
-            messages: &messages,
-            history: &history,
-            now,
-        },
+    let mut catalog = tools::project(request.mode)?;
+    let local_tools = catalog
+        .tools
+        .iter()
+        .map(|tool| tool.name.clone())
+        .collect::<Vec<_>>();
+    let extensions = crate::extensions::snapshots::prepare(
+        &app,
+        &request.extensions,
+        !matches!(request.mode, super::ConversationMode::Execute),
+        &local_tools,
+        None,
     )
     .await?;
-    transition_run(pool, &ids.run_id, 0, RunState::Running, None).await?;
-    let accepted = ConversationTaskAccepted {
-        task_id: ids.task_id.clone(),
-        run_id: ids.run_id.clone(),
-        conversation_id: ids.conversation_id.clone(),
-        branch_id: ids.branch_id.clone(),
-    };
-    let cancellation = cancellation::register(&ids.run_id)?;
-    lifecycle::launch(
-        crate::spaces::conversations::execution::gateway::Gateway {
-            app,
-            pool: pool.clone(),
-            target,
-            profile,
-            request,
-            ids,
-            catalog,
-            session,
-            updates: Some(updates),
-            last_message: std::sync::Mutex::new(None),
-        },
-        messages,
-        None,
-        cancellation,
-    );
-    Ok(accepted)
+    let snapshot_id = extensions.id.clone();
+    let started = async {
+        catalog.extend(&extensions)?;
+        let ids = identity::TaskIds::new(&request);
+        let history = repository::load_history(pool, &ids.conversation_id, &ids.branch_id).await?;
+        let now = crate::clock::unix_time_millis()?;
+        let grant = identity::grant(&request, &ids, &catalog, now);
+        let messages = vec![context.initial_message(ids.input_id(), &request.prompt, None)];
+        let (session, messages) = persistence::persist_task(
+            pool,
+            persistence::NewBuiltinAgentTaskState {
+                request: &request,
+                ids: &ids,
+                grant: &grant,
+                catalog: &catalog,
+                extensions: &extensions,
+                context_manifest: &context.manifest,
+                space_context: &context.space,
+                attachment_summaries: &context.summaries,
+                target: &target,
+                profile: &profile,
+                messages: &messages,
+                history: &history,
+                now,
+            },
+        )
+        .await?;
+        let launch_state = async {
+            transition_run(pool, &ids.run_id, 0, RunState::Running, None).await?;
+            cancellation::register(&ids.run_id)
+        }
+        .await;
+        let cancellation = match launch_state {
+            Ok(cancellation) => cancellation,
+            Err(error) => {
+                completion::fail(pool, &ids.run_id, &error).await?;
+                return Err(error);
+            }
+        };
+        let accepted = ConversationTaskAccepted {
+            task_id: ids.task_id.clone(),
+            run_id: ids.run_id.clone(),
+            conversation_id: ids.conversation_id.clone(),
+            branch_id: ids.branch_id.clone(),
+        };
+        lifecycle::launch(
+            crate::spaces::conversations::execution::gateway::Gateway {
+                app: app.clone(),
+                pool: pool.clone(),
+                target,
+                profile,
+                request,
+                ids,
+                catalog,
+                extensions,
+                session,
+                updates: Some(updates),
+                last_message: std::sync::Mutex::new(None),
+            },
+            messages,
+            None,
+            cancellation,
+        );
+        Ok(accepted)
+    }
+    .await;
+    if started.is_err() {
+        crate::extensions::reclamation::release(&app, &snapshot_id).await?;
+    }
+    started
 }
 
 pub(super) fn cancel(run_id: &str) -> Result<(), String> {
@@ -119,6 +153,7 @@ pub(super) fn recover(app: AppHandle) {
 }
 
 pub(super) async fn resume(app: AppHandle, run_id: &str) -> Result<(), String> {
+    cancellation::wait_idle(run_id).await?;
     recovery::recover_one(app, run_id, true, None).await
 }
 

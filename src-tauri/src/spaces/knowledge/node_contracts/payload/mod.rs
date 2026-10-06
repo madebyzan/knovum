@@ -20,6 +20,7 @@ const COMMON_FIELDS: &[&str] = &[
     "tags",
     "sourceRevision",
     "knowledgeRevision",
+    "externalSource",
 ];
 
 pub(super) fn validate_base_fields(kind: &str, data: &Value) -> Result<(), String> {
@@ -33,6 +34,7 @@ pub(super) fn validate_base_fields(kind: &str, data: &Value) -> Result<(), Strin
     optional_string_array(object, "tags", 64, 80)?;
     optional_string(object, "sourceRevision", 128, false)?;
     optional_string(object, "knowledgeRevision", 128, false)?;
+    super::external_source::validate(object.get("externalSource"))?;
     Ok(())
 }
 

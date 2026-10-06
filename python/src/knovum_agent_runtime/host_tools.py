@@ -42,18 +42,19 @@ def create_tool(definition: AgentToolDefinition) -> StructuredTool:
         )
         response = await context.peer.request("agentRuntime.invokeTool", invocation)
         outcome = AgentToolOutcome.model_validate_json(json.dumps(response)).root
-        if outcome.type == "await_child":
-            interrupt({"type": "child_run", "runId": outcome.run_id})
-            # Resume must re-observe the original Action receipt through Rust.
+        while outcome.type != "completed":
+            if outcome.type == "await_child":
+                interrupt({"type": "child_run", "runId": outcome.run_id})
+            else:
+                interrupt({"type": "tool_intervention", "operationId": outcome.operation_id, "reason": outcome.reason})
             response = await context.peer.request("agentRuntime.invokeTool", invocation)
             outcome = AgentToolOutcome.model_validate_json(json.dumps(response)).root
-            if outcome.type != "completed":
-                raise RuntimeError("agent-runtime-child-not-completed")
         tool_message = ToolMessage(
             id=f"tool:{runtime.tool_call_id}",
             content=json.dumps(outcome.value, ensure_ascii=False),
             tool_call_id=runtime.tool_call_id,
             name=definition.name,
+            status="error" if isinstance(outcome.value, dict) and outcome.value.get("isError") is True else "success",
         )
         messages: list[BaseMessage] = [tool_message]
         if outcome.media:

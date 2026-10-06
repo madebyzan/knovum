@@ -30,7 +30,7 @@ export function createTaskCancellation({
     } catch (error) {
       if (!["queued", "running", "attention"].includes(task.status)) return;
       task.cancelling = false;
-      task.cancellable = true;
+      task.cancellable = Boolean(handlers.cancellation(id));
       task.statusMessage = getErrorMessage(error);
     }
   };

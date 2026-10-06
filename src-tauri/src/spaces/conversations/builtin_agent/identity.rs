@@ -57,7 +57,12 @@ pub(in crate::spaces::conversations) fn grant(
         action_ids: catalog
             .by_wire_name
             .values()
-            .map(|definition| definition.id.to_owned())
+            .filter_map(|binding| match &binding.source {
+                crate::extensions::contracts::AgentToolBinding::SpaceAction {
+                    action_id, ..
+                } => Some(action_id.clone()),
+                _ => None,
+            })
             .collect(),
         valid_until: now + 2 * 60 * 60 * 1_000,
     }

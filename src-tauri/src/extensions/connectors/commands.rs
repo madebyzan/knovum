@@ -1,0 +1,186 @@
+use super::super::{
+    contracts::{ConnectorAccount, ConnectorAuthorization, ConnectorDefinition, McpEndpoint},
+    database, ExtensionState,
+};
+use super::{accounts, authorization, credential_store::key};
+use std::collections::BTreeMap;
+use tauri::{AppHandle, Manager};
+
+#[tauri::command]
+pub async fn list_connector_accounts(app: AppHandle) -> Result<Vec<ConnectorAccount>, String> {
+    accounts::list(&database::pool(&app).await?).await
+}
+
+#[tauri::command]
+pub async fn list_connector_definitions(
+    app: AppHandle,
+) -> Result<Vec<ConnectorDefinition>, String> {
+    accounts::definitions(&database::pool(&app).await?).await
+}
+
+#[tauri::command]
+pub async fn create_connector_account(
+    app: AppHandle,
+    connection_id: String,
+    display_name: String,
+) -> Result<ConnectorAccount, String> {
+    let state = app.state::<ExtensionState>();
+    let _guard = state.content_lock.lock().await;
+    if display_name.trim().is_empty() {
+        return Err("connector-account-display-name-required".into());
+    }
+    let pool = database::pool(&app).await?;
+    let connection = super::super::mcp::connections::load(&pool, &connection_id).await?;
+    let connector = accounts::definitions(&pool)
+        .await?
+        .into_iter()
+        .find(|connector| connector.id == connection.connector_id)
+        .ok_or("connector-definition-missing")?;
+    let account = ConnectorAccount {
+        id: uuid::Uuid::new_v4().to_string(),
+        revision: uuid::Uuid::new_v4().to_string(),
+        connector_id: connector.id,
+        display_name,
+        resource: super::super::mcp::endpoint::resource(&connection.endpoint),
+        issuer: None,
+        scopes: Vec::new(),
+        authorization: connector.authorization,
+        enabled: false,
+        cleanup_pending: false,
+    };
+    accounts::save(&pool, &account).await?;
+    Ok(account)
+}
+
+#[tauri::command]
+pub async fn authorize_connector_account(
+    app: AppHandle,
+    id: String,
+    secret_fields: BTreeMap<String, String>,
+) -> Result<ConnectorAccount, String> {
+    let lock = authorization::account_lock(&app, &id).await;
+    let _guard = lock.lock().await;
+    let pool = database::pool(&app).await?;
+    let mut account = accounts::load(&pool, &id).await?;
+    if account.cleanup_pending {
+        return Err("connector-account-disconnect-in-progress".into());
+    }
+    accounts::set_status(&pool, &id, false, false).await?;
+    super::super::mcp::sessions::revoke_account(&app, &id).await;
+    let authorization = async {
+        match &account.authorization {
+            ConnectorAuthorization::OAuth { .. } => {
+                if !secret_fields.is_empty() {
+                    return Err("oauth-credentials-must-not-be-provided-manually".into());
+                }
+                let connections = super::super::mcp::connections::list(&pool).await?;
+                let allow_local = connections
+                    .iter()
+                    .find(|connection| {
+                        connection.connector_id == account.connector_id
+                            && super::super::mcp::endpoint::resource(&connection.endpoint)
+                                == account.resource
+                    })
+                    .is_some_and(|connection| {
+                        matches!(
+                            connection.endpoint,
+                            McpEndpoint::StreamableHttp {
+                                allow_local_network: true,
+                                ..
+                            }
+                        )
+                    });
+                authorization::authorize(&app, &mut account, allow_local).await?;
+            }
+            ConnectorAuthorization::Bearer => {
+                let token = secret_fields
+                    .get("token")
+                    .filter(|value| !value.is_empty())
+                    .ok_or("connector-bearer-token-required")?;
+                if secret_fields.len() != 1 {
+                    return Err("connector-secret-fields-invalid".into());
+                }
+                let fields = [("Authorization", format!("Bearer {token}"))]
+                    .into_iter()
+                    .collect::<BTreeMap<_, _>>();
+                crate::secrets::write_secret(&key(&id), &database::encode(&fields)?).await?;
+            }
+            ConnectorAuthorization::SecretFields { names } => {
+                if names.len() != secret_fields.len()
+                    || names
+                        .iter()
+                        .any(|name| secret_fields.get(name).is_none_or(String::is_empty))
+                {
+                    return Err("connector-required-secret-fields-mismatch".into());
+                }
+                crate::secrets::write_secret(&key(&id), &database::encode(&secret_fields)?).await?;
+            }
+            ConnectorAuthorization::None => {
+                if !secret_fields.is_empty() {
+                    return Err("unauthenticated-connector-does-not-accept-secrets".into());
+                }
+            }
+        }
+        Ok::<_, String>(())
+    }
+    .await;
+    if let Err(error) = authorization {
+        accounts::set_status(&pool, &id, false, true).await?;
+        super::credential_store::remove(&app, &id).await?;
+        accounts::set_status(&pool, &id, false, false).await?;
+        return Err(error);
+    }
+    let current = accounts::load(&pool, &id).await?;
+    if current.cleanup_pending
+        || current.resource != account.resource
+        || current.authorization != account.authorization
+    {
+        super::credential_store::remove(&app, &id).await?;
+        return Err("connector-account-disconnected-during-authorization".into());
+    }
+    account.enabled = true;
+    account.cleanup_pending = false;
+    account.revision = uuid::Uuid::new_v4().to_string();
+    if let Err(error) = accounts::commit_authorization(&pool, &account, &current).await {
+        super::credential_store::remove(&app, &id).await?;
+        return Err(error);
+    }
+    Ok(account)
+}
+
+#[tauri::command]
+pub async fn cancel_connector_authorization(app: AppHandle, id: String) -> Result<(), String> {
+    if let Some(cancellation) = app
+        .state::<ExtensionState>()
+        .authorizations
+        .lock()
+        .await
+        .get(&id)
+    {
+        cancellation.cancel();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn disconnect_connector_account(app: AppHandle, id: String) -> Result<(), String> {
+    cancel_connector_authorization(app.clone(), id.clone()).await?;
+    let pool = database::pool(&app).await?;
+    accounts::set_status(&pool, &id, false, true).await?;
+    super::super::mcp::sessions::revoke_account(&app, &id).await;
+    let lock = authorization::account_lock(&app, &id).await;
+    let _guard = lock.lock().await;
+    super::credential_store::remove(&app, &id).await?;
+    accounts::set_status(&pool, &id, false, false).await
+}
+
+pub(in crate::extensions) async fn recover_cleanup(app: &AppHandle) -> Result<(), String> {
+    for account in accounts::list(&database::pool(app).await?)
+        .await?
+        .into_iter()
+        .filter(|account| account.cleanup_pending || !account.enabled)
+    {
+        disconnect_connector_account(app.clone(), account.id).await?;
+    }
+    Ok(())
+}

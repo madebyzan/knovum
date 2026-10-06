@@ -25,8 +25,12 @@ pub(crate) mod structure;
 pub(crate) mod workflows;
 
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    use tauri::Manager;
     tauri::plugin::Builder::new("spaces")
         .setup(|app, _api| {
+            app.manage(
+                conversations::tool_operations::concurrency::ToolInvocationConcurrency::default(),
+            );
             derivation::image_operations::discard_interrupted(app)?;
             recovery::start(app.clone());
             Ok(())

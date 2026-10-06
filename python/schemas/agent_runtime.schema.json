@@ -171,9 +171,18 @@
         },
         "resume": true,
         "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentSkillFile"
+          }
+        },
+        "skillToolBindings": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "memory": {
@@ -198,6 +207,7 @@
         "messages",
         "inputId",
         "skills",
+        "skillToolBindings",
         "memory",
         "plan",
         "research"
@@ -384,6 +394,37 @@
             "data"
           ]
         }
+      ]
+    },
+    "AgentSkillFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "encoding": {
+          "$ref": "#/$defs/SkillFileEncoding"
+        },
+        "content": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "encoding",
+        "content",
+        "digest"
+      ]
+    },
+    "SkillFileEncoding": {
+      "type": "string",
+      "enum": [
+        "utf8",
+        "base64"
       ]
     },
     "AgentExecutionResult": {
@@ -625,6 +666,27 @@
     },
     "AgentToolOutcome": {
       "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "operationId": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "await_user"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "operationId",
+            "reason"
+          ]
+        },
         {
           "type": "object",
           "properties": {

@@ -55,7 +55,7 @@ pub(crate) async fn create_records(
             kind: RunKind::ExternalAgent,
             policy_snapshot: &serde_json::json!({"runtimeKind": request.runtime_kind}),
             input_snapshot: &request.input_snapshot,
-            budget: &serde_json::json!({"maxDurationSeconds": request.max_duration_seconds}),
+            budget: &serde_json::json!({"maxDurationSeconds": request.max_duration_seconds, "maxTools": 32}),
         },
         now,
     )

@@ -2,6 +2,8 @@ use tauri::ipc::Invoke;
 
 pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        crate::spaces::assets::import::mcp_resource::stage_mcp_resource_import,
+        crate::spaces::assets::import::mcp_resource::discard_mcp_resource_import,
         crate::spaces::agent_artifacts::discard_artifact_workspace,
         crate::spaces::agent_artifacts::recovery::list_recoverable_artifact_workspaces,
         crate::spaces::agent_artifacts::preview_generated_artifact,

@@ -60,19 +60,31 @@ pub async fn start(
         None
     };
     let prepared = context.agent_prompt(&app, &prompt, history.as_deref())?;
-    let session = external_conversations::start_for_conversation(
+    let extensions = crate::extensions::snapshots::prepare(
+        &app,
+        &request.extensions,
+        false,
+        &crate::spaces::mcp::local_tool_names(),
+        None,
+    )
+    .await?;
+    let snapshot_id = extensions.id.clone();
+    let session = match external_conversations::start_for_conversation(
         app.clone(),
         external_conversations::StartExternalConversationRequest {
             space_id: request.space_id,
             runtime_kind,
             title: prompt.chars().take(80).collect(),
             max_duration_seconds: 900,
-            input_snapshot: serde_json::json!({"prompt": prompt, "attachments": context.manifest, "spaceContext": context.space}),
+            input_snapshot: serde_json::json!({"prompt": prompt, "extensions": extensions, "attachments": context.manifest, "spaceContext": context.space}),
         },
         conversation,
         updates.clone(),
     )
-    .await?;
+    .await {
+        Ok(session) => session,
+        Err(error) => { crate::extensions::reclamation::release(&app, &snapshot_id).await?; return Err(error); }
+    };
     let turn_id = match external_conversations::begin_turn_for_conversation(
         app.clone(),
         &session.id,
@@ -93,6 +105,7 @@ pub async fn start(
             {
                 log::error!("Agent task settlement failed: {settlement}");
             }
+            crate::extensions::reclamation::release(&app, &snapshot_id).await?;
             return Err(error);
         }
     };
@@ -140,6 +153,9 @@ pub async fn start(
             },
             Err(_) => super::contract::ConversationTaskFinishedState::Failed,
         };
+        if let Err(error) = crate::extensions::reclamation::release(&app, &snapshot_id).await {
+            log::error!("Agent extension release failed: {error}");
+        }
         let _ = updates.send(ConversationTaskUpdate::Finished { state });
     });
     Ok(accepted)

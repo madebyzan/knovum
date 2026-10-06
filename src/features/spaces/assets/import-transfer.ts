@@ -23,6 +23,7 @@ export interface CommitManagedImportOptions {
 
 export async function commitManagedImport(options: CommitManagedImportOptions) {
   const { context, spaceId, taskId, prepared, position, reveal, source } = options;
+  const externalSource = typeof source === "string" ? undefined : source.externalSource;
   const tasks = useTaskStore();
   const jobId = prepared.jobId!;
   let cancelRequested = false;
@@ -36,7 +37,7 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
   try {
     [node] = await context.createPendingContentForSpace(
       spaceId,
-      importedSpaceNodePayload(prepared.asset),
+      importedSpaceNodePayload(prepared.asset, externalSource),
       position,
     );
     if (!node) throw new Error("Space import did not create a node");
@@ -46,14 +47,14 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     });
     if (cancelRequested) throw new Error("Space import cancelled");
     copiedPath = copied.path;
-    const copiedContent = importedSpaceNodePayload(copied);
+    const copiedContent = importedSpaceNodePayload(copied, externalSource);
     await context.savePendingNodeContentForSpace(spaceId, {
       id: node.id,
       expectedData: node.data,
       data: copiedContent,
     });
     node.data = copiedContent;
-    if (typeof source !== "string") await source.finalize();
+    if (typeof source !== "string") await source.finalize?.();
     context.finalizePendingContent(spaceId, [node], reveal);
     imported = { node, data: copiedContent };
   } catch (error) {
@@ -64,6 +65,16 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     tasks.fail(taskId, getErrorMessage(error));
     throw error;
   }
+  completeImportProcessing(options, imported);
+  return [imported.node];
+}
+
+function completeImportProcessing(
+  options: CommitManagedImportOptions,
+  imported: { node: SpaceCanvasNode; data: SpaceNodePayload },
+) {
+  const { context, spaceId, taskId } = options;
+  const tasks = useTaskStore();
   if (isSpaceManagedAssetPayload(imported.data) && imported.data.processingState === "processing") {
     scheduleSpaceAssetProcessing({
       context,
@@ -75,7 +86,6 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
   } else {
     tasks.succeed(taskId);
   }
-  return [imported.node];
 }
 
 function updateCopyProgress(taskId: string, progress: { bytesCopied: number; totalBytes?: number }) {

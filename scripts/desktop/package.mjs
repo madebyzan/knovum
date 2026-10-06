@@ -58,6 +58,7 @@ cpSync(join(repository, "python", "src"), worker, {
 validateApplicationResources(join(repository, "src-tauri", "resources"), repository, target);
 
 const bundleResources = [
+  "resources/agent-plugins/**/*",
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),

@@ -3,6 +3,7 @@ pub(crate) mod commit;
 pub(super) mod copy;
 pub(super) mod geometry;
 mod markdown;
+pub(crate) mod mcp_resource;
 pub(crate) mod media;
 pub(crate) mod prepare;
 pub(crate) mod registry;

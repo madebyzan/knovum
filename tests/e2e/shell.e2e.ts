@@ -1,25 +1,6 @@
 import { $, browser, expect } from "@wdio/globals";
 
-async function runAppCommand(id: string): Promise<void> {
-  const outcome = (await browser.executeAsync(async (commandId, done) => {
-    const bridge = (
-      globalThis as typeof globalThis & {
-        __knovumE2eBridge?: { runCommand(id: string): Promise<void> };
-      }
-    ).__knovumE2eBridge;
-    if (!bridge) {
-      done({ error: "E2E command bridge is unavailable" });
-      return;
-    }
-    try {
-      await bridge.runCommand(commandId);
-      done({ error: null });
-    } catch (error) {
-      done({ error: String(error) });
-    }
-  }, id)) as { error: string | null };
-  expect(outcome.error).toBeNull();
-}
+import { runAppCommand } from "./app-command";
 
 async function openCommandPalette(palette: ReturnType<typeof $>, attempts = 10): Promise<void> {
   if (attempts === 0 || (await palette.isDisplayed())) return;

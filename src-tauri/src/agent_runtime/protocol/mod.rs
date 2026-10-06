@@ -3,8 +3,8 @@ pub(crate) mod messages;
 pub(crate) mod models;
 pub(crate) mod tools;
 
-pub(crate) const PROTOCOL_VERSION: u16 = 1;
-pub(crate) const GRAPH_VERSION: &str = "knovum-agent-v1/deepagents-0.7.22/langgraph-1.2.13";
+pub(crate) const PROTOCOL_VERSION: u16 = 2;
+pub(crate) const GRAPH_VERSION: &str = "knovum-agent-v2/deepagents-0.7.22/langgraph-1.2.13";
 
 // Collect the closed wire graph used by the Python contract generator.
 #[allow(dead_code)]

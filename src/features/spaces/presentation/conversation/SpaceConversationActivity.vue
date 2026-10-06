@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { Check, ChevronRight, Circle, Wrench } from "@lucide/vue";
-import { computed, shallowRef, watch } from "vue";
+import { Check, ChevronRight, Circle } from "@lucide/vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { z } from "zod";
 
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
-import { conversationActivityItems, type ActivityItem } from "../../conversation/conversation-activity-items";
-import { useSpaceStore } from "../../session/space-store";
+import { conversationActivityItems } from "../../conversation/conversation-activity-items";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
+import ConversationToolHistory from "./ConversationToolHistory.vue";
 import SpaceConversationPlan from "./SpaceConversationPlan.vue";
-import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
+import SpaceConversationToolActivity from "./SpaceConversationToolActivity.vue";
 
 const props = defineProps<{
   events: readonly RunEvent[];
@@ -26,22 +25,6 @@ watch(
   { immediate: true },
 );
 const { t } = useI18n();
-const store = useSpaceStore();
-const expanded = shallowRef(new Set<string>());
-const createdNodeSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("accepted_run"), nodeId: z.string() }),
-  z.object({ type: z.literal("committed_receipt"), receipt: z.object({ nodeId: z.string().optional() }) }),
-]);
-
-function createdNodeId(value: unknown) {
-  const parsed = createdNodeSchema.safeParse(value);
-  return parsed.success
-    ? parsed.data.type === "accepted_run"
-      ? parsed.data.nodeId
-      : parsed.data.receipt.nodeId
-    : undefined;
-}
-
 const items = computed(() =>
   conversationActivityItems({
     events: props.events,
@@ -61,24 +44,13 @@ const unfinished = computed(
   () =>
     !props.active &&
     items.value.some(
-      (item) => item.status === "failed" || item.status === "pending" || item.status === "in_progress",
+      (item) =>
+        item.status === "outcome_unknown" ||
+        item.status === "failed" ||
+        item.status === "pending" ||
+        item.status === "in_progress",
     ),
 );
-
-function formatToolContent(value: unknown) {
-  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
-}
-
-function hasToolContent(item: ActivityItem) {
-  return item.context !== undefined || item.output !== undefined;
-}
-
-function toggleTool(event: Event, id: string) {
-  const next = new Set(expanded.value);
-  if ((event.target as HTMLDetailsElement).open) next.add(id);
-  else next.delete(id);
-  expanded.value = next;
-}
 </script>
 
 <template>
@@ -116,66 +88,9 @@ function toggleTool(event: Event, id: string) {
         <p v-if="item.status === 'commentary'" class="whitespace-pre-wrap text-fg-primary">
           {{ item.title }}
         </p>
-        <component
-          :is="hasToolContent(item) ? 'details' : 'div'"
-          v-else
-          class="group/tool min-w-0"
-          @toggle="toggleTool($event, item.id)"
-        >
-          <component
-            :is="hasToolContent(item) ? 'summary' : 'div'"
-            class="flex list-none items-center gap-2 rounded-md py-1"
-            :class="
-              hasToolContent(item)
-                ? 'cursor-pointer select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus'
-                : ''
-            "
-          >
-            <Circle
-              v-if="
-                item.status === 'failed' ||
-                (!active && (item.status === 'in_progress' || item.status === 'pending'))
-              "
-              class="size-3.5 shrink-0 text-fg-danger"
-            />
-            <Wrench v-else class="size-3.5 shrink-0" />
-            <SpaceConversationShimmerText
-              v-if="active && (item.status === 'in_progress' || item.status === 'pending')"
-              class="min-w-0 truncate"
-              >{{ item.title }}</SpaceConversationShimmerText
-            >
-            <span v-else class="min-w-0 flex-1 truncate">{{ item.title }}</span>
-            <ChevronRight
-              v-if="hasToolContent(item)"
-              class="size-3.5 shrink-0 transition-transform group-open/tool:rotate-90"
-            />
-          </component>
-          <div
-            v-if="expanded.has(item.id) && hasToolContent(item)"
-            class="min-w-0 pb-1 pl-5 text-fg-tertiary"
-          >
-            <p v-if="item.context !== undefined" class="wrap-break-word whitespace-pre-wrap">
-              {{ formatToolContent(item.context) }}
-            </p>
-            <SpaceConversationSearchMatches
-              v-if="item.outputName === 'search-knowledge'"
-              :value="item.output"
-            />
-            <pre
-              v-else-if="item.output !== undefined"
-              class="font-mono text-caption-sm wrap-break-word whitespace-pre-wrap"
-              >{{ formatToolContent(item.output) }}</pre>
-            <button
-              v-if="createdNodeId(item.output)"
-              type="button"
-              class="mt-1 text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus"
-              @click="store.requestReveal([createdNodeId(item.output)!], 'focus')"
-            >
-              {{ $t("spaces.conversation.actions.viewCreated") }}
-            </button>
-          </div>
-        </component>
+        <SpaceConversationToolActivity v-else :item="item" :active="active" />
       </div>
     </div>
   </details>
+  <ConversationToolHistory :run-id="runId" :events="events" :active="active" />
 </template>

@@ -13,6 +13,7 @@ pub(super) async fn admit(
     task_id: &str,
     request: AgentModelAdmission,
 ) -> Result<Value, String> {
+    super::super::tool_operations::require_reconciled(pool, &request.identity.run_id).await?;
     let reserved = i64::try_from(request.estimated_input_tokens)
         .map_err(|_| "builtin-agent-model-input-limit")?
         .checked_add(i64::from(request.max_output_tokens))
@@ -101,6 +102,13 @@ pub(in crate::spaces::conversations) async fn require_reconciled(
 ) -> Result<(), String> {
     let uncertain: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_builtin_agent_model_calls WHERE task_id IN (SELECT id FROM spaces_builtin_agent_tasks WHERE segment_id=(SELECT segment_id FROM spaces_builtin_agent_tasks WHERE id=$1)) AND state!='committed' AND retry_authorized_at IS NULL")
         .bind(task_id).fetch_one(pool).await.map_err(db::sql_error)?;
+    let run_id: String =
+        sqlx::query_scalar("SELECT run_id FROM spaces_builtin_agent_tasks WHERE id=$1")
+            .bind(task_id)
+            .fetch_one(pool)
+            .await
+            .map_err(db::sql_error)?;
+    super::super::tool_operations::require_reconciled(pool, &run_id).await?;
     if uncertain != 0 {
         return Err("model-outcome-unknown: authorize a new paid attempt before continuing".into());
     }

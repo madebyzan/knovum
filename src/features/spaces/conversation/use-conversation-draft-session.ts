@@ -1,5 +1,7 @@
 import type { Ref } from "vue";
 
+import { copyExtensionSelection } from "../../../foundation/extensions/extension-selection";
+import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 import { useConversationDraftStore } from "./conversation-draft-store";
@@ -26,6 +28,7 @@ interface ConversationDraftSessionInput {
   selectedConversationId: Ref<string>;
   prompt: Ref<string>;
   attachments: Ref<ConversationAttachment[]>;
+  extensions: Ref<AgentExtensionSelection>;
 }
 
 export function useConversationDraftSession(input: ConversationDraftSessionInput) {
@@ -36,6 +39,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
     drafts.save(currentSpaceId, id, {
       prompt: input.prompt.value,
       attachments: input.attachments.value,
+      extensions: input.extensions.value,
     });
   }
 
@@ -43,6 +47,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
     const draft = input.spaceId.value ? drafts.read(input.spaceId.value, id) : undefined;
     input.prompt.value = draft?.prompt ?? "";
     input.attachments.value = draft?.attachments ?? [];
+    if (draft) input.extensions.value = copyExtensionSelection(draft.extensions);
     return Boolean(draft);
   }
 
@@ -51,6 +56,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
     drafts.move(input.spaceId.value, fromId, toId, {
       prompt: input.prompt.value,
       attachments: input.attachments.value,
+      extensions: input.extensions.value,
     });
   }
 
@@ -73,9 +79,11 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
       if (!input.prompt.value && !input.attachments.value.length) {
         input.prompt.value = request.prompt;
         input.attachments.value = [...(request.attachments ?? [])];
+        input.extensions.value = copyExtensionSelection(request.extensions);
         drafts.save(request.spaceId, conversationId, {
           prompt: request.prompt,
           attachments: [...(request.attachments ?? [])],
+          extensions: copyExtensionSelection(request.extensions),
         });
       }
       return;
@@ -84,6 +92,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
       drafts.save(request.spaceId, conversationId, {
         prompt: request.prompt,
         attachments: [...(request.attachments ?? [])],
+        extensions: copyExtensionSelection(request.extensions),
       });
     }
   }

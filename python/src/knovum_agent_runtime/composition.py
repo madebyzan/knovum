@@ -5,6 +5,7 @@ from typing import Any, Literal
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
 from deepagents.middleware import FilesystemPermission
+from deepagents.middleware.skills import SkillsMiddleware
 from deepagents.middleware.subagents import SubAgent
 from deepagents.middleware.summarization import SummarizationMiddleware
 from deepagents.profiles import GeneralPurposeSubagentProfile, HarnessProfile, register_harness_profile
@@ -18,6 +19,7 @@ from knovum_agent_runtime.contracts.generated.models import AgentModelPurpose
 from knovum_agent_runtime.control import ControlMiddleware, ExecutionContext
 from knovum_agent_runtime.host_tools import create_tool
 from knovum_agent_runtime.model_binding import create_model
+from knovum_agent_runtime.skills import skill_files, skill_tool_resolver
 
 MODEL_PROVIDERS = {
     "open_ai_chat": "openai",
@@ -42,9 +44,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     readonly_store = InMemoryStore()
     skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=readonly_store)
     memory_backend = StoreBackend(namespace=lambda _: ("space_snapshot", "v1"), store=readonly_store)
-    uploaded = skills_backend.upload_files(
-        [(path, content.encode("utf-8")) for path, content in request.skills.items()]
-    )
+    uploaded = skills_backend.upload_files(skill_files(request.skills))
     if any(item.error for item in uploaded):
         raise ValueError("agent-runtime-skills-unavailable")
     memory_uploads = memory_backend.upload_files(
@@ -63,9 +63,13 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     keep: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens // 4))
 
     def execution_middleware(*, read_only: bool = False) -> list[AgentMiddleware[Any, Any, Any]]:
+        tools = [create_tool(tool) for tool in request.tools if not read_only or tool.read_only]
         return [
             SummarizationMiddleware(
                 model=summary, backend=backend, trim_tokens_to_summarize=None, trigger=trigger, keep=keep
+            ),
+            SkillsMiddleware(
+                backend=backend, sources=["/skills/"], tools=skill_tool_resolver(request.skill_tool_bindings, tools)
             ),
             ControlMiddleware(read_only=read_only),
         ]

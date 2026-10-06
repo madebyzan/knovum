@@ -691,20 +691,41 @@ CREATE TABLE spaces_builtin_agent_model_calls (
   FOREIGN KEY (task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_builtin_agent_tool_operations (
+CREATE TABLE spaces_conversation_tool_operations (
   id TEXT PRIMARY KEY NOT NULL,
-  task_id TEXT NOT NULL,
-  graph_namespace TEXT NOT NULL,
-  message_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  task_id TEXT,
+  graph_namespace TEXT,
+  checkpoint_id TEXT,
+  message_id TEXT,
   provider_call_id TEXT NOT NULL,
   wire_name TEXT NOT NULL,
-  action_id TEXT NOT NULL,
-  invocation_id TEXT NOT NULL UNIQUE,
-  target_selection TEXT CHECK (target_selection IS NULL OR json_valid(target_selection)),
-  result TEXT CHECK (result IS NULL OR json_valid(result)),
+  source TEXT NOT NULL CHECK(json_valid(source)),
+  invocation_id TEXT NOT NULL,
+  attempt INTEGER NOT NULL DEFAULT 1,
+  arguments TEXT NOT NULL CHECK(json_valid(arguments)),
+  arguments_digest TEXT NOT NULL,
+  read_only INTEGER NOT NULL CHECK(read_only IN (0,1)),
+  approval TEXT CHECK(approval IS NULL OR approval IN ('allow','deny')),
+  state TEXT NOT NULL DEFAULT 'prepared' CHECK(state IN ('prepared','dispatching','completed','failed','outcome_unknown')),
+  resolution TEXT CHECK(resolution IS NULL OR resolution IN ('new_attempt','stop')),
+  target_selection TEXT CHECK(target_selection IS NULL OR json_valid(target_selection)),
+  result TEXT CHECK(result IS NULL OR json_valid(result)),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
+  UNIQUE(invocation_id, attempt),
+  FOREIGN KEY(run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
+  FOREIGN KEY(task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
+);
+CREATE INDEX spaces_conversation_tool_operation_run ON spaces_conversation_tool_operations(run_id,state);
+
+CREATE TABLE spaces_conversation_mcp_interactions (
+  id TEXT PRIMARY KEY NOT NULL,
+  run_id TEXT NOT NULL,
+  request TEXT NOT NULL CHECK(json_valid(request)),
+  response TEXT CHECK(response IS NULL OR json_valid(response)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY(run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
 );
 
 CREATE TABLE spaces_builtin_agent_tool_admissions (

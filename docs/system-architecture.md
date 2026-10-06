@@ -191,9 +191,16 @@ selected/rejected state survive restart, while an authorized selected candidate 
 immutable voice revision used by later Runs.
 
 Workflows are personal reusable chains captured from completed Action derivations, with explicit replaceable input slots and named outputs. Built-in production templates and their graph compiler are removed. Atomic generation, subtitle burn-in and document export use the same Action Run and publication facilities as workflow steps. The runtime accepts captured steps and durable Actions only; removed recipe graph kinds fail explicitly. Terminal Space packages preserve Run history for inspection without replay.
-The built-in Agent exposes Knovum's declared Space Actions. Desktop Agents manage their own
-external tools through their protocol runtime. The product does not maintain a second MCP
-connection catalog for the built-in Agent.
+The built-in Agent exposes declared Space Actions and the user's selected MCP tools through
+one typed catalog. The `extensions` owner maintains plugins, Skills, connections and connector
+accounts in `extensions.db`; credentials remain in `secrets.db`. Rust uses official rmcp for
+inbound and outbound MCP. Python receives reviewed Skill bytes and authorized tool definitions,
+with no upstream endpoint, process path or credentials. Each task freezes revisions, schemas,
+account bindings, authorization revisions and explicit tool/resource/prompt selection; each invocation rechecks revocation.
+Reauthorization atomically changes the account revision and clears bound tool permissions for fresh
+review. A frozen checkpoint cannot use replacement credentials, even when the account ID is unchanged.
+ACP sessions receive the existing private Knovum MCP endpoint, projecting the same selected
+capabilities. Upstream tokens never enter ACP configuration or vendor global settings.
 The Builtin Agent conversation and message tables own the single user-visible history. A model task
 or an ACP desktop Agent session is a Run bound to that history; Agent protocol identity, negotiated
 capabilities and turn state remain execution records. Model and Agent turns share visible history,
@@ -627,3 +634,38 @@ findings. Silence, near-full-scale peaks, invalid samples and volume changes rel
 active RMS provide seekable listening cues. It does not score naturalness, alter the master or
 reject intentional pauses. Jobs remain feature-owned; no second inference queue or global audio
 service was added. Changed pre-release configuration shapes are strict and fail visibly.
+
+## Agent extension execution
+
+Plugins follow Agent Plugins 1.0.0 with root `plugin.json`, optional `mcp.json`, and
+`skills/<name>/SKILL.md`. Installation publishes immutable digest revisions before one database
+transaction makes their components visible. Unsupported components are diagnosed individually.
+Directory, ZIP, pinned HTTPS ZIP and HTTPS Git use the same bounded content boundary; Git reads
+objects through gix without checkout, hooks, filters or credential helpers. Catalog sources are
+explicit directory, HTTPS manifest or HTTPS Git sources; publisher IDs are not verified identities.
+Personal Skills have their own immutable revisions. Plugin Skills are read-only and can be copied.
+Task leases retain selected Skill and MCP plugin revisions; update and uninstall revoke new calls,
+while leased bytes are reclaimed only after task release.
+
+`spaces_conversation_tool_operations` is the common built-in/ACP tool ledger. Local Actions keep
+real Action identity and existing idempotency. External MCP operations transition through
+prepared, dispatching, completed, failed or outcome_unknown. A durable intent serializes concurrent
+requests and only a recorded receipt is replayed. Restart, transport loss, oversized responses and
+post-dispatch timeout never authorize another write. Unknown attempts remain immutable facts;
+only an explicit user decision creates the next attempt. Run budgets, cancellation and current
+account/connection policy fence new dispatch. Late receipts record facts without reviving a Run.
+
+MCP catalogs include all bounded pages of tools, resources, URI templates and prompts. Resource
+and prompt descriptors and resource contents retain the official SDK types in Rust. Generated
+TypeScript views expose their UI fields; protocol metadata remains in the serialized SDK values.
+Resource templates expand with RFC 6570 into explicitly selected concrete URIs, not wildcard authority.
+Their parameters use a closed string/list/map/null contract at the input boundary.
+ACP lists those concrete resources under opaque proxy URIs. Sampling and arbitrary filesystem
+Roots are not advertised. Progress and non-secret elicitation share the Run interaction/history
+surface. Account authorization uses its separate OAuth/secret credential flow. Resource browsing
+is an explicit user action; import rechecks the reviewed content digest and uses existing Space
+asset processing, with immutable external provenance in the node payload.
+
+Plugin source inspection, installation, update and catalog reads reuse the existing JobRegistry and Tauri Channels to report reading, validation and commit stages in Task Center. The host owns cancellation: it interrupts source reads and rejects commit admission after cancellation. Commit admission and cancellation share one lock; once admitted, the operation completes its existing atomic revision/database publication and exposes its actual result. Task Center disables cancellation in that stage and waits for host terminal acknowledgement.
+
+The extension owner explicitly cancels pending source reads and OAuth flows at application exit, revokes all MCP sessions and terminates their owned stdio process trees, then clears OAuth client caches. Cleanup does not depend on dropping AppHandle cycles.

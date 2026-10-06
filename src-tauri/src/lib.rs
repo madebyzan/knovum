@@ -19,6 +19,7 @@ mod dictation;
 )))]
 mod dictation_unsupported;
 mod documents;
+mod extensions;
 mod external_agents;
 mod file_inspection;
 mod images;

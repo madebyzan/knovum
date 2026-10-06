@@ -141,7 +141,15 @@ pub(super) fn enforce_size(kind: UploadKind, size: u64) -> Result<(), AppError> 
 
 pub(super) fn read_image(path: &Path, media_type: &str) -> Result<Vec<u8>, AppError> {
     let bytes = read_bounded(path, MAX_IMAGE_BYTES)?;
-    let format = image::guess_format(&bytes).map_err(|error| {
+    validate_image(&bytes, media_type)?;
+    Ok(bytes)
+}
+
+pub(in crate::spaces::conversations) fn validate_image(
+    bytes: &[u8],
+    media_type: &str,
+) -> Result<(), AppError> {
+    let format = image::guess_format(bytes).map_err(|error| {
         AppError::new(
             "conversation_upload_invalid",
             format!("conversation-upload-invalid: image format: {error}"),
@@ -172,7 +180,7 @@ pub(super) fn read_image(path: &Path, media_type: &str) -> Result<Vec<u8>, AppEr
             "conversation-upload-size: image exceeds 24 megapixels",
         ));
     }
-    Ok(bytes)
+    Ok(())
 }
 
 pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, AppError> {

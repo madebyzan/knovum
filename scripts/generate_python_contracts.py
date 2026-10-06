@@ -74,6 +74,8 @@ AGENT_RUNTIME_CONTRACT_MODULES = {
         "AgentReady",
         "AgentExecutionIdentity",
         "AgentExecute",
+        "AgentSkillFile",
+        "SkillFileEncoding",
         "AgentControl",
         "AgentControlOperation",
         "AgentPruneThreads",

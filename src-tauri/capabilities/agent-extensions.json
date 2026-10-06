@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "agent-extensions",
+  "description": "Typed Agent extension lifecycle and connector authorization commands.",
+  "windows": ["main"],
+  "permissions": ["extensions:default"]
+}

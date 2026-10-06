@@ -36,6 +36,8 @@ pub(in crate::spaces::conversations) struct Gateway {
     pub(in crate::spaces::conversations) request: StartBuiltinAgentTaskRequest,
     pub(in crate::spaces::conversations) ids: TaskIds,
     pub(in crate::spaces::conversations) catalog: ToolCatalog,
+    pub(in crate::spaces::conversations) extensions:
+        crate::extensions::contracts::AgentExtensionSnapshot,
     pub(in crate::spaces::conversations) session: Session,
     pub(in crate::spaces::conversations) updates: Option<Channel<ConversationTaskUpdate>>,
     pub(in crate::spaces::conversations) last_message: Mutex<Option<String>>,
@@ -118,15 +120,14 @@ impl Gateway {
 
     async fn admit_tool(&self, request: AgentToolAdmission) -> Result<Value, String> {
         self.require_identity(&request.identity).await?;
+        crate::extensions::snapshots::require_current(&self.app, &self.extensions).await?;
         self.require_tool(&request.name, &request.graph_namespace)?;
         if request.sibling_tools.iter().any(|name| name == "task")
             && self
                 .catalog
                 .by_wire_name
                 .get(&request.name)
-                .is_some_and(|definition| {
-                    definition.impact != crate::spaces::actions::SpaceActionImpact::ReadOnly
-                })
+                .is_some_and(|definition| !definition.read_only)
         {
             return Err("builtin-agent-research-write-conflict: complete research before publishing business changes".into());
         }
@@ -154,8 +155,7 @@ impl Gateway {
     ) -> Result<(), String> {
         let research = namespace.contains('|');
         if let Some(definition) = self.catalog.by_wire_name.get(name) {
-            if research && definition.impact != crate::spaces::actions::SpaceActionImpact::ReadOnly
-            {
+            if research && !definition.read_only {
                 return Err("builtin-agent-research-write-denied".into());
             }
             return Ok(());

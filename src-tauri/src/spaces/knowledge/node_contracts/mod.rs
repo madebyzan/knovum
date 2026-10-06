@@ -1,4 +1,5 @@
 pub(crate) mod document_coverage;
+pub(crate) mod external_source;
 mod json_value;
 mod media;
 mod object;

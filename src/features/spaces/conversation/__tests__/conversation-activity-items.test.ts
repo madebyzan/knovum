@@ -40,11 +40,11 @@ describe("conversation tool activity", () => {
       messages,
       events: [
         event(
-          "builtin_agent_tool_started",
+          "conversation_tool_started",
           { toolCallId: "call", actionId: "search", context: { query: "audio" } },
           1,
         ),
-        event("builtin_agent_tool_finished", { toolCallId: "call" }, 2),
+        event("conversation_tool_finished", { toolCallId: "call" }, 2),
       ],
     });
     expect(items).toEqual([
@@ -90,7 +90,7 @@ describe("conversation tool activity", () => {
         messages: [],
         events: [
           event(
-            "builtin_agent_tool_started",
+            "conversation_tool_started",
             { toolCallId: "call", actionId: "search", detail: { query: "audio" } },
             1,
           ),

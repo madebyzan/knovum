@@ -17,8 +17,7 @@ pub use message_contract::{
 };
 pub use messages::{all_messages, append_message_in_transaction, list_messages};
 pub(in crate::spaces::conversations) use tasks::{
-    complete_tool_call, insert_task, recoverable_task, recoverable_tasks, start_tool_call,
-    BuiltinAgentToolCallCompletion, BuiltinAgentToolCallStart, RecoverableTask,
+    insert_task, recoverable_task, recoverable_tasks, RecoverableTask,
 };
 
 #[cfg(test)]

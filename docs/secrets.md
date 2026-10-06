@@ -23,3 +23,25 @@ The editor reads `secrets.db` whenever the credential dialog opens; the node's c
 Credential nodes must never gain `text`, `plainText`, `document`, URL or asset fields as an alternate persistence route. The item schema rejects those combinations.
 
 Capability checks that need a credential run when the user opens the relevant action, not when a canvas node or toolbar mounts. Credential database reads require no OS authorization dialog. The former Keychain-backed `secrets.vault` is not read or migrated by the new contract; users must re-enter credentials. Do not silently import obsolete credentials or delete the old file as a side effect of opening the new database.
+
+## Agent connector accounts
+
+Account metadata lives in `extensions.db`; tokens and SDK `StoredCredentials` live only in
+`secrets.db` under `agent-extension:<account UUID>`. The SDK CredentialStore adapter coordinates
+refresh writes with account revocation. Manual credentials go directly through the authorization
+command, with local UI fields cleared; query caches, settings, packages and graph checkpoints
+contain no account secret values. OAuth uses public SDK discovery, PKCE, state validation and
+an ephemeral loopback callback. Registered public client IDs are explicit; absent registration
+support is a visible error. Accounts bind the exact resource endpoint and auth requirements.
+Every successful authorization creates a new public account revision. Its commit also clears the
+tool permissions of bound connections. Task snapshots freeze that revision; reauthorization
+requires fresh tool review and cannot substitute credentials in an existing checkpoint.
+
+Disconnect first marks the account inactive with cleanup pending, cancels authorization and
+sessions, then removes credentials under the same credential-write lock. Deletion failure leaves
+the account inactive and visibly pending; startup retries deletion, including interrupted inactive
+authorizations. Metadata cannot restore authorization during token refresh or OAuth completion.
+MCP form elicitation cannot ask for credential fields; account authorization is separate.
+The credentials database remains unencrypted and a copy exposes its values.
+
+SDK CredentialStore instances capture the connector account revision when created. Load, save and clear share the per-account credential lock and require that same revision and current authority; only the captured, uncancelled authorization flow may access credentials before the public grant is enabled. An old client cannot read, overwrite or clear a renewed account’s credentials. Revocation cleanup remains an explicit owner operation.
