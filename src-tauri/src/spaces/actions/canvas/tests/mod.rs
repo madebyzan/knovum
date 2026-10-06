@@ -121,7 +121,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
 #[test]
 fn local_actions_reject_ai_targets_and_immediate_mutations() {
     let target = Some(TaskTargetRef::Agent {
-        runtime_kind: crate::ai::contracts::AgentKind::Codex,
+        runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
     });
     let request = request(
         "add-video-subtitles",

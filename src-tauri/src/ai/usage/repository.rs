@@ -61,7 +61,7 @@ fn parse_day(row: &sqlx::sqlite::SqliteRow) -> Result<UsageDay, String> {
 fn parse_purpose(row: &sqlx::sqlite::SqliteRow) -> Result<UsagePurposeTotal, String> {
     let value: String = row.try_get("purpose").map_err(string_error)?;
     let purpose = match value.as_str() {
-        "assistant" => UsagePurpose::Assistant,
+        "builtin_agent" => UsagePurpose::BuiltinAgent,
         "editor" => UsagePurpose::Editor,
         "knowledge" => UsagePurpose::Knowledge,
         "knowledge_indexing" => UsagePurpose::KnowledgeIndexing,

@@ -71,14 +71,14 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 
 ## Governed execution commands
 
-- `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Assistant, Workflow and MCP reuse the same invocation/execution boundary.
+- `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Builtin Agent, Workflow and MCP reuse the same invocation/execution boundary.
 - Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal workflow, and inspect its Run.
 - External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
 - Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
-- Assistant conversation reads are `list_assistant_conversations`, `list_assistant_messages` and
-  `load_assistant_branch_messages`; the last returns the complete branch for Renderer-owned file export.
-  `archive_assistant_conversation` and `unarchive_assistant_conversation` are separate intents accepting
-  only a conversation identity. Task state reads live in assistant/queries; closing a view does not own task lifetime.
+- Builtin Agent conversation reads are `list_conversations`, `list_conversation_messages` and
+  `load_conversation_branch_messages`; the last returns the complete branch for Renderer-owned file export.
+  `archive_conversation` and `unarchive_conversation` are separate intents accepting
+  only a conversation identity. Task state reads live in conversations/queries; closing a view does not own task lifetime.
 - The Space MCP surface exposes explicit read, Action and Run routes. Mutations enter SpaceAction authorization; Run control additionally requires the same external principal that created the Run.
 - `plugin:spaces|decide_external_agent_permission` resolves one actual ACP permission request using only an option advertised by that request; absence of a decision is cancellation, never implicit approval.
 

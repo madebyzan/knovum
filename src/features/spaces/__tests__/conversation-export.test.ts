@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, shallowRef } from "vue";
 
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import { useConversationActions } from "../conversation/use-conversation-actions";
 
 const mocks = vi.hoisted(() => ({
@@ -15,7 +15,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.error, success: vi.fn<() => void>() } }));
 
 function actions() {
-  const conversation: AssistantConversation = {
+  const conversation: Conversation = {
     id: "conversation",
     spaceId: "space",
     branchId: "branch",
@@ -26,7 +26,7 @@ function actions() {
   return useConversationActions({
     selected: computed(() => conversation),
     selectedId: shallowRef(conversation.id),
-    messages: shallowRef<AssistantMessage[]>([]),
+    messages: shallowRef<ConversationMessage[]>([]),
     loading: shallowRef(false),
     prompt: shallowRef(""),
     refresh: vi.fn<() => Promise<void>>(),
@@ -41,7 +41,7 @@ beforeEach(() => {
   mocks.invoke
     .mockReset()
     .mockImplementation(async (command) =>
-      command === "plugin:spaces|load_assistant_branch_messages" ? [{ id: "message" }] : undefined,
+      command === "plugin:spaces|load_conversation_branch_messages" ? [{ id: "message" }] : undefined,
     );
 });
 
@@ -61,7 +61,7 @@ describe("conversation export", () => {
 
   it("reports a write failure without leaving an unhandled rejection", async () => {
     mocks.invoke.mockImplementation(async (command) => {
-      if (command === "plugin:spaces|load_assistant_branch_messages") return [];
+      if (command === "plugin:spaces|load_conversation_branch_messages") return [];
       throw new Error("disk full");
     });
 

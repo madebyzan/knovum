@@ -9,7 +9,7 @@ async fn database() -> sqlx::SqlitePool {
     crate::spaces::db::migrate(&pool).await.unwrap();
     sqlx::raw_sql("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1);
         INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-        VALUES('parent','space','user','user','assistant','running','{}','{}','{\"maxTotalTokens\":100}',1,1);
+        VALUES('parent','space','user','user','builtin_agent','running','{}','{}','{\"maxTotalTokens\":100}',1,1);
         INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
         VALUES('child','space','parent','user','user','action','running','{}','{}','{}',1,1);")
         .execute(&pool).await.unwrap();

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, ts_rs::TS, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UsagePurpose {
-    Assistant,
+    BuiltinAgent,
     Editor,
     Knowledge,
     KnowledgeIndexing,
@@ -14,7 +14,7 @@ pub enum UsagePurpose {
 impl UsagePurpose {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Assistant => "assistant",
+            Self::BuiltinAgent => "builtin_agent",
             Self::Editor => "editor",
             Self::Knowledge => "knowledge",
             Self::KnowledgeIndexing => "knowledge_indexing",

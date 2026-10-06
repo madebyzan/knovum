@@ -1,12 +1,12 @@
 import { open } from "@tauri-apps/plugin-dialog";
 
-import { inspectAssistantUpload } from "./conversation-ipc";
+import { inspectConversationUpload } from "./conversation-ipc";
 
-export function inspectAssistantUploads(paths: readonly string[]) {
-  return Promise.all(paths.map((path) => inspectAssistantUpload(path)));
+export function inspectConversationUploads(paths: readonly string[]) {
+  return Promise.all(paths.map((path) => inspectConversationUpload(path)));
 }
 
-export async function chooseAssistantUploads() {
+export async function chooseConversationUploads() {
   const selected = await open({
     directory: false,
     multiple: true,
@@ -37,5 +37,5 @@ export async function chooseAssistantUploads() {
   });
   if (!selected) return [];
   const paths = Array.isArray(selected) ? selected : [selected];
-  return inspectAssistantUploads(paths);
+  return inspectConversationUploads(paths);
 }

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ai::contracts::{AgentArtifact, AgentKind};
+use crate::ai::contracts::{AgentArtifact, ExternalAgentKind};
 
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -14,7 +14,7 @@ pub struct RecoverableAgentCreation {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct AgentCreationRequest {
-    pub kind: AgentKind,
+    pub kind: ExternalAgentKind,
     pub prompt: String,
     pub attachments: Vec<std::path::PathBuf>,
     pub space_id: String,

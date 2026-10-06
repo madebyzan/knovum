@@ -1,13 +1,13 @@
 use sqlx::SqlitePool;
 use tauri::AppHandle;
 
-use crate::{ai::contracts::AgentKind, spaces::db};
+use crate::{ai::contracts::ExternalAgentKind, spaces::db};
 
 pub(super) async fn start(
     app: &AppHandle,
     session_id: &str,
     space_id: &str,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     prompt: &str,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;

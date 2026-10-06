@@ -12,7 +12,7 @@ use windows::{
     },
 };
 
-use crate::ai::contracts::AgentKind;
+use crate::ai::contracts::ExternalAgentKind;
 use crate::app_error::{AppError, AppResult};
 
 const UNINSTALL_KEY: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -26,7 +26,7 @@ impl Drop for RegistryKey {
     }
 }
 
-pub(crate) fn detect() -> AppResult<HashSet<AgentKind>> {
+pub(crate) fn detect() -> AppResult<HashSet<ExternalAgentKind>> {
     let mut installed = HashSet::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -66,7 +66,7 @@ pub(crate) fn detect() -> AppResult<HashSet<AgentKind>> {
     Ok(installed)
 }
 
-fn installed_agent(hive: HKEY, key: &str) -> AppResult<Option<AgentKind>> {
+fn installed_agent(hive: HKEY, key: &str) -> AppResult<Option<ExternalAgentKind>> {
     let Some(name) = read_string(hive, key, "DisplayName")? else {
         return Ok(None);
     };

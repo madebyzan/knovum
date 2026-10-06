@@ -19,7 +19,7 @@ const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
     class="min-w-0 overflow-x-auto px-3 pt-3 pb-1 focus-visible:outline-2 focus-visible:outline-stroke-focus"
     role="group"
     tabindex="0"
-    :aria-label="$t('spaces.assistant.attachments.attached')"
+    :aria-label="$t('spaces.conversation.attachments.attached')"
   >
     <div class="flex w-max gap-2">
       <SpaceConversationAttachment

@@ -14,4 +14,4 @@ pub mod session;
 pub(crate) mod task;
 mod updates;
 
-pub use discovery::detect_agent_installations;
+pub use discovery::detect_external_agent_installations;

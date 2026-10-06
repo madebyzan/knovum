@@ -122,7 +122,7 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
         }
         async fn agent(
             &self,
-            _: ai::contracts::AgentKind,
+            _: ai::contracts::ExternalAgentKind,
             _: TaskInput,
             cancellation: CancellationToken,
         ) -> crate::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput> {

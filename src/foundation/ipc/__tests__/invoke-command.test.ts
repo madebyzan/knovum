@@ -30,9 +30,9 @@ describe("application IPC error boundary", () => {
     expect(native.invoke.mock.calls[2]).toEqual(["plugin:ai|generate_text", undefined, options]);
   });
   it("turns a native code/message rejection into an Error while preserving its machine code", async () => {
-    const payload = { code: "assistant_upload_size", message: "Attachment exceeds the limit" };
+    const payload = { code: "conversation_upload_size", message: "Attachment exceeds the limit" };
     native.invoke.mockRejectedValue(payload);
-    const error = await invokeCommand("plugin:spaces|inspect_assistant_upload", {
+    const error = await invokeCommand("plugin:spaces|inspect_conversation_upload", {
       sourcePath: "/tmp/file",
     }).catch((reason: unknown) => reason);
     expect(error).toBeInstanceOf(Error);

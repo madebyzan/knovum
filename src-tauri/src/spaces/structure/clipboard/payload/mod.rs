@@ -86,7 +86,7 @@ fn validate_relations(payload: &ClipboardPayload, nodes: &HashSet<&str>) -> Resu
         }
         if !matches!(
             relation.actor_kind.as_str(),
-            "human" | "assistant" | "agent" | "system"
+            "human" | "builtin_agent" | "external_agent" | "system"
         ) {
             return Err("Clipboard relation actor is invalid".into());
         }

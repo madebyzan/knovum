@@ -31,24 +31,24 @@ const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
 const actions = computed(() => [
   { label: t("common.rename"), onSelect: () => (renaming.value = true) },
-  { label: t("spaces.assistant.conversations.export"), onSelect: () => void session.exportSelected() },
+  { label: t("spaces.conversation.conversations.export"), onSelect: () => void session.exportSelected() },
   {
     label: t(
       showingArchived.value
-        ? "spaces.assistant.conversations.restore"
-        : "spaces.assistant.conversations.archive",
+        ? "spaces.conversation.conversations.restore"
+        : "spaces.conversation.conversations.archive",
     ),
     onSelect: () => void (showingArchived.value ? session.unarchiveSelected() : session.archiveSelected()),
   },
   {
-    label: t("spaces.assistant.conversations.delete"),
+    label: t("spaces.conversation.conversations.delete"),
     destructive: true,
     onSelect: () => void session.deleteSelected(),
   },
 ]);
 const branchItems = computed(() =>
   branches.value.map((id, index) => ({
-    label: t("spaces.assistant.conversations.branchNumber", { number: index + 1 }),
+    label: t("spaces.conversation.conversations.branchNumber", { number: index + 1 }),
     checked: selectedConversation.value?.branchId === id,
     onSelect: () =>
       void session.selectBranch(id).catch((cause: unknown) => toast.error(getErrorMessage(cause))),
@@ -67,7 +67,7 @@ async function saveTitle() {
 </script>
 
 <template>
-  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.assistant.conversations.create')">
+  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.conversation.conversations.create')">
     <template #leading><SpaceRightSidebarViewPicker /></template>
     <template #actions>
       <UiDropdownMenu v-if="branches.length > 1" :items="branchItems" align="end">
@@ -75,7 +75,7 @@ async function saveTitle() {
           <UiButton size="sm" variant="ghost" :disabled="loading" class="gap-1 text-fg-secondary">
             <GitBranch class="size-3.5" />
             {{
-              t("spaces.assistant.conversations.branchNumber", {
+              t("spaces.conversation.conversations.branchNumber", {
                 number: branches.indexOf(selectedConversation?.branchId ?? "") + 1,
               })
             }}
@@ -92,7 +92,7 @@ async function saveTitle() {
         @refresh="session.refreshConversations"
       />
       <UiIconButton
-        :label="t('spaces.assistant.conversations.create')"
+        :label="t('spaces.conversation.conversations.create')"
         size="sm"
         :disabled="loading"
         @click="session.selectConversation('')"
@@ -101,7 +101,7 @@ async function saveTitle() {
       </UiIconButton>
       <UiDropdownMenu v-if="selectedConversation" :items="actions">
         <template #trigger>
-          <UiIconButton :label="t('spaces.assistant.conversations.actions')" size="sm">
+          <UiIconButton :label="t('spaces.conversation.conversations.actions')" size="sm">
             <MoreHorizontal class="size-3.5" />
           </UiIconButton>
         </template>

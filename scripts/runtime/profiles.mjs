@@ -1,12 +1,12 @@
 import { join } from "node:path";
 
-export const runtimeProfiles = ["inference", "assistant"];
+export const runtimeProfiles = ["inference", "agent"];
 
 export function runtimeProject(repository, profile) {
   if (!runtimeProfiles.includes(profile)) throw new Error(`Unsupported Python runtime profile: ${profile}`);
   return profile === "inference"
     ? join(repository, "python")
-    : join(repository, "python", "runtimes", "assistant");
+    : join(repository, "python", "runtimes", "agent");
 }
 
 export function requirementsArguments(repository, profile) {

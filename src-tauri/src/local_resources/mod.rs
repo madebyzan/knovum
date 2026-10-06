@@ -35,7 +35,7 @@ pub struct LocalResourcesStatus {
 #[serde(rename_all = "camelCase")]
 struct PythonRuntimeStatuses {
     inference: runtimes::python::RuntimeStatus,
-    assistant: runtimes::python::RuntimeStatus,
+    agent: runtimes::python::RuntimeStatus,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -77,7 +77,7 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         deno: tool_status_from_path(tools::resolve_deno(app)?),
         python_runtimes: PythonRuntimeStatuses {
             inference: runtimes::python::status(app, runtimes::python::RuntimeProfile::Inference)?,
-            assistant: runtimes::python::status(app, runtimes::python::RuntimeProfile::Assistant)?,
+            agent: runtimes::python::status(app, runtimes::python::RuntimeProfile::Agent)?,
         },
         models: model_statuses(app)?,
         kokoro: models::kokoro::status(app)?,

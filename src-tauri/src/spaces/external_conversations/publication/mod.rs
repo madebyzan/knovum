@@ -7,7 +7,7 @@ use tauri::AppHandle;
 use crate::{
     app_error::AppError,
     spaces::{
-        assistant::AssistantMessageOutput,
+        conversations::ConversationMessageOutput,
         db, knowledge,
         nodes::{self, contracts::InsertNode},
         structure,
@@ -109,7 +109,7 @@ async fn commit(
         id: conversation_id.to_owned(),
     };
     let mut references =
-        crate::spaces::assistant::outputs::collect(&mut tx, space_id, &principal).await?;
+        crate::spaces::conversations::outputs::collect(&mut tx, space_id, &principal).await?;
     if !outputs.is_empty() {
         insert_outputs(
             &mut tx,
@@ -122,7 +122,7 @@ async fn commit(
         )
         .await?;
         for output in outputs {
-            references.push(AssistantMessageOutput {
+            references.push(ConversationMessageOutput {
                 node_id: output.id.clone(),
                 title: output.data["title"]
                     .as_str()
@@ -254,7 +254,7 @@ async fn insert_outputs(
             tx,
             space_id,
             std::slice::from_ref(&node),
-            knowledge::events::EventActor::new("agent", Some(principal_id)),
+            knowledge::events::EventActor::new("external_agent", Some(principal_id)),
             now,
             enrichment_target,
         )
@@ -271,10 +271,10 @@ async fn insert_outputs(
 async fn attach_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     conversation_id: &str,
-    outputs: &[AssistantMessageOutput],
+    outputs: &[ConversationMessageOutput],
 ) -> Result<(), AppError> {
     let encoded = serde_json::to_string(outputs).map_err(db::json_error)?;
-    let publication = sqlx::query("UPDATE spaces_assistant_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT assistant_message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
+    let publication = sqlx::query("UPDATE spaces_conversation_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
         .bind(encoded)
         .bind(conversation_id)
         .execute(&mut **tx)

@@ -31,7 +31,7 @@ fn rejects_stale_canonical_snapshot_before_rebinding() {
 }
 #[test]
 fn rejects_malformed_grounded_document_citations_before_remapping() {
-    let value = json!({"nodes":[{"id":"node","data":{"knowledgeRevision":"node1:current"}}],"assistantMessages":[],"derivations":[{"groundedDocument":{"citations":[{"state":"current","nodeId":"node","chunkId":"node:node","nodeTitle":"Source","sourceRevision":"node1:current","quote":"Evidence","locator":"invalid"}]}}]});
+    let value = json!({"nodes":[{"id":"node","data":{"knowledgeRevision":"node1:current"}}],"conversationMessages":[],"derivations":[{"groundedDocument":{"citations":[{"state":"current","nodeId":"node","chunkId":"node:node","nodeTitle":"Source","sourceRevision":"node1:current","quote":"Evidence","locator":"invalid"}]}}]});
     assert!(validate_source(&value)
         .unwrap_err()
         .contains("locator must be an object"));

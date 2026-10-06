@@ -38,7 +38,7 @@ async fn completed_branching_derivation_chain_captures_one_replaceable_note_inpu
     let pool = database().await;
     let note = node(&pool,"note",json!({"kind":"note","title":"Idea","plainText":"A campaign","tiptapContent":{"type":"doc","content":[]}})).await;
     let target = Some(TaskTargetRef::Agent {
-        runtime_kind: crate::ai::contracts::AgentKind::Codex,
+        runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
     });
     let image_parameters =
         json!({"title":"Image","intent":"Illustrate","style":"Flat","aspectRatio":"1:1"});

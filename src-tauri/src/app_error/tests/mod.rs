@@ -3,7 +3,7 @@ use super::AppError;
 #[test]
 fn codes_are_explicit_and_messages_are_never_parsed() {
     for message in [
-        "assistant-upload-size: too large",
+        "conversation-upload-size: too large",
         "authorization-grant-expired",
         "failed",
     ] {

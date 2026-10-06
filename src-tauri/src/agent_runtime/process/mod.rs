@@ -8,7 +8,7 @@ use tokio::{
 
 use super::protocol::{
     self,
-    control::{AssistantInitialize, AssistantReady},
+    control::{AgentInitialize, AgentReady},
 };
 use crate::local_resources::runtimes::python::{self, RuntimeProfile};
 use crate::subprocess::process_tree::ProcessTree;
@@ -31,19 +31,19 @@ impl Process {
         checkpoint_path: &Path,
         host: Arc<dyn Host>,
     ) -> Result<Self, String> {
-        let runtime = python::resolve(app, RuntimeProfile::Assistant)?
-            .ok_or("assistant-runtime-not-prepared")?;
+        let runtime = python::resolve(app, RuntimeProfile::Agent)?
+            .ok_or("agent-runtime-runtime-not-prepared")?;
         let checked = runtime.clone();
         crate::blocking::run(move || python::verify_before_spawn(&checked)).await?;
         let work = app
             .path()
             .app_data_dir()
             .map_err(|error| error.to_string())?
-            .join("assistant");
+            .join("agent-runtime");
         tokio::fs::create_dir_all(&work)
             .await
             .map_err(|error| error.to_string())?;
-        let bootstrap = "import sys;sys.path[:0]=[sys.argv[1],sys.argv[2]];import runpy;runpy.run_module('knovum_assistant',run_name='__main__')";
+        let bootstrap = "import sys;sys.path[:0]=[sys.argv[1],sys.argv[2]];import runpy;runpy.run_module('knovum_agent_runtime',run_name='__main__')";
         let mut command = Command::new(&runtime.executable);
         command
             .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
@@ -72,7 +72,7 @@ impl Process {
         let job = crate::subprocess::windows_job::WindowsJob::new()?;
         let mut child = command
             .spawn()
-            .map_err(|_| "assistant-process-start-failed")?;
+            .map_err(|_| "agent-runtime-process-start-failed")?;
         #[cfg(windows)]
         job.assign(&child)?;
         let tree = ProcessTree::new(
@@ -80,9 +80,18 @@ impl Process {
             #[cfg(windows)]
             job,
         )?;
-        let input = child.stdin.take().ok_or("assistant-stdin-unavailable")?;
-        let output = child.stdout.take().ok_or("assistant-stdout-unavailable")?;
-        let diagnostics = child.stderr.take().ok_or("assistant-stderr-unavailable")?;
+        let input = child
+            .stdin
+            .take()
+            .ok_or("agent-runtime-stdin-unavailable")?;
+        let output = child
+            .stdout
+            .take()
+            .ok_or("agent-runtime-stdout-unavailable")?;
+        let diagnostics = child
+            .stderr
+            .take()
+            .ok_or("agent-runtime-stderr-unavailable")?;
         // Provider/Pydantic errors may include credentials: discard stderr while
         // draining it to preserve pipe backpressure; report typed protocol failures.
         tokio::spawn(async move {
@@ -108,20 +117,20 @@ impl Process {
         };
         let ready = tokio::time::timeout(
             Duration::from_secs(20),
-            process.peer.request::<AssistantReady>(
-                "assistant.initialize",
-                &AssistantInitialize {
+            process.peer.request::<AgentReady>(
+                "agentRuntime.initialize",
+                &AgentInitialize {
                     protocol_version: protocol::PROTOCOL_VERSION,
                     graph_version: protocol::GRAPH_VERSION.into(),
                     checkpoint_path: checkpoint_path
                         .to_str()
-                        .ok_or("assistant-checkpoint-path-invalid")?
+                        .ok_or("agent-runtime-checkpoint-path-invalid")?
                         .into(),
                 },
             ),
         )
         .await
-        .map_err(|_| "assistant-initialize-timeout".to_owned())
+        .map_err(|_| "agent-runtime-initialize-timeout".to_owned())
         .and_then(std::convert::identity);
         match ready {
             Ok(ready)
@@ -132,7 +141,7 @@ impl Process {
             }
             _ => {
                 process.terminate().await;
-                Err("assistant-initialization-failed".into())
+                Err("agent-runtime-initialization-failed".into())
             }
         }
     }

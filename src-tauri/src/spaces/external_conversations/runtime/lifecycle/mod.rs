@@ -71,19 +71,19 @@ pub(crate) async fn mark_disconnected(
 pub(super) async fn load(
     pool: &sqlx::SqlitePool,
     id: &str,
-) -> Result<super::super::AgentSessionBinding, String> {
+) -> Result<super::super::ExternalAgentSessionBinding, String> {
     let row: (String, String, String, String) = sqlx::query_as(
-        "SELECT id,run_id,assistant_conversation_id,branch_id
+        "SELECT id,run_id,conversation_id,branch_id
          FROM spaces_external_agent_conversations WHERE id=$1",
     )
     .bind(id)
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
-    Ok(super::super::AgentSessionBinding {
+    Ok(super::super::ExternalAgentSessionBinding {
         id: row.0,
         run_id: row.1,
-        assistant_conversation_id: row.2,
+        conversation_id: row.2,
         branch_id: row.3,
     })
 }

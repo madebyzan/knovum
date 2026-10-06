@@ -12,7 +12,7 @@ const relationShape = {
   status: z.enum(SPACE_RELATION_STATUSES),
   statusBeforeInvalidation: z.enum(["active", "contested"]).nullable(),
   confidence: z.number().min(0).max(1).nullable(),
-  actorKind: z.enum(["human", "assistant", "agent", "system"]),
+  actorKind: z.enum(["human", "builtin_agent", "external_agent", "system"]),
   actorId: z.string().nullable(),
   createdAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   updatedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),

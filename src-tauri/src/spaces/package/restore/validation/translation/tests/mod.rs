@@ -11,8 +11,8 @@ fn request() -> super::RestorePackageRequest {
         "space":{"id":"space","kind":"space","title":"Space","lastOpenedAt":1,"createdAt":1,"updatedAt":4},
         "structureNodes":[],"layouts":[],"relationStyles":[],"objectTypes":[],"nodes":[],
         "scenes":[],"relations":[],"derivations":[],"runEvents":[],
-        "externalAgentConversations":[],"externalAgentTurns":[],"assistantConversations":[],
-        "assistantMessages":[],"voiceProfiles":[],"voiceRevisions":[],"voiceCandidates":[],
+        "externalAgentConversations":[],"externalAgentTurns":[],"conversations":[],
+        "conversationMessages":[],"voiceProfiles":[],"voiceRevisions":[],"voiceCandidates":[],
         "speechProjects":[],"speechRenders":[],"speechSourceSeparations":[],"provenance":[],
         "knowledgeEvents":[],"chunks":[],"runs":[],"runSteps":[],"runAttempts":[],
         "speechProjectRevisions":[],"speechSegments":[]

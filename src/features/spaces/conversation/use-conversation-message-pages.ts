@@ -1,14 +1,14 @@
 import { shallowRef, type Ref, type ShallowRef } from "vue";
 
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import { listAssistantMessages } from "./conversation-ipc";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import { listConversationMessages } from "./conversation-ipc";
 
 interface ConversationMessagePagesInput {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
-  selectedConversation: Ref<AssistantConversation | undefined>;
-  messages: ShallowRef<AssistantMessage[]>;
+  selectedConversation: Ref<Conversation | undefined>;
+  messages: ShallowRef<ConversationMessage[]>;
 }
 
 export function useConversationMessagePages(input: ConversationMessagePagesInput) {
@@ -23,7 +23,7 @@ export function useConversationMessagePages(input: ConversationMessagePagesInput
     loadingOlder.value = true;
     try {
       const requestedSpaceId = input.spaceId.value;
-      const page = await listAssistantMessages(conversation.id, conversation.branchId, first);
+      const page = await listConversationMessages(conversation.id, conversation.branchId, first);
       if (input.spaceId.value !== requestedSpaceId || input.selectedConversationId.value !== conversation.id)
         return;
       input.messages.value = [...page, ...input.messages.value];

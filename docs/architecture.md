@@ -55,7 +55,9 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `authorization/`: principals, scopes, grants and effect-specific approvals;
 - `runs/`: durable Run, StepInstance and Attempt state, scheduling, recovery and events;
 - `workflows/`: capture, versioned library and replay of verified derivation chains over SpaceActions;
-- `assistant/`: Space-specific conversations, context, tasks, tool operations and SDK execution segments;
+- `conversations/`: shared conversation history, attachments and public task commands;
+  `context/` is shared by both executors, `builtin_agent/` owns built-in execution and
+  `external_agent.rs` submits external sessions. Host admission and SDK projection live in `execution/`;
 - `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
 - `knowledge/indexing/`: extraction of revisions, passages and knowledge chunks from Space nodes;
@@ -103,16 +105,16 @@ code uses the standard `src/` layout and capability packages named `knovum_<capa
 `knovum_inference` owns current model computation; `knovum_model_resources` owns official Hub SDK execution. Additional capabilities own their own entry,
 contracts and lifecycle. Source packages do not import peer capability internals; composition
 belongs to their process entry or the existing Rust capability orchestration. A shared module
-requires actual consumers and a concrete responsibility. `knovum_assistant` owns Deep Agents composition, model clients, control middleware, private
+requires actual consumers and a concrete responsibility. `knovum_agent_runtime` owns Deep Agents composition, model clients, control middleware, private
 workspace and public checkpoint projection. `agent_runtime/process` owns its bounded bidirectional
-stdio and process lifecycle; `spaces/assistant/execution` owns host admission, frozen sessions and
+stdio and process lifecycle; `spaces/conversations/execution` owns host admission, frozen sessions and
 projection transactions. The shared `subprocess` process-tree owner is used by both actual processes.
 
 Hatch and desktop packaging select application code from `python/src`, while inference release
 qualification hashes only `knovum_inference`. Default project dependencies are empty;
 `project.optional-dependencies.inference` declares the existing inference libraries. The producer
-and application verifier explicitly export the frozen `inference` and `model-resources` extras. `python/runtimes/assistant/pyproject.toml` is a dependency-only project with an independent lock
-for the Assistant. Google GenAI requires a different Pydantic line than the inference selection;
+and application verifier explicitly export the frozen `inference` and `model-resources` extras. `python/runtimes/agent/pyproject.toml` is a dependency-only project with an independent lock
+for the Builtin Agent. Google GenAI requires a different Pydantic line than the inference selection;
 sharing one virtual environment would violate dependency isolation. Both native publications reuse
 the existing runtime builder, installer, leases and resource-preparation registry. Neither inherits
 the other capability's third-party packages. Future capabilities must define and qualify their
@@ -190,10 +192,10 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
   and hybrid rank fusion. Its publication and invalidation outbox share the existing SQLite write
   transaction boundary; embedding computation stays outside that boundary. Vue submits query text
   or an indexing intent and never transports vectors;
-- `assistant/task/` owns built-in conversation execution and streaming persistence, with read APIs in
-  `assistant/queries/` and mutation APIs in `assistant/commands/`, while
+- `conversations/builtin_agent/` owns built-in conversation execution and streaming persistence, with read APIs in
+  `conversations/queries/` and mutation APIs in `conversations/commands/`, while
   `knowledge/grounding/` owns its reusable semantic contracts, prompt assembly, citation rules and
-  reference cleanup. Vue owns assistant presentation only.
+  reference cleanup. Vue owns conversation presentation only.
 
 Raw persistence transitions, embedding vectors and partial grounded-AI steps are not IPC contracts.
 
@@ -465,7 +467,7 @@ fallbacks. `ai/models/ModelExecutionTarget` and `ModelTargetSelection` describe 
 model calls. `ai/tasks/TaskTargetSelection` and `TaskExecutionTarget` are product task boundaries:
 they route to a direct model call or a desktop Agent without changing Provider transport contracts.
 `ai/tasks/completion` is the bounded text/vision dispatch seam, not a second Agent framework or
-scheduler. The built-in assistant keeps its existing Knovum-controlled orchestration runtime;
+scheduler. The built-in Agent keeps its existing Knovum-controlled orchestration runtime;
 user model connections currently supply its inference. Future hosted supply may use that same
 runtime, but no hosted service, subscription entitlement or billing implementation exists yet.
 Deterministic document/media/image processing remains independent of AI task routing.

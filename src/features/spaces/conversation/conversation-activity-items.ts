@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../contracts/generated/RunEvent";
 
 export type ActivityItem = {
@@ -23,11 +23,11 @@ const textPayload = z.object({ text: z.string() });
 const toolEvents = new Set([
   "external_agent_tool_started",
   "external_agent_tool_updated",
-  "assistant_tool_started",
-  "assistant_tool_finished",
+  "builtin_agent_tool_started",
+  "builtin_agent_tool_finished",
 ]);
 
-function toolOutputs(messages: readonly AssistantMessage[], runId: string) {
+function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
   const outputByCallId = new Map<string, { name: string; value: unknown }>();
   for (const message of messages) {
     if (message.role !== "tool" || message.content.runId !== runId) continue;
@@ -60,7 +60,8 @@ function toolTitle(
 
 function toolStatus(event: RunEvent, status: z.infer<typeof toolPayload>["status"], previous?: ActivityItem) {
   return (
-    status ?? (event.kind === "assistant_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
+    status ??
+    (event.kind === "builtin_agent_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
   );
 }
 
@@ -94,7 +95,7 @@ function appendTool(
 
 interface ConversationActivityInput {
   events: readonly RunEvent[];
-  messages: readonly AssistantMessage[];
+  messages: readonly ConversationMessage[];
   runId: string;
   labels: ToolLabels;
 }

@@ -15,7 +15,7 @@ async fn database_run_kinds_decode_into_the_rust_contract() {
     for (index, kind) in [
         "action",
         "workflow",
-        "assistant",
+        "builtin_agent",
         "external_agent",
         "automation",
     ]

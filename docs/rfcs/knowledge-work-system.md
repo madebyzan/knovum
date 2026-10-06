@@ -17,7 +17,7 @@ This RFC is a dated decision record, not a second current architecture specifica
 | Space actions and authorization     | `src-tauri/src/spaces/actions`, `authorization`                                          | Implemented domain and atomic authorization paths; scenario tests own behavioral evidence.                             |
 | Durable Runs and observation        | `src-tauri/src/spaces/runs`; `src/features/spaces/runs`                                  | Implemented persistence/Channel projection; Task Center does not own execution.                                        |
 | Workflows                           | `src-tauri/src/spaces/workflows`; `src/features/spaces/workflows`                        | Implemented definitions and execution; contextual capture/editing goals in DESIGN are not blanket completion claims.   |
-| Assistant and external tools        | `src-tauri/src/spaces/assistant`, `mcp`; `src/features/spaces/conversation`              | Implemented runtime/conversation APIs; unified product presentation and Settings targets require their own acceptance. |
+| Builtin Agent and external tools    | `src-tauri/src/spaces/conversations`, `mcp`; `src/features/spaces/conversation`          | Implemented runtime/conversation APIs; unified product presentation and Settings targets require their own acceptance. |
 | Derivation and resource publication | `src-tauri/src/spaces/derivation`, `assets`; `src/features/spaces/knowledge-derivations` | Implemented revision/lineage boundaries; action-specific completeness is evaluated independently.                      |
 | Cross-platform desktop UX           | `docs/platform-matrix.md`, `docs/desktop-foundation.md`                                  | Requires actual macOS/Windows evidence; source presence alone is not platform certification.                           |
 
@@ -25,10 +25,10 @@ This RFC is a dated decision record, not a second current architecture specifica
 
 Knovum is a local-first knowledge work environment. Resources remain useful without an Agent,
 subscription or official account. Human actions, fixed AI operations, Workflows, the built-in
-Assistant and external Agents reuse the same Space-owned business rules.
+Builtin Agent and external Agents reuse the same Space-owned business rules.
 
 The only excluded product capability is official subscription, payment and hosted inference quota.
-Self-configured models, the built-in Assistant, external connections, Workflows, durable Runs,
+Self-configured models, the Builtin Agent, external connections, Workflows, durable Runs,
 authorization and recovery are part of the domain baseline; their individual product surfaces and acceptance are tracked below.
 
 ## Stable language
@@ -40,10 +40,10 @@ authorization and recovery are part of the domain baseline; their individual pro
 - `Invocation`: one authenticated SpaceAction call.
 - `Receipt`: the authoritative result of committed side effects.
 - `Run`: a durable long-running business execution.
-- `Job`: a process-local engine activity, never a Workflow or Assistant identity.
+- `Job`: a process-local engine activity, never a Workflow or Builtin Agent identity.
 - `Workflow`: a user-owned, publishable typed program.
-- `Assistant`: Knovum's built-in collaboration product.
-- `Agent Runtime`: the replaceable model-tool control mechanism used by Assistant.
+- `Builtin Agent`: Knovum's built-in collaboration product.
+- `Agent Runtime`: the replaceable model-tool control mechanism used by Builtin Agent.
 - `External Agent`: an ACP or equivalent external controller, not an AI provider.
 - `Authorization`: principal, scope, grant and approval; separate from content review.
 
@@ -56,7 +56,7 @@ owners. A module name must identify the policy or aggregate it owns.
 Vue typed commands
         |
         v
-Space Assistant    Workflow runtime    Space MCP
+Space Builtin Agent    Workflow runtime    Space MCP
         \               |               /
          +---------- SpaceAction -------+
                        |
@@ -75,7 +75,7 @@ Space Assistant    Workflow runtime    Space MCP
 - `spaces/runs` is the durable execution authority. Process-local registries remain implementation
   details of their owning engines.
 - `spaces/workflows` owns definitions, compilation and execution semantics. It may invoke
-  SpaceActions, but does not depend on Assistant implementation.
+  SpaceActions, but does not depend on Builtin Agent implementation.
 - `spaces/mcp` is an inbound protocol projection and cannot mutate SQLite directly.
 - Vue presentation consumes typed capability clients and query state; it never owns durable Run or
   Workflow execution truth.
@@ -107,7 +107,7 @@ A SpaceAction definition includes:
 - classified errors.
 
 The WebView does not receive a universal `invoke_action(actionId, json)` command. User-facing IPC
-remains intent-specific and calls the same Rust owner used by Workflow, Assistant and MCP.
+remains intent-specific and calls the same Rust owner used by Workflow, Builtin Agent and MCP.
 
 ## Durable execution
 
@@ -137,17 +137,17 @@ Common graph algorithms use `petgraph`; pure conditions and mappings use bounded
 `cron` with `chrono-tz`. These libraries do not own Knovum publication, authorization, retry, DST,
 misfire or recovery policy.
 
-## Assistant and external collaboration
+## Builtin Agent and external collaboration
 
-Assistant exposes explicit Ask, Plan and Execute modes. Mode changes never enlarge scope. Tool calls
+Builtin Agent exposes explicit Ask, Plan and Execute modes. Mode changes never enlarge scope. Tool calls
 are persisted before side effects execute, and committed results are represented by Receipts rather
 than model prose.
 
-The Assistant's general model-tool loop is isolated behind `agent_runtime`. Model IO remains on the
+The Builtin Agent's general model-tool loop is isolated behind `agent_runtime`. Model IO remains on the
 single `genai`-backed path. External Agents stay in `external_agents`; failure never silently switches
 between built-in and external controllers.
 
-Assistant tasks persist explicit model-turn, tool-call, token and duration limits. Long conversation
+Builtin Agent tasks persist explicit model-turn, tool-call, token and duration limits. Long conversation
 context uses a bounded recent transcript plus traceable extractive segments; deletion removes those
 segments and control checkpoints. External artifact sessions are durable external-Agent Runs whose
 user-visible messages, tool state and permission requests are observable without persisting thoughts.

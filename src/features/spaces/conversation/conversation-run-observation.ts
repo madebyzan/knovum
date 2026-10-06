@@ -6,7 +6,11 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
 import { useSpaceStore } from "../session/space-store";
-import { cancelAssistantTask, getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
+import {
+  cancelConversationTask,
+  getConversationTaskError,
+  listActiveConversationRuns,
+} from "./conversation-ipc";
 import { conversationRunStatusKey, conversationRunTask } from "./conversation-task-projection";
 
 type RunIdentity = Pick<RunObservation, "id" | "createdAt">;
@@ -36,7 +40,7 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
   function attachNavigation() {
     if (!location) return;
     tasks.setOpen(run.id, async () => {
-      if (!openConversation) throw new Error("Assistant workspace is unavailable");
+      if (!openConversation) throw new Error("Conversation workspace is unavailable");
       await openConversation(location.spaceId, location.conversationId);
     });
   }
@@ -57,14 +61,14 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
       for (const listener of listeners) listener(next);
       if (next.completedAt !== null && space.activeSpaceId === next.homeSpaceId)
         void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
-      tasks.reconcileObserved(`assistant:${next.id}`, [
+      tasks.reconcileObserved(`conversation:${next.id}`, [
         {
           task: conversationRunTask(next, title, i18n.global.t(conversationRunStatusKey(next))),
-          ...(next.completedAt === null ? { cancel: () => cancelAssistantTask(next.id) } : {}),
+          ...(next.completedAt === null ? { cancel: () => cancelConversationTask(next.id) } : {}),
           ...(location
             ? {
                 open: async () => {
-                  if (!openConversation) throw new Error("Assistant workspace is unavailable");
+                  if (!openConversation) throw new Error("Conversation workspace is unavailable");
                   await openConversation(location.spaceId, location.conversationId);
                 },
               }
@@ -72,10 +76,10 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
         },
       ]);
       if (next.state === "failed" || next.state === "completed_with_errors") {
-        void getAssistantTaskError(next.id)
+        void getConversationTaskError(next.id)
           .then((reason) => {
             const task = tasks.tasks.find(({ id }) => id === next.id);
-            if (task) task.statusMessage = reason ?? i18n.global.t("spaces.assistant.tasks.failed");
+            if (task) task.statusMessage = reason ?? i18n.global.t("spaces.conversation.tasks.failed");
             return undefined;
           })
           .catch((cause: unknown) => toast.error(getErrorMessage(cause)));
@@ -92,7 +96,7 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
 }
 
 export async function restoreConversationRuns() {
-  for (const active of await listActiveAssistantRuns()) {
+  for (const active of await listActiveConversationRuns()) {
     observeConversationRun({
       run: active.run,
       title: active.title,

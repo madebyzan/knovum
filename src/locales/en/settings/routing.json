@@ -9,7 +9,7 @@
       "description": "Drafting, rewriting, and editor assistance."
     },
     "knowledge": {
-      "label": "Assistant",
+      "label": "Builtin Agent",
       "description": "Conversations, task planning, tool use, and knowledge organization."
     },
     "visualUnderstanding": {

@@ -41,8 +41,8 @@ async fn detach_matching_citations(
     };
     let ids_json = serde_json::to_string(ids).map_err(db::json_error)?;
     let rows = sqlx::query(
-        "SELECT m.id,m.content FROM spaces_assistant_messages m \
-         JOIN spaces_assistant_conversations t ON t.id=m.conversation_id WHERE t.space_id=$1 AND EXISTS ( \
+        "SELECT m.id,m.content FROM spaces_conversation_messages m \
+         JOIN spaces_conversations t ON t.id=m.conversation_id WHERE t.space_id=$1 AND EXISTS ( \
            SELECT 1 FROM json_each(m.content,'$.citations') c \
            WHERE COALESCE(json_extract(c.value,'$.state'),'current') <> 'detached' \
              AND json_extract(c.value,$2) IN (SELECT value FROM json_each($3)) \
@@ -85,7 +85,7 @@ async fn detach_matching_citations(
         if !changed {
             continue;
         }
-        sqlx::query("UPDATE spaces_assistant_messages SET content=$1 WHERE id=$2")
+        sqlx::query("UPDATE spaces_conversation_messages SET content=$1 WHERE id=$2")
             .bind(serde_json::to_string(&content).map_err(db::json_error)?)
             .bind(id)
             .execute(&mut **tx)

@@ -341,23 +341,23 @@ No provider failover, compatibility endpoint precedence or replacement model sat
 
 ## Deep Agents acceptance
 
-The Assistant runtime is an independent profile with its own descriptor, installed inventory and
+The Agent Runtime is an independent profile with its own descriptor, installed inventory and
 license policy. The current locked SDK proof suite uses actual public Deep Agents/LangGraph APIs,
 real SQLite persistence and controlled model responses/HTTP streams. Those checks establish
 host admission, durable tool intent, projection and replay behavior; they do not qualify a real
 provider, a model's quality, native TLS/proxy behavior or either release platform.
 
 Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
-checkout before native acceptance. `check:python` shares Ruff policy but runs Assistant Mypy/pytest
+checkout before native acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
 inside its own locked environment. Provision/build commands select `--profile inference` or
-`--profile assistant` explicitly. Packaging verifies both profiles and ships only current owned
+`--profile agent` explicitly. Packaging verifies both profiles and ships only current owned
 source and the two descriptors. The maintainer owns native build/signing/installation acceptance.
 
 ### Provider qualification record
 
 For each enabled model, record provider, immutable model identifier, base URL, explicit protocol,
 context/output limits, temperature, OS/architecture, application commit, SDK lock SHA-256,
-Assistant manifest digest, date and input/result evidence. A passing OpenAI mock is not evidence
+Agent Runtime manifest digest, date and input/result evidence. A passing OpenAI mock is not evidence
 for Responses, Anthropic, Gemini, Ollama, DeepSeek, Groq or a compatible service.
 
 | Endpoint family         | Required evidence                                                             | Current real-provider qualification |

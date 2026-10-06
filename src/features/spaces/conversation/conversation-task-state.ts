@@ -1,6 +1,6 @@
 import type { Ref, ShallowRef } from "vue";
 
-import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
+import type { ConversationTaskAccepted } from "../contracts/generated/ConversationTaskAccepted";
 
 type Selection = { spaceId: string; conversationId: string };
 
@@ -21,7 +21,7 @@ export function createConversationTaskState(input: ConversationTaskStateInput) {
     );
   }
 
-  async function accepted(task: AssistantTaskAccepted, selection: Selection) {
+  async function accepted(task: ConversationTaskAccepted, selection: Selection) {
     input.activeConversationId.value = task.conversationId;
     if (!isSelected(selection)) return;
     await input.refresh();
@@ -30,7 +30,7 @@ export function createConversationTaskState(input: ConversationTaskStateInput) {
     await input.select(task.conversationId, !selection.conversationId, task.branchId);
   }
 
-  async function settled(task: AssistantTaskAccepted, spaceId: string) {
+  async function settled(task: ConversationTaskAccepted, spaceId: string) {
     if (input.spaceId.value !== spaceId) return;
     await input.refresh();
     if (input.spaceId.value === spaceId && input.selectedConversationId.value === task.conversationId)

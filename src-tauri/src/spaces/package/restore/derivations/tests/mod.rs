@@ -130,7 +130,7 @@ async fn restores_agent_execution_sources_into_the_current_sql_baseline() {
     let request: RestorePackageRequest = serde_json::from_value(serde_json::json!({
             "space":{"id":"space","kind":"space","title":"Space","lastOpenedAt":1,"createdAt":1,"updatedAt":1},
             "structureNodes":[],"layouts":[],"relationStyles":[],"objectTypes":[],"nodes":[],"scenes":[],"relations":[],"derivations":rows,
-            "runs":[],"runSteps":[],"runAttempts":[],"runEvents":[],"externalAgentConversations":[],"externalAgentTurns":[],"assistantConversations":[],"assistantMessages":[],
+            "runs":[],"runSteps":[],"runAttempts":[],"runEvents":[],"externalAgentConversations":[],"externalAgentTurns":[],"conversations":[],"conversationMessages":[],
             "voiceProfiles":[],"voiceRevisions":[],"voiceCandidates":[],"speechProjects":[],"speechProjectRevisions":[],"speechSegments":[],"speechRenders":[],"speechSourceSeparations":[],
             "provenance":[],"knowledgeEvents":[],"chunks":[]
         })).unwrap();

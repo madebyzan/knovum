@@ -21,32 +21,29 @@ pub(crate) async fn create_records(
     };
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let (assistant_id, branch_id) = conversation.unwrap_or((id, id));
+    let (conversation_id, branch_id) = conversation.unwrap_or((id, id));
     if conversation.is_some() {
-        let owns_conversation: Option<i64> = sqlx::query_scalar(
-            "SELECT 1 FROM spaces_assistant_conversations WHERE id=$1 AND space_id=$2",
-        )
-        .bind(assistant_id)
-        .bind(&request.space_id)
-        .fetch_optional(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+        let owns_conversation: Option<i64> =
+            sqlx::query_scalar("SELECT 1 FROM spaces_conversations WHERE id=$1 AND space_id=$2")
+                .bind(conversation_id)
+                .bind(&request.space_id)
+                .fetch_optional(&mut *tx)
+                .await
+                .map_err(db::sql_error)?;
         if owns_conversation.is_none() {
-            return Err(
-                "assistant-conversation-unavailable: conversation belongs to another Space".into(),
-            );
+            return Err("conversation-unavailable: conversation belongs to another Space".into());
         }
-        let latest_branch: Option<String> = sqlx::query_scalar(
-            "SELECT active_branch_id FROM spaces_assistant_conversations WHERE id=$1",
-        )
-        .bind(assistant_id)
-        .fetch_optional(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+        let latest_branch: Option<String> =
+            sqlx::query_scalar("SELECT active_branch_id FROM spaces_conversations WHERE id=$1")
+                .bind(conversation_id)
+                .fetch_optional(&mut *tx)
+                .await
+                .map_err(db::sql_error)?;
         if latest_branch.as_deref() != Some(branch_id) {
-            return Err("assistant-branch-stale: select the current conversation branch".into());
+            return Err("conversation-branch-stale: select the current conversation branch".into());
         }
-        crate::spaces::assistant::ensure_branch_idle(&mut tx, assistant_id, branch_id).await?;
+        crate::spaces::conversations::ensure_branch_idle(&mut tx, conversation_id, branch_id)
+            .await?;
     }
     crate::spaces::runs::create_run_in_transaction(
         &mut tx,
@@ -65,10 +62,10 @@ pub(crate) async fn create_records(
     .await?;
     if conversation.is_none() {
         sqlx::query(
-            "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
+            "INSERT INTO spaces_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
              VALUES($1,$2,$3,'ask',$1,$4,$4)",
         )
-        .bind(assistant_id)
+        .bind(conversation_id)
         .bind(&request.space_id)
         .bind(request.title.trim())
         .bind(now)
@@ -78,13 +75,13 @@ pub(crate) async fn create_records(
     }
     sqlx::query(
         "INSERT INTO spaces_external_agent_conversations(
-         id,run_id,space_id,assistant_conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
+         id,run_id,space_id,conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
          VALUES($1,$2,$3,$4,$5,$6,$7,'connecting',$8,$8)",
     )
     .bind(id)
     .bind(run_id)
     .bind(&request.space_id)
-    .bind(assistant_id)
+    .bind(conversation_id)
     .bind(branch_id)
     .bind(request.runtime_kind.as_str())
     .bind(request.title.trim())

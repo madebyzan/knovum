@@ -2,8 +2,8 @@ mod citations;
 pub(crate) mod prompt;
 pub(crate) mod references;
 
-pub use citations::validate_assistant_citations;
 pub use citations::validate_citation_snapshots;
+pub use citations::validate_conversation_citations;
 
 pub const MAX_CITATIONS: usize = 1_000;
 pub const MAX_CITATION_TITLE_CHARS: usize = 512;

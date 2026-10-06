@@ -6,24 +6,24 @@ import { useI18n } from "vue-i18n";
 const emit = defineEmits<{ select: [prompt: string, selection?: string] }>();
 const { t } = useI18n();
 const examples = computed(() => {
-  const topic = t("spaces.assistant.empty.topic");
+  const topic = t("spaces.conversation.empty.topic");
   return [
     {
       icon: Search,
-      label: t("spaces.assistant.empty.search"),
-      prompt: t("spaces.assistant.empty.searchPrompt", { topic }),
+      label: t("spaces.conversation.empty.search"),
+      prompt: t("spaces.conversation.empty.searchPrompt", { topic }),
       selection: topic,
     },
     {
       icon: FileText,
-      label: t("spaces.assistant.empty.document"),
-      prompt: t("spaces.assistant.empty.documentPrompt", { topic }),
+      label: t("spaces.conversation.empty.document"),
+      prompt: t("spaces.conversation.empty.documentPrompt", { topic }),
       selection: topic,
     },
     {
       icon: Waypoints,
-      label: t("spaces.assistant.empty.compare"),
-      prompt: t("spaces.assistant.empty.comparePrompt", { topic }),
+      label: t("spaces.conversation.empty.compare"),
+      prompt: t("spaces.conversation.empty.comparePrompt", { topic }),
       selection: topic,
     },
   ];
@@ -32,7 +32,9 @@ const examples = computed(() => {
 
 <template>
   <div class="w-full max-w-sm">
-    <h2 class="px-2.5 text-title-sm font-medium text-fg-primary">{{ t("spaces.assistant.empty.title") }}</h2>
+    <h2 class="px-2.5 text-title-sm font-medium text-fg-primary">
+      {{ t("spaces.conversation.empty.title") }}
+    </h2>
     <div class="mt-3 space-y-1">
       <button
         v-for="example in examples"

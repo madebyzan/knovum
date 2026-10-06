@@ -32,7 +32,7 @@ DEPENDENCIES["knovum_model_resources"] = {
     "model_scope": {"contracts", "progress"},
     "server": {"contracts", "progress", "hugging_face", "model_scope"},
 }
-DEPENDENCIES["knovum_assistant"] = {
+DEPENDENCIES["knovum_agent_runtime"] = {
     "__init__": set(),
     "__main__": {"server"},
     "contracts": set(),

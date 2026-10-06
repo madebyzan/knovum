@@ -16,7 +16,7 @@ Compile without bundling:
 
 ```bash
 KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH=<verified-inference-descriptor> \
-KNOVUM_PYTHON_ASSISTANT_DESCRIPTOR_PATH=<verified-assistant-descriptor> \
+KNOVUM_PYTHON_AGENT_DESCRIPTOR_PATH=<verified-builtin-agent-descriptor> \
 pnpm exec tauri build --no-bundle
 ```
 
@@ -53,18 +53,18 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 ## Distribution boundaries
 
 The installer contains FFmpeg, current application-owned `.py` capability source from `python/src`,
-`resources/python-inference-descriptor.json` and `resources/python-assistant-descriptor.json`.
+`resources/python-inference-descriptor.json` and `resources/python-agent-descriptor.json`.
 It excludes CPython and third-party Python packages. Application source follows the desktop version.
 Two immutable runtime profiles per target contain their own interpreter/package root, licenses,
 `runtime-requirements.txt` and schema-3 `runtime-manifest.json`. Inference selects the frozen
-`inference`/`model-resources` extras from `python/uv.lock`; Assistant selects production dependencies
-from `python/runtimes/assistant/uv.lock`. Neither publication contains quality dependencies or
+`inference`/`model-resources` extras from `python/uv.lock`; Builtin Agent selects production dependencies
+from `python/runtimes/agent/uv.lock`. Neither publication contains quality dependencies or
 application source. The profiles reuse one producer and installer; their incompatible Pydantic
-constraints require separate dependency environments. No Torch or inference models enter Assistant.
+constraints require separate dependency environments. No Torch or inference models enter Builtin Agent.
 
 Schema-2 descriptors bind profile, target, interpreter version, dependency lock/requirements hashes,
 regional immutable HTTPS archive URLs, size/SHA-256 and manifest SHA-256. Packaging passes their paths
-through `KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH` and `KNOVUM_PYTHON_ASSISTANT_DESCRIPTOR_PATH`;
+through `KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH` and `KNOVUM_PYTHON_AGENT_DESCRIPTOR_PATH`;
 `build.rs` embeds both. Release requires both; debug/E2E can explicitly omit publications, leaving
 these capabilities unavailable. Source-only edits do not change the runtime archive. A changed
 lock invalidates that profile's frozen publication, including a changed quality constraint in the
@@ -80,13 +80,13 @@ precede atomic publication to:
 ```
 
 Workers use current application `resources/python-worker` and the selected verified `packages` root.
-Inference initialization passes its manifest; Assistant has a versioned graph/protocol handshake
+Inference initialization passes its manifest; Builtin Agent has a versioned graph/protocol handshake
 and a private checkpoint path. Prepared runtime/models work offline; bootstrap does not download
 resources. Standard file leases protect in-use publications, including while a process shuts down.
 User models keep their existing app-data lifetime.
 
 Development-only verified-runtime overrides are `KNOVUM_PYTHON_INFERENCE_MANIFEST_PATH` and
-`KNOVUM_PYTHON_ASSISTANT_MANIFEST_PATH`. `KNOVUM_PYTHON_WORKER_PATH` selects source explicitly;
+`KNOVUM_PYTHON_AGENT_MANIFEST_PATH`. `KNOVUM_PYTHON_WORKER_PATH` selects source explicitly;
 `pnpm desktop:dev` sets this checkout's `python/src` and the provisioned FFmpeg path. There is no
 legacy bundle discovery or system-Python fallback. Both profiles support macOS ARM64 and Windows x64.
 
@@ -94,8 +94,8 @@ legacy bundle discovery or system-Python fallback. Both profiles support macOS A
 
 `pnpm runtime:provision --profile inference` downloads and verifies FFmpeg into
 `src-tauri/resources/bundled-runtime/<target>/`, and the separate Python publication into
-`runtime-artifacts/inference/<target>/`. Run `pnpm runtime:provision --profile assistant` for
-`runtime-artifacts/assistant/<target>/`. The latter is build evidence/input and is never a bundle resource.
+`runtime-artifacts/inference/<target>/`. Run `pnpm runtime:provision --profile agent` for
+`runtime-artifacts/agent/<target>/`. The latter is build evidence/input and is never a bundle resource.
 The provisioner requires these real, immutable URLs and SHA-256 values (`TARGET` is
 `MACOS_ARM64` or `WINDOWS_X64`):
 
@@ -104,7 +104,7 @@ The provisioner requires these real, immutable URLs and SHA-256 values (`TARGET`
 - `KNOVUM_PYTHON_<PROFILE>_DESCRIPTOR_<TARGET>_URL` / `_SHA256`;
 - `KNOVUM_PYTHON_<PROFILE>_EVIDENCE_<TARGET>_URL` / `_SHA256`.
 
-`PROFILE` is `INFERENCE` or `ASSISTANT`.
+`PROFILE` is `INFERENCE` or `AGENT`.
 
 The optional `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` applies only to build-time FFmpeg inputs.
 Python publication downloads are anonymous, matching user-side installation. The descriptor's
@@ -118,7 +118,7 @@ Background removal continues to use ONNX Runtime with the verified on-demand U²
 ## Controlled Python runtime producer
 
 ```bash
-pnpm runtime:build --profile <inference|assistant> --output <fresh-directory> --signing <adhoc|unsigned|production> \
+pnpm runtime:build --profile <inference|agent> --output <fresh-directory> --signing <adhoc|unsigned|production> \
   --global-archive-url <immutable-global-https-archive-url> \
   --china-archive-url <immutable-china-https-archive-url>
 ```
@@ -141,7 +141,7 @@ not distribution approval. The workflow's `global_archive_base_url` and `china_a
 public publication directories serving identical archive bytes. Workflow upload artifacts alone do not publish that URL.
 
 `python/dependency-license-review.json` and
-`python/runtimes/assistant/dependency-license-review.json` approve each profile's lock/requirements
+`python/runtimes/agent/dependency-license-review.json` approve each profile's lock/requirements
 digests and exact per-target installed inventory. Inference also conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper native-source
 review and separate Kokoro/data review continue to block production. Metadata, source hashes and
 QA artifacts are not legal approval. Required complete corresponding-source/build/installation

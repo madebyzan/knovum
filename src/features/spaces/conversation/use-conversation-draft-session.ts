@@ -1,10 +1,10 @@
 import type { Ref } from "vue";
 
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
+import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 import { useConversationDraftStore } from "./conversation-draft-store";
 
-function sameAttachments(left: readonly AssistantAttachment[], right: readonly AssistantAttachment[]) {
+function sameAttachments(left: readonly ConversationAttachment[], right: readonly ConversationAttachment[]) {
   return (
     left.length === right.length &&
     left.every((item) =>
@@ -25,7 +25,7 @@ interface ConversationDraftSessionInput {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   prompt: Ref<string>;
-  attachments: Ref<AssistantAttachment[]>;
+  attachments: Ref<ConversationAttachment[]>;
 }
 
 export function useConversationDraftSession(input: ConversationDraftSessionInput) {
@@ -54,7 +54,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
     });
   }
 
-  function clearSubmitted(request: SubmitAssistantTaskRequest) {
+  function clearSubmitted(request: SubmitConversationTaskRequest) {
     const conversationId = request.conversationId ?? "";
     const stored = drafts.read(request.spaceId, conversationId);
     const sent = request.attachments ?? [];
@@ -67,7 +67,7 @@ export function useConversationDraftSession(input: ConversationDraftSessionInput
     if (sameAttachments(input.attachments.value, sent)) input.attachments.value = [];
   }
 
-  function restoreSubmitted(request: SubmitAssistantTaskRequest) {
+  function restoreSubmitted(request: SubmitConversationTaskRequest) {
     const conversationId = request.conversationId ?? "";
     if (input.spaceId.value === request.spaceId && input.selectedConversationId.value === conversationId) {
       if (!input.prompt.value && !input.attachments.value.length) {

@@ -35,10 +35,10 @@ pub(crate) async fn prepare<R: Runtime>(
     }
     let descriptor = super::descriptor::required(profile)?;
     static INFERENCE: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    static ASSISTANT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static AGENT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     let registry = match profile {
         super::RuntimeProfile::Inference => &INFERENCE,
-        super::RuntimeProfile::Assistant => &ASSISTANT,
+        super::RuntimeProfile::Agent => &AGENT,
     }
     .get_or_init(Registry::new);
     let handle = app.clone();

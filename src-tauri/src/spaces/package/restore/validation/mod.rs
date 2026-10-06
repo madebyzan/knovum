@@ -35,15 +35,11 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
             1_000_000,
             "external Agent turns",
         ),
+        (request.conversations.len(), 100_000, "Conversations"),
         (
-            request.assistant_conversations.len(),
-            100_000,
-            "Assistant conversations",
-        ),
-        (
-            request.assistant_messages.len(),
+            request.conversation_messages.len(),
             1_000_000,
-            "Assistant messages",
+            "Conversation messages",
         ),
         (request.chunks.len(), 1_000_000, "knowledge chunks"),
         (request.object_types.len(), 10_000, "Knowledge Types"),

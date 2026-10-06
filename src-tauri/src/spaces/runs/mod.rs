@@ -68,8 +68,8 @@ pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), App
     {
         crate::ai::executions::cancel(&run_id)?;
     }
-    if run.kind == RunKind::Assistant {
-        crate::spaces::assistant::cancel_task(&run_id)?;
+    if run.kind == RunKind::BuiltinAgent {
+        crate::spaces::conversations::cancel_task(&run_id)?;
     }
     Ok(())
 }
@@ -85,8 +85,8 @@ pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppE
         );
     }
     repository::request_control(pool, &run_id, "pause").await?;
-    if kind == RunKind::Assistant {
-        crate::spaces::assistant::cancel_task(&run_id)?;
+    if kind == RunKind::BuiltinAgent {
+        crate::spaces::conversations::cancel_task(&run_id)?;
     }
     Ok(())
 }
@@ -95,8 +95,8 @@ pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppE
 pub async fn resume_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let run = load_run(pool, &run_id).await?;
-    if run.kind == RunKind::Assistant {
-        return Ok(crate::spaces::assistant::resume_task(app, &run_id).await?);
+    if run.kind == RunKind::BuiltinAgent {
+        return Ok(crate::spaces::conversations::resume_task(app, &run_id).await?);
     }
     repository::request_control(pool, &run_id, "resume").await?;
     Ok(())

@@ -9,7 +9,7 @@ use agent_client_protocol::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::contracts::AgentKind;
+use crate::ai::contracts::ExternalAgentKind;
 use crate::app_error::{AppError, AppResult};
 
 pub use super::updates::AgentSessionUpdate;
@@ -17,7 +17,7 @@ pub use super::updates::AgentSessionUpdate;
 pub type AgentUpdateHandler = Arc<dyn Fn(AgentSessionUpdate) -> AppResult<()> + Send + Sync>;
 
 pub fn run(
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     working_directory: PathBuf,
     prompt: super::prompt::AgentPrompt,
     cancellation: CancellationToken,
@@ -35,7 +35,7 @@ pub fn run(
 }
 
 async fn run_session(
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     working_directory: PathBuf,
     prompt: super::prompt::AgentPrompt,
     cancellation: CancellationToken,

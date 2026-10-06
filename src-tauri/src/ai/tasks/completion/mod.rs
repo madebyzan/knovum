@@ -53,7 +53,7 @@ pub(crate) trait TaskExecutor: Sync {
     ) -> impl std::future::Future<Output = AppResult<TaskCompletionOutput>> + Send;
     fn agent(
         &self,
-        kind: crate::ai::contracts::AgentKind,
+        kind: crate::ai::contracts::ExternalAgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
     ) -> impl std::future::Future<Output = AppResult<TaskCompletionOutput>> + Send;
@@ -125,7 +125,7 @@ impl TaskExecutor for ProductExecutor<'_> {
 
     async fn agent(
         &self,
-        kind: crate::ai::contracts::AgentKind,
+        kind: crate::ai::contracts::ExternalAgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
     ) -> AppResult<TaskCompletionOutput> {

@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 const uploads = vi.hoisted(() => vi.fn<() => Promise<{ path: string; sourceRevision: string }[]>>());
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-vi.mock("../conversation/conversation-uploads", () => ({ chooseAssistantUploads: uploads }));
+vi.mock("../conversation/conversation-uploads", () => ({ chooseConversationUploads: uploads }));
 vi.mock("../canvas/editor-session", () => ({ getCanvasEditorSession: () => ({}) }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => ({}) }));
 import { normalizeError } from "../../../foundation/errors/app-error";
@@ -24,7 +24,7 @@ it("rejects more than 32 attachments visibly and preserves the previous selectio
     })),
   );
   await session.chooseFiles(() => true);
-  expect(session.attachmentError.value).toBe("spaces.assistant.attachments.limit");
+  expect(session.attachmentError.value).toBe("spaces.conversation.attachments.limit");
   expect(session.attachments.value).toBe(existing);
   expect(session.pickingFiles.value).toBe(false);
 });
@@ -33,12 +33,12 @@ it("selects the localized outcome by wire code even when the backend message cha
   const session = useConversationAttachments();
   uploads.mockRejectedValue(
     normalizeError({
-      code: "assistant_upload_unauthorized",
+      code: "conversation_upload_unauthorized",
       message: "外部文件访问已拒绝",
     }),
   );
   await session.chooseFiles(() => true);
-  expect(session.attachmentError.value).toBe("spaces.assistant.uploads.permissionError");
+  expect(session.attachmentError.value).toBe("spaces.conversation.uploads.permissionError");
   expect(session.attachments.value).toEqual([]);
 });
 

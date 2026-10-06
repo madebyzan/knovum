@@ -90,7 +90,7 @@ FFmpeg preparation remains in the media feature. Embedding, image segmentation, 
 
 Knowledge indexing runs locally using the private Qwen3 worker. Vector embeddings and extracted chunk texts do not leave the machine. Grounded answering sends only the explicit prompt plus bounded relevant text context when cloud generative AI is configured. Source files and media binaries are not uploaded by these paths.
 
-Summary and Chapters are optional generative media insights. A transcript is persisted locally before any generative step, so transcription remains useful when Assistant AI is disabled.
+Summary and Chapters are optional generative media insights. A transcript is persisted locally before any generative step, so transcription remains useful when Builtin Agent AI is disabled.
 
 ## Hardware guidance
 

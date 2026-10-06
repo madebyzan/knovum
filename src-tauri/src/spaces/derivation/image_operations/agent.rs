@@ -4,14 +4,14 @@ use tokio_util::sync::CancellationToken;
 use super::{contracts::ImageOperation, mask, source::SourceImage};
 use crate::app_error::AppError;
 use crate::{
-    ai::contracts::AgentKind,
+    ai::contracts::ExternalAgentKind,
     external_agents::task::{self, ArtifactFormat},
     spaces::derivation::scratch_file::ScratchFile,
 };
 
 pub(super) async fn execute(
     app: &AppHandle,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     operation: &ImageOperation,
     source: &SourceImage,
     cancellation: &CancellationToken,

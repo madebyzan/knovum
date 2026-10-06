@@ -1,4 +1,4 @@
-mod assistant;
+mod conversations;
 mod derivation;
 mod external_conversation;
 mod restore_request;
@@ -8,7 +8,7 @@ mod speech;
 use serde::Deserialize;
 use serde_json::Value;
 
-pub use assistant::{PackageAssistantConversation, PackageAssistantMessage};
+pub use conversations::{PackageConversation, PackageConversationMessage};
 pub use derivation::PackageDerivation;
 pub use external_conversation::{PackageExternalAgentConversation, PackageExternalAgentTurn};
 pub use restore_request::RestorePackageRequest;

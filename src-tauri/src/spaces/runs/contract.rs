@@ -7,7 +7,7 @@ use ts_rs::TS;
 pub enum RunKind {
     Action,
     Workflow,
-    Assistant,
+    BuiltinAgent,
     ExternalAgent,
     Automation,
 }

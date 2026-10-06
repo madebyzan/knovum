@@ -214,7 +214,7 @@ CREATE TABLE spaces_relations (
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'contested', 'invalidated')),
   status_before_invalidation TEXT CHECK (status_before_invalidation IN ('active', 'contested')),
   confidence REAL CHECK (confidence IS NULL OR (confidence >= 0 AND confidence <= 1)),
-  actor_kind TEXT NOT NULL DEFAULT 'human' CHECK (actor_kind IN ('human', 'assistant', 'agent', 'system')),
+  actor_kind TEXT NOT NULL DEFAULT 'human' CHECK (actor_kind IN ('human', 'builtin_agent', 'external_agent', 'system')),
   actor_id TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
@@ -327,7 +327,7 @@ CREATE TABLE spaces_provenance (
   source_revision TEXT NOT NULL,
   quote TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'superseded', 'invalidated')),
-  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human', 'assistant', 'agent', 'system')),
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human', 'builtin_agent', 'external_agent', 'system')),
   actor_id TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
@@ -343,7 +343,7 @@ CREATE TABLE spaces_knowledge_events (
   event_kind TEXT NOT NULL CHECK (
     event_kind IN ('created', 'updated', 'drafted', 'accepted', 'contested', 'superseded', 'invalidated', 'opened', 'resolved', 'restored', 'applied', 'rejected', 'moved')
   ),
-  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human', 'assistant', 'agent', 'system')),
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human', 'builtin_agent', 'external_agent', 'system')),
   actor_id TEXT,
   payload TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(payload)),
   created_at INTEGER NOT NULL,
@@ -449,7 +449,7 @@ CREATE TABLE spaces_document_visual_checkpoints (
 
 CREATE TABLE spaces_authorization_grants (
   id TEXT PRIMARY KEY NOT NULL,
-  principal_kind TEXT NOT NULL CHECK (principal_kind IN ('user','assistant','external_agent','automation')),
+  principal_kind TEXT NOT NULL CHECK (principal_kind IN ('user','builtin_agent','external_agent','automation')),
   principal_id TEXT NOT NULL,
   home_space_id TEXT NOT NULL,
   read_space_ids TEXT NOT NULL CHECK (json_valid(read_space_ids) AND json_type(read_space_ids) = 'array'),
@@ -485,7 +485,7 @@ CREATE TABLE spaces_runs (
   fork_of_run_id TEXT,
   principal_kind TEXT NOT NULL,
   principal_id TEXT NOT NULL,
-  kind TEXT NOT NULL CHECK (kind IN ('action','workflow','assistant','external_agent','automation')),
+  kind TEXT NOT NULL CHECK (kind IN ('action','workflow','builtin_agent','external_agent','automation')),
   state TEXT NOT NULL CHECK (state IN ('queued','running','waiting','paused','succeeded','completed_with_errors','failed','cancelled')),
   state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
   execution_epoch INTEGER NOT NULL DEFAULT 0 CHECK (execution_epoch >= 0),
@@ -579,7 +579,9 @@ CREATE TABLE spaces_external_agent_conversations (
   output_publication_error TEXT,
   error TEXT,
   created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL, assistant_conversation_id TEXT REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE, branch_id TEXT,
+  updated_at INTEGER NOT NULL,
+  conversation_id TEXT REFERENCES spaces_conversations(id) ON DELETE CASCADE,
+  branch_id TEXT,
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
@@ -590,8 +592,8 @@ CREATE TABLE spaces_external_agent_turns (
   state TEXT NOT NULL CHECK (state IN ('running','completed','failed','cancelled')),
   error TEXT,
   created_at INTEGER NOT NULL,
-  completed_at INTEGER, assistant_message_id TEXT
-  REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL,
+  completed_at INTEGER,
+  message_id TEXT REFERENCES spaces_conversation_messages(id) ON DELETE SET NULL,
   FOREIGN KEY (conversation_id) REFERENCES spaces_external_agent_conversations(id) ON DELETE CASCADE
 );
 
@@ -612,7 +614,7 @@ CREATE TABLE spaces_workflow_templates (
   updated_at INTEGER NOT NULL
 );
 
-CREATE TABLE spaces_assistant_conversations (
+CREATE TABLE spaces_conversations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -623,7 +625,7 @@ CREATE TABLE spaces_assistant_conversations (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_messages (
+CREATE TABLE spaces_conversation_messages (
   id TEXT PRIMARY KEY NOT NULL,
   conversation_id TEXT NOT NULL,
   branch_id TEXT NOT NULL,
@@ -631,11 +633,11 @@ CREATE TABLE spaces_assistant_messages (
   role TEXT NOT NULL CHECK (role IN ('user','assistant','tool')),
   content TEXT NOT NULL CHECK (json_valid(content)),
   created_at INTEGER NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
-  FOREIGN KEY (parent_message_id) REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL
+  FOREIGN KEY (conversation_id) REFERENCES spaces_conversations(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_message_id) REFERENCES spaces_conversation_messages(id) ON DELETE SET NULL
 );
 
-CREATE TABLE spaces_assistant_execution_segments (
+CREATE TABLE spaces_builtin_agent_execution_segments (
   id TEXT PRIMARY KEY NOT NULL,
   conversation_id TEXT NOT NULL,
   branch_id TEXT NOT NULL,
@@ -648,10 +650,10 @@ CREATE TABLE spaces_assistant_execution_segments (
   projection_checkpoint_id TEXT,
   checkpoint_deleted_at INTEGER,
   created_at INTEGER NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE
+  FOREIGN KEY (conversation_id) REFERENCES spaces_conversations(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_tasks (
+CREATE TABLE spaces_builtin_agent_tasks (
   id TEXT PRIMARY KEY NOT NULL,
   run_id TEXT NOT NULL UNIQUE,
   conversation_id TEXT NOT NULL,
@@ -666,12 +668,12 @@ CREATE TABLE spaces_assistant_tasks (
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL, error TEXT,
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
+  FOREIGN KEY (conversation_id) REFERENCES spaces_conversations(id) ON DELETE CASCADE,
   FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT,
-  FOREIGN KEY (segment_id) REFERENCES spaces_assistant_execution_segments(id) ON DELETE CASCADE
+  FOREIGN KEY (segment_id) REFERENCES spaces_builtin_agent_execution_segments(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_model_calls (
+CREATE TABLE spaces_builtin_agent_model_calls (
   id TEXT PRIMARY KEY NOT NULL,
   task_id TEXT NOT NULL,
   purpose TEXT NOT NULL CHECK (purpose IN ('main','research','context_summary')),
@@ -686,10 +688,10 @@ CREATE TABLE spaces_assistant_model_calls (
   state TEXT NOT NULL CHECK (state IN ('requesting','received','committed','outcome_unknown','usage_unknown')),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
+  FOREIGN KEY (task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_tool_operations (
+CREATE TABLE spaces_builtin_agent_tool_operations (
   id TEXT PRIMARY KEY NOT NULL,
   task_id TEXT NOT NULL,
   graph_namespace TEXT NOT NULL,
@@ -702,24 +704,24 @@ CREATE TABLE spaces_assistant_tool_operations (
   result TEXT CHECK (result IS NULL OR json_valid(result)),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
+  FOREIGN KEY (task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_tool_admissions (
+CREATE TABLE spaces_builtin_agent_tool_admissions (
   id TEXT PRIMARY KEY NOT NULL,
   task_id TEXT NOT NULL,
   name TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
+  FOREIGN KEY (task_id) REFERENCES spaces_builtin_agent_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_message_projections (
+CREATE TABLE spaces_conversation_message_projections (
   segment_id TEXT NOT NULL,
   provider_message_id TEXT NOT NULL,
   message_id TEXT NOT NULL UNIQUE,
   PRIMARY KEY (segment_id, provider_message_id),
-  FOREIGN KEY (segment_id) REFERENCES spaces_assistant_execution_segments(id) ON DELETE CASCADE,
-  FOREIGN KEY (message_id) REFERENCES spaces_assistant_messages(id) ON DELETE CASCADE
+  FOREIGN KEY (segment_id) REFERENCES spaces_builtin_agent_execution_segments(id) ON DELETE CASCADE,
+  FOREIGN KEY (message_id) REFERENCES spaces_conversation_messages(id) ON DELETE CASCADE
 );
 
 CREATE TABLE spaces_captured_workflow_versions (
@@ -1140,11 +1142,11 @@ BEGIN
   SELECT RAISE(ABORT, 'run-publish-fenced');
 END;
 
-CREATE INDEX spaces_assistant_conversations_space
-  ON spaces_assistant_conversations(space_id, updated_at DESC);
+CREATE INDEX spaces_conversations_space
+  ON spaces_conversations(space_id, updated_at DESC);
 
-CREATE INDEX spaces_assistant_messages_branch
-  ON spaces_assistant_messages(conversation_id, branch_id, created_at, id);
+CREATE INDEX spaces_conversation_messages_branch
+  ON spaces_conversation_messages(conversation_id, branch_id, created_at, id);
 
 CREATE TABLE spaces_voice_profiles (
   id TEXT PRIMARY KEY NOT NULL,

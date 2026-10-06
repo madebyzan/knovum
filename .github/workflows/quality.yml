@@ -39,7 +39,7 @@ jobs:
       - name: Audit locked Python dependencies
         run: |
           uv audit --project python --locked
-          uv audit --project python/runtimes/assistant --locked
+          uv audit --project python/runtimes/agent --locked
 
   web:
     name: Web quality
@@ -116,8 +116,8 @@ jobs:
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: |
           npm run contracts:generate
-          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/inference.schema.json python/schemas/assistant.schema.json python/src/knovum_inference/contracts/generated python/src/knovum_assistant/contracts
-          test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated python/src/knovum_assistant/contracts)"
+          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/inference.schema.json python/schemas/agent_runtime.schema.json python/src/knovum_inference/contracts/generated python/src/knovum_agent_runtime/contracts
+          test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated python/src/knovum_agent_runtime/contracts)"
       - name: Verify dependency inputs were not rewritten
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock

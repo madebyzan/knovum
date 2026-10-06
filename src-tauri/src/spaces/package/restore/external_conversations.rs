@@ -17,14 +17,14 @@ pub(super) async fn insert(
         });
         sqlx::query(
             "INSERT INTO spaces_external_agent_conversations(
-             id,run_id,space_id,assistant_conversation_id,branch_id,runtime_kind,
+             id,run_id,space_id,conversation_id,branch_id,runtime_kind,
              runtime_session_id,session_capabilities,title,state,output_publication_state,error,created_at,updated_at)
              VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'disconnected','committed',$10,$11,$12)",
         )
         .bind(&row.id)
         .bind(&row.run_id)
         .bind(&request.space.id)
-        .bind(&row.assistant_conversation_id)
+        .bind(&row.conversation_id)
         .bind(&row.branch_id)
         .bind(&row.runtime_kind)
         .bind(&row.runtime_session_id)
@@ -51,12 +51,12 @@ pub(super) async fn insert(
         };
         sqlx::query(
             "INSERT INTO spaces_external_agent_turns(
-             id,conversation_id,assistant_message_id,state,error,created_at,completed_at)
+             id,conversation_id,message_id,state,error,created_at,completed_at)
              VALUES($1,$2,$3,$4,$5,$6,$7)",
         )
         .bind(&row.id)
         .bind(&row.conversation_id)
-        .bind(&row.assistant_message_id)
+        .bind(&row.message_id)
         .bind(state)
         .bind(
             row.error

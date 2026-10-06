@@ -54,9 +54,9 @@ const unregisterConversationNavigation = registerConversationRunNavigation(
     await store.openSpace(spaceId);
     await nextTick();
     dock.openAsk();
-    const assistant = useConversationSessionStore();
-    await assistant.refreshConversations();
-    await assistant.selectConversation(conversationId);
+    const conversationSession = useConversationSessionStore();
+    await conversationSession.refreshConversations();
+    await conversationSession.selectConversation(conversationId);
   },
 );
 onBeforeUnmount(unregisterConversationNavigation);

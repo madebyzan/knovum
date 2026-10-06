@@ -3,10 +3,10 @@ use std::collections::HashSet;
 use objc2::{class, msg_send, rc::Retained, runtime::AnyObject};
 use objc2_foundation::{NSString, NSURL};
 
-use crate::ai::contracts::AgentKind;
+use crate::ai::contracts::ExternalAgentKind;
 use crate::app_error::AppResult;
 
-pub(crate) fn detect() -> AppResult<HashSet<AgentKind>> {
+pub(crate) fn detect() -> AppResult<HashSet<ExternalAgentKind>> {
     // NSWorkspace is supplied by the desktop host's AppKit framework. objc2 owns
     // Objective-C reference counting; these are the documented NSWorkspace signatures.
     let workspace: Retained<AnyObject> = unsafe { msg_send![class!(NSWorkspace), sharedWorkspace] };

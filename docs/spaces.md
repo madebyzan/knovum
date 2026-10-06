@@ -95,13 +95,13 @@ A **Creation Intent** is a localized capability entry with selection availabilit
 
 Capture currently covers registered single-resource Actions: document/image/video generation, subtitle burn-in and DOCX/PDF/TXT/PPTX export. Specialized image transformations still use their existing dedicated executors; without a recorded replayable Action invocation they are rejected by capture rather than reconstructed from relations. Audio generation, Excel generation and batch generation are not added by this change.
 
-The Assistant has one visible conversation and message store for API models and desktop Agents.
+The Builtin Agent has one visible conversation and message store for API models and desktop Agents.
 The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
 execution session and Run, receives the selected Space resources through validated asset paths,
 and writes its streamed reply into the shared conversation. A later turn receives the visible
 history as context; it does not claim to resume hidden native session memory. Tool activity is
 recorded as Run events, while Space changes still require Knovum MCP receipts. The former
-grounded-answer threads and messages are moved into the Assistant store by a one-time local
+grounded-answer threads and messages are moved into the Builtin Agent store by a one-time local
 database migration; their verified source snapshots remain attached to the corresponding reply.
 Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
 
@@ -141,14 +141,14 @@ returned. Rust revalidates action versions, typed bindings and dependencies befo
 the new version. Runs already accepted keep their original definition snapshot.
 Execution dependencies must come from validated action records, not visual proximity or hand-drawn
 relations. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
-The built-in assistant calls Knovum Space Actions. Desktop Agents manage external tools in their
+The built-in Agent calls Knovum Space Actions. Desktop Agents manage external tools in their
 own runtime; the Space package does not export Agent tool configuration.
 The model conversation exposes all registered Space Actions through one tool catalog in Execute
 mode. Built-in and desktop Agents execute under authenticated task grants without per-operation
 confirmation; Ask and Plan modes expose read actions only.
-The built-in model conversation runs Deep Agents in the private Assistant runtime. The composer
+The built-in model conversation runs Deep Agents in the private Builtin Agent runtime. The composer
 selects Ask/Plan/Execute; Plan projects SDK todos into Run activities without business writes.
-Models need an explicit qualified Assistant protocol/context/output profile in AI settings.
+Models need an explicit qualified Builtin Agent protocol/context/output profile in AI settings.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
 presentation stream. Public history remains available when an unsupported or unsuccessful graph
@@ -156,7 +156,7 @@ segment is retired. Root pause is acknowledged only at a durable boundary. Unkno
 appear as actionable waiting in the conversation and Task Center, with a state-version checked
 explicit new-attempt command and possible duplicate-charge explanation. External Agent turns
 continue to support execution/cancellation through ACP, without built-in Ask/Plan controls.
-Assistant failures retain their reason with the task record; interrupted presentation text is
+Builtin Agent failures retain their reason with the task record; interrupted presentation text is
 never promoted to a completed answer. See `system-architecture.md` for graph/host ownership.
 
 ## Item identity and titles
@@ -230,7 +230,7 @@ its fixed model group after asset authorization, displays resource transfer prog
 task, and revalidates the source revision before execution. Users do not have to download models from
 Settings. Cancelling preparation cancels that transcription demand, not another task's shared install. Analysis accepts only Knovum-owned Space assets and uses bundled FFmpeg to create a 16 kHz mono PCM working track plus a compact waveform. The verified local Python ASR profile runs under shared compute admission; Rust verifies its transcript and source revision before publishing. Stage progress is mapped into the shared Task Center, and segment plus word timestamps stay on the original media timeline for citations and subtitle cues. Media bytes never enter a generative-AI provider path.
 
-`mediaKnowledge` v5 persists a source-bound, revisioned Transcript with stable segment/unit identities, 16 kHz source sample offsets, explicit timing provenance, speaker tracks, and timed subtitle cues. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Editing a transcript segment preserves the artifact identity, advances transcript and segment revisions, invalidates that segment's word timing, rebuilds subtitle cues from the current segment texts, and clears source-derived insights. Ordinary ASR requests and failed-job retries cannot replace an existing current-source transcript, including its manual edits; execution rechecks that rule before recognition and publication rejects concurrent edits. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Assistant AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
+`mediaKnowledge` v5 persists a source-bound, revisioned Transcript with stable segment/unit identities, 16 kHz source sample offsets, explicit timing provenance, speaker tracks, and timed subtitle cues. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Editing a transcript segment preserves the artifact identity, advances transcript and segment revisions, invalidates that segment's word timing, rebuilds subtitle cues from the current segment texts, and clears source-derived insights. Ordinary ASR requests and failed-job retries cannot replace an existing current-source transcript, including its manual edits; execution rechecks that rule before recognition and publication rejects concurrent edits. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Builtin Agent AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
 
 Selected alignment is an explicit enrichment action over at most eight segments and 300 seconds.
 It preserves stable word or character unit identities and may publish partial progress; a manual edit
@@ -338,7 +338,7 @@ positions on the displayed image, saved in the image node payload with their tex
 time. A comment may target a point, a freehand
 stroke or a rectangular region; all three modes render a numbered pin, while strokes and regions
 retain their image-relative geometry. Adding a comment to the built-in conversation stages its
-text and attaches the source image in the composer rather than starting an assistant task.
+text and attaches the source image in the composer rather than starting a conversation task.
 Multi-angle generation accepts
 subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 degrees, and
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the

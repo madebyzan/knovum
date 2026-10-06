@@ -8,11 +8,11 @@ use crate::spaces::db;
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RunEventKind {
-    AssistantPausedCheckpoint,
-    AssistantPlanUpdated,
-    AssistantModelRetryAuthorized,
-    AssistantToolStarted,
-    AssistantToolFinished,
+    BuiltinAgentPausedCheckpoint,
+    BuiltinAgentPlanUpdated,
+    BuiltinAgentModelRetryAuthorized,
+    BuiltinAgentToolStarted,
+    BuiltinAgentToolFinished,
     AttemptClaimed,
     ExternalAgentMessage,
     ExternalAgentToolStarted,
@@ -28,11 +28,11 @@ pub enum RunEventKind {
 impl RunEventKind {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::AssistantPlanUpdated => "assistant_plan_updated",
-            Self::AssistantModelRetryAuthorized => "assistant_model_retry_authorized",
-            Self::AssistantPausedCheckpoint => "assistant_paused_checkpoint",
-            Self::AssistantToolStarted => "assistant_tool_started",
-            Self::AssistantToolFinished => "assistant_tool_finished",
+            Self::BuiltinAgentPlanUpdated => "builtin_agent_plan_updated",
+            Self::BuiltinAgentModelRetryAuthorized => "builtin_agent_model_retry_authorized",
+            Self::BuiltinAgentPausedCheckpoint => "builtin_agent_paused_checkpoint",
+            Self::BuiltinAgentToolStarted => "builtin_agent_tool_started",
+            Self::BuiltinAgentToolFinished => "builtin_agent_tool_finished",
             Self::AttemptClaimed => "attempt_claimed",
             Self::ExternalAgentMessage => "external_agent_message",
             Self::ExternalAgentToolStarted => "external_agent_tool_started",

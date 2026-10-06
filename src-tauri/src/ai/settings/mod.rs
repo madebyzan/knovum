@@ -1,10 +1,10 @@
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
-mod assistant;
+mod builtin_agent;
 pub(crate) mod contracts;
 mod validation;
-pub(crate) use assistant::resolve as resolve_assistant;
+pub(crate) use builtin_agent::resolve as resolve_builtin_agent;
 
 pub use contracts::AiSettings;
 use contracts::Envelope;
@@ -94,12 +94,15 @@ pub(crate) fn resolve_task_settings(
 
 pub fn ensure_agent_enabled<R: Runtime>(
     app: &AppHandle<R>,
-    kind: crate::ai::contracts::AgentKind,
+    kind: crate::ai::contracts::ExternalAgentKind,
 ) -> AppResult<()> {
     ensure_enabled(&load(app)?, kind)
 }
 
-fn ensure_enabled(settings: &AiSettings, kind: crate::ai::contracts::AgentKind) -> AppResult<()> {
+fn ensure_enabled(
+    settings: &AiSettings,
+    kind: crate::ai::contracts::ExternalAgentKind,
+) -> AppResult<()> {
     settings
         .desktop_agents
         .iter()

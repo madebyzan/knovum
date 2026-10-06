@@ -1,8 +1,8 @@
-pub mod agent;
 pub mod chat;
 pub mod diagnostics;
 pub mod embedding;
 pub mod embedding_wire;
+pub mod external_agent;
 pub mod files;
 pub mod image_wire;
 pub mod media;
@@ -11,9 +11,9 @@ pub mod provider;
 pub mod runtime;
 pub mod speech_wire;
 
-pub use agent::{
-    AgentArtifact, AgentArtifactKind, AgentConnectionKind, AgentDescriptor, AgentHelp,
-    AgentInstallation, AgentKind,
+pub use external_agent::{
+    AgentArtifact, AgentArtifactKind, ExternalAgentConnectionKind, ExternalAgentDescriptor,
+    ExternalAgentHelp, ExternalAgentInstallation, ExternalAgentKind,
 };
 
 pub use chat::{ChatRequest, ChatResponse, StreamFrame, StreamFrameStream, TokenUsage};

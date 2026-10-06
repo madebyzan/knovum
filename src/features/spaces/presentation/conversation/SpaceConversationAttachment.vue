@@ -14,13 +14,13 @@ const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
     class="group relative flex h-20 shrink-0 flex-col overflow-hidden rounded-lg border border-stroke-divider bg-surface-raised transition-[border-color,box-shadow] duration-150 focus-within:border-stroke-focus hover:border-stroke-default-hover hover:shadow-control"
     :class="attachment.isImage ? 'w-20' : 'w-28'"
     role="group"
-    :aria-label="`${$t(attachment.kind === 'node' ? 'spaces.assistant.attachments.canvasNodeShort' : 'spaces.assistant.attachments.localFileShort')}: ${attachment.title}`"
+    :aria-label="`${$t(attachment.kind === 'node' ? 'spaces.conversation.attachments.canvasNodeShort' : 'spaces.conversation.attachments.localFileShort')}: ${attachment.title}`"
   >
     <button
       type="button"
       class="flex min-h-0 flex-1 flex-col text-left focus-visible:outline-2 focus-visible:outline-stroke-focus"
       :title="attachment.title"
-      :aria-label="$t('spaces.assistant.attachments.preview', { name: attachment.title })"
+      :aria-label="$t('spaces.conversation.attachments.preview', { name: attachment.title })"
       @click="emit('preview', attachment.key)"
     >
       <span class="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-surface-muted">
@@ -42,7 +42,7 @@ const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
     <button
       type="button"
       class="attachment-remove absolute top-1 right-1 flex size-6 items-center justify-center rounded-md bg-surface-overlay text-fg-secondary opacity-0 shadow-control transition-[color,opacity] duration-150 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-surface-overlay hover:text-fg-primary hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-stroke-focus"
-      :aria-label="$t('spaces.assistant.attachments.remove', { name: attachment.title })"
+      :aria-label="$t('spaces.conversation.attachments.remove', { name: attachment.title })"
       @click="emit('remove', attachment.key)"
     >
       <X class="size-3.5" />

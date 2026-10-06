@@ -6,7 +6,7 @@ CREATE TABLE ai_token_usage_events (
     AND local_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
   ),
   purpose TEXT NOT NULL CHECK (
-    purpose IN ('assistant', 'editor', 'knowledge', 'knowledge_indexing', 'translation', 'visual_analysis')
+    purpose IN ('builtin_agent', 'editor', 'knowledge', 'knowledge_indexing', 'translation', 'visual_analysis')
   ),
   provider TEXT NOT NULL CHECK (length(provider) > 0),
   model TEXT NOT NULL CHECK (length(model) > 0),

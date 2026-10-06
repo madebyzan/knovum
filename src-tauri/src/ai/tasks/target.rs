@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::ai::{
-    contracts::AgentKind,
+    contracts::ExternalAgentKind,
     models::{ModelExecutionTarget, ModelTargetSelection},
 };
 
@@ -18,7 +18,7 @@ pub enum TaskTargetRef {
         model_id: String,
     },
     Agent {
-        runtime_kind: AgentKind,
+        runtime_kind: ExternalAgentKind,
     },
 }
 
@@ -52,7 +52,7 @@ pub enum TaskTargetSelection {
         temperature: f64,
     },
     Agent {
-        runtime_kind: AgentKind,
+        runtime_kind: ExternalAgentKind,
     },
 }
 
@@ -74,7 +74,7 @@ impl From<ModelTargetSelection> for TaskTargetSelection {
 #[derive(Clone, Debug)]
 pub enum TaskExecutionTarget {
     Model(ModelExecutionTarget),
-    Agent { runtime_kind: AgentKind },
+    Agent { runtime_kind: ExternalAgentKind },
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, ts_rs::TS)]
@@ -86,7 +86,7 @@ pub enum TaskExecutionTarget {
 )]
 pub enum ExecutionSource {
     Model { provider: String, model: String },
-    Agent { runtime_kind: AgentKind },
+    Agent { runtime_kind: ExternalAgentKind },
 }
 
 impl ExecutionSource {

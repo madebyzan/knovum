@@ -58,7 +58,7 @@ decompression-work limit. Native rendering and visual calls are serial. Native r
 
 ## AI task results and execution selection
 
-Knowledge tasks share product execution policy with the Assistant. A configured and
+Knowledge tasks share product execution policy with the Builtin Agent. A configured and
 explicitly selected desktop Agent can execute transcript insights, image understanding
 and document visual understanding with zero user model connections and no Knovum-held
 API key. Its tools/Skills must actually satisfy the task; execution failure is visible

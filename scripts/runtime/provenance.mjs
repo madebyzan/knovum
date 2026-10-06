@@ -7,7 +7,7 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const configuration = JSON.parse(
     readFileSync(
       join(
-        manifest.profile === "assistant" ? join(dirname(dependencyLock), "../..") : dirname(dependencyLock),
+        manifest.profile === "agent" ? join(dirname(dependencyLock), "../..") : dirname(dependencyLock),
         "runtime-source.json",
       ),
       "utf8",

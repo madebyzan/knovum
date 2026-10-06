@@ -1,10 +1,10 @@
 import { openSpaceNode } from "../canvas/selection-actions";
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { useSpaceStore } from "../session/space-store";
-import { previewAssistantUpload } from "./conversation-ipc";
+import { previewConversationUpload } from "./conversation-ipc";
 
 export async function previewConversationAttachment(
-  attachments: readonly AssistantAttachment[],
+  attachments: readonly ConversationAttachment[],
   store: ReturnType<typeof useSpaceStore>,
   key: string,
 ) {
@@ -12,7 +12,7 @@ export async function previewConversationAttachment(
     item.kind === "file" ? key === `file:${item.path}` : key === `node:${item.nodeId}`,
   );
   if (!attachment) return;
-  if (attachment.kind === "file") return previewAssistantUpload(attachment.path);
+  if (attachment.kind === "file") return previewConversationUpload(attachment.path);
   const node = store.nodes.find(({ id }) => id === attachment.nodeId);
   if (!node) throw new Error("Attached Space resource is no longer available");
   return openSpaceNode(store, node);

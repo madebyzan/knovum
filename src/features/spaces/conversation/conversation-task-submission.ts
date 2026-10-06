@@ -2,14 +2,14 @@ import type { Ref, ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import type { AssistantMode } from "../contracts/generated/AssistantMode";
-import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import type { ConversationMode } from "../contracts/generated/ConversationMode";
+import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
-import { getAssistantTaskError, startAssistantTask } from "./conversation-ipc";
+import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
+import { getConversationTaskError, startConversationTask } from "./conversation-ipc";
 import {
   pendingConversationMessage,
   type VisibleConversationAttachment,
@@ -17,7 +17,7 @@ import {
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
 
-type StartedTask = Awaited<ReturnType<typeof startAssistantTask>>;
+type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
 export interface ConversationSubmissionState {
@@ -33,17 +33,17 @@ export interface ConversationSubmissionState {
 }
 
 export interface ConversationSubmissionInput {
-  mode: Ref<AssistantMode>;
+  mode: Ref<ConversationMode>;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
-  conversation: Ref<AssistantConversation | undefined>;
+  conversation: Ref<Conversation | undefined>;
   prompt: Ref<string>;
   target: Ref<TaskTargetRef | undefined>;
-  attachments: Ref<AssistantAttachment[]>;
+  attachments: Ref<ConversationAttachment[]>;
   visibleAttachments: Ref<readonly VisibleConversationAttachment[]>;
-  messages: ShallowRef<AssistantMessage[]>;
-  clearDraft: (request: SubmitAssistantTaskRequest) => void;
-  restoreDraft: (request: SubmitAssistantTaskRequest) => void;
+  messages: ShallowRef<ConversationMessage[]>;
+  clearDraft: (request: SubmitConversationTaskRequest) => void;
+  restoreDraft: (request: SubmitConversationTaskRequest) => void;
 }
 
 interface ConversationTaskSubmissionOptions {
@@ -60,7 +60,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
 
   function observe(
     task: StartedTask,
-    request: SubmitAssistantTaskRequest,
+    request: SubmitConversationTaskRequest,
     selection: Selection,
     submitted: number,
   ) {
@@ -91,8 +91,8 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.error.value = undefined;
     if (outcome === "succeeded" || outcome === "paused" || outcome === "waiting" || outcome === "cancelled")
       return;
-    const reason = await getAssistantTaskError(task.accepted.runId);
-    throw new Error(reason ?? `Assistant task ended as ${outcome}`);
+    const reason = await getConversationTaskError(task.accepted.runId);
+    throw new Error(reason ?? `Conversation task ended as ${outcome}`);
   }
 
   async function finish(submitted: number) {
@@ -113,7 +113,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     }
   }
 
-  function handleUpdate(update: AssistantTaskUpdate, submitted: number) {
+  function handleUpdate(update: ConversationTaskUpdate, submitted: number) {
     if (submitted !== generation) return;
     if (update.type === "content_delta") state.streamedText.value += update.text;
     else if (update.type === "content_boundary") state.streamedText.value = "";
@@ -157,7 +157,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.error.value = undefined;
     state.streamedText.value = "";
     try {
-      const task = await startAssistantTask(request, (update) => handleUpdate(update, submitted));
+      const task = await startConversationTask(request, (update) => handleUpdate(update, submitted));
       accepted = true;
       if (submitted !== generation) return;
       state.activeRunId.value = task.accepted.runId;

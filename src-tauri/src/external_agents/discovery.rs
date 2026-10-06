@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::ai::contracts::AgentInstallation;
+use crate::ai::contracts::ExternalAgentInstallation;
 use crate::app_error::{AppError, AppResult};
 
 pub async fn system_path() -> AppResult<String> {
@@ -71,13 +71,14 @@ fn is_executable(path: &std::path::Path) -> bool {
     path.is_file()
 }
 
-pub async fn detect_agent_installations() -> AppResult<Vec<AgentInstallation>> {
+pub async fn detect_external_agent_installations() -> AppResult<Vec<ExternalAgentInstallation>> {
     let path = system_path().await?;
-    tokio::task::spawn_blocking(move || -> AppResult<Vec<AgentInstallation>> {
+    tokio::task::spawn_blocking(move || -> AppResult<Vec<ExternalAgentInstallation>> {
         #[cfg(any(target_os = "macos", windows))]
         let installed_clients = super::installed_clients::detect()?;
         #[cfg(not(any(target_os = "macos", windows)))]
-        let installed_clients = std::collections::HashSet::<crate::ai::contracts::AgentKind>::new();
+        let installed_clients =
+            std::collections::HashSet::<crate::ai::contracts::ExternalAgentKind>::new();
         Ok(super::registry::descriptors()
             .into_iter()
             .map(|descriptor| {
@@ -86,7 +87,7 @@ pub async fn detect_agent_installations() -> AppResult<Vec<AgentInstallation>> {
                     .iter()
                     .find_map(|name| find_executable(name, &path))
                     .map(|path| path.to_string_lossy().into_owned());
-                AgentInstallation {
+                ExternalAgentInstallation {
                     kind: descriptor.kind,
                     detected: executable_path.is_some()
                         || installed_clients.contains(&descriptor.kind),

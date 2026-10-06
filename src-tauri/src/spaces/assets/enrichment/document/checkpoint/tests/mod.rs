@@ -15,7 +15,7 @@ fn occurrence(description: &str, state: VisualState) -> DocumentOccurrence {
             description: description.into(),
             detected_text: String::new(),
             execution_source: crate::ai::tasks::ExecutionSource::Agent {
-                runtime_kind: crate::ai::contracts::AgentKind::Codex,
+                runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
             },
             generated_at: 1,
             analysis_version: "document-visual:1".into(),

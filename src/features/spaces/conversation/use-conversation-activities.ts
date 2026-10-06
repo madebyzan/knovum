@@ -2,7 +2,7 @@ import { shallowRef, watch, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunEvent } from "../contracts/generated/RunEvent";
-import { listAssistantRunEvents } from "./conversation-ipc";
+import { listConversationRunEvents } from "./conversation-ipc";
 
 export function useConversationActivities(
   selectedConversationId: Ref<string>,
@@ -16,7 +16,7 @@ export function useConversationActivities(
 
   async function loadPage(runId: string, events: RunEvent[], current: number): Promise<void> {
     const seen = events.at(-1)?.sequence ?? 0;
-    const page = await listAssistantRunEvents(runId, seen);
+    const page = await listConversationRunEvents(runId, seen);
     if (selection !== current) return;
     events.push(...page.filter((event) => event.sequence > seen));
     if (page.length === 1000) await loadPage(runId, events, current);

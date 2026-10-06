@@ -64,7 +64,7 @@ const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
     </template>
     <template v-if="actions.state.value.structureNodeIds.length === 1">
       <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
-        <MessageSquareText class="size-3.5" />{{ t("spaces.assistant.askSelection") }}
+        <MessageSquareText class="size-3.5" />{{ t("spaces.conversation.askSelection") }}
       </UiDropdownMenuItem>
       <SpaceSelectionMoveMenu submenu @move="actions.moveToSpace" />
       <UiDropdownMenuItem v-if="actions.state.value.canCreateGroup" @select="actions.createGroup">

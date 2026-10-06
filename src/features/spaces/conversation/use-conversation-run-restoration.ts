@@ -3,7 +3,7 @@ import { type Ref, type ShallowRef } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import { getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
+import { getConversationTaskError, listActiveConversationRuns } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
 
 const stopNoObservation = () => {};
@@ -41,7 +41,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
       state.error.value = undefined;
     }
     if (state.loading.value || state.activeRunId.value) return;
-    const [active] = await listActiveAssistantRuns(spaceId);
+    const [active] = await listActiveConversationRuns(spaceId);
     if (!active || state.spaceId.value !== spaceId || state.loading.value || state.activeRunId.value) return;
     state.activeRunId.value = active.run.id;
     state.activeConversationId.value = active.conversationId;
@@ -61,9 +61,9 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
         observingRunId = "";
         stopObserving();
         if (run.state === "failed" || run.state === "completed_with_errors") {
-          void getAssistantTaskError(run.id)
+          void getConversationTaskError(run.id)
             .then((reason) => {
-              state.error.value = reason ?? `Assistant task ended as ${run.state}`;
+              state.error.value = reason ?? `Conversation task ended as ${run.state}`;
               return undefined;
             })
             .catch((cause: unknown) => {
@@ -106,7 +106,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
     if (!run || run.state !== "waiting") return;
     state.error.value = undefined;
     try {
-      await invokeCommand("plugin:spaces|retry_assistant_model", {
+      await invokeCommand("plugin:spaces|retry_builtin_agent_model", {
         runId: run.id,
         expectedVersion: run.stateVersion,
       });

@@ -1,4 +1,6 @@
-use crate::ai::contracts::{AgentConnectionKind, AgentDescriptor, AgentKind};
+use crate::ai::contracts::{
+    ExternalAgentConnectionKind, ExternalAgentDescriptor, ExternalAgentKind,
+};
 
 #[derive(Clone, Copy)]
 pub(super) enum AcpLaunch {
@@ -17,17 +19,17 @@ impl AcpLaunch {
         }
     }
 
-    const fn connection(self) -> AgentConnectionKind {
+    const fn connection(self) -> ExternalAgentConnectionKind {
         match self {
-            Self::Codex | Self::Claude => AgentConnectionKind::NodeAdapter,
-            Self::Executable { .. } => AgentConnectionKind::ExecutableCli,
-            Self::Server => AgentConnectionKind::StandaloneServer,
+            Self::Codex | Self::Claude => ExternalAgentConnectionKind::NodeAdapter,
+            Self::Executable { .. } => ExternalAgentConnectionKind::ExecutableCli,
+            Self::Server => ExternalAgentConnectionKind::StandaloneServer,
         }
     }
 }
 
 pub(super) struct RegisteredAgent {
-    pub descriptor: AgentDescriptor,
+    pub descriptor: ExternalAgentDescriptor,
     pub launch: AcpLaunch,
     pub desktop_client: Option<DesktopClient>,
 }
@@ -40,13 +42,13 @@ pub(super) struct DesktopClient {
 }
 
 const fn agent(
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     display_name: &'static str,
     executable_names: &'static [&'static str],
     launch: AcpLaunch,
 ) -> RegisteredAgent {
     RegisteredAgent {
-        descriptor: AgentDescriptor {
+        descriptor: ExternalAgentDescriptor {
             kind,
             display_name,
             executable_names,
@@ -59,19 +61,19 @@ const fn agent(
 
 pub(super) const AGENTS: &[RegisteredAgent] = &[
     agent(
-        AgentKind::Codex,
+        ExternalAgentKind::Codex,
         "OpenAI Codex",
         &["codex"],
         AcpLaunch::Codex,
     ),
     agent(
-        AgentKind::ClaudeCode,
+        ExternalAgentKind::ClaudeCode,
         "Anthropic Claude Code",
         &["claude"],
         AcpLaunch::Claude,
     ),
     agent(
-        AgentKind::GeminiCli,
+        ExternalAgentKind::GeminiCli,
         "Google Gemini CLI",
         &["gemini"],
         AcpLaunch::Executable {
@@ -79,7 +81,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::GithubCopilot,
+        ExternalAgentKind::GithubCopilot,
         "GitHub Copilot",
         &["copilot"],
         AcpLaunch::Executable {
@@ -87,7 +89,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::OpenCode,
+        ExternalAgentKind::OpenCode,
         "OpenCode",
         &["opencode"],
         AcpLaunch::Executable {
@@ -95,7 +97,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::QwenCode,
+        ExternalAgentKind::QwenCode,
         "Qwen Code",
         &["qwen"],
         AcpLaunch::Executable {
@@ -103,7 +105,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::QoderCli,
+        ExternalAgentKind::QoderCli,
         "Qoder CLI",
         &["qodercli"],
         AcpLaunch::Executable {
@@ -111,7 +113,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::KimiCli,
+        ExternalAgentKind::KimiCli,
         "Kimi CLI",
         &["kimi"],
         AcpLaunch::Executable {
@@ -119,7 +121,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::AuggieCli,
+        ExternalAgentKind::AuggieCli,
         "Augment Auggie",
         &["auggie"],
         AcpLaunch::Executable {
@@ -127,7 +129,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::Cline,
+        ExternalAgentKind::Cline,
         "Cline",
         &["cline"],
         AcpLaunch::Executable {
@@ -135,7 +137,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     agent(
-        AgentKind::Cursor,
+        ExternalAgentKind::Cursor,
         "Cursor",
         &["cursor-agent"],
         AcpLaunch::Executable {
@@ -150,7 +152,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
             display_names: &["Antigravity", "Antigravity IDE"],
         }),
         ..agent(
-            AgentKind::Antigravity,
+            ExternalAgentKind::Antigravity,
             "Google Antigravity",
             &["agy_acp_server.par", "agy_acp_server"],
             AcpLaunch::Server,

@@ -3,7 +3,7 @@ import { computed, shallowRef } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import { cancelAssistantTask } from "./conversation-ipc";
+import { cancelConversationTask } from "./conversation-ipc";
 import { createConversationTaskState } from "./conversation-task-state";
 import {
   createConversationTaskSubmission,
@@ -38,7 +38,7 @@ export function useConversationTask(input: ConversationTaskInput) {
   const canPause = computed(
     () =>
       visible.value &&
-      activeRun.value?.kind === "assistant" &&
+      activeRun.value?.kind === "builtin_agent" &&
       (taskState.value === "running" ||
         (taskState.value === "waiting" && activeRun.value.waitReason === "executor")),
   );
@@ -54,7 +54,7 @@ export function useConversationTask(input: ConversationTaskInput) {
   });
 
   async function cancel() {
-    if (activeRunId.value) await cancelAssistantTask(activeRunId.value);
+    if (activeRunId.value) await cancelConversationTask(activeRunId.value);
   }
 
   async function pause() {

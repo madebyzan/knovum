@@ -1,5 +1,5 @@
 use super::*;
-use crate::ai::{contracts::AgentKind, tasks::TaskTargetSelection};
+use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
 use crate::spaces::{
     knowledge::indexing::revision,
     runs::{AttemptClaim, StepOutcome},
@@ -59,7 +59,7 @@ fn workflow() -> SavedCapturedWorkflow {
                     execution_spec: RecordedExecutionSpec {
                         parameters: json!({"title":"Report","purpose":"Summarize"}),
                         target: Some(TaskTargetSelection::Agent {
-                            runtime_kind: AgentKind::Codex,
+                            runtime_kind: ExternalAgentKind::Codex,
                         }),
                     },
                     inputs: vec![binding(CandidateSource::InputSlot {

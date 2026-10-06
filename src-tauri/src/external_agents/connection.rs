@@ -1,7 +1,7 @@
 use agent_client_protocol::AcpAgent;
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::contracts::AgentKind;
+use crate::ai::contracts::ExternalAgentKind;
 use crate::app_error::{AppError, AppResult};
 
 pub(super) const INITIALIZE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
@@ -10,7 +10,7 @@ pub(super) const SESSION_TIMEOUT: std::time::Duration = std::time::Duration::fro
 pub(super) const CANCEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 
 pub(super) async fn runtime(
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     cancellation: &CancellationToken,
 ) -> AppResult<AcpAgent> {
     let path = tokio::select! {

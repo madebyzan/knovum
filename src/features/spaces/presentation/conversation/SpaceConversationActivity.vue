@@ -4,7 +4,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
-import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
+import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { conversationActivityItems, type ActivityItem } from "../../conversation/conversation-activity-items";
 import { useSpaceStore } from "../../session/space-store";
@@ -15,7 +15,7 @@ import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
   events: readonly RunEvent[];
-  messages: readonly AssistantMessage[];
+  messages: readonly ConversationMessage[];
   runId: string;
   active: boolean;
 }>();
@@ -49,7 +49,7 @@ const items = computed(() =>
     runId: props.runId,
     labels: {
       action: (id) => captureActionLabel(id, t),
-      default: t("spaces.assistant.activity.tool"),
+      default: t("spaces.conversation.activity.tool"),
     },
   }),
 );
@@ -85,7 +85,7 @@ function toggleTool(event: Event, id: string) {
   <SpaceConversationPlan :events="events" />
   <p v-if="active && !items.length" role="status" class="mt-4 py-1.5 text-caption text-fg-secondary">
     <SpaceConversationShimmerText>{{
-      $t("spaces.assistant.activity.generating")
+      $t("spaces.conversation.activity.generating")
     }}</SpaceConversationShimmerText>
   </p>
   <details
@@ -99,13 +99,13 @@ function toggleTool(event: Event, id: string) {
       <Circle v-if="!active && unfinished" class="size-3.5 shrink-0" />
       <Check v-else-if="!active" class="size-3.5 shrink-0" />
       <SpaceConversationShimmerText v-if="active && !runningTool">
-        {{ $t("spaces.assistant.activity.generating") }}
+        {{ $t("spaces.conversation.activity.generating") }}
       </SpaceConversationShimmerText>
       <SpaceConversationShimmerText v-else-if="active">
-        {{ $t("spaces.assistant.activity.running", { count: toolCount }) }}
+        {{ $t("spaces.conversation.activity.running", { count: toolCount }) }}
       </SpaceConversationShimmerText>
       <span v-else>{{
-        $t(unfinished ? "spaces.assistant.activity.recorded" : "spaces.assistant.activity.finished", {
+        $t(unfinished ? "spaces.conversation.activity.recorded" : "spaces.conversation.activity.finished", {
           count: toolCount,
         })
       }}</span>
@@ -171,7 +171,7 @@ function toggleTool(event: Event, id: string) {
               class="mt-1 text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus"
               @click="store.requestReveal([createdNodeId(item.output)!], 'focus')"
             >
-              {{ $t("spaces.assistant.actions.viewCreated") }}
+              {{ $t("spaces.conversation.actions.viewCreated") }}
             </button>
           </div>
         </component>

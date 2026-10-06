@@ -78,7 +78,7 @@ const singleSection = computed(
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canAsk" as-child>
-      <UiIconButton :label="t('spaces.assistant.askSelection')" tooltip size="sm" @click="actions.ask">
+      <UiIconButton :label="t('spaces.conversation.askSelection')" tooltip size="sm" @click="actions.ask">
         <Sparkles class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>

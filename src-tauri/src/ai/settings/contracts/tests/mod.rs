@@ -27,7 +27,7 @@ fn absent_global_preference_preserves_accounts_and_explicit_overrides() {
     let settings = envelope.value;
     validation::validate(&settings).unwrap();
     assert_eq!(settings.connections[0].id, "user-model");
-    assert_eq!(settings.desktop_agents[0].kind, AgentKind::Codex);
+    assert_eq!(settings.desktop_agents[0].kind, ExternalAgentKind::Codex);
     assert!(settings.desktop_agents[0].enabled);
     assert!(settings.defaults.default_target.is_none());
     assert_eq!(settings.defaults.target(RoutingPurpose::Knowledge), None);
@@ -43,7 +43,7 @@ fn absent_global_preference_preserves_accounts_and_explicit_overrides() {
             .defaults
             .target(RoutingPurpose::VisualUnderstanding),
         Some(TaskTargetRef::Agent {
-            runtime_kind: AgentKind::Codex,
+            runtime_kind: ExternalAgentKind::Codex,
         })
     );
 }
@@ -64,7 +64,7 @@ fn absent_overrides_inherit_only_an_explicit_global_preference() {
     assert_eq!(
         envelope.value.defaults.target(RoutingPurpose::Knowledge),
         Some(TaskTargetRef::Agent {
-            runtime_kind: AgentKind::Codex,
+            runtime_kind: ExternalAgentKind::Codex,
         })
     );
 }

@@ -230,13 +230,13 @@ Hub APIs own resume/transfer metadata; Rust owns product inventory, SHA-256 and 
 Provider commits can differ only when every required file matches the same recorded identity.
 Regional source qualification and the current acceptance gaps are recorded in `oss-first.md`.
 
-## Built-in Assistant dependencies
+## Builtin Agent dependencies
 
-`python/runtimes/assistant/uv.lock` owns the dependency-only Assistant runtime. Exact direct pins
+`python/runtimes/agent/uv.lock` owns the dependency-only Agent Runtime. Exact direct pins
 are in its `pyproject.toml`; this selection is independent of `python/uv.lock`. Deep Agents and
 LangGraph own graph execution through public APIs, and the official LangChain clients own HTTP
 protocols. Rust does not duplicate those clients. `truststore` is initialized only at application
 startup before SDK clients, using the native OS trust store. Credentials/telemetry configuration
 are not inherited through process environment. Production dependencies and native wheels for both
 release targets require the same inventory/SBOM/license/relocation gates as inference. The
-Assistant review policy lives beside its own lock and must bind each conveyed platform inventory.
+Builtin Agent review policy lives beside its own lock and must bind each conveyed platform inventory.

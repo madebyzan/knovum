@@ -5,7 +5,7 @@ import { routingCapabilities } from "../../../shared/contracts/generated/contrac
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import { desktopAgentSettingsSchema } from "./agents";
+import { desktopAgentSettingsSchema } from "./external-agents";
 import { aiConnectionSettingsSchema, aiDefaultsSchema } from "./models";
 
 type AiModelSettingsShape = AiSettings;

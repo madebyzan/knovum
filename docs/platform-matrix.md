@@ -57,7 +57,7 @@ Any change to lifecycle, window, menu, keyboard, file, notification, updater or 
 
 ## Optional runtime resources
 
-Inference and Assistant Python components are separate verified on-demand profiles; the installer
+Inference and Builtin Agent Python components are separate verified on-demand profiles; the installer
 carries only application capability source and two trusted platform descriptors. Both reuse the
 same installer and native CPython baseline, with independent package roots and locks. Resource absence is a preparation state, not
 an unsupported-device state. First-download/offline acceptance is required on both targets.

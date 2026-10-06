@@ -1,6 +1,6 @@
 use agent_client_protocol::{AcpAgent, AcpAgentConfig};
 
-use crate::ai::contracts::{AgentDescriptor, AgentKind};
+use crate::ai::contracts::{ExternalAgentDescriptor, ExternalAgentKind};
 use crate::app_error::{AppError, AppResult};
 
 use super::{
@@ -8,25 +8,25 @@ use super::{
     discovery,
 };
 
-fn registered(kind: AgentKind) -> &'static RegisteredAgent {
+fn registered(kind: ExternalAgentKind) -> &'static RegisteredAgent {
     AGENTS
         .iter()
         .find(|agent| agent.descriptor.kind == kind)
-        .expect("every AgentKind must have one registry entry")
+        .expect("every ExternalAgentKind must have one registry entry")
 }
 
-pub(super) fn trusted_session_mode(kind: AgentKind) -> Option<&'static str> {
+pub(super) fn trusted_session_mode(kind: ExternalAgentKind) -> Option<&'static str> {
     registered(kind).launch.trusted_session_mode()
 }
 
-pub fn descriptors() -> Vec<AgentDescriptor> {
+pub fn descriptors() -> Vec<ExternalAgentDescriptor> {
     AGENTS
         .iter()
         .map(|agent| agent.descriptor.clone())
         .collect()
 }
 
-pub(super) fn runtime(kind: AgentKind, path: &str) -> AppResult<AcpAgent> {
+pub(super) fn runtime(kind: ExternalAgentKind, path: &str) -> AppResult<AcpAgent> {
     let agent = registered(kind);
     let executable = agent
         .descriptor

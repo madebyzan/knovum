@@ -1,7 +1,7 @@
 import { cloneDeep } from "es-toolkit";
 
-import type { AgentKind } from "../../shared/contracts/generated/AgentKind";
 import type { AiRoutingDefaults } from "../../shared/contracts/generated/AiRoutingDefaults";
+import type { ExternalAgentKind } from "../../shared/contracts/generated/ExternalAgentKind";
 import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { mutateAiSettings } from "./settings-mutations";
@@ -23,7 +23,7 @@ export function setDefaultExecutionTarget(
   });
 }
 
-export function setDesktopAgentEnabled(kind: AgentKind, enabled: boolean): Promise<void> {
+export function setDesktopAgentEnabled(kind: ExternalAgentKind, enabled: boolean): Promise<void> {
   return mutateAiSettings(async () => {
     const store = useAiSettingsStore();
     const previousAgents = cloneDeep(store.settings.desktopAgents);

@@ -60,13 +60,13 @@ function chooseFiles() {
 <template>
   <UiPopover v-model:open="open" side="top" align="start" class="w-64 max-w-[calc(100vw-24px)] p-1.5">
     <template #trigger>
-      <UiIconButton :label="$t('spaces.assistant.attachments.add')" size="sm">
+      <UiIconButton :label="$t('spaces.conversation.attachments.add')" size="sm">
         <Paperclip class="size-3.5" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
       <p class="px-2.5 pt-1 pb-1.5 text-caption-sm font-medium text-fg-tertiary">
-        {{ $t("spaces.assistant.attachments.add") }}
+        {{ $t("spaces.conversation.attachments.add") }}
       </p>
       <button
         type="button"
@@ -80,10 +80,10 @@ function chooseFiles() {
         </span>
         <span class="min-w-0 flex-1">
           <span class="block truncate text-label font-medium text-fg-primary">{{
-            $t("spaces.assistant.attachments.citeCanvasNode")
+            $t("spaces.conversation.attachments.citeCanvasNode")
           }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{
-            $t("spaces.assistant.attachments.citeCanvasNodeHint")
+            $t("spaces.conversation.attachments.citeCanvasNodeHint")
           }}</span>
         </span>
         <ArrowRight class="size-3.5 shrink-0 text-fg-tertiary" />
@@ -101,10 +101,10 @@ function chooseFiles() {
         </span>
         <span class="min-w-0 flex-1">
           <span class="block truncate text-label font-medium text-fg-primary">{{
-            $t("spaces.assistant.attachments.uploadLocalFile")
+            $t("spaces.conversation.attachments.uploadLocalFile")
           }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{
-            $t("spaces.assistant.attachments.uploadLocalFileHint")
+            $t("spaces.conversation.attachments.uploadLocalFileHint")
           }}</span>
         </span>
       </button>
@@ -114,15 +114,17 @@ function chooseFiles() {
         <UiIconButton :label="$t('common.back')" size="sm" @click="view = 'sources'">
           <ArrowLeft class="size-3.5" />
         </UiIconButton>
-        <span class="text-caption font-medium">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
+        <span class="text-caption font-medium">{{
+          $t("spaces.conversation.attachments.citeCanvasNode")
+        }}</span>
       </div>
       <div class="px-1 pb-1">
         <UiSearchInput
           v-model="query"
           autofocus
           size="sm"
-          :label="$t('spaces.assistant.attachments.search')"
-          :placeholder="$t('spaces.assistant.attachments.search')"
+          :label="$t('spaces.conversation.attachments.search')"
+          :placeholder="$t('spaces.conversation.attachments.search')"
         />
       </div>
       <button
@@ -132,7 +134,7 @@ function chooseFiles() {
         @click="addSelected"
       >
         <Plus class="size-3 shrink-0" />
-        {{ $t("spaces.assistant.attachments.addCurrentSelection", { count: selectedCount }) }}
+        {{ $t("spaces.conversation.attachments.addCurrentSelection", { count: selectedCount }) }}
       </button>
       <div class="mx-1 my-1 border-t border-stroke-divider" />
       <div class="max-h-60 overflow-y-auto">
@@ -155,7 +157,7 @@ function chooseFiles() {
           <Check v-if="candidate.attached" class="size-3 shrink-0" />
         </button>
         <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption text-fg-tertiary">
-          {{ $t("spaces.assistant.attachments.none") }}
+          {{ $t("spaces.conversation.attachments.none") }}
         </p>
       </div>
     </template>

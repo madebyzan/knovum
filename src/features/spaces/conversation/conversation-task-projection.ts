@@ -16,15 +16,15 @@ const statuses: Record<RunState, TaskStatus> = {
 export function conversationRunStatusKey(run: Pick<RunObservation, "state" | "waitReason">) {
   switch (run.waitReason) {
     case "model_outcome_unknown":
-      return "spaces.assistant.tasks.modelOutcomeUnknown";
+      return "spaces.conversation.tasks.modelOutcomeUnknown";
     case "model_response_uncommitted":
-      return "spaces.assistant.tasks.modelResponseUncommitted";
+      return "spaces.conversation.tasks.modelResponseUncommitted";
     case "model_usage_unknown":
-      return "spaces.assistant.tasks.modelUsageUnknown";
+      return "spaces.conversation.tasks.modelUsageUnknown";
     default:
       return run.state === "paused"
-        ? "spaces.assistant.tasks.paused"
-        : "spaces.assistant.tasks.waitingForResult";
+        ? "spaces.conversation.tasks.paused"
+        : "spaces.conversation.tasks.waitingForResult";
   }
 }
 

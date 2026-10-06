@@ -50,7 +50,7 @@ pub fn callback(
     app: AppHandle,
     conversation_id: String,
     run_id: String,
-    channel: Option<tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>>,
+    channel: Option<tauri::ipc::Channel<crate::spaces::conversations::ConversationTaskUpdate>>,
 ) -> Result<crate::external_agents::session::AgentUpdateHandler, String> {
     let (sender, mut updates) = tokio::sync::mpsc::channel(UPDATE_BUFFER_CAPACITY);
     active_updates()
@@ -126,7 +126,7 @@ async fn record(
     conversation_id: &str,
     run_id: &str,
     update: AgentSessionUpdate,
-    channel: Option<&tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>>,
+    channel: Option<&tauri::ipc::Channel<crate::spaces::conversations::ConversationTaskUpdate>>,
 ) -> Result<(), String> {
     let delta = match &update {
         AgentSessionUpdate::Message(text) => Some(text.clone()),
@@ -160,7 +160,7 @@ async fn record(
     }
     if let (Some(channel), Some(text)) = (channel, delta) {
         let _ = channel.send(
-            crate::spaces::assistant::AssistantTaskUpdate::ContentDelta {
+            crate::spaces::conversations::ConversationTaskUpdate::ContentDelta {
                 task_id: run_id.to_owned(),
                 text,
             },
@@ -171,7 +171,8 @@ async fn record(
         crate::spaces::runs::RunEventKind::ExternalAgentToolStarted
     ) {
         if let Some(channel) = channel {
-            let _ = channel.send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
+            let _ =
+                channel.send(crate::spaces::conversations::ConversationTaskUpdate::ContentBoundary);
         }
     }
     Ok(())

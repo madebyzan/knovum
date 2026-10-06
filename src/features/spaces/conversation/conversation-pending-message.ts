@@ -1,7 +1,7 @@
 import { basename } from "pathe";
 
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 
 export interface VisibleConversationAttachment {
   title: string;
@@ -10,10 +10,10 @@ export interface VisibleConversationAttachment {
 }
 
 export function pendingConversationMessage(
-  request: SubmitAssistantTaskRequest,
-  identity: Pick<AssistantMessage, "id" | "conversationId" | "branchId">,
+  request: SubmitConversationTaskRequest,
+  identity: Pick<ConversationMessage, "id" | "conversationId" | "branchId">,
   visibleAttachments: readonly VisibleConversationAttachment[],
-): AssistantMessage {
+): ConversationMessage {
   const attachments = (request.attachments ?? []).map((attachment, index) => {
     const visible = visibleAttachments[index];
     const thumbnail = visible?.previewSource || null;

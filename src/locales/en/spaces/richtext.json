@@ -1,6 +1,6 @@
 {
   "ai": {
-    "title": "AI assistant",
+    "title": "AI writing",
     "selectText": "Select text content first.",
     "failed": "AI generation failed",
     "applyFailed": "Could not apply AI result",

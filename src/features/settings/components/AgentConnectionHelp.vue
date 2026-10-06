@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
+import type { ExternalAgentDescriptor } from "../../../shared/contracts/generated/ExternalAgentDescriptor";
 import UiPopover from "../../../shared/ui/UiPopover.vue";
 import AgentConnectionRequirements from "./AgentConnectionRequirements.vue";
 
-defineProps<{ agent: AgentDescriptor; label: string }>();
+defineProps<{ agent: ExternalAgentDescriptor; label: string }>();
 const { t } = useI18n();
 </script>
 

@@ -33,7 +33,7 @@ const models = computed(() =>
   availableModelTargets(settings.settings, "knowledge").filter(({ target: selected }) =>
     settings.settings.connections
       .find(({ id }) => id === selected.connectionId)
-      ?.models.some((model) => model.id === selected.modelId && Boolean(model.assistant)),
+      ?.models.some((model) => model.id === selected.modelId && Boolean(model.builtinAgent)),
   ),
 );
 const modelChoices = computed(() =>
@@ -60,7 +60,7 @@ const selectedLabel = computed(() => {
     ({ kind }) => encodeExecutionTarget({ type: "agent", runtimeKind: kind }) === selectedKey.value,
   );
   if (agent) return agent.displayName;
-  return t("spaces.assistant.agents.select");
+  return t("spaces.conversation.agents.select");
 });
 watch(
   [selectedKey, models, desktopAgents, () => settings.ready],
@@ -120,7 +120,7 @@ onMounted(() => void settings.ensureLoaded());
       <DropdownMenuRadioGroup :model-value="selectedKey">
         <DropdownMenuGroup>
           <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
-            {{ t("spaces.assistant.agents.knovumAssistant") }}
+            {{ t("spaces.conversation.agents.builtinAgent") }}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem
             v-for="model in modelChoices"
@@ -139,13 +139,13 @@ onMounted(() => void settings.ensureLoaded());
             /></DropdownMenuItemIndicator>
           </DropdownMenuRadioItem>
           <p v-if="!models.length" class="px-2.5 py-2 text-caption text-fg-tertiary">
-            {{ t("spaces.assistant.agents.noModel") }}
+            {{ t("spaces.conversation.agents.noModel") }}
           </p>
         </DropdownMenuGroup>
         <UiSeparator class="my-1.5" />
         <DropdownMenuGroup>
           <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
-            {{ t("spaces.assistant.agents.desktop") }}
+            {{ t("spaces.conversation.agents.desktop") }}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem
             v-for="agent in desktopAgents"
@@ -170,7 +170,7 @@ onMounted(() => void settings.ensureLoaded());
         class="gap-2.5 px-2.5 text-fg-secondary"
         @select="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
       >
-        <Settings2 class="size-4" />{{ t("spaces.assistant.agents.manage") }}
+        <Settings2 class="size-4" />{{ t("spaces.conversation.agents.manage") }}
       </UiDropdownMenuItem>
     </UiDropdownMenu>
   </div>

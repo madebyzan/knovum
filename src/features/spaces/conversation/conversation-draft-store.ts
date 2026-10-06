@@ -1,11 +1,11 @@
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 
 interface ConversationDraft {
   prompt: string;
-  attachments: AssistantAttachment[];
+  attachments: ConversationAttachment[];
 }
 
 export const useConversationDraftStore = defineStore("spaces-conversation-drafts", () => {

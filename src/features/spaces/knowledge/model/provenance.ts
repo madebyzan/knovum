@@ -1,8 +1,8 @@
+import type { RelationActorKind } from "../../contracts/generated/RelationActorKind";
 import type { KnowledgeLocator } from "./schema/chunk";
 
 type SpaceProvenanceStatus = "active" | "superseded" | "invalidated";
 export type SpaceProvenanceTargetKind = "node" | "relation";
-type SpaceKnowledgeActorKind = "human" | "assistant" | "agent" | "system";
 
 export interface SpaceProvenance {
   id: string;
@@ -14,7 +14,7 @@ export interface SpaceProvenance {
   sourceRevision: string;
   quote: string;
   status: SpaceProvenanceStatus;
-  actorKind: SpaceKnowledgeActorKind;
+  actorKind: RelationActorKind;
   actorId?: string;
   createdAt: number;
   updatedAt: number;
@@ -43,7 +43,7 @@ export interface SpaceKnowledgeEvent {
   entityKind: "node" | "relation" | "provenance" | "type";
   entityId: string;
   eventKind: SpaceKnowledgeEventKind;
-  actorKind: SpaceKnowledgeActorKind;
+  actorKind: RelationActorKind;
   actorId?: string;
   payload: unknown;
   createdAt: number;

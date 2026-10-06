@@ -9,7 +9,7 @@ pub struct ProviderDescriptor {
     pub display_name: &'static str,
     pub default_base_url: &'static str,
     pub capabilities: &'static [ExecutionCapability],
-    pub assistant_protocols: &'static [ChatModelProtocol],
+    pub builtin_agent_protocols: &'static [ChatModelProtocol],
 }
 
 const TEXT: &[ExecutionCapability] = &[ExecutionCapability::TextGeneration];
@@ -161,7 +161,7 @@ const fn define_provider(
         display_name,
         default_base_url,
         capabilities,
-        assistant_protocols: match kind {
+        builtin_agent_protocols: match kind {
             ProviderKind::Anthropic => &[ChatModelProtocol::Anthropic],
             ProviderKind::Gemini => &[ChatModelProtocol::Gemini],
             ProviderKind::Ollama => &[ChatModelProtocol::Ollama],

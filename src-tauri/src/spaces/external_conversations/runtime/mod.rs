@@ -13,8 +13,8 @@ pub async fn start(
     app: AppHandle,
     request: StartExternalConversationRequest,
     conversation: Option<(String, String)>,
-    updates: Option<tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>>,
-) -> Result<super::AgentSessionBinding, String> {
+    updates: Option<tauri::ipc::Channel<crate::spaces::conversations::ConversationTaskUpdate>>,
+) -> Result<super::ExternalAgentSessionBinding, String> {
     lifecycle::validate(&request)?;
     crate::ai::settings::ensure_agent_enabled(&app, request.runtime_kind)
         .map_err(|error| error.to_string())?;
@@ -107,7 +107,7 @@ pub async fn begin_turn(
     app: AppHandle,
     conversation_id: &str,
     prompt: &str,
-    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
+    attachments: &[crate::spaces::conversations::ConversationMessageAttachment],
 ) -> Result<String, String> {
     repository::start_turn(db::pool(&app).await?, conversation_id, prompt, attachments).await
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum PrincipalKind {
     User,
-    Assistant,
+    BuiltinAgent,
     ExternalAgent,
 }
 
@@ -12,7 +12,7 @@ impl PrincipalKind {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::User => "user",
-            Self::Assistant => "assistant",
+            Self::BuiltinAgent => "builtin_agent",
             Self::ExternalAgent => "external_agent",
         }
     }
@@ -20,8 +20,8 @@ impl PrincipalKind {
     pub fn event_actor_kind(self) -> &'static str {
         match self {
             Self::User => "human",
-            Self::Assistant => "assistant",
-            Self::ExternalAgent => "agent",
+            Self::BuiltinAgent => "builtin_agent",
+            Self::ExternalAgent => "external_agent",
         }
     }
 }

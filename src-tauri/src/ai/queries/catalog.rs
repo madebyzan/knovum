@@ -5,12 +5,13 @@ use crate::{
 };
 
 #[tauri::command]
-pub async fn detect_agent_installations() -> Result<Vec<contracts::AgentInstallation>, AppError> {
-    external_agents::detect_agent_installations().await
+pub async fn detect_external_agent_installations(
+) -> Result<Vec<contracts::ExternalAgentInstallation>, AppError> {
+    external_agents::detect_external_agent_installations().await
 }
 
 #[tauri::command]
-pub fn list_agent_descriptors() -> Vec<contracts::AgentDescriptor> {
+pub fn list_external_agent_descriptors() -> Vec<contracts::ExternalAgentDescriptor> {
     external_agents::registry::descriptors()
 }
 

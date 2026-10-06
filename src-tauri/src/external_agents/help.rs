@@ -1,58 +1,61 @@
-use crate::ai::contracts::{AgentConnectionKind, AgentHelp, AgentKind};
+use crate::ai::contracts::{ExternalAgentConnectionKind, ExternalAgentHelp, ExternalAgentKind};
 
 /// Vendor guidance is part of the Agent directory, not a settings-only lookup table.
-pub(super) const fn describe(kind: AgentKind, connection: AgentConnectionKind) -> AgentHelp {
+pub(super) const fn describe(
+    kind: ExternalAgentKind,
+    connection: ExternalAgentConnectionKind,
+) -> ExternalAgentHelp {
     let (documentation_url, setup_url) = match kind {
-        AgentKind::Codex => (
+        ExternalAgentKind::Codex => (
             "https://github.com/agentclientprotocol/codex-acp",
             "https://github.com/agentclientprotocol/registry/blob/main/codex-acp/agent.json",
         ),
-        AgentKind::ClaudeCode => (
+        ExternalAgentKind::ClaudeCode => (
             "https://github.com/agentclientprotocol/claude-agent-acp",
             "https://github.com/agentclientprotocol/registry/blob/main/claude-acp/agent.json",
         ),
-        AgentKind::GeminiCli => (
+        ExternalAgentKind::GeminiCli => (
             "https://geminicli.com",
             "https://github.com/agentclientprotocol/registry/blob/main/gemini/agent.json",
         ),
-        AgentKind::GithubCopilot => (
+        ExternalAgentKind::GithubCopilot => (
             "https://github.com/github/copilot-cli",
             "https://github.com/agentclientprotocol/registry/blob/main/github-copilot-cli/agent.json",
         ),
-        AgentKind::OpenCode => (
+        ExternalAgentKind::OpenCode => (
             "https://opencode.ai",
             "https://github.com/agentclientprotocol/registry/blob/main/opencode/agent.json",
         ),
-        AgentKind::QwenCode => (
+        ExternalAgentKind::QwenCode => (
             "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
             "https://github.com/agentclientprotocol/registry/blob/main/qwen-code/agent.json",
         ),
-        AgentKind::QoderCli => (
+        ExternalAgentKind::QoderCli => (
             "https://qoder.com",
             "https://github.com/agentclientprotocol/registry/blob/main/qoder/agent.json",
         ),
-        AgentKind::KimiCli => (
+        ExternalAgentKind::KimiCli => (
             "https://moonshotai.github.io/kimi-cli/",
             "https://github.com/agentclientprotocol/registry/blob/main/kimi/agent.json",
         ),
-        AgentKind::AuggieCli => (
+        ExternalAgentKind::AuggieCli => (
             "https://github.com/augmentcode/auggie",
             "https://github.com/agentclientprotocol/registry/blob/main/auggie/agent.json",
         ),
-        AgentKind::Cline => (
+        ExternalAgentKind::Cline => (
             "https://cline.bot/cli",
             "https://github.com/agentclientprotocol/registry/blob/main/cline/agent.json",
         ),
-        AgentKind::Cursor => (
+        ExternalAgentKind::Cursor => (
             "https://cursor.com/docs/cli/acp",
             "https://github.com/agentclientprotocol/registry/blob/main/cursor/agent.json",
         ),
-        AgentKind::Antigravity => (
+        ExternalAgentKind::Antigravity => (
             "https://antigravity.google/docs/ide/extensions",
             "https://github.com/agentclientprotocol/registry/blob/main/antigravity-acp/agent.json",
         ),
     };
-    AgentHelp {
+    ExternalAgentHelp {
         connection,
         documentation_url,
         setup_url,

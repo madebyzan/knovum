@@ -14,7 +14,7 @@ struct CurrentCitationRef {
     revision: String,
 }
 
-pub async fn validate_assistant_citations(
+pub async fn validate_conversation_citations(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     citations: &Value,

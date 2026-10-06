@@ -29,12 +29,12 @@
   },
   "purpose": {
     "title": "Usage by capability",
-    "assistant": "Assistant",
     "editor": "Writing tools",
     "knowledge": "Knowledge creation",
     "knowledgeIndexing": "Knowledge indexing",
     "translation": "Translation",
-    "visualAnalysis": "Visual understanding"
+    "visualAnalysis": "Visual understanding",
+    "builtinAgent": "Builtin Agent"
   },
   "providerReported": "This total includes recorded token usage. Some activity may not provide usage data and may be missing from the total."
 }

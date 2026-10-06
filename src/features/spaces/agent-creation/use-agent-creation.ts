@@ -7,7 +7,7 @@ import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import type { AgentKind } from "../../../shared/contracts/generated/AgentKind";
+import type { ExternalAgentKind } from "../../../shared/contracts/generated/ExternalAgentKind";
 import { useSpaceStore } from "../session/space-store";
 import { listRecoverableAgentCreations, runAgentCreation } from "./agent-artifacts";
 import { useAgentArtifacts } from "./use-agent-artifacts";
@@ -21,7 +21,7 @@ export function useAgentCreation(open: Ref<boolean>) {
   const aiStore = useAiSettingsStore();
   const catalog = useAgentCreationCatalog();
   const artifactState = useAgentArtifacts(open);
-  const selectedAgent = ref<AgentKind | "">("");
+  const selectedAgent = ref<ExternalAgentKind | "">("");
   const prompt = ref("");
   const running = ref(false);
   const status = ref("");

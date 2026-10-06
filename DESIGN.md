@@ -9,7 +9,7 @@
 
 This file owns the product and interaction goals specified below. The dated domain/execution baseline and its implementation-state map are recorded in [docs/rfcs/knowledge-work-system.md](docs/rfcs/knowledge-work-system.md). Current runtime, dependency and data contracts remain in their owning documents until implementation changes them.
 
-The target conversation/workflow direction is described in this file's Information architecture and Knowledge Derivation sections. It does not declare an unverified redesign complete or supersede current persistence contracts. Separate assistant/workflow and canvas redesign specifications previously referenced here are not present in this repository; no missing document is authoritative. Visual rules currently available to implementation are in this file and [docs/ui-system.md](docs/ui-system.md).
+The target conversation/workflow direction is described in this file's Information architecture and Knowledge Derivation sections. It does not declare an unverified redesign complete or supersede current persistence contracts. Separate conversation/workflow and canvas redesign specifications previously referenced here are not present in this repository; no missing document is authoritative. Visual rules currently available to implementation are in this file and [docs/ui-system.md](docs/ui-system.md).
 
 Changes to conversation history, contextual workflow editing and external-tool configuration need implementation evidence against the RFC state map. Product goals are distinct from completed platform acceptance.
 

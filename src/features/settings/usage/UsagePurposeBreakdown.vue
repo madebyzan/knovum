@@ -8,7 +8,7 @@ import type { UsageReport } from "../../../shared/contracts/generated/UsageRepor
 const props = defineProps<{ report: UsageReport }>();
 const { n, t } = useI18n();
 const purposeLabelKeys: Record<UsagePurpose, string> = {
-  assistant: "settings.usage.purpose.assistant",
+  builtin_agent: "settings.usage.purpose.builtinAgent",
   editor: "settings.usage.purpose.editor",
   knowledge: "settings.usage.purpose.knowledge",
   knowledge_indexing: "settings.usage.purpose.knowledgeIndexing",

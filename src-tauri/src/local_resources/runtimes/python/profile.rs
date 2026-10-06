@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub(crate) enum RuntimeProfile {
     Inference,
-    Assistant,
+    Agent,
 }
 
 impl RuntimeProfile {
     pub(crate) fn name(self) -> &'static str {
         match self {
             Self::Inference => "inference",
-            Self::Assistant => "assistant",
+            Self::Agent => "agent",
         }
     }
 
@@ -21,10 +21,9 @@ impl RuntimeProfile {
                 env!("OUT_DIR"),
                 "/python-inference-descriptor.json"
             )),
-            Self::Assistant => include_bytes!(concat!(
-                env!("OUT_DIR"),
-                "/python-assistant-descriptor.json"
-            )),
+            Self::Agent => {
+                include_bytes!(concat!(env!("OUT_DIR"), "/python-agent-descriptor.json"))
+            }
         }
     }
 
@@ -32,14 +31,14 @@ impl RuntimeProfile {
     pub(super) fn manifest_key(self) -> &'static str {
         match self {
             Self::Inference => "KNOVUM_PYTHON_INFERENCE_MANIFEST_PATH",
-            Self::Assistant => "KNOVUM_PYTHON_ASSISTANT_MANIFEST_PATH",
+            Self::Agent => "KNOVUM_PYTHON_AGENT_MANIFEST_PATH",
         }
     }
 
     pub(super) fn entry(self) -> &'static str {
         match self {
             Self::Inference => "knovum_inference/server.py",
-            Self::Assistant => "knovum_assistant/__main__.py",
+            Self::Agent => "knovum_agent_runtime/__main__.py",
         }
     }
 }

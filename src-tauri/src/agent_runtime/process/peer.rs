@@ -42,9 +42,9 @@ impl Peer {
             let mut pending = self
                 .pending
                 .lock()
-                .map_err(|_| "assistant-protocol-poisoned")?;
+                .map_err(|_| "agent-runtime-protocol-poisoned")?;
             if pending.len() >= 64 {
-                return Err("assistant-request-limit".into());
+                return Err("agent-runtime-request-limit".into());
             }
             pending.insert(id.clone(), sender);
         }
@@ -53,13 +53,13 @@ impl Peer {
                 .await?;
             let value = receiver
                 .await
-                .map_err(|_| "assistant-process-disconnected")??;
-            serde_json::from_value(value).map_err(|_| "assistant-invalid-response".to_owned())
+                .map_err(|_| "agent-runtime-process-disconnected")??;
+            serde_json::from_value(value).map_err(|_| "agent-runtime-invalid-response".to_owned())
         }
         .await;
         self.pending
             .lock()
-            .map_err(|_| "assistant-protocol-poisoned")?
+            .map_err(|_| "agent-runtime-protocol-poisoned")?
             .remove(&id);
         outcome
     }
@@ -86,10 +86,10 @@ impl Peer {
                 frame = reader.next() => {
                     let value = frame?;
                     if let Some(method) = value.get("method") {
-                        let method = method.as_str().ok_or("assistant-invalid-method")?.to_owned();
+                        let method = method.as_str().ok_or("agent-runtime-invalid-method")?.to_owned();
                         let params = value.get("params").cloned().unwrap_or(Value::Null);
-                        let id = value.get("id").map(|id| id.as_str().map(str::to_owned).ok_or("assistant-invalid-request-id")).transpose()?;
-                        if handlers.len() >= 64 { return Err("assistant-request-limit".into()); }
+                        let id = value.get("id").map(|id| id.as_str().map(str::to_owned).ok_or("agent-runtime-invalid-request-id")).transpose()?;
+                        if handlers.len() >= 64 { return Err("agent-runtime-request-limit".into()); }
                         let host = host.clone();
                         let peer = self.clone();
                         handlers.spawn(async move {
@@ -106,7 +106,7 @@ impl Peer {
                     } else { self.accept(value)?; }
                 }
                 outcome = handlers.join_next(), if !handlers.is_empty() => {
-                    outcome.ok_or("assistant-handler-missing")?.map_err(|_| "assistant-host-handler-failed")??;
+                    outcome.ok_or("agent-runtime-handler-missing")?.map_err(|_| "agent-runtime-host-handler-failed")??;
                 }
             }
         }
@@ -115,7 +115,7 @@ impl Peer {
         // host transactions even when the Python pipe closes during cancellation.
         while let Some(completed) = handlers.join_next().await {
             if let Err(error) = completed {
-                log::error!("Assistant host handler did not settle: {error}");
+                log::error!("Agent Runtime host handler did not settle: {error}");
             }
         }
         outcome
@@ -124,31 +124,33 @@ impl Peer {
     fn accept(&self, value: Value) -> Result<(), String> {
         let id = value["id"]
             .as_str()
-            .ok_or("assistant-invalid-response-id")?;
+            .ok_or("agent-runtime-invalid-response-id")?;
         let sender = self
             .pending
             .lock()
-            .map_err(|_| "assistant-protocol-poisoned")?
+            .map_err(|_| "agent-runtime-protocol-poisoned")?
             .remove(id)
-            .ok_or("assistant-unexpected-response")?;
+            .ok_or("agent-runtime-unexpected-response")?;
         let outcome = if let Some(error) = value.get("error") {
-            let message = error["message"].as_str().ok_or("assistant-invalid-error")?;
+            let message = error["message"]
+                .as_str()
+                .ok_or("agent-runtime-invalid-error")?;
             Err(message.to_owned())
         } else {
             Ok(value
                 .get("result")
                 .cloned()
-                .ok_or("assistant-response-missing-result")?)
+                .ok_or("agent-runtime-response-missing-result")?)
         };
         sender
             .send(outcome)
-            .map_err(|_| "assistant-response-unobserved".into())
+            .map_err(|_| "agent-runtime-response-unobserved".into())
     }
 
     pub(super) fn disconnect(&self) {
         if let Ok(mut pending) = self.pending.lock() {
             for (_, sender) in pending.drain() {
-                let _ = sender.send(Err("assistant-process-disconnected".into()));
+                let _ = sender.send(Err("agent-runtime-process-disconnected".into()));
             }
         }
     }

@@ -5,7 +5,7 @@ use serde::Deserialize;
 pub struct PackageExternalAgentConversation {
     pub id: String,
     pub run_id: String,
-    pub assistant_conversation_id: String,
+    pub conversation_id: String,
     pub branch_id: String,
     pub runtime_kind: String,
     pub runtime_session_id: Option<String>,
@@ -22,7 +22,7 @@ pub struct PackageExternalAgentConversation {
 pub struct PackageExternalAgentTurn {
     pub id: String,
     pub conversation_id: String,
-    pub assistant_message_id: Option<String>,
+    pub message_id: Option<String>,
     pub state: String,
     pub error: Option<String>,
     pub created_at: i64,

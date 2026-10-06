@@ -21,7 +21,7 @@ async fn executing_fixture() -> Fixture {
     sqlx::query(
         "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,
          execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-         VALUES('run','space','assistant','principal','action','running',7,$1,'{}',$2,1,1)",
+         VALUES('run','space','builtin_agent','principal','action','running',7,$1,'{}',$2,1,1)",
     )
     .bind(r#"{"definition":{"failurePolicy":"stop_run"}}"#)
     .bind(r#"{"maxOutputBytes":1024}"#)

@@ -1,17 +1,17 @@
 import type { Ref } from "vue";
 
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import { listAssistantConversations, listAssistantMessages } from "./conversation-ipc";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import { listConversations, listConversationMessages } from "./conversation-ipc";
 
 interface ConversationSelectionInput {
   spaceId: Ref<string | undefined>;
   query: Ref<string>;
   showingArchived: Ref<boolean>;
-  conversations: Ref<AssistantConversation[]>;
+  conversations: Ref<Conversation[]>;
   selectedId: Ref<string>;
-  selectedSnapshot: Ref<AssistantConversation | undefined>;
-  messages: Ref<AssistantMessage[]>;
+  selectedSnapshot: Ref<Conversation | undefined>;
+  messages: Ref<ConversationMessage[]>;
   hasOlder: Ref<boolean>;
   rememberDraft: () => void;
   restoreDraft: (id: string) => void;
@@ -25,7 +25,7 @@ export function createConversationSelection(input: ConversationSelectionInput) {
     if (!requestedSpaceId) return;
     const requestedQuery = input.query.value;
     const requestedArchived = input.showingArchived.value;
-    const loaded = await listAssistantConversations(requestedSpaceId, requestedQuery, requestedArchived);
+    const loaded = await listConversations(requestedSpaceId, requestedQuery, requestedArchived);
     if (
       input.spaceId.value !== requestedSpaceId ||
       input.query.value !== requestedQuery ||
@@ -40,7 +40,7 @@ export function createConversationSelection(input: ConversationSelectionInput) {
 
   async function loadSelection(id: string, branchId: string) {
     const requestedSpaceId = input.spaceId.value;
-    const page = await listAssistantMessages(id, branchId);
+    const page = await listConversationMessages(id, branchId);
     if (input.selectedId.value !== id || input.spaceId.value !== requestedSpaceId) return;
     input.messages.value = page;
     await input.loadBranches(id);

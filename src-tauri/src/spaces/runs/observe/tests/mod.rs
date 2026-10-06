@@ -14,7 +14,7 @@ async fn task_center_restores_roots_without_duplicate_child_actions() {
         ("workflow", "workflow", None, None),
         ("action", "action", None, None),
         ("child", "action", Some("workflow"), None),
-        ("assistant", "assistant", None, None),
+        ("builtin_agent", "builtin_agent", None, None),
         ("completed", "action", None, Some(2_i64)),
     ] {
         sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) VALUES($1,'space',$2,'user','local-user',$3,$4,'{}','{}','{}',1,1,$5)")

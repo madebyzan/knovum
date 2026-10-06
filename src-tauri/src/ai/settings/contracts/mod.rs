@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::ai::{
-    contracts::{AgentKind, ExecutionCapability, ProviderKind},
+    contracts::{ExecutionCapability, ExternalAgentKind, ProviderKind},
     tasks::TaskTargetRef,
 };
 
@@ -40,12 +40,12 @@ pub(crate) struct Model {
     pub capabilities: Vec<ExecutionCapability>,
     pub name: String,
     #[ts(optional = nullable)]
-    pub assistant: Option<AssistantModelSettings>,
+    pub builtin_agent: Option<BuiltinAgentModelSettings>,
 }
 
 #[derive(Clone, Deserialize, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct AssistantModelSettings {
+pub(crate) struct BuiltinAgentModelSettings {
     pub protocol: crate::ai::contracts::ChatModelProtocol,
     pub context_window: u32,
     pub max_output_tokens: u32,
@@ -55,7 +55,7 @@ pub(crate) struct AssistantModelSettings {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(rename = "DesktopAgentSettings")]
 pub(crate) struct DesktopAgent {
-    pub kind: AgentKind,
+    pub kind: ExternalAgentKind,
     pub enabled: bool,
 }
 

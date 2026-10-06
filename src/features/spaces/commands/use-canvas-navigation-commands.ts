@@ -90,7 +90,7 @@ export function useCanvasNavigationCommands() {
       availability: () => availableWhen(scenes.scenes.value.length > 1, "not_enough_scenes"),
       run: () => scenes.stepScene(1),
     }),
-    command("spaces.ask", t("spaces.assistant.evidence.ask"), {
+    command("spaces.ask", t("spaces.conversation.evidence.ask"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.ask,
       run: () => dock.openAsk("space", { restart: true }),
     }),
