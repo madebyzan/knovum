@@ -16,7 +16,7 @@ pub(crate) mod alignment;
 pub(crate) mod diarization;
 
 pub(crate) fn engine_id() -> Result<&'static str, String> {
-    pipeline::platform_profile().map(|(_, _, _, id)| id)
+    crate::ai::local_runtime::speech::transcription_profile().map(|profile| profile.id)
 }
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
@@ -81,7 +81,7 @@ pub(in crate::spaces) async fn transcribe_media(
     on_progress: Channel<MediaTranscriptionProgress>,
     cancellation: CancellationToken,
 ) -> Result<MediaTranscript, String> {
-    pipeline::platform_profile()?;
+    crate::ai::local_runtime::speech::transcription_profile()?;
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let inspected = source.clone();
     let revision = source_revision;

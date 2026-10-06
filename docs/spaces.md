@@ -542,7 +542,15 @@ Mutation IDs bind the entire request digest. A retry of the identical request re
 
 ## Conditional simplification decisions
 
-Structure edits currently replace the validated snapshot in a transaction. Incremental writes require measured large-Space latency/write amplification and equivalence tests for history, tombstones and retries; no speculative second mutation path is maintained.
+Structure edits validate a complete snapshot and persist it through one authoritative transaction.
+The writer compares typed structure records, updates changed rows and layouts, and removes absent
+relation styles. Reordering temporarily retires only moved records to preserve the active sibling-order
+constraint. Unchanged structure and layout rows do not produce update writes. History, tombstones,
+retries and edit revisions retain their existing semantics; there is no second mutation path.
+Portal integrity uses set-based checks for references owned by or targeting the changed Spaces,
+including cross-Space inbound references. Partial deleted-subtree selection decodes the batch once
+and traverses a parent/children index. Malformed deleted content remains an explicit data error.
+Canvas viewport queries use an RBush index rebuilt when the scene changes and reused while panning.
 
 All document serialization belongs to Rust `documents/generation`: DOCX, PDF, TXT and PPTX. The Renderer starts the corresponding local document Action; it never generates or submits document bytes. Spaces resolves and validates sources, owns authorization, output-node lifecycle and persistence, and calls the neutral document engine. PPTX uses the shared validated Markdown model and records the actual `knovum-pptx:1` engine. The former Web worker/PptxGenJS chain had no product consumer and is removed, together with its upload/path-allocation IPC. The presentation export capability generates text slides; the deleted image-slide worker was not an exposed product capability. More than 100 slides fails visibly rather than silently dropping content. Optional panel loading changes require a measured startup or interaction cost; no unmeasured lazy-loading abstraction is added.
 

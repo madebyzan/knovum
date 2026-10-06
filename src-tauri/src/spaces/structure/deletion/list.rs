@@ -92,13 +92,12 @@ async fn summarize_root(
     let structure_node: StructureNode = serde_json::from_str(&raw).map_err(db::json_error)?;
     let (node_id, title) = match &structure_node {
         StructureNode::Content { node_id, .. } => {
-            let raw: Option<String> =
-                sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1")
-                    .bind(node_id)
-                    .fetch_optional(&mut **tx)
-                    .await
-                    .map_err(db::sql_error)?;
-            (Some(node_id.clone()), node_title(raw))
+            let raw: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1")
+                .bind(node_id)
+                .fetch_one(&mut **tx)
+                .await
+                .map_err(db::sql_error)?;
+            (Some(node_id.clone()), node_title(&raw)?)
         }
         StructureNode::Group { title, .. } | StructureNode::Section { title, .. } => {
             (None, title.clone())
@@ -116,12 +115,11 @@ async fn summarize_root(
     })
 }
 
-fn node_title(raw: Option<String>) -> String {
-    raw.and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
-        .and_then(|data| {
-            data.get("title")
-                .and_then(serde_json::Value::as_str)
-                .map(str::to_owned)
-        })
-        .unwrap_or_else(|| "Untitled".into())
+pub(super) fn node_title(raw: &str) -> Result<String, String> {
+    let data: serde_json::Value = serde_json::from_str(raw).map_err(db::json_error)?;
+    match data.get("title") {
+        Some(serde_json::Value::String(title)) => Ok(title.clone()),
+        Some(_) => Err("Deleted content title must be a string".into()),
+        None => Ok("Untitled".into()),
+    }
 }

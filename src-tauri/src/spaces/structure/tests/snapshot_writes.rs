@@ -1,0 +1,78 @@
+use super::transactions::{database, request};
+use crate::spaces::{
+    db,
+    structure::{commands::execute_in_transaction, repository},
+};
+
+#[tokio::test]
+async fn sibling_reordering_preserves_the_active_order_constraint() {
+    let pool = database().await;
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    let snapshot: repository::SpaceStructureSnapshot = serde_json::from_value(serde_json::json!({
+        "structure":[
+            {"kind":"group","id":"first","parentId":null,"order":0,"locked":false,"title":"First"},
+            {"kind":"group","id":"second","parentId":null,"order":1,"locked":false,"title":"Second"}
+        ],
+        "layouts":[
+            {"kind":"group","structureNodeId":"first","transform":{"x":0,"y":0,"rotation":0,"scale":1}},
+            {"kind":"group","structureNodeId":"second","transform":{"x":0,"y":0,"rotation":0,"scale":1}}
+        ], "relation_styles":[]
+    })).unwrap();
+    repository::save_in_transaction(&mut tx, "space", 0, &snapshot)
+        .await
+        .unwrap();
+    let mut reordered = snapshot;
+    for node in &mut reordered.structure {
+        if let crate::spaces::structure::StructureNode::Group { order, .. } = node {
+            *order = 1 - *order;
+        }
+    }
+    repository::save_in_transaction(&mut tx, "space", 1, &reordered)
+        .await
+        .unwrap();
+    let (loaded, _) = repository::load_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    assert_eq!(loaded.structure[0].id(), "second");
+    assert_eq!(loaded.structure[1].id(), "first");
+    tx.commit().await.unwrap();
+}
+
+#[tokio::test]
+async fn unchanged_snapshot_does_not_rewrite_structure_or_layouts() {
+    let pool = database().await;
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    execute_in_transaction(&mut tx, request("Section"))
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    sqlx::query("CREATE TABLE snapshot_writes(kind TEXT); CREATE TRIGGER structure_written AFTER UPDATE ON spaces_structure_nodes BEGIN INSERT INTO snapshot_writes VALUES('structure'); END; CREATE TRIGGER layout_written AFTER UPDATE ON spaces_structure_layouts BEGIN INSERT INTO snapshot_writes VALUES('layout'); END;")
+        .execute(&pool).await.unwrap();
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    let (snapshot, revision) = repository::load_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    repository::save_in_transaction(&mut tx, "space", revision, &snapshot)
+        .await
+        .unwrap();
+    let writes: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM snapshot_writes")
+        .fetch_one(&mut *tx)
+        .await
+        .unwrap();
+    assert_eq!(writes, 0);
+    let mut renamed = snapshot;
+    if let crate::spaces::structure::StructureNode::Section { title, .. } =
+        &mut renamed.structure[0]
+    {
+        *title = "Renamed".into();
+    }
+    repository::save_in_transaction(&mut tx, "space", revision + 1, &renamed)
+        .await
+        .unwrap();
+    let writes: Vec<String> = sqlx::query_scalar("SELECT kind FROM snapshot_writes")
+        .fetch_all(&mut *tx)
+        .await
+        .unwrap();
+    assert_eq!(writes, ["structure"]);
+    tx.commit().await.unwrap();
+}

@@ -171,9 +171,10 @@ second job framework, while model installation keeps its domain snapshot in a ty
 Long-lived recording sessions, singleton model engines, credential sessions and serialization locks
 are state owners rather than jobs and do not use this primitive.
 
-Within `media/`, `compute_budget` owns interactive CPU allocation policy and `subprocess` owns child
-process waiting, cancellation and bounded diagnostics. These names describe concrete responsibilities;
-they are not general concurrency or process-management frameworks.
+`ai/local_runtime/compute_budget` owns the inference CPU allocation policy.
+`ai/local_runtime/speech/profiles` owns qualified ASR engine, device, precision and profile identities;
+dictation, media transcription and voice-reference validation consume that policy directly.
+The crate-level `subprocess` owner provides child-process waiting, cancellation and bounded diagnostics.
 
 Spaces processing and retrieval are Rust application use cases, not WebView workflows:
 
@@ -190,7 +191,11 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
   commit. Vue projects the current visual frames for export and presents committed imports;
 - `knowledge/retrieval/` owns the fixed embedding spec identity, batching, LanceDB writes, semantic search
   and hybrid rank fusion. Its publication and invalidation outbox share the existing SQLite write
-  transaction boundary; embedding computation stays outside that boundary. Vue submits query text
+  transaction boundary; embedding computation stays outside that boundary. Standalone invalidation
+  drains commit batches of at most 128 records and combine node deletions per Space. Publication
+  drains its affected Spaces under its own write transaction before merging fresh vectors, preserving
+  the existing stale-write fence. The application reuses one LanceDB connection and opens tables
+  for each operation so table revisions remain current. Vue submits query text
   or an indexing intent and never transports vectors;
 - `conversations/builtin_agent/` owns built-in conversation execution and streaming persistence, with read APIs in
   `conversations/queries/` and mutation APIs in `conversations/commands/`, while

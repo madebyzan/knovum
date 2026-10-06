@@ -527,8 +527,12 @@ will obey an exact token estimate or stop billing when its client disappears.
 Each run supplies one stable input identity. The SDK checkpoint acknowledges it; replay checks
 public graph state instead of appending the input again. Root public checkpoint history projects
 complete main-agent messages by AIMessage ID into the single Rust history transaction. Internal
-summary/research messages are excluded. Model-node output and its admission receipts are written
-together through the SDK's `ExtendedModelResponse` state update, so an interrupted projection
+summary/research messages are excluded.
+Projection selects the latest checkpoint identity per namespace from the SQLite checkpointer's
+covering primary key, then uses the SDK to load those bodies and pending writes. Historic bodies
+are not deserialized to rediscover namespaces; the main-message projection retains its cursor.
+Model-node output and its admission receipts are written together through the SDK's
+`ExtendedModelResponse` state update, so an interrupted projection
 acknowledgement can reconcile the result without another paid call. Summary receipts are captured
 at the following before-model boundary. Public checkpoint/pending-write receipts reconcile the
 paid-call ledger; no response replay cache or outbox is maintained. A missing model result enters

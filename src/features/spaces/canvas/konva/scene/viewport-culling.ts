@@ -1,3 +1,5 @@
+import RBush, { type BBox } from "rbush";
+
 import type { CanvasRect, CanvasViewport } from "../../contracts/canvas-editor-port";
 
 interface CullableNode {
@@ -14,43 +16,43 @@ interface ViewportSize {
   width: number;
 }
 
-export function visibleSceneRelationIds(
-  relations: readonly CullableRelation[],
-  viewport: CanvasViewport,
-  size: ViewportSize,
-  overscanPixels = 240,
-) {
-  const visible = worldBounds(viewport, size, overscanPixels);
-  return new Set(relations.filter(({ bounds }) => intersects(bounds, visible)).map(({ key }) => key));
+interface IndexedSceneBounds extends BBox {
+  id: string;
 }
 
-export function visibleSceneNodeIds(
+export function createSceneVisibilityIndex(
   nodes: readonly CullableNode[],
+  relations: readonly CullableRelation[],
+) {
+  return {
+    nodes: new RBush<IndexedSceneBounds>().load(
+      nodes.map(({ layout }) => ({ ...bounds(layout.frame), id: layout.nodeId })),
+    ),
+    relations: new RBush<IndexedSceneBounds>().load(
+      relations.map(({ bounds: frame, key }) => ({ ...bounds(frame), id: key })),
+    ),
+  };
+}
+
+export function visibleSceneIds(
+  index: ReturnType<typeof createSceneVisibilityIndex>,
   viewport: CanvasViewport,
   size: ViewportSize,
   overscanPixels = 240,
 ) {
-  const visible = worldBounds(viewport, size, overscanPixels);
-  return new Set(
-    nodes.filter(({ layout }) => intersects(layout.frame, visible)).map(({ layout }) => layout.nodeId),
-  );
-}
-
-function worldBounds(viewport: CanvasViewport, size: ViewportSize, overscanPixels: number): CanvasRect {
   const overscan = overscanPixels / viewport.zoom;
-  return {
+  const visible = bounds({
     x: -viewport.x / viewport.zoom - overscan,
     y: -viewport.y / viewport.zoom - overscan,
     width: size.width / viewport.zoom + overscan * 2,
     height: size.height / viewport.zoom + overscan * 2,
+  });
+  return {
+    nodes: new Set(index.nodes.search(visible).map(({ id }) => id)),
+    relations: new Set(index.relations.search(visible).map(({ id }) => id)),
   };
 }
 
-function intersects(left: CanvasRect, right: CanvasRect) {
-  return (
-    left.x <= right.x + right.width &&
-    left.x + left.width >= right.x &&
-    left.y <= right.y + right.height &&
-    left.y + left.height >= right.y
-  );
+function bounds(frame: CanvasRect): BBox {
+  return { minX: frame.x, minY: frame.y, maxX: frame.x + frame.width, maxY: frame.y + frame.height };
 }

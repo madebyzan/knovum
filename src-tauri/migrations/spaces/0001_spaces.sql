@@ -775,6 +775,8 @@ CREATE INDEX spaces_nodes_space_created ON spaces_nodes(space_id, deleted_at, cr
 
 CREATE INDEX spaces_nodes_object_type ON spaces_nodes(space_id, object_type_id, deleted_at);
 
+CREATE INDEX spaces_nodes_portal_target_space ON spaces_nodes(json_extract(data, '$.targetSpaceId')) WHERE kind = 'portal' AND deleted_at IS NULL;
+
 CREATE UNIQUE INDEX spaces_nodes_space_id ON spaces_nodes(space_id, id);
 
 CREATE UNIQUE INDEX spaces_structure_space_id ON spaces_structure_nodes(space_id, id);

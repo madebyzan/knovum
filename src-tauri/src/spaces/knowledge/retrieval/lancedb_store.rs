@@ -2,25 +2,34 @@ use std::path::PathBuf;
 
 use lancedb::{connect, Connection, Table};
 use tauri::{AppHandle, Manager, Runtime};
+use tokio::sync::OnceCell;
 
 use super::schema::TABLE_KNOWLEDGE_CHUNKS;
+
+static RETRIEVAL_DATABASE: OnceCell<Connection> = OnceCell::const_new();
 
 pub(crate) async fn connect_retrieval_db<R: Runtime>(
     app: &AppHandle<R>,
 ) -> Result<Connection, String> {
-    let path = retrieval_dir(app)?;
-    std::fs::create_dir_all(&path)
-        .map_err(|error| format!("Failed to create retrieval index directory: {error}"))?;
-    connect(path.to_string_lossy().as_ref())
-        .manifest_enabled(false)
-        .namespace_client_properties([
-            ("manifest_enabled", "false"),
-            ("dir_listing_enabled", "true"),
-            ("dir_listing_to_manifest_migration_enabled", "false"),
-        ])
-        .execute()
+    RETRIEVAL_DATABASE
+        .get_or_try_init(|| async {
+            let path = retrieval_dir(app)?;
+            tokio::fs::create_dir_all(&path)
+                .await
+                .map_err(|error| format!("Failed to create retrieval index directory: {error}"))?;
+            connect(path.to_string_lossy().as_ref())
+                .manifest_enabled(false)
+                .namespace_client_properties([
+                    ("manifest_enabled", "false"),
+                    ("dir_listing_enabled", "true"),
+                    ("dir_listing_to_manifest_migration_enabled", "false"),
+                ])
+                .execute()
+                .await
+                .map_err(|error| format!("Failed to open LanceDB retrieval index: {error}"))
+        })
         .await
-        .map_err(|error| format!("Failed to open LanceDB retrieval index: {error}"))
+        .cloned()
 }
 
 pub(crate) async fn open_knowledge_table<R: Runtime>(app: &AppHandle<R>) -> Result<Table, String> {

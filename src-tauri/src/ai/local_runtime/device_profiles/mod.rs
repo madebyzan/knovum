@@ -125,7 +125,8 @@ pub(crate) fn voxcpm2() -> Result<RuntimeDeviceProfile, String> {
         Ok(RuntimeDeviceProfile {
             device: device.into(),
             execution_profile_id: format!("voxcpm2-{device}-{precision}-v1"),
-            cpu_threads: crate::media::compute_budget::ComputeBudget::detect()?.model_threads,
+            cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
+                .model_threads,
         })
     }
 }
@@ -143,7 +144,8 @@ pub(crate) fn speech_separation() -> Result<RuntimeDeviceProfile, String> {
     Ok(RuntimeDeviceProfile {
         device: "cpu".into(),
         execution_profile_id: "spleeter-2stems-fp16-cpu-v1".into(),
-        cpu_threads: crate::media::compute_budget::ComputeBudget::detect()?.model_threads,
+        cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
+            .model_threads,
     })
 }
 

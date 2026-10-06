@@ -107,15 +107,16 @@ pub async fn complete(
     Ok(completed)
 }
 
-pub async fn fail(app: &AppHandle, request: &GenerateImageLayersRequest, error: &str) {
-    for index in 0..request.output_node_ids.len() {
-        let _ = super::super::failure::fail_message(
-            app,
-            &derivation_id(&request.generation_id, index),
-            error,
-        )
-        .await;
-    }
+pub async fn fail(
+    app: &AppHandle,
+    request: &GenerateImageLayersRequest,
+    error: &str,
+) -> Result<(), String> {
+    let pool = db::pool(app).await?;
+    let ids = (0..request.output_node_ids.len())
+        .map(|index| derivation_id(&request.generation_id, index))
+        .collect::<Vec<_>>();
+    super::super::failure::fail_messages(pool, &ids, error).await
 }
 
 async fn load_pending_output(

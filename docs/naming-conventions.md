@@ -23,10 +23,12 @@
 - Workflow definitions are user-owned captures of verified Action derivations. Durable event types use
   the CloudEvents reverse-DNS convention; local Run event names are closed Rust enums serialized as `snake_case`.
 
-Do not use `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
+Do not use `Card`, `Box`, `Widget`, `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
 interaction or information: `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
 `ExternalAgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
 to pass review. Collections, table rows and enumeration verbs remain valid inside their actual scope.
+Name components for their concrete responsibility, such as `ConnectorConnections`,
+`AiConnectionConfiguration` or `VoiceCandidateReview`, rather than the container's visual shape.
 Use `Summary` only for actual summarized content, not an arbitrary reduced DTO; name read models
 after their purpose (`RunObservation`, `Conversation`, `UsageMetrics`).
 

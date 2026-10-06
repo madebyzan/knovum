@@ -75,7 +75,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     let edit_revision =
         structure::repository::save_in_transaction(tx, &request.space_id, revision, &snapshot)
             .await?;
-    structure::portal_integrity::validate_structure_targets(tx).await?;
+    structure::portal_integrity::validate_structure_targets(tx, &[&request.space_id]).await?;
     let after = structure::history::capture(tx, &request.space_id, &snapshot).await?;
     structure::history::record(
         tx,

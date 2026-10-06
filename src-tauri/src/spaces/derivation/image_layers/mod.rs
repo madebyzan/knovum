@@ -90,7 +90,17 @@ async fn failed<T>(
     request: &GenerateImageLayersRequest,
     error: AppError,
 ) -> Result<T, AppError> {
-    persistence::fail(app, request, &error.message).await;
+    persistence::fail(app, request, &error.message)
+        .await
+        .map_err(|settlement| {
+            AppError::new(
+                "derivation_settlement_failed",
+                format!(
+                    "{}; Failed to persist image layer failure: {settlement}",
+                    error.message
+                ),
+            )
+        })?;
     Err(error)
 }
 

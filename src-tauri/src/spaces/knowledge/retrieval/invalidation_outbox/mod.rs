@@ -1,11 +1,12 @@
 use lancedb::Connection;
+use std::collections::BTreeMap;
+
+mod settlement;
+const INVALIDATION_BATCH_SIZE: usize = 128;
 use sqlx::{FromRow, Sqlite, Transaction};
 use tauri::{AppHandle, Runtime};
 
-use super::{
-    lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists},
-    predicates::{build_delete_node_predicate, build_delete_space_predicate},
-};
+use super::lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists};
 use crate::spaces::db;
 
 #[derive(FromRow)]
@@ -74,10 +75,14 @@ pub(super) async fn drain_with_connection(
     index: &Connection,
     pool: &sqlx::SqlitePool,
 ) -> Result<(), String> {
-    let mut tx = db::begin_write(pool).await?;
-    let outcome = drain_pending(index, &mut tx, None).await;
-    tx.commit().await.map_err(db::sql_error)?;
-    outcome
+    loop {
+        let mut tx = db::begin_write(pool).await?;
+        let outcome = drain_batch(index, &mut tx, None).await;
+        tx.commit().await.map_err(db::sql_error)?;
+        if outcome? < INVALIDATION_BATCH_SIZE {
+            return Ok(());
+        }
+    }
 }
 
 pub(super) async fn drain_pending(
@@ -85,26 +90,54 @@ pub(super) async fn drain_pending(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: Option<&str>,
 ) -> Result<(), String> {
+    while drain_batch(index, tx, space_id).await? == INVALIDATION_BATCH_SIZE {}
+    Ok(())
+}
+
+async fn drain_batch(
+    index: &Connection,
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: Option<&str>,
+) -> Result<usize, String> {
     let pending = sqlx::query_as::<_, PendingInvalidation>(
         "SELECT id,space_id,node_id FROM spaces_retrieval_invalidations \
-         WHERE $1 IS NULL OR space_id=$1 ORDER BY node_id IS NOT NULL,id",
+         WHERE $1 IS NULL OR space_id=$1 ORDER BY node_id IS NOT NULL,id LIMIT $2",
     )
     .bind(space_id)
+    .bind(INVALIDATION_BATCH_SIZE as i64)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    let mut failures = Vec::new();
+    let count = pending.len();
+    if pending.is_empty() {
+        return Ok(0);
+    }
+    let table = open_knowledge_table_if_exists(index).await;
+    let mut by_space: BTreeMap<String, Vec<PendingInvalidation>> = BTreeMap::new();
     for invalidation in pending {
-        let invalidation_outcome = apply(index, &invalidation).await;
-        if let Err(error) = invalidation_outcome {
-            record_failure(tx, invalidation.id, &error).await?;
-            failures.push(format!("{}: {error}", invalidation.id));
-        } else {
-            acknowledge(tx, &invalidation).await?;
+        by_space
+            .entry(invalidation.space_id.clone())
+            .or_default()
+            .push(invalidation);
+    }
+    let mut failures = Vec::new();
+    for (space, invalidations) in by_space {
+        let outcome = match &table {
+            Ok(table) => settlement::apply(table.as_ref(), &space, &invalidations).await,
+            Err(error) => Err(error.clone()),
+        };
+        match outcome {
+            Ok(()) => settlement::acknowledge(tx, &space, &invalidations).await?,
+            Err(error) => {
+                for invalidation in invalidations {
+                    record_failure(tx, invalidation.id, &error).await?;
+                }
+                failures.push(format!("{space}: {error}"));
+            }
         }
     }
     if failures.is_empty() {
-        Ok(())
+        Ok(count)
     } else {
         Err(format!(
             "Retrieval invalidations remain pending: {}",
@@ -117,52 +150,6 @@ pub(crate) async fn drain_and_report<R: Runtime>(app: &AppHandle<R>, pool: &sqlx
     if let Err(error) = drain(app, pool).await {
         log::error!("{error}");
     }
-}
-
-async fn apply(index: &Connection, invalidation: &PendingInvalidation) -> Result<(), String> {
-    let Some(table) = open_knowledge_table_if_exists(index).await? else {
-        return Ok(());
-    };
-    let predicate = match &invalidation.node_id {
-        Some(node_id) => {
-            build_delete_node_predicate(&invalidation.space_id, std::slice::from_ref(node_id))
-        }
-        None => build_delete_space_predicate(&invalidation.space_id),
-    };
-    table
-        .delete(predicate.as_str())
-        .await
-        .map_err(|error| format!("Failed to delete LanceDB knowledge index rows: {error}"))?;
-    Ok(())
-}
-
-async fn acknowledge(
-    tx: &mut Transaction<'_, Sqlite>,
-    invalidation: &PendingInvalidation,
-) -> Result<(), String> {
-    sqlx::query(
-        "DELETE FROM spaces_chunk_embeddings WHERE chunk_id IN (\
-         SELECT id FROM spaces_knowledge_chunks WHERE space_id=$1 AND ($2 IS NULL OR node_id=$2))",
-    )
-    .bind(&invalidation.space_id)
-    .bind(&invalidation.node_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    if invalidation.node_id.is_some() {
-        sqlx::query("DELETE FROM spaces_retrieval_invalidations WHERE id=$1")
-            .bind(invalidation.id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    } else {
-        sqlx::query("DELETE FROM spaces_retrieval_invalidations WHERE space_id=$1")
-            .bind(&invalidation.space_id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    Ok(())
 }
 
 async fn record_failure(

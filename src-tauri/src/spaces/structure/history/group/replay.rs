@@ -109,7 +109,14 @@ pub(super) async fn save_targets(
             requested_next = next;
         }
     }
-    super::super::super::portal_integrity::validate_structure_targets(tx).await?;
+    super::super::super::portal_integrity::validate_structure_targets(
+        tx,
+        &targets
+            .iter()
+            .map(|target| target.space_id.as_str())
+            .collect::<Vec<_>>(),
+    )
+    .await?;
     Ok(requested_next)
 }
 

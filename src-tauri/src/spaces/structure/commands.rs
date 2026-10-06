@@ -112,7 +112,7 @@ pub(crate) async fn execute_in_transaction(
         &snapshot,
     )
     .await?;
-    super::portal_integrity::validate_structure_targets(&mut *tx).await?;
+    super::portal_integrity::validate_structure_targets(&mut *tx, &[&request.space_id]).await?;
     if let Some(before) = before {
         let after = history::capture(&mut *tx, &request.space_id, &snapshot).await?;
         history::record(

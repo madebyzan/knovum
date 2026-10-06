@@ -115,7 +115,7 @@ pub(super) async fn validate_relation_styles(
     Ok(())
 }
 
-fn decode_structure_node(row: sqlx::sqlite::SqliteRow) -> Result<StructureNode, String> {
+pub(super) fn decode_structure_node(row: sqlx::sqlite::SqliteRow) -> Result<StructureNode, String> {
     let id: String = row.try_get("id").map_err(db::sql_error)?;
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
     let parent_id: Option<String> = row.try_get("parent_id").map_err(db::sql_error)?;

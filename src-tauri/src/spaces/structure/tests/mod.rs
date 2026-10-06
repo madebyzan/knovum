@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
+mod deleted_subtrees;
 mod node_reference_remap;
+mod portal_integrity;
+mod snapshot_writes;
 mod transactions;
 
 use serde_json::{json, Value};

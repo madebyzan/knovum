@@ -49,20 +49,20 @@ describe("spaces node size policy", () => {
     expect(spaceNodeDimensions(visual("image", 1080, 3840))).toEqual({ width: 128, height: 455 });
   });
 
-  it("uses the full card for image and video content", () => {
+  it("uses the full node for image and video content", () => {
     expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 171 });
     expect(spaceNodeDimensions(visual("video", 1080, 1920))).toEqual({ width: 171, height: 304 });
     expect(spaceNodeSizePolicy(visual("image", 1920, 1080)).contentAspect?.fixedVerticalChrome).toBe(0);
     expect(spaceNodeSizePolicy(visual("video", 1920, 1080)).contentAspect?.fixedVerticalChrome).toBe(0);
   });
 
-  it("sizes a rendered document card from the page's own ratio", () => {
+  it("sizes a rendered document node from the page's own ratio", () => {
     expect(spaceNodeDimensions(rendered(210, 297))).toEqual({ width: 192, height: 320 });
     expect(spaceNodeDimensions(rendered(792, 1024))).toEqual({ width: 210, height: 320 });
     expect(spaceNodeDimensions(rendered(1920, 1080))).toEqual({ width: 272, height: 201 });
   });
 
-  it("keeps the page area inside the card true to the rendered ratio", () => {
+  it("keeps the page area inside the node true to the rendered ratio", () => {
     const dimensions = spaceNodeDimensions(rendered(792, 1024));
     expect(dimensions.width / (dimensions.height - 48)).toBeCloseTo(792 / 1024, 2);
   });

@@ -9,6 +9,9 @@ pub(crate) mod discard;
 mod list;
 mod permanent;
 
+#[cfg(test)]
+mod tests;
+
 pub(crate) use discard::{
     discard_pending_content, DiscardPendingContentRequest, DiscardPendingContentResponse,
 };
@@ -94,7 +97,7 @@ pub(crate) async fn restore<R: Runtime>(
     repository::merge_restored_snapshot(&mut snapshot, &restored)?;
     let applied =
         repository::save_in_transaction(&mut tx, &request.space_id, revision, &snapshot).await?;
-    super::portal_integrity::validate_structure_targets(&mut tx).await?;
+    super::portal_integrity::validate_structure_targets(&mut tx, &[&request.space_id]).await?;
     repository::mark_restored(&mut tx, &request.space_id, &restored.batch_ids, now).await?;
     let after = history::capture(&mut tx, &request.space_id, &snapshot).await?;
     history::record(

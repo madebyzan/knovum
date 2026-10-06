@@ -1,3 +1,4 @@
+use crate::ai::local_runtime::compute_budget::ComputeBudget;
 use std::{
     collections::{BTreeMap, HashMap},
     path::Path,
@@ -19,12 +20,9 @@ use crate::{
         local_runtime::{admission::Priority, speech},
     },
     local_resources::{models::diarization, preparation, runtimes::python::RuntimeProfile},
-    media::{
-        compute_budget::ComputeBudget,
-        transcript::{
-            MediaTranscript, SpeakerTrack as TranscriptSpeakerTrack,
-            SpeakerTurn as TranscriptSpeakerTurn, TranscriptDiarizationProvenance,
-        },
+    media::transcript::{
+        MediaTranscript, SpeakerTrack as TranscriptSpeakerTrack,
+        SpeakerTurn as TranscriptSpeakerTurn, TranscriptDiarizationProvenance,
     },
     spaces::{assets::media_analysis, db},
 };

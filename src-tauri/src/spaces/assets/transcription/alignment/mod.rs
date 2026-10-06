@@ -1,3 +1,4 @@
+use crate::ai::local_runtime::compute_budget::ComputeBudget;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -15,10 +16,7 @@ use crate::{
         local_runtime::{admission::Priority, speech},
     },
     local_resources::{models::catalog, preparation},
-    media::{
-        compute_budget::ComputeBudget,
-        transcript::{MediaTranscript, TranscriptAlignmentProvenance},
-    },
+    media::transcript::{MediaTranscript, TranscriptAlignmentProvenance},
     spaces::assets::media_analysis,
 };
 

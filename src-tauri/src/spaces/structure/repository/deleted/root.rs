@@ -28,10 +28,21 @@ pub(crate) async fn prepare_restore_root(
     .await
     .map_err(db::sql_error)?;
     let mut decoded = HashMap::new();
+    let mut children: HashMap<String, Vec<String>> = HashMap::new();
     for row in rows {
         let id: String = row.try_get("structure_node_id").map_err(db::sql_error)?;
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
-        decoded.insert(id, raw);
+        let node: StructureNode = serde_json::from_str(&raw).map_err(db::json_error)?;
+        if let Some(parent) = node.parent_id() {
+            children
+                .entry(parent.to_owned())
+                .or_default()
+                .push(id.clone());
+        }
+        decoded.insert(id, node);
+    }
+    if !decoded.contains_key(root_id) {
+        return Err("Deleted root has no structure record".into());
     }
     let mut selected = HashSet::new();
     let mut pending = vec![root_id.to_owned()];
@@ -39,12 +50,8 @@ pub(crate) async fn prepare_restore_root(
         if !selected.insert(id.clone()) {
             continue;
         }
-        for (raw_id, raw) in &decoded {
-            let structure_node: StructureNode =
-                serde_json::from_str(raw).map_err(db::json_error)?;
-            if structure_node.parent_id() == Some(id.as_str()) {
-                pending.push(raw_id.clone());
-            }
+        if let Some(descendants) = children.remove(&id) {
+            pending.extend(descendants);
         }
     }
     let deleted_at: i64 =
@@ -54,15 +61,15 @@ pub(crate) async fn prepare_restore_root(
             .await
             .map_err(db::sql_error)?;
     sqlx::query("INSERT INTO spaces_deleted_structure_batches(id,space_id,root_structure_node_ids,deleted_at) VALUES($1,$2,$3,$4)").bind(new_batch_id).bind(space_id).bind(serde_json::to_string(&vec![root_id]).map_err(db::json_error)?).bind(deleted_at).execute(&mut **tx).await.map_err(db::sql_error)?;
-    for id in &selected {
-        sqlx::query("INSERT INTO spaces_deleted_structure_nodes(batch_id,structure_node_id,data) SELECT $1,structure_node_id,data FROM spaces_deleted_structure_nodes WHERE batch_id=$2 AND structure_node_id=$3").bind(new_batch_id).bind(batch_id).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
-        sqlx::query("INSERT INTO spaces_deleted_structure_layouts(batch_id,structure_node_id,data) SELECT $1,structure_node_id,data FROM spaces_deleted_structure_layouts WHERE batch_id=$2 AND structure_node_id=$3").bind(new_batch_id).bind(batch_id).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
+    let selected_json = serde_json::to_string(&selected).map_err(db::json_error)?;
+    sqlx::query("INSERT INTO spaces_deleted_structure_nodes(batch_id,structure_node_id,data) SELECT $1,structure_node_id,data FROM spaces_deleted_structure_nodes WHERE batch_id=$2 AND structure_node_id IN (SELECT value FROM json_each($3))")
+        .bind(new_batch_id).bind(batch_id).bind(&selected_json).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("INSERT INTO spaces_deleted_structure_layouts(batch_id,structure_node_id,data) SELECT $1,structure_node_id,data FROM spaces_deleted_structure_layouts WHERE batch_id=$2 AND structure_node_id IN (SELECT value FROM json_each($3))")
+        .bind(new_batch_id).bind(batch_id).bind(&selected_json).execute(&mut **tx).await.map_err(db::sql_error)?;
     let node_ids: HashSet<String> = selected
         .iter()
-        .filter_map(|id| serde_json::from_str::<StructureNode>(&decoded[id]).ok())
-        .filter_map(|structure_node| match structure_node {
-            StructureNode::Content { node_id, .. } => Some(node_id),
+        .filter_map(|id| match &decoded[id] {
+            StructureNode::Content { node_id, .. } => Some(node_id.clone()),
             _ => None,
         })
         .collect();
@@ -99,22 +106,10 @@ pub(crate) async fn prepare_restore_root(
         .await
         .map_err(db::sql_error)?;
     }
-    for id in &selected {
-        sqlx::query("DELETE FROM spaces_deleted_structure_layouts WHERE batch_id=$1 AND structure_node_id=$2")
-            .bind(batch_id)
-            .bind(id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-        sqlx::query(
-            "DELETE FROM spaces_deleted_structure_nodes WHERE batch_id=$1 AND structure_node_id=$2",
-        )
-        .bind(batch_id)
-        .bind(id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
+    sqlx::query("DELETE FROM spaces_deleted_structure_layouts WHERE batch_id=$1 AND structure_node_id IN (SELECT value FROM json_each($2))")
+        .bind(batch_id).bind(&selected_json).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_deleted_structure_nodes WHERE batch_id=$1 AND structure_node_id IN (SELECT value FROM json_each($2))")
+        .bind(batch_id).bind(&selected_json).execute(&mut **tx).await.map_err(db::sql_error)?;
     roots.retain(|id| id != root_id);
     sqlx::query(
         "UPDATE spaces_deleted_structure_batches SET root_structure_node_ids=$1 WHERE id=$2",

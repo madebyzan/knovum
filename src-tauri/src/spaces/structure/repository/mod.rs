@@ -88,7 +88,7 @@ pub(crate) async fn save_in_transaction(
             "Space edit revision conflict",
         ));
     }
-    write::replace_active(tx, space_id, snapshot).await?;
+    write::persist_snapshot(tx, space_id, snapshot).await?;
     let next_revision = base_revision
         .checked_add(1)
         .ok_or("Space edit revision overflow")?;

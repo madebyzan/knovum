@@ -1,5 +1,7 @@
 pub(crate) use timing::{align, diarize};
 mod artifact;
+mod profiles;
+pub(crate) use profiles::transcription_profile;
 mod execution;
 mod stream;
 mod timing;
