@@ -115,10 +115,8 @@ async fn validate_outputs(
             || config.provider != input.provider
             || config.model != input.model
             || config.base_url != input.base_url
-            || serde_json::to_value(&config.execution_target).map_err(db::json_error)?
-                != serde_json::to_value(&input.execution_target).map_err(db::json_error)?
-            || serde_json::to_value(&config.segment).map_err(db::json_error)?
-                != serde_json::to_value(expected).map_err(db::json_error)?
+            || config.execution_target != input.execution_target
+            || &config.segment != expected
             || output.step_id != step_id
             || output.source_segment_id != expected.source_segment_id
             || output.source_segment_revision != expected.source_segment_revision

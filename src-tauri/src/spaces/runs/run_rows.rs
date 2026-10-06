@@ -1,3 +1,4 @@
+use serde::de::IntoDeserializer;
 use sqlx::Row;
 
 use super::RunObservation;
@@ -26,7 +27,7 @@ pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservat
     })
 }
 
-pub(super) fn enum_json(value: impl serde::Serialize) -> Result<String, String> {
+pub(super) fn enum_text(value: impl serde::Serialize) -> Result<String, String> {
     serde_json::to_value(value)
         .map_err(db::json_error)?
         .as_str()
@@ -34,10 +35,10 @@ pub(super) fn enum_json(value: impl serde::Serialize) -> Result<String, String> 
         .ok_or("Invalid enum".into())
 }
 
-pub(super) fn optional_enum_json(
+pub(super) fn optional_enum_text(
     value: Option<impl serde::Serialize>,
 ) -> Result<Option<String>, String> {
-    value.map(enum_json).transpose()
+    value.map(enum_text).transpose()
 }
 
 fn parse_enum<T: serde::de::DeserializeOwned>(
@@ -45,7 +46,7 @@ fn parse_enum<T: serde::de::DeserializeOwned>(
     field: &str,
 ) -> Result<T, String> {
     let value: String = row.try_get(field).map_err(db::sql_error)?;
-    serde_json::from_value(serde_json::Value::String(value)).map_err(db::json_error)
+    T::deserialize(value.into_deserializer()).map_err(db::json_error)
 }
 
 fn parse_optional_enum<T: serde::de::DeserializeOwned>(
@@ -54,6 +55,6 @@ fn parse_optional_enum<T: serde::de::DeserializeOwned>(
 ) -> Result<Option<T>, String> {
     let value: Option<String> = row.try_get(field).map_err(db::sql_error)?;
     value
-        .map(|item| serde_json::from_value(serde_json::Value::String(item)).map_err(db::json_error))
+        .map(|item| T::deserialize(item.into_deserializer()).map_err(db::json_error))
         .transpose()
 }

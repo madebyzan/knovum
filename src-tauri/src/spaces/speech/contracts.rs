@@ -21,8 +21,7 @@ pub(crate) struct VoiceSynthesisConfig {
 pub(crate) fn parse_synthesis_config(
     value: &serde_json::Value,
 ) -> Result<VoiceSynthesisConfig, String> {
-    let config: VoiceSynthesisConfig =
-        serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?;
+    let config = VoiceSynthesisConfig::deserialize(value).map_err(crate::spaces::db::json_error)?;
     if !config.speed.is_finite() || !(0.5..=2.0).contains(&config.speed) || config.sample_rate == 0
     {
         return Err("Voice synthesis configuration is invalid".to_owned());
@@ -147,8 +146,10 @@ pub struct SpeechProjectRevision {
     pub project_id: String,
     pub revision: i64,
     pub source_revision: String,
-    pub pronunciation_lexicon: String,
-    pub output_config: String,
+    #[sqlx(json)]
+    pub pronunciation_lexicon: std::collections::BTreeMap<String, String>,
+    #[sqlx(json)]
+    pub output_config: super::project_config::ProjectOutputConfig,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub output_asset_path: Option<String>,

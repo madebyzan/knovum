@@ -1,7 +1,8 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{
-    SpeechProjectOverview, SpeechProjectSnapshot, SpeechSegment, VoiceLibraryRevision,
+    SpeechProjectOverview, SpeechProjectRevision, SpeechProjectSnapshot, SpeechSegment,
+    VoiceLibraryRevision,
 };
 use crate::spaces::db;
 
@@ -64,7 +65,7 @@ pub async fn load_project(
     .await
     .map_err(db::sql_error)?
     .ok_or_else(|| "Speech project no longer exists".to_owned())?;
-    let revision = sqlx::query_as(
+    let revision: SpeechProjectRevision = sqlx::query_as(
         "SELECT id, project_id, revision, source_revision, pronunciation_lexicon, output_config, \
          output_asset_path,output_sha256,output_sample_rate,output_sample_count, \
          created_at FROM spaces_speech_project_revisions WHERE id=?",
@@ -73,6 +74,8 @@ pub async fn load_project(
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
+    revision.output_config.validate(&project.project_type)?;
+    super::text::validate_lexicon(&revision.pronunciation_lexicon)?;
     let segments = load_segments(pool, &project.active_revision_id).await?;
     Ok(SpeechProjectSnapshot {
         project,

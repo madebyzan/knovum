@@ -1,6 +1,5 @@
 import type { DeepReadonly } from "vue";
 
-import type { AudiobookOutputConfig } from "../contracts/generated/AudiobookOutputConfig";
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { ImportedAudiobookScript } from "./audiobook-script";
@@ -21,23 +20,8 @@ export interface AudiobookRoleDraft {
   voiceRevisionId: string;
 }
 export function readAudiobookRevision(snapshot: DeepReadonly<SpeechProjectSnapshot>) {
-  const config = JSON.parse(snapshot.revision.outputConfig) as AudiobookOutputConfig;
-  if (!Array.isArray(config.roles)) throw new Error("Audiobook role bindings are missing");
-  const roleKeys = config.roles.map((role) => role.key);
-  if (
-    config.roles.some(
-      (role) =>
-        typeof role.key !== "string" ||
-        !role.key ||
-        role.key !== role.key.trim() ||
-        [...role.key].length > 120 ||
-        typeof role.voiceRevisionId !== "string" ||
-        !role.voiceRevisionId,
-    ) ||
-    new Set(roleKeys).size !== roleKeys.length
-  ) {
-    throw new Error("Audiobook role bindings are invalid");
-  }
+  const config = snapshot.revision.outputConfig;
+  if (!("chapters" in config)) throw new Error("Audiobook output configuration is required");
   const chapterKeys = config.chapters.map((chapter) => chapter.key);
   const segmentChapterKeys = snapshot.segments.map((segment) => segment.chapterKey);
   const sequence = segmentChapterKeys.filter(

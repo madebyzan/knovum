@@ -6,7 +6,17 @@ pub(crate) fn normalize(value: &str) -> String {
 
 pub(crate) fn parse_lexicon(value: &serde_json::Value) -> Result<Vec<(String, String)>, String> {
     let entries: std::collections::BTreeMap<String, String> =
-        serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?;
+        Deserialize::deserialize(value).map_err(crate::spaces::db::json_error)?;
+    validate_lexicon(&entries)?;
+    let mut entries: Vec<_> = entries.into_iter().collect();
+    // Match the longest source first; replacements are never fed back into the lexicon.
+    entries.sort_by(|(a, _), (b, _)| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+    Ok(entries)
+}
+
+pub(crate) fn validate_lexicon(
+    entries: &std::collections::BTreeMap<String, String>,
+) -> Result<(), String> {
     if entries.len() > 1000
         || entries.iter().any(|(word, pronunciation)| {
             word.trim().is_empty()
@@ -19,10 +29,7 @@ pub(crate) fn parse_lexicon(value: &serde_json::Value) -> Result<Vec<(String, St
     {
         return Err("Pronunciation lexicon entries are invalid".to_owned());
     }
-    let mut entries: Vec<_> = entries.into_iter().collect();
-    // Match the longest source first; replacements are never fed back into the lexicon.
-    entries.sort_by(|(a, _), (b, _)| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
-    Ok(entries)
+    Ok(())
 }
 
 pub(crate) fn apply_lexicon(value: &str, entries: &[(String, String)]) -> String {
@@ -100,3 +107,4 @@ fn push_segment(segments: &mut Vec<String>, current: &mut String) {
     }
     current.clear();
 }
+use serde::Deserialize;

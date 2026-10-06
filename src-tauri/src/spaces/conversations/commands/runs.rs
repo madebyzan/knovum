@@ -11,7 +11,7 @@ pub async fn start_conversation_task(
     request: SubmitConversationTaskRequest,
     updates: tauri::ipc::Channel<ConversationTaskUpdate>,
 ) -> Result<ConversationTaskAccepted, AppError> {
-    let accepted = match request.target.clone() {
+    match request.target.clone() {
         TaskTargetSelection::Model {
             connection_id,
             model_id,
@@ -29,10 +29,9 @@ pub async fn start_conversation_task(
             .await
         }
         TaskTargetSelection::Agent { runtime_kind } => {
-            external_agent::start(app, request, runtime_kind, updates).await
+            Ok(external_agent::start(app, request, runtime_kind, updates).await?)
         }
-    };
-    Ok(accepted?)
+    }
 }
 
 pub(crate) fn cancel_task(run_id: &str) -> Result<(), String> {

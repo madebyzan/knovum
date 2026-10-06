@@ -7,7 +7,7 @@ use super::resolution::{
 };
 use crate::spaces::{
     db,
-    runs::{AttemptClaim, WaitReason},
+    runs::{run_rows::enum_text, AttemptClaim, WaitReason},
 };
 
 mod resumption;
@@ -240,12 +240,4 @@ async fn update_step(
         ));
     }
     Ok(())
-}
-
-fn enum_text(value: impl serde::Serialize) -> Result<String, AppError> {
-    serde_json::to_value(value)
-        .map_err(db::json_error)?
-        .as_str()
-        .map(str::to_owned)
-        .ok_or("Invalid enum".into())
 }

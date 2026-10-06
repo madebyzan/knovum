@@ -55,8 +55,13 @@ pub struct AudiobookCover {
 }
 
 pub(crate) fn parse(value: &serde_json::Value) -> Result<AudiobookOutputConfig, String> {
-    let config: AudiobookOutputConfig =
-        serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?;
+    let config =
+        AudiobookOutputConfig::deserialize(value).map_err(crate::spaces::db::json_error)?;
+    validate(&config)?;
+    Ok(config)
+}
+
+pub(super) fn validate(config: &AudiobookOutputConfig) -> Result<(), String> {
     if !matches!(config.format.as_str(), "wav" | "mp3" | "m4b")
         || !matches!(config.sample_rate, 24_000 | 48_000)
         || !config.loudness_lufs.is_finite()
@@ -98,7 +103,7 @@ pub(crate) fn parse(value: &serde_json::Value) -> Result<AudiobookOutputConfig, 
     }
     validate_chapters(&config.chapters)?;
     validate_roles(&config.roles)?;
-    Ok(config)
+    Ok(())
 }
 
 fn validate_chapters(chapters: &[SpeechChapter]) -> Result<(), String> {

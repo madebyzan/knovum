@@ -65,8 +65,7 @@ pub async fn translate_video_dubbing(
         segments: request.segments.clone(),
     };
     if let Some(existing) = repository::existing_request(&mut tx, &request.job_id).await? {
-        let same = serde_json::to_value(existing).map_err(db::json_error)?
-            == serde_json::to_value(&input).map_err(db::json_error)?;
+        let same = existing == input;
         tx.rollback().await.map_err(db::sql_error)?;
         if !same {
             return Err(
@@ -79,8 +78,7 @@ pub async fn translate_video_dubbing(
         repository::active_for_revision(&mut tx, &request.project_id, request.expected_revision)
             .await?
     {
-        let same = serde_json::to_value(existing).map_err(db::json_error)?
-            == serde_json::to_value(&input).map_err(db::json_error)?;
+        let same = existing == input;
         tx.rollback().await.map_err(db::sql_error)?;
         if same {
             return Ok(crate::spaces::runs::load_run(pool, &run_id).await?);

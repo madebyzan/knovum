@@ -117,4 +117,32 @@ async fn accepts_user_edited_text_on_first_translation_save() {
     )
     .await
     .unwrap();
+    for (pointer, replacement) in [
+        ("/executionTarget/temperature", json!(0.5)),
+        ("/executionTarget/modelId", json!("other-model")),
+        ("/segment/sourceSegmentRevision", json!(2)),
+        ("/segment/text", json!("Different source")),
+    ] {
+        let mut changed = configuration.clone();
+        *changed.pointer_mut(pointer).unwrap() = replacement;
+        sqlx::query("UPDATE spaces_run_steps SET configuration=? WHERE id='step'")
+            .bind(changed.to_string())
+            .execute(&mut *tx)
+            .await
+            .unwrap();
+        assert!(validate_saved_provenance(
+            &mut tx,
+            SaveContext {
+                space_id: "space",
+                project_id: "project",
+                active_revision_id: "base",
+                active_revision: 1,
+                active_output_config: &active_output,
+                requested_output_config: &requested,
+                segments: &segments,
+            },
+        )
+        .await
+        .is_err());
+    }
 }

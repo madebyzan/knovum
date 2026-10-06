@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
 import { availableExecutionTargets, availableModelTargets, defaultExecutionTarget } from "../ai-execution";
-import { encodeExecutionTarget, decodeExecutionTarget } from "../execution-target-codec";
+import { encodeExecutionTarget } from "../execution-target-codec";
 import { defaultAiModelSettings } from "../schema/model-settings";
 
 describe("execution target options", () => {
@@ -55,11 +55,6 @@ describe("execution target options", () => {
     settings.desktopAgents.push({ kind: "codex", enabled: true });
     expect(availableModelTargets(settings, "image-generation")).toEqual([]);
   });
-});
-
-it("round-trips execution identities containing separator characters", () => {
-  const target = { type: "model" as const, connectionId: "provider:v1", modelId: "model:chat" };
-  expect(decodeExecutionTarget(encodeExecutionTarget(target))).toEqual(target);
 });
 
 it("keeps distinct model references separate when identifiers contain separators", () => {

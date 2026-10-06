@@ -43,7 +43,8 @@ const dirty = shallowRef(false);
 const videoHasBackground = computed(
   () =>
     props.project.project.projectType === "video_dubbing" &&
-    Boolean((JSON.parse(props.project.revision.outputConfig) as { background: unknown }).background),
+    "background" in props.project.revision.outputConfig &&
+    Boolean(props.project.revision.outputConfig.background),
 );
 const editorDisabled = computed(() => props.running || props.saving || props.submitting);
 const canGenerate = computed(

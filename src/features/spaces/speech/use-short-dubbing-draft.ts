@@ -27,9 +27,10 @@ export function useShortDubbingDraft(
     () => project().revision.id,
     () => {
       const projectSnapshot = project();
-      wavPrecision.value = (
-        JSON.parse(projectSnapshot.revision.outputConfig) as { wavPrecision: typeof wavPrecision.value }
-      ).wavPrecision;
+      const config = projectSnapshot.revision.outputConfig;
+      if ("chapters" in config || "video" in config)
+        throw new Error("Short dubbing output configuration is required");
+      wavPrecision.value = config.wavPrecision;
       text.value = projectSnapshot.segments.map((segment) => segment.text).join("\n\n");
       voiceRevisionId.value =
         projectSnapshot.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());

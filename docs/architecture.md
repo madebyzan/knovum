@@ -297,6 +297,14 @@ Rename-only wrappers are rejected. `readClipboardText()` around Tauri `readText(
 
 Do not mirror the same state across several stores without an explicit synchronization design.
 
+Speech revision responses expose `outputConfig` as the current `ProjectOutputConfig` union and
+`pronunciationLexicon` as a string map. SQLx decodes their SQLite JSON columns, and the speech
+repository validates configuration against the owning project type and validates lexicon entries
+before returning the response. The renderer consumes these structured contracts directly and
+copies nested configuration only when creating an editable draft. Request admission parses each
+configuration once and reuses it for domain checks and persistence; there are no string-response
+compatibility readers.
+
 `foundation/preferences/preferences-store` serializes preference changes and their native application
 before saving each snapshot. Its `flush` drains admitted changes and saves remaining dirty state;
 new changes are rejected during an application transition. Settings components own save-error presentation.

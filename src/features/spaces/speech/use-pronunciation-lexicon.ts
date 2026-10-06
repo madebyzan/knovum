@@ -7,15 +7,14 @@ export interface PronunciationEntry {
 }
 
 export function usePronunciationLexicon(
-  revision: () => Readonly<{ id: string; pronunciationLexicon: string }>,
+  revision: () => Readonly<{ id: string; pronunciationLexicon: Readonly<Record<string, string>> }>,
 ) {
   const entries = ref<PronunciationEntry[]>([]);
 
   watch(
     () => revision().id,
     () => {
-      const parsed = JSON.parse(revision().pronunciationLexicon) as Record<string, string>;
-      entries.value = Object.entries(parsed).map(([word, pronunciation]) => ({
+      entries.value = Object.entries(revision().pronunciationLexicon).map(([word, pronunciation]) => ({
         id: crypto.randomUUID(),
         word,
         pronunciation,

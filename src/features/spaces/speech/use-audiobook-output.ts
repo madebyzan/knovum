@@ -1,4 +1,5 @@
-import { shallowRef } from "vue";
+import { cloneDeep } from "es-toolkit";
+import { shallowRef, type DeepReadonly } from "vue";
 
 import type { AudiobookMetadata } from "../contracts/generated/AudiobookMetadata";
 import type { AudiobookOutputConfig } from "../contracts/generated/AudiobookOutputConfig";
@@ -13,7 +14,7 @@ export function useAudiobookOutput() {
   const chapterPause = shallowRef("1000");
   const wavPrecision = shallowRef<WavPrecision>("pcm16");
   const metadata = shallowRef<AudiobookMetadata>({ title: "", author: "", narrator: "", cover: null });
-  function load(config: AudiobookOutputConfig) {
+  function load(config: DeepReadonly<AudiobookOutputConfig>) {
     format.value = config.format as "wav" | "mp3" | "m4b";
     sampleRate.value = String(config.sampleRate) as "24000" | "48000";
     loudness.value = String(config.loudnessLufs);
@@ -21,7 +22,7 @@ export function useAudiobookOutput() {
     paragraphPause.value = String(config.paragraphPauseMs);
     chapterPause.value = String(config.chapterPauseMs);
     wavPrecision.value = config.wavPrecision;
-    metadata.value = structuredClone(config.metadata);
+    metadata.value = cloneDeep(config.metadata);
   }
   function value() {
     return {

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::ai::contracts::ProviderKind;
 use crate::app_error::{AppError, AppResult};
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ts_rs::TS)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",

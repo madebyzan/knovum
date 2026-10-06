@@ -80,7 +80,7 @@ pub(super) async fn start(
     }
     let output_config: serde_json::Value =
         serde_json::from_str(&output_config).map_err(db::json_error)?;
-    super::project_config::validate(&project_type, &output_config)?;
+    let config = super::project_config::parse(&project_type, &output_config)?;
     let segments = sqlx::query(
         "SELECT id,ordinal,chapter_key,speaker_key,voice_revision_id FROM spaces_speech_segments \
          WHERE project_revision_id=? ORDER BY ordinal",
@@ -92,9 +92,8 @@ pub(super) async fn start(
     if segments.is_empty() {
         return Err("Speech project has no segments to generate".into());
     }
-    if project_type == "audiobook" {
-        let config = super::project_config::parse_audiobook(&output_config)?;
-        validate_audiobook_segments(&config, &segments)?;
+    if let super::project_config::ProjectOutputConfig::Audiobook(config) = &config {
+        validate_audiobook_segments(config, &segments)?;
     }
     create(
         &mut tx,

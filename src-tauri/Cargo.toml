@@ -70,6 +70,7 @@ pdf-inspector = { version = "=1.20.0", default-features = false }
 
 serde_json = "1"
 sqlx = { version = "0.8.6", default-features = false, features = [
+  "json",
   "macros",
   "migrate",
   "sqlite",
