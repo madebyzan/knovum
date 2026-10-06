@@ -1,6 +1,6 @@
 {
   "ai": {
-    "title": "AI 辅助",
+    "title": "AI 写作",
     "selectText": "请先选中文本内容。",
     "failed": "AI 生成失败",
     "applyFailed": "应用 AI 结果失败",

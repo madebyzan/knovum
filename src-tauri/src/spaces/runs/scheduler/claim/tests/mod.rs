@@ -174,7 +174,7 @@ async fn insert_run(
     sqlx::query(
         "INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,
          state,policy_snapshot,input_snapshot,budget,pause_requested_at,created_at,updated_at)
-         VALUES($1,'space',$2,'assistant','principal',$3,$4,'{}','{}',$5,$6,1,1)",
+         VALUES($1,'space',$2,'builtin_agent','principal',$3,$4,'{}','{}',$5,$6,1,1)",
     )
     .bind(id)
     .bind(parent)
@@ -233,7 +233,7 @@ async fn blocked_child_does_not_starve_an_unrelated_run_and_successful_claim_ann
 #[tokio::test]
 async fn previously_accepted_child_can_drain_after_parent_failure() {
     let pool = fixture().await;
-    insert_run(&pool, "parent", None, "assistant", "failed", "{}", None).await;
+    insert_run(&pool, "parent", None, "builtin_agent", "failed", "{}", None).await;
     sqlx::query("UPDATE spaces_runs SET completed_at=2 WHERE id='parent'")
         .execute(&pool)
         .await

@@ -36,11 +36,11 @@ function fixture(context) {
   const save = () => writeFileSync(path, JSON.stringify(descriptor));
   save();
   copyFileSync(path, join(publication, "runtime-descriptor.json"));
-  const assistantPublication = join(repository, "runtime-artifacts/assistant/windows-x64");
-  mkdirSync(assistantPublication, { recursive: true });
-  const assistantDescriptor = JSON.stringify({ ...descriptor, profile: "assistant" });
-  writeFileSync(join(resources, "python-assistant-descriptor.json"), assistantDescriptor);
-  writeFileSync(join(assistantPublication, "runtime-descriptor.json"), assistantDescriptor);
+  const agentPublication = join(repository, "runtime-artifacts/agent/windows-x64");
+  mkdirSync(agentPublication, { recursive: true });
+  const agentDescriptor = JSON.stringify({ ...descriptor, profile: "agent" });
+  writeFileSync(join(resources, "python-agent-descriptor.json"), agentDescriptor);
+  writeFileSync(join(agentPublication, "runtime-descriptor.json"), agentDescriptor);
   return {
     repository,
     resources,
@@ -115,9 +115,9 @@ test("Worker changes have their own identity without changing the runtime descri
   );
 });
 
-test("an Assistant descriptor cannot replace the inference descriptor", (context) => {
+test("an Agent Runtime descriptor cannot replace the inference descriptor", (context) => {
   const sample = fixture(context);
-  sample.descriptor.profile = "assistant";
+  sample.descriptor.profile = "agent";
   sample.save();
   assert.throws(sample.verify, /Invalid Python runtime descriptor/);
 });

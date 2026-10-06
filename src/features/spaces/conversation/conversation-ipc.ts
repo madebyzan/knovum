@@ -1,49 +1,45 @@
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
-import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
+import type { ActiveConversationRun } from "../contracts/generated/ActiveConversationRun";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import type { ConversationTaskAccepted } from "../contracts/generated/ConversationTaskAccepted";
+import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
+import type { InspectedConversationUpload } from "../contracts/generated/InspectedConversationUpload";
 import type { RunEvent } from "../contracts/generated/RunEvent";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 
-export function listAssistantRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
+export function listConversationRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
   return invokeCommand("plugin:spaces|list_run_events", { runId, afterSequence });
 }
 
-export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {
-  return invokeCommand("plugin:spaces|list_active_assistant_runs", { spaceId });
+export function listActiveConversationRuns(spaceId?: string): Promise<ActiveConversationRun[]> {
+  return invokeCommand("plugin:spaces|list_active_conversation_runs", { spaceId });
 }
 
-export function getAssistantTaskError(runId: string): Promise<string | null> {
-  return invokeCommand("plugin:spaces|get_assistant_task_error", { runId });
+export function getConversationTaskError(runId: string): Promise<string | null> {
+  return invokeCommand("plugin:spaces|get_conversation_task_error", { runId });
 }
 
-export function inspectAssistantUpload(path: string): Promise<InspectedAssistantUpload> {
-  return invokeCommand("plugin:spaces|inspect_assistant_upload", { path });
+export function inspectConversationUpload(path: string): Promise<InspectedConversationUpload> {
+  return invokeCommand("plugin:spaces|inspect_conversation_upload", { path });
 }
 
-export function previewAssistantUpload(path: string): Promise<void> {
-  return invokeCommand("plugin:spaces|preview_assistant_upload", { path });
+export function previewConversationUpload(path: string): Promise<void> {
+  return invokeCommand("plugin:spaces|preview_conversation_upload", { path });
 }
 
-export function listAssistantConversations(
-  spaceId: string,
-  query = "",
-  archived = false,
-): Promise<AssistantConversation[]> {
-  return invokeCommand("plugin:spaces|list_assistant_conversations", { spaceId, query, archived });
+export function listConversations(spaceId: string, query = "", archived = false): Promise<Conversation[]> {
+  return invokeCommand("plugin:spaces|list_conversations", { spaceId, query, archived });
 }
 
-export function listAssistantMessages(
+export function listConversationMessages(
   conversationId: string,
   branchId: string,
-  before?: Pick<AssistantMessage, "createdAt" | "id">,
-): Promise<AssistantMessage[]> {
-  return invokeCommand("plugin:spaces|list_assistant_messages", {
+  before?: Pick<ConversationMessage, "createdAt" | "id">,
+): Promise<ConversationMessage[]> {
+  return invokeCommand("plugin:spaces|list_conversation_messages", {
     conversationId,
     branchId,
     beforeCreatedAt: before?.createdAt,
@@ -52,69 +48,69 @@ export function listAssistantMessages(
   });
 }
 
-export function listAssistantBranches(conversationId: string): Promise<string[]> {
-  return invokeCommand("plugin:spaces|list_assistant_branches", { conversationId });
+export function listConversationBranches(conversationId: string): Promise<string[]> {
+  return invokeCommand("plugin:spaces|list_conversation_branches", { conversationId });
 }
 
-export function activateAssistantBranch(conversationId: string, branchId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|activate_assistant_branch", { conversationId, branchId });
+export function activateConversationBranch(conversationId: string, branchId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|activate_conversation_branch", { conversationId, branchId });
 }
 
-export async function startAssistantTask(
-  request: SubmitAssistantTaskRequest,
-  onUpdate: (update: AssistantTaskUpdate) => void,
-): Promise<{ accepted: AssistantTaskAccepted; settled: Promise<string> }> {
+export async function startConversationTask(
+  request: SubmitConversationTaskRequest,
+  onUpdate: (update: ConversationTaskUpdate) => void,
+): Promise<{ accepted: ConversationTaskAccepted; settled: Promise<string> }> {
   let finish!: (state: string) => void;
   const settled = new Promise<string>((resolve) => (finish = resolve));
-  const updates = new Channel<AssistantTaskUpdate>((update) => {
+  const updates = new Channel<ConversationTaskUpdate>((update) => {
     if (update.type === "finished") finish(update.state);
     else onUpdate(update);
   });
-  const accepted = await invokeCommand<AssistantTaskAccepted>("plugin:spaces|start_assistant_task", {
+  const accepted = await invokeCommand<ConversationTaskAccepted>("plugin:spaces|start_conversation_task", {
     request,
     updates,
   });
   return { accepted, settled };
 }
 
-export function cancelAssistantTask(runId: string): Promise<void> {
+export function cancelConversationTask(runId: string): Promise<void> {
   return invokeCommand("plugin:spaces|cancel_run", { runId });
 }
 
-export function renameAssistantConversation(conversationId: string, title: string): Promise<void> {
-  return invokeCommand("plugin:spaces|rename_assistant_conversation", { conversationId, title });
+export function renameConversation(conversationId: string, title: string): Promise<void> {
+  return invokeCommand("plugin:spaces|rename_conversation", { conversationId, title });
 }
 
-export function archiveAssistantConversation(conversationId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|archive_assistant_conversation", { conversationId });
+export function archiveConversation(conversationId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|archive_conversation", { conversationId });
 }
 
-export function unarchiveAssistantConversation(conversationId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|unarchive_assistant_conversation", { conversationId });
+export function unarchiveConversation(conversationId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|unarchive_conversation", { conversationId });
 }
 
-export function deleteAssistantConversation(conversationId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|delete_assistant_conversation", { conversationId });
+export function deleteConversation(conversationId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|delete_conversation", { conversationId });
 }
 
-export function loadAssistantBranchMessages(conversationId: string, branchId: string): Promise<unknown> {
-  return invokeCommand("plugin:spaces|load_assistant_branch_messages", { conversationId, branchId });
+export function loadConversationBranchMessages(conversationId: string, branchId: string): Promise<unknown> {
+  return invokeCommand("plugin:spaces|load_conversation_branch_messages", { conversationId, branchId });
 }
 
-interface BranchAssistantConversationInput {
+interface BranchConversationInput {
   conversationId: string;
   sourceBranchId: string;
   throughMessageId: string;
   includeBoundary?: boolean;
 }
 
-export function branchAssistantConversation({
+export function branchConversation({
   conversationId,
   sourceBranchId,
   throughMessageId,
   includeBoundary = true,
-}: BranchAssistantConversationInput): Promise<string> {
-  return invokeCommand("plugin:spaces|branch_assistant_conversation", {
+}: BranchConversationInput): Promise<string> {
+  return invokeCommand("plugin:spaces|branch_conversation", {
     conversationId,
     sourceBranchId,
     throughMessageId,

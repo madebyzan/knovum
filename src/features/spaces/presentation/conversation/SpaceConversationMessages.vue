@@ -3,7 +3,7 @@ import { AlertCircle } from "@lucide/vue";
 import { computed, nextTick, watch, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
+import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";
 import SpaceConversationActivity from "./SpaceConversationActivity.vue";
@@ -12,7 +12,7 @@ import SpaceConversationMessage from "./SpaceConversationMessage.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
-  messages: readonly AssistantMessage[];
+  messages: readonly ConversationMessage[];
   eventsByRun: Readonly<Record<string, RunEvent[]>>;
   activeRunId?: string | undefined;
   busy: boolean;
@@ -27,8 +27,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   loadOlder: [];
-  branch: [message: AssistantMessage];
-  regenerate: [message: AssistantMessage];
+  branch: [message: ConversationMessage];
+  regenerate: [message: ConversationMessage];
   scrollPosition: [key: string, top: number];
   suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
@@ -95,7 +95,7 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
   <div class="flex h-full min-h-0 flex-col">
     <div v-if="hasOlder" class="shrink-0 p-2 text-center">
       <UiButton size="sm" variant="ghost" :disabled="loadingOlder" @click="loadOlder">
-        {{ $t("spaces.assistant.messages.loadOlder") }}
+        {{ $t("spaces.conversation.messages.loadOlder") }}
       </UiButton>
     </div>
     <div
@@ -145,7 +145,9 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
         <SpaceConversationShimmerText>
           {{
             $t(
-              preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.activity.generating",
+              preparing
+                ? "spaces.conversation.conversations.preparing"
+                : "spaces.conversation.activity.generating",
             )
           }}
         </SpaceConversationShimmerText>
@@ -166,7 +168,7 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       class="mx-auto mb-2"
       @click="scrollToTail"
     >
-      {{ $t("spaces.assistant.messages.new") }}
+      {{ $t("spaces.conversation.messages.new") }}
     </UiButton>
   </div>
 </template>

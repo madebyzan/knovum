@@ -92,13 +92,13 @@ fn committed_contracts_match_rust_sources() {
             "Committed contracts differ from Rust sources in {directory}: {differences:?}; run pnpm contracts:generate"
         );
     }
-    let assistant_values = Path::new("python/src/knovum_assistant/contracts/values.py");
+    let agent_values = Path::new("python/src/knovum_agent_runtime/contracts/values.py");
     assert_eq!(
-        std::fs::read(repository.join(assistant_values))
-            .expect("committed Assistant protocol values"),
-        std::fs::read(temporary.0.join(assistant_values))
-            .expect("generated Assistant protocol values"),
-        "Assistant protocol values differ from Rust sources; run pnpm contracts:generate"
+        std::fs::read(repository.join(agent_values))
+            .expect("committed Agent Runtime protocol values"),
+        std::fs::read(temporary.0.join(agent_values))
+            .expect("generated Agent Runtime protocol values"),
+        "Agent Runtime protocol values differ from Rust sources; run pnpm contracts:generate"
     );
 }
 
@@ -121,8 +121,8 @@ fn contracts_keep_their_capability_owner() {
             .starts_with(spaces));
     }
     assert_eq!(
-        crate::ai::contracts::AgentKind::output_path(),
-        Some(std::path::PathBuf::from("AgentKind.ts"))
+        crate::ai::contracts::ExternalAgentKind::output_path(),
+        Some(std::path::PathBuf::from("ExternalAgentKind.ts"))
     );
 }
 
@@ -136,5 +136,5 @@ fn exported_read_model_files_match_their_type_identity() {
         );
     }
     assert_identity::<crate::spaces::runs::StepObservation>();
-    assert_identity::<crate::spaces::assistant::AssistantConversation>();
+    assert_identity::<crate::spaces::conversations::Conversation>();
 }

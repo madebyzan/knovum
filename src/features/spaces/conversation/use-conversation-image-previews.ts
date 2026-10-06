@@ -1,11 +1,11 @@
 import { readFile } from "@tauri-apps/plugin-fs";
 import { shallowRef, watch, type Ref } from "vue";
 
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 
-type FileAttachment = Extract<AssistantAttachment, { kind: "file" }>;
+type FileAttachment = Extract<ConversationAttachment, { kind: "file" }>;
 
-export const isAssistantImagePath = (path: string) => /\.(png|jpe?g|webp)$/i.test(path);
+export const isConversationImagePath = (path: string) => /\.(png|jpe?g|webp)$/i.test(path);
 const previewKey = ({ path, sourceRevision }: FileAttachment) => `${path}\0${sourceRevision}`;
 
 async function createPreview(path: string) {
@@ -29,7 +29,7 @@ async function createPreview(path: string) {
   }
 }
 
-export function useConversationImagePreviews(attachments: Readonly<Ref<AssistantAttachment[]>>) {
+export function useConversationImagePreviews(attachments: Readonly<Ref<ConversationAttachment[]>>) {
   const previews = shallowRef(new Map<string, string>());
 
   watch(
@@ -38,7 +38,7 @@ export function useConversationImagePreviews(attachments: Readonly<Ref<Assistant
       let active = true;
       onCleanup(() => (active = false));
       const images = items.filter(
-        (item): item is FileAttachment => item.kind === "file" && isAssistantImagePath(item.path),
+        (item): item is FileAttachment => item.kind === "file" && isConversationImagePath(item.path),
       );
       const keys = new Set(images.map(previewKey));
       previews.value = new Map([...previews.value].filter(([key]) => keys.has(key)));

@@ -35,13 +35,13 @@ const matches = computed(() => {
 <template>
   <section class="mt-2 text-caption">
     <p class="text-fg-tertiary">
-      {{ t("spaces.assistant.sources", { count: matches.length }) }}
+      {{ t("spaces.conversation.sources", { count: matches.length }) }}
     </p>
     <p v-if="!parsed.success" class="mt-1 text-fg-danger" role="alert">
-      {{ t("spaces.assistant.activity.invalidResult") }}
+      {{ t("spaces.conversation.activity.invalidResult") }}
     </p>
     <p v-else-if="!matches.length" class="mt-1 text-fg-tertiary">
-      {{ t("spaces.assistant.activity.noSources") }}
+      {{ t("spaces.conversation.activity.noSources") }}
     </p>
     <ul class="mt-2 space-y-1.5">
       <li

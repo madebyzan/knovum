@@ -15,15 +15,15 @@ async fn fixture() -> sqlx::SqlitePool {
         .await
         .unwrap();
     tx.commit().await.unwrap();
-    sqlx::query("INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent','ask',1,1,'conversation')")
+    sqlx::query("INSERT INTO spaces_conversations(id,space_id,title,mode,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent','ask',1,1,'conversation')")
             .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','external_agent','session','external_agent','running','{}','{\"attachments\":[]}','{}',1,1)")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,runtime_kind,title,state,created_at,updated_at,assistant_conversation_id,branch_id) VALUES('session','run','space','codex','Agent','connected',1,1,'conversation','conversation')")
+    sqlx::query("INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,runtime_kind,title,state,created_at,updated_at,conversation_id,branch_id) VALUES('session','run','space','codex','Agent','connected',1,1,'conversation','conversation')")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_assistant_messages(id,conversation_id,branch_id,role,content,created_at) VALUES('reply','conversation','conversation','assistant','{\"parts\":[{\"type\":\"text\",\"text\":\"\"}],\"runId\":\"run\"}',1)")
+    sqlx::query("INSERT INTO spaces_conversation_messages(id,conversation_id,branch_id,role,content,created_at) VALUES('reply','conversation','conversation','assistant','{\"parts\":[{\"type\":\"text\",\"text\":\"\"}],\"runId\":\"run\"}',1)")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_external_agent_turns(id,conversation_id,state,created_at,completed_at,assistant_message_id) VALUES('turn','session','completed',1,2,'reply')")
+    sqlx::query("INSERT INTO spaces_external_agent_turns(id,conversation_id,state,created_at,completed_at,message_id) VALUES('turn','session','completed',1,2,'reply')")
             .execute(&pool).await.unwrap();
     pool
 }
@@ -59,7 +59,7 @@ async fn publishes_nodes_message_and_run_in_one_commit() {
     .unwrap();
     let result: (String, String, String, i64) = sqlx::query_as(
         "SELECT r.state,m.content,n.kind,e.revision FROM spaces_runs r
-             JOIN spaces_assistant_messages m ON m.id='reply'
+             JOIN spaces_conversation_messages m ON m.id='reply'
              JOIN spaces_nodes n ON n.id='report'
              JOIN spaces_edit_state e ON e.space_id='space' WHERE r.id='run'",
     )
@@ -114,7 +114,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
         &mut tx,
         "space",
         std::slice::from_ref(&node),
-        knowledge::events::EventActor::new("agent", Some("session")),
+        knowledge::events::EventActor::new("external_agent", Some("session")),
         2,
         None,
     )
@@ -132,7 +132,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
         .await
         .unwrap();
     let content: String =
-        sqlx::query_scalar("SELECT content FROM spaces_assistant_messages WHERE id='reply'")
+        sqlx::query_scalar("SELECT content FROM spaces_conversation_messages WHERE id='reply'")
             .fetch_one(&pool)
             .await
             .unwrap();

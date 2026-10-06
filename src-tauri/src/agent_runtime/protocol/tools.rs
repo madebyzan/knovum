@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::{control::AssistantExecutionIdentity, messages::AssistantContentPart};
+use super::{control::AgentExecutionIdentity, messages::AgentContentPart};
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct AssistantToolDefinition {
+pub(crate) struct AgentToolDefinition {
     pub(crate) name: String,
     pub(crate) description: String,
     pub(crate) parameters: Value,
@@ -14,8 +14,8 @@ pub(crate) struct AssistantToolDefinition {
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct AssistantToolInvocation {
-    pub(crate) identity: AssistantExecutionIdentity,
+pub(crate) struct AgentToolInvocation {
+    pub(crate) identity: AgentExecutionIdentity,
     pub(crate) graph_namespace: String,
     pub(crate) checkpoint_id: String,
     pub(crate) message_id: String,
@@ -31,10 +31,10 @@ pub(crate) struct AssistantToolInvocation {
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
-pub(crate) enum AssistantToolOutcome {
+pub(crate) enum AgentToolOutcome {
     Completed {
         value: Value,
-        media: Vec<AssistantContentPart>,
+        media: Vec<AgentContentPart>,
     },
     AwaitChild {
         run_id: String,
@@ -43,9 +43,9 @@ pub(crate) enum AssistantToolOutcome {
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct AssistantToolAdmission {
+pub(crate) struct AgentToolAdmission {
     pub(crate) sibling_tools: Vec<String>,
-    pub(crate) identity: AssistantExecutionIdentity,
+    pub(crate) identity: AgentExecutionIdentity,
     pub(crate) graph_namespace: String,
     pub(crate) message_id: String,
     pub(crate) tool_call_id: String,

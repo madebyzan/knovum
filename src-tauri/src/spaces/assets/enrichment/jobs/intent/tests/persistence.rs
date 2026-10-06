@@ -114,14 +114,14 @@ async fn current_schema_rejects_both_obsolete_visual_job_names() {
 
 #[tokio::test]
 async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart() {
-    use crate::ai::{contracts::AgentKind, tasks::TaskTargetSelection};
+    use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
     let data = json!({"kind":"image","title":"Image","sourceRevision":"asset-1"});
     let pool = fixture(&data).await;
     let first = TaskTargetSelection::Agent {
-        runtime_kind: AgentKind::Codex,
+        runtime_kind: ExternalAgentKind::Codex,
     };
     let next = TaskTargetSelection::Agent {
-        runtime_kind: AgentKind::QoderCli,
+        runtime_kind: ExternalAgentKind::QoderCli,
     };
     let mut tx = pool.begin().await.unwrap();
     synchronize_for_node(&mut tx, "space", "node", &data, 2, Some(&first))

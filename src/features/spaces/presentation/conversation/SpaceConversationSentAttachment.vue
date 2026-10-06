@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { File, FileImage, Link2 } from "@lucide/vue";
 
-import type { AssistantMessageAttachment } from "../../contracts/generated/AssistantMessageAttachment";
+import type { ConversationMessageAttachment } from "../../contracts/generated/ConversationMessageAttachment";
 import { useSpaceStore } from "../../session/space-store";
 
-const props = defineProps<{ attachment: AssistantMessageAttachment }>();
+const props = defineProps<{ attachment: ConversationMessageAttachment }>();
 const store = useSpaceStore();
 
 function openSource() {

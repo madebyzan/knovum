@@ -74,7 +74,7 @@ export function useSourcePeek() {
           title: target.nodeTitle,
           location: knowledgeLocationLabel(target.locator),
         }),
-        rationale: t("spaces.assistant.evidence.sourceRationale"),
+        rationale: t("spaces.conversation.evidence.sourceRationale"),
       });
     } catch (error) {
       toast.error(getErrorMessage(error));

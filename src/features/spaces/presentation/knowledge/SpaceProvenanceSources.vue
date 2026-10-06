@@ -108,7 +108,7 @@ function openSource(source: (typeof sources.value)[number]) {
       </h5>
       <UiIconButton
         v-if="attachable"
-        :label="t('spaces.assistant.evidence.useCurrent')"
+        :label="t('spaces.conversation.evidence.useCurrent')"
         tooltip
         size="sm"
         :disabled="mutating"
@@ -150,7 +150,7 @@ function openSource(source: (typeof sources.value)[number]) {
         </button>
         <UiIconButton
           v-if="removable && source.record.status === 'active'"
-          :label="t('spaces.assistant.evidence.remove')"
+          :label="t('spaces.conversation.evidence.remove')"
           size="sm"
           :disabled="mutating"
           @click="remove(source.record.id)"

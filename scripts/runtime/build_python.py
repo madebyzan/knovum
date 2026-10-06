@@ -125,7 +125,7 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
             "interpreterSource": source,
             "uvVersion": actual_uv,
             "dependencyLockSha256": digest(
-                (PROJECT if profile == "inference" else PROJECT / "runtimes/assistant") / "uv.lock"
+                (PROJECT if profile == "inference" else PROJECT / "runtimes/agent") / "uv.lock"
             ),
             "appCommit": run("git", "rev-parse", "HEAD", cwd=REPOSITORY, capture=True),
             "relocationVerified": True,
@@ -173,7 +173,7 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("inference", "assistant"), required=True)
+    parser.add_argument("--profile", choices=("inference", "agent"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--signing", choices=("adhoc", "unsigned", "production"), required=True)
     parser.add_argument("--global-archive-url", required=True, help="Immutable global HTTPS location of the archive")

@@ -37,7 +37,7 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
             maps.field(payload, "targetId", target)?;
         }
     }
-    for row in array_mut(value, "assistantMessages")? {
+    for row in array_mut(value, "conversationMessages")? {
         if let Some(citations) = row.get_mut("content").and_then(|v| v.get_mut("citations")) {
             remap_citations(citations, maps, &revisions)?;
         }
@@ -113,7 +113,7 @@ pub(super) fn validate_source(value: &Value) -> Result<(), String> {
         .iter()
         .map(|node| Ok((string(node, "id")?, &node["data"]["knowledgeRevision"])))
         .collect::<Result<HashMap<_, _>, String>>()?;
-    for message in array(value, "assistantMessages")? {
+    for message in array(value, "conversationMessages")? {
         if let Some(citations) = message
             .get("content")
             .and_then(|content| content.get("citations"))

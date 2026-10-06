@@ -1,21 +1,21 @@
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMode } from "../contracts/generated/AssistantMode";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
+import type { ConversationMode } from "../contracts/generated/ConversationMode";
+import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 
 interface ConversationTaskRequestInput {
-  mode: AssistantMode;
+  mode: ConversationMode;
   spaceId: string | undefined;
-  conversation: AssistantConversation | undefined;
+  conversation: Conversation | undefined;
   prompt: string;
   target: TaskTargetRef | undefined;
-  attachments: AssistantAttachment[];
+  attachments: ConversationAttachment[];
 }
 
 export function conversationTaskRequest(
   input: ConversationTaskRequestInput,
-): SubmitAssistantTaskRequest | undefined {
+): SubmitConversationTaskRequest | undefined {
   const text = input.prompt.trim();
   if (!input.spaceId || !input.target || !text) return;
   return {

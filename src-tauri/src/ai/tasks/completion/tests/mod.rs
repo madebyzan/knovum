@@ -1,6 +1,6 @@
 use super::*;
 use crate::ai::{
-    contracts::{AgentKind, ExecutionCapability},
+    contracts::{ExecutionCapability, ExternalAgentKind},
     settings,
     tasks::TaskTargetSelection,
 };
@@ -58,7 +58,7 @@ impl TaskExecutor for ExecutorSpy {
     }
     async fn agent(
         &self,
-        kind: AgentKind,
+        kind: ExternalAgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
     ) -> AppResult<TaskCompletionOutput> {
@@ -83,7 +83,7 @@ pub(crate) fn agent_target(capability: ExecutionCapability) -> TaskExecutionTarg
     settings::resolve_task_settings(
         settings,
         TaskTargetSelection::Agent {
-            runtime_kind: AgentKind::Codex,
+            runtime_kind: ExternalAgentKind::Codex,
         },
         capability,
     )

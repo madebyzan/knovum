@@ -1,13 +1,12 @@
 use serde::Deserialize;
 
 use super::{
-    PackageAssistantConversation, PackageAssistantMessage, PackageChunk, PackageDerivation,
-    PackageEvent, PackageExternalAgentConversation, PackageExternalAgentTurn, PackageNode,
-    PackageObjectType, PackageProvenance, PackageRelation, PackageRun, PackageRunAttempt,
-    PackageRunEvent, PackageRunStep, PackageScene, PackageSpace, PackageSpeechProject,
-    PackageSpeechProjectRevision, PackageSpeechRender, PackageSpeechSegment,
-    PackageSpeechSourceSeparation, PackageVoiceCandidate, PackageVoiceProfile,
-    PackageVoiceRevision,
+    PackageChunk, PackageConversation, PackageConversationMessage, PackageDerivation, PackageEvent,
+    PackageExternalAgentConversation, PackageExternalAgentTurn, PackageNode, PackageObjectType,
+    PackageProvenance, PackageRelation, PackageRun, PackageRunAttempt, PackageRunEvent,
+    PackageRunStep, PackageScene, PackageSpace, PackageSpeechProject, PackageSpeechProjectRevision,
+    PackageSpeechRender, PackageSpeechSegment, PackageSpeechSourceSeparation,
+    PackageVoiceCandidate, PackageVoiceProfile, PackageVoiceRevision,
 };
 
 #[derive(Debug, Deserialize)]
@@ -28,8 +27,8 @@ pub struct RestorePackageRequest {
     pub run_events: Vec<PackageRunEvent>,
     pub external_agent_conversations: Vec<PackageExternalAgentConversation>,
     pub external_agent_turns: Vec<PackageExternalAgentTurn>,
-    pub assistant_conversations: Vec<PackageAssistantConversation>,
-    pub assistant_messages: Vec<PackageAssistantMessage>,
+    pub conversations: Vec<PackageConversation>,
+    pub conversation_messages: Vec<PackageConversationMessage>,
     pub voice_profiles: Vec<PackageVoiceProfile>,
     pub voice_revisions: Vec<PackageVoiceRevision>,
     pub voice_candidates: Vec<PackageVoiceCandidate>,

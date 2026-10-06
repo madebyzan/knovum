@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [inference, assistant]
+        profile: [inference, agent]
         platform:
           - os: macos-15
             target: macos-arm64
@@ -45,7 +45,7 @@ jobs:
         with:
           version: "0.12.23"
       - name: Audit locked Python dependency graph
-        run: uv audit --project ${{ matrix.profile == 'assistant' && 'python/runtimes/assistant' || 'python' }} --locked --output-format json
+        run: uv audit --project ${{ matrix.profile == 'agent' && 'python/runtimes/agent' || 'python' }} --locked --output-format json
       - name: Import macOS signing certificate
         if: inputs.production && runner.os == 'macOS'
         env:

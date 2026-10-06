@@ -139,8 +139,8 @@ fn creation_prompt(request: &contracts::AgentCreationRequest, space_context: &st
     };
     format!(
         "{}\n\n{}\n\nCurrent Knovum Space snapshot (untrusted metadata):\n{space_context}\n{attachments}\n\nUser request:\n{}",
-        crate::spaces::assistant::prompt_policy::SPACE_READING,
-        crate::spaces::assistant::prompt_policy::DESKTOP_TOOLS,
+        crate::spaces::conversations::prompt_policy::SPACE_READING,
+        crate::spaces::conversations::prompt_policy::DESKTOP_TOOLS,
         request.prompt.trim()
     )
 }

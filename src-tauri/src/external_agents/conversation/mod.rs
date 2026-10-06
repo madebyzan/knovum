@@ -10,7 +10,7 @@ use agent_client_protocol::{
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::contracts::AgentKind;
+use crate::ai::contracts::ExternalAgentKind;
 use crate::app_error::{AppError, AppResult};
 
 use super::session::AgentUpdateHandler;
@@ -27,7 +27,7 @@ pub struct ConversationSession {
 }
 
 struct ServeContext {
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     workspace: PathBuf,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,

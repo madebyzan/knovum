@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { spaceNodePreviewSource } from "../../assets/node-preview-source";
-import type { AssistantMessageOutput } from "../../contracts/generated/AssistantMessageOutput";
+import type { ConversationMessageOutput } from "../../contracts/generated/ConversationMessageOutput";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationSentAttachment from "./SpaceConversationSentAttachment.vue";
 
-defineProps<{ outputs: readonly AssistantMessageOutput[] }>();
+defineProps<{ outputs: readonly ConversationMessageOutput[] }>();
 const space = useSpaceStore();
 
 function thumbnail(nodeId: string) {
@@ -16,7 +16,7 @@ function thumbnail(nodeId: string) {
 <template>
   <div class="max-w-full space-y-2">
     <p class="text-caption-sm font-medium text-fg-secondary">
-      {{ $t("spaces.assistant.outputs.added", { count: outputs.length }) }}
+      {{ $t("spaces.conversation.outputs.added", { count: outputs.length }) }}
     </p>
     <div class="flex max-w-full gap-2 overflow-x-auto pb-1">
       <SpaceConversationSentAttachment

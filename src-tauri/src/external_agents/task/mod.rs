@@ -5,7 +5,7 @@ use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    capabilities::agent_artifacts, contracts::AgentKind, tasks::completion::TaskInput,
+    capabilities::agent_artifacts, contracts::ExternalAgentKind, tasks::completion::TaskInput,
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -35,7 +35,7 @@ fn task_directory(app: &AppHandle) -> AppResult<PathBuf> {
 
 pub(crate) async fn complete(
     app: &AppHandle,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     input: TaskInput,
     cancellation: CancellationToken,
 ) -> AppResult<String> {
@@ -67,7 +67,7 @@ pub(crate) enum ArtifactFormat {
 
 pub(crate) async fn artifact(
     app: &AppHandle,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     instruction: String,
     sources: Vec<PathBuf>,
     format: ArtifactFormat,
@@ -82,7 +82,7 @@ pub(crate) async fn artifact(
 
 async fn delegate(
     app: &AppHandle,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     instruction: String,
     sources: Vec<PathBuf>,
     name: &str,

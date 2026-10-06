@@ -128,7 +128,7 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     .expect("knowledge changes");
 
     let mut tx = pool.begin().await.expect("begin knowledge change");
-    let actor = super::super::events::EventActor::new("agent", Some("agent"));
+    let actor = super::super::events::EventActor::new("external_agent", Some("agent"));
     let error = super::super::change_commit::apply(&mut tx, "space", actor, operations, 20)
         .await
         .expect_err("invalid provenance source must fail");
@@ -223,7 +223,7 @@ async fn change_commit_preserves_actor_identity_across_rows_and_events() {
     .expect("relation actor");
     assert_eq!(
         relation_actor,
-        ("agent".into(), Some("external-session".into()))
+        ("external_agent".into(), Some("external-session".into()))
     );
 
     let provenance_actor = sqlx::query_as::<_, (String, Option<String>)>(
@@ -234,7 +234,7 @@ async fn change_commit_preserves_actor_identity_across_rows_and_events() {
     .expect("provenance actor");
     assert_eq!(
         provenance_actor,
-        ("agent".into(), Some("external-session".into()))
+        ("external_agent".into(), Some("external-session".into()))
     );
 
     let event_actors = sqlx::query_as::<_, (String, Option<String>)>(
@@ -245,7 +245,7 @@ async fn change_commit_preserves_actor_identity_across_rows_and_events() {
     .expect("event actors");
     assert_eq!(
         event_actors,
-        vec![("agent".into(), Some("external-session".into()))]
+        vec![("external_agent".into(), Some("external-session".into()))]
     );
 
     let projected_nodes = sqlx::query_scalar::<_, String>(
@@ -305,9 +305,10 @@ async fn grounded_citation_requires_matching_chunk_revision() {
         "quote": "evidence"
     }]);
     let mut tx = pool.begin().await.expect("begin");
-    let error = super::super::grounding::validate_assistant_citations(&mut tx, "space", &citation)
-        .await
-        .expect_err("citation revision must match canonical chunk");
+    let error =
+        super::super::grounding::validate_conversation_citations(&mut tx, "space", &citation)
+            .await
+            .expect_err("citation revision must match canonical chunk");
     assert!(error.contains("source revision"));
 }
 
@@ -325,7 +326,7 @@ async fn all_spaces_scope_accepts_detached_external_citations() {
         "quote": "external evidence"
     }]);
     let mut tx = pool.begin().await.expect("begin");
-    super::super::grounding::validate_assistant_citations(&mut tx, "space", &citation)
+    super::super::grounding::validate_conversation_citations(&mut tx, "space", &citation)
         .await
         .expect("All-Spaces retrieval may persist detached external snapshots");
 }

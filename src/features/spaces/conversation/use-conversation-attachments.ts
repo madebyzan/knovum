@@ -7,22 +7,22 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
-import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
+import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
-import { chooseAssistantUploads, inspectAssistantUploads } from "./conversation-uploads";
+import { chooseConversationUploads, inspectConversationUploads } from "./conversation-uploads";
 import { previewConversationAttachment } from "./preview-conversation-attachment";
-import { isAssistantImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
+import { isConversationImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
 
 function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t"]) {
   const code = decodeAppError(error)?.code;
   const known: Readonly<Record<string, string>> = {
-    assistant_context_limit: "spaces.assistant.attachments.limit",
-    assistant_upload_size: "spaces.assistant.uploads.sizeError",
-    assistant_upload_unsupported: "spaces.assistant.uploads.typeError",
-    assistant_upload_invalid: "spaces.assistant.uploads.invalidError",
-    assistant_upload_unauthorized: "spaces.assistant.uploads.permissionError",
+    conversation_context_limit: "spaces.conversation.attachments.limit",
+    conversation_upload_size: "spaces.conversation.uploads.sizeError",
+    conversation_upload_unsupported: "spaces.conversation.uploads.typeError",
+    conversation_upload_invalid: "spaces.conversation.uploads.invalidError",
+    conversation_upload_unauthorized: "spaces.conversation.uploads.permissionError",
   };
   const key = code ? known[code] : undefined;
   return key ? t(key) : getErrorMessage(error);
@@ -32,7 +32,7 @@ export function useConversationAttachments() {
   const { t } = useI18n();
   const canvas = getCanvasEditorSession();
   const store = useSpaceStore();
-  const attachments = shallowRef<AssistantAttachment[]>([]);
+  const attachments = shallowRef<ConversationAttachment[]>([]);
   const imagePreview = useConversationImagePreviews(attachments);
   const pickingFiles = shallowRef(false);
   const attachmentError = shallowRef<string>();
@@ -59,7 +59,7 @@ export function useConversationAttachments() {
           key: `file:${attachment.path}`,
           kind: attachment.kind,
           title: basename(attachment.path),
-          isImage: isAssistantImagePath(attachment.path),
+          isImage: isConversationImagePath(attachment.path),
           previewSource: imagePreview(attachment),
         };
       const node = store.nodes.find(({ id }) => id === attachment.nodeId);
@@ -111,7 +111,7 @@ export function useConversationAttachments() {
         });
     }
     if (next.size > 32) {
-      attachmentError.value = t("spaces.assistant.attachments.limit");
+      attachmentError.value = t("spaces.conversation.attachments.limit");
       return;
     }
     attachmentError.value = undefined;
@@ -123,7 +123,7 @@ export function useConversationAttachments() {
     pickingFiles.value = true;
     attachmentError.value = undefined;
     try {
-      const files = await (paths ? inspectAssistantUploads(paths) : chooseAssistantUploads());
+      const files = await (paths ? inspectConversationUploads(paths) : chooseConversationUploads());
       if (!isCurrent()) return;
       const next = new Map(
         attachments.value.map((item) => [
@@ -138,7 +138,7 @@ export function useConversationAttachments() {
           sourceRevision: file.sourceRevision,
         });
       if (next.size > 32) {
-        attachmentError.value = t("spaces.assistant.attachments.limit");
+        attachmentError.value = t("spaces.conversation.attachments.limit");
         return;
       }
       attachments.value = [...next.values()];

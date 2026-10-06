@@ -38,7 +38,7 @@ pub(crate) async fn claim_ready_step(
          WHERE s.state='ready' AND r.state IN ('queued','running')
            AND s.available_at <= $1
            AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL
-         ORDER BY CASE r.kind WHEN 'assistant' THEN 0 WHEN 'action' THEN 1
+         ORDER BY CASE r.kind WHEN 'builtin_agent' THEN 0 WHEN 'action' THEN 1
                   WHEN 'workflow' THEN 2 ELSE 4 END,
                   r.created_at,s.created_at",
     )

@@ -9,9 +9,9 @@ import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-ca
 import { setDesktopAgentEnabled } from "../../../../foundation/ai/execution-settings";
 import { resetAiSettings } from "../../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import type { AgentKind } from "../../../../shared/contracts/generated/AgentKind";
+import type { ExternalAgentKind } from "../../../../shared/contracts/generated/ExternalAgentKind";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
-import AgentAvailability from "../AgentAvailability.vue";
+import ExternalAgentAvailability from "../ExternalAgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SettingsSection from "../SettingsSection.vue";
 
@@ -32,11 +32,12 @@ const failure = computed(() =>
       : undefined,
 );
 
-const installation = (kind: AgentKind) =>
+const installation = (kind: ExternalAgentKind) =>
   installations.value.find((agentInstallation) => agentInstallation.kind === kind);
-const isEnabled = (kind: AgentKind) => settings.value.desktopAgents.some((agent) => agent.kind === kind);
+const isEnabled = (kind: ExternalAgentKind) =>
+  settings.value.desktopAgents.some((agent) => agent.kind === kind);
 
-async function setEnabled(kind: AgentKind, enabled: boolean) {
+async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   if (!ready.value || saving.value) return;
   saving.value = true;
   try {
@@ -92,7 +93,7 @@ onMounted(load);
         <p class="text-caption text-fg-warning">{{ getErrorMessage(catalog.installationError.value) }}</p>
       </div>
       <div class="divide-y divide-stroke-divider">
-        <AgentAvailability
+        <ExternalAgentAvailability
           v-for="agent in agents"
           :key="agent.kind"
           :agent="agent"

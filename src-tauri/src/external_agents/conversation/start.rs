@@ -6,11 +6,11 @@ use tokio_util::sync::CancellationToken;
 
 use super::{requests, serve, ConversationSession, ServeContext};
 use crate::app_error::{AppError, AppResult};
-use crate::{ai::contracts::AgentKind, external_agents::session::AgentUpdateHandler};
+use crate::{ai::contracts::ExternalAgentKind, external_agents::session::AgentUpdateHandler};
 
 pub async fn start(
     id: String,
-    kind: AgentKind,
+    kind: ExternalAgentKind,
     workspace: PathBuf,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,

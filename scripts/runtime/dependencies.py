@@ -32,7 +32,7 @@ def install_dependencies(
     runtime: Path, scratch: Path, executable: Path, repository: Path, profile: str, target: str
 ) -> dict[str, str]:
     shared_project = repository / "python"
-    project = shared_project if profile == "inference" else shared_project / "runtimes/assistant"
+    project = shared_project if profile == "inference" else shared_project / "runtimes/agent"
     environment = dict(os.environ, UV_LINK_MODE="copy", UV_PYTHON_DOWNLOADS="never", PYTHONDONTWRITEBYTECODE="1")
     requirements = scratch / "requirements.txt"
     packages = runtime / "packages"

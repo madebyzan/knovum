@@ -15,11 +15,11 @@ const { t } = useI18n();
 const recoveryMessage = computed(() => {
   switch (props.waitReason) {
     case "model_outcome_unknown":
-      return t("spaces.assistant.tasks.modelOutcomeUnknown");
+      return t("spaces.conversation.tasks.modelOutcomeUnknown");
     case "model_response_uncommitted":
-      return t("spaces.assistant.tasks.modelResponseUncommitted");
+      return t("spaces.conversation.tasks.modelResponseUncommitted");
     case "model_usage_unknown":
-      return t("spaces.assistant.tasks.modelUsageUnknown");
+      return t("spaces.conversation.tasks.modelUsageUnknown");
     default:
       return undefined;
   }
@@ -29,7 +29,7 @@ const recoveryMessage = computed(() => {
 <template>
   <div v-if="canPause" class="flex shrink-0 justify-end px-3 py-2">
     <UiButton size="sm" variant="ghost" @click="emit('pause')">{{
-      t("spaces.assistant.tasks.pause")
+      t("spaces.conversation.tasks.pause")
     }}</UiButton>
   </div>
   <div
@@ -37,21 +37,21 @@ const recoveryMessage = computed(() => {
     class="shrink-0 space-y-2 px-3 py-2 text-caption text-fg-warning"
   >
     <p>{{ recoveryMessage }}</p>
-    <p>{{ t("spaces.assistant.tasks.modelRetryCost") }}</p>
+    <p>{{ t("spaces.conversation.tasks.modelRetryCost") }}</p>
     <UiButton size="sm" variant="secondary" @click="emit('retryModel')">{{
-      t("spaces.assistant.tasks.retryModel")
+      t("spaces.conversation.tasks.retryModel")
     }}</UiButton>
   </div>
   <div
     v-else-if="state === 'paused'"
     class="flex shrink-0 items-center gap-2 px-3 py-2 text-caption text-fg-warning"
   >
-    <span class="min-w-0 flex-1">{{ t("spaces.assistant.tasks.paused") }}</span>
+    <span class="min-w-0 flex-1">{{ t("spaces.conversation.tasks.paused") }}</span>
     <UiButton size="sm" variant="secondary" @click="emit('resume')">{{
-      t("spaces.assistant.tasks.resume")
+      t("spaces.conversation.tasks.resume")
     }}</UiButton>
   </div>
   <p v-else-if="state === 'waiting'" class="shrink-0 px-3 py-2 text-caption text-fg-secondary">
-    {{ t("spaces.assistant.tasks.waitingForResult") }}
+    {{ t("spaces.conversation.tasks.waitingForResult") }}
   </p>
 </template>

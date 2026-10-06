@@ -7,7 +7,7 @@ mod runtime;
 mod staging;
 mod updates;
 
-pub(crate) use contract::{AgentSessionBinding, StartExternalConversationRequest};
+pub(crate) use contract::{ExternalAgentSessionBinding, StartExternalConversationRequest};
 
 pub(crate) fn recover(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -21,16 +21,16 @@ pub(crate) async fn cancel_by_run(app: &tauri::AppHandle, run_id: &str) -> Resul
     lifecycle::cancel_by_run(app, run_id).await
 }
 
-pub(crate) async fn purge_for_assistant(
+pub(crate) async fn purge_for_conversation(
     app: &tauri::AppHandle,
-    assistant_conversation_id: &str,
+    conversation_id: &str,
 ) -> Result<(), String> {
     let pool = crate::spaces::db::pool(app).await?;
     let rows: Vec<(String, String)> = sqlx::query_as(
         "SELECT id,state FROM spaces_external_agent_conversations
-         WHERE assistant_conversation_id=$1",
+         WHERE conversation_id=$1",
     )
-    .bind(assistant_conversation_id)
+    .bind(conversation_id)
     .fetch_all(pool)
     .await
     .map_err(crate::spaces::db::sql_error)?;
@@ -38,7 +38,7 @@ pub(crate) async fn purge_for_assistant(
         .iter()
         .any(|(_, state)| state == "connected" || state == "connecting")
     {
-        return Err("assistant-conversation-busy".into());
+        return Err("conversation-busy".into());
     }
     for (id, _) in rows {
         lifecycle::delete(app, &id).await?;
@@ -46,25 +46,25 @@ pub(crate) async fn purge_for_assistant(
     Ok(())
 }
 
-pub(crate) async fn start_for_assistant(
+pub(crate) async fn start_for_conversation(
     app: tauri::AppHandle,
     request: StartExternalConversationRequest,
     conversation: Option<(String, String)>,
-    updates: tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>,
-) -> Result<AgentSessionBinding, String> {
+    updates: tauri::ipc::Channel<crate::spaces::conversations::ConversationTaskUpdate>,
+) -> Result<ExternalAgentSessionBinding, String> {
     runtime::start(app, request, conversation, Some(updates)).await
 }
 
-pub(crate) async fn begin_turn_for_assistant(
+pub(crate) async fn begin_turn_for_conversation(
     app: tauri::AppHandle,
     session_id: &str,
     prompt: &str,
-    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
+    attachments: &[crate::spaces::conversations::ConversationMessageAttachment],
 ) -> Result<String, String> {
     runtime::begin_turn(app, session_id, prompt, attachments).await
 }
 
-pub(crate) async fn send_for_assistant(
+pub(crate) async fn send_for_conversation(
     app: tauri::AppHandle,
     session_id: &str,
     turn_id: &str,
@@ -73,7 +73,7 @@ pub(crate) async fn send_for_assistant(
     runtime::send_prepared(app, session_id, turn_id, prepared).await
 }
 
-pub(crate) async fn close_for_assistant(
+pub(crate) async fn close_for_conversation(
     app: tauri::AppHandle,
     session_id: &str,
 ) -> Result<(), String> {
@@ -82,7 +82,7 @@ pub(crate) async fn close_for_assistant(
         .map_err(|error| error.to_string())
 }
 
-pub(crate) async fn fail_for_assistant(
+pub(crate) async fn fail_for_conversation(
     app: &tauri::AppHandle,
     session_id: &str,
     run_id: &str,

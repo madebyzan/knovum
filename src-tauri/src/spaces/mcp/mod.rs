@@ -47,8 +47,8 @@ impl rmcp::ServerHandler for SpaceMcpServer {
         ))
         .with_instructions(format!(
             "Current Space: {scope}. {} {}",
-            super::assistant::prompt_policy::SPACE_READING,
-            super::assistant::prompt_policy::DESKTOP_TOOLS
+            super::conversations::prompt_policy::SPACE_READING,
+            super::conversations::prompt_policy::DESKTOP_TOOLS
         ))
     }
 }

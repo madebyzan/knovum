@@ -30,15 +30,15 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
     }
     for row in array_mut(value, "externalAgentConversations")? {
         maps.field(row, "runId", "runs")?;
-        maps.field(row, "assistantConversationId", "assistantConversations")?;
+        maps.field(row, "conversationId", "conversations")?;
     }
     for row in array_mut(value, "externalAgentTurns")? {
         maps.field(row, "conversationId", "externalAgentConversations")?;
-        maps.optional(row, "assistantMessageId", "assistantMessages")?;
+        maps.optional(row, "messageId", "conversationMessages")?;
     }
-    for row in array_mut(value, "assistantMessages")? {
-        maps.field(row, "conversationId", "assistantConversations")?;
-        maps.optional(row, "parentMessageId", "assistantMessages")?;
+    for row in array_mut(value, "conversationMessages")? {
+        maps.field(row, "conversationId", "conversations")?;
+        maps.optional(row, "parentMessageId", "conversationMessages")?;
     }
     Ok(())
 }

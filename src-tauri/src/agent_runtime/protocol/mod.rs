@@ -4,25 +4,25 @@ pub(crate) mod models;
 pub(crate) mod tools;
 
 pub(crate) const PROTOCOL_VERSION: u16 = 1;
-pub(crate) const GRAPH_VERSION: &str = "knovum-assistant-v1/deepagents-0.7.22/langgraph-1.2.13";
+pub(crate) const GRAPH_VERSION: &str = "knovum-agent-v1/deepagents-0.7.22/langgraph-1.2.13";
 
 // Collect the closed wire graph used by the Python contract generator.
 #[allow(dead_code)]
 #[derive(schemars::JsonSchema)]
-pub(crate) struct AssistantWireSchemas {
-    initialize: control::AssistantInitialize,
-    ready: control::AssistantReady,
-    prune_threads: control::AssistantPruneThreads,
-    execute: control::AssistantExecute,
-    execution_result: control::AssistantExecutionResult,
-    control: control::AssistantControl,
-    projection_request: messages::AssistantProjectionRequest,
-    projection: messages::AssistantProjection,
-    delta: messages::AssistantContentDelta,
-    tool_invocation: tools::AssistantToolInvocation,
-    tool_outcome: tools::AssistantToolOutcome,
-    model_admission: models::AssistantModelAdmission,
-    model_completion: models::AssistantModelCompletion,
-    model_failure: models::AssistantModelFailure,
-    tool_admission: tools::AssistantToolAdmission,
+pub(crate) struct AgentWireSchemas {
+    initialize: control::AgentInitialize,
+    ready: control::AgentReady,
+    prune_threads: control::AgentPruneThreads,
+    execute: control::AgentExecute,
+    execution_result: control::AgentExecutionResult,
+    control: control::AgentControl,
+    projection_request: messages::AgentProjectionRequest,
+    projection: messages::AgentProjection,
+    delta: messages::AgentContentDelta,
+    tool_invocation: tools::AgentToolInvocation,
+    tool_outcome: tools::AgentToolOutcome,
+    model_admission: models::AgentModelAdmission,
+    model_completion: models::AgentModelCompletion,
+    model_failure: models::AgentModelFailure,
+    tool_admission: tools::AgentToolAdmission,
 }

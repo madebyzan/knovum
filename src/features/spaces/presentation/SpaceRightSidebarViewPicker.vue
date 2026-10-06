@@ -22,14 +22,14 @@ const currentView = computed(() => {
     case "speech":
       return { label: t("spaces.speech.title"), icon: AudioLines };
     default:
-      return { label: t("spaces.assistant.title"), icon: MessageCircle };
+      return { label: t("spaces.conversation.title"), icon: MessageCircle };
   }
 });
 const views = computed(() => {
   const items = [
     {
       id: "ask",
-      label: t("spaces.assistant.title"),
+      label: t("spaces.conversation.title"),
       icon: MessageCircle,
       checked: store.rightSidebarView === "ask",
       onSelect: () => dock.openAsk(),

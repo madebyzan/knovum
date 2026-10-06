@@ -15,7 +15,7 @@ const foundation = [
   "model-resources",
   "--frozen",
 ];
-const assistant = ["--project", "python/runtimes/assistant", "--group", "quality", "--frozen"];
+const agentRuntime = ["--project", "python/runtimes/agent", "--group", "quality", "--frozen"];
 const checks = [
   [foundation, "ruff", "check", ...configuration, "python/src", "python/tests", "scripts"],
   [foundation, "ruff", "format", ...configuration, "--check", "python/src", "python/tests", "scripts"],
@@ -25,13 +25,13 @@ const checks = [
     "--config-file",
     "python/pyproject.toml",
     "--exclude",
-    "knovum_assistant",
+    "knovum_agent_runtime",
     "python/src",
     "python/tests/acceptance",
     "scripts/runtime",
     "scripts/generate_python_contracts.py",
   ],
-  [assistant, "mypy", "--config-file", "python/pyproject.toml", "python/src/knovum_assistant"],
+  [agentRuntime, "mypy", "--config-file", "python/pyproject.toml", "python/src/knovum_agent_runtime"],
   [
     foundation,
     "pytest",
@@ -39,9 +39,9 @@ const checks = [
     "python/pyproject.toml",
     "python/tests",
     "scripts",
-    "--ignore=python/tests/assistant",
+    "--ignore=python/tests/agent_runtime",
   ],
-  [assistant, "pytest", "-c", "python/pyproject.toml", "python/tests/assistant"],
+  [agentRuntime, "pytest", "-c", "python/pyproject.toml", "python/tests/agent_runtime"],
 ];
 for (const [environment, ...command] of checks) {
   const result = spawnSync("uv", ["run", ...environment, ...command], { stdio: "inherit" });

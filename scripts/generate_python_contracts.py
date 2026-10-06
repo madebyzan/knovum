@@ -68,43 +68,43 @@ CONTRACT_MODULES = {
     "separation": {"SpeechSeparateParams", "SpeechSeparation"},
 }
 
-ASSISTANT_CONTRACT_MODULES = {
+AGENT_RUNTIME_CONTRACT_MODULES = {
     "control": {
-        "AssistantInitialize",
-        "AssistantReady",
-        "AssistantExecutionIdentity",
-        "AssistantExecute",
-        "AssistantControl",
-        "AssistantControlOperation",
-        "AssistantPruneThreads",
-        "AssistantExecutionResult",
-        "AssistantExecutionState",
+        "AgentInitialize",
+        "AgentReady",
+        "AgentExecutionIdentity",
+        "AgentExecute",
+        "AgentControl",
+        "AgentControlOperation",
+        "AgentPruneThreads",
+        "AgentExecutionResult",
+        "AgentExecutionState",
     },
     "messages": {
-        "AssistantContentPart",
-        "AssistantInputMessage",
-        "AssistantInputRole",
-        "AssistantProjectionRequest",
-        "AssistantProjectedMessage",
-        "AssistantProjection",
-        "AssistantContentDelta",
-        "AssistantPlanItem",
-        "AssistantPlanState",
+        "AgentContentPart",
+        "AgentInputMessage",
+        "AgentInputRole",
+        "AgentProjectionRequest",
+        "AgentProjectedMessage",
+        "AgentProjection",
+        "AgentContentDelta",
+        "AgentPlanItem",
+        "AgentPlanState",
     },
     "models": {
         "ChatModelProtocol",
-        "AssistantModelBinding",
-        "AssistantModelPurpose",
-        "AssistantModelAdmission",
-        "AssistantModelCompletion",
-        "AssistantModelFailure",
-        "AssistantModelCheckpoint",
+        "AgentModelBinding",
+        "AgentModelPurpose",
+        "AgentModelAdmission",
+        "AgentModelCompletion",
+        "AgentModelFailure",
+        "AgentModelCheckpoint",
     },
     "tools": {
-        "AssistantToolDefinition",
-        "AssistantToolInvocation",
-        "AssistantToolOutcome",
-        "AssistantToolAdmission",
+        "AgentToolDefinition",
+        "AgentToolInvocation",
+        "AgentToolOutcome",
+        "AgentToolAdmission",
     },
 }
 
@@ -187,7 +187,7 @@ def generate_model_resources() -> None:
 
 def main() -> None:
     generate_owned_contracts("inference", CONTRACT_MODULES, "InferenceWireSchemas")
-    generate_owned_contracts("assistant", ASSISTANT_CONTRACT_MODULES, "AssistantWireSchemas")
+    generate_owned_contracts("agent_runtime", AGENT_RUNTIME_CONTRACT_MODULES, "AgentWireSchemas")
     generate_model_resources()
 
 

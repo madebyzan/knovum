@@ -11,7 +11,7 @@ revision-checked `DocumentSource` containing the separately stored title, Markdo
 citation records. `pulldown-cmark` parses the body once per export into a temporary semantic document.
 The DOCX, PDF, and TXT backends consume that same model.
 
-The local `export-document-as-docx`, `export-document-as-pdf`, `export-document-as-txt` and `render-presentation` Actions share `spaces/derivation/document_formats` and `document_publication`. Canvas, Assistant/MCP and saved workflow steps use the same Action Run. Rust reserves the managed file node, pins one current Markdown resource, renders off the async executor and publishes with cancellation/epoch/source checks. Failed or stale output bytes are removed. Vue submits Action intent and source identity; it neither allocates paths nor serializes bytes. This is format conversion with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
+The local `export-document-as-docx`, `export-document-as-pdf`, `export-document-as-txt` and `render-presentation` Actions share `spaces/derivation/document_formats` and `document_publication`. Canvas, Builtin Agent/MCP and saved workflow steps use the same Action Run. Rust reserves the managed file node, pins one current Markdown resource, renders off the async executor and publishes with cancellation/epoch/source checks. Failed or stale output bytes are removed. Vue submits Action intent and source identity; it neither allocates paths nor serializes bytes. This is format conversion with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
 
 ## Supported subset
 

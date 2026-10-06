@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { AssistantMessageAttachment } from "../../contracts/generated/AssistantMessageAttachment";
+import type { ConversationMessageAttachment } from "../../contracts/generated/ConversationMessageAttachment";
 import SpaceConversationSentAttachment from "./SpaceConversationSentAttachment.vue";
 
-defineProps<{ attachments: readonly AssistantMessageAttachment[] }>();
+defineProps<{ attachments: readonly ConversationMessageAttachment[] }>();
 </script>
 
 <template>

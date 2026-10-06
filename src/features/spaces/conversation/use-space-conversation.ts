@@ -1,9 +1,9 @@
 import { computed, shallowRef, watch, type Ref } from "vue";
 
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import type { AssistantMode } from "../contracts/generated/AssistantMode";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import type { ConversationMode } from "../contracts/generated/ConversationMode";
 import { useSpaceStore } from "../session/space-store";
 import { createConversationSelection } from "./conversation-selection";
 import { useConversationActions } from "./use-conversation-actions";
@@ -19,12 +19,12 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const attachmentSession = useConversationAttachments();
   const { attachments, addNodeAttachments } = attachmentSession;
-  const conversations = shallowRef<AssistantConversation[]>([]);
-  const selectedSnapshot = shallowRef<AssistantConversation>();
-  const messages = shallowRef<AssistantMessage[]>([]);
+  const conversations = shallowRef<Conversation[]>([]);
+  const selectedSnapshot = shallowRef<Conversation>();
+  const messages = shallowRef<ConversationMessage[]>([]);
   const selectedConversationId = shallowRef("");
   const prompt = shallowRef("");
-  const mode = shallowRef<AssistantMode>("execute");
+  const mode = shallowRef<ConversationMode>("execute");
   const target = shallowRef<TaskTargetRef>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);

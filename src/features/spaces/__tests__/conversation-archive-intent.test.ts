@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, shallowRef } from "vue";
 
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import { useConversationActions } from "../conversation/use-conversation-actions";
 
 const ipc = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<void>>() }));
@@ -10,7 +10,7 @@ vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: ipc.in
 vi.mock("@tauri-apps/plugin-dialog", () => ({ save: vi.fn<() => Promise<null>>() }));
 
 function session() {
-  const conversation: AssistantConversation = {
+  const conversation: Conversation = {
     id: "conversation",
     spaceId: "space",
     branchId: "branch",
@@ -21,7 +21,7 @@ function session() {
   const state = {
     selected: computed(() => conversation),
     selectedId: shallowRef(conversation.id),
-    messages: shallowRef<AssistantMessage[]>([]),
+    messages: shallowRef<ConversationMessage[]>([]),
     loading: shallowRef(false),
     prompt: shallowRef(""),
     refresh: vi.fn<() => Promise<void>>().mockResolvedValue(),
@@ -39,7 +39,7 @@ describe("conversation archival intent", () => {
   it("archives and clears the selection only after successful persistence", async () => {
     const { state, actions } = session();
     await actions.archiveSelected();
-    expect(ipc.invoke).toHaveBeenCalledWith("plugin:spaces|archive_assistant_conversation", {
+    expect(ipc.invoke).toHaveBeenCalledWith("plugin:spaces|archive_conversation", {
       conversationId: "conversation",
     });
     expect(state.selectedId.value).toBe("");
@@ -48,7 +48,7 @@ describe("conversation archival intent", () => {
   it("restores an archived conversation using the opposite persistence intent", async () => {
     const { actions } = session();
     await actions.unarchiveSelected();
-    expect(ipc.invoke).toHaveBeenCalledWith("plugin:spaces|unarchive_assistant_conversation", {
+    expect(ipc.invoke).toHaveBeenCalledWith("plugin:spaces|unarchive_conversation", {
       conversationId: "conversation",
     });
   });

@@ -29,7 +29,7 @@ target
 *.sw?
 .pnpm-store
 python/.venv/
-python/runtimes/assistant/.venv/
+python/runtimes/agent/.venv/
 runtime-artifacts/
 .bundled-runtime-stage-*/
 __pycache__/
@@ -44,4 +44,4 @@ design-assets
 
 src-tauri/resources/python-worker/
 src-tauri/resources/python-inference-descriptor.json
-src-tauri/resources/python-assistant-descriptor.json
+src-tauri/resources/python-agent-descriptor.json

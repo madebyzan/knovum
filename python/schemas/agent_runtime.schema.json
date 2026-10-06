@@ -1,0 +1,809 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentWireSchemas",
+  "type": "object",
+  "properties": {
+    "initialize": {
+      "$ref": "#/$defs/AgentInitialize"
+    },
+    "ready": {
+      "$ref": "#/$defs/AgentReady"
+    },
+    "prune_threads": {
+      "$ref": "#/$defs/AgentPruneThreads"
+    },
+    "execute": {
+      "$ref": "#/$defs/AgentExecute"
+    },
+    "execution_result": {
+      "$ref": "#/$defs/AgentExecutionResult"
+    },
+    "control": {
+      "$ref": "#/$defs/AgentControl"
+    },
+    "projection_request": {
+      "$ref": "#/$defs/AgentProjectionRequest"
+    },
+    "projection": {
+      "$ref": "#/$defs/AgentProjection"
+    },
+    "delta": {
+      "$ref": "#/$defs/AgentContentDelta"
+    },
+    "tool_invocation": {
+      "$ref": "#/$defs/AgentToolInvocation"
+    },
+    "tool_outcome": {
+      "$ref": "#/$defs/AgentToolOutcome"
+    },
+    "model_admission": {
+      "$ref": "#/$defs/AgentModelAdmission"
+    },
+    "model_completion": {
+      "$ref": "#/$defs/AgentModelCompletion"
+    },
+    "model_failure": {
+      "$ref": "#/$defs/AgentModelFailure"
+    },
+    "tool_admission": {
+      "$ref": "#/$defs/AgentToolAdmission"
+    }
+  },
+  "required": [
+    "initialize",
+    "ready",
+    "prune_threads",
+    "execute",
+    "execution_result",
+    "control",
+    "projection_request",
+    "projection",
+    "delta",
+    "tool_invocation",
+    "tool_outcome",
+    "model_admission",
+    "model_completion",
+    "model_failure",
+    "tool_admission"
+  ],
+  "$defs": {
+    "AgentInitialize": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "graphVersion": {
+          "type": "string"
+        },
+        "checkpointPath": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "graphVersion",
+        "checkpointPath"
+      ]
+    },
+    "AgentReady": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "graphVersion": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "graphVersion"
+      ]
+    },
+    "AgentPruneThreads": {
+      "type": "object",
+      "properties": {
+        "threadIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "retainedThreadIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "orphanBeforeMs": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "threadIds",
+        "retainedThreadIds",
+        "orphanBeforeMs"
+      ]
+    },
+    "AgentExecute": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "model": {
+          "$ref": "#/$defs/AgentModelBinding"
+        },
+        "systemPrompt": {
+          "type": "string"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentToolDefinition"
+          }
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentInputMessage"
+          }
+        },
+        "inputId": {
+          "type": "string"
+        },
+        "afterCheckpointId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resume": true,
+        "skills": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "memory": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "plan": {
+          "type": "boolean"
+        },
+        "research": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "model",
+        "systemPrompt",
+        "tools",
+        "messages",
+        "inputId",
+        "skills",
+        "memory",
+        "plan",
+        "research"
+      ]
+    },
+    "AgentExecutionIdentity": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        },
+        "executionRevision": {
+          "type": "string"
+        },
+        "controlEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "runId",
+        "threadId",
+        "executionRevision",
+        "controlEpoch"
+      ]
+    },
+    "AgentModelBinding": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/ChatModelProtocol"
+        },
+        "model": {
+          "type": "string"
+        },
+        "baseUrl": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "apiKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "temperature": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "maxInputTokens": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "model",
+        "baseUrl",
+        "maxOutputTokens",
+        "maxInputTokens"
+      ]
+    },
+    "ChatModelProtocol": {
+      "type": "string",
+      "enum": [
+        "open_ai_chat",
+        "open_ai_responses",
+        "anthropic",
+        "gemini",
+        "ollama",
+        "deep_seek",
+        "groq"
+      ]
+    },
+    "AgentToolDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "parameters": true,
+        "readOnly": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "parameters",
+        "readOnly"
+      ]
+    },
+    "AgentInputMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AgentInputRole"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentContentPart"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "content"
+      ]
+    },
+    "AgentInputRole": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "AgentContentPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "text"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mimeType": {
+              "type": "string"
+            },
+            "data": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "image"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "mimeType",
+            "data"
+          ]
+        }
+      ]
+    },
+    "AgentExecutionResult": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "checkpointId": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/AgentExecutionState"
+        },
+        "interrupts": {
+          "type": "array",
+          "items": true
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "checkpointId",
+        "state",
+        "interrupts"
+      ]
+    },
+    "AgentExecutionState": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "interrupted"
+      ]
+    },
+    "AgentControl": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "operation": {
+          "$ref": "#/$defs/AgentControlOperation"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "operation"
+      ]
+    },
+    "AgentControlOperation": {
+      "type": "string",
+      "enum": [
+        "pause",
+        "cancel"
+      ]
+    },
+    "AgentProjectionRequest": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string"
+        },
+        "afterCheckpointId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "threadId"
+      ]
+    },
+    "AgentProjection": {
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string"
+        },
+        "checkpointId": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentProjectedMessage"
+          }
+        },
+        "acceptedInputIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plan": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentPlanItem"
+          }
+        },
+        "modelCheckpoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentModelCheckpoint"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "threadId",
+        "checkpointId",
+        "messages",
+        "acceptedInputIds",
+        "plan",
+        "modelCheckpoints"
+      ]
+    },
+    "AgentProjectedMessage": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "messageId",
+        "text"
+      ]
+    },
+    "AgentPlanItem": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/AgentPlanState"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "content",
+        "state"
+      ]
+    },
+    "AgentPlanState": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed"
+      ]
+    },
+    "AgentModelCheckpoint": {
+      "type": "object",
+      "properties": {
+        "graphNamespace": {
+          "type": "string"
+        },
+        "messageIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requestIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "graphNamespace",
+        "messageIds",
+        "requestIds"
+      ]
+    },
+    "AgentContentDelta": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "messageId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "messageId",
+        "text"
+      ]
+    },
+    "AgentToolInvocation": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "graphNamespace": {
+          "type": "string"
+        },
+        "checkpointId": {
+          "type": "string"
+        },
+        "messageId": {
+          "type": "string"
+        },
+        "toolCallId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "arguments": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "graphNamespace",
+        "checkpointId",
+        "messageId",
+        "toolCallId",
+        "name",
+        "arguments"
+      ]
+    },
+    "AgentToolOutcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "value": true,
+            "media": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AgentContentPart"
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "completed"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "value",
+            "media"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "runId": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "await_child"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "runId"
+          ]
+        }
+      ]
+    },
+    "AgentModelAdmission": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "purpose": {
+          "$ref": "#/$defs/AgentModelPurpose"
+        },
+        "checkpointId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estimatedInputTokens": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "graphNamespace": {
+          "type": "string"
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "requestId",
+        "purpose",
+        "estimatedInputTokens",
+        "graphNamespace",
+        "maxOutputTokens"
+      ]
+    },
+    "AgentModelPurpose": {
+      "type": "string",
+      "enum": [
+        "main",
+        "research",
+        "context_summary"
+      ]
+    },
+    "AgentModelCompletion": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "inputTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "outputTokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "messageId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "requestId"
+      ]
+    },
+    "AgentModelFailure": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "requestId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "requestId"
+      ]
+    },
+    "AgentToolAdmission": {
+      "type": "object",
+      "properties": {
+        "siblingTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "identity": {
+          "$ref": "#/$defs/AgentExecutionIdentity"
+        },
+        "graphNamespace": {
+          "type": "string"
+        },
+        "messageId": {
+          "type": "string"
+        },
+        "toolCallId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "siblingTools",
+        "identity",
+        "graphNamespace",
+        "messageId",
+        "toolCallId",
+        "name"
+      ]
+    }
+  }
+}

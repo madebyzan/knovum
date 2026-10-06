@@ -10,12 +10,12 @@ import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disp
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import type { AssistantMode } from "../../contracts/generated/AssistantMode";
+import type { ConversationMode } from "../../contracts/generated/ConversationMode";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
-const mode = defineModel<AssistantMode>("mode", { required: true });
+const mode = defineModel<ConversationMode>("mode", { required: true });
 const prompt = defineModel<string>({ required: true });
 const target = defineModel<TaskTargetRef | undefined>("target");
 const targetAvailable = ref(false);
@@ -104,7 +104,7 @@ onBeforeUnmount(fileDropListener.dispose);
         class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-panel border-2 border-dashed border-stroke-focus bg-surface-raised/95 text-caption font-medium text-fg-accent"
       >
         <FileUp class="size-4" :stroke-width="1.6" />
-        {{ $t("spaces.assistant.attachments.dropFiles") }}
+        {{ $t("spaces.conversation.attachments.dropFiles") }}
       </div>
       <SpaceConversationAttachmentTray
         :attachments="attachments"
@@ -116,8 +116,8 @@ onBeforeUnmount(fileDropListener.dispose);
         v-model="prompt"
         rows="2"
         class="composer-input block max-h-48 min-h-16 w-full resize-none overflow-y-auto border-0 bg-transparent px-3 py-3 text-body text-fg-primary outline-none placeholder:text-fg-tertiary"
-        :aria-label="$t('spaces.assistant.input.placeholder')"
-        :placeholder="$t('spaces.assistant.input.placeholder')"
+        :aria-label="$t('spaces.conversation.input.placeholder')"
+        :placeholder="$t('spaces.conversation.input.placeholder')"
         @keydown.enter.exact="submit"
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
@@ -134,11 +134,11 @@ onBeforeUnmount(fileDropListener.dispose);
           v-if="target?.type === 'model'"
           v-model="mode"
           :disabled="busy"
-          :label="$t('spaces.assistant.modes.label')"
+          :label="$t('spaces.conversation.modes.label')"
           :options="[
-            { value: 'ask', label: $t('spaces.assistant.modes.ask') },
-            { value: 'plan', label: $t('spaces.assistant.modes.plan') },
-            { value: 'execute', label: $t('spaces.assistant.modes.execute') },
+            { value: 'ask', label: $t('spaces.conversation.modes.ask') },
+            { value: 'plan', label: $t('spaces.conversation.modes.plan') },
+            { value: 'execute', label: $t('spaces.conversation.modes.execute') },
           ]"
           class="w-24 shrink-0"
         />
@@ -147,13 +147,13 @@ onBeforeUnmount(fileDropListener.dispose);
           v-model:available="targetAvailable"
           class="min-w-0 flex-1"
         />
-        <UiIconButton v-if="busy" :label="$t('spaces.assistant.stop')" size="sm" @click="emit('cancel')">
+        <UiIconButton v-if="busy" :label="$t('spaces.conversation.stop')" size="sm" @click="emit('cancel')">
           <CircleStop class="size-3.5" />
         </UiIconButton>
         <UiIconButton
           v-else
-          :label="$t('spaces.assistant.input.send')"
-          :shortcut="$t('spaces.assistant.input.shortcutHint')"
+          :label="$t('spaces.conversation.input.send')"
+          :shortcut="$t('spaces.conversation.input.shortcutHint')"
           size="sm"
           class="bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover hover:text-fg-on-accent disabled:bg-surface-control disabled:text-fg-secondary"
           :disabled="!canSend"

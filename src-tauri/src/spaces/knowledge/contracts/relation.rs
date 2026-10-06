@@ -68,8 +68,8 @@ impl RelationStatus {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RelationActorKind {
     Human,
-    Assistant,
-    Agent,
+    BuiltinAgent,
+    ExternalAgent,
     System,
 }
 
@@ -77,8 +77,8 @@ impl RelationActorKind {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Human => "human",
-            Self::Assistant => "assistant",
-            Self::Agent => "agent",
+            Self::BuiltinAgent => "builtin_agent",
+            Self::ExternalAgent => "external_agent",
             Self::System => "system",
         }
     }

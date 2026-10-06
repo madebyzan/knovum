@@ -34,14 +34,14 @@ pub async fn restore<R: Runtime>(
     validate_nodes(&mut tx, &request).await?;
     derivations::insert(&mut tx, &request).await?;
     runs::insert(&mut tx, &request).await?;
-    assistant::insert(&mut tx, &request).await?;
+    conversations::insert(&mut tx, &request).await?;
     external_conversations::insert(&mut tx, &request).await?;
     speech::insert(&mut tx, &request).await?;
     knowledge::insert_provenance(&mut tx, &request).await?;
     content::insert_chunks(&mut tx, &request).await?;
-    for message in &request.assistant_messages {
+    for message in &request.conversation_messages {
         let citations = serde_json::Value::Array(message.content.citations.clone());
-        crate::spaces::knowledge::grounding::validate_assistant_citations(
+        crate::spaces::knowledge::grounding::validate_conversation_citations(
             &mut tx,
             &request.space.id,
             &citations,
@@ -50,7 +50,7 @@ pub async fn restore<R: Runtime>(
     }
     for derivation in &request.derivations {
         if let Some(document) = &derivation.grounded_document {
-            crate::spaces::knowledge::grounding::validate_assistant_citations(
+            crate::spaces::knowledge::grounding::validate_conversation_citations(
                 &mut tx,
                 &request.space.id,
                 &document.citations,
@@ -79,8 +79,8 @@ async fn insert_structure(
     Ok(())
 }
 
-mod assistant;
 mod content;
+mod conversations;
 mod derivations;
 mod derived_chunks;
 mod external_conversations;

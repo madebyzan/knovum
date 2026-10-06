@@ -23,7 +23,7 @@ fn explicit_override_precedes_the_default_execution_method() {
             .defaults
             .target(crate::ai::contracts::RoutingPurpose::Knowledge),
         Some(crate::ai::tasks::TaskTargetRef::Agent {
-            runtime_kind: crate::ai::contracts::AgentKind::QoderCli
+            runtime_kind: crate::ai::contracts::ExternalAgentKind::QoderCli
         })
     );
     assert_eq!(
@@ -31,7 +31,7 @@ fn explicit_override_precedes_the_default_execution_method() {
             .defaults
             .target(crate::ai::contracts::RoutingPurpose::Writing),
         Some(crate::ai::tasks::TaskTargetRef::Agent {
-            runtime_kind: crate::ai::contracts::AgentKind::Codex
+            runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex
         })
     );
 }
@@ -42,7 +42,7 @@ fn disabled_agent_is_unavailable_and_model_native_capabilities_remain_enforced()
     let error = resolve_task_settings(
         serde_json::from_value(value).unwrap(),
         TaskTargetSelection::Agent {
-            runtime_kind: crate::ai::contracts::AgentKind::Codex,
+            runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
         },
         ExecutionCapability::VisionUnderstanding,
     )

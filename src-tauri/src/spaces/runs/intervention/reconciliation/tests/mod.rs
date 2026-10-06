@@ -62,7 +62,7 @@ async fn fixture() -> sqlx::SqlitePool {
     sqlx::query(
             "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,
              execution_epoch,wait_reason,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-             VALUES('run','space','assistant','principal','action','waiting',4,
+             VALUES('run','space','builtin_agent','principal','action','waiting',4,
              'external_reconciliation','{}','{}','{}',1,1)",
         )
         .execute(&pool)

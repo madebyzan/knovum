@@ -7,13 +7,13 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
-import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
+import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
-const props = defineProps<{ message: AssistantMessage; streamedText?: string; busy: boolean }>();
+const props = defineProps<{ message: ConversationMessage; streamedText?: string; busy: boolean }>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -77,7 +77,7 @@ async function copyMessage() {
       class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption"
     >
       <summary class="cursor-pointer text-fg-secondary select-none">
-        {{ t("spaces.assistant.sources", { count: citations.length }) }}
+        {{ t("spaces.conversation.sources", { count: citations.length }) }}
       </summary>
       <ul class="mt-2 space-y-1.5">
         <li
@@ -105,7 +105,7 @@ async function copyMessage() {
             >{{ citation.index }}. {{ citation.nodeTitle }}</span
           >
           <span v-if="citation.state === 'detached'" class="ml-1 text-fg-tertiary">
-            · {{ t("spaces.assistant.evidence.stale") }}
+            · {{ t("spaces.conversation.evidence.stale") }}
           </span>
           <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-fg-secondary">{{ citation.quote }}</p>
         </li>
@@ -115,20 +115,20 @@ async function copyMessage() {
       {{
         t(
           message.content.status === "stopped"
-            ? "spaces.assistant.response.stopped"
-            : "spaces.assistant.response.incomplete",
+            ? "spaces.conversation.response.stopped"
+            : "spaces.conversation.response.incomplete",
         )
       }}
     </span>
     <p v-if="copyFailed" role="alert" class="text-caption text-fg-danger">
-      {{ t("spaces.assistant.messages.copyFailed") }}
+      {{ t("spaces.conversation.messages.copyFailed") }}
     </p>
     <div
       v-if="message.role === 'assistant' && messageText"
       class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
     >
       <UiIconButton
-        :label="t(copied ? 'spaces.assistant.messages.copied' : 'spaces.assistant.messages.copy')"
+        :label="t(copied ? 'spaces.conversation.messages.copied' : 'spaces.conversation.messages.copy')"
         size="sm"
         @click="copyMessage"
       >
@@ -136,7 +136,7 @@ async function copyMessage() {
         <Copy v-else class="size-3.5" />
       </UiIconButton>
       <UiIconButton
-        :label="t('spaces.assistant.conversations.branch')"
+        :label="t('spaces.conversation.conversations.branch')"
         tooltip
         size="sm"
         :disabled="busy"
@@ -145,7 +145,7 @@ async function copyMessage() {
         <GitBranch class="size-3.5" />
       </UiIconButton>
       <UiIconButton
-        :label="t('spaces.assistant.regenerate')"
+        :label="t('spaces.conversation.regenerate')"
         tooltip
         size="sm"
         :disabled="busy"

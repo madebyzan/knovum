@@ -15,6 +15,6 @@ const { t } = useI18n();
   >
     <ResourceDownloadSettings />
     <PythonRuntimeSettingsField profile="inference" :label="t('settings.ai.pythonRuntimes.inference')" />
-    <PythonRuntimeSettingsField profile="assistant" :label="t('settings.ai.pythonRuntimes.assistant')" />
+    <PythonRuntimeSettingsField profile="agent" :label="t('settings.ai.pythonRuntimes.agent')" />
   </SettingsSection>
 </template>

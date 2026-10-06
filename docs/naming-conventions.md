@@ -2,7 +2,7 @@
 
 ## Knowledge-work execution language
 
-- `SpaceAction` is the only name for a stable business capability shared by UI, Workflow, Assistant
+- `SpaceAction` is the only name for a stable business capability shared by UI, Workflow, Builtin Agent
   and MCP. Do not introduce `KnowledgeAction`, generic `Capability` or `Task` synonyms.
 - `Invocation` identifies one authenticated SpaceAction call; `Receipt` identifies its committed
   result.
@@ -10,8 +10,11 @@
   process.
 - `Workflow` is the only product term for a user-owned published program. Do not use `Pipeline` or
   `Flow` for the same object.
-- `Assistant` means Knovum's built-in collaborator. `Agent Runtime` means its replaceable control
-  mechanism. `External Agent` means an ACP or equivalent external controller.
+- `Conversation` means shared dialogue and history for built-in and external execution.
+- `Builtin Agent` means Knovum's built-in executor. `Agent Runtime` means its graph execution mechanism
+  and process boundary. `External Agent` means an ACP or equivalent external controller.
+- Python uses `knovum_agent_runtime`, runtime profiles use `agent`, and model configuration uses
+  `builtinAgent`. The standard model message role `assistant` retains its protocol spelling.
 - `Authorization` covers principals, scopes, grants and approvals. Content review is a separate
   concept.
 - Space Action IDs use one imperative verb-object phrase (`draft-document`, `generate-video`,
@@ -22,10 +25,10 @@
 
 Do not use `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
 interaction or information: `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
-`AgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
+`ExternalAgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
 to pass review. Collections, table rows and enumeration verbs remain valid inside their actual scope.
 Use `Summary` only for actual summarized content, not an arbitrary reduced DTO; name read models
-after their purpose (`RunObservation`, `AssistantConversation`, `UsageMetrics`).
+after their purpose (`RunObservation`, `Conversation`, `UsageMetrics`).
 
 Avoid `core-*`, `base-*` or `common-*` as catch-all module identities. Name validation boundaries
 (`scalar-schema`, `content-schema`) and place reusable policy in its real owner. Third-party package
@@ -506,7 +509,7 @@ permissions, generated contracts, tests and documentation atomically, without al
 readers. Third-party API and fixed external protocol names remain vendor-owned.
 
 Project-owned types also avoid generic `Entry` and `Record` identities. Name the entity directly
-(`AssistantConversation`, `ArchivedSpace`, `PackageNode`), or the specific information role
+(`Conversation`, `ArchivedSpace`, `PackageNode`), or the specific information role
 (`SpaceNodeProjection`, `EnrichmentJobState`, `ReversibleSpaceChange`, `ArchiveMember`).
 Recording audio, recording history, SQL rows and external archive APIs retain their actual verbs
 and fields. Do not change wire property names merely to remove a word from source identifiers.

@@ -5,21 +5,21 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import {
-  archiveAssistantConversation,
-  unarchiveAssistantConversation,
-  branchAssistantConversation,
-  deleteAssistantConversation,
-  loadAssistantBranchMessages,
-  renameAssistantConversation,
+  archiveConversation,
+  unarchiveConversation,
+  branchConversation,
+  deleteConversation,
+  loadConversationBranchMessages,
+  renameConversation,
 } from "./conversation-ipc";
 
 interface ConversationActionState {
-  selected: ComputedRef<AssistantConversation | undefined>;
+  selected: ComputedRef<Conversation | undefined>;
   selectedId: ShallowRef<string>;
-  messages: ShallowRef<AssistantMessage[]>;
+  messages: ShallowRef<ConversationMessage[]>;
   loading: ShallowRef<boolean>;
   prompt: ShallowRef<string>;
   refresh: () => Promise<void>;
@@ -32,14 +32,14 @@ export function useConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     const nextTitle = title.trim();
     if (!conversation || !nextTitle) return;
-    await renameAssistantConversation(conversation.id, nextTitle);
+    await renameConversation(conversation.id, nextTitle);
     await state.refresh();
   }
 
   async function archiveSelected() {
     const conversation = state.selected.value;
     if (!conversation) return;
-    await archiveAssistantConversation(conversation.id);
+    await archiveConversation(conversation.id);
     clearSelection();
     await state.refresh();
   }
@@ -47,7 +47,7 @@ export function useConversationActions(state: ConversationActionState) {
   async function unarchiveSelected() {
     const conversation = state.selected.value;
     if (!conversation) return;
-    await unarchiveAssistantConversation(conversation.id);
+    await unarchiveConversation(conversation.id);
     clearSelection();
     await state.refresh();
   }
@@ -56,15 +56,15 @@ export function useConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation) return;
     const confirmed = await confirmAction({
-      title: i18n.global.t("spaces.assistant.conversations.delete"),
-      description: i18n.global.t("spaces.assistant.conversations.deleteConfirm", {
+      title: i18n.global.t("spaces.conversation.conversations.delete"),
+      description: i18n.global.t("spaces.conversation.conversations.deleteConfirm", {
         title: conversation.title,
       }),
       confirmLabel: i18n.global.t("common.delete"),
       danger: true,
     });
     if (!confirmed) return;
-    await deleteAssistantConversation(conversation.id);
+    await deleteConversation(conversation.id);
     clearSelection();
     await state.refresh();
   }
@@ -73,7 +73,7 @@ export function useConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation?.branchId) return;
     try {
-      const value = await loadAssistantBranchMessages(conversation.id, conversation.branchId);
+      const value = await loadConversationBranchMessages(conversation.id, conversation.branchId);
       await exportSpaceTextFile({
         defaultPath: `${safeExportFileName(conversation.title) || "conversation"}.json`,
         filters: [{ name: "JSON", extensions: ["json"] }],
@@ -81,34 +81,34 @@ export function useConversationActions(state: ConversationActionState) {
       });
     } catch (cause) {
       toast.error(
-        `${i18n.global.t("spaces.assistant.conversations.exportFailed")}: ${getErrorMessage(cause)}`,
+        `${i18n.global.t("spaces.conversation.conversations.exportFailed")}: ${getErrorMessage(cause)}`,
       );
     }
   }
 
-  async function branchFrom(message: AssistantMessage) {
+  async function branchFrom(message: ConversationMessage) {
     const conversation = state.selected.value;
     if (!conversation?.branchId || state.loading.value) return;
     try {
-      const branchId = await branchAssistantConversation({
+      const branchId = await branchConversation({
         conversationId: conversation.id,
         sourceBranchId: conversation.branchId,
         throughMessageId: message.id,
       });
       await adoptBranch(conversation.id, branchId);
-      toast.success(i18n.global.t("spaces.assistant.conversations.branchCreated"));
+      toast.success(i18n.global.t("spaces.conversation.conversations.branchCreated"));
     } catch (cause) {
       toast.error(getErrorMessage(cause));
     }
   }
 
-  async function regenerate(message: AssistantMessage) {
+  async function regenerate(message: ConversationMessage) {
     const conversation = state.selected.value;
     const index = state.messages.value.findIndex(({ id }) => id === message.id);
     const source = state.messages.value.slice(0, index).findLast(({ role }) => role === "user");
     if (!conversation?.branchId || !source || state.loading.value) return;
     if (source.content.attachments?.length) {
-      toast.error(i18n.global.t("spaces.assistant.conversations.regenerateAttachments"));
+      toast.error(i18n.global.t("spaces.conversation.conversations.regenerateAttachments"));
       return;
     }
     const text = source.content.parts
@@ -116,7 +116,7 @@ export function useConversationActions(state: ConversationActionState) {
       .map((part) => part.text)
       .join("\n");
     try {
-      const branchId = await branchAssistantConversation({
+      const branchId = await branchConversation({
         conversationId: conversation.id,
         sourceBranchId: conversation.branchId,
         throughMessageId: source.id,

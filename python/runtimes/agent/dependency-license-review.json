@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "profile": "agent",
+  "reviewStatus": "required",
+  "targets": {
+    "macos-arm64": null,
+    "windows-x64": null
+  },
+  "dependencyRequirementsSha256": null,
+  "dependencyLockSha256": null
+}

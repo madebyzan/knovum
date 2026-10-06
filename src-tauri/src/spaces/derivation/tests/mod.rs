@@ -15,7 +15,7 @@ fn prepared_document_metadata_accepts_resolved_action_fields() {
 #[tokio::test]
 async fn stale_claim_cannot_adopt_the_current_execution_epoch() {
     let pool = action_pool().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('action','space','assistant','task','action','running',7,'{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('action','space','builtin_agent','task','action','running',7,'{}','{}','{}',1,1)")
         .execute(&pool)
         .await
         .unwrap();
@@ -45,7 +45,7 @@ async fn stale_claim_cannot_adopt_the_current_execution_epoch() {
 #[tokio::test]
 async fn pending_pause_keeps_the_claimed_action_authority_active() {
     let pool = action_pool().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,pause_requested_at,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('paused-action','space','assistant','task','action','running',3,2,'{}','{}','{}',1,2)")
+    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,pause_requested_at,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('paused-action','space','builtin_agent','task','action','running',3,2,'{}','{}','{}',1,2)")
         .execute(&pool)
         .await
         .unwrap();
@@ -76,7 +76,7 @@ async fn answer_with_sources_routes_cancellation_to_its_execution_token() {
 async fn cancellation_before_registry_acquire_still_blocks_generation() {
     let pool = action_pool().await;
     let run_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','assistant','task','action','running',4,'{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','builtin_agent','task','action','running',4,'{}','{}','{}',1,1)")
         .bind(&run_id)
         .execute(&pool)
         .await
@@ -103,7 +103,7 @@ async fn cancelled_authority_cannot_reserve_or_publish() {
         .execute(&pool)
         .await
         .unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('guarded','space','assistant','task','action','running',2,'{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('guarded','space','builtin_agent','task','action','running',2,'{}','{}','{}',1,1)")
         .execute(&pool)
         .await
         .unwrap();

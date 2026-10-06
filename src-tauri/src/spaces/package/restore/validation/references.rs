@@ -13,22 +13,22 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
         "Run attempt",
     )?;
     let conversation_ids = unique_ids(
+        request.conversations.iter().map(|row| row.id.as_str()),
+        "Conversation",
+    )?;
+    let message_ids = unique_ids(
         request
-            .assistant_conversations
+            .conversation_messages
             .iter()
             .map(|row| row.id.as_str()),
-        "Assistant conversation",
-    )?;
-    let assistant_message_ids = unique_ids(
-        request.assistant_messages.iter().map(|row| row.id.as_str()),
-        "Assistant message",
+        "Conversation message",
     )?;
     if request
-        .assistant_conversations
+        .conversations
         .iter()
         .any(|row| row.active_branch_id.is_empty())
     {
-        return Err("Package Assistant active branch must be nonempty".into());
+        return Err("Package Conversation active branch must be nonempty".into());
     }
     let external_conversation_ids = unique_ids(
         request
@@ -73,23 +73,19 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
             require_reference(&attempt_ids, id, "Run event attempt")?
         }
     }
-    for row in &request.assistant_messages {
+    for row in &request.conversation_messages {
         require_reference(
             &conversation_ids,
             &row.conversation_id,
-            "Assistant message conversation",
+            "Conversation message conversation",
         )?;
         if let Some(id) = &row.parent_message_id {
-            require_reference(&assistant_message_ids, id, "Assistant parent message")?;
+            require_reference(&message_ids, id, "Conversation parent message")?;
         }
     }
     for row in &request.external_agent_conversations {
         require_reference(&run_ids, &row.run_id, "external Agent conversation Run")?;
-        require_reference(
-            &conversation_ids,
-            &row.assistant_conversation_id,
-            "Assistant conversation",
-        )?;
+        require_reference(&conversation_ids, &row.conversation_id, "Conversation")?;
     }
     for row in &request.external_agent_turns {
         require_reference(
@@ -97,8 +93,8 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
             &row.conversation_id,
             "external Agent turn conversation",
         )?;
-        if let Some(id) = &row.assistant_message_id {
-            require_reference(&assistant_message_ids, id, "Assistant message")?;
+        if let Some(id) = &row.message_id {
+            require_reference(&message_ids, id, "Conversation message")?;
         }
     }
     Ok(())

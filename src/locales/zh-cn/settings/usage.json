@@ -29,12 +29,12 @@
   },
   "purpose": {
     "title": "按能力分类",
-    "assistant": "内置助理",
     "editor": "写作工具",
     "knowledge": "知识创作",
     "knowledgeIndexing": "知识索引",
     "translation": "翻译",
-    "visualAnalysis": "视觉理解"
+    "visualAnalysis": "视觉理解",
+    "builtinAgent": "内置 Agent"
   },
   "providerReported": "这里汇总已记录的 Token 用量。部分操作没有用量信息，可能未计入总量。"
 }

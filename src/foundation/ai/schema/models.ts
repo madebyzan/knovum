@@ -9,13 +9,13 @@ import {
   chatModelProtocols,
 } from "../../../shared/contracts/generated/contract-values";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import { agentKindSchema } from "./agents";
+import { externalAgentKindSchema } from "./external-agents";
 
 export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
 export const aiRoutingPurposeSchema = z.enum(routingPurposes);
 
-const assistantModelSettingsSchema = z
+const builtinAgentModelSettingsSchema = z
   .object({
     protocol: z.enum(chatModelProtocols),
     contextWindow: z.number().int().min(8192).max(2_000_000),
@@ -23,7 +23,7 @@ const assistantModelSettingsSchema = z
   })
   .strict()
   .refine((profile) => profile.maxOutputTokens < profile.contextWindow, {
-    message: "Assistant output limit must be smaller than its context window",
+    message: "Builtin Agent output limit must be smaller than its context window",
   });
 
 export const aiModelDefinitionSchema = z
@@ -32,7 +32,7 @@ export const aiModelDefinitionSchema = z
     name: z.string().trim().min(1),
     model: z.string().trim().min(1),
     capabilities: z.array(aiCapabilitySchema).min(1),
-    assistant: assistantModelSettingsSchema.nullable().exactOptional(),
+    builtinAgent: builtinAgentModelSettingsSchema.nullable().exactOptional(),
   })
   .strict();
 
@@ -67,7 +67,7 @@ const modelTargetSchema = z
 
 export const executionTargetSchema = z.discriminatedUnion("type", [
   modelTargetSchema,
-  z.object({ type: z.literal("agent"), runtimeKind: agentKindSchema }).strict(),
+  z.object({ type: z.literal("agent"), runtimeKind: externalAgentKindSchema }).strict(),
 ]);
 
 export const executionSourceSchema = z.discriminatedUnion("type", [
@@ -78,7 +78,7 @@ export const executionSourceSchema = z.discriminatedUnion("type", [
       model: z.string().trim().min(1).max(256),
     })
     .strict(),
-  z.object({ type: z.literal("agent"), runtimeKind: agentKindSchema }).strict(),
+  z.object({ type: z.literal("agent"), runtimeKind: externalAgentKindSchema }).strict(),
 ]);
 
 export const aiDefaultsSchema = z

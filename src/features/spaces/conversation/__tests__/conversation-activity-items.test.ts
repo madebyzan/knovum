@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
+import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { conversationActivityItems } from "../conversation-activity-items";
 
@@ -20,7 +20,7 @@ const labels = { action: (actionId: string) => actionId, default: "Tool" };
 
 describe("conversation tool activity", () => {
   it("retains input context when completion only updates status and attaches the tool output", () => {
-    const messages: AssistantMessage[] = [
+    const messages: ConversationMessage[] = [
       {
         id: "message",
         conversationId: "conversation",
@@ -40,11 +40,11 @@ describe("conversation tool activity", () => {
       messages,
       events: [
         event(
-          "assistant_tool_started",
+          "builtin_agent_tool_started",
           { toolCallId: "call", actionId: "search", context: { query: "audio" } },
           1,
         ),
-        event("assistant_tool_finished", { toolCallId: "call" }, 2),
+        event("builtin_agent_tool_finished", { toolCallId: "call" }, 2),
       ],
     });
     expect(items).toEqual([
@@ -90,7 +90,7 @@ describe("conversation tool activity", () => {
         messages: [],
         events: [
           event(
-            "assistant_tool_started",
+            "builtin_agent_tool_started",
             { toolCallId: "call", actionId: "search", detail: { query: "audio" } },
             1,
           ),

@@ -59,17 +59,17 @@ pub fn export(project_root: &Path) -> Result<(), String> {
         &schema_for!(crate::local_resources::models::contracts::DownloadRequest),
     )?;
     write_json(
-        &project_root.join("python/schemas/assistant.schema.json"),
-        &schema_for!(crate::agent_runtime::protocol::AssistantWireSchemas),
+        &project_root.join("python/schemas/agent_runtime.schema.json"),
+        &schema_for!(crate::agent_runtime::protocol::AgentWireSchemas),
     )?;
-    let assistant_values = format!(
+    let agent_values = format!(
         "# Generated from Rust contracts. Do not edit.\nPROTOCOL_VERSION = {}\nGRAPH_VERSION = {:?}\n",
         crate::agent_runtime::protocol::PROTOCOL_VERSION,
         crate::agent_runtime::protocol::GRAPH_VERSION,
     );
-    let assistant_contracts = project_root.join("python/src/knovum_assistant/contracts");
-    std::fs::create_dir_all(&assistant_contracts).map_err(io_error)?;
-    std::fs::write(assistant_contracts.join("values.py"), assistant_values).map_err(io_error)?;
+    let agent_contracts = project_root.join("python/src/knovum_agent_runtime/contracts");
+    std::fs::create_dir_all(&agent_contracts).map_err(io_error)?;
+    std::fs::write(agent_contracts.join("values.py"), agent_values).map_err(io_error)?;
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
     let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);
@@ -145,7 +145,10 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
             "chatModelProtocols",
             schema_for!(crate::ai::contracts::ChatModelProtocol),
         ),
-        ("agentKinds", schema_for!(crate::ai::contracts::AgentKind)),
+        (
+            "externalAgentKinds",
+            schema_for!(crate::ai::contracts::ExternalAgentKind),
+        ),
     ];
     let mut source = String::from("// Generated from Rust contracts. Do not edit.\n");
     for (name, schema) in enums {

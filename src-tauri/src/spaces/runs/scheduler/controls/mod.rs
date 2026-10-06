@@ -205,7 +205,7 @@ pub(super) async fn apply(pool: &SqlitePool) -> Result<bool, String> {
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     let cancelled = sqlx::query("UPDATE spaces_runs SET state='cancelled',state_version=state_version+1,updated_at=$1,completed_at=$1 WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL")
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?.rows_affected();
-    let paused = sqlx::query("UPDATE spaces_runs SET state='paused',state_version=state_version+1,wait_reason=NULL,updated_at=$1 WHERE pause_requested_at IS NOT NULL AND state IN ('queued','running','waiting') AND kind!='assistant' AND NOT EXISTS (SELECT 1 FROM spaces_run_steps WHERE run_id=spaces_runs.id AND state='running')")
+    let paused = sqlx::query("UPDATE spaces_runs SET state='paused',state_version=state_version+1,wait_reason=NULL,updated_at=$1 WHERE pause_requested_at IS NOT NULL AND state IN ('queued','running','waiting') AND kind!='builtin_agent' AND NOT EXISTS (SELECT 1 FROM spaces_run_steps WHERE run_id=spaces_runs.id AND state='running')")
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?.rows_affected();
     tx.commit().await.map_err(db::sql_error)?;
     let changed = cancelled + paused + expired > 0;

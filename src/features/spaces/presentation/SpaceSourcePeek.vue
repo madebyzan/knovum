@@ -59,7 +59,7 @@ const {
         v-bind="sourcePeek.locator.quote?.exact ? { exact: sourcePeek.locator.quote.exact } : {}"
       />
       <p v-else class="text-caption text-fg-tertiary">
-        {{ t("spaces.assistant.sourcePeek.noText") }}
+        {{ t("spaces.conversation.sourcePeek.noText") }}
       </p>
     </div>
 
@@ -67,7 +67,7 @@ const {
       class="flex flex-wrap items-center justify-end gap-1 border-t border-(--knovum-window-border-color) px-2.5 py-2"
     >
       <UiButton size="sm" variant="ghost" @click="extractSource">
-        <FilePlus2 class="size-3" />{{ t("spaces.assistant.evidence.extract") }}
+        <FilePlus2 class="size-3" />{{ t("spaces.conversation.evidence.extract") }}
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="revealSource">
         <LocateFixed class="size-3" />{{ t("spaces.canvas.revealInCanvas") }}
@@ -77,7 +77,7 @@ const {
       </UiButton>
       <template v-if="hasAsset">
         <UiButton v-if="preciseExternal" size="sm" variant="secondary" @click="openSourceAtLocation">
-          {{ t("spaces.assistant.sourcePeek.open") }}
+          {{ t("spaces.conversation.sourcePeek.open") }}
         </UiButton>
         <UiButton size="sm" @click="openSourceExternally">
           <ArrowUpRight class="size-3" />{{ t("spaces.importExport.openExternally") }}

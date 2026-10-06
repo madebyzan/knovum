@@ -61,7 +61,7 @@ async function previewAttachment(key: string) {
       class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
-      {{ $t("spaces.assistant.conversations.returnToRunning") }}
+      {{ $t("spaces.conversation.conversations.returnToRunning") }}
     </button>
     <div class="min-h-0 min-w-0 flex-1">
       <SpaceConversationMessages

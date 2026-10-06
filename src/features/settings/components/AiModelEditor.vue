@@ -5,18 +5,18 @@ import { useI18n } from "vue-i18n";
 
 import { aiModelDefinitionSchema } from "../../../foundation/ai/schema/models";
 import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
-import type { AssistantModelSettings } from "../../../shared/contracts/generated/AssistantModelSettings";
+import type { BuiltinAgentModelSettings } from "../../../shared/contracts/generated/BuiltinAgentModelSettings";
 import type { ChatModelProtocol } from "../../../shared/contracts/generated/ChatModelProtocol";
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import AiModelDefinitionEditor from "./AiModelDefinitionEditor.vue";
-import AssistantModelSettingsEditor from "./AssistantModelSettingsEditor.vue";
+import BuiltinAgentModelSettingsEditor from "./BuiltinAgentModelSettingsEditor.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   connectionName: string;
-  assistantProtocols: readonly ChatModelProtocol[];
+  builtinAgentProtocols: readonly ChatModelProtocol[];
   model?: AiModelDefinition | undefined;
   allowedCapabilities: readonly ExecutionCapability[];
   protected: boolean;
@@ -25,10 +25,10 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ save: [model: AiModelDefinition]; dirty: [value: boolean] }>();
 const { t } = useI18n();
-const draft = reactive<AiModelDefinition & { assistant: AssistantModelSettings | null }>(
+const draft = reactive<AiModelDefinition & { builtinAgent: BuiltinAgentModelSettings | null }>(
   props.model
-    ? cloneDeep({ ...props.model, assistant: props.model.assistant ?? null })
-    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [], assistant: null },
+    ? cloneDeep({ ...props.model, builtinAgent: props.model.builtinAgent ?? null })
+    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [], builtinAgent: null },
 );
 const initial = JSON.stringify(draft);
 const changed = computed(() => JSON.stringify(draft) !== initial);
@@ -52,7 +52,7 @@ function save() {
     name: draft.name.trim(),
     model: draft.model.trim(),
     capabilities: [...draft.capabilities],
-    assistant: draft.assistant ? { ...draft.assistant } : null,
+    builtinAgent: draft.builtinAgent ? { ...draft.builtinAgent } : null,
   });
 }
 </script>
@@ -71,10 +71,10 @@ function save() {
         :show-errors="attempted"
         @update:model-value="Object.assign(draft, $event)"
       />
-      <AssistantModelSettingsEditor
+      <BuiltinAgentModelSettingsEditor
         v-if="draft.capabilities.includes('text-generation')"
-        v-model="draft.assistant"
-        :protocols="assistantProtocols"
+        v-model="draft.builtinAgent"
+        :protocols="builtinAgentProtocols"
         :disabled="busy"
         :show-errors="attempted"
       />

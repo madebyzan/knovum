@@ -26,7 +26,7 @@ pub(super) async fn load_source(pool: &SqlitePool, run_id: &str) -> Result<Sourc
         return Err("run-retry-invalid: only a terminal Run can be retried".into());
     }
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
-    if matches!(kind.as_str(), "assistant" | "external_agent") {
+    if matches!(kind.as_str(), "builtin_agent" | "external_agent") {
         return Err(
             "run-retry-unsupported: conversations must create an explicit new turn or branch"
                 .into(),

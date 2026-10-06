@@ -7,8 +7,8 @@ use super::super::{
     package::{PackageAsset, PACKAGE_VERSION},
 };
 
-mod assistant;
 mod content;
+mod conversations;
 mod decode;
 mod derivations;
 mod external_conversations;
@@ -40,7 +40,7 @@ pub(crate) async fn collect<R: Runtime>(
     let (runs, run_steps, run_attempts, run_events) = runs::load(&mut tx, &space_id).await?;
     let (external_agent_conversations, external_agent_turns) =
         external_conversations::load(&mut tx, &space_id).await?;
-    let (assistant_conversations, assistant_messages) = assistant::load(&mut tx, &space_id).await?;
+    let (conversations, conversation_messages) = conversations::load(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
     let speech = speech::load(&mut tx, &space_id, &mut assets).await?;
     let nodes = content::list_nodes(&mut tx, &space_id, &mut assets).await?;
@@ -85,8 +85,8 @@ pub(crate) async fn collect<R: Runtime>(
         "runEvents": run_events,
         "externalAgentConversations": external_agent_conversations,
         "externalAgentTurns": external_agent_turns,
-        "assistantConversations": assistant_conversations,
-        "assistantMessages": assistant_messages,
+        "conversations": conversations,
+        "conversationMessages": conversation_messages,
         "voiceProfiles": speech.voice_profiles,
         "voiceRevisions": speech.voice_revisions,
         "voiceCandidates": speech.voice_candidates,
