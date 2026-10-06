@@ -44,7 +44,7 @@ async fn checks_inbound_references_and_ignores_unrelated_spaces() {
 #[tokio::test]
 async fn keeps_permanent_deletion_constraints_scoped_to_the_target() {
     let pool = database().await;
-    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('portal','space','portal',0,0,'{\"id\":\"portal\",\"kind\":\"portal\",\"targetSpaceId\":\"space\",\"targetStructureNodeId\":\"group\",\"targetNodeId\":\"node\"}',1,1)")
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('structure-portal','space','portal',0,0,'{\"id\":\"structure-portal\",\"kind\":\"portal\",\"targetSpaceId\":\"space\",\"targetStructureNodeId\":\"group\"}',1,1),('node-portal','space','portal',0,0,'{\"id\":\"node-portal\",\"kind\":\"portal\",\"targetSpaceId\":\"space\",\"targetNodeId\":\"node\"}',1,1)")
         .execute(&pool).await.unwrap();
     let mut tx = db::begin_write(&pool).await.unwrap();
     let ids = std::collections::HashSet::from(["group"]);

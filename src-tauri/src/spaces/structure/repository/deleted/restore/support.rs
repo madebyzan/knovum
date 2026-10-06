@@ -2,7 +2,7 @@ use super::super::RestoredRelation;
 use crate::spaces::db;
 use crate::spaces::structure::{RelationColor, RelationStyle, StructureNode};
 use sqlx::{Row, Sqlite, Transaction};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub(super) async fn load_relations(
     tx: &mut Transaction<'_, Sqlite>,
@@ -92,36 +92,12 @@ pub(crate) async fn remove_tombstones(
     space_id: &str,
     structure: &[StructureNode],
 ) -> Result<(), String> {
-    let by_id: HashMap<&str, &StructureNode> = structure
-        .iter()
-        .map(|structure_node| (structure_node.id(), structure_node))
-        .collect();
-    let mut ordered = structure.iter().collect::<Vec<_>>();
-    ordered.sort_by_key(|structure_node| std::cmp::Reverse(depth(structure_node, &by_id)));
-    for structure_node in ordered {
-        sqlx::query(
-            "DELETE FROM spaces_structure_layouts WHERE space_id=$1 AND structure_node_id=$2",
-        )
-        .bind(space_id)
-        .bind(structure_node.id())
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-        sqlx::query("DELETE FROM spaces_structure_nodes WHERE space_id=$1 AND id=$2 AND deleted_at IS NOT NULL").bind(space_id).bind(structure_node.id()).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
+    // Parent foreign keys are deferred; snapshot publication restores the identities before commit.
+    let ids = serde_json::to_string(&structure.iter().map(StructureNode::id).collect::<Vec<_>>())
+        .map_err(db::json_error)?;
+    sqlx::query("DELETE FROM spaces_structure_layouts WHERE space_id=$1 AND structure_node_id IN (SELECT value FROM json_each($2))")
+        .bind(space_id).bind(&ids).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_structure_nodes WHERE space_id=$1 AND deleted_at IS NOT NULL AND id IN (SELECT value FROM json_each($2))")
+        .bind(space_id).bind(&ids).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
-}
-fn depth<'a>(
-    structure_node: &'a StructureNode,
-    structure: &HashMap<&str, &'a StructureNode>,
-) -> usize {
-    let mut depth = 0;
-    let mut parent = structure_node.parent_id();
-    while let Some(id) = parent {
-        depth += 1;
-        parent = structure
-            .get(id)
-            .and_then(|structure_node| structure_node.parent_id());
-    }
-    depth
 }
