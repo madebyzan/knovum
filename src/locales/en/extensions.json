@@ -58,7 +58,7 @@
   "secretFields": "Secret headers / environment fields",
   "publicClientId": "Registered public client ID (standard registration when empty)",
   "secretFieldNames": "Secret field names (space separated)",
-  "toolPermissionPolicy": "Tools are denied by default. Review read-only classification yourself; server readOnlyHint is only a claim. Ask, Plan and research do not expose external writes.",
+  "toolPermissionPolicy": "Tools are denied by default. Review read-only classification yourself; server readOnlyHint is only a claim. Research exposes reviewed read-only tools only.",
   "policy": "Invocation policy",
   "deny": "Deny",
   "confirm": "Confirm each invocation",

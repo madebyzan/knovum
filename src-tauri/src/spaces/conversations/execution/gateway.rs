@@ -20,8 +20,8 @@ use crate::{
     ai::models::ModelExecutionTarget,
     spaces::{
         conversations::{
-            builtin_agent::identity::TaskIds, tools::ToolCatalog, ConversationMode,
-            ConversationTaskUpdate, StartBuiltinAgentTaskRequest,
+            builtin_agent::identity::TaskIds, tools::ToolCatalog, ConversationTaskUpdate,
+            StartBuiltinAgentTaskRequest,
         },
         db,
     },
@@ -121,7 +121,7 @@ impl Gateway {
     async fn admit_tool(&self, request: AgentToolAdmission) -> Result<Value, String> {
         self.require_identity(&request.identity).await?;
         crate::extensions::snapshots::require_current(&self.app, &self.extensions).await?;
-        self.require_tool(&request.name, &request.graph_namespace)?;
+        require_tool(&self.catalog, &request.name, &request.graph_namespace)?;
         if request.sibling_tools.iter().any(|name| name == "task")
             && self
                 .catalog
@@ -146,32 +146,6 @@ impl Gateway {
             &request.name,
         )
         .await
-    }
-
-    pub(in crate::spaces::conversations) fn require_tool(
-        &self,
-        name: &str,
-        namespace: &str,
-    ) -> Result<(), String> {
-        let research = namespace.contains('|');
-        if let Some(definition) = self.catalog.by_wire_name.get(name) {
-            if research && !definition.read_only {
-                return Err("builtin-agent-research-write-denied".into());
-            }
-            return Ok(());
-        }
-        let allowed = match name {
-            "ls" | "read_file" | "glob" | "grep" | "compact_conversation" => true,
-            "write_file" | "edit_file" => !research,
-            "write_todos" => !research && !matches!(self.request.mode, ConversationMode::Ask),
-            "task" => !research,
-            _ => false,
-        };
-        if allowed {
-            Ok(())
-        } else {
-            Err("builtin-agent-tool-not-allowed".into())
-        }
     }
 
     async fn delta(&self, request: AgentContentDelta) -> Result<Value, String> {
@@ -217,4 +191,28 @@ pub(in crate::spaces::conversations) fn tool_key(
 
 fn decode<T: DeserializeOwned>(value: Value) -> Result<T, String> {
     serde_json::from_value(value).map_err(|_| "builtin-agent-invalid-host-parameters".into())
+}
+
+pub(in crate::spaces::conversations) fn require_tool(
+    catalog: &ToolCatalog,
+    name: &str,
+    namespace: &str,
+) -> Result<(), String> {
+    let research = namespace.contains('|');
+    if let Some(definition) = catalog.by_wire_name.get(name) {
+        if research && !definition.read_only {
+            return Err("builtin-agent-research-write-denied".into());
+        }
+        return Ok(());
+    }
+    let allowed = match name {
+        "ls" | "read_file" | "glob" | "grep" | "compact_conversation" => true,
+        "write_file" | "edit_file" | "write_todos" | "task" => !research,
+        _ => false,
+    };
+    if allowed {
+        Ok(())
+    } else {
+        Err("builtin-agent-tool-not-allowed".into())
+    }
 }

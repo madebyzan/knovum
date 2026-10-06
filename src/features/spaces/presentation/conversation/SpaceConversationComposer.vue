@@ -9,13 +9,10 @@ import { isFileDropInside, listenForFileDrops } from "../../../../foundation/fil
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import type { ConversationMode } from "../../contracts/generated/ConversationMode";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
-const mode = defineModel<ConversationMode>("mode", { required: true });
 const prompt = defineModel<string>({ required: true });
 const target = defineModel<TaskTargetRef | undefined>("target");
 const targetAvailable = ref(false);
@@ -129,18 +126,6 @@ onBeforeUnmount(fileDropListener.dispose);
           @add-selection="emit('addSelection')"
           @add-attachment="emit('addAttachment', $event)"
           @choose-files="emit('chooseFiles')"
-        />
-        <UiSelect
-          v-if="target?.type === 'model'"
-          v-model="mode"
-          :disabled="busy"
-          :label="$t('spaces.conversation.modes.label')"
-          :options="[
-            { value: 'ask', label: $t('spaces.conversation.modes.ask') },
-            { value: 'plan', label: $t('spaces.conversation.modes.plan') },
-            { value: 'execute', label: $t('spaces.conversation.modes.execute') },
-          ]"
-          class="w-24 shrink-0"
         />
         <SpaceConversationTargetField
           v-model="target"

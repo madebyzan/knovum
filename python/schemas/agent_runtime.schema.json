@@ -190,12 +190,6 @@
           "additionalProperties": {
             "type": "string"
           }
-        },
-        "plan": {
-          "type": "boolean"
-        },
-        "research": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -208,9 +202,7 @@
         "inputId",
         "skills",
         "skillToolBindings",
-        "memory",
-        "plan",
-        "research"
+        "memory"
       ]
     },
     "AgentExecutionIdentity": {

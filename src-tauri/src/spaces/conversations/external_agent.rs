@@ -15,11 +15,6 @@ pub async fn start(
     runtime_kind: ExternalAgentKind,
     updates: Channel<ConversationTaskUpdate>,
 ) -> Result<ConversationTaskAccepted, String> {
-    if !matches!(request.mode, super::ConversationMode::Execute) {
-        return Err(
-            "external-agent-mode-unsupported: desktop Agent sessions use Execute mode".into(),
-        );
-    }
     let prompt = request.prompt.trim().to_owned();
     if request.space_id.trim().is_empty() || prompt.is_empty() || prompt.chars().count() > 100_000 {
         return Err("conversation-request-invalid: Space and prompt are required".into());
@@ -63,7 +58,6 @@ pub async fn start(
     let extensions = crate::extensions::snapshots::prepare(
         &app,
         &request.extensions,
-        false,
         &crate::spaces::mcp::local_tool_names(),
         None,
     )

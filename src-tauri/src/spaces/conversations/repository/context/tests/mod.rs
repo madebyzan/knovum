@@ -32,7 +32,6 @@ async fn large_older_history_cannot_crowd_out_latest_request_and_output_identity
         "conversation",
         "space",
         "Conversation",
-        crate::spaces::conversations::ConversationMode::Execute,
         1,
     )
     .await

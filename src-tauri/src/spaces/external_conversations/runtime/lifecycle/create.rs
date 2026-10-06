@@ -62,8 +62,8 @@ pub(crate) async fn create_records(
     .await?;
     if conversation.is_none() {
         sqlx::query(
-            "INSERT INTO spaces_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
-             VALUES($1,$2,$3,'ask',$1,$4,$4)",
+            "INSERT INTO spaces_conversations(id,space_id,title,active_branch_id,created_at,updated_at)
+             VALUES($1,$2,$3,$1,$4,$4)",
         )
         .bind(conversation_id)
         .bind(&request.space_id)

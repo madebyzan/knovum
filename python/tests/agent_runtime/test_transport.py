@@ -4,12 +4,35 @@ import asyncio
 import io
 import json
 import socket
+from contextlib import AsyncExitStack
+from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import BaseModel
 
-from knovum_agent_runtime.transport import Peer, ProtocolClosed
+from knovum_agent_runtime.contracts.generated.control import AgentInitialize
+from knovum_agent_runtime.contracts.values import GRAPH_VERSION, PROTOCOL_VERSION
+from knovum_agent_runtime.server import Server
+from knovum_agent_runtime.transport import HostRejected, Peer, ProtocolClosed
+
+
+@pytest.mark.parametrize("obsolete", ["protocol", "graph"])
+def test_obsolete_runtime_is_rejected_before_opening_checkpoint(tmp_path: Path, obsolete: str) -> None:
+    async def run() -> None:
+        checkpoint = tmp_path / "checkpoint.sqlite"
+        async with AsyncExitStack() as lifetime:
+            server = Server(Peer(io.BytesIO(), io.BytesIO()), lifetime)
+            request = AgentInitialize(
+                protocol_version=PROTOCOL_VERSION - 1 if obsolete == "protocol" else PROTOCOL_VERSION,
+                graph_version="obsolete" if obsolete == "graph" else GRAPH_VERSION,
+                checkpoint_path=str(checkpoint),
+            )
+            with pytest.raises(HostRejected, match="version-unsupported"):
+                await server.initialize(request)
+            assert not checkpoint.exists()
+
+    asyncio.run(run())
 
 
 class Parameters(BaseModel):

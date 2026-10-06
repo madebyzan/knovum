@@ -1,5 +1,4 @@
 use super::{archive, ensure_conversation, list_conversations, unarchive};
-use crate::spaces::conversations::ConversationMode;
 
 #[tokio::test]
 async fn archive_and_unarchive_preserve_conversation_identity_and_content() {
@@ -12,16 +11,9 @@ async fn archive_and_unarchive_preserve_conversation_identity_and_content() {
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
         .execute(&pool).await.expect("space");
     let mut tx = pool.begin().await.expect("transaction");
-    ensure_conversation(
-        &mut tx,
-        "conversation",
-        "space",
-        "Research",
-        ConversationMode::Ask,
-        1,
-    )
-    .await
-    .expect("conversation");
+    ensure_conversation(&mut tx, "conversation", "space", "Research", 1)
+        .await
+        .expect("conversation");
     tx.commit().await.expect("commit");
 
     archive(&pool, "conversation").await.expect("archive");

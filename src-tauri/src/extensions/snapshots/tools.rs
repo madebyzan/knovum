@@ -10,7 +10,6 @@ use serde_json::json;
 pub(super) fn project(
     connection: &McpConnection,
     catalog: McpConnectionCatalog,
-    read_only: bool,
     selection: &AgentConnectionSelection,
 ) -> Result<Vec<AgentExtensionTool>, String> {
     let mut tools = Vec::new();
@@ -51,9 +50,6 @@ pub(super) fn project(
             return Err(format!(
                 "mcp-tool-schema-changed-review-permissions: {name}"
             ));
-        }
-        if read_only && !permission.read_only {
-            continue;
         }
         tools.push(AgentExtensionTool {
             name: wire_name(&connection.id, name),

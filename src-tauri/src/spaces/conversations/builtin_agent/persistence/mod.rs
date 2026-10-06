@@ -60,7 +60,6 @@ pub(super) async fn persist_task(
         &ids.conversation_id,
         &request.space_id,
         &identity::conversation_title(&request.prompt),
-        request.mode,
         now,
     )
     .await?;
@@ -72,7 +71,7 @@ pub(super) async fn persist_task(
         .map_err(db::sql_error)?;
     create_grant(&mut tx, grant, now).await?;
     let policy = json!({
-        "mode": request.mode, "grantId": grant.grant_id,
+        "grantId": grant.grant_id,
         "builtinAgentProfileVersion": BUILTIN_AGENT_PROFILE_VERSION,
     });
     let session = crate::spaces::conversations::execution::session::select(

@@ -15,7 +15,6 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         conversation_id: None,
         branch_id: None,
         prompt: "Describe this image".into(),
-        mode: crate::spaces::conversations::ConversationMode::Execute,
         target: crate::ai::models::ModelTargetSelection::Model {
             connection_id: "connection".into(),
             model_id: "vision-model".into(),
@@ -28,9 +27,16 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         attachments: vec![],
         extensions: Default::default(),
     };
-    let catalog = crate::spaces::conversations::tools::project(request.mode).unwrap();
+    let catalog = crate::spaces::conversations::tools::project().unwrap();
     let ids = super::identity::TaskIds::new(&request);
     let grant = super::identity::grant(&request, &ids, &catalog, 1);
+    assert!(grant.require_action("space", "create-note", 1).is_ok());
+    assert!(grant
+        .require_action("other-space", "create-note", 1)
+        .is_err());
+    assert!(grant
+        .require_action("space", "unregistered-action", 1)
+        .is_err());
     use crate::agent_runtime::protocol::messages::{
         AgentContentPart, AgentInputMessage, AgentInputRole,
     };
@@ -107,4 +113,13 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
     let input: Value = serde_json::from_str(&input).unwrap();
     assert_eq!(input["contextManifest"], attachments);
     assert_eq!(input["spaceContext"]["spaceId"], "space");
+    let policy: String = sqlx::query_scalar("SELECT policy_snapshot FROM spaces_runs WHERE id=$1")
+        .bind(&ids.run_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert!(serde_json::from_str::<Value>(&policy)
+        .unwrap()
+        .get("mode")
+        .is_none());
 }

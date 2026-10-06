@@ -108,8 +108,6 @@ class AgentExecute(WireModel):
         dict[str, list[str]], Field(alias="skillToolBindings")
     ]
     memory: dict[str, str]
-    plan: bool
-    research: bool
 
 
 class AgentInputRole(StrEnum):

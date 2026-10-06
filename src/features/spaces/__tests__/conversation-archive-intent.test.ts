@@ -15,7 +15,6 @@ function session() {
     spaceId: "space",
     branchId: "branch",
     title: "Research",
-    mode: "ask",
     updatedAt: 1,
   };
   const state = {

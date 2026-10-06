@@ -20,7 +20,6 @@ function actions() {
     spaceId: "space",
     branchId: "branch",
     title: "Research / Notes",
-    mode: "ask",
     updatedAt: 1,
   };
   return useConversationActions({

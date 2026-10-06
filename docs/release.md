@@ -5,6 +5,16 @@ creation and bundled-runtime provisioning. This document owns signed distributio
 channel and release acceptance. Workflow files implement the process; their existence does not prove
 that signing credentials, environment protection or native upgrade acceptance have been configured.
 
+## Agent conversation pre-release contract cutover
+
+The mode-free Agent contract updates the single Spaces v1 SQLx baseline, Space packages to v7,
+private Agent RPC to v3, the graph identity to v3 and Builtin Agent profile to 7. Ship matching Rust
+and generated Python contracts/runtime source together. Old requests and packages fail strict
+validation; old graph segments are not resumed through field conversion. An obsolete database
+checksum produces a visible bootstrap error and preserves the original database. Backing up and
+explicitly resetting pre-release data is a separate operation, never an automatic upgrade step.
+The new release does not restore old Ask/Plan/Execute records by defaulting them to Execute.
+
 ## Release prerequisites
 
 A production candidate must use committed pnpm/Cargo lockfiles and one reviewed commit on `main`.

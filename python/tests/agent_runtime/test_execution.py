@@ -6,8 +6,10 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import pytest
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from pydantic import ValidationError
 
 from knovum_agent_runtime.budget import ModelBudget
 from knovum_agent_runtime.contracts.generated.control import AgentExecute
@@ -37,9 +39,15 @@ def request_value() -> dict[str, Any]:
         "skills": [],
         "skillToolBindings": {},
         "memory": {},
-        "plan": False,
-        "research": False,
     }
+
+
+@pytest.mark.parametrize("field", ["plan", "research"])
+def test_runtime_rejects_obsolete_composition_switches(field: str) -> None:
+    value = request_value()
+    value[field] = True
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        AgentExecute.model_validate_json(json.dumps(value))
 
 
 class Host:
@@ -111,7 +119,7 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
                 projected = [message for value in projections for message in value["messages"]]
                 assert [message["text"] for message in projected] == ["answer"]
                 assert len(requests) == 1
-                assert "write_todos" not in {tool["function"]["name"] for tool in requests[0]["tools"]}
+                assert "write_todos" in {tool["function"]["name"] for tool in requests[0]["tools"]}
                 replay = request_value()
                 replay["afterCheckpointId"] = result.checkpoint_id
                 await Execution(AgentExecute.model_validate_json(json.dumps(replay)), saver, host).run()

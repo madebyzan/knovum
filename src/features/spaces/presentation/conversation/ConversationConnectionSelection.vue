@@ -12,10 +12,11 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import McpResourcePreview from "./McpResourcePreview.vue";
 import McpResourceTemplateSelection from "./McpResourceTemplateSelection.vue";
 const selection = defineModel<AgentExtensionSelection>({ required: true });
-const props = defineProps<{ connection: McpConnection; readOnly: boolean }>();
+const props = defineProps<{ connection: McpConnection }>();
 const choices = computed(() =>
   selection.value.connections.find((candidate) => candidate.connectionId === props.connection.id)!,
 );
+const availableTools = computed(() => props.connection.tools.filter((tool) => tool.policy !== "deny"));
 const catalog = useMutation({ mutationFn: () => checkMcpConnection(props.connection.id) });
 const resources = computed(() => catalog.data.value?.resources ?? []);
 const prompts = computed(() => catalog.data.value?.prompts.map((prompt) => prompt.name) ?? []);
@@ -59,12 +60,7 @@ function removeTemplate(index: number) {
 <template>
   <section class="space-y-2 border-t border-stroke-divider pt-2 text-caption">
     <h4 class="font-medium">{{ connection.name }}</h4>
-    <label
-      v-for="tool in connection.tools.filter(
-        (tool) => tool.policy !== 'deny' && (!readOnly || tool.readOnly),
-      )"
-      :key="tool.name"
-      class="flex items-center gap-2"
+    <label v-for="tool in availableTools" :key="tool.name" class="flex items-center gap-2"
       ><input
         type="checkbox"
         :checked="choices.toolNames.includes(tool.name)"

@@ -65,7 +65,7 @@ const modelTargetSchema = z
   .object({ type: z.literal("model"), connectionId: z.string().min(1), modelId: z.string().min(1) })
   .strict();
 
-export const executionTargetSchema = z.discriminatedUnion("type", [
+const executionTargetSchema = z.discriminatedUnion("type", [
   modelTargetSchema,
   z.object({ type: z.literal("agent"), runtimeKind: externalAgentKindSchema }).strict(),
 ]);

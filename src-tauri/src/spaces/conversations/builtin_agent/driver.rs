@@ -22,10 +22,7 @@ use crate::{
     },
     local_resources::runtimes::python::RuntimeProfile,
     spaces::{
-        conversations::{
-            execution::{binding, gateway::Gateway, ledger, projection},
-            ConversationMode,
-        },
+        conversations::execution::{binding, gateway::Gateway, ledger, projection},
         db,
     },
 };
@@ -81,7 +78,7 @@ pub(super) async fn drive(
     let memory = std::collections::BTreeMap::from([("/space.json".into(), memory_snapshot)]);
     let execute = AgentExecute {
         identity: host.session.identity(&host.ids.run_id), model,
-        system_prompt: format!("You are Knovum's built-in knowledge agent. Mode: {}. {} Use provided Actions for business changes. The user authorizes execution of the available Actions; do not ask for redundant confirmation. Publish only through Knovum Actions and never claim success without a completed Action receipt.", host.request.mode.as_str(), crate::spaces::conversations::prompt_policy::SPACE_READING),
+        system_prompt: format!("You are Knovum's built-in knowledge agent. {} Publish only through Knovum Actions and never claim success without a completed Action receipt.", crate::spaces::conversations::prompt_policy::SPACE_READING),
         tools: host.catalog.tools.iter().map(|tool| AgentToolDefinition {
             name: tool.name.clone(), description: tool.description.clone(), parameters: tool.input_schema.clone(),
             read_only: host.catalog.by_wire_name[&tool.name].read_only,
@@ -89,7 +86,6 @@ pub(super) async fn drive(
         skills: host.extensions.files.clone(),
         skill_tool_bindings: host.extensions.skill_tool_bindings.clone(),
         memory,
-        plan: !matches!(host.request.mode, ConversationMode::Ask), research: true,
     };
     let host = Arc::new(host);
     let mut process = tokio::time::timeout_at(

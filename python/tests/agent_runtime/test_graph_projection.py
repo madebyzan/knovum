@@ -23,6 +23,7 @@ def test_summary_receipts_commit_and_old_main_answers_remain_unique(tmp_path: Pa
             {
                 "main": [answer("new answer", message_id="new-answer")],
                 "context_summary": [answer("condensed", message_id="summary-answer")],
+                "research": [],
             },
         )
         value = request_value()
@@ -78,7 +79,20 @@ def test_research_receipts_reconcile_in_their_durable_scope_and_cannot_delegate(
             },
         )
         value = request_value()
-        value["research"] = True
+        value["tools"] = [
+            {
+                "name": "publish",
+                "description": "Publish changes.",
+                "parameters": {"type": "object", "properties": {}},
+                "readOnly": False,
+            },
+            {
+                "name": "read_selected",
+                "description": "Read evidence.",
+                "parameters": {"type": "object", "properties": {}},
+                "readOnly": True,
+            },
+        ]
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
@@ -87,6 +101,10 @@ def test_research_receipts_reconcile_in_their_durable_scope_and_cannot_delegate(
             assert "task" not in models["research"].advertised_tools[0]
             assert "write_file" not in models["research"].advertised_tools[0]
             assert "execute" not in models["research"].advertised_tools[0]
+            assert "write_todos" not in models["research"].advertised_tools[0]
+            assert "publish" not in models["research"].advertised_tools[0]
+            assert "read_selected" in models["research"].advertised_tools[0]
+            assert "publish" in models["main"].advertised_tools[0]
             scopes = [
                 value["graphNamespace"]
                 for method, value in host.calls
@@ -111,6 +129,7 @@ def test_rejected_recovery_releases_the_execution_slot(tmp_path: Path, monkeypat
             {
                 "main": [answer("unused", message_id="unused")],
                 "context_summary": [answer("unused", message_id="unused")],
+                "research": [],
             },
         )
         host = LedgerHost()
@@ -125,7 +144,7 @@ def test_rejected_recovery_releases_the_execution_slot(tmp_path: Path, monkeypat
     asyncio.run(run())
 
 
-def test_plan_mode_publishes_sdk_todos_through_the_product_projection(tmp_path: Path, monkeypatch) -> None:
+def test_agent_publishes_sdk_todos_through_the_product_projection(tmp_path: Path, monkeypatch) -> None:
     async def run() -> None:
         bind_script(
             monkeypatch,
@@ -146,10 +165,10 @@ def test_plan_mode_publishes_sdk_todos_through_the_product_projection(tmp_path: 
                     answer("The plan is ready.", message_id="plan-answer"),
                 ],
                 "context_summary": [answer("unused", message_id="unused")],
+                "research": [],
             },
         )
         value = request_value()
-        value["plan"] = True
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()

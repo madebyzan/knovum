@@ -15,7 +15,7 @@ async fn fixture() -> sqlx::SqlitePool {
         .await
         .unwrap();
     tx.commit().await.unwrap();
-    sqlx::query("INSERT INTO spaces_conversations(id,space_id,title,mode,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent','ask',1,1,'conversation')")
+    sqlx::query("INSERT INTO spaces_conversations(id,space_id,title,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent',1,1,'conversation')")
             .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','external_agent','session','external_agent','running','{}','{\"attachments\":[]}','{}',1,1)")
             .execute(&pool).await.unwrap();

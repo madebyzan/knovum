@@ -4,11 +4,9 @@ import type { AgentExtensionSelection } from "../../../shared/contracts/generate
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
-import type { ConversationMode } from "../contracts/generated/ConversationMode";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 
 interface ConversationTaskRequestInput {
-  mode: ConversationMode;
   spaceId: string | undefined;
   conversation: Conversation | undefined;
   prompt: string;
@@ -23,7 +21,6 @@ export function conversationTaskRequest(
   const text = input.prompt.trim();
   if (!input.spaceId || !input.target || !text) return;
   return {
-    mode: input.target.type === "model" ? input.mode : "execute",
     spaceId: input.spaceId,
     ...(input.conversation ? { conversationId: input.conversation.id } : {}),
     ...(input.conversation?.branchId ? { branchId: input.conversation.branchId } : {}),

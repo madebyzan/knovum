@@ -17,7 +17,6 @@ pub(in crate::spaces::conversations) struct RecoverableTask {
     pub branch_id: String,
     pub grant_id: String,
     pub space_id: String,
-    pub mode: super::super::ConversationMode,
     pub profile_version: u16,
     pub prompt: String,
     pub model_binding: ModelTargetSelection,
@@ -72,7 +71,6 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
         branch_id: row.try_get("branch_id").map_err(db::sql_error)?,
         grant_id: row.try_get("grant_id").map_err(db::sql_error)?,
         space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
-        mode: serde_json::from_value(policy["mode"].clone()).map_err(db::json_error)?,
         profile_version: u16::try_from(number(&policy, "builtinAgentProfileVersion")?)
             .map_err(|_| "builtin-agent-profile-invalid")?,
         prompt: input["prompt"]

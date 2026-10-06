@@ -129,7 +129,7 @@ pub(super) fn validate(
                 .unwrap_or(&[]);
             for segment in ordered {
                 crate::spaces::speech::video_config::validate_timing(
-                    &config,
+                    config,
                     segment.target_start_ms,
                     segment.target_end_ms,
                     segment.chapter_key.as_deref(),

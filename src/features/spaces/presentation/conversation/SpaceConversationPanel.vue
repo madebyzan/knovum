@@ -22,7 +22,6 @@ const {
   eventsByRun,
   activityError,
   selectedConversationId,
-  mode,
   prompt,
   target,
   activeRunId,
@@ -100,7 +99,6 @@ async function previewAttachment(key: string) {
     <AgentExtensionPicker
       v-model="extensionSelection"
       :availability="extensionAvailability"
-      :read-only="mode !== 'execute'"
       :disabled="loading || Boolean(activeRunId) || extensionsLoading"
       :error="extensionsError"
     />
@@ -115,7 +113,6 @@ async function previewAttachment(key: string) {
     <SpaceConversationComposer
       ref="composer"
       v-model="prompt"
-      v-model:mode="mode"
       v-model:target="target"
       :attachments="visibleAttachments"
       :attachment-candidates="attachmentCandidates"
