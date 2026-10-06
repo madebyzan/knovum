@@ -3,7 +3,7 @@ pub(crate) mod commands;
 mod context;
 mod contract;
 mod execution;
-mod extensions;
+pub(in crate::spaces) mod extensions;
 mod external_agent;
 pub(crate) mod outputs;
 pub(crate) mod queries;

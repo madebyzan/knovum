@@ -601,10 +601,14 @@ are maintained according to their own contracts.
 Rust `extensions/{plugins,skills,connectors,mcp,snapshots}` owns install content, v1 metadata,
 authorization and outbound protocol access. It has no dependency on Spaces. Spaces composes
 snapshots and owns task grants, the common conversation tool ledger, user interventions and
-resource publication. `features/extensions` owns management UI; `app/router.ts` injects that
+resource publication. Spaces resolves a Run's snapshot identity and calls extension release;
+extension reclamation never queries a Spaces database. `features/extensions` owns management UI; `app/router.ts` injects that
 pane into Settings. Settings and Spaces do not import extension business UI. The foundation
 extension modules contain shared IPC/query contracts, not extension policy or presentation.
 Task snapshots carry reviewed bytes and exact connection/account/catalog identities. There is
+one connection-selection list, containing each connection's selected tools, resources and prompts.
+Resource and prompt tool bindings retain the selected identities; inbound MCP projection does
+not recover business selection from the generated tool input Schema. There is
 one plugin installation path, one SDK client and one tool-operation ledger; old fixed Skills and
 Action-only tool-operation persistence are removed. Current pre-release SQLite baselines are
 strict and incompatible development databases require an explicit reset.

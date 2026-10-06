@@ -1,4 +1,4 @@
-mod catalog_projection;
+pub(in crate::spaces::mcp) mod catalog_projection;
 mod proxy;
 mod resource_requests;
 mod skills;
@@ -54,3 +54,7 @@ impl SpaceMcpServer {
         ListToolsResult::with_all_items(tools)
     }
 }
+
+#[cfg(test)]
+#[path = "tests/catalog_projection.rs"]
+mod catalog_projection_tests;

@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use url::Url;
 
-pub(super) async fn validate_url(value: &str) -> Result<Url, String> {
+pub(super) async fn resolve_url(value: &str) -> Result<(Url, Vec<std::net::SocketAddr>), String> {
     let url = Url::parse(value).map_err(|error| error.to_string())?;
     if url.scheme() != "https"
         || !url.username().is_empty()
@@ -25,26 +25,15 @@ pub(super) async fn validate_url(value: &str) -> Result<Url, String> {
     {
         return Err("package-source-requires-public-address".into());
     }
-    Ok(url)
+    Ok((url, addresses))
 }
 
 pub(super) async fn download(value: &str, limit: usize) -> Result<Vec<u8>, String> {
-    let url = validate_url(value).await?;
+    let (url, addresses) = resolve_url(value).await?;
     let host = url
         .host_str()
         .ok_or("package-source-host-required")?
         .trim_matches(['[', ']']);
-    let addresses = tokio::net::lookup_host((host, url.port_or_known_default().unwrap_or(443)))
-        .await
-        .map_err(|error| error.to_string())?
-        .collect::<Vec<_>>();
-    if addresses.is_empty()
-        || addresses
-            .iter()
-            .any(|address| !crate::public_network::public_address(address.ip()))
-    {
-        return Err("package-source-requires-public-address".into());
-    }
     let client = reqwest::Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())

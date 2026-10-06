@@ -45,25 +45,9 @@ pub(crate) async fn read(
             reference,
             subdirectory,
         } => {
-            let parsed = network::validate_url(url).await?;
-            let host = parsed
-                .host_str()
-                .ok_or("package-source-host-required")?
-                .trim_matches(['[', ']']);
-            let addresses =
-                tokio::net::lookup_host((host, parsed.port_or_known_default().unwrap_or(443)))
-                    .await
-                    .map_err(|error| error.to_string())?
-                    .collect::<Vec<_>>();
-            if addresses.is_empty()
-                || addresses
-                    .iter()
-                    .any(|address| !crate::public_network::public_address(address.ip()))
-            {
-                return Err("package-source-requires-public-address".into());
-            }
+            let (parsed, addresses) = network::resolve_url(url).await?;
             let (url, reference, subdirectory) =
-                (url.clone(), reference.clone(), subdirectory.clone());
+                (parsed.to_string(), reference.clone(), subdirectory.clone());
             let cancellation = cancellation.clone();
             crate::blocking::run(move || {
                 git::read(&url, &reference, &subdirectory, addresses, cancellation)
@@ -136,3 +120,7 @@ pub(crate) async fn download(url: &str, limit: usize) -> Result<Vec<u8>, String>
 #[cfg(test)]
 #[path = "tests/archive.rs"]
 mod archive_tests;
+
+#[cfg(test)]
+#[path = "tests/network.rs"]
+mod network_tests;

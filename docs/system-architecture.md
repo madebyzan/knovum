@@ -660,6 +660,9 @@ and prompt descriptors and resource contents retain the official SDK types in Ru
 TypeScript views expose their UI fields; protocol metadata remains in the serialized SDK values.
 Resource templates expand with RFC 6570 into explicitly selected concrete URIs, not wildcard authority.
 Their parameters use a closed string/list/map/null contract at the input boundary.
+Each connection has one explicit selection structure. Frozen resource and prompt bindings carry
+their selected identities independently of the tool input Schema; the Schema validates model
+arguments and never serves as the source of selection policy.
 ACP lists those concrete resources under opaque proxy URIs. Sampling and arbitrary filesystem
 Roots are not advertised. Progress and non-secret elicitation share the Run interaction/history
 surface. Account authorization uses its separate OAuth/secret credential flow. Resource browsing

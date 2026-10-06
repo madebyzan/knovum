@@ -14,7 +14,8 @@ impl SpaceMcpServer {
         request: ReadResourceRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<ReadResourceResult, ErrorData> {
-        let bindings = self.selected_resources();
+        let bindings =
+            super::catalog_projection::selected_resources(self.conversation_extensions.as_deref());
         let binding = bindings
             .iter()
             .find(|binding| binding.declaration.uri == request.uri)
@@ -38,7 +39,8 @@ impl SpaceMcpServer {
         request: GetPromptRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<GetPromptResult, ErrorData> {
-        let bindings = self.selected_prompts();
+        let bindings =
+            super::catalog_projection::selected_prompts(self.conversation_extensions.as_deref());
         let binding = bindings
             .iter()
             .find(|binding| binding.declaration.name == request.name)

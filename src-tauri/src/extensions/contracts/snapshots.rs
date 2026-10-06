@@ -7,7 +7,6 @@ use ts_rs::TS;
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AgentExtensionSelection {
     pub skill_ids: Vec<String>,
-    pub connection_ids: Vec<String>,
     pub connections: Vec<AgentConnectionSelection>,
 }
 
@@ -73,9 +72,11 @@ pub enum AgentToolBinding {
     },
     McpReadResource {
         connection_id: String,
+        resource_uris: Vec<String>,
     },
     McpGetPrompt {
         connection_id: String,
+        prompt_names: Vec<String>,
     },
 }
 

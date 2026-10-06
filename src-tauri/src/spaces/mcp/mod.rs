@@ -65,10 +65,12 @@ impl rmcp::ServerHandler for SpaceMcpServer {
         _context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<rmcp::model::ListResourcesResult, rmcp::ErrorData> {
         Ok(rmcp::model::ListResourcesResult::with_all_items(
-            self.selected_resources()
-                .into_iter()
-                .map(|binding| binding.declaration)
-                .collect(),
+            extensions::catalog_projection::selected_resources(
+                self.conversation_extensions.as_deref(),
+            )
+            .into_iter()
+            .map(|binding| binding.declaration)
+            .collect(),
         ))
     }
     async fn list_resource_templates(
@@ -95,10 +97,12 @@ impl rmcp::ServerHandler for SpaceMcpServer {
         _context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<rmcp::model::ListPromptsResult, rmcp::ErrorData> {
         Ok(rmcp::model::ListPromptsResult::with_all_items(
-            self.selected_prompts()
-                .into_iter()
-                .map(|binding| binding.declaration)
-                .collect(),
+            extensions::catalog_projection::selected_prompts(
+                self.conversation_extensions.as_deref(),
+            )
+            .into_iter()
+            .map(|binding| binding.declaration)
+            .collect(),
         ))
     }
     async fn get_prompt(
