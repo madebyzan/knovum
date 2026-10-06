@@ -22,7 +22,7 @@ e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 [dependencies]
 tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
 tauri-plugin-clipboard = "2"
-clipboard-rs = "0.2.4"
+clipboard-rs = "0.3.5"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-log = "2"
