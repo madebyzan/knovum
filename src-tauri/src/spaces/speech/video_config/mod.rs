@@ -59,8 +59,12 @@ pub struct VideoTranslationProvenance {
 }
 
 pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfig, String> {
-    let config: VideoDubbingOutputConfig =
-        serde_json::from_value(value.clone()).map_err(db::json_error)?;
+    let config = VideoDubbingOutputConfig::deserialize(value).map_err(db::json_error)?;
+    validate(&config)?;
+    Ok(config)
+}
+
+pub(crate) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> {
     if config.format != "mp4"
         || !valid_gain(config.voice_gain_db)
         || !valid_gain(config.background_gain_db)
@@ -86,7 +90,7 @@ pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfi
     {
         return Err("Preserving original ambience requires source dialogue intervals and an accepted separation".into());
     }
-    separation::validate(&config)?;
+    separation::validate(config)?;
     if let Some(translation) = &config.translation {
         crate::ai::capabilities::translation::validate_target(&translation.target_language)
             .map_err(|error| error.to_string())?;
@@ -100,7 +104,7 @@ pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfi
             return Err("Video translation provenance is invalid".into());
         }
     }
-    Ok(config)
+    Ok(())
 }
 
 fn valid_gain(gain: f32) -> bool {

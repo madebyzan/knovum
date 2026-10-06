@@ -1,3 +1,4 @@
+import { cloneDeep } from "es-toolkit";
 import { computed, ref, shallowRef, watch, type DeepReadonly } from "vue";
 
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
@@ -37,7 +38,9 @@ export function useVideoDubbingDraft(
     () => project().revision.id,
     () => {
       const projectSnapshot = project();
-      config.value = JSON.parse(projectSnapshot.revision.outputConfig) as VideoDubbingOutputConfig;
+      const outputConfig = projectSnapshot.revision.outputConfig;
+      if (!("video" in outputConfig)) throw new Error("Video dubbing output configuration is required");
+      config.value = cloneDeep(outputConfig) as VideoDubbingOutputConfig;
       voiceGain.value = String(config.value.voiceGainDb);
       backgroundGain.value = String(config.value.backgroundGainDb);
       lines.value = projectSnapshot.segments.map(videoLineFromSegment);

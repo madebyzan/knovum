@@ -13,6 +13,7 @@ use tauri::ipc::Channel;
 use tauri::AppHandle;
 
 use super::{context, repository, tools, ConversationTaskAccepted, StartBuiltinAgentTaskRequest};
+use crate::app_error::AppError;
 use crate::spaces::{
     db,
     runs::{transition_run, RunState},
@@ -35,7 +36,7 @@ pub async fn start(
     app: AppHandle,
     request: StartBuiltinAgentTaskRequest,
     updates: Channel<super::ConversationTaskUpdate>,
-) -> Result<ConversationTaskAccepted, String> {
+) -> Result<ConversationTaskAccepted, AppError> {
     identity::validate(&request)?;
     let pool = db::pool(&app).await?;
     let context = context::resolve(
@@ -52,8 +53,7 @@ pub async fn start(
         crate::ai::contracts::ExecutionCapability::TextGeneration
     };
     let (target, profile) =
-        crate::ai::settings::resolve_builtin_agent(&app, request.target.clone(), capability)
-            .map_err(|error| error.to_string())?;
+        crate::ai::settings::resolve_builtin_agent(&app, request.target.clone(), capability)?;
     let mut catalog = tools::project(request.mode)?;
     let local_tools = catalog
         .tools
@@ -137,7 +137,7 @@ pub async fn start(
     if started.is_err() {
         crate::extensions::reclamation::release(&app, &snapshot_id).await?;
     }
-    started
+    started.map_err(AppError::from)
 }
 
 pub(super) fn cancel(run_id: &str) -> Result<(), String> {

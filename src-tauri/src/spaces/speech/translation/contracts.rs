@@ -17,7 +17,7 @@ pub struct TranslateVideoDubbingRequest {
     pub segments: Vec<VideoTranslationSegmentInput>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VideoTranslationSegmentInput {
@@ -45,7 +45,7 @@ pub struct VideoTranslation {
     pub segments: Vec<VideoTranslationSegmentOutput>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct TranslationRunInput {
     pub workflow: String,

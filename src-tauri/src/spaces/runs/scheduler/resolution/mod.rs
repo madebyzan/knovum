@@ -1,7 +1,10 @@
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
-use crate::spaces::{db, runs::RunState};
+use crate::spaces::{
+    db,
+    runs::{run_rows::enum_text, RunState},
+};
 
 mod branches;
 mod dependencies;
@@ -161,12 +164,4 @@ pub(super) fn failure_policy(policy: &Value) -> &str {
         .and_then(|value| value.get("failurePolicy"))
         .and_then(Value::as_str)
         .unwrap_or("stop_run")
-}
-
-fn enum_text(value: impl serde::Serialize) -> Result<String, String> {
-    serde_json::to_value(value)
-        .map_err(db::json_error)?
-        .as_str()
-        .map(str::to_owned)
-        .ok_or("Invalid enum".into())
 }

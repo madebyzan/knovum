@@ -12,7 +12,7 @@ import { getErrorMessage } from "../errors/error-format";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { useExecutionCatalogQuery } from "./execution-catalog-query";
-import { decodeExecutionTarget, encodeExecutionTarget } from "./execution-target-codec";
+import { encodeExecutionTarget } from "./execution-target-codec";
 
 const props = defineProps<{
   purpose: RoutingPurpose;
@@ -42,7 +42,13 @@ const options = computed(() =>
 const value = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
 
 function isSelectableExecutionTarget(encodedTarget: string): boolean {
-  return options.value.some((option) => encodeExecutionTarget(option.target) === encodedTarget);
+  return options.value.some((option) => option.value === encodedTarget);
+}
+
+function selectTarget(selectedValue: string) {
+  const selected = options.value.find((option) => option.value === selectedValue);
+  if (!selected) throw new Error("AI execution target is unavailable");
+  target.value = { ...selected.target };
 }
 
 function currentTargetIsSelectable(): boolean {
@@ -96,7 +102,7 @@ onMounted(load);
         :placeholder="t('ai.noCompatibleTarget')"
         size="sm"
         class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-surface-control-hover"
-        @update:model-value="target = decodeExecutionTarget($event)"
+        @update:model-value="selectTarget"
       />
     </template>
     <div
@@ -127,7 +133,7 @@ onMounted(load);
         :options="options"
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
         :placeholder="t('ai.noCompatibleTarget')"
-        @update:model-value="target = decodeExecutionTarget($event)"
+        @update:model-value="selectTarget"
       />
     </label>
   </div>

@@ -1,3 +1,5 @@
+mod configuration;
+
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
 use super::asset_publication::{self, PendingAsset};

@@ -4,6 +4,7 @@ pub(crate) mod diarization;
 use super::job::EnrichmentJobType;
 use crate::app_error::AppError;
 use crate::spaces::db;
+use serde::{de::IntoDeserializer, Deserialize};
 use sqlx::Row;
 use tauri::AppHandle;
 
@@ -13,9 +14,11 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query("SELECT j.job_type,j.source_revision,n.data FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.space_id=j.space_id AND n.id=j.node_id AND n.deleted_at IS NULL WHERE j.id=$1 AND j.status IN ('failed','cancelled')")
         .bind(&job_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Only current failed or cancelled enrichment can be retried")?;
-    let kind: EnrichmentJobType = serde_json::from_value(serde_json::json!(row
-        .try_get::<String, _>("job_type")
-        .map_err(db::sql_error)?))
+    let kind = EnrichmentJobType::deserialize(
+        row.try_get::<String, _>("job_type")
+            .map_err(db::sql_error)?
+            .into_deserializer(),
+    )
     .map_err(db::json_error)?;
     let data: serde_json::Value =
         serde_json::from_str(&row.try_get::<String, _>("data").map_err(db::sql_error)?)

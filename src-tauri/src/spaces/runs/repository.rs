@@ -1,6 +1,6 @@
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
-use super::run_rows::{enum_json, optional_enum_json, parse_summary};
+use super::run_rows::{enum_text, optional_enum_text, parse_summary};
 use super::{RunKind, RunObservation, RunState, WaitReason};
 use crate::spaces::{authorization::Principal, db};
 
@@ -31,7 +31,7 @@ pub(crate) async fn create_run_in_transaction(
     .bind(run.parent_run_id)
     .bind(run.principal.kind.as_str())
     .bind(&run.principal.id)
-    .bind(enum_json(run.kind)?)
+    .bind(enum_text(run.kind)?)
     .bind(serde_json::to_string(run.policy_snapshot).map_err(db::json_error)?)
     .bind(serde_json::to_string(run.input_snapshot).map_err(db::json_error)?)
     .bind(serde_json::to_string(run.budget).map_err(db::json_error)?)
@@ -86,7 +86,7 @@ pub(crate) async fn transition_run(
     let now = crate::clock::unix_time_millis()?;
     let completed_at = state.is_terminal().then_some(now);
     let run_write = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=$2,updated_at=$3,completed_at=$4 WHERE id=$5 AND state_version=$6 AND completed_at IS NULL")
-        .bind(enum_json(state)?).bind(optional_enum_json(wait_reason)?).bind(now).bind(completed_at)
+        .bind(enum_text(state)?).bind(optional_enum_text(wait_reason)?).bind(now).bind(completed_at)
         .bind(run_id).bind(expected_version).execute(pool).await.map_err(db::sql_error)?;
     db::require_one(run_write, "Run state changed concurrently")?;
     let run = load_run(pool, run_id).await?;

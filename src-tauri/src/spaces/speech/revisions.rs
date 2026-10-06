@@ -1,13 +1,6 @@
 use crate::{app_error::AppError, spaces::db};
 
-use super::{contracts::*, repository, text};
-
-fn serialize_object(value: serde_json::Value, field: &str) -> Result<String, String> {
-    if !value.is_object() {
-        return Err(format!("{field} must be a JSON object"));
-    }
-    serde_json::to_string(&value).map_err(db::json_error)
-}
+use super::{contracts::*, project_config::ProjectOutputConfig, repository, text};
 
 fn validate_segment(segment: &SpeechSegmentInput) -> Result<(), String> {
     if segment.id.trim().is_empty() {
@@ -70,11 +63,7 @@ pub async fn save_speech_project_revision(
         validate_segment(segment)?;
     }
     let pronunciations = text::parse_lexicon(&request.pronunciation_lexicon)?;
-    let lexicon = serialize_object(
-        request.pronunciation_lexicon.clone(),
-        "Pronunciation lexicon",
-    )?;
-    let output = serialize_object(request.output_config.clone(), "Output configuration")?;
+    let lexicon = serde_json::to_string(&request.pronunciation_lexicon).map_err(db::json_error)?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -97,9 +86,9 @@ pub async fn save_speech_project_revision(
     if active_revision != request.expected_revision {
         return Err("stale_revision: Speech project changed before this revision was saved".into());
     }
-    super::project_config::validate(&project_type, &request.output_config)?;
-    if project_type == "audiobook" {
-        let config = super::project_config::parse_audiobook(&request.output_config)?;
+    let config = super::project_config::parse(&project_type, &request.output_config)?;
+    let output = serde_json::to_string(&config).map_err(db::json_error)?;
+    if let ProjectOutputConfig::Audiobook(config) = &config {
         super::book_assets::require_cover(
             &mut tx,
             &space_id,
@@ -107,17 +96,14 @@ pub async fn save_speech_project_revision(
             config.metadata.cover.as_ref(),
         )
         .await?;
-    }
-    if project_type == "audiobook" {
-        let config = super::project_config::parse_audiobook(&request.output_config)?;
         super::project_config::validate_chapter_order(
-            &config,
+            config,
             request
                 .segments
                 .iter()
                 .map(|segment| segment.chapter_key.as_deref()),
         )?;
-        super::project_config::validate_role_bindings(&config, &request.segments)?;
+        super::project_config::validate_role_bindings(config, &request.segments)?;
         for role in &config.roles {
             repository::require_voice_in_space(
                 &mut tx,
@@ -133,18 +119,12 @@ pub async fn save_speech_project_revision(
         {
             return Err("Audiobook paragraphs must not contain video source metadata".into());
         }
-    } else if project_type == "video_dubbing" {
-        let config = super::video_config::parse(&request.output_config)?;
-        super::video_config::require_sources(
-            &mut tx,
-            &space_id,
-            Some(&request.project_id),
-            &config,
-        )
-        .await?;
+    } else if let ProjectOutputConfig::VideoDubbing(config) = &config {
+        super::video_config::require_sources(&mut tx, &space_id, Some(&request.project_id), config)
+            .await?;
         for segment in &request.segments {
             super::video_config::validate_timing(
-                &config,
+                config,
                 segment.target_start_ms,
                 segment.target_end_ms,
                 segment.chapter_key.as_deref(),
@@ -170,7 +150,7 @@ pub async fn save_speech_project_revision(
                 active_revision_id: &active_revision_id,
                 active_revision,
                 active_output_config: &active_output,
-                requested_output_config: &config,
+                requested_output_config: config,
                 segments: &request.segments,
             },
         )

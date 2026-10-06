@@ -1,6 +1,6 @@
 use crate::{app_error::AppError, spaces::db};
 
-use super::{contracts::*, repository};
+use super::{contracts::*, project_config::ProjectOutputConfig, repository};
 
 fn required(value: &str, field: &str, max: usize) -> Result<(), String> {
     let length = value.trim().chars().count();
@@ -10,13 +10,6 @@ fn required(value: &str, field: &str, max: usize) -> Result<(), String> {
         ));
     }
     Ok(())
-}
-
-fn object_json(value: serde_json::Value, field: &str) -> Result<String, String> {
-    if !value.is_object() {
-        return Err(format!("{field} must be a JSON object"));
-    }
-    serde_json::to_string(&value).map_err(db::json_error)
 }
 
 #[tauri::command]
@@ -109,22 +102,20 @@ pub async fn create_speech_project(
     request: CreateSpeechProjectRequest,
 ) -> Result<SpeechProjectOverview, AppError> {
     required(&request.title, "Project title", 200)?;
-    super::project_config::validate(&request.project_type, &request.output_config)?;
-    if request.project_type == "audiobook" {
-        let config = super::project_config::parse_audiobook(&request.output_config)?;
+    let config = super::project_config::parse(&request.project_type, &request.output_config)?;
+    if let ProjectOutputConfig::Audiobook(config) = &config {
         if !config.chapters.is_empty() || !config.roles.is_empty() {
             return Err("A new audiobook project must start with an empty script".into());
         }
     }
-    let output = object_json(request.output_config.clone(), "Output configuration")?;
+    let output = serde_json::to_string(&config).map_err(db::json_error)?;
     let project_id = uuid::Uuid::new_v4().to_string();
     let revision_id = uuid::Uuid::new_v4().to_string();
     let source_revision = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    if request.project_type == "audiobook" {
-        let config = super::project_config::parse_audiobook(&request.output_config)?;
+    if let ProjectOutputConfig::Audiobook(config) = &config {
         super::book_assets::require_cover(
             &mut tx,
             &request.space_id,
@@ -133,9 +124,8 @@ pub async fn create_speech_project(
         )
         .await?;
     }
-    if request.project_type == "video_dubbing" {
-        let config = super::video_config::parse(&request.output_config)?;
-        super::video_config::require_sources(&mut tx, &request.space_id, None, &config).await?;
+    if let ProjectOutputConfig::VideoDubbing(config) = &config {
+        super::video_config::require_sources(&mut tx, &request.space_id, None, config).await?;
     }
     sqlx::query(
         "INSERT INTO spaces_speech_projects(id,space_id,project_type,title,active_revision_id,created_at,updated_at) \

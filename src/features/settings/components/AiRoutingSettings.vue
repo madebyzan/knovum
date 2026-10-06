@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
 import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
-import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
+import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
@@ -44,6 +44,7 @@ const routeRows = computed(() =>
     description: t(`settings.routing.routes.${key}.description`),
     options: availableExecutionTargets(props, purpose).map(({ value, label, target }) => ({
       value,
+      target,
       label:
         target.type === "agent"
           ? (catalog.data.value?.agents.find(({ kind }) => kind === target.runtimeKind)?.displayName ?? label)
@@ -52,7 +53,14 @@ const routeRows = computed(() =>
   })),
 );
 function update(key: keyof AiRoutingDefaults, value: string) {
-  emit("updateRoute", key, value === UNASSIGNED ? null : decodeExecutionTarget(value));
+  if (value === UNASSIGNED) {
+    emit("updateRoute", key, null);
+    return;
+  }
+  const row = routeRows.value.find((route) => route.key === key);
+  const option = row?.options.find((candidate) => candidate.value === value);
+  if (!option) throw new Error("AI routing target is unavailable");
+  emit("updateRoute", key, { ...option.target });
 }
 const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
   target ? encodeExecutionTarget(target) : UNASSIGNED;

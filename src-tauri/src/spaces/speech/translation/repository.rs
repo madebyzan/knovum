@@ -294,10 +294,8 @@ pub(super) async fn load_translation(
             || config.provider != input.provider
             || config.model != input.model
             || config.base_url != input.base_url
-            || serde_json::to_value(&config.execution_target).map_err(db::json_error)?
-                != serde_json::to_value(&input.execution_target).map_err(db::json_error)?
-            || serde_json::to_value(&config.segment).map_err(db::json_error)?
-                != serde_json::to_value(expected_segment).map_err(db::json_error)?
+            || config.execution_target != input.execution_target
+            || &config.segment != expected_segment
             || config.segment.source_segment_id != output.source_segment_id
             || config.segment.source_segment_revision != output.source_segment_revision
             || config.segment.text.trim() != output.source_text

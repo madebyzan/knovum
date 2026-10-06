@@ -65,10 +65,11 @@ pub(super) fn validate(
         let project_type = project_types
             .get(row.project_id.as_str())
             .ok_or("Package speech revision owner is unavailable")?;
-        crate::spaces::speech::project_config::validate(project_type, &row.output_config)?;
-        if *project_type == "audiobook" {
-            let config =
-                crate::spaces::speech::project_config::parse_audiobook(&row.output_config)?;
+        let config =
+            crate::spaces::speech::project_config::parse(project_type, &row.output_config)?;
+        if let crate::spaces::speech::project_config::ProjectOutputConfig::Audiobook(config) =
+            &config
+        {
             for role in &config.roles {
                 reference(revisions, &role.voice_revision_id, "audiobook role voice")?;
             }
@@ -77,12 +78,12 @@ pub(super) fn validate(
                 .map(Vec::as_slice)
                 .unwrap_or(&[]);
             crate::spaces::speech::project_config::validate_chapter_order(
-                &config,
+                config,
                 ordered.iter().map(|segment| segment.chapter_key.as_deref()),
             )?;
             for segment in ordered {
                 let role_voice = crate::spaces::speech::project_config::role_voice(
-                    &config,
+                    config,
                     segment.speaker_key.as_deref(),
                 )?;
                 if role_voice != segment.voice_revision_id {
@@ -97,8 +98,10 @@ pub(super) fn validate(
             {
                 return Err("Package audiobook contains video source metadata".into());
             }
-        } else if *project_type == "video_dubbing" {
-            let config = crate::spaces::speech::video_config::parse(&row.output_config)?;
+        } else if let crate::spaces::speech::project_config::ProjectOutputConfig::VideoDubbing(
+            config,
+        ) = &config
+        {
             if let Some(provenance) = &config.background_separation {
                 let separation = separation_rows
                     .get(provenance.separation_id.as_str())

@@ -1,3 +1,4 @@
+use serde::{de::IntoDeserializer, Deserialize};
 use sqlx::Row;
 
 use super::job::{
@@ -160,12 +161,13 @@ async fn query_actionable(
         let data: serde_json::Value = serde_json::from_str(&data).map_err(db::json_error)?;
         let kind: String = row.try_get("job_type").map_err(db::sql_error)?;
         let kind: super::job::EnrichmentJobType =
-            serde_json::from_value(serde_json::Value::String(kind)).map_err(db::json_error)?;
+            super::job::EnrichmentJobType::deserialize(kind.into_deserializer())
+                .map_err(db::json_error)?;
         let revision = super::revision::expected_revision(&data, kind)?;
         let job_revision: String = row.try_get("source_revision").map_err(db::sql_error)?;
         if revision.as_deref() == Some(job_revision.as_str()) {
             actionable.push(EnrichmentJobProjection {
-                job: job_from_row(&row)?,
+                job: job_from_row(&row, kind, job_revision)?,
                 space_title: row.try_get("space_title").map_err(db::sql_error)?,
                 node_title: row.try_get("node_title").map_err(db::sql_error)?,
                 node_kind: row.try_get("node_kind").map_err(db::sql_error)?,
@@ -175,20 +177,23 @@ async fn query_actionable(
     Ok(actionable)
 }
 
-fn job_from_row(row: &sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, String> {
+fn job_from_row(
+    row: &sqlx::sqlite::SqliteRow,
+    job_type: super::job::EnrichmentJobType,
+    source_revision: String,
+) -> Result<EnrichmentJobState, String> {
     Ok(EnrichmentJobState {
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         node_id: row.try_get("node_id").map_err(db::sql_error)?,
-        job_type: serde_json::from_value(serde_json::json!(row
-            .try_get::<String, _>("job_type")
-            .map_err(db::sql_error)?))
+        job_type,
+        status: super::job::EnrichmentJobStatus::deserialize(
+            row.try_get::<String, _>("status")
+                .map_err(db::sql_error)?
+                .into_deserializer(),
+        )
         .map_err(db::json_error)?,
-        status: serde_json::from_value(serde_json::json!(row
-            .try_get::<String, _>("status")
-            .map_err(db::sql_error)?))
-        .map_err(db::json_error)?,
-        source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
+        source_revision,
         attempts: row.try_get("attempts").map_err(db::sql_error)?,
         execution_target: row
             .try_get::<Option<String>, _>("execution_target")

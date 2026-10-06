@@ -1,9 +1,6 @@
+use crate::spaces::speech::{audio_format::WavPrecision, project_config::ProjectOutputConfig};
 use crate::spaces::speech::{
     contracts::SpeechSegmentRenderOutput, project_config::AudiobookOutputConfig,
-};
-use crate::spaces::{
-    db,
-    speech::{audio_format::WavPrecision, project_config::ShortOutputConfig},
 };
 use sha2::{Digest, Sha256};
 
@@ -20,9 +17,8 @@ pub(super) fn output_profile(
     output_config: &serde_json::Value,
     renders: &[SpeechSegmentRenderOutput],
 ) -> Result<ProjectOutputProfile, String> {
-    match project_type {
-        "short_dubbing" => {
-            crate::spaces::speech::project_config::validate(project_type, output_config)?;
+    match crate::spaces::speech::project_config::parse(project_type, output_config)? {
+        ProjectOutputConfig::ShortDubbing(config) => {
             let first = renders
                 .first()
                 .ok_or("Speech project has no rendered segments")?
@@ -32,8 +28,6 @@ pub(super) fn output_profile(
             } else {
                 48_000
             };
-            let config = serde_json::from_value::<ShortOutputConfig>(output_config.clone())
-                .map_err(db::json_error)?;
             Ok(ProjectOutputProfile {
                 format: "wav".into(),
                 sample_rate: rate,
@@ -41,15 +35,12 @@ pub(super) fn output_profile(
                 audiobook: None,
             })
         }
-        "audiobook" => {
-            let config = crate::spaces::speech::project_config::parse_audiobook(output_config)?;
-            Ok(ProjectOutputProfile {
-                format: config.format.clone(),
-                sample_rate: config.sample_rate,
-                wav_precision: config.wav_precision,
-                audiobook: Some(config),
-            })
-        }
+        ProjectOutputConfig::Audiobook(config) => Ok(ProjectOutputProfile {
+            format: config.format.clone(),
+            sample_rate: config.sample_rate,
+            wav_precision: config.wav_precision,
+            audiobook: Some(config),
+        }),
         _ => Err("This speech project type has no complete production workflow".into()),
     }
 }
