@@ -5,12 +5,12 @@ import { useAiSettingsStore } from "./ai-settings-store";
 import { aiConnectionSecretKey } from "./schema/models";
 import { mutateAiSettings } from "./settings-mutations";
 
-export type AiConnectionSaveResult = { status: "saved" } | { status: "credential-failed"; cause: unknown };
+export type AiConnectionSaveOutcome = { status: "saved" } | { status: "credential-failed"; cause: unknown };
 
 async function saveAiConnectionChange(
   connection: AiConnectionSettings,
   secret: string | null | undefined,
-): Promise<AiConnectionSaveResult> {
+): Promise<AiConnectionSaveOutcome> {
   const store = useAiSettingsStore();
   const connections = store.settings.connections;
   const index = connections.findIndex(({ id }) => id === connection.id);
@@ -34,10 +34,10 @@ async function saveAiConnectionChange(
   }
 }
 
-async function removeAiConnectionChange(id: string): Promise<void> {
+async function removeAiConnectionChange(connectionId: string): Promise<void> {
   const store = useAiSettingsStore();
   const connections = store.settings.connections;
-  const index = connections.findIndex((connection) => connection.id === id);
+  const index = connections.findIndex((connection) => connection.id === connectionId);
   const connection = connections[index];
   if (!connection) throw new Error("AI connection does not exist");
   connections.splice(index, 1);
@@ -48,7 +48,7 @@ async function removeAiConnectionChange(id: string): Promise<void> {
     throw cause;
   }
   try {
-    await deleteSecret(aiConnectionSecretKey(id));
+    await deleteSecret(aiConnectionSecretKey(connectionId));
   } catch (cause) {
     connections.splice(index, 0, connection);
     try {
@@ -102,8 +102,8 @@ async function removeAiConnectionModelChange(connectionId: string, modelId: stri
 export function saveAiConnection(connection: AiConnectionSettings, secret: string | null | undefined) {
   return mutateAiSettings(() => saveAiConnectionChange(connection, secret));
 }
-export function removeAiConnection(id: string) {
-  return mutateAiSettings(() => removeAiConnectionChange(id));
+export function removeAiConnection(connectionId: string) {
+  return mutateAiSettings(() => removeAiConnectionChange(connectionId));
 }
 export function saveAiConnectionModel(connectionId: string, model: AiModelDefinition) {
   return mutateAiSettings(() => saveAiConnectionModelChange(connectionId, model));

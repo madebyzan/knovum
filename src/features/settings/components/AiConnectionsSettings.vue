@@ -73,9 +73,9 @@ async function confirmDiscard() {
   );
 }
 
-function openConnection(id: string | null) {
-  if (busy.value || (id === null && !props.providers.length)) return;
-  selectedId.value = id;
+function openConnection(connectionId: string | null) {
+  if (busy.value || (connectionId === null && !props.providers.length)) return;
+  selectedId.value = connectionId;
   dirty.value = false;
   error.value = "";
 }
@@ -95,9 +95,9 @@ async function saveConnection(submission: AiConnectionSubmission) {
   busy.value = true;
   error.value = "";
   try {
-    const result = await saveAiConnection(submission.connection, submission.secret);
-    if (result.status === "credential-failed") {
-      error.value = `${t("settings.ai.secretSaveFailed")}: ${getErrorMessage(result.cause)}`;
+    const saveOutcome = await saveAiConnection(submission.connection, submission.secret);
+    if (saveOutcome.status === "credential-failed") {
+      error.value = `${t("settings.ai.secretSaveFailed")}: ${getErrorMessage(saveOutcome.cause)}`;
       return;
     }
     expandedId.value = submission.connection.id;

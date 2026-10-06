@@ -56,7 +56,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
     <AudiobookMetadataEditor v-model="draft.metadata.value" :disabled />
     <PronunciationLexiconEditor
       v-model="draft.lexicon.entries.value"
-      :valid="draft.lexicon.valid.value"
+      :valid="draft.lexicon.isValid.value"
       :disabled="disabled"
     />
     <AudiobookScriptImport :disabled="disabled" @imported="draft.importScript" />
@@ -112,7 +112,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
             :aria-label="t('spaces.speech.preview')"
             :disabled="
               disabled ||
-              !draft.lexicon.valid.value ||
+              !draft.lexicon.isValid.value ||
               !paragraph.text.trim() ||
               !draft.roleVoiceRevisionId(paragraph.speakerKey)
             "
@@ -121,7 +121,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
                 'preview',
                 [...paragraph.text.trim()].slice(0, 500).join(''),
                 draft.roleVoiceRevisionId(paragraph.speakerKey),
-                draft.lexicon.value(),
+                draft.lexicon.serializeLexicon(),
               )
             "
             ><Play class="size-3.5"

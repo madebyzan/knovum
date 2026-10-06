@@ -331,7 +331,7 @@ cancellation/retry, concurrent sharing and offline use after preparation, with a
 AI profiles. Runtime components are prepared before models and inference deadlines. Release
 `platform.json`/`candidate.json` retain the descriptor and Worker digest beside installer identities.
 The candidate Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
-with paths relative to `knovum_inference`. `scripts/runtime/application-resources.mjs` owns this
+with paths relative to `knovum_inference`. `scripts/runtime/packaged-resources.mjs` owns this
 calculation. Capture provenance and each candidate execution source must record that digest and
 the descriptor's `manifestSha256`; an output from either another Worker or runtime is rejected.
 Runtime archives and corresponding evidence/source attachments must be published at the actual

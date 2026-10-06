@@ -9,13 +9,13 @@ it("keeps revision entries, editable draft rows and saved normalized words indep
     scope.run(() => {
       const revision = shallowRef({ id: "first", pronunciationLexicon: { Knovum: "Knowledge" } });
       const draft = usePronunciationLexicon(() => revision.value);
-      expect(draft.value()).toEqual({ Knovum: "Knowledge" });
+      expect(draft.serializeLexicon()).toEqual({ Knovum: "Knowledge" });
       draft.entries.value[0]!.pronunciation = "  New   sound  ";
-      expect(draft.value()).toEqual({ Knovum: "New sound" });
+      expect(draft.serializeLexicon()).toEqual({ Knovum: "New sound" });
       expect(revision.value.pronunciationLexicon).toEqual({ Knovum: "Knowledge" });
       draft.entries.value.push({ id: "duplicate", word: " Knovum ", pronunciation: "Other" });
-      expect(draft.valid.value).toBe(false);
-      expect(() => draft.value()).toThrow("invalid");
+      expect(draft.isValid.value).toBe(false);
+      expect(() => draft.serializeLexicon()).toThrow("invalid");
     });
   } finally {
     scope.stop();

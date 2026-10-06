@@ -3,7 +3,7 @@ import { lstatSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 
-import { validateApplicationResources } from "./application-resources.mjs";
+import { validatePackagedResources } from "./packaged-resources.mjs";
 
 const windowsTarget = "windows-x64";
 const sevenZipVersion = "26.03";
@@ -31,7 +31,7 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
 
 function verifyExtractedWindowsApplication(extractionRoot, options) {
   const resources = locateApplicationResources(extractionRoot, options.target);
-  validateApplicationResources(resources, resolve(options.repository), options.target);
+  validatePackagedResources(resources, resolve(options.repository), options.target);
   return resources;
 }
 

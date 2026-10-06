@@ -106,7 +106,7 @@ export function useAudiobookDraft(
         chapters: chapters.value,
         availableVoiceRevisionIds: available,
       }) &&
-      lexicon.valid.value &&
+      lexicon.isValid.value &&
       output.valid() &&
       Number(loudness.value) >= -24 &&
       Number(loudness.value) <= -16 &&
@@ -118,7 +118,7 @@ export function useAudiobookDraft(
   function revisionInput() {
     return {
       sourceRevision: crypto.randomUUID(),
-      pronunciationLexicon: lexicon.value(),
+      pronunciationLexicon: lexicon.serializeLexicon(),
       outputConfig: {
         ...output.value(),
         chapters: chapters.value.map(({ key, title }) => ({ key, title: title.trim() })),

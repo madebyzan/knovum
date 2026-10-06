@@ -34,8 +34,8 @@ export const createMcpConnection = (connectorId: string, name: string) =>
   invokeCommand<McpConnection>("plugin:extensions|create_mcp_connection", { connectorId, name });
 export const updateMcpConnection = (connection: McpConnection) =>
   invokeCommand<McpConnection>("plugin:extensions|update_mcp_connection", { connection });
-export const checkMcpConnection = (id: string) =>
-  invokeCommand<McpConnectionCatalog>("plugin:extensions|check_mcp_connection", { id });
+export const checkMcpConnection = (connectionId: string) =>
+  invokeCommand<McpConnectionCatalog>("plugin:extensions|check_mcp_connection", { id: connectionId });
 export const deleteMcpConnection = (connection: McpConnection) =>
   invokeCommand<void>("plugin:extensions|delete_mcp_connection", {
     id: connection.id,

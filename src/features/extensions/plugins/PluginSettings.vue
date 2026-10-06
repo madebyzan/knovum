@@ -63,11 +63,11 @@ async function commit() {
   if (!reviewed) return;
   await changes
     .mutateAsync(async () => {
-      const result = reviewed.previous
+      const change = reviewed.previous
         ? await updatePlugin(reviewed.previous.id, reviewed.inspection.digest)
         : await installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication);
       preview.value = undefined;
-      return result;
+      return change;
     })
     .catch(() => {});
 }

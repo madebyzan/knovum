@@ -129,7 +129,7 @@ export function useVideoDubbingDraft(
           validVideoWindow(start, end, config.value?.video.durationMs ?? 0)
         );
       }) &&
-      lexicon.valid.value &&
+      lexicon.isValid.value &&
       [voiceGain.value, backgroundGain.value].every(
         (gain) => gain.trim() && Number.isFinite(Number(gain)) && Number(gain) >= -30 && Number(gain) <= 6,
       ),
@@ -139,7 +139,7 @@ export function useVideoDubbingDraft(
       config: config.value,
       lines: lines.value,
       voices: voices(),
-      lexicon: lexicon.value(),
+      lexicon: lexicon.serializeLexicon(),
       voiceGain: voiceGain.value,
       backgroundGain: backgroundGain.value,
     });

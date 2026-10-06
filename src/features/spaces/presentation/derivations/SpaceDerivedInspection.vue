@@ -21,8 +21,8 @@ const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
 const store = useSpaceStore();
 const operations = useNodeOperationGate();
-const nodeRef = toRef(props, "node");
-const { documentMetadata, imageMetadata, videoMetadata, failure } = useDerivationMetadata(nodeRef);
+const currentNode = toRef(props, "node");
+const { documentMetadata, imageMetadata, videoMetadata, failure } = useDerivationMetadata(currentNode);
 
 const retrying = shallowRef(false);
 const canRetry = computed(() => {

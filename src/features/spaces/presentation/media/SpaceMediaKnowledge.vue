@@ -15,8 +15,8 @@ import SpaceTranscriptNavigator from "./SpaceTranscriptNavigator.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
-const nodeRef = toRef(props, "node");
-const nodeId = computed(() => nodeRef.value.id);
+const currentNode = toRef(props, "node");
+const nodeId = computed(() => currentNode.value.id);
 
 const {
   transcriptOpen,
@@ -39,7 +39,7 @@ const {
   saveSegment,
   alignSegments,
   alignmentSubmitting,
-} = useMediaKnowledge(nodeRef);
+} = useMediaKnowledge(currentNode);
 </script>
 
 <template>

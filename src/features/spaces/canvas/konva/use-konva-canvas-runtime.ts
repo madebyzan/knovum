@@ -34,7 +34,7 @@ export function useKonvaCanvasRuntime(
     documentChanged,
     viewportChanged: props.events.onViewportChange,
   });
-  const sceneDocument = model.sceneDocumentRef;
+  const sceneDocument = model.sceneDocumentState;
   const layouts = computed(() => sceneDocument.value.nodes);
   const viewport = useRuntimeViewport(props, host, model);
   const preview = useLayoutPreview();

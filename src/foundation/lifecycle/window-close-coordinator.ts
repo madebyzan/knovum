@@ -38,11 +38,11 @@ export function flushWindowCloseCommits(): Promise<void> {
 }
 
 async function commitRegisteredChanges(): Promise<void> {
-  const results = await Promise.allSettled([...commits].map((commit) => Promise.resolve().then(commit)));
-  const failures = results.filter((result) => result.status === "rejected");
+  const outcomes = await Promise.allSettled([...commits].map((commit) => Promise.resolve().then(commit)));
+  const failures = outcomes.filter((outcome) => outcome.status === "rejected");
   if (failures.length) {
     throw new AggregateError(
-      failures.map((result) => result.reason),
+      failures.map((outcome) => outcome.reason),
       "Application changes could not be saved.",
     );
   }
