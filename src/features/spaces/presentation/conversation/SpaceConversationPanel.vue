@@ -16,11 +16,14 @@ const {
   eventsByRun,
   activityError,
   selectedConversationId,
+  mode,
   prompt,
   target,
   activeRunId,
   activeConversationId,
   visibleTaskState,
+  visibleWaitReason,
+  canPause,
   loading,
   loadingOlder,
   hasOlder,
@@ -83,10 +86,18 @@ async function previewAttachment(key: string) {
         @inspect-activity="conversationSession.inspectActivity"
       />
     </div>
-    <SpaceConversationRunStatus :state="visibleTaskState" @resume="conversationSession.resume" />
+    <SpaceConversationRunStatus
+      :can-pause="canPause"
+      @pause="conversationSession.pause"
+      :state="visibleTaskState"
+      :wait-reason="visibleWaitReason"
+      @resume="conversationSession.resume"
+      @retry-model="conversationSession.retryModel"
+    />
     <SpaceConversationComposer
       ref="composer"
       v-model="prompt"
+      v-model:mode="mode"
       v-model:target="target"
       :attachments="visibleAttachments"
       :attachment-candidates="attachmentCandidates"

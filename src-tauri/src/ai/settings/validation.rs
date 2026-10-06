@@ -25,6 +25,19 @@ pub(super) fn validate(settings: &AiSettings) -> AppResult<()> {
         let provider = connection.provider;
         let descriptor = crate::ai::providers::registry::descriptor(provider)
             .ok_or_else(|| AppError::unsupported("AI provider is not configurable"))?;
+        for model in &connection.models {
+            if let Some(profile) = &model.assistant {
+                if !model
+                    .capabilities
+                    .contains(&crate::ai::contracts::ExecutionCapability::TextGeneration)
+                {
+                    return Err(AppError::invalid(
+                        "Assistant models must support text generation",
+                    ));
+                }
+                super::assistant::validate(provider, profile)?;
+            }
+        }
         let mut model_ids = HashSet::new();
         let mut provider_model_ids = HashSet::new();
         if connection.models.iter().any(|model| {

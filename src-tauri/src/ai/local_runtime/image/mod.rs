@@ -47,7 +47,8 @@ pub(crate) async fn segment_image<R: Runtime>(
 ) -> Result<Vec<f32>, String> {
     validate_input(&input)?;
     let exit = super::exit_token();
-    let runtime = python::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let runtime =
+        python::resolve(app, python::RuntimeProfile::Inference)?.ok_or("runtime_missing")?;
     let model_path = resources.path(ModelKind::ImageSegmentation)?;
     let threads = std::thread::available_parallelism()
         .map(|count| count.get().min(4) as u8)

@@ -39,6 +39,16 @@ pub(crate) struct Model {
     pub model: String,
     pub capabilities: Vec<ExecutionCapability>,
     pub name: String,
+    #[ts(optional = nullable)]
+    pub assistant: Option<AssistantModelSettings>,
+}
+
+#[derive(Clone, Deserialize, serde::Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct AssistantModelSettings {
+    pub protocol: crate::ai::contracts::ChatModelProtocol,
+    pub context_window: u32,
+    pub max_output_tokens: u32,
 }
 
 #[derive(Deserialize, ts_rs::TS)]

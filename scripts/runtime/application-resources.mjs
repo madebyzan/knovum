@@ -4,15 +4,19 @@ import { join } from "node:path";
 
 import { distributionDirectory, readRuntimeDescriptor } from "./distribution.mjs";
 import { listRuntimeFiles, sha256File } from "./files.mjs";
+import { runtimeProfiles } from "./profiles.mjs";
 
 export function validateApplicationResources(resources, repository, target) {
-  const descriptorPath = join(resources, "python-runtime-descriptor.json");
-  readRuntimeDescriptor(descriptorPath, target);
-  if (
-    sha256File(descriptorPath) !==
-    sha256File(join(distributionDirectory(repository, target), "runtime-descriptor.json"))
-  )
-    throw new Error("Packaged runtime descriptor differs from the trusted build input");
+  for (const profile of runtimeProfiles) {
+    const path = join(resources, `python-${profile}-descriptor.json`);
+    readRuntimeDescriptor(path, target, profile);
+    if (
+      sha256File(path) !==
+      sha256File(join(distributionDirectory(repository, target, profile), "runtime-descriptor.json"))
+    )
+      throw new Error(`Packaged ${profile} descriptor differs from the trusted build input`);
+  }
+  const descriptorPath = join(resources, "python-inference-descriptor.json");
   const source = join(repository, "python", "src");
   const payload = join(resources, "python-worker");
   const expected = listRuntimeFiles(source).filter((path) => path.endsWith(".py"));

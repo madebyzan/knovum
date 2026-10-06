@@ -54,7 +54,7 @@ export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[
   return invokeCommand("plugin:local-resources|list_resource_preparations");
 }
 export function textEmbeddingReady(status?: LocalResourcesStatus) {
-  if (!status?.python.available) return false;
+  if (!status?.pythonRuntimes.inference.available) return false;
   const { models } = status;
   return [
     models.textEmbeddingConfig,

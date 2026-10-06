@@ -33,6 +33,7 @@ function fixture(context) {
     join(scriptDirectory, "write-manifest.mjs"),
   );
   copyFileSync(new URL("../files.mjs", import.meta.url), join(scriptDirectory, "files.mjs"));
+  copyFileSync(new URL("../profiles.mjs", import.meta.url), join(scriptDirectory, "profiles.mjs"));
   writeFileSync(
     join(python, "uv.lock"),
     'source = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa#aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }\n',
@@ -48,7 +49,15 @@ function fixture(context) {
     run: (requestedTarget = target) =>
       spawnSync(
         process.execPath,
-        [join(scriptDirectory, "write-manifest.mjs"), "--target", requestedTarget, "--directory", runtime],
+        [
+          join(scriptDirectory, "write-manifest.mjs"),
+          "--target",
+          requestedTarget,
+          "--directory",
+          runtime,
+          "--profile",
+          "inference",
+        ],
         { encoding: "utf8" },
       ),
   };

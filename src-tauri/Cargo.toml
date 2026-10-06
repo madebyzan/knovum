@@ -10,7 +10,7 @@ rust-version = "1.92"
 
 [lib]
 name = "knovum_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -58,7 +58,6 @@ bzip2 = "0.6.1"
 flate2 = "1.1.9"
 encoding_rs = "0.8.35"
 genai = "=0.6.5"
-rig-agent = { version = "=0.42.0", default-features = false }
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
 pulldown-cmark = "=0.13.0"
 typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }

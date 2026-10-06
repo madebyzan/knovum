@@ -8,7 +8,7 @@
     "knovumAssistant": "Knovum Agent",
     "desktop": "桌面 Agent",
     "select": "选择助手",
-    "noModel": "尚未配置模型",
+    "noModel": "请在 AI 设置中为支持工具调用的模型启用内置 Assistant。",
     "manage": "配置模型与 Agent…"
   },
   "empty": {
@@ -86,7 +86,13 @@
     "waitingForResult": "正在等待操作完成…",
     "failed": "对话任务失败，请回到对话查看详情。",
     "paused": "任务已暂停，确认后可继续。",
-    "resume": "继续任务"
+    "resume": "继续任务",
+    "modelOutcomeUnknown": "模型请求没有可恢复的结果，执行正在等待你的决定。",
+    "modelResponseUncommitted": "已收到模型响应，但执行结果未提交，无法安全地自动继续。",
+    "modelUsageUnknown": "模型响应缺少用量信息，后续模型调用已停止。",
+    "modelRetryCost": "继续可能发起新的付费请求；原请求的已知费用与未知用量仍会保留。",
+    "retryModel": "授权新的模型尝试",
+    "pause": "暂停"
   },
   "response": {
     "stopped": "已停止",
@@ -115,7 +121,14 @@
     "recorded": "过程记录 · {count} 项操作",
     "tool": "执行工具",
     "invalidResult": "搜索结果无法显示",
-    "noSources": "没有找到相关资料"
+    "noSources": "没有找到相关资料",
+    "plan": "执行计划"
   },
-  "askSelection": "询问选中项"
+  "askSelection": "询问选中项",
+  "modes": {
+    "label": "助手模式",
+    "ask": "询问",
+    "plan": "规划",
+    "execute": "执行"
+  }
 }

@@ -3,7 +3,6 @@ use crate::spaces::assistant::upload;
 pub(super) struct ImageAttachmentContent {
     pub bytes: Vec<u8>,
     pub media_type: &'static str,
-    pub name: String,
 }
 
 pub(super) async fn thumbnail(path: std::path::PathBuf) -> Result<String, String> {
@@ -28,19 +27,17 @@ pub(super) async fn thumbnail(path: std::path::PathBuf) -> Result<String, String
     .await
 }
 
-pub(crate) async fn prepare_image_input_from_file(
+pub(in crate::spaces::assistant) async fn image_input_from_file(
     path: &std::path::Path,
-    target: &crate::ai::models::ModelExecutionTarget,
-) -> Result<crate::ai::contracts::ModelContentPart, String> {
+) -> Result<crate::agent_runtime::protocol::messages::AssistantContentPart, String> {
+    use base64::Engine;
     let image = read_image_attachment(path).await?;
-    crate::ai::model_turn::media::prepare_image_input(
-        target,
-        image.bytes,
-        image.media_type,
-        image.name,
+    Ok(
+        crate::agent_runtime::protocol::messages::AssistantContentPart::Image {
+            mime_type: image.media_type.into(),
+            data: base64::engine::general_purpose::STANDARD.encode(image.bytes),
+        },
     )
-    .await
-    .map_err(|error| error.to_string())
 }
 
 pub(super) async fn read_image_attachment(
@@ -53,14 +50,5 @@ pub(super) async fn read_image_attachment(
     let bytes = crate::blocking::run(move || upload::read_image(&source, media_type))
         .await
         .map_err(|error| error.to_string())?;
-    let name = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .ok_or("assistant-image-invalid: filename is not Unicode")?
-        .to_owned();
-    Ok(ImageAttachmentContent {
-        bytes,
-        media_type,
-        name,
-    })
+    Ok(ImageAttachmentContent { bytes, media_type })
 }

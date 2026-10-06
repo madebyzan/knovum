@@ -635,17 +635,19 @@ CREATE TABLE spaces_assistant_messages (
   FOREIGN KEY (parent_message_id) REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL
 );
 
-CREATE TABLE spaces_assistant_context_segments (
+CREATE TABLE spaces_assistant_execution_segments (
   id TEXT PRIMARY KEY NOT NULL,
   conversation_id TEXT NOT NULL,
   branch_id TEXT NOT NULL,
-  source_digest TEXT NOT NULL CHECK (length(source_digest) = 64),
-  first_message_id TEXT NOT NULL,
-  last_message_id TEXT NOT NULL,
-  message_count INTEGER NOT NULL CHECK (message_count > 0),
-  summary TEXT NOT NULL,
+  execution_revision TEXT NOT NULL,
+  graph_version TEXT NOT NULL,
+  frozen_target TEXT NOT NULL CHECK (json_valid(frozen_target)),
+  model_profile TEXT NOT NULL CHECK (json_valid(model_profile)),
+  target_selection TEXT NOT NULL CHECK (json_valid(target_selection)),
+  catalog_digest TEXT NOT NULL CHECK (length(catalog_digest) = 64),
+  projection_checkpoint_id TEXT,
+  checkpoint_deleted_at INTEGER,
   created_at INTEGER NOT NULL,
-  UNIQUE (conversation_id, branch_id, source_digest),
   FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE
 );
 
@@ -657,48 +659,67 @@ CREATE TABLE spaces_assistant_tasks (
   grant_id TEXT NOT NULL,
   model_binding TEXT NOT NULL CHECK (json_valid(model_binding)),
   catalog_digest TEXT NOT NULL CHECK (length(catalog_digest) = 64),
+  segment_id TEXT NOT NULL,
+  input_id TEXT NOT NULL UNIQUE,
+  input_accepted INTEGER NOT NULL DEFAULT 0 CHECK (input_accepted IN (0,1)),
+  control_epoch INTEGER NOT NULL DEFAULT 0 CHECK (control_epoch >= 0),
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL, error TEXT,
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
   FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
-  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT
+  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT,
+  FOREIGN KEY (segment_id) REFERENCES spaces_assistant_execution_segments(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_model_turns (
+CREATE TABLE spaces_assistant_model_calls (
   id TEXT PRIMARY KEY NOT NULL,
   task_id TEXT NOT NULL,
-  sequence INTEGER NOT NULL CHECK (sequence > 0),
-  request TEXT NOT NULL CHECK (json_valid(request)),
-  response TEXT CHECK (response IS NULL OR json_valid(response)),
-  state TEXT NOT NULL CHECK (state IN ('requesting','completed','failed','outcome_unknown')),
+  purpose TEXT NOT NULL CHECK (purpose IN ('main','research','context_summary')),
+  graph_namespace TEXT NOT NULL,
+  checkpoint_id TEXT NOT NULL,
+  message_id TEXT,
+  retry_authorized_at INTEGER,
+  estimated_input_tokens INTEGER NOT NULL CHECK (estimated_input_tokens >= 0),
+  max_output_tokens INTEGER NOT NULL CHECK (max_output_tokens > 0),
+  input_tokens INTEGER CHECK (input_tokens >= 0),
+  output_tokens INTEGER CHECK (output_tokens >= 0),
+  state TEXT NOT NULL CHECK (state IN ('requesting','received','committed','outcome_unknown','usage_unknown')),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
-  UNIQUE (task_id, sequence)
+  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_tool_calls (
+CREATE TABLE spaces_assistant_tool_operations (
   id TEXT PRIMARY KEY NOT NULL,
   task_id TEXT NOT NULL,
-  model_turn_id TEXT NOT NULL,
+  graph_namespace TEXT NOT NULL,
+  message_id TEXT NOT NULL,
   provider_call_id TEXT NOT NULL,
   wire_name TEXT NOT NULL,
   action_id TEXT NOT NULL,
-  invocation_id TEXT NOT NULL,
+  invocation_id TEXT NOT NULL UNIQUE,
+  target_selection TEXT CHECK (target_selection IS NULL OR json_valid(target_selection)),
   result TEXT CHECK (result IS NULL OR json_valid(result)),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
-  FOREIGN KEY (model_turn_id) REFERENCES spaces_assistant_model_turns(id) ON DELETE CASCADE,
-  UNIQUE (task_id, provider_call_id),
-  UNIQUE (invocation_id)
+  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_assistant_checkpoints (
-  task_id TEXT PRIMARY KEY NOT NULL,
-  envelope TEXT NOT NULL CHECK (json_valid(envelope)),
-  updated_at INTEGER NOT NULL,
+CREATE TABLE spaces_assistant_tool_admissions (
+  id TEXT PRIMARY KEY NOT NULL,
+  task_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
   FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_assistant_message_projections (
+  segment_id TEXT NOT NULL,
+  provider_message_id TEXT NOT NULL,
+  message_id TEXT NOT NULL UNIQUE,
+  PRIMARY KEY (segment_id, provider_message_id),
+  FOREIGN KEY (segment_id) REFERENCES spaces_assistant_execution_segments(id) ON DELETE CASCADE,
+  FOREIGN KEY (message_id) REFERENCES spaces_assistant_messages(id) ON DELETE CASCADE
 );
 
 CREATE TABLE spaces_captured_workflow_versions (

@@ -2,10 +2,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { sha256File } from "./files.mjs";
+import { runtimeProject } from "./profiles.mjs";
 
-export function validateDependencyLicenseReview(directory, target, repository) {
+export function validateDependencyLicenseReview(directory, target, repository, profile) {
   const policy = JSON.parse(
-    readFileSync(join(repository, "python", "dependency-license-review.json"), "utf8"),
+    readFileSync(join(runtimeProject(repository, profile), "dependency-license-review.json"), "utf8"),
   );
   if (policy.schemaVersion !== 1 || policy.reviewStatus !== "approved") {
     throw new Error("Python dependency license review is unresolved; production packaging is blocked");
@@ -13,7 +14,8 @@ export function validateDependencyLicenseReview(directory, target, repository) {
   const manifest = JSON.parse(readFileSync(join(directory, "runtime-manifest.json"), "utf8"));
   if (
     policy.dependencyRequirementsSha256 !== manifest.dependencyRequirementsSha256 ||
-    policy.voxcpmCommit !== manifest.voxcpmCommit
+    policy.dependencyLockSha256 !== manifest.dependencyLockSha256 ||
+    policy.profile !== manifest.profile
   ) {
     throw new Error("Python dependency license review belongs to different runtime dependencies");
   }

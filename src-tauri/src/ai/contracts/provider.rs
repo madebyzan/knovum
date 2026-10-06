@@ -167,9 +167,16 @@ pub trait AiProvider: Send + Sync {
     fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
         None
     }
+}
 
-    /// Returns an uploader whose file URI can be used as media input by the active ModelTurn protocol.
-    fn as_input_upload(&self) -> Option<&dyn FileUploadCapability> {
-        None
-    }
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum ChatModelProtocol {
+    OpenAiChat,
+    OpenAiResponses,
+    Anthropic,
+    Gemini,
+    Ollama,
+    DeepSeek,
+    Groq,
 }

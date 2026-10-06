@@ -38,16 +38,17 @@ impl Fixture {
             fs::set_permissions(root.join(executable), fs::Permissions::from_mode(0o755)).unwrap();
         }
         let requirements = digest(b"requirements");
-        let bytes = serde_json::to_vec(&json!({"schemaVersion": 2, "runtimeId": "cpython", "version": "3.11.17",
-            "dependencyRequirementsSha256": requirements, "voxcpmCommit": "a".repeat(40),
+        let bytes = serde_json::to_vec(&json!({"schemaVersion": 3, "runtimeId": "cpython", "version": "3.11.17",
+            "dependencyRequirementsSha256": requirements, "profile":"inference", "dependencyLockSha256":"a".repeat(64),
             "target": crate::local_resources::tools::platform_directory(), "executable": executable, "packageRoot": "packages", "files": files})).unwrap();
         fs::write(root.join(MANIFEST_NAME), &bytes).unwrap();
         let descriptor = Descriptor {
-            schema_version: 1,
+            schema_version: 2,
             target: crate::local_resources::tools::platform_directory().into(),
             version: "3.11.17".into(),
             dependency_requirements_sha256: requirements,
-            voxcpm_commit: "a".repeat(40),
+            profile: crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+            dependency_lock_sha256: "a".repeat(64),
             sources: crate::local_resources::runtimes::python::descriptor::RuntimeSources {
                 global: "https://example.test/runtime.tar.gz".into(),
                 china: "https://china.example.test/runtime.tar.gz".into(),
@@ -69,6 +70,7 @@ impl Fixture {
             digest(&self.bytes),
             cancellation,
             Some(&self.descriptor),
+            crate::local_resources::runtimes::python::RuntimeProfile::Inference,
         )
     }
 }
@@ -89,7 +91,7 @@ fn accepts_dependency_only_runtime_without_worker_or_build_evidence() {
 fn rejects_recomputed_manifest_from_another_publication() {
     let mut fixture = Fixture::new();
     let mut manifest: serde_json::Value = serde_json::from_slice(&fixture.bytes).unwrap();
-    manifest["voxcpmCommit"] = json!("c".repeat(40));
+    manifest["dependencyLockSha256"] = json!("c".repeat(64));
     fixture.bytes = serde_json::to_vec(&manifest).unwrap();
     assert!(fixture
         .verify(&CancellationToken::new())

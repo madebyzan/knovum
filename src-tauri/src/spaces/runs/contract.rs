@@ -49,6 +49,9 @@ pub enum WaitReason {
     ContentReview,
     Executor,
     ExternalReconciliation,
+    ModelOutcomeUnknown,
+    ModelResponseUncommitted,
+    ModelUsageUnknown,
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

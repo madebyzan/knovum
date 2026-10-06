@@ -30,14 +30,16 @@ function fixture(context) {
     schemaVersion: 1,
     reviewStatus: "approved",
     dependencyRequirementsSha256: hash("locked graph"),
-    voxcpmCommit: "a".repeat(40),
+    profile: "inference",
+    dependencyLockSha256: hash("locked graph"),
     targets: { "macos-arm64": review, "windows-x64": null },
   };
   writeFileSync(
     join(directory, "runtime-manifest.json"),
     JSON.stringify({
       dependencyRequirementsSha256: policy.dependencyRequirementsSha256,
-      voxcpmCommit: policy.voxcpmCommit,
+      profile: policy.profile,
+      dependencyLockSha256: policy.dependencyLockSha256,
     }),
   );
   return {
@@ -46,7 +48,8 @@ function fixture(context) {
     review,
     policy,
     save: () => writeFileSync(join(python, "dependency-license-review.json"), JSON.stringify(policy)),
-    validate: (target = "macos-arm64") => validateDependencyLicenseReview(directory, target, repository),
+    validate: (target = "macos-arm64") =>
+      validateDependencyLicenseReview(directory, target, repository, "inference"),
   };
 }
 
@@ -83,7 +86,7 @@ test("production verification enforces unresolved review before invoking native 
     }),
   );
   assert.throws(
-    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository),
+    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository, "inference"),
     /license review is unresolved/,
   );
 });

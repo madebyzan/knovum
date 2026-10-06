@@ -1,8 +1,10 @@
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
+mod assistant;
 pub(crate) mod contracts;
 mod validation;
+pub(crate) use assistant::resolve as resolve_assistant;
 
 pub use contracts::AiSettings;
 use contracts::Envelope;
@@ -152,6 +154,7 @@ fn resolve_model(
     Ok(ModelExecutionTarget {
         provider: provider.as_str().to_owned(),
         model: model.model,
+        capabilities: model.capabilities,
         base_url: connection.base_url,
         temperature,
         secret_key: format!("integrations.ai.connections.{connection_id}.api-key"),

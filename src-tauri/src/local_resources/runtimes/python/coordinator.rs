@@ -11,6 +11,7 @@ use crate::local_resources::preparation::{
 
 pub(crate) async fn prepare<R: Runtime>(
     app: &AppHandle<R>,
+    profile: super::RuntimeProfile,
     cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<(), String> {
@@ -19,9 +20,9 @@ pub(crate) async fn prepare<R: Runtime>(
     }
     let handle = app.clone();
     if crate::blocking::run(move || {
-        let runtime = super::resolve_python_runtime(&handle)?;
+        let runtime = super::resolve(&handle, profile)?;
         if runtime.is_some() {
-            super::retire_unused(&handle)?;
+            super::retire_unused(&handle, profile)?;
         }
         Ok::<_, String>(runtime)
     })
@@ -32,9 +33,14 @@ pub(crate) async fn prepare<R: Runtime>(
         progress(update(ResourcePreparationStage::Ready, 0, 0));
         return Ok(());
     }
-    let descriptor = super::descriptor::required()?;
-    static INSTALLATIONS: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    let registry = INSTALLATIONS.get_or_init(Registry::new);
+    let descriptor = super::descriptor::required(profile)?;
+    static INFERENCE: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static ASSISTANT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    let registry = match profile {
+        super::RuntimeProfile::Inference => &INFERENCE,
+        super::RuntimeProfile::Assistant => &ASSISTANT,
+    }
+    .get_or_init(Registry::new);
     let handle = app.clone();
     let descriptor_size = descriptor.size;
     let mut waiter = registry

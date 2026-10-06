@@ -54,7 +54,10 @@ pub(super) async fn execute(
         .and_then(serde_json::Value::as_str)
         .filter(|value| super::super::run_start::valid_runtime_digest(value))
         .ok_or("runtime_mismatch: Speech Run has no valid frozen Python runtime digest")?;
-    let runtime_digest = crate::local_resources::runtimes::python::required_digest(app)?;
+    let runtime_digest = crate::local_resources::runtimes::python::required_digest(
+        app,
+        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+    )?;
     if runtime_digest != frozen_runtime {
         return Err("runtime_mismatch: Speech Run Python runtime changed".into());
     }

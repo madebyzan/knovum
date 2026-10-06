@@ -27,6 +27,7 @@ impl AssistantMode {
 #[ts(optional_fields = nullable)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SubmitAssistantTaskRequest {
+    pub mode: AssistantMode,
     pub space_id: String,
     pub conversation_id: Option<String>,
     pub branch_id: Option<String>,
@@ -58,7 +59,7 @@ impl SubmitAssistantTaskRequest {
             conversation_id: self.conversation_id,
             branch_id: self.branch_id,
             prompt: self.prompt,
-            mode: AssistantMode::Execute,
+            mode: self.mode,
             target,
             max_turns: 12,
             max_tool_calls: 32,
@@ -114,7 +115,9 @@ pub enum AssistantTaskUpdate {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AssistantTaskFinishedState {
+    Waiting,
     Succeeded,
+    CompletedWithErrors,
     Failed,
     Cancelled,
     Paused,

@@ -27,7 +27,7 @@ function extraction(context) {
 function manifest(root, prefix = "Knovum") {
   const runtime = join(root, prefix, "resources");
   mkdirSync(runtime, { recursive: true });
-  writeFileSync(join(runtime, "python-runtime-descriptor.json"), "{}");
+  writeFileSync(join(runtime, "python-inference-descriptor.json"), "{}");
   return runtime;
 }
 
@@ -60,7 +60,7 @@ test("rejects a bundled interpreter even when its manifest is missing", (context
 
 test("rejects a manifest outside the packaged resource path", (context) => {
   const root = extraction(context);
-  writeFileSync(join(root, "python-runtime-descriptor.json"), "{}");
+  writeFileSync(join(root, "python-inference-descriptor.json"), "{}");
   assert.throws(() => locateApplicationResources(root), /outside the application resources/u);
 });
 
@@ -135,7 +135,7 @@ printf '%s\n' "$@" > "$KNOVUM_MSI_TEST_LOG"
 for value in "$@"; do case "$value" in TARGETDIR=*) target="\${value#TARGETDIR=}";; esac; done
 runtime="$target/Knovum/resources"
 mkdir -p "$runtime"
-printf '{}' > "$runtime/python-runtime-descriptor.json"
+printf '{}' > "$runtime/python-inference-descriptor.json"
 
 `,
   );

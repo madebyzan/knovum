@@ -37,3 +37,12 @@ pub async fn start_assistant_task(
 pub(crate) fn cancel_task(run_id: &str) -> Result<(), String> {
     task::cancel(run_id)
 }
+
+#[tauri::command]
+pub async fn retry_assistant_model(
+    app: tauri::AppHandle,
+    run_id: String,
+    expected_version: i64,
+) -> Result<(), AppError> {
+    Ok(task::retry_model(app, &run_id, expected_version).await?)
+}

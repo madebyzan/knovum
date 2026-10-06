@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { chatModelProtocols } from "../../shared/contracts/generated/contract-values";
 import type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiCapabilitySchema, aiProviderSchema } from "./schema/models";
@@ -10,6 +11,7 @@ const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
     displayName: z.string().min(1),
     defaultBaseUrl: z.union([z.literal(""), z.url()]),
     capabilities: z.array(aiCapabilitySchema).min(1),
+    assistantProtocols: z.array(z.enum(chatModelProtocols)),
   })
   .strict();
 

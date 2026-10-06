@@ -20,7 +20,8 @@ struct RuntimeManifest {
     runtime_id: String,
     version: String,
     dependency_requirements_sha256: String,
-    voxcpm_commit: String,
+    profile: super::RuntimeProfile,
+    dependency_lock_sha256: String,
     target: String,
     executable: String,
     package_root: String,
@@ -56,6 +57,7 @@ pub(super) fn verify_runtime(
     manifest_digest: String,
     cancellation: &CancellationToken,
     descriptor: Option<&super::descriptor::Descriptor>,
+    profile: super::RuntimeProfile,
 ) -> Result<(PathBuf, PathBuf), String> {
     let root = manifest_path
         .parent()
@@ -67,10 +69,17 @@ pub(super) fn verify_runtime(
     let manifest: RuntimeManifest = serde_json::from_slice(manifest_bytes)
         .map_err(|error| format!("python-runtime-invalid: {error}"))?;
     validate_identity(&manifest)?;
+    if manifest.profile != profile {
+        return Err(
+            "python-runtime-invalid: runtime profile does not match the requested capability"
+                .into(),
+        );
+    }
     if let Some(descriptor) = descriptor {
         if manifest_digest != descriptor.manifest_sha256
             || manifest.dependency_requirements_sha256 != descriptor.dependency_requirements_sha256
-            || manifest.voxcpm_commit != descriptor.voxcpm_commit
+            || manifest.profile != descriptor.profile
+            || manifest.dependency_lock_sha256 != descriptor.dependency_lock_sha256
             || manifest.version != descriptor.version
         {
             return Err(
@@ -102,11 +111,11 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
     } else {
         "bin/python3"
     };
-    if manifest.schema_version != 2
+    if manifest.schema_version != 3
         || manifest.runtime_id != "cpython"
         || manifest.version != "3.11.17"
         || manifest.dependency_requirements_sha256.len() != 64
-        || manifest.voxcpm_commit.len() != 40
+        || manifest.dependency_lock_sha256.len() != 64
         || manifest.target != crate::local_resources::tools::platform_directory()
         || manifest.executable != executable
         || manifest.package_root != "packages"

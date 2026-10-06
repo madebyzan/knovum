@@ -26,9 +26,16 @@ pub struct LocalResourcesStatus {
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
-    python: runtimes::python::RuntimeStatus,
+    python_runtimes: PythonRuntimeStatuses,
     models: ModelStatuses,
     kokoro: models::kokoro::KokoroPackageStatus,
+}
+
+#[derive(Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+struct PythonRuntimeStatuses {
+    inference: runtimes::python::RuntimeStatus,
+    assistant: runtimes::python::RuntimeStatus,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -68,7 +75,10 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
-        python: runtimes::python::status(app)?,
+        python_runtimes: PythonRuntimeStatuses {
+            inference: runtimes::python::status(app, runtimes::python::RuntimeProfile::Inference)?,
+            assistant: runtimes::python::status(app, runtimes::python::RuntimeProfile::Assistant)?,
+        },
         models: model_statuses(app)?,
         kokoro: models::kokoro::status(app)?,
     })

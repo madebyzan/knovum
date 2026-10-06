@@ -38,36 +38,6 @@ pub(super) fn from_genai_response(
     })
 }
 
-pub(in crate::ai::model_turn) fn from_stream_end(
-    context: &SecurityContext,
-    end: genai::chat::StreamEnd,
-) -> AppResult<ModelTurnResponse> {
-    let finish_reason_raw = end
-        .captured_stop_reason
-        .as_ref()
-        .map(|reason| reason.raw().to_owned());
-    let finish_reason = finish_reason(end.captured_stop_reason.as_ref());
-    let content = end
-        .captured_content
-        .ok_or_else(|| unsupported("empty streamed response"))?
-        .into_parts()
-        .into_iter()
-        .map(from_part)
-        .collect::<AppResult<Vec<_>>>()?;
-    Ok(ModelTurnResponse {
-        message: ModelMessage {
-            role: ModelRole::Assistant,
-            content,
-        },
-        finish_reason,
-        finish_reason_raw,
-        usage: end.captured_usage.and_then(usage),
-        provider: context.provider.clone(),
-        model: context.model.clone(),
-        response_id: end.captured_response_id,
-    })
-}
-
 fn from_part(part: ContentPart) -> AppResult<ModelContentPart> {
     match part {
         ContentPart::Text(text) => Ok(ModelContentPart::Text { text }),

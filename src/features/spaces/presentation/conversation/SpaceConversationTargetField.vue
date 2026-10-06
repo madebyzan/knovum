@@ -29,7 +29,13 @@ const router = useRouter();
 const settings = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 
-const models = computed(() => availableModelTargets(settings.settings, "knowledge"));
+const models = computed(() =>
+  availableModelTargets(settings.settings, "knowledge").filter(({ target: selected }) =>
+    settings.settings.connections
+      .find(({ id }) => id === selected.connectionId)
+      ?.models.some((model) => model.id === selected.modelId && Boolean(model.assistant)),
+  ),
+);
 const modelChoices = computed(() =>
   models.value.map((option) => {
     const selected = option.target;

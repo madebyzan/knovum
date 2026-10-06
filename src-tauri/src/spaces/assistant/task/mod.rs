@@ -2,10 +2,13 @@ mod cancellation;
 mod completion;
 pub(crate) mod context;
 mod driver;
-mod identity;
+pub(super) mod identity;
+mod incompatible_segments;
+mod lifecycle;
+mod model_recovery;
 mod persistence;
 mod recovery;
-mod tool_execution;
+pub(super) mod tool_execution;
 
 use tauri::ipc::Channel;
 use tauri::AppHandle;
@@ -16,7 +19,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 4;
+pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 5;
 
 pub(super) struct NewAssistantTask<'a> {
     pub task_id: &'a str,
@@ -26,6 +29,7 @@ pub(super) struct NewAssistantTask<'a> {
     pub grant_id: &'a str,
     pub model_binding: &'a str,
     pub catalog_digest: &'a str,
+    pub session: &'a crate::spaces::assistant::execution::session::Session,
 }
 
 pub async fn start(
@@ -48,25 +52,16 @@ pub async fn start(
     } else {
         crate::ai::contracts::ExecutionCapability::TextGeneration
     };
-    let target = crate::ai::settings::resolve(&app, request.target.clone(), capability)
-        .map_err(|error| error.to_string())?;
+    let (target, profile) =
+        crate::ai::settings::resolve_assistant(&app, request.target.clone(), capability)
+            .map_err(|error| error.to_string())?;
     let catalog = tools::project(request.mode)?;
     let ids = identity::TaskIds::new(&request);
-    let conversation_context =
-        repository::build_context(pool, &ids.conversation_id, &ids.branch_id).await?;
+    let history = repository::load_history(pool, &ids.conversation_id, &ids.branch_id).await?;
     let now = crate::clock::unix_time_millis()?;
     let grant = identity::grant(&request, &ids, &catalog, now);
-    let mut checkpoint = crate::agent_runtime::start(
-        context
-            .initial_message(&request.prompt, conversation_context.as_deref(), &target)
-            .await?,
-        request.max_turns,
-        request.max_tool_calls,
-        ids.run_id.clone(),
-        uuid::Uuid::new_v4().to_string(),
-        catalog.digest.clone(),
-    )?;
-    persistence::persist_task(
+    let messages = vec![context.initial_message(ids.input_id(), &request.prompt, None)];
+    let (session, messages) = persistence::persist_task(
         pool,
         persistence::NewAssistantTaskState {
             request: &request,
@@ -76,7 +71,10 @@ pub async fn start(
             context_manifest: &context.manifest,
             space_context: &context.space,
             attachment_summaries: &context.summaries,
-            checkpoint: &checkpoint,
+            target: &target,
+            profile: &profile,
+            messages: &messages,
+            history: &history,
             now,
         },
     )
@@ -89,51 +87,23 @@ pub async fn start(
         branch_id: ids.branch_id.clone(),
     };
     let cancellation = cancellation::register(&ids.run_id)?;
-    let active_run_id = ids.run_id.clone();
-    tauri::async_runtime::spawn(async move {
-        match driver::drive(
-            driver::DriverContext {
-                app: &app,
-                pool,
-                target: &target,
-                request: &request,
-                ids: &ids,
-                catalog: &catalog,
-                updates: Some(&updates),
-            },
-            &mut checkpoint,
-            cancellation,
-        )
-        .await
-        {
-            Ok(output) => {
-                if let Err(error) = completion::complete(pool, &ids, output).await {
-                    log::error!("Assistant task completion failed: {error}");
-                    if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
-                        log::error!("Assistant failure recording failed: {write_error}");
-                    }
-                    let _ = updates.send(super::AssistantTaskUpdate::Finished {
-                        state: completion::stopped_state(pool, &ids.run_id).await,
-                    });
-                } else {
-                    let _ = updates.send(super::AssistantTaskUpdate::Finished {
-                        state: super::contract::AssistantTaskFinishedState::Succeeded,
-                    });
-                }
-            }
-            Err(error) => {
-                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error.message).await
-                {
-                    log::error!("Assistant failure recording failed: {write_error}");
-                }
-                let _ = updates.send(super::AssistantTaskUpdate::Finished {
-                    state: completion::stopped_state(pool, &ids.run_id).await,
-                });
-                log::error!("Assistant task failed: {error}");
-            }
-        }
-        cancellation::remove(&active_run_id);
-    });
+    lifecycle::launch(
+        crate::spaces::assistant::execution::gateway::Gateway {
+            app,
+            pool: pool.clone(),
+            target,
+            profile,
+            request,
+            ids,
+            catalog,
+            session,
+            updates: Some(updates),
+            last_message: std::sync::Mutex::new(None),
+        },
+        messages,
+        None,
+        cancellation,
+    );
     Ok(accepted)
 }
 
@@ -150,19 +120,16 @@ pub(super) fn recover(app: AppHandle) {
 }
 
 pub(super) async fn resume(app: AppHandle, run_id: &str) -> Result<(), String> {
-    recovery::recover_one(app, run_id).await
+    recovery::recover_one(app, run_id, true, None).await
 }
 
-pub(super) async fn require_paused_checkpoint(
-    pool: &sqlx::SqlitePool,
+pub(super) async fn retry_model(
+    app: AppHandle,
     run_id: &str,
+    expected_version: i64,
 ) -> Result<(), String> {
-    let ready: Option<i64> = sqlx::query_scalar(
-        "SELECT 1 FROM spaces_runs r WHERE r.id=$1 AND r.state='paused' AND r.pause_requested_at IS NOT NULL
-         AND EXISTS (SELECT 1 FROM spaces_run_events e WHERE e.run_id=r.id
-           AND e.kind='assistant_paused_checkpoint' AND e.created_at>=r.pause_requested_at)",
-    ).bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
-    ready.map(|_| ()).ok_or_else(||
-        "assistant-pause-settling: wait for the current model or tool operation to reach a durable checkpoint".into()
-    )
+    recovery::recover_one(app, run_id, false, Some(expected_version)).await
 }
+
+#[cfg(test)]
+mod tests;

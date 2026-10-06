@@ -15,6 +15,11 @@ pub async fn start(
     runtime_kind: AgentKind,
     updates: Channel<AssistantTaskUpdate>,
 ) -> Result<AssistantTaskAccepted, String> {
+    if !matches!(request.mode, super::AssistantMode::Execute) {
+        return Err(
+            "external-agent-mode-unsupported: desktop Agent sessions use Execute mode".into(),
+        );
+    }
     let prompt = request.prompt.trim().to_owned();
     if request.space_id.trim().is_empty() || prompt.is_empty() || prompt.chars().count() > 100_000 {
         return Err("assistant-request-invalid: Space and prompt are required".into());

@@ -6,6 +6,7 @@ mod messages;
 mod tasks;
 
 pub use context::build as build_context;
+pub(in crate::spaces::assistant) use context::load_history;
 pub use conversations::{
     archive, delete, ensure_branch_idle, ensure_conversation, list_conversations, rename, unarchive,
 };
@@ -14,11 +15,10 @@ pub use message_contract::{
     AssistantMessage, AssistantMessageAttachment, AssistantMessageContent, AssistantMessageOutput,
     AssistantMessageRole,
 };
-pub use messages::{all_messages, append_message, append_message_in_transaction, list_messages};
-pub use tasks::{
-    complete_tool_call, complete_turn, insert_task, recoverable_task, recoverable_tasks,
-    save_checkpoint, start_tool_call, start_turn, AssistantToolCallCompletion,
-    AssistantToolCallStart, RecoverableTask,
+pub use messages::{all_messages, append_message_in_transaction, list_messages};
+pub(in crate::spaces::assistant) use tasks::{
+    complete_tool_call, insert_task, recoverable_task, recoverable_tasks, start_tool_call,
+    AssistantToolCallCompletion, AssistantToolCallStart, RecoverableTask,
 };
 
 #[cfg(test)]

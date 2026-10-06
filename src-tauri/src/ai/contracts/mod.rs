@@ -28,4 +28,6 @@ pub use model_turn::{
     ModelBinarySource, ModelContentPart, ModelFinishReason, ModelMessage, ModelRole,
     ModelToolChoice, ModelToolDefinition, ModelTurnCapability, ModelTurnRequest, ModelTurnResponse,
 };
-pub use provider::{AiProvider, ExecutionCapability, ProviderKind, RoutingPurpose};
+pub use provider::{
+    AiProvider, ChatModelProtocol, ExecutionCapability, ProviderKind, RoutingPurpose,
+};

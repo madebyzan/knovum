@@ -9,6 +9,7 @@ import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { conversationActivityItems, type ActivityItem } from "../../conversation/conversation-activity-items";
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
+import SpaceConversationPlan from "./SpaceConversationPlan.vue";
 import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
@@ -81,6 +82,7 @@ function toggleTool(event: Event, id: string) {
 </script>
 
 <template>
+  <SpaceConversationPlan :events="events" />
   <p v-if="active && !items.length" role="status" class="mt-4 py-1.5 text-caption text-fg-secondary">
     <SpaceConversationShimmerText>{{
       $t("spaces.assistant.activity.generating")

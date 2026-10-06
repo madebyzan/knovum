@@ -131,6 +131,7 @@ async fn prepare_staging(
             digest,
             &verification_cancellation,
             Some(&descriptor),
+            descriptor.profile,
         )
         .map(|_| ())
     })

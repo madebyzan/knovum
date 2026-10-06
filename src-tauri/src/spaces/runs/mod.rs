@@ -16,7 +16,7 @@ mod scheduler;
 mod signals;
 
 pub(crate) use attempt::{AttemptClaim, StepOutcome};
-pub(crate) use budget::record_usage;
+pub(crate) use budget::{record_tokens_in_transaction, record_usage};
 pub(crate) use children::{child_settlement, drain_children, wait_for_children};
 pub(crate) use contract::{RunKind, RunObservation, RunState, StepState, WaitReason};
 pub(crate) use events::append_event;
@@ -77,13 +77,18 @@ pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), App
 #[tauri::command]
 pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
-    if load_run(pool, &run_id).await?.kind == RunKind::ExternalAgent {
+    let kind = load_run(pool, &run_id).await?.kind;
+    if kind == RunKind::ExternalAgent {
         return Err(
             "run-control-unsupported: External Agent sessions support cancellation, not pause"
                 .into(),
         );
     }
-    Ok((repository::request_control(pool, &run_id, "pause").await)?)
+    repository::request_control(pool, &run_id, "pause").await?;
+    if kind == RunKind::Assistant {
+        crate::spaces::assistant::cancel_task(&run_id)?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -91,12 +96,9 @@ pub async fn resume_run(app: tauri::AppHandle, run_id: String) -> Result<(), App
     let pool = crate::spaces::db::pool(&app).await?;
     let run = load_run(pool, &run_id).await?;
     if run.kind == RunKind::Assistant {
-        crate::spaces::assistant::require_paused_checkpoint(pool, &run_id).await?;
+        return Ok(crate::spaces::assistant::resume_task(app, &run_id).await?);
     }
     repository::request_control(pool, &run_id, "resume").await?;
-    if run.kind == RunKind::Assistant {
-        crate::spaces::assistant::resume_task(app, &run_id).await?;
-    }
     Ok(())
 }
 

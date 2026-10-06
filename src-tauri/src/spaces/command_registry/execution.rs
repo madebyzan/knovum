@@ -3,6 +3,7 @@ use tauri::ipc::Invoke;
 pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
         crate::spaces::assistant::commands::runs::start_assistant_task,
+        crate::spaces::assistant::commands::runs::retry_assistant_model,
         crate::spaces::assistant::upload::inspect_assistant_upload,
         crate::spaces::assistant::upload::preview_assistant_upload,
         crate::spaces::assistant::queries::conversations::list_assistant_conversations,

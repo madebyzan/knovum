@@ -1,14 +1,12 @@
 mod diagnostics;
 mod request;
 mod startup;
+use crate::subprocess::process_tree::{KillHandle, ProcessTree};
 use std::{
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
     time::{Duration, Instant},
 };
-
-#[cfg(windows)]
-use std::sync::Arc;
 
 use tokio::process::Child;
 
@@ -18,11 +16,7 @@ use crate::ai::contracts::runtime::{
 };
 
 #[cfg(windows)]
-#[path = "windows_job.rs"]
-mod windows_job;
-#[cfg(windows)]
-use windows_job::WindowsJob;
-
+use crate::subprocess::windows_job;
 pub(super) struct Worker {
     pub(super) child: Child,
     process_tree: ProcessTree,
@@ -102,16 +96,6 @@ impl Drop for Worker {
     }
 }
 
-struct ProcessTree(Option<KillHandle>);
-
-#[derive(Clone)]
-enum KillHandle {
-    #[cfg(unix)]
-    ProcessGroup(i32),
-    #[cfg(windows)]
-    Job(Arc<WindowsJob>),
-}
-
 static ACTIVE_KILL: OnceLock<Mutex<Option<(String, KillHandle)>>> = OnceLock::new();
 
 struct KillRegistration {
@@ -156,65 +140,6 @@ pub(super) fn force_terminate_active() {
                 handle.terminate();
             }
         }
-    }
-}
-
-impl KillHandle {
-    fn terminate(&self) {
-        #[cfg(unix)]
-        {
-            let Self::ProcessGroup(group) = self;
-            unsafe extern "C" {
-                fn kill(pid: i32, signal: i32) -> i32;
-            }
-            let _ = unsafe { kill(-group, 9) };
-        }
-        #[cfg(windows)]
-        {
-            let Self::Job(job) = self;
-            job.terminate();
-        }
-    }
-}
-
-impl ProcessTree {
-    fn new(child: &Child, #[cfg(windows)] job: WindowsJob) -> Result<Self, String> {
-        #[cfg(unix)]
-        let process_group = i32::try_from(
-            child
-                .id()
-                .ok_or("worker_crashed: worker process id unavailable")?,
-        )
-        .map_err(|_| "worker_crashed: worker process id exceeds platform range")?;
-        Ok(Self(Some({
-            #[cfg(unix)]
-            {
-                KillHandle::ProcessGroup(process_group)
-            }
-            #[cfg(windows)]
-            {
-                KillHandle::Job(Arc::new(job))
-            }
-        })))
-    }
-
-    fn handle(&self) -> KillHandle {
-        self.0
-            .as_ref()
-            .expect("process tree has a kill handle")
-            .clone()
-    }
-
-    fn terminate(&mut self) {
-        if let Some(handle) = self.0.take() {
-            handle.terminate();
-        }
-    }
-}
-
-impl Drop for ProcessTree {
-    fn drop(&mut self) {
-        self.terminate();
     }
 }
 

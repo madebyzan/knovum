@@ -5,7 +5,9 @@ import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTarg
 import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { AssistantMode } from "../contracts/generated/AssistantMode";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { getAssistantTaskError, startAssistantTask } from "./conversation-ipc";
 import {
@@ -19,6 +21,7 @@ type StartedTask = Awaited<ReturnType<typeof startAssistantTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
 export interface ConversationSubmissionState {
+  activeRun: ShallowRef<RunObservation | undefined>;
   activeRunId: ShallowRef<string | undefined>;
   activeConversationId: ShallowRef<string>;
   activeSpaceId: ShallowRef<string | undefined>;
@@ -30,6 +33,7 @@ export interface ConversationSubmissionState {
 }
 
 export interface ConversationSubmissionInput {
+  mode: Ref<AssistantMode>;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   conversation: Ref<AssistantConversation | undefined>;
@@ -65,6 +69,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       title: input.conversation.value?.title || request.prompt.slice(0, 80),
       onUpdate: (run) => {
         if (submitted !== generation) return;
+        state.activeRun.value = run;
         state.taskState.value = run.state;
         state.activityRevision.value += 1;
       },
@@ -84,7 +89,8 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     await options.settled(task.accepted, selection.spaceId);
     state.streamedText.value = "";
     state.error.value = undefined;
-    if (outcome === "succeeded" || outcome === "paused" || outcome === "cancelled") return;
+    if (outcome === "succeeded" || outcome === "paused" || outcome === "waiting" || outcome === "cancelled")
+      return;
     const reason = await getAssistantTaskError(task.accepted.runId);
     throw new Error(reason ?? `Assistant task ended as ${outcome}`);
   }
@@ -92,7 +98,10 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   async function finish(submitted: number) {
     if (submitted !== generation) return;
     state.loading.value = false;
-    if (state.taskState.value === "paused" && state.activeSpaceId.value) {
+    if (
+      (state.taskState.value === "paused" || state.taskState.value === "waiting") &&
+      state.activeSpaceId.value
+    ) {
       state.activeRunId.value = undefined;
       try {
         await options.restoreForSpace(state.activeSpaceId.value);
@@ -118,6 +127,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   async function send() {
     if (state.loading.value || state.activeRunId.value) return;
     const request = conversationTaskRequest({
+      mode: input.mode.value,
       spaceId: input.spaceId.value,
       conversation: input.conversation.value,
       prompt: input.prompt.value,

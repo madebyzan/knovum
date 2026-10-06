@@ -40,7 +40,8 @@ function fixture(context) {
   write(runtime, "runtime-requirements.txt", "requirements");
   const evidence = join(root, "build-evidence");
   const producer = {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    profile: "inference",
     target,
     version: "3.11.17",
     uvVersion: "0.12.23",
@@ -79,11 +80,12 @@ function fixture(context) {
       runtime,
       "runtime-manifest.json",
       JSON.stringify({
-        schemaVersion: 2,
+        schemaVersion: 3,
+        profile: "inference",
+        dependencyLockSha256: hash(lock),
         runtimeId: "cpython",
         version: "3.11.17",
         dependencyRequirementsSha256: hash("requirements"),
-        voxcpmCommit: commit,
         target,
         executable: "bin/python3",
         packageRoot: "packages",
@@ -134,7 +136,7 @@ test("requirements evidence must agree with producer digest", (context) => {
   const sample = fixture(context);
   sample.write(sample.evidence, "requirements.txt", "changed");
   sample.manifest();
-  assert.throws(sample.validate, /producer digest differs/);
+  assert.throws(sample.validate, /requirements differ from the producer evidence/);
 });
 
 test("runtime changes are rejected before trusting producer metadata", (context) => {
@@ -150,12 +152,12 @@ test("runtime archive rejects application Worker files", (context) => {
   assert.throws(sample.validate, /exclude application Worker/);
 });
 
-test("unrelated development lock changes do not invalidate runtime identity", (context) => {
+test("any changed dependency lock invalidates the frozen runtime identity", (context) => {
   const sample = fixture(context);
   sample.write(
     sample.python,
     "uv.lock",
     `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`,
   );
-  sample.validate();
+  assert.throws(sample.validate, /dependency lock differs/);
 });

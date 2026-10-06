@@ -69,7 +69,8 @@ where
     let identity = params.identity();
     let deadline = super::super::deadline_duration(identity.deadline_ms)?;
     let exit = super::super::exit_token();
-    let runtime = python::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let runtime =
+        python::resolve(app, python::RuntimeProfile::Inference)?.ok_or("runtime_missing")?;
     let capability = params.capability();
     super::super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(

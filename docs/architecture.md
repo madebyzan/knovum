@@ -55,7 +55,7 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `authorization/`: principals, scopes, grants and effect-specific approvals;
 - `runs/`: durable Run, StepInstance and Attempt state, scheduling, recovery and events;
 - `workflows/`: capture, versioned library and replay of verified derivation chains over SpaceActions;
-- `assistant/`: Space-specific conversations, context, tasks, tool calls and checkpoints;
+- `assistant/`: Space-specific conversations, context, tasks, tool operations and SDK execution segments;
 - `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
 - `knowledge/indexing/`: extraction of revisions, passages and knowledge chunks from Space nodes;
@@ -103,14 +103,20 @@ code uses the standard `src/` layout and capability packages named `knovum_<capa
 `knovum_inference` owns current model computation; `knovum_model_resources` owns official Hub SDK execution. Additional capabilities own their own entry,
 contracts and lifecycle. Source packages do not import peer capability internals; composition
 belongs to their process entry or the existing Rust capability orchestration. A shared module
-requires actual consumers and a concrete responsibility. Agent implementation remains a future
-capability; no SDK, empty package or generic runtime layer is preinstalled.
+requires actual consumers and a concrete responsibility. `knovum_assistant` owns Deep Agents composition, model clients, control middleware, private
+workspace and public checkpoint projection. `agent_runtime/process` owns its bounded bidirectional
+stdio and process lifecycle; `spaces/assistant/execution` owns host admission, frozen sessions and
+projection transactions. The shared `subprocess` process-tree owner is used by both actual processes.
 
 Hatch and desktop packaging select application code from `python/src`, while inference release
 qualification hashes only `knovum_inference`. Default project dependencies are empty;
 `project.optional-dependencies.inference` declares the existing inference libraries. The producer
-and application verifier explicitly export the frozen `inference` and `model-resources` extras. Other capabilities must define
-and qualify their dependency selection before release, rather than inherit the inference bundle.
+and application verifier explicitly export the frozen `inference` and `model-resources` extras. `python/runtimes/assistant/pyproject.toml` is a dependency-only project with an independent lock
+for the Assistant. Google GenAI requires a different Pydantic line than the inference selection;
+sharing one virtual environment would violate dependency isolation. Both native publications reuse
+the existing runtime builder, installer, leases and resource-preparation registry. Neither inherits
+the other capability's third-party packages. Future capabilities must define and qualify their
+actual dependency selection before release.
 Their SDK execution cannot create a competing authority for Space authorization, durable Runs
 or publication. Those contracts remain Rust-owned unless their owning documents are revised.
 This project currently targets the managed CPython 3.11.17 interpreter. A capability requiring

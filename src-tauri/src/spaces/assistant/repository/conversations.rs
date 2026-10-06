@@ -16,7 +16,7 @@ pub async fn ensure_conversation(
 ) -> Result<(), String> {
     let conversation_write = sqlx::query(
         "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
-         VALUES($1,$2,$3,$4,$1,$5,$5) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
+         VALUES($1,$2,$3,$4,$1,$5,$5) ON CONFLICT(id) DO UPDATE SET mode=excluded.mode,updated_at=excluded.updated_at
          WHERE spaces_assistant_conversations.space_id=excluded.space_id",
     )
     .bind(id)

@@ -9,6 +9,8 @@ use crate::spaces::db;
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RunEventKind {
     AssistantPausedCheckpoint,
+    AssistantPlanUpdated,
+    AssistantModelRetryAuthorized,
     AssistantToolStarted,
     AssistantToolFinished,
     AttemptClaimed,
@@ -26,6 +28,8 @@ pub enum RunEventKind {
 impl RunEventKind {
     pub const fn as_str(self) -> &'static str {
         match self {
+            Self::AssistantPlanUpdated => "assistant_plan_updated",
+            Self::AssistantModelRetryAuthorized => "assistant_model_retry_authorized",
             Self::AssistantPausedCheckpoint => "assistant_paused_checkpoint",
             Self::AssistantToolStarted => "assistant_tool_started",
             Self::AssistantToolFinished => "assistant_tool_finished",

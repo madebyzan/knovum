@@ -130,3 +130,27 @@ Separate SQLite databases and filesystem changes cannot commit atomically togeth
 Permanent Space deletion therefore treats the committed database mutation as authoritative and performs returned managed-file cleanup afterward. Cleanup failures are reported/logged as cleanup failures rather than pretending that the database transaction rolled back.
 
 Credential deletion keeps an explicit read-backup/restore compensation path because the credential database and Spaces database have separate transactions.
+
+## Built-in Assistant state
+
+Spaces SQLite owns conversations, branches, public messages, grants, Action receipts and Runs.
+`spaces_assistant_execution_segments` freezes the target/profile, execution revision, graph
+version, directory digest and projection cursor. Tasks own stable input IDs, their acceptance and
+control epochs. `spaces_assistant_model_calls` records each admitted main/research/summary request,
+usage certainty, checkpoint proof and explicit retry authorization. `spaces_assistant_tool_operations`
+relates durable SDK tool identity to existing Action invocation identity and its frozen business
+route; no independent business result authority is created. Public AIMessage identities deduplicate
+history projection in the same transaction as input acknowledgements and the cursor.
+
+Known model consumption is recorded on its owning Run and ancestors even after cancellation or
+budget exhaustion. Recording a paid receipt does not authorize publication or another request;
+admission and business commit fences remain separate. Missing SDK usage remains unknown, never zero.
+
+The SDK owns `<app-data>/assistant/checkpoints.sqlite` through AsyncSqliteSaver. Knovum uses public
+graph history, pending-write records and `adelete_thread`, never SDK SQL or private saver hooks.
+The graph is versioned execution state, not exported product history. Credentials live only in
+Rust/Python client memory and stdio execution context. Private workspace state belongs to a thread;
+reviewed Skills and the Space index snapshot are read-only inputs. Persistent memory is ordinary
+user-visible Space notes managed by explicit Actions. Completed superseded graph segments have a
+30-day retention policy; unmatched orphan threads use the same grace period. Product records and
+published resources retain their existing lifetime. Obsolete prerelease baselines fail explicitly.

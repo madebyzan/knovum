@@ -20,36 +20,56 @@ pub(crate) async fn record_usage(
     usage: &crate::ai::contracts::TokenUsage,
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
-    let ancestors = sqlx::query_scalar::<_, String>(
+    let within_budget = record_tokens_in_transaction(
+        &mut tx,
+        run_id,
+        i64::from(usage.prompt_tokens),
+        i64::from(usage.completion_tokens),
+        i64::from(usage.total_tokens),
+    )
+    .await?;
+    // Paid usage remains recorded even when it exceeds the admission budget.
+    tx.commit().await.map_err(db::sql_error)?;
+    if !within_budget {
+        return Err("budget-exhausted: Run tree model token budget was exceeded".into());
+    }
+    Ok(())
+}
+
+pub(crate) async fn record_tokens_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
+    run_id: &str,
+    input: i64,
+    output: i64,
+    total: i64,
+) -> Result<bool, String> {
+    let recorded: Vec<(String, i64)> = sqlx::query_as(
         "WITH RECURSIVE ancestors(id,parent_run_id) AS (
            SELECT id,parent_run_id FROM spaces_runs WHERE id=$1
-           UNION ALL
-           SELECT parent.id,parent.parent_run_id FROM spaces_runs parent
-           JOIN ancestors child ON child.parent_run_id=parent.id
-         ) SELECT id FROM ancestors",
+           UNION ALL SELECT parent.id,parent.parent_run_id FROM spaces_runs parent
+           JOIN ancestors child ON child.parent_run_id=parent.id)
+         UPDATE spaces_runs SET input_tokens=input_tokens+$2,output_tokens=output_tokens+$3,
+           total_tokens=total_tokens+$4,updated_at=$5 WHERE id IN (SELECT id FROM ancestors)
+         RETURNING budget,total_tokens",
     )
     .bind(run_id)
-    .fetch_all(&mut *tx)
+    .bind(input)
+    .bind(output)
+    .bind(total)
+    .bind(crate::clock::unix_time_millis()?)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if ancestors.is_empty() {
+    if recorded.is_empty() {
         return Err("run-unavailable: usage owner is unavailable".into());
     }
-    let now = crate::clock::unix_time_millis()?;
-    for ancestor in ancestors {
-        let budget_write = sqlx::query(
-            "UPDATE spaces_runs SET input_tokens=input_tokens+$1,output_tokens=output_tokens+$2,
-             total_tokens=total_tokens+$3,updated_at=$4 WHERE id=$5 AND completed_at IS NULL
-             AND total_tokens+$3 <= COALESCE(json_extract(budget,'$.maxTotalTokens'),9223372036854775807)",
-        ).bind(i64::from(usage.prompt_tokens)).bind(i64::from(usage.completion_tokens))
-            .bind(i64::from(usage.total_tokens)).bind(now).bind(ancestor)
-            .execute(&mut *tx).await.map_err(db::sql_error)?;
-        db::require_one(
-            budget_write,
-            "budget-exhausted: Run tree model token budget was exceeded",
-        )?;
+    let mut within_budget = true;
+    for (budget, total) in recorded {
+        let budget = serde_json::from_str(&budget).map_err(db::json_error)?;
+        within_budget &=
+            optional_limit(&budget, "maxTotalTokens")?.is_none_or(|limit| total <= limit);
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok(within_budget)
 }
 
 pub(crate) async fn reserve_output_bytes_in_transaction(

@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
+  "profile": "inference",
   "reviewStatus": "required",
   "targets": {
     "macos-arm64": null,
     "windows-x64": null
   },
   "dependencyRequirementsSha256": null,
-  "voxcpmCommit": "19b6bf7590025418821a86dcb817504e0ad7e5df"
+  "dependencyLockSha256": null
 }

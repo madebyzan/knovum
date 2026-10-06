@@ -46,7 +46,11 @@ quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.12.3", "pytest==9.1.1", "
 target-version = "py311"
 line-length = 120
 src = ["src"]
-extend-exclude = ["**/knovum_inference/contracts/generated", "**/knovum_model_resources/contracts.py"]
+extend-exclude = [
+  "**/knovum_inference/contracts/generated",
+  "**/knovum_assistant/contracts/generated",
+  "**/knovum_model_resources/contracts.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
@@ -54,6 +58,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.ruff.lint.isort]
 known-first-party = [
   "knovum_inference",
+  "knovum_assistant",
   "knovum_model_resources",
   "acceptance",
   "runtime",

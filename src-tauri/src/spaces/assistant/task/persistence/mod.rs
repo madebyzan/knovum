@@ -5,14 +5,11 @@ use sqlx::SqlitePool;
 mod tests;
 
 use super::{identity, NewAssistantTask, ASSISTANT_PROFILE_VERSION};
-use crate::{
-    agent_runtime::ControlCheckpoint,
-    spaces::{
-        assistant::{repository, tools, StartAssistantTaskRequest},
-        authorization::{create_grant, AuthorizationContext},
-        db,
-        runs::{create_run_in_transaction, NewRun, RunKind},
-    },
+use crate::spaces::{
+    assistant::{repository, tools, StartAssistantTaskRequest},
+    authorization::{create_grant, AuthorizationContext},
+    db,
+    runs::{create_run_in_transaction, NewRun, RunKind},
 };
 
 pub(super) struct NewAssistantTaskState<'a> {
@@ -23,14 +20,23 @@ pub(super) struct NewAssistantTaskState<'a> {
     pub context_manifest: &'a serde_json::Value,
     pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
     pub attachment_summaries: &'a [crate::spaces::assistant::AssistantMessageAttachment],
-    pub checkpoint: &'a ControlCheckpoint,
+    pub target: &'a crate::ai::models::ModelExecutionTarget,
+    pub profile: &'a crate::ai::settings::contracts::AssistantModelSettings,
+    pub messages: &'a [crate::agent_runtime::protocol::messages::AssistantInputMessage],
+    pub history: &'a [crate::agent_runtime::protocol::messages::AssistantInputMessage],
     pub now: i64,
 }
 
 pub(super) async fn persist_task(
     pool: &SqlitePool,
     records: NewAssistantTaskState<'_>,
-) -> Result<(), String> {
+) -> Result<
+    (
+        crate::spaces::assistant::execution::session::Session,
+        Vec<crate::agent_runtime::protocol::messages::AssistantInputMessage>,
+    ),
+    String,
+> {
     let NewAssistantTaskState {
         request,
         ids,
@@ -39,7 +45,10 @@ pub(super) async fn persist_task(
         context_manifest,
         space_context,
         attachment_summaries,
-        checkpoint,
+        target,
+        profile,
+        messages,
+        history,
         now,
     } = records;
     let mut tx = db::begin_write(pool).await?;
@@ -64,7 +73,23 @@ pub(super) async fn persist_task(
         "mode": request.mode, "grantId": grant.grant_id,
         "assistantProfileVersion": ASSISTANT_PROFILE_VERSION,
     });
-    let input = json!({"prompt": request.prompt, "contextManifest": context_manifest, "spaceContext": space_context});
+    let session = crate::spaces::assistant::execution::session::select(
+        &mut tx,
+        ids,
+        target,
+        profile,
+        &request.target,
+        &catalog.digest,
+        now,
+    )
+    .await?;
+    let mut inputs = if session.projection_checkpoint_id.is_none() {
+        history.to_vec()
+    } else {
+        Vec::new()
+    };
+    inputs.extend_from_slice(messages);
+    let input = json!({"prompt": request.prompt, "contextManifest": context_manifest, "spaceContext": space_context, "messages": inputs});
     let budget = json!({
         "maxTurns": request.max_turns, "maxTools": request.max_tool_calls,
         "maxTotalTokens": request.max_total_tokens,
@@ -85,6 +110,11 @@ pub(super) async fn persist_task(
         now,
     )
     .await?;
+    let active: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_assistant_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE r.completed_at IS NULL AND r.state IN ('queued','running','waiting')")
+        .fetch_one(&mut *tx).await.map_err(db::sql_error)?;
+    if active != 0 {
+        return Err("assistant-busy: another built-in execution is active".into());
+    }
     let binding = serde_json::to_string(&request.target).map_err(db::json_error)?;
     repository::insert_task(
         &mut tx,
@@ -96,6 +126,7 @@ pub(super) async fn persist_task(
             grant_id: &ids.grant_id,
             model_binding: &binding,
             catalog_digest: &catalog.digest,
+            session: &session,
         },
         now,
     )
@@ -113,16 +144,7 @@ pub(super) async fn persist_task(
         now,
     )
     .await?;
-    sqlx::query(
-        "INSERT INTO spaces_assistant_checkpoints(task_id,envelope,updated_at) VALUES($1,$2,$3)",
-    )
-    .bind(&ids.task_id)
-    .bind(serde_json::to_string(checkpoint).map_err(db::json_error)?)
-    .bind(now)
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
-    Ok(())
+    Ok((session, inputs))
 }

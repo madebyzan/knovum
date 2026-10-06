@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::ai::contracts::{ExecutionCapability, ProviderKind};
+use crate::ai::contracts::{ChatModelProtocol, ExecutionCapability, ProviderKind};
 
 #[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -9,6 +9,7 @@ pub struct ProviderDescriptor {
     pub display_name: &'static str,
     pub default_base_url: &'static str,
     pub capabilities: &'static [ExecutionCapability],
+    pub assistant_protocols: &'static [ChatModelProtocol],
 }
 
 const TEXT: &[ExecutionCapability] = &[ExecutionCapability::TextGeneration];
@@ -160,6 +161,30 @@ const fn define_provider(
         display_name,
         default_base_url,
         capabilities,
+        assistant_protocols: match kind {
+            ProviderKind::Anthropic => &[ChatModelProtocol::Anthropic],
+            ProviderKind::Gemini => &[ChatModelProtocol::Gemini],
+            ProviderKind::Ollama => &[ChatModelProtocol::Ollama],
+            ProviderKind::DeepSeek => &[ChatModelProtocol::DeepSeek],
+            ProviderKind::Groq => &[ChatModelProtocol::Groq],
+            ProviderKind::Kling => &[],
+            ProviderKind::OpenAi
+            | ProviderKind::OpenAiCompatible
+            | ProviderKind::OpenRouter
+            | ProviderKind::DashScope
+            | ProviderKind::Zhipu
+            | ProviderKind::SiliconFlow
+            | ProviderKind::Grok
+            | ProviderKind::Mistral
+            | ProviderKind::Together
+            | ProviderKind::StepFun
+            | ProviderKind::Moonshot
+            | ProviderKind::Doubao
+            | ProviderKind::MiniMax => &[
+                ChatModelProtocol::OpenAiChat,
+                ChatModelProtocol::OpenAiResponses,
+            ],
+        },
     }
 }
 

@@ -12,7 +12,8 @@ mod installation;
 mod jobs;
 pub(crate) use jobs::{
     prepare_kokoro_for_job, prepare_kokoro_for_request, prepare_models_for_job,
-    prepare_models_for_request, prepare_python_for_request, prepare_voxcpm2_for_job,
+    prepare_models_for_request, prepare_python_for_job, prepare_python_for_request,
+    prepare_voxcpm2_for_job,
 };
 pub(crate) mod locks;
 pub(crate) mod requests;
@@ -33,11 +34,16 @@ pub async fn prepare_models<R: Runtime>(
     request_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedModels, String> {
-    super::runtimes::python::prepare(app, request_cancellation, &mut |update| {
-        if !matches!(update.stage, ResourcePreparationStage::Ready) {
-            progress(update);
-        }
-    })
+    super::runtimes::python::prepare(
+        app,
+        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+        request_cancellation,
+        &mut |update| {
+            if !matches!(update.stage, ResourcePreparationStage::Ready) {
+                progress(update);
+            }
+        },
+    )
     .await?;
     if kinds.is_empty() {
         return Err("Model preparation requires at least one model".to_string());

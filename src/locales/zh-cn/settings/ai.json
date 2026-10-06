@@ -66,22 +66,29 @@
     "import": "导入模型目录",
     "remove": "移除本地模型"
   },
-  "localInference": {
-    "title": "本地 AI",
-    "description": "首次使用时下载组件，由本地 AI 功能共享。模型单独按需下载。",
-    "components": "本地 AI 组件",
-    "ready": "已准备，可离线使用",
+  "assistantEnabled": "用于内置助手",
+  "assistantProfileHelp": "仅启用支持工具调用的模型。请按照服务商文档填写上下文和单次输出上限。",
+  "assistantProtocol": "模型接口协议",
+  "contextWindow": "上下文窗口（token）",
+  "maxOutputTokens": "单次请求输出上限（token）",
+  "assistantLimitsInvalid": "上下文至少为 8,192 token；输出上限必须大于零且小于上下文。",
+  "pythonRuntimes": {
+    "title": "Python 运行环境",
+    "description": "不同能力的运行环境按需下载，模型资源独立管理。",
+    "inference": "本地推理",
+    "assistant": "内置助手",
+    "ready": "运行时已就绪",
     "unavailable": "当前构建尚未配置运行时发布资源",
     "download": "尚未准备 · 下载 {size}",
-    "preparing": "准备本地 AI 组件",
+    "preparing": "准备{name}运行时",
     "prepare": "准备",
-    "cancel": "取消",
-    "source": {
-      "label": "下载地区",
-      "description": "新下载使用所选地区的资源来源，正在进行的下载继续使用原来源。",
-      "global": "国际",
-      "china": "中国大陆",
-      "chinaNote": "图片背景移除和音频分离目前使用社区镜像，下载仍可能需要访问海外服务器。"
-    }
+    "cancel": "取消"
+  },
+  "resourceDownloads": {
+    "label": "下载地区",
+    "description": "新下载使用所选地区的资源来源，正在进行的下载继续使用原来源。",
+    "global": "国际",
+    "china": "中国大陆",
+    "chinaNote": "图片背景移除和音频分离目前使用社区镜像，下载仍可能需要访问海外服务器。"
   }
 }

@@ -99,14 +99,19 @@ async fn prepare_kokoro<R: Runtime>(
     cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedKokoroModel, String> {
-    crate::local_resources::runtimes::python::prepare(app, cancellation, &mut |update| {
-        if !matches!(
-            update.stage,
-            super::contracts::ResourcePreparationStage::Ready
-        ) {
-            progress(update);
-        }
-    })
+    crate::local_resources::runtimes::python::prepare(
+        app,
+        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+        cancellation,
+        &mut |update| {
+            if !matches!(
+                update.stage,
+                super::contracts::ResourcePreparationStage::Ready
+            ) {
+                progress(update);
+            }
+        },
+    )
     .await?;
     {
         let _installation = locks::acquire_kokoro_installation(cancellation).await?;
@@ -142,6 +147,7 @@ pub(crate) async fn prepare_models_for_request<R: Runtime>(
 
 pub(crate) async fn prepare_python_for_request<R: Runtime>(
     app: &AppHandle<R>,
+    profile: crate::local_resources::runtimes::python::RuntimeProfile,
     request: requests::PreparationRequest,
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
@@ -157,9 +163,24 @@ pub(crate) async fn prepare_python_for_request<R: Runtime>(
                 request.cancellation().cancel();
                 Err(RESOURCE_PREPARATION_CANCELLED.to_string())
             }
-            outcome = crate::local_resources::runtimes::python::prepare(app, request.cancellation(), &mut observe) => outcome,
+            outcome = crate::local_resources::runtimes::python::prepare(app, profile, request.cancellation(), &mut observe) => outcome,
         }
     };
     request.finish(prepared.as_ref().err())?;
     prepared
+}
+
+pub(crate) async fn prepare_python_for_job<R: Runtime>(
+    app: &AppHandle<R>,
+    profile: crate::local_resources::runtimes::python::RuntimeProfile,
+    job_id: &str,
+    title: &str,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let request = requests::begin(
+        job_id,
+        title,
+        ResourcePreparationTarget::PythonRuntime { profile },
+    )?;
+    prepare_python_for_request(app, profile, request, cancellation, &mut |_| {}).await
 }
