@@ -32,7 +32,11 @@ pub(super) async fn invoke_builtin(
     context: &Gateway,
     call: AgentToolInvocation,
 ) -> Result<Value, String> {
-    context.require_tool(&call.name, &call.graph_namespace)?;
+    crate::spaces::conversations::execution::gateway::require_tool(
+        &context.catalog,
+        &call.name,
+        &call.graph_namespace,
+    )?;
     if call.checkpoint_id.is_empty() {
         return Err("agent-tool-intent-not-durable".into());
     }

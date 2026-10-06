@@ -1,9 +1,6 @@
 use tauri::AppHandle;
 
-use crate::spaces::{
-    conversations::{tools, ConversationMode},
-    db, runs,
-};
+use crate::spaces::{conversations::tools, db, runs};
 
 pub(super) async fn retire(app: &AppHandle, pool: &sqlx::SqlitePool) -> Result<(), String> {
     let records: Vec<String> = sqlx::query_scalar("SELECT r.id FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id
@@ -20,16 +17,13 @@ pub(super) async fn retire(app: &AppHandle, pool: &sqlx::SqlitePool) -> Result<(
         )
         .await?;
     }
-    let records: Vec<(String,String,String,String)> = sqlx::query_as("SELECT r.id,r.policy_snapshot,r.input_snapshot,t.catalog_digest FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL")
+    let records: Vec<(String,String,String)> = sqlx::query_as("SELECT r.id,r.input_snapshot,t.catalog_digest FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL")
         .fetch_all(pool).await.map_err(db::sql_error)?;
-    for (run_id, policy, input, expected) in records {
-        let policy: serde_json::Value = serde_json::from_str(&policy).map_err(db::json_error)?;
+    for (run_id, input, expected) in records {
         let input: serde_json::Value = serde_json::from_str(&input).map_err(db::json_error)?;
-        let mode: ConversationMode =
-            serde_json::from_value(policy["mode"].clone()).map_err(db::json_error)?;
         let snapshot: crate::extensions::contracts::AgentExtensionSnapshot =
             serde_json::from_value(input["extensions"].clone()).map_err(db::json_error)?;
-        let mut catalog = tools::project(mode)?;
+        let mut catalog = tools::project()?;
         catalog.extend(&snapshot)?;
         if catalog.digest != expected {
             cancel(

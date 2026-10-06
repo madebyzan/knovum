@@ -5,7 +5,6 @@ use serde::Deserialize;
 pub struct PackageConversation {
     pub id: String,
     pub title: String,
-    pub mode: String,
     pub active_branch_id: String,
     pub archived_at: Option<i64>,
     pub created_at: i64,

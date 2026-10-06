@@ -6,7 +6,6 @@ import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTarg
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
-import type { ConversationMode } from "../contracts/generated/ConversationMode";
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
@@ -34,7 +33,6 @@ export interface ConversationSubmissionState {
 }
 
 export interface ConversationSubmissionInput {
-  mode: Ref<ConversationMode>;
   extensions: Ref<AgentExtensionSelection>;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
@@ -129,7 +127,6 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   async function send() {
     if (state.loading.value || state.activeRunId.value) return;
     const request = conversationTaskRequest({
-      mode: input.mode.value,
       spaceId: input.spaceId.value,
       conversation: input.conversation.value,
       prompt: input.prompt.value,

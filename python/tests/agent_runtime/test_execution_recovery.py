@@ -83,6 +83,7 @@ def test_lost_projection_ack_recovers_accepted_input_without_another_model_call(
             {
                 "main": [answer("durable answer", message_id="answer")],
                 "context_summary": [answer("unused", message_id="unused")],
+                "research": [],
             },
         )
         host = LostAckHost()

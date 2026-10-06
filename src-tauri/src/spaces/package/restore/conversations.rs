@@ -9,9 +9,9 @@ pub(super) async fn insert(
 ) -> Result<(), String> {
     for row in &request.conversations {
         sqlx::query(
-            "INSERT INTO spaces_conversations(id,space_id,title,mode,active_branch_id,archived_at,created_at,updated_at)
-             VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
-        ).bind(&row.id).bind(&request.space.id).bind(&row.title).bind(&row.mode)
+            "INSERT INTO spaces_conversations(id,space_id,title,active_branch_id,archived_at,created_at,updated_at)
+             VALUES($1,$2,$3,$4,$5,$6,$7)",
+        ).bind(&row.id).bind(&request.space.id).bind(&row.title)
             .bind(&row.active_branch_id).bind(row.archived_at).bind(row.created_at).bind(row.updated_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
@@ -36,3 +36,7 @@ pub(super) async fn insert(
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "tests/conversations.rs"]
+mod tests;

@@ -6,7 +6,14 @@ from dataclasses import dataclass, field
 from operator import add
 from typing import Annotated, Any, cast
 
-from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse, ToolCallRequest
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    AgentState,
+    ExtendedModelResponse,
+    ModelRequest,
+    ModelResponse,
+    ToolCallRequest,
+)
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.config import get_config
@@ -57,7 +64,7 @@ class ControlMiddleware(AgentMiddleware[CheckpointState, ExecutionContext]):
         self,
         request: ModelRequest[ExecutionContext],
         handler: Callable[[ModelRequest[ExecutionContext]], Awaitable[ModelResponse[Any]]],
-    ) -> ModelResponse[Any]:
+    ) -> ExtendedModelResponse[Any]:
         if self.read_only:
             excluded = {"write_file", "edit_file", "delete", "execute", "task", "write_todos"}
             tools = [
@@ -66,13 +73,12 @@ class ControlMiddleware(AgentMiddleware[CheckpointState, ExecutionContext]):
                 if (tool.name if isinstance(tool, BaseTool) else tool["name"]) not in excluded
             ]
             request = request.override(tools=tools)
-        return await handler(request)
+        response = await handler(request)
+        # Persist the result and its admission receipts in the same model-node checkpoint.
+        return ExtendedModelResponse(response, Command(update=self.receipts(request.runtime.context)))
 
     async def abefore_model(self, state: CheckpointState, runtime: Runtime[ExecutionContext]) -> dict[str, Any]:
         runtime.context.boundary()
-        return self.receipts(runtime.context)
-
-    async def aafter_model(self, state: CheckpointState, runtime: Runtime[ExecutionContext]) -> dict[str, Any]:
         return self.receipts(runtime.context)
 
     @staticmethod

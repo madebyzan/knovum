@@ -22,7 +22,7 @@
     "comparePrompt": "比较这个空间中关于{topic}的不同观点，列出共同点、分歧和依据。"
   },
   "input": {
-    "placeholder": "在当前空间中询问、规划或创建…",
+    "placeholder": "向 Agent 描述任务…",
     "send": "发送",
     "shortcutHint": "Enter"
   },
@@ -124,11 +124,5 @@
     "noSources": "没有找到相关资料",
     "plan": "执行计划"
   },
-  "askSelection": "询问选中项",
-  "modes": {
-    "label": "助手模式",
-    "ask": "询问",
-    "plan": "规划",
-    "execute": "执行"
-  }
+  "askSelection": "询问选中项"
 }

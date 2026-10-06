@@ -20,7 +20,11 @@ pub(in crate::spaces::conversations) async fn invoke(
     context: &Gateway,
     call: AgentToolInvocation,
 ) -> Result<Value, String> {
-    context.require_tool(&call.name, &call.graph_namespace)?;
+    crate::spaces::conversations::execution::gateway::require_tool(
+        &context.catalog,
+        &call.name,
+        &call.graph_namespace,
+    )?;
     super::identity::ensure_active(&context.pool, &context.ids.run_id).await?;
     if context
         .extensions

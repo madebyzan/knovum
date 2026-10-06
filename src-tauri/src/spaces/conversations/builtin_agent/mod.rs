@@ -19,7 +19,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 6;
+pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 7;
 
 pub(super) struct NewBuiltinAgentTask<'a> {
     pub task_id: &'a str,
@@ -54,20 +54,15 @@ pub async fn start(
     };
     let (target, profile) =
         crate::ai::settings::resolve_builtin_agent(&app, request.target.clone(), capability)?;
-    let mut catalog = tools::project(request.mode)?;
+    let mut catalog = tools::project()?;
     let local_tools = catalog
         .tools
         .iter()
         .map(|tool| tool.name.clone())
         .collect::<Vec<_>>();
-    let extensions = crate::extensions::snapshots::prepare(
-        &app,
-        &request.extensions,
-        !matches!(request.mode, super::ConversationMode::Execute),
-        &local_tools,
-        None,
-    )
-    .await?;
+    let extensions =
+        crate::extensions::snapshots::prepare(&app, &request.extensions, &local_tools, None)
+            .await?;
     let snapshot_id = extensions.id.clone();
     let started = async {
         catalog.extend(&extensions)?;

@@ -16,8 +16,10 @@ The database resolves from Tauri's AppConfig directory through the connection po
 Before the first public release, Spaces owns one SQLx v1 baseline. Schema changes update that
 baseline and require deleting obsolete development databases. The embedded SQLx migrator runs
 before the Spaces pool is exposed, installs the baseline transactionally, and rejects checksum
-divergence. Store/package/protocol envelopes remain separate contracts and use version `1` during
-pre-release development.
+divergence. Store, package and protocol envelopes remain separate contracts with their own explicit versions.
+Spaces conversations contain no product mode. The current Space package is v7 and the private
+Agent RPC is v3; removing conversation modes changes both strict contracts without a compatibility
+reader. Obsolete development databases fail visibly and are never reset automatically.
 
 Install the matching SQLx CLI with
 `cargo install sqlx-cli --no-default-features --features sqlite --version 0.8.6 --locked`.

@@ -3,7 +3,6 @@ import { computed, shallowRef, watch, type Ref } from "vue";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
-import type { ConversationMode } from "../contracts/generated/ConversationMode";
 import { useSpaceStore } from "../session/space-store";
 import { createConversationSelection } from "./conversation-selection";
 import { useConversationActions } from "./use-conversation-actions";
@@ -25,7 +24,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const selectedConversationId = shallowRef("");
   const extensionSession = useConversationExtensions(spaceId, selectedConversationId);
   const prompt = shallowRef("");
-  const mode = shallowRef<ConversationMode>("execute");
   const target = shallowRef<TaskTargetRef>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
@@ -40,9 +38,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const selectedConversation = computed(() =>
     selectedConversationId.value ? selectedSnapshot.value : undefined,
   );
-  watch(selectedConversation, (conversation) => {
-    if (conversation) mode.value = conversation.mode;
-  });
   const pages = useConversationMessagePages({
     spaceId,
     selectedConversationId,
@@ -87,7 +82,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     spaceId,
     selectedConversationId,
     conversation: selectedConversation,
-    mode,
     prompt,
     target,
     attachments: attachmentSession.attachments,
@@ -150,7 +144,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     ...activitySession,
     selectedConversationId,
     selectedConversation,
-    mode,
     prompt,
     target,
     activityRevision: task.activityRevision,

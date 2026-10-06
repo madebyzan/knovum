@@ -618,7 +618,6 @@ CREATE TABLE spaces_conversations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   title TEXT NOT NULL,
-  mode TEXT NOT NULL CHECK (mode IN ('ask','plan','execute')),
   archived_at INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL, active_branch_id TEXT,

@@ -2,7 +2,7 @@ use sqlx::SqlitePool;
 
 use crate::spaces::{
     authorization::{AuthorizationContext, Principal, PrincipalKind},
-    conversations::{tools::ToolCatalog, ConversationMode, StartBuiltinAgentTaskRequest},
+    conversations::{tools::ToolCatalog, StartBuiltinAgentTaskRequest},
     db,
 };
 
@@ -51,9 +51,7 @@ pub(in crate::spaces::conversations) fn grant(
         grant_id: ids.grant_id.clone(),
         home_space_id: request.space_id.clone(),
         read_space_ids: vec![request.space_id.clone()],
-        write_space_ids: matches!(request.mode, ConversationMode::Execute)
-            .then(|| vec![request.space_id.clone()])
-            .unwrap_or_default(),
+        write_space_ids: vec![request.space_id.clone()],
         action_ids: catalog
             .by_wire_name
             .values()

@@ -295,6 +295,11 @@ navigation affordance and hover preview; it is application navigation, not a con
 resizable pane in the workspace split; it keeps the canvas visible instead of covering it. One compact header
 contains the current view picker, conversation or content title, and local actions. The picker menu can add views
 without compressing that header. The visibility toggle stays at the window toolbar's top-right corner in both states.
+Agent conversation provides task input, attachments, target and extension selection without a
+mode selector. A conversation can move from discussion to execution through user messages.
+Task lists are shown only when the Agent uses SDK Todo; simple answers need no plan or approval
+step. Extension choices follow configured tool policies, not an inferred conversation intent.
+
 That toggle opens Conversation as the default view. Explicit object actions open Details;
 the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.

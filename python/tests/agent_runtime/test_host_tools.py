@@ -41,6 +41,7 @@ def test_business_child_interrupt_replays_one_durable_intent_after_reopening(tmp
                 answer("published", message_id="final-answer"),
             ],
             "context_summary": [answer("unused", message_id="unused")],
+            "research": [],
         }
         bind_script(monkeypatch, scripts)
         value = request_value()

@@ -58,7 +58,7 @@
   "secretFields": "敏感 header / 环境字段",
   "publicClientId": "已注册公共 client ID（未填写时使用标准注册）",
   "secretFieldNames": "秘密字段名称（空格分隔）",
-  "toolPermissionPolicy": "默认拒绝工具。只读由你审核确认，服务端 readOnlyHint 只是声明。Ask、Plan 和 research 不提供外部写入。",
+  "toolPermissionPolicy": "默认拒绝工具。只读由你审核确认，服务端 readOnlyHint 只是声明。research 只提供已审核的只读工具。",
   "policy": "调用政策",
   "deny": "拒绝",
   "confirm": "每次确认",

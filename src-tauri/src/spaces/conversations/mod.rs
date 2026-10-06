@@ -22,8 +22,8 @@ pub(crate) async fn resume_task(app: tauri::AppHandle, run_id: &str) -> Result<(
 
 pub(crate) use contract::ConversationTaskFinishedState;
 pub use contract::{
-    Conversation, ConversationMode, ConversationTaskAccepted, ConversationTaskUpdate,
-    StartBuiltinAgentTaskRequest, SubmitConversationTaskRequest,
+    Conversation, ConversationTaskAccepted, ConversationTaskUpdate, StartBuiltinAgentTaskRequest,
+    SubmitConversationTaskRequest,
 };
 pub(crate) use repository::ensure_branch_idle;
 pub(crate) use repository::{

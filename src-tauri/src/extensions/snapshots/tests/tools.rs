@@ -51,15 +51,12 @@ fn fixture() -> (
     (connection, catalog, selection)
 }
 #[test]
-fn host_review_controls_read_only_projection_and_selected_identity() {
+fn host_review_controls_effect_classification_and_selected_identity() {
     let (connection, catalog, selection) = fixture();
-    let read_only = super::tools::project(&connection, catalog.clone(), true, &selection).unwrap();
-    assert_eq!(read_only.len(), 2);
-    assert!(read_only.iter().all(|tool| tool.read_only));
-    assert!(read_only
-        .iter()
-        .all(|tool| !matches!(tool.binding, AgentToolBinding::McpTool { .. })));
-    let execute = super::tools::project(&connection, catalog, false, &selection).unwrap();
+    let execute = super::tools::project(&connection, catalog, &selection).unwrap();
+    assert_eq!(execute.len(), 3);
+    assert!(!execute[0].read_only);
+    assert!(execute[1..].iter().all(|tool| tool.read_only));
     assert!(
         matches!(&execute[0].binding,AgentToolBinding::McpTool{ account_id:Some(id),.. } if id=="selected-account")
     );
@@ -70,21 +67,25 @@ fn changed_schema_and_unlisted_resources_cannot_expand_selection() {
     let (mut connection, catalog, mut selection) = fixture();
     connection.tools[0].schema_digest = "other".into();
     assert_eq!(
-        super::tools::project(&connection, catalog.clone(), false, &selection).unwrap_err(),
+        super::tools::project(&connection, catalog.clone(), &selection).unwrap_err(),
         "mcp-tool-schema-changed-review-permissions: publish"
     );
     selection
         .resource_uris
         .push("file:///private/unselected".into());
     assert_eq!(
-        super::tools::project(&connection, catalog, false, &selection).unwrap_err(),
+        super::tools::project(&connection, catalog, &selection).unwrap_err(),
         "mcp-resource-not-in-catalog"
     );
 }
 #[test]
 fn resource_and_prompt_schemas_bind_exact_user_selected_content() {
     let (connection, catalog, selection) = fixture();
-    let projected = super::tools::project(&connection, catalog, true, &selection).unwrap();
+    let selection = AgentConnectionSelection {
+        tool_names: vec![],
+        ..selection
+    };
+    let projected = super::tools::project(&connection, catalog, &selection).unwrap();
     let resource = jsonschema::validator_for(&projected[0].input_schema).unwrap();
     assert!(matches!(&projected[0].binding,
         AgentToolBinding::McpReadResource { connection_id, resource_uris }

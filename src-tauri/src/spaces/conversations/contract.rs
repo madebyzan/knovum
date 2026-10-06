@@ -3,31 +3,11 @@ use ts_rs::TS;
 
 use crate::ai::{models::ModelTargetSelection, tasks::TaskTargetSelection};
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub enum ConversationMode {
-    Ask,
-    Plan,
-    Execute,
-}
-
-impl ConversationMode {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Ask => "ask",
-            Self::Plan => "plan",
-            Self::Execute => "execute",
-        }
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(optional_fields = nullable)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SubmitConversationTaskRequest {
-    pub mode: ConversationMode,
     pub space_id: String,
     pub conversation_id: Option<String>,
     pub branch_id: Option<String>,
@@ -44,7 +24,6 @@ pub struct StartBuiltinAgentTaskRequest {
     pub conversation_id: Option<String>,
     pub branch_id: Option<String>,
     pub prompt: String,
-    pub mode: ConversationMode,
     pub target: ModelTargetSelection,
     pub max_turns: u16,
     pub max_tool_calls: u16,
@@ -61,7 +40,6 @@ impl SubmitConversationTaskRequest {
             conversation_id: self.conversation_id,
             branch_id: self.branch_id,
             prompt: self.prompt,
-            mode: self.mode,
             target,
             max_turns: 12,
             max_tool_calls: 32,
@@ -139,6 +117,9 @@ pub struct Conversation {
     pub space_id: String,
     pub branch_id: Option<String>,
     pub title: String,
-    pub mode: ConversationMode,
     pub updated_at: i64,
 }
+
+#[cfg(test)]
+#[path = "tests/contract.rs"]
+mod tests;

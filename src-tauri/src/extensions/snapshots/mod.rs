@@ -14,7 +14,6 @@ use tauri::{AppHandle, Manager};
 pub(crate) async fn prepare(
     app: &AppHandle,
     selection: &AgentExtensionSelection,
-    read_only: bool,
     local_tools: &[String],
     interaction: Option<Arc<dyn super::mcp::McpInteraction>>,
 ) -> Result<AgentExtensionSnapshot, String> {
@@ -152,12 +151,9 @@ pub(crate) async fn prepare(
             let catalog =
                 super::mcp::sessions::inspect(app, &snapshot, connection, interaction.clone())
                     .await?;
-            snapshot.tools.extend(tools::project(
-                connection,
-                catalog.clone(),
-                read_only,
-                choices,
-            )?);
+            snapshot
+                .tools
+                .extend(tools::project(connection, catalog.clone(), choices)?);
             snapshot.catalogs.insert(connection.id.clone(), catalog);
         }
         snapshot.skill_tool_bindings = skill_bindings::resolve(&snapshot, local_tools)?;

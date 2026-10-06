@@ -2,6 +2,5 @@
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
 import type { TaskTargetSelection } from "../../../../shared/contracts/generated/TaskTargetSelection";
 import type { ConversationAttachment } from "./ConversationAttachment";
-import type { ConversationMode } from "./ConversationMode";
 
-export type SubmitConversationTaskRequest = { mode: ConversationMode, spaceId: string, conversationId?: string | null, branchId?: string | null, prompt: string, target: TaskTargetSelection, attachments: Array<ConversationAttachment>, extensions: AgentExtensionSelection, };
+export type SubmitConversationTaskRequest = { spaceId: string, conversationId?: string | null, branchId?: string | null, prompt: string, target: TaskTargetSelection, attachments: Array<ConversationAttachment>, extensions: AgentExtensionSelection, };

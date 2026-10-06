@@ -22,7 +22,7 @@
     "comparePrompt": "Compare ideas about {topic} in this Space, including common ground, differences, and evidence."
   },
   "input": {
-    "placeholder": "Ask, plan, or create in this Space…",
+    "placeholder": "Describe a task for the Agent…",
     "send": "Send",
     "shortcutHint": "Enter"
   },
@@ -124,11 +124,5 @@
     "noSources": "No matching sources",
     "plan": "Plan"
   },
-  "askSelection": "Ask selection",
-  "modes": {
-    "label": "Conversation mode",
-    "ask": "Ask",
-    "plan": "Plan",
-    "execute": "Execute"
-  }
+  "askSelection": "Ask selection"
 }

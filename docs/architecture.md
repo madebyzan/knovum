@@ -604,6 +604,15 @@ contracts. Split by responsibility; keep bindings as reproducible modular genera
 Frontend files retain the Oxc 180-line and complexity limits; complete Vue SFCs also have a 180-nonblank-line source-layout ceiling. Declarative schemas, static fixtures and documentation
 are maintained according to their own contracts.
 
+## Agent conversation ownership
+
+Spaces owns a mode-free conversation contract shared by built-in and desktop execution targets.
+Messages express user intent; the model decides whether to answer, plan, research or call tools.
+The built-in SDK owns task lists and graph execution. Rust owns Space-scoped grants, effect
+classification, tool admission, Run state and publication receipts. Research keeps its own
+read-only namespace restrictions. Extension snapshots contain selected, authorized tools; they
+do not filter by a conversation mode. This does not merge ACP and built-in graph implementations.
+
 ## Agent extension ownership
 
 Rust `extensions/{plugins,skills,connectors,mcp,snapshots}` owns install content, v1 metadata,

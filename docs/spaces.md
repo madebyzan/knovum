@@ -143,11 +143,14 @@ Execution dependencies must come from validated action records, not visual proxi
 relations. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
 The built-in Agent calls Knovum Space Actions. Desktop Agents manage external tools in their
 own runtime; the Space package does not export Agent tool configuration.
-The model conversation exposes all registered Space Actions through one tool catalog in Execute
-mode. Built-in and desktop Agents execute under authenticated task grants without per-operation
-confirmation; Ask and Plan modes expose read actions only.
-The built-in model conversation runs Deep Agents in the private Builtin Agent runtime. The composer
-selects Ask/Plan/Execute; Plan projects SDK todos into Run activities without business writes.
+Conversation has one Agent entry point, without a mode field or mode selector. Users choose an
+execution target and describe the task; answering, planning and execution can continue in the same
+conversation. Built-in and desktop Agents act under authenticated Space-scoped task grants.
+The built-in Agent exposes registered Space Actions and explicitly selected, authorized extensions.
+It runs Deep Agents in the private Builtin Agent runtime with Todo and read-only research available
+as standard capabilities. SDK todos project into Run activities only when used; maintaining a task
+list does not itself publish business changes. User requests for discussion or a proposal guide Agent
+behavior; host authorization, not natural-language classification, enforces tool and Space boundaries.
 Models need an explicit qualified Builtin Agent protocol/context/output profile in AI settings.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
@@ -155,7 +158,7 @@ presentation stream. Public history remains available when an unsupported or uns
 segment is retired. Root pause is acknowledged only at a durable boundary. Unknown paid calls
 appear as actionable waiting in the conversation and Task Center, with a state-version checked
 explicit new-attempt command and possible duplicate-charge explanation. External Agent turns
-continue to support execution/cancellation through ACP, without built-in Ask/Plan controls.
+continue to support execution/cancellation through ACP, through the same mode-free product request, with their own native runtime controls.
 Builtin Agent failures retain their reason with the task record; interrupted presentation text is
 never promoted to a completed answer. See `system-architecture.md` for graph/host ownership.
 

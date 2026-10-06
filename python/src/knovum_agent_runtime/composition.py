@@ -75,8 +75,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         ]
 
     middleware = execution_middleware()
-    if request.plan:
-        middleware.append(TodoListMiddleware())
+    middleware.append(TodoListMiddleware())
     read_rule = FilesystemPermission(
         operations=["read"],
         paths=["/workspace", "/workspace/**", "/skills", "/skills/**", "/memory", "/memory/**"],
@@ -84,19 +83,17 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     )
     write_rule = FilesystemPermission(operations=["write"], paths=["/workspace/**"], mode="allow")
     deny_rule = FilesystemPermission(operations=["read", "write"], paths=["/**"], mode="deny")
-    subagents: list[SubAgent] = []
-    if request.research:
-        subagents.append(
-            {
-                "name": "research",
-                "description": "Read authorized sources and report evidence without publishing changes.",
-                "system_prompt": "Use the read-only Knovum tools and return a concise report with evidence.",
-                "model": create_model(request.model, AgentModelPurpose.research),
-                "tools": [create_tool(tool) for tool in request.tools if tool.read_only],
-                "permissions": [read_rule, deny_rule],
-                "middleware": execution_middleware(read_only=True),
-            }
-        )
+    subagents: list[SubAgent] = [
+        {
+            "name": "research",
+            "description": "Read authorized sources and report evidence without publishing changes.",
+            "system_prompt": "Use the read-only Knovum tools and return a concise report with evidence.",
+            "model": create_model(request.model, AgentModelPurpose.research),
+            "tools": [create_tool(tool) for tool in request.tools if tool.read_only],
+            "permissions": [read_rule, deny_rule],
+            "middleware": execution_middleware(read_only=True),
+        }
+    ]
     return create_deep_agent(
         model=main,
         system_prompt=request.system_prompt,

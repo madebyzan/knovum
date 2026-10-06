@@ -1,28 +1,22 @@
-use serde_json::Value;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
-use crate::spaces::{
-    conversations::{Conversation, ConversationMode},
-    db,
-};
+use crate::spaces::{conversations::Conversation, db};
 
 pub async fn ensure_conversation(
     tx: &mut Transaction<'_, Sqlite>,
     id: &str,
     space_id: &str,
     title: &str,
-    mode: ConversationMode,
     now: i64,
 ) -> Result<(), String> {
     let conversation_write = sqlx::query(
-        "INSERT INTO spaces_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
-         VALUES($1,$2,$3,$4,$1,$5,$5) ON CONFLICT(id) DO UPDATE SET mode=excluded.mode,updated_at=excluded.updated_at
+        "INSERT INTO spaces_conversations(id,space_id,title,active_branch_id,created_at,updated_at)
+         VALUES($1,$2,$3,$1,$4,$4) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
          WHERE spaces_conversations.space_id=excluded.space_id",
     )
     .bind(id)
     .bind(space_id)
     .bind(title)
-    .bind(mode.as_str())
     .bind(now)
     .execute(&mut **tx)
     .await
@@ -64,7 +58,7 @@ pub async fn list_conversations(
 ) -> Result<Vec<Conversation>, String> {
     let query = query.map(str::trim).filter(|value| !value.is_empty());
     let pattern = query.map(|value| format!("%{value}%"));
-    let rows = sqlx::query("SELECT c.id,c.space_id,c.title,c.mode,c.updated_at,c.active_branch_id AS branch_id
+    let rows = sqlx::query("SELECT c.id,c.space_id,c.title,c.updated_at,c.active_branch_id AS branch_id
          FROM spaces_conversations c
          WHERE space_id=$1 AND (($2=1 AND archived_at IS NOT NULL) OR ($2=0 AND archived_at IS NULL))
          AND ($3 IS NULL OR c.title LIKE $3 ESCAPE '\\' OR EXISTS (
@@ -158,13 +152,11 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
 }
 
 fn parse(row: sqlx::sqlite::SqliteRow) -> Result<Conversation, String> {
-    let mode: String = row.try_get("mode").map_err(db::sql_error)?;
     Ok(Conversation {
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         branch_id: row.try_get("branch_id").map_err(db::sql_error)?,
         title: row.try_get("title").map_err(db::sql_error)?,
-        mode: serde_json::from_value(Value::String(mode)).map_err(db::json_error)?,
         updated_at: row.try_get("updated_at").map_err(db::sql_error)?,
     })
 }

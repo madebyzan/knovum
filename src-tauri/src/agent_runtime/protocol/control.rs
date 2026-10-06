@@ -41,8 +41,6 @@ pub(crate) struct AgentExecute {
     pub(crate) skills: Vec<crate::extensions::contracts::AgentSkillFile>,
     pub(crate) skill_tool_bindings: std::collections::BTreeMap<String, Vec<String>>,
     pub(crate) memory: std::collections::BTreeMap<String, String>,
-    pub(crate) plan: bool,
-    pub(crate) research: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]

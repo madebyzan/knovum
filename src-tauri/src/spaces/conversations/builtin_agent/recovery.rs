@@ -46,7 +46,7 @@ async fn recover_task(
         return Err("builtin-agent-profile-changed: start a new execution segment".into());
     }
     crate::extensions::snapshots::require_current(app, &task.extensions).await?;
-    let mut catalog = tools::project(task.mode)?;
+    let mut catalog = tools::project()?;
     catalog.extend(&task.extensions)?;
     if catalog.digest != task.catalog_digest {
         return Err("builtin-agent-action-catalog-changed: start a new execution segment".into());
@@ -56,7 +56,6 @@ async fn recover_task(
         conversation_id: Some(task.conversation_id.clone()),
         branch_id: Some(task.branch_id.clone()),
         prompt: task.prompt,
-        mode: task.mode,
         target: task.model_binding,
         max_turns: task.max_turns,
         max_tool_calls: task.max_tool_calls,

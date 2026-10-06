@@ -3,7 +3,6 @@ use std::collections::{BTreeSet, HashMap};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-use super::ConversationMode;
 use crate::{
     ai::contracts::ModelToolDefinition,
     spaces::actions::{self, SpaceActionDefinition},
@@ -20,20 +19,11 @@ pub struct ToolCatalog {
     pub digest: String,
 }
 
-pub fn project(mode: ConversationMode) -> Result<ToolCatalog, String> {
-    let definitions = actions::definitions()
-        .iter()
-        .filter(|definition| match mode {
-            ConversationMode::Ask | ConversationMode::Plan => {
-                definition.impact == actions::SpaceActionImpact::ReadOnly
-            }
-            ConversationMode::Execute => true,
-        })
-        .collect::<Vec<_>>();
+pub fn project() -> Result<ToolCatalog, String> {
     let mut by_wire_name = HashMap::new();
     let mut names = BTreeSet::new();
     let mut tools = Vec::new();
-    for definition in definitions {
+    for definition in actions::definitions() {
         let wire_name = wire_name(definition);
         if !names.insert(wire_name.clone()) {
             return Err("tool-schema-invalid: deterministic tool name collision".into());
@@ -54,7 +44,7 @@ pub fn project(mode: ConversationMode) -> Result<ToolCatalog, String> {
             },
         );
     }
-    let encoded = serde_json::to_vec(&(mode, &tools)).map_err(|error| error.to_string())?;
+    let encoded = serde_json::to_vec(&tools).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
         tools,
         by_wire_name,

@@ -12,7 +12,6 @@ const selection = defineModel<AgentExtensionSelection>({ required: true });
 const props = defineProps<{
   availability?: AgentExtensionAvailability | undefined;
   disabled: boolean;
-  readOnly: boolean;
   error?: string | undefined;
 }>();
 const router = useRouter();
@@ -43,9 +42,7 @@ function toggleConnection(connection: McpConnection) {
           ...selection.value.connections,
           {
             connectionId: id,
-            toolNames: connection.tools
-              .filter((tool) => tool.policy !== "deny" && (!props.readOnly || tool.readOnly))
-              .map((tool) => tool.name),
+            toolNames: connection.tools.filter((tool) => tool.policy !== "deny").map((tool) => tool.name),
             resourceUris: [],
             resourceTemplates: [],
             promptNames: [],
@@ -104,7 +101,6 @@ function toggleSkill(id: string) {
         :key="connection.id"
         v-model="selection"
         :connection="connection"
-        :read-only="readOnly"
       />
       <p
         v-for="diagnostic in availability?.diagnostics"
