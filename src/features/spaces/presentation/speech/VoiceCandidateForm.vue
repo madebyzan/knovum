@@ -10,7 +10,7 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { PreparedVoiceReference } from "../../contracts/generated/PreparedVoiceReference";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import { useVoiceCandidates } from "../../speech/use-voice-candidates";
-import VoiceCandidateCard from "./VoiceCandidateCard.vue";
+import VoiceCandidateReview from "./VoiceCandidateReview.vue";
 import VoiceReferenceEditor from "./VoiceReferenceEditor.vue";
 
 const emit = defineEmits<{ created: [voice: VoiceLibraryRevision] }>();
@@ -156,7 +156,7 @@ function generate() {
       }}</UiButton>
     </div>
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
-    <VoiceCandidateCard
+    <VoiceCandidateReview
       v-for="candidate in candidates"
       :key="candidate.candidateId"
       :candidate="candidate"

@@ -15,7 +15,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import { connectorDraft } from "./connector-draft";
-import ConnectorCard from "./ConnectorCard.vue";
+import ConnectorConnections from "./ConnectorConnections.vue";
 import ConnectorEditor from "./ConnectorEditor.vue";
 
 const connectors = useQuery(connectorQuery);
@@ -80,7 +80,7 @@ function remove(connector: ConnectorDefinition) {
       {{ $t("extensions.emptyConnectors") }}
     </p>
     <template v-if="connections.data.value">
-      <ConnectorCard
+      <ConnectorConnections
         v-for="connector in connectors.data.value"
         :key="connector.id"
         :connector="connector"

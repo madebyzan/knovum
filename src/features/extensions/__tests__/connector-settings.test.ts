@@ -90,18 +90,18 @@ async function open() {
 describe("service connector management", () => {
   it("creates another instance from one reusable definition without copying endpoints or auth", async () => {
     const wrapper = await open();
-    const card = wrapper.get('[data-testid="connector-github"]');
-    expect(card.text()).toContain("Read issues and repositories");
-    expect(card.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
-    await card.get('[data-testid="connection-instance-name"]').setValue("Research");
-    await card.get("form").trigger("submit");
+    const connector = wrapper.get('[data-testid="connector-github"]');
+    expect(connector.text()).toContain("Read issues and repositories");
+    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
+    await connector.get('[data-testid="connection-instance-name"]').setValue("Research");
+    await connector.get("form").trigger("submit");
     await flushPromises();
     expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|create_mcp_connection", {
       connectorId: "github",
       name: "Research",
     });
     expect(services).toHaveLength(1);
-    expect(card.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(3);
+    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(3);
   });
 
   it("creates a service definition through the service editor without an implicit instance", async () => {
