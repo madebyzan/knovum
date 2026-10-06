@@ -41,9 +41,24 @@ pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<McpConnection, S
 }
 
 pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> Result<(), String> {
+    require_access(app, frozen, true).await
+}
+
+pub(super) async fn require_reviewable(
+    app: &AppHandle,
+    frozen: &McpConnection,
+) -> Result<(), String> {
+    require_access(app, frozen, false).await
+}
+
+async fn require_access(
+    app: &AppHandle,
+    frozen: &McpConnection,
+    require_enabled: bool,
+) -> Result<(), String> {
     let pool = database::pool(app).await?;
     let current = load(&pool, &frozen.id).await?;
-    if !current.enabled
+    if (require_enabled && !current.enabled)
         || current.revision != frozen.revision
         || current.account_id != frozen.account_id
     {
@@ -51,6 +66,7 @@ pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> 
     }
     let connector =
         super::super::connectors::definitions::load(&pool, &current.connector_id).await?;
+    connector.configured_endpoint()?;
     if let Some(id) = &connector.plugin_id {
         let plugin = super::super::plugins::load(&pool, id).await?;
         if !plugin.enabled {
@@ -68,3 +84,7 @@ pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> 
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "tests/connections.rs"]
+mod tests;

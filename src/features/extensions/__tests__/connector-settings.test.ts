@@ -59,12 +59,12 @@ beforeEach(() => {
       }
       case "plugin:extensions|create_connector_definition": {
         const definition = {
-          ...(input!.definition as ConnectorDefinition),
+          ...(JSON.parse(JSON.stringify(input!.definition)) as ConnectorDefinition),
           id: "new-service",
           revision: "created",
         };
         services.push(definition);
-        return definition;
+        return { value: definition, cleanupErrors: [] };
       }
       case "plugin:extensions|delete_mcp_connection": {
         connections = connections.filter((connection) => connection.id !== input!.id);
@@ -135,5 +135,34 @@ describe("service connector management", () => {
     expect(wrapper.find('[data-testid="mcp-connection-Work"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="mcp-connection-Personal"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="connector-github"]').exists()).toBe(true);
+  });
+
+  it("shows committed changes and cleanup failures together after refreshing the service", async () => {
+    const original = native.invoke.getMockImplementation()!;
+    native.invoke.mockImplementation(async (command, input) => {
+      if (command === "plugin:extensions|update_connector_definition") {
+        const definition = {
+          ...(JSON.parse(JSON.stringify(input!.definition)) as ConnectorDefinition),
+          revision: "updated",
+        };
+        services = [definition];
+        return { value: definition, cleanupErrors: ["credential-cleanup-failed"] };
+      }
+      return original(command, input);
+    });
+    const wrapper = await open();
+    await wrapper.get('[data-testid="edit-connector"]').trigger("click");
+    const editor = wrapper.get('[data-testid="connector-editor"]');
+    await editor.get('[data-testid="connector-description"]').setValue("Updated purpose");
+    await editor.trigger("submit");
+    await flushPromises();
+    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|update_connector_definition", {
+      definition: expect.objectContaining({ description: "Updated purpose" }),
+    });
+    expect(wrapper.get('[data-testid="connector-github"]').text()).toContain("Updated purpose");
+    expect(wrapper.get('[data-testid="extension-cleanup-notice"]').text()).toContain(
+      "credential-cleanup-failed",
+    );
+    expect(wrapper.find('[data-testid="connector-editor"]').exists()).toBe(false);
   });
 });

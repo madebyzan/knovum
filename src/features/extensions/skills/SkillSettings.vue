@@ -15,8 +15,10 @@ import {
   setSkillEnabled,
   deleteSkill,
 } from "../../../foundation/extensions/skill-operations";
+import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import type { SkillContent } from "../../../shared/contracts/generated/SkillContent";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import SkillContentEditor from "./SkillContentEditor.vue";
 import SkillResourceBrowser from "./SkillResourceBrowser.vue";
@@ -41,12 +43,12 @@ function create() {
   markdown.value = "---\nname: \ndescription: \n---\n\n";
   editing.value = true;
 }
-function mutate(operation: () => Promise<unknown>) {
+function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
   void changes.mutateAsync(operation).catch(() => {});
 }
 async function importDirectory() {
   const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") await importSkill(path);
+  if (typeof path === "string") return importSkill(path);
 }
 async function exportDirectory(id: string) {
   const path = await open({ directory: true, multiple: false });
@@ -55,9 +57,11 @@ async function exportDirectory(id: string) {
 async function save() {
   await changes
     .mutateAsync(async () => {
-      if (selected.value) await saveSkillRevision(selected.value.skill.id, markdown.value);
-      else await createSkill(name.value, markdown.value);
+      const result = selected.value
+        ? await saveSkillRevision(selected.value.skill.id, selected.value.skill.digest, markdown.value)
+        : await createSkill(name.value, markdown.value);
       editing.value = false;
+      return result;
     })
     .catch(() => {});
 }
@@ -80,6 +84,7 @@ async function save() {
     >
       {{ getErrorMessage(query.error.value || changes.error.value || reading.error.value) }}
     </p>
+    <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
     <SkillContentEditor
       v-if="editing"
       v-model:name="name"

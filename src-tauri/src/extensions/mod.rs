@@ -79,6 +79,7 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             connectors::definition_commands::create_connector_definition,
             connectors::definition_commands::update_connector_definition,
             connectors::definition_commands::delete_connector_definition,
+            connectors::plugin_configuration::configure_plugin_connector,
             connectors::commands::create_connector_account,
             connectors::commands::authorize_connector_account,
             connectors::commands::cancel_connector_authorization,

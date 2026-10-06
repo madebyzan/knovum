@@ -42,7 +42,11 @@ watch(
   { immediate: true },
 );
 function save(update: Partial<Pick<McpConnection, "name" | "tools">>) {
-  void changes.mutateAsync(() => updateMcpConnection({ ...props.connection, ...update })).catch(() => {});
+  void changes
+    .mutateAsync(async () => {
+      await updateMcpConnection({ ...props.connection, ...update });
+    })
+    .catch(() => {});
 }
 </script>
 

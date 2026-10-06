@@ -1,6 +1,6 @@
 use super::super::{
     content,
-    contracts::{ConnectorDefinition, McpEndpoint},
+    contracts::{ConnectorDefinition, McpEndpoint, PluginConnectorConfiguration},
     database,
 };
 use serde_json::Value;
@@ -11,11 +11,11 @@ use std::{
 use tauri::AppHandle;
 
 pub(super) fn endpoint(
-    app: &AppHandle,
-    id: &str,
-    digest: &str,
+    root: &Path,
+    data: &Path,
     server: &Value,
-) -> Result<McpEndpoint, String> {
+    configuration: Option<&PluginConnectorConfiguration>,
+) -> Result<Option<McpEndpoint>, String> {
     let strings = |value: &Value| -> Result<BTreeMap<String, String>, String> {
         if value.is_null() {
             Ok(Default::default())
@@ -24,19 +24,25 @@ pub(super) fn endpoint(
         }
     };
     if server["type"] == "streamable-http" {
-        return Ok(McpEndpoint::StreamableHttp {
+        let allow_local_network = match configuration {
+            None => false,
+            Some(PluginConnectorConfiguration::StreamableHttp {
+                allow_local_network,
+            }) => *allow_local_network,
+            Some(_) => return Err("plugin-connector-configuration-transport-mismatch".into()),
+        };
+        return Ok(Some(McpEndpoint::StreamableHttp {
             url: server["url"].as_str().expect("reviewed URL").into(),
             headers: strings(&server["headers"])?,
-            allow_local_network: false,
-        });
+            allow_local_network,
+        }));
     }
-    let (root, data) = paths(app, id, digest)?;
-    let expand = |value: &str| expand(value, &root, &data);
-    let command = server["command"].as_str().expect("reviewed command");
-    let executable = command
-        .strip_prefix("./")
-        .map(|relative| root.join(relative).to_string_lossy().into_owned())
-        .unwrap_or_else(|| command.into());
+    let executable = match configuration {
+        None => return Ok(None),
+        Some(PluginConnectorConfiguration::Stdio { executable }) => executable.clone(),
+        Some(_) => return Err("plugin-connector-configuration-transport-mismatch".into()),
+    };
+    let expand = |value: &str| expand(value, root, data);
     let args = server["args"]
         .as_array()
         .map(|args| {
@@ -51,20 +57,41 @@ pub(super) fn endpoint(
         .collect();
     let cwd = server["cwd"].as_str().unwrap_or("${PLUGIN_ROOT}");
     let cwd = if let Some(relative) = cwd.strip_prefix("./") {
-        contained(&root, relative)?
+        contained(root, relative)?
     } else if let Some(relative) = cwd.strip_prefix("${PLUGIN_ROOT}") {
-        contained(&root, relative.trim_start_matches('/'))?
+        contained(root, relative.trim_start_matches('/'))?
     } else if let Some(relative) = cwd.strip_prefix("${PLUGIN_DATA}") {
-        contained(&data, relative.trim_start_matches('/'))?
+        contained(data, relative.trim_start_matches('/'))?
     } else {
         return Err("plugin-working-directory-root-invalid".into());
     };
-    Ok(McpEndpoint::Stdio {
+    Ok(Some(McpEndpoint::Stdio {
         executable,
         args,
         cwd: Some(cwd.to_string_lossy().into_owned()),
         environment,
-    })
+    }))
+}
+
+pub(in crate::extensions) fn configure_endpoint(
+    app: &AppHandle,
+    plugin: &super::super::contracts::PluginInstallation,
+    declaration: &super::super::contracts::PluginConnectorDeclaration,
+    configuration: &PluginConnectorConfiguration,
+) -> Result<McpEndpoint, String> {
+    let (root, data) = paths(app, &plugin.id, &plugin.revision.digest)?;
+    let endpoint = endpoint(
+        &root,
+        &data,
+        &declaration.configuration,
+        Some(configuration),
+    )?
+    .expect("explicit configuration supplies an endpoint");
+    if matches!(endpoint, McpEndpoint::Stdio { .. }) {
+        std::fs::create_dir_all(data).map_err(|error| error.to_string())?;
+    }
+    super::super::connectors::requirements::validate_access(&endpoint, &declaration.authorization)?;
+    Ok(endpoint)
 }
 
 pub(crate) async fn environment(
@@ -85,7 +112,7 @@ pub(crate) async fn environment(
     if !root.starts_with(&owned) || !data.starts_with(&owned) {
         return Err("plugin-content-root-escaped".into());
     }
-    if let McpEndpoint::Stdio { cwd: Some(cwd), .. } = &connector.endpoint {
+    if let Some(McpEndpoint::Stdio { cwd: Some(cwd), .. }) = &connector.endpoint {
         let cwd = Path::new(cwd)
             .canonicalize()
             .map_err(|error| error.to_string())?;
@@ -101,7 +128,7 @@ pub(crate) async fn environment(
     .collect())
 }
 
-fn paths(app: &AppHandle, id: &str, digest: &str) -> Result<(PathBuf, PathBuf), String> {
+pub(super) fn paths(app: &AppHandle, id: &str, digest: &str) -> Result<(PathBuf, PathBuf), String> {
     let root = content::root(app)?;
     Ok((
         root.join("plugins").join(id).join("revisions").join(digest),
@@ -109,9 +136,10 @@ fn paths(app: &AppHandle, id: &str, digest: &str) -> Result<(PathBuf, PathBuf), 
     ))
 }
 fn contained(root: &Path, relative: &str) -> Result<PathBuf, String> {
-    if !relative.is_empty() {
-        content::validate_path(relative)?;
+    if relative.is_empty() {
+        return Ok(root.to_path_buf());
     }
+    content::validate_path(relative)?;
     Ok(root.join(relative))
 }
 fn expand(value: &str, root: &Path, data: &Path) -> String {
@@ -134,3 +162,7 @@ fn expand(value: &str, root: &Path, data: &Path) -> String {
     result.push_str(remaining);
     result
 }
+
+#[cfg(test)]
+#[path = "tests/process_configuration.rs"]
+mod tests;

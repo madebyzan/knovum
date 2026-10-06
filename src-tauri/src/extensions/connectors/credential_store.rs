@@ -1,7 +1,11 @@
+use super::accounts;
 use rmcp::transport::auth::{AuthError, CredentialStore, StoredCredentials};
 
-use super::super::{contracts::ConnectorAccount, database, ExtensionState};
-use std::sync::Arc;
+use super::super::{
+    contracts::{ConnectorAccount, ConnectorAuthorization},
+    database, ExtensionState,
+};
+use std::{collections::BTreeMap, sync::Arc};
 use tauri::{AppHandle, Manager};
 pub(super) struct AccountCredentialStore {
     pub app: AppHandle,
@@ -59,6 +63,31 @@ pub(super) async fn remove(app: &AppHandle, id: &str) -> Result<(), String> {
 
 pub(super) fn key(account_id: &str) -> String {
     format!("agent-extension:{account_id}")
+}
+
+pub(crate) async fn credentials(
+    app: &AppHandle,
+    id: &str,
+    resource: &str,
+) -> Result<BTreeMap<String, String>, String> {
+    let lock = super::authorization::account_lock(app, id).await;
+    let _guard = lock.lock().await;
+    let account = accounts::load(&database::pool(app).await?, id).await?;
+    if !account.enabled || account.cleanup_pending || account.resource != resource {
+        return Err("connector-account-revoked-or-resource-changed".into());
+    }
+    match &account.authorization {
+        ConnectorAuthorization::None => Ok(BTreeMap::new()),
+        ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
+            let document = crate::secrets::read_secret(&key(id))
+                .await?
+                .ok_or("connector-authorization-required")?;
+            serde_json::from_str(&document).map_err(|_| "connector-secret-fields-invalid".into())
+        }
+        ConnectorAuthorization::OAuth { .. } => {
+            Err("oauth-credentials-require-sdk-auth-client".into())
+        }
+    }
 }
 
 #[async_trait::async_trait]

@@ -47,11 +47,14 @@ pub async fn update_mcp_connection(
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let old = super::connections::load(&pool, &connection.id).await?;
-    connection.connector_id = old.connector_id;
+    if connection.connector_id != old.connector_id {
+        return Err("mcp-connection-service-binding-is-immutable".into());
+    }
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
-    if old.account_id != connection.account_id {
-        connection.tools.clear();
+    connection.apply_binding_change(&old);
+    if connection.enabled {
+        connector.configured_endpoint()?;
     }
     if let Some(id) = &connection.account_id {
         if connection.enabled || old.account_id != connection.account_id {
@@ -95,15 +98,10 @@ pub async fn check_mcp_connection(
     let connection = super::connections::load(&pool, &id).await?;
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
-    let session = super::client::connect(&app, &connection, &connector, None).await?;
-    let result = super::catalog::read(&session.service).await;
-    session.close().await;
-    let current = super::connections::load(&pool, &id).await?;
-    if current.revision != connection.revision {
-        return Err("mcp-connection-changed-during-check".into());
-    }
-    super::super::connectors::definitions::require_current(&pool, &connector).await?;
-    result
+    super::sessions::with_inspection(&app, &connection, &connector, |session| async move {
+        super::catalog::read(&session.service).await
+    })
+    .await
 }
 
 #[tauri::command]

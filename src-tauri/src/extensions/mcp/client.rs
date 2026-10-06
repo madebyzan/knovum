@@ -1,7 +1,6 @@
 use super::super::{
     connectors,
     contracts::{ConnectorAuthorization, ConnectorDefinition, McpConnection, McpEndpoint},
-    ExtensionState,
 };
 use futures::future::BoxFuture;
 use rmcp::{
@@ -10,7 +9,7 @@ use rmcp::{
     ClientHandler, RoleClient, ServiceExt,
 };
 use std::{sync::Arc, time::Duration};
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 pub(crate) trait McpInteraction: Send + Sync {
     fn elicit(
@@ -91,6 +90,7 @@ impl McpSession {
             process.tree.handle().terminate();
         }
     }
+
     pub(super) async fn close(mut self) {
         let _ = self
             .service
@@ -108,10 +108,12 @@ pub(super) async fn connect(
     connection: &McpConnection,
     connector: &ConnectorDefinition,
     interaction: Option<Arc<dyn McpInteraction>>,
+    cancellation: tokio_util::sync::CancellationToken,
 ) -> Result<McpSession, String> {
     let pool = super::super::database::pool(app).await?;
     connectors::definitions::require_current(&pool, connector).await?;
-    connectors::requirements::validate_access(&connector.endpoint, &connector.authorization)?;
+    let endpoint = connector.configured_endpoint()?;
+    connectors::requirements::validate_access(endpoint, &connector.authorization)?;
     if let Some(id) = &connector.plugin_id {
         if !super::super::plugins::load(&pool, id).await?.enabled {
             return Err("mcp-plugin-disabled".into());
@@ -128,8 +130,7 @@ pub(super) async fn connect(
         None
     };
     let handler = ExtensionClient { interaction };
-    let cancellation = app.state::<ExtensionState>().shutdown.child_token();
-    let (service, process) = match &connector.endpoint {
+    let (service, process) = match endpoint {
         McpEndpoint::StreamableHttp {
             url,
             headers,
@@ -178,9 +179,7 @@ pub(super) async fn connect(
                 .map_err(|_| "mcp-handshake-failed")?
             } else {
                 if let Some(id) = &connection.account_id {
-                    for (name, value) in
-                        connectors::credentials(app, id, url, *allow_local_network).await?
-                    {
+                    for (name, value) in connectors::credentials(app, id, url).await? {
                         if super::endpoint::reserved_header(&name) {
                             return Err("connector-cannot-override-mcp-transport-header".into());
                         }
@@ -215,13 +214,7 @@ pub(super) async fn connect(
             let plugin_environment =
                 super::super::plugins::process_configuration::environment(app, connector).await?;
             let secrets = if let Some(id) = &connection.account_id {
-                connectors::credentials(
-                    app,
-                    id,
-                    &super::endpoint::resource(&connector.endpoint),
-                    false,
-                )
-                .await?
+                connectors::credentials(app, id, &super::endpoint::resource(endpoint)).await?
             } else {
                 Default::default()
             };

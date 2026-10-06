@@ -12,6 +12,7 @@ import {
 import { connectorQuery, connectionQuery } from "../../../foundation/extensions/extension-query";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import { connectorDraft } from "./connector-draft";
 import ConnectorCard from "./ConnectorCard.vue";
@@ -23,15 +24,19 @@ const changes = useExtensionChanges();
 const editing = shallowRef(false);
 const draft = ref(connectorDraft());
 function edit(connector?: ConnectorDefinition) {
-  draft.value = connector ? cloneDeep(connector) : connectorDraft();
+  draft.value = connector
+    ? { ...cloneDeep(connector), endpoint: cloneDeep(connector.endpoint!) }
+    : connectorDraft();
   editing.value = true;
 }
 function save() {
   void changes
     .mutateAsync(async () => {
-      if (draft.value.id) await updateConnectorDefinition(draft.value);
-      else await createConnectorDefinition(draft.value);
+      const result = draft.value.id
+        ? await updateConnectorDefinition(draft.value)
+        : await createConnectorDefinition(draft.value);
       editing.value = false;
+      return result;
     })
     .catch(() => {});
 }
@@ -54,6 +59,7 @@ function remove(connector: ConnectorDefinition) {
     >
       {{ getErrorMessage(connectors.error.value || connections.error.value || changes.error.value) }}
     </p>
+    <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
     <ConnectorEditor
       v-if="editing"
       v-model="draft"

@@ -135,5 +135,9 @@
   "emptyConnectors": "尚未配置外部服务连接器",
   "pluginConnector": "由插件提供",
   "customConnector": "自定义服务",
-  "accountBindingChanges": "更换账号会停用该连接并清除工具权限，请重新审查权限后启用。"
+  "accountBindingChanges": "更换账号会停用该连接并清除工具权限，请重新审查权限后启用。",
+  "changeCommittedCleanupPending": "变更已保存，部分清理尚未完成；相关账号保持不可用。",
+  "declaredCommand": "插件声明的程序",
+  "localConfigurationRequired": "使用此连接器前，请选择已安装的程序。",
+  "chooseInstalledExecutable": "选择已安装的程序"
 }

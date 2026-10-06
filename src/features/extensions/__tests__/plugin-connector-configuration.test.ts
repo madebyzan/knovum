@@ -1,0 +1,67 @@
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import type { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { flushPromises, mount } from "@vue/test-utils";
+import { expect, it, vi } from "vitest";
+
+import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
+import PluginConnectorConfiguration from "../connectors/PluginConnectorConfiguration.vue";
+
+const native = vi.hoisted(() => ({
+  invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),
+  open: vi.fn<typeof openDialog>(),
+}));
+vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: native.invoke }));
+vi.mock("@tauri-apps/plugin-dialog", () => ({ open: native.open }));
+
+it("binds a user-selected installed executable without modifying the publisher declaration", async () => {
+  const connector: ConnectorDefinition = {
+    id: "service",
+    revision: "one",
+    name: "Local",
+    description: "Reference",
+    pluginId: "plugin",
+    componentName: "local",
+    authorization: { type: "none" },
+    endpoint: null,
+  };
+  native.open.mockResolvedValue("/installed/node");
+  native.invoke.mockImplementation(async (command: string) => {
+    if (command === "plugin:extensions|list_plugin_installations")
+      return [
+        {
+          id: "plugin",
+          revision: {
+            connectors: [
+              {
+                componentName: "local",
+                configuration: { type: "stdio", command: "node", args: ["server.js"] },
+              },
+            ],
+          },
+        },
+      ];
+    if (command === "plugin:extensions|configure_plugin_connector")
+      return { value: connector, cleanupErrors: [] };
+    throw new Error(`Unexpected command: ${command}`);
+  });
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = mount(PluginConnectorConfiguration, {
+    props: { connector },
+    global: { plugins: [[VueQueryPlugin, { queryClient }]], mocks: { $t: (key: string) => key } },
+  });
+  try {
+    await flushPromises();
+    expect(wrapper.text()).toContain("extensions.localConfigurationRequired");
+    await wrapper.get('[data-testid="bind-plugin-executable"]').trigger("click");
+    await flushPromises();
+    expect(native.open).toHaveBeenCalledWith({ directory: false, multiple: false });
+    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|configure_plugin_connector", {
+      id: "service",
+      revision: "one",
+      configuration: { type: "stdio", executable: "/installed/node" },
+    });
+  } finally {
+    wrapper.unmount();
+    queryClient.clear();
+  }
+});

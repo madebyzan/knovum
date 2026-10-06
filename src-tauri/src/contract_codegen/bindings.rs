@@ -5,6 +5,8 @@ type ContractExporter = fn(&Config) -> Result<(), ts_rs::ExportError>;
 pub(super) fn export(config: &Config) -> Result<(), String> {
     let exporters: &[ContractExporter] = &[
         crate::extensions::contracts::PluginOperationStage::export_all,
+        crate::extensions::contracts::ExtensionChange::<()>::export_all,
+        crate::extensions::contracts::PluginConnectorConfiguration::export_all,
         crate::extensions::contracts::McpResourceContent::export_all,
         crate::extensions::contracts::McpResourceSelection::export_all,
         crate::extensions::contracts::PluginSource::export_all,

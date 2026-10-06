@@ -1,15 +1,21 @@
 import type { ConnectorAccount } from "../../shared/contracts/generated/ConnectorAccount";
 import type { ConnectorDefinition } from "../../shared/contracts/generated/ConnectorDefinition";
+import type { ExtensionChange } from "../../shared/contracts/generated/ExtensionChange";
+import type { PluginConnectorConfiguration } from "../../shared/contracts/generated/PluginConnectorConfiguration";
 import { invokeCommand } from "../ipc/invoke-command";
 
 export const listConnectorDefinitions = () =>
   invokeCommand<ConnectorDefinition[]>("plugin:extensions|list_connector_definitions");
 export const createConnectorDefinition = (definition: ConnectorDefinition) =>
-  invokeCommand<ConnectorDefinition>("plugin:extensions|create_connector_definition", { definition });
+  invokeCommand<ExtensionChange<ConnectorDefinition>>("plugin:extensions|create_connector_definition", {
+    definition,
+  });
 export const updateConnectorDefinition = (definition: ConnectorDefinition) =>
-  invokeCommand<ConnectorDefinition>("plugin:extensions|update_connector_definition", { definition });
+  invokeCommand<ExtensionChange<ConnectorDefinition>>("plugin:extensions|update_connector_definition", {
+    definition,
+  });
 export const deleteConnectorDefinition = (definition: ConnectorDefinition) =>
-  invokeCommand<void>("plugin:extensions|delete_connector_definition", {
+  invokeCommand<ExtensionChange<null>>("plugin:extensions|delete_connector_definition", {
     id: definition.id,
     revision: definition.revision,
   });
@@ -24,3 +30,13 @@ export const cancelConnectorAuthorization = (id: string) =>
   invokeCommand<void>("plugin:extensions|cancel_connector_authorization", { id });
 export const disconnectConnectorAccount = (id: string) =>
   invokeCommand<void>("plugin:extensions|disconnect_connector_account", { id });
+
+export const configurePluginConnector = (
+  definition: ConnectorDefinition,
+  configuration: PluginConnectorConfiguration,
+) =>
+  invokeCommand<ExtensionChange<ConnectorDefinition>>("plugin:extensions|configure_plugin_connector", {
+    id: definition.id,
+    revision: definition.revision,
+    configuration,
+  });

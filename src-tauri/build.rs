@@ -90,6 +90,7 @@ fn main() {
                         "create_connector_definition",
                         "update_connector_definition",
                         "delete_connector_definition",
+                        "configure_plugin_connector",
                         "create_connector_account",
                         "authorize_connector_account",
                         "cancel_connector_authorization",

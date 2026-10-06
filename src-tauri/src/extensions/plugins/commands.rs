@@ -34,7 +34,7 @@ pub async fn install_plugin(
     publication: Option<PluginPublication>,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginInstallation, String> {
+) -> Result<super::super::contracts::ExtensionChange<PluginInstallation>, String> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -75,7 +75,7 @@ pub async fn update_plugin(
     expected_digest: String,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginInstallation, String> {
+) -> Result<super::super::contracts::ExtensionChange<PluginInstallation>, String> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -135,7 +135,10 @@ pub async fn set_plugin_enabled(app: AppHandle, id: String, enabled: bool) -> Re
 }
 
 #[tauri::command]
-pub async fn uninstall_plugin(app: AppHandle, id: String) -> Result<(), String> {
+pub async fn uninstall_plugin(
+    app: AppHandle,
+    id: String,
+) -> Result<super::super::contracts::ExtensionChange<()>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
@@ -165,8 +168,13 @@ pub async fn uninstall_plugin(app: AppHandle, id: String) -> Result<(), String> 
         .map_err(|error| error.to_string())?;
     tx.commit().await.map_err(|error| error.to_string())?;
     super::super::mcp::sessions::revoke_plugin(&app, &id).await;
-    super::super::connectors::cleanup::collect(&app).await?;
-    super::super::reclamation::collect(&app).await
+    Ok(super::super::contracts::ExtensionChange::committed(
+        (),
+        [
+            super::super::connectors::cleanup::collect(&app).await,
+            super::super::reclamation::collect(&app).await,
+        ],
+    ))
 }
 
 #[tauri::command]

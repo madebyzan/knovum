@@ -53,8 +53,28 @@ pub struct ConnectorDefinition {
     pub description: String,
     pub plugin_id: Option<String>,
     pub component_name: Option<String>,
-    pub endpoint: McpEndpoint,
+    pub endpoint: Option<McpEndpoint>,
     pub authorization: ConnectorAuthorization,
+}
+
+impl ConnectorDefinition {
+    pub(crate) fn configured_endpoint(&self) -> Result<&McpEndpoint, String> {
+        self.endpoint
+            .as_ref()
+            .ok_or_else(|| "connector-local-configuration-required".into())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase",
+    deny_unknown_fields
+)]
+pub enum PluginConnectorConfiguration {
+    Stdio { executable: String },
+    StreamableHttp { allow_local_network: bool },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
@@ -99,6 +119,15 @@ pub struct McpConnection {
     pub account_id: Option<String>,
     pub enabled: bool,
     pub tools: Vec<McpToolPermission>,
+}
+
+impl McpConnection {
+    pub(crate) fn apply_binding_change(&mut self, previous: &Self) {
+        if previous.account_id != self.account_id {
+            self.enabled = false;
+            self.tools.clear();
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]

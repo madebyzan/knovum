@@ -35,11 +35,11 @@ async function authorize() {
   clear();
   try {
     await authorizeConnectorAccount(props.account.id, values);
-    await client.invalidateQueries({ queryKey: extensionQueryKey });
   } catch (cause) {
     error.value = getErrorMessage(cause);
   } finally {
     for (const name of Object.keys(values)) delete values[name];
+    await client.invalidateQueries({ queryKey: extensionQueryKey });
     busy.value = false;
   }
 }

@@ -612,6 +612,16 @@ Accounts belong to definitions and can be explicitly shared between their instan
 owner operates the protocol; it does not own service definitions. Plugins publish definitions by
 stable component identity and preserve all user instances during updates. Deleting an instance
 retains its definition and accounts. Removing a definition retires all instances and credentials.
+Plugin revisions retain publisher declarations; a service's configured endpoint is optional until
+the user binds an installed stdio executable. Only the host-owned configuration command can
+change that binding or HTTP local-network consent. Plugin metadata and protocol parameters stay
+publisher-owned. Updates retain the executable for the same declared command and retain network
+consent for the same URL; changed identities require a new explicit configuration.
+Extension mutations that perform post-commit cleanup return `ExtensionChange`: committed value
+and independent cleanup errors. Account cleanup remains durably disabled/pending; content cleanup
+uses existing leases and startup reclamation. Management queries refresh on every mutation outcome.
+Inspection and execution sessions share the MCP registry and cancellation lifetime. Inspections
+recheck connector, connection and authorization revisions before returning external results.
 Task snapshots carry reviewed bytes and exact connector/connection/account/catalog identities. There is
 one connection-selection list, containing each connection's selected tools, resources and prompts.
 Resource and prompt tool bindings retain the selected identities; inbound MCP projection does
