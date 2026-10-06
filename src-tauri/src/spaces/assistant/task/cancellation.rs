@@ -9,10 +9,13 @@ static ACTIVE: OnceLock<Mutex<HashMap<String, CancellationToken>>> = OnceLock::n
 
 pub(super) fn register(run_id: &str) -> Result<CancellationToken, String> {
     let token = CancellationToken::new();
-    active()
+    let mut active = active()
         .lock()
-        .map_err(|_| "assistant-cancellation-registry-unavailable")?
-        .insert(run_id.to_owned(), token.clone());
+        .map_err(|_| "assistant-cancellation-registry-unavailable")?;
+    if active.contains_key(run_id) {
+        return Err("assistant-execution-already-active".into());
+    }
+    active.insert(run_id.to_owned(), token.clone());
     Ok(token)
 }
 

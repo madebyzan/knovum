@@ -25,6 +25,7 @@ export function finalizeAiConnectionDraft(draft: AiConnectionSettings): AiConnec
       name: model.name.trim(),
       model: model.model.trim(),
       capabilities: [...model.capabilities],
+      assistant: model.assistant ? { ...model.assistant } : null,
     })),
   };
 }

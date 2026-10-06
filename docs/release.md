@@ -338,3 +338,92 @@ inaccessibility. If that route fails actual regional acceptance, publish and cat
 identical qualified regional copy before release.
 Kokoro's existing archive/license gates and user-authorized diarization import remain unchanged.
 No provider failover, compatibility endpoint precedence or replacement model satisfies this gate.
+
+## Deep Agents acceptance
+
+The Assistant runtime is an independent profile with its own descriptor, installed inventory and
+license policy. The current locked SDK proof suite uses actual public Deep Agents/LangGraph APIs,
+real SQLite persistence and controlled model responses/HTTP streams. Those checks establish
+host admission, durable tool intent, projection and replay behavior; they do not qualify a real
+provider, a model's quality, native TLS/proxy behavior or either release platform.
+
+Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
+checkout before native acceptance. `check:python` shares Ruff policy but runs Assistant Mypy/pytest
+inside its own locked environment. Provision/build commands select `--profile inference` or
+`--profile assistant` explicitly. Packaging verifies both profiles and ships only current owned
+source and the two descriptors. The maintainer owns native build/signing/installation acceptance.
+
+### Provider qualification record
+
+For each enabled model, record provider, immutable model identifier, base URL, explicit protocol,
+context/output limits, temperature, OS/architecture, application commit, SDK lock SHA-256,
+Assistant manifest digest, date and input/result evidence. A passing OpenAI mock is not evidence
+for Responses, Anthropic, Gemini, Ollama, DeepSeek, Groq or a compatible service.
+
+| Endpoint family         | Required evidence                                                             | Current real-provider qualification |
+| ----------------------- | ----------------------------------------------------------------------------- | ----------------------------------- |
+| OpenAI Chat             | streaming usage, simultaneous tools/images, interruption/recovery             | Pending credentials/native run      |
+| OpenAI Responses        | reasoning/tool correlation, encrypted reasoning, no response-store dependency | Pending credentials/native run      |
+| Anthropic               | native tool/image blocks and usage under summary/research                     | Pending credentials/native run      |
+| Gemini v1/v1beta        | declared API version, tool/image content and usage                            | Pending credentials/native run      |
+| Ollama                  | selected local model supports tools/images and reports usage                  | Pending configured model/native run |
+| DeepSeek / Groq         | native integration preserves reasoning/tool sequence and usage                | Pending credentials/native run      |
+| China/custom compatible | exact declared endpoint/protocol, regional access, tool/image/usage           | Pending per-endpoint run            |
+
+### Business regression corpus
+
+Prepare one disposable Space with a note containing identifiable facts, a second contradictory
+note, a PNG with text and shapes, a multipage document, timed media with transcript and configured
+generation/export routes. Record exact source revisions and prompts before either engine is run.
+Use the last pre-migration commit as the baseline and the candidate checkout as the new engine;
+no old harness is installed into the candidate. Run each case at least three times with the same
+model, sampler, input and Action catalog. Store input, public messages, Run events, Action receipts,
+request purpose/count, token totals and elapsed time per run. This comparison has not been
+performed with real credentials; qualification remains pending.
+
+| #   | Task/input                                       | Success criterion                                                                  |
+| --- | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 1   | Ask for the attached note's three facts          | Correct facts and node/revision citations; no writes                               |
+| 2   | Search for an exact phrase in another note       | Authorized matching node found                                                     |
+| 3   | Compare contradictory notes                      | Both cited; discrepancy explained                                                  |
+| 4   | Ask about an unindexed canvas item               | Reads the existing node, without invented contents                                 |
+| 5   | Request inaccessible Space data                  | Grant denies access; no leaked content                                             |
+| 6   | Ask to publish a note in Ask mode                | No write Action advertised or executed                                             |
+| 7   | Plan a note rewrite                              | Visible pending/completed todos; no mutation                                       |
+| 8   | Execute an authorized note rewrite               | One revisioned Action receipt and result                                           |
+| 9   | Execute creation of two notes                    | Two requested outputs, each exactly once                                           |
+| 10  | Ask about objects in attached PNG                | Actual authorized image input; correct visual evidence                             |
+| 11  | Read a canvas image through a tool               | Rendered source revision supplied to model                                         |
+| 12  | Send image to a text-only model                  | Rejected before model request                                                      |
+| 13  | Read a multipage document excerpt                | Exact source locations cited                                                       |
+| 14  | Find a phrase in a timed media transcript        | Source node, revision and timestamp match                                          |
+| 15  | Generate an image                                | Uses configured image route; one owned child Run                                   |
+| 16  | Generate a video                                 | Uses configured video route; no repeated child submission                          |
+| 17  | Export a document                                | Valid published asset and Action receipt                                           |
+| 18  | Generate speech with selected voice              | Existing speech Action result and immutable voice revision                         |
+| 19  | Reuse a published output in a follow-up          | Reads current node rather than a scratch-path claim                                |
+| 20  | Follow up using same model/mode                  | Same successful execution segment; one new input                                   |
+| 21  | Switch model/protocol profile                    | New frozen execution segment; public history retained                              |
+| 22  | Branch at an earlier message                     | New thread sees only chosen branch history                                         |
+| 23  | Trigger context compression                      | Older complete answers remain public; summary is private                           |
+| 24  | Delegate two independent research questions      | At most two read-only instances; no nested delegation                              |
+| 25  | Attempt write/research in same tool batch        | Business write denied; no unsafe concurrent change                                 |
+| 26  | Pause during a stream, then resume               | Safe boundary acknowledged; input not duplicated                                   |
+| 27  | Pause while waiting for generation               | Resume observes the same child Run                                                 |
+| 28  | Cancel during generation                         | Root/owned child fence blocks late publication                                     |
+| 29  | Kill process after a submitted tool and reopen   | Exactly one Action result and public answer                                        |
+| 30  | Lose provider response / usage or projection ACK | Correct distinct waiting reason or unique rebuilt answer; no automatic paid resend |
+
+Zero authorization violations or duplicate business effects are required. Investigate any core
+feature loss. More than 20% median cost/time increase requires evidence, a strategy correction
+and remeasurement; do not declare improvement from a constructed mock.
+
+### Native runtime/control matrix
+
+On **macOS 14+ ARM64** and **Windows x64**, record clean installation without system Python,
+anonymous first download of both profiles in both regions, cancellation, separate dependency
+imports, restart/offline use, native CA/proxy behavior, protocol initialization, process-tree
+termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
+asset publication. The producer performs relocation imports from a path with spaces and Chinese
+characters before and after signing. Verify native binary signers/timestamps, app signing,
+install/uninstall and upgrade separately. macOS x64 development checks do not satisfy this matrix.

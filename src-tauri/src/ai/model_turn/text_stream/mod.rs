@@ -2,7 +2,7 @@ use futures::{Stream, StreamExt};
 use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client};
 use tokio_util::sync::CancellationToken;
 
-use super::{stream::provider_error, to_genai_options, to_genai_request, wire::service_target};
+use super::{to_genai_options, to_genai_request, wire::service_target};
 use crate::ai::{
     contracts::{ModelTurnRequest, StreamFrame, StreamFrameStream, TokenUsage},
     transport::SecurityContext,
@@ -126,6 +126,10 @@ fn map_event(event: ChatStreamEvent) -> genai::Result<Option<StreamFrame>> {
 
 fn token_usage(usage: genai::chat::Usage) -> Option<TokenUsage> {
     crate::ai::usage::from_provider_usage(usage)
+}
+
+fn provider_error(error: genai::Error) -> AppError {
+    AppError::new("provider_request_failed", error.to_string())
 }
 
 #[cfg(test)]

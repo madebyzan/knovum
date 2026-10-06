@@ -3,6 +3,7 @@ import { computed, shallowRef, watch, type Ref } from "vue";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { AssistantMode } from "../contracts/generated/AssistantMode";
 import { useSpaceStore } from "../session/space-store";
 import { createConversationSelection } from "./conversation-selection";
 import { useConversationActions } from "./use-conversation-actions";
@@ -23,6 +24,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const messages = shallowRef<AssistantMessage[]>([]);
   const selectedConversationId = shallowRef("");
   const prompt = shallowRef("");
+  const mode = shallowRef<AssistantMode>("execute");
   const target = shallowRef<TaskTargetRef>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
@@ -37,6 +39,9 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const selectedConversation = computed(() =>
     selectedConversationId.value ? selectedSnapshot.value : undefined,
   );
+  watch(selectedConversation, (conversation) => {
+    if (conversation) mode.value = conversation.mode;
+  });
   const pages = useConversationMessagePages({
     spaceId,
     selectedConversationId,
@@ -76,6 +81,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     spaceId,
     selectedConversationId,
     conversation: selectedConversation,
+    mode,
     prompt,
     target,
     attachments,
@@ -138,11 +144,14 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     inspectActivity,
     selectedConversationId,
     selectedConversation,
+    mode,
     prompt,
     target,
     activeRunId: task.activeRunId,
     activeConversationId: task.activeConversationId,
     visibleTaskState: task.visibleTaskState,
+    visibleWaitReason: task.visibleWaitReason,
+    canPause: task.canPause,
     loading: task.loading,
     loadingOlder: pages.loadingOlder,
     hasOlder: pages.hasOlder,
@@ -152,7 +161,9 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     chooseFiles,
     send: task.send,
     cancel: task.cancel,
+    pause: task.pause,
     resume: task.resume,
+    retryModel: task.retryModel,
     selectConversation,
     selectBranch: branchSession.selectBranch,
     conversationQuery,

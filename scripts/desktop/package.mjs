@@ -22,6 +22,7 @@ import {
 import { validateApplicationResources } from "../runtime/application-resources.mjs";
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
+import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { verifyRuntimeSignatures } from "../runtime/signatures.mjs";
 import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
 
@@ -30,7 +31,7 @@ const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime"
 const args = process.argv.slice(2);
 const explicitRuntimeTarget = option("--runtime-target");
 const buildTarget = value("--target");
-const buildRuntimeTarget = targetFromTriple(buildTarget) ?? hostTarget();
+const buildRuntimeTarget = runtimeTargetFromTriple(buildTarget) ?? hostRuntimeTarget();
 if (explicitRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
   throw new Error(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
 }
@@ -38,9 +39,15 @@ const target = buildRuntimeTarget;
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
 requireRuntime(target);
-const distribution = distributionDirectory(repository, target);
-validateRuntimeDistribution(repository, target);
-if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repository);
+const descriptorEnvironment = {};
+for (const profile of runtimeProfiles) {
+  const distribution = distributionDirectory(repository, target, profile);
+  validateRuntimeDistribution(repository, target, profile);
+  if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repository, profile);
+  const descriptor = join(repository, "src-tauri", "resources", `python-${profile}-descriptor.json`);
+  copyFileSync(join(distribution, "runtime-descriptor.json"), descriptor);
+  descriptorEnvironment[`KNOVUM_PYTHON_${profile.toUpperCase()}_DESCRIPTOR_PATH`] = descriptor;
+}
 const worker = join(repository, "src-tauri", "resources", "python-worker");
 rmSync(worker, { recursive: true, force: true });
 mkdirSync(worker, { recursive: true });
@@ -48,15 +55,13 @@ cpSync(join(repository, "python", "src"), worker, {
   recursive: true,
   filter: (path) => !path.includes("__pycache__") && (lstatSync(path).isDirectory() || path.endsWith(".py")),
 });
-const descriptorPath = join(repository, "src-tauri", "resources", "python-runtime-descriptor.json");
-copyFileSync(join(distribution, "runtime-descriptor.json"), descriptorPath);
 validateApplicationResources(join(repository, "src-tauri", "resources"), repository, target);
 
 const bundleResources = [
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),
-  "resources/python-runtime-descriptor.json",
+  ...runtimeProfiles.map((profile) => `resources/python-${profile}-descriptor.json`),
   ...listRuntimeFiles(worker).map((path) => `resources/python-worker/${path}`),
 ];
 const config = { ...releaseConfig, bundle: { ...releaseConfig.bundle, resources: bundleResources } };
@@ -67,7 +72,7 @@ execFileSync(
   [cli, "build", ...args, "--config", JSON.stringify(config), ...(release ? ["--", "--locked"] : [])],
   {
     cwd: repository,
-    env: { ...process.env, KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH: descriptorPath },
+    env: { ...process.env, ...descriptorEnvironment },
     stdio: "inherit",
   },
 );
@@ -166,26 +171,4 @@ function readJson(relativePath) {
   const path = join(repository, relativePath);
   if (!existsSync(path)) throw new Error(`Required packaging configuration is missing: ${path}`);
   return JSON.parse(readFileSync(path, "utf8"));
-}
-
-function hostTarget() {
-  const platform = { darwin: "macos", win32: "windows" }[process.platform];
-  const arch = { arm64: "arm64", x64: "x64" }[process.arch];
-  if (!platform || !arch) throw new Error(`Unsupported package host: ${process.platform}/${process.arch}`);
-  const hostRuntimeTarget = `${platform}-${arch}`;
-  if (!["macos-arm64", "windows-x64"].includes(hostRuntimeTarget)) {
-    throw new Error(`Unsupported package target: ${hostRuntimeTarget}`);
-  }
-  return hostRuntimeTarget;
-}
-
-function targetFromTriple(triple) {
-  if (!triple) return undefined;
-  const targets = {
-    "aarch64-apple-darwin": "macos-arm64",
-    "x86_64-pc-windows-msvc": "windows-x64",
-  };
-  const resolvedTarget = targets[triple];
-  if (!resolvedTarget) throw new Error(`Unsupported package target: ${triple}`);
-  return resolvedTarget;
 }

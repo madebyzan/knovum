@@ -129,7 +129,7 @@ Python development requires an explicit manifest override or a configured truste
 Packaged FFmpeg resolves from Resources; Python resolves from its immutable app-data installation.
 
 - `KNOVUM_FFMPEG_PATH`, or bundled `bundled-runtime/<platform>/ffmpeg[.exe]`;
-- `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` is a development/CI override for the verified Python runtime. Release builds use the trusted descriptor and verified app-data runtime.
+- `KNOVUM_PYTHON_INFERENCE_MANIFEST_PATH` and `KNOVUM_PYTHON_ASSISTANT_MANIFEST_PATH` are explicit development/CI overrides for their verified runtime profiles. Release builds use the trusted descriptor and verified app-data runtime.
 - `KNOVUM_FASTER_WHISPER_*_PATH` and `KNOVUM_MLX_WHISPER_*_PATH` are development/CI overrides for individually verified model files. Release weights live in application data, outside the application bundle.
 
 The desktop release targets are `macos-arm64` and `windows-x64`. Missing bundled core tools are configuration errors; Python components and models are prepared on first capability use. Packaging and runtime manifests reject other architectures rather than presenting partial native inference support.

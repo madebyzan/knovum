@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+
+use super::RuntimeProfile;
 use tauri::{AppHandle, Manager, Runtime};
 
 #[derive(Clone, Deserialize)]
@@ -10,7 +12,8 @@ pub(super) struct Descriptor {
     pub(super) target: String,
     pub(super) version: String,
     pub(super) dependency_requirements_sha256: String,
-    pub(super) voxcpm_commit: String,
+    pub(super) profile: RuntimeProfile,
+    pub(super) dependency_lock_sha256: String,
     pub(super) sources: RuntimeSources,
     pub(super) size: u64,
     pub(super) sha256: String,
@@ -50,15 +53,13 @@ impl RuntimeSources {
     }
 }
 
-pub(super) fn embedded() -> Result<Option<Descriptor>, String> {
-    let descriptor: Option<Descriptor> = serde_json::from_slice(include_bytes!(concat!(
-        env!("OUT_DIR"),
-        "/python-runtime-descriptor.json"
-    )))
-    .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
+pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, String> {
+    let descriptor: Option<Descriptor> = serde_json::from_slice(profile.descriptor_bytes())
+        .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
     if let Some(value) = &descriptor {
         value.sources.validate()?;
-        if value.schema_version != 1
+        if value.schema_version != 2
+            || value.profile != profile
             || value.target != crate::local_resources::tools::platform_directory()
             || value.version != "3.11.17"
             || value.size == 0
@@ -67,10 +68,10 @@ pub(super) fn embedded() -> Result<Option<Descriptor>, String> {
                 &value.sha256,
                 &value.manifest_sha256,
                 &value.dependency_requirements_sha256,
+                &value.dependency_lock_sha256,
             ]
             .iter()
             .any(|hash| !valid_hash(hash, 64))
-            || !valid_hash(&value.voxcpm_commit, 40)
         {
             return Err("python-runtime-invalid: invalid platform descriptor".into());
         }
@@ -78,8 +79,8 @@ pub(super) fn embedded() -> Result<Option<Descriptor>, String> {
     Ok(descriptor)
 }
 
-pub(super) fn required() -> Result<Descriptor, String> {
-    embedded()?
+pub(super) fn required(profile: RuntimeProfile) -> Result<Descriptor, String> {
+    embedded(profile)?
         .ok_or_else(|| "runtime_missing: Python runtime publication is not configured".into())
 }
 
@@ -92,6 +93,7 @@ pub(super) fn destination<R: Runtime>(
         .app_data_dir()
         .map_err(|error| error.to_string())?
         .join("local-resources/runtimes/python")
+        .join(value.profile.name())
         .join(&value.target)
         .join(&value.sha256))
 }

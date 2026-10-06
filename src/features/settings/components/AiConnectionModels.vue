@@ -175,6 +175,7 @@ async function removeModel(model: AiModelDefinition) {
       :key="selected ?? 'new'"
       v-model:open="dialogOpen"
       :connection-name="connection.name"
+      :assistant-protocols="requireProvider(providers, connection.provider).assistantProtocols"
       :model="editingModel"
       :allowed-capabilities="requireProvider(providers, connection.provider).capabilities"
       :protected="Boolean(editingModel && modelInUse(editingModel.id))"

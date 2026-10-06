@@ -146,9 +146,18 @@ own runtime; the Space package does not export Agent tool configuration.
 The model conversation exposes all registered Space Actions through one tool catalog in Execute
 mode. Built-in and desktop Agents execute under authenticated task grants without per-operation
 confirmation; Ask and Plan modes expose read actions only.
-Assistant failures retain their reason with the task record, and interrupted model streams
-retain any received text as an explicitly stopped or incomplete message. Returning to a
-conversation after an interruption does not turn partial text into a completed answer.
+The built-in model conversation runs Deep Agents in the private Assistant runtime. The composer
+selects Ask/Plan/Execute; Plan projects SDK todos into Run activities without business writes.
+Models need an explicit qualified Assistant protocol/context/output profile in AI settings.
+Generation tools use their configured business routes, independently of the conversation model.
+Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
+presentation stream. Public history remains available when an unsupported or unsuccessful graph
+segment is retired. Root pause is acknowledged only at a durable boundary. Unknown paid calls
+appear as actionable waiting in the conversation and Task Center, with a state-version checked
+explicit new-attempt command and possible duplicate-charge explanation. External Agent turns
+continue to support execution/cancellation through ACP, without built-in Ask/Plan controls.
+Assistant failures retain their reason with the task record; interrupted presentation text is
+never promoted to a completed answer. See `system-architecture.md` for graph/host ownership.
 
 ## Item identity and titles
 

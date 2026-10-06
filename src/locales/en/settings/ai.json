@@ -66,22 +66,29 @@
     "import": "Import model folder",
     "remove": "Remove local model"
   },
-  "localInference": {
-    "title": "Local AI",
-    "description": "Components are downloaded when first needed and shared by local AI features. Models are downloaded separately.",
-    "components": "Local AI components",
-    "ready": "Ready for offline use",
+  "assistantEnabled": "Use for the built-in Assistant",
+  "assistantProfileHelp": "Enable only models that support tool calling. Enter context and output limits from the provider documentation.",
+  "assistantProtocol": "Model API protocol",
+  "contextWindow": "Context window (tokens)",
+  "maxOutputTokens": "Output limit per request (tokens)",
+  "assistantLimitsInvalid": "Context must be at least 8,192 tokens; output must be positive and smaller than context.",
+  "pythonRuntimes": {
+    "title": "Python runtimes",
+    "description": "Independent runtimes are downloaded when needed. Models are managed separately.",
+    "inference": "Local inference",
+    "assistant": "Built-in Assistant",
+    "ready": "Runtime is ready",
     "unavailable": "No runtime publication is configured for this build",
     "download": "Not prepared · {size} download",
-    "preparing": "Prepare local AI components",
+    "preparing": "Prepare {name}",
     "prepare": "Prepare",
-    "cancel": "Cancel",
-    "source": {
-      "label": "Download region",
-      "description": "New downloads use the selected regional sources. Active downloads keep their current source.",
-      "global": "International",
-      "china": "Mainland China",
-      "chinaNote": "Image background removal and audio separation currently use a community mirror; downloads may still require access to overseas servers."
-    }
+    "cancel": "Cancel"
+  },
+  "resourceDownloads": {
+    "label": "Download region",
+    "description": "New downloads use the selected regional sources. Active downloads keep their current source.",
+    "global": "International",
+    "china": "Mainland China",
+    "chinaNote": "Image background removal and audio separation currently use a community mirror; downloads may still require access to overseas servers."
   }
 }

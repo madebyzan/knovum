@@ -1,0 +1,74 @@
+#[cfg(windows)]
+use super::windows_job::WindowsJob;
+#[cfg(windows)]
+use std::sync::Arc;
+use tokio::process::Child;
+
+pub(crate) struct ProcessTree(Option<KillHandle>);
+
+#[derive(Clone)]
+pub(crate) enum KillHandle {
+    #[cfg(unix)]
+    ProcessGroup(i32),
+    #[cfg(windows)]
+    Job(Arc<WindowsJob>),
+}
+
+impl KillHandle {
+    pub(crate) fn terminate(&self) {
+        #[cfg(unix)]
+        {
+            let Self::ProcessGroup(group) = self;
+            unsafe extern "C" {
+                fn kill(pid: i32, signal: i32) -> i32;
+            }
+            let _ = unsafe { kill(-group, 9) };
+        }
+        #[cfg(windows)]
+        {
+            let Self::Job(job) = self;
+            job.terminate();
+        }
+    }
+}
+
+impl ProcessTree {
+    pub(crate) fn new(child: &Child, #[cfg(windows)] job: WindowsJob) -> Result<Self, String> {
+        #[cfg(unix)]
+        let process_group = i32::try_from(
+            child
+                .id()
+                .ok_or("worker_crashed: worker process id unavailable")?,
+        )
+        .map_err(|_| "worker_crashed: worker process id exceeds platform range")?;
+        Ok(Self(Some({
+            #[cfg(unix)]
+            {
+                KillHandle::ProcessGroup(process_group)
+            }
+            #[cfg(windows)]
+            {
+                KillHandle::Job(Arc::new(job))
+            }
+        })))
+    }
+
+    pub(crate) fn handle(&self) -> KillHandle {
+        self.0
+            .as_ref()
+            .expect("process tree has a kill handle")
+            .clone()
+    }
+
+    pub(crate) fn terminate(&mut self) {
+        if let Some(handle) = self.0.take() {
+            handle.terminate();
+        }
+    }
+}
+
+impl Drop for ProcessTree {
+    fn drop(&mut self) {
+        self.terminate();
+    }
+}

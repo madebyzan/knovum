@@ -11,6 +11,7 @@ const stopNoObservation = () => {};
 interface ConversationRunRestorationState {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
+  activeRun: ShallowRef<RunObservation | undefined>;
   activeRunId: ShallowRef<string | undefined>;
   activeConversationId: ShallowRef<string>;
   activeSpaceId: ShallowRef<string | undefined>;
@@ -31,6 +32,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
       state.onDetach();
       stopObserving();
       observingRunId = "";
+      state.activeRun.value = undefined;
       state.activeRunId.value = undefined;
       state.activeConversationId.value = "";
       state.activeSpaceId.value = undefined;
@@ -50,6 +52,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
 
     const onRun = (run: RunObservation) => {
       if (observingRunId !== run.id) return;
+      state.activeRun.value = run;
       state.taskState.value = run.state;
       state.activityRevision.value += 1;
       if (run.completedAt !== null) {
@@ -98,7 +101,22 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
     }
   }
 
+  async function retryModel() {
+    const run = state.activeRun.value;
+    if (!run || run.state !== "waiting") return;
+    state.error.value = undefined;
+    try {
+      await invokeCommand("plugin:spaces|retry_assistant_model", {
+        runId: run.id,
+        expectedVersion: run.stateVersion,
+      });
+    } catch (cause) {
+      state.error.value = getErrorMessage(cause);
+    }
+  }
+
   return {
+    retryModel,
     restoreForSpace,
     resume,
   };

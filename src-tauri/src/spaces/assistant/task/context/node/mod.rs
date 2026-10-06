@@ -33,19 +33,19 @@ pub(super) async fn resolve(
         .as_str()
         .ok_or("attached resource has no kind")?
         .to_owned();
-    let data = &node["data"];
-    let current_revision = data
+    let content = &node["data"];
+    let current_revision = content
         .get("knowledgeRevision")
-        .or_else(|| data.get("sourceRevision"))
+        .or_else(|| content.get("sourceRevision"))
         .and_then(Value::as_str)
         .ok_or("source-unavailable: attached resource has no stable revision")?;
     if current_revision != source_revision {
         return Err("source-revision-changed: attached resource changed before task start".into());
     }
-    let title = data["title"]
+    let title = content["title"]
         .as_str()
         .ok_or("attached resource has no title")?;
-    let excerpt = excerpt(data, remaining)?;
+    let excerpt = excerpt(content, remaining)?;
     let characters_read = excerpt.chars().count();
     let asset_revision = node["assetRevision"]
         .as_str()
@@ -115,9 +115,9 @@ pub(super) async fn resolve(
     })
 }
 
-fn excerpt(data: &Value, remaining: usize) -> Result<String, String> {
-    let mut chunks = crate::spaces::knowledge::indexing::node::derived_chunks(data)?;
-    chunks.extend(crate::spaces::knowledge::indexing::media::chunks(data)?);
+fn excerpt(content: &Value, remaining: usize) -> Result<String, String> {
+    let mut chunks = crate::spaces::knowledge::indexing::node::derived_chunks(content)?;
+    chunks.extend(crate::spaces::knowledge::indexing::media::chunks(content)?);
     Ok(chunks
         .iter()
         .map(|chunk| chunk.text.as_str())

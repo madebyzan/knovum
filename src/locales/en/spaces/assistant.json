@@ -8,7 +8,7 @@
     "knovumAssistant": "Knovum Agent",
     "desktop": "Desktop Agents",
     "select": "Choose an assistant",
-    "noModel": "No model configured",
+    "noModel": "Enable a model that supports tool calling in AI settings.",
     "manage": "Configure models and Agents…"
   },
   "empty": {
@@ -86,7 +86,13 @@
     "waitingForResult": "Waiting for the operation to finish…",
     "failed": "The conversation task failed. Return to the conversation for details.",
     "paused": "This task is paused. You can continue it when ready.",
-    "resume": "Resume task"
+    "resume": "Resume task",
+    "modelOutcomeUnknown": "The model request ended without a recoverable result. Execution is waiting for your decision.",
+    "modelResponseUncommitted": "The model replied, but its execution result was not committed. Automatic recovery cannot safely continue.",
+    "modelUsageUnknown": "The model replied without usage information. Further model calls have stopped.",
+    "modelRetryCost": "Continuing may send another paid request. Earlier charges remain recorded or unknown.",
+    "retryModel": "Authorize a new model attempt",
+    "pause": "Pause"
   },
   "response": {
     "stopped": "Stopped",
@@ -115,7 +121,14 @@
     "recorded": "Activity · {count} actions",
     "tool": "Tool action",
     "invalidResult": "Search results could not be displayed",
-    "noSources": "No matching sources"
+    "noSources": "No matching sources",
+    "plan": "Plan"
   },
-  "askSelection": "Ask selection"
+  "askSelection": "Ask selection",
+  "modes": {
+    "label": "Assistant mode",
+    "ask": "Ask",
+    "plan": "Plan",
+    "execute": "Execute"
+  }
 }

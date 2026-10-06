@@ -1,116 +1,124 @@
 use serde_json::{json, Value};
-use sqlx::SqlitePool;
 
+pub(in crate::spaces::assistant) mod child;
 mod media;
-mod settlement;
+mod routing;
 
-use super::identity::{ensure_active, TaskIds};
-use crate::app_error::AppError;
 use crate::{
-    agent_runtime::{RuntimeToolCall, RuntimeToolReply},
+    agent_runtime::protocol::tools::{AssistantToolInvocation, AssistantToolOutcome},
     spaces::{
-        actions::{self, ActionInvocationRequest},
-        assistant::repository,
+        actions::{self, ActionInvocationOutcome, ActionInvocationRequest},
+        assistant::{
+            execution::gateway::{tool_key, Gateway},
+            repository,
+        },
+        db,
     },
 };
 
-pub(super) async fn execute(
-    context: &super::driver::DriverContext<'_>,
-    turn_id: &str,
-    calls: Vec<RuntimeToolCall>,
-) -> Result<Vec<RuntimeToolReply>, AppError> {
-    let super::driver::DriverContext {
-        app,
-        pool,
-        target,
-        request,
-        ids,
-        catalog,
-        ..
-    } = context;
-    let mut results = Vec::with_capacity(calls.len());
-    for call in calls {
-        ensure_active(pool, &ids.run_id).await?;
-        let definition = catalog
-            .by_wire_name
-            .get(&call.name)
-            .ok_or("tool-not-allowed: model requested an unavailable tool")?;
-        let action_id = definition.id.to_owned();
-        let invocation_id = format!("{}:{}", ids.task_id, call.call_id);
-        let record = repository::start_tool_call(
-            pool,
-            repository::AssistantToolCallStart {
-                task_id: &ids.task_id,
-                run_id: &ids.run_id,
-                model_turn_id: turn_id,
-                provider_call_id: &call.call_id,
-                wire_name: &call.name,
-                action_id: &action_id,
-                invocation_id: &invocation_id,
-                arguments: &call.arguments,
+pub(in crate::spaces::assistant) async fn invoke(
+    context: &Gateway,
+    call: AssistantToolInvocation,
+) -> Result<Value, String> {
+    context.require_tool(&call.name, &call.graph_namespace)?;
+    super::identity::ensure_active(&context.pool, &context.ids.run_id).await?;
+    let definition = context
+        .catalog
+        .by_wire_name
+        .get(&call.name)
+        .ok_or("assistant-action-not-allowed")?;
+    if call.checkpoint_id.is_empty() {
+        return Err("assistant-tool-intent-not-durable".into());
+    }
+    let invocation_id = tool_key(
+        &call.identity,
+        &call.graph_namespace,
+        &call.message_id,
+        &call.tool_call_id,
+        &call.name,
+    );
+    let admitted: Option<i64> = sqlx::query_scalar(
+        "SELECT 1 FROM spaces_assistant_tool_admissions WHERE id=$1 AND task_id=$2",
+    )
+    .bind(&invocation_id)
+    .bind(&context.ids.task_id)
+    .fetch_optional(&context.pool)
+    .await
+    .map_err(db::sql_error)?;
+    admitted.ok_or("assistant-tool-not-admitted")?;
+    let target_selection = routing::selection(context, definition, &invocation_id).await?;
+    let operation = repository::start_tool_call(
+        &context.pool,
+        repository::AssistantToolCallStart {
+            task_id: &context.ids.task_id,
+            run_id: &context.ids.run_id,
+            graph_namespace: &call.graph_namespace,
+            message_id: &call.message_id,
+            provider_call_id: &call.tool_call_id,
+            wire_name: &call.name,
+            action_id: definition.id,
+            invocation_id: &invocation_id,
+            arguments: &call.arguments,
+            target_selection,
+        },
+    )
+    .await?;
+    let mut parameters = call.arguments;
+    let mut input_snapshot = parameters
+        .as_object_mut()
+        .and_then(|values| values.remove("inputNodeIds"))
+        .map(|ids| json!({"inputNodeIds":ids}))
+        .unwrap_or_else(|| json!({}));
+    if let Some(target) = operation.target_selection {
+        input_snapshot["targets"] = json!({definition.id: target});
+    }
+    let outcome = actions::invoke(
+        &context.pool,
+        ActionInvocationRequest {
+            invocation_id: invocation_id.clone(),
+            idempotency_key: invocation_id,
+            grant_id: context.ids.grant_id.clone(),
+            space_id: context.request.space_id.clone(),
+            action_id: definition.id.into(),
+            action_version: definition.version,
+            parameters,
+            input_snapshot,
+            expected_revisions: Value::Null,
+            parent_run_id: Some(context.ids.run_id.clone()),
+        },
+    )
+    .await
+    .map_err(|error| error.to_string())?;
+    let value = if let Some(value) = operation.output {
+        value
+    } else {
+        let value = match outcome {
+            ActionInvocationOutcome::AcceptedRun { run_id } => {
+                match child::observe(&context.pool, &run_id).await? {
+                    Some(value) => value,
+                    None => {
+                        return serde_json::to_value(AssistantToolOutcome::AwaitChild { run_id })
+                            .map_err(db::json_error)
+                    }
+                }
+            }
+            outcome => serde_json::to_value(outcome).map_err(db::json_error)?,
+        };
+        repository::complete_tool_call(
+            &context.pool,
+            repository::AssistantToolCallCompletion {
+                id: &operation.id,
+                run_id: &context.ids.run_id,
+                conversation_id: &context.ids.conversation_id,
+                branch_id: &context.ids.branch_id,
+                call_id: &call.tool_call_id,
+                name: definition.id,
+                tool_output: &value,
             },
         )
         .await?;
-        let value = if let Some(value) = record.result {
-            value
-        } else {
-            let mut parameters = call.arguments.clone();
-            let mut input_snapshot = parameters
-                .as_object_mut()
-                .and_then(|values| values.remove("inputNodeIds"))
-                .map(|node_ids| json!({"inputNodeIds": node_ids}))
-                .unwrap_or_else(|| json!({}));
-            if definition.routing_purpose.is_some() {
-                input_snapshot["targets"] = json!({});
-                input_snapshot["targets"][definition.id] = json!(&request.target);
-            }
-            let invocation = ActionInvocationRequest {
-                invocation_id: invocation_id.clone(),
-                idempotency_key: invocation_id,
-                grant_id: ids.grant_id.clone(),
-                space_id: request.space_id.clone(),
-                action_id: definition.id.into(),
-                action_version: definition.version,
-                parameters,
-                input_snapshot,
-                expected_revisions: Value::Null,
-                parent_run_id: Some(ids.run_id.clone()),
-            };
-            let outcome = actions::invoke(pool, invocation).await?;
-            let value = settlement::settle(pool, &ids.run_id, outcome).await?;
-            complete_tool(pool, ids, &call, &record.id, &action_id, value.clone()).await?;
-            value
-        };
-        let media = media::read_node(app, target, &request.target, &action_id, &value).await?;
-        results.push(RuntimeToolReply {
-            call_id: call.call_id,
-            name: call.name,
-            result: value,
-            media,
-        });
-    }
-    Ok(results)
-}
-
-async fn complete_tool(
-    pool: &SqlitePool,
-    ids: &TaskIds,
-    call: &RuntimeToolCall,
-    row_id: &str,
-    action_id: &str,
-    value: Value,
-) -> Result<(), AppError> {
-    Ok(repository::complete_tool_call(
-        pool,
-        repository::AssistantToolCallCompletion {
-            id: row_id,
-            run_id: &ids.run_id,
-            conversation_id: &ids.conversation_id,
-            branch_id: &ids.branch_id,
-            call_id: &call.call_id,
-            name: action_id,
-            tool_output: &value,
-        },
-    )
-    .await?)
+        value
+    };
+    let media = media::read_node(&context.app, &context.target, definition.id, &value).await?;
+    serde_json::to_value(AssistantToolOutcome::Completed { value, media }).map_err(db::json_error)
 }

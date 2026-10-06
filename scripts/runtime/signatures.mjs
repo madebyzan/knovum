@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { validateDependencyLicenseReview } from "./license-policy.mjs";
 
-export function verifyRuntimeSignatures(directory, runtimeTarget, repository) {
+export function verifyRuntimeSignatures(directory, runtimeTarget, repository, profile) {
   const record = JSON.parse(readFileSync(join(directory, "..", "build-evidence", "producer.json"), "utf8"));
   if (record.signing?.mode !== "production")
     throw new Error("Production packages require a production-signed Python runtime");
@@ -18,7 +18,7 @@ export function verifyRuntimeSignatures(directory, runtimeTarget, repository) {
   ) {
     throw new Error("Python runtime signing certificate differs from the approved certificate");
   }
-  validateDependencyLicenseReview(directory, runtimeTarget, repository);
+  validateDependencyLicenseReview(directory, runtimeTarget, repository, profile);
   execFileSync(
     "uv",
     [

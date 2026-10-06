@@ -18,6 +18,7 @@ impl SecurityContext {
             base_url,
             temperature,
             secret_key,
+            ..
         } = target;
         let model = model.trim();
         if model.is_empty() {

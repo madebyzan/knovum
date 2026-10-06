@@ -5,7 +5,13 @@ import { sha256File } from "./files.mjs";
 
 export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const configuration = JSON.parse(
-    readFileSync(join(dirname(dependencyLock), "runtime-source.json"), "utf8"),
+    readFileSync(
+      join(
+        manifest.profile === "assistant" ? join(dirname(dependencyLock), "../..") : dirname(dependencyLock),
+        "runtime-source.json",
+      ),
+      "utf8",
+    ),
   );
   const evidence = join(directory, "..", "build-evidence");
   const path = join(evidence, "producer.json");
@@ -14,14 +20,24 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
     throw new Error("Runtime producer record is invalid");
   const record = JSON.parse(readFileSync(path, "utf8"));
   validateProducerIdentity(record, manifest, configuration);
-  validateEvidenceFiles(evidence);
-  validateCompiledSources(evidence, dependencyLock);
-  validateVoxCpm(record.voxcpm, evidence, manifest, dependencyLock);
+  if (
+    record.dependencyLockSha256 !== sha256File(dependencyLock) ||
+    manifest.dependencyLockSha256 !== record.dependencyLockSha256
+  )
+    throw new Error("Runtime dependency lock differs from the application");
+  if (manifest.dependencyRequirementsSha256 !== sha256File(join(evidence, "requirements.txt")))
+    throw new Error("Runtime requirements differ from the producer evidence");
+  validateEvidenceFiles(evidence, manifest.profile);
+  if (manifest.profile === "inference") {
+    validateCompiledSources(evidence, dependencyLock);
+    validateVoxCpm(record.voxcpm, evidence, manifest, dependencyLock);
+  }
 }
 
 function validateProducerIdentity(record, manifest, configuration) {
   const expected = {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    profile: manifest.profile,
     target: manifest.target,
     version: manifest.version,
     uvVersion: configuration.uvVersion,
@@ -50,15 +66,15 @@ function validateSigningRecord(signing, target) {
     throw new Error("Runtime producer signing record is invalid");
 }
 
-function validateEvidenceFiles(evidence) {
+function validateEvidenceFiles(evidence, profile) {
   for (const name of [
     "producer.json",
     "dependency-evidence.json",
     "sbom.cdx.json",
     "requirements.txt",
-    "build-requirements.txt",
-    "voxcpm-source.tar",
-    "compiled-source-evidence.json",
+    ...(profile === "inference"
+      ? ["build-requirements.txt", "voxcpm-source.tar", "compiled-source-evidence.json"]
+      : []),
   ]) {
     const file = join(evidence, name);
     if (!lstatSync(file).isFile()) throw new Error(`Runtime build evidence is missing: ${file}`);
@@ -82,7 +98,7 @@ function validateVoxCpm(voxcpm, evidence, manifest, dependencyLock) {
     /https:\/\/github\.com\/OpenBMB\/VoxCPM\.git\?rev=[a-f0-9]{40}#([a-f0-9]{40})/u,
   )?.[1];
   validateVoxIdentity(voxcpm, commit);
-  if (manifest.voxcpmCommit !== commit || manifest.dependencyRequirementsSha256 !== voxcpm.requirementsSha256)
+  if (manifest.dependencyRequirementsSha256 !== voxcpm.requirementsSha256)
     throw new Error("Runtime requirements identity differs from the producer");
   for (const [file, key] of [
     ["requirements.txt", "requirementsSha256"],

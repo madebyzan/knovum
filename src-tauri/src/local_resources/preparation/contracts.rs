@@ -13,7 +13,9 @@ pub enum ResourcePreparationTarget {
     SpeechAlignment,
     SpeechSeparation,
     MediaImportTools,
-    PythonRuntime,
+    PythonRuntime {
+        profile: crate::local_resources::runtimes::python::RuntimeProfile,
+    },
 }
 
 impl ResourcePreparationTarget {
@@ -28,7 +30,7 @@ impl ResourcePreparationTarget {
             Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
-            Self::MediaImportTools | Self::PythonRuntime => None,
+            Self::MediaImportTools | Self::PythonRuntime { .. } => None,
         }
     }
 }

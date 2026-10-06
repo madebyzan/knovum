@@ -32,6 +32,21 @@ DEPENDENCIES["knovum_model_resources"] = {
     "model_scope": {"contracts", "progress"},
     "server": {"contracts", "progress", "hugging_face", "model_scope"},
 }
+DEPENDENCIES["knovum_assistant"] = {
+    "__init__": set(),
+    "__main__": {"server"},
+    "contracts": set(),
+    "transport": set(),
+    "server": {"contracts", "execution", "projection", "transport"},
+    "execution": {"composition", "contracts", "control", "inputs", "projection", "transport"},
+    "composition": {"contracts", "control", "host_tools", "model_binding"},
+    "control": {"contracts", "projection", "transport"},
+    "inputs": {"contracts", "host_tools"},
+    "host_tools": {"contracts", "control"},
+    "budget": {"contracts", "control"},
+    "model_binding": {"budget", "contracts"},
+    "projection": {"contracts", "transport"},
+}
 TOOLING_PACKAGES = {"scripts", "tests", "acceptance", "runtime", "generate_python_contracts"}
 
 

@@ -170,6 +170,7 @@ async fn pre_cancelled_task_does_not_start_an_executor() {
 async fn direct_model_dispatch_still_uses_the_explicit_user_account() {
     let spy = ExecutorSpy::returns("model result");
     let target = TaskExecutionTarget::Model(ModelExecutionTarget {
+        capabilities: vec![crate::ai::contracts::ExecutionCapability::TextGeneration],
         provider: "openai".into(),
         model: "text".into(),
         base_url: "https://api.openai.com/v1".into(),

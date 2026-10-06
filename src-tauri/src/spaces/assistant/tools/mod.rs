@@ -40,7 +40,7 @@ pub fn project(mode: AssistantMode) -> Result<ToolCatalog, String> {
         });
         by_wire_name.insert(wire_name, definition);
     }
-    let encoded = serde_json::to_vec(&tools).map_err(|error| error.to_string())?;
+    let encoded = serde_json::to_vec(&(mode, &tools)).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
         tools,
         by_wire_name,
@@ -49,9 +49,11 @@ pub fn project(mode: AssistantMode) -> Result<ToolCatalog, String> {
 }
 
 fn wire_name(definition: &SpaceActionDefinition) -> String {
-    let digest = Sha256::digest(format!("{}:{}", definition.id, definition.version));
-    let encoded = format!("{digest:x}");
-    format!("knovum_{}", &encoded[..24])
+    format!(
+        "knovum_{}_v{}",
+        definition.id.replace('-', "_"),
+        definition.version
+    )
 }
 
 fn description(definition: &SpaceActionDefinition) -> String {

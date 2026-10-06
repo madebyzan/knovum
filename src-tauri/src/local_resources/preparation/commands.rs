@@ -50,9 +50,10 @@ pub async fn prepare_resources(
                 .await
                 .map(|_| ())
             }
-            ResourcePreparationTarget::PythonRuntime => {
+            ResourcePreparationTarget::PythonRuntime { profile } => {
                 super::prepare_python_for_request(
                     &app,
+                    profile,
                     request,
                     &CancellationToken::new(),
                     &mut |progress| observe(&on_progress, progress),

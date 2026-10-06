@@ -46,8 +46,4 @@ impl AiProvider for GeminiProvider {
     fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
         Some(&self.upload)
     }
-
-    fn as_input_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
-    }
 }

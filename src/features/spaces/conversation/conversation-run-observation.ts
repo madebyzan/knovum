@@ -7,6 +7,7 @@ import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
 import { useSpaceStore } from "../session/space-store";
 import { cancelAssistantTask, getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
+import { conversationRunStatusKey, conversationRunTask } from "./conversation-task-projection";
 
 type RunIdentity = Pick<RunObservation, "id" | "createdAt">;
 type Listener = (run: RunObservation) => void;
@@ -50,27 +51,37 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
   const listeners = new Set<Listener>();
   if (onUpdate) listeners.add(onUpdate);
   observed.set(run.id, listeners);
-  tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelAssistantTask(run.id));
   attachNavigation();
   observeRun(run.id, {
     update: (next) => {
       for (const listener of listeners) listener(next);
       if (next.completedAt !== null && space.activeSpaceId === next.homeSpaceId)
         void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
-      if (next.state === "succeeded") {
-        tasks.succeed(next.id);
-      } else if (next.state === "cancelled") tasks.cancelled(next.id);
-      else if (next.completedAt !== null) {
+      tasks.reconcileObserved(`assistant:${next.id}`, [
+        {
+          task: conversationRunTask(next, title, i18n.global.t(conversationRunStatusKey(next))),
+          ...(next.completedAt === null ? { cancel: () => cancelAssistantTask(next.id) } : {}),
+          ...(location
+            ? {
+                open: async () => {
+                  if (!openConversation) throw new Error("Assistant workspace is unavailable");
+                  await openConversation(location.spaceId, location.conversationId);
+                },
+              }
+            : {}),
+        },
+      ]);
+      if (next.state === "failed" || next.state === "completed_with_errors") {
         void getAssistantTaskError(next.id)
-          .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.tasks.failed")))
-          .catch((cause: unknown) => tasks.fail(next.id, getErrorMessage(cause)));
-      } else if (next.state === "paused") {
-        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.paused"));
-      } else if (next.state === "waiting") {
-        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
-      } else tasks.setStatusMessage(next.id, "");
+          .then((reason) => {
+            const task = tasks.tasks.find(({ id }) => id === next.id);
+            if (task) task.statusMessage = reason ?? i18n.global.t("spaces.assistant.tasks.failed");
+            return undefined;
+          })
+          .catch((cause: unknown) => toast.error(getErrorMessage(cause)));
+      }
     },
-    error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
+    error: (cause) => toast.error(getErrorMessage(cause)),
     finished: () => {
       observed.delete(run.id);
     },

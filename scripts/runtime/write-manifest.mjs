@@ -1,15 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { lstatSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
+import { runtimeProject } from "./profiles.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
-if (args.length !== 4 || args[0] !== "--target" || args[2] !== "--directory") {
+if (args.length !== 6 || args[0] !== "--target" || args[2] !== "--directory" || args[4] !== "--profile") {
   throw new Error(
-    "Usage: node scripts/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime>",
+    "Usage: node scripts/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime> --profile <inference|assistant>",
   );
 }
 const target = args[1];
@@ -35,16 +36,15 @@ if (!target.startsWith("windows-")) {
   if (!(python.mode & 0o111)) throw new Error("Runtime Python is not executable");
 }
 
-const voxcpmCommit = readFileSync(join(repository, "python", "uv.lock"), "utf8").match(
-  /VoxCPM\.git\?rev=[a-f0-9]{40}#([a-f0-9]{40})/u,
-)?.[1];
-if (!voxcpmCommit) throw new Error("Runtime source requires a frozen VoxCPM revision");
+const profile = args[5];
+const project = runtimeProject(repository, profile);
 const manifest = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   runtimeId: "cpython",
   version: "3.11.17",
   dependencyRequirementsSha256: sha256File(join(root, "runtime-requirements.txt")),
-  voxcpmCommit,
+  profile,
+  dependencyLockSha256: sha256File(join(project, "uv.lock")),
   target,
   executable,
   packageRoot: "packages",

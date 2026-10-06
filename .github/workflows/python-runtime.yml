@@ -26,14 +26,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        profile: [inference, assistant]
+        platform:
           - os: macos-15
             target: macos-arm64
             signing: adhoc
           - os: windows-2025
             target: windows-x64
             signing: unsigned
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform.os }}
     environment: ${{ inputs.production && 'release-build' || 'runtime-qa' }}
     steps:
       - uses: actions/checkout@v6
@@ -44,7 +45,7 @@ jobs:
         with:
           version: "0.12.23"
       - name: Audit locked Python dependency graph
-        run: uv audit --project python --locked --output-format json
+        run: uv audit --project ${{ matrix.profile == 'assistant' && 'python/runtimes/assistant' || 'python' }} --locked --output-format json
       - name: Import macOS signing certificate
         if: inputs.production && runner.os == 'macOS'
         env:
@@ -82,14 +83,14 @@ jobs:
           KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
         shell: bash
-        run: npm run runtime:build -- --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.signing }} --global-archive-url "$KNOVUM_RUNTIME_GLOBAL_ARCHIVE_BASE_URL/python-runtime-${{ matrix.target }}.tar.gz" --china-archive-url "$KNOVUM_RUNTIME_CHINA_ARCHIVE_BASE_URL/python-runtime-${{ matrix.target }}.tar.gz"
+        run: npm run runtime:build -- --profile ${{ matrix.profile }} --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --global-archive-url "$KNOVUM_RUNTIME_GLOBAL_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz" --china-archive-url "$KNOVUM_RUNTIME_CHINA_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz"
       - name: Attest produced archive
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: runtime-artifacts/python-runtime-${{ matrix.target }}.tar.gz
+          subject-path: runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz
       - uses: actions/upload-artifact@v6
         with:
-          name: python-runtime-${{ matrix.target }}
+          name: python-${{ matrix.profile }}-${{ matrix.platform.target }}
           path: runtime-artifacts
           if-no-files-found: error
           retention-days: 30

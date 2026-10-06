@@ -1,5 +1,5 @@
 #[tokio::test]
-async fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas_resources() {
+async fn space_snapshot_remains_distinct_from_the_user_input() {
     let context = super::ResolvedContext {
         manifest: serde_json::json!([]),
         summaries: vec![],
@@ -24,27 +24,20 @@ async fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas
             next_offset: None,
         },
     };
-    let target = crate::ai::models::ModelExecutionTarget {
-        provider: "openai".into(),
-        model: "test".into(),
-        base_url: "https://unused.invalid".into(),
-        temperature: 0.0,
-        secret_key: String::new(),
-    };
-    let message = context
-        .initial_message(
-            "What is in this Space?",
-            Some("Created Girl earlier"),
-            &target,
-        )
-        .await
-        .unwrap();
-    let crate::ai::contracts::ModelContentPart::Text { text } = &message.content[0] else {
+    let message = context.initial_message(
+        "input:test".into(),
+        "What is in this Space?",
+        Some("Created Girl earlier"),
+    );
+    let crate::agent_runtime::protocol::messages::AssistantContentPart::Text { text } =
+        &message.content[0]
+    else {
         panic!("context text");
     };
-    assert!(text.contains("current-space"));
-    assert!(text.contains("existing-image"));
-    assert!(text.contains("\"indexed\":false"));
+    assert_eq!(context.space.space_id, "current-space");
+    assert_eq!(context.space.nodes[0].node_id, "existing-image");
+    assert!(!context.space.nodes[0].indexed);
+    assert!(!text.contains("current-space"));
     assert!(text.contains("What is in this Space?"));
     assert!(text.contains("Created Girl earlier"));
 }

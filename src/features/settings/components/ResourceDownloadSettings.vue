@@ -14,8 +14,8 @@ const resources = useLocalResourcesQuery();
 const saving = shallowRef(false);
 const error = shallowRef<string>();
 const options = computed(() => [
-  { value: "global" as const, label: t("settings.ai.localInference.source.global") },
-  { value: "china" as const, label: t("settings.ai.localInference.source.china") },
+  { value: "global" as const, label: t("settings.ai.resourceDownloads.global") },
+  { value: "china" as const, label: t("settings.ai.resourceDownloads.china") },
 ]);
 
 async function update(region: ResourceDownloadRegion) {
@@ -34,20 +34,20 @@ async function update(region: ResourceDownloadRegion) {
 
 <template>
   <PreferenceField
-    :label="t('settings.ai.localInference.source.label')"
-    :description="t('settings.ai.localInference.source.description')"
+    :label="t('settings.ai.resourceDownloads.label')"
+    :description="t('settings.ai.resourceDownloads.description')"
   >
     <UiSelect
       v-if="resources.data.value"
       :model-value="resources.data.value.downloadRegion"
       :options="options"
       :disabled="saving"
-      :label="t('settings.ai.localInference.source.label')"
+      :label="t('settings.ai.resourceDownloads.label')"
       @update:model-value="update"
     />
   </PreferenceField>
   <p v-if="resources.data.value?.downloadRegion === 'china'" class="px-4 text-caption text-fg-secondary">
-    {{ t("settings.ai.localInference.source.chinaNote") }}
+    {{ t("settings.ai.resourceDownloads.chinaNote") }}
   </p>
   <p v-if="error" role="alert" class="px-4 text-caption text-fg-danger">{{ error }}</p>
 </template>

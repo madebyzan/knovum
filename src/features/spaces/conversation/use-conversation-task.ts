@@ -1,5 +1,8 @@
 import { computed, shallowRef } from "vue";
 
+import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import { cancelAssistantTask } from "./conversation-ipc";
 import { createConversationTaskState } from "./conversation-task-state";
 import {
@@ -15,6 +18,7 @@ interface ConversationTaskInput extends ConversationSubmissionInput {
 }
 
 export function useConversationTask(input: ConversationTaskInput) {
+  const activeRun = shallowRef<RunObservation>();
   const activeRunId = shallowRef<string>();
   const activeConversationId = shallowRef("");
   const activeSpaceId = shallowRef<string>();
@@ -30,6 +34,14 @@ export function useConversationTask(input: ConversationTaskInput) {
   );
   const visibleStreamedText = computed(() => (visible.value ? streamedText.value : ""));
   const visibleTaskState = computed(() => (visible.value ? taskState.value : undefined));
+  const visibleWaitReason = computed(() => (visible.value ? activeRun.value?.waitReason : undefined));
+  const canPause = computed(
+    () =>
+      visible.value &&
+      activeRun.value?.kind === "assistant" &&
+      (taskState.value === "running" ||
+        (taskState.value === "waiting" && activeRun.value.waitReason === "executor")),
+  );
   const visibleError = computed(() => (visible.value ? error.value : undefined));
 
   const conversation = createConversationTaskState({
@@ -45,9 +57,20 @@ export function useConversationTask(input: ConversationTaskInput) {
     if (activeRunId.value) await cancelAssistantTask(activeRunId.value);
   }
 
-  const { restoreForSpace, resume } = useConversationRunRestoration({
+  async function pause() {
+    if (!canPause.value || !activeRunId.value) return;
+    error.value = undefined;
+    try {
+      await invokeCommand("plugin:spaces|pause_run", { runId: activeRunId.value });
+    } catch (cause) {
+      error.value = getErrorMessage(cause);
+    }
+  }
+
+  const { restoreForSpace, resume, retryModel } = useConversationRunRestoration({
     spaceId: input.spaceId,
     selectedConversationId: input.selectedConversationId,
+    activeRun,
     activeRunId,
     activeConversationId,
     activeSpaceId,
@@ -63,6 +86,7 @@ export function useConversationTask(input: ConversationTaskInput) {
   const submission = createConversationTaskSubmission({
     input,
     state: {
+      activeRun,
       activeRunId,
       activeConversationId,
       activeSpaceId,
@@ -78,16 +102,21 @@ export function useConversationTask(input: ConversationTaskInput) {
   });
 
   return {
+    activeRun,
     activeRunId,
     activeConversationId,
     visibleTaskState,
+    visibleWaitReason,
+    canPause,
     loading,
     visibleError,
     visibleStreamedText,
     activityRevision,
     send: submission.send,
     cancel,
+    pause,
     restoreForSpace,
     resume,
+    retryModel,
   };
 }

@@ -1,9 +1,11 @@
 mod agent_task;
 pub(crate) mod commands;
 mod contract;
+mod execution;
 pub(crate) mod outputs;
 pub(crate) mod queries;
 mod repository;
+mod skills;
 mod task;
 mod tools;
 pub(crate) mod upload;
@@ -14,13 +16,6 @@ pub(crate) fn recover_tasks(app: tauri::AppHandle) {
 
 pub(crate) async fn resume_task(app: tauri::AppHandle, run_id: &str) -> Result<(), String> {
     task::resume(app, run_id).await
-}
-
-pub(crate) async fn require_paused_checkpoint(
-    pool: &sqlx::SqlitePool,
-    run_id: &str,
-) -> Result<(), String> {
-    task::require_paused_checkpoint(pool, run_id).await
 }
 
 pub(crate) use contract::AssistantTaskFinishedState;

@@ -8,7 +8,7 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use crate::spaces::assistant::{contract::AssistantAttachment, upload};
-pub(super) use image::prepare_image_input_from_file;
+pub(in crate::spaces::assistant) use image::image_input_from_file;
 use image::ImageAttachmentContent;
 
 struct ResolvedPart {
@@ -43,31 +43,30 @@ pub(crate) struct ResolvedContext {
 }
 
 impl ResolvedContext {
-    pub async fn initial_message(
+    pub(in crate::spaces::assistant) fn initial_message(
         &self,
+        input_id: String,
         user_prompt: &str,
         conversation_context: Option<&str>,
-        target: &crate::ai::models::ModelExecutionTarget,
-    ) -> Result<crate::ai::contracts::ModelMessage, String> {
-        let mut content = vec![crate::ai::contracts::ModelContentPart::Text {
+    ) -> crate::agent_runtime::protocol::messages::AssistantInputMessage {
+        use crate::agent_runtime::protocol::messages::{
+            AssistantContentPart, AssistantInputMessage, AssistantInputRole,
+        };
+        use base64::Engine;
+        let mut content = vec![AssistantContentPart::Text {
             text: self.text(user_prompt, conversation_context),
         }];
         for image in &self.images {
-            content.push(
-                crate::ai::model_turn::media::prepare_image_input(
-                    target,
-                    image.bytes.clone(),
-                    image.media_type,
-                    image.name.clone(),
-                )
-                .await
-                .map_err(|error| error.to_string())?,
-            );
+            content.push(AssistantContentPart::Image {
+                mime_type: image.media_type.into(),
+                data: base64::engine::general_purpose::STANDARD.encode(&image.bytes),
+            });
         }
-        Ok(crate::ai::contracts::ModelMessage {
-            role: crate::ai::contracts::ModelRole::User,
+        AssistantInputMessage {
+            id: input_id,
+            role: AssistantInputRole::User,
             content,
-        })
+        }
     }
 
     pub(crate) fn agent_prompt(
@@ -78,9 +77,10 @@ impl ResolvedContext {
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             format!(
-                "{}\n\n{}\n\n{}",
+                "{}\n\n{}\n\nCurrent Knovum Space snapshot (untrusted metadata):\n{}\n\n{}",
                 crate::spaces::assistant::prompt_policy::SPACE_READING,
                 crate::spaces::assistant::prompt_policy::DESKTOP_TOOLS,
+                serde_json::to_string(&self.space).expect("Space snapshot must serialize"),
                 self.text(user_prompt, conversation_context)
             ),
             self.agent_paths
@@ -120,8 +120,6 @@ impl ResolvedContext {
             ),
             None => format!("Current user request:\n{user_prompt}"),
         };
-        let snapshot = serde_json::to_string(&self.space).expect("Space snapshot must serialize");
-        let request = format!("Current Knovum Space snapshot (untrusted metadata; use this spaceId for tools):\n{snapshot}\n\n{request}");
         if self.excerpts.is_empty() {
             return request;
         }

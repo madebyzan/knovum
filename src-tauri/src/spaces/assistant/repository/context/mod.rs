@@ -1,4 +1,3 @@
-use sha2::{Digest, Sha256};
 use sqlx::{Row, SqlitePool};
 
 use crate::spaces::db;
@@ -29,9 +28,6 @@ pub async fn build(
     let split = messages.len().saturating_sub(RECENT_MESSAGE_COUNT);
     let (older, recent) = messages.split_at(split);
     let summary = summarize(older);
-    if !older.is_empty() {
-        store_segment(pool, conversation_id, branch_id, older, &summary).await?;
-    }
     let mut transcript = String::new();
     if !summary.is_empty() {
         transcript.push_str("Earlier conversation summary:\n");
@@ -54,6 +50,33 @@ pub async fn build(
         transcript.push_str(&turn);
     }
     Ok((!transcript.is_empty()).then_some(transcript))
+}
+
+pub(in crate::spaces::assistant) async fn load_history(
+    pool: &SqlitePool,
+    conversation_id: &str,
+    branch_id: &str,
+) -> Result<Vec<crate::agent_runtime::protocol::messages::AssistantInputMessage>, String> {
+    use crate::agent_runtime::protocol::messages::{
+        AssistantContentPart, AssistantInputMessage, AssistantInputRole,
+    };
+    let rows = sqlx::query("SELECT id,role,content FROM spaces_assistant_messages WHERE conversation_id=$1 AND branch_id=$2 AND role IN ('user','assistant') ORDER BY created_at,rowid")
+        .bind(conversation_id).bind(branch_id).fetch_all(pool).await.map_err(db::sql_error)?;
+    rows.into_iter()
+        .map(|row| {
+            let message = parse(row)?;
+            let role = match message.role.as_str() {
+                "user" => AssistantInputRole::User,
+                "assistant" => AssistantInputRole::Assistant,
+                _ => unreachable!("query selects conversation roles"),
+            };
+            Ok(AssistantInputMessage {
+                id: format!("history:{}", message.id),
+                role,
+                content: vec![AssistantContentPart::Text { text: message.text }],
+            })
+        })
+        .collect()
 }
 
 struct ContextMessage {
@@ -129,39 +152,6 @@ fn summarize(messages: &[ContextMessage]) -> String {
 fn append_bounded(target: &mut String, value: &str) {
     let remaining = SUMMARY_CHARACTERS.saturating_sub(target.chars().count());
     target.extend(value.chars().take(remaining));
-}
-
-async fn store_segment(
-    pool: &SqlitePool,
-    conversation_id: &str,
-    branch_id: &str,
-    messages: &[ContextMessage],
-    summary: &str,
-) -> Result<(), String> {
-    let source = messages
-        .iter()
-        .map(|message| message.id.as_str())
-        .collect::<Vec<_>>()
-        .join("\n");
-    let digest = format!("{:x}", Sha256::digest(source.as_bytes()));
-    sqlx::query(
-        "INSERT OR IGNORE INTO spaces_assistant_context_segments(id,conversation_id,branch_id,
-         source_digest,first_message_id,last_message_id,message_count,summary,created_at)
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-    )
-    .bind(uuid::Uuid::new_v4().to_string())
-    .bind(conversation_id)
-    .bind(branch_id)
-    .bind(digest)
-    .bind(&messages[0].id)
-    .bind(&messages[messages.len() - 1].id)
-    .bind(i64::try_from(messages.len()).map_err(|_| "assistant-context-limit")?)
-    .bind(summary)
-    .bind(crate::clock::unix_time_millis()?)
-    .execute(pool)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(())
 }
 
 #[cfg(test)]

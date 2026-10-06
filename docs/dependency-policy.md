@@ -180,7 +180,7 @@ One narrowly scoped pnpm override addresses the current dependency graph:
 
 PptxGenJS and its image-size override are removed: the product presentation capability is Rust-owned, and the former Web worker had no production caller. Do not add a second document serialization engine in the Renderer.
 
-Rust `reqwest` explicitly enables `query`, because provider clients use `RequestBuilder::query`. Do not rely on unrelated SDK dependencies to enable required features transitively. `async-openai`, direct `rig-core` and direct `futures-util` have no current Knovum caller and are not direct dependencies; `rig-core` remains a dependency of the actively used `rig-agent` SDK.
+Rust `reqwest` explicitly enables `query`, because provider clients use `RequestBuilder::query`. Do not rely on unrelated SDK dependencies to enable required features transitively. `async-openai`, direct `rig-core` and direct `futures-util` have no current Knovum caller and are not direct dependencies. The Rig harness and its dependencies have been removed.
 
 - CI installs from the committed pnpm/Cargo lockfiles only.
 - Production npm dependencies are checked with `pnpm audit --prod --audit-level high`; registry package signatures are checked with `pnpm audit signatures`.
@@ -229,3 +229,14 @@ Pydantic 2.12.3 plus tqdm 4.70.1 for its public progress interface. They belong 
 Hub APIs own resume/transfer metadata; Rust owns product inventory, SHA-256 and publication.
 Provider commits can differ only when every required file matches the same recorded identity.
 Regional source qualification and the current acceptance gaps are recorded in `oss-first.md`.
+
+## Built-in Assistant dependencies
+
+`python/runtimes/assistant/uv.lock` owns the dependency-only Assistant runtime. Exact direct pins
+are in its `pyproject.toml`; this selection is independent of `python/uv.lock`. Deep Agents and
+LangGraph own graph execution through public APIs, and the official LangChain clients own HTTP
+protocols. Rust does not duplicate those clients. `truststore` is initialized only at application
+startup before SDK clients, using the native OS trust store. Credentials/telemetry configuration
+are not inherited through process environment. Production dependencies and native wheels for both
+release targets require the same inventory/SBOM/license/relocation gates as inference. The
+Assistant review policy lives beside its own lock and must bind each conveyed platform inventory.

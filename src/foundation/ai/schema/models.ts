@@ -6,6 +6,7 @@ import {
   providerKinds,
   executionCapabilities,
   routingPurposes,
+  chatModelProtocols,
 } from "../../../shared/contracts/generated/contract-values";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import { agentKindSchema } from "./agents";
@@ -14,12 +15,24 @@ export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
 export const aiRoutingPurposeSchema = z.enum(routingPurposes);
 
+const assistantModelSettingsSchema = z
+  .object({
+    protocol: z.enum(chatModelProtocols),
+    contextWindow: z.number().int().min(8192).max(2_000_000),
+    maxOutputTokens: z.number().int().positive(),
+  })
+  .strict()
+  .refine((profile) => profile.maxOutputTokens < profile.contextWindow, {
+    message: "Assistant output limit must be smaller than its context window",
+  });
+
 export const aiModelDefinitionSchema = z
   .object({
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
     model: z.string().trim().min(1),
     capabilities: z.array(aiCapabilitySchema).min(1),
+    assistant: assistantModelSettingsSchema.nullable().exactOptional(),
   })
   .strict();
 

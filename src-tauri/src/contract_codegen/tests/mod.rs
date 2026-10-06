@@ -92,6 +92,14 @@ fn committed_contracts_match_rust_sources() {
             "Committed contracts differ from Rust sources in {directory}: {differences:?}; run pnpm contracts:generate"
         );
     }
+    let assistant_values = Path::new("python/src/knovum_assistant/contracts/values.py");
+    assert_eq!(
+        std::fs::read(repository.join(assistant_values))
+            .expect("committed Assistant protocol values"),
+        std::fs::read(temporary.0.join(assistant_values))
+            .expect("generated Assistant protocol values"),
+        "Assistant protocol values differ from Rust sources; run pnpm contracts:generate"
+    );
 }
 
 #[test]

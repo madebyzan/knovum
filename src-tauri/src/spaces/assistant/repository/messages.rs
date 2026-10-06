@@ -4,22 +4,6 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use super::message_contract::{AssistantMessage, AssistantMessageContent, AssistantMessageRole};
 use crate::spaces::db;
 
-pub async fn append_message(
-    pool: &SqlitePool,
-    conversation_id: &str,
-    branch_id: &str,
-    role: AssistantMessageRole,
-    content: &Value,
-) -> Result<String, String> {
-    let id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_assistant_messages(id,conversation_id,branch_id,role,content,created_at)
-         VALUES($1,$2,$3,$4,$5,$6)")
-        .bind(&id).bind(conversation_id).bind(branch_id).bind(role.as_str())
-        .bind(serde_json::to_string(content).map_err(db::json_error)?)
-        .bind(crate::clock::unix_time_millis()?).execute(pool).await.map_err(db::sql_error)?;
-    Ok(id)
-}
-
 pub async fn append_message_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     conversation_id: &str,

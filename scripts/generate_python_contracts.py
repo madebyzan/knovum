@@ -68,6 +68,46 @@ CONTRACT_MODULES = {
     "separation": {"SpeechSeparateParams", "SpeechSeparation"},
 }
 
+ASSISTANT_CONTRACT_MODULES = {
+    "control": {
+        "AssistantInitialize",
+        "AssistantReady",
+        "AssistantExecutionIdentity",
+        "AssistantExecute",
+        "AssistantControl",
+        "AssistantControlOperation",
+        "AssistantPruneThreads",
+        "AssistantExecutionResult",
+        "AssistantExecutionState",
+    },
+    "messages": {
+        "AssistantContentPart",
+        "AssistantInputMessage",
+        "AssistantInputRole",
+        "AssistantProjectionRequest",
+        "AssistantProjectedMessage",
+        "AssistantProjection",
+        "AssistantContentDelta",
+        "AssistantPlanItem",
+        "AssistantPlanState",
+    },
+    "models": {
+        "ChatModelProtocol",
+        "AssistantModelBinding",
+        "AssistantModelPurpose",
+        "AssistantModelAdmission",
+        "AssistantModelCompletion",
+        "AssistantModelFailure",
+        "AssistantModelCheckpoint",
+    },
+    "tools": {
+        "AssistantToolDefinition",
+        "AssistantToolInvocation",
+        "AssistantToolOutcome",
+        "AssistantToolAdmission",
+    },
+}
+
 
 def codegen_options(base_class: str) -> list[str]:
     return [
@@ -89,18 +129,18 @@ def codegen_options(base_class: str) -> list[str]:
     ]
 
 
-def generate_inference() -> None:
+def generate_owned_contracts(capability: str, modules: dict[str, set[str]], schema_name: str) -> None:
     root = Path(__file__).resolve().parents[1] / "python"
-    schema = json.loads((root / "schemas/inference.schema.json").read_text())
-    owners = {name: module for module, names in CONTRACT_MODULES.items() for name in names}
-    if len(owners) != sum(len(names) for names in CONTRACT_MODULES.values()) or owners.keys() != schema["$defs"].keys():
+    schema = json.loads((root / f"schemas/{capability}.schema.json").read_text())
+    owners = {name: module for module, names in modules.items() for name in names}
+    if len(owners) != sum(len(names) for names in modules.values()) or owners.keys() != schema["$defs"].keys():
         raise ValueError("Every Rust wire definition must have exactly one Python contract module")
     for name, definition in schema["$defs"].items():
         definition["title"] = f"{owners[name]}.{name}"
-    schema["title"] = "schema.InferenceWireSchemas"
-    output = root / "src/knovum_inference/contracts/generated"
+    schema["title"] = f"schema.{schema_name}"
+    output = root / f"src/knovum_{capability}/contracts/generated"
     with tempfile.TemporaryDirectory(prefix="knovum-contracts-") as directory:
-        source = Path(directory) / "inference.schema.json"
+        source = Path(directory) / f"{capability}.schema.json"
         source.write_text(json.dumps(schema))
         generated = Path(directory) / "generated"
         subprocess.run(
@@ -112,7 +152,7 @@ def generate_inference() -> None:
                 "jsonschema",
                 "--output",
                 str(generated),
-                *codegen_options("knovum_inference.contracts.wire_model.WireModel"),
+                *codegen_options(f"knovum_{capability}.contracts.wire_model.WireModel"),
                 "--snake-case-field",
                 "--use-default",
                 "--treat-dot-as-module",
@@ -146,7 +186,8 @@ def generate_model_resources() -> None:
 
 
 def main() -> None:
-    generate_inference()
+    generate_owned_contracts("inference", CONTRACT_MODULES, "InferenceWireSchemas")
+    generate_owned_contracts("assistant", ASSISTANT_CONTRACT_MODULES, "AssistantWireSchemas")
     generate_model_resources()
 
 

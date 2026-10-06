@@ -2,6 +2,7 @@ use super::*;
 
 fn target(provider: &str, model: &str) -> ModelExecutionTarget {
     ModelExecutionTarget {
+        capabilities: vec![crate::ai::contracts::ExecutionCapability::TextGeneration],
         provider: provider.into(),
         model: model.into(),
         base_url: String::new(),

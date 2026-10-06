@@ -1,17 +1,22 @@
 <script setup lang="ts">
+import { cloneDeep } from "es-toolkit";
 import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { aiModelDefinitionSchema } from "../../../foundation/ai/schema/models";
 import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
+import type { AssistantModelSettings } from "../../../shared/contracts/generated/AssistantModelSettings";
+import type { ChatModelProtocol } from "../../../shared/contracts/generated/ChatModelProtocol";
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import AiModelDefinitionEditor from "./AiModelDefinitionEditor.vue";
+import AssistantModelSettingsEditor from "./AssistantModelSettingsEditor.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   connectionName: string;
+  assistantProtocols: readonly ChatModelProtocol[];
   model?: AiModelDefinition | undefined;
   allowedCapabilities: readonly ExecutionCapability[];
   protected: boolean;
@@ -20,10 +25,10 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ save: [model: AiModelDefinition]; dirty: [value: boolean] }>();
 const { t } = useI18n();
-const draft = reactive<AiModelDefinition>(
+const draft = reactive<AiModelDefinition & { assistant: AssistantModelSettings | null }>(
   props.model
-    ? { ...props.model, capabilities: [...props.model.capabilities] }
-    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [] },
+    ? cloneDeep({ ...props.model, assistant: props.model.assistant ?? null })
+    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [], assistant: null },
 );
 const initial = JSON.stringify(draft);
 const changed = computed(() => JSON.stringify(draft) !== initial);
@@ -47,6 +52,7 @@ function save() {
     name: draft.name.trim(),
     model: draft.model.trim(),
     capabilities: [...draft.capabilities],
+    assistant: draft.assistant ? { ...draft.assistant } : null,
   });
 }
 </script>
@@ -64,6 +70,13 @@ function save() {
         :allowed-capabilities="allowedCapabilities"
         :show-errors="attempted"
         @update:model-value="Object.assign(draft, $event)"
+      />
+      <AssistantModelSettingsEditor
+        v-if="draft.capabilities.includes('text-generation')"
+        v-model="draft.assistant"
+        :protocols="assistantProtocols"
+        :disabled="busy"
+        :show-errors="attempted"
       />
     </fieldset>
     <p v-if="error" class="mt-3 text-caption text-fg-danger" role="alert">{{ error }}</p>

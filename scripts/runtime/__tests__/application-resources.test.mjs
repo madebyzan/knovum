@@ -13,16 +13,17 @@ function fixture(context) {
   const source = join(repository, "python/src/knovum_inference");
   const resources = join(repository, "app/resources");
   const worker = join(resources, "python-worker/knovum_inference");
-  const publication = join(repository, "runtime-artifacts/windows-x64");
+  const publication = join(repository, "runtime-artifacts/inference/windows-x64");
   for (const path of [source, worker, publication]) mkdirSync(path, { recursive: true });
   writeFileSync(join(source, "server.py"), "application Worker\n");
   copyFileSync(join(source, "server.py"), join(worker, "server.py"));
   const descriptor = {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    profile: "inference",
     target: "windows-x64",
     version: "3.11.17",
     dependencyRequirementsSha256: "a".repeat(64),
-    voxcpmCommit: "b".repeat(40),
+    dependencyLockSha256: "b".repeat(64),
     sources: {
       global: "https://example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
       china: "https://china.example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
@@ -31,10 +32,15 @@ function fixture(context) {
     sha256: "c".repeat(64),
     manifestSha256: "d".repeat(64),
   };
-  const path = join(resources, "python-runtime-descriptor.json");
+  const path = join(resources, "python-inference-descriptor.json");
   const save = () => writeFileSync(path, JSON.stringify(descriptor));
   save();
   copyFileSync(path, join(publication, "runtime-descriptor.json"));
+  const assistantPublication = join(repository, "runtime-artifacts/assistant/windows-x64");
+  mkdirSync(assistantPublication, { recursive: true });
+  const assistantDescriptor = JSON.stringify({ ...descriptor, profile: "assistant" });
+  writeFileSync(join(resources, "python-assistant-descriptor.json"), assistantDescriptor);
+  writeFileSync(join(assistantPublication, "runtime-descriptor.json"), assistantDescriptor);
   return {
     repository,
     resources,
@@ -87,13 +93,13 @@ test("package rejects accidental third-party interpreter inclusion", (context) =
 test("descriptor rejects unsupported platform and insecure download source", (context) => {
   const sample = fixture(context);
   assert.throws(
-    () => readRuntimeDescriptor(sample.path, "windows-arm64"),
+    () => readRuntimeDescriptor(sample.path, "windows-arm64", "inference"),
     /Invalid Python runtime descriptor/,
   );
   sample.descriptor.sources.china = "http://example.test/runtime.tar.gz";
   sample.save();
   assert.throws(
-    () => readRuntimeDescriptor(sample.path, "windows-x64"),
+    () => readRuntimeDescriptor(sample.path, "windows-x64", "inference"),
     /Runtime archive sources must be HTTPS/,
   );
 });
@@ -103,5 +109,15 @@ test("Worker changes have their own identity without changing the runtime descri
   const before = workerDigest(sample.worker);
   writeFileSync(join(sample.worker, "server.py"), "updated Worker\n");
   assert.notEqual(workerDigest(sample.worker), before);
-  assert.equal(readRuntimeDescriptor(sample.path, "windows-x64").sha256, sample.descriptor.sha256);
+  assert.equal(
+    readRuntimeDescriptor(sample.path, "windows-x64", "inference").sha256,
+    sample.descriptor.sha256,
+  );
+});
+
+test("an Assistant descriptor cannot replace the inference descriptor", (context) => {
+  const sample = fixture(context);
+  sample.descriptor.profile = "assistant";
+  sample.save();
+  assert.throws(sample.verify, /Invalid Python runtime descriptor/);
 });

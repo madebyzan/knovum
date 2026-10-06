@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
 
 #[tokio::test]
-async fn space_snapshot_preserves_media_based_vision_recovery() {
+async fn frozen_execution_preserves_image_input_and_space_snapshot() {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
@@ -30,29 +30,35 @@ async fn space_snapshot_preserves_media_based_vision_recovery() {
     let catalog = crate::spaces::assistant::tools::project(request.mode).unwrap();
     let ids = super::identity::TaskIds::new(&request);
     let grant = super::identity::grant(&request, &ids, &catalog, 1);
-    let checkpoint = crate::agent_runtime::start(
-        crate::ai::contracts::ModelMessage {
-            role: crate::ai::contracts::ModelRole::User,
-            content: vec![
-                crate::ai::contracts::ModelContentPart::Text {
-                    text: request.prompt.clone(),
-                },
-                crate::ai::contracts::ModelContentPart::Binary {
-                    media_type: "image/png".into(),
-                    source: crate::ai::contracts::ModelBinarySource::Base64 {
-                        data: "aW1hZ2U=".into(),
-                    },
-                    name: Some("image.png".into()),
-                },
-            ],
-        },
-        request.max_turns,
-        request.max_tool_calls,
-        ids.run_id.clone(),
-        "segment".into(),
-        catalog.digest.clone(),
-    )
-    .unwrap();
+    use crate::agent_runtime::protocol::messages::{
+        AssistantContentPart, AssistantInputMessage, AssistantInputRole,
+    };
+    let messages = vec![AssistantInputMessage {
+        id: ids.input_id(),
+        role: AssistantInputRole::User,
+        content: vec![
+            AssistantContentPart::Text {
+                text: request.prompt.clone(),
+            },
+            AssistantContentPart::Image {
+                mime_type: "image/png".into(),
+                data: "aW1hZ2U=".into(),
+            },
+        ],
+    }];
+    let target = crate::ai::models::ModelExecutionTarget {
+        provider: "openai".into(),
+        model: "frozen-vision-model".into(),
+        base_url: "https://api.example/v1".into(),
+        temperature: 0.0,
+        secret_key: "credential-reference".into(),
+        capabilities: vec![crate::ai::contracts::ExecutionCapability::VisionUnderstanding],
+    };
+    let profile = crate::ai::settings::contracts::AssistantModelSettings {
+        protocol: crate::ai::contracts::ChatModelProtocol::OpenAiChat,
+        context_window: 32768,
+        max_output_tokens: 4096,
+    };
     let mut tx = pool.begin().await.unwrap();
     let space =
         crate::spaces::queries::knowledge_projection::list_contents(&mut tx, "space", 0, 40)
@@ -70,7 +76,10 @@ async fn space_snapshot_preserves_media_based_vision_recovery() {
             context_manifest: &attachments,
             space_context: &space,
             attachment_summaries: &[],
-            checkpoint: &checkpoint,
+            target: &target,
+            profile: &profile,
+            messages: &messages,
+            history: &[],
             now: 1,
         },
     )
@@ -79,7 +88,11 @@ async fn space_snapshot_preserves_media_based_vision_recovery() {
     let recovered = crate::spaces::assistant::repository::recoverable_task(&pool, &ids.run_id)
         .await
         .unwrap();
-    assert!(recovered.requires_vision);
+    assert!(
+        matches!(&recovered.messages[0].content[1], AssistantContentPart::Image { data, .. } if data == "aW1hZ2U=")
+    );
+    assert_eq!(recovered.frozen_target.model, "frozen-vision-model");
+    assert_eq!(recovered.frozen_target.secret_key, "credential-reference");
     assert_eq!(recovered.profile_version, super::ASSISTANT_PROFILE_VERSION);
     let input: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=$1")
         .bind(&ids.run_id)

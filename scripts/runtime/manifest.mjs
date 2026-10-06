@@ -2,6 +2,7 @@ import { lstatSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
+import { runtimeProfiles } from "./profiles.mjs";
 import { validateRuntimeProvenance } from "./provenance.mjs";
 
 const maxManifestBytes = 16 * 1024 * 1024;
@@ -13,7 +14,8 @@ const manifestKeys = [
   "runtimeId",
   "version",
   "dependencyRequirementsSha256",
-  "voxcpmCommit",
+  "profile",
+  "dependencyLockSha256",
   "target",
   "executable",
   "packageRoot",
@@ -55,11 +57,13 @@ function validateManifestHeader(manifest, target, executable, directory) {
 }
 
 function validManifestShape(manifest, target, executable) {
-  if (!exactKeys(manifest, manifestKeys) || manifest.schemaVersion !== 2) return false;
+  if (!exactKeys(manifest, manifestKeys)) return false;
+  if (manifest.schemaVersion !== 3) return false;
   if (manifest.runtimeId !== "cpython" || manifest.version !== "3.11.17") return false;
-  if (!/^[a-f0-9]{40}$/u.test(manifest.voxcpmCommit ?? "") || manifest.packageRoot !== "packages")
+  if (!runtimeProfiles.includes(manifest.profile) || !/^[a-f0-9]{64}$/u.test(manifest.dependencyLockSha256))
     return false;
   if (manifest.target !== target || manifest.executable !== executable) return false;
+  if (manifest.packageRoot !== "packages") return false;
   return Array.isArray(manifest.files);
 }
 

@@ -18,13 +18,15 @@ pub enum ModelTargetSelection {
     },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ModelExecutionTarget {
     pub provider: String,
     pub model: String,
     pub base_url: String,
     pub temperature: f64,
     pub secret_key: String,
+    pub capabilities: Vec<crate::ai::contracts::ExecutionCapability>,
 }
 
 impl ModelExecutionTarget {

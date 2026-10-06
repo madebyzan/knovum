@@ -18,7 +18,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    local_resources::{models::diarization, preparation},
+    local_resources::{models::diarization, preparation, runtimes::python::RuntimeProfile},
     media::{
         compute_budget::ComputeBudget,
         transcript::{
@@ -69,13 +69,14 @@ pub(crate) async fn diarize_media(
         media_analysis::prepare(&app_for_audio, Path::new(&source_path), &revision, &token)
     })
     .await?;
-    let resource_request = preparation::requests::begin(
+    preparation::prepare_python_for_job(
+        app,
+        RuntimeProfile::Inference,
         &format!("resource:{job_id}"),
         "Prepare local speech components",
-        preparation::contracts::ResourcePreparationTarget::PythonRuntime,
-    )?;
-    preparation::prepare_python_for_request(app, resource_request, cancellation, &mut |_| {})
-        .await?;
+        cancellation,
+    )
+    .await?;
     let model = preparation::acquire_verified_diarization(app, cancellation)
         .await
         .map_err(|error| format!("local-resource-unavailable: {error}"))?;

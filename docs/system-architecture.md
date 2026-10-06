@@ -16,6 +16,7 @@ Tauri 2 Rust host
       +-- Rust dictation actor -> global shortcut / native microphone / guarded target insertion
       +-- long-running Rust work -> Tauri Channel
       +-- private, verified CPython inference worker -> JSON-RPC 2.0 over stdio
+      +-- private, verified CPython Assistant -> Deep Agents / LangGraph over bidirectional stdio
       +-- single-instance / window-state
       |
 Tauri IPC boundary
@@ -197,7 +198,8 @@ The Assistant conversation and message tables own the single user-visible histor
 or an ACP desktop Agent session is a Run bound to that history; Agent protocol identity, negotiated
 capabilities and turn state remain execution records. Model and Agent turns share visible history,
 while each Agent turn starts a fresh native session with explicit context. Historical grounded
-answers and citation snapshots are migrated once into the same conversation store. Space packages
+answers and citation snapshots belong to the same conversation store. Obsolete prerelease
+database baselines are rejected; no compatibility reader converts framework state. Space packages
 export this history once and reject older package formats.
 An Agent turn commits the user's message and its reply slot before the start command is accepted;
 the renderer shows a temporary outbound message while the native session initializes, then replaces
@@ -475,34 +477,64 @@ the artifact collector. The transport grants remain scoped to the authenticated 
 Asset revision validation, managed-file authorization and rendering belong to `spaces/assets/node_asset`;
 MCP, explicit attachments and built-in tool reads reuse this resolver.
 
-Built-in model media has explicit inline and uploaded-URI sources. The provider's
-`as_input_upload` capability declares that the active ModelTurn protocol consumes its uploads;
-a generic Files API alone does not establish this. Gemini uses its existing Files uploader and
-GenAI's native `file_data` mapping. The current Chat Completions adapters use inline local images,
-since their image input contract does not accept the uploaders' private file IDs.
-An upload error fails visibly; it never retries via inline bytes. Prepared media is retained in
-the runtime checkpoint and reused across model turns. Provider expiry remains authoritative and
-an expired uploaded URI fails visibly on recovery.
+Built-in Assistant model execution belongs to `knovum_assistant`: Deep Agents 0.7.22,
+LangGraph 1.2.13 and the async SQLite saver 3.1.1. The dedicated dependency lock and process
+contain the official OpenAI, Anthropic, Google GenAI, Ollama, DeepSeek and Groq integrations.
+OpenAI Chat/Responses is an explicit protocol choice; compatible endpoints do not trigger
+protocol/provider failover. `genai` remains the transport for direct Rust AI capabilities.
 
-Built-in `read-node` attaches current rendered image content for a vision-capable selected model.
-Documents, notes and media transcripts use their readable text projections; desktop Agents can
-also inspect their original local files. A local path returned to a remote model is not evidence
-that the model inspected it. Rig conversion preserves attached images and tool-read images through
-checkpoint restoration. Recovery determines the required visual capability from actual checkpoint
-media, including images read by tools after the initial attachment manifest was captured. Model wire conversion emits every tool receipt before the subsequent user
-media message, preserving tool-call correlation without sending image bytes as JSON text.
-Assistant profile version 4 rejects obsolete in-flight checkpoints instead of reinterpreting them.
+Rust freezes the configured model profile, context/output limits, capability list and credential
+reference per execution segment. Credentials are resolved into process memory over stdio only:
+no graph state, checkpoint, process environment or log contains a model API key. Application
+startup uses `truststore` with macOS Security/Windows CryptoAPI trust before constructing clients.
+All model calls, including framework summaries and research, have host admission before HTTP.
+SDK retries are disabled in the clients; a failed admitted call also blocks framework-level
+retry through the Rust ledger. Input reservations use the SDK's token estimate plus the output
+limit; actual provider usage is recorded even after cancellation or budget overrun. Unknown
+usage/outcome remains explicit and retains its reservation. This does not promise a provider
+will obey an exact token estimate or stop billing when its client disappears.
 
-Protocol evidence: [ACP resource links](https://agentclientprotocol.com/protocol/v1/content),
-[Gemini Files API](https://ai.google.dev/gemini-api/docs/files). The pinned GenAI 0.6.5 and Rig 0.42.0
-implement these mappings; no additional SDK or custom transport was introduced.
+Each run supplies one stable input identity. The SDK checkpoint acknowledges it; replay checks
+public graph state instead of appending the input again. Root public checkpoint history projects
+complete main-agent messages by AIMessage ID into the single Rust history transaction. Internal
+summary/research messages are excluded. Public checkpoint/pending-write receipts reconcile the
+paid-call ledger; no response replay cache or outbox is maintained. A missing model result enters
+visible waiting, with separate unknown-outcome, known-response/uncommitted and unknown-usage
+reasons. Another paid attempt requires the user's explicit command and current state version.
 
-Conversation history carries authoritative published and attached node IDs alongside the text.
-Recent turns receive a reserved context budget, so a large older summary cannot evict the latest
-request or output identity. The Agent must reread current nodes before deriving from them and must
-report unavailable MCP tools as a connection problem rather than infer contents from a scratch
-directory. These contracts give an Agent access to real evidence; they do not guarantee that a
-vendor model follows instructions or that a particular runtime exposes every native operation.
+Every SDK tool is admitted against the run budget. Business tools use the versioned Action wire
+name and a durable identity comprising execution revision, SDK tool namespace, AIMessage ID and
+toolCall ID. Process identity/control epoch is a fence, not the operation's idempotency key.
+Rust's existing Actions own argument conflicts, grants, atomic mutations and publication.
+Generation Actions freeze their own selected business route rather than inheriting the reasoning
+model. A long Action interrupts the graph with its existing child Run ID; Rust observes and
+resumes that same run without model polling. Main-agent business writes cannot share a tool batch
+with research delegation. Research is read-only, two instances maximum, depth one; general-purpose
+and shell execution are disabled.
+
+Pause stops new admissions immediately and is shown as paused only after a durable graph or
+unaccepted-host-input boundary. Cancellation revokes Rust publication rights before notifying
+Python; the process gets five seconds before whole-tree termination. Already received usage
+transactions settle after pipe closure. Checkpoint versions/catalog changes retire an execution
+segment visibly. A new branch, model/profile, catalog, mode or unsuccessful prior run creates a
+new segment seeded from product history. Same-binding successful follow-ups reuse the graph.
+Superseded, closed segments are retained for 30 days, then deleted with the SDK public API only
+after input/projection and model receipts have reconciled. Latest branch segments stay reusable.
+
+Private drafts use StateBackend under `/workspace`; reviewed versioned Skills and the authorized
+user-visible Space index snapshot use isolated read-only StoreBackends under `/skills` and
+`/memory`. The snapshot survives context compression without copying an entire knowledge base.
+Persistent notes remain normal inspectable/deletable Space nodes; updates use explicit Actions.
+No user filesystem, Spaces database, secrets database or executable backend is mounted. Rust
+resolves image attachments and tool-read images from authorized source revisions, freezes the
+model's vision capability, and emits the official SDK multimodal message structure. Native
+provider tool/image combinations and real endpoint behavior require qualification; mock endpoints
+prove host/SDK contracts only. Received partial stream deltas are disposable UI state; only
+checkpoint-proven complete answers enter durable history.
+
+External desktop Agents retain ACP sessions and their own tools. Their bounded history prompt and
+authorized local attachment paths do not use the built-in graph. Both execution kinds continue to
+share product history, grants, resources and the Run/Task Center contracts.
 
 The WebView is not automatically trusted with every registered Tauri plugin. Plugin registration and capability grants are separate.
 

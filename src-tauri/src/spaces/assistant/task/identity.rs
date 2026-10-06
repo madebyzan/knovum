@@ -6,7 +6,8 @@ use crate::spaces::{
     db,
 };
 
-pub(super) struct TaskIds {
+#[derive(Clone)]
+pub(in crate::spaces::assistant) struct TaskIds {
     pub task_id: String,
     pub run_id: String,
     pub conversation_id: String,
@@ -15,6 +16,10 @@ pub(super) struct TaskIds {
 }
 
 impl TaskIds {
+    pub(in crate::spaces::assistant) fn input_id(&self) -> String {
+        format!("input:{}", self.task_id)
+    }
+
     pub fn new(request: &StartAssistantTaskRequest) -> Self {
         Self {
             task_id: uuid::Uuid::new_v4().to_string(),
@@ -32,7 +37,7 @@ impl TaskIds {
     }
 }
 
-pub(super) fn grant(
+pub(in crate::spaces::assistant) fn grant(
     request: &StartAssistantTaskRequest,
     ids: &TaskIds,
     catalog: &ToolCatalog,
@@ -58,7 +63,9 @@ pub(super) fn grant(
     }
 }
 
-pub(super) fn validate(request: &StartAssistantTaskRequest) -> Result<(), String> {
+pub(in crate::spaces::assistant) fn validate(
+    request: &StartAssistantTaskRequest,
+) -> Result<(), String> {
     if request.space_id.trim().is_empty() || request.prompt.trim().is_empty() {
         return Err("Assistant Space and prompt are required".into());
     }
@@ -77,11 +84,7 @@ pub(super) fn validate(request: &StartAssistantTaskRequest) -> Result<(), String
     Ok(())
 }
 
-pub(super) async fn ensure_within_duration(pool: &SqlitePool, run_id: &str) -> Result<(), String> {
-    remaining_duration(pool, run_id).await.map(|_| ())
-}
-
-pub(super) async fn remaining_duration(
+pub(in crate::spaces::assistant) async fn remaining_duration(
     pool: &SqlitePool,
     run_id: &str,
 ) -> Result<std::time::Duration, String> {
@@ -94,7 +97,10 @@ pub(super) async fn remaining_duration(
         .ok_or_else(|| "budget-exhausted: Assistant duration limit was exceeded".into())
 }
 
-pub(super) async fn ensure_active(pool: &SqlitePool, run_id: &str) -> Result<(), String> {
+pub(in crate::spaces::assistant) async fn ensure_active(
+    pool: &SqlitePool,
+    run_id: &str,
+) -> Result<(), String> {
     let active: Option<i64> = sqlx::query_scalar("SELECT 1 FROM spaces_runs WHERE id=$1 AND state IN ('running','waiting') AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND completed_at IS NULL")
         .bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     active
@@ -102,6 +108,6 @@ pub(super) async fn ensure_active(pool: &SqlitePool, run_id: &str) -> Result<(),
         .map(|_| ())
 }
 
-pub(super) fn conversation_title(prompt: &str) -> String {
+pub(in crate::spaces::assistant) fn conversation_title(prompt: &str) -> String {
     prompt.chars().take(80).collect()
 }

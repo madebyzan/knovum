@@ -196,6 +196,7 @@ fn main() {
                         "list_knowledge_health_issues",
                         "list_space_actions",
                         "start_assistant_task",
+                        "retry_assistant_model",
                         "inspect_assistant_upload",
                         "preview_assistant_upload",
                         "list_assistant_conversations",
@@ -261,23 +262,27 @@ fn main() {
 }
 
 fn embed_python_runtime_descriptor() {
-    println!("cargo:rerun-if-env-changed=KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH");
-    let bytes = match std::env::var_os("KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH") {
-        Some(path) => {
-            println!(
-                "cargo:rerun-if-changed={}",
-                std::path::Path::new(&path).display()
-            );
-            std::fs::read(path).expect("read trusted Python runtime descriptor")
-        }
-        None if std::env::var("PROFILE").as_deref() == Ok("release")
-            && std::env::var_os("CARGO_FEATURE_E2E").is_none() =>
-        {
-            panic!("release requires KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH")
-        }
-        None => b"null".to_vec(),
-    };
-    let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap())
-        .join("python-runtime-descriptor.json");
-    std::fs::write(destination, bytes).expect("embed trusted Python runtime descriptor");
+    for profile in ["INFERENCE", "ASSISTANT"] {
+        let key = format!("KNOVUM_PYTHON_{profile}_DESCRIPTOR_PATH");
+        println!("cargo:rerun-if-env-changed={key}");
+        let bytes = match std::env::var_os(&key) {
+            Some(path) => {
+                println!(
+                    "cargo:rerun-if-changed={}",
+                    std::path::Path::new(&path).display()
+                );
+                std::fs::read(path).expect("read trusted Python runtime descriptor")
+            }
+            None if std::env::var("PROFILE").as_deref() == Ok("release")
+                && std::env::var_os("CARGO_FEATURE_E2E").is_none() =>
+            {
+                panic!("release requires {key}")
+            }
+            None => b"null".to_vec(),
+        };
+        let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join(
+            format!("python-{}-descriptor.json", profile.to_ascii_lowercase()),
+        );
+        std::fs::write(destination, bytes).expect("embed trusted Python runtime descriptor");
+    }
 }

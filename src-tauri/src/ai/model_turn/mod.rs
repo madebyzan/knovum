@@ -1,6 +1,4 @@
-pub(crate) mod media;
 mod output_budget;
-mod stream;
 mod text_stream;
 mod wire;
 
@@ -46,20 +44,6 @@ pub async fn stream_text(
     let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
     text_stream::stream_text(adapter, context, request.clone(), cancellation).await
-}
-
-pub async fn stream_turn(
-    target: &ModelExecutionTarget,
-    request: &ModelTurnRequest,
-    cancellation: CancellationToken,
-    deltas: tokio::sync::mpsc::Sender<String>,
-) -> AppResult<ModelTurnResponse> {
-    let context = SecurityContext::from_target(target).await?;
-    let adapter = adapter_kind(target.model_provider_kind()?)?;
-    let response =
-        stream::stream_turn(adapter, context, request.clone(), cancellation, deltas).await?;
-    crate::ai::usage::record_turn(request.purpose, &response).await?;
-    Ok(response)
 }
 
 fn adapter(provider: ProviderKind) -> AppResult<&'static dyn ModelTurnCapability> {

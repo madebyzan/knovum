@@ -121,7 +121,6 @@ async fn failed_sends_terminate_the_worker_and_remove_its_workspace() {
         );
         assert!(worker.child.try_wait().unwrap().is_some());
         assert!(!directory.exists());
-        assert!(worker.process_tree.0.is_none());
     }
 }
 
