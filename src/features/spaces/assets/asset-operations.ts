@@ -111,10 +111,6 @@ function externalLocation(locator: KnowledgeLocator) {
   return undefined;
 }
 
-export function duplicateSpaceAsset(sourcePath: string): Promise<string> {
-  return invokeCommand("plugin:spaces|duplicate_asset", { sourcePath });
-}
-
 export function removeSpaceAsset(sourcePath: string): Promise<void> {
   return removeSpaceAssets([sourcePath]);
 }

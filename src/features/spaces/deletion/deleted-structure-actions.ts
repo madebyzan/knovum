@@ -67,6 +67,6 @@ function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], who
   });
 }
 
-export function refreshDeletedStructure() {
+function refreshDeletedStructure() {
   return queryClient.invalidateQueries({ queryKey: [...spaceKnowledgeQueryKeys.root, "deleted"] });
 }

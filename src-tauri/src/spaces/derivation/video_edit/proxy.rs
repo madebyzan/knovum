@@ -72,7 +72,7 @@ fn generate(
         .join("video-edit-proxies");
     fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
     let key = Sha256::digest(format!("{source}\0{revision}"));
-    let output = cache.join(format!("{key:x}.mp4"));
+    let output = cache.join(format!("{key}.mp4", key = hex::encode(key)));
     if output.metadata().is_ok_and(|metadata| metadata.len() > 0) {
         return Ok(output.to_string_lossy().into_owned());
     }

@@ -25,7 +25,7 @@ export const structureNodeSchema = z.discriminatedUnion("kind", [
     .strict(),
 ]);
 
-export const localTransformSchema = z
+const localTransformSchema = z
   .object({
     x: coordinate,
     y: coordinate,

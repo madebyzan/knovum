@@ -27,37 +27,36 @@ export function registerVideoEditCommands(port: VideoEditCommandPort) {
 }
 
 export function videoEditCommands(t: (key: string) => string): AppCommand[] {
-  const port = () => activeEditor.value;
   return [
     {
       id: "video-edit.undo",
       title: t("common.undo"),
       shortcut: "$mod+Z",
       category: "editing",
-      availability: () => availableWhen(!!port()?.canUndo(), "nothing_to_undo"),
-      run: () => port()?.undo(),
+      availability: () => availableWhen(!!activeEditor.value?.canUndo(), "nothing_to_undo"),
+      run: () => activeEditor.value?.undo(),
     },
     {
       id: "video-edit.redo",
       title: t("common.redo"),
       shortcut: "$mod+Shift+Z",
       category: "editing",
-      availability: () => availableWhen(!!port()?.canRedo(), "nothing_to_redo"),
-      run: () => port()?.redo(),
+      availability: () => availableWhen(!!activeEditor.value?.canRedo(), "nothing_to_redo"),
+      run: () => activeEditor.value?.redo(),
     },
     {
       id: "video-edit.save",
       title: t("common.save"),
       shortcut: "$mod+S",
       category: "editing",
-      run: () => port()?.save(),
+      run: () => activeEditor.value?.save(),
     },
     {
       id: "video-edit.split",
       title: t("spaces.media.videoEditor.clip.split"),
       shortcut: "S",
       category: "editing",
-      run: () => port()?.split(),
+      run: () => activeEditor.value?.split(),
     },
     {
       id: "video-edit.delete",
@@ -65,36 +64,36 @@ export function videoEditCommands(t: (key: string) => string): AppCommand[] {
       shortcut: "Backspace",
       keybindings: ["Backspace", "Delete"],
       category: "editing",
-      availability: () => availableWhen(!!port()?.canDelete(), "no_selection"),
-      run: () => port()?.remove(),
+      availability: () => availableWhen(!!activeEditor.value?.canDelete(), "no_selection"),
+      run: () => activeEditor.value?.remove(),
     },
     {
       id: "video-edit.play",
       title: t("spaces.media.player.play"),
       shortcut: "Space",
       category: "editing",
-      run: () => port()?.togglePlayback(),
+      run: () => activeEditor.value?.togglePlayback(),
     },
     {
       id: "video-edit.previous-step",
       title: t("spaces.media.videoEditor.previousStep"),
       shortcut: "ArrowLeft",
       category: "editing",
-      run: () => port()?.step(-100),
+      run: () => activeEditor.value?.step(-100),
     },
     {
       id: "video-edit.next-step",
       title: t("spaces.media.videoEditor.nextStep"),
       shortcut: "ArrowRight",
       category: "editing",
-      run: () => port()?.step(100),
+      run: () => activeEditor.value?.step(100),
     },
     {
       id: "video-edit.close",
       title: t("common.close"),
       shortcut: "Escape",
       category: "editing",
-      run: () => port()?.close(),
+      run: () => activeEditor.value?.close(),
     },
   ];
 }

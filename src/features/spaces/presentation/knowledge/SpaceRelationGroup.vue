@@ -9,7 +9,7 @@ import type { SpaceRelation } from "../../model/relations/relation";
 import { nodeIcon } from "../node-icon";
 import SpaceRelationEvidenceEditor from "./SpaceRelationEvidenceEditor.vue";
 
-export interface SpaceRelationNeighbor {
+interface SpaceRelationNeighbor {
   relation: SpaceRelation;
   neighbor: SpaceCanvasNode;
   thumbnail: string;

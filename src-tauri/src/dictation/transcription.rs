@@ -126,7 +126,7 @@ fn audio_reference(path: &Path, recording: RecordedAudio) -> Result<AudioFileRef
             .into(),
         media_type: "audio/wav".into(),
         byte_length,
-        sha256: format!("{:x}", digest.finalize()),
+        sha256: hex::encode(digest.finalize()),
         sample_rate: recording.sample_rate,
         channels: recording.channels,
         sample_format: "pcm_s16le".into(),

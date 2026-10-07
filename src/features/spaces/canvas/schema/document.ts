@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const MAX_CANVAS_Z_INDEX = 0xffff_ffff;
+const MAX_CANVAS_Z_INDEX = 0xffff_ffff;
 export const CANVAS_TYPOGRAPHY_SCALE_MIN = 0.25;
 export const CANVAS_TYPOGRAPHY_SCALE_MAX = 4;
 
@@ -55,14 +55,14 @@ const canvasNodeLayoutSchema = z
   })
   .strict();
 export const CANVAS_RELATION_COLORS = ["neutral", "blue", "green", "amber", "red", "purple"] as const;
-export const CANVAS_RELATION_OVERRIDE_COLORS = ["blue", "green", "amber", "red", "purple"] as const;
+const CANVAS_RELATION_OVERRIDE_COLORS = ["blue", "green", "amber", "red", "purple"] as const;
 const canvasRelationStyleSchema = z
   .object({
     relationId: z.string().min(1),
     color: z.enum(CANVAS_RELATION_OVERRIDE_COLORS),
   })
   .strict();
-export const canvasDocumentSchema = z
+const canvasDocumentSchema = z
   .object({
     version: z.literal(1),
     viewport: z.object({ x: finiteNumber, y: finiteNumber, zoom: finiteNumber.positive() }).strict(),
@@ -78,7 +78,6 @@ export type CanvasNodeLayoutV1 = z.infer<typeof canvasNodeLayoutSchema>;
 export type CanvasNodeAppearance = z.infer<typeof canvasNodeAppearanceSchema>;
 export type CanvasDocumentV1 = z.infer<typeof canvasDocumentSchema>;
 export type CanvasRelationColor = (typeof CANVAS_RELATION_COLORS)[number];
-export type CanvasRelationOverrideColor = (typeof CANVAS_RELATION_OVERRIDE_COLORS)[number];
 
 export interface CanvasNodeFrameUpdate {
   nodeId: string;

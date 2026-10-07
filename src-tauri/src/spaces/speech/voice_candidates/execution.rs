@@ -109,7 +109,7 @@ async fn execute_inner(
                 attempt_id: claim.attempt_id.clone(),
                 attempt_epoch: u64::try_from(claim.execution_epoch)
                     .map_err(|_| "Voice candidate execution epoch is invalid")?,
-                input_revision: format!("{:x}", Sha256::digest(input)),
+                input_revision: hex::encode(Sha256::digest(input)),
                 model_spec_id: MODEL_SPEC_ID.into(),
                 deadline_ms,
             },

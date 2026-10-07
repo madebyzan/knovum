@@ -39,8 +39,9 @@ const RECOVERY_SELECT: &str = "SELECT t.id task_id,t.run_id,t.conversation_id,t.
 pub(in crate::spaces::conversations) async fn recoverable_tasks(
     pool: &SqlitePool,
 ) -> Result<Vec<RecoverableTask>, String> {
-    let rows = sqlx::query(&format!("{RECOVERY_SELECT} WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.state IN ('running','queued','waiting') ORDER BY r.created_at"))
-        .fetch_all(pool).await.map_err(db::sql_error)?;
+    let mut query = sqlx::QueryBuilder::<Sqlite>::new(RECOVERY_SELECT);
+    query.push(" WHERE r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.state IN ('running','queued','waiting') ORDER BY r.created_at");
+    let rows = query.build().fetch_all(pool).await.map_err(db::sql_error)?;
     rows.into_iter().map(parse_recoverable).collect()
 }
 
@@ -48,8 +49,15 @@ pub(in crate::spaces::conversations) async fn recoverable_task(
     pool: &SqlitePool,
     run_id: &str,
 ) -> Result<RecoverableTask, String> {
-    let row = sqlx::query(&format!("{RECOVERY_SELECT} WHERE r.id=$1 AND r.completed_at IS NULL AND r.state IN ('running','queued','waiting','paused')"))
-        .bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?.ok_or("builtin-agent-task-not-resumable")?;
+    let mut query = sqlx::QueryBuilder::<Sqlite>::new(RECOVERY_SELECT);
+    query.push(" WHERE r.id=$1 AND r.completed_at IS NULL AND r.state IN ('running','queued','waiting','paused')");
+    let row = query
+        .build()
+        .bind(run_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(db::sql_error)?
+        .ok_or("builtin-agent-task-not-resumable")?;
     parse_recoverable(row)
 }
 

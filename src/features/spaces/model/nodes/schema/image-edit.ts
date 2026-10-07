@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const normalized = z.number().min(0).max(1);
 
-export const imageCropSchema = z
+const imageCropSchema = z
   .object({
     x: normalized,
     y: normalized,

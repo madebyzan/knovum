@@ -86,8 +86,7 @@ async fn verify_bound(
     .ok_or("workflow-run-stale: input resource is unavailable")?;
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
     let data: String = row.try_get("data").map_err(db::sql_error)?;
-    if kind != source.kind || format!("{:x}", Sha256::digest(data.as_bytes())) != source.data_digest
-    {
+    if kind != source.kind || hex::encode(Sha256::digest(data.as_bytes())) != source.data_digest {
         return Err("workflow-run-stale: input resource changed after the Run started".into());
     }
     Ok(())
@@ -138,6 +137,6 @@ async fn prior_output(
     Ok(BoundResource {
         node_id,
         kind,
-        data_digest: format!("{:x}", Sha256::digest(data.as_bytes())),
+        data_digest: hex::encode(Sha256::digest(data.as_bytes())),
     })
 }

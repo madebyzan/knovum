@@ -75,7 +75,7 @@ export const creationIntentDefinitions = [
   },
 ] as const satisfies readonly CreationIntentDefinition[];
 
-export type CreationIntent = (typeof creationIntentDefinitions)[number];
+type CreationIntent = (typeof creationIntentDefinitions)[number];
 export type CreationIntentId = CreationIntent["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
 

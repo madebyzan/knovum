@@ -56,7 +56,7 @@ pub(super) async fn bind_inputs(
                 crate::spaces::derivation::input_revision::resolve(&kind, &value, *basis)
                     .map_err(|error| format!("workflow-bindings-invalid: {error}"))?;
             }
-            let data_digest = format!("{:x}", Sha256::digest(data.as_bytes()));
+            let data_digest = hex::encode(Sha256::digest(data.as_bytes()));
             resources.push(BoundResource {
                 node_id: node_id.clone(),
                 kind,

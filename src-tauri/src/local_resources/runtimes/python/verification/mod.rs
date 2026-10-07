@@ -48,7 +48,7 @@ pub(super) fn read_manifest(path: &Path) -> Result<Vec<u8>, String> {
 }
 
 pub(super) fn digest(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    hex::encode(Sha256::digest(bytes))
 }
 
 pub(super) fn verify_runtime(

@@ -1,6 +1,5 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 export function createSpaceNode<T extends SpaceNodePayload>(
   data: T,
@@ -17,8 +16,4 @@ export function applySpaceNodeContent(node: SpaceCanvasNode, data: SpaceNodePayl
     data,
     type: data.kind,
   } as SpaceCanvasNode;
-}
-
-export function snapshotSpaceNode(node: SpaceCanvasNode): SpaceCanvasNode {
-  return createSpaceNode(validateSpaceNodePayload(node.data), { ...node.initialPosition }, node.id);
 }

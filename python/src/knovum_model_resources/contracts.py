@@ -5,8 +5,9 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from knovum_model_resources.wire_model import WireModel
 from pydantic import ConfigDict, Field
+
+from knovum_model_resources.wire_model import WireModel
 
 
 class HuggingFaceSource(WireModel):

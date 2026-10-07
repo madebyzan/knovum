@@ -98,7 +98,7 @@ pub(crate) async fn validate_references(
 
 async fn load_ids(
     tx: &mut Transaction<'_, Sqlite>,
-    query: &str,
+    query: &'static str,
     space_id: &str,
 ) -> Result<HashSet<String>, String> {
     Ok(sqlx::query_scalar(query)

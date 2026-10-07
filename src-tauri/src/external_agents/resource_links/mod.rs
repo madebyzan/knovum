@@ -62,7 +62,7 @@ async fn acquire(
     let identity = Sha256::digest(url.as_str().as_bytes());
     let base = output_identity
         .map(str::to_owned)
-        .unwrap_or_else(|| format!("resource-{identity:x}"));
+        .unwrap_or_else(|| format!("resource-{identity}", identity = hex::encode(identity)));
     persist_response(workspace, response, &base, &extension, maximum_bytes)
         .await
         .map(Some)
@@ -105,7 +105,10 @@ async fn persist_response(
         file.sync_all().await.map_err(|error| error.to_string())?;
         drop(file);
         let content_identity = content_identity.finalize();
-        let target = workspace.join(format!("{base}-{content_identity:x}.{extension}"));
+        let target = workspace.join(format!(
+            "{base}-{content_identity}.{extension}",
+            content_identity = hex::encode(content_identity)
+        ));
         tokio::fs::rename(&pending, &target)
             .await
             .map_err(|error| error.to_string())?;

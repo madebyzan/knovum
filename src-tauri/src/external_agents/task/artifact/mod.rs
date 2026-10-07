@@ -30,7 +30,7 @@ pub(super) fn read(root: &Path, name: &str, limit: u64) -> AppResult<Vec<u8>> {
             "Desktop Agent result is empty or exceeds its task byte budget".into(),
         ));
     }
-    if format!("sha256:{:x}", Sha256::digest(&bytes)) != revision {
+    if format!("sha256:{}", hex::encode(Sha256::digest(&bytes))) != revision {
         return Err(invalid("Desktop Agent result changed while reading".into()));
     }
     if fs::metadata(&path)

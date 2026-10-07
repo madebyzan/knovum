@@ -22,7 +22,7 @@ export interface SpaceImportSessionLabels {
   preparing: string;
 }
 
-export interface PreparedSpaceImportSource {
+interface PreparedSpaceImportSource {
   externalSource?: ExternalContentSource;
   dispose?(): Promise<void>;
   prepare(): Promise<PreparedSpaceImport>;

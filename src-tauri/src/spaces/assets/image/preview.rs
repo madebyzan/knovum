@@ -22,7 +22,7 @@ pub(in crate::spaces::assets) fn prepare(
         "{}:{}:{}",
         document.source_path, document.source_revision, document.edit
     );
-    let directory = directory.join(format!("{:x}", Sha256::digest(key.as_bytes())));
+    let directory = directory.join(hex::encode(Sha256::digest(key.as_bytes())));
     fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
     let stem = Path::new(&document.file_name)
         .file_stem()

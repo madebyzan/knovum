@@ -258,41 +258,47 @@ pub(super) async fn exhaust_run_tree(
        SELECT id FROM spaces_runs WHERE id=$2
        UNION ALL SELECT child.id FROM spaces_runs child JOIN run_tree parent
        ON child.parent_run_id=parent.id)";
-    sqlx::query(&format!(
-        "{TREE} UPDATE spaces_run_attempts SET state='cancelled',lease_until=NULL,finished_at=$1,
+    sqlx::QueryBuilder::<sqlx::Sqlite>::new(TREE)
+        .push(
+            " UPDATE spaces_run_attempts SET state='cancelled',lease_until=NULL,finished_at=$1,
          error_code=$3 WHERE state IN ('claimed','executing','waiting_external')
          AND run_id IN (SELECT id FROM spaces_runs WHERE id IN (SELECT id FROM run_tree)
-         AND completed_at IS NULL AND cancel_requested_at IS NULL)"
-    ))
-    .bind(now)
-    .bind(root_id)
-    .bind(error_code)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    sqlx::query(&format!(
-        "{TREE} UPDATE spaces_run_steps SET state='blocked',wait_reason='budget',
+         AND completed_at IS NULL AND cancel_requested_at IS NULL)",
+        )
+        .build()
+        .bind(now)
+        .bind(root_id)
+        .bind(error_code)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    sqlx::QueryBuilder::<sqlx::Sqlite>::new(TREE)
+        .push(
+            " UPDATE spaces_run_steps SET state='blocked',wait_reason='budget',
          state_version=state_version+1,updated_at=$1
          WHERE state IN ('pending','ready','running','waiting','paused','blocked')
          AND run_id IN (SELECT id FROM spaces_runs WHERE id IN (SELECT id FROM run_tree)
-         AND completed_at IS NULL AND cancel_requested_at IS NULL)"
-    ))
-    .bind(now)
-    .bind(root_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    let runs = sqlx::query(&format!(
-        "{TREE} UPDATE spaces_runs SET state='failed',wait_reason='budget',
+         AND completed_at IS NULL AND cancel_requested_at IS NULL)",
+        )
+        .build()
+        .bind(now)
+        .bind(root_id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    let runs = sqlx::QueryBuilder::<sqlx::Sqlite>::new(TREE)
+        .push(
+            " UPDATE spaces_runs SET state='failed',wait_reason='budget',
          state_version=state_version+1,execution_epoch=execution_epoch+1,updated_at=$1,
          completed_at=$1 WHERE id IN (SELECT id FROM run_tree)
-         AND completed_at IS NULL AND cancel_requested_at IS NULL"
-    ))
-    .bind(now)
-    .bind(root_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
+         AND completed_at IS NULL AND cancel_requested_at IS NULL",
+        )
+        .build()
+        .bind(now)
+        .bind(root_id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     Ok(runs.rows_affected())
 }
 

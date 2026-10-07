@@ -2,8 +2,8 @@ import { clamp } from "es-toolkit";
 
 import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor-port";
 
-export const MIN_CANVAS_ZOOM = 0.1;
-export const MAX_CANVAS_ZOOM = 4;
+const MIN_CANVAS_ZOOM = 0.1;
+const MAX_CANVAS_ZOOM = 4;
 
 export function canvasPointFromScreen(point: CanvasPoint, viewport: CanvasViewport): CanvasPoint {
   return {

@@ -16,5 +16,3 @@ export const relatedContentResponseSchema = z
     ),
   })
   .strict();
-
-export type RelatedContentResponse = z.infer<typeof relatedContentResponseSchema>;

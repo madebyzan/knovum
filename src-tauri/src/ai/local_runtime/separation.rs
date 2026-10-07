@@ -190,7 +190,7 @@ fn copy_artifact(
             digest.update(&buffer[..read]);
         }
         output.sync_all().map_err(|error| error.to_string())?;
-        let sha256 = format!("{:x}", digest.finalize());
+        let sha256 = hex::encode(digest.finalize());
         if written != reference.byte_length || sha256 != reference.sha256 {
             return Err("invalid_output: source separation artifact digest differs".into());
         }

@@ -83,7 +83,7 @@ async fn persist_cutout(
     output: &std::path::Path,
     cutout: crate::images::BackgroundRemovalOutput,
 ) -> Result<ProcessedCutout, AppError> {
-    let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
+    let digest = format!("sha256:{}", hex::encode(Sha256::digest(&cutout.png)));
     if let Err(error) = tokio::fs::write(output, &cutout.png).await {
         let _ = tokio::fs::remove_file(output).await;
         return Err(error.to_string().into());

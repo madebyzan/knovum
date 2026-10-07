@@ -1,22 +1,5 @@
-import type { CanvasDocumentV1, CanvasNodeFrame, CanvasNodeFrameUpdate } from "../../schema/document";
+import type { CanvasDocumentV1 } from "../../schema/document";
 import type { CanvasGestureUpdate } from "../interaction/canvas-gesture-update";
-
-export function applyCanvasFrames(
-  document: CanvasDocumentV1,
-  updates: readonly CanvasNodeFrameUpdate[],
-): CanvasDocumentV1 {
-  const frames = new Map(updates.map((update) => [update.nodeId, update]));
-  return {
-    ...document,
-    nodes: document.nodes.map((node) => {
-      const update = frames.get(node.nodeId);
-      if (!update) return node;
-      const sizingMode = update.sizingMode ?? node.sizingMode;
-      if (sameCanvasFrame(node.frame, update.frame) && sizingMode === node.sizingMode) return node;
-      return { ...node, frame: { ...update.frame }, sizingMode };
-    }),
-  };
-}
 
 export function applyCanvasGestureUpdates(
   document: CanvasDocumentV1,
@@ -45,16 +28,6 @@ export function captureCanvasGestureLayouts(
   const ids = new Set(updates.map(({ nodeId }) => nodeId));
   return document.nodes.flatMap<CanvasGestureUpdate>(({ nodeId, frame, sizingMode, appearance }) =>
     ids.has(nodeId) ? [{ nodeId, frame: { ...frame }, sizingMode, appearance: appearance ?? null }] : [],
-  );
-}
-
-export function sameCanvasFrame(left: CanvasNodeFrame, right: CanvasNodeFrame) {
-  return (
-    left.x === right.x &&
-    left.y === right.y &&
-    left.width === right.width &&
-    left.height === right.height &&
-    left.rotation === right.rotation
   );
 }
 

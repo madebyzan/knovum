@@ -46,7 +46,7 @@ pub(crate) async fn embed_query<R: Runtime>(
         owner_id: owner_id.to_owned(),
         attempt_id: uuid::Uuid::new_v4().to_string(),
         attempt_epoch: 1,
-        input_revision: format!("sha256:{:x}", Sha256::digest(query.as_bytes())),
+        input_revision: format!("sha256:{}", hex::encode(Sha256::digest(query.as_bytes()))),
         deadline_ms: deadline_after(30_000)?,
     };
     let response = embedding::embed(

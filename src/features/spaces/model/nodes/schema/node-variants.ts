@@ -16,7 +16,7 @@ const semanticNumberSchema = z
     "Semantic integers must be within the JavaScript safe integer range",
   );
 
-export const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
+const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
   z
     .object({
       ...baseSpaceNodeFields,

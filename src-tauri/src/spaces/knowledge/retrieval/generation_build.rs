@@ -121,7 +121,7 @@ fn batch_revision(chunks: &[KnowledgeChunkSource]) -> String {
         digest.update(chunk.source_revision.as_bytes());
         digest.update([0]);
     }
-    format!("sha256:{:x}", digest.finalize())
+    format!("sha256:{}", hex::encode(digest.finalize()))
 }
 
 fn deadline_after(duration_ms: i64) -> Result<u64, String> {

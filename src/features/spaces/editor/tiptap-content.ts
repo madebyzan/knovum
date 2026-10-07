@@ -4,7 +4,7 @@ export function emptyTiptapContent(): TiptapJsonNode {
   return { type: "doc", content: [{ type: "paragraph" }] };
 }
 
-export function plainTextTiptapContent(text: string): TiptapJsonNode {
+function plainTextTiptapContent(text: string): TiptapJsonNode {
   const lines = text.split(/\r?\n/u);
   return {
     type: "doc",

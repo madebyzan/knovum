@@ -35,18 +35,17 @@ pub async fn list_knowledge_chunks<R: Runtime>(
     } else {
         "spaces_knowledge_chunks"
     };
-    let mut sql = format!(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT c.id, c.space_id, c.node_id, c.origin, c.kind, c.source_revision, c.text, c.locator, c.metadata, c.created_at, c.updated_at \
-         FROM {source} c JOIN spaces_nodes n ON n.id = c.node_id AND n.space_id = c.space_id \
-         WHERE c.space_id = ? AND n.deleted_at IS NULL",
+         FROM ",
     );
-    append_json_in_filter(&mut sql, "c.node_id", request.node_ids.is_some());
-    sql.push_str(" ORDER BY c.created_at");
-    let mut query = sqlx::query(&sql).bind(request.space_id);
-    if let Some(node_ids) = request.node_ids {
-        query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
-    }
-    let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
+    sql.push(source)
+        .push(" c JOIN spaces_nodes n ON n.id = c.node_id AND n.space_id = c.space_id WHERE c.space_id = ")
+        .push_bind(request.space_id)
+        .push(" AND n.deleted_at IS NULL");
+    append_json_in_filter(&mut sql, request.node_ids)?;
+    sql.push(" ORDER BY c.created_at");
+    let rows = sql.build().fetch_all(pool).await.map_err(db::sql_error)?;
     Ok(rows
         .into_iter()
         .map(decode_chunk_projection)

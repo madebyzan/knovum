@@ -17,10 +17,9 @@ pub(in crate::spaces) struct LocalActionOperationOutcome {
 
 fn arguments_digest(arguments: &Value) -> Result<String, String> {
     use sha2::{Digest, Sha256};
-    Ok(format!(
-        "{:x}",
-        Sha256::digest(serde_json::to_vec(arguments).map_err(|error| error.to_string())?)
-    ))
+    Ok(hex::encode(Sha256::digest(
+        serde_json::to_vec(arguments).map_err(|error| error.to_string())?,
+    )))
 }
 
 pub(crate) async fn require_reconciled(

@@ -14,7 +14,7 @@ import { importedSpaceNodePayload } from "./imported-asset-payload";
 
 const importConcurrency = pLimit(3);
 
-export interface SpaceImportBatchRequest<Key> {
+interface SpaceImportBatchRequest<Key> {
   key: Key;
   path: string;
   sourceAccess: SpaceImportSourceAccess;

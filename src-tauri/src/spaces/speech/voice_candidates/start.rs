@@ -187,7 +187,7 @@ struct VoiceCandidateRunInput {
 
 fn request_digest(request: &DraftVoiceCandidateRequest) -> Result<String, String> {
     let bytes = serde_json::to_vec(request).map_err(db::json_error)?;
-    Ok(format!("{:x}", Sha256::digest(bytes)))
+    Ok(hex::encode(Sha256::digest(bytes)))
 }
 
 fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> {

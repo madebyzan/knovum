@@ -16,7 +16,7 @@ pub fn content_revision(path: &Path) -> Result<String, String> {
         return Err("Only regular files have Space revisions".into());
     }
     let digest = file_digest(path)?;
-    Ok(format!("sha256:{digest:x}"))
+    Ok(format!("sha256:{digest}", digest = hex::encode(digest)))
 }
 
 pub fn verify_content_revision(path: &Path, expected: &str) -> Result<(), String> {

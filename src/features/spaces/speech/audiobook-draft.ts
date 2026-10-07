@@ -4,7 +4,7 @@ import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProject
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { ImportedAudiobookScript } from "./audiobook-script";
 
-export interface ParagraphDraft {
+interface ParagraphDraft {
   key: string;
   text: string;
   speakerKey: string;

@@ -9,7 +9,7 @@ pub(super) fn stable_id(scope: &str, key: &str) -> String {
     hash.update(scope.as_bytes());
     hash.update([0]);
     hash.update(key.as_bytes());
-    format!("{:x}", hash.finalize())
+    hex::encode(hash.finalize())
 }
 
 pub(super) fn from_words(

@@ -67,7 +67,7 @@ function isNearScrollBottom(scrollRoot: HTMLElement) {
   return scrollRoot.scrollHeight - scrollRoot.scrollTop - scrollRoot.clientHeight < 8;
 }
 
-export function headingElement(editor: OutlineEditor | undefined, position: number): HTMLElement | undefined {
+function headingElement(editor: OutlineEditor | undefined, position: number): HTMLElement | undefined {
   const node = editor?.view.nodeDOM(position);
   return node instanceof HTMLElement ? node : undefined;
 }

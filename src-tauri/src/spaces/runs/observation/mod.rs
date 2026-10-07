@@ -110,7 +110,7 @@ fn value_fingerprint(value: &Value) -> Value {
             Value::Object(_) => "object",
         },
         "bytes": encoded.len(),
-        "sha256": format!("{:x}", sha2::Sha256::digest(encoded)),
+        "sha256": hex::encode(sha2::Sha256::digest(encoded)),
     })
 }
 

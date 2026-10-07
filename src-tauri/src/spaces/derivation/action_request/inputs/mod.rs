@@ -86,7 +86,7 @@ pub(super) async fn resolve(
                 .get("dataDigest")
                 .and_then(Value::as_str)
                 .ok_or("action-input-invalid: ordered input digest is missing")?;
-            if format!("{:x}", sha2::Sha256::digest(encoded.as_bytes())) != expected {
+            if hex::encode(sha2::Sha256::digest(encoded.as_bytes())) != expected {
                 return Err(
                     "action-input-stale: resource changed after the Action Run was accepted".into(),
                 );

@@ -10,7 +10,7 @@ import UiDropdownMenuItem from "./UiDropdownMenuItem.vue";
 import UiKbd from "./UiKbd.vue";
 import UiSeparator from "./UiSeparator.vue";
 
-export interface UiDropdownMenuItemOption {
+interface UiDropdownMenuItemOption {
   id?: string | undefined;
   label?: string | undefined;
   icon?: Component | undefined;

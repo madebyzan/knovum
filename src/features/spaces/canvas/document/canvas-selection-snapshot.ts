@@ -47,7 +47,3 @@ export function canvasNodePlacements(layouts: readonly CanvasNodeLayoutV1[], nod
     nodeIds.has(nodeId) ? [{ id: nodeId, x: frame.x, y: frame.y }] : [],
   );
 }
-
-export function movableCanvasNodeIds(lockedIds: ReadonlySet<string>, selectedIds: ReadonlySet<string>) {
-  return new Set([...selectedIds].filter((id) => !lockedIds.has(id)));
-}

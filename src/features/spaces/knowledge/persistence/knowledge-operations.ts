@@ -1,5 +1,4 @@
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
-import type { KnowledgeChangeSet } from "../../contracts/generated/KnowledgeChangeSet";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import type { SpaceKnowledgeObjectType } from "../model/object-types";
 import type { SpaceKnowledgeEvent, SpaceProvenance } from "../model/provenance";
@@ -74,12 +73,6 @@ export function listKnowledgeEvents(query: ListKnowledgeEventsQuery): Promise<Sp
       limit,
     },
   });
-}
-
-export function commitKnowledgeChanges(
-  changes: KnowledgeChangeSet,
-): Promise<{ resolvedIds: Record<string, string> }> {
-  return invokeCommand("plugin:spaces|commit_knowledge_changes", { changes });
 }
 
 export function listKnowledgeHealthIssues(spaceId: string): Promise<SpaceKnowledgeHealthIssue[]> {

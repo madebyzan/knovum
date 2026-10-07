@@ -86,7 +86,7 @@ pub(super) fn validate_attempts(
     output: &Value,
 ) -> Result<(), String> {
     let encoded = serde_json::to_string(&step.resolved_input).map_err(|error| error.to_string())?;
-    let digest = format!("{:x}", Sha256::digest(encoded.as_bytes()));
+    let digest = hex::encode(Sha256::digest(encoded.as_bytes()));
     for attempt in attempts {
         let expected_result = (attempt.state == "succeeded").then_some(output);
         if !lower_hex64(&attempt.request_digest)

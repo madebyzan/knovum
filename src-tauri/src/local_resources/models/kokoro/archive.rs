@@ -113,7 +113,7 @@ fn extract_file(
         hash.update(&buffer[..read]);
     }
     output.sync_all().map_err(|error| error.to_string())?;
-    let digest = format!("{:x}", hash.finalize());
+    let digest = hex::encode(hash.finalize());
     if written != expected.size || digest != expected.sha256 {
         return Err(format!(
             "Kokoro archive file failed verification: {}",

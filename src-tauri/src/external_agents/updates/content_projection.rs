@@ -115,7 +115,7 @@ pub(super) fn projection_error(error: crate::app_error::AppError) -> Error {
 
 pub(super) fn tool_artifact_prefix(tool_id: &str) -> String {
     let identity = Sha256::digest(tool_id.as_bytes());
-    format!("tool-{identity:x}-")
+    format!("tool-{identity}-", identity = hex::encode(identity))
 }
 
 pub(super) fn tool_status(status: ToolCallStatus) -> Result<&'static str, Error> {

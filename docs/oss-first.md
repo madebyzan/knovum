@@ -105,7 +105,7 @@ Feature engines remain deliberately deferred until their business requirements a
   speech on Apple Silicon macOS and x64 Windows, keep one confirmed reference immutable across
   audiobook segments, and reject changed, mostly silent or oversized reference audio.
 - Selected implementation: official OpenBMB `voxcpm` 2.0.3 is pinned to source commit
-  `19b6bf7590025418821a86dcb817504e0ad7e5df` (`Apache-2.0`). The `openbmb/VoxCPM2` model is
+  `f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629` (`Apache-2.0`). The `openbmb/VoxCPM2` model is
   pinned to revision `32279effe8c19989596f05d353d1447f51d9e915` (`Apache-2.0`); its seven runtime
   files total 4,960,722,408 bytes and are downloaded on demand with a fixed size and SHA-256 for
   every file. The worker imports `VoxCPM` directly and loads only that verified local directory.
@@ -150,7 +150,7 @@ Feature engines remain deliberately deferred until their business requirements a
   (`Apache-2.0 OR MIT`) owns global press/release registration; RustAudio `cpal` 0.16.0
   (`Apache-2.0`) owns macOS CoreAudio and Windows WASAPI input; `hound` 3.5.1 (`Apache-2.0`)
   writes bounded PCM WAV files. All three are target-only macOS/Windows dependencies. Existing
-  `clipboard-rs` 0.2.4 (`MIT`) owns multi-format clipboard snapshots.
+  `clipboard-rs` 0.3.5 (`MIT`) owns multi-format clipboard snapshots.
 - Native integration: `objc2-app-kit` 0.3.2 (`Zlib OR Apache-2.0 OR MIT`) and `core-graphics`
   0.25.0 (`MIT OR Apache-2.0`) capture the macOS
   frontmost process and post Command+V after Accessibility authorization. Existing `windows`
@@ -176,9 +176,9 @@ Feature engines remain deliberately deferred until their business requirements a
 - Tiptap Vue 3 + StarterKit is selected for structured Note/Markdown editing because it supplies the ProseMirror editing model, history, standard blocks/marks and Vue integration while leaving Knovum in control of desktop UI. TaskList/TaskItem, TableKit, Placeholder and CharacterCount are first-party Tiptap extensions rather than custom equivalents.
 - `@tiptap/markdown` is adopted only for the Markdown item: Markdown text remains canonical and only round-trippable features are enabled there. Knovum-owned Notes instead persist one validated structured document tree; the two products share the Tiptap engine without sharing a persistence contract.
 - Tauri official plugins remain the desktop integration baseline. Clipboard image paste uses the official Clipboard Manager image API for image reads and a typed Rust command for validated persistence into the private Space asset directory. Saved Website metadata is fetched by the Rust `web_capture` capability with HTTP status, MIME and response-size boundaries. Mozilla `@mozilla/readability` 0.6.0 owns article/main-content extraction; Knovum only maps the parsed article into its KnowledgeSection contract instead of maintaining a parallel readability heuristic.
-- Document ingestion is Rust-first. Exact-pinned `pdf-inspector` 1.20.0 owns PDF page-level Markdown and reading order, with default features disabled (no PDFium/OCR runtime). `office_oxide` owns DOC/DOCX/XLS/XLSX/PPT/PPTX plain-text and Markdown extraction. PDF source evidence displays extracted text and opens the original file; it does not render pages in the WebView. Office pixel-fidelity rendering remains separate from semantic ingestion.
+- Document ingestion is Rust-first. Exact-pinned `pdf-inspector` 1.25.2 owns PDF page-level Markdown and reading order, with default features disabled (no PDFium/OCR runtime). `office_oxide` owns DOC/DOCX/XLS/XLSX/PPT/PPTX plain-text and Markdown extraction. PDF source evidence displays extracted text and opens the original file; it does not render pages in the WebView. Office pixel-fidelity rendering remains separate from semantic ingestion.
 
-PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspector/blob/v1.20.0/docs/rust-api.md) confirms the pinned version's public positioned image API. Knovum uses `extract_text_with_positions_mem_in_frame(..., PositionFrame::Display)` and `ItemType::Image`, not a private PDF walker. Normal text pages avoid visual calls; known recognition pages use explicit page inputs. Inline-image/vector coverage remains limited and visible. MIT/default-features-disabled extraction replaces PDFium and its dynamic libraries. Upstream speed claims are not Knovum benchmarks. Native Core Graphics (`objc2-core-graphics =0.3.2`) and Windows.Data.Pdf (existing `windows` bindings) render bounded selected regions without another renderer dependency. Existing `image` normalizes lossless PNGs; existing `zip` bounds Office expansion, never interprets Office semantics. `office_oxide =0.1.8` owns structure/images; its public XLSX cell API avoids IR row truncation. Knovum maps results and coordinates existing AI/job/asset contracts, with no alternate parser or compatibility reader.
+PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspector/blob/v1.20.0/docs/rust-api.md) confirms the pinned version's public positioned image API. Knovum uses `extract_text_with_positions_mem_in_frame(..., PositionFrame::Display)` and `ItemType::Image`, not a private PDF walker. Normal text pages avoid visual calls; known recognition pages use explicit page inputs. Inline-image/vector coverage remains limited and visible. MIT/default-features-disabled extraction replaces PDFium and its dynamic libraries. Upstream speed claims are not Knovum benchmarks. Native Core Graphics (`objc2-core-graphics =0.3.2`) and Windows.Data.Pdf (existing `windows` bindings) render bounded selected regions without another renderer dependency. Existing `image` normalizes lossless PNGs; existing `zip` bounds Office expansion, never interprets Office semantics. `office_oxide =0.1.13` owns structure/images; its public XLSX cell API avoids IR row truncation. Knovum maps results and coordinates existing AI/job/asset contracts, with no alternate parser or compatibility reader.
 
 ## Editor and Rust-processing selections reviewed 2026-08-15
 
@@ -217,8 +217,8 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 - Builtin Agent uses Deep Agents 0.7.22 / LangGraph 1.2.13 / SQLite saver 3.1.1 in a dedicated locked Python process. These upstream APIs own planning, context summaries, private workspace, bounded research and graph durability. Rust owns Actions, grants, Runs, fee admission and public-history transactions. `rig-agent` and its Rust control loop have been removed; direct `genai` consumers remain. No Agent Server, framework fork, custom checkpointer/outbox or transport fallback is introduced.
 - Official LangChain model integrations preserve provider protocols and reasoning/tool structures. Protocol and qualified context limits are explicit model settings, frozen per segment; disabled automatic retries do not become model failover. `truststore` 0.10.4 gives the application native OS TLS trust at its process entry, rather than implementing certificate parsing. Local public-interface proofs live in `python/tests/agent_runtime`; real providers and target platforms have separate qualification gates.
 - Personal workflows reuse verified derivation ordering and the existing Action Run scheduler. Removing built-in recipe graphs removes the direct `petgraph` dependency; there is no second compiler or execution framework.
-- `rmcp` 3.1.3 is the official Rust MCP transport for the inbound Space knowledge server and outbound selected Agent connections. `agent-client-protocol` 2.1.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
-- `schemars` 1.2.2, `ts-rs` 12.0.1 and `jsonschema` 0.56.0 share Rust-owned static contracts with TypeScript and validate untrusted dynamic tool schemas in Rust. Remote schema references are not fetched, and Vue does not become a second dynamic-schema authority.
+- `rmcp` 3.5.1 is the official Rust MCP transport for the inbound Space knowledge server and outbound selected Agent connections. `agent-client-protocol` 3.0.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
+- `schemars` 1.2.2, `ts-rs` 12.0.1 and `jsonschema` 0.58.6 share Rust-owned static contracts with TypeScript and validate untrusted dynamic tool schemas in Rust. Remote schema references are not fetched, and Vue does not become a second dynamic-schema authority.
 - Space Action parameters are generated from typed Rust contracts with `schemars`, emitted as JSON Schema 2020-12 and validated by `jsonschema`. The former hand-written `text/number/json` descriptor was removed because it duplicated the standard while losing enums, ranges and object structure.
 - The existing Konva canvas owns workflow selection and spatial context. The former Vue Flow Studio and its dependency were removed because a separate graph editor duplicated canvas interaction.
 - Apalis and Temporal were rejected as alternate business Run schedulers. Deep Agents owns only the built-in model graph; SQLx/Tokio still owns business Actions, authorization and resource publication. The custom code is limited to Knovum-specific Run, authorization, publication and recovery semantics that these libraries cannot own without violating domain boundaries.
@@ -284,12 +284,12 @@ license review; no unqualified Hub copy or replacement model is substituted.
 
 # 文档提取与原生资源生命周期
 
-office_oxide 0.1.8 的公共工作表图片、文字形状、单元格接口直接复用，
+office_oxide 0.1.13 的公共工作表图片、文字形状、单元格接口直接复用，
 不为 XLS/XLSX 图片提取构造整份 IR；Word/Slides 使用借用的 IR 内容，
 包括库实际提供的页眉页脚。逐元素带位置分块因公开渲染接口不足而保留产品映射，
 不复制私有解析器，不克隆含图片的 IR。
 
-pdf-inspector 1.20.0 提供文本及 Display 坐标，不提供公开嵌入图片字节提取接口。
+pdf-inspector 1.25.2 提供文本及 Display 坐标，不提供公开嵌入图片字节提取接口。
 必要区域由 CoreGraphics / Windows.Data.Pdf 渲染；不引入第二套 PDF 引擎。
 macOS 位图翻转原地进行；Windows 页面、流、读取器在作用域退出时释放，
 包括错误路径，不增加常驻原生渲染线程或跨线程句柄缓存。
@@ -311,11 +311,11 @@ creation, preview, execution and package restore. Model/license release gates re
 
 ## Agent extension implementation choices
 
-Outbound MCP reuses official rmcp 3.1.3, alongside the existing server, including public OAuth
+Outbound MCP reuses official rmcp 3.5.1, alongside the existing server, including public OAuth
 state, PKCE, token refresh and credential-store APIs. Deep Agents 0.7.22 public SkillsMiddleware,
 StoreBackend and skill_tool_resolver load reviewed content; there is no Python MCP client.
 gix 0.88.0 reads HTTPS Git objects without an external Git process or checkout. yaml-rust2
-0.13.0 reads Skill frontmatter and detects duplicate keys. iri-string 0.7.10 performs RFC 6570
+0.13.0 reads Skill frontmatter and detects duplicate keys. iri-string 0.7.14 performs RFC 6570
 resource-template expansion; unicode-normalization 0.1.25 supplies NFC identities for portable
 package paths. Existing ZIP, JSON Schema, SHA-256, SQLite and native dialogs are reused.
 

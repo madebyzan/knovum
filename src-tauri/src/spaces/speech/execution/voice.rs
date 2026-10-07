@@ -68,8 +68,7 @@ pub(in crate::spaces::speech) fn input_digest(
         "runtimeDigest": runtime_digest,
         "preprocessingVersion": "speech-text-v1",
     });
-    Ok(format!(
-        "{:x}",
-        Sha256::digest(serde_json::to_vec(&value).map_err(db::json_error)?)
-    ))
+    Ok(hex::encode(Sha256::digest(
+        serde_json::to_vec(&value).map_err(db::json_error)?,
+    )))
 }

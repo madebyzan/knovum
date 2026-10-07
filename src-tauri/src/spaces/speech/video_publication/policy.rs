@@ -30,7 +30,7 @@ pub(super) fn assembly_digest(
         digest.update(window.1.unwrap_or(-1).to_le_bytes());
     }
     digest.update(config.to_string().as_bytes());
-    format!("{:x}", digest.finalize())
+    hex::encode(digest.finalize())
 }
 
 pub(super) fn wav_sample_count(path: &Path, channels: u16) -> Result<u64, String> {

@@ -11,7 +11,7 @@ export type CommandUnavailableReason =
   | "not_enough_scenes"
   | "selection_not_eligible";
 
-export interface CommandShortcutListing {
+interface CommandShortcutListing {
   groupId: string;
   title: string;
   shortcut: string;

@@ -44,7 +44,7 @@ pub(super) fn read_artifact(
     if bytes.len() as u64 != byte_length {
         return Err("invalid_output: worker artifact changed while reading".into());
     }
-    let digest = format!("{:x}", Sha256::digest(&bytes));
+    let digest = hex::encode(Sha256::digest(&bytes));
     if digest != expected_sha256 {
         return Err("invalid_output: worker artifact digest differs".into());
     }

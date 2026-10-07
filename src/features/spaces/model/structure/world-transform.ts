@@ -40,58 +40,7 @@ export function worldTransformFor(
   return world;
 }
 
-/** Returns the structureNode's new local layout; caller commits its parent and sibling order. */
-export function layoutKeepingWorldPosition(
-  id: StructureNodeId,
-  newParentId: StructureNodeId | null,
-  index: StructureIndex,
-  layoutById: ReadonlyMap<StructureNodeId, StructureLayout>,
-): StructureLayout {
-  const structureNode = index.structureById.get(id);
-  const layout = layoutById.get(id);
-  if (!structureNode || !layout || structureNode.kind !== layout.kind)
-    throw new Error(`Structure structureNode not found: ${id}`);
-  if (structureNode.parentId === newParentId) return layout;
-  validateReparenting(id, structureNode.kind, newParentId, index);
-  const before = worldTransformFor(id, index, layoutById);
-  const parentWorld = newParentId === null ? IDENTITY : worldTransformFor(newParentId, index, layoutById);
-  const transform = relativeTransform(before, parentWorld);
-  if (layout.kind === "section") return { ...layout, position: { x: transform.x, y: transform.y } };
-  return { ...layout, transform };
-}
-
-function validateReparenting(
-  id: StructureNodeId,
-  kind: StructureLayout["kind"],
-  newParentId: StructureNodeId | null,
-  index: StructureIndex,
-) {
-  if (kind === "section" && newParentId !== null) throw new Error("A Section must remain at the Space root");
-  if (newParentId === null) return;
-  const parent = index.structureById.get(newParentId);
-  if (!parent || parent.kind === "content" || newParentId === id)
-    throw new Error(`Invalid structure parent: ${newParentId}`);
-  if (ancestorsOf(newParentId, index).some((ancestor) => ancestor.id === id))
-    throw new Error(`Structure cycle at: ${id}`);
-}
-
-function relativeTransform(before: LocalTransform, parentWorld: LocalTransform): LocalTransform {
-  const radians = (parentWorld.rotation * Math.PI) / 180;
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  const dx = before.x - parentWorld.x;
-  const dy = before.y - parentWorld.y;
-  const transform = {
-    x: (dx * cos + dy * sin) / parentWorld.scale,
-    y: (-dx * sin + dy * cos) / parentWorld.scale,
-    rotation: before.rotation - parentWorld.rotation,
-    scale: before.scale / parentWorld.scale,
-  };
-  assertTransform(transform);
-  return transform;
-}
-
-export function assertTransform(transform: LocalTransform): void {
+function assertTransform(transform: LocalTransform): void {
   if (
     !Number.isFinite(transform.x) ||
     !Number.isFinite(transform.y) ||

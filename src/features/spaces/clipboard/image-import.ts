@@ -22,7 +22,3 @@ export async function importSpaceClipboardImage(name: string): Promise<ImportedS
   });
   return { kind: "image", name, path: persisted.path, sourceRevision: persisted.sourceRevision };
 }
-
-export function clipboardContainsImage(event: ClipboardEvent) {
-  return [...(event.clipboardData?.items ?? [])].some((item) => item.type.startsWith("image/"));
-}

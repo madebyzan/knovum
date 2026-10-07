@@ -29,7 +29,7 @@ export interface CanvasSceneRelation {
   parallelOffset: number;
 }
 
-export interface CanvasSceneSectionBackdrop {
+interface CanvasSceneSectionBackdrop {
   appearance: Extract<StructureLayout, { kind: "section" }>["appearance"];
   bounds: { x: number; y: number; width: number; height: number };
   id: string;

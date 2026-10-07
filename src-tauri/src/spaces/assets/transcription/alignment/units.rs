@@ -99,7 +99,7 @@ fn source_unit(
     digest.update(start_character.to_be_bytes());
     digest.update(end_character.to_be_bytes());
     Ok(TranscriptUnit {
-        id: format!("{:x}", digest.finalize()),
+        id: hex::encode(digest.finalize()),
         text: source[range].iter().collect(),
         start_character,
         end_character,

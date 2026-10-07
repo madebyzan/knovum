@@ -92,7 +92,7 @@ pub fn from_snapshot(
                 serde_json::to_vec(&json!({ "kind": kind, "asset": base, "edit": snapshot }))
                     .map_err(|error| error.to_string())?;
             let digest = Sha256::digest(payload);
-            Ok(format!("rendered1:{digest:x}"))
+            Ok(format!("rendered1:{digest}", digest = hex::encode(digest)))
         }
         _ => Err("Derivation input snapshot does not match its revision basis".into()),
     }

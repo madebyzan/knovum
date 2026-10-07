@@ -72,7 +72,7 @@ fn prepare_one(
     }
     Ok(PreparedLayer {
         path,
-        digest: format!("sha256:{:x}", Sha256::digest(&bytes)),
+        digest: format!("sha256:{}", hex::encode(Sha256::digest(&bytes))),
         size: bytes.len(),
         width: decoded.width(),
         height: decoded.height(),

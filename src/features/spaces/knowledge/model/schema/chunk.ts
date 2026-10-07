@@ -136,7 +136,7 @@ export const knowledgeLocatorSchema = z
   })
   .strict();
 
-export const knowledgeChunkTextSchema = z
+const knowledgeChunkTextSchema = z
   .string()
   .min(1)
   .refine((value) => value.trim().length > 0, "Knowledge passage cannot be blank")

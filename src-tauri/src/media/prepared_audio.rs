@@ -41,8 +41,8 @@ pub fn prepare(
     }
     verify_content_revision(source, source_revision)?;
     let key = format!(
-        "decoded-v1-{:x}",
-        Sha256::digest(source_revision.as_bytes())
+        "decoded-v1-{}",
+        hex::encode(Sha256::digest(source_revision.as_bytes()))
     );
     let target = root.join(key);
     if target.exists() {

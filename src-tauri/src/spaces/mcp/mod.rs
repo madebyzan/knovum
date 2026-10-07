@@ -115,12 +115,12 @@ impl rmcp::ServerHandler for SpaceMcpServer {
             .map(rmcp::model::GetPromptResponse::Complete)
     }
 
-    fn get_info(&self) -> rmcp::model::ServerInfo {
+    fn get_info(&self) -> rmcp::model::ServerConfig {
         let scope = self
             .space_scope
             .as_deref()
             .unwrap_or("Use list_spaces to select an authorized Space");
-        rmcp::model::ServerInfo::new(
+        rmcp::model::ServerConfig::new(
             rmcp::model::ServerCapabilities::builder()
                 .enable_tools()
                 .enable_resources()

@@ -186,7 +186,7 @@ pub(in crate::spaces::conversations) fn tool_key(
         name,
     ))
     .expect("owned tool identity serializes");
-    format!("builtin-agent:{:x}", Sha256::digest(bytes))
+    format!("builtin-agent:{}", hex::encode(Sha256::digest(bytes)))
 }
 
 fn decode<T: DeserializeOwned>(value: Value) -> Result<T, String> {

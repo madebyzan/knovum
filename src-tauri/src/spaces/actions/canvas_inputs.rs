@@ -30,7 +30,7 @@ pub(super) async fn pin(
         {
             return Err("action-input-stale: selected resource changed before execution".into());
         }
-        inputs.push(json!({"nodeId": source.node_id, "role": if position == 0 {"primary"} else {"source"}, "revisionBasis": "knowledge", "dataDigest": format!("{:x}", Sha256::digest(encoded.as_bytes()))}));
+        inputs.push(json!({"nodeId": source.node_id, "role": if position == 0 {"primary"} else {"source"}, "revisionBasis": "knowledge", "dataDigest": hex::encode(Sha256::digest(encoded.as_bytes()))}));
     }
     Ok(Value::Array(inputs))
 }

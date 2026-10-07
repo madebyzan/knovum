@@ -193,7 +193,7 @@ pub(super) fn copy(
     if input.read(&mut extra).map_err(|error| error.to_string())? != 0 {
         return Err("stale_revision: voice reference grew while it was copied".into());
     }
-    if format!("sha256:{:x}", digest.finalize()) != revision {
+    if format!("sha256:{}", hex::encode(digest.finalize())) != revision {
         return Err("stale_revision: voice reference changed while it was copied".into());
     }
     output.sync_all().map_err(|error| error.to_string())?;
@@ -229,7 +229,7 @@ fn verify_exact_revision(
     if file.read(&mut extra).map_err(|error| error.to_string())? != 0 {
         return Err("Voice reference snapshot exceeds its frozen length".into());
     }
-    if format!("sha256:{:x}", digest.finalize()) != expected_revision {
+    if format!("sha256:{}", hex::encode(digest.finalize())) != expected_revision {
         return Err("Voice reference snapshot digest differs from its source".into());
     }
     Ok(())

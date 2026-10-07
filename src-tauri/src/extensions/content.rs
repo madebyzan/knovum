@@ -12,7 +12,7 @@ pub(super) const MAX_PACKAGE_BYTES: usize = 128 * 1024 * 1024;
 pub(super) type PackageFiles = BTreeMap<String, Vec<u8>>;
 
 pub(super) fn digest(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    hex::encode(Sha256::digest(bytes))
 }
 
 pub(super) fn files_digest(files: &PackageFiles) -> String {
@@ -23,7 +23,7 @@ pub(super) fn files_digest(files: &PackageFiles) -> String {
         hasher.update((bytes.len() as u64).to_le_bytes());
         hasher.update(bytes);
     }
-    format!("{:x}", hasher.finalize())
+    hex::encode(hasher.finalize())
 }
 
 pub(super) fn validate_path(path: &str) -> Result<(), String> {

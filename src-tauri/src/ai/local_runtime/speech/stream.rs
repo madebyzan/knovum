@@ -66,7 +66,7 @@ pub(super) fn finish_synthesis(
     let sample_rate = stream
         .sample_rate
         .ok_or("invalid_output: synthesis returned no audio chunks")?;
-    let digest = format!("{:x}", stream.digest.finalize());
+    let digest = hex::encode(stream.digest.finalize());
     if synthesis.byte_length != byte_length
         || synthesis.sha256 != digest
         || synthesis.sample_rate != sample_rate
@@ -81,7 +81,7 @@ pub(super) fn finish_synthesis(
     fs::remove_dir(&attempt_directory).map_err(|error| format!("invalid_output: {error}"))?;
     let bytes = wave_from_pcm(&stream.pcm, sample_rate)?;
     Ok(SynthesizedAudio {
-        sha256: format!("{:x}", Sha256::digest(&bytes)),
+        sha256: hex::encode(Sha256::digest(&bytes)),
         bytes,
         sample_rate,
         sample_count: synthesis.sample_count,

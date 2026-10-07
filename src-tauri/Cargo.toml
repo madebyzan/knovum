@@ -6,14 +6,14 @@ version = "0.0.1"
 description = "Local-first desktop knowledge space"
 authors = ["Zan"]
 edition = "2021"
-rust-version = "1.92"
+rust-version = "1.94"
 
 [lib]
 name = "knovum_lib"
 crate-type = ["rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.7.1", features = [] }
 
 [features]
 default = []
@@ -21,30 +21,30 @@ e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [dependencies]
 tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
-tauri-plugin-clipboard = "2"
-clipboard-rs = "0.2.4"
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-log = "2"
-tauri-plugin-updater = "2"
-tauri-plugin-opener = "2"
-tauri-plugin-os = "2"
-tauri-plugin-single-instance = "2"
-tauri-plugin-store = "2"
-tauri-plugin-window-state = "2"
-serde = { version = "1", features = ["derive"] }
-log = "0.4"
-base64 = "0.22.1"
+tauri-plugin-clipboard = "2.1.11"
+clipboard-rs = "0.3.5"
+tauri-plugin-dialog = "2.8.1"
+tauri-plugin-fs = "2.6.0"
+tauri-plugin-log = "2.10.0"
+tauri-plugin-updater = "2.13.1"
+tauri-plugin-opener = "2.7.0"
+tauri-plugin-os = "2.4.0"
+tauri-plugin-single-instance = "2.5.2"
+tauri-plugin-store = "2.5.0"
+tauri-plugin-window-state = "2.5.0"
+serde = { version = "1.0.229", features = ["derive"] }
+log = "0.4.34"
+base64 = "0.23.1"
 ring = "0.17.14"
-infer = "0.19.0"
+infer = "0.22.0"
 mime = "0.3.17"
 mime_guess = { version = "2.0.5", features = ["rev-mappings"] }
 hound = "3.5.1"
-tauri-plugin-wdio = { version = "1", optional = true }
-tauri-plugin-wdio-webdriver = { version = "1", optional = true }
+tauri-plugin-wdio = { version = "1.4.0", optional = true }
+tauri-plugin-wdio-webdriver = { version = "1.4.0", optional = true }
 
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "bmp", "tiff", "webp"] }
-reqwest = { version = "0.13.4", default-features = false, features = [
+reqwest = { version = "0.13.5", default-features = false, features = [
   "rustls",
   "json",
   "query",
@@ -52,40 +52,41 @@ reqwest = { version = "0.13.4", default-features = false, features = [
   "multipart",
   "stream",
 ] }
-zip = { version = "4.6.1", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+zip = { version = "8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 tar = "0.4.46"
 bzip2 = "0.6.1"
-flate2 = "1.1.9"
-encoding_rs = "0.8.35"
+flate2 = "1.1.10"
+encoding_rs = "0.8.42"
 genai = "=0.6.5"
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
-pulldown-cmark = "=0.13.0"
+pulldown-cmark = "=0.13.4"
 typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }
 typst-layout = "=0.15.1"
 typst-pdf = "=0.15.1"
-fontdb = "=0.23.0"
-futures = "0.3"
-office_oxide = { version = "=0.1.8", default-features = false }
-pdf-inspector = { version = "=1.20.0", default-features = false }
+fontdb = "=0.24.0"
+futures = "0.3.34"
+office_oxide = { version = "=0.1.13", default-features = false }
+pdf-inspector = { version = "=1.25.2", default-features = false }
 
-serde_json = "1"
-sqlx = { version = "0.8.6", default-features = false, features = [
+serde_json = "1.0.151"
+sqlx = { version = "0.9.0", default-features = false, features = [
   "json",
   "macros",
   "migrate",
   "sqlite",
   "runtime-tokio",
 ] }
-sha2 = "=0.10.9"
-tokio = { version = "1", features = ["process", "io-util", "fs", "sync", "time", "rt", "macros", "net"] }
-uuid = { version = "1.24.0", features = ["v4"] }
+sha2 = "=0.11.0"
+hex = "0.4.3"
+tokio = { version = "1.53.2", features = ["process", "io-util", "fs", "sync", "time", "rt", "macros", "net"] }
+uuid = { version = "1.27.0", features = ["v4"] }
 fnv = "1.0.7"
-lancedb = "0.37.1"
+lancedb = "=0.37.1"
 arrow-array = "58.4.0"
 arrow-schema = "58.4.0"
 
 # Spaces knowledge server
-rmcp = { version = "=3.1.3", features = [
+rmcp = { version = "=3.5.1", features = [
   "client",
   "auth",
   "elicitation",
@@ -95,9 +96,9 @@ rmcp = { version = "=3.1.3", features = [
 ] }
 async-trait = "=0.1.92"
 oauth2 = "=5.0.0"
-sse-stream = "=0.2.5"
+sse-stream = "=0.2.6"
 yaml-rust2 = "=0.13.0"
-iri-string = "=0.7.10"
+iri-string = "=0.7.14"
 unicode-normalization = "=0.1.25"
 gix = { version = "=0.88.0", default-features = false, features = [
   "blocking-network-client",
@@ -108,18 +109,18 @@ url = "=2.5.8"
 axum = "=0.8.9"
 tokio-util = { version = "=0.7.19", features = ["codec"] }
 walkdir = "2.5.0"
-agent-client-protocol = "=2.1.0"
+agent-client-protocol = { version = "=3.0.0", features = ["process"] }
 chrono = { version = "=0.4.45", default-features = false, features = ["clock", "serde"] }
 schemars = "=1.2.2"
 ts-rs = { version = "=12.0.1", features = ["no-serde-warnings", "serde-compat", "serde-json-impl"] }
-jsonschema = { version = "=0.56.0", default-features = false }
+jsonschema = { version = "=0.58.6", default-features = false }
 
 # Quick Look: document thumbnails for imported files, and the system preview panel. The objc2
 # framework crates default to every class they bind, which would pull UIKit and AppKit image
 # bindings into a macOS-only thumbnail path, so the ones Knovum adds enable only the classes it names.
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.6.2"
-objc2 = "0.6.4"
+objc2 = "0.6.5"
 objc2-core-graphics = { version = "=0.3.2", default-features = false, features = [
   "std",
   "CGBitmapContext",
@@ -164,7 +165,7 @@ quicklook = "0.2.2"
 # Windows Shell owns document thumbnails. Full preview remains behind the same native-preview
 # boundary, but needs its own HWND/STA host before it can be enabled.
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.61.3", features = [
+windows = { version = "0.62.2", features = [
   "Data_Pdf",
   "Foundation",
   "Storage",
@@ -195,7 +196,7 @@ objc2-app-kit = { version = "0.3.2", default-features = false, features = [
 ] }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), all(target_os = "windows", target_arch = "x86_64")))'.dependencies]
-cpal = "0.16.0"
+cpal = "0.18.2"
 tauri-plugin-global-shortcut = "=2.4.0"
 
 [profile.dev]

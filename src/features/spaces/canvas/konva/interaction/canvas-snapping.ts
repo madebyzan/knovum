@@ -6,7 +6,7 @@ export interface CanvasSnapGuide {
   points: readonly [number, number, number, number];
 }
 
-export interface CanvasResizeBadge {
+interface CanvasResizeBadge {
   height: number;
   width: number;
   x: number;

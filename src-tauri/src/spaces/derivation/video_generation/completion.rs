@@ -55,7 +55,7 @@ pub async fn complete(
         .ok_or("Generated video node data is invalid")?;
     object.insert(
         "sourceRevision".into(),
-        format!("sha256:{:x}", Sha256::digest(&generated.bytes)).into(),
+        format!("sha256:{}", hex::encode(Sha256::digest(&generated.bytes))).into(),
     );
     object.insert("size".into(), (generated.bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());

@@ -14,7 +14,7 @@ interface VideoEditProjectSource {
   sourceHeight: number;
 }
 
-export function defaultVideoTextStyle(family: string): VideoTextStyle {
+function defaultVideoTextStyle(family: string): VideoTextStyle {
   return {
     family,
     weight: 400,

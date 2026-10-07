@@ -69,7 +69,7 @@ pub(super) fn copy_verified(
             .map_err(|error| error.to_string())?;
     }
     output.sync_all().map_err(|error| error.to_string())?;
-    if copied != expected.size || format!("{:x}", hash.finalize()) != expected.sha256 {
+    if copied != expected.size || hex::encode(hash.finalize()) != expected.sha256 {
         return Err(format!(
             "Diarization model file failed verification: {}",
             expected.path
@@ -192,7 +192,7 @@ fn verify_file(path: &Path, size: u64, sha256: &str) -> Result<(), String> {
             .ok_or("Diarization model size exceeds its supported range")?;
         hash.update(&buffer[..read]);
     }
-    if read_bytes != size || format!("{:x}", hash.finalize()) != sha256 {
+    if read_bytes != size || hex::encode(hash.finalize()) != sha256 {
         return Err(format!(
             "Diarization model digest differs: {}",
             path.display()
