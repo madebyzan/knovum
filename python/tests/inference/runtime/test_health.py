@@ -10,6 +10,7 @@ from knovum_inference.runtime import health
     ("system", "machine", "reader"),
     [
         ("Darwin", "arm64", "_macos_resident_bytes"),
+        ("Darwin", "x86_64", "_macos_resident_bytes"),
         ("Windows", "AMD64", "_windows_resident_bytes"),
         ("Windows", "x86_64", "_windows_resident_bytes"),
     ],

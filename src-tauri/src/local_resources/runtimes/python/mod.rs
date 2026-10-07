@@ -139,16 +139,20 @@ fn configured_manifest(_profile: RuntimeProfile) -> Result<Option<PathBuf>, Stri
     Ok(None)
 }
 
-pub(crate) fn status<R: Runtime>(
-    app: &AppHandle<R>,
-    profile: RuntimeProfile,
-) -> Result<RuntimeStatus, String> {
-    let value = descriptor::embedded(profile)?;
-    Ok(RuntimeStatus {
-        available: resolve(app, profile)?.is_some(),
-        downloadable: value.is_some(),
-        download_size: value.map(|value| value.size),
-    })
+pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> RuntimeStatus {
+    let inspect = || -> Result<RuntimeStatus, String> {
+        let descriptor = descriptor::embedded(profile)?;
+        if resolve(app, profile)?.is_some() {
+            return Ok(RuntimeStatus::Ready);
+        }
+        Ok(match descriptor {
+            Some(value) => RuntimeStatus::NotInstalled {
+                download_size: value.size,
+            },
+            None => RuntimeStatus::NotPublished,
+        })
+    };
+    inspect().unwrap_or_else(|message| RuntimeStatus::Invalid { message })
 }
 
 fn worker_root<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> Result<PathBuf, String> {

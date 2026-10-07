@@ -17,17 +17,7 @@ pub(super) async fn validate_completed_runs(
     .map_err(db::sql_error)?;
     for encoded in snapshots {
         let snapshot: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-        let digest = snapshot
-            .get("runtimeDigest")
-            .and_then(Value::as_str)
-            .ok_or("Speech Run has no frozen Python runtime digest")?;
-        if digest.len() != 64
-            || !digest
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-        {
-            return Err("Speech Run Python runtime digest is invalid".into());
-        }
+        crate::spaces::speech::runtime_identity::read_snapshot(&snapshot)?;
     }
     Ok(())
 }

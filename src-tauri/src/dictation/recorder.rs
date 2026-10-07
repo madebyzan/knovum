@@ -52,7 +52,6 @@ impl Recorder {
         let samples = Arc::new(Mutex::new(Vec::new()));
         let maximum =
             config.sample_rate as usize * config.channels as usize * MAX_RECORDING_SECONDS;
-        let signalled = Arc::new(AtomicBool::new(false));
         let stream = match sample_format {
             SampleFormat::F32 => build_stream::<f32>(
                 &device,
@@ -61,7 +60,6 @@ impl Recorder {
                 maximum,
                 session_id,
                 events,
-                signalled,
                 f32_to_i16,
             ),
             SampleFormat::I16 => build_stream::<i16>(
@@ -71,7 +69,6 @@ impl Recorder {
                 maximum,
                 session_id,
                 events,
-                signalled,
                 |sample| sample,
             ),
             SampleFormat::U16 => build_stream::<u16>(
@@ -81,7 +78,6 @@ impl Recorder {
                 maximum,
                 session_id,
                 events,
-                signalled,
                 |sample| (i32::from(sample) - 32_768) as i16,
             ),
             value => Err(format!(
@@ -136,9 +132,9 @@ fn build_stream<T: cpal::SizedSample + 'static>(
     maximum: usize,
     session_id: &str,
     events: UnboundedSender<DictationAction>,
-    signalled: Arc<AtomicBool>,
     convert: fn(T) -> i16,
 ) -> Result<Stream, String> {
+    let signalled = AtomicBool::new(false);
     let failure_session = session_id.to_owned();
     let overflow_session = session_id.to_owned();
     let overflow_events = events.clone();

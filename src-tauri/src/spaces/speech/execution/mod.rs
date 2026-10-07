@@ -156,11 +156,9 @@ pub async fn generate_speech_project(
     app: tauri::AppHandle,
     request: GenerateSpeechProjectRequest,
 ) -> Result<RunObservation, AppError> {
-    let digest = crate::local_resources::runtimes::python::required_digest(
-        &app,
-        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
-    )?;
-    Ok(run_start::start(db::pool(&app).await?, request, &digest).await?)
+    let pool = db::pool(&app).await?;
+    let digests = super::runtime_identity::resolve(&app, pool, &request.project_id).await?;
+    Ok(run_start::start(pool, request, &digests).await?)
 }
 
 #[tauri::command]

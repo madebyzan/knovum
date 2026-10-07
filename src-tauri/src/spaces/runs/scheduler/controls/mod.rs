@@ -2,6 +2,11 @@ use sqlx::SqlitePool;
 
 use crate::spaces::db;
 
+const CANCELLATION_TREE: &str = "WITH RECURSIVE cancelled_tree(id) AS (
+    SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL
+    UNION SELECT child.id FROM spaces_runs child JOIN cancelled_tree parent ON child.parent_run_id=parent.id
+)";
+
 pub(super) async fn recover_expired_leases(pool: &SqlitePool) -> Result<bool, String> {
     let now = crate::clock::unix_time_millis()?;
     let expired: bool = sqlx::query_scalar(
@@ -210,13 +215,15 @@ async fn recover_local_speech_attempts(
 
 pub(super) async fn apply(pool: &SqlitePool) -> Result<bool, String> {
     let now = crate::clock::unix_time_millis()?;
-    let pending: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL
+    let pending: bool = sqlx::QueryBuilder::<sqlx::Sqlite>::new(CANCELLATION_TREE).push(
+        " SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL
            AND (cancel_requested_at IS NOT NULL OR
              (pause_requested_at IS NOT NULL AND kind!='builtin_agent' AND state IN ('queued','running','waiting'))))
          OR EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL AND cancel_requested_at IS NULL
-           AND created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER)*1000 <= $1)",
-    ).bind(now).fetch_one(pool).await.map_err(db::sql_error)?;
+           AND created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER)*1000 <= $1)
+         OR EXISTS(SELECT 1 FROM spaces_runs WHERE id IN (SELECT id FROM cancelled_tree)
+           AND completed_at IS NULL AND cancel_requested_at IS NULL)",
+    ).build_query_scalar().bind(now).fetch_one(pool).await.map_err(db::sql_error)?;
     if !pending {
         return Ok(false);
     }
@@ -243,13 +250,17 @@ async fn propagate_cancellation(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     now: i64,
 ) -> Result<(), String> {
-    sqlx::query("WITH RECURSIVE cancelled_tree(id) AS (
-       SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL
-       UNION SELECT child.id FROM spaces_runs child JOIN cancelled_tree parent ON child.parent_run_id=parent.id
-       ) UPDATE spaces_runs SET cancel_requested_at=$1,
+    sqlx::QueryBuilder::<sqlx::Sqlite>::new(CANCELLATION_TREE)
+        .push(
+            " UPDATE spaces_runs SET cancel_requested_at=$1,
        execution_epoch=execution_epoch+1,updated_at=$1 WHERE id IN (SELECT id FROM cancelled_tree)
-       AND cancel_requested_at IS NULL AND completed_at IS NULL")
-        .bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
+       AND cancel_requested_at IS NULL AND completed_at IS NULL",
+        )
+        .build()
+        .bind(now)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     Ok(())
 }
 

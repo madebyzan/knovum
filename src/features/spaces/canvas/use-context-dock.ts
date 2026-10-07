@@ -42,12 +42,6 @@ export function useContextDock() {
     rightSidebar?.open();
   }
 
-  function openSpeech() {
-    store.workflowMode = undefined;
-    store.setRightSidebarView("speech");
-    rightSidebar?.open();
-  }
-
   function openWorkflowCapture(nodeIds: string[]) {
     store.openWorkflowCapture(nodeIds);
     rightSidebar?.close();
@@ -69,7 +63,6 @@ export function useContextDock() {
     openAsk,
     openSource,
     openDocumentOutline,
-    openSpeech,
     openWorkflowCapture,
     openWorkflowUse,
     closeDock,

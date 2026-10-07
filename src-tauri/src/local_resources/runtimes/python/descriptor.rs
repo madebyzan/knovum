@@ -106,9 +106,15 @@ fn valid_hash(value: &str, length: usize) -> bool {
 }
 
 #[derive(Serialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct RuntimeStatus {
-    pub(crate) available: bool,
-    pub(crate) downloadable: bool,
-    pub(crate) download_size: Option<u64>,
+#[serde(tag = "state", rename_all = "snake_case")]
+pub(crate) enum RuntimeStatus {
+    Ready,
+    NotPublished,
+    NotInstalled {
+        #[serde(rename = "downloadSize")]
+        download_size: u64,
+    },
+    Invalid {
+        message: String,
+    },
 }

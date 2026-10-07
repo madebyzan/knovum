@@ -75,15 +75,19 @@
   "pythonRuntimes": {
     "title": "Python runtimes",
     "description": "Independent runtimes are downloaded when needed. Models are managed separately.",
-    "inference": "Local inference",
     "ready": "Runtime is ready",
     "unavailable": "No runtime publication is configured for this build",
-    "unsupported": "Python runtimes support macOS arm64 and Windows x64; this build architecture is unsupported",
+    "unsupported": "Python runtimes support macOS arm64/x64 and Windows x64; this build architecture is unsupported",
     "download": "Not prepared · {size} download",
     "preparing": "Prepare {name}",
     "prepare": "Prepare",
     "cancel": "Cancel",
-    "agent": "Agent Runtime"
+    "agent": "Agent Runtime",
+    "invalid": "Runtime verification failed. Review the error before preparing resources.",
+    "resources": "Model download environment",
+    "lightInference": "Transcription and media inference",
+    "torchInference": "Text and speech enrichment",
+    "voiceGeneration": "Voice design and cloning"
   },
   "resourceDownloads": {
     "label": "Download region",

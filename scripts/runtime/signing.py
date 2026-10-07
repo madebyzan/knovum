@@ -32,7 +32,7 @@ def _windows_thumbprint() -> str:
 
 
 def _verify_binary_signature(path: Path, target: str, *, production: bool) -> None:
-    if target == "macos-arm64":
+    if target.startswith("macos-"):
         requirement = ["-R", _mac_requirement()] if production else []
         subprocess.run(["codesign", "--verify", "--strict", *requirement, str(path)], check=True)
         return
@@ -64,7 +64,7 @@ def verify_runtime(root: Path, target: str) -> int:
 
 def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
     files = compiled_binaries(root, target)
-    if target == "macos-arm64":
+    if target.startswith("macos-"):
         if mode == "unsigned":
             raise ValueError("macOS runtime requires explicit ad-hoc or production signing")
         identity = "-" if mode == "adhoc" else os.environ["APPLE_SIGNING_IDENTITY"]

@@ -85,8 +85,13 @@ class TranscriptionEngine:
     ) -> dict[str, Any]:
         if params.profile.device not in {"cpu", "cuda"}:
             raise server_error("unsupported_device", "faster-whisper device is not supported")
-        if platform.system() != "Windows" or platform.machine().lower() not in {"amd64", "x86_64"}:
+        system, machine = platform.system(), platform.machine().lower()
+        if not (
+            (system == "Windows" and machine in {"amd64", "x86_64"}) or (system == "Darwin" and machine == "x86_64")
+        ):
             raise server_error("unsupported_device", "faster-whisper is not an accepted platform profile")
+        if system == "Darwin" and params.profile.device != "cpu":
+            raise server_error("unsupported_device", "Intel macOS ASR requires the CPU profile")
         try:
             from faster_whisper import WhisperModel
         except ImportError as error:

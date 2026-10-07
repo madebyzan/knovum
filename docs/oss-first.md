@@ -309,6 +309,24 @@ The [Kokoro model documentation](https://k2-fsa.github.io/sherpa/onnx/tts/pretra
 provides the canonical voice mapping for the pinned archive; catalog membership is validated by
 creation, preview, execution and package restore. Model/license release gates remain authoritative.
 
+## Native voice supplier reviewed 2026-10-07
+
+The [VoxCPM upstream README](https://github.com/OpenBMB/VoxCPM/blob/main/README.md) recommends
+llama.cpp-omni for native VoxCPM2 inference and also lists audio.cpp. The existing Python package
+still requires Datasets below 4; its independently frozen dependency audit reports affected
+Datasets 3.6.0 and fsspec 2025.3.0. Splitting environments preserves this production blocker;
+metadata rewriting or ignored advisories cannot resolve it.
+
+[Native probe evidence](evidence/native-voice-engine-probe-2026-10-07.json) records audio.cpp at
+`a1c24b2f90c6e6bcb9a525210d826717e96cdfa9` and the hash-verified original-precision VoxCPM2 GGUF.
+The native Intel CLI compiled without its model manager and produced real 48 kHz speech, then
+reference-transcript clone chunks. These are engine-interface probes, not product quality acceptance.
+The public C ABI starts synthesis synchronously before pull events are available; the C++ callback
+emits earlier but retains whole-output and named-chunk buffers. The built-in HTTP adapter has no
+qualified authenticated local transport. Neither interface is adopted as a shortcut around the
+existing bounded chunk, cancellation, model identity and Worker lifecycle contracts. The production
+engine and model snapshot remain unchanged; no new application dependency was added.
+
 ## Agent extension implementation choices
 
 Outbound MCP reuses official rmcp 3.5.1, alongside the existing server, including public OAuth

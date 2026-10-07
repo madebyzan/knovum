@@ -13,13 +13,13 @@ const WORKFLOW: &str = "speech_project_generation_v1";
 pub(super) async fn start(
     pool: &SqlitePool,
     request: GenerateSpeechProjectRequest,
-    runtime_digest: &str,
+    runtime_digests: &super::runtime_identity::RuntimeDigests,
 ) -> Result<RunObservation, String> {
     uuid::Uuid::parse_str(&request.request_id)
         .map_err(|_| "Speech generation request identity must be a UUID")?;
     uuid::Uuid::parse_str(&request.project_id)
         .map_err(|_| "Speech project identity must be a UUID")?;
-    require_runtime_digest(runtime_digest)?;
+    super::runtime_identity::validate(runtime_digests)?;
     let mut tx = db::begin_write(pool).await?;
     if let Some(row) = sqlx::query("SELECT input_snapshot FROM spaces_runs WHERE id=?")
         .bind(&request.request_id)
@@ -39,27 +39,26 @@ pub(super) async fn start(
         {
             return Err("speech-run-conflict: request identity belongs to another Run".into());
         }
-        let frozen_runtime = input
-            .get("runtimeDigest")
-            .and_then(serde_json::Value::as_str)
-            .ok_or("runtime_mismatch: Speech Run has no frozen Python runtime digest")?;
-        require_runtime_digest(frozen_runtime)?;
-        if frozen_runtime != runtime_digest {
+        let frozen_runtime = super::runtime_identity::read_snapshot(&input)?;
+        if &frozen_runtime != runtime_digests {
             return Err("runtime_mismatch: Speech Run Python runtime changed".into());
         }
         tx.commit().await.map_err(db::sql_error)?;
         return crate::spaces::runs::load_run(pool, &request.request_id).await;
     }
-    let active: Option<(String, String, String, i64, String)> = sqlx::query_as(
-        "SELECT p.space_id,p.project_type,p.active_revision_id,r.revision,r.output_config \
+    let active: Option<(String, String, String, i64, String, String)> = sqlx::query_as(
+        "SELECT p.space_id,p.project_type,p.active_revision_id,r.revision,r.output_config,p.source_node_id \
          FROM spaces_speech_projects p JOIN spaces_speech_project_revisions r \
-         ON r.id=p.active_revision_id WHERE p.id=?",
+         ON r.id=p.active_revision_id JOIN spaces_nodes n ON n.id=p.source_node_id AND n.space_id=p.space_id \
+         WHERE p.id=? AND n.deleted_at IS NULL",
     )
     .bind(&request.project_id)
     .fetch_optional(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let Some((space_id, project_type, revision_id, revision, output_config)) = active else {
+    let Some((space_id, project_type, revision_id, revision, output_config, source_node_id)) =
+        active
+    else {
         return Err("Speech project no longer exists".into());
     };
     if revision != request.expected_revision {
@@ -81,9 +80,11 @@ pub(super) async fn start(
     let output_config: serde_json::Value =
         serde_json::from_str(&output_config).map_err(db::json_error)?;
     let config = super::project_config::parse(&project_type, &output_config)?;
+    super::project_source::require(&mut tx, &space_id, &source_node_id, &config).await?;
     let segments = sqlx::query(
-        "SELECT id,ordinal,chapter_key,speaker_key,voice_revision_id FROM spaces_speech_segments \
-         WHERE project_revision_id=? ORDER BY ordinal",
+        "SELECT s.id,s.ordinal,s.chapter_key,s.speaker_key,s.voice_revision_id,v.engine_id \
+         FROM spaces_speech_segments s JOIN spaces_voice_revisions v ON v.id=s.voice_revision_id \
+         WHERE s.project_revision_id=? ORDER BY s.ordinal",
     )
     .bind(&revision_id)
     .fetch_all(&mut *tx)
@@ -91,6 +92,16 @@ pub(super) async fn start(
     .map_err(db::sql_error)?;
     if segments.is_empty() {
         return Err("Speech project has no segments to generate".into());
+    }
+    let profiles = segments
+        .iter()
+        .map(|row| {
+            let engine: String = row.try_get("engine_id").map_err(db::sql_error)?;
+            super::runtime_identity::profile_for_engine(&engine)
+        })
+        .collect::<Result<std::collections::BTreeSet<_>, String>>()?;
+    if profiles != runtime_digests.keys().copied().collect() {
+        return Err("runtime_mismatch: speech project runtime packages changed".into());
     }
     if let super::project_config::ProjectOutputConfig::Audiobook(config) = &config {
         validate_audiobook_segments(config, &segments)?;
@@ -102,7 +113,7 @@ pub(super) async fn start(
         &project_type,
         &revision_id,
         &segments,
-        runtime_digest,
+        runtime_digests,
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
@@ -143,7 +154,7 @@ async fn create(
     project_type: &str,
     revision_id: &str,
     segments: &[sqlx::sqlite::SqliteRow],
-    runtime_digest: &str,
+    runtime_digests: &super::runtime_identity::RuntimeDigests,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let principal = Principal {
@@ -166,7 +177,7 @@ async fn create(
         "revisionId": revision_id,
         "expectedRevision": request.expected_revision,
         "projectType": project_type,
-        "runtimeDigest": runtime_digest,
+        "runtimeDigests": runtime_digests,
     });
     let policy = json!({
         "grantId": grant.grant_id,
@@ -268,21 +279,6 @@ async fn create(
         .await
         .map_err(db::sql_error)?;
     Ok(())
-}
-
-fn require_runtime_digest(value: &str) -> Result<(), String> {
-    if valid_runtime_digest(value) {
-        Ok(())
-    } else {
-        Err("runtime_mismatch: Speech Run Python runtime digest is invalid".into())
-    }
-}
-
-pub(super) fn valid_runtime_digest(value: &str) -> bool {
-    value.len() == 64
-        && value
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 async fn insert_step(

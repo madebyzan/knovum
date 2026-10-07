@@ -15,7 +15,10 @@ consistent with this attribution.
 Compile without bundling:
 
 ```bash
-KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH=<verified-inference-descriptor> \
+KNOVUM_PYTHON_RESOURCES_DESCRIPTOR_PATH=<verified-resources-descriptor> \
+KNOVUM_PYTHON_LIGHT_INFERENCE_DESCRIPTOR_PATH=<verified-light-inference-descriptor> \
+KNOVUM_PYTHON_TORCH_INFERENCE_DESCRIPTOR_PATH=<verified-torch-inference-descriptor> \
+KNOVUM_PYTHON_VOICE_GENERATION_DESCRIPTOR_PATH=<verified-voice-generation-descriptor> \
 KNOVUM_PYTHON_AGENT_DESCRIPTOR_PATH=<verified-builtin-agent-descriptor> \
 pnpm exec tauri build --no-bundle
 ```
@@ -53,29 +56,31 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 ## Distribution boundaries
 
 The installer contains FFmpeg, current application-owned `.py` capability source from `python/src`,
-`resources/python-inference-descriptor.json` and `resources/python-agent-descriptor.json`.
-It excludes CPython and third-party Python packages. Application source follows the desktop version.
-Two immutable runtime profiles per target contain their own interpreter/package root, licenses,
-`runtime-requirements.txt` and schema-1 `runtime-manifest.json`. Inference selects the frozen
-`inference`/`model-resources` extras from `python/uv.lock`; Builtin Agent selects production dependencies
-from `python/runtimes/agent/uv.lock`. Neither publication contains quality dependencies or
-application source. The profiles reuse one producer and installer; their incompatible Pydantic
-constraints require separate dependency environments. No Torch or inference models enter Builtin Agent.
+and `resources/python-<profile>-descriptor.json` for every profile. It excludes CPython and
+third-party Python packages. Application source follows the desktop version. The shipped
+`workerDigest` covers the entire application-owned Python Worker tree.
+
+Five immutable runtime profiles per target contain their own interpreter/package root, licenses,
+`runtime-requirements.txt` and schema-1 `runtime-manifest.json`: `resources`, `light-inference`,
+`torch-inference`, `voice-generation` and `agent`. Each exports production dependencies from its
+own `python/runtimes/<profile>/uv.lock`; the root project owns tooling only. Publications contain
+neither quality dependencies nor application source. All profiles reuse one producer and installer.
+Resources and light inference do not convey Torch or VoxCPM; Agent remains independent.
 
 Schema-1 descriptors bind profile, target, interpreter version, dependency lock/requirements hashes,
-regional immutable HTTPS archive URLs, size/SHA-256 and manifest SHA-256. Packaging passes their paths
-through `KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH` and `KNOVUM_PYTHON_AGENT_DESCRIPTOR_PATH`;
-`build.rs` embeds both. Release requires both; debug/E2E can explicitly omit publications, leaving
-these capabilities unavailable. Source-only edits do not change the runtime archive. A changed
-lock invalidates that profile's frozen publication, including a changed quality constraint in the
-same lock. The runtime is never resolved/installed with pip or uv on an end-user computer.
+regional immutable HTTPS archive URLs, size/SHA-256 and manifest SHA-256. Packaging passes their
+paths through `KNOVUM_PYTHON_<PROFILE>_DESCRIPTOR_PATH`, with uppercase underscore profile names;
+`build.rs` embeds every descriptor. Release requires all five; debug/E2E can explicitly omit
+publications, leaving their capabilities unavailable. Source-only edits do not change runtime
+archives. A changed profile lock invalidates only that profile's publication. The runtime is never
+resolved or installed with pip or uv on an end-user computer. Old `inference` publications are rejected.
 
 Producer records also use schema version 1. Publications created with earlier development schemas
 must be rebuilt with the current producer; renumbering manifest bytes changes their integrity hashes.
 
 `local_resources/runtimes/python` installs a selected profile on demand, using the existing shared
 preparation registry, measured progress, cancellation and immutable archive verification. Settings
-shows both profiles independently. Archive download, safe extraction and full file verification
+shows all five profiles independently. Archive download, safe extraction and full file verification
 precede atomic publication to:
 
 ```text
@@ -88,19 +93,29 @@ and a private checkpoint path. Prepared runtime/models work offline; bootstrap d
 resources. Standard file leases protect in-use publications, including while a process shuts down.
 User models keep their existing app-data lifetime.
 
-Development-only verified-runtime overrides are `KNOVUM_PYTHON_INFERENCE_MANIFEST_PATH` and
-`KNOVUM_PYTHON_AGENT_MANIFEST_PATH`. `KNOVUM_PYTHON_WORKER_PATH` selects source explicitly;
+Development-only verified-runtime overrides are `KNOVUM_PYTHON_<PROFILE>_MANIFEST_PATH`
+with the same uppercase underscore profile names. `KNOVUM_PYTHON_WORKER_PATH` selects source explicitly;
 `pnpm desktop:dev` sets this checkout's `python/src` and the provisioned FFmpeg path. There is no
-legacy bundle discovery or system-Python fallback. Both profiles support macOS ARM64 and Windows x64.
+legacy bundle discovery or system-Python fallback. All profiles target macOS arm64/x64 and Windows x64; target qualification gaps are explicit below.
+
+## Intel macOS native dependency qualification
+
+Intel macOS is a required native product target. The current heavyweight Torch/TorchCodec/ONNX
+Runtime pins do not have a qualified Intel distribution closure. The provisional full-stack source
+builder and its SDK toolchain have been removed; no runtime artifact has been produced by that route.
+The native `macos-15-intel` publication lane remains, but cannot qualify missing dependencies by
+declaring support. A maintained supplier or reviewed capability-specific native engine must prove
+its complete dependency closure, security/license evidence, relocation, imports and signing before
+producing a descriptor. End-user preparation only installs verified artifacts and never builds sources.
 
 ## Controlled build inputs
 
-`pnpm runtime:provision --profile inference` downloads and verifies FFmpeg into
+`pnpm runtime:provision --profile light-inference` downloads and verifies FFmpeg into
 `src-tauri/resources/bundled-runtime/<target>/`, and the separate Python publication into
-`runtime-artifacts/inference/<target>/`. Run `pnpm runtime:provision --profile agent` for
-`runtime-artifacts/agent/<target>/`. The latter is build evidence/input and is never a bundle resource.
+`runtime-artifacts/light-inference/<target>/`. Run `pnpm runtime:provision --profile <profile>` for each other
+`runtime-artifacts/<profile>/<target>/` publication. The latter is build evidence/input and is never a bundle resource.
 The provisioner requires these real, immutable URLs and SHA-256 values (`TARGET` is
-`MACOS_ARM64` or `WINDOWS_X64`):
+`MACOS_ARM64`, `MACOS_X64` or `WINDOWS_X64`):
 
 - `KNOVUM_FFMPEG_<TARGET>_URL` / `_SHA256`;
 - `KNOVUM_PYTHON_<PROFILE>_<TARGET>_URL` / `_SHA256`;
@@ -121,7 +136,7 @@ Background removal continues to use ONNX Runtime with the verified on-demand U²
 ## Controlled Python runtime producer
 
 ```bash
-pnpm runtime:build --profile <inference|agent> --output <fresh-directory> --signing <adhoc|unsigned|production> \
+pnpm runtime:build --profile <resources|light-inference|torch-inference|voice-generation|agent> --output <fresh-directory> --signing <adhoc|unsigned|production> \
   --global-archive-url <immutable-global-https-archive-url> \
   --china-archive-url <immutable-china-https-archive-url>
 ```
@@ -130,8 +145,9 @@ The native producer uses the frozen publication group and pinned CPython 3.11.17
 archives from `python/runtime-source.json`. uv 0.12.23 installs hash-bound dependencies in a
 frozen build environment. VoxCPM builds from its exact Git commit with source/tree/wheel evidence.
 No development environment or application Worker is copied into the runtime. Relocation checks import the selected profile's actual third-party stack from a path containing
-spaces and Chinese characters: inference and both Hub SDKs, or Deep Agents/SQLite saver and all
-official model clients.
+spaces and Chinese characters. Resources import both Hub SDKs without Torch; light inference
+blocks Torch imports while loading ONNX/Sherpa and native CTranslate2 ASR; heavy inference,
+voice generation and Agent each import their independently selected stack.
 Signing precedes file-manifest creation. QA signing is explicitly ad-hoc on macOS/unsigned on
 Windows; production signing and signer/timestamp verification remain mandatory.
 
@@ -143,9 +159,8 @@ equivalent access. Runtime licenses/notices stay in the conveyed runtime; moving
 not distribution approval. The workflow's `global_archive_base_url` and `china_archive_base_url` must be actual immutable
 public publication directories serving identical archive bytes. Workflow upload artifacts alone do not publish that URL.
 
-`python/dependency-license-review.json` and
-`python/runtimes/agent/dependency-license-review.json` approve each profile's lock/requirements
-digests and exact per-target installed inventory. Inference also conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper native-source
+`python/runtimes/<profile>/dependency-license-review.json` approves each profile's lock/requirements
+digests and exact per-target installed inventory. Voice generation conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper native-source
 review and separate Kokoro/data review continue to block production. Metadata, source hashes and
 QA artifacts are not legal approval. Required complete corresponding-source/build/installation
 materials must accompany the reviewed publication.
@@ -192,7 +207,7 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers both supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all three supported native targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.
 
 ## Bundled Agent plugin content
 
@@ -207,4 +222,4 @@ an explicitly configured installed absolute executable and explicit connection e
 Processes use existing process-group/Windows-job ownership and are killed when their task or
 account is revoked. External HTTPS package downloads and MCP endpoints pin validated DNS
 addresses and do not inherit environment proxies that bypass that policy. Release support remains
-macOS ARM64 and Windows x64. Agent RPC/graph v1 and profile v1 reject obsolete internal envelopes.
+macOS arm64/x64 and Windows x64. Agent RPC/graph v1 and profile v1 reject obsolete internal envelopes.

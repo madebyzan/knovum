@@ -1,51 +1,52 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { updateMcpConnection } from "../../../foundation/extensions/connection-operations";
 import { accountQuery } from "../../../foundation/extensions/extension-query";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
+import UiSelect from "../../../shared/ui/UiSelect.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 
 const props = defineProps<{ connection: McpConnection }>();
+const { t } = useI18n();
 const query = useQuery(accountQuery);
 const changes = useExtensionChanges();
 const accounts = computed(() =>
   (query.data.value ?? []).filter((account) => account.connectorId === props.connection.connectorId),
 );
-function bind(event: Event) {
-  const id = (event.target as HTMLSelectElement).value;
+function bind(id: string) {
   void changes
     .mutateAsync(async () => {
-      await updateMcpConnection({ ...props.connection, accountId: id || null });
+      await updateMcpConnection({ ...props.connection, accountId: id === "none" ? null : id });
     })
     .catch(() => {});
 }
+const selected = computed({ get: () => props.connection.accountId ?? "none", set: bind });
+const options = computed(() => [
+  { value: "none", label: t("extensions.noAccount") },
+  ...accounts.value.map((account) => ({
+    value: account.id,
+    label: account.displayName,
+    disabled: !account.enabled || account.cleanupPending,
+  })),
+]);
 </script>
 
 <template>
   <section class="space-y-1">
-    <label class="block text-caption"
-      >{{ $t("extensions.selectedAccount")
-      }}<select
-        :value="connection.accountId ?? ''"
-        class="ml-2 rounded-sm bg-surface-control p-2"
+    <div class="space-y-1.5">
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.selectedAccount") }}</span
+      ><UiSelect
+        v-model="selected"
+        :label="$t('extensions.selectedAccount')"
+        :options="options"
         :disabled="query.isPending.value || changes.isPending.value"
         data-testid="select-connector-account"
-        @change="bind"
-      >
-        <option value="">{{ $t("extensions.noAccount") }}</option>
-        <option
-          v-for="account in accounts"
-          :key="account.id"
-          :value="account.id"
-          :disabled="!account.enabled || account.cleanupPending"
-        >
-          {{ account.displayName }}
-        </option>
-      </select></label
-    >
+      />
+    </div>
     <p class="text-caption text-fg-secondary">{{ $t("extensions.accountBindingChanges") }}</p>
     <p v-if="query.error.value || changes.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(query.error.value || changes.error.value) }}

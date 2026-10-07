@@ -1,6 +1,24 @@
 # System architecture
 
+Native runtime target identity is architecture-specific: macOS arm64, macOS x64 and Windows x64.
+Five independently locked Python profiles reuse one publication/installation contract. Apple Silicon selects MLX ASR;
+Intel macOS and Windows select the frozen faster-whisper CPU profile before worker startup. Intel
+inference has no qualified native heavyweight distribution yet; its supplier closure must be proven
+before publication. Architecture-specific build, signing and model
+qualification evidence remains mandatory; details belong to `platform-matrix.md` and `packaging.md`.
+
 Knovum is one knowledge-space desktop application process with a Tauri/Rust host and Vue WebView UI. Spaces owns the primary product experience; Settings is an application-level preference destination.
+
+Speech production belongs to source nodes. Text, note and Markdown nodes own narration and audiobook
+operations; supported document nodes own audiobook operations; video nodes own dubbing. Speech projects
+persist an immutable source-node identity in the same Space. Node actions open the existing production
+editors in a contextual dialog, with shared voice revisions available inside that operation. The right
+sidebar has no independent speech destination. Transcription, alignment and diarization remain media-node
+capabilities. Package export, identifier remapping and restoration preserve project ownership.
+Deleting a source permanently cascades to its production projects; moving it to the recycle bin excludes
+those projects from package export and prevents new generation. Source nodes that own production projects
+cannot change Space or node type. Successful publication creates an audio/video node beside the source
+through the existing node insertion transaction; repeating publication does not duplicate that node.
 
 ## Runtime topology
 
@@ -417,12 +435,22 @@ the WebView never generates or transports embedding vectors or commits a partial
 
 The Rust local inference supervisor grants one heavy-model compute permit across capabilities,
 including model loading. Interactive work takes priority while queued background work ages into
-service. The application bundles its own Worker and an immutable platform download descriptor;
-CPython and third-party packages are shared resources installed before models/inference. Rust passes
+service. The application bundles its own Worker and five immutable platform download descriptors.
+The `resources` package owns Hub SDK downloads; `light-inference` owns ONNX, Sherpa and
+CTranslate2; `torch-inference` owns embeddings, alignment, diarization and Apple Silicon MLX ASR;
+`voice-generation` owns VoxCPM2; `agent` owns Deep Agents and model clients. Each package has
+an independent lock and installed dependency root. Preparation selects only the execution packages
+required by the requested model snapshots; it prepares `resources` only for snapshots still missing.
+Already verified models do not require the downloader package. Imported Community-1 requires
+the Torch package; Kokoro uses direct verified archive preparation and the light package. Rust passes
 the application Worker root, dependency root and actual runtime manifest path explicitly.
 It launches only a verified, managed, on-demand CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
-and is recycled on capability change, cancellation timeout, idle expiry or application exit.
+and is recycled on package digest, capability or device-profile change, cancellation timeout,
+idle expiry or application exit. Startup rejects a package that does not own the selected execution
+profile before memory admission or process spawn. Speech Runs freeze a `runtimeDigests` map
+for every engine actually referenced by the active project revision. Segment execution selects
+and verifies its own frozen package digest; retries and package restore reject obsolete single-digest Runs.
 `knovum_inference/runtime/` composes the inference process lifecycle and capability dispatch; `transport/` owns stdio
 framing and validation, and `speech/` owns its engines and synthesis stream. Capability modules
 do not depend on transport or worker state. Session preparation, including native imports and

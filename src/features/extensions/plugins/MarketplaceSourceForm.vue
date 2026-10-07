@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import type { MarketplaceSource } from "../../../shared/contracts/generated/MarketplaceSource";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import UiSelect from "../../../shared/ui/UiSelect.vue";
 defineProps<{ busy: boolean }>();
 const emit = defineEmits<{ add: [source: MarketplaceSource] }>();
 const form = reactive({ type: "https", location: "", reference: "HEAD", subdirectory: "" });
@@ -21,32 +22,40 @@ function submit() {
 </script>
 
 <template>
-  <form class="space-y-2" @submit.prevent="submit">
-    <label class="flex items-center gap-2 text-caption"
-      >{{ $t("extensions.marketplaceSource") }}
-      <select
-        data-testid="marketplace-source-type"
+  <form class="space-y-4" @submit.prevent="submit">
+    <div class="space-y-1.5">
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.marketplaceSource") }}</span>
+      <UiSelect
         v-model="form.type"
-        class="rounded-sm bg-surface-control px-2 py-1"
-      >
-        <option value="https">HTTPS</option>
-        <option value="directory">{{ $t("extensions.localDirectory") }}</option>
-        <option value="git">HTTPS Git</option>
-      </select>
-    </label>
-    <label class="block text-caption"
-      >{{ $t("extensions.location") }}<UiInput v-model="form.location" data-testid="marketplace-location"
+        :label="$t('extensions.marketplaceSource')"
+        data-testid="marketplace-source-type"
+        :disabled="busy"
+        :options="[
+          { value: 'https', label: 'HTTPS' },
+          { value: 'directory', label: $t('extensions.localDirectory') },
+          { value: 'git', label: 'HTTPS Git' },
+        ]"
+      />
+    </div>
+    <label class="block space-y-1.5 text-caption text-fg-secondary"
+      >{{ $t("extensions.location")
+      }}<UiInput :disabled="busy" v-model="form.location" data-testid="marketplace-location"
     /></label>
     <template v-if="form.type === 'git'">
-      <label class="block text-caption"
-        >{{ $t("extensions.gitReference") }}<UiInput v-model="form.reference"
+      <label class="block space-y-1.5 text-caption text-fg-secondary"
+        >{{ $t("extensions.gitReference") }}<UiInput :disabled="busy" v-model="form.reference"
       /></label>
-      <label class="block text-caption"
-        >{{ $t("extensions.subdirectory") }}<UiInput v-model="form.subdirectory"
+      <label class="block space-y-1.5 text-caption text-fg-secondary"
+        >{{ $t("extensions.subdirectory") }}<UiInput :disabled="busy" v-model="form.subdirectory"
       /></label>
     </template>
-    <UiButton type="submit" size="sm" :disabled="busy || !form.location" data-testid="add-marketplace">{{
-      $t("extensions.addSource")
-    }}</UiButton>
+    <UiButton
+      variant="primary"
+      type="submit"
+      size="sm"
+      :disabled="busy || !form.location.trim()"
+      data-testid="add-marketplace"
+      >{{ $t("extensions.addSource") }}</UiButton
+    >
   </form>
 </template>

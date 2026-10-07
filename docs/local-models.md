@@ -7,9 +7,9 @@ Knovum separates bundled core media runtimes from on-demand capability resources
 Platform-specific runtime binaries belong to the application release and are never fetched from arbitrary URLs at runtime:
 
 - FFmpeg
-- a controlled CPython 3.11.17 runtime for local embedding, image segmentation, and speech inference
+- trusted platform descriptors for the on-demand CPython 3.11.17 inference and Agent profiles
 
-Development and CI point to controlled runtime paths through the documented environment variables. Release builds package the runtime from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The Python runtime has its own manifest listing every file, size and SHA-256. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing Python does not block ordinary startup or Space editing, but embedding requests fail with `runtime_missing`.
+Development and CI point to controlled runtime paths through the documented environment variables. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. Each separately published Python runtime has its own manifest listing every file, size and SHA-256. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing Python does not block ordinary startup or Space editing, but embedding requests fail with `runtime_missing`.
 
 ## Prepared on first use
 
@@ -35,15 +35,22 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                         | Model                                                                                           | Ownership | Product action             |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------- | --------- | -------------------------- |
-| Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                  | Knovum    | Prepare on use             |
-| Multilingual media transcription   | `mlx-community/whisper-small-mlx` on macOS arm64; `Systran/faster-whisper-small` on Windows x64 | Knovum    | Prepare on use             |
-| Preset speech synthesis            | `kokoro-int8-multi-lang-v1_0`                                                                   | Knovum    | Prepare on use             |
-| Designed-voice synthesis           | `openbmb/VoxCPM2`                                                                               | Knovum    | Prepare on use             |
-| Selected transcript alignment      | `Qwen3-ForcedAligner-0.6B`                                                                      | Knovum    | Prepare on use             |
-| Optional speaker diarization       | `pyannote/speaker-diarization-community-1`                                                      | User      | Import after authorization |
-| Video vocals/background separation | `csukuangfj/sherpa-onnx-spleeter-2stems-fp16` at `93ba771920ade509f8cbd6825b1a90856c797e08`     | Knovum    | Prepare on use             |
+| Capability                         | Model                                                                                                         | Ownership | Product action             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------- | -------------------------- |
+| Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                                | Knovum    | Prepare on use             |
+| Multilingual media transcription   | `mlx-community/whisper-small-mlx` on macOS arm64; `Systran/faster-whisper-small` on macOS x64 and Windows x64 | Knovum    | Prepare on use             |
+| Preset speech synthesis            | `kokoro-int8-multi-lang-v1_0`                                                                                 | Knovum    | Prepare on use             |
+| Designed-voice synthesis           | `openbmb/VoxCPM2`                                                                                             | Knovum    | Prepare on use             |
+| Selected transcript alignment      | `Qwen3-ForcedAligner-0.6B`                                                                                    | Knovum    | Prepare on use             |
+| Optional speaker diarization       | `pyannote/speaker-diarization-community-1`                                                                    | User      | Import after authorization |
+| Video vocals/background separation | `csukuangfj/sherpa-onnx-spleeter-2stems-fp16` at `93ba771920ade509f8cbd6825b1a90856c797e08`                   | Knovum    | Prepare on use             |
+
+Preparation selects the model snapshot's execution package: native Intel/Windows ASR, background
+removal, separation and Kokoro use `light-inference`; Apple Silicon ASR, embeddings, alignment
+and Community-1 use `torch-inference`; VoxCPM2 uses `voice-generation`. Hub downloads use
+`resources` only when verified snapshots are missing. Settings reports these packages independently;
+a missing publication means the build lacks a qualified resource, not that the computer architecture
+is unsupported. Community-1 import and Kokoro preparation do not require the Hub SDK package.
 
 The Apple Silicon ASR profile uses the ONNX Silero VAD model packaged with the exact-locked
 `silero-vad==6.2.3` runtime dependency. It evaluates the prepared 16 kHz PCM audio on its original

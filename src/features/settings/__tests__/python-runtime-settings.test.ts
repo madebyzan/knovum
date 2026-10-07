@@ -18,8 +18,11 @@ beforeEach(() => {
   mocks.data.value = {
     platform: "unsupported",
     pythonRuntimes: {
-      inference: { available: false, downloadable: false, downloadSize: null },
-      agent: { available: false, downloadable: false, downloadSize: null },
+      resources: { state: "not_published" },
+      "light-inference": { state: "not_published" },
+      "torch-inference": { state: "not_published" },
+      "voice-generation": { state: "not_published" },
+      agent: { state: "not_published" },
     },
   };
   mocks.error.value = null;
@@ -27,7 +30,7 @@ beforeEach(() => {
 
 function render() {
   return mount(PythonRuntimeSettingsField, {
-    props: { profile: "inference", label: "Inference" },
+    props: { profile: "torch-inference", label: "Inference" },
     global: {
       stubs: {
         PreferenceField: {
@@ -71,5 +74,24 @@ it("keeps genuine resource inspection failures visible", () => {
     expect(wrapper.get('[role="alert"]').text()).toBe("Unable to inspect runtime manifest");
   } finally {
     wrapper.unmount();
+  }
+});
+
+it("scopes a broken runtime to its own setting without hiding another runtime", () => {
+  mocks.data.value!.platform = "macos-x64";
+  mocks.data.value!.pythonRuntimes["torch-inference"] = {
+    state: "invalid",
+    message: "Inference manifest failed verification",
+  };
+  mocks.data.value!.pythonRuntimes.agent = { state: "ready" };
+  const inference = render();
+  const agent = mount(PythonRuntimeSettingsField, { props: { profile: "agent", label: "Agent" } });
+  try {
+    expect(inference.get('[role="alert"]').text()).toBe("Inference manifest failed verification");
+    expect(agent.find('[role="alert"]').exists()).toBe(false);
+    expect(agent.find("button").exists()).toBe(false);
+  } finally {
+    inference.unmount();
+    agent.unmount();
   }
 });

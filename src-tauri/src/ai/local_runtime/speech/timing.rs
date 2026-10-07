@@ -142,27 +142,15 @@ pub(crate) async fn diarize<R: Runtime>(
 }
 
 fn validate_alignment_platform() -> Result<(), String> {
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    ))]
+    #[cfg(knovum_supported_desktop)]
     return Ok(());
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
+    #[cfg(not(knovum_supported_desktop))]
     Err("unsupported_device: Qwen3 forced alignment is not qualified for this platform".into())
 }
 
 fn validate_diarization_platform() -> Result<(), String> {
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    ))]
+    #[cfg(knovum_supported_desktop)]
     return Ok(());
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
+    #[cfg(not(knovum_supported_desktop))]
     Err("unsupported_device: Community-1 diarization is not qualified for this platform".into())
 }

@@ -13,9 +13,9 @@ const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 function fixture(context) {
   const repository = mkdtempSync(join(tmpdir(), "knovum-license-review-"));
   context.after(() => rmSync(repository, { recursive: true, force: true }));
-  const python = join(repository, "python");
+  const python = join(repository, "python/runtimes/resources");
   const directory = join(repository, "runtime");
-  mkdirSync(python);
+  mkdirSync(python, { recursive: true });
   mkdirSync(directory);
   mkdirSync(join(directory, "..", "build-evidence"), { recursive: true });
   writeFileSync(join(python, "uv.lock"), "locked graph");
@@ -30,7 +30,7 @@ function fixture(context) {
     schemaVersion: 1,
     reviewStatus: "approved",
     dependencyRequirementsSha256: hash("locked graph"),
-    profile: "inference",
+    profile: "resources",
     dependencyLockSha256: hash("locked graph"),
     targets: { "macos-arm64": review, "windows-x64": null },
   };
@@ -49,7 +49,7 @@ function fixture(context) {
     policy,
     save: () => writeFileSync(join(python, "dependency-license-review.json"), JSON.stringify(policy)),
     validate: (target = "macos-arm64") =>
-      validateDependencyLicenseReview(directory, target, repository, "inference"),
+      validateDependencyLicenseReview(directory, target, repository, "resources"),
   };
 }
 
@@ -86,7 +86,7 @@ test("production verification enforces unresolved review before invoking native 
     }),
   );
   assert.throws(
-    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository, "inference"),
+    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository, "resources"),
     /license review is unresolved/,
   );
 });

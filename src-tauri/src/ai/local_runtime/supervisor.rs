@@ -42,7 +42,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         EmbeddingRole::Document => super::admission::Priority::Background,
     };
     let runtime =
-        python::resolve(app, python::RuntimeProfile::Inference)?.ok_or("runtime_missing")?;
+        python::resolve(app, python::RuntimeProfile::TorchInference)?.ok_or("runtime_missing")?;
     let model_directory = embedding_directory(resources)?;
     let threads = std::thread::available_parallelism()
         .map(|count| count.get().min(4) as u8)

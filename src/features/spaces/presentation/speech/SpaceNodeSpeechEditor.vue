@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOutput";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpeechWorkspace } from "../../speech/use-speech-workspace";
-import { activeVoiceRevisions } from "../../speech/voice-options";
-import SpeechCatalog from "./SpeechCatalog.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
 import SpeechProjectForm from "./SpeechProjectForm.vue";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
 import VoiceManagement from "./VoiceManagement.vue";
 import VoiceProfileForm from "./VoiceProfileForm.vue";
 
+const props = defineProps<{ node: SpaceCanvasNode }>();
 const {
   voices,
   projects,
@@ -38,7 +39,7 @@ const {
   cancelGeneration,
   stopPreviewListening,
   exportRender,
-} = useSpeechWorkspace();
+} = useSpeechWorkspace(() => props.node.id);
 
 const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
   const project = selectedProject.value;
@@ -58,7 +59,9 @@ const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
     sampleCount: revision.outputSampleCount,
   };
 });
-const catalogVoices = computed(() => activeVoiceRevisions(voices.value));
+const projectOptions = computed(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.title })),
+);
 </script>
 
 <template>
@@ -67,22 +70,32 @@ const catalogVoices = computed(() => activeVoiceRevisions(voices.value));
       {{ error }}
     </p>
     <div class="space-y-5" :aria-busy="loading">
-      <section class="space-y-2">
-        <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newVoice") }}</h2>
+      <details class="space-y-2">
+        <summary class="cursor-pointer text-label font-medium text-fg-primary">
+          {{ $t("spaces.speech.voices") }}
+        </summary>
         <fieldset>
           <VoiceProfileForm :disabled="creatingVoice" @create="addPreset" />
           <VoiceCandidateForm @created="acceptVoice" />
         </fieldset>
-      </section>
-      <VoiceManagement @changed="refreshVoices" />
+        <VoiceManagement @changed="refreshVoices" />
+      </details>
       <section class="space-y-2 border-t border-stroke-divider pt-4">
         <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newProject") }}</h2>
         <fieldset>
-          <SpeechProjectForm :disabled="creatingProject" @create="addProject" />
+          <SpeechProjectForm :node="node" :disabled="creatingProject" @create="addProject" />
         </fieldset>
       </section>
+      <UiSelect
+        v-if="projects.length"
+        :model-value="selectedProject?.project.id ?? ''"
+        :options="projectOptions"
+        :label="$t('spaces.speech.nodeProjects')"
+        @update:model-value="openProject"
+      />
       <SpeechProjectEditor
         v-if="selectedProject"
+        :source-node="node"
         :project="selectedProject"
         :voices="voices"
         :preview="preview"
@@ -101,7 +114,6 @@ const catalogVoices = computed(() => activeVoiceRevisions(voices.value));
         @stop-listening="stopPreviewListening"
         @export="exportRender"
       />
-      <SpeechCatalog :voices="catalogVoices" :projects="projects" @select-project="openProject" />
     </div>
   </div>
 </template>

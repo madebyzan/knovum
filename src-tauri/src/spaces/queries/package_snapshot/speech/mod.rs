@@ -5,6 +5,8 @@ use super::{decode::*, package_assets::PackageAssets};
 use crate::spaces::db;
 mod runtime;
 mod source_separation;
+#[cfg(test)]
+mod tests;
 mod translation;
 
 pub(super) struct SpeechSnapshot {
@@ -42,16 +44,16 @@ pub(super) async fn load(
     .await
     .map_err(db::sql_error)?;
     let projects =
-        sqlx::query("SELECT * FROM spaces_speech_projects WHERE space_id=? ORDER BY created_at,id")
+        sqlx::query("SELECT p.* FROM spaces_speech_projects p JOIN spaces_nodes n ON n.id=p.source_node_id AND n.deleted_at IS NULL WHERE p.space_id=? ORDER BY p.created_at,p.id")
             .bind(space_id)
             .fetch_all(&mut **tx)
             .await
             .map_err(db::sql_error)?;
-    let project_revisions = sqlx::query("SELECT r.* FROM spaces_speech_project_revisions r JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? ORDER BY p.created_at,r.revision")
+    let project_revisions = sqlx::query("SELECT r.* FROM spaces_speech_project_revisions r JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? AND EXISTS(SELECT 1 FROM spaces_nodes n WHERE n.id=p.source_node_id AND n.deleted_at IS NULL) ORDER BY p.created_at,r.revision")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    let segments = sqlx::query("SELECT s.* FROM spaces_speech_segments s JOIN spaces_speech_project_revisions r ON r.id=s.project_revision_id JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? ORDER BY p.created_at,r.revision,s.ordinal")
+    let segments = sqlx::query("SELECT s.* FROM spaces_speech_segments s JOIN spaces_speech_project_revisions r ON r.id=s.project_revision_id JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? AND EXISTS(SELECT 1 FROM spaces_nodes n WHERE n.id=p.source_node_id AND n.deleted_at IS NULL) ORDER BY p.created_at,r.revision,s.ordinal")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    let renders = sqlx::query("SELECT o.* FROM spaces_speech_renders o JOIN spaces_speech_segments s ON s.id=o.segment_id JOIN spaces_speech_project_revisions r ON r.id=s.project_revision_id JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? ORDER BY o.created_at,o.id")
+    let renders = sqlx::query("SELECT o.* FROM spaces_speech_renders o JOIN spaces_speech_segments s ON s.id=o.segment_id JOIN spaces_speech_project_revisions r ON r.id=s.project_revision_id JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=? AND EXISTS(SELECT 1 FROM spaces_nodes n WHERE n.id=p.source_node_id AND n.deleted_at IS NULL) ORDER BY o.created_at,o.id")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
 
     Ok(SpeechSnapshot {
@@ -165,6 +167,7 @@ fn voice_revision(
 
 fn project(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(json!({
+        "sourceNodeId":decode_text(row,"source_node_id")?,
         "id":decode_text(row,"id")?, "spaceId":decode_text(row,"space_id")?, "projectType":decode_text(row,"project_type")?,
         "title":decode_text(row,"title")?, "activeRevisionId":decode_optional_text(row,"active_revision_id")?,
         "createdAt":decode_integer(row,"created_at")?, "updatedAt":decode_integer(row,"updated_at")?,

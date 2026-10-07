@@ -21,7 +21,7 @@ A production candidate must use committed pnpm/Cargo lockfiles and one reviewed 
 The candidate workflow requires the tag to match all three application versions, reviewed notes at
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, native
 builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
-macOS arm64 and Windows x64. A partial matrix cannot enter the stable manifest.
+macOS arm64/x64 and Windows x64. A partial matrix cannot enter the stable manifest.
 The independently published, on-demand CPython interpreter, native extension modules and dependent dynamic libraries are
 part of the application trust boundary. Each target must verify the complete runtime manifest,
 native loadability, signing/notarization or Authenticode conditions, and an installed inference
@@ -127,6 +127,11 @@ not publisher signing or successful native execution. The inspected macOS arm64 
 asset is ad-hoc signed, not publisher-signed. Never remove quarantine metadata or weaken OS security
 to make an unsigned tool run. Where policy requires publisher signatures, use controlled signed
 artifacts, review their provenance/hashes and repeat native acceptance.
+
+Candidate metadata uses `localRuntimes`: one entry per native target, containing the shipped
+Worker tree digest and the complete five-profile descriptor collection. Collection and candidate
+validation require every profile exactly once, matching the artifact target and the strict runtime
+descriptor contract. Old `localInference` metadata cannot qualify a candidate.
 
 ## Version and artifact identity
 
@@ -359,9 +364,9 @@ provider, a model's quality, native TLS/proxy behavior or either release platfor
 
 Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
 checkout before native acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
-inside its own locked environment. Provision/build commands select `--profile inference` or
-`--profile agent` explicitly. Packaging verifies both profiles and ships only current owned
-source and the two descriptors. The maintainer owns native build/signing/installation acceptance.
+inside its own locked environment. Provision/build commands select one of the five strict
+profiles explicitly. Packaging verifies every profile and ships only current owned source
+and all five descriptors. The maintainer owns native build/signing/installation acceptance.
 
 ### Provider qualification record
 
@@ -430,8 +435,8 @@ and remeasurement; do not declare improvement from a constructed mock.
 
 ### Native runtime/control matrix
 
-On **macOS 14+ ARM64** and **Windows x64**, record clean installation without system Python,
-anonymous first download of both profiles in both regions, cancellation, separate dependency
+On **macOS 14+ arm64/x64** and **Windows x64**, record clean installation without system Python,
+anonymous first download of all five profiles in both regions, cancellation, separate dependency
 imports, restart/offline use, native CA/proxy behavior, protocol initialization, process-tree
 termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
 asset publication. The producer performs relocation imports from a path with spaces and Chinese

@@ -22,6 +22,18 @@ pub(crate) struct SnapshotFile {
 }
 
 impl SnapshotKind {
+    pub(crate) fn runtime_profile(
+        self,
+    ) -> crate::local_resources::runtimes::python::RuntimeProfile {
+        use crate::local_resources::runtimes::python::RuntimeProfile as P;
+        match self {
+            Self::FasterWhisper | Self::ImageSegmentation | Self::SpeechSeparation => {
+                P::LightInference
+            }
+            Self::MlxWhisper | Self::TextEmbedding | Self::SpeechAlignment => P::TorchInference,
+            Self::VoxCpm2 => P::VoiceGeneration,
+        }
+    }
     pub(crate) const fn name(self) -> &'static str {
         match self {
             Self::FasterWhisper => "faster-whisper-small",

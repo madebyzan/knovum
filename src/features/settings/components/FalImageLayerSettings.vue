@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import SecretPreferenceField from "./SecretPreferenceField.vue";
-import SettingsSection from "./SettingsSection.vue";
 
 const FAL_IMAGE_LAYER_SECRET_KEY = "integrations.image-layers.fal.api-key";
 const { t } = useI18n();
 </script>
 
 <template>
-  <SettingsSection
+  <UiSettingsSection
     id="settings-image-layers"
     tabindex="-1"
     :title="t('settings.ai.imageLayers.title')"
@@ -20,5 +20,5 @@ const { t } = useI18n();
       :description="t('settings.ai.imageLayers.apiKeyDescription')"
       :secret-key="FAL_IMAGE_LAYER_SECRET_KEY"
     />
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

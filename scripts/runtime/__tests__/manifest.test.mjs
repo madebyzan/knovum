@@ -17,22 +17,23 @@ function write(base, path, bytes) {
   writeFileSync(file, bytes);
 }
 
-function fixture(context) {
+function fixture(context, profile = "voice-generation") {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-validation-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  const python = join(root, "python");
+  const shared = join(root, "python");
+  const python = join(shared, "runtimes", profile);
   const runtime = join(root, "runtime");
   const lock = `source = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`;
   write(python, "uv.lock", lock);
   const target = "macos-arm64";
   const source = { url: "https://example.test/cpython.tar.gz", sha256: "b".repeat(64), size: 42 };
   write(
-    python,
+    shared,
     "runtime-source.json",
     JSON.stringify({ targets: { [target]: source }, uvVersion: "0.12.23", standaloneRelease: "20261003" }),
   );
   const native = { sources: [{ fileName: "native.zip", name: "native", sha256: hash("native"), size: 6 }] };
-  write(python, "compiled-source-evidence.json", JSON.stringify(native));
+  write(shared, "compiled-source-evidence.json", JSON.stringify(native));
   write(python, "src/knovum_inference/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
@@ -41,7 +42,7 @@ function fixture(context) {
   const evidence = join(root, "build-evidence");
   const producer = {
     schemaVersion: 1,
-    profile: "inference",
+    profile,
     target,
     version: "3.11.17",
     uvVersion: "0.12.23",
@@ -81,7 +82,7 @@ function fixture(context) {
       "runtime-manifest.json",
       JSON.stringify({
         schemaVersion: 1,
-        profile: "inference",
+        profile,
         dependencyLockSha256: hash(lock),
         runtimeId: "cpython",
         version: "3.11.17",
@@ -105,7 +106,7 @@ function fixture(context) {
   };
 }
 
-test("consumer binds interpreter, runtime requirements and external corresponding source bytes", (context) => {
+test("consumer binds interpreter, runtime requirements and frozen voice source bytes", (context) => {
   const sample = fixture(context);
   sample.validate();
 });
@@ -175,4 +176,11 @@ test("any changed dependency lock invalidates the frozen runtime identity", (con
     `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`,
   );
   assert.throws(sample.validate, /dependency lock differs/);
+});
+
+test("light runtime retains native corresponding-source verification independently of VoxCPM", (context) => {
+  const sample = fixture(context, "light-inference");
+  sample.validate();
+  sample.write(sample.evidence, "compiled-sources/native.zip", "changed");
+  assert.throws(sample.validate, /Native source archive differs/);
 });

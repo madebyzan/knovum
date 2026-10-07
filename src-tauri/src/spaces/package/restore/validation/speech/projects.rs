@@ -28,14 +28,17 @@ pub(super) fn validate(
         segments.sort_by_key(|segment| segment.ordinal);
     }
     let mut project_versions = HashSet::new();
+    let nodes: HashMap<_, _> = request
+        .nodes
+        .iter()
+        .map(|node| (node.id.as_str(), node))
+        .collect();
     for row in &request.speech_projects {
+        let source = nodes
+            .get(row.source_node_id.as_str())
+            .ok_or("Package speech source node is unavailable")?;
+        crate::spaces::speech::project_source::validate_kind(&source.kind, &row.project_type)?;
         required(&row.title, 200, "Speech project title")?;
-        if !matches!(
-            row.project_type.as_str(),
-            "short_dubbing" | "audiobook" | "video_dubbing"
-        ) {
-            return Err("Package speech project type is invalid".into());
-        }
         if row.created_at < 0 || row.updated_at < row.created_at {
             return Err("Package speech project timestamps are invalid".into());
         }

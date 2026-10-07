@@ -34,24 +34,25 @@ pub async fn prepare_models<R: Runtime>(
     request_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedModels, String> {
-    super::runtimes::python::prepare(
-        app,
-        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
-        request_cancellation,
-        &mut |update| {
-            if !matches!(update.stage, ResourcePreparationStage::Ready) {
-                progress(update);
-            }
-        },
-    )
-    .await?;
     if kinds.is_empty() {
         return Err("Model preparation requires at least one model".to_string());
     }
     if kinds.iter().copied().collect::<HashSet<_>>().len() != kinds.len() {
         return Err("Model preparation contains duplicate model parts".to_string());
     }
-    let mut waiters = Vec::with_capacity(kinds.len());
+    let profiles = kinds
+        .iter()
+        .map(|kind| catalog::descriptor(*kind).snapshot.runtime_profile())
+        .collect::<std::collections::BTreeSet<_>>();
+    for profile in profiles {
+        super::runtimes::python::prepare(app, profile, request_cancellation, &mut |update| {
+            if !matches!(update.stage, ResourcePreparationStage::Ready) {
+                progress(update);
+            }
+        })
+        .await?;
+    }
+    let mut missing = Vec::new();
     let mut snapshots = HashSet::new();
     for &kind in kinds {
         let descriptor = catalog::descriptor(kind);
@@ -65,6 +66,24 @@ pub async fn prepare_models<R: Runtime>(
             ));
         }
         if !status.verified && snapshots.insert(descriptor.snapshot) {
+            missing.push(kind);
+        }
+    }
+
+    let mut waiters = Vec::with_capacity(missing.len());
+    if !missing.is_empty() {
+        super::runtimes::python::prepare(
+            app,
+            crate::local_resources::runtimes::python::RuntimeProfile::Resources,
+            request_cancellation,
+            &mut |update| {
+                if !matches!(update.stage, ResourcePreparationStage::Ready) {
+                    progress(update);
+                }
+            },
+        )
+        .await?;
+        for kind in missing {
             waiters.push((
                 kind,
                 coordinator::join_installation(app, kind, request_cancellation).await?,

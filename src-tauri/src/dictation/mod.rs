@@ -9,7 +9,7 @@ mod transcription;
 
 use std::sync::Arc;
 
-use tauri::{plugin::TauriPlugin, AppHandle, Manager, State, Wry};
+use tauri::{plugin::TauriPlugin, Manager, State, Wry};
 use tauri_plugin_global_shortcut::ShortcutState;
 
 use crate::app_error::{AppError, AppResult};

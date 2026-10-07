@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
+import types
 from pathlib import Path
 from threading import Event
 from uuid import uuid4
@@ -133,3 +135,45 @@ def test_cancelled_transcription_never_publishes_completed_artifact(tmp_path: Pa
         )
     assert caught.value.stable_code == "cancelled"
     assert not any(path.name.startswith("attempt-") for path in tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(("system", "machine"), [("Darwin", "x86_64"), ("Windows", "AMD64")])
+def test_cpu_transcription_uses_native_faster_whisper(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, system: str, machine: str
+) -> None:
+    from knovum_inference.speech import transcription
+
+    calls: dict[str, object] = {}
+
+    class WhisperModel:
+        def __init__(self, path: str, **options: object) -> None:
+            calls.update(path=path, **options)
+
+        def transcribe(self, path: str, **options: object) -> tuple[list[object], object]:
+            return [], types.SimpleNamespace(language="en", duration=1.0, duration_after_vad=0.8)
+
+    monkeypatch.setitem(sys.modules, "faster_whisper", types.SimpleNamespace(WhisperModel=WhisperModel))
+    monkeypatch.setattr(transcription.platform, "system", lambda: system)
+    monkeypatch.setattr(transcription.platform, "machine", lambda: machine)
+    artifact = TranscriptionEngine(tmp_path, tmp_path, 2)._faster(
+        tmp_path / "source.wav", _params(str(uuid4())), lambda *_: None, Event()
+    )
+    assert calls == {
+        "path": str(tmp_path),
+        "device": "cpu",
+        "compute_type": "int8",
+        "cpu_threads": 2,
+        "local_files_only": True,
+    }
+    assert artifact["durationMs"] == 1000
+
+
+def test_intel_transcription_rejects_gpu_profile(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from knovum_inference.speech import transcription
+
+    monkeypatch.setattr(transcription.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(transcription.platform, "machine", lambda: "x86_64")
+    params = _params(str(uuid4()))
+    params.profile.device = "cuda"
+    with pytest.raises(RpcError, match="Intel macOS ASR requires the CPU profile"):
+        TranscriptionEngine(tmp_path, tmp_path, 2)._faster(tmp_path / "source.wav", params, lambda *_: None, Event())

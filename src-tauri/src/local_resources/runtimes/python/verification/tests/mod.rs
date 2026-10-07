@@ -39,7 +39,7 @@ impl Fixture {
         }
         let requirements = digest(b"requirements");
         let bytes = serde_json::to_vec(&json!({"schemaVersion": 1, "runtimeId": "cpython", "version": "3.11.17",
-            "dependencyRequirementsSha256": requirements, "profile":"inference", "dependencyLockSha256":"a".repeat(64),
+            "dependencyRequirementsSha256": requirements, "profile":"torch-inference", "dependencyLockSha256":"a".repeat(64),
             "target": crate::local_resources::tools::platform_directory(), "executable": executable, "packageRoot": "packages", "files": files})).unwrap();
         fs::write(root.join(MANIFEST_NAME), &bytes).unwrap();
         let descriptor = Descriptor {
@@ -47,7 +47,7 @@ impl Fixture {
             target: crate::local_resources::tools::platform_directory().into(),
             version: "3.11.17".into(),
             dependency_requirements_sha256: requirements,
-            profile: crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+            profile: crate::local_resources::runtimes::python::RuntimeProfile::TorchInference,
             dependency_lock_sha256: "a".repeat(64),
             sources: crate::local_resources::runtimes::python::descriptor::RuntimeSources {
                 global: "https://example.test/runtime.tar.gz".into(),
@@ -70,7 +70,7 @@ impl Fixture {
             digest(&self.bytes),
             cancellation,
             Some(&self.descriptor),
-            crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+            crate::local_resources::runtimes::python::RuntimeProfile::TorchInference,
         )
     }
 }

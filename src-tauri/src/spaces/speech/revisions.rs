@@ -68,14 +68,15 @@ pub async fn save_speech_project_revision(
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let (active_revision_id, active_revision, project_type, space_id, active_output): (
+    let (active_revision_id, active_revision, project_type, space_id, source_node_id, active_output): (
         String,
         i64,
         String,
         String,
         String,
+        String,
     ) = sqlx::query_as(
-        "SELECT r.id,r.revision,p.project_type,p.space_id,r.output_config FROM spaces_speech_projects p \
+        "SELECT r.id,r.revision,p.project_type,p.space_id,p.source_node_id,r.output_config FROM spaces_speech_projects p \
          JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id WHERE p.id=?",
     )
     .bind(&request.project_id)
@@ -87,6 +88,7 @@ pub async fn save_speech_project_revision(
         return Err("stale_revision: Speech project changed before this revision was saved".into());
     }
     let config = super::project_config::parse(&project_type, &request.output_config)?;
+    super::project_source::require(&mut tx, &space_id, &source_node_id, &config).await?;
     let output = serde_json::to_string(&config).map_err(db::json_error)?;
     if let ProjectOutputConfig::Audiobook(config) = &config {
         super::book_assets::require_cover(

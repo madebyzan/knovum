@@ -20,7 +20,7 @@ def compiled_binaries(root: Path, target: str) -> list[Path]:
         if path.is_file():
             with path.open("rb") as source:
                 magic = source.read(4)
-            if (target == "macos-arm64" and magic in MACHO) or (target == "windows-x64" and magic[:2] == b"MZ"):
+            if (target.startswith("macos-") and magic in MACHO) or (target == "windows-x64" and magic[:2] == b"MZ"):
                 files.append(path)
     if not files:
         raise ValueError("Runtime contains no native executable files")

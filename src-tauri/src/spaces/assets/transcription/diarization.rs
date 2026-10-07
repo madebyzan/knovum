@@ -69,7 +69,7 @@ pub(crate) async fn diarize_media(
     .await?;
     preparation::prepare_python_for_job(
         app,
-        RuntimeProfile::Inference,
+        RuntimeProfile::TorchInference,
         &format!("resource:{job_id}"),
         "Prepare local speech components",
         cancellation,

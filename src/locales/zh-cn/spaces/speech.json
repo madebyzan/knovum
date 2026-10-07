@@ -1,6 +1,4 @@
 {
-  "title": "语音",
-  "newVoice": "音色",
   "newProject": "语音项目",
   "voiceName": "音色名称",
   "language": "语言",
@@ -26,7 +24,6 @@
   "stopListening": "停止试听",
   "saving": "正在保存版本",
   "starting": "正在启动生成任务",
-  "unsupportedProject": "编辑器暂不支持此项目类型。",
   "generatedSegments": "完整音频",
   "generatedVideo": "完整视频",
   "export": "导出",
@@ -41,8 +38,6 @@
   "addRole": "添加角色",
   "removeRole": "删除角色",
   "defaultRole": "旁白",
-  "importAudiobookScript": "导入 JSON 脚本",
-  "audiobookImportHint": "导入 TXT、Markdown、Word、可检索 PDF、EPUB 或 v1 结构化配音稿。",
   "audiobookConfigurationInvalid": "这个预发布有声书版本缺少有效的角色绑定。请导入或重新编排脚本，再保存新版本。",
   "pronunciationLexicon": "发音词典",
   "pronunciationHint": "将姓名或专有词替换为合成时使用的准确读法。",
@@ -81,15 +76,12 @@
   },
   "createProject": "创建",
   "voices": "音色",
-  "projects": "项目",
   "noVoices": "当前 Space 还没有音色。",
-  "noProjects": "当前 Space 还没有语音项目。",
   "types": {
     "shortDubbing": "短配音",
     "audiobook": "有声书",
     "videoDubbing": "视频配音"
   },
-  "sourceVideo": "源视频",
   "backgroundAudio": "背景音频",
   "acceptedSeparatedBackground": "已验收的分离背景",
   "sourceSeparationDescription": "在本机生成背景候选。Spleeter 分离人声与伴奏，不保证能准确去除对白。",
@@ -165,5 +157,9 @@
     "loud": "相对音量偏高",
     "clipping": "接近满幅的峰值",
     "invalid": "无效的信号采样"
-  }
+  },
+  "nodeReadAloud": "朗读 / 有声书",
+  "nodeProjects": "此节点的语音任务",
+  "readNodeManuscript": "读取当前节点文稿",
+  "referenceNodeChanged": "音频节点的源文件已变化，请更新节点后重新准备参考音频。"
 }

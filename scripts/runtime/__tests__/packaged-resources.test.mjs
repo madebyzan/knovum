@@ -6,6 +6,7 @@ import test from "node:test";
 
 import { readRuntimeDescriptor } from "../distribution.mjs";
 import { validatePackagedResources, workerDigest } from "../packaged-resources.mjs";
+import { runtimeProfiles } from "../profiles.mjs";
 
 function fixture(context) {
   const repository = mkdtempSync(join(tmpdir(), "knovum-small-package-"));
@@ -13,13 +14,13 @@ function fixture(context) {
   const source = join(repository, "python/src/knovum_inference");
   const resources = join(repository, "app/resources");
   const worker = join(resources, "python-worker/knovum_inference");
-  const publication = join(repository, "runtime-artifacts/inference/windows-x64");
+  const publication = join(repository, "runtime-artifacts/resources/windows-x64");
   for (const path of [source, worker, publication]) mkdirSync(path, { recursive: true });
   writeFileSync(join(source, "server.py"), "application Worker\n");
   copyFileSync(join(source, "server.py"), join(worker, "server.py"));
   const descriptor = {
     schemaVersion: 1,
-    profile: "inference",
+    profile: "resources",
     target: "windows-x64",
     version: "3.11.17",
     dependencyRequirementsSha256: "a".repeat(64),
@@ -32,15 +33,17 @@ function fixture(context) {
     sha256: "c".repeat(64),
     manifestSha256: "d".repeat(64),
   };
-  const path = join(resources, "python-inference-descriptor.json");
+  const path = join(resources, "python-resources-descriptor.json");
   const save = () => writeFileSync(path, JSON.stringify(descriptor));
   save();
   copyFileSync(path, join(publication, "runtime-descriptor.json"));
-  const agentPublication = join(repository, "runtime-artifacts/agent/windows-x64");
-  mkdirSync(agentPublication, { recursive: true });
-  const agentDescriptor = JSON.stringify({ ...descriptor, profile: "agent" });
-  writeFileSync(join(resources, "python-agent-descriptor.json"), agentDescriptor);
-  writeFileSync(join(agentPublication, "runtime-descriptor.json"), agentDescriptor);
+  for (const profile of runtimeProfiles.filter((name) => name !== "resources")) {
+    const profilePublication = join(repository, "runtime-artifacts", profile, "windows-x64");
+    mkdirSync(profilePublication, { recursive: true });
+    const encoded = JSON.stringify({ ...descriptor, profile });
+    writeFileSync(join(resources, `python-${profile}-descriptor.json`), encoded);
+    writeFileSync(join(profilePublication, "runtime-descriptor.json"), encoded);
+  }
   return {
     repository,
     resources,
@@ -55,7 +58,7 @@ function fixture(context) {
 
 test("desktop payload contains only owned Worker and trusted runtime descriptor", (context) => {
   const sample = fixture(context);
-  assert.equal(sample.verify().workerDigest, workerDigest(sample.source));
+  assert.equal(sample.verify().workerDigest, workerDigest(join(sample.repository, "python/src")));
 });
 
 test("runtime descriptor rejects unsupported schema versions", (context) => {
@@ -64,7 +67,7 @@ test("runtime descriptor rejects unsupported schema versions", (context) => {
     sample.descriptor.schemaVersion = schemaVersion;
     sample.save();
     assert.throws(
-      () => readRuntimeDescriptor(sample.path, "windows-x64", "inference"),
+      () => readRuntimeDescriptor(sample.path, "windows-x64", "resources"),
       /Invalid Python runtime descriptor/,
     );
   }
@@ -83,7 +86,7 @@ test("desktop payload verifies every application-owned Python capability", (cont
   writeFileSync(join(source, "__init__.py"), "updated documents\n");
   assert.throws(sample.verify, /Worker differs/);
   copyFileSync(join(source, "__init__.py"), join(packaged, "__init__.py"));
-  assert.equal(sample.verify().workerDigest, before);
+  assert.notEqual(sample.verify().workerDigest, before);
 });
 
 test("package rejects altered Worker or descriptor bytes", (context) => {
@@ -105,13 +108,13 @@ test("package rejects accidental third-party interpreter inclusion", (context) =
 test("descriptor rejects unsupported platform and insecure download source", (context) => {
   const sample = fixture(context);
   assert.throws(
-    () => readRuntimeDescriptor(sample.path, "windows-arm64", "inference"),
+    () => readRuntimeDescriptor(sample.path, "windows-arm64", "resources"),
     /Invalid Python runtime descriptor/,
   );
   sample.descriptor.sources.china = "http://example.test/runtime.tar.gz";
   sample.save();
   assert.throws(
-    () => readRuntimeDescriptor(sample.path, "windows-x64", "inference"),
+    () => readRuntimeDescriptor(sample.path, "windows-x64", "resources"),
     /Runtime archive sources must be HTTPS/,
   );
 });
@@ -122,12 +125,12 @@ test("Worker changes have their own identity without changing the runtime descri
   writeFileSync(join(sample.worker, "server.py"), "updated Worker\n");
   assert.notEqual(workerDigest(sample.worker), before);
   assert.equal(
-    readRuntimeDescriptor(sample.path, "windows-x64", "inference").sha256,
+    readRuntimeDescriptor(sample.path, "windows-x64", "resources").sha256,
     sample.descriptor.sha256,
   );
 });
 
-test("an Agent Runtime descriptor cannot replace the inference descriptor", (context) => {
+test("an Agent Runtime descriptor cannot replace the resources descriptor", (context) => {
   const sample = fixture(context);
   sample.descriptor.profile = "agent";
   sample.save();

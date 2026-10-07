@@ -37,6 +37,17 @@
         "sha256": "15e5300b0ba3c3695a7621d90160a746ec9e710228cee639afa9d580f6e3cd11",
         "binarySha256": "2ff9493dfa356be2975f477025ea770088e9e9cb2c83d983236d13561b96b7a6"
       }
+    },
+    "macos-x64": {
+      "ytDlp": {
+        "asset": "yt-dlp_macos",
+        "sha256": "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202"
+      },
+      "deno": {
+        "asset": "deno-x86_64-apple-darwin.zip",
+        "sha256": "7d4524b82bcc557fe020a1a5b56956ed42b992ae5b28026e8ad5d17329533f5f",
+        "binarySha256": "ec9fbd8e8f5f6ca5ceb0ebe4a564636f2c698bf60e3187460ded400cc0147fd5"
+      }
     }
   }
 }

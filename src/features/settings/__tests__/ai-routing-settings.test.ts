@@ -18,7 +18,7 @@ it("emits a route mutation without changing the authoritative settings object", 
   const previous = structuredClone(settings.defaults);
   const wrapper = mount(AiRoutingSettings, {
     props: { defaults: settings.defaults, connections: [], desktopAgents: settings.desktopAgents },
-    global: { stubs: { UiSelect: Select, SettingsSection: { template: "<div><slot /></div>" } } },
+    global: { stubs: { UiSelect: Select, UiSettingsSection: { template: "<div><slot /></div>" } } },
   });
   wrapper.findAllComponents(Select)[0]!.vm.$emit("update:modelValue", "__unassigned__");
   expect(settings.defaults).toEqual(previous);

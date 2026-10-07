@@ -44,6 +44,7 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
         class="fixed inset-0 z-40 bg-surface-scrim duration-150 ease-standard data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
       />
       <DialogContent
+        v-bind="description ? {} : { 'aria-describedby': undefined }"
         :class="
           cn(
             POPUP_ANIMATE_CLASSES,

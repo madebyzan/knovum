@@ -8,7 +8,7 @@ export function verifyRuntimeSignatures(directory, runtimeTarget, repository, pr
   const record = JSON.parse(readFileSync(join(directory, "..", "build-evidence", "producer.json"), "utf8"));
   if (record.signing?.mode !== "production")
     throw new Error("Production packages require a production-signed Python runtime");
-  if (runtimeTarget === "macos-arm64" && record.signing.identity !== process.env.APPLE_SIGNING_IDENTITY) {
+  if (runtimeTarget.startsWith("macos-") && record.signing.identity !== process.env.APPLE_SIGNING_IDENTITY) {
     throw new Error("Python runtime signing identity differs from the application identity");
   }
   if (

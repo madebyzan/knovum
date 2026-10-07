@@ -1276,13 +1276,42 @@ CREATE TABLE spaces_voice_candidates (
 CREATE TABLE spaces_speech_projects (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
+  source_node_id TEXT NOT NULL,
   project_type TEXT NOT NULL CHECK (project_type IN ('short_dubbing','audiobook','video_dubbing')),
   title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 200),
   active_revision_id TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (source_node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
 );
+
+CREATE TRIGGER spaces_speech_project_source_insert
+BEFORE INSERT ON spaces_speech_projects BEGIN
+  SELECT CASE WHEN NOT EXISTS (
+    SELECT 1 FROM spaces_nodes n WHERE n.id=NEW.source_node_id AND n.space_id=NEW.space_id
+      AND n.deleted_at IS NULL AND (
+        (NEW.project_type='short_dubbing' AND n.kind IN ('note','text','markdown')) OR
+        (NEW.project_type='audiobook' AND n.kind IN ('note','text','markdown','file')) OR
+        (NEW.project_type='video_dubbing' AND n.kind='video')
+      )
+  ) THEN RAISE(ABORT, 'Speech project requires a matching source node in its Space') END;
+END;
+
+CREATE TRIGGER spaces_speech_project_source_immutable
+BEFORE UPDATE OF space_id,source_node_id,project_type ON spaces_speech_projects
+WHEN NEW.space_id<>OLD.space_id OR NEW.source_node_id<>OLD.source_node_id OR NEW.project_type<>OLD.project_type
+BEGIN
+  SELECT RAISE(ABORT, 'Speech project source identity is immutable');
+END;
+
+CREATE TRIGGER spaces_speech_source_space_immutable
+BEFORE UPDATE OF space_id,kind ON spaces_nodes
+WHEN (NEW.space_id<>OLD.space_id OR NEW.kind<>OLD.kind)
+  AND EXISTS (SELECT 1 FROM spaces_speech_projects WHERE source_node_id=OLD.id)
+BEGIN
+  SELECT RAISE(ABORT, 'A speech source node cannot change its Space or type while it owns productions');
+END;
 
 CREATE TABLE spaces_speech_project_revisions (
   id TEXT PRIMARY KEY NOT NULL,

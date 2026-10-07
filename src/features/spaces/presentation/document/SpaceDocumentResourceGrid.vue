@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { useVirtualizer } from "@tanstack/vue-virtual";
-import { chunk } from "es-toolkit";
-import { computed, useTemplateRef, type ComponentPublicInstance } from "vue";
+import {
+  defaultRangeExtractor,
+  observeElementRect,
+  useVirtualizer,
+  type Range,
+  type Rect,
+  type Virtualizer,
+} from "@tanstack/vue-virtual";
+import { computed, shallowRef, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { formatByteSize } from "../../assets/format-byte-size";
-import { spaceAssetSource } from "../../assets/node-preview-source";
 import type { DocumentResourceProjection } from "./document-resource-projection";
+import SpaceDocumentResourceTile from "./SpaceDocumentResourceTile.vue";
 
 const props = defineProps<{
   resources: readonly DocumentResourceProjection[];
@@ -15,70 +20,87 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [resource: DocumentResourceProjection] }>();
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
+const width = shallowRef(0);
 const RESOURCE_COLUMNS = 2;
-const resourceRows = computed(() => chunk(props.resources, RESOURCE_COLUMNS));
-const virtualizer = useVirtualizer(
-  computed(() => ({
-    count: resourceRows.value.length,
-    getScrollElement: () => scroller.value,
-    getItemKey: (index: number) => resourceRows.value[index]![0]!.resource.id,
-    estimateSize: () => 148,
-    overscan: 3,
-  })),
+const RESOURCE_GAP = 8;
+const columnWidth = computed(() => (width.value - RESOURCE_GAP) / RESOURCE_COLUMNS);
+const focusedResourceId = shallowRef<string>();
+const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>(
+  computed(() => {
+    const resources = props.resources;
+    const focusedIndex = resources.findIndex(({ resource }) => resource.id === focusedResourceId.value);
+    return {
+      count: resources.length,
+      getScrollElement: () => scroller.value,
+      getItemKey: (index: number) => resources[index]!.resource.id,
+      estimateSize: (index: number) => previewHeight(resources[index]!) + 48,
+      lanes: RESOURCE_COLUMNS,
+      gap: RESOURCE_GAP,
+      overscan: 4,
+      observeElementRect: (
+        instance: Virtualizer<HTMLDivElement, HTMLDivElement>,
+        callback: (rect: Rect) => void,
+      ) =>
+        observeElementRect(instance, (rect) => {
+          width.value = rect.width;
+          callback(rect);
+        }),
+      rangeExtractor: (range: Range) => {
+        const indexes = defaultRangeExtractor(range);
+        if (focusedIndex < 0) return indexes;
+        const focusNeighbors = [focusedIndex - 1, focusedIndex, focusedIndex + 1].filter(
+          (index) => index >= 0 && index < resources.length,
+        );
+        return [...new Set([...indexes, ...focusNeighbors])].toSorted((left, right) => left - right);
+      },
+    };
+  }),
 );
-const rows = computed(() =>
-  virtualizer.value.getVirtualItems().map((row) => ({ row, resources: resourceRows.value[row.index]! })),
+const items = computed(() =>
+  virtualizer.value.getVirtualItems().map((item) => ({ item, resource: props.resources[item.index]! })),
 );
 const totalSize = computed(() => virtualizer.value.getTotalSize());
 const scrollerStyle = computed(() => ({ height: `${Math.min(totalSize.value, 384)}px` }));
-function measureRow(element: Element | ComponentPublicInstance | null) {
-  virtualizer.value.measureElement(element as Element | null);
+function previewHeight({ resource }: DocumentResourceProjection) {
+  return Math.min(288, Math.max(64, (columnWidth.value * resource.height) / resource.width));
 }
+function measureItem(element: Element | ComponentPublicInstance | null) {
+  virtualizer.value.measureElement(element as HTMLDivElement | null);
+}
+watch(width, () => virtualizer.value.measure(), { flush: "post" });
 </script>
 
 <template>
-  <div ref="scroller" class="overflow-y-auto" :style="scrollerStyle">
+  <div
+    ref="scroller"
+    role="list"
+    :aria-label="t('spaces.processing.document.resources.title')"
+    class="overflow-y-auto overscroll-contain"
+    :style="scrollerStyle"
+  >
     <div class="relative w-full" :style="{ height: `${totalSize}px` }">
       <div
-        v-for="{ row, resources: rowResources } in rows"
-        :key="String(row.key)"
-        :ref="measureRow"
-        :data-index="row.index"
-        class="absolute top-0 left-0 grid w-full grid-cols-2 gap-2 pb-2"
-        :style="{ transform: `translateY(${row.start}px)` }"
+        v-for="{ item, resource } in items"
+        :key="String(item.key)"
+        :ref="measureItem"
+        :data-index="item.index"
+        role="listitem"
+        :aria-posinset="item.index + 1"
+        :aria-setsize="resources.length"
+        class="absolute top-0 left-0"
+        :style="{
+          width: `${columnWidth}px`,
+          transform: `translate(${item.lane * (columnWidth + RESOURCE_GAP)}px, ${item.start}px)`,
+        }"
+        @focusin="focusedResourceId = resource.resource.id"
       >
-        <button
-          v-for="(item, column) in rowResources"
-          :key="item.resource.id"
-          type="button"
-          class="overflow-hidden rounded-md border border-stroke-default bg-surface-muted text-left outline-none hover:border-stroke-default-hover focus-visible:ring-2 focus-visible:ring-stroke-accent"
-          :aria-label="
-            t('spaces.processing.document.resources.open', {
-              index: row.index * RESOURCE_COLUMNS + column + 1,
-            })
-          "
-          @click="emit('select', item)"
-        >
-          <div class="aspect-4/3 overflow-hidden bg-surface-canvas">
-            <img
-              :src="spaceAssetSource(item.resource.path, sourceRevision)"
-              alt=""
-              class="size-full object-contain"
-              loading="lazy"
-              decoding="async"
-              draggable="false"
-            />
-          </div>
-          <div class="border-t border-stroke-divider px-2 py-1.5">
-            <strong class="block truncate text-caption font-medium text-fg-primary">
-              {{ item.locationLabel }}
-            </strong>
-            <span class="block truncate text-caption-sm text-fg-tertiary">
-              {{ item.resource.width }} × {{ item.resource.height }} ·
-              {{ formatByteSize(item.resource.byteSize) }}
-            </span>
-          </div>
-        </button>
+        <SpaceDocumentResourceTile
+          :item="resource"
+          :index="item.index"
+          :preview-height="previewHeight(resource)"
+          :source-revision="sourceRevision"
+          @select="emit('select', resource)"
+        />
       </div>
     </div>
   </div>

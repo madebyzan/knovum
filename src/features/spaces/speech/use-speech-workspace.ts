@@ -9,7 +9,7 @@ import { useSpeechGeneration } from "./use-speech-generation";
 import { useSpeechProjectCreation } from "./use-speech-project-creation";
 import { useSpeechVoices } from "./use-speech-voices";
 
-export function useSpeechWorkspace() {
+export function useSpeechWorkspace(sourceNodeId: () => string) {
   const store = useSpaceStore();
   const projects = shallowRef<Awaited<ReturnType<typeof listSpeechProjects>>>([]);
   const loading = shallowRef(false);
@@ -28,6 +28,9 @@ export function useSpeechWorkspace() {
   function setError(message?: string) {
     error.value = message;
   }
+  function belongsToNode(project: SpeechProjectSnapshot, spaceId: string) {
+    return project.project.spaceId === spaceId && project.project.sourceNodeId === sourceNodeId();
+  }
 
   const voiceLibrary = useSpeechVoices({
     activeSpaceId: () => store.activeSpaceId,
@@ -37,6 +40,7 @@ export function useSpeechWorkspace() {
   });
   const projectCreation = useSpeechProjectCreation({
     activeSpaceId: () => store.activeSpaceId,
+    sourceNodeId,
     contextEpoch: () => refreshEpoch,
     isCurrent: isCurrentSpace,
     created: (summary, snapshot) => {
@@ -53,7 +57,7 @@ export function useSpeechWorkspace() {
       const epoch = refreshEpoch;
       if (!spaceId) return;
       const project = await getSpeechProject(projectId);
-      if (isCurrentProject(spaceId, epoch, projectId) && project.project.spaceId === spaceId) {
+      if (isCurrentProject(spaceId, epoch, projectId) && belongsToNode(project, spaceId)) {
         selectedProject.value = project;
       }
     },
@@ -76,7 +80,7 @@ export function useSpeechWorkspace() {
     try {
       const [nextVoices, nextProjects] = await Promise.all([
         voiceLibrary.load(spaceId),
-        listSpeechProjects(spaceId),
+        listSpeechProjects(spaceId, sourceNodeId()),
       ]);
       if (epoch !== refreshEpoch) return;
       voiceLibrary.replace(nextVoices);
@@ -95,11 +99,7 @@ export function useSpeechWorkspace() {
     try {
       if (!spaceId) return;
       const project = await getSpeechProject(projectId);
-      if (
-        selection !== selectionEpoch ||
-        !isCurrentSpace(spaceId, epoch) ||
-        project.project.spaceId !== spaceId
-      )
+      if (selection !== selectionEpoch || !isCurrentSpace(spaceId, epoch) || !belongsToNode(project, spaceId))
         return;
       selectedProject.value = project;
       generation.reset();
@@ -141,11 +141,7 @@ export function useSpeechWorkspace() {
     }
   }
 
-  watch(
-    () => store.activeSpaceId,
-    (spaceId) => void refresh(spaceId),
-    { immediate: true },
-  );
+  watch([() => store.activeSpaceId, sourceNodeId], () => void refresh(), { immediate: true, flush: "sync" });
   return {
     voices: voiceLibrary.voices,
     projects: readonly(projects),

@@ -1,11 +1,60 @@
 import { expect, it } from "vitest";
-import { effectScope, readonly } from "vue";
+import { effectScope, readonly, shallowRef } from "vue";
 
 import type { AudiobookOutputConfig } from "../../contracts/generated/AudiobookOutputConfig";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VideoDubbingOutputConfig } from "../../contracts/generated/VideoDubbingOutputConfig";
 import { useAudiobookOutput } from "../use-audiobook-output";
+import { useShortDubbingDraft } from "../use-short-dubbing-draft";
 import { useVideoDubbingDraft } from "../use-video-dubbing-draft";
+
+it("seeds a new narration from its node and keeps saved revisions authoritative", async () => {
+  const project = shallowRef<SpeechProjectSnapshot>({
+    project: {
+      id: "project",
+      spaceId: "space",
+      sourceNodeId: "note",
+      projectType: "short_dubbing",
+      title: "Narration",
+      activeRevisionId: "first",
+      activeRevision: 1,
+      segmentCount: 0,
+      updatedAt: 1,
+    },
+    revision: {
+      id: "first",
+      projectId: "project",
+      revision: 1,
+      sourceRevision: "first",
+      pronunciationLexicon: {},
+      outputConfig: { format: "wav", wavPrecision: "pcm16" },
+      createdAt: 1,
+    },
+    segments: [],
+  });
+  const scope = effectScope();
+  try {
+    const draft = scope.run(() =>
+      useShortDubbingDraft(
+        () => project.value,
+        () => [],
+        () => "Node text",
+      ),
+    )!;
+    expect(draft.text.value).toBe("Node text");
+    expect(draft.dirty.value).toBe(true);
+    project.value = {
+      ...project.value,
+      project: { ...project.value.project, activeRevision: 2, activeRevisionId: "second" },
+      revision: { ...project.value.revision, id: "second", revision: 2 },
+    };
+    await Promise.resolve();
+    expect(draft.text.value).toBe("");
+    expect(draft.dirty.value).toBe(false);
+  } finally {
+    scope.stop();
+  }
+});
 
 it("loads an audiobook output from a Vue readonly value without sharing mutable metadata", () => {
   const config: AudiobookOutputConfig = {
@@ -44,6 +93,7 @@ it("loads video configuration as an isolated editable draft from a structured re
     project: {
       id: "project",
       spaceId: "space",
+      sourceNodeId: "video",
       projectType: "video_dubbing",
       title: "Video",
       activeRevisionId: "revision",

@@ -29,17 +29,32 @@ pub enum AudiobookSource {
 pub async fn read_audiobook_source(
     app: AppHandle,
     job_id: String,
-    source_path: String,
+    source_node_id: String,
 ) -> Result<AudiobookSource, AppError> {
     let lease = cancellation::acquire(&job_id)?;
-    let source = Path::new(&source_path);
-    assets::authorize_source(&app, source)?;
-    let source = source.to_owned();
+    let data: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=? AND kind='file' AND deleted_at IS NULL",
+    )
+    .bind(&source_node_id)
+    .fetch_optional(crate::spaces::db::pool(&app).await?)
+    .await
+    .map_err(crate::spaces::db::sql_error)?
+    .ok_or("Audiobook document node is unavailable")?;
+    let data: serde_json::Value =
+        serde_json::from_str(&data).map_err(crate::spaces::db::json_error)?;
+    let source_path = data["assetPath"]
+        .as_str()
+        .ok_or("Audiobook document has no managed asset")?;
+    let expected_revision = data["sourceRevision"]
+        .as_str()
+        .ok_or("Audiobook document has no source revision")?
+        .to_owned();
+    let source = assets::authorize_spaces_asset(&app, Path::new(source_path))?;
     let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         let metadata = fs::metadata(&source).map_err(|error| error.to_string())?;
         if !metadata.is_file() || metadata.len() > MAX_SOURCE_BYTES { return Err("Audiobook source exceeds 128 MiB".into()); }
-        let revision = file_inspection::content_revision(&source)?;
+        file_inspection::verify_content_revision(&source, &expected_revision)?;
         let extension = source.extension().and_then(|extension| extension.to_str()).unwrap_or("").to_ascii_lowercase();
         let extraction = match extension.as_str() {
             "epub" => AudiobookSource::Epub { entries: read_epub(&source, &cancellation)? },
@@ -59,7 +74,7 @@ pub async fn read_audiobook_source(
             _ => return Err("Unsupported audiobook document format".into()),
         };
         if cancellation.is_cancelled() { return Err("cancelled".into()); }
-        file_inspection::verify_content_revision(&source, &revision)?;
+        file_inspection::verify_content_revision(&source, &expected_revision)?;
         Ok(extraction)
     }).await?)
 }

@@ -5,13 +5,7 @@ import { sha256File } from "./files.mjs";
 
 export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const configuration = JSON.parse(
-    readFileSync(
-      join(
-        manifest.profile === "agent" ? join(dirname(dependencyLock), "../..") : dirname(dependencyLock),
-        "runtime-source.json",
-      ),
-      "utf8",
-    ),
+    readFileSync(join(join(dirname(dependencyLock), "../.."), "runtime-source.json"), "utf8"),
   );
   const evidence = join(directory, "..", "build-evidence");
   const path = join(evidence, "producer.json");
@@ -28,8 +22,10 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   if (manifest.dependencyRequirementsSha256 !== sha256File(join(evidence, "requirements.txt")))
     throw new Error("Runtime requirements differ from the producer evidence");
   validateEvidenceFiles(evidence, manifest.profile);
-  if (manifest.profile === "inference") {
+  if (manifest.profile === "light-inference") {
     validateCompiledSources(evidence, dependencyLock);
+  }
+  if (manifest.profile === "voice-generation") {
     validateVoxCpm(record.voxcpm, evidence, manifest, dependencyLock);
   }
 }
@@ -57,7 +53,7 @@ function validateProducerIdentity(record, manifest, configuration) {
 }
 
 function validateSigningRecord(signing, target) {
-  const modes = target === "macos-arm64" ? ["adhoc", "production"] : ["unsigned", "production"];
+  const modes = target.startsWith("macos-") ? ["adhoc", "production"] : ["unsigned", "production"];
   if (
     !modes.includes(signing?.mode) ||
     !Number.isSafeInteger(signing?.compiledBinaryCount) ||
@@ -72,9 +68,8 @@ function validateEvidenceFiles(evidence, profile) {
     "dependency-evidence.json",
     "sbom.cdx.json",
     "requirements.txt",
-    ...(profile === "inference"
-      ? ["build-requirements.txt", "voxcpm-source.tar", "compiled-source-evidence.json"]
-      : []),
+    ...(profile === "voice-generation" ? ["build-requirements.txt", "voxcpm-source.tar"] : []),
+    ...(profile === "light-inference" ? ["compiled-source-evidence.json"] : []),
   ]) {
     const file = join(evidence, name);
     if (!lstatSync(file).isFile()) throw new Error(`Runtime build evidence is missing: ${file}`);
@@ -82,7 +77,7 @@ function validateEvidenceFiles(evidence, profile) {
 }
 
 function validateCompiledSources(evidence, dependencyLock) {
-  const policy = join(dirname(dependencyLock), "compiled-source-evidence.json");
+  const policy = join(dirname(dependencyLock), "../../compiled-source-evidence.json");
   if (sha256File(join(evidence, "compiled-source-evidence.json")) !== sha256File(policy))
     throw new Error("Native source review evidence differs from the application");
   const compiledSources = JSON.parse(readFileSync(policy, "utf8"));

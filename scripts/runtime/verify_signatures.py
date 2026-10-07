@@ -12,7 +12,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Verify production runtime signatures against approved identities")
     parser.add_argument("--directory", type=Path, required=True)
-    parser.add_argument("--target", choices=("macos-arm64", "windows-x64"), required=True)
+    parser.add_argument("--target", choices=("macos-arm64", "macos-x64", "windows-x64"), required=True)
     args = parser.parse_args()
     verify_runtime(args.directory, args.target)
 

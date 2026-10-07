@@ -7,6 +7,7 @@ mod output_spec;
 pub use commit::commit_project_output;
 use commit::{reusable_committed_output, CommittedOutputSpec};
 mod commit;
+mod node;
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
 mod audiobook;

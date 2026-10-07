@@ -11,8 +11,6 @@ const foundation = [
   "acceptance",
   "--group",
   "publication",
-  "--extra",
-  "model-resources",
   "--frozen",
 ];
 const agentRuntime = ["--project", "python/runtimes/agent", "--group", "quality", "--frozen"];

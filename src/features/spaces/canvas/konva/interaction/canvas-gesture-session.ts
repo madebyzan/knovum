@@ -1,5 +1,5 @@
 import type Konva from "konva";
-import { shallowRef } from "vue";
+import { nextTick, shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../../../model/structure/schema/edit-snapshot";
@@ -100,8 +100,6 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
     const beforeFrames = captureCanvasGestureLayouts(before, updates);
     options.document.applyLocalDocument(after);
     const expandedSectionId = options.temporarilyExpandedSectionId();
-    options.previewFrames([]);
-    finishDirectManipulation(manipulation);
     try {
       const command = commandForCanvasGesture(options.snapshot(), before, after);
       const committed =
@@ -117,6 +115,10 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
       options.document.applyLocalDocument(before);
       controller.restoreFrames(beforeFrames);
       throw error;
+    } finally {
+      await nextTick();
+      options.previewFrames([]);
+      finishDirectManipulation(manipulation);
     }
   }
 

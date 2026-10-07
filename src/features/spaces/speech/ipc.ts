@@ -152,8 +152,11 @@ export function createPresetVoice(request: CreatePresetVoiceRequest) {
   return invokeCommand<VoiceLibraryRevision>("plugin:spaces|create_preset_voice", { request });
 }
 
-export function listSpeechProjects(spaceId: string) {
-  return invokeCommand<SpeechProjectOverview[]>("plugin:spaces|list_speech_projects", { spaceId });
+export function listSpeechProjects(spaceId: string, sourceNodeId: string) {
+  return invokeCommand<SpeechProjectOverview[]>("plugin:spaces|list_speech_projects", {
+    spaceId,
+    sourceNodeId,
+  });
 }
 
 export function createSpeechProject(request: CreateSpeechProjectRequest) {

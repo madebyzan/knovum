@@ -46,7 +46,8 @@ for (const profile of runtimeProfiles) {
   if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repository, profile);
   const descriptor = join(repository, "src-tauri", "resources", `python-${profile}-descriptor.json`);
   copyFileSync(join(distribution, "runtime-descriptor.json"), descriptor);
-  descriptorEnvironment[`KNOVUM_PYTHON_${profile.toUpperCase()}_DESCRIPTOR_PATH`] = descriptor;
+  descriptorEnvironment[`KNOVUM_PYTHON_${profile.toUpperCase().replaceAll("-", "_")}_DESCRIPTOR_PATH`] =
+    descriptor;
 }
 const worker = join(repository, "src-tauri", "resources", "python-worker");
 rmSync(worker, { recursive: true, force: true });
@@ -100,7 +101,7 @@ if (target === "windows-x64") {
     }
   }
 }
-if (target === "macos-arm64") {
+if (target.startsWith("macos-")) {
   const name = readJson("src-tauri/tauri.conf.json").productName;
   const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
   validatePackagedResources(packaged, repository, target);

@@ -26,10 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [inference, agent]
+        profile: [resources, light-inference, torch-inference, voice-generation, agent]
         platform:
           - os: macos-15
             target: macos-arm64
+            signing: adhoc
+          - os: macos-15-intel
+            target: macos-x64
             signing: adhoc
           - os: windows-2025
             target: windows-x64
@@ -45,7 +48,7 @@ jobs:
         with:
           version: "0.12.23"
       - name: Audit locked Python dependency graph
-        run: uv audit --project ${{ matrix.profile == 'agent' && 'python/runtimes/agent' || 'python' }} --locked --output-format json
+        run: uv audit --project python/runtimes/${{ matrix.profile }} --locked --no-default-groups --output-format json
       - name: Import macOS signing certificate
         if: inputs.production && runner.os == 'macOS'
         env:

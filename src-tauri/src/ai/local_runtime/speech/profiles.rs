@@ -17,7 +17,10 @@ pub(crate) fn transcription_profile() -> Result<TranscriptionProfile, String> {
     })
 }
 
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+#[cfg(all(
+    any(target_os = "macos", target_os = "windows"),
+    target_arch = "x86_64"
+))]
 pub(crate) fn transcription_profile() -> Result<TranscriptionProfile, String> {
     Ok(TranscriptionProfile {
         engine: AsrEngine::FasterWhisper,
@@ -27,12 +30,9 @@ pub(crate) fn transcription_profile() -> Result<TranscriptionProfile, String> {
     })
 }
 
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
+#[cfg(not(knovum_supported_desktop))]
 pub(crate) fn transcription_profile() -> Result<TranscriptionProfile, String> {
-    Err("unsupported_device: ASR requires macOS ARM64 or Windows x64".into())
+    Err("unsupported_device: ASR requires macOS arm64/x64 or Windows x64".into())
 }
 
 #[cfg(test)]

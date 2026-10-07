@@ -29,6 +29,8 @@ def host_target() -> str:
     machine = platform.machine().lower()
     if platform.system() == "Darwin" and machine == "arm64":
         return "macos-arm64"
+    if platform.system() == "Darwin" and machine == "x86_64":
+        return "macos-x64"
     if platform.system() == "Windows" and machine in {"amd64", "x86_64"}:
         return "windows-x64"
     raise ValueError(f"Unsupported native runtime builder: {platform.system()}/{machine}")
@@ -36,15 +38,18 @@ def host_target() -> str:
 
 def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> None:
     executable = runtime / ("python.exe" if target == "windows-x64" else "bin/python3")
-    imports = (
-        "import torch,onnxruntime,sherpa_onnx,voxcpm,sentence_transformers,huggingface_hub,modelscope_hub; "
-        "from pyannote.audio import Pipeline"
-        if profile == "inference"
-        else "from deepagents import create_deep_agent; "
-        "from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver; "
-        "import langchain_openai,langchain_anthropic,langchain_google_genai; "
-        "import langchain_ollama,langchain_deepseek,langchain_groq,truststore"
-    )
+    imports = {
+        "resources": "import huggingface_hub,modelscope_hub,pydantic,tqdm;assert 'torch' not in sys.modules",
+        "light-inference": "sys.modules['torch']=None;import onnxruntime,sherpa_onnx;"
+        + ("import faster_whisper" if target != "macos-arm64" else "import numpy"),
+        "torch-inference": "import torch,sentence_transformers;from pyannote.audio import Pipeline;"
+        + ("import mlx_whisper" if target == "macos-arm64" else "import transformers"),
+        "voice-generation": "import torch,voxcpm,silero_vad",
+        "agent": "from deepagents import create_deep_agent;"
+        "from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver;"
+        "import langchain_openai,langchain_anthropic,langchain_google_genai;"
+        "import langchain_ollama,langchain_deepseek,langchain_groq,truststore",
+    }[profile]
     code = (
         "import sys;sys.path.insert(0,sys.argv[1]);assert '.'.join(map(str,sys.version_info[:3]))==sys.argv[2];"
         + imports
@@ -70,17 +75,6 @@ def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> N
         cwd=runtime.parent,
         env=environment,
     )
-    if profile == "inference":
-        engine_import = "import mlx_whisper" if target == "macos-arm64" else "import faster_whisper"
-        run(
-            str(executable),
-            *ISOLATED_PYTHON_ARGS,
-            "-c",
-            "import sys;sys.path.insert(0,sys.argv[1]);" + engine_import,
-            str(runtime / "packages"),
-            cwd=runtime.parent,
-            env=environment,
-        )
 
 
 def build(output: Path, signing: str, global_archive_url: str, china_archive_url: str, profile: str) -> None:
@@ -124,15 +118,13 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
             "standaloneRelease": config["standaloneRelease"],
             "interpreterSource": source,
             "uvVersion": actual_uv,
-            "dependencyLockSha256": digest(
-                (PROJECT if profile == "inference" else PROJECT / "runtimes/agent") / "uv.lock"
-            ),
+            "dependencyLockSha256": digest((PROJECT / "runtimes" / profile) / "uv.lock"),
             "appCommit": run("git", "rev-parse", "HEAD", cwd=REPOSITORY, capture=True),
             "relocationVerified": True,
             "signing": signature,
             "licenseReview": "required",
         }
-        if profile == "inference":
+        if profile == "voice-generation":
             record["voxcpm"] = dependencies
         (scratch / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
         run(
@@ -173,7 +165,11 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("inference", "agent"), required=True)
+    parser.add_argument(
+        "--profile",
+        choices=("resources", "light-inference", "torch-inference", "voice-generation", "agent"),
+        required=True,
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--signing", choices=("adhoc", "unsigned", "production"), required=True)
     parser.add_argument("--global-archive-url", required=True, help="Immutable global HTTPS location of the archive")

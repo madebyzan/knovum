@@ -4,20 +4,20 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
-import { runtimeProject } from "./profiles.mjs";
+import { hostRuntimeTarget, runtimeProject, runtimeTargets } from "./profiles.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
 if (args.length !== 6 || args[0] !== "--target" || args[2] !== "--directory" || args[4] !== "--profile") {
   throw new Error(
-    "Usage: node scripts/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime> --profile <inference|agent>",
+    "Usage: node scripts/runtime/write-manifest.mjs --target <target> --directory <signed-python-runtime> --profile <profile>",
   );
 }
 const target = args[1];
-if (!["macos-arm64", "windows-x64"].includes(target)) {
+if (!Object.values(runtimeTargets).includes(target)) {
   throw new Error(`Unsupported runtime target: ${target}`);
 }
-const host = `${{ darwin: "macos", win32: "windows" }[process.platform]}-${process.arch}`;
+const host = hostRuntimeTarget();
 if (target !== host) throw new Error(`Runtime manifest must be written on its native target (${host})`);
 const root = resolve(args[3]);
 const rootMetadata = lstatSync(root);

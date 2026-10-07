@@ -64,8 +64,8 @@ Direct dependencies must have a current caller or satisfy a documented peer/runt
 ## Private local inference
 
 The desktop package binds a controlled CPython 3.11.17 runtime and the uv-locked
-`knovum-python[inference]` dependency selection. The application project has no default production
-dependencies; capability extras carry their actual libraries. Rust invokes that interpreter over private stdio with one selected capability per
+production dependency selections in `python/runtimes/<profile>/uv.lock`. The root application
+project has no production libraries; independently locked projects own capability dependencies. Rust invokes that interpreter over private stdio with one selected capability per
 session; the WebView has no Python launch permission. Sentence Transformers and PyTorch own the
 Qwen embedding model internals. ONNX Runtime Python owns U²-Net inference; Rust `image` still
 owns pixel conversion and final output. Candle and Tract are removed when their last respective
@@ -108,7 +108,7 @@ preserve that security floor. The selected releases publish CPython 3.11 wheels 
 and Windows x64. The macOS wheels require macOS 14 or later. TorchAudio 2.11 is its
 [stable-ABI release](https://github.com/pytorch/audio/blob/main/docs/source/installation.rst)
 and supports PyTorch 2.11 and later. TorchCodec's native ABI and complete model execution still
-require acceptance on both release targets; wheel availability is not execution evidence.
+require acceptance on each release target; wheel availability is not execution evidence.
 The macOS ASR path pins [`mlx==0.32.3`](https://pypi.org/project/mlx/0.32.3/), preserving the
 0.29.4 unsafe-deserialization security floor. Contract generation pins
 [`datamodel-code-generator==0.83.0`](https://pypi.org/project/datamodel-code-generator/0.83.0/),
@@ -128,11 +128,13 @@ compatible dependency range or Knovum replaces VoxCPM through a reviewed capabil
 native acceptance run.
 
 Native wheel availability, model license and actual execution are per-target release gates. A
-locked Python version alone does not establish native execution. The approved release targets
-are macOS arm64 and Windows x64. macOS x64 and Windows arm64 are outside the release scope because
-the selected PyTorch and TorchCodec versions do not provide a matching native wheel set. The
-runtime, package, and update manifests reject those targets; do not substitute an older Torch,
-emulation, or the removed Rust engines.
+locked Python version alone does not establish native execution. The product release targets
+are macOS arm64/x64 and Windows x64. Windows arm64 remains outside the release scope. Intel macOS
+has no qualified heavyweight dependency supplier yet. The unverified full-stack source builder has
+been removed. Maintained native distributions and capability-specific engines must be evaluated against
+the security baseline and the existing verified runtime publication contract. Supplier selection requires
+actual native closure, provenance, relocation and model acceptance evidence; resolver/layout differences
+alone do not justify rejecting a maintained distributor. See `packaging.md` for publication gates.
 
 WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selected secure
 runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner snapshot pinned at
@@ -240,7 +242,7 @@ The 2026-10-02 lock refresh upgrades `h2` to `0.4.16` and `rustls` to `0.23.45`,
 
 The patch was tested in [dependency preparation run 36966374084](https://github.com/madebyzan/knovum/actions/runs/36966374084): all 12 upstream unit tests and one documentation test passed with no ignored or filtered tests. Upstream's full roundtrip tests require sibling `citation-style-language/styles` and `citation-style-language/locales` checkouts; the recorded fixture revisions are `8d129d151adfe68256ceb6e6ea59c6f651ab526a` and `bc0a222b4ca526126faf892c35b2b7b1215c10eb`, respectively. This upstream result does not substitute for Knovum's native compile, tests or installed upgrade acceptance.
 
-The audit graph includes all features across macOS arm64, Windows x64, and the Linux x64 CI target. This evaluates the supported application configurations rather than unrelated custom `cfg(fuzzing)` dependencies such as rav1e's `libfuzzer-sys`. Adding a target or enabling a fuzzing configuration requires an appropriate audit scope for that configuration. No third-party license has been added to the allowlist for this change.
+The audit graph includes all features across macOS arm64/x64, Windows x64, and the Linux x64 CI target. This evaluates the supported application configurations rather than unrelated custom `cfg(fuzzing)` dependencies such as rav1e's `libfuzzer-sys`. Adding a target or enabling a fuzzing configuration requires an appropriate audit scope for that configuration. No third-party license has been added to the allowlist for this change.
 
 Knovum is an unpublished application crate (`publish = false`), not a public Rust library with an assumed OSS license. The license check exempts only unpublished workspace packages from declaring such a license; their third-party dependencies remain audited. Do not use `exclude-unpublished` to remove the application's dependency graph. Maintenance advisories remain enforced; this remediation adds no advisory-ignore entries and does not represent release approval.
 
@@ -258,7 +260,7 @@ Local compile and regression success do not close either audit gate.
 
 ### Python installed-distribution license release gate
 
-`python/dependency-license-review.json` starts with `reviewStatus: required`. Production
+Each `python/runtimes/<profile>/dependency-license-review.json` starts with `reviewStatus: required`. Production
 packaging refuses it until an accountable review approves the frozen runtime requirements SHA-256 and VoxCPM source revision
 and each target's exact `build-evidence/dependency-evidence.json` SHA-256. Target records
 contain `inventorySha256`, `reviewer`, `reviewedAt` and a durable HTTPS `evidenceLocation`.
@@ -268,7 +270,7 @@ and corresponding-source obligations; package metadata alone is not approval. Ch
 unrelated development dependencies and application Worker source do not. This gate complements the separately
 owned Kokoro and native-source gates; QA artifacts do not represent license approval.
 
-Model resource downloads use `project.optional-dependencies.model-resources`: official
+Model resource downloads use `python/runtimes/resources/pyproject.toml`: official
 huggingface-hub 1.33.0 (Apache-2.0), modelscope-hub 0.4.5 (Apache-2.0), and the already selected
 Pydantic 2.13.5 plus tqdm 4.70.1 for its public progress interface. They belong to the prepared runtime, not the desktop installer. Their public
 Hub APIs own resume/transfer metadata; Rust owns product inventory, SHA-256 and publication.

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
         | ImageSegmentationEngine
     )
 
-_TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1"})
+_TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1", "mlx-whisper-small-mps-v1"})
 
 
 @dataclass(slots=True)
@@ -77,7 +77,7 @@ def _configure_engine_threads(params: RuntimeInitializeParams) -> None:
     uses_torch = (
         params.capability
         in {
-            RuntimeCapability.speech_transcription,
+            RuntimeCapability.embedding,
             RuntimeCapability.speech_alignment,
             RuntimeCapability.speech_diarization,
         }

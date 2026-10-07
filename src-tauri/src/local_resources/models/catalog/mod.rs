@@ -66,12 +66,12 @@ pub enum ModelKind {
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = MLX_WHISPER_MODELS;
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+#[cfg(all(
+    any(target_os = "macos", target_os = "windows"),
+    target_arch = "x86_64"
+))]
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = FASTER_WHISPER_MODELS;
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
+#[cfg(not(knovum_supported_desktop))]
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = &[];
 pub(crate) const FASTER_WHISPER_MODELS: &[ModelKind] = &[
     ModelKind::FasterWhisperConfig,
@@ -112,15 +112,9 @@ pub(crate) const QWEN3_FORCED_ALIGNER_MODELS: &[ModelKind] = &[
 ];
 pub(crate) const SPEECH_SEPARATION_MODELS: &[ModelKind] =
     &[ModelKind::SpleeterAccompaniment, ModelKind::SpleeterVocals];
-#[cfg(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-))]
+#[cfg(knovum_supported_desktop)]
 pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = QWEN3_FORCED_ALIGNER_MODELS;
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
+#[cfg(not(knovum_supported_desktop))]
 pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = &[];
 
 pub(crate) const IMAGE_SEGMENTATION: ModelDescriptor = ModelDescriptor {

@@ -2,8 +2,8 @@
 
 This is the framework-level contract for macOS and Windows. Business features should not reimplement these behaviors.
 
-The supported Apple desktop baseline is macOS 14 or later on arm64. The application bundle
-declares the same minimum through Tauri, matching the controlled PyTorch and TorchCodec wheels;
+The supported Apple desktop baseline is macOS 14 or later on arm64 and x86_64. The application bundle
+declares the same minimum through Tauri, matching the controlled runtime deployment target;
 macOS 13 and earlier are outside the release scope.
 
 | Concern                    | macOS                                                                                       | Windows                                                              | Foundation                                                                         |
@@ -60,19 +60,20 @@ Any change to lifecycle, window, menu, keyboard, file, notification, updater or 
 Inference and Builtin Agent Python components are separate verified on-demand profiles; the installer
 carries only application capability source and two trusted platform descriptors. Both reuse the
 same installer and native CPython baseline, with independent package roots and locks. Resource absence is a preparation state, not
-an unsupported-device state. First-download/offline acceptance is required on both targets.
+an unsupported-device state. First-download/offline acceptance is required on all three native targets.
 
-The approved desktop release scope for native Python inference is macOS 14+ arm64 and Windows x64.
+The approved desktop release scope for native Python inference is macOS 14+ arm64/x64 and Windows x64.
 Qualification is tracked per architecture, not only per OS:
 
 | Target          | Current native ASR path               | Release state                                                                |
 | --------------- | ------------------------------------- | ---------------------------------------------------------------------------- |
 | macOS 14+ arm64 | MLX Whisper                           | Implementation present; model, latency, and clean-install acceptance pending |
+| macOS 14+ x64   | faster-whisper / CTranslate2 CPU INT8 | Implementation present; native runtime build and model acceptance pending    |
 | Windows x64     | faster-whisper / CTranslate2 CPU INT8 | Implementation present; clean-install and quality acceptance pending         |
 
-Spleeter 2-stem source separation uses the same CPU FP16 ONNX profile on both supported targets.
+Spleeter 2-stem source separation uses the same CPU FP16 ONNX profile on all three supported targets.
 The implementation and verified on-demand resource manifest are present. Native latency, peak
-memory, spoken-dialogue residual and background-loss acceptance remain release gates on both
+memory, spoken-dialogue residual and background-loss acceptance remain release gates on all three
 targets. The admitted profile is CPU with an 8 GiB inference reservation and a ten-minute input
 limit; no candidate is used until the user auditions and accepts it.
 
@@ -81,16 +82,21 @@ Designed-voice synthesis has a separate conservative admission profile:
 | Target      | VoxCPM2 execution profile | Admission gate                                                           | Release state                                                                 |
 | ----------- | ------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | macOS arm64 | MPS float32               | 48 GiB physical-memory floor plus available-memory/reservation admission | Implementation present; native memory, latency and quality acceptance pending |
+| macOS x64   | CPU bfloat16              | 32 GiB physical-memory floor plus available-memory/reservation admission | Implementation present; native runtime build and model acceptance pending     |
 | Windows x64 | CPU bfloat16              | 32 GiB physical-memory floor plus available-memory/reservation admission | Implementation present; native memory, latency and quality acceptance pending |
 
 There is no automatic device, precision or engine selection after admission fails. These memory
 values are conservative product gates and must not be presented as measured minimum requirements.
 VoxCPM2 inputs are verified 16 kHz mono voice revisions sourced from authorized 5–30 second samples;
-the synthesis result is 48 kHz audio on both targets.
+the synthesis result is 48 kHz audio on all three targets.
 
-macOS x64 and Windows arm64 are outside the release scope. Unsupported targets return an explicit
-error; there is no emulation or legacy engine route. A future scope expansion requires a product
-decision, native dependency verification, and a release note.
+Windows arm64 remains outside the release scope. Unsupported targets return an explicit error.
+Intel macOS uses the same frozen CPU profiles as Windows, without emulation or a legacy engine.
+Its heavyweight Python dependency closure is not qualified; no source-build supplier has been approved.
+Both macOS architectures
+use native signing, distinct runtime publications and distinct updater artifacts. An implementation
+entry is not release qualification: native execution, clean installation and model acceptance are
+still required per architecture.
 
 On both desktop platforms, models and optional media-import tools are prepared into Tauri app-data
 when the corresponding action needs them. Offline startup and basic Space editing do not require
@@ -99,3 +105,12 @@ Python ASR model/runtime as media transcription. Downloaded
 executables retain the platform's signing and execution constraints; hash verification does not
 replace macOS signing/notarization or Windows execution checks. Release evidence belongs to
 `packaging.md` and `release.md`.
+
+Runtime dependency projects are split into five profiles; the current candidate qualification
+status above remains unchanged. The [Intel native supplier probe](evidence/native-runtime-supplier-probe-2026-10-07.json)
+proves selected native library operations and relocation. The
+[VoxCPM2 native engine probe](evidence/native-voice-engine-probe-2026-10-07.json) proves actual
+Intel CPU speech generation through an unadopted engine. Neither qualifies the production
+Worker's complete model corpus, cancellation, memory lifecycle or another target.
+The [independent dependency audit](evidence/runtime-dependency-audit-2026-10-07.json) keeps the
+voice package blocked on Datasets/fsspec; platform support cannot bypass that blocker.

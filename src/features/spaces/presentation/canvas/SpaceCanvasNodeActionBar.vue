@@ -155,7 +155,7 @@ function runPrimaryAction() {
           />
         </template>
       </SpaceCanvasSelectionMenu>
-      <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
+      <SpaceNodeBarCommonActions :node="node" @inspect="actions.inspect" @download="actions.download" />
     </ToolbarRoot>
   </div>
 </template>

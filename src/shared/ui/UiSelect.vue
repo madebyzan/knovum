@@ -12,7 +12,7 @@ import {
   SelectViewport,
   useId,
 } from "reka-ui";
-import { computed, type HTMLAttributes } from "vue";
+import { computed, useAttrs, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
 import { INPUT_BASE_CLASSES, POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } from "./ui-classes";
@@ -24,6 +24,8 @@ export interface SelectOption<Value extends string = string> {
   disabled?: boolean;
 }
 
+defineOptions({ inheritAttrs: false });
+const attrs = useAttrs();
 const model = defineModel<Value>({ required: true });
 
 const props = withDefaults(
@@ -53,6 +55,7 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
 <template>
   <SelectRoot v-model="model" :disabled="disabled">
     <SelectTrigger
+      v-bind="attrs"
       :id="selectId"
       :aria-label="label"
       :class="
@@ -91,6 +94,7 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
             v-for="option in options"
             :key="option.value"
             :value="option.value"
+            :data-value="option.value"
             :text-value="option.label"
             :disabled="option.disabled ?? false"
             class="relative flex min-h-interaction cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-disabled:opacity-40 data-highlighted:bg-surface-control-hover"

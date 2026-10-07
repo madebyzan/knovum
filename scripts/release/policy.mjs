@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { runtimeTargets } from "../runtime/profiles.mjs";
+
 export const releaseTargets = {
   "aarch64-apple-darwin": "darwin-aarch64",
+  "x86_64-apple-darwin": "darwin-x86_64",
   "x86_64-pc-windows-msvc": "windows-x86_64",
 };
 
@@ -83,7 +86,7 @@ export function distributionRepository(value) {
 }
 
 export function platformSigningConfiguration(target, env) {
-  if (!["macos-arm64", "windows-x64"].includes(target)) {
+  if (!Object.values(runtimeTargets).includes(target)) {
     throw new Error(`Unsupported signing target: ${target}`);
   }
   if (target.startsWith("macos-")) {

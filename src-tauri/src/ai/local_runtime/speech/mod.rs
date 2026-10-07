@@ -153,20 +153,17 @@ fn validate_voxcpm2_profile(
     }
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     let (expected_device, expected_profile) = ("mps", "voxcpm2-mps-f32-v1");
-    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    #[cfg(all(
+        any(target_os = "macos", target_os = "windows"),
+        target_arch = "x86_64"
+    ))]
     let (expected_device, expected_profile) = ("cpu", "voxcpm2-cpu-bf16-v1");
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
+    #[cfg(not(knovum_supported_desktop))]
     {
         let _ = device_profile;
         Err("unsupported_device: VoxCPM2 is not qualified for this platform".into())
     }
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    ))]
+    #[cfg(knovum_supported_desktop)]
     {
         if device_profile.device != expected_device
             || device_profile.execution_profile_id != expected_profile

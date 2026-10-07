@@ -9,8 +9,8 @@ import { importDiarizationModel, removeDiarizationModel } from "../../../foundat
 import { invalidateLocalResources, useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "./PreferenceField.vue";
-import SettingsSection from "./SettingsSection.vue";
 
 const { t } = useI18n();
 const resources = useLocalResourcesQuery();
@@ -61,7 +61,7 @@ async function openModelPage() {
 </script>
 
 <template>
-  <SettingsSection
+  <UiSettingsSection
     class="mt-5"
     :title="t('settings.ai.localSpeech.title')"
     :description="t('settings.ai.localSpeech.description')"
@@ -91,5 +91,5 @@ async function openModelPage() {
         {{ error ?? getErrorMessage(resources.error.value) }}
       </p>
     </div>
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

@@ -110,7 +110,7 @@ test("production packaging requires an explicit platform signing policy", () => 
   );
   assert.throws(() => platformSigningConfiguration("windows-x64", {}), /KNOVUM_WINDOWS_SIGN_COMMAND/);
   assert.throws(() => platformSigningConfiguration("linux-x64", {}), /Unsupported/);
-  assert.throws(() => platformSigningConfiguration("macos-x64", {}), /Unsupported/);
+  assert.throws(() => platformSigningConfiguration("macos-x64", {}), /APPLE_SIGNING_IDENTITY/);
   assert.throws(() => platformSigningConfiguration("windows-arm64", {}), /Unsupported/);
   const env = {
     APPLE_SIGNING_IDENTITY: "Developer ID Application: Test",

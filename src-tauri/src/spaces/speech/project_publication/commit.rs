@@ -138,6 +138,7 @@ pub async fn commit_project_output(
         }
         return Err(error);
     }
+    super::node::publish(&mut tx, project_id, revision_id, output).await?;
     if !was_referenced {
         crate::spaces::speech::asset_publication::remove_attempt_in_transaction(
             &mut tx,

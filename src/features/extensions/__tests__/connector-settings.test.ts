@@ -2,8 +2,10 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { i18n } from "../../../foundation/i18n/i18n";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
+import { resolveConfirmation } from "../../../shared/ui/confirm-action";
 import ConnectorSettings from "../connectors/ConnectorSettings.vue";
 
 const native = vi.hoisted(() => ({
@@ -81,7 +83,11 @@ afterEach(() => {
 });
 async function open() {
   mounted = mount(ConnectorSettings, {
-    global: { plugins: [[VueQueryPlugin, { queryClient }]], mocks: { $t: (key: string) => key } },
+    global: {
+      plugins: [i18n, [VueQueryPlugin, { queryClient }]],
+      mocks: { $t: (key: string) => key },
+      stubs: { UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' } },
+    },
   });
   await flushPromises();
   return mounted;
@@ -92,7 +98,10 @@ describe("service connector management", () => {
     const wrapper = await open();
     const connector = wrapper.get('[data-testid="connector-github"]');
     expect(connector.text()).toContain("Read issues and repositories");
+    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(0);
+    await connector.get('[data-testid="manage-connector-github"]').trigger("click");
     expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
+    await connector.get('[data-testid="add-connection-instance"]').trigger("click");
     await connector.get('[data-testid="connection-instance-name"]').setValue("Research");
     await connector.get("form").trigger("submit");
     await flushPromises();
@@ -126,7 +135,13 @@ describe("service connector management", () => {
 
   it("deleting one instance keeps the service and other instances available", async () => {
     const wrapper = await open();
-    await wrapper.get('[data-testid="mcp-connection-Work"]').findAll("button")[2]!.trigger("click");
+    await wrapper.get('[data-testid="manage-connector-github"]').trigger("click");
+    await wrapper.get('[data-testid="delete-connection-Work"]').trigger("click");
+    expect(native.invoke).not.toHaveBeenCalledWith(
+      "plugin:extensions|delete_mcp_connection",
+      expect.anything(),
+    );
+    resolveConfirmation(true);
     await flushPromises();
     expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|delete_mcp_connection", {
       id: "Work",
@@ -151,6 +166,7 @@ describe("service connector management", () => {
       return original(command, input);
     });
     const wrapper = await open();
+    await wrapper.get('[data-testid="manage-connector-github"]').trigger("click");
     await wrapper.get('[data-testid="edit-connector"]').trigger("click");
     const editor = wrapper.get('[data-testid="connector-editor"]');
     await editor.get('[data-testid="connector-description"]').setValue("Updated purpose");
