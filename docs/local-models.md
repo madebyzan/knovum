@@ -13,6 +13,11 @@ Development and CI point to controlled runtime paths through the documented envi
 
 ## Prepared on first use
 
+Resource status queries report media-import tools as unavailable on targets absent from the pinned
+manifest without failing the status of other resources. The status retains the unsupported-platform
+identity; preparing those tools still fails explicitly. Python settings distinguish an unsupported
+build architecture from missing runtime publication descriptors.
+
 A supported web-media import prepares the exact-pinned yt-dlp executable and Deno JavaScript runtime
 from the repository-owned manifest. Both are installed under the versioned
 `local-resources/tools/` application-data namespace after SHA-256 verification. Concurrent imports

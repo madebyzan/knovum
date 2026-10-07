@@ -54,13 +54,17 @@ struct Asset {
 }
 
 pub(crate) fn descriptor(kind: MediaImportToolKind) -> Result<ToolDescriptor, String> {
+    find_descriptor(kind)?
+        .ok_or_else(|| "Media import tools are unavailable for this platform".to_string())
+}
+
+pub(super) fn find_descriptor(kind: MediaImportToolKind) -> Result<Option<ToolDescriptor>, String> {
     let manifest = manifest();
-    let target = manifest
-        .targets
-        .get(super::platform_directory())
-        .ok_or_else(|| "Media import tools are unavailable for this platform".to_string())?;
+    let Some(target) = manifest.targets.get(super::platform_directory()) else {
+        return Ok(None);
+    };
     match kind {
-        MediaImportToolKind::YtDlp => Ok(ToolDescriptor {
+        MediaImportToolKind::YtDlp => Ok(Some(ToolDescriptor {
             kind,
             directory: "yt-dlp",
             env_key: "KNOVUM_YT_DLP_PATH",
@@ -73,8 +77,8 @@ pub(crate) fn descriptor(kind: MediaImportToolKind) -> Result<ToolDescriptor, St
             archive_sha256: target.yt_dlp.sha256.clone(),
             binary_sha256: target.yt_dlp.sha256.clone(),
             binary_name: super::yt_dlp_name(),
-        }),
-        MediaImportToolKind::Deno => Ok(ToolDescriptor {
+        })),
+        MediaImportToolKind::Deno => Ok(Some(ToolDescriptor {
             kind,
             directory: "deno",
             env_key: "KNOVUM_DENO_PATH",
@@ -89,7 +93,7 @@ pub(crate) fn descriptor(kind: MediaImportToolKind) -> Result<ToolDescriptor, St
                 "Deno binary checksum is missing from the runtime manifest".to_string()
             })?,
             binary_name: super::deno_name(),
-        }),
+        })),
     }
 }
 

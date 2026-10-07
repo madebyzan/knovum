@@ -78,6 +78,7 @@
     "inference": "Local inference",
     "ready": "Runtime is ready",
     "unavailable": "No runtime publication is configured for this build",
+    "unsupported": "Python runtimes support macOS arm64 and Windows x64; this build architecture is unsupported",
     "download": "Not prepared · {size} download",
     "preparing": "Prepare {name}",
     "prepare": "Prepare",
