@@ -70,6 +70,9 @@ these capabilities unavailable. Source-only edits do not change the runtime arch
 lock invalidates that profile's frozen publication, including a changed quality constraint in the
 same lock. The runtime is never resolved/installed with pip or uv on an end-user computer.
 
+Producer records also use schema version 1. Publications created with earlier development schemas
+must be rebuilt with the current producer; renumbering manifest bytes changes their integrity hashes.
+
 `local_resources/runtimes/python` installs a selected profile on demand, using the existing shared
 preparation registry, measured progress, cancellation and immutable archive verification. Settings
 shows both profiles independently. Archive download, safe extraction and full file verification
