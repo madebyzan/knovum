@@ -133,24 +133,6 @@ pub async fn acquire_verified_kokoro<R: Runtime>(
     })
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub(super) struct ModelIdentity {
-    pub(super) snapshot: models::snapshots::SnapshotKind,
-    pub(super) region: crate::local_resources::preferences::ResourceDownloadRegion,
-}
-
-impl ModelIdentity {
-    pub(super) fn for_kind(
-        kind: ModelKind,
-        region: crate::local_resources::preferences::ResourceDownloadRegion,
-    ) -> Self {
-        Self {
-            snapshot: catalog::descriptor(kind).snapshot,
-            region,
-        }
-    }
-}
-
 #[derive(Clone)]
 pub struct PreparedModels {
     paths: Arc<HashMap<ModelKind, PathBuf>>,

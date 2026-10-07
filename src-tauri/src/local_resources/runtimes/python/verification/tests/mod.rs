@@ -49,10 +49,7 @@ impl Fixture {
             dependency_requirements_sha256: requirements,
             profile: crate::local_resources::runtimes::python::RuntimeProfile::TorchInference,
             dependency_lock_sha256: "a".repeat(64),
-            sources: crate::local_resources::runtimes::python::descriptor::RuntimeSources {
-                global: "https://example.test/runtime.tar.gz".into(),
-                china: "https://china.example.test/runtime.tar.gz".into(),
-            },
+            archive_url: "https://example.test/runtime.tar.gz".into(),
             size: 1,
             sha256: "b".repeat(64),
             manifest_sha256: digest(&bytes),

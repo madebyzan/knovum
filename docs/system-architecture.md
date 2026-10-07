@@ -400,26 +400,31 @@ Local resource preparation belongs to Rust. Exact catalog identities share one i
 requests, while each request owns its cancellation demand. The last cancelled demand stops an
 unfinished installation; observer loss does not. Execution holds verified model leases, so removal
 cannot race inference. Resource snapshots include measured progress, real phases and bounded terminal
-history. Settings and first-use capability consumers use the same foundation IPC and query.
+history. Model settings and first-use capability consumers use the same foundation IPC and query. Runtime
+profiles are selected by the catalog and are not user settings. Preparation preflights required
+publications and verified snapshots and reports the combined download budget before transfers.
 Model groups and the optional media-import tool pair are Rust-owned preparation requests.
 Active snapshots survive WebView reloads so Task Center reconstructs the same identity and
-cancellation action. Settings persists an explicit international/mainland-China download profile;
-a new installation captures that profile and never changes provider after a transport failure.
-The Python runtime descriptor contains both regional archive URLs for the same immutable bytes.
+cancellation action. Download transport is resource configuration, not a user preference. Each
+Python runtime descriptor declares one immutable HTTPS `archiveUrl`; its publisher owns worldwide
+reachability and may use a CDN behind that URL. The client does not infer location or switch sources
+when a request fails.
 
 `knovum_model_resources` invokes official Hugging Face/ModelScope SDKs in a bounded subprocess;
 `knovum_inference` receives verified local paths and cannot download. Rust catalog snapshots group
-all required model parts. Installations share one `(snapshot, region)` identity, use a snapshot
-write lease, and retain SDK staging metadata on cancellation/failure for resume. Each file must
-match the recorded size and SHA-256 before the completed directory is renamed into
+all required model parts and select one pinned Hub source per snapshot. Qwen Embedding, Qwen Forced
+Aligner and VoxCPM2 use the existing verified ModelScope revisions; Whisper, U²-Net and Spleeter use
+their pinned Hugging Face repositories. There is no community-mirror endpoint or region setting.
+Installations share the snapshot identity, use a snapshot write lease, and retain SDK staging
+metadata on cancellation/failure for resume. Each file must match the recorded size and SHA-256
+before the completed directory is renamed into
 `local-resources/models/<model>/<inventory-digest>/`. Inference holds one read lease per snapshot.
 SDK state belongs to `local-resources/models/hub-cache/`, independently of personal Hub accounts.
-Download-region preferences use the current v1 Tauri Store envelope. Reads check disk-load errors
-explicitly, and reads/writes are serialized; only absent settings select the initial global profile.
-No old-layout reader, automatic source switch or alternate model is installed. The current China
-profile's U²-Net/Spleeter community endpoints remain a documented regional release gap; see
-`oss-first.md` and `release.md` for required evidence. Kokoro's archive and gated diarization imports
-retain their separate reviewed resource contracts.
+The removed download-region store is no longer read or written; it is not migrated or deleted.
+No old descriptor reader, automatic source switch or alternate model is installed. Complete
+anonymous download/cancel/resume acceptance is still required in every supported network region;
+removing a selector does not establish CDN or upstream reachability. Kokoro's archive and gated
+diarization downloads retain their separate reviewed resource contracts.
 
 Node writes derive enrichment intent inside the same Rust database transaction, so a WebView reload
 cannot lose required work. Rust owns enrichment dispatch, per-node serialization, concurrency lanes,
@@ -441,7 +446,7 @@ CTranslate2; `torch-inference` owns embeddings, alignment, diarization and Apple
 `voice-generation` owns VoxCPM2; `agent` owns Deep Agents and model clients. Each package has
 an independent lock and installed dependency root. Preparation selects only the execution packages
 required by the requested model snapshots; it prepares `resources` only for snapshots still missing.
-Already verified models do not require the downloader package. Imported Community-1 requires
+Already verified models do not require the downloader package. Community-1 downloads require
 the Torch package; Kokoro uses direct verified archive preparation and the light package. Rust passes
 the application Worker root, dependency root and actual runtime manifest path explicitly.
 It launches only a verified, managed, on-demand CPython interpreter with one selected
@@ -509,8 +514,13 @@ asset publication journal; the whole Space package remains the complete voice ex
 Selected forced alignment is bounded to eight segments or 300 seconds and publishes stable units
 against the transcript revision. Manual segment edits invalidate that segment's aligned units.
 Optional Pyannote diarization is CPU-bound to two hours and speaker bounds 1–32. It uses four
-user-authorized files from the pinned Community-1 revision plus a repository-owned pipeline config;
-Rust never forwards a Hugging Face token or external YAML to Python.
+files downloaded after official account authorization from the pinned Community-1 revision plus a
+repository-owned pipeline config. The dedicated access command stores tokens in `secrets.db`;
+resource status carries only `tokenConfigured`. Authenticated requests share the existing bounded
+download transport, which strips credentials across origins, retains HTTP denial status, and never
+logs tokens or response URLs. Model files are verified in staging before atomic directory publication.
+The node operation prepares the model and its selected runtime as one cancellable request; Rust never
+forwards a Hugging Face token or external YAML to Python.
 
 ## Security boundary
 

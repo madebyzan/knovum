@@ -20,7 +20,6 @@ use crate::{
             tools::AgentToolDefinition,
         },
     },
-    local_resources::runtimes::python::RuntimeProfile,
     spaces::{
         conversations::execution::{binding, gateway::Gateway, ledger, projection},
         db,
@@ -51,11 +50,10 @@ pub(super) async fn drive(
     .map_err(|_| "builtin-agent-process-admission-closed")?;
     tokio::time::timeout_at(
         deadline,
-        crate::local_resources::preparation::prepare_python_for_job(
+        crate::local_resources::preparation::prepare_agent_for_job(
             &host.app,
-            RuntimeProfile::Agent,
             &format!("builtin-agent-runtime:{}", host.ids.run_id),
-            "Prepare Agent Runtime",
+            "Preparing built-in Agent resources",
             &cancellation,
         ),
     )

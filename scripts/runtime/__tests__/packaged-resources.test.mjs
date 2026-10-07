@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { readRuntimeDescriptor } from "../distribution.mjs";
+import { readRuntimeDescriptor, validateRuntimeDescriptor } from "../distribution.mjs";
 import { validatePackagedResources, workerDigest } from "../packaged-resources.mjs";
 import { runtimeProfiles } from "../profiles.mjs";
 
@@ -25,10 +25,7 @@ function fixture(context) {
     version: "3.11.17",
     dependencyRequirementsSha256: "a".repeat(64),
     dependencyLockSha256: "b".repeat(64),
-    sources: {
-      global: "https://example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
-      china: "https://china.example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
-    },
+    archiveUrl: "https://example.test/immutable-v1/python-runtime-windows-x64.tar.gz",
     size: 123,
     sha256: "c".repeat(64),
     manifestSha256: "d".repeat(64),
@@ -111,11 +108,11 @@ test("descriptor rejects unsupported platform and insecure download source", (co
     () => readRuntimeDescriptor(sample.path, "windows-arm64", "resources"),
     /Invalid Python runtime descriptor/,
   );
-  sample.descriptor.sources.china = "http://example.test/runtime.tar.gz";
+  sample.descriptor.archiveUrl = "http://example.test/runtime.tar.gz";
   sample.save();
   assert.throws(
     () => readRuntimeDescriptor(sample.path, "windows-x64", "resources"),
-    /Runtime archive sources must be HTTPS/,
+    /Runtime archive URL must be HTTPS/,
   );
 });
 
@@ -135,4 +132,21 @@ test("an Agent Runtime descriptor cannot replace the resources descriptor", (con
   sample.descriptor.profile = "agent";
   sample.save();
   assert.throws(sample.verify, /Invalid Python runtime descriptor/);
+});
+
+test("publication owns one archive URL and rejects regional descriptors", (context) => {
+  const sample = fixture(context);
+  const { archiveUrl: previousUrl, ...identity } = sample.descriptor;
+  const sources = { global: previousUrl, china: "https://china.example.test/runtime.tar.gz" };
+  const descriptor = { ...identity, archiveUrl: "https://downloads.example.test/runtime.tar.gz" };
+  validateRuntimeDescriptor(descriptor, "windows-x64", "resources");
+  assert.throws(() => validateRuntimeDescriptor({ ...descriptor, sources }, "windows-x64", "resources"));
+  assert.throws(() => validateRuntimeDescriptor({ ...identity, sources }, "windows-x64", "resources"));
+  for (const archiveUrl of [
+    "http://example.test/runtime",
+    "https://user:secret@example.test/runtime",
+    "https://example.test/runtime#fragment",
+  ]) {
+    assert.throws(() => validateRuntimeDescriptor({ ...descriptor, archiveUrl }, "windows-x64", "resources"));
+  }
 });

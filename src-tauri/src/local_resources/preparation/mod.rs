@@ -3,17 +3,18 @@ use std::collections::{HashMap, HashSet};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::models::catalog::{self, ModelKind};
+use super::models::catalog::ModelKind;
 
 pub(crate) mod commands;
 pub(crate) mod contracts;
 mod coordinator;
 mod installation;
 mod jobs;
+mod model_plan;
 pub(crate) use jobs::{
-    prepare_kokoro_for_job, prepare_kokoro_for_request, prepare_models_for_job,
-    prepare_models_for_request, prepare_python_for_job, prepare_python_for_request,
-    prepare_voxcpm2_for_job,
+    prepare_agent_for_job, prepare_agent_for_request, prepare_diarization_for_job,
+    prepare_diarization_for_request, prepare_kokoro_for_job, prepare_kokoro_for_request,
+    prepare_models_for_job, prepare_models_for_request, prepare_voxcpm2_for_job,
 };
 pub(crate) mod locks;
 pub(crate) mod requests;
@@ -22,8 +23,8 @@ pub(crate) mod shared_installation;
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage};
 
 pub use locks::{
-    acquire_verified_diarization, acquire_verified_models, PreparedDiarizationModel,
-    PreparedKokoroModel, PreparedModels, PreparedVoxCpm2Model,
+    acquire_verified_models, PreparedDiarizationModel, PreparedKokoroModel, PreparedModels,
+    PreparedVoxCpm2Model,
 };
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";
@@ -40,80 +41,42 @@ pub async fn prepare_models<R: Runtime>(
     if kinds.iter().copied().collect::<HashSet<_>>().len() != kinds.len() {
         return Err("Model preparation contains duplicate model parts".to_string());
     }
-    let profiles = kinds
-        .iter()
-        .map(|kind| catalog::descriptor(*kind).snapshot.runtime_profile())
-        .collect::<std::collections::BTreeSet<_>>();
-    for profile in profiles {
+    let handle = app.clone();
+    let requested = kinds.to_vec();
+    let plan = crate::blocking::run(move || model_plan::inspect(&handle, &requested)).await?;
+    let total = plan.download_bytes;
+    progress(ResourcePreparationProgress {
+        stage: ResourcePreparationStage::Queued,
+        downloaded: 0,
+        total: Some(total),
+        percent: Some(0),
+    });
+    let mut completed = 0_u64;
+    for (profile, size) in plan.runtimes {
         super::runtimes::python::prepare(app, profile, request_cancellation, &mut |update| {
             if !matches!(update.stage, ResourcePreparationStage::Ready) {
-                progress(update);
+                progress(update.with_overall_progress(completed, total));
             }
         })
         .await?;
-    }
-    let mut missing = Vec::new();
-    let mut snapshots = HashSet::new();
-    for &kind in kinds {
-        let descriptor = catalog::descriptor(kind);
-        let status = super::models::status(app, descriptor)?;
-        if !status.verified
-            && super::configured_path::configured_path(descriptor.env_key)?.is_some()
-        {
-            return Err(format!(
-                "Configured model {} failed verification",
-                descriptor.file
-            ));
-        }
-        if !status.verified && snapshots.insert(descriptor.snapshot) {
-            missing.push(kind);
-        }
+        completed += size;
     }
 
-    let mut waiters = Vec::with_capacity(missing.len());
-    if !missing.is_empty() {
-        super::runtimes::python::prepare(
-            app,
-            crate::local_resources::runtimes::python::RuntimeProfile::Resources,
-            request_cancellation,
-            &mut |update| {
-                if !matches!(update.stage, ResourcePreparationStage::Ready) {
-                    progress(update);
-                }
-            },
-        )
-        .await?;
-        for kind in missing {
-            waiters.push((
-                kind,
-                coordinator::join_installation(app, kind, request_cancellation).await?,
-            ));
-        }
+    let mut waiters = Vec::with_capacity(plan.missing.len());
+    for kind in plan.missing {
+        waiters.push((
+            kind,
+            coordinator::join_installation(app, kind, request_cancellation).await?,
+        ));
     }
-
-    let total = waiters
-        .iter()
-        .map(|(kind, _)| catalog::descriptor(*kind).snapshot.total_bytes())
-        .sum::<u64>();
-    if waiters.is_empty() {
-        progress(ResourcePreparationProgress {
-            stage: ResourcePreparationStage::Ready,
-            downloaded: 0,
-            total: Some(0),
-            percent: Some(100),
-        });
-    }
-    let waiter_count = waiters.len();
     let mut downloaded = HashMap::<ModelKind, u64>::new();
-    for (index, (kind, waiter)) in waiters.iter_mut().enumerate() {
+    for (kind, waiter) in &mut waiters {
         waiter
             .wait(request_cancellation, &mut |update| {
                 downloaded.insert(*kind, update.downloaded);
-                let current = downloaded.values().copied().sum::<u64>();
-                let stage = if matches!(update.stage, ResourcePreparationStage::Ready)
-                    && index + 1 < waiter_count
-                {
-                    ResourcePreparationStage::Downloading
+                let current = completed + downloaded.values().copied().sum::<u64>();
+                let stage = if matches!(update.stage, ResourcePreparationStage::Ready) {
+                    ResourcePreparationStage::Verifying
                 } else {
                     update.stage
                 };
@@ -128,5 +91,12 @@ pub async fn prepare_models<R: Runtime>(
             .await?;
     }
 
-    locks::acquire_verified_models(app, kinds, request_cancellation).await
+    let prepared = locks::acquire_verified_models(app, kinds, request_cancellation).await?;
+    progress(ResourcePreparationProgress {
+        stage: ResourcePreparationStage::Ready,
+        downloaded: total,
+        total: Some(total),
+        percent: Some(100),
+    });
+    Ok(prepared)
 }

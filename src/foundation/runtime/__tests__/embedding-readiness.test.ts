@@ -8,7 +8,6 @@ function resources(): LocalResourcesStatus {
   const tool = { available: false, path: null };
   return {
     platform: "macos-x64",
-    downloadRegion: "global",
     ffmpeg: tool,
     ytDlp: tool,
     deno: tool,
@@ -38,7 +37,7 @@ function resources(): LocalResourcesStatus {
         path: "",
         revision: "",
         totalBytes: 0,
-        requiresUserTerms: true,
+        tokenConfigured: false,
       },
     },
     kokoro: { installed: false, verified: false, path: "", downloadSize: 0, licenseReviewRequired: true },

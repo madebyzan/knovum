@@ -25,7 +25,7 @@ export function validateRuntimeDescriptor(value, target, profile) {
     "dependencyRequirementsSha256",
     "profile",
     "dependencyLockSha256",
-    "sources",
+    "archiveUrl",
     "size",
     "sha256",
     "manifestSha256",
@@ -52,17 +52,10 @@ function validateIdentity(value, target, profile, keys) {
 }
 
 function validateArchiveSource(value) {
-  if (
-    Object.keys(value.sources ?? {})
-      .toSorted()
-      .join() !== "china,global"
-  )
-    throw new Error("Runtime descriptor requires global and China archive sources");
-  for (const source of Object.values(value.sources)) {
-    const url = new URL(source);
-    if (url.protocol !== "https:" || url.username || url.password || url.hash)
-      throw new Error("Runtime archive sources must be HTTPS without credentials or fragments");
-  }
+  if (typeof value.archiveUrl !== "string") throw new Error("Runtime descriptor requires one archive URL");
+  const url = new URL(value.archiveUrl);
+  if (url.protocol !== "https:" || url.username || url.password || url.hash)
+    throw new Error("Runtime archive URL must be HTTPS without credentials or fragments");
 }
 
 export function validateRuntimeDistribution(

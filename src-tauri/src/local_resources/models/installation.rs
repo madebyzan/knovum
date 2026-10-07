@@ -6,7 +6,6 @@ use tokio_util::sync::CancellationToken;
 use super::{catalog, download, installation_path, snapshots::SnapshotKind};
 use crate::local_resources::{
     filesystem,
-    preferences::ResourceDownloadRegion,
     preparation::{
         contracts::{ResourcePreparationProgress, ResourcePreparationStage},
         RESOURCE_PREPARATION_CANCELLED,
@@ -38,7 +37,6 @@ pub(crate) fn ready<R: Runtime>(
 pub(crate) async fn install<R: Runtime>(
     app: &AppHandle<R>,
     snapshot: SnapshotKind,
-    region: ResourceDownloadRegion,
     progress: &mut impl FnMut(ResourcePreparationProgress),
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
@@ -50,17 +48,9 @@ pub(crate) async fn install<R: Runtime>(
         .parent()
         .ok_or("Model snapshot root is unavailable")?;
     fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-    let source_name = match region {
-        ResourceDownloadRegion::Global => "global",
-        ResourceDownloadRegion::China => "china",
-    };
-    let staging = parent.join(format!(
-        ".{}.{}.downloading",
-        snapshot.digest(),
-        source_name
-    ));
+    let staging = parent.join(format!(".{}.downloading", snapshot.digest()));
     fs::create_dir_all(&staging).map_err(|error| error.to_string())?;
-    download::snapshot(app, snapshot, region, &staging, progress, cancellation).await?;
+    download::snapshot(app, snapshot, &staging, progress, cancellation).await?;
     progress(update(snapshot, ResourcePreparationStage::Verifying));
     let verify_path = staging.clone();
     let verify_cancellation = cancellation.clone();

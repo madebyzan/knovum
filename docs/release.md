@@ -296,20 +296,20 @@ as plain text.
 
 ## Required acceptance matrix
 
-| Scenario                                            | Required outcome on every supported target                                                                           |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                        |
-| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                        |
-| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                          |
-| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                          |
-| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                     |
-| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                |
-| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                 |
-| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                    |
-| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                           |
-| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                   |
-| Speech runtime and model resources                  | Native ASR, alignment, diarization import, Kokoro gate and VoxCPM2 profiles are exercised on their supported target. |
-| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                     |
+| Scenario                                            | Required outcome on every supported target                                                                                        |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                                     |
+| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                                     |
+| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                                       |
+| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                                       |
+| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                                  |
+| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                             |
+| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                              |
+| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                                 |
+| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                                        |
+| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                                |
+| Speech runtime and model resources                  | Native ASR, alignment, authorized diarization download, Kokoro gate and VoxCPM2 profiles are exercised on their supported target. |
+| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                                  |
 
 The first update-enabled public installation establishes the trust/endpoint baseline. A previously
 shipped updater-disabled QA binary cannot be remotely taught an endpoint; install the baseline normally.
@@ -336,22 +336,23 @@ cancellation/retry, concurrent sharing and offline use after preparation, with a
 AI profiles. Runtime components are prepared before models and inference deadlines. Release
 `platform.json`/`candidate.json` retain the descriptor and Worker digest beside installer identities.
 The candidate Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
-with paths relative to `knovum_inference`. `scripts/runtime/packaged-resources.mjs` owns this
+with paths relative to the application-owned `python/src` tree. `scripts/runtime/packaged-resources.mjs` owns this
 calculation. Capture provenance and each candidate execution source must record that digest and
 the descriptor's `manifestSha256`; an output from either another Worker or runtime is rejected.
 Runtime archives and corresponding evidence/source attachments must be published at the actual
 immutable URLs before distributing an application that requires them. Workflow artifact uploads
 are build outputs, not confirmation that those public locations exist.
 
-Regional resource acceptance requires both descriptor archive URLs to serve the same SHA-256
-without credentials, and each selected Hub source to pass native download/cancel/resume and
-offline inference acceptance in its target region. ModelScope metadata equality for five
-snapshots is established; full transfer and native execution are separate evidence. U²-Net and
-Spleeter's current China community endpoints redirected small probes to `us.aws.cdn.hf.co`;
-full mainland transfers remain unqualified. Geographic naming alone does not establish
-inaccessibility. If that route fails actual regional acceptance, publish and catalogue an
-identical qualified regional copy before release.
-Kokoro's existing archive/license gates and user-authorized diarization import remain unchanged.
+Resource acceptance requires each descriptor's single `archiveUrl` to serve the declared SHA-256
+without credentials, and every catalog-selected Hub source to pass native download/cancel/resume
+and offline inference acceptance on supported networks. ModelScope content identity evidence does
+not establish full transfer or native execution. Clients do not ask users for regions or infer them;
+CDN routing belongs to the publisher. Current upstream URLs have not been qualified for every
+mainland network. If a route fails acceptance, publish a permitted identical qualified copy and
+update the catalog before release. Legacy dual-region descriptors are rejected.
+Kokoro retains its archive/license gates. Community-1 requires acceptance evidence for official
+authorized download, HTTP denial without credential leakage, cancellation, digest verification and
+subsequent offline inference. No manual folder import or application-owned terms declaration remains.
 No provider failover, compatibility endpoint precedence or replacement model satisfies this gate.
 
 ## Deep Agents acceptance

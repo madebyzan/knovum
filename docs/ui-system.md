@@ -5,6 +5,11 @@ open from node actions with the source node fixed; shared voice resources appear
 The selection inspector may expose the same node operation. Do not add an independent speech sidebar
 destination or a Space-wide video/manuscript selector for these operations.
 
+Resource settings are organized around models and user capabilities. Python profiles and dependency
+installation are application-owned implementation details, without manual environment controls.
+The initiating feature prepares dependencies automatically and owns progress/cancellation through
+the Task Center. Download-region/source selection belongs to the catalog and publication configuration.
+
 ## Product language
 
 Knovum is a desktop workbench. The target is Apple-like platform sensibility plus Linear-like information density, not a web dashboard and not a visual clone of either product.

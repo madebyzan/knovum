@@ -11,8 +11,11 @@ use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
 use super::contracts::{ResourcePreparationProgress, ResourcePreparationStage};
-use super::{installation, locks::ModelIdentity, RESOURCE_PREPARATION_CANCELLED};
-use crate::local_resources::models::catalog::{self, ModelKind};
+use super::{installation, RESOURCE_PREPARATION_CANCELLED};
+use crate::local_resources::models::{
+    catalog::{self, ModelKind},
+    snapshots::SnapshotKind,
+};
 
 #[derive(Clone)]
 pub(super) enum InstallationState {
@@ -119,13 +122,13 @@ pub(super) async fn join_installation<R: Runtime>(
     kind: ModelKind,
     request_cancellation: &CancellationToken,
 ) -> Result<InstallationWaiter, String> {
-    let identity = ModelIdentity::for_kind(kind, crate::local_resources::preferences::region(app)?);
+    let snapshot = catalog::descriptor(kind).snapshot;
     loop {
         let outcome = {
             let mut active = installations()
                 .lock()
                 .map_err(|_| "Model preparation lock poisoned".to_string())?;
-            match active.get(&identity) {
+            match active.get(&snapshot) {
                 Some(existing) if existing.cancellation.is_cancelled() => {
                     Err(existing.state.subscribe())
                 }
@@ -133,7 +136,7 @@ pub(super) async fn join_installation<R: Runtime>(
                 None => {
                     let installation = Installation::new(kind);
                     let waiter = installation.join();
-                    active.insert(identity, Arc::clone(&installation));
+                    active.insert(snapshot, Arc::clone(&installation));
                     Ok((installation, waiter, true))
                 }
             }
@@ -141,7 +144,7 @@ pub(super) async fn join_installation<R: Runtime>(
         match outcome {
             Ok((installation, waiter, should_start)) => {
                 if should_start {
-                    installation::start(app.clone(), identity, installation);
+                    installation::start(app.clone(), snapshot, installation);
                 }
                 return Ok(waiter);
             }
@@ -163,17 +166,17 @@ pub(super) async fn join_installation<R: Runtime>(
 }
 
 pub(super) fn complete(
-    identity: ModelIdentity,
+    snapshot: SnapshotKind,
     installation: &Arc<Installation>,
     state: InstallationState,
 ) {
     if let Ok(mut active) = installations().lock() {
         installation.finish(state);
         if active
-            .get(&identity)
+            .get(&snapshot)
             .is_some_and(|current| Arc::ptr_eq(current, installation))
         {
-            active.remove(&identity);
+            active.remove(&snapshot);
         }
     } else {
         installation.finish(InstallationState::Failed(
@@ -182,8 +185,8 @@ pub(super) fn complete(
     }
 }
 
-fn installations() -> &'static Mutex<HashMap<ModelIdentity, Arc<Installation>>> {
-    static INSTALLATIONS: OnceLock<Mutex<HashMap<ModelIdentity, Arc<Installation>>>> =
+fn installations() -> &'static Mutex<HashMap<SnapshotKind, Arc<Installation>>> {
+    static INSTALLATIONS: OnceLock<Mutex<HashMap<SnapshotKind, Arc<Installation>>>> =
         OnceLock::new();
     INSTALLATIONS.get_or_init(|| Mutex::new(HashMap::new()))
 }

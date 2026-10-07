@@ -2,7 +2,6 @@
 import type { KokoroPackageStatus } from "./KokoroPackageStatus";
 import type { ModelStatuses } from "./ModelStatuses";
 import type { PythonRuntimeStatuses } from "./PythonRuntimeStatuses";
-import type { ResourceDownloadRegion } from "./ResourceDownloadRegion";
 import type { ToolStatus } from "./ToolStatus";
 
-export type LocalResourcesStatus = { platform: string, downloadRegion: ResourceDownloadRegion, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, pythonRuntimes: PythonRuntimeStatuses, models: ModelStatuses, kokoro: KokoroPackageStatus, };
+export type LocalResourcesStatus = { platform: string, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, pythonRuntimes: PythonRuntimeStatuses, models: ModelStatuses, kokoro: KokoroPackageStatus, };

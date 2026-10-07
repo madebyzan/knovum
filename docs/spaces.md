@@ -239,8 +239,9 @@ Selected alignment is an explicit enrichment action over at most eight segments 
 It preserves stable word or character unit identities and may publish partial progress; a manual edit
 invalidates the edited segment's timing rather than silently retaining stale alignment. Optional
 speaker diarization runs separately on CPU for media up to two hours with user bounds from 1 through
-32 speakers. It uses an imported, verified Community-1 resource and never asks the WebView for a
-Hugging Face token.
+32 speakers. Its node action prepares Community-1 and the matching dependencies automatically after the user
+has configured official model access. Download progress and cancellation belong to the same feature
+request; the WebView never passes a Hugging Face token to the inference worker.
 
 ## Speech projects
 

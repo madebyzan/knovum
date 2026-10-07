@@ -10,7 +10,6 @@ mod configured_path;
 mod download;
 mod filesystem;
 pub(crate) mod models;
-pub(crate) mod preferences;
 pub(crate) mod preparation;
 pub(crate) mod runtimes;
 #[cfg(test)]
@@ -22,7 +21,6 @@ mod verification;
 #[serde(rename_all = "camelCase")]
 pub struct LocalResourcesStatus {
     platform: &'static str,
-    download_region: preferences::ResourceDownloadRegion,
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
@@ -68,13 +66,15 @@ struct ModelStatuses {
 
 #[tauri::command]
 pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError> {
-    Ok((crate::blocking::run(move || status(&app)).await)?)
+    let token_configured = crate::secrets::read_secret(models::diarization::ACCESS_TOKEN_KEY)
+        .await?
+        .is_some();
+    Ok((crate::blocking::run(move || status(&app, token_configured)).await)?)
 }
 
-fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
+fn status(app: &AppHandle, token_configured: bool) -> Result<LocalResourcesStatus, String> {
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
-        download_region: preferences::region(app)?,
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
@@ -94,12 +94,12 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
             ),
             agent: runtimes::python::status(app, runtimes::python::RuntimeProfile::Agent),
         },
-        models: model_statuses(app)?,
+        models: model_statuses(app, token_configured)?,
         kokoro: models::kokoro::status(app)?,
     })
 }
 
-fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
+fn model_statuses(app: &AppHandle, token_configured: bool) -> Result<ModelStatuses, String> {
     Ok(ModelStatuses {
         transcription: models::catalog::TRANSCRIPTION_MODELS
             .iter()
@@ -135,7 +135,7 @@ fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
             .copied()
             .map(|kind| model_status(app, kind))
             .collect::<Result<Vec<_>, _>>()?,
-        diarization: models::diarization::status(app)?,
+        diarization: models::diarization::status(app, token_configured)?,
     })
 }
 

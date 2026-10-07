@@ -5,39 +5,39 @@ use tauri::{AppHandle, Runtime};
 use super::{
     contracts::{ResourcePreparationProgress, ResourcePreparationStage},
     coordinator::{complete, Installation, InstallationState},
-    locks::{resource_lock, ModelIdentity},
+    locks::resource_lock,
 };
-use crate::local_resources::models;
+use crate::local_resources::models::{self, snapshots::SnapshotKind};
 
 pub(super) fn start<R: Runtime>(
     app: AppHandle<R>,
-    identity: ModelIdentity,
+    snapshot: SnapshotKind,
     installation: Arc<Installation>,
 ) {
     tauri::async_runtime::spawn(async move {
-        let outcome = run(&app, identity, &installation).await;
+        let outcome = run(&app, snapshot, &installation).await;
         let state = match outcome {
             Ok(()) => InstallationState::Progress(ResourcePreparationProgress {
                 stage: ResourcePreparationStage::Ready,
-                downloaded: identity.snapshot.total_bytes(),
-                total: Some(identity.snapshot.total_bytes()),
+                downloaded: snapshot.total_bytes(),
+                total: Some(snapshot.total_bytes()),
                 percent: Some(100),
             }),
             Err(error) => InstallationState::Failed(error.into()),
         };
-        complete(identity, &installation, state);
+        complete(snapshot, &installation, state);
     });
 }
 
 async fn run<R: Runtime>(
     app: &AppHandle<R>,
-    identity: ModelIdentity,
+    snapshot: SnapshotKind,
     installation: &Installation,
 ) -> Result<(), String> {
-    if models::installation::ready(app, identity.snapshot)? {
+    if models::installation::ready(app, snapshot)? {
         return Ok(());
     }
-    let lock = resource_lock(identity.snapshot)?;
+    let lock = resource_lock(snapshot)?;
     let _exclusive = tokio::select! {
         biased;
         _ = installation.cancellation.cancelled() => {
@@ -45,13 +45,12 @@ async fn run<R: Runtime>(
         }
         guard = lock.write_owned() => guard,
     };
-    if models::installation::ready(app, identity.snapshot)? {
+    if models::installation::ready(app, snapshot)? {
         return Ok(());
     }
     models::installation::install(
         app,
-        identity.snapshot,
-        identity.region,
+        snapshot,
         &mut |update| {
             installation.publish(InstallationState::Progress(update));
         },

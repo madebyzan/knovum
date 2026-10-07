@@ -7,7 +7,12 @@ use super::{
     validation::reject_unknown,
 };
 
-pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
+pub(crate) const MAX_DESCRIPTION: usize = 8_000;
+pub(crate) const MAX_DETECTED_TEXT: usize = 16_000;
+pub(crate) const MAX_TAGS: usize = 32;
+pub(crate) const MAX_TAG: usize = 80;
+
+pub(crate) fn validate(value: Option<&Value>) -> Result<(), String> {
     let Some(value) = value else {
         return Ok(());
     };
@@ -27,12 +32,12 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         "visualKnowledge",
     )?;
     required_string(object, "sourceRevision", 128)?;
-    required_string(object, "description", 8_000)?;
-    optional_string(object, "detectedText", 16_000, false)?;
+    required_string(object, "description", MAX_DESCRIPTION)?;
+    optional_string(object, "detectedText", MAX_DETECTED_TEXT, false)?;
     if !object.contains_key("tags") {
         return Err("Space node data.tags must be an array".into());
     }
-    optional_string_array(object, "tags", 32, 80)?;
+    optional_string_array(object, "tags", MAX_TAGS, MAX_TAG)?;
     required_safe_nonnegative_integer(object, "generatedAt")?;
     let source: crate::ai::tasks::ExecutionSource = serde_json::from_value(
         object

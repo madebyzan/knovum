@@ -140,10 +140,9 @@ WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selec
 runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner snapshot pinned at
 `c7cbfc2048c462b0d63a45797104fc9db3ad62b7` through the Transformers 5.19.0 API. Its complete
 verified manifest is prepared only by a selected-segment enrichment job and it is never an ASR
-fallback. Pyannote Community-1 requires individual gated model access. Knovum accepts a local
-user-authorized import of exactly four files from revision
+fallback. Pyannote Community-1 requires individual gated model access. Knovum downloads exactly four files after official account authorization from revision
 `3533c8cf8e369892e6b79ff1bf80f7b0286a54ee`, verifies their manifest, and supplies its own fixed
-pipeline configuration; no worker credential, external YAML or unauthorized mirror is used.
+pipeline configuration. The access token stays in the Rust-owned secrets database and authenticated download transport; no worker credential, external YAML or unauthorized mirror is used.
 The plan's Demucs htdemucs code license does not grant commercial use of its official pretrained
 weights, so it is not the production baseline. Knovum instead selects sherpa-onnx 1.13.8 with the
 two-stem Spleeter FP16 ONNX snapshot pinned at

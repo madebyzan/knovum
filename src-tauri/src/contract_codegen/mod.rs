@@ -79,6 +79,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "export const maxKnowledgePassageBytes = {} as const;\n",
             "export const relationKinds = {} as const;\n",
             "export const relationStatuses = {} as const;\n",
+            "export const visualKnowledgeLimits = {} as const;\n",
         ),
         crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
         relation_kinds
@@ -87,6 +88,12 @@ pub fn export(project_root: &Path) -> Result<(), String> {
         relation_statuses
             .get("enum")
             .ok_or("Relation statuses must be an enum")?,
+        serde_json::json!({
+            "description": crate::spaces::knowledge::node_contracts::visual::MAX_DESCRIPTION,
+            "detectedText": crate::spaces::knowledge::node_contracts::visual::MAX_DETECTED_TEXT,
+            "tags": crate::spaces::knowledge::node_contracts::visual::MAX_TAGS,
+            "tag": crate::spaces::knowledge::node_contracts::visual::MAX_TAG,
+        }),
     );
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)

@@ -77,11 +77,10 @@ def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> N
     )
 
 
-def build(output: Path, signing: str, global_archive_url: str, china_archive_url: str, profile: str) -> None:
-    for archive_url in (global_archive_url, china_archive_url):
-        url = urlparse(archive_url)
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
-            raise ValueError("Runtime publication requires immutable global and China HTTPS archive URLs")
+def build(output: Path, signing: str, archive_url: str, profile: str) -> None:
+    url = urlparse(archive_url)
+    if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
+        raise ValueError("Runtime publication requires one immutable HTTPS archive URL")
     target = host_target()
     config = json.loads((PROJECT / "runtime-source.json").read_text())
     actual_uv = run("uv", "--version", capture=True).split()[1]
@@ -154,7 +153,7 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
             "version": config["version"],
             "dependencyRequirementsSha256": manifest["dependencyRequirementsSha256"],
             "dependencyLockSha256": manifest["dependencyLockSha256"],
-            "sources": {"global": global_archive_url, "china": china_archive_url},
+            "archiveUrl": archive_url,
             "size": artifact.stat().st_size,
             "sha256": digest(artifact),
             "manifestSha256": digest(relocated / "runtime-manifest.json"),
@@ -172,7 +171,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--signing", choices=("adhoc", "unsigned", "production"), required=True)
-    parser.add_argument("--global-archive-url", required=True, help="Immutable global HTTPS location of the archive")
-    parser.add_argument("--china-archive-url", required=True, help="Immutable China HTTPS location of the same archive")
+    parser.add_argument("--archive-url", required=True, help="Immutable HTTPS publication location of the archive")
     args = parser.parse_args()
-    build(args.output.resolve(), args.signing, args.global_archive_url, args.china_archive_url, args.profile)
+    build(args.output.resolve(), args.signing, args.archive_url, args.profile)

@@ -65,7 +65,7 @@ try {
   const descriptor = readRuntimeDescriptor(descriptorPath, target, profile);
   if (
     descriptor.sha256 !== sourceByKind.PYTHON_RUNTIME.expectedHash ||
-    !Object.values(descriptor.sources).includes(sourceByKind.PYTHON_RUNTIME.url)
+    descriptor.archiveUrl !== sourceByKind.PYTHON_RUNTIME.url
   )
     throw new Error("Runtime descriptor differs from the controlled archive source");
   if ((await import("node:fs")).statSync(archives.PYTHON_RUNTIME).size !== descriptor.size)
