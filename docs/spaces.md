@@ -485,8 +485,8 @@ resources to step-output bindings; the executable candidate contains no canvas n
 rejects incomplete records, mismatched source order, missing execution targets, and action
 parameters that directly reference source node IDs. A source digest covers the selected graph and
 current node contents so a later save can reject a changed preview. The existing personal-template
-table stores only current `schemaVersion: 1` personal definitions; the pre-release transition removes
-obsolete rows. Saving
+table loads only current `schemaVersion: 1` personal definitions; unsupported development definitions
+are not loaded or converted. Saving
 recomputes capture within the same write transaction and checks its digest; a request UUID makes
 retries idempotent. Starting a Run checks action versions, binds distinct new resources, grants
 the selected actions, and records a fixed definition and input snapshot. `captured_action` steps
