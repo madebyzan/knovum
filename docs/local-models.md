@@ -25,6 +25,11 @@ Knovum does not download model weights during application installation or first 
 that needs a missing model prepares it after the user starts that capability and reports the work in
 the shared Task Center. The provider settings page manages generative model connections, not these resources.
 
+Opening or editing a Space checks local embedding readiness before background indexing. Missing
+or unverified models leave the index unprepared without starting a download or reporting an indexing
+failure. Enabling semantic search or choosing Related Content's preparation action prepares the
+verified embedding snapshot explicitly; Related Content then schedules a full Space index.
+
 | Capability                         | Model                                                                                           | Ownership | Product action             |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------- | --------- | -------------------------- |
 | Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                  | Knovum    | Prepare on use             |

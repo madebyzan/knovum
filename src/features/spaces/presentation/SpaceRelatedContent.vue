@@ -7,7 +7,6 @@ import { useI18n } from "vue-i18n";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { selectAndRevealSpaceNode } from "../canvas/selection-actions";
-import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { useRelatedContent } from "../knowledge/queries/use-related-content";
 import { useSpaceStore } from "../session/space-store";
 import { nodeIcon } from "./node-icon";
@@ -17,7 +16,7 @@ const { t } = useI18n();
 const store = useSpaceStore();
 const { activeSpaceId, nodes } = storeToRefs(store);
 const nodeId = toRef(props, "nodeId");
-const { query, indexStatus } = useRelatedContent(activeSpaceId, nodeId);
+const { query, indexStatus, preparing, prepare } = useRelatedContent(activeSpaceId, nodeId);
 const expanded = shallowRef(false);
 const currentNodes = computed(() => new Map(nodes.value.map((node) => [node.id, node])));
 const items = computed(() =>
@@ -38,6 +37,7 @@ const items = computed(() =>
 const visibleItems = computed(() => (expanded.value ? items.value : items.value.slice(0, 3)));
 const pending = computed(
   () =>
+    preparing.value ||
     query.isPending.value ||
     (query.data.value?.state === "unindexed" &&
       (indexStatus.value === "scheduled" || indexStatus.value === "indexing")),
@@ -48,13 +48,9 @@ function reveal(id: string) {
   selectAndRevealSpaceNode(id);
 }
 
-function startIndex() {
-  if (activeSpaceId.value) scheduleKnowledgeIndex(activeSpaceId.value, [props.nodeId]);
-}
-
 function retry() {
   if (indexStatus.value === "unavailable" && query.data.value?.state === "unindexed") {
-    startIndex();
+    void prepare();
   } else {
     void query.refetch();
   }
@@ -78,7 +74,10 @@ function retry() {
       </button>
     </header>
     <div
-      v-if="query.isError.value || (indexStatus === 'unavailable' && query.data.value?.state === 'unindexed')"
+      v-if="
+        !preparing &&
+        (query.isError.value || (indexStatus === 'unavailable' && query.data.value?.state === 'unindexed'))
+      "
       class="flex items-start gap-2 px-1 py-2 text-caption text-fg-danger"
     >
       <TriangleAlert class="mt-0.5 size-3 shrink-0" />
@@ -99,7 +98,7 @@ function retry() {
       class="px-1 py-2 text-caption leading-relaxed text-fg-tertiary"
     >
       <p>{{ t("spaces.inspector.related.notIndexed") }}</p>
-      <button type="button" class="mt-1 text-fg-secondary underline" @click="startIndex">
+      <button type="button" class="mt-1 text-fg-secondary underline" @click="prepare">
         {{ t("spaces.inspector.related.prepare") }}
       </button>
     </div>

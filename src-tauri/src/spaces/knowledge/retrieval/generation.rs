@@ -15,6 +15,16 @@ pub(super) async fn active(
     space_id: &str,
     embedding_spec_id: &str,
 ) -> Result<IndexGeneration, String> {
+    find_active(pool, space_id, embedding_spec_id)
+        .await?
+        .ok_or_else(|| REBUILD_REQUIRED.to_owned())
+}
+
+pub(super) async fn find_active(
+    pool: &SqlitePool,
+    space_id: &str,
+    embedding_spec_id: &str,
+) -> Result<Option<IndexGeneration>, String> {
     let row = sqlx::query(
         "SELECT id,embedding_spec_id FROM spaces_retrieval_generations \
          WHERE space_id=$1 AND status='active'",
@@ -22,13 +32,13 @@ pub(super) async fn active(
     .bind(space_id)
     .fetch_optional(pool)
     .await
-    .map_err(db::sql_error)?
-    .ok_or_else(|| REBUILD_REQUIRED.to_owned())?;
+    .map_err(db::sql_error)?;
+    let Some(row) = row else { return Ok(None) };
     let generation = decode(row)?;
     if generation.embedding_spec_id != embedding_spec_id {
-        return Err(REBUILD_REQUIRED.to_owned());
+        return Ok(None);
     }
-    Ok(generation)
+    Ok(Some(generation))
 }
 
 pub(super) async fn begin_rebuild(

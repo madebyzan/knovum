@@ -55,7 +55,14 @@ pub async fn list<R: Runtime>(
             items: Vec::new(),
         });
     }
-    let generation = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
+    let Some(generation) =
+        generation::find_active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?
+    else {
+        return Ok(RelatedContentResponse {
+            state: "unindexed",
+            items: Vec::new(),
+        });
+    };
     let rows = sqlx::query(
         "WITH indexed AS ( \
            SELECT c.id, c.source_revision, \

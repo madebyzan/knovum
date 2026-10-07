@@ -157,6 +157,7 @@ fn main() {
                         "copy_voice_profile",
                         "get_voice_candidate",
                         "list_voice_candidates",
+                        "get_active_voice_candidate_run",
                         "mark_voice_candidate_auditioned",
                         "translate_video_dubbing",
                         "get_video_translation_run",

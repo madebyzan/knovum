@@ -1,4 +1,5 @@
 use super::hybrid::reciprocal_rank_fusion;
+use super::{generation, index_writer::tests::fixture::Fixture};
 
 fn matched(id: &str, score: f64) -> serde_json::Value {
     serde_json::json!({ "chunkId": id, "score": score })
@@ -24,4 +25,47 @@ fn reciprocal_rank_fusion_keeps_both_score_payloads() {
     assert_eq!(values.len(), 1);
     assert_eq!(values[0]["lexicalScore"], 7.0);
     assert_eq!(values[0]["semanticScore"], 3.0);
+}
+
+#[tokio::test]
+async fn distinguishes_unprepared_generations_from_database_failures() {
+    let fixture = Fixture::new().await;
+    assert!(generation::find_active(&fixture.pool, "space", "spec")
+        .await
+        .unwrap()
+        .is_none());
+    assert_eq!(
+        generation::active(&fixture.pool, "space", "spec")
+            .await
+            .unwrap_err(),
+        generation::REBUILD_REQUIRED
+    );
+
+    sqlx::query("UPDATE spaces_retrieval_generations SET status='active',activated_at=1 WHERE id='generation'")
+        .execute(&fixture.pool).await.unwrap();
+    assert_eq!(
+        generation::find_active(&fixture.pool, "space", "spec")
+            .await
+            .unwrap()
+            .unwrap()
+            .id,
+        "generation"
+    );
+    assert!(
+        generation::find_active(&fixture.pool, "space", "different-spec")
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert_eq!(
+        generation::active(&fixture.pool, "space", "different-spec")
+            .await
+            .unwrap_err(),
+        generation::REBUILD_REQUIRED
+    );
+
+    fixture.pool.close().await;
+    assert!(generation::find_active(&fixture.pool, "space", "spec")
+        .await
+        .is_err());
 }

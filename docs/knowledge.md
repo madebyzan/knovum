@@ -149,6 +149,10 @@ SQLite and LanceDB do not share a distributed transaction. A failed vector upser
 
 Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as native product actions.
 
+Related Content reports `unindexed` when no active generation matches the current embedding spec.
+This is a preparation state; database errors remain failures. Semantic search continues to require
+an active current generation and reports `knowledge-semantic-index-rebuild-required` otherwise.
+
 ### Retired semantic generation reclamation
 
 A replacement generation becomes active only after its current chunks are complete. Its
