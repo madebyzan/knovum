@@ -36,7 +36,6 @@ export interface CanvasSceneSectionBackdrop {
 }
 
 export interface CanvasScene {
-  contentNodes: readonly CanvasSceneNode[];
   nodes: readonly CanvasSceneNode[];
   nodesById: ReadonlyMap<string, CanvasSceneNode>;
   sectionBackdrops: readonly CanvasSceneSectionBackdrop[];

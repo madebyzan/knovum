@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
-import type { CanvasScene } from "../scene/canvas-scene";
+import type { CanvasScene, CanvasSceneNode } from "../scene/canvas-scene";
 
 interface CanvasSceneLayerProjectionInput {
   connectorDraft: CanvasConnectorDraft | undefined;
@@ -12,28 +12,30 @@ interface CanvasSceneLayerProjectionInput {
 }
 
 export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionInput) {
+  const relationsByKey = computed(
+    () => new Map(props.scene.relations.map((relation, order) => [relation.key, { relation, order }])),
+  );
   const canonicalVisibleRelations = computed(() =>
-    props.scene.relations.filter(({ key }) => props.visibleRelationIds.has(key)),
+    [...props.visibleRelationIds]
+      .flatMap((key) => {
+        const indexed = relationsByKey.value.get(key);
+        return indexed ? [indexed] : [];
+      })
+      .toSorted((left, right) => left.order - right.order)
+      .map(({ relation }) => relation),
   );
-  const selectedFrames = computed(() =>
-    props.scene.nodes
-      .filter(({ node }) => props.selectedNodeIds.has(node.id))
-      .map(({ layout }) => layout.frame),
-  );
+  const selectedNodes = computed(() => sceneNodesInPaintOrder(props.scene, props.selectedNodeIds));
+  const selectedFrames = computed(() => selectedNodes.value.map(({ layout }) => layout.frame));
   return {
     visibleRelations: canonicalVisibleRelations,
-    visibleContentNodes: computed(() =>
-      props.scene.contentNodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
-    ),
+    visibleContentNodes: computed(() => sceneNodesInPaintOrder(props.scene, props.visibleNodeIds)),
     connectorNode: computed(() => {
       if (props.selectedNodeIds.size !== 1) return undefined;
-      return props.scene.nodes.find(
-        ({ interaction, node }) => interaction.connectable && props.selectedNodeIds.has(node.id),
-      );
+      return selectedNodes.value.find(({ interaction }) => interaction.connectable);
     }),
     connectorTargetNode: computed(() =>
       props.connectorDraft?.target
-        ? props.scene.nodes.find(({ node }) => node.id === props.connectorDraft?.target?.nodeId)
+        ? props.scene.nodesById.get(props.connectorDraft.target.nodeId)
         : undefined,
     ),
     resizeSnapFrames: computed(() =>
@@ -43,4 +45,13 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
     ),
     selectedFrames,
   };
+}
+
+function sceneNodesInPaintOrder(scene: CanvasScene, ids: ReadonlySet<string>): CanvasSceneNode[] {
+  return [...ids]
+    .flatMap((id) => {
+      const node = scene.nodesById.get(id);
+      return node ? [node] : [];
+    })
+    .toSorted((left, right) => left.paintOrder - right.paintOrder);
 }

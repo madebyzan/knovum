@@ -1,6 +1,6 @@
 use super::*;
 
-mod fixture;
+pub(in crate::spaces::knowledge::retrieval) mod fixture;
 mod publication;
 mod reclamation;
 

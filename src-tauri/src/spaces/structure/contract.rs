@@ -20,18 +20,6 @@ pub(crate) enum RelationColor {
     Purple,
 }
 
-impl RelationColor {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Blue => "blue",
-            Self::Green => "green",
-            Self::Amber => "amber",
-            Self::Red => "red",
-            Self::Purple => "purple",
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",

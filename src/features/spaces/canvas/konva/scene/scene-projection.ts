@@ -55,7 +55,6 @@ export function projectCanvasScene({
     }));
   const relationOffsets = representativeRelationOffsets(projectedRelations);
   return {
-    contentNodes: paintOrderedNodes,
     nodes: paintOrderedNodes,
     nodesById: byId,
     sectionBackdrops:

@@ -8,8 +8,8 @@ import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-side
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { openSpaceNode } from "../../canvas/selection-actions";
+import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
-import { validateStructureSnapshot } from "../../model/structure/structure-validation";
 import { useNodeOperationDrafts } from "../../session/node-operation-drafts";
 import { useSpaceStore } from "../../session/space-store";
 import { buildOutlineTreeItems, type OutlineTreeItem } from "./outline-tree-items";
@@ -25,9 +25,7 @@ const sidebar = inject(workspaceSidebarKey)!;
 const { t } = useI18n();
 const expandedIds = shallowRef<string[]>([]);
 const editingId = shallowRef<string>();
-const index = computed(() =>
-  validateStructureSnapshot(store.editSnapshot.structure, store.editSnapshot.layouts),
-);
+const index = computed(() => createStructureIndex(store.editSnapshot.structure));
 const nodeById = computed(() => new Map(store.nodes.map((node) => [node.id, node])));
 const items = computed(() =>
   buildOutlineTreeItems(index.value, new Map(store.nodes.map((node) => [node.id, node.data.title]))),

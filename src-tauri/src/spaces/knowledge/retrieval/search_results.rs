@@ -4,6 +4,7 @@ use serde_json::Value;
 pub(super) fn batches_to_values(batches: &[RecordBatch]) -> Result<Vec<Value>, String> {
     let mut values = Vec::new();
     for batch in batches {
+        let space_ids = utf8(batch, "space_id")?;
         let chunk_ids = utf8(batch, "chunk_id")?;
         let node_ids = utf8(batch, "node_id")?;
         let node_kinds = utf8(batch, "node_kind")?;
@@ -18,6 +19,7 @@ pub(super) fn batches_to_values(batches: &[RecordBatch]) -> Result<Vec<Value>, S
             let distance = distances.value(row) as f64;
             let score = 1.0 / (1.0 + distance.max(0.0));
             values.push(serde_json::json!({
+                "spaceId": space_ids.value(row),
                 "chunkId": chunk_ids.value(row),
                 "nodeId": node_ids.value(row),
                 "nodeKind": node_kinds.value(row),

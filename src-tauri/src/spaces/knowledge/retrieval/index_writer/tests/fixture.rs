@@ -5,7 +5,7 @@ use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 
 use super::super::KnowledgeEmbeddingInput;
 
-pub(super) struct Fixture {
+pub(in crate::spaces::knowledge::retrieval) struct Fixture {
     pub pool: sqlx::SqlitePool,
     pub index: Connection,
     dir: PathBuf,

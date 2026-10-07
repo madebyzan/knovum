@@ -531,6 +531,9 @@ summary/research messages are excluded.
 Projection selects the latest checkpoint identity per namespace from the SQLite checkpointer's
 covering primary key, then uses the SDK to load those bodies and pending writes. Historic bodies
 are not deserialized to rediscover namespaces; the main-message projection retains its cursor.
+Rust settles accepted input identities and model receipts with set-based statements inside the
+projection transaction. Receipt updates retain the execution-segment and graph-namespace fences;
+already acknowledged inputs and committed receipts are not rewritten on projection replay.
 Model-node output and its admission receipts are written together through the SDK's
 `ExtendedModelResponse` state update, so an interrupted projection
 acknowledgement can reconcile the result without another paid call. Summary receipts are captured

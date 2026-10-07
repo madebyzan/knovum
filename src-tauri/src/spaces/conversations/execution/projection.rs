@@ -54,19 +54,16 @@ pub(in crate::spaces::conversations) async fn commit(
         sqlx::query("INSERT INTO spaces_conversation_message_projections(segment_id,provider_message_id,message_id) VALUES($1,$2,$3)")
             .bind(&projection.thread_id).bind(message.message_id).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     }
-    for input_id in projection.accepted_input_ids {
-        sqlx::query("UPDATE spaces_builtin_agent_tasks SET input_accepted=1 WHERE segment_id=$1 AND input_id=$2")
-            .bind(&projection.thread_id).bind(input_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    }
+    sqlx::query("UPDATE spaces_builtin_agent_tasks SET input_accepted=1 WHERE segment_id=$1 AND input_accepted=0 AND input_id IN (SELECT value FROM json_each($2))")
+        .bind(&projection.thread_id)
+        .bind(serde_json::to_string(&projection.accepted_input_ids).map_err(db::json_error)?)
+        .execute(&mut *tx).await.map_err(db::sql_error)?;
     for checkpoint in projection.model_checkpoints {
-        for request_id in checkpoint.request_ids {
-            sqlx::query("UPDATE spaces_builtin_agent_model_calls SET state='committed' WHERE id=$1 AND graph_namespace=$2 AND state='received' AND task_id IN (SELECT id FROM spaces_builtin_agent_tasks WHERE segment_id=$3)")
-                .bind(request_id).bind(&checkpoint.graph_namespace).bind(&projection.thread_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-        }
-        for message_id in checkpoint.message_ids {
-            sqlx::query("UPDATE spaces_builtin_agent_model_calls SET state='committed' WHERE message_id=$1 AND graph_namespace=$2 AND state='received' AND task_id IN (SELECT id FROM spaces_builtin_agent_tasks WHERE segment_id=$3)")
-                .bind(message_id).bind(&checkpoint.graph_namespace).bind(&projection.thread_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-        }
+        sqlx::query("UPDATE spaces_builtin_agent_model_calls SET state='committed' WHERE graph_namespace=$1 AND state='received' AND task_id IN (SELECT id FROM spaces_builtin_agent_tasks WHERE segment_id=$2) AND (id IN (SELECT value FROM json_each($3)) OR message_id IN (SELECT value FROM json_each($4)))")
+            .bind(&checkpoint.graph_namespace).bind(&projection.thread_id)
+            .bind(serde_json::to_string(&checkpoint.request_ids).map_err(db::json_error)?)
+            .bind(serde_json::to_string(&checkpoint.message_ids).map_err(db::json_error)?)
+            .execute(&mut *tx).await.map_err(db::sql_error)?;
     }
     sqlx::query(
         "UPDATE spaces_builtin_agent_execution_segments SET projection_checkpoint_id=$1 WHERE id=$2",

@@ -1,53 +1,33 @@
 import type { StructureLayout, StructureNode } from "./schema/structure";
-import {
-  structureLayoutSchema,
-  MAX_STRUCTURE_NODES,
-  MAX_STRUCTURE_DEPTH,
-  structureNodeSchema,
-} from "./schema/structure";
+import { MAX_STRUCTURE_NODES, MAX_STRUCTURE_DEPTH } from "./schema/structure";
 import { createStructureIndex, type StructureIndex } from "./structure-index";
 import { contentWorldBounds } from "./world-bounds";
 import { composeTransforms, localTransformOf } from "./world-transform";
 
-/** Validate a complete active Space snapshot before projecting or committing it. */
+/** Validate semantic invariants of a typed snapshot. Boundary schemas own element parsing. */
 export function validateStructureSnapshot(
   structure: readonly StructureNode[],
   layouts: readonly StructureLayout[],
 ): StructureIndex {
   if (structure.length > MAX_STRUCTURE_NODES || layouts.length !== structure.length)
     throw new Error("Structure and layout structureNode counts do not match or exceed the limit");
-  const structureNodeIds = validateStructureNodes(structure);
-  const layoutById = validateLayouts(layouts, structureNodeIds);
   const index = createStructureIndex(structure);
+  const layoutById = validateLayouts(layouts, index.structureById);
   validateHierarchy(structure, layoutById, index);
   validateTraversal(structure, layoutById, index);
   return index;
 }
 
-function validateStructureNodes(structure: readonly StructureNode[]) {
-  const structureNodeIds = new Set<string>();
-  const nodeIds = new Set<string>();
-  for (const structureNode of structure) {
-    structureNodeSchema.parse(structureNode);
-    if (structureNodeIds.has(structureNode.id))
-      throw new Error(`Duplicate structure node: ${structureNode.id}`);
-    structureNodeIds.add(structureNode.id);
-    if (structureNode.kind !== "content") continue;
-    if (nodeIds.has(structureNode.nodeId))
-      throw new Error(`Duplicate content reference: ${structureNode.nodeId}`);
-    nodeIds.add(structureNode.nodeId);
-  }
-  return structureNodeIds;
-}
-
-function validateLayouts(layouts: readonly StructureLayout[], structureNodeIds: ReadonlySet<string>) {
+function validateLayouts(
+  layouts: readonly StructureLayout[],
+  structureById: ReadonlyMap<string, StructureNode>,
+) {
   const layoutById = new Map<string, StructureLayout>();
   for (const layout of layouts) {
-    structureLayoutSchema.parse(layout);
     if (layoutById.has(layout.structureNodeId))
       throw new Error(`Duplicate structure layout: ${layout.structureNodeId}`);
     layoutById.set(layout.structureNodeId, layout);
-    if (!structureNodeIds.has(layout.structureNodeId))
+    if (!structureById.has(layout.structureNodeId))
       throw new Error(`Orphan structure layout: ${layout.structureNodeId}`);
   }
   return layoutById;

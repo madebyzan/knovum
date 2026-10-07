@@ -11,7 +11,15 @@ pub(super) async fn persist_snapshot(
     space_id: &str,
     snapshot: &SpaceStructureSnapshot,
 ) -> Result<(), String> {
-    let existing = existing_structure(tx, space_id).await?;
+    let structure_ids = serde_json::to_string(
+        &snapshot
+            .structure
+            .iter()
+            .map(StructureNode::id)
+            .collect::<Vec<_>>(),
+    )
+    .map_err(db::json_error)?;
+    let existing = existing_structure(tx, space_id, &structure_ids).await?;
     for structure_node in &snapshot.structure {
         if let Some((current, _deleted)) = existing.get(structure_node.id()) {
             if current.kind_name() != structure_node.kind_name() {
@@ -52,7 +60,7 @@ pub(super) async fn persist_snapshot(
     )
     .bind(now)
     .bind(space_id)
-    .bind(serde_json::to_string(&snapshot.structure.iter().map(StructureNode::id).collect::<Vec<_>>()).map_err(db::json_error)?)
+    .bind(&structure_ids)
     .bind(serde_json::to_string(&moving_ids).map_err(db::json_error)?)
     .execute(&mut **tx)
     .await
@@ -65,40 +73,36 @@ pub(super) async fn persist_snapshot(
             upsert_structure_node(tx, space_id, structure_node).await?;
         }
     }
-    for layout in &snapshot.layouts {
-        let data = serde_json::to_string(layout).map_err(db::json_error)?;
-        sqlx::query(
-            "INSERT INTO spaces_structure_layouts(space_id,structure_node_id,kind,data) VALUES($1,$2,$3,$4) \
-             ON CONFLICT(space_id,structure_node_id) DO UPDATE SET data=excluded.data,kind=excluded.kind \
-             WHERE spaces_structure_layouts.data<>excluded.data OR spaces_structure_layouts.kind<>excluded.kind",
-        )
-        .bind(space_id)
-        .bind(layout.structure_node_id())
-        .bind(layout.kind_name())
-        .bind(data)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
+    sqlx::query(
+        "INSERT INTO spaces_structure_layouts(space_id,structure_node_id,kind,data) \
+         SELECT $1,json_extract(value,'$.structureNodeId'),json_extract(value,'$.kind'),value \
+         FROM json_each($2) WHERE 1 \
+         ON CONFLICT(space_id,structure_node_id) DO UPDATE SET data=excluded.data,kind=excluded.kind \
+         WHERE spaces_structure_layouts.data<>excluded.data OR spaces_structure_layouts.kind<>excluded.kind",
+    )
+    .bind(space_id)
+    .bind(serde_json::to_string(&snapshot.layouts).map_err(db::json_error)?)
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id NOT IN (SELECT value FROM json_each($2))")
         .bind(space_id)
         .bind(serde_json::to_string(&snapshot.relation_styles.iter().map(|style| &style.relation_id).collect::<Vec<_>>()).map_err(db::json_error)?)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    for style in &snapshot.relation_styles {
-        sqlx::query(
-            "INSERT INTO spaces_relation_styles(space_id,relation_id,color) VALUES($1,$2,$3) \
-             ON CONFLICT(space_id,relation_id) DO UPDATE SET color=excluded.color \
-             WHERE spaces_relation_styles.color<>excluded.color",
-        )
-        .bind(space_id)
-        .bind(&style.relation_id)
-        .bind(style.color.as_str())
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
+    sqlx::query(
+        "INSERT INTO spaces_relation_styles(space_id,relation_id,color) \
+         SELECT $1,json_extract(value,'$.relationId'),json_extract(value,'$.color') \
+         FROM json_each($2) WHERE 1 \
+         ON CONFLICT(space_id,relation_id) DO UPDATE SET color=excluded.color \
+         WHERE spaces_relation_styles.color<>excluded.color",
+    )
+    .bind(space_id)
+    .bind(serde_json::to_string(&snapshot.relation_styles).map_err(db::json_error)?)
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     Ok(())
 }
 
@@ -136,11 +140,14 @@ pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
 async fn existing_structure(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
+    structure_ids: &str,
 ) -> Result<HashMap<String, (StructureNode, bool)>, String> {
     let rows = sqlx::query(
-        "SELECT id,kind,node_id,parent_id,order_index,title,locked,deleted_at FROM spaces_structure_nodes WHERE space_id=$1",
+        "SELECT id,kind,node_id,parent_id,order_index,title,locked,deleted_at FROM spaces_structure_nodes \
+         WHERE space_id=$1 AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
+    .bind(structure_ids)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

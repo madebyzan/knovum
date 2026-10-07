@@ -1,6 +1,9 @@
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
-use lancedb::query::{ExecutableQuery, QueryBase};
+use lancedb::{
+    query::{ExecutableQuery, QueryBase, Select},
+    Table,
+};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Runtime};
@@ -77,7 +80,6 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
     exclude_node_id: Option<&str>,
     limit: i64,
 ) -> Result<Vec<Value>, String> {
-    validate_query_vector(query, limit)?;
     let pool = db::pool(app).await?;
     let generation = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
     let index = connect_retrieval_db(app).await?;
@@ -91,11 +93,39 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
         node_ids,
         exclude_node_id,
     );
+    let values = query_vectors(&table, query, filter, limit).await?;
+    let still_active = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
+    if still_active.id != generation.id {
+        return Err(generation::REBUILD_REQUIRED.to_owned());
+    }
+    current_chunks::filter(pool, &[(space_id, &generation)], values).await
+}
+
+pub(super) async fn query_vectors(
+    table: &Table,
+    query: &[f32],
+    filter: String,
+    limit: i64,
+) -> Result<Vec<Value>, String> {
+    validate_query_vector(query, limit)?;
     let batches = table
         .vector_search(query.to_vec())
         .map_err(|error| format!("Failed to prepare LanceDB vector search: {error}"))?
         .column(VECTOR_COLUMN)
         .only_if(filter)
+        .select(Select::columns(&[
+            "space_id",
+            "chunk_id",
+            "node_id",
+            "node_kind",
+            "node_title",
+            "chunk_kind",
+            "source_revision",
+            "locator",
+            "text",
+            "metadata",
+            "_distance",
+        ]))
         .limit(limit as usize)
         .execute()
         .await
@@ -103,12 +133,7 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
         .try_collect::<Vec<RecordBatch>>()
         .await
         .map_err(|error| format!("Failed to read LanceDB vector search results: {error}"))?;
-    let values = batches_to_values(&batches)?;
-    let still_active = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
-    if still_active.id != generation.id {
-        return Err(generation::REBUILD_REQUIRED.to_owned());
-    }
-    current_chunks::filter(pool, space_id, &generation, values).await
+    batches_to_values(&batches)
 }
 
 fn build_filter(

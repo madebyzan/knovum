@@ -2,15 +2,17 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::{db, queries::knowledge};
+use crate::{
+    ai::capabilities::embedding,
+    spaces::{db, queries::knowledge},
+};
 
 use super::search::{embed_query, search_semantic_vector};
+use super::{global_search, lancedb_store::connect_retrieval_db};
 
 const MATCH_LIMIT: usize = 80;
-const SPACE_SEMANTIC_LIMIT: i64 = 40;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -70,7 +72,18 @@ pub async fn search<R: Runtime>(
             )
             .await?
         }
-        None => search_all_spaces(app, &vector).await?,
+        None => {
+            let pool = db::pool(app).await?;
+            let index = connect_retrieval_db(app).await?;
+            global_search::search(
+                pool,
+                &index,
+                &vector,
+                embedding::EMBEDDING_SPEC_ID,
+                MATCH_LIMIT as i64,
+            )
+            .await?
+        }
     };
     if cancellation.is_cancelled() {
         return Err("knowledge-search-cancelled".into());
@@ -85,36 +98,6 @@ pub async fn search<R: Runtime>(
         matches: reciprocal_rank_fusion(lexical, semantic),
         semantic: semantic_state,
     })
-}
-
-async fn search_all_spaces<R: Runtime>(
-    app: &AppHandle<R>,
-    vector: &[f32],
-) -> Result<Vec<Value>, String> {
-    let pool = db::pool(app).await?;
-    let rows = sqlx::query(
-        "SELECT id,title FROM spaces WHERE archived_at IS NULL ORDER BY updated_at DESC",
-    )
-    .fetch_all(pool)
-    .await
-    .map_err(db::sql_error)?;
-    let mut matches = Vec::new();
-    for row in rows {
-        let space_id: String = row.try_get("id").map_err(db::sql_error)?;
-        let space_title: String = row.try_get("title").map_err(db::sql_error)?;
-        let mut space_matches =
-            search_semantic_vector(app, &space_id, vector, None, None, SPACE_SEMANTIC_LIMIT)
-                .await?;
-        for value in &mut space_matches {
-            let object = value
-                .as_object_mut()
-                .ok_or_else(|| "Semantic search result must be an object".to_owned())?;
-            object.insert("spaceId".to_owned(), Value::from(space_id.clone()));
-            object.insert("spaceTitle".to_owned(), Value::from(space_title.clone()));
-        }
-        matches.extend(space_matches);
-    }
-    Ok(matches)
 }
 
 pub(super) fn reciprocal_rank_fusion(lexical: Vec<Value>, semantic: Vec<Value>) -> Vec<Value> {

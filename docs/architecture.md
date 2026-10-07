@@ -195,7 +195,11 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
   drains commit batches of at most 128 records and combine node deletions per Space. Publication
   drains its affected Spaces under its own write transaction before merging fresh vectors, preserving
   the existing stale-write fence. The application reuses one LanceDB connection and opens tables
-  for each operation so table revisions remain current. Vue submits query text
+  for each operation so table revisions remain current. Global semantic retrieval executes one
+  distance-ranked query over the requested active generations, rechecks their identities and validates
+  current chunks in one SQLite query. It does not concatenate per-Space rankings or order semantic
+  matches by Space recency. Vector queries project result columns without returning embedding arrays.
+  Vue submits query text
   or an indexing intent and never transports vectors;
 - `conversations/builtin_agent/` owns built-in conversation execution and streaming persistence, with read APIs in
   `conversations/queries/` and mutation APIs in `conversations/commands/`, while

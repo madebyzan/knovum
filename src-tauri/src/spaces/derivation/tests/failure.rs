@@ -3,7 +3,7 @@ use crate::spaces::{db, derivation::failure::fail_messages};
 
 async fn pending(pool: &sqlx::SqlitePool) {
     for id in ["first", "second"] {
-        sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES($1,'space','image',0,0,json_object('id',$1,'kind','image','processingState','processing'),1,1)")
+        sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES($1,'space','image',0,0,json_object('id',$1,'kind','image','title','Layer','processingState','processing'),1,1)")
             .bind(id).execute(pool).await.unwrap();
         sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,'space',$1,'split-image-layers',1,'test','running',1,1)")
             .bind(id).execute(pool).await.unwrap();

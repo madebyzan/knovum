@@ -27,7 +27,8 @@ pub(super) async fn apply(
     table
         .delete(&predicate)
         .await
-        .map_err(|error| format!("Failed to delete LanceDB knowledge index rows: {error}"))
+        .map_err(|error| format!("Failed to delete LanceDB knowledge index rows: {error}"))?;
+    Ok(())
 }
 
 pub(super) async fn acknowledge(
