@@ -19,7 +19,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 7;
+pub(super) const BUILTIN_AGENT_PROFILE_VERSION: u16 = 1;
 
 pub(super) struct NewBuiltinAgentTask<'a> {
     pub task_id: &'a str,

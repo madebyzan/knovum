@@ -36,7 +36,7 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
 
 function validateProducerIdentity(record, manifest, configuration) {
   const expected = {
-    schemaVersion: 2,
+    schemaVersion: 1,
     profile: manifest.profile,
     target: manifest.target,
     version: manifest.version,

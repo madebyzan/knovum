@@ -28,7 +28,7 @@ export const spaceMediaKnowledgeSchema = z
   .object({
     transcript: spaceMediaTranscriptSchema.superRefine(validateMediaTranscript),
     sourceRevision: mediaSourceRevisionSchema,
-    schemaVersion: z.literal(5),
+    schemaVersion: z.literal(1),
     insights: insightsSchema.optional(),
   })
   .strict()

@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use arrow_schema::{DataType, Field, Schema};
 
-// The v2 name deliberately prevents pre-generation rows from being interpreted as current data.
-pub(crate) const TABLE_KNOWLEDGE_CHUNKS: &str = "knowledge_chunks_v2";
+// The first-release table contains only the current generation-aware schema.
+pub(crate) const TABLE_KNOWLEDGE_CHUNKS: &str = "knowledge_chunks_v1";
 pub(crate) const VECTOR_COLUMN: &str = "vector";
 
 #[derive(Debug, Clone)]

@@ -41,7 +41,7 @@ pub(crate) struct CapturedWorkflowLibrary {
 pub(super) async fn list(pool: &SqlitePool) -> Result<CapturedWorkflowLibrary, String> {
     let definitions: Vec<String> = sqlx::query_scalar(
         "SELECT definition FROM spaces_workflow_templates
-         WHERE json_extract(definition,'$.schemaVersion')=3 ORDER BY updated_at DESC",
+         WHERE json_extract(definition,'$.schemaVersion')=1 ORDER BY updated_at DESC",
     )
     .fetch_all(pool)
     .await
@@ -74,7 +74,7 @@ pub(super) async fn save(
     if let Some(existing) = existing {
         let saved: SavedCapturedWorkflow = serde_json::from_str(&existing)
             .map_err(|_| "workflow-save-conflict: request ID already belongs to another format")?;
-        if saved.schema_version != 3
+        if saved.schema_version != 1
             || saved.source_digest != request.source_digest
             || saved.source_space_id != request.space_id
             || saved.selected_node_ids != request.selected_node_ids
@@ -116,7 +116,7 @@ pub(super) async fn save(
     super::run::validate_candidate(&candidate)?;
     let now = crate::clock::unix_time_millis()?;
     let saved = SavedCapturedWorkflow {
-        schema_version: 3,
+        schema_version: 1,
         workflow_id: request.request_id,
         version: 1,
         name: name.to_owned(),

@@ -38,12 +38,12 @@ impl Fixture {
             fs::set_permissions(root.join(executable), fs::Permissions::from_mode(0o755)).unwrap();
         }
         let requirements = digest(b"requirements");
-        let bytes = serde_json::to_vec(&json!({"schemaVersion": 3, "runtimeId": "cpython", "version": "3.11.17",
+        let bytes = serde_json::to_vec(&json!({"schemaVersion": 1, "runtimeId": "cpython", "version": "3.11.17",
             "dependencyRequirementsSha256": requirements, "profile":"inference", "dependencyLockSha256":"a".repeat(64),
             "target": crate::local_resources::tools::platform_directory(), "executable": executable, "packageRoot": "packages", "files": files})).unwrap();
         fs::write(root.join(MANIFEST_NAME), &bytes).unwrap();
         let descriptor = Descriptor {
-            schema_version: 2,
+            schema_version: 1,
             target: crate::local_resources::tools::platform_directory().into(),
             version: "3.11.17".into(),
             dependency_requirements_sha256: requirements,

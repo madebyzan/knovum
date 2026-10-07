@@ -50,7 +50,7 @@ const indexedVideo = () =>
       assetPath: "/spaces/assets/interview.mp4",
       sourceRevision: "video:current",
       mediaKnowledge: {
-        schemaVersion: 5,
+        schemaVersion: 1,
         sourceRevision: "video:current",
         transcript: transcriptFixture("video:current", [{ startMs: 0, endMs: 1000, text: "Hello" }]),
       },

@@ -29,7 +29,7 @@ pub(super) async fn revise(
     let mut tx = db::begin_write(pool).await?;
     let definition: String = sqlx::query_scalar(
         "SELECT definition FROM spaces_workflow_templates WHERE id=$1
-         AND json_extract(definition,'$.schemaVersion')=3",
+         AND json_extract(definition,'$.schemaVersion')=1",
     )
     .bind(&request.workflow_id)
     .fetch_optional(&mut *tx)
@@ -136,7 +136,7 @@ pub(super) async fn rename(
     let mut tx = db::begin_write(pool).await?;
     let definition: String = sqlx::query_scalar(
         "SELECT definition FROM spaces_workflow_templates WHERE id=$1
-         AND json_extract(definition,'$.schemaVersion')=3 AND name=$2",
+         AND json_extract(definition,'$.schemaVersion')=1 AND name=$2",
     )
     .bind(workflow_id)
     .bind(expected_name)
@@ -168,7 +168,7 @@ pub(super) async fn delete(
 ) -> Result<(), String> {
     let workflow_write = sqlx::query(
         "DELETE FROM spaces_workflow_templates WHERE id=$1 AND name=$2
-         AND json_extract(definition,'$.schemaVersion')=3",
+         AND json_extract(definition,'$.schemaVersion')=1",
     )
     .bind(workflow_id)
     .bind(expected_name)

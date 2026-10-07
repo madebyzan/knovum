@@ -56,13 +56,13 @@ The installer contains FFmpeg, current application-owned `.py` capability source
 `resources/python-inference-descriptor.json` and `resources/python-agent-descriptor.json`.
 It excludes CPython and third-party Python packages. Application source follows the desktop version.
 Two immutable runtime profiles per target contain their own interpreter/package root, licenses,
-`runtime-requirements.txt` and schema-3 `runtime-manifest.json`. Inference selects the frozen
+`runtime-requirements.txt` and schema-1 `runtime-manifest.json`. Inference selects the frozen
 `inference`/`model-resources` extras from `python/uv.lock`; Builtin Agent selects production dependencies
 from `python/runtimes/agent/uv.lock`. Neither publication contains quality dependencies or
 application source. The profiles reuse one producer and installer; their incompatible Pydantic
 constraints require separate dependency environments. No Torch or inference models enter Builtin Agent.
 
-Schema-2 descriptors bind profile, target, interpreter version, dependency lock/requirements hashes,
+Schema-1 descriptors bind profile, target, interpreter version, dependency lock/requirements hashes,
 regional immutable HTTPS archive URLs, size/SHA-256 and manifest SHA-256. Packaging passes their paths
 through `KNOVUM_PYTHON_INFERENCE_DESCRIPTOR_PATH` and `KNOVUM_PYTHON_AGENT_DESCRIPTOR_PATH`;
 `build.rs` embeds both. Release requires both; debug/E2E can explicitly omit publications, leaving
@@ -204,4 +204,4 @@ an explicitly configured installed absolute executable and explicit connection e
 Processes use existing process-group/Windows-job ownership and are killed when their task or
 account is revoked. External HTTPS package downloads and MCP endpoints pin validated DNS
 addresses and do not inherit environment proxies that bypass that policy. Release support remains
-macOS ARM64 and Windows x64. Agent RPC/graph v2 and profile v6 reject obsolete internal envelopes.
+macOS ARM64 and Windows x64. Agent RPC/graph v1 and profile v1 reject obsolete internal envelopes.

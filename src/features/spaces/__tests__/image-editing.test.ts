@@ -16,7 +16,7 @@ describe("canvas image editing", () => {
 
   it("keeps derived mask strokes out of original-image edits", () => {
     const edit = defaultImageEdit();
-    expect(edit.version).toBe(6);
+    expect(edit.version).toBe(1);
     expect(() =>
       validateSpaceNodePayload({
         kind: "image",
@@ -26,15 +26,17 @@ describe("canvas image editing", () => {
         imageEdit: { ...edit, eraserStrokes: [] },
       }),
     ).toThrow(/eraserStrokes/);
-    expect(() =>
-      validateSpaceNodePayload({
-        kind: "image",
-        title: "Image",
-        fileName: "image.png",
-        assetPath: "/managed/image.png",
-        imageEdit: { ...edit, version: 5 },
-      }),
-    ).toThrow(/version/);
+    for (const version of [0, 2, 5, 6]) {
+      expect(() =>
+        validateSpaceNodePayload({
+          kind: "image",
+          title: "Image",
+          fileName: "image.png",
+          assetPath: "/managed/image.png",
+          imageEdit: { ...edit, version },
+        }),
+      ).toThrow(/version/);
+    }
     expect(() =>
       validateSpaceNodePayload({
         kind: "image",

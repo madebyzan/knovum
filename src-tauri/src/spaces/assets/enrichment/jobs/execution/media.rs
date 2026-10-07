@@ -79,7 +79,7 @@ pub(super) async fn transcribe(
             serde_json::json!({
                 "transcript": transcript,
                 "sourceRevision": request.source_revision,
-                "schemaVersion": 5,
+                "schemaVersion": 1,
             }),
         );
     Ok(())

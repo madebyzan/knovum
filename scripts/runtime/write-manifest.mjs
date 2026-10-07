@@ -39,7 +39,7 @@ if (!target.startsWith("windows-")) {
 const profile = args[5];
 const project = runtimeProject(repository, profile);
 const manifest = {
-  schemaVersion: 3,
+  schemaVersion: 1,
   runtimeId: "cpython",
   version: "3.11.17",
   dependencyRequirementsSha256: sha256File(join(root, "runtime-requirements.txt")),

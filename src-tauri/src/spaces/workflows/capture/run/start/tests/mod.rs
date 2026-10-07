@@ -31,7 +31,7 @@ fn workflow() -> SavedCapturedWorkflow {
         source,
     };
     SavedCapturedWorkflow {
-        schema_version: 3,
+        schema_version: 1,
         workflow_id: "saved".into(),
         version: 1,
         name: "Report".into(),

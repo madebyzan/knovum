@@ -13,12 +13,18 @@ The database resolves from Tauri's AppConfig directory through the connection po
 
 ## Migration policy
 
+Before the first public release, Knovum-owned data formats, packages, private protocols, runtime
+manifests/descriptors and the Agent profile/graph identity start at version 1 with their current
+fields. Dependency and external API versions remain upstream-owned. Record revisions, Run state
+versions and saved Workflow definition versions still advance normally. Renumbering does not
+convert development data or runtime publications; unsupported formats fail strict validation.
+
 Before the first public release, Spaces owns one SQLx v1 baseline. Schema changes update that
 baseline and require deleting obsolete development databases. The embedded SQLx migrator runs
 before the Spaces pool is exposed, installs the baseline transactionally, and rejects checksum
 divergence. Store, package and protocol envelopes remain separate contracts with their own explicit versions.
-Spaces conversations contain no product mode. The current Space package is v7 and the private
-Agent RPC is v3; removing conversation modes changes both strict contracts without a compatibility
+Spaces conversations contain no product mode. The current Space package is v1 and the private
+Agent RPC is v1; removing conversation modes changes both strict contracts without a compatibility
 reader. Obsolete development databases fail visibly and are never reset automatically.
 
 Install the matching SQLx CLI with
@@ -97,7 +103,7 @@ bounded sequence of finite peaks in `[0, 1]`. Silence is valid analysis, not mis
 The `analyze_media` job requires the existing FFmpeg runtime, not Whisper, a speech model or an AI
 connection. It publishes only `mediaAnalysis`, guarded by the current node source revision and
 running job. Rust then records the dependent transcription intent. `mediaKnowledge` uses current
-schema version `5`: source-bound revisioned transcript text, normalized segment/unit timing,
+schema version `1`: source-bound revisioned transcript text, normalized segment/unit timing,
 speaker tracks, subtitle cues and optional insights, but no waveform. Transcript
 duration bounds transcript timestamps; it is not an alternative audio-card duration source.
 Acquisition-supplied `durationSeconds` is source metadata, not the decoded audio-card authority.

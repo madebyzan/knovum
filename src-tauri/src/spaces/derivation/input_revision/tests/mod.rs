@@ -14,7 +14,7 @@ fn rendered_revision_tracks_image_edits_but_not_annotations() {
     );
 
     image["imageEdit"] = json!({
-        "version": 6,
+        "version": 1,
         "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
         "rotation": 90.0,
         "flipHorizontal": false,

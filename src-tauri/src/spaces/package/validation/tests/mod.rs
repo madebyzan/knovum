@@ -3,11 +3,12 @@ use super::validate_manifest_version;
 #[test]
 fn accepts_only_current_space_packages() {
     let version = crate::spaces::package::PACKAGE_VERSION;
+    assert_eq!(version, 1);
     assert!(validate_manifest_version(&format!(
         r#"{{"format":"knovum-space","version":{version}}}"#
     ))
     .is_ok());
-    for obsolete in [1, 2, version - 1, version + 1] {
+    for obsolete in [0, 2, 7] {
         assert!(validate_manifest_version(&format!(
             r#"{{"format":"knovum-space","version":{obsolete}}}"#
         ))

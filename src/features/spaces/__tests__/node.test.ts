@@ -36,7 +36,7 @@ describe("createSpaceNode", () => {
         mediaKnowledge: {
           transcript: transcriptFixture("sha256:test", [{ startMs: 0, endMs: 1000, text: "Hello" }]),
           sourceRevision: "sha256:test",
-          schemaVersion: 5,
+          schemaVersion: 1,
           insights: {
             summary: "Greeting",
             chapters: [{ startMs: 0, endMs: 1_000, title: "Intro", summary: "Greeting" }],

@@ -7,8 +7,8 @@ that signing credentials, environment protection or native upgrade acceptance ha
 
 ## Agent conversation pre-release contract cutover
 
-The mode-free Agent contract updates the single Spaces v1 SQLx baseline, Space packages to v7,
-private Agent RPC to v3, the graph identity to v3 and Builtin Agent profile to 7. Ship matching Rust
+The first-release contracts use the single Spaces v1 SQLx baseline, Space packages v1,
+private Agent RPC v1, graph identity v1 and Builtin Agent profile v1. Ship matching Rust
 and generated Python contracts/runtime source together. Old requests and packages fail strict
 validation; old graph segments are not resumed through field conversion. An obsolete database
 checksum produces a visible bootstrap error and preserves the original database. Backing up and

@@ -33,7 +33,7 @@ export function readRuntimeDescriptor(path, target, profile) {
 function validateIdentity(value, target, profile, keys) {
   if (
     Object.keys(value).toSorted().join() !== keys.toSorted().join() ||
-    value.schemaVersion !== 2 ||
+    value.schemaVersion !== 1 ||
     value.profile !== profile ||
     value.target !== target ||
     value.version !== "3.11.17" ||

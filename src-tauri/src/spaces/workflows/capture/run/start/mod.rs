@@ -44,7 +44,7 @@ pub(crate) async fn start(
     }
     let definition: String = sqlx::query_scalar(
         "SELECT definition FROM spaces_workflow_templates WHERE id=$1
-         AND json_extract(definition,'$.schemaVersion')=3",
+         AND json_extract(definition,'$.schemaVersion')=1",
     )
     .bind(&request.workflow_id)
     .fetch_optional(&mut *tx)
@@ -106,7 +106,7 @@ async fn create(
         "requestWorkflowVersion": request.expected_version,
         "requestBindings": request.bindings,
         "workflowVersion": saved.version,
-        "captureSchemaVersion": 3,
+        "captureSchemaVersion": 1,
         "definitionDigest": digest,
         "workflowDefinition": definition,
         "definition": {"failurePolicy": "stop_run"},

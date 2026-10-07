@@ -117,7 +117,7 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
         signature = sign_runtime(relocated, target, signing)
         relocated_smoke(relocated, target, config["version"], profile)
         record = {
-            "schemaVersion": 2,
+            "schemaVersion": 1,
             "profile": profile,
             "target": target,
             "version": config["version"],
@@ -156,7 +156,7 @@ def build(output: Path, signing: str, global_archive_url: str, china_archive_url
         (publication / f"{evidence_archive.name}.sha256").write_text(digest(evidence_archive) + "\n")
         manifest = json.loads((relocated / "runtime-manifest.json").read_text())
         descriptor = {
-            "schemaVersion": 2,
+            "schemaVersion": 1,
             "profile": profile,
             "target": target,
             "version": config["version"],

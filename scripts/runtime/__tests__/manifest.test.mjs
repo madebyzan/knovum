@@ -40,7 +40,7 @@ function fixture(context) {
   write(runtime, "runtime-requirements.txt", "requirements");
   const evidence = join(root, "build-evidence");
   const producer = {
-    schemaVersion: 2,
+    schemaVersion: 1,
     profile: "inference",
     target,
     version: "3.11.17",
@@ -80,7 +80,7 @@ function fixture(context) {
       runtime,
       "runtime-manifest.json",
       JSON.stringify({
-        schemaVersion: 3,
+        schemaVersion: 1,
         profile: "inference",
         dependencyLockSha256: hash(lock),
         runtimeId: "cpython",
@@ -108,6 +108,21 @@ function fixture(context) {
 test("consumer binds interpreter, runtime requirements and external corresponding source bytes", (context) => {
   const sample = fixture(context);
   sample.validate();
+});
+
+test("runtime manifest and producer reject unsupported schema versions", (context) => {
+  const sample = fixture(context);
+  const path = join(sample.runtime, "runtime-manifest.json");
+  const manifest = JSON.parse(readFileSync(path, "utf8"));
+  for (const schemaVersion of [0, 2, 3]) {
+    writeFileSync(path, JSON.stringify({ ...manifest, schemaVersion }));
+    assert.throws(sample.validate, /manifest is invalid/);
+  }
+  sample.manifest();
+  for (const schemaVersion of [0, 2, 3]) {
+    sample.write(sample.evidence, "producer.json", JSON.stringify({ ...sample.producer, schemaVersion }));
+    assert.throws(sample.validate, /producer identity differs/);
+  }
 });
 
 test("application Worker changes do not invalidate the third-party runtime", (context) => {

@@ -4,7 +4,7 @@ use super::has_current_transcript;
 use crate::media::transcript::{tests::knowledge_fixture, TranscriptSegment};
 
 #[test]
-fn current_v5_transcript_blocks_implicit_retranscription() {
+fn current_v1_transcript_blocks_implicit_retranscription() {
     let mut data = json!({"kind":"audio","sourceRevision":"source"});
     data["mediaKnowledge"] = knowledge_fixture(
         "source",

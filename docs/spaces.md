@@ -233,7 +233,7 @@ its fixed model group after asset authorization, displays resource transfer prog
 task, and revalidates the source revision before execution. Users do not have to download models from
 Settings. Cancelling preparation cancels that transcription demand, not another task's shared install. Analysis accepts only Knovum-owned Space assets and uses bundled FFmpeg to create a 16 kHz mono PCM working track plus a compact waveform. The verified local Python ASR profile runs under shared compute admission; Rust verifies its transcript and source revision before publishing. Stage progress is mapped into the shared Task Center, and segment plus word timestamps stay on the original media timeline for citations and subtitle cues. Media bytes never enter a generative-AI provider path.
 
-`mediaKnowledge` v5 persists a source-bound, revisioned Transcript with stable segment/unit identities, 16 kHz source sample offsets, explicit timing provenance, speaker tracks, and timed subtitle cues. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Editing a transcript segment preserves the artifact identity, advances transcript and segment revisions, invalidates that segment's word timing, rebuilds subtitle cues from the current segment texts, and clears source-derived insights. Ordinary ASR requests and failed-job retries cannot replace an existing current-source transcript, including its manual edits; execution rechecks that rule before recognition and publication rejects concurrent edits. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Builtin Agent AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
+`mediaKnowledge` v1 persists a source-bound, revisioned Transcript with stable segment/unit identities, 16 kHz source sample offsets, explicit timing provenance, speaker tracks, and timed subtitle cues. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Editing a transcript segment preserves the artifact identity, advances transcript and segment revisions, invalidates that segment's word timing, rebuilds subtitle cues from the current segment texts, and clears source-derived insights. Ordinary ASR requests and failed-job retries cannot replace an existing current-source transcript, including its manual edits; execution rechecks that rule before recognition and publication rejects concurrent edits. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Builtin Agent AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
 
 Selected alignment is an explicit enrichment action over at most eight segments and 300 seconds.
 It preserves stable word or character unit identities and may publish partial progress; a manual edit
@@ -325,7 +325,7 @@ non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, t
 and AI object removal directly in the canvas selection bar. The active control panel sits beside the
 selected image when the canvas has room on either side. Otherwise, the panel uses the larger free
 area above or below and scrolls within that area. The selection surface owns this placement rule
-for other long node controls as well. The persisted `imageEdit` v6 contract keeps the
+for other long node controls as well. The persisted `imageEdit` v1 contract keeps the
 source asset immutable; the canvas renderer projects crop, transform and filter edits. Earlier
 pre-release image edit recipes are rejected explicitly; the old transparency eraser is not a
 same-node edit. Object removal publishes a new image with `derives-from` lineage. With Qwen or a
@@ -485,7 +485,7 @@ resources to step-output bindings; the executable candidate contains no canvas n
 rejects incomplete records, mismatched source order, missing execution targets, and action
 parameters that directly reference source node IDs. A source digest covers the selected graph and
 current node contents so a later save can reject a changed preview. The existing personal-template
-table stores only current `schemaVersion: 3` personal definitions; the pre-release transition removes
+table stores only current `schemaVersion: 1` personal definitions; the pre-release transition removes
 obsolete rows. Saving
 recomputes capture within the same write transaction and checks its digest; a request UUID makes
 retries idempotent. Starting a Run checks action versions, binds distinct new resources, grants
@@ -518,7 +518,7 @@ The current Knowledge contract, SQLx migration policy, Provenance/History/Patch 
 
 ## Pre-release database reset boundary
 
-Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Package version 5 and media-knowledge schema version 5 describe different contracts and do not share the database baseline version.
+Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Space packages and media knowledge both start at version 1, but remain independent contracts from each other and the database baseline.
 
 Content layout JSON uses `sizingMode` (`content` or `frame`). The baseline requires this field, so beta databases containing the earlier field name follow the same explicit reset boundary.
 
