@@ -229,8 +229,8 @@ without owning Spaces persistence. Spaces drains accepted updates and atomically
 the conversation, active turns and Run. Late connection results cannot restore revoked
 startup authority, and disconnect cannot overwrite cancellation or committed publication.
 The persisted Run deadline also governs idle sessions. Extension leases are released
-after runtime settlement; shutdown failure remains visible and retains resources until
-the runtime actually stops.
+after runtime settlement and accepted descendant Actions finish; shutdown failure remains
+visible and retains resources until the runtime actually stops.
 The Builtin Agent conversation and message tables own the single user-visible history. A model task
 or an ACP desktop Agent session is a Run bound to that history; Agent protocol identity, negotiated
 capabilities and turn state remain execution records. Model and Agent turns share visible history,

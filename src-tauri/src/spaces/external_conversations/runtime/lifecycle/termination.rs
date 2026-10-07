@@ -58,6 +58,7 @@ async fn settle(
                 .await
                 .map_err(|_| "External Agent runtime lost its completion result")?;
         }
+        crate::spaces::runs::drain_children(pool, run_id).await?;
         crate::spaces::conversations::extensions::release_run(app, pool, run_id).await?;
     }
     Ok(())
