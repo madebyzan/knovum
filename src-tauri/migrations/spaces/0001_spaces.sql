@@ -1131,6 +1131,22 @@ CREATE INDEX spaces_authorization_grants_principal
 
 CREATE INDEX spaces_runs_recovery ON spaces_runs(state, updated_at);
 
+CREATE INDEX spaces_runs_unfinished_deadline
+  ON spaces_runs(created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER) * 1000)
+  WHERE completed_at IS NULL AND cancel_requested_at IS NULL;
+
+CREATE INDEX spaces_runs_unfinished_controls
+  ON spaces_runs(id)
+  WHERE completed_at IS NULL;
+
+CREATE INDEX spaces_run_attempts_execution_lease
+  ON spaces_run_attempts(lease_until)
+  WHERE state IN ('claimed','executing');
+
+CREATE INDEX spaces_run_steps_ready_availability
+  ON spaces_run_steps(available_at, run_id)
+  WHERE state='ready';
+
 CREATE INDEX spaces_runs_space_created ON spaces_runs(home_space_id, created_at DESC);
 
 CREATE UNIQUE INDEX spaces_runs_active_speech_project

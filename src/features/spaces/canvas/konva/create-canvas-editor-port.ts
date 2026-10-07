@@ -4,7 +4,7 @@ import { serializeCanvasAppearance } from "../schema/document";
 import type { CanvasNodeAppearance } from "../schema/document";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createCanvasEditorSelection } from "./canvas-editor-selection";
-import { createNodeContentHeightBatch, type FittedContentHeight } from "./node-content-height-batch";
+import { createCanvasContentHeightFitting } from "./content-height-fitting";
 import { captureCanvasOverview, captureCanvasViewport } from "./overview/capture";
 import {
   fitCanvasBounds,
@@ -19,12 +19,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   const animatedNavigation = { ...options, setViewport: options.animateViewport };
   const selection = createCanvasEditorSelection(options);
   const report = (operation: Promise<unknown>) => void operation.catch(options.onError);
-  let contentHeightTail = Promise.resolve();
-  const contentHeight = createNodeContentHeightBatch(
-    options.nodeById,
-    (id) => options.layouts().find(({ nodeId }) => nodeId === id),
-    updateContentHeights,
-  );
+  const contentHeight = createCanvasContentHeightFitting(options);
   return {
     cancelInteraction: options.cancelInteraction,
     copySelection: () => options.onCopyNodes(selection.placements()),
@@ -141,40 +136,6 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
         appearance: Object.keys(appearance).length ? { kind: "set", value: appearance } : { kind: "clear" },
       }),
     );
-  }
-
-  function updateContentHeights(heights: ReadonlyMap<string, FittedContentHeight>) {
-    const heightCommit = contentHeightTail.then(async () => {
-      const snapshot = options.snapshot();
-      const index = createStructureIndex(snapshot.structure);
-      const updates = [...heights].flatMap(([nodeId, measurement]) =>
-        contentHeightUpdate(nodeId, measurement, snapshot, index),
-      );
-      if (updates.length) await options.onExecuteSpaceEdit({ kind: "content.update-heights", updates });
-      return undefined;
-    });
-    contentHeightTail = heightCommit.catch(() => undefined);
-    report(heightCommit);
-  }
-
-  function contentHeightUpdate(
-    nodeId: string,
-    measurement: FittedContentHeight,
-    snapshot: ReturnType<KonvaEditorPortOptions["snapshot"]>,
-    index: ReturnType<typeof createStructureIndex>,
-  ) {
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-    const layout = structureNodeId
-      ? snapshot.layouts.find((candidate) => candidate.structureNodeId === structureNodeId)
-      : undefined;
-    if (!structureNodeId || layout?.kind !== "content") return [];
-    const matchesSource = [
-      (options.nodeById(nodeId)?.data.knowledgeRevision ?? null) === measurement.contentRevision,
-      layout.sizingMode === measurement.sizingMode,
-      layout.size.width === measurement.measuredWidth,
-      (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
-    ].every(Boolean);
-    return matchesSource ? [{ structureNodeId, ...measurement }] : [];
   }
 }
 

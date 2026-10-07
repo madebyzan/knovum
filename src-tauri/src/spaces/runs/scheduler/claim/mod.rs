@@ -29,6 +29,14 @@ pub(crate) async fn claim_ready_step(
     executor_id: &str,
 ) -> Result<Option<AttemptClaim>, String> {
     let now = crate::clock::unix_time_millis()?;
+    let ready: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_run_steps s JOIN spaces_runs r ON r.id=s.run_id
+         WHERE s.state='ready' AND s.available_at<=$1 AND r.state IN ('queued','running')
+           AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL AND r.completed_at IS NULL)",
+    ).bind(now).fetch_one(pool).await.map_err(db::sql_error)?;
+    if !ready {
+        return Ok(None);
+    }
     let mut tx = db::begin_write(pool).await?;
     let rows = sqlx::query(
         "SELECT s.id,s.run_id,s.node_kind,s.configuration,s.resolved_input,
@@ -38,6 +46,7 @@ pub(crate) async fn claim_ready_step(
          WHERE s.state='ready' AND r.state IN ('queued','running')
            AND s.available_at <= $1
            AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL
+           AND r.completed_at IS NULL
          ORDER BY CASE r.kind WHEN 'builtin_agent' THEN 0 WHEN 'action' THEN 1
                   WHEN 'workflow' THEN 2 ELSE 4 END,
                   r.created_at,s.created_at",

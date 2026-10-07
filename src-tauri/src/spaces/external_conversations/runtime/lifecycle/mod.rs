@@ -1,6 +1,5 @@
 pub(super) mod create;
-
-use tauri::AppHandle;
+pub(super) mod termination;
 
 use super::StartExternalConversationRequest;
 use crate::spaces::db;
@@ -14,18 +13,21 @@ pub(super) async fn mark_connected(
     let now = crate::clock::unix_time_millis()?;
     let capabilities = serde_json::to_string(&session.capabilities).map_err(db::json_error)?;
     let mut tx = db::begin_write(pool).await?;
-    sqlx::query(
+    let connected = sqlx::query(
         "UPDATE spaces_external_agent_conversations SET state='connected',runtime_session_id=$1,
-         session_capabilities=$2,updated_at=$3,error=NULL WHERE id=$4",
+         session_capabilities=$2,updated_at=$3,error=NULL WHERE id=$4 AND run_id=$5 AND state='connecting'
+         AND EXISTS(SELECT 1 FROM spaces_runs WHERE id=$5 AND completed_at IS NULL AND cancel_requested_at IS NULL)",
     )
     .bind(&session.runtime_session_id)
     .bind(capabilities)
     .bind(now)
     .bind(id)
+    .bind(run_id)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    sqlx::query("UPDATE spaces_runs SET state='running',state_version=1,updated_at=$1 WHERE id=$2")
+    db::require_one(connected, "external-conversation-startup-authority-revoked")?;
+    sqlx::query("UPDATE spaces_runs SET state='running',state_version=state_version+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL")
         .bind(now)
         .bind(run_id)
         .execute(&mut *tx)
@@ -41,19 +43,33 @@ pub(crate) async fn mark_disconnected(
     id: &str,
     run_id: &str,
     error: &str,
-) -> Result<(), String> {
-    super::super::updates::release(id);
+) -> Result<bool, String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2,
+    let disconnected = sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2,
         output_publication_state=CASE WHEN output_publication_state='pending' AND EXISTS(
             SELECT 1 FROM spaces_external_agent_turns WHERE conversation_id=$3 AND state='completed')
             THEN 'failed' ELSE output_publication_state END,
         output_publication_error=CASE WHEN output_publication_state='pending' AND EXISTS(
             SELECT 1 FROM spaces_external_agent_turns WHERE conversation_id=$3 AND state='completed')
             THEN $1 ELSE output_publication_error END
-        WHERE id=$3 AND output_publication_state<>'committed' AND state<>'closed'")
-        .bind(error).bind(now).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        WHERE id=$3 AND run_id=$4 AND output_publication_state<>'committed' AND state IN ('connecting','connected')
+        AND EXISTS(SELECT 1 FROM spaces_runs WHERE id=$4 AND cancel_requested_at IS NULL)")
+        .bind(error).bind(now).bind(id).bind(run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    if disconnected.rows_affected() == 0 {
+        tx.commit().await.map_err(db::sql_error)?;
+        return Ok(false);
+    }
+    sqlx::query(
+        "UPDATE spaces_external_agent_turns SET state='failed',error=$1,completed_at=$2
+        WHERE conversation_id=$3 AND state='running'",
+    )
+    .bind(error)
+    .bind(now)
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     sqlx::query(
         "UPDATE spaces_runs SET state='failed',state_version=state_version+1,updated_at=$1,
          completed_at=$1 WHERE id=$2 AND completed_at IS NULL",
@@ -64,8 +80,9 @@ pub(crate) async fn mark_disconnected(
     .await
     .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
+    super::super::updates::release(id);
     crate::spaces::runs::announce_change();
-    Ok(())
+    Ok(true)
 }
 
 pub(super) async fn load(
@@ -99,25 +116,5 @@ pub(super) fn validate(request: &StartExternalConversationRequest) -> Result<(),
     Ok(())
 }
 
-pub(super) fn schedule_expiration(
-    app: AppHandle,
-    conversation_id: String,
-    run_id: String,
-    seconds: u32,
-) {
-    tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(std::time::Duration::from_secs(u64::from(seconds))).await;
-        if crate::external_agents::conversation::is_active(&conversation_id) {
-            let _ = crate::external_agents::conversation::close(&conversation_id).await;
-            if let Ok(pool) = db::pool(&app).await {
-                let _ = mark_disconnected(
-                    pool,
-                    &conversation_id,
-                    &run_id,
-                    "External Agent conversation duration budget was exhausted",
-                )
-                .await;
-            }
-        }
-    });
-}
+#[cfg(test)]
+mod tests;

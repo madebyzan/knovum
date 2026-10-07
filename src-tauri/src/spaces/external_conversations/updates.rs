@@ -24,20 +24,25 @@ fn active_updates() -> &'static Mutex<HashMap<String, UpdateSender>> {
     ACTIVE_UPDATES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub async fn flush(session_id: &str) -> Result<(), String> {
-    let sender = active_updates()
-        .lock()
-        .map_err(|_| "Agent update registry is unavailable")?
-        .get(session_id)
-        .cloned()
-        .ok_or("Agent update stream is unavailable")?;
-    let (acknowledge, done) = tokio::sync::oneshot::channel();
-    sender
-        .send(UpdateCommand::Flush(acknowledge))
-        .await
-        .map_err(|_| "Agent update stream has closed")?;
-    done.await
-        .map_err(|_| "Agent update stream stopped before flush".to_owned())?
+pub fn flush(session_id: &str) -> impl std::future::Future<Output = Result<(), String>> + Send {
+    let sender = (|| {
+        active_updates()
+            .lock()
+            .map_err(|_| "Agent update registry is unavailable")?
+            .get(session_id)
+            .cloned()
+            .ok_or_else(|| "Agent update stream is unavailable".to_owned())
+    })();
+    async move {
+        let sender = sender?;
+        let (acknowledge, done) = tokio::sync::oneshot::channel();
+        sender
+            .send(UpdateCommand::Flush(acknowledge))
+            .await
+            .map_err(|_| "Agent update stream has closed")?;
+        done.await
+            .map_err(|_| "Agent update stream stopped before flush".to_owned())?
+    }
 }
 
 pub fn release(session_id: &str) {

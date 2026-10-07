@@ -4,6 +4,7 @@ mod controls;
 mod recovery;
 mod resolution;
 mod waiting;
+pub(super) mod wakeup;
 
 pub(crate) use claim::{claim_ready_step, renew_lease};
 pub(crate) use completion::settle_waiting_step_in_transaction;

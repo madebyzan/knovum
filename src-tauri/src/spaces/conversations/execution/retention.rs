@@ -32,17 +32,19 @@ pub(in crate::spaces::conversations) async fn prune(
         },
     )
     .await?;
-    let mut tx = db::begin_write(pool).await?;
-    for thread in threads {
-        sqlx::query(
-            "UPDATE spaces_builtin_agent_execution_segments SET checkpoint_deleted_at=$1 WHERE id=$2",
-        )
-        .bind(now)
-        .bind(thread)
-        .execute(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+    if threads.is_empty() {
+        return Ok(());
     }
+    let mut tx = db::begin_write(pool).await?;
+    sqlx::query(
+        "UPDATE spaces_builtin_agent_execution_segments SET checkpoint_deleted_at=$1 \
+         WHERE id IN (SELECT value FROM json_each($2))",
+    )
+    .bind(now)
+    .bind(serde_json::to_string(&threads).map_err(db::json_error)?)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(())
 }
