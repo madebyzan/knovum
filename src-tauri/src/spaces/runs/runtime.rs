@@ -5,52 +5,60 @@ use tauri::AppHandle;
 
 use super::{scheduler, StepOutcome};
 
-const IDLE_INTERVAL: Duration = Duration::from_millis(350);
+const ERROR_RETRY_MILLIS: i64 = 5_000;
 const MAX_CONCURRENT_STEPS: usize = 4;
 
 pub(crate) fn start(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let executor_id = format!("desktop:{}", uuid::Uuid::new_v4());
         let capacity = Arc::new(tokio::sync::Semaphore::new(MAX_CONCURRENT_STEPS));
+        let mut changes = super::signals::subscribe();
         loop {
-            if let Err(error) = maintain(&app).await {
-                log::error!("Space Run scheduler tick failed: {error}");
+            changes.borrow_and_update();
+            let deadline = match dispatch(&app, &capacity, &executor_id).await {
+                Ok(deadline) => deadline,
+                Err(error) => {
+                    log::error!("Space Run scheduler tick failed: {error}");
+                    match crate::clock::unix_time_millis() {
+                        Ok(now) => Some(now + ERROR_RETRY_MILLIS),
+                        Err(error) => {
+                            log::error!("Space Run scheduler clock failed: {error}");
+                            return;
+                        }
+                    }
+                }
+            };
+            if let Err(error) = scheduler::wakeup::wait(&mut changes, deadline).await {
+                log::error!("Space Run scheduler stopped: {error}");
+                return;
             }
-            while let Ok(permit) = capacity.clone().try_acquire_owned() {
-                let pool = match crate::spaces::db::pool(&app).await {
-                    Ok(pool) => pool,
-                    Err(error) => {
-                        log::error!("Space Run pool unavailable: {error}");
-                        break;
-                    }
-                };
-                let claim = match scheduler::claim_ready_step(pool, &executor_id).await {
-                    Ok(Some(claim)) => claim,
-                    Ok(None) => break,
-                    Err(error) => {
-                        log::error!("Space Run claim failed: {error}");
-                        break;
-                    }
-                };
-                let registration = match super::active_attempts::register(&claim) {
-                    Ok(registration) => registration,
-                    Err(error) => {
-                        log::error!("Space Run registration failed: {error}");
-                        break;
-                    }
-                };
-                let worker_app = app.clone();
-                tauri::async_runtime::spawn(async move {
-                    let _registration = registration;
-                    if let Err(error) = execute_claim(&worker_app, claim).await {
-                        log::error!("Space Run execution failed: {error}");
-                    }
-                    drop(permit);
-                });
-            }
-            tokio::time::sleep(IDLE_INTERVAL).await;
         }
     });
+}
+
+async fn dispatch(
+    app: &AppHandle,
+    capacity: &Arc<tokio::sync::Semaphore>,
+    executor_id: &str,
+) -> Result<Option<i64>, String> {
+    maintain(app).await?;
+    let pool = crate::spaces::db::pool(app).await?;
+    while let Ok(permit) = capacity.clone().try_acquire_owned() {
+        let Some(claim) = scheduler::claim_ready_step(pool, executor_id).await? else {
+            break;
+        };
+        let registration = super::active_attempts::register(&claim)?;
+        let worker_app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            let _registration = registration;
+            if let Err(error) = execute_claim(&worker_app, claim).await {
+                log::error!("Space Run execution failed: {error}");
+            }
+            drop(permit);
+            super::signals::announce();
+        });
+    }
+    scheduler::wakeup::next_deadline(pool, crate::clock::unix_time_millis()?).await
 }
 
 async fn maintain(app: &AppHandle) -> Result<(), String> {

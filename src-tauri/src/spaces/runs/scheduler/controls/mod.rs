@@ -4,6 +4,20 @@ use crate::spaces::db;
 
 pub(super) async fn recover_expired_leases(pool: &SqlitePool) -> Result<bool, String> {
     let now = crate::clock::unix_time_millis()?;
+    let expired: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a
+         JOIN spaces_run_steps s ON s.id=a.step_instance_id AND s.run_id=a.run_id
+         JOIN spaces_runs r ON r.id=a.run_id AND r.execution_epoch=a.execution_epoch
+         WHERE a.state IN ('claimed','executing') AND a.lease_until<$1 AND s.state='running'
+         AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL)",
+    )
+    .bind(now)
+    .fetch_one(pool)
+    .await
+    .map_err(db::sql_error)?;
+    if !expired {
+        return Ok(false);
+    }
     let mut tx = db::begin_write(pool).await?;
     let local_replays = recover_local_speech_attempts(&mut tx, now).await?;
     let expired_epochs: Vec<(String, i64)> = sqlx::query_as(
@@ -196,6 +210,16 @@ async fn recover_local_speech_attempts(
 
 pub(super) async fn apply(pool: &SqlitePool) -> Result<bool, String> {
     let now = crate::clock::unix_time_millis()?;
+    let pending: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL
+           AND (cancel_requested_at IS NOT NULL OR
+             (pause_requested_at IS NOT NULL AND kind!='builtin_agent' AND state IN ('queued','running','waiting'))))
+         OR EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL AND cancel_requested_at IS NULL
+           AND created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER)*1000 <= $1)",
+    ).bind(now).fetch_one(pool).await.map_err(db::sql_error)?;
+    if !pending {
+        return Ok(false);
+    }
     let mut tx = db::begin_write(pool).await?;
     propagate_cancellation(&mut tx, now).await?;
     let expired = expire_duration_budgets(&mut tx, now).await?;
@@ -220,7 +244,7 @@ async fn propagate_cancellation(
     now: i64,
 ) -> Result<(), String> {
     sqlx::query("WITH RECURSIVE cancelled_tree(id) AS (
-       SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL
+       SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL
        UNION SELECT child.id FROM spaces_runs child JOIN cancelled_tree parent ON child.parent_run_id=parent.id
        ) UPDATE spaces_runs SET cancel_requested_at=$1,
        execution_epoch=execution_epoch+1,updated_at=$1 WHERE id IN (SELECT id FROM cancelled_tree)

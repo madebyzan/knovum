@@ -177,7 +177,13 @@ across each ancestor's Run tree; an ineligible child cannot starve unrelated wor
 exhaustion revokes the unfinished tree, preserving completed results, and cancellation takes
 precedence. Lease recovery invalidates and reconciles the whole expired execution epoch once,
 including active siblings. Committed scheduling transitions notify observers; idle maintenance
-is silent. Builtin Agent pause uses its own durable checkpoint policy.
+is silent. The scheduler waits on committed Run changes or the next retry, lease or
+budget deadline; idle work has no polling timer and takes no SQLite write lock.
+Partial indexes cover unfinished controls, duration budgets, execution leases and
+ready-step availability independently of completed Run history. Builtin Agent pause
+uses its own durable checkpoint policy. Checkpoint retention shares the execution
+deadline and cancellation signal: explicit deletions use SDK operations, while each
+cleanup inspects at most 100 orphan thread heads and never decodes retained history.
 
 Speech generation is a durable Action Run rather than an in-memory renderer job. A stable request ID
 binds the accepted project revision. Segment generation and assembly have independent attempts, and
@@ -218,6 +224,13 @@ Deleting a connection does not remove a reusable definition or its accounts. Rem
 or uninstalling its plugin retires all instances and clears orphan credentials.
 ACP sessions receive the existing private Knovum MCP endpoint, projecting the same selected
 capabilities. Upstream tokens never enter ACP configuration or vendor global settings.
+The external Agent engine reports session completion, including idle transport EOF,
+without owning Spaces persistence. Spaces drains accepted updates and atomically settles
+the conversation, active turns and Run. Late connection results cannot restore revoked
+startup authority, and disconnect cannot overwrite cancellation or committed publication.
+The persisted Run deadline also governs idle sessions. Extension leases are released
+after runtime settlement; shutdown failure remains visible and retains resources until
+the runtime actually stops.
 The Builtin Agent conversation and message tables own the single user-visible history. A model task
 or an ACP desktop Agent session is a Run bound to that history; Agent protocol identity, negotiated
 capabilities and turn state remain execution records. Model and Agent turns share visible history,

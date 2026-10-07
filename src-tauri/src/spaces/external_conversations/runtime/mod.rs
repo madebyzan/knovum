@@ -68,6 +68,14 @@ pub async fn start(
         }
     };
     let keepalive: Arc<dyn Send + Sync> = binding.clone();
+    let deadline: i64 = sqlx::query_scalar(
+        "SELECT created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER)*1000 \
+         FROM spaces_runs WHERE id=$1",
+    )
+    .bind(&run_id)
+    .fetch_one(db::pool(&app).await?)
+    .await
+    .map_err(db::sql_error)?;
     let runtime_session = crate::external_agents::conversation::start(
         id.clone(),
         request.runtime_kind,
@@ -89,11 +97,12 @@ pub async fn start(
                     .map_err(|reason| reason.to_string())?;
                 return Err(error);
             }
-            lifecycle::schedule_expiration(
+            lifecycle::termination::observe(
                 app.clone(),
                 id.clone(),
                 run_id.clone(),
-                request.max_duration_seconds,
+                session.completion,
+                deadline,
             );
             lifecycle::load(db::pool(&app).await?, &id).await
         }
@@ -123,8 +132,9 @@ pub async fn send_prepared(
     prepared: crate::external_agents::prompt::AgentPrompt,
 ) -> Result<(), String> {
     let pool = db::pool(&app).await?;
+    let flush = super::updates::flush(conversation_id);
     let outcome = crate::external_agents::conversation::send(conversation_id, prepared).await;
-    if let Err(error) = super::updates::flush(conversation_id).await {
+    if let Err(error) = flush.await {
         repository::finish_turn(pool, turn_id, "failed", Some(&error)).await?;
         return Err(error);
     }
@@ -160,16 +170,6 @@ pub async fn send_prepared(
                 "failed"
             };
             repository::finish_turn(pool, turn_id, state, Some(&message)).await?;
-            if !crate::external_agents::conversation::is_active(conversation_id) {
-                let run_id: String = sqlx::query_scalar(
-                    "SELECT run_id FROM spaces_external_agent_conversations WHERE id=$1",
-                )
-                .bind(conversation_id)
-                .fetch_one(pool)
-                .await
-                .map_err(db::sql_error)?;
-                mark_disconnected(pool, conversation_id, &run_id, &message).await?;
-            }
             Err(message)
         }
     }

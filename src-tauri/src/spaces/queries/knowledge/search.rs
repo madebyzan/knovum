@@ -186,3 +186,7 @@ pub(super) fn append_json_in_filter(
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "tests/search.rs"]
+mod tests;

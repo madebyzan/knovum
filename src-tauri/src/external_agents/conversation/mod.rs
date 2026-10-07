@@ -5,7 +5,7 @@ use agent_client_protocol::{
         CancelNotification, McpServer, NewSessionRequest, PromptRequest, RequestPermissionRequest,
         StopReason,
     },
-    Agent, Client, ConnectionTo,
+    Agent, Client, ConnectTo, ConnectionTo,
 };
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
@@ -24,6 +24,7 @@ pub use start::start;
 pub struct ConversationSession {
     pub runtime_session_id: String,
     pub capabilities: serde_json::Value,
+    pub completion: oneshot::Receiver<AppResult<()>>,
 }
 
 struct ServeContext {
@@ -32,9 +33,21 @@ struct ServeContext {
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
     keepalive: Arc<dyn Send + Sync>,
+    completion: oneshot::Receiver<AppResult<()>>,
 }
 
 async fn serve(
+    context: ServeContext,
+    requests: mpsc::Receiver<ConversationRequest>,
+    cancellation: CancellationToken,
+    ready: oneshot::Sender<AppResult<ConversationSession>>,
+) -> AppResult<()> {
+    let agent = super::connection::runtime(context.kind, &cancellation).await?;
+    serve_connection(agent, context, requests, cancellation, ready).await
+}
+
+async fn serve_connection(
+    agent: impl ConnectTo<Client> + 'static,
     context: ServeContext,
     mut requests: mpsc::Receiver<ConversationRequest>,
     cancellation: CancellationToken,
@@ -46,16 +59,24 @@ async fn serve(
         on_update,
         mcp_servers,
         keepalive: _keepalive,
+        completion,
     } = context;
-    let agent = super::connection::runtime(kind, &cancellation).await?;
     let permission_cancel = cancellation.clone();
-    let client = Client.builder().on_receive_request(
-        async move |request: RequestPermissionRequest, responder, _cx| {
-            responder
-                .respond_with_result(super::permissions::authorize(&request, &permission_cancel))
-        },
-        agent_client_protocol::on_receive_request!(),
-    );
+    let client = Client
+        .builder()
+        .on_receive_request(
+            async move |request: RequestPermissionRequest, responder, _cx| {
+                responder.respond_with_result(super::permissions::authorize(
+                    &request,
+                    &permission_cancel,
+                ))
+            },
+            agent_client_protocol::on_receive_request!(),
+        )
+        .on_close(async |_connection| {
+            Err(agent_client_protocol::Error::internal_error()
+                .data("External Agent connection closed"))
+        });
     let session_cancel = cancellation.clone();
     let outcome = client.connect_with(agent, |connection: ConnectionTo<Agent>| async move {
         let initialized = connection.send_request(super::protocol::initialize_request())
@@ -84,6 +105,7 @@ async fn serve(
                 let _ = ready.send(Ok(ConversationSession {
                     runtime_session_id: session.session_id().0.to_string(),
                     capabilities: session_capabilities,
+                    completion,
                 }));
                 loop {
                     let request = tokio::select! {
@@ -123,5 +145,13 @@ async fn serve(
                 }
             }).await
     }).await;
+    if cancellation.is_cancelled() {
+        return Err(AppError::cancelled(
+            "External Agent conversation was cancelled",
+        ));
+    }
     super::connection::finish(outcome)
 }
+
+#[cfg(test)]
+mod tests;

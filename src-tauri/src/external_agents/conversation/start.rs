@@ -19,6 +19,7 @@ pub async fn start(
     let cancellation = CancellationToken::new();
     let receiver = requests::register(&id, cancellation.clone())?;
     let (ready_tx, ready_rx) = oneshot::channel();
+    let (settled, completion) = oneshot::channel();
     let runtime_id = id.clone();
     tauri::async_runtime::spawn(async move {
         let context = ServeContext {
@@ -27,8 +28,10 @@ pub async fn start(
             on_update,
             mcp_servers,
             keepalive,
+            completion,
         };
-        if let Err(error) = serve(context, receiver, cancellation, ready_tx).await {
+        let outcome = serve(context, receiver, cancellation, ready_tx).await;
+        if let Err(error) = &outcome {
             if error.code == "cancelled" {
                 log::debug!("External Agent conversation cancelled: {error}");
             } else {
@@ -36,6 +39,7 @@ pub async fn start(
             }
         }
         requests::remove(&runtime_id);
+        let _ = settled.send(outcome);
     });
     match tokio::time::timeout(super::super::connection::START_TIMEOUT, ready_rx).await {
         Ok(Ok(Ok(session))) => Ok(session),

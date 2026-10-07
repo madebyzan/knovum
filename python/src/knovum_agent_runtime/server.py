@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import json
 from contextlib import AsyncExitStack
-from datetime import datetime
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -22,6 +21,7 @@ from knovum_agent_runtime.contracts.generated.messages import AgentProjectionReq
 from knovum_agent_runtime.contracts.values import GRAPH_VERSION, PROTOCOL_VERSION
 from knovum_agent_runtime.execution import Execution
 from knovum_agent_runtime.projection import export_projection
+from knovum_agent_runtime.retention import prune_checkpoints
 from knovum_agent_runtime.transport import HostRejected, Peer
 
 Model = TypeVar("Model", bound=BaseModel)
@@ -70,16 +70,7 @@ class Server:
                 prune = parameters(AgentPruneThreads, value)
                 if self.saver is None or (self.execution is not None and self.execution.task is not None):
                     raise HostRejected(-32000, "agent-runtime-not-idle")
-                retained = set(prune.retained_thread_ids)
-                latest: dict[str, float] = {}
-                async for checkpoint in self.saver.alist(None):
-                    thread = checkpoint.config["configurable"]["thread_id"]
-                    if thread not in retained:
-                        timestamp = datetime.fromisoformat(checkpoint.checkpoint["ts"]).timestamp() * 1000
-                        latest[thread] = max(latest.get(thread, timestamp), timestamp)
-                expired = {thread for thread, timestamp in latest.items() if timestamp < prune.orphan_before_ms}
-                for thread_id in set(prune.thread_ids) | expired:
-                    await self.saver.adelete_thread(thread_id)
+                await prune_checkpoints(self.saver, prune)
                 return None
             case "agentRuntime.shutdown":
                 if self.execution is not None:

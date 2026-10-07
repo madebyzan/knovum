@@ -94,10 +94,22 @@ pub(super) async fn drive(
     )
     .await
     .map_err(|_| "builtin-agent-duration-budget-exhausted")??;
-    crate::spaces::conversations::execution::retention::prune(&host.pool, &process.peer).await?;
     let outcome = tokio::time::timeout_at(
         deadline,
-        execute_loop(&process, &host, execute, cancellation.clone()),
+        async {
+            tokio::select! {
+                biased;
+                _ = cancellation.cancelled() => {
+                    if is_pause(&host).await? {
+                        paused(&host).await?;
+                        return Ok(DriveOutcome::Paused);
+                    }
+                    return Err("builtin-agent-cancelled".into());
+                }
+                result = crate::spaces::conversations::execution::retention::prune(&host.pool, &process.peer) => result?,
+            }
+            execute_loop(&process, &host, execute, cancellation.clone()).await
+        },
     )
     .await
     .map_err(|_| "builtin-agent-duration-budget-exhausted".to_owned())
