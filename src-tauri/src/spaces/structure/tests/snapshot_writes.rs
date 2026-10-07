@@ -10,12 +10,12 @@ async fn sibling_reordering_preserves_the_active_order_constraint() {
     let mut tx = db::begin_write(&pool).await.unwrap();
     let snapshot: repository::SpaceStructureSnapshot = serde_json::from_value(serde_json::json!({
         "structure":[
-            {"kind":"group","id":"first","parentId":null,"order":0,"locked":false,"title":"First"},
-            {"kind":"group","id":"second","parentId":null,"order":1,"locked":false,"title":"Second"}
+            {"kind":"section","id":"first","parentId":null,"order":0,"locked":false,"title":"First"},
+            {"kind":"section","id":"second","parentId":null,"order":1,"locked":false,"title":"Second"}
         ],
         "layouts":[
-            {"kind":"group","structureNodeId":"first","transform":{"x":0,"y":0,"rotation":0,"scale":1}},
-            {"kind":"group","structureNodeId":"second","transform":{"x":0,"y":0,"rotation":0,"scale":1}}
+            {"kind":"section","structureNodeId":"first","position":{"x":0,"y":0},"size":{"width":300,"height":200},"collapsed":false},
+            {"kind":"section","structureNodeId":"second","position":{"x":0,"y":0},"size":{"width":300,"height":200},"collapsed":false}
         ], "relation_styles":[]
     })).unwrap();
     repository::save_in_transaction(&mut tx, "space", 0, &snapshot)
@@ -23,7 +23,7 @@ async fn sibling_reordering_preserves_the_active_order_constraint() {
         .unwrap();
     let mut reordered = snapshot;
     for node in &mut reordered.structure {
-        if let crate::spaces::structure::StructureNode::Group { order, .. } = node {
+        if let crate::spaces::structure::StructureNode::Section { order, .. } = node {
             *order = 1 - *order;
         }
     }
@@ -74,5 +74,25 @@ async fn unchanged_snapshot_does_not_rewrite_structure_or_layouts() {
         .await
         .unwrap();
     assert_eq!(writes, ["structure"]);
+    if let crate::spaces::structure::StructureLayout::Section { position, .. } =
+        &mut renamed.layouts[0]
+    {
+        position.x = 50.0;
+    }
+    repository::save_in_transaction(&mut tx, "space", revision + 2, &renamed)
+        .await
+        .unwrap();
+    let writes: Vec<String> = sqlx::query_scalar("SELECT kind FROM snapshot_writes")
+        .fetch_all(&mut *tx)
+        .await
+        .unwrap();
+    assert_eq!(writes, ["structure", "layout"]);
+    let (loaded, _) = repository::load_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(loaded.layouts).unwrap(),
+        serde_json::to_value(renamed.layouts).unwrap()
+    );
     tx.commit().await.unwrap();
 }

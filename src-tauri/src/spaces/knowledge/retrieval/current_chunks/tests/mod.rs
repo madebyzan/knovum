@@ -23,22 +23,16 @@ async fn database() -> sqlx::SqlitePool {
     pool
 }
 
-fn matched(chunk_id: &str, space_id: Option<&str>) -> Value {
-    let mut value = serde_json::json!({
+fn matched(chunk_id: &str, space_id: &str) -> Value {
+    serde_json::json!({
+        "spaceId": space_id,
         "chunkId": chunk_id,
         "nodeId": "node",
         "nodeTitle": "Node",
         "sourceRevision": "rev",
         "text": "text",
         "score": 1.0,
-    });
-    if let Some(space_id) = space_id {
-        value
-            .as_object_mut()
-            .unwrap()
-            .insert("spaceId".to_owned(), Value::String(space_id.to_owned()));
-    }
-    value
+    })
 }
 
 #[tokio::test]
@@ -61,8 +55,8 @@ async fn drops_stale_matches_and_keeps_current_ones() {
     sqlx::query("INSERT INTO spaces_chunk_embeddings(generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at) VALUES ('generation','current','rev','spec',2,1)")
         .execute(&pool).await.expect("marker");
 
-    let values = vec![matched("stale", None), matched("current", None)];
-    let filtered = filter(&pool, "space", &generation(), values)
+    let values = vec![matched("stale", "space"), matched("current", "space")];
+    let filtered = filter(&pool, &[("space", &generation())], values)
         .await
         .expect("filter");
     assert_eq!(filtered.len(), 1);
@@ -73,7 +67,7 @@ async fn drops_stale_matches_and_keeps_current_ones() {
 }
 
 #[tokio::test]
-async fn uses_explicit_space_id_when_present() {
+async fn accepts_only_the_requested_space_and_generation() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at,last_opened_at) VALUES ('other','space','Space',1,1,1)")
         .execute(&pool)
@@ -92,9 +86,13 @@ async fn uses_explicit_space_id_when_present() {
     sqlx::query("INSERT INTO spaces_chunk_embeddings(generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at) VALUES ('generation','chunk','rev','spec',2,1)")
         .execute(&pool).await.expect("marker");
 
-    let values = vec![matched("chunk", Some("other"))];
-    let filtered = filter(&pool, "wrong", &generation(), values)
+    let values = vec![matched("chunk", "other")];
+    let filtered = filter(&pool, &[("other", &generation())], values.clone())
         .await
         .expect("filter");
     assert_eq!(filtered.len(), 1);
+    assert!(filter(&pool, &[("wrong", &generation())], values)
+        .await
+        .unwrap()
+        .is_empty());
 }

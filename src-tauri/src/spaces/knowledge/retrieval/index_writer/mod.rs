@@ -37,7 +37,7 @@ pub(crate) async fn upsert_embeddings<R: Runtime>(
     publish_embeddings(pool, &index, embeddings).await
 }
 
-async fn publish_embeddings(
+pub(super) async fn publish_embeddings(
     pool: &SqlitePool,
     index: &Connection,
     embeddings: Vec<KnowledgeEmbeddingInput>,
@@ -153,4 +153,4 @@ fn generation_from_batch(
 }
 
 #[cfg(test)]
-mod tests;
+pub(super) mod tests;

@@ -1,8 +1,11 @@
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { StructureNodeId, StructureNode } from "../model/structure/schema/structure";
-import { ancestorsOf, effectiveOperationRoots } from "../model/structure/structure-index";
+import {
+  ancestorsOf,
+  createStructureIndex,
+  effectiveOperationRoots,
+} from "../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../model/structure/structure-queries";
-import { validateStructureSnapshot } from "../model/structure/structure-validation";
 
 export type StructureCapability =
   | { enabled: true; roots: readonly StructureNode[] }
@@ -17,7 +20,7 @@ export function groupCapability(
   snapshot: SpaceEditSnapshot,
   selectedIds: readonly StructureNodeId[],
 ): StructureCapability {
-  const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
+  const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(selectedIds, index);
   if (roots.length < 2) return { enabled: false, reason: "Select at least two nodes" };
   if (roots.some((structureNode) => structureNode.kind === "section"))
@@ -34,7 +37,7 @@ export function dissolveGroupCapability(
   snapshot: SpaceEditSnapshot,
   selectedIds: readonly StructureNodeId[],
 ): StructureCapability {
-  const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
+  const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(selectedIds, index);
   if (!roots.length || roots.some((structureNode) => structureNode.kind !== "group"))
     return { enabled: false, reason: "Select one or more Groups" };
@@ -45,7 +48,7 @@ export function dissolveGroupCapability(
 
 export function canRenameStructureNode(snapshot: SpaceEditSnapshot, selectedIds: readonly StructureNodeId[]) {
   if (selectedIds.length !== 1) return false;
-  const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
+  const index = createStructureIndex(snapshot.structure);
   return !isStructureNodeEffectivelyLocked(selectedIds[0]!, index);
 }
 
@@ -54,7 +57,7 @@ export function structureParentTargets(
   selectedIds: readonly StructureNodeId[],
   spaceRootTitle: string,
 ): StructureParentTarget[] {
-  const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
+  const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(selectedIds, index);
   const parentId = roots[0]?.parentId;
   if (

@@ -2,6 +2,7 @@ pub(crate) mod arrow_batch;
 mod current_chunks;
 mod generation;
 mod generation_build;
+mod global_search;
 pub(crate) mod hybrid;
 pub(crate) mod index_writer;
 pub(crate) mod invalidation_outbox;

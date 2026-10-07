@@ -7,7 +7,7 @@ import type {
   LocalTransform,
   StructureNode,
 } from "../../model/structure/schema/structure";
-import { validateStructureSnapshot } from "../../model/structure/structure-validation";
+import { createStructureIndex, type StructureIndex } from "../../model/structure/structure-index";
 import { contentWorldBounds, mergeWorldBounds, type WorldBounds } from "../../model/structure/world-bounds";
 import { composeTransforms, localTransformOf } from "../../model/structure/world-transform";
 import type { ProjectedContent, ProjectedGroup, ProjectedSection, StructureScene } from "./structure-scene";
@@ -32,7 +32,7 @@ export function projectStructureScene({
   relations,
   temporarilyExpandedSectionIds = new Set(),
 }: StructureSceneProjectionInput): StructureScene {
-  const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
+  const index = createStructureIndex(snapshot.structure);
   const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const contentById = new Map(nodes.map((node) => [node.id, node]));
   const content: ProjectedContent[] = [];
@@ -70,7 +70,7 @@ interface ProjectionState {
   content: ProjectedContent[];
   contentById: ReadonlyMap<string, SpaceCanvasNode>;
   groups: ProjectedGroup[];
-  index: ReturnType<typeof validateStructureSnapshot>;
+  index: StructureIndex;
   layouts: ReadonlyMap<StructureNodeId, StructureLayout>;
   sections: ProjectedSection[];
   temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId>;

@@ -19,7 +19,6 @@ describe("Konva scene preview", () => {
     const scene: CanvasScene = {
       nodes: [left, right, unrelated],
       nodesById: new Map([left, right, unrelated].map((item) => [item.node.id, item])),
-      contentNodes: [left, right, unrelated],
       sectionBackdrops: [],
       relations: [adjacent, detached],
     };

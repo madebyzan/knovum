@@ -92,7 +92,7 @@ async function renderCanvasThumbnail(
         }),
       );
     }
-    for (const sceneNode of scene.contentNodes) {
+    for (const sceneNode of scene.nodes) {
       const image = images.get(sceneNode.node.id);
       drawCanvasOverviewNode({
         parent: world,

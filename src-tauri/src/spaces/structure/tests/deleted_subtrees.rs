@@ -13,8 +13,17 @@ async fn restores_one_large_subtree_and_retains_the_other_root() {
             1 => ("other".into(), None, 1),
             _ => (format!("child-{index}"), Some("root"), index - 2),
         };
-        let data = serde_json::json!({"kind":"group","id":id,"parentId":parent,"order":order,"locked":false,"title":"Group"});
-        let layout = serde_json::json!({"kind":"group","structureNodeId":id,"transform":{"x":0,"y":0,"rotation":0,"scale":1}});
+        let (data, layout) = if parent.is_none() {
+            (
+                serde_json::json!({"kind":"section","id":id,"parentId":parent,"order":order,"locked":false,"title":"Section"}),
+                serde_json::json!({"kind":"section","structureNodeId":id,"position":{"x":0,"y":0},"size":{"width":300,"height":200},"collapsed":false}),
+            )
+        } else {
+            (
+                serde_json::json!({"kind":"content","id":id,"parentId":parent,"order":order,"locked":false,"nodeId":format!("node-{index}")}),
+                serde_json::json!({"kind":"content","structureNodeId":id,"transform":{"x":0,"y":0,"rotation":0,"scale":1},"size":{"width":100,"height":80},"sizingMode":"frame"}),
+            )
+        };
         sqlx::query("INSERT INTO spaces_deleted_structure_nodes(batch_id,structure_node_id,data) VALUES('batch',$1,$2)")
             .bind(&id).bind(data.to_string()).execute(&mut *tx).await.unwrap();
         sqlx::query("INSERT INTO spaces_deleted_structure_layouts(batch_id,structure_node_id,data) VALUES('batch',$1,$2)")
@@ -42,14 +51,16 @@ async fn restores_parent_and_child_tombstones_atomically() {
     let snapshot: repository::SpaceStructureSnapshot = serde_json::from_value(serde_json::json!({
         "structure":[
             {"kind":"group","id":"root","parentId":null,"order":0,"locked":false,"title":"Root"},
-            {"kind":"group","id":"child","parentId":"root","order":0,"locked":false,"title":"Child"}
+            {"kind":"content","id":"child","parentId":"root","order":0,"locked":false,"nodeId":"node"}
         ],
         "layouts":[
             {"kind":"group","structureNodeId":"root","transform":{"x":0,"y":0,"rotation":0,"scale":1}},
-            {"kind":"group","structureNodeId":"child","transform":{"x":0,"y":0,"rotation":0,"scale":1}}
+            {"kind":"content","structureNodeId":"child","transform":{"x":0,"y":0,"rotation":0,"scale":1},"size":{"width":100,"height":80},"sizingMode":"frame"}
         ], "relation_styles":[]
     })).unwrap();
     let mut tx = db::begin_write(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','note',0,0,'{\"kind\":\"note\",\"title\":\"Note\"}',1,1)")
+        .execute(&mut *tx).await.unwrap();
     repository::save_in_transaction(&mut tx, "space", 0, &snapshot)
         .await
         .unwrap();

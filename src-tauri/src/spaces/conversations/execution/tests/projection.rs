@@ -31,6 +31,8 @@ async fn replayed_projection_commits_one_answer_plan_and_input_acknowledgement()
     sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at)
         VALUES('summary','task','context_summary','','before',10,10,'received',1)")
         .execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE projection_updates(kind TEXT); CREATE TRIGGER input_acknowledged AFTER UPDATE OF input_accepted ON spaces_builtin_agent_tasks BEGIN INSERT INTO projection_updates VALUES('input'); END; CREATE TRIGGER model_committed AFTER UPDATE OF state ON spaces_builtin_agent_model_calls BEGIN INSERT INTO projection_updates VALUES('model'); END;")
+        .execute(&pool).await.unwrap();
     for _ in 0..2 {
         super::super::projection::commit(&pool, &fixture::ids(), projection())
             .await
@@ -75,6 +77,47 @@ async fn replayed_projection_commits_one_answer_plan_and_input_acknowledgement()
         .unwrap(),
         "checkpoint"
     );
+    let updates: Vec<String> = sqlx::query_scalar("SELECT kind FROM projection_updates")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    assert_eq!(updates, ["input", "model"]);
+}
+
+#[tokio::test]
+async fn settles_many_receipts_without_crossing_graph_namespaces() {
+    let pool = fixture::database().await;
+    let ids = (0..300)
+        .map(|index| format!("receipt-{index}"))
+        .collect::<Vec<_>>();
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at) SELECT value,'task','context_summary','','before',10,10,'received',1 FROM json_each($1)")
+        .bind(serde_json::to_string(&ids).unwrap()).execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at) VALUES('child-receipt','task','context_summary','child','before',10,10,'received',1)")
+        .execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,message_id,estimated_input_tokens,max_output_tokens,state,created_at) VALUES('message-receipt','task','main','','before','answer',10,10,'received',1)")
+        .execute(&pool).await.unwrap();
+    let mut value = projection();
+    value.model_checkpoints[0].request_ids = ids;
+    value.model_checkpoints[0]
+        .request_ids
+        .push("child-receipt".into());
+    super::super::projection::commit(&pool, &fixture::ids(), value)
+        .await
+        .unwrap();
+    let committed: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_builtin_agent_model_calls WHERE state='committed'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(committed, 301);
+    let child: String = sqlx::query_scalar(
+        "SELECT state FROM spaces_builtin_agent_model_calls WHERE id='child-receipt'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(child, "received");
 }
 
 #[tokio::test]
