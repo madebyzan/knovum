@@ -25,7 +25,7 @@ fn ownership_is_claimed_before_resource_bytes_are_created() {
     let mut claimed = Vec::new();
     let resource = store_at(
         &path,
-        format!("{:x}", Sha256::digest(b"png")),
+        hex::encode(Sha256::digest(b"png")),
         b"png",
         1,
         1,
@@ -55,7 +55,7 @@ fn rejected_ownership_prevents_resource_creation() {
     let path = directory.join("resource.png");
     let result = store_at(
         &path,
-        format!("{:x}", Sha256::digest(b"png")),
+        hex::encode(Sha256::digest(b"png")),
         b"png",
         1,
         1,

@@ -10,5 +10,3 @@ export const spaceMediaOriginSchema = z
     externalId: z.string().trim().min(1).max(512),
   })
   .strict();
-
-export type SpaceMediaOrigin = z.infer<typeof spaceMediaOriginSchema>;

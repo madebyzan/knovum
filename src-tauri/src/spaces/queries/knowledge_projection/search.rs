@@ -47,21 +47,20 @@ async fn search_substring(
     terms: Vec<String>,
     limit: i64,
 ) -> Result<Vec<SqliteRow>, String> {
-    let mut sql = String::from(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT c.node_id AS id,n.kind,json_extract(n.data,'$.title') AS title,\
          c.text AS preview,-1.0 AS rank,c.source_revision,c.locator,n.updated_at FROM spaces_current_knowledge_chunks c \
-         JOIN spaces_semantic_nodes n ON n.id=c.node_id AND n.space_id=c.space_id WHERE c.space_id=?",
+         JOIN spaces_semantic_nodes n ON n.id=c.node_id AND n.space_id=c.space_id WHERE c.space_id=",
     );
-    for _ in &terms {
-        sql.push_str(" AND instr(lower(c.text), lower(?)) > 0");
-    }
-    sql.push_str(" ORDER BY c.updated_at DESC LIMIT ?");
-    let mut statement = sqlx::query(&sql).bind(space_id);
+    sql.push_bind(space_id);
     for term in terms {
-        statement = statement.bind(term);
+        sql.push(" AND instr(lower(c.text), lower(")
+            .push_bind(term)
+            .push(")) > 0");
     }
-    statement
-        .bind(limit)
+    sql.push(" ORDER BY c.updated_at DESC LIMIT ")
+        .push_bind(limit);
+    sql.build()
         .fetch_all(connection)
         .await
         .map_err(db::sql_error)

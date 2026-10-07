@@ -96,10 +96,9 @@ async fn create(
     };
     create_grant(tx, &grant, now).await?;
     let definition = serde_json::to_value(&saved.candidate).map_err(db::json_error)?;
-    let digest = format!(
-        "{:x}",
-        Sha256::digest(serde_json::to_vec(&definition).map_err(db::json_error)?)
-    );
+    let digest = hex::encode(Sha256::digest(
+        serde_json::to_vec(&definition).map_err(db::json_error)?,
+    ));
     let policy = json!({
         "grantId": grant.grant_id,
         "workflowId": saved.workflow_id,

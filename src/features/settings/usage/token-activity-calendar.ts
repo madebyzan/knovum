@@ -2,7 +2,7 @@ import { getDayOfWeek, getLocalTimeZone, parseDate, type CalendarDate } from "@i
 
 import type { UsageDay } from "../../../shared/contracts/generated/UsageDay";
 
-export interface TokenActivityCell {
+interface TokenActivityCell {
   date: string;
   tokens: number;
   requests: number;

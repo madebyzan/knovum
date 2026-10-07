@@ -18,6 +18,9 @@
   "cycles": {
     "dynamicImports": true
   },
+  "ignoreIssues": {
+    "src/**/contracts/generated/*.ts": ["types"]
+  },
   "ignoreBinaries": ["minisign", "uv"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

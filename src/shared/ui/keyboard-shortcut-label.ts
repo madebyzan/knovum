@@ -3,7 +3,7 @@ import { platform } from "@tauri-apps/plugin-os";
 /**
  * Standard keyboard symbols aligned with Apple HIG, W3C, and Nuxt UI.
  */
-export const KBD_SYMBOLS = {
+const KBD_SYMBOLS = {
   command: "⌘",
   cmd: "⌘",
   option: "⌥",

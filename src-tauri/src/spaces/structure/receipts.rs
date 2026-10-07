@@ -11,7 +11,7 @@ pub(super) fn request_digest(request: &ExecuteSpaceEditRequest) -> Result<String
 
 pub(crate) fn digest<T: Serialize>(request: &T) -> Result<String, String> {
     let encoded = serde_json::to_vec(request).map_err(db::json_error)?;
-    Ok(format!("{:x}", Sha256::digest(encoded)))
+    Ok(hex::encode(Sha256::digest(encoded)))
 }
 
 pub(crate) async fn find_typed<T: DeserializeOwned>(

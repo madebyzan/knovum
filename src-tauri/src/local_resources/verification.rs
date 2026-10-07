@@ -113,5 +113,5 @@ fn sha256_file(
         }
         hash.update(&buffer[..read]);
     }
-    Ok(format!("{:x}", hash.finalize()))
+    Ok(hex::encode(hash.finalize()))
 }

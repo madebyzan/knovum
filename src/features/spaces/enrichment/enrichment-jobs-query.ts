@@ -5,7 +5,7 @@ import { listActionableEnrichmentJobs } from "./enrichment-jobs";
 
 const POLL_INTERVAL_MS = 2_000;
 
-export const enrichmentJobsKey = ["spaces", "enrichment-jobs"] as const;
+const enrichmentJobsKey = ["spaces", "enrichment-jobs"] as const;
 
 export function enrichmentJobsQuery(enabled = true) {
   return queryOptions({

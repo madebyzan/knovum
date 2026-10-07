@@ -28,7 +28,7 @@ pub fn copy_resource(
     reject_source(&metadata)?;
     let (digest, size) = copy_file(source, target, cancellation, &mut on_bytes)?;
     Ok(CopiedResource {
-        revision: format!("sha256:{digest:x}"),
+        revision: format!("sha256:{digest}", digest = hex::encode(digest)),
         size,
         modified_at: modified_millis(&metadata)?,
     })

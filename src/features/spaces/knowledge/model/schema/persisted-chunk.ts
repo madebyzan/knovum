@@ -16,5 +16,4 @@ const knowledgeChunkSchema = knowledgeChunkSeedSchema
   })
   .strict();
 
-export type KnowledgeChunkOrigin = z.infer<typeof knowledgeChunkOriginSchema>;
 export type KnowledgeChunk = z.infer<typeof knowledgeChunkSchema>;

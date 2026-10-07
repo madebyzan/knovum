@@ -254,7 +254,7 @@ fn verify_file(
         }
         hash.update(&buffer[..read]);
     }
-    if format!("{:x}", hash.finalize()) != expected {
+    if hex::encode(hash.finalize()) != expected {
         return Err(format!(
             "Kokoro package file failed SHA-256 verification: {}",
             path.display()

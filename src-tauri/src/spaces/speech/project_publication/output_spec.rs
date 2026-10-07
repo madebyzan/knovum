@@ -57,5 +57,5 @@ pub(super) fn digest_render_order(
         digest.update([0]);
     }
     digest.update(output_config.to_string().as_bytes());
-    format!("{:x}", digest.finalize())
+    hex::encode(digest.finalize())
 }

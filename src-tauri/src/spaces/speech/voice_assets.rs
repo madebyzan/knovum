@@ -202,7 +202,7 @@ fn hash_exact(path: &Path, expected_byte_length: u64) -> Result<String, String> 
     if file.read(&mut extra).map_err(|error| error.to_string())? != 0 {
         return Err("stale_revision: voice reference grew while hashing".into());
     }
-    Ok(format!("{:x}", digest.finalize()))
+    Ok(hex::encode(digest.finalize()))
 }
 
 pub(super) fn reference_metadata(path: &Path) -> Result<AudioFileReference, String> {

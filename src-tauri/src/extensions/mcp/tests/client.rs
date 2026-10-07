@@ -7,8 +7,8 @@ use tokio_util::sync::CancellationToken;
 #[derive(Clone)]
 struct ProtocolFixture;
 impl ServerHandler for ProtocolFixture {
-    fn get_info(&self) -> ServerInfo {
-        let mut info = ServerInfo::default();
+    fn get_info(&self) -> ServerConfig {
+        let mut info = ServerConfig::default();
         info.capabilities = ServerCapabilities::builder()
             .enable_tools()
             .enable_resources()

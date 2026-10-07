@@ -12,5 +12,3 @@ export const spaceVisualKnowledgeSchema = z
     executionSource: executionSourceSchema,
   })
   .strict();
-
-export type SpaceVisualKnowledge = z.infer<typeof spaceVisualKnowledgeSchema>;

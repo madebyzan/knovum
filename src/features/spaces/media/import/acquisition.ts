@@ -64,7 +64,7 @@ export async function acquireMediaSource(
   }
 }
 
-export function mediaPayloadFromImport(imported: ImportedMedia): SpaceMediaPayload {
+function mediaPayloadFromImport(imported: ImportedMedia): SpaceMediaPayload {
   const common = {
     title: imported.title,
     assetPath: imported.assetPath,

@@ -15,7 +15,7 @@ fn source_separation_artifact_copy_validates_timeline_and_cleans_worker_file() {
         file_name: format!("attempt-{request_id}/background.wav"),
         media_type: "audio/wav".into(),
         byte_length: payload.len() as u64,
-        sha256: format!("{:x}", Sha256::digest(&payload)),
+        sha256: hex::encode(Sha256::digest(&payload)),
         sample_rate: SAMPLE_RATE,
         channels: CHANNELS,
         sample_format: "pcm_s16le".into(),

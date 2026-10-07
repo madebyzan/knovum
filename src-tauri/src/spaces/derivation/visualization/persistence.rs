@@ -151,7 +151,7 @@ async fn persist_completion(
         .ok_or("Visualization node data is invalid")?;
     object.insert(
         "sourceRevision".into(),
-        format!("sha256:{:x}", Sha256::digest(bytes)).into(),
+        format!("sha256:{}", hex::encode(Sha256::digest(bytes))).into(),
     );
     object.insert("size".into(), (bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());

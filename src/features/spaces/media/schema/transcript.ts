@@ -7,7 +7,7 @@ const revision = z.number().int().min(1).max(0xffff_ffff);
 
 export const mediaSourceRevisionSchema = z.string().trim().min(1).max(128);
 
-export const spaceSubtitleCueSchema = z
+const spaceSubtitleCueSchema = z
   .object({
     startMs: timestamp,
     endMs: timestamp,
@@ -29,7 +29,7 @@ const transcriptUnitSchema = z
   })
   .strict();
 
-export const spaceTranscriptSegmentSchema = z
+const spaceTranscriptSegmentSchema = z
   .object({
     id: sha256Identifier,
     revision,

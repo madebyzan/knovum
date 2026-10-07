@@ -44,10 +44,11 @@ function matchText(match: GlobalSearchMatch) {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim/60" />
       <DialogContent
+        :aria-describedby="undefined"
         class="fixed top-[12%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-156 -translate-x-1/2 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-dialog outline-none"
       >
         <DialogTitle class="sr-only">{{ t("spaces.search.allSpaces.title") }}</DialogTitle>
-        <ListboxRoot @update:model-value="select">
+        <ListboxRoot>
           <div class="flex h-12 items-center gap-2.5 border-b border-stroke-divider px-3.5">
             <Search class="size-3.5 text-fg-tertiary" />
             <ListboxFilter
@@ -69,6 +70,7 @@ function matchText(match: GlobalSearchMatch) {
               :key="matchKey(match)"
               :value="match"
               :text-value="matchText(match)"
+              @select="select(match)"
               class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-start gap-2.5 rounded-md px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
               <span

@@ -89,11 +89,6 @@ function mergeBounds(bounds: readonly { x: number; y: number; width: number; hei
   return { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
 }
 
-export function selectedCanvasLayouts(context: CanvasNavigationContext) {
-  const selected = context.selectedNodeIds();
-  return context.layouts().filter(({ nodeId }) => selected.has(nodeId));
-}
-
 function layoutBounds(layouts: readonly CanvasNodeLayoutV1[]) {
   const left = Math.min(...layouts.map(({ frame }) => frame.x));
   const top = Math.min(...layouts.map(({ frame }) => frame.y));

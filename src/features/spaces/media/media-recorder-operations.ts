@@ -15,7 +15,7 @@ export async function cancelPendingAudioRecording(stream: MediaStream, session: 
   await cancelSpaceAudioRecording(session);
 }
 
-export async function stopMediaRecorder(recorder: MediaRecorder) {
+async function stopMediaRecorder(recorder: MediaRecorder) {
   if (recorder.state === "inactive") return;
   let onStop!: () => void;
   const stopped = new Promise<void>((resolve) => {

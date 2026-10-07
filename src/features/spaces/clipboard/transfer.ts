@@ -38,10 +38,6 @@ export async function writeSpaceClipboardDirect(payload: SpaceClipboardPayload) 
   return true;
 }
 
-export function readSpaceClipboard(event: ClipboardEvent): SpaceClipboardPayload | undefined {
-  return readSpaceClipboardHtml(event.clipboardData?.getData("text/html") ?? "");
-}
-
 export function readSpaceClipboardHtml(html: string): SpaceClipboardPayload | undefined {
   const marker = html.match(HTML_MARKER)?.[1];
   if (!marker) return undefined;

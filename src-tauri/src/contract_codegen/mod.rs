@@ -77,12 +77,10 @@ pub fn export(project_root: &Path) -> Result<(), String> {
         concat!(
             "// Generated from Rust contracts. Do not edit.\n",
             "export const maxKnowledgePassageBytes = {} as const;\n",
-            "export const packageAssetPrefix = {:?} as const;\n",
             "export const relationKinds = {} as const;\n",
             "export const relationStatuses = {} as const;\n",
         ),
         crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
-        crate::spaces::assets::PACKAGE_ASSET_PREFIX,
         relation_kinds
             .get("enum")
             .ok_or("Relation kinds must be an enum")?,

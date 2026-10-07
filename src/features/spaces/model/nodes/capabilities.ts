@@ -30,14 +30,6 @@ export function isSpaceMediaPayload(data: SpaceNodePayload): data is SpaceMediaP
   return data.kind === "audio" || data.kind === "video";
 }
 
-export function isSpaceNotePayload(data: SpaceNodePayload): data is SpaceNotePayload {
-  return data.kind === "note";
-}
-
 export function isSpaceWebsitePayload(data: SpaceNodePayload): data is SpaceWebsitePayload {
   return data.kind === "website";
-}
-
-export function isSpaceMarkdownPayload(data: SpaceNodePayload): data is SpaceMarkdownPayload {
-  return data.kind === "markdown";
 }

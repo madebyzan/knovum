@@ -48,7 +48,10 @@ pub(crate) fn visual_revision(data: &Value) -> Result<Option<String>, String> {
                 "origin": data.get("origin").and_then(|origin| origin.get("kind")),
             }))
             .map_err(|error| error.to_string())?;
-            Ok(Some(format!("visual1:{:x}", Sha256::digest(payload))))
+            Ok(Some(format!(
+                "visual1:{}",
+                hex::encode(Sha256::digest(payload))
+            )))
         }
         _ => Ok(None),
     }

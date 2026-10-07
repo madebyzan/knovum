@@ -155,7 +155,7 @@ async fn persist(
         .ok_or("Document node data is invalid")?;
     object.insert(
         "sourceRevision".into(),
-        format!("sha256:{:x}", Sha256::digest(&request.bytes)).into(),
+        format!("sha256:{}", hex::encode(Sha256::digest(&request.bytes))).into(),
     );
     object.insert("size".into(), (request.bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());

@@ -22,7 +22,7 @@ export function scheduleCanvasThumbnail(state: SpaceState) {
   }, SETTLE_DELAY_MS);
 }
 
-export function cancelCanvasThumbnail() {
+function cancelCanvasThumbnail() {
   if (pendingCapture === undefined) return;
   globalThis.clearTimeout(pendingCapture);
   pendingCapture = undefined;
@@ -39,7 +39,7 @@ export async function commitActiveCanvasThumbnail(state: SpaceState) {
   }
 }
 
-export async function persistActiveCanvasThumbnail(state: SpaceState) {
+async function persistActiveCanvasThumbnail(state: SpaceState) {
   const space = state.activeSpace.value;
   if (!space || (!state.thumbnailDirty.value && space.thumbnailPath)) return;
   if (!state.spaces.value.some((candidate) => candidate.id === space.id)) return;

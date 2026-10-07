@@ -2,10 +2,7 @@ import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../../canvas/node-size";
 import type { CanvasNodeAppearance } from "../../../canvas/schema/document";
 import { CONTENT_FILL_COLORS, CONTENT_TEXT_COLORS } from "../canvas-content-colors";
 
-export function canvasTextAppearanceClasses(
-  kind: "note" | "text",
-  appearance: CanvasNodeAppearance | undefined,
-) {
+function canvasTextAppearanceClasses(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
   const alignment = appearance?.textAlign ?? (kind === "note" ? "left" : "center");
   return [
     appearance?.fontWeight === "bold" ? "font-bold" : undefined,
@@ -35,7 +32,7 @@ function canvasTextBackground(kind: "note" | "text", appearance: CanvasNodeAppea
   return { backgroundColor: appearance?.customFill ?? CONTENT_FILL_COLORS[appearance?.fill ?? "yellow"] };
 }
 
-export function canvasTextVerticalClass(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
+function canvasTextVerticalClass(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
   if (appearance?.verticalAlign === "bottom") return "justify-end";
   if (appearance?.verticalAlign === "middle" || (!appearance?.verticalAlign && kind === "text")) {
     return "justify-center";

@@ -109,5 +109,5 @@ pub(super) fn chapter_digest(
         digest.update(chapter.sample_count.to_le_bytes());
     }
     digest.update(output_config.to_string().as_bytes());
-    format!("{:x}", digest.finalize())
+    hex::encode(digest.finalize())
 }

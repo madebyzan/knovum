@@ -1,5 +1,3 @@
-import type { PredefinedMenuItemOptions } from "@tauri-apps/api/menu";
-
 import {
   checkMenuItem,
   menuItem,
@@ -23,13 +21,6 @@ export function spaceCheckItem(text: string, checked: boolean, action: () => voi
 
 export function spaceSubmenu(text: string, items: ContextMenuItem[]) {
   return submenu(text, items);
-}
-
-export function spacePredefinedItem(
-  item: PredefinedMenuItemOptions["item"],
-  text?: string,
-): PredefinedMenuItemOptions {
-  return { item, ...(text !== undefined ? { text } : {}) };
 }
 
 export function popupSpaceContextMenu(

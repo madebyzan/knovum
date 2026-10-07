@@ -5,37 +5,13 @@ import { previewSpaceAsset } from "../assets/asset-preview";
 import type { SpaceClipboardPayload } from "../clipboard/clipboard-envelope";
 import { importStructureClipboard } from "../clipboard/structure-clipboard-operations";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
-import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor } from "../model/structure/structure-queries";
 import type { useSpaceStore } from "../session/space-store";
 import { getCanvasEditorSession } from "./editor-session";
-
-export async function duplicateSpaceSelection(
-  store: ReturnType<typeof useSpaceStore>,
-  selectedNodes: readonly PositionedSpaceNode[],
-) {
-  const structureNodeIdByContentId = new Map(
-    store.editSnapshot.structure.flatMap((structureNode) =>
-      structureNode.kind === "content" ? [[structureNode.nodeId, structureNode.id] as const] : [],
-    ),
-  );
-  const rootIds = selectedNodes.map(({ node }) => {
-    const structureNodeId = structureNodeIdByContentId.get(node.id);
-    if (!structureNodeId)
-      throw new Error(`Duplicate content is unavailable in the Space structure: ${node.id}`);
-    return structureNodeId;
-  });
-  if (!rootIds.length) return;
-  await store.executeSpaceEdit({
-    kind: "structure.clone",
-    rootIds,
-    targetParentId: null,
-    offset: { x: 24, y: 24 },
-  });
-}
 
 export async function copySpaceSelectionToClipboard(payload: SpaceClipboardPayload) {
   await writeSpaceClipboardDirect(payload);
@@ -115,7 +91,7 @@ export function selectAndRevealSpaceNode(id: string, mode: "focus" | "ensure-vis
   getCanvasEditorSession().reveal([id], mode);
 }
 
-export async function openPortalNode(
+async function openPortalNode(
   store: ReturnType<typeof useSpaceStore>,
   target: Extract<SpaceCanvasNode["data"], { kind: "portal" }>,
 ) {

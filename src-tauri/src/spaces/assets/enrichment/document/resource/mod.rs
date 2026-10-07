@@ -74,7 +74,7 @@ fn store(
     height: u32,
     claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, String> {
-    let id = format!("{:x}", Sha256::digest(bytes));
+    let id = hex::encode(Sha256::digest(bytes));
     let path = resource_path(&asset_directory(app)?, source, &id);
     let resource = store_at(&path, id, bytes, width, height, claim_managed_path)?;
     authorize_spaces_asset(app, &path)?;
@@ -82,10 +82,7 @@ fn store(
 }
 
 fn resource_path(directory: &Path, source: &Path, digest: &str) -> std::path::PathBuf {
-    let owner = format!(
-        "{:x}",
-        Sha256::digest(source.as_os_str().as_encoded_bytes())
-    );
+    let owner = hex::encode(Sha256::digest(source.as_os_str().as_encoded_bytes()));
     directory.join(format!("document-{owner}-{digest}.png"))
 }
 
@@ -100,7 +97,7 @@ fn store_at(
     claim_managed_path(path)?;
     if path.exists() {
         let existing = read_bounded(path)?;
-        if format!("{:x}", Sha256::digest(&existing)) != id {
+        if hex::encode(Sha256::digest(&existing)) != id {
             return Err("Document resource digest does not match its stored bytes".into());
         }
     } else {
@@ -149,7 +146,7 @@ pub(super) fn verified_path(
     let path = authorize_spaces_asset(app, Path::new(&resource.path))?;
     let bytes = read_bounded(&path)?;
     if bytes.len() as u64 != resource.byte_size
-        || format!("{:x}", Sha256::digest(&bytes)) != resource.id
+        || hex::encode(Sha256::digest(&bytes)) != resource.id
     {
         return Err("Document resource bytes do not match the published manifest".into());
     }

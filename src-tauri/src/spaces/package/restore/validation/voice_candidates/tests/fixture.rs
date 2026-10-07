@@ -122,7 +122,7 @@ fn step(source: Value, frozen: Option<Value>, output: Value) -> Value {
 fn attempt(output: Value) -> Value {
     json!({
         "id":"attempt","runId":"run","stepInstanceId":"step","attemptNumber":1,
-        "state":"succeeded","requestDigest":format!("{:x}",Sha256::digest(b"{}")),
+        "state":"succeeded","requestDigest":hex::encode(Sha256::digest(b"{}")),
         "idempotencyKey":"step","externalTaskId":null,"checkpoint":null,"result":output,
         "errorCode":null,"startedAt":2,"finishedAt":3
     })

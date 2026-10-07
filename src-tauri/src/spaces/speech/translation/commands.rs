@@ -132,7 +132,7 @@ fn input_revision(
         "segments": request.segments,
     }))
     .map_err(db::json_error)?;
-    Ok(format!("sha256:{:x}", Sha256::digest(bytes)))
+    Ok(format!("sha256:{}", hex::encode(Sha256::digest(bytes))))
 }
 
 async fn create_run(

@@ -39,6 +39,6 @@ pub fn remove_generated_previews(app: &tauri::AppHandle, asset: &Path) -> Result
 fn asset_identity(asset: &Path) -> String {
     let mut hasher = Sha256::new();
     hasher.update(asset.to_string_lossy().as_bytes());
-    let digest = format!("{:x}", hasher.finalize());
+    let digest = hex::encode(hasher.finalize());
     digest[..16].to_owned()
 }

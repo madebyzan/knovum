@@ -153,7 +153,7 @@ pub(super) fn hash_file(
             .read(&mut buffer)
             .map_err(|error| error.to_string())?;
         if read == 0 {
-            return Ok(format!("{:x}", digest.finalize()));
+            return Ok(hex::encode(digest.finalize()));
         }
         digest.update(&buffer[..read]);
     }

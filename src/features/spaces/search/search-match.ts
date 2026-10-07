@@ -1,12 +1,12 @@
 import type { KnowledgeSearchMatch } from "../knowledge/model/schema/search-match";
 
-export type GlobalKnowledgeSearchMatch = KnowledgeSearchMatch & {
+type GlobalKnowledgeSearchMatch = KnowledgeSearchMatch & {
   kind: "content";
   spaceId: string;
   spaceTitle: string;
 };
 
-export interface GlobalStructureSearchMatch {
+interface GlobalStructureSearchMatch {
   kind: "structure";
   structureNodeId: string;
   nodeKind: "group" | "section";

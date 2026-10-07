@@ -19,7 +19,7 @@ pub(super) fn read_mask(path: &std::path::Path, expected_sha256: &str) -> Result
     file.read_to_end(&mut bytes)
         .map_err(|error| format!("invalid_output: {error}"))?;
     if bytes.len() != IMAGE_SEGMENTATION_MASK_BYTES as usize
-        || format!("{:x}", Sha256::digest(&bytes)) != expected_sha256
+        || hex::encode(Sha256::digest(&bytes)) != expected_sha256
     {
         return Err("invalid_output: image segmentation mask digest differs".into());
     }

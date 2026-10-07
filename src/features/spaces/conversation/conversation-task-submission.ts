@@ -20,7 +20,7 @@ import { conversationTaskRequest } from "./conversation-task-request";
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
-export interface ConversationSubmissionState {
+interface ConversationSubmissionState {
   activeRun: ShallowRef<RunObservation | undefined>;
   activeRunId: ShallowRef<string | undefined>;
   activeConversationId: ShallowRef<string>;

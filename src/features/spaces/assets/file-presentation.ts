@@ -30,18 +30,3 @@ export function usesDocumentPreview(presentation: SpaceFilePresentation) {
     presentation === "presentation"
   );
 }
-
-export type SpaceCaptionKey = "pdf" | "document" | "spreadsheet" | "table" | "presentation" | "file" | "code";
-
-const CAPTION_KEYS: Record<SpaceFilePresentation, SpaceCaptionKey> = {
-  pdf: "pdf",
-  document: "document",
-  spreadsheet: "spreadsheet",
-  "tabular-data": "table",
-  presentation: "presentation",
-  generic: "file",
-};
-
-export function fileCaptionKey(presentation: SpaceFilePresentation): SpaceCaptionKey {
-  return CAPTION_KEYS[presentation];
-}

@@ -31,5 +31,5 @@ fn json(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<serde_json::Value,
 }
 
 pub(super) fn request_digest(encoded: &str) -> String {
-    format!("{:x}", sha2::Sha256::digest(encoded.as_bytes()))
+    hex::encode(sha2::Sha256::digest(encoded.as_bytes()))
 }

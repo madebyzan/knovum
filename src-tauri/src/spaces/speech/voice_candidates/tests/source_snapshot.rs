@@ -10,7 +10,7 @@ fn snapshot_copy_preserves_the_exact_frozen_length_and_digest() {
     let target = root.join("snapshot.input");
     let content = b"fixed voice reference";
     std::fs::write(&source, content).unwrap();
-    let revision = format!("sha256:{:x}", Sha256::digest(content));
+    let revision = format!("sha256:{}", hex::encode(Sha256::digest(content)));
 
     copy(
         &source,
@@ -36,7 +36,7 @@ fn snapshot_copy_rejects_content_beyond_the_frozen_length() {
     let content = b"frozen+growth";
     let frozen = &content[..6];
     std::fs::write(&source, content).unwrap();
-    let revision = format!("sha256:{:x}", Sha256::digest(frozen));
+    let revision = format!("sha256:{}", hex::encode(Sha256::digest(frozen)));
 
     let error = copy(
         &source,

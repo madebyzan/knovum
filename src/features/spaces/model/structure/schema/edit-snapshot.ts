@@ -11,7 +11,7 @@ const relationStyleSchema = z
   })
   .strict();
 
-export const spaceEditSnapshotSchema = z
+const spaceEditSnapshotSchema = z
   .object({
     editRevision: z.number().int().nonnegative(),
     structure: z.array(structureNodeSchema).max(MAX_STRUCTURE_NODES),

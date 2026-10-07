@@ -15,11 +15,11 @@ interface ExternalContentDropOptions {
 const acceptsExternalText = (transfer: DataTransfer | null) =>
   Boolean(transfer?.types.includes("text/uri-list") || transfer?.types.includes("text/plain"));
 
-export function useExternalContentDrop(options: ExternalContentDropOptions) {
-  function dragOver(event: DragEvent) {
-    if (acceptsExternalText(event.dataTransfer)) event.preventDefault();
-  }
+function dragOver(event: DragEvent) {
+  if (acceptsExternalText(event.dataTransfer)) event.preventDefault();
+}
 
+export function useExternalContentDrop(options: ExternalContentDropOptions) {
   function drop(event: DragEvent) {
     const transfer = event.dataTransfer;
     if (!acceptsExternalText(transfer)) return;

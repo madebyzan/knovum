@@ -1,11 +1,7 @@
-import { minBy } from "es-toolkit";
-
 import type { CanvasPoint } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 
 export type CanvasConnectorSide = "top" | "right" | "bottom" | "left";
-
-type SideDistance = [CanvasConnectorSide, number];
 
 export function connectorAnchor(frame: CanvasNodeLayoutV1["frame"], side: CanvasConnectorSide) {
   const local =
@@ -32,20 +28,6 @@ export function connectorControlCenter(
 export function frameContainsPoint(frame: CanvasNodeLayoutV1["frame"], point: CanvasPoint) {
   const local = toLocal(frame, point);
   return local.x >= 0 && local.x <= frame.width && local.y >= 0 && local.y <= frame.height;
-}
-
-export function nearestConnectorSide(
-  frame: CanvasNodeLayoutV1["frame"],
-  point: CanvasPoint,
-): CanvasConnectorSide {
-  const local = toLocal(frame, point);
-  const distances: [SideDistance, ...SideDistance[]] = [
-    ["top", Math.abs(local.y)],
-    ["right", Math.abs(local.x - frame.width)],
-    ["bottom", Math.abs(local.y - frame.height)],
-    ["left", Math.abs(local.x)],
-  ];
-  return minBy(distances, ([, distance]) => distance)[0];
 }
 
 export function nearestConnectorTarget(

@@ -54,7 +54,7 @@ export function draftRelationPath({ from, fromSide, to, toSide }: DraftRelationP
   return bezierConnectorPoints(from, fromSide, to, toSide ?? oppositeSide(fromSide));
 }
 
-export function cubicPoint(points: CanvasRelationPath, t: number): CanvasPoint {
+function cubicPoint(points: CanvasRelationPath, t: number): CanvasPoint {
   const inverse = 1 - t;
   const [x0, y0, x1, y1, x2, y2, x3, y3] = points;
   return {

@@ -11,8 +11,3 @@ interface CanvasNodeFor<T extends SpaceNodePayload> {
 export type SpaceCanvasNode<T extends SpaceNodePayload = SpaceNodePayload> = T extends SpaceNodePayload
   ? CanvasNodeFor<T>
   : never;
-
-export interface PositionedSpaceNode<T extends SpaceNodePayload = SpaceNodePayload> {
-  node: SpaceCanvasNode<T>;
-  position: { x: number; y: number };
-}

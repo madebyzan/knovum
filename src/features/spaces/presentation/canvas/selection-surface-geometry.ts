@@ -27,7 +27,7 @@ export interface SurfacePlacement {
   side: SurfaceSide;
 }
 
-export function intersects(a: SurfaceRect, b: SurfaceRect): boolean {
+function intersects(a: SurfaceRect, b: SurfaceRect): boolean {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 

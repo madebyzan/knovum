@@ -135,7 +135,7 @@ pub(crate) async fn segment_image<R: Runtime>(
     let tensor_name = format!("tensor-{request_id}.f32");
     let tensor_path = work_directory.join(&tensor_name);
     let tensor_bytes = encode_f32(&input);
-    let tensor_sha256 = format!("{:x}", Sha256::digest(&tensor_bytes));
+    let tensor_sha256 = hex::encode(Sha256::digest(&tensor_bytes));
     stage_tensor(&tensor_path, &tensor_bytes).await?;
     let params = ImageSegmentParams {
         request_id: request_id.clone(),

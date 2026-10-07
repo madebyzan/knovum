@@ -17,8 +17,10 @@ pub(in crate::spaces::structure) async fn apply(
 ) -> Result<i64, AppError> {
     let order = if redo { "ASC" } else { "DESC" };
     let undone = if redo { 1 } else { 0 };
-    let sql = format!("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id {order} LIMIT 1");
-    let row = sqlx::query(&sql)
+    let mut sql = sqlx::QueryBuilder::<Sqlite>::new("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id ");
+    sql.push(order).push(" LIMIT 1");
+    let row = sql
+        .build()
         .bind(space_id)
         .bind(undone)
         .fetch_optional(&mut **tx)

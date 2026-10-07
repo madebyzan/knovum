@@ -142,7 +142,11 @@ pub async fn receive(
 
 fn message_occurrence_identity(message_id: Option<&str>) -> String {
     let message = Sha256::digest(message_id.unwrap_or("unidentified").as_bytes());
-    format!("message-{message:x}-{}", uuid::Uuid::new_v4())
+    format!(
+        "message-{message}-{}",
+        uuid::Uuid::new_v4(),
+        message = hex::encode(message)
+    )
 }
 
 async fn persist_resource(
@@ -183,12 +187,18 @@ async fn persist_resource(
         .or_else(|| extensions.and_then(|values| values.first().copied()))
         .unwrap_or(default_extension);
     let uri_identity = Sha256::digest(uri.as_bytes());
-    let base = output_identity
-        .map(str::to_owned)
-        .unwrap_or_else(|| format!("resource-{uri_identity:x}"));
+    let base = output_identity.map(str::to_owned).unwrap_or_else(|| {
+        format!(
+            "resource-{uri_identity}",
+            uri_identity = hex::encode(uri_identity)
+        )
+    });
     let content_identity = Sha256::digest(&bytes);
     let stem = resource_stem(&uri).unwrap_or_else(|| "resource".into());
-    let name = format!("{base}-{content_identity:x}-{stem}.{extension}");
+    let name = format!(
+        "{base}-{content_identity}-{stem}.{extension}",
+        content_identity = hex::encode(content_identity)
+    );
     let path = workspace.join(name);
     publish_bytes(workspace, &path, &bytes, "resource").await?;
     Ok(path)
@@ -251,7 +261,8 @@ async fn persist_media(
         .unwrap_or_else(|| format!("media-{}", uuid::Uuid::new_v4()));
     let content_identity = Sha256::digest(&bytes);
     let path = workspace.join(format!(
-        "{occurrence}-{content_identity:x}-{stem}.{extension}"
+        "{occurrence}-{content_identity}-{stem}.{extension}",
+        content_identity = hex::encode(content_identity)
     ));
     publish_bytes(workspace, &path, &bytes, "media").await?;
     Ok(path)

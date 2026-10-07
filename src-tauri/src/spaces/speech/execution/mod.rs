@@ -198,7 +198,7 @@ pub(super) fn kokoro_device_profile() -> RuntimeDeviceProfile {
 }
 
 pub(super) fn digest_text(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
+    hex::encode(Sha256::digest(value.as_bytes()))
 }
 
 fn send(

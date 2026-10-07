@@ -62,7 +62,7 @@ export function findSemanticRelationPath(
 
 export type SpaceRelationIndex = ReadonlyMap<string, readonly SpaceRelation[]>;
 
-export function createSpaceRelationIndex(relations: readonly SpaceRelation[]): SpaceRelationIndex {
+function createSpaceRelationIndex(relations: readonly SpaceRelation[]): SpaceRelationIndex {
   const index = new Map<string, SpaceRelation[]>();
   for (const relation of relations) {
     appendIndexedRelation(index, relation.sourceId, relation);

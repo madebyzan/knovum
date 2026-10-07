@@ -18,11 +18,6 @@ export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanv
   );
 }
 
-export async function getNode(spaceId: string, nodeId: string): Promise<SpaceCanvasNode> {
-  const row = await invokeCommand<SpaceNodeProjection>("plugin:spaces|get_node", { spaceId, nodeId });
-  return createSpaceNode(validateSpaceNodePayload(row.data), { x: row.initialX, y: row.initialY }, row.id);
-}
-
 interface NodeCreationMutation {
   mutationId: string;
   expectedEditRevision: number;

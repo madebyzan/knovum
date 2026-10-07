@@ -45,7 +45,7 @@ pub fn canonicalize(bytes: &[u8], target_long_edge: Option<u32>) -> Result<Canon
     if png.len() > 64 * 1024 * 1024 {
         return Err("Generated PNG exceeds 64 MiB".into());
     }
-    let digest = format!("sha256:{:x}", Sha256::digest(&png));
+    let digest = format!("sha256:{}", hex::encode(Sha256::digest(&png)));
     Ok(CanonicalImage {
         png,
         digest,

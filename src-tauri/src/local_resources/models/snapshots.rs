@@ -75,6 +75,6 @@ impl SnapshotKind {
             digest.update(file.sha256.as_bytes());
             digest.update(file.size.to_le_bytes());
         }
-        format!("{:x}", digest.finalize())
+        hex::encode(digest.finalize())
     }
 }

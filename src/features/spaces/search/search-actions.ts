@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 
 import { searchSpaceKnowledgeHybrid } from "../knowledge/queries/hybrid-search";
 
-export interface SpaceSearchContext {
+interface SpaceSearchContext {
   activeSpaceId: Ref<string | undefined>;
 }
 

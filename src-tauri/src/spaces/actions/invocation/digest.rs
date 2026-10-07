@@ -14,7 +14,7 @@ pub(super) fn request_digest(request: &ActionInvocationRequest) -> Result<String
         "expectedRevisions": request.expected_revisions,
     });
     let encoded = serde_json::to_vec(&canonicalize(value)).map_err(db::json_error)?;
-    Ok(format!("{:x}", Sha256::digest(encoded)))
+    Ok(hex::encode(Sha256::digest(encoded)))
 }
 
 pub(super) fn canonicalize(value: Value) -> Value {

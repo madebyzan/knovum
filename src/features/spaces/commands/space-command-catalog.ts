@@ -34,8 +34,8 @@ export function useSpaceCommands() {
   const workspaceTabCommands = useWorkspaceTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
   const canvasNavigationCommands = useCanvasNavigationCommands();
+  const selectedIds = () => selection.value.nodeIds;
   return computed<readonly AppCommand[]>(() => {
-    const selectedIds = () => selection.value.nodeIds;
     const selectedStructureNodeIds = () => {
       const index = createStructureIndex(store.editSnapshot.structure);
       return currentSelectionRoots(selectedIds(), selection.value.structureNodeIds, index).map(

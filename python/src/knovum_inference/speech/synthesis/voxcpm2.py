@@ -47,11 +47,6 @@ class VoxCpm2SynthesisEngine:
         if params.profile.sample_rate != SAMPLE_RATE or params.profile.speed != 1.0:
             raise invalid_params("VoxCPM2 requires the fixed 48 kHz profile at normal speed")
         text, prompt_path, prompt_text, reference_path = self._generation_inputs(params)
-        try:
-            import torch
-        except ImportError as error:
-            raise server_error("runtime_mismatch", "PyTorch is unavailable") from error
-        torch.manual_seed(params.seed)
         engine = self._load()
         sample_rate = int(engine.tts_model.sample_rate)
         if sample_rate != SAMPLE_RATE:
@@ -65,6 +60,7 @@ class VoxCpm2SynthesisEngine:
             denoise=False,
             retry_badcase=False,
             max_len=4096,
+            seed=params.seed,
         )
         try:
             for waveform in chunks:
@@ -150,7 +146,7 @@ class VoxCpm2SynthesisEngine:
         try:
             from voxcpm import VoxCPM
         except ImportError as error:
-            raise server_error("runtime_mismatch", "VoxCPM 2.0.3 is unavailable") from error
+            raise server_error("runtime_mismatch", "VoxCPM is unavailable") from error
         engine = VoxCPM.from_pretrained(
             str(self._model_directory),
             device=self._device,

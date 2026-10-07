@@ -70,12 +70,15 @@ pub async fn branch(
     .map_err(db::sql_error)?
     .ok_or("conversation-message-unavailable: branch point is unavailable")?;
     let comparison = if include_boundary { "<=" } else { "<" };
-    let query = format!(
+    let mut query = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT role,content,created_at FROM spaces_conversation_messages
-         WHERE conversation_id=$1 AND branch_id=$2 AND (created_at,rowid) {comparison} ($3,$4)
-         ORDER BY created_at,rowid",
+         WHERE conversation_id=$1 AND branch_id=$2 AND (created_at,rowid) ",
     );
-    let rows = sqlx::query(&query)
+    query
+        .push(comparison)
+        .push(" ($3,$4) ORDER BY created_at,rowid");
+    let rows = query
+        .build()
         .bind(conversation_id)
         .bind(source_branch_id)
         .bind(boundary.0)

@@ -49,5 +49,5 @@ pub(super) async fn calculate(
         );
         hasher.update(serde_json::to_vec(&snapshot).map_err(db::json_error)?);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(hex::encode(hasher.finalize()))
 }

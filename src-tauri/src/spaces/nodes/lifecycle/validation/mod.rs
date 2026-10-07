@@ -28,11 +28,13 @@ pub(super) async fn active_unique_ids(
     } else {
         "deleted_at IS NOT NULL"
     };
-    let sql = format!(
-        "SELECT id FROM spaces_nodes WHERE space_id=$1 AND {state_predicate} \
-             AND id IN (SELECT value FROM json_each($2))"
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
+        "SELECT id FROM spaces_nodes WHERE space_id=$1 AND ",
     );
-    let found_rows = sqlx::query_scalar::<_, String>(&sql)
+    sql.push(state_predicate)
+        .push(" AND id IN (SELECT value FROM json_each($2))");
+    let found_rows = sql
+        .build_query_scalar::<String>()
         .bind(space_id)
         .bind(requested_json)
         .fetch_all(&mut **tx)

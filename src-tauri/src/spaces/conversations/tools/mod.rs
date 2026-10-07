@@ -48,7 +48,7 @@ pub fn project() -> Result<ToolCatalog, String> {
     Ok(ToolCatalog {
         tools,
         by_wire_name,
-        digest: format!("{:x}", Sha256::digest(encoded)),
+        digest: hex::encode(Sha256::digest(encoded)),
     })
 }
 
@@ -74,13 +74,10 @@ impl ToolCatalog {
                 },
             );
         }
-        self.digest = format!(
-            "{:x}",
-            Sha256::digest(
-                serde_json::to_vec(&(&self.digest, &snapshot.digest, &self.tools))
-                    .map_err(|error| error.to_string())?
-            )
-        );
+        self.digest = hex::encode(Sha256::digest(
+            serde_json::to_vec(&(&self.digest, &snapshot.digest, &self.tools))
+                .map_err(|error| error.to_string())?,
+        ));
         Ok(())
     }
     pub fn action(&self, name: &str) -> Result<&'static SpaceActionDefinition, String> {

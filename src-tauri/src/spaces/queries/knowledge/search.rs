@@ -48,7 +48,7 @@ pub(super) async fn search_global(
                 .collect();
         }
     }
-    let mut sql = String::from(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT c.id AS chunk_id, c.node_id, n.kind AS node_kind, json_extract(n.data, '$.title') AS node_title, \
          c.kind AS chunk_kind, c.source_revision, c.locator, c.text, c.metadata, c.text AS snippet, -1.0 AS rank, \
          s.id AS space_id, s.title AS space_title \
@@ -57,13 +57,9 @@ pub(super) async fn search_global(
          JOIN spaces s ON s.id = c.space_id \
          WHERE s.archived_at IS NULL AND n.deleted_at IS NULL",
     );
-    append_terms(&mut sql, terms.len());
-    sql.push_str(" ORDER BY c.updated_at DESC LIMIT 80");
-    let mut query = sqlx::query(&sql);
-    for term in terms {
-        query = query.bind(term);
-    }
-    let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
+    append_terms(&mut sql, terms);
+    sql.push(" ORDER BY c.updated_at DESC LIMIT 80");
+    let rows = sql.build().fetch_all(pool).await.map_err(db::sql_error)?;
     rows.into_iter()
         .map(decode_global_search_projection)
         .collect()
@@ -75,22 +71,21 @@ async fn search_fts(
     fts_query: String,
     node_ids: Option<Vec<String>>,
 ) -> Result<Vec<Value>, String> {
-    let mut sql = String::from(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT c.id AS chunk_id, c.node_id, n.kind AS node_kind, json_extract(n.data, '$.title') AS node_title, \
          c.kind AS chunk_kind, c.source_revision, c.locator, c.text, c.metadata, \
          snippet(spaces_knowledge_fts, 3, '‹', '›', ' … ', 28) AS snippet, bm25(spaces_knowledge_fts) AS rank \
          FROM spaces_knowledge_fts \
          JOIN spaces_current_knowledge_chunks c ON c.id = spaces_knowledge_fts.chunk_id \
          JOIN spaces_nodes n ON n.id = c.node_id AND n.space_id = c.space_id \
-         WHERE spaces_knowledge_fts.space_id = ? AND n.deleted_at IS NULL AND spaces_knowledge_fts MATCH ?",
+         WHERE spaces_knowledge_fts.space_id = ",
     );
-    append_json_in_filter(&mut sql, "c.node_id", node_ids.is_some());
-    sql.push_str(" ORDER BY rank LIMIT 80");
-    let mut query = sqlx::query(&sql).bind(space_id).bind(fts_query);
-    if let Some(node_ids) = node_ids {
-        query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
-    }
-    let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
+    sql.push_bind(space_id)
+        .push(" AND n.deleted_at IS NULL AND spaces_knowledge_fts MATCH ")
+        .push_bind(fts_query);
+    append_json_in_filter(&mut sql, node_ids)?;
+    sql.push(" ORDER BY rank LIMIT 80");
+    let rows = sql.build().fetch_all(pool).await.map_err(db::sql_error)?;
     rows.into_iter()
         .map(decode_space_search_projection)
         .collect()
@@ -102,23 +97,17 @@ async fn search_substring(
     terms: Vec<String>,
     node_ids: Option<Vec<String>>,
 ) -> Result<Vec<Value>, String> {
-    let mut sql = String::from(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT c.id AS chunk_id, c.node_id, n.kind AS node_kind, json_extract(n.data, '$.title') AS node_title, \
          c.kind AS chunk_kind, c.source_revision, c.locator, c.text, c.metadata, c.text AS snippet, -1.0 AS rank \
          FROM spaces_current_knowledge_chunks c JOIN spaces_nodes n ON n.id = c.node_id AND n.space_id = c.space_id \
-         WHERE c.space_id = ? AND n.deleted_at IS NULL",
+         WHERE c.space_id = ",
     );
-    append_terms(&mut sql, terms.len());
-    append_json_in_filter(&mut sql, "c.node_id", node_ids.is_some());
-    sql.push_str(" ORDER BY c.updated_at DESC LIMIT 80");
-    let mut query = sqlx::query(&sql).bind(space_id);
-    for term in terms {
-        query = query.bind(term);
-    }
-    if let Some(node_ids) = node_ids {
-        query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
-    }
-    let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
+    sql.push_bind(space_id).push(" AND n.deleted_at IS NULL");
+    append_terms(&mut sql, terms);
+    append_json_in_filter(&mut sql, node_ids)?;
+    sql.push(" ORDER BY c.updated_at DESC LIMIT 80");
+    let rows = sql.build().fetch_all(pool).await.map_err(db::sql_error)?;
     rows.into_iter()
         .map(decode_space_search_projection)
         .collect()
@@ -178,17 +167,22 @@ fn decode_search_projection(
     Ok(value)
 }
 
-fn append_terms(sql: &mut String, count: usize) {
-    for _ in 0..count {
-        sql.push_str(" AND instr(lower(c.text), lower(?)) > 0");
+fn append_terms(sql: &mut sqlx::QueryBuilder<sqlx::Sqlite>, terms: Vec<String>) {
+    for term in terms {
+        sql.push(" AND instr(lower(c.text), lower(")
+            .push_bind(term)
+            .push(")) > 0");
     }
 }
 
-pub(super) fn append_json_in_filter(sql: &mut String, column: &str, enabled: bool) {
-    if !enabled {
-        return;
+pub(super) fn append_json_in_filter(
+    sql: &mut sqlx::QueryBuilder<sqlx::Sqlite>,
+    node_ids: Option<Vec<String>>,
+) -> Result<(), String> {
+    if let Some(node_ids) = node_ids {
+        sql.push(" AND c.node_id IN (SELECT value FROM json_each(")
+            .push_bind(serde_json::to_string(&node_ids).map_err(db::json_error)?)
+            .push("))");
     }
-    sql.push_str(" AND ");
-    sql.push_str(column);
-    sql.push_str(" IN (SELECT value FROM json_each(?))");
+    Ok(())
 }

@@ -1,11 +1,6 @@
-export type DictationPhase = "idle" | "recording" | "transcribing" | "result" | "failed";
+type DictationPhase = "idle" | "recording" | "transcribing" | "result" | "failed";
 
-export type DictationInsertion =
-  | "inserted"
-  | "not_attempted"
-  | "focus_changed"
-  | "permission_denied"
-  | "failed";
+type DictationInsertion = "inserted" | "not_attempted" | "focus_changed" | "permission_denied" | "failed";
 
 export interface DictationSnapshot {
   phase: DictationPhase;

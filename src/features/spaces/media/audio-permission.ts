@@ -10,7 +10,7 @@ export function classifyAudioCaptureProblem(reason: unknown): AudioCaptureProble
   return "unknown";
 }
 
-export function audioCaptureSupported(): boolean {
+function audioCaptureSupported(): boolean {
   return isFunction(globalThis.navigator?.mediaDevices?.getUserMedia) && isNotNil(globalThis.MediaRecorder);
 }
 

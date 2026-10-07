@@ -80,12 +80,14 @@ pub(crate) async fn set_status(
     now: i64,
     increment_attempts: bool,
 ) -> Result<bool, String> {
-    let sql = format!(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "UPDATE spaces_enrichment_jobs SET status=$1, error=$2, updated_at=$3, \
          attempts=attempts + CASE WHEN $4 THEN 1 ELSE 0 END \
-         WHERE id=$5 AND status IN ({from})"
+         WHERE id=$5 AND status IN (",
     );
-    let executed = sqlx::query(&sql)
+    sql.push(from).push(")");
+    let executed = sql
+        .build()
         .bind(status)
         .bind(error)
         .bind(now)

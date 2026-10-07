@@ -25,7 +25,7 @@ pub(super) fn persist(
         return Err("Clipboard image must be between 1 byte and 16 MiB".to_owned());
     }
     validation::validate_dimensions(&bytes, ImageFormat::Png)?;
-    let source_revision = format!("sha256:{:x}", Sha256::digest(&bytes));
+    let source_revision = format!("sha256:{}", hex::encode(Sha256::digest(&bytes)));
     let target = asset_directory(app)?.join(format!("clipboard-{}.png", Uuid::new_v4()));
     fs::write(&target, bytes).map_err(|error| error.to_string())?;
     Ok(ManagedClipboardImage {

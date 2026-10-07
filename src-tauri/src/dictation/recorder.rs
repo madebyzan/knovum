@@ -13,6 +13,10 @@ use super::service::DictationAction;
 
 const MAX_RECORDING_SECONDS: usize = 120;
 
+#[cfg(test)]
+#[path = "tests/recorder.rs"]
+mod tests;
+
 pub(crate) struct Recorder {
     stream: Stream,
     samples: Arc<Mutex<Vec<i16>>>,
@@ -47,7 +51,7 @@ impl Recorder {
         }
         let samples = Arc::new(Mutex::new(Vec::new()));
         let maximum =
-            config.sample_rate.0 as usize * config.channels as usize * MAX_RECORDING_SECONDS;
+            config.sample_rate as usize * config.channels as usize * MAX_RECORDING_SECONDS;
         let signalled = Arc::new(AtomicBool::new(false));
         let stream = match sample_format {
             SampleFormat::F32 => build_stream::<f32>(
@@ -88,7 +92,7 @@ impl Recorder {
         Ok(Self {
             stream,
             samples,
-            sample_rate: config.sample_rate.0,
+            sample_rate: config.sample_rate,
             channels: config.channels,
         })
     }
@@ -125,7 +129,7 @@ impl Recorder {
     }
 }
 
-fn build_stream<T: cpal::SizedSample>(
+fn build_stream<T: cpal::SizedSample + 'static>(
     device: &cpal::Device,
     config: &StreamConfig,
     samples: Arc<Mutex<Vec<i16>>>,
@@ -140,7 +144,7 @@ fn build_stream<T: cpal::SizedSample>(
     let overflow_events = events.clone();
     device
         .build_input_stream(
-            config,
+            *config,
             move |input: &[T], _| {
                 let Ok(mut output) = samples.try_lock() else {
                     return;
@@ -156,7 +160,10 @@ fn build_stream<T: cpal::SizedSample>(
                 }
             },
             move |error| {
-                let (code, message) = audio_error(&error.to_string());
+                if error.kind() == cpal::ErrorKind::DeviceChanged {
+                    return;
+                }
+                let (code, message) = audio_error(&error);
                 let _ = events.send(DictationAction::DeviceFailed {
                     session_id: failure_session.clone(),
                     code,
@@ -172,19 +179,16 @@ fn f32_to_i16(sample: f32) -> i16 {
     (sample.clamp(-1.0, 1.0) * f32::from(i16::MAX)).round() as i16
 }
 
-fn classify_audio_error(error: impl std::fmt::Display) -> String {
-    let text = error.to_string();
-    let (code, message) = audio_error(&text);
+fn classify_audio_error(error: cpal::Error) -> String {
+    let (code, message) = audio_error(&error);
     format!("{code}: {message}")
 }
 
-fn audio_error(message: &str) -> (String, String) {
-    let lower = message.to_ascii_lowercase();
-    let code =
-        if lower.contains("permission") || lower.contains("denied") || lower.contains("access") {
-            "microphone_permission_denied"
-        } else {
-            "microphone_unavailable"
-        };
-    (code.into(), message.into())
+fn audio_error(error: &cpal::Error) -> (String, String) {
+    let code = if error.kind() == cpal::ErrorKind::PermissionDenied {
+        "microphone_permission_denied"
+    } else {
+        "microphone_unavailable"
+    };
+    (code.into(), error.to_string())
 }

@@ -55,7 +55,7 @@ Linux verification provisions and checks the real `Noto Sans CJK SC` font from `
 
 Spaces uses exact-pinned `konva` and `vue-konva`, confined to `features/spaces/canvas/konva`. Konva owns mounted scene interaction while neutral Knovum contracts own durable canvas facts; no parallel canvas engine is maintained. Spaces rich editing uses Tiptap Vue 3 + StarterKit plus narrowly selected first-party extensions. Do not preinstall additional Git, AI agent/SDK, CRDT or alternative canvas/editor engines before their requirements exist. Starting a feature begins with a fresh GitHub + npm/crates.io benchmark.
 
-Tiptap packages are pinned to one release line as a unit; the current editor integration uses `3.31.1`. Do not mix Tiptap patch lines inside one editor surface.
+Tiptap packages are pinned to one release line as a unit; the current editor integration uses `3.31.4`. Do not mix Tiptap patch lines inside one editor surface.
 
 Tiptap's Markdown extension is currently Beta, so its adoption is deliberately constrained: SQLite Markdown text remains the canonical body contract, only supported round-trippable Markdown structures are enabled, and Knovum does not persist vendor JSON as a parallel compatibility model. Tiptap's Notion-like template, Table of Contents UI and DOCX conversion are commercial/private-registry products and are not dependencies of Knovum's local OSS editor. Knovum derives its compact heading outline from the open editor document model. DOCX viewing fidelity, semantic conversion and editable round-tripping remain different capabilities and must not be treated as one dependency decision. Office ingestion now uses Rust `office_oxide` for plain-text/Markdown extraction so Space search and future RAG indexing do not depend on WebView rendering. Pixel-faithful Office preview remains a separate capability and is not approximated with a custom renderer. Editor search uses Tiptap's first-party Find and Replace extension rather than a parallel ProseMirror search package.
 
@@ -74,7 +74,7 @@ runtime archive; dependency resolution and package installation occur only in th
 The controlled producer uses the existing `uv==0.12.23` lock workflow and pinned
 python-build-standalone `20261003` CPython 3.11.17 target artifacts recorded with their digests in
 `python/runtime-source.json`; it does not copy a development virtual environment or infer a
-runtime from uv's managed catalog. The temporary runtime-build group pins `setuptools==83.0.0`,
+runtime from uv's managed catalog. The temporary runtime-build group pins `setuptools==84.0.0`,
 `wheel==0.48.0`, and `setuptools-scm==10.3.4` for required source builds, including VoxCPM, with
 build isolation disabled. `python/compiled-source-evidence.json` pins the sherpa-onnx, eSpeak NG,
 and piper source archives collected by the producer; this evidence does not claim that the
@@ -100,29 +100,27 @@ adapter preserves exact installed-file and source evidence without implementing 
 These groups do not change the production runtime requirements, approve licenses or add dependencies
 to end-user machines. `pnpm check:python` checks their source and tests alongside the worker.
 
-The security-reviewed runtime baseline pins [`torch==2.13.0`](https://pypi.org/project/torch/2.13.0/),
-`torchaudio==2.11.0`, and
-[`torchcodec==0.12.0`](https://pypi.org/project/torchcodec/0.12.0/). PyTorch 2.13.0 is the first
-fixed release for [`GHSA-rrmf-rvhw-rf47`](https://github.com/advisories/GHSA-rrmf-rvhw-rf47)
-and publishes CPython 3.11 wheels for both supported targets. The macOS wheels for PyTorch 2.13
-and TorchCodec 0.12 require macOS 14 or later, so that is the minimum native-inference system until
-a separately qualified secure wheel set changes it. TorchAudio 2.11 is its
-[stable-ABI release](https://github.com/pytorch/audio/blob/main/docs/source/installation.rst) and
-officially supports PyTorch 2.11 and later; TorchCodec 0.12 uses the corresponding stable ABI and
-publishes CPython 3.11 macOS arm64 and Windows x64 wheels. The macOS ASR path pins
-[`mlx==0.29.4`](https://pypi.org/project/mlx/0.29.4/), the first release that fixes its two unsafe
-deserialization advisories. Contract generation pins
-[`datamodel-code-generator==0.64.0`](https://pypi.org/project/datamodel-code-generator/0.64.0/),
-the first release that fixes the complete set of audited schema and template injection,
-local-file disclosure, and SSRF issues. Do not lower these versions or split the runtime into
-security-dependent environments.
+The current runtime pins [`torch==2.14.1`](https://pypi.org/project/torch/2.14.1/),
+`torchaudio==2.11.0`, and [`torchcodec==0.17.0`](https://pypi.org/project/torchcodec/0.17.0/).
+PyTorch 2.13.0 was the first fixed release for
+[`GHSA-rrmf-rvhw-rf47`](https://github.com/advisories/GHSA-rrmf-rvhw-rf47); newer pins must
+preserve that security floor. The selected releases publish CPython 3.11 wheels for macOS arm64
+and Windows x64. The macOS wheels require macOS 14 or later. TorchAudio 2.11 is its
+[stable-ABI release](https://github.com/pytorch/audio/blob/main/docs/source/installation.rst)
+and supports PyTorch 2.11 and later. TorchCodec's native ABI and complete model execution still
+require acceptance on both release targets; wheel availability is not execution evidence.
+The macOS ASR path pins [`mlx==0.32.3`](https://pypi.org/project/mlx/0.32.3/), preserving the
+0.29.4 unsafe-deserialization security floor. Contract generation pins
+[`datamodel-code-generator==0.83.0`](https://pypi.org/project/datamodel-code-generator/0.83.0/),
+preserving the 0.64.0 audited schema/template injection, local-file disclosure and SSRF fixes.
+Do not lower these security floors or split the runtime into security-dependent environments.
 
 The audit is still blocked by VoxCPM's official `datasets>=3,<4` requirement. The
-[pinned VoxCPM source](https://github.com/OpenBMB/VoxCPM/blob/19b6bf7590025418821a86dcb817504e0ad7e5df/pyproject.toml)
+[pinned VoxCPM source](https://github.com/OpenBMB/VoxCPM/blob/f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629/pyproject.toml)
 and its current upstream branch retain that bound, while
 [`GHSA-379c-qx7v-6h59`](https://github.com/advisories/GHSA-379c-qx7v-6h59) is fixed only in
 `datasets==5.0.1`. VoxCPM currently imports Datasets only from its
-[training module](https://github.com/OpenBMB/VoxCPM/blob/19b6bf7590025418821a86dcb817504e0ad7e5df/src/voxcpm/training/data.py),
+[training module](https://github.com/OpenBMB/VoxCPM/blob/f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629/src/voxcpm/training/data.py),
 but the published package metadata still makes it a mandatory distribution requirement. Knovum does
 not delete that requirement, override upstream metadata, fork the package, or suppress the advisory
 to make the audit appear clean. Signed distribution remains blocked until VoxCPM publishes a
@@ -138,7 +136,7 @@ emulation, or the removed Rust engines.
 
 WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selected secure
 runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner snapshot pinned at
-`c7cbfc2048c462b0d63a45797104fc9db3ad62b7` through the Transformers 5.13.1 API. Its complete
+`c7cbfc2048c462b0d63a45797104fc9db3ad62b7` through the Transformers 5.19.0 API. Its complete
 verified manifest is prepared only by a selected-segment enrichment job and it is never an ASR
 fallback. Pyannote Community-1 requires individual gated model access. Knovum accepts a local
 user-authorized import of exactly four files from revision
@@ -183,9 +181,52 @@ PptxGenJS and its image-size override are removed: the product presentation capa
 Rust `reqwest` explicitly enables `query`, because provider clients use `RequestBuilder::query`. Do not rely on unrelated SDK dependencies to enable required features transitively. `async-openai`, direct `rig-core` and direct `futures-util` have no current Knovum caller and are not direct dependencies. The Rig harness and its dependencies have been removed.
 
 - CI installs from the committed pnpm/Cargo lockfiles only.
+- Project `.npmrc` selects the official npm registry for installation; registry mirror lag must not be repaired with transitive version overrides. WebdriverIO CLI/runner/framework/reporter use exact 9.30.1 and globals uses exact 9.29.1, matching the Tauri service 1.4.0 SDK family. Newer CLI/runner releases use expect-webdriverio 6, conflicting with the service's pinned globals requiring 5; upgrade the family together when the service updates its pins.
 - Production npm dependencies are checked with `pnpm audit --prod --audit-level high`; registry package signatures are checked with `pnpm audit signatures`.
 - Rust advisories and dependency licenses are checked in CI with `EmbarkStudios/cargo-deny-action@v2`; `deny.toml` is the explicit license allowlist and changes to it require release/legal review.
 - Dependabot remains the scheduled update signal; passing advisory checks does not replace the OSS-first maintenance/license review for newly introduced dependencies.
+
+### Dependency refresh reviewed 2026-10-07
+
+The npm, Cargo and both Python dependency selections were refreshed together from official
+registry metadata. Exact pins remain exact; each lockfile is generated by its owning package
+manager. The Rust MSRV is 1.94 because SQLx 0.9 requires it. SQLx dynamic queries use its public
+`QueryBuilder`; user values remain bound. ACP 3 explicitly enables its `process` feature and
+RMCP 3.5 uses `ClientConfig` / `ServerConfig`. SHA-2 0.11 returns byte arrays without hexadecimal
+formatting; the existing transitive MIT/Apache-2.0 `hex` 0.4.3 crate is now direct where production
+calls `hex::encode`. Digest algorithms and persisted lowercase hexadecimal values remain unchanged.
+No custom encoding layer or locally patched SDK is added.
+
+[pnpm 11 configuration](https://pnpm.io/settings) reads only registry/authentication options
+from `.npmrc`. `engineStrict`, `strictPeerDependencies` and `saveExact` live in
+`pnpm-workspace.yaml` so these existing policies continue to apply after the package-manager
+upgrade. Peer conflicts are resolved through compatible releases, not ignored or patched.
+
+| Dependency family | Accepted selection | Reason a newer release is retained outside the selection                                                                                                                                                                           |
+| ----------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript        | 6.0.3              | [TypeScript 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/) does not ship the compiler API required by current vue-tsc.                                                                                   |
+| WebdriverIO       | Latest 9.x         | Tauri service 1.4.0 declares `webdriverio ^9.0.0`. Its pinned old globals also requests expect-webdriverio 5 while current globals requests 6; this upstream peer warning remains visible.                                         |
+| LanceDB           | Exact 0.37.1       | 0.39 fails compilation with the local feature set: job.rs uses `Error::Http` while error.rs gates it behind `remote`. Inspection confirms the same defect in 0.38. No remote feature or vendor patch is added to a local database. |
+| Arrow             | 58.4.0             | LanceDB's public Arrow types require major 58; major 60 cannot be mixed at that boundary.                                                                                                                                          |
+| sse-stream        | 0.2.6              | RMCP 3.5.1 exposes the 0.2 SSE type in its public client trait; 0.3 changes that type.                                                                                                                                             |
+| huggingface-hub   | 1.33.0             | Sentence Transformers 6.1.0 requires `<2`; uv rejects 2.1.1.                                                                                                                                                                       |
+| NumPy / PyAV      | 2.4.6 / 18.1.0     | Newer stable releases require CPython 3.12; the controlled runtime is CPython 3.11.17.                                                                                                                                             |
+
+VoxCPM is pinned to upstream commit `f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629`.
+Its new streaming `seed` parameter receives the selected seed directly; a preceding
+`torch.manual_seed` no longer controls the SDK's own seeding. The regression verifies this
+handoff. CPAL 0.18 uses a numeric sample rate, owned stream configuration and typed error kinds;
+permission classification no longer searches localized error messages.
+
+Knip 6's stricter export analysis removes unused handwritten exports and unreachable functions.
+Generated Rust-owned IPC DTO types are excluded only from the unused-type rule because native
+and Python consumers are outside Knip's TypeScript graph. Generated file/dependency analysis and
+all handwritten export/type checks remain enabled.
+
+Desktop installer builds, hardware microphone capture and full inference model acceptance are
+outside this dependency-editing verification. Changed runtime inventories must receive fresh
+native acceptance and license review before signed distribution; existing blocked reviews remain
+blocked.
 
 ### Rust security patch and audit scope
 
@@ -225,7 +266,7 @@ owned Kokoro and native-source gates; QA artifacts do not represent license appr
 
 Model resource downloads use `project.optional-dependencies.model-resources`: official
 huggingface-hub 1.33.0 (Apache-2.0), modelscope-hub 0.4.5 (Apache-2.0), and the already selected
-Pydantic 2.12.3 plus tqdm 4.70.1 for its public progress interface. They belong to the prepared runtime, not the desktop installer. Their public
+Pydantic 2.13.5 plus tqdm 4.70.1 for its public progress interface. They belong to the prepared runtime, not the desktop installer. Their public
 Hub APIs own resume/transfer metadata; Rust owns product inventory, SHA-256 and publication.
 Provider commits can differ only when every required file matches the same recorded identity.
 Regional source qualification and the current acceptance gaps are recorded in `oss-first.md`.
@@ -245,13 +286,13 @@ Builtin Agent review policy lives beside its own lock and must bind each conveye
 
 | Dependency            | Exact version | Responsibility                             | License           |
 | --------------------- | ------------- | ------------------------------------------ | ----------------- |
-| rmcp                  | 3.1.3         | Existing server + official client/OAuth    | Apache-2.0        |
+| rmcp                  | 3.5.1         | Existing server + official client/OAuth    | Apache-2.0        |
 | gix                   | 0.88.0        | HTTPS isolated Git object acquisition      | MIT OR Apache-2.0 |
 | yaml-rust2            | 0.13.0        | Skill frontmatter, duplicate-key rejection | MIT OR Apache-2.0 |
-| iri-string            | 0.7.10        | RFC 6570 URI template expansion            | MIT OR Apache-2.0 |
+| iri-string            | 0.7.14        | RFC 6570 URI template expansion            | MIT OR Apache-2.0 |
 | unicode-normalization | 0.1.25        | NFC portable package identity              | MIT OR Apache-2.0 |
 | oauth2                | 5.0.0         | rmcp OAuth HTTP public request types       | MIT OR Apache-2.0 |
-| sse-stream            | 0.2.5         | Bounded MCP HTTP event parsing             | MIT OR Apache-2.0 |
+| sse-stream            | 0.2.6         | Bounded MCP HTTP event parsing             | MIT OR Apache-2.0 |
 | async-trait           | 0.1.92        | SDK CredentialStore implementation         | MIT OR Apache-2.0 |
 | url                   | 2.5.8         | Explicit origin/destination validation     | MIT OR Apache-2.0 |
 | tokio-util            | 0.7.19        | Cancellation and public SDK framing        | MIT               |

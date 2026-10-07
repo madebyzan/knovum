@@ -105,11 +105,6 @@ def _install_fake_vendor(
     voxcpm = types.ModuleType("voxcpm")
     voxcpm.VoxCPM = FakeVoxCpm  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "voxcpm", voxcpm)
-    monkeypatch.setitem(
-        sys.modules,
-        "torch",
-        types.SimpleNamespace(manual_seed=lambda seed: calls.setdefault("seed", seed)),
-    )
     return calls, engine
 
 
@@ -134,7 +129,6 @@ def test_windows_cpu_profile_uses_frozen_dtype_and_native_generation_controls(
 
     assert publisher.chunks == [([0.25, -0.25], 48_000, "model_chunk")]
     assert calls == {
-        "seed": 42,
         "load": (
             str(model_directory),
             {"device": "cpu", "load_denoiser": False, "optimize": False, "local_files_only": True},
@@ -148,6 +142,7 @@ def test_windows_cpu_profile_uses_frozen_dtype_and_native_generation_controls(
             "denoise": False,
             "retry_badcase": False,
             "max_len": 4096,
+            "seed": 42,
         },
     }
 

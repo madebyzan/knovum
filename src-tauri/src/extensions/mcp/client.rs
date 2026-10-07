@@ -4,7 +4,7 @@ use super::super::{
 };
 use futures::future::BoxFuture;
 use rmcp::{
-    model::{ClientInfo, ElicitRequestParams, ElicitResult, ProgressNotificationParam},
+    model::{ClientConfig, ElicitRequestParams, ElicitResult, ProgressNotificationParam},
     service::{NotificationContext, RequestContext, RunningService},
     ClientHandler, RoleClient, ServiceExt,
 };
@@ -26,8 +26,8 @@ pub(super) struct ExtensionClient {
 }
 
 impl ClientHandler for ExtensionClient {
-    fn get_info(&self) -> ClientInfo {
-        let mut info = ClientInfo::default();
+    fn get_info(&self) -> ClientConfig {
+        let mut info = ClientConfig::default();
         info.client_info = rmcp::model::Implementation::new("knovum", env!("CARGO_PKG_VERSION"));
         if self.interaction.is_some() {
             info.capabilities.elicitation = Some(

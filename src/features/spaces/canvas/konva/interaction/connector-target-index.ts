@@ -6,7 +6,7 @@ import type { CanvasPoint } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { frameContainsPoint } from "../scene/connector-geometry";
 
-export interface IndexedConnectorTarget {
+interface IndexedConnectorTarget {
   frame: CanvasNodeLayoutV1["frame"];
   maxX: number;
   maxY: number;

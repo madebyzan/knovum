@@ -62,20 +62,19 @@ pub(crate) async fn search_structure_global<R: Runtime>(
                 .collect::<Result<_, String>>())?);
         }
     }
-    let mut sql = String::from(
+    let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
         "SELECT i.id,i.kind,i.title,i.space_id,s.title AS space_title \
          FROM spaces_structure_nodes i JOIN spaces s ON s.id=i.space_id \
          WHERE i.deleted_at IS NULL AND i.kind IN ('group','section') AND s.archived_at IS NULL",
     );
-    for _ in &plan.terms {
-        sql.push_str(" AND instr(lower(i.title),lower(?))>0");
-    }
-    sql.push_str(" ORDER BY i.title,i.id LIMIT 80");
-    let mut search = sqlx::query(&sql);
     for term in plan.terms {
-        search = search.bind(term);
+        sql.push(" AND instr(lower(i.title),lower(")
+            .push_bind(term)
+            .push("))>0");
     }
-    Ok((search
+    sql.push(" ORDER BY i.title,i.id LIMIT 80");
+    Ok((sql
+        .build()
         .fetch_all(pool)
         .await
         .map_err(db::sql_error)?

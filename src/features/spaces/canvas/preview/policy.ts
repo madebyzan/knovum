@@ -1,4 +1,4 @@
-export type CanvasPreviewLevel = "compact" | "summary" | "full";
+type CanvasPreviewLevel = "compact" | "summary" | "full";
 
 export interface CanvasPreviewPolicy {
   level: CanvasPreviewLevel;
