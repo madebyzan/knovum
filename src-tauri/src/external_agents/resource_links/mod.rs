@@ -4,6 +4,7 @@ use std::{
 };
 
 use agent_client_protocol::{schema::v1::ResourceLink, Error};
+use futures::FutureExt;
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
@@ -48,7 +49,8 @@ async fn acquire(
         return Ok(Some(canonical));
     }
     require_https(&url)?;
-    let response = remote_response(url.clone()).await?;
+    // Keep the HTTP transport's concrete future out of the ACP session state machine.
+    let response = remote_response(url.clone()).boxed().await?;
     let response_content_type = response
         .headers()
         .get(reqwest::header::CONTENT_TYPE)
