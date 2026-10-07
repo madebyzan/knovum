@@ -78,6 +78,7 @@
     "inference": "本地推理",
     "ready": "运行时已就绪",
     "unavailable": "当前构建尚未配置运行时发布资源",
+    "unsupported": "当前构建架构不支持 Python 运行时，仅支持 macOS arm64 和 Windows x64",
     "download": "尚未准备 · 下载 {size}",
     "preparing": "准备{name}运行时",
     "prepare": "准备",

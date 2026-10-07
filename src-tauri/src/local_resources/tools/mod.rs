@@ -7,6 +7,8 @@ mod coordinator;
 mod deno_archive;
 mod filesystem;
 mod installer;
+#[cfg(test)]
+mod tests;
 
 pub(crate) use coordinator::prepare_media_import_tools_for_job;
 pub(crate) use coordinator::prepare_media_import_tools_for_request;
@@ -49,7 +51,9 @@ pub(crate) fn resolve_media_import_tool<R: Runtime>(
     app: &AppHandle<R>,
     kind: catalog::MediaImportToolKind,
 ) -> Result<Option<PathBuf>, String> {
-    let descriptor = catalog::descriptor(kind)?;
+    let Some(descriptor) = catalog::find_descriptor(kind)? else {
+        return Ok(None);
+    };
     if let Some(path) = super::configured_path::configured_path(descriptor.env_key)? {
         return Ok(Some(path));
     }

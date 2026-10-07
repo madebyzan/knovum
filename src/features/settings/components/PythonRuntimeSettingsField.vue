@@ -24,6 +24,7 @@ const errorMessage = computed(
 );
 const runtime = computed(() => resources.data.value?.pythonRuntimes[props.profile]);
 const description = computed(() => {
+  if (resources.data.value?.platform === "unsupported") return t("settings.ai.pythonRuntimes.unsupported");
   if (runtime.value?.available) return t("settings.ai.pythonRuntimes.ready");
   if (!runtime.value?.downloadable) return t("settings.ai.pythonRuntimes.unavailable");
   return t("settings.ai.pythonRuntimes.download", { size: formatBytes(runtime.value.downloadSize!) });
