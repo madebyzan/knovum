@@ -58,7 +58,7 @@ class Provenance(EvidenceModel):
     worker_digest: Sha256
     runtime_version: Text
     runtime_digest: Sha256
-    target: Literal["macos-arm64", "windows-x64"]
+    target: Literal["macos-arm64", "macos-x64", "windows-x64"]
     models: CapabilityRecords[ModelIdentity]
     configs: CapabilityRecords[ExecutionConfiguration]
     corpus_sha256: Sha256

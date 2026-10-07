@@ -51,6 +51,15 @@ impl Worker {
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
+        if crate::ai::local_runtime::runtime_profile::for_execution(
+            params.capability,
+            &params.device_profile,
+        )? != runtime.profile
+        {
+            return Err(
+                "runtime_mismatch: worker package does not own the execution profile".into(),
+            );
+        }
         let memory_reservation =
             admission::reserve_memory(params.capability, &params.device_profile)?;
         tokio::select! {

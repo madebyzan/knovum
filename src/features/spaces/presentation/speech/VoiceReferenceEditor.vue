@@ -8,17 +8,22 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { PreparedVoiceReference } from "../../contracts/generated/PreparedVoiceReference";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { cancelSpeechGeneration } from "../../speech/ipc";
 import { authorizeVoiceReferenceSource, prepareVoiceReference } from "../../speech/voice-reference-ipc";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 
-const props = defineProps<{ language: string; disabled: boolean }>();
+const props = defineProps<{
+  language: string;
+  disabled: boolean;
+  sourceNode?: SpaceCanvasNode | undefined;
+}>();
 const model = defineModel<PreparedVoiceReference | undefined>();
 const emit = defineEmits<{ busy: [value: boolean] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
-const path = shallowRef("");
+const path = shallowRef(props.sourceNode?.data.kind === "audio" ? props.sourceNode.data.assetPath : "");
 const player = useTemplateRef("player");
 const start = shallowRef("0");
 const end = shallowRef("10");
@@ -30,6 +35,9 @@ const selectionValid = computed(
     Number(end.value) - Number(start.value) >= 5 &&
     Number(end.value) - Number(start.value) <= 30 &&
     Number(start.value) >= 0,
+);
+const canPrepare = computed(() =>
+  Boolean(path.value && selectionValid.value && !jobId.value && store.activeSpaceId && !props.disabled),
 );
 let epoch = 0;
 let disposed = false;
@@ -44,6 +52,15 @@ function invalidate() {
   });
 }
 watch([start, end, () => props.language, () => store.activeSpaceId], invalidate);
+watch(
+  () => props.sourceNode,
+  (node) => {
+    if (node?.data.kind === "audio") {
+      path.value = node.data.assetPath;
+      invalidate();
+    }
+  },
+);
 watch(jobId, (job) => emit("busy", Boolean(job)));
 onScopeDispose(() => {
   disposed = true;
@@ -70,7 +87,8 @@ async function choose() {
   }
 }
 async function prepare() {
-  if (!path.value || !selectionValid.value || jobId.value || !store.activeSpaceId) return;
+  const spaceId = store.activeSpaceId;
+  if (!canPrepare.value || !spaceId) return;
   const version = ++epoch;
   const job = crypto.randomUUID();
   jobId.value = job;
@@ -78,12 +96,14 @@ async function prepare() {
   try {
     const prepared = await prepareVoiceReference({
       jobId: job,
-      spaceId: store.activeSpaceId,
+      spaceId,
       sourcePath: path.value,
       language: props.language,
       startMs: Math.round(Number(start.value) * 1000),
       endMs: Math.round(Number(end.value) * 1000),
     });
+    if (props.sourceNode && prepared.sourceRevision !== props.sourceNode.data.sourceRevision)
+      throw new Error(t("spaces.speech.referenceNodeChanged"));
     if (version === epoch) {
       model.value = prepared;
       error.value = undefined;
@@ -101,7 +121,7 @@ function selectionLoaded(durationMs: number) {
 
 <template>
   <section class="space-y-2">
-    <UiButton size="sm" :disabled="disabled || Boolean(jobId)" @click="choose">{{
+    <UiButton v-if="!sourceNode" size="sm" :disabled="disabled || Boolean(jobId)" @click="choose">{{
       t("spaces.speech.chooseReference")
     }}</UiButton>
     <template v-if="path">
@@ -134,7 +154,7 @@ function selectionLoaded(durationMs: number) {
             :disabled="disabled || Boolean(jobId)"
         /></label>
       </div>
-      <UiButton size="sm" :disabled="disabled || Boolean(jobId) || !selectionValid" @click="prepare">{{
+      <UiButton size="sm" :disabled="!canPrepare" @click="prepare">{{
         t("spaces.speech.prepareReference")
       }}</UiButton>
       <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("spaces.speech.cancel") }}</UiButton>

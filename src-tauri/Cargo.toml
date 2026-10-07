@@ -187,7 +187,7 @@ windows = { version = "0.62.2", features = [
   "Win32_UI_WindowsAndMessaging",
 ] }
 
-[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+[target.'cfg(all(target_os = "macos", any(target_arch = "aarch64", target_arch = "x86_64")))'.dependencies]
 core-graphics = "0.25.0"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = [
   "libc",
@@ -195,7 +195,7 @@ objc2-app-kit = { version = "0.3.2", default-features = false, features = [
   "NSWorkspace",
 ] }
 
-[target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), all(target_os = "windows", target_arch = "x86_64")))'.dependencies]
+[target.'cfg(any(all(target_os = "macos", any(target_arch = "aarch64", target_arch = "x86_64")), all(target_os = "windows", target_arch = "x86_64")))'.dependencies]
 cpal = "0.18.2"
 tauri-plugin-global-shortcut = "=2.4.0"
 

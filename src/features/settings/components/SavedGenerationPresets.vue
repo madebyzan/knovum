@@ -8,9 +8,9 @@ import type { GenerationPreset } from "../../../foundation/ai/schema/models";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import type { GenerationActionOption } from "../generation-action-option";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";
-import SettingsSection from "./SettingsSection.vue";
 
 const props = defineProps<{
   presets: GenerationPreset[];
@@ -48,7 +48,7 @@ function editPreset(id: string) {
 </script>
 
 <template>
-  <SettingsSection
+  <UiSettingsSection
     id="settings-generation-presets"
     tabindex="-1"
     :title="t('settings.creation.presets.title')"
@@ -87,5 +87,5 @@ function editPreset(id: string) {
       :load-generation-actions="props.loadGenerationActions"
       @save="emit('save', $event)"
     />
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

@@ -23,6 +23,7 @@ function handleOpenChange(open: boolean) {
     <template #footer>
       <UiButton variant="ghost" @click="resolveConfirmation(false)">{{ t("common.cancel") }}</UiButton>
       <UiButton
+        data-testid="confirm-action"
         :variant="activeConfirmation?.danger ? 'danger' : 'primary'"
         @click="resolveConfirmation(true)"
       >

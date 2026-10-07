@@ -12,7 +12,7 @@ import {
 } from "../../../../shared/contracts/archive-settings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import SettingsSection from "../SettingsSection.vue";
+import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 
 const archive = requireArchiveSettings();
 const { t } = useI18n();
@@ -42,7 +42,7 @@ async function permanentlyDelete(space: ArchivedSpace) {
 </script>
 
 <template>
-  <SettingsSection :title="t('settings.general.archived.title')">
+  <UiSettingsSection :title="t('settings.general.archived.title')">
     <article
       v-for="space in archive.spaces.value"
       :key="space.id"
@@ -61,5 +61,5 @@ async function permanentlyDelete(space: ArchivedSpace) {
       <Archive class="mx-auto size-4 text-fg-tertiary" :stroke-width="1.5" />
       <p class="mt-3 text-label text-fg-secondary">{{ t("settings.general.archived.empty") }}</p>
     </div>
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

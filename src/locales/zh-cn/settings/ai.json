@@ -75,15 +75,19 @@
   "pythonRuntimes": {
     "title": "Python 运行环境",
     "description": "不同能力的运行环境按需下载，模型资源独立管理。",
-    "inference": "本地推理",
     "ready": "运行时已就绪",
     "unavailable": "当前构建尚未配置运行时发布资源",
-    "unsupported": "当前构建架构不支持 Python 运行时，仅支持 macOS arm64 和 Windows x64",
+    "unsupported": "当前构建架构不支持 Python 运行时，仅支持 macOS M 系列、Intel 系列和 Windows x64",
     "download": "尚未准备 · 下载 {size}",
     "preparing": "准备{name}运行时",
     "prepare": "准备",
     "cancel": "取消",
-    "agent": "Agent 运行时"
+    "agent": "Agent 运行时",
+    "invalid": "运行时校验失败，请查看具体错误后处理资源。",
+    "resources": "模型下载环境",
+    "lightInference": "转写与媒体推理",
+    "torchInference": "文本与语音增强",
+    "voiceGeneration": "音色设计与克隆"
   },
   "resourceDownloads": {
     "label": "下载地区",

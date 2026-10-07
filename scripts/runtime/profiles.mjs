@@ -1,12 +1,21 @@
 import { join } from "node:path";
 
-export const runtimeProfiles = ["inference", "agent"];
+export const runtimeProfiles = [
+  "resources",
+  "light-inference",
+  "torch-inference",
+  "voice-generation",
+  "agent",
+];
+export const runtimeTargets = {
+  "aarch64-apple-darwin": "macos-arm64",
+  "x86_64-apple-darwin": "macos-x64",
+  "x86_64-pc-windows-msvc": "windows-x64",
+};
 
 export function runtimeProject(repository, profile) {
   if (!runtimeProfiles.includes(profile)) throw new Error(`Unsupported Python runtime profile: ${profile}`);
-  return profile === "inference"
-    ? join(repository, "python")
-    : join(repository, "python", "runtimes", "agent");
+  return join(repository, "python", "runtimes", profile);
 }
 
 export function requirementsArguments(repository, profile) {
@@ -19,31 +28,29 @@ export function requirementsArguments(repository, profile) {
     "--no-default-groups",
     "--no-header",
     "--no-annotate",
-    ...(profile === "inference"
-      ? ["--extra", "inference", "--extra", "model-resources", "--no-emit-package", "voxcpm"]
-      : []),
+    ...(profile === "voice-generation" ? ["--no-emit-package", "voxcpm"] : []),
   ];
 }
 
 export function hostRuntimeTarget() {
   const target = `${{ darwin: "macos", win32: "windows" }[process.platform]}-${process.arch}`;
-  if (!["macos-arm64", "windows-x64"].includes(target))
+  if (!Object.values(runtimeTargets).includes(target))
     throw new Error(`Unsupported runtime host: ${process.platform}/${process.arch}`);
   return target;
 }
 
 export function runtimeTargetFromTriple(triple) {
   if (!triple) return undefined;
-  const target = { "aarch64-apple-darwin": "macos-arm64", "x86_64-pc-windows-msvc": "windows-x64" }[triple];
+  const target = runtimeTargets[triple];
   if (!target) throw new Error(`Unsupported runtime target: ${triple}`);
   return target;
 }
 
 export function runtimeSources(target, profile, environment) {
   const platform = target.toUpperCase().replaceAll("-", "_");
-  const python = `PYTHON_${profile.toUpperCase()}`;
+  const python = `PYTHON_${profile.toUpperCase().replaceAll("-", "_")}`;
   const names = {
-    ...(profile === "inference" ? { FFMPEG: "FFMPEG" } : {}),
+    ...(profile === "light-inference" ? { FFMPEG: "FFMPEG" } : {}),
     PYTHON_RUNTIME: python,
     PYTHON_RUNTIME_DESCRIPTOR: `${python}_DESCRIPTOR`,
     PYTHON_RUNTIME_EVIDENCE: `${python}_EVIDENCE`,

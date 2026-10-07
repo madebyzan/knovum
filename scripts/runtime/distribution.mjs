@@ -13,6 +13,11 @@ export function distributionDirectory(repository, target, profile) {
 
 export function readRuntimeDescriptor(path, target, profile) {
   const value = JSON.parse(readFileSync(path, "utf8"));
+  validateRuntimeDescriptor(value, target, profile);
+  return value;
+}
+
+export function validateRuntimeDescriptor(value, target, profile) {
   const keys = [
     "schemaVersion",
     "target",
@@ -27,7 +32,6 @@ export function readRuntimeDescriptor(path, target, profile) {
   ];
   validateIdentity(value, target, profile, keys);
   validateArchiveSource(value);
-  return value;
 }
 
 function validateIdentity(value, target, profile, keys) {

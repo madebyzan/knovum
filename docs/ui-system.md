@@ -1,5 +1,10 @@
 # Knovum desktop design system
 
+Audio processing is exposed by the owning canvas node. Narration/audiobook and video dubbing editors
+open from node actions with the source node fixed; shared voice resources appear inside that operation.
+The selection inspector may expose the same node operation. Do not add an independent speech sidebar
+destination or a Space-wide video/manuscript selector for these operations.
+
 ## Product language
 
 Knovum is a desktop workbench. The target is Apple-like platform sensibility plus Linear-like information density, not a web dashboard and not a visual clone of either product.
@@ -93,6 +98,10 @@ Native font/tracking tokens contain only authored deviations from Tailwind.
 Use `size-3`, `size-3.5`, `size-4`, `size-4.5`, `size-5` for 12–20px icons. Use Tailwind spacing/container
 widths for fixed geometry and `duration-100`, `duration-150`, `duration-220` for ordinary motion.
 Density-sensitive controls and native platform exclusion retain product variables; shared interaction and toolbar heights use native spacing extensions. Tags use the same interaction height as other single-line navigation. Settings entries share `--knovum-setting-min-height` (52px compact / 56px comfortable), retain py-3, and grow when content needs more room.
+Settings and extension lists share `UiSettingsSection` for their raised surface, border and panel radius.
+Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
+use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
+an operation. Empty results retain the settings panel treatment and concise, left-aligned guidance.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
 workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the native radius scale.
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
@@ -446,7 +455,10 @@ Each node layout represents the object's job instead of reusing a universal head
 Canvas nodes display only information required for recognition and direct manipulation. Rich analysis is contextual detail, not extra card content. A transcript becoming ready, chapters being generated or OCR completing must not append a new region, create blank space or change the object's position or size.
 
 Document resources belong to selection detail. The Inspector presents deduplicated visual resources as a compact
-thumbnail grid; selecting a thumbnail opens the shared dialog viewer with every occurrence, source location,
+two-column virtualized masonry gallery. Thumbnails reserve their source aspect ratio before loading; unusually
+tall or wide resources use bounded, uncropped previews. Resizing the sidebar recalculates column geometry,
+and keyboard focus keeps the current thumbnail and adjacent tab targets mounted. Selecting a thumbnail opens
+the shared dialog viewer with every occurrence, source location,
 nearby context and optional analysis. Office resources are identified as extracted embedded images. PDF resources
 are identified as rendered page regions or recognition pages and are never described as original embedded files.
 Resource visibility depends on document parsing and native rendering, not on AI configuration.

@@ -131,15 +131,16 @@ def test_windows_valid_signature_from_wrong_signer_is_rejected(monkeypatch: pyte
         verify_runtime(tmp_path, "windows-x64")
 
 
+@pytest.mark.parametrize("target", ["macos-arm64", "macos-x64"])
 def test_mac_signature_requirement_binds_approved_identity_and_team(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, target: str
 ) -> None:
     (tmp_path / "python").write_bytes(b"\xcf\xfa\xed\xfe")
     identity = "Developer ID Application: Example Company (ABCDEFGHIJ)"
     monkeypatch.setenv("APPLE_SIGNING_IDENTITY", identity)
     commands = Mock()
     monkeypatch.setattr("runtime.signing.subprocess.run", commands)
-    verify_runtime(tmp_path, "macos-arm64")
+    verify_runtime(tmp_path, target)
     command = commands.call_args.args[0]
     assert command[:4] == ["codesign", "--verify", "--strict", "-R"]
     assert 'certificate leaf[subject.CN] = "' + identity + '"' in command[4]

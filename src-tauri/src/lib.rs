@@ -8,15 +8,9 @@ mod blocking;
 mod clock;
 pub mod contract_codegen;
 mod desktop;
-#[cfg(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-))]
+#[cfg(knovum_supported_desktop)]
 mod dictation;
-#[cfg(not(any(
-    all(target_os = "macos", target_arch = "aarch64"),
-    all(target_os = "windows", target_arch = "x86_64")
-)))]
+#[cfg(not(knovum_supported_desktop))]
 mod dictation_unsupported;
 mod documents;
 mod extensions;

@@ -12,7 +12,7 @@ import type { DesktopAgentSettings } from "../../../shared/contracts/generated/D
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import SettingsSection from "./SettingsSection.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 
 const props = defineProps<{
   defaults: AiRoutingDefaults;
@@ -67,7 +67,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
 </script>
 
 <template>
-  <SettingsSection
+  <UiSettingsSection
     id="settings-ai-routing"
     tabindex="-1"
     :title="t('settings.routing.defaultsTitle')"
@@ -110,5 +110,5 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
         {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
       </button>
     </div>
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

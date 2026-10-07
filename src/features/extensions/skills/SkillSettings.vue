@@ -1,82 +1,61 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from "@tanstack/vue-query";
-import { open } from "@tauri-apps/plugin-dialog";
-import { shallowRef } from "vue";
+import { Plus, FolderInput } from "@lucide/vue";
+import { computed, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { skillQuery } from "../../../foundation/extensions/extension-query";
-import {
-  readSkill,
-  createSkill,
-  saveSkillRevision,
-  importSkill,
-  copySkill,
-  exportSkill,
-  setSkillEnabled,
-  deleteSkill,
-} from "../../../foundation/extensions/skill-operations";
-import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
-import type { SkillContent } from "../../../shared/contracts/generated/SkillContent";
+import { copySkill, setSkillEnabled } from "../../../foundation/extensions/skill-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiDialog from "../../../shared/ui/UiDialog.vue";
+import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
+import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
-import { useExtensionChanges } from "../use-extension-changes";
 import SkillContentEditor from "./SkillContentEditor.vue";
+import SkillOverview from "./SkillOverview.vue";
 import SkillResourceBrowser from "./SkillResourceBrowser.vue";
-const query = useQuery(skillQuery);
-const changes = useExtensionChanges();
-const reading = useMutation({
-  mutationFn: readSkill,
-  onSuccess: (content) => {
-    selected.value = content;
-    name.value = content.skill.name;
-    markdown.value = content.markdown;
-    editing.value = true;
-  },
-});
-const selected = shallowRef<SkillContent>();
-const name = shallowRef("");
-const markdown = shallowRef("");
-const editing = shallowRef(false);
-function create() {
-  selected.value = undefined;
-  name.value = "";
-  markdown.value = "---\nname: \ndescription: \n---\n\n";
-  editing.value = true;
-}
-function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
-  void changes.mutateAsync(operation).catch(() => {});
-}
-async function importDirectory() {
-  const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") return importSkill(path);
-}
-async function exportDirectory(skillId: string) {
-  const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") await exportSkill(skillId, path);
-}
-async function save() {
-  await changes
-    .mutateAsync(async () => {
-      const change = selected.value
-        ? await saveSkillRevision(selected.value.skill.id, selected.value.skill.digest, markdown.value)
-        : await createSkill(name.value, markdown.value);
-      editing.value = false;
-      return change;
-    })
-    .catch(() => {});
-}
+import { useSkillManagement } from "./use-skill-management";
+const {
+  query,
+  changes,
+  reading,
+  selected,
+  name,
+  markdown,
+  editing,
+  busy,
+  create,
+  mutate,
+  importDirectory,
+  exportDirectory,
+  save,
+  closeEditor,
+  remove,
+} = useSkillManagement();
+const search = shallowRef("");
+const skills = computed(() =>
+  (query.data.value ?? []).filter((skill) =>
+    `${skill.name} ${skill.description}`.toLowerCase().includes(search.value.trim().toLowerCase()),
+  ),
+);
 </script>
 
 <template>
-  <section class="space-y-3">
-    <div class="flex gap-2">
-      <UiButton :disabled="changes.isPending.value" data-testid="create-skill" @click="create">{{
-        $t("extensions.createSkill")
-      }}</UiButton
-      ><UiButton :disabled="changes.isPending.value" @click="mutate(importDirectory)">{{
-        $t("extensions.import")
-      }}</UiButton>
-    </div>
+  <section class="min-w-0 space-y-4">
+    <header class="flex flex-wrap items-end justify-between gap-3 px-0.5">
+      <div class="min-w-0 flex-1 basis-48">
+        <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
+          {{ $t("extensions.skills") }}
+        </h2>
+        <p class="mt-1 text-caption text-fg-secondary">{{ $t("extensions.skillsPurpose") }}</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <UiButton :disabled="busy" data-testid="import-skill" @click="mutate(importDirectory)"
+          ><FolderInput class="size-4" />{{ $t("extensions.import") }}</UiButton
+        ><UiButton :disabled="busy" data-testid="create-skill" @click="create"
+          ><Plus class="size-4" />{{ $t("extensions.createSkill") }}</UiButton
+        >
+      </div>
+    </header>
     <p
       v-if="query.error.value || changes.error.value || reading.error.value"
       role="alert"
@@ -85,66 +64,71 @@ async function save() {
       {{ getErrorMessage(query.error.value || changes.error.value || reading.error.value) }}
     </p>
     <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
-    <SkillContentEditor
-      v-if="editing"
-      v-model:name="name"
-      v-model:markdown="markdown"
-      :existing="Boolean(selected)"
-      :readonly="Boolean(selected?.skill.pluginId)"
-      :busy="changes.isPending.value"
-      :files="selected?.files ?? []"
-      @save="save"
-      @close="editing = false"
+    <UiSearchInput
+      v-if="query.data.value?.length"
+      v-model="search"
+      :label="$t('extensions.searchSkills')"
+      :placeholder="$t('extensions.searchSkills')"
+      data-testid="skill-search"
     />
-    <SkillResourceBrowser
-      v-if="editing && selected"
-      :key="selected.skill.digest"
-      :skill-id="selected.skill.id"
-      :files="selected.files"
-    />
-    <p v-if="query.isPending.value" class="text-caption text-fg-secondary">{{ $t("extensions.loading") }}</p>
-    <p v-else-if="!query.error.value && !query.data.value?.length" class="text-caption text-fg-secondary">
-      {{ $t("extensions.emptySkills") }}
-    </p>
-    <section
-      v-for="skill in query.data.value"
-      :key="skill.id"
-      class="space-y-2 border-b border-stroke-divider py-3"
-      :data-testid="`skill-${skill.id}`"
+    <div
+      v-if="query.isPending.value"
+      role="status"
+      class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
     >
-      <h2 class="text-body font-medium">{{ skill.name }}</h2>
-      <p class="text-caption text-fg-secondary">{{ skill.description }}</p>
-      <p class="text-caption break-all text-fg-tertiary">
-        {{ skill.pluginId ?? $t("extensions.personal") }} · {{ skill.digest }}
-      </p>
-      <div class="flex flex-wrap gap-2">
-        <UiButton size="sm" :disabled="reading.isPending.value" @click="reading.mutate(skill.id)">{{
-          $t(skill.pluginId ? "extensions.view" : "extensions.edit")
-        }}</UiButton>
-        <UiButton
-          size="sm"
-          :disabled="changes.isPending.value"
-          @click="mutate(() => setSkillEnabled(skill.id, !skill.enabled))"
-          >{{ $t(skill.enabled ? "extensions.disable" : "extensions.enable") }}</UiButton
-        >
-        <UiButton size="sm" :disabled="changes.isPending.value" @click="mutate(() => copySkill(skill.id))">{{
-          $t("extensions.copy")
-        }}</UiButton>
-        <UiButton
-          size="sm"
-          :disabled="changes.isPending.value"
-          @click="mutate(() => exportDirectory(skill.id))"
-          >{{ $t("extensions.export") }}</UiButton
-        >
-        <UiButton
-          v-if="!skill.pluginId"
-          size="sm"
-          variant="dangerSubtle"
-          :disabled="changes.isPending.value"
-          @click="mutate(() => deleteSkill(skill.id))"
-          >{{ $t("extensions.delete") }}</UiButton
-        >
+      <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
+    </div>
+    <UiSettingsSection v-else-if="!query.error.value && !skills.length">
+      <div class="px-5 py-6">
+        <h3 class="text-body-lg font-medium text-fg-primary">
+          {{ $t(search ? "extensions.noSearchResults" : "extensions.emptySkills") }}
+        </h3>
+        <p class="mt-1 text-caption text-fg-secondary">
+          {{ $t(search ? "extensions.tryAnotherSearch" : "extensions.emptySkillsHint") }}
+        </p>
       </div>
-    </section>
+    </UiSettingsSection>
+    <UiSettingsSection v-else-if="skills.length">
+      <div class="divide-y divide-stroke-divider">
+        <SkillOverview
+          v-for="skill in skills"
+          :key="skill.id"
+          :skill="skill"
+          :busy="busy"
+          @edit="reading.mutate(skill.id)"
+          @toggle="mutate(() => setSkillEnabled(skill.id, !skill.enabled))"
+          @copy="mutate(() => copySkill(skill.id))"
+          @export="mutate(() => exportDirectory(skill.id))"
+          @delete="remove(skill.id, skill.name)"
+        />
+      </div>
+    </UiSettingsSection>
+    <UiDialog
+      :open="editing"
+      :title="selected ? selected.skill.name : $t('extensions.createSkill')"
+      size="wide"
+      :closable="!changes.isPending.value"
+      @update:open="!$event && closeEditor()"
+    >
+      <SkillContentEditor
+        v-model:name="name"
+        v-model:markdown="markdown"
+        :existing="Boolean(selected)"
+        :readonly="Boolean(selected?.skill.pluginId)"
+        :busy="changes.isPending.value"
+        :files="selected?.files ?? []"
+        @save="save"
+        @close="closeEditor"
+      />
+      <SkillResourceBrowser
+        v-if="selected"
+        :key="selected.skill.digest"
+        :skill-id="selected.skill.id"
+        :files="selected.files"
+      />
+      <p v-if="changes.error.value" role="alert" class="mt-3 text-body text-fg-danger">
+        {{ getErrorMessage(changes.error.value) }}
+      </p>
+    </UiDialog>
   </section>
 </template>

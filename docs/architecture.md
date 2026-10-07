@@ -110,14 +110,14 @@ workspace and public checkpoint projection. `agent_runtime/process` owns its bou
 stdio and process lifecycle; `spaces/conversations/execution` owns host admission, frozen sessions and
 projection transactions. The shared `subprocess` process-tree owner is used by both actual processes.
 
-Hatch and desktop packaging select application code from `python/src`, while inference release
-qualification hashes only `knovum_inference`. Default project dependencies are empty;
-`project.optional-dependencies.inference` declares the existing inference libraries. The producer
-and application verifier explicitly export the frozen `inference` and `model-resources` extras. `python/runtimes/agent/pyproject.toml` is a dependency-only project with an independent lock
-for the Builtin Agent. Google GenAI requires a different Pydantic line than the inference selection;
-sharing one virtual environment would violate dependency isolation. Both native publications reuse
-the existing runtime builder, installer, leases and resource-preparation registry. Neither inherits
-the other capability's third-party packages. Future capabilities must define and qualify their
+Hatch and desktop packaging select application code from `python/src`; release qualification
+hashes the complete application-owned Python Worker tree. The root project owns development,
+contract, acceptance and producer tools. Five dependency-only projects under `python/runtimes/`
+own independently frozen production selections: resources, light-inference, torch-inference,
+voice-generation and agent. They reuse the existing producer, installer, leases and preparation
+registry. Resource downloads and light inference do not inherit Torch or VoxCPM; Builtin Agent
+retains its independent Pydantic constraints. The runtime topology and capability selection
+belong to `system-architecture.md`. Future capabilities must define and qualify their
 actual dependency selection before release.
 Their SDK execution cannot create a competing authority for Space authorization, durable Runs
 or publication. Those contracts remain Rust-owned unless their owning documents are revised.

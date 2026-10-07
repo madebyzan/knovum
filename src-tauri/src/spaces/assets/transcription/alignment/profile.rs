@@ -30,14 +30,8 @@ pub(super) fn deadline(duration_ms: u64) -> Result<u64, String> {
 }
 
 pub(super) fn qualified_platform() -> Result<(), String> {
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    ))]
+    #[cfg(knovum_supported_desktop)]
     return Ok(());
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
+    #[cfg(not(knovum_supported_desktop))]
     Err("unsupported_device: Qwen3 forced alignment is not qualified for this platform".into())
 }

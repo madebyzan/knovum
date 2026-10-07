@@ -80,8 +80,8 @@ async fn insert_projects(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.speech_projects {
-        sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,project_type,title,active_revision_id,created_at,updated_at) VALUES(?,?,?,?,NULL,?,?)")
-            .bind(&row.id).bind(&request.space.id).bind(&row.project_type).bind(&row.title)
+        sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,active_revision_id,created_at,updated_at) VALUES(?,?,?,?,?,NULL,?,?)")
+            .bind(&row.id).bind(&request.space.id).bind(&row.source_node_id).bind(&row.project_type).bind(&row.title)
             .bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for row in &request.speech_project_revisions {

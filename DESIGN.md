@@ -3,7 +3,7 @@
 ## Source of truth
 
 - Status: Active
-- Last refreshed: 2026-09-27
+- Last refreshed: 2026-10-07
 - Primary product surfaces: desktop knowledge-space shell, infinite canvas, object actions, editors, Inspector, one conversation surface, canvas-derived reusable workflows, contextual task feedback and Settings.
 - Evidence reviewed: `AGENTS.md`, `docs/spaces.md`, `docs/knowledge.md`, `docs/ui-system.md`, `docs/background-tasks.md`, `docs/system-architecture.md`, `docs/architecture.md`, `docs/naming-conventions.md`, `docs/oss-first.md`, `src/features/spaces/*`, `src-tauri/src/spaces/*`, `src-tauri/src/ai/*`, and `src-tauri/src/external_agents/*`.
 
@@ -125,6 +125,16 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
 - Imagery/iconography: use the existing icon library and content-first resource previews. AI identity may appear in metadata, never as a competing visual theme.
 
 ## Components
+
+### Extension settings
+
+- Extensions uses three keyboard-navigable tabs: Plugins, Skills and Connectors. Each tab has one compact heading, supporting purpose text and a primary action.
+- Installed plugins are the default view. Discovery is a separate browse view; catalog management and manual installation are explicit secondary actions, not permanent forms above installed content.
+- Lists use quiet grouped surfaces, recognizable icons, names, descriptions and restrained provenance metadata. Enablement uses `UiSwitch`; search uses `UiSearchInput`. Long paths, revisions and digests belong in expandable details.
+- Creation, package review and focused editing use `UiDialog`; service configuration, accounts and tools are progressively disclosed. Destructive removal uses the shared confirmation flow.
+- Reuse `UiButton`, `UiInput`, `UiSelect`, `UiTextarea`, `UiCheckbox`, `UiBadge` and existing menus. Extensions owns its domain-specific list rows; no new global component or token layer is required.
+- Loading, empty lists, no search results and errors have distinct states. Busy operations prevent conflicting changes; closing an installation review cannot dismiss an in-progress commit.
+- Verify light/dark appearance, narrow desktop widths, keyboard tabs/selects, source preview and cancel/confirm behavior with localized content.
 
 - Existing components to reuse: Space selection bar and menus, canvas node frames, relation rendering, Inspector sections, editor surfaces, Knowledge history and shared Task Center.
 - New/changed components:

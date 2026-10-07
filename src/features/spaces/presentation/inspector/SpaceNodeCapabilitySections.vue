@@ -5,6 +5,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceDocumentCoverage from "../document/SpaceDocumentCoverage.vue";
 import SpaceKnowledgeObjectInspection from "../knowledge/SpaceKnowledgeObjectInspection.vue";
 import SpaceMediaKnowledge from "../media/SpaceMediaKnowledge.vue";
+import SpaceNodeSpeechAction from "../speech/SpaceNodeSpeechAction.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalEditor from "./SpacePortalEditor.vue";
 
@@ -12,6 +13,7 @@ defineProps<{ node: SpaceCanvasNode }>();
 </script>
 
 <template>
+  <SpaceNodeSpeechAction :node="node" />
   <SpaceInspectorSection
     v-if="node.data.kind === 'file' && node.data.documentCoverage"
     :title="$t('spaces.processing.document.coverage')"

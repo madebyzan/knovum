@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { distributionDirectory, readRuntimeDescriptor } from "./distribution.mjs";
@@ -16,7 +15,6 @@ export function validatePackagedResources(resources, repository, target) {
     )
       throw new Error(`Packaged ${profile} descriptor differs from the trusted build input`);
   }
-  const descriptorPath = join(resources, "python-inference-descriptor.json");
   const source = join(repository, "python", "src");
   const payload = join(resources, "python-worker");
   const expected = listRuntimeFiles(source).filter((path) => path.endsWith(".py"));
@@ -36,9 +34,8 @@ export function validatePackagedResources(resources, repository, target) {
     )
   )
     throw new Error("Desktop package must exclude the third-party Python runtime");
-  const descriptor = JSON.parse(readFileSync(descriptorPath, "utf8"));
   const worker = join(payload, "knovum_inference");
-  return { worker, descriptor, workerDigest: workerDigest(worker) };
+  return { worker, workerDigest: workerDigest(payload) };
 }
 
 export function workerDigest(directory) {

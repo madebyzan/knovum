@@ -1,11 +1,8 @@
 {
   "schemaVersion": 1,
-  "profile": "inference",
+  "profile": "voice-generation",
   "reviewStatus": "required",
-  "targets": {
-    "macos-arm64": null,
-    "windows-x64": null
-  },
+  "targets": {},
   "dependencyRequirementsSha256": null,
   "dependencyLockSha256": null
 }

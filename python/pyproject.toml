@@ -9,28 +9,6 @@ description = "Application-owned Python capabilities for Knovum"
 requires-python = "==3.11.17"
 dependencies = []
 
-[project.optional-dependencies]
-model-resources = ["huggingface-hub==1.33.0", "modelscope-hub==0.4.5", "pydantic==2.13.5", "tqdm==4.70.1"]
-inference = [
-  "av==18.1.0; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
-  "ctranslate2==4.8.2; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
-  "faster-whisper==1.2.1; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
-  "mlx==0.32.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
-  "mlx-whisper==0.4.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
-  "numpy==2.4.6",
-  "onnxruntime==1.30.0",
-  "pydantic==2.13.5",
-  "pyannote.audio==4.0.7",
-  "sentence-transformers==6.1.0",
-  "sherpa-onnx==1.13.8",
-  "silero-vad==6.2.3",
-  "torch==2.14.1",
-  "torchaudio==2.11.0",
-  "torchcodec==0.17.0",
-  "transformers==5.19.0",
-  "voxcpm @ git+https://github.com/OpenBMB/VoxCPM.git@f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629",
-]
-
 [project.scripts]
 knovum-model-resources = "knovum_model_resources.server:main"
 knovum-inference = "knovum_inference.server:main"
@@ -40,7 +18,7 @@ runtime-build = ["setuptools==84.0.0", "wheel==0.48.0", "setuptools-scm==10.3.4"
 publication = ["cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
 acceptance = ["jiwer==4.0.0", "numpy==2.4.6", "pydantic==2.13.5"]
 contracts = ["datamodel-code-generator==0.83.0"]
-quality = ["mypy==2.4.0", "numpy==2.4.6", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
+quality = ["huggingface-hub==1.33.0", "modelscope-hub==0.4.5", "tqdm==4.70.1", "mypy==2.4.0", "numpy==2.4.6", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
 
 [tool.ruff]
 target-version = "py311"

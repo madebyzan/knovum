@@ -29,7 +29,9 @@ fn output_configuration_rejects_wrong_shapes_obsolete_fields_and_invalid_bounds(
 
 async fn project_database(output: &str, lexicon: &str) -> sqlx::SqlitePool {
     let pool = super::database().await;
-    sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,project_type,title,created_at,updated_at) VALUES('project','space','short_dubbing','Draft',1,1)")
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','note',0,0,'{\"kind\":\"note\",\"title\":\"Source\"}',1,1)")
+        .execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES('project','space','node','short_dubbing','Draft',1,1)")
         .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,created_at) VALUES('revision','project',1,'source',?,?,1)")
         .bind(lexicon).bind(output).execute(&pool).await.unwrap();

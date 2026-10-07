@@ -14,8 +14,8 @@ import type {
 } from "../../../../foundation/preferences/schema/preferences";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SelectOption } from "../../../../shared/ui/UiSelect.vue";
+import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "../PreferenceField.vue";
-import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
 const preferences = usePreferencesStore();
@@ -51,7 +51,7 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
 </script>
 
 <template>
-  <SettingsSection :title="t('settings.appearance.title')">
+  <UiSettingsSection :title="t('settings.appearance.title')">
     <PreferenceField
       id="settings-appearance-theme"
       tabindex="-1"
@@ -104,5 +104,5 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         @update:model-value="updatePreference(() => preferences.setLocale($event))"
       />
     </PreferenceField>
-  </SettingsSection>
+  </UiSettingsSection>
 </template>

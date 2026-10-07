@@ -49,7 +49,10 @@ describe("Agent extension installation lifecycle", () => {
       await runAppCommand("navigate.settings");
       await $("[data-testid='settings-pane-extensions']").click();
       await expect($("[data-testid='agent-extensions-settings']")).toBeDisplayed();
-      await $("[data-testid='marketplace-source-type']").selectByAttribute("value", "directory");
+      await $("[data-testid='discover-plugins']").click();
+      await $("[data-testid='manage-marketplaces']").click();
+      await $("[data-testid='marketplace-source-type']").click();
+      await $("[role='option'][data-value='directory']").click();
       await $("[data-testid='marketplace-location']").setValue(root);
       await $("[data-testid='add-marketplace']").click();
       await browser.waitUntil(async () => {
@@ -58,6 +61,7 @@ describe("Agent extension installation lifecycle", () => {
         );
         return Boolean(marketplace);
       });
+      await $("[data-testid='close-marketplaces']").click();
       await $(`[data-testid='preview-plugin-${name}']`).click();
       await expect($("[data-testid='plugin-installation-preview']")).toBeDisplayed();
       await $("[data-testid='confirm-plugin-installation']").click();
@@ -81,6 +85,7 @@ describe("Agent extension installation lifecycle", () => {
         join(packagePath, "plugin.json"),
         JSON.stringify({ ...manifest, version: "reviewed-two" }),
       );
+      await $(`[data-testid='plugin-actions-${installed.id}']`).click();
       await $(`[data-testid='update-plugin-${installed.id}']`).click();
       await expect($("[data-testid='plugin-installation-preview']")).toBeDisplayed();
       await $("[data-testid='confirm-plugin-installation']").click();
@@ -94,7 +99,9 @@ describe("Agent extension installation lifecycle", () => {
           !current.enabled
         );
       });
+      await $(`[data-testid='plugin-actions-${installed.id}']`).click();
       await $(`[data-testid='uninstall-plugin-${installed.id}']`).click();
+      await $("[data-testid='confirm-action']").click();
       await browser.waitUntil(
         async () =>
           !(await extensionCommand<PluginInstallation[]>("list_plugin_installations")).some(

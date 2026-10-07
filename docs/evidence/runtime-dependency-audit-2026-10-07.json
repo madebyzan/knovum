@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "tool": "uv 0.12.23",
+  "platform": "x86_64-apple-darwin",
+  "pythonVersion": "3.11.17",
+  "projectMode": "frozen",
+  "scope": "production dependencies of each independent profile",
+  "profiles": [
+    {
+      "profile": "resources",
+      "dependencyLockSha256": "b687c8074b2226f832002254100e2fa704e6a78bba1a2f8fe336cd7c6bc247b2",
+      "summary": {
+        "audited_packages": 27,
+        "vulnerabilities": 0,
+        "adverse_statuses": 0
+      },
+      "findings": []
+    },
+    {
+      "profile": "light-inference",
+      "dependencyLockSha256": "540e23bbc31d150f3e10af279e72212129b34c18c7cff24a1a695804f9d5da5b",
+      "summary": {
+        "audited_packages": 29,
+        "vulnerabilities": 0,
+        "adverse_statuses": 0
+      },
+      "findings": []
+    },
+    {
+      "profile": "torch-inference",
+      "dependencyLockSha256": "3eeeb03855e4b67ac5d44baf02de053e8926fb58c8a0790059ae92e389e50c73",
+      "summary": {
+        "audited_packages": 133,
+        "vulnerabilities": 0,
+        "adverse_statuses": 0
+      },
+      "findings": []
+    },
+    {
+      "profile": "voice-generation",
+      "dependencyLockSha256": "db7fbca597d604ebe1d37e626f3bff3d50a7aa78cab59e2792ea90252b721857",
+      "summary": {
+        "audited_packages": 168,
+        "vulnerabilities": 3,
+        "adverse_statuses": 0
+      },
+      "findings": [
+        {
+          "id": "GHSA-379c-qx7v-6h59",
+          "aliases": ["CVE-2026-66007", "PYSEC-2026-3716"],
+          "dependency": {
+            "name": "datasets",
+            "version": "3.6.0"
+          },
+          "fixVersions": ["5.0.1"],
+          "source": "https://nvd.nist.gov/vuln/detail/CVE-2026-66007"
+        },
+        {
+          "id": "PYSEC-2026-3716",
+          "aliases": ["CVE-2026-66007", "GHSA-379c-qx7v-6h59"],
+          "dependency": {
+            "name": "datasets",
+            "version": "3.6.0"
+          },
+          "fixVersions": ["5.0.1"],
+          "source": "https://osv.dev/vulnerability/PYSEC-2026-3716"
+        },
+        {
+          "id": "GHSA-27vj-qcqg-25rc",
+          "aliases": ["CVE-2026-104851"],
+          "dependency": {
+            "name": "fsspec",
+            "version": "2025.3.0"
+          },
+          "fixVersions": ["2026.6.0"],
+          "source": "https://nvd.nist.gov/vuln/detail/CVE-2026-104851"
+        }
+      ]
+    },
+    {
+      "profile": "agent",
+      "dependencyLockSha256": "5f1507c26cff38b5fe9f486a9e9e509885ee8a8627f9e7a525781cffef33ec4b",
+      "summary": {
+        "audited_packages": 67,
+        "vulnerabilities": 0,
+        "adverse_statuses": 0
+      },
+      "findings": []
+    }
+  ],
+  "groups": "No default dependency groups"
+}

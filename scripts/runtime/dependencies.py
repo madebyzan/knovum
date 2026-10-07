@@ -29,19 +29,25 @@ def export_requirements(project: Path, destination: Path, *options: str) -> None
 
 
 def install_dependencies(
-    runtime: Path, scratch: Path, executable: Path, repository: Path, profile: str, target: str
+    runtime: Path,
+    scratch: Path,
+    executable: Path,
+    repository: Path,
+    profile: str,
+    target: str,
 ) -> dict[str, str]:
     shared_project = repository / "python"
-    project = shared_project if profile == "inference" else shared_project / "runtimes/agent"
-    environment = dict(os.environ, UV_LINK_MODE="copy", UV_PYTHON_DOWNLOADS="never", PYTHONDONTWRITEBYTECODE="1")
+    project = shared_project / "runtimes" / profile
+    environment = dict(
+        os.environ,
+        UV_LINK_MODE="copy",
+        UV_PYTHON_DOWNLOADS="never",
+        PYTHONDONTWRITEBYTECODE="1",
+    )
     requirements = scratch / "requirements.txt"
     packages = runtime / "packages"
     evidence = scratch / "build-evidence"
-    options = (
-        ("--extra", "inference", "--extra", "model-resources", "--no-emit-package", "voxcpm")
-        if profile == "inference"
-        else ()
-    )
+    options = ("--no-emit-package", "voxcpm") if profile == "voice-generation" else ()
     export_requirements(project, requirements, *options)
     run(
         "uv",
@@ -60,9 +66,16 @@ def install_dependencies(
         env=environment,
     )
     voxcpm: dict[str, str] = {}
-    if profile == "inference":
+    if profile == "voice-generation":
         build_environment = scratch / "build-environment"
-        run("uv", "venv", "--python", str(executable), str(build_environment), env=environment)
+        run(
+            "uv",
+            "venv",
+            "--python",
+            str(executable),
+            str(build_environment),
+            env=environment,
+        )
         build_python = build_environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         build_requirements = scratch / "build-requirements.txt"
         export_requirements(shared_project, build_requirements, "--only-group", "runtime-build")
@@ -81,15 +94,22 @@ def install_dependencies(
             env=environment,
         )
         # VoxCPM creates source evidence after the common inventory creates its directory.
-        voxcpm = install_voxcpm(shared_project, scratch, packages, build_python, environment)
-    write_inventory(runtime, project / "uv.lock", evidence, shared_project / "runtime-source.json", target)
+        voxcpm = install_voxcpm(project, scratch, packages, build_python, environment)
+    write_inventory(
+        runtime,
+        project / "uv.lock",
+        evidence,
+        shared_project / "runtime-source.json",
+        target,
+    )
     shutil.copy2(requirements, evidence / "requirements.txt")
     shutil.copy2(requirements, runtime / "runtime-requirements.txt")
-    if profile == "inference":
+    if profile == "voice-generation":
         for name in ("build-requirements.txt", "voxcpm-source.tar"):
             shutil.copy2(scratch / name, evidence / name)
         voxcpm["requirementsSha256"] = digest(requirements)
         voxcpm["buildRequirementsSha256"] = digest(scratch / "build-requirements.txt")
+    if profile == "light-inference":
         policy = shared_project / "compiled-source-evidence.json"
         sources = evidence / "compiled-sources"
         sources.mkdir()

@@ -57,6 +57,7 @@ export function useSpeechGeneration(owner: SpeechGenerationOwner) {
       runState.value = next.state;
       if (TERMINAL_STATES.has(next.state)) {
         void owner.reloadProject(projectId).catch((cause) => owner.setError(getErrorMessage(cause)));
+        void store.refreshActiveSpace().catch((cause) => owner.setError(getErrorMessage(cause)));
       }
     });
   }

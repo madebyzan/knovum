@@ -91,6 +91,8 @@ const fn executable(unix: &'static str, windows: &'static str) -> &'static str {
 pub const fn platform_directory() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         "macos-arm64"
+    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
+        "macos-x64"
     } else if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
         "windows-x64"
     } else {

@@ -20,14 +20,14 @@ import {
   validateRuntimeDistribution,
 } from "./distribution.mjs";
 import { safeRelativePath, sha256File } from "./files.mjs";
-import { hostRuntimeTarget, runtimeProject, runtimeSources } from "./profiles.mjs";
+import { hostRuntimeTarget, runtimeProject, runtimeSources, runtimeTargets } from "./profiles.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
 const { values } = parseArgs({ options: { target: { type: "string" }, profile: { type: "string" } } });
 const target = values.target ?? hostRuntimeTarget();
 const profile = values.profile;
 runtimeProject(repository, profile);
-const supportedTargets = new Set(["macos-arm64", "windows-x64"]);
+const supportedTargets = new Set(Object.values(runtimeTargets));
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
 const sources = runtimeSources(target, profile, process.env);
 
@@ -71,7 +71,7 @@ try {
   if ((await import("node:fs")).statSync(archives.PYTHON_RUNTIME).size !== descriptor.size)
     throw new Error("Runtime archive size differs from its descriptor");
   for (const [kind, directory] of [
-    ...(profile === "inference" ? [["FFMPEG", stagedRuntime]] : []),
+    ...(profile === "light-inference" ? [["FFMPEG", stagedRuntime]] : []),
     ["PYTHON_RUNTIME", python],
     ["PYTHON_RUNTIME_EVIDENCE", evidence],
   ]) {
@@ -83,7 +83,7 @@ try {
   mkdirSync(dirname(distributionDestination), { recursive: true });
   rmSync(distributionDestination, { recursive: true, force: true });
   renameSync(distribution, distributionDestination);
-  if (profile === "inference") {
+  if (profile === "light-inference") {
     validateRuntime(stagedRuntime);
     mkdirSync(runtimeRoot, { recursive: true });
     const previous = join(scratch, "previous-runtime");

@@ -9,6 +9,7 @@ import { pluginQuery } from "../../../foundation/extensions/extension-query";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { PluginConnectorConfiguration } from "../../../shared/contracts/generated/PluginConnectorConfiguration";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 
@@ -85,7 +86,11 @@ async function chooseExecutable() {
     >
       <p class="text-caption break-all text-fg-secondary">{{ configuration.url }}</p>
       <label class="flex items-center gap-2 text-caption"
-        ><input v-model="localNetwork" type="checkbox" />{{ $t("extensions.allowLocalNetwork") }}</label
+        ><UiCheckbox
+          v-model="localNetwork"
+          :disabled="changes.isPending.value"
+          :label="$t('extensions.allowLocalNetwork')"
+        />{{ $t("extensions.allowLocalNetwork") }}</label
       >
       <UiButton type="submit" size="sm" :disabled="changes.isPending.value">{{
         $t("extensions.save")

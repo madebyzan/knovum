@@ -5,11 +5,12 @@ import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { ImportedAudiobookScript } from "../../speech/audiobook-script";
-import { chooseAudiobookScript } from "../../speech/audiobook-script-import";
+import { readNodeAudiobookScript } from "../../speech/audiobook-script-import";
 import { cancelSpeechGeneration } from "../../speech/ipc";
 
-defineProps<{ disabled: boolean }>();
+const props = defineProps<{ node: SpaceCanvasNode; disabled: boolean }>();
 const emit = defineEmits<{ imported: [script: ImportedAudiobookScript] }>();
 const { t } = useI18n();
 const importing = shallowRef(false);
@@ -34,7 +35,8 @@ async function importScript() {
   try {
     const job = crypto.randomUUID();
     jobId.value = job;
-    const script = await chooseAudiobookScript(
+    const script = await readNodeAudiobookScript(
+      props.node,
       t("spaces.speech.defaultRole"),
       job,
       () => !disposed && jobId.value === job,
@@ -53,9 +55,9 @@ async function importScript() {
 <template>
   <section class="space-y-1 rounded-md border border-stroke-divider p-2">
     <div class="flex items-center justify-between gap-2">
-      <p class="text-caption-sm text-fg-secondary">{{ t("spaces.speech.audiobookImportHint") }}</p>
+      <p class="text-caption-sm text-fg-secondary">{{ props.node.data.title }}</p>
       <UiButton size="sm" variant="ghost" :disabled="disabled || importing" @click="importScript">
-        <FileUp class="size-3.5" />{{ t("spaces.speech.importAudiobookScript") }}
+        <FileUp class="size-3.5" />{{ t("spaces.speech.readNodeManuscript") }}
       </UiButton>
     </div>
     <UiButton v-if="importing" size="sm" @click="cancel">{{ t("spaces.speech.cancel") }}</UiButton>

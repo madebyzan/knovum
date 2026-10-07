@@ -20,14 +20,18 @@ const resources = useLocalResourcesQuery();
 const preparation = shallowRef<ResourcePreparationHandle>();
 const error = shallowRef<string>();
 const errorMessage = computed(
-  () => error.value ?? (resources.error.value ? getErrorMessage(resources.error.value) : undefined),
+  () =>
+    error.value ??
+    (runtime.value?.state === "invalid" ? runtime.value.message : undefined) ??
+    (resources.error.value ? getErrorMessage(resources.error.value) : undefined),
 );
 const runtime = computed(() => resources.data.value?.pythonRuntimes[props.profile]);
 const description = computed(() => {
   if (resources.data.value?.platform === "unsupported") return t("settings.ai.pythonRuntimes.unsupported");
-  if (runtime.value?.available) return t("settings.ai.pythonRuntimes.ready");
-  if (!runtime.value?.downloadable) return t("settings.ai.pythonRuntimes.unavailable");
-  return t("settings.ai.pythonRuntimes.download", { size: formatBytes(runtime.value.downloadSize!) });
+  if (runtime.value?.state === "ready") return t("settings.ai.pythonRuntimes.ready");
+  if (runtime.value?.state === "invalid") return t("settings.ai.pythonRuntimes.invalid");
+  if (runtime.value?.state !== "not_installed") return t("settings.ai.pythonRuntimes.unavailable");
+  return t("settings.ai.pythonRuntimes.download", { size: formatBytes(runtime.value.downloadSize) });
 });
 
 async function prepare() {
@@ -63,10 +67,10 @@ async function cancel() {
       t("settings.ai.pythonRuntimes.cancel")
     }}</UiButton>
     <UiButton
-      v-else-if="!runtime?.available"
+      v-else-if="runtime?.state !== 'ready'"
       size="sm"
       variant="secondary"
-      :disabled="!runtime?.downloadable"
+      :disabled="runtime?.state !== 'not_installed'"
       @click="prepare"
       >{{ t("settings.ai.pythonRuntimes.prepare") }}</UiButton
     >

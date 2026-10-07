@@ -9,11 +9,13 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { PreparedVoiceReference } from "../../contracts/generated/PreparedVoiceReference";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useVoiceCandidates } from "../../speech/use-voice-candidates";
 import VoiceCandidateReview from "./VoiceCandidateReview.vue";
 import VoiceReferenceEditor from "./VoiceReferenceEditor.vue";
 
 const emit = defineEmits<{ created: [voice: VoiceLibraryRevision] }>();
+const props = defineProps<{ sourceNode?: SpaceCanvasNode | undefined }>();
 const { t } = useI18n();
 const mode = shallowRef("reference");
 const seed = shallowRef("0");
@@ -89,6 +91,7 @@ function generate() {
   <section class="space-y-2 border-t border-stroke-divider pt-2">
     <div class="flex gap-2">
       <UiSelect
+        v-if="!sourceNode"
         v-model="mode"
         class="min-w-0 flex-1"
         size="sm"
@@ -108,6 +111,7 @@ function generate() {
       <VoiceReferenceEditor
         v-model="reference"
         :language="language"
+        :source-node="props.sourceNode"
         :disabled="busy"
         @busy="preparingReference = $event"
       />

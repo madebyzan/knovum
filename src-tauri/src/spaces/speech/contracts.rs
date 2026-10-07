@@ -70,6 +70,7 @@ pub struct VoiceLibraryRevision {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreateSpeechProjectRequest {
     pub space_id: String,
+    pub source_node_id: String,
     pub project_type: String,
     pub title: String,
     #[serde(default = "empty_object")]
@@ -82,6 +83,7 @@ pub struct CreateSpeechProjectRequest {
 pub struct SpeechProjectOverview {
     pub id: String,
     pub space_id: String,
+    pub source_node_id: String,
     pub project_type: String,
     pub title: String,
     pub active_revision_id: String,

@@ -104,19 +104,17 @@ pub(super) fn memory_snapshot() -> Result<MemorySnapshot, String> {
 pub(crate) fn voxcpm2() -> Result<RuntimeDeviceProfile, String> {
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     let (device, precision, minimum_gib) = ("mps", "f32", 48);
-    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-    let (device, precision, minimum_gib) = ("cpu", "bf16", 32);
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
-    return Err(
-        "unsupported_device: Voice cloning and design require macOS ARM64 or Windows x64".into(),
-    );
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
+    #[cfg(all(
+        any(target_os = "macos", target_os = "windows"),
+        target_arch = "x86_64"
     ))]
+    let (device, precision, minimum_gib) = ("cpu", "bf16", 32);
+    #[cfg(not(knovum_supported_desktop))]
+    return Err(
+        "unsupported_device: Voice cloning and design require macOS arm64/x64 or Windows x64"
+            .into(),
+    );
+    #[cfg(knovum_supported_desktop)]
     {
         let memory = memory::physical_memory()?;
         if memory < minimum_gib * GIB {
@@ -132,15 +130,11 @@ pub(crate) fn voxcpm2() -> Result<RuntimeDeviceProfile, String> {
 }
 
 pub(crate) fn speech_separation() -> Result<RuntimeDeviceProfile, String> {
-    #[cfg(not(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )))]
-    return Err("unsupported_device: Source separation requires macOS ARM64 or Windows x64".into());
-    #[cfg(any(
-        all(target_os = "macos", target_arch = "aarch64"),
-        all(target_os = "windows", target_arch = "x86_64")
-    ))]
+    #[cfg(not(knovum_supported_desktop))]
+    return Err(
+        "unsupported_device: Source separation requires macOS arm64/x64 or Windows x64".into(),
+    );
+    #[cfg(knovum_supported_desktop)]
     Ok(RuntimeDeviceProfile {
         device: "cpu".into(),
         execution_profile_id: "spleeter-2stems-fp16-cpu-v1".into(),

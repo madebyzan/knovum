@@ -101,7 +101,7 @@ async fn prepare_kokoro<R: Runtime>(
 ) -> Result<PreparedKokoroModel, String> {
     crate::local_resources::runtimes::python::prepare(
         app,
-        crate::local_resources::runtimes::python::RuntimeProfile::Inference,
+        crate::local_resources::runtimes::python::RuntimeProfile::LightInference,
         cancellation,
         &mut |update| {
             if !matches!(

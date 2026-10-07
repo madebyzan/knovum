@@ -31,6 +31,7 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
         )?);
     }
     for row in array_mut(value, "speechProjects")? {
+        maps.field(row, "sourceNodeId", "nodes")?;
         maps.optional(row, "activeRevisionId", "speechProjectRevisions")?;
     }
     for row in array_mut(value, "speechProjectRevisions")? {

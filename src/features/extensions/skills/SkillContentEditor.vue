@@ -9,29 +9,28 @@ const emit = defineEmits<{ save: []; close: [] }>();
 </script>
 
 <template>
-  <form
-    class="space-y-3 rounded-sm border border-stroke-divider p-3"
-    @submit.prevent="emit('save')"
-    data-testid="skill-content-editor"
-  >
-    <label class="block text-caption"
+  <form class="space-y-4" @submit.prevent="emit('save')" data-testid="skill-content-editor">
+    <label class="block space-y-1.5 text-caption text-fg-secondary"
       >{{ $t("extensions.skillName")
-      }}<UiInput v-model="name" :disabled="readonly || existing" data-testid="skill-name"
+      }}<UiInput v-model="name" :disabled="busy || readonly || existing" data-testid="skill-name"
     /></label>
-    <label class="block text-caption"
+    <label class="block space-y-1.5 text-caption text-fg-secondary"
       >SKILL.md<UiTextarea
         v-model="markdown"
-        :disabled="readonly"
+        :readonly="readonly"
+        :disabled="busy"
         class="min-h-64 font-mono text-caption"
         data-testid="skill-markdown"
     /></label>
     <p v-if="readonly" class="text-caption text-fg-secondary">{{ $t("extensions.copyToEdit") }}</p>
     <p v-if="files.length" class="text-caption text-fg-tertiary">{{ files.join(" · ") }}</p>
     <div class="flex gap-2">
-      <UiButton v-if="!readonly" type="submit" :disabled="busy || !name || !markdown">{{
+      <UiButton v-if="!readonly" variant="primary" type="submit" :disabled="busy || !name || !markdown">{{
         $t("extensions.save")
       }}</UiButton
-      ><UiButton variant="ghost" @click="emit('close')">{{ $t("extensions.close") }}</UiButton>
+      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{
+        $t("extensions.close")
+      }}</UiButton>
     </div>
   </form>
 </template>

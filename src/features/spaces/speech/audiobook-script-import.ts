@@ -1,35 +1,27 @@
-import { open } from "@tauri-apps/plugin-dialog";
-
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { AudiobookSource } from "../contracts/generated/AudiobookSource";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { audiobookDocumentScript } from "./audiobook-document-script";
 import { audiobookScript, type ImportedAudiobookScript } from "./audiobook-script";
+import { nodeSpeechText } from "./node-speech";
 
-export async function chooseAudiobookScript(
+export async function readNodeAudiobookScript(
+  node: SpaceCanvasNode,
   role: string,
   jobId: string,
   isCurrent: () => boolean,
 ): Promise<ImportedAudiobookScript | undefined> {
-  const path = await open({
-    multiple: false,
-    directory: false,
-    filters: [
-      { name: "Audiobook manuscript", extensions: ["json", "txt", "md", "doc", "docx", "pdf", "epub"] },
-    ],
-  });
-  if (typeof path !== "string" || !isCurrent()) return undefined;
-  const source = await invokeCommand<AudiobookSource>("plugin:spaces|read_audiobook_source", {
-    jobId,
-    sourcePath: path,
-  });
-  if (path.toLowerCase().endsWith(".json")) {
+  const source: AudiobookSource =
+    node.data.kind === "file"
+      ? await invokeCommand<AudiobookSource>("plugin:spaces|read_audiobook_source", {
+          jobId,
+          sourceNodeId: node.id,
+        })
+      : { kind: "text", text: nodeSpeechText(node) };
+  if (!isCurrent()) return undefined;
+  if (node.data.kind === "file" && node.data.assetPath?.toLowerCase().endsWith(".json")) {
     if (source.kind !== "text") throw new Error("Structured audiobook source must be text");
     return audiobookScript.parse(JSON.parse(source.text));
   }
-  const title =
-    path
-      .split(/[\\/]/u)
-      .at(-1)
-      ?.replace(/\.[^.]+$/u, "") ?? "Audiobook";
-  return audiobookScript.parse(audiobookDocumentScript(source, title, role));
+  return audiobookScript.parse(audiobookDocumentScript(source, node.data.title, role));
 }

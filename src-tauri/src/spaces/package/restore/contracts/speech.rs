@@ -88,6 +88,7 @@ pub struct PackageSpeechSourceSeparation {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageSpeechProject {
     pub id: String,
+    pub source_node_id: String,
     pub project_type: String,
     pub title: String,
     pub active_revision_id: Option<String>,

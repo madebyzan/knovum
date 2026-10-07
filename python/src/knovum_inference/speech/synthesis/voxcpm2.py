@@ -40,7 +40,8 @@ class VoxCpm2SynthesisEngine:
         system = platform.system()
         machine = platform.machine().lower()
         qualified = (system == "Darwin" and machine == "arm64" and self._device == "mps") or (
-            system == "Windows" and machine in {"amd64", "x86_64"} and self._device == "cpu"
+            ((system == "Windows" and machine in {"amd64", "x86_64"}) or (system == "Darwin" and machine == "x86_64"))
+            and self._device == "cpu"
         )
         if not qualified:
             raise server_error("unsupported_device", "VoxCPM2 device profile is not qualified")

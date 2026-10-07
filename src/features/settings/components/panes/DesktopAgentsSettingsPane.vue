@@ -11,9 +11,9 @@ import { resetAiSettings } from "../../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { ExternalAgentKind } from "../../../../shared/contracts/generated/ExternalAgentKind";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
+import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import ExternalAgentAvailability from "../ExternalAgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
-import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
 const aiStore = useAiSettingsStore();
@@ -85,7 +85,7 @@ onMounted(load);
     <p class="max-w-2xl text-body text-fg-secondary">
       {{ t("settings.agents.description") }}
     </p>
-    <SettingsSection id="settings-desktop-agents" tabindex="-1">
+    <UiSettingsSection id="settings-desktop-agents" tabindex="-1">
       <div
         v-if="catalog.installationError.value"
         class="border-b border-stroke-warning/30 bg-surface-warning-subtle px-4 py-3"
@@ -104,6 +104,6 @@ onMounted(load);
           @toggle="setEnabled(agent.kind, $event)"
         />
       </div>
-    </SettingsSection>
+    </UiSettingsSection>
   </div>
 </template>

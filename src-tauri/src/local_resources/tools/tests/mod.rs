@@ -2,7 +2,10 @@ use super::{catalog, platform_directory};
 
 #[test]
 fn unsupported_media_tools_are_a_status_but_preparation_still_requires_a_descriptor() {
-    let supported = matches!(platform_directory(), "macos-arm64" | "windows-x64");
+    let supported = matches!(
+        platform_directory(),
+        "macos-arm64" | "macos-x64" | "windows-x64"
+    );
     for kind in [
         catalog::MediaImportToolKind::YtDlp,
         catalog::MediaImportToolKind::Deno,

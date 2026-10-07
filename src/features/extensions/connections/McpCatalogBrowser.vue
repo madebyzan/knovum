@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation } from "@tanstack/vue-query";
-import { ref, shallowRef } from "vue";
+import { computed, ref, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { promptArguments, resourceParameters } from "../../../foundation/extensions/catalog-input";
@@ -9,11 +9,27 @@ import type { McpConnection } from "../../../shared/contracts/generated/McpConne
 import type { McpConnectionCatalog } from "../../../shared/contracts/generated/McpConnectionCatalog";
 import type { McpResourceSelection } from "../../../shared/contracts/generated/McpResourceSelection";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiSelect from "../../../shared/ui/UiSelect.vue";
+import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 const props = defineProps<{ connection: McpConnection; catalog: McpConnectionCatalog }>();
 const kind = ref<"resource" | "template" | "prompt">("resource");
 const name = ref("");
 const parameters = ref("{}");
 const content = shallowRef<unknown>();
+const items = computed(() => {
+  if (kind.value === "resource")
+    return props.catalog.resources.map((item) => ({ value: item.uri, label: `${item.name} · ${item.uri}` }));
+  if (kind.value === "template")
+    return props.catalog.resourceTemplates.map((item) => ({
+      value: item.uriTemplate,
+      label: `${item.name} · ${item.uriTemplate}`,
+    }));
+  return props.catalog.prompts.map((item) => ({
+    value: item.name,
+    label: item.name,
+    description: item.description ?? undefined,
+  }));
+});
 const reading = useMutation({
   mutationFn: async () => {
     if (kind.value === "prompt")
@@ -54,61 +70,36 @@ function change() {
 </script>
 
 <template>
-  <section class="space-y-2 rounded-sm border border-stroke-divider p-3" data-testid="mcp-catalog-browser">
+  <section class="space-y-3" data-testid="mcp-catalog-browser">
     <h3 class="text-body font-medium">{{ $t("extensions.browseResourcesAndPrompts") }}</h3>
     <form class="space-y-2" @submit.prevent="reading.mutate()">
-      <label class="block text-caption"
-        >{{ $t("extensions.catalogKind")
-        }}<select
+      <div class="space-y-1.5">
+        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalogKind") }}</span
+        ><UiSelect
           v-model="kind"
           :disabled="reading.isPending.value"
-          class="ml-2 bg-surface-control"
-          @change="change"
-        >
-          <option value="resource">{{ $t("extensions.resources") }}</option>
-          <option value="template">{{ $t("extensions.resourceTemplates") }}</option>
-          <option value="prompt">{{ $t("extensions.prompts") }}</option>
-        </select></label
-      >
-      <label class="block text-caption"
-        >{{ $t("extensions.catalogItem")
-        }}<select
-          v-model="name"
-          :disabled="reading.isPending.value"
-          class="block w-full bg-surface-control"
-          required
-        >
-          <option value="" />
-          <template v-if="kind === 'resource'"
-            ><option v-for="resource in catalog.resources" :key="resource.uri" :value="resource.uri">
-              {{ resource.name }} · {{ resource.uri }}
-            </option></template
-          >
-          <template v-if="kind === 'template'"
-            ><option
-              v-for="template in catalog.resourceTemplates"
-              :key="template.uriTemplate"
-              :value="template.uriTemplate"
-            >
-              {{ template.name }} · {{ template.uriTemplate }}
-            </option></template
-          >
-          <template v-if="kind === 'prompt'"
-            ><option v-for="prompt in catalog.prompts" :key="prompt.name" :value="prompt.name">
-              {{ prompt.name }} · {{ prompt.description }}
-            </option></template
-          >
-        </select></label
-      >
-      <label v-if="kind !== 'resource'" class="block text-caption"
-        >{{ $t("extensions.parameters")
-        }}<textarea
-          v-model="parameters"
-          :disabled="reading.isPending.value"
-          class="block w-full rounded-sm bg-surface-control p-2 font-mono"
-          rows="3"
+          :label="$t('extensions.catalogKind')"
+          :options="[
+            { value: 'resource', label: $t('extensions.resources') },
+            { value: 'template', label: $t('extensions.resourceTemplates') },
+            { value: 'prompt', label: $t('extensions.prompts') },
+          ]"
+          @update:model-value="change"
         />
-      </label>
+      </div>
+      <div class="space-y-1.5">
+        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalogItem") }}</span
+        ><UiSelect
+          v-model="name"
+          :disabled="reading.isPending.value || !items.length"
+          :label="$t('extensions.catalogItem')"
+          :options="items"
+        />
+      </div>
+      <label v-if="kind !== 'resource'" class="block space-y-1.5 text-caption text-fg-secondary"
+        >{{ $t("extensions.parameters")
+        }}<UiTextarea v-model="parameters" :disabled="reading.isPending.value" class="font-mono" :rows="3"
+      /></label>
       <UiButton size="sm" type="submit" :disabled="reading.isPending.value || !name || !connection.enabled">{{
         $t("extensions.read")
       }}</UiButton>

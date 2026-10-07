@@ -34,10 +34,16 @@ pub(crate) async fn prepare<R: Runtime>(
         return Ok(());
     }
     let descriptor = super::descriptor::required(profile)?;
-    static INFERENCE: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static RESOURCES: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static LIGHT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static TORCH: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
+    static VOICE: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     static AGENT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     let registry = match profile {
-        super::RuntimeProfile::Inference => &INFERENCE,
+        super::RuntimeProfile::Resources => &RESOURCES,
+        super::RuntimeProfile::LightInference => &LIGHT,
+        super::RuntimeProfile::TorchInference => &TORCH,
+        super::RuntimeProfile::VoiceGeneration => &VOICE,
         super::RuntimeProfile::Agent => &AGENT,
     }
     .get_or_init(Registry::new);

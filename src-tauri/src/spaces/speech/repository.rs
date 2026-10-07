@@ -25,9 +25,10 @@ pub async fn list_voices(
 pub async fn list_projects(
     pool: &sqlx::SqlitePool,
     space_id: &str,
+    source_node_id: &str,
 ) -> Result<Vec<SpeechProjectOverview>, String> {
     sqlx::query_as(
-        "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
+        "SELECT p.id, p.space_id, p.source_node_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
            WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
              AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \
@@ -36,9 +37,10 @@ pub async fn list_projects(
          FROM spaces_speech_projects p \
          JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id \
          LEFT JOIN spaces_speech_segments s ON s.project_revision_id=r.id \
-         WHERE p.space_id=? GROUP BY p.id ORDER BY p.updated_at DESC, p.id",
+         WHERE p.space_id=? AND p.source_node_id=? GROUP BY p.id ORDER BY p.updated_at DESC, p.id",
     )
     .bind(space_id)
+    .bind(source_node_id)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)
@@ -49,7 +51,7 @@ pub async fn load_project(
     project_id: &str,
 ) -> Result<SpeechProjectSnapshot, String> {
     let project: SpeechProjectOverview = sqlx::query_as(
-        "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
+        "SELECT p.id, p.space_id, p.source_node_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
            WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
              AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \

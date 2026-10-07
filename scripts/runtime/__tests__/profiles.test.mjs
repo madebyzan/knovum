@@ -1,7 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { requirementsArguments, runtimeSources, runtimeTargetFromTriple } from "../profiles.mjs";
+import {
+  requirementsArguments,
+  runtimeProfiles,
+  runtimeSources,
+  runtimeTargetFromTriple,
+} from "../profiles.mjs";
+
+test("production profiles export only their own independent frozen dependency project", () => {
+  assert.deepEqual(runtimeProfiles, [
+    "resources",
+    "light-inference",
+    "torch-inference",
+    "voice-generation",
+    "agent",
+  ]);
+  for (const profile of runtimeProfiles) {
+    const args = requirementsArguments("/repository", profile);
+    assert.equal(args[args.indexOf("--project") + 1], `/repository/python/runtimes/${profile}`);
+    assert.equal(args.includes("--extra"), false);
+    assert.equal(args.includes("--no-emit-package"), profile === "voice-generation");
+  }
+  assert.throws(() => requirementsArguments("/repository", "inference"), /Unsupported/);
+});
 
 test("Agent Runtime requirements select their independent project and exclude inference extras", () => {
   const args = requirementsArguments("/repository", "agent");
@@ -22,7 +44,10 @@ test("Controlled sources bind the declared profile and platform", () => {
     sources.map(({ kind }) => kind),
     ["PYTHON_RUNTIME", "PYTHON_RUNTIME_DESCRIPTOR", "PYTHON_RUNTIME_EVIDENCE"],
   );
-  assert.throws(() => runtimeSources("windows-x64", "inference", environment), /Missing controlled FFMPEG/);
+  assert.throws(
+    () => runtimeSources("windows-x64", "light-inference", environment),
+    /Missing controlled FFMPEG/,
+  );
   assert.throws(() => runtimeSources("macos-arm64", "agent", environment), /Missing controlled/);
 });
 
@@ -30,5 +55,6 @@ test("Only the supported native release triples can select a runtime", () => {
   assert.equal(runtimeTargetFromTriple("aarch64-apple-darwin"), "macos-arm64");
   assert.equal(runtimeTargetFromTriple("x86_64-pc-windows-msvc"), "windows-x64");
   assert.equal(runtimeTargetFromTriple(undefined), undefined);
-  assert.throws(() => runtimeTargetFromTriple("x86_64-apple-darwin"), /Unsupported/);
+  assert.equal(runtimeTargetFromTriple("x86_64-apple-darwin"), "macos-x64");
+  assert.throws(() => runtimeTargetFromTriple("aarch64-pc-windows-msvc"), /Unsupported/);
 });

@@ -1,3 +1,5 @@
+mod startup;
+
 use std::{
     path::PathBuf,
     process::Stdio,

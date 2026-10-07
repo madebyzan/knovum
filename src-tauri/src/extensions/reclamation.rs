@@ -1,5 +1,5 @@
 use super::{content, database};
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, path::Path};
 use tauri::{AppHandle, Manager};
 
 pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
@@ -28,53 +28,78 @@ pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
     for lease in leases {
         retained.extend(database::decode::<Vec<String>>(&lease)?);
     }
-    crate::blocking::run(move || {
-        for kind in ["plugins", "skills"] {
-            let directory = root.join(kind);
-            if !directory.exists() {
+    crate::blocking::run(move || collect_content(&root, &retained, plugin_data)).await
+}
+
+fn collect_content(
+    root: &Path,
+    retained: &BTreeSet<String>,
+    mut plugin_data: BTreeSet<String>,
+) -> Result<(), String> {
+    for kind in ["plugins", "skills"] {
+        let directory = root.join(kind);
+        if !directory.exists() {
+            continue;
+        }
+        for entity in std::fs::read_dir(&directory).map_err(|error| error.to_string())? {
+            let entity = entity.map_err(|error| error.to_string())?;
+            if !entity
+                .file_type()
+                .map_err(|error| error.to_string())?
+                .is_dir()
+            {
                 continue;
             }
-            for entity in std::fs::read_dir(&directory).map_err(|error| error.to_string())? {
-                let entity = entity.map_err(|error| error.to_string())?;
-                let revisions = entity.path().join("revisions");
-                if !revisions.exists() {
+            let revisions = entity.path().join("revisions");
+            if !revisions.exists() {
+                continue;
+            }
+            for revision in std::fs::read_dir(&revisions).map_err(|error| error.to_string())? {
+                let revision = revision.map_err(|error| error.to_string())?;
+                if !revision
+                    .file_type()
+                    .map_err(|error| error.to_string())?
+                    .is_dir()
+                {
                     continue;
                 }
-                for revision in std::fs::read_dir(&revisions).map_err(|error| error.to_string())? {
-                    let revision = revision.map_err(|error| error.to_string())?;
-                    let relative = format!(
-                        "{kind}/{}/revisions/{}",
-                        entity.file_name().to_string_lossy(),
-                        revision.file_name().to_string_lossy()
-                    );
-                    if !retained.contains(&relative) {
-                        std::fs::remove_dir_all(revision.path())
-                            .map_err(|error| error.to_string())?;
-                    } else if kind == "plugins" {
-                        plugin_data.insert(entity.file_name().to_string_lossy().into_owned());
-                    }
-                }
-                if std::fs::read_dir(&revisions)
-                    .map_err(|error| error.to_string())?
-                    .next()
-                    .is_none()
-                {
-                    std::fs::remove_dir_all(entity.path()).map_err(|error| error.to_string())?;
+                let relative = format!(
+                    "{kind}/{}/revisions/{}",
+                    entity.file_name().to_string_lossy(),
+                    revision.file_name().to_string_lossy()
+                );
+                if !retained.contains(&relative) {
+                    std::fs::remove_dir_all(revision.path()).map_err(|error| error.to_string())?;
+                } else if kind == "plugins" {
+                    plugin_data.insert(entity.file_name().to_string_lossy().into_owned());
                 }
             }
-        }
-        let data = root.join("plugin-data");
-        if data.exists() {
-            for directory in std::fs::read_dir(&data).map_err(|error| error.to_string())? {
-                let directory = directory.map_err(|error| error.to_string())?;
-                if !plugin_data.contains(directory.file_name().to_string_lossy().as_ref()) {
-                    std::fs::remove_dir_all(directory.path()).map_err(|error| error.to_string())?;
-                }
+            if std::fs::read_dir(&revisions)
+                .map_err(|error| error.to_string())?
+                .next()
+                .is_none()
+            {
+                std::fs::remove_dir_all(entity.path()).map_err(|error| error.to_string())?;
             }
         }
-        Ok(())
-    })
-    .await
+    }
+    let data = root.join("plugin-data");
+    if data.exists() {
+        for directory in std::fs::read_dir(&data).map_err(|error| error.to_string())? {
+            let directory = directory.map_err(|error| error.to_string())?;
+            if !directory
+                .file_type()
+                .map_err(|error| error.to_string())?
+                .is_dir()
+            {
+                continue;
+            }
+            if !plugin_data.contains(directory.file_name().to_string_lossy().as_ref()) {
+                std::fs::remove_dir_all(directory.path()).map_err(|error| error.to_string())?;
+            }
+        }
+    }
+    Ok(())
 }
 
 pub(crate) async fn release(app: &AppHandle, snapshot_id: &str) -> Result<(), String> {
@@ -88,3 +113,7 @@ pub(crate) async fn release(app: &AppHandle, snapshot_id: &str) -> Result<(), St
     super::mcp::sessions::release(app, snapshot_id).await;
     collect(app).await
 }
+
+#[cfg(test)]
+#[path = "tests/reclamation.rs"]
+mod tests;

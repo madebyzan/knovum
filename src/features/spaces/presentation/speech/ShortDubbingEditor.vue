@@ -18,6 +18,7 @@ const props = defineProps<{
   project: DeepReadonly<SpeechProjectSnapshot>;
   voices: readonly VoiceLibraryRevision[];
   disabled: boolean;
+  sourceText: string;
 }>();
 const emit = defineEmits<{
   save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
@@ -28,6 +29,7 @@ const { t } = useI18n();
 const { text, voiceRevisionId, wavPrecision, lexicon, dirty, valid, revisionInput } = useShortDubbingDraft(
   () => props.project,
   () => props.voices,
+  () => props.sourceText,
 );
 const voiceOptions = computed(() => voiceRevisionOptions(props.voices, [voiceRevisionId.value]));
 

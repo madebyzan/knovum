@@ -3,6 +3,7 @@ import { join, resolve } from "node:path";
 
 import { distributionDirectory, readRuntimeDescriptor } from "../runtime/distribution.mjs";
 import { workerDigest } from "../runtime/packaged-resources.mjs";
+import { runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { artifactSha256, safeArtifactFilename } from "./artifacts.mjs";
 import { httpsUrl, publicKey, readVersion, releaseTargets, requireValue } from "./policy.mjs";
 
@@ -19,14 +20,16 @@ mkdirSync(directory, { recursive: true });
 const file = safeArtifactFilename(`Knovum_${version}_${target}${mac ? ".app.tar.gz" : "-setup.exe"}`);
 copyFileSync(source, join(directory, file));
 copyFileSync(`${source}.sig`, join(directory, `${file}.sig`));
-const runtimeTarget = mac ? "macos-arm64" : "windows-x64";
-const runtimeDescriptor = readRuntimeDescriptor(
-  join(distributionDirectory(root, runtimeTarget), "runtime-descriptor.json"),
-  runtimeTarget,
-);
-const localInference = {
-  ...runtimeDescriptor,
-  workerDigest: workerDigest(join(root, "src-tauri/resources/python-worker/knovum_inference")),
+const runtimeTarget = runtimeTargetFromTriple(triple);
+const localRuntimes = {
+  pythonRuntimes: runtimeProfiles.map((profile) =>
+    readRuntimeDescriptor(
+      join(distributionDirectory(root, runtimeTarget, profile), "runtime-descriptor.json"),
+      runtimeTarget,
+      profile,
+    ),
+  ),
+  workerDigest: workerDigest(join(root, "src-tauri/resources/python-worker")),
 };
 const artifact = {
   target,
@@ -52,7 +55,7 @@ writeFileSync(
       pubkey: publicKey(process.env.KNOVUM_UPDATER_PUBKEY),
       artifact,
       installers,
-      localInference,
+      localRuntimes,
     },
     null,
     2,

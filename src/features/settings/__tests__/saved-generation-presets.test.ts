@@ -21,7 +21,7 @@ it("emits a rename intent without mutating the authoritative preset", () => {
   const wrapper = mount(SavedGenerationPresets, {
     props: { presets, loadGenerationActions: async () => [] },
     global: {
-      stubs: { UiInput: Input, UiIconButton: true, SettingsSection: { template: "<div><slot /></div>" } },
+      stubs: { UiInput: Input, UiIconButton: true, UiSettingsSection: { template: "<div><slot /></div>" } },
     },
   });
   wrapper.findComponent(Input).vm.$emit("update:modelValue", "Latest");

@@ -10,6 +10,7 @@ import { defaultVoiceRevisionId } from "./voice-options";
 export function useShortDubbingDraft(
   project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
+  sourceText: () => string,
 ) {
   const text = shallowRef("");
   const voiceRevisionId = shallowRef("");
@@ -35,6 +36,8 @@ export function useShortDubbingDraft(
       voiceRevisionId.value =
         projectSnapshot.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());
       saved.value = snapshot();
+      if (projectSnapshot.project.activeRevision === 1 && !projectSnapshot.segments.length)
+        text.value = sourceText();
     },
     { immediate: true },
   );

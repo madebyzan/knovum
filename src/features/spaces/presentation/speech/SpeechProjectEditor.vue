@@ -10,6 +10,8 @@ import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOut
 import type { SpeechGenerationProgress } from "../../contracts/generated/SpeechGenerationProgress";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { nodeSpeechText } from "../../speech/node-speech";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
@@ -18,6 +20,7 @@ import VideoDeliveryPanel from "./VideoDeliveryPanel.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
 
 const props = defineProps<{
+  sourceNode: SpaceCanvasNode;
   project: DeepReadonly<SpeechProjectSnapshot>;
   voices: readonly VoiceLibraryRevision[];
   preview?: (SpeechAudioOutput & { source: string }) | undefined;
@@ -78,6 +81,7 @@ function forwardPreview(text: string, voiceRevisionId: string, pronunciationLexi
     <ShortDubbingEditor
       v-if="project.project.projectType === 'short_dubbing'"
       :project="project"
+      :source-text="nodeSpeechText(sourceNode)"
       :voices="voices"
       :disabled="editorDisabled"
       @dirty="dirty = $event"
@@ -87,6 +91,7 @@ function forwardPreview(text: string, voiceRevisionId: string, pronunciationLexi
     <AudiobookScriptEditor
       v-else-if="project.project.projectType === 'audiobook'"
       :project="project"
+      :source-node="sourceNode"
       :voices="voices"
       :disabled="editorDisabled"
       @dirty="dirty = $event"

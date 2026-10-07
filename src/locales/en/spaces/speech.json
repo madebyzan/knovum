@@ -1,6 +1,4 @@
 {
-  "title": "Speech",
-  "newVoice": "Voices",
   "newProject": "Speech project",
   "voiceName": "Voice name",
   "language": "Language",
@@ -26,7 +24,6 @@
   "stopListening": "Stop listening",
   "saving": "Saving revision",
   "starting": "Starting generation",
-  "unsupportedProject": "This project type is not available in the editor.",
   "generatedSegments": "Generated audio",
   "generatedVideo": "Generated video",
   "export": "Export",
@@ -41,8 +38,6 @@
   "addRole": "Add role",
   "removeRole": "Remove role",
   "defaultRole": "Narrator",
-  "importAudiobookScript": "Import JSON script",
-  "audiobookImportHint": "Import TXT, Markdown, Word, searchable PDF, EPUB, or a structured v1 script.",
   "audiobookConfigurationInvalid": "This pre-release audiobook revision has no valid role bindings. Import or rebuild the script, then save a new revision.",
   "pronunciationLexicon": "Pronunciation dictionary",
   "pronunciationHint": "Replace names or terms with the exact reading used during synthesis.",
@@ -81,15 +76,12 @@
   },
   "createProject": "Create",
   "voices": "Voices",
-  "projects": "Projects",
   "noVoices": "No voice profiles in this Space.",
-  "noProjects": "No speech projects in this Space.",
   "types": {
     "shortDubbing": "Short dubbing",
     "audiobook": "Audiobook",
     "videoDubbing": "Video dubbing"
   },
-  "sourceVideo": "Source video",
   "backgroundAudio": "Background audio",
   "acceptedSeparatedBackground": "Accepted separated background",
   "sourceSeparationDescription": "Create a local background candidate. Spleeter separates vocals from accompaniment and does not guarantee spoken-dialogue removal.",
@@ -165,5 +157,9 @@
     "loud": "Relatively loud",
     "clipping": "Near full-scale peak",
     "invalid": "Invalid signal samples"
-  }
+  },
+  "nodeReadAloud": "Read aloud / audiobook",
+  "nodeProjects": "Productions from this node",
+  "readNodeManuscript": "Load this node as manuscript",
+  "referenceNodeChanged": "The audio node source changed. Refresh the node before preparing a voice reference."
 }

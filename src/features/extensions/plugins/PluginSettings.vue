@@ -1,88 +1,82 @@
 <script setup lang="ts">
-import { useQuery, useMutation } from "@tanstack/vue-query";
-import { shallowRef } from "vue";
+import { Compass, FolderInput, ArrowLeft } from "@lucide/vue";
+import { computed, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { pluginQuery } from "../../../foundation/extensions/extension-query";
-import {
-  inspectPluginSource,
-  inspectPluginUpdate,
-  installPlugin,
-  updatePlugin,
-  setPluginEnabled,
-  uninstallPlugin,
-} from "../../../foundation/extensions/plugin-operations";
-import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
-import type { PluginInspection } from "../../../shared/contracts/generated/PluginInspection";
-import type { PluginInstallation } from "../../../shared/contracts/generated/PluginInstallation";
-import type { PluginPublication } from "../../../shared/contracts/generated/PluginPublication";
-import type { PluginSource } from "../../../shared/contracts/generated/PluginSource";
+import { setPluginEnabled } from "../../../foundation/extensions/plugin-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiDialog from "../../../shared/ui/UiDialog.vue";
+import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
+import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
-import { useExtensionChanges } from "../use-extension-changes";
+import InstalledPlugin from "./InstalledPlugin.vue";
 import PluginDiscovery from "./PluginDiscovery.vue";
 import PluginInstallationPreview from "./PluginInstallationPreview.vue";
 import PluginRevisionChanges from "./PluginRevisionChanges.vue";
 import PluginSourceInput from "./PluginSourceInput.vue";
-const query = useQuery(pluginQuery);
-const changes = useExtensionChanges();
-const preview = shallowRef<{
-  source: PluginSource;
-  inspection: PluginInspection;
-  previous?: PluginInstallation;
-  publication: PluginPublication | null;
-}>();
-const inspecting = useMutation({
-  mutationFn: async ({
-    source,
-    previous,
-    publication,
-  }: {
-    source: PluginSource;
-    previous?: PluginInstallation;
-    publication: PluginPublication | null;
-  }) => {
-    const inspected = previous
-      ? await inspectPluginUpdate(previous.id)
-      : { source, inspection: await inspectPluginSource(source) };
-    preview.value = { ...inspected, ...(previous ? { previous } : {}), publication };
-  },
-});
-function inspect(
-  source: PluginSource,
-  previous?: PluginInstallation,
-  publication: PluginPublication | null = null,
-) {
-  inspecting.mutate({ source, ...(previous ? { previous } : {}), publication });
-}
-function inspectRelease(source: PluginSource, publication: PluginPublication) {
-  inspect(source, undefined, publication);
-}
-async function commit() {
-  const reviewed = preview.value;
-  if (!reviewed) return;
-  await changes
-    .mutateAsync(async () => {
-      const change = reviewed.previous
-        ? await updatePlugin(reviewed.previous.id, reviewed.inspection.digest)
-        : await installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication);
-      preview.value = undefined;
-      return change;
-    })
-    .catch(() => {});
-}
-function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
-  void changes.mutateAsync(operation).catch(() => {});
-}
+import { usePluginManagement } from "./use-plugin-management";
+const discovering = shallowRef(false);
+const sourceOpen = shallowRef(false);
+const search = shallowRef("");
+const { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, remove } =
+  usePluginManagement(
+    () => {
+      sourceOpen.value = false;
+    },
+    () => {
+      discovering.value = false;
+      search.value = "";
+    },
+  );
+const plugins = computed(() =>
+  (query.data.value ?? []).filter((plugin) =>
+    `${plugin.revision.manifest.name} ${plugin.revision.manifest.description ?? ""}`
+      .toLowerCase()
+      .includes(search.value.trim().toLowerCase()),
+  ),
+);
 </script>
 
 <template>
-  <div class="space-y-4">
-    <PluginDiscovery
-      :busy="changes.isPending.value || inspecting.isPending.value"
-      @inspect="inspectRelease"
-    />
-    <PluginSourceInput :busy="changes.isPending.value || inspecting.isPending.value" @inspect="inspect" />
+  <div class="min-w-0 space-y-4">
+    <header class="flex flex-wrap items-end justify-between gap-3 px-0.5">
+      <div class="min-w-0 flex-1 basis-48">
+        <UiButton
+          v-if="discovering"
+          size="sm"
+          variant="ghost"
+          class="mb-2 -ml-2.5"
+          data-testid="back-to-installed-plugins"
+          @click="discovering = false"
+          ><ArrowLeft class="size-3.5" />{{ $t("extensions.installedPlugins") }}</UiButton
+        >
+        <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
+          {{ $t(discovering ? "extensions.discovery" : "extensions.installedPlugins") }}
+        </h2>
+        <p class="mt-1 text-caption text-fg-secondary">
+          {{ $t(discovering ? "extensions.discoveryDescription" : "extensions.pluginsPurpose") }}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <UiButton
+          :disabled="busy"
+          data-testid="open-plugin-source"
+          @click="
+            inspecting.reset();
+            sourceOpen = true;
+          "
+          ><FolderInput class="size-4" />{{ $t("extensions.installFromSource") }}</UiButton
+        >
+        <UiButton
+          v-if="!discovering"
+          :disabled="busy"
+          data-testid="discover-plugins"
+          @click="discovering = true"
+          ><Compass class="size-4" />{{ $t("extensions.discovery") }}</UiButton
+        >
+      </div>
+    </header>
     <p
       v-if="query.error.value || changes.error.value || inspecting.error.value"
       role="alert"
@@ -91,65 +85,82 @@ function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
       {{ getErrorMessage(query.error.value || changes.error.value || inspecting.error.value) }}
     </p>
     <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
-    <template v-if="preview">
-      <PluginRevisionChanges
-        v-if="preview.previous"
-        :before="preview.previous.revision"
-        :after="preview.inspection"
+    <PluginDiscovery v-if="discovering" :busy="busy" @inspect="inspectRelease" />
+    <template v-else>
+      <UiSearchInput
+        v-if="query.data.value?.length"
+        v-model="search"
+        :label="$t('extensions.searchPlugins')"
+        :placeholder="$t('extensions.searchPlugins')"
+        data-testid="installed-plugin-search"
       />
-      <PluginInstallationPreview
-        :inspection="preview.inspection"
-        :busy="changes.isPending.value"
-        :updating="Boolean(preview.previous)"
-        @install="commit"
-        @cancel="preview = undefined"
-      />
-    </template>
-    <p v-if="query.isPending.value" class="text-body text-fg-secondary">{{ $t("extensions.loading") }}</p>
-    <p v-else-if="!query.error.value && !query.data.value?.length" class="text-caption text-fg-secondary">
-      {{ $t("extensions.emptyPlugins") }}
-    </p>
-    <section
-      v-for="plugin in query.data.value"
-      :key="plugin.id"
-      class="space-y-2 border-b border-stroke-divider py-3"
-      :data-testid="`plugin-${plugin.id}`"
-    >
-      <h2 class="text-body font-medium">
-        {{ plugin.revision.manifest.name }} {{ plugin.revision.manifest.version }}
-      </h2>
-      <p class="text-caption text-fg-secondary">
-        {{ plugin.builtin ? $t("extensions.builtin") : $t("extensions.publisherUnverified") }}
-      </p>
-      <p class="text-caption break-all text-fg-tertiary">
-        {{ plugin.source }} · {{ plugin.publication?.publisherId }} · {{ plugin.revision.sourceRevision }}
-      </p>
-      <div class="flex gap-2">
-        <UiButton
-          size="sm"
-          :disabled="changes.isPending.value"
-          :data-testid="`toggle-plugin-${plugin.id}`"
-          @click="mutate(() => setPluginEnabled(plugin.id, !plugin.enabled))"
-          >{{ $t(plugin.enabled ? "extensions.disable" : "extensions.enable") }}</UiButton
-        >
-        <UiButton
-          v-if="!plugin.builtin"
-          size="sm"
-          :disabled="changes.isPending.value || inspecting.isPending.value"
-          :data-testid="`update-plugin-${plugin.id}`"
-          @click="inspect(plugin.source, plugin)"
-          >{{ $t("extensions.checkUpdate") }}</UiButton
-        >
-        <UiButton
-          v-if="!plugin.builtin"
-          size="sm"
-          variant="dangerSubtle"
-          :disabled="changes.isPending.value"
-          :data-testid="`uninstall-plugin-${plugin.id}`"
-          @click="mutate(() => uninstallPlugin(plugin.id))"
-          >{{ $t("extensions.uninstall") }}</UiButton
-        >
+      <div
+        v-if="query.isPending.value"
+        role="status"
+        class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
+      >
+        <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
       </div>
-    </section>
+      <UiSettingsSection v-else-if="!query.error.value && !plugins.length">
+        <div class="px-5 py-6">
+          <h3 class="text-body-lg font-medium text-fg-primary">
+            {{ $t(search ? "extensions.noSearchResults" : "extensions.emptyPlugins") }}
+          </h3>
+          <p class="mt-1 text-caption text-fg-secondary">
+            {{ $t(search ? "extensions.tryAnotherSearch" : "extensions.emptyPluginsHint") }}
+          </p>
+        </div>
+      </UiSettingsSection>
+      <UiSettingsSection v-else-if="plugins.length">
+        <div class="divide-y divide-stroke-divider">
+          <InstalledPlugin
+            v-for="plugin in plugins"
+            :key="plugin.id"
+            :plugin="plugin"
+            :busy="busy"
+            @toggle="mutate(() => setPluginEnabled(plugin.id, !plugin.enabled))"
+            @update="inspect(plugin.source, plugin)"
+            @uninstall="remove(plugin)"
+          />
+        </div>
+      </UiSettingsSection>
+    </template>
+    <UiDialog
+      :open="sourceOpen"
+      :title="$t('extensions.installFromSource')"
+      :description="$t('extensions.sourceDescription')"
+      :closable="!busy"
+      @update:open="!busy && (sourceOpen = $event)"
+    >
+      <PluginSourceInput :busy="busy" @inspect="inspect" />
+      <p v-if="inspecting.error.value" role="alert" class="mt-3 text-body text-fg-danger">
+        {{ getErrorMessage(inspecting.error.value) }}
+      </p>
+    </UiDialog>
+    <UiDialog
+      :open="Boolean(preview)"
+      :title="$t(preview?.previous ? 'extensions.reviewUpdate' : 'extensions.reviewInstallation')"
+      size="wide"
+      :closable="!changes.isPending.value"
+      @update:open="!changes.isPending.value && (preview = undefined)"
+    >
+      <template v-if="preview">
+        <PluginRevisionChanges
+          v-if="preview.previous"
+          :before="preview.previous.revision"
+          :after="preview.inspection"
+        />
+        <PluginInstallationPreview
+          :inspection="preview.inspection"
+          :busy="changes.isPending.value"
+          :updating="Boolean(preview.previous)"
+          @install="commit"
+          @cancel="preview = undefined"
+        />
+        <p v-if="changes.error.value" role="alert" class="mt-3 text-body text-fg-danger">
+          {{ getErrorMessage(changes.error.value) }}
+        </p>
+      </template>
+    </UiDialog>
   </div>
 </template>

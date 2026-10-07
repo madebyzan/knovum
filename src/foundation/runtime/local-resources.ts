@@ -54,7 +54,7 @@ export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[
   return invokeCommand("plugin:local-resources|list_resource_preparations");
 }
 export function textEmbeddingReady(status?: LocalResourcesStatus) {
-  if (!status?.pythonRuntimes.inference.available) return false;
+  if (status?.pythonRuntimes["torch-inference"].state !== "ready") return false;
   const { models } = status;
   return [
     models.textEmbeddingConfig,

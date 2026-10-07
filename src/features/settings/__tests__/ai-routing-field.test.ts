@@ -30,7 +30,7 @@ it("selects the exact configured target with separator-containing identities and
   });
   const wrapper = mount(AiRoutingSettings, {
     props: { defaults: settings.defaults, connections: settings.connections, desktopAgents: [] },
-    global: { stubs: { UiSelect: select, SettingsSection: { template: "<section><slot /></section>" } } },
+    global: { stubs: { UiSelect: select, UiSettingsSection: { template: "<section><slot /></section>" } } },
   });
   try {
     const selector = wrapper.findComponent({ name: "UiSelect" });

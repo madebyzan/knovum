@@ -30,7 +30,7 @@ function create() {
 <template>
   <section class="space-y-3">
     <form class="flex items-end gap-2" @submit.prevent="create">
-      <label class="min-w-0 flex-1 text-caption"
+      <label class="min-w-0 flex-1 space-y-1.5 text-caption text-fg-secondary"
         >{{ $t("extensions.accountDisplayName")
         }}<UiInput v-model="displayName" data-testid="connector-account-name" /></label
       ><UiButton type="submit" :disabled="!displayName.trim() || changes.isPending.value">{{

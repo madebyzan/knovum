@@ -9,6 +9,7 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useAudiobookDraft } from "../../speech/use-audiobook-draft";
 import { voiceRevisionOptions } from "../../speech/voice-options";
 import AudiobookChapterHeader from "./AudiobookChapterHeader.vue";
@@ -19,6 +20,7 @@ import AudiobookScriptImport from "./AudiobookScriptImport.vue";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 
 const props = defineProps<{
+  sourceNode: SpaceCanvasNode;
   project: DeepReadonly<SpeechProjectSnapshot>;
   voices: readonly VoiceLibraryRevision[];
   disabled: boolean;
@@ -59,7 +61,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       :valid="draft.lexicon.isValid.value"
       :disabled="disabled"
     />
-    <AudiobookScriptImport :disabled="disabled" @imported="draft.importScript" />
+    <AudiobookScriptImport :node="sourceNode" :disabled="disabled" @imported="draft.importScript" />
     <p v-if="draft.configurationError.value" class="text-danger text-caption-sm">
       {{ t("spaces.speech.audiobookConfigurationInvalid") }}
     </p>

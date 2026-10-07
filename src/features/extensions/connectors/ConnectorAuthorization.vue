@@ -66,7 +66,7 @@ async function cancel() {
 
 <template>
   <form
-    class="space-y-2 rounded-sm border border-stroke-divider p-3"
+    class="space-y-3 rounded-lg bg-surface-muted p-3"
     data-testid="connector-authorization"
     @submit.prevent="authorize"
   >
@@ -86,7 +86,7 @@ async function cancel() {
     <p v-if="account.issuer" class="text-caption text-fg-secondary">
       {{ account.issuer }} · {{ account.scopes.join(" ") }}
     </p>
-    <label v-for="name in names" :key="name" class="block text-caption"
+    <label v-for="name in names" :key="name" class="block space-y-1.5 text-caption text-fg-secondary"
       >{{ name
       }}<UiInput
         :model-value="fields[name] ?? ''"

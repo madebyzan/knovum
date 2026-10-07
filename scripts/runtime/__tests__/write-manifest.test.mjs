@@ -17,16 +17,16 @@ import test from "node:test";
 
 const platform = { darwin: "macos", win32: "windows" }[process.platform];
 const target = `${platform}-${process.arch}`;
-const supportedHost = ["macos-arm64", "windows-x64"].includes(target);
+const supportedHost = ["macos-arm64", "macos-x64", "windows-x64"].includes(target);
 
 function fixture(context) {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-manifest-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   const scriptDirectory = join(root, "scripts", "runtime");
-  const python = join(root, "python");
+  const python = join(root, "python/runtimes/resources");
   const runtime = join(root, "runtime");
   mkdirSync(scriptDirectory, { recursive: true });
-  mkdirSync(python);
+  mkdirSync(python, { recursive: true });
   mkdirSync(join(runtime, "packages"), { recursive: true });
   copyFileSync(
     new URL("../write-manifest.mjs", import.meta.url),
@@ -56,7 +56,7 @@ function fixture(context) {
           "--directory",
           runtime,
           "--profile",
-          "inference",
+          "resources",
         ],
         { encoding: "utf8" },
       ),
@@ -92,7 +92,7 @@ test("manifest refuses links inside the runtime", { skip: !supportedHost }, (con
 
 test("manifest rejects a target outside the release scope", { skip: !platform }, (context) => {
   const sample = fixture(context);
-  const execution = sample.run("macos-x64");
+  const execution = sample.run("windows-arm64");
   assert.notEqual(execution.status, 0);
   assert.match(execution.stderr, /Unsupported runtime target/);
 });

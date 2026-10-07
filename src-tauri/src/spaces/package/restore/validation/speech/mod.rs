@@ -138,18 +138,7 @@ fn validate_runtime_snapshots(request: &RestorePackageRequest) -> Result<(), Str
         {
             continue;
         }
-        let digest = run
-            .input_snapshot
-            .get("runtimeDigest")
-            .and_then(serde_json::Value::as_str)
-            .ok_or("Package speech Run has no frozen Python runtime digest")?;
-        if digest.len() != 64
-            || !digest
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-        {
-            return Err("Package speech Run Python runtime digest is invalid".into());
-        }
+        crate::spaces::speech::runtime_identity::read_snapshot(&run.input_snapshot)?;
     }
     Ok(())
 }

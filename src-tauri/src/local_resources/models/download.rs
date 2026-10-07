@@ -37,7 +37,7 @@ pub(super) async fn snapshot<R: Runtime>(
         _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
         permit = DOWNLOADS.acquire() => permit.map_err(|error| error.to_string())?,
     };
-    let runtime = python::resolve(app, python::RuntimeProfile::Inference)?
+    let runtime = python::resolve(app, python::RuntimeProfile::Resources)?
         .ok_or("Python runtime is not prepared")?;
     let request = DownloadRequest {
         directory,

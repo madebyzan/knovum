@@ -37,11 +37,11 @@ function verifyExtractedWindowsApplication(extractionRoot, options) {
 
 export function locateApplicationResources(extractionRoot, target = windowsTarget) {
   if (target !== windowsTarget) throw new Error(`Unsupported packaged runtime target: ${target}`);
-  const manifests = findFiles(extractionRoot, (name) => name === "python-inference-descriptor.json");
+  const manifests = findFiles(extractionRoot, (name) => name === "python-resources-descriptor.json");
   if (manifests.length !== 1)
     throw new Error(`Windows package must contain exactly one runtime descriptor; found ${manifests.length}`);
   const parts = relative(resolve(extractionRoot), manifests[0]).split(sep);
-  if (!hasPathSuffix(parts, ["resources", "python-inference-descriptor.json"]))
+  if (!hasPathSuffix(parts, ["resources", "python-resources-descriptor.json"]))
     throw new Error("Windows package descriptor is outside the application resources directory");
   const forbidden = findFiles(
     extractionRoot,

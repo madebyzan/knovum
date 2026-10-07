@@ -105,9 +105,10 @@ async fn signals_wake_an_idle_scheduler_and_overdue_deadlines_do_not_wait_for_po
 
 #[tokio::test]
 async fn idle_maintenance_does_not_wait_for_an_unrelated_sqlite_writer() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = std::env::temp_dir().join(format!("knovum-scheduler-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir(&directory).unwrap();
     let options = sqlx::sqlite::SqliteConnectOptions::new()
-        .filename(directory.path().join("runs.sqlite"))
+        .filename(directory.join("runs.sqlite"))
         .create_if_missing(true)
         .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal);
     let pool = SqlitePoolOptions::new()
@@ -129,4 +130,6 @@ async fn idle_maintenance_does_not_wait_for_an_unrelated_sqlite_writer() {
     .expect("idle scheduling must not acquire a write transaction")
     .unwrap();
     writer.rollback().await.unwrap();
+    pool.close().await;
+    std::fs::remove_dir_all(directory).unwrap();
 }

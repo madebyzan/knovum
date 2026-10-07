@@ -91,6 +91,7 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
         <span class="text-caption-sm text-fg-tertiary">{{ resources.length }}</span>
       </header>
       <SpaceDocumentResourceGrid
+        :key="node.id"
         :resources="resources"
         :source-revision="report.sourceRevision"
         @select="selectedResourceId = $event.resource.id"

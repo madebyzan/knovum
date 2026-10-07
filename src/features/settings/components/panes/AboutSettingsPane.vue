@@ -9,8 +9,8 @@ import { formatErrorDiagnostic } from "../../../../foundation/errors/error-forma
 import { updateFailureKeys, updateStatusKeys } from "../../../../foundation/updates/update-presentation";
 import { useUpdateStore } from "../../../../foundation/updates/update-store";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "../PreferenceField.vue";
-import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
 const updates = useUpdateStore();
@@ -51,7 +51,7 @@ async function perform(action: () => Promise<unknown>) {
 
 <template>
   <div class="space-y-6" data-testid="about-settings-pane">
-    <SettingsSection :title="t('settings.general.about.title')">
+    <UiSettingsSection :title="t('settings.general.about.title')">
       <PreferenceField
         :label="t('common.productName')"
         :description="
@@ -59,8 +59,8 @@ async function perform(action: () => Promise<unknown>) {
         "
       />
       <PreferenceField :label="t('settings.general.about.author')" description="Zan" />
-    </SettingsSection>
-    <SettingsSection :title="t('settings.updates.title')" :description="t('settings.updates.description')">
+    </UiSettingsSection>
+    <UiSettingsSection :title="t('settings.updates.title')" :description="t('settings.updates.description')">
       <PreferenceField
         :label="
           release
@@ -119,6 +119,6 @@ async function perform(action: () => Promise<unknown>) {
           {{ release.notes }}
         </p>
       </div>
-    </SettingsSection>
+    </UiSettingsSection>
   </div>
 </template>

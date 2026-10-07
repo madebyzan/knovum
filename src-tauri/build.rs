@@ -1,5 +1,17 @@
+#[path = "build_support/python_runtime.rs"]
+mod python_runtime;
+
 fn main() {
-    embed_python_runtime_descriptor();
+    println!("cargo:rustc-check-cfg=cfg(knovum_supported_desktop)");
+    let os = std::env::var("CARGO_CFG_TARGET_OS").expect("Cargo target OS");
+    let arch = std::env::var("CARGO_CFG_TARGET_ARCH").expect("Cargo target architecture");
+    if matches!(
+        (os.as_str(), arch.as_str()),
+        ("macos", "aarch64" | "x86_64") | ("windows", "x86_64")
+    ) {
+        println!("cargo:rustc-cfg=knovum_supported_desktop");
+    }
+    python_runtime::embed_descriptors();
     tauri_build::try_build(
         tauri_build::Attributes::new()
             .app_manifest(tauri_build::AppManifest::new().commands(&[
@@ -313,30 +325,4 @@ fn main() {
             ),
     )
     .expect("failed to build Tauri application manifest");
-}
-
-fn embed_python_runtime_descriptor() {
-    for profile in ["INFERENCE", "AGENT"] {
-        let key = format!("KNOVUM_PYTHON_{profile}_DESCRIPTOR_PATH");
-        println!("cargo:rerun-if-env-changed={key}");
-        let bytes = match std::env::var_os(&key) {
-            Some(path) => {
-                println!(
-                    "cargo:rerun-if-changed={}",
-                    std::path::Path::new(&path).display()
-                );
-                std::fs::read(path).expect("read trusted Python runtime descriptor")
-            }
-            None if std::env::var("PROFILE").as_deref() == Ok("release")
-                && std::env::var_os("CARGO_FEATURE_E2E").is_none() =>
-            {
-                panic!("release requires {key}")
-            }
-            None => b"null".to_vec(),
-        };
-        let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join(
-            format!("python-{}-descriptor.json", profile.to_ascii_lowercase()),
-        );
-        std::fs::write(destination, bytes).expect("embed trusted Python runtime descriptor");
-    }
 }

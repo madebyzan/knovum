@@ -8,7 +8,7 @@ from knovum_inference.errors import server_error
 def current_process_resident_bytes() -> int:
     system = platform.system()
     machine = platform.machine().lower()
-    if system == "Darwin" and machine == "arm64":
+    if system == "Darwin" and machine in {"arm64", "x86_64"}:
         value = _macos_resident_bytes()
     elif system == "Windows" and machine in {"amd64", "x86_64"}:
         value = _windows_resident_bytes()

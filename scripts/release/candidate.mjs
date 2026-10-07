@@ -2,9 +2,11 @@ import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { artifactSha256, safeArtifactFilename, verifyReleaseArtifacts } from "./artifacts.mjs";
 import { github, requireDistributionRepository } from "./github.mjs";
-import { httpsUrl, publicKey, readVersion, requireValue } from "./policy.mjs";
+import { httpsUrl, publicKey, readVersion, requireValue, releaseTargets } from "./policy.mjs";
+import { validateRuntimePublications } from "./runtime-publications.mjs";
 import { createManifest } from "./update-manifest.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -25,7 +27,7 @@ const output = join(root, "release-candidate");
 mkdirSync(output, { recursive: false });
 const artifacts = [];
 const installers = [];
-const localInference = [];
+const localRuntimes = [];
 for (const entry of readdirSync(input, { withFileTypes: true })) {
   if (!entry.isDirectory()) throw new Error("Expected one release artifact directory per target");
   const directory = join(input, entry.name);
@@ -48,9 +50,10 @@ for (const entry of readdirSync(input, { withFileTypes: true })) {
     join(directory, `${safeArtifactFilename(part.artifact.file)}.sig`),
     join(output, `${part.artifact.file}.sig`),
   );
-  if (!part.localInference || !/^[a-f0-9]{64}$/u.test(part.localInference.workerDigest ?? ""))
-    throw new Error("Candidate requires the packaged Worker and Python publication identities");
-  localInference.push(part.localInference);
+  const triple = Object.keys(releaseTargets).find((key) => releaseTargets[key] === part.artifact.target);
+  if (!triple) throw new Error("Candidate has an unsupported release target");
+  validateRuntimePublications(part.localRuntimes, runtimeTargetFromTriple(triple));
+  localRuntimes.push({ target: part.artifact.target, ...part.localRuntimes });
   artifacts.push(part.artifact);
   installers.push(...part.installers);
 }
@@ -63,7 +66,7 @@ const candidate = {
   pubDate: new Date().toISOString(),
   artifacts,
   installers,
-  localInference,
+  localRuntimes,
 };
 createManifest({ ...candidate, baseUrl: `https://github.com/${repository}/releases/download/${tag}/` });
 await verifyReleaseArtifacts(output, artifacts, pubkey);

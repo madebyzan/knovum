@@ -92,8 +92,9 @@ pub async fn create_preset_voice(
 pub async fn list_speech_projects(
     app: tauri::AppHandle,
     space_id: String,
+    source_node_id: String,
 ) -> Result<Vec<SpeechProjectOverview>, AppError> {
-    Ok(repository::list_projects(db::pool(&app).await?, &space_id).await?)
+    Ok(repository::list_projects(db::pool(&app).await?, &space_id, &source_node_id).await?)
 }
 
 #[tauri::command]
@@ -115,6 +116,8 @@ pub async fn create_speech_project(
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
+    super::project_source::require(&mut tx, &request.space_id, &request.source_node_id, &config)
+        .await?;
     if let ProjectOutputConfig::Audiobook(config) = &config {
         super::book_assets::require_cover(
             &mut tx,
@@ -128,11 +131,12 @@ pub async fn create_speech_project(
         super::video_config::require_sources(&mut tx, &request.space_id, None, config).await?;
     }
     sqlx::query(
-        "INSERT INTO spaces_speech_projects(id,space_id,project_type,title,active_revision_id,created_at,updated_at) \
-         VALUES(?,?,?,?,NULL,?,?)",
+        "INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,active_revision_id,created_at,updated_at) \
+         VALUES(?,?,?,?,?,NULL,?,?)",
     )
     .bind(&project_id)
     .bind(&request.space_id)
+    .bind(&request.source_node_id)
     .bind(&request.project_type)
     .bind(request.title.trim())
     .bind(now)
@@ -159,11 +163,13 @@ pub async fn create_speech_project(
         .await
         .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(repository::list_projects(pool, &request.space_id)
-        .await?
-        .into_iter()
-        .find(|project| project.id == project_id)
-        .ok_or("Created speech project could not be loaded")?)
+    Ok(
+        repository::list_projects(pool, &request.space_id, &request.source_node_id)
+            .await?
+            .into_iter()
+            .find(|project| project.id == project_id)
+            .ok_or("Created speech project could not be loaded")?,
+    )
 }
 
 #[tauri::command]

@@ -1,10 +1,11 @@
 mod configuration;
+mod ownership;
 
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
 use super::asset_publication::{self, PendingAsset};
 
-async fn database() -> sqlx::SqlitePool {
+pub(super) async fn database() -> sqlx::SqlitePool {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
