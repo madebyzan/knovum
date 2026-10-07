@@ -17,15 +17,18 @@ from knovum_agent_runtime.server import Server
 from knovum_agent_runtime.transport import HostRejected, Peer, ProtocolClosed
 
 
-@pytest.mark.parametrize("obsolete", ["protocol", "graph"])
+@pytest.mark.parametrize("obsolete", ["protocol", "previous_protocol", "graph", "previous_graph"])
 def test_obsolete_runtime_is_rejected_before_opening_checkpoint(tmp_path: Path, obsolete: str) -> None:
     async def run() -> None:
         checkpoint = tmp_path / "checkpoint.sqlite"
         async with AsyncExitStack() as lifetime:
             server = Server(Peer(io.BytesIO(), io.BytesIO()), lifetime)
             request = AgentInitialize(
-                protocol_version=PROTOCOL_VERSION - 1 if obsolete == "protocol" else PROTOCOL_VERSION,
-                graph_version="obsolete" if obsolete == "graph" else GRAPH_VERSION,
+                protocol_version={"protocol": 0, "previous_protocol": 3}.get(obsolete, PROTOCOL_VERSION),
+                graph_version={
+                    "graph": "obsolete",
+                    "previous_graph": GRAPH_VERSION.replace("knovum-agent-v1/", "knovum-agent-v3/"),
+                }.get(obsolete, GRAPH_VERSION),
                 checkpoint_path=str(checkpoint),
             )
             with pytest.raises(HostRejected, match="version-unsupported"):

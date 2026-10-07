@@ -9,7 +9,7 @@ const mediaKnowledge = {
     { startMs: 4000, endMs: 10000, text: "world" },
   ]),
   sourceRevision: "sha256:test",
-  schemaVersion: 5,
+  schemaVersion: 1,
   insights: {
     summary: "Greeting",
     chapters: [{ startMs: 0, endMs: 10_000, title: "Greeting", summary: "A greeting" }],
@@ -32,9 +32,11 @@ function audioWithKnowledge(knowledge: unknown) {
 
 describe("Space media knowledge schema", () => {
   it("rejects obsolete schema and foreign source revisions explicitly", () => {
-    expect(() =>
-      validateSpaceNodePayload(audioWithKnowledge({ ...mediaKnowledge, schemaVersion: 4 })),
-    ).toThrow("schemaVersion");
+    for (const schemaVersion of [0, 2, 4, 5]) {
+      expect(() =>
+        validateSpaceNodePayload(audioWithKnowledge({ ...mediaKnowledge, schemaVersion })),
+      ).toThrow("schemaVersion");
+    }
     const foreign = structuredClone(mediaKnowledge);
     foreign.transcript.sourceRevision = "sha256:another";
     expect(() => validateSpaceNodePayload(audioWithKnowledge(foreign))).toThrow(

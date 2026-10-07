@@ -21,7 +21,7 @@ pub(crate) async fn list(
     let rows = sqlx::query(
         "SELECT id, json_extract(policy_snapshot,'$.workflowId') AS workflow_id
          FROM spaces_runs WHERE kind='workflow' AND home_space_id=$1
-         AND json_extract(policy_snapshot,'$.captureSchemaVersion')=3
+         AND json_extract(policy_snapshot,'$.captureSchemaVersion')=1
          AND json_type(policy_snapshot,'$.workflowDefinition')='object'
          ORDER BY created_at DESC LIMIT 30",
     )

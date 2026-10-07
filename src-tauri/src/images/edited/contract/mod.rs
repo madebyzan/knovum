@@ -55,7 +55,7 @@ impl ImageEdit {
 
     fn identity() -> Self {
         Self {
-            version: 6,
+            version: 1,
             crop: Crop {
                 x: 0.0,
                 y: 0.0,
@@ -87,8 +87,8 @@ impl ImageEdit {
     }
 
     fn validate(&self) -> Result<(), String> {
-        if self.version != 6 {
-            return Err("imageEdit.version must be 6".into());
+        if self.version != 1 {
+            return Err("imageEdit.version must be 1".into());
         }
         finite_range(self.crop.x, 0.0, 1.0, "imageEdit.crop.x")?;
         finite_range(self.crop.y, 0.0, 1.0, "imageEdit.crop.y")?;

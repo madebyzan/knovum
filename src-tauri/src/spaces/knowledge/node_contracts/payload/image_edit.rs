@@ -19,8 +19,8 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         ],
         "imageEdit",
     )?;
-    if edit.get("version").and_then(Value::as_u64) != Some(6) {
-        return Err("imageEdit.version must be 6".into());
+    if edit.get("version").and_then(Value::as_u64) != Some(1) {
+        return Err("imageEdit.version must be 1".into());
     }
     let crop = object_field(edit, "crop")?;
     reject_unknown(crop, ["x", "y", "width", "height"], "imageEdit.crop")?;

@@ -14,9 +14,9 @@ fn valid_media_knowledge() -> Value {
 }
 
 #[test]
-fn accepts_normalized_v5_transcript() {
+fn accepts_normalized_v1_transcript() {
     super::validate(Some(&valid_media_knowledge()), Some("sha256:source"))
-        .expect("valid v5 media transcript");
+        .expect("valid v1 media transcript");
 }
 
 #[test]
@@ -30,13 +30,15 @@ fn accepts_persistent_ids_independent_of_current_positions() {
 }
 
 #[test]
-fn rejects_obsolete_v4_transcript() {
+fn rejects_unsupported_transcript_versions() {
     let mut knowledge = valid_media_knowledge();
-    knowledge["schemaVersion"] = json!(4);
-    assert_eq!(
-        super::validate(Some(&knowledge), Some("sha256:source")).unwrap_err(),
-        "mediaKnowledge schemaVersion must be 5"
-    );
+    for unsupported in [0, 2, 4, 5] {
+        knowledge["schemaVersion"] = json!(unsupported);
+        assert_eq!(
+            super::validate(Some(&knowledge), Some("sha256:source")).unwrap_err(),
+            "mediaKnowledge schemaVersion must be 1"
+        );
+    }
 }
 
 #[test]

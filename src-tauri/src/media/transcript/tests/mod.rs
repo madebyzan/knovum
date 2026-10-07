@@ -31,5 +31,5 @@ pub(crate) fn knowledge_fixture(source_revision: &str, segments: Vec<TranscriptS
         },
     )
     .unwrap();
-    json!({"schemaVersion":5,"sourceRevision":source_revision,"transcript":transcript})
+    json!({"schemaVersion":1,"sourceRevision":source_revision,"transcript":transcript})
 }

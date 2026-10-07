@@ -18,7 +18,7 @@ function fixture(context) {
   writeFileSync(join(source, "server.py"), "application Worker\n");
   copyFileSync(join(source, "server.py"), join(worker, "server.py"));
   const descriptor = {
-    schemaVersion: 2,
+    schemaVersion: 1,
     profile: "inference",
     target: "windows-x64",
     version: "3.11.17",
@@ -56,6 +56,18 @@ function fixture(context) {
 test("desktop payload contains only owned Worker and trusted runtime descriptor", (context) => {
   const sample = fixture(context);
   assert.equal(sample.verify().workerDigest, workerDigest(sample.source));
+});
+
+test("runtime descriptor rejects unsupported schema versions", (context) => {
+  const sample = fixture(context);
+  for (const schemaVersion of [0, 2, 3]) {
+    sample.descriptor.schemaVersion = schemaVersion;
+    sample.save();
+    assert.throws(
+      () => readRuntimeDescriptor(sample.path, "windows-x64", "inference"),
+      /Invalid Python runtime descriptor/,
+    );
+  }
 });
 
 test("desktop payload verifies every application-owned Python capability", (context) => {

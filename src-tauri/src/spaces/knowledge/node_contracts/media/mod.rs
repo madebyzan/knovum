@@ -25,8 +25,8 @@ pub(super) fn validate(
         ["transcript", "sourceRevision", "schemaVersion", "insights"],
         "mediaKnowledge",
     )?;
-    if object.get("schemaVersion").and_then(Value::as_i64) != Some(5) {
-        return Err("mediaKnowledge schemaVersion must be 5".into());
+    if object.get("schemaVersion").and_then(Value::as_i64) != Some(1) {
+        return Err("mediaKnowledge schemaVersion must be 1".into());
     }
     let source_revision = required_string(object, "sourceRevision", 128)?;
     if Some(source_revision) != node_source_revision {

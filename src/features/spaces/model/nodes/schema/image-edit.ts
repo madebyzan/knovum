@@ -15,7 +15,7 @@ const imageCropSchema = z
 
 export const imageEditSchema = z
   .object({
-    version: z.literal(6),
+    version: z.literal(1),
     crop: imageCropSchema,
     rotation: z.number().finite().min(0).lt(360),
     flipHorizontal: z.boolean(),

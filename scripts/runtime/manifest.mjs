@@ -58,7 +58,7 @@ function validateManifestHeader(manifest, target, executable, directory) {
 
 function validManifestShape(manifest, target, executable) {
   if (!exactKeys(manifest, manifestKeys)) return false;
-  if (manifest.schemaVersion !== 3) return false;
+  if (manifest.schemaVersion !== 1) return false;
   if (manifest.runtimeId !== "cpython" || manifest.version !== "3.11.17") return false;
   if (!runtimeProfiles.includes(manifest.profile) || !/^[a-f0-9]{64}$/u.test(manifest.dependencyLockSha256))
     return false;

@@ -111,7 +111,7 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
     } else {
         "bin/python3"
     };
-    if manifest.schema_version != 3
+    if manifest.schema_version != 1
         || manifest.runtime_id != "cpython"
         || manifest.version != "3.11.17"
         || manifest.dependency_requirements_sha256.len() != 64

@@ -15,7 +15,7 @@ export interface ImagePixelRect {
 
 export function defaultImageEdit(): ImageEdit {
   return {
-    version: 6,
+    version: 1,
     crop: { x: 0, y: 0, width: 1, height: 1 },
     rotation: 0,
     flipHorizontal: false,

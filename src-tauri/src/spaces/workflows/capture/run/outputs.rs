@@ -29,7 +29,7 @@ pub(crate) async fn list(
     let space_id: String = row.try_get("home_space_id").map_err(db::sql_error)?;
     let policy: String = row.try_get("policy_snapshot").map_err(db::sql_error)?;
     let policy: Value = serde_json::from_str(&policy).map_err(db::json_error)?;
-    if policy.get("captureSchemaVersion").and_then(Value::as_u64) != Some(3) {
+    if policy.get("captureSchemaVersion").and_then(Value::as_u64) != Some(1) {
         return Err("workflow-run-obsolete: Run uses an older capture definition".into());
     }
     let definition: CaptureCandidate = serde_json::from_value(

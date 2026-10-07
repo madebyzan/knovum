@@ -58,7 +58,7 @@ pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, St
         .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
     if let Some(value) = &descriptor {
         value.sources.validate()?;
-        if value.schema_version != 2
+        if value.schema_version != 1
             || value.profile != profile
             || value.target != crate::local_resources::tools::platform_directory()
             || value.version != "3.11.17"

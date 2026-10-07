@@ -18,7 +18,7 @@ function knowledge(): SpaceMediaKnowledge {
       { startMs: 6000, endMs: 9000, text: "three" },
     ]),
     sourceRevision: "sha256:source",
-    schemaVersion: 5,
+    schemaVersion: 1,
     insights: {
       summary: "Original",
       chapters: [
