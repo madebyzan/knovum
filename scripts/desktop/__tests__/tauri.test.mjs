@@ -74,44 +74,10 @@ test("a failed Tauri command cannot be reported as success", (context) => {
   assert.notEqual(execution.status, 0);
 });
 
-const platform = { darwin: "macos", win32: "windows" }[process.platform];
-if (platform) {
-  test("development binds provisioned host tools before invoking Tauri", (context) => {
-    const sample = fixture(context);
-    const target = `${platform}-${process.arch}`;
-    const directory = join(sample.root, "src-tauri", "resources", "bundled-runtime", target);
-    mkdirSync(directory, { recursive: true });
-    const ffmpeg = join(directory, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
-    writeFileSync(ffmpeg, "fixture");
-    const execution = sample.run(["dev"]);
-    assert.equal(execution.status, 0, execution.stderr);
-    assert.deepEqual(sample.read(), { args: ["dev"], cwd: sample.root, ffmpeg });
-  });
-
-  test("development preserves explicit runtime overrides", (context) => {
-    const sample = fixture(context);
-    const execution = sample.run(["dev"], {
-      KNOVUM_FFMPEG_PATH: "custom ffmpeg",
-    });
-    assert.equal(execution.status, 0, execution.stderr);
-    assert.deepEqual(sample.read(), {
-      args: ["dev"],
-      cwd: sample.root,
-      ffmpeg: "custom ffmpeg",
-    });
-  });
-
-  test("development rejects a missing runtime", (context) => {
-    const sample = fixture(context);
-    const execution = sample.run(["dev"]);
-    assert.notEqual(execution.status, 0);
-    assert.match(execution.stderr, /Development runtime is missing/);
-  });
-} else {
-  test("development rejects unsupported hosts", (context) => {
-    const sample = fixture(context);
-    const execution = sample.run(["dev"]);
-    assert.notEqual(execution.status, 0);
-    assert.match(execution.stderr, /Unsupported desktop development host/);
-  });
-}
+test("development leaves resource resolution to the Rust host", (context) => {
+  const sample = fixture(context);
+  const args = ["dev", "--no-watch"];
+  const execution = sample.run(args);
+  assert.equal(execution.status, 0, execution.stderr);
+  assert.deepEqual(sample.read(), { args, cwd: sample.root });
+});

@@ -3,12 +3,8 @@ name: Controlled Python runtime
 on:
   workflow_dispatch:
     inputs:
-      global_archive_base_url:
-        description: Immutable HTTPS publication directory for both runtime archives and corresponding evidence
-        type: string
-        required: true
-      china_archive_base_url:
-        description: Immutable China HTTPS publication directory for the same runtime archives and evidence
+      archive_base_url:
+        description: Immutable HTTPS publication directory for runtime archives and corresponding evidence
         type: string
         required: true
       production:
@@ -80,13 +76,12 @@ jobs:
           "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signers[0].Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Build locked runtime and verify relocation
         env:
-          KNOVUM_RUNTIME_GLOBAL_ARCHIVE_BASE_URL: ${{ inputs.global_archive_base_url }}
-          KNOVUM_RUNTIME_CHINA_ARCHIVE_BASE_URL: ${{ inputs.china_archive_base_url }}
+          KNOVUM_RUNTIME_ARCHIVE_BASE_URL: ${{ inputs.archive_base_url }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
           KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
         shell: bash
-        run: npm run runtime:build -- --profile ${{ matrix.profile }} --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --global-archive-url "$KNOVUM_RUNTIME_GLOBAL_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz" --china-archive-url "$KNOVUM_RUNTIME_CHINA_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz"
+        run: npm run runtime:build -- --profile ${{ matrix.profile }} --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz"
       - name: Attest produced archive
         uses: actions/attest-build-provenance@v3
         with:

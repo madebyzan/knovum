@@ -77,8 +77,7 @@ async fn install_to_staging(
     let mut downloaded = 0_u64;
     let mut total = None;
     download::to_path(
-        &client,
-        url,
+        client.get(url),
         &archive,
         download::DownloadPolicy {
             maximum_bytes: 256 * 1024 * 1024,

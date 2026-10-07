@@ -20,7 +20,6 @@ import { useProtectedExecutionTargets } from "../../use-protected-execution-targ
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
 import AiRoutingSettings from "../AiRoutingSettings.vue";
 import LocalSpeechResourcesSettings from "../LocalSpeechResourcesSettings.vue";
-import PythonRuntimeSettings from "../PythonRuntimeSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 
 const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
@@ -88,35 +87,36 @@ async function manageModels(purpose: RoutingPurpose) {
 </script>
 
 <template>
-  <SettingsLoadFailure
-    v-if="failure"
-    :message="getErrorMessage(failure.cause)"
-    :can-reset="failure.canReset"
-    @retry="reload"
-    @reset="resetSection"
-  />
-  <div v-else-if="ready">
-    <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
-    <div class="grid gap-5">
-      <AiConnectionsSettings
-        :connections="settings.connections"
-        :create-model-request="createModelRequest"
-        :providers="providers"
-        :protected-connection-ids="protectedConnectionIds"
-        :protected-model-targets="protectedModelTargets"
-      />
-      <AiRoutingSettings
-        :defaults="settings.defaults"
-        :connections="settings.connections"
-        :desktop-agents="settings.desktopAgents"
-        @manage-models="manageModels"
-        @update-route="updateDefaultRoute"
-      />
+  <section data-testid="ai-models-settings-pane" class="min-w-0">
+    <SettingsLoadFailure
+      v-if="failure"
+      :message="getErrorMessage(failure.cause)"
+      :can-reset="failure.canReset"
+      @retry="reload"
+      @reset="resetSection"
+    />
+    <div v-else-if="ready">
+      <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
+      <div class="grid gap-5">
+        <AiConnectionsSettings
+          :connections="settings.connections"
+          :create-model-request="createModelRequest"
+          :providers="providers"
+          :protected-connection-ids="protectedConnectionIds"
+          :protected-model-targets="protectedModelTargets"
+        />
+        <AiRoutingSettings
+          :defaults="settings.defaults"
+          :connections="settings.connections"
+          :desktop-agents="settings.desktopAgents"
+          @manage-models="manageModels"
+          @update-route="updateDefaultRoute"
+        />
+      </div>
     </div>
-  </div>
-  <div v-else class="flex items-center gap-2 text-caption text-fg-secondary" role="status">
-    <UiSpinner size="sm" />{{ t("common.loading") }}
-  </div>
-  <PythonRuntimeSettings />
-  <LocalSpeechResourcesSettings />
+    <div v-else class="flex items-center gap-2 text-caption text-fg-secondary" role="status">
+      <UiSpinner size="sm" />{{ t("common.loading") }}
+    </div>
+    <LocalSpeechResourcesSettings />
+  </section>
 </template>

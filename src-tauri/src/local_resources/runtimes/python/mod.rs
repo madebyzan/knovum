@@ -4,6 +4,7 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
+#[cfg(not(debug_assertions))]
 use tauri::Manager;
 use tauri::{AppHandle, Runtime};
 
@@ -17,6 +18,8 @@ pub(crate) use coordinator::prepare;
 pub(crate) use descriptor::RuntimeStatus;
 pub(crate) use profile::RuntimeProfile;
 
+#[cfg(test)]
+mod tests;
 mod verification;
 
 const MANIFEST_NAME: &str = "runtime-manifest.json";
@@ -155,13 +158,28 @@ pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) ->
     inspect().unwrap_or_else(|message| RuntimeStatus::Invalid { message })
 }
 
-fn worker_root<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> Result<PathBuf, String> {
-    #[cfg(debug_assertions)]
-    if let Some(root) =
-        crate::local_resources::configured_path::configured_path("KNOVUM_PYTHON_WORKER_PATH")?
-    {
-        return checked_worker_root(root, profile);
+pub(crate) fn download_size<R: Runtime>(
+    app: &AppHandle<R>,
+    profile: RuntimeProfile,
+) -> Result<u64, String> {
+    match status(app, profile) {
+        RuntimeStatus::Ready => Ok(0),
+        RuntimeStatus::NotInstalled { download_size } => Ok(download_size),
+        RuntimeStatus::NotPublished => Err("This build cannot download the resources required for this feature. A build with published local resources is required".into()),
+        RuntimeStatus::Invalid { message } => Err(message),
     }
+}
+
+#[cfg(debug_assertions)]
+fn worker_root<R: Runtime>(_: &AppHandle<R>, profile: RuntimeProfile) -> Result<PathBuf, String> {
+    let root = std::env::var_os("KNOVUM_PYTHON_WORKER_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src"));
+    checked_worker_root(root, profile)
+}
+
+#[cfg(not(debug_assertions))]
+fn worker_root<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> Result<PathBuf, String> {
     let root = app
         .path()
         .resource_dir()
@@ -172,7 +190,11 @@ fn worker_root<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> Resul
 
 fn checked_worker_root(root: PathBuf, profile: RuntimeProfile) -> Result<PathBuf, String> {
     if !root.join(profile.entry()).is_file() {
-        return Err("runtime_missing: application Python Worker is missing".into());
+        return Err(format!(
+            "runtime_missing: application Python Worker entry {} is missing in {}",
+            profile.entry(),
+            root.display()
+        ));
     }
     Ok(root)
 }

@@ -1,82 +1,9 @@
-use std::{
-    fs,
-    io::{Read, Write},
-    path::Path,
-};
+use std::{fs, io::Read, path::Path};
 
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager, Runtime};
 
 use super::manifest;
-
-pub(super) fn copy_verified(
-    source: &Path,
-    target: &Path,
-    expected: &manifest::File,
-) -> Result<(), String> {
-    let parent = source
-        .parent()
-        .ok_or("Diarization source file has no parent")?;
-    let parent_metadata = fs::symlink_metadata(parent).map_err(|error| error.to_string())?;
-    if !parent_metadata.is_dir()
-        || parent_metadata.file_type().is_symlink()
-        || is_reparse_point(&parent_metadata)
-    {
-        return Err(format!(
-            "Diarization model directory is linked: {}",
-            expected.path
-        ));
-    }
-    let metadata = fs::symlink_metadata(source)
-        .map_err(|_| format!("Missing diarization model file {}", expected.path))?;
-    if !metadata.is_file()
-        || metadata.file_type().is_symlink()
-        || is_reparse_point(&metadata)
-        || metadata.len() != expected.size
-    {
-        return Err(format!(
-            "Diarization model file metadata differs: {}",
-            expected.path
-        ));
-    }
-    verify_file(source, expected.size, expected.sha256)?;
-    fs::create_dir_all(
-        target
-            .parent()
-            .ok_or("Diarization model file has no parent")?,
-    )
-    .map_err(|error| error.to_string())?;
-    let mut input = fs::File::open(source).map_err(|error| error.to_string())?;
-    let mut output = fs::File::create(target).map_err(|error| error.to_string())?;
-    let mut hash = Sha256::new();
-    let mut copied = 0_u64;
-    let mut buffer = [0_u8; 1024 * 1024];
-    loop {
-        let read = input.read(&mut buffer).map_err(|error| error.to_string())?;
-        if read == 0 {
-            break;
-        }
-        copied += read as u64;
-        if copied > expected.size {
-            return Err(format!(
-                "Diarization model file grew during import: {}",
-                expected.path
-            ));
-        }
-        hash.update(&buffer[..read]);
-        output
-            .write_all(&buffer[..read])
-            .map_err(|error| error.to_string())?;
-    }
-    output.sync_all().map_err(|error| error.to_string())?;
-    if copied != expected.size || hex::encode(hash.finalize()) != expected.sha256 {
-        return Err(format!(
-            "Diarization model file failed verification: {}",
-            expected.path
-        ));
-    }
-    Ok(())
-}
 
 pub(super) fn verify_directory(directory: &Path) -> Result<(), String> {
     verify_regular_directory(directory)?;

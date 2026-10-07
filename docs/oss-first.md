@@ -242,7 +242,7 @@ Space catalog covers and Saved View previews are separate from file previews. `h
 - Windows document thumbnails use `IShellItemImageFactory` through the target-only `windows` crate with only Foundation, GDI, COM and Shell features enabled. `THUMBNAILONLY` deliberately rejects generic icons. Extraction runs on a dedicated STA worker and publishes a PNG into the existing private preview cache.
 - Windows full preview remains a separate `IPreviewHandler` host capability because it requires a native HWND, STA message loop and deterministic handler lifecycle. It is not approximated with a Vue panel or custom Office renderer.
 
-## Regional model downloads reviewed 2026-10-06
+## Catalog-owned model downloads reviewed 2026-10-07
 
 The official [huggingface-hub 1.33.0 download API](https://huggingface.co/docs/huggingface_hub/en/guides/download)
 and [modelscope-hub 0.4.5](https://pypi.org/project/modelscope-hub/0.4.5/) own Hub metadata,
@@ -260,25 +260,26 @@ approved snapshot and passed complete download/resume acceptance in both regions
 must account for mirror publication, redistribution permissions and maintenance, rather than
 only the number of client libraries. Using two SDKs does not establish regional availability.
 
-`knovum_model_resources` is independent of `knovum_inference`. Rust owns the selected regional
+`knovum_model_resources` is independent of `knovum_inference`. Rust owns the catalog-selected
 source, file inventory/SHA-256, cancellation, shared installation and immutable snapshot
 publication. SDK metadata stays with its staging directory, allowing another attempt to resume;
 model weights are not duplicated in a global Hub cache. SDK configuration/cache homes are private
 to Knovum, and public downloads use no personal Hub credentials. Inference receives local paths
 and remains offline.
 
-International uses the official Hugging Face Hub. Mainland China uses separately pinned
-ModelScope repositories for faster-whisper, MLX Whisper, Qwen3 Embedding, VoxCPM2 and Qwen3 Forced
-Aligner. All 28 required files have matching upstream size and SHA-256 metadata; the five config
-files were also downloaded through the official ModelScope SDK and hashed. A repository head commit is used, not a file's last-change
-revision. The profile is persisted explicitly; a failed request never switches provider.
+Each snapshot now declares exactly one Hub source. Qwen3 Embedding, VoxCPM2 and Qwen3 Forced
+Aligner select previously verified ModelScope revisions. Faster-whisper, MLX Whisper, U²-Net and
+Spleeter select their pinned Hugging Face repositories. The earlier comparison established matching
+size/SHA-256 metadata for all 28 required files in five cross-Hub snapshots and downloaded five
+configuration files through the official ModelScope SDK. Those records establish content identity,
+not network availability. File hashes, model inventory and inference identities are unchanged.
 
-U²-Net and Spleeter currently use explicitly selected HF-Mirror endpoints in the China profile.
-Small ranged probes redirected to `us.aws.cdn.hf.co`; a mirror domain alone therefore does not
-establish mainland-China availability. No matching ModelScope copy has been qualified. Release
-requires full anonymous download/cancel/resume acceptance on an actual mainland network. An
-overseas CDN name alone does not prove inaccessibility; if the selected route fails acceptance,
-publish a qualified regional copy with the same audited bytes and update the source catalog.
+The client has no geographic setting, locale/IP-based routing, community HF-Mirror endpoint or
+provider failover. Runtime publications declare one HTTPS archive URL. Worldwide delivery belongs
+to release configuration and distribution infrastructure, with actual anonymous download/cancel/resume
+acceptance required on supported networks. No CDN has been provisioned by this code change; when a
+source cannot pass acceptance, qualify a permitted copy of the same audited bytes and update the
+catalog or publication address before release.
 Kokoro remains an independently verified upstream archive with its existing blocked eSpeak data
 license review; no unqualified Hub copy or replacement model is substituted.
 

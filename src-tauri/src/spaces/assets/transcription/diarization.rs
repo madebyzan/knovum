@@ -19,7 +19,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    local_resources::{models::diarization, preparation, runtimes::python::RuntimeProfile},
+    local_resources::{models::diarization, preparation},
     media::transcript::{
         MediaTranscript, SpeakerTrack as TranscriptSpeakerTrack,
         SpeakerTurn as TranscriptSpeakerTurn, TranscriptDiarizationProvenance,
@@ -67,17 +67,22 @@ pub(crate) async fn diarize_media(
         media_analysis::prepare(&app_for_audio, Path::new(&source_path), &revision, &token)
     })
     .await?;
-    preparation::prepare_python_for_job(
+    let model = preparation::prepare_diarization_for_job(
         app,
-        RuntimeProfile::TorchInference,
         &format!("resource:{job_id}"),
-        "Prepare local speech components",
+        "Preparing speaker recognition resources",
         cancellation,
+        &mut |resources| {
+            let update = MediaTranscriptionProgress {
+                stage: "preparingResources".into(),
+                progress: 0,
+                partial: None,
+                resources: Some(resources),
+            };
+            super::observe(progress, update);
+        },
     )
     .await?;
-    let model = preparation::acquire_verified_diarization(app, cancellation)
-        .await
-        .map_err(|error| format!("local-resource-unavailable: {error}"))?;
     let audio_ref = crate::blocking::run({
         let wav = audio.wav.clone();
         move || audio_reference(&wav)

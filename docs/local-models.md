@@ -15,7 +15,7 @@ Development and CI point to controlled runtime paths through the documented envi
 
 Resource status queries report media-import tools as unavailable on targets absent from the pinned
 manifest without failing the status of other resources. The status retains the unsupported-platform
-identity; preparing those tools still fails explicitly. Python settings distinguish an unsupported
+identity; preparing those tools still fails explicitly. Feature preparation distinguishes an unsupported
 build architecture from missing runtime publication descriptors.
 
 A supported web-media import prepares the exact-pinned yt-dlp executable and Deno JavaScript runtime
@@ -35,22 +35,24 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                         | Model                                                                                                         | Ownership | Product action             |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------- | -------------------------- |
-| Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                                | Knovum    | Prepare on use             |
-| Multilingual media transcription   | `mlx-community/whisper-small-mlx` on macOS arm64; `Systran/faster-whisper-small` on macOS x64 and Windows x64 | Knovum    | Prepare on use             |
-| Preset speech synthesis            | `kokoro-int8-multi-lang-v1_0`                                                                                 | Knovum    | Prepare on use             |
-| Designed-voice synthesis           | `openbmb/VoxCPM2`                                                                                             | Knovum    | Prepare on use             |
-| Selected transcript alignment      | `Qwen3-ForcedAligner-0.6B`                                                                                    | Knovum    | Prepare on use             |
-| Optional speaker diarization       | `pyannote/speaker-diarization-community-1`                                                                    | User      | Import after authorization |
-| Video vocals/background separation | `csukuangfj/sherpa-onnx-spleeter-2stems-fp16` at `93ba771920ade509f8cbd6825b1a90856c797e08`                   | Knovum    | Prepare on use             |
+| Capability                         | Model                                                                                                         | Ownership | Product action                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------- |
+| Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                                | Knovum    | Prepare on use                        |
+| Multilingual media transcription   | `mlx-community/whisper-small-mlx` on macOS arm64; `Systran/faster-whisper-small` on macOS x64 and Windows x64 | Knovum    | Prepare on use                        |
+| Preset speech synthesis            | `kokoro-int8-multi-lang-v1_0`                                                                                 | Knovum    | Prepare on use                        |
+| Designed-voice synthesis           | `openbmb/VoxCPM2`                                                                                             | Knovum    | Prepare on use                        |
+| Selected transcript alignment      | `Qwen3-ForcedAligner-0.6B`                                                                                    | Knovum    | Prepare on use                        |
+| Optional speaker diarization       | `pyannote/speaker-diarization-community-1`                                                                    | Knovum    | Download after official authorization |
+| Video vocals/background separation | `csukuangfj/sherpa-onnx-spleeter-2stems-fp16` at `93ba771920ade509f8cbd6825b1a90856c797e08`                   | Knovum    | Prepare on use                        |
 
 Preparation selects the model snapshot's execution package: native Intel/Windows ASR, background
 removal, separation and Kokoro use `light-inference`; Apple Silicon ASR, embeddings, alignment
 and Community-1 use `torch-inference`; VoxCPM2 uses `voice-generation`. Hub downloads use
-`resources` only when verified snapshots are missing. Settings reports these packages independently;
-a missing publication means the build lacks a qualified resource, not that the computer architecture
-is unsupported. Community-1 import and Kokoro preparation do not require the Hub SDK package.
+`resources` only when verified snapshots are missing. Ordinary settings do not expose package
+profiles or environment preparation controls. First-use preparation inspects required packages and
+missing snapshots before downloading and reports their combined download budget through Task Center.
+A missing publication is a build configuration failure, not an unsupported computer. Community-1
+and Kokoro use direct verified downloads without the Hub SDK package.
 
 The Apple Silicon ASR profile uses the ONNX Silero VAD model packaged with the exact-locked
 `silero-vad==6.2.3` runtime dependency. It evaluates the prepared 16 kHz PCM audio on its original
@@ -68,11 +70,16 @@ upstream tokenizers absent from this reviewed runtime and return
 the worker does not delegate file decoding to Transformers' automatic backend.
 See the [5.13.1 forced-alignment input contract](https://github.com/huggingface/transformers/blob/v5.13.1/src/transformers/models/qwen3_asr/processing_qwen3_asr.py).
 
-Pyannote Community-1 is never downloaded by Knovum. The user accepts the Hugging Face terms in the
-browser and selects a directory containing the four files from revision
-`3533c8cf8e369892e6b79ff1bf80f7b0286a54ee`. Rust verifies their fixed names, sizes and SHA-256 values,
-copies only those files, and writes Knovum's reviewed pipeline configuration. External YAML, Hugging
-Face tokens and network fallback never enter the worker. Diarization is an optional CPU job bounded
+Community-1 uses [official Hugging Face account authorization](https://huggingface.co/pyannote/speaker-diarization-community-1).
+The user saves a read access token through the dedicated model-access command; Rust stores it only
+in the existing secrets database. Status/query data contains only a configured flag. Rust downloads
+the four pinned files from revision `3533c8cf8e369892e6b79ff1bf80f7b0286a54ee` with authenticated
+HTTPS requests, verifies names, sizes and SHA-256 values in staging, writes Knovum's reviewed pipeline
+configuration and atomically publishes the directory. No local folder import or redundant terms
+checkbox remains. The node action and model download button share one capability preparation request
+that includes its Torch dependency package, measured progress and cancellation. HTTP 401/403 fails
+with official-access guidance; no alternate source is used. External YAML and access tokens never
+enter the inference worker. A verified offline installation remains usable after credentials are removed. Diarization is an optional CPU job bounded
 to two hours and speaker bounds from 1 through 32. Rust supplies mono 16 kHz PCM16 WAV;
 Python validates its actual frame count and passes the decoded tensor through
 pyannote's official `waveform` input. This path does not use TorchCodec file decoding
@@ -118,3 +125,13 @@ Summary and Chapters are optional generative media insights. A transcript is per
   These thresholds are product safety gates, not measured performance claims.
 - Discrete GPU: optional for Knovum's core knowledge runtime.
 - Native latency, peak memory and output-quality acceptance remain required on both release targets.
+
+## Visual enrichment result contract
+
+Visual-analysis requests state the node-owned description, detected-text and tag limits. Returned
+JSON passes the same Rust node validator used by persistence; invalid responses identify the field
+and retain `invalid_response`. Limits are generated into Spaces `contract-values.ts` for frontend
+validation. String limits count UTF-16 code units, including whitespace and joined-text separators.
+Results are not clipped, partially accepted or retried through another model to satisfy
+the schema. Prompt constraints improve compliance; they do not guarantee every provider response
+will be valid. Image evidence remains separate from instructions and verbatim detected text.

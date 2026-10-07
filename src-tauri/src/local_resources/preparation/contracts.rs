@@ -12,10 +12,9 @@ pub enum ResourcePreparationTarget {
     SpeechSynthesis,
     SpeechAlignment,
     SpeechSeparation,
+    SpeechDiarization,
     MediaImportTools,
-    PythonRuntime {
-        profile: crate::local_resources::runtimes::python::RuntimeProfile,
-    },
+    BuiltinAgent,
 }
 
 impl ResourcePreparationTarget {
@@ -30,7 +29,7 @@ impl ResourcePreparationTarget {
             Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
-            Self::MediaImportTools | Self::PythonRuntime { .. } => None,
+            Self::SpeechDiarization | Self::MediaImportTools | Self::BuiltinAgent => None,
         }
     }
 }
@@ -55,6 +54,16 @@ pub struct ResourcePreparationProgress {
     pub downloaded: u64,
     pub total: Option<u64>,
     pub percent: Option<u8>,
+}
+
+impl ResourcePreparationProgress {
+    pub(super) fn with_overall_progress(mut self, completed: u64, total: u64) -> Self {
+        self.downloaded += completed;
+        self.total = Some(total);
+        self.percent =
+            (total > 0).then(|| ((self.downloaded.saturating_mul(100) / total).min(100)) as u8);
+        self
+    }
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]

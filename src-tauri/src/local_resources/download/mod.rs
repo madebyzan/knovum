@@ -7,14 +7,17 @@ use tokio_util::sync::CancellationToken;
 const MAX_PARALLEL_TRANSFERS: usize = 2;
 static TRANSFERS: Semaphore = Semaphore::const_new(MAX_PARALLEL_TRANSFERS);
 
+#[derive(Debug)]
 pub(crate) enum DownloadError {
     Network(String),
+    Http { host: String, status: u16 },
     Terminal(String),
 }
 
 impl DownloadError {
     pub(crate) fn message(self) -> String {
         match self {
+            Self::Http { host, status } => format!("{host}: HTTP {status}"),
             Self::Network(message) | Self::Terminal(message) => message,
         }
     }
@@ -36,13 +39,16 @@ pub(crate) struct DownloadPolicy {
 }
 
 pub(crate) async fn to_path(
-    client: &reqwest::Client,
-    url: reqwest::Url,
+    request: reqwest::RequestBuilder,
     path: &Path,
     policy: DownloadPolicy,
     cancellation: &CancellationToken,
     progress: &mut impl FnMut(u64, Option<u64>),
 ) -> Result<(), DownloadError> {
+    let (client, request) = request.build_split();
+    let request =
+        request.map_err(|_| DownloadError::Terminal("Invalid download request".into()))?;
+    let url = request.url().clone();
     let DownloadPolicy {
         maximum_bytes,
         required_bytes,
@@ -62,19 +68,16 @@ pub(crate) async fn to_path(
         _ = cancellation.cancelled() => {
             return Err(DownloadError::Terminal(cancellation_message.to_string()));
         }
-        outcome = tokio::time::timeout(Duration::from_secs(15), client.get(url.clone()).send()) => {
+        outcome = tokio::time::timeout(Duration::from_secs(15), client.execute(request)) => {
             outcome
                 .map_err(|_| DownloadError::Network(format!("{}: response timed out", host(&url))))?
                 .map_err(|_| DownloadError::Network(format!("{}: connection failed", host(&url))))?
         }
     }
     .error_for_status()
-    .map_err(|error| {
-        DownloadError::Network(format!(
-            "{}: HTTP {}",
-            host(&url),
-            error.status().map_or(0, |status| status.as_u16())
-        ))
+    .map_err(|error| DownloadError::Http {
+        host: host(&url).into(),
+        status: error.status().map_or(0, |status| status.as_u16()),
     })?;
     let total = response.content_length();
     if total.is_some_and(|size| size > maximum_bytes) {
@@ -151,3 +154,6 @@ async fn write_response(
 fn host(url: &reqwest::Url) -> &str {
     url.host_str().unwrap_or("unknown")
 }
+
+#[cfg(test)]
+mod tests;

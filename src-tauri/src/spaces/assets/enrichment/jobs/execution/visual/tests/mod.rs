@@ -1,7 +1,7 @@
 use super::*;
 use crate::ai::{
     contracts::ExecutionCapability,
-    tasks::completion::tests::{agent_target, input, ExecutorSpy},
+    tasks::completion::tests::{agent_target, ExecutorSpy},
 };
 #[tokio::test]
 async fn agent_only_visual_uses_prepared_input_without_model_transport() {
@@ -12,20 +12,29 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     let spy = ExecutorSpy::returns(
         r#"{"description":"Visible diagram","detectedText":["Evidence"],"tags":["diagram"]}"#,
     );
-    let mut input = input();
-    input.image = Some(std::path::PathBuf::from(
-        "/authorized/actual-edited-image.png",
-    ));
+    let image = std::path::PathBuf::from("/authorized/actual-edited-image.png");
     let result = interpret(
         &spy,
         agent_target(ExecutionCapability::VisionUnderstanding),
-        input,
+        image,
         tokio_util::sync::CancellationToken::new(),
         &revision,
     )
     .await
     .unwrap();
     spy.assert_agent_only();
+    {
+        let inputs = spy.inputs.lock().unwrap();
+        assert_eq!(inputs[0].max_tokens, Some(8192));
+        for limit in [
+            contract::MAX_DESCRIPTION,
+            contract::MAX_DETECTED_TEXT,
+            contract::MAX_TAGS,
+            contract::MAX_TAG,
+        ] {
+            assert!(inputs[0].instruction.contains(&limit.to_string()));
+        }
+    }
     assert_eq!(
         spy.inputs.lock().unwrap()[0].image.as_deref(),
         Some(std::path::Path::new("/authorized/actual-edited-image.png"))
@@ -57,13 +66,68 @@ async fn invalid_visual_results_are_rejected() {
         assert!(interpret(
             &spy,
             agent_target(ExecutionCapability::VisionUnderstanding),
-            input(),
+            std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
             "rendered-source-revision"
         )
         .await
         .is_err());
         spy.assert_agent_only();
+    }
+}
+
+#[tokio::test]
+async fn oversized_and_empty_visual_fields_are_rejected() {
+    for (description, detected_text, tags, field) in [
+        (" ".into(), vec![], vec![], "description"),
+        ("x".repeat(8_001), vec![], vec![], "description"),
+        (
+            "Diagram".into(),
+            vec!["x".repeat(16_001)],
+            vec![],
+            "detectedText",
+        ),
+        ("Diagram".into(), vec![], vec!["tag".into(); 33], "tags"),
+        ("Diagram".into(), vec![], vec![" ".into()], "tags"),
+        ("Diagram".into(), vec![], vec!["x".repeat(81)], "tags"),
+    ] {
+        let response = serde_json::json!({"description":description, "detectedText":detected_text, "tags":tags}).to_string();
+        let spy = ExecutorSpy::returns(&response);
+        let error = interpret(
+            &spy,
+            agent_target(ExecutionCapability::VisionUnderstanding),
+            std::path::PathBuf::from("/authorized/image.png"),
+            tokio_util::sync::CancellationToken::new(),
+            "source",
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(error.code, "invalid_response");
+        assert!(error.message.contains(&format!("data.{field}")));
+    }
+}
+
+#[tokio::test]
+async fn visual_limits_use_utf16_and_include_text_separators() {
+    for (segments, valid) in [
+        (vec!["x".repeat(7_999), "x".repeat(8_000)], true),
+        (vec!["x".repeat(8_000), "x".repeat(8_000)], false),
+    ] {
+        let response = serde_json::json!({
+            "description": "😀".repeat(4_000), "detectedText": segments,
+            "tags": vec!["😀".repeat(40); 32],
+        })
+        .to_string();
+        let spy = ExecutorSpy::returns(&response);
+        let result = interpret(
+            &spy,
+            agent_target(ExecutionCapability::VisionUnderstanding),
+            std::path::PathBuf::from("/authorized/image.png"),
+            tokio_util::sync::CancellationToken::new(),
+            "source",
+        )
+        .await;
+        assert_eq!(result.is_ok(), valid);
     }
 }
 
@@ -87,7 +151,7 @@ async fn inference_failure_keeps_its_code_and_message() {
         let error = interpret(
             &spy,
             agent_target(ExecutionCapability::VisionUnderstanding),
-            input(),
+            std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
             "source",
         )

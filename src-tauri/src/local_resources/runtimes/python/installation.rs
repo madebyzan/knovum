@@ -29,10 +29,9 @@ pub(super) async fn install<R: Runtime>(
     let staging = parent.join(format!(".{}.installing", descriptor.sha256));
     filesystem::remove_directory(&staging)?;
     fs::create_dir(&staging).map_err(|error| error.to_string())?;
-    let region = crate::local_resources::preferences::region(app)?;
     let prepared = prepare_staging(
         descriptor,
-        descriptor.sources.url(region),
+        &descriptor.archive_url,
         &staging,
         cancellation,
         progress,
@@ -68,8 +67,7 @@ async fn prepare_staging(
 ) -> Result<(), String> {
     let archive_path = staging.join("runtime.tar.gz");
     download::to_path(
-        &download::client()?,
-        reqwest::Url::parse(archive_url).map_err(|error| error.to_string())?,
+        download::client()?.get(archive_url),
         &archive_path,
         download::DownloadPolicy {
             maximum_bytes: descriptor.size,

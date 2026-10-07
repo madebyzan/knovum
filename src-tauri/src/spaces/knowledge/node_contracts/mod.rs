@@ -7,7 +7,7 @@ mod payload;
 mod projection;
 mod scalars;
 mod validation;
-mod visual;
+pub(crate) mod visual;
 
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};

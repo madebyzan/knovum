@@ -63,10 +63,7 @@ async fn terminal_progress_reaches_remaining_waiter() {
 #[test]
 fn cancelled_installation_remains_registered_until_runner_finishes() {
     let kind = ModelKind::FasterWhisperConfig;
-    let identity = ModelIdentity::for_kind(
-        kind,
-        crate::local_resources::preferences::ResourceDownloadRegion::Global,
-    );
+    let identity = catalog::descriptor(kind).snapshot;
     let installation = Installation::new(kind);
     let waiter = installation.join();
     installations()
@@ -89,20 +86,27 @@ fn cancelled_installation_remains_registered_until_runner_finishes() {
 }
 
 #[test]
-fn snapshot_parts_share_installation_but_regions_do_not() {
-    use crate::local_resources::preferences::ResourceDownloadRegion;
-    let weights = ModelIdentity::for_kind(
-        ModelKind::FasterWhisperWeights,
-        ResourceDownloadRegion::Global,
-    );
-    let config = ModelIdentity::for_kind(
-        ModelKind::FasterWhisperConfig,
-        ResourceDownloadRegion::Global,
-    );
+fn snapshot_parts_share_installation_but_different_snapshots_do_not() {
+    let weights = catalog::descriptor(ModelKind::FasterWhisperWeights).snapshot;
+    let config = catalog::descriptor(ModelKind::FasterWhisperConfig).snapshot;
     assert!(weights == config);
-    let china = ModelIdentity::for_kind(
-        ModelKind::FasterWhisperConfig,
-        ResourceDownloadRegion::China,
-    );
-    assert!(china != config);
+    assert!(catalog::descriptor(ModelKind::TextEmbeddingConfig).snapshot != config);
+}
+
+#[test]
+fn combined_progress_keeps_the_full_download_budget_across_phases() {
+    let progress = ResourcePreparationProgress {
+        stage: ResourcePreparationStage::Downloading,
+        downloaded: 100,
+        total: Some(500),
+        percent: Some(20),
+    }
+    .with_overall_progress(1000, 1500);
+    assert_eq!(progress.downloaded, 1100);
+    assert_eq!(progress.total, Some(1500));
+    assert_eq!(progress.percent, Some(73));
+    assert!(matches!(
+        progress.stage,
+        ResourcePreparationStage::Downloading
+    ));
 }

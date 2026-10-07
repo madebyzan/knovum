@@ -32,6 +32,14 @@ pub async fn prepare_resources(
     let (finished_tx, finished_rx) = oneshot::channel();
     tauri::async_runtime::spawn(async move {
         let preparation_outcome = match target {
+            ResourcePreparationTarget::SpeechDiarization => super::prepare_diarization_for_request(
+                &app,
+                request,
+                &CancellationToken::new(),
+                &mut |progress| observe(&on_progress, progress),
+            )
+            .await
+            .map(|_| ()),
             target @ (ResourcePreparationTarget::Transcription
             | ResourcePreparationTarget::TextEmbedding
             | ResourcePreparationTarget::ImageSegmentation
@@ -50,10 +58,9 @@ pub async fn prepare_resources(
                 .await
                 .map(|_| ())
             }
-            ResourcePreparationTarget::PythonRuntime { profile } => {
-                super::prepare_python_for_request(
+            ResourcePreparationTarget::BuiltinAgent => {
+                super::prepare_agent_for_request(
                     &app,
-                    profile,
                     request,
                     &CancellationToken::new(),
                     &mut |progress| observe(&on_progress, progress),

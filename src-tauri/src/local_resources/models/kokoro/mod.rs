@@ -115,8 +115,7 @@ pub(crate) async fn install<R: Runtime>(
     let url = reqwest::Url::parse(&manifest.archive_url).map_err(|error| error.to_string())?;
     let client = download::client()?;
     let download = download::to_path(
-        &client,
-        url,
+        client.get(url),
         &archive_path,
         DownloadPolicy {
             maximum_bytes: manifest.archive_size,

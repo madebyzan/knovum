@@ -171,8 +171,6 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::ai::tasks::stream::TaskStreamEvent::export_all,
         crate::ai::models::ModelTargetSelection::export_all,
         crate::local_resources::LocalResourcesStatus::export_all,
-        crate::local_resources::preferences::ResourceDownloadRegion::export_all,
-        crate::local_resources::models::diarization::DiarizationModelImportReceipt::export_all,
         crate::local_resources::preparation::contracts::ResourcePreparationProgress::export_all,
         crate::local_resources::preparation::contracts::ResourcePreparationSnapshot::export_all,
         crate::ai::usage::contracts::UsageReport::export_all,

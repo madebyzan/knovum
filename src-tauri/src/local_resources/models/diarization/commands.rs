@@ -3,26 +3,24 @@ use tauri::AppHandle;
 
 use crate::{app_error::AppError, local_resources::preparation::locks};
 
-use super::DiarizationModelImportReceipt;
-
 #[tauri::command]
-pub async fn import_diarization_model(
-    app: AppHandle,
-    source_path: String,
-    accepted_terms: bool,
-) -> Result<DiarizationModelImportReceipt, AppError> {
-    if !accepted_terms {
-        return Err(AppError::invalid(
-            "Diarization import requires the user's declaration that official model terms were accepted",
-        ));
+pub async fn set_diarization_access_token(token: Option<String>) -> Result<(), AppError> {
+    match token {
+        Some(token) => {
+            let token = token.trim();
+            if token.is_empty()
+                || token.len() > 4096
+                || reqwest::header::HeaderValue::from_str(&format!("Bearer {token}")).is_err()
+            {
+                return Err(AppError::invalid(
+                    "A valid Hugging Face read access token is required",
+                ));
+            }
+            crate::secrets::write_secret(super::ACCESS_TOKEN_KEY, token).await?;
+        }
+        None => crate::secrets::remove_secret(super::ACCESS_TOKEN_KEY).await?,
     }
-    if source_path.trim().is_empty() {
-        return Err(AppError::invalid(
-            "Diarization import directory is required",
-        ));
-    }
-    let _installation = locks::acquire_diarization_installation().await;
-    Ok(crate::blocking::run(move || super::import(&app, &source_path)).await?)
+    Ok(())
 }
 
 #[tauri::command]

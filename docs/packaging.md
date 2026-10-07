@@ -68,7 +68,7 @@ neither quality dependencies nor application source. All profiles reuse one prod
 Resources and light inference do not convey Torch or VoxCPM; Agent remains independent.
 
 Schema-1 descriptors bind profile, target, interpreter version, dependency lock/requirements hashes,
-regional immutable HTTPS archive URLs, size/SHA-256 and manifest SHA-256. Packaging passes their
+one immutable HTTPS `archiveUrl`, size/SHA-256 and manifest SHA-256. Packaging passes their
 paths through `KNOVUM_PYTHON_<PROFILE>_DESCRIPTOR_PATH`, with uppercase underscore profile names;
 `build.rs` embeds every descriptor. Release requires all five; debug/E2E can explicitly omit
 publications, leaving their capabilities unavailable. Source-only edits do not change runtime
@@ -95,8 +95,10 @@ User models keep their existing app-data lifetime.
 
 Development-only verified-runtime overrides are `KNOVUM_PYTHON_<PROFILE>_MANIFEST_PATH`
 with the same uppercase underscore profile names. `KNOVUM_PYTHON_WORKER_PATH` selects source explicitly;
-`pnpm desktop:dev` sets this checkout's `python/src` and the provisioned FFmpeg path. There is no
-legacy bundle discovery or system-Python fallback. All profiles target macOS arm64/x64 and Windows x64; target qualification gaps are explicit below.
+Rust debug builds select this checkout's `python/src` and provisioned host FFmpeg directory directly.
+`pnpm tauri dev` and `pnpm desktop:dev` share the same resource policy. Explicit invalid overrides
+fail before use; release builds select application resources. There is no PATH search or alternate
+resource discovery after a failure. All profiles target macOS arm64/x64 and Windows x64; target qualification gaps are explicit below.
 
 ## Intel macOS native dependency qualification
 
@@ -122,11 +124,11 @@ The provisioner requires these real, immutable URLs and SHA-256 values (`TARGET`
 - `KNOVUM_PYTHON_<PROFILE>_DESCRIPTOR_<TARGET>_URL` / `_SHA256`;
 - `KNOVUM_PYTHON_<PROFILE>_EVIDENCE_<TARGET>_URL` / `_SHA256`.
 
-`PROFILE` is `INFERENCE` or `AGENT`.
+`PROFILE` is `RESOURCES`, `LIGHT_INFERENCE`, `TORCH_INFERENCE`, `VOICE_GENERATION` or `AGENT`.
 
 The optional `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` applies only to build-time FFmpeg inputs.
 Python publication downloads are anonymous, matching user-side installation. The descriptor's
-selected regional archive URL/hash/size must match the provisioned source, and its manifest/dependency identities
+archive URL/hash/size must match the provisioned source, and its manifest/dependency identities
 must match the actual runtime and checkout's frozen runtime requirements.
 
 On-demand yt-dlp/Deno remain in `local_resources/tools`; they are not packaged. Their existing
@@ -137,8 +139,7 @@ Background removal continues to use ONNX Runtime with the verified on-demand U²
 
 ```bash
 pnpm runtime:build --profile <resources|light-inference|torch-inference|voice-generation|agent> --output <fresh-directory> --signing <adhoc|unsigned|production> \
-  --global-archive-url <immutable-global-https-archive-url> \
-  --china-archive-url <immutable-china-https-archive-url>
+  --archive-url <immutable-https-archive-url>
 ```
 
 The native producer uses the frozen publication group and pinned CPython 3.11.17 standalone
@@ -156,8 +157,8 @@ separate target evidence archive containing producer provenance, frozen requirem
 installed dependency inventory, CycloneDX 1.6 SBOM and pinned corresponding-source archives.
 These evidence/source attachments are offered beside the same immutable runtime version with
 equivalent access. Runtime licenses/notices stay in the conveyed runtime; moving evidence is
-not distribution approval. The workflow's `global_archive_base_url` and `china_archive_base_url` must be actual immutable
-public publication directories serving identical archive bytes. Workflow upload artifacts alone do not publish that URL.
+not distribution approval. The workflow's `archive_base_url` must be an actual immutable public publication directory.
+The publisher owns regional reachability through that stable address and its delivery infrastructure. Workflow upload artifacts alone do not publish that URL.
 
 `python/runtimes/<profile>/dependency-license-review.json` approves each profile's lock/requirements
 digests and exact per-target installed inventory. Voice generation conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper native-source

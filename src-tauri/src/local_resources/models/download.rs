@@ -14,7 +14,6 @@ use super::{
     sources,
 };
 use crate::local_resources::{
-    preferences::ResourceDownloadRegion,
     preparation::{
         contracts::{ResourcePreparationProgress, ResourcePreparationStage},
         RESOURCE_PREPARATION_CANCELLED,
@@ -27,7 +26,6 @@ static DOWNLOADS: Semaphore = Semaphore::const_new(2);
 pub(super) async fn snapshot<R: Runtime>(
     app: &AppHandle<R>,
     snapshot: SnapshotKind,
-    region: ResourceDownloadRegion,
     directory: &Path,
     progress: &mut impl FnMut(ResourcePreparationProgress),
     cancellation: &CancellationToken,
@@ -41,7 +39,7 @@ pub(super) async fn snapshot<R: Runtime>(
         .ok_or("Python runtime is not prepared")?;
     let request = DownloadRequest {
         directory,
-        source: sources::for_snapshot(snapshot, region),
+        source: sources::for_snapshot(snapshot),
         files: snapshot.files(),
     };
     let payload = serde_json::to_vec(&request).map_err(|error| error.to_string())?;

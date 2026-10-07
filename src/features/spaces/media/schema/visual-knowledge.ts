@@ -1,13 +1,21 @@
 import { z } from "zod";
 
 import { executionSourceSchema } from "../../../../foundation/ai/schema/models";
+import { visualKnowledgeLimits } from "../../contracts/generated/contract-values";
+
+function nonEmptyText(maxUnits: number) {
+  return z
+    .string()
+    .refine((value) => value.trim().length > 0, "Must be non-empty")
+    .refine((value) => value.length <= maxUnits, `Must not exceed ${maxUnits} UTF-16 code units`);
+}
 
 export const spaceVisualKnowledgeSchema = z
   .object({
-    sourceRevision: z.string().trim().min(1).max(128),
-    description: z.string().trim().min(1).max(8_000),
-    detectedText: z.string().trim().min(1).max(16_000).optional(),
-    tags: z.array(z.string().trim().min(1).max(80)).max(32),
+    sourceRevision: nonEmptyText(128),
+    description: nonEmptyText(visualKnowledgeLimits.description),
+    detectedText: nonEmptyText(visualKnowledgeLimits.detectedText).optional(),
+    tags: z.array(nonEmptyText(visualKnowledgeLimits.tag)).max(visualKnowledgeLimits.tags),
     generatedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
     executionSource: executionSourceSchema,
   })

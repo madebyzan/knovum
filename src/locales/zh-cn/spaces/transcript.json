@@ -19,10 +19,12 @@
   },
   "speakers": {
     "title": "说话人轨道",
-    "needsModel": "在设置 → AI 模型 → 本地语音资源中导入已授权的 Community-1 模型。",
+    "needsModel": "先为 Community-1 保存官方访问凭据；授权后，应用会自动下载模型。",
     "durationLimit": "说话人分离支持最长两小时的媒体。",
     "minimum": "最少人数（可选）",
     "maximum": "最多人数（可选）",
-    "generate": "识别说话人"
+    "generate": "识别说话人",
+    "configureAccess": "设置模型访问凭据",
+    "firstUse": "首次使用将自动下载本地资源，可在任务中心取消。"
   }
 }

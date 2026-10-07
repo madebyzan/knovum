@@ -3,6 +3,7 @@ import { onScopeDispose, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { updateTaskProgress } from "../../../foundation/runtime/resource-progress";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { EnrichmentJobUpdate } from "../contracts/generated/EnrichmentJobUpdate";
 import {
@@ -30,7 +31,9 @@ export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverCont
       (task) => task.id === payload.jobId && task.producer === ENRICHMENT_TASK_PRODUCER,
     );
     projectMediaProgress(context, payload);
-    if (payload.progress) tasks.progress(payload.jobId, payload.progress.progress, payload.progress.stage);
+    if (payload.progress?.resources) updateTaskProgress(tasks, payload.jobId, payload.progress.resources);
+    else if (payload.progress)
+      tasks.progress(payload.jobId, payload.progress.progress, payload.progress.stage);
     if (payload.data)
       context.applyNodeContentForSpace(
         payload.spaceId,

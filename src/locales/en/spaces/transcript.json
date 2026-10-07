@@ -19,10 +19,12 @@
   },
   "speakers": {
     "title": "Speaker tracks",
-    "needsModel": "Import the authorized Community-1 model in Settings → AI Models → Local speech resources.",
+    "needsModel": "Save Community-1 access credentials first. The application downloads the model after authorization.",
     "durationLimit": "Speaker diarization supports recordings up to two hours.",
     "minimum": "Minimum speakers (optional)",
     "maximum": "Maximum speakers (optional)",
-    "generate": "Identify speakers"
+    "generate": "Identify speakers",
+    "configureAccess": "Configure model access",
+    "firstUse": "Local resources download automatically on first use; cancel in the Task Center."
   }
 }

@@ -12,7 +12,16 @@ export function updateTaskProgress(
     updateRuntimeProgress(tasks, taskId, progress);
     return;
   }
-  if (progress.stage === "queued" || progress.stage === "installing") {
+  if (progress.stage === "queued") {
+    tasks.indeterminate(
+      taskId,
+      progress.total
+        ? i18n.global.t("tasks.localResourceDownloadSize", { size: formatBytes(progress.total) })
+        : undefined,
+    );
+    return;
+  }
+  if (progress.stage === "installing") {
     tasks.indeterminate(taskId);
     return;
   }

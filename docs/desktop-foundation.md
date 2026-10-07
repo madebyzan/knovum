@@ -124,9 +124,12 @@ Spaces authorizes media assets and FFmpeg decodes each source revision to a 16 k
 FFmpeg discovery belongs to `src-tauri/src/local_resources/tools/mod.rs`; managed Python
 publication, installation and verification belong to `local_resources/runtimes/python`. Release/runtime configuration is explicit:
 
-During development, `scripts/desktop/tauri.mjs` binds FFmpeg to the provisioned host directory.
-Python development requires an explicit manifest override or a configured trusted publication.
-Packaged FFmpeg resolves from Resources; Python resolves from its immutable app-data installation.
+Rust selects resource locations by build mode. Development FFmpeg resolves from this checkout’s
+`src-tauri/resources/bundled-runtime/<target>`; development application Workers resolve from
+`python/src`. Both `pnpm tauri dev` and `pnpm desktop:dev` use this policy. The CLI wrapper owns
+argument/cwd forwarding, without injecting resource paths. Python third-party development runtimes
+still require a verified manifest override or a trusted publication. Packaged FFmpeg and application
+Workers resolve from Resources; installed Python runtimes resolve from immutable app-data paths.
 
 - `KNOVUM_FFMPEG_PATH`, or bundled `bundled-runtime/<platform>/ffmpeg[.exe]`;
 - `KNOVUM_PYTHON_<PROFILE>_MANIFEST_PATH` is an explicit development/CI override for a verified runtime; profile names use uppercase underscores (`RESOURCES`, `LIGHT_INFERENCE`, `TORCH_INFERENCE`, `VOICE_GENERATION`, `AGENT`). Release builds use the trusted descriptor and verified app-data runtime.

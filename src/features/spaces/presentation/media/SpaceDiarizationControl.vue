@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { useLocalResourcesQuery } from "../../../../foundation/runtime/resource-query";
@@ -18,6 +19,7 @@ const props = defineProps<{
   disabled: boolean;
 }>();
 const { t } = useI18n();
+const router = useRouter();
 const store = useSpaceStore();
 const resources = useLocalResourcesQuery();
 const minimum = shallowRef("");
@@ -25,6 +27,9 @@ const maximum = shallowRef("");
 const submitting = shallowRef(false);
 const error = shallowRef<string>();
 const installed = computed(() => resources.data.value?.models.diarization.verified === true);
+const accessible = computed(
+  () => installed.value || resources.data.value?.models.diarization.tokenConfigured === true,
+);
 const boundsValid = computed(
   () =>
     [minimum.value, maximum.value].every(
@@ -33,7 +38,7 @@ const boundsValid = computed(
     ) &&
     (!minimum.value.trim() || !maximum.value.trim() || Number(minimum.value) <= Number(maximum.value)),
 );
-const canStart = computed(() => installed.value && boundsValid.value && props.durationMs <= 7_200_000);
+const canStart = computed(() => accessible.value && boundsValid.value && props.durationMs <= 7_200_000);
 
 async function start() {
   const spaceId = store.activeSpaceId;
@@ -62,8 +67,18 @@ async function start() {
     <p class="text-caption font-medium text-fg-secondary">
       {{ t("spaces.transcript.speakers.title") }} · {{ speakerCount }}
     </p>
-    <p v-if="!installed" class="text-caption text-fg-tertiary">
+    <p v-if="!accessible" class="text-caption text-fg-tertiary">
       {{ t("spaces.transcript.speakers.needsModel") }}
+    </p>
+    <UiButton
+      v-if="!accessible"
+      size="sm"
+      variant="ghost"
+      @click="router.push({ path: '/settings', query: { pane: 'aiModels' } })"
+      >{{ t("spaces.transcript.speakers.configureAccess") }}</UiButton
+    >
+    <p v-else-if="!installed" class="text-caption text-fg-tertiary">
+      {{ t("spaces.transcript.speakers.firstUse") }}
     </p>
     <p v-if="durationMs > 7_200_000" class="text-caption text-fg-tertiary">
       {{ t("spaces.transcript.speakers.durationLimit") }}
@@ -77,7 +92,7 @@ async function start() {
           size="sm"
           min="1"
           max="32"
-          :disabled="disabled || submitting || !installed"
+          :disabled="disabled || submitting || !accessible"
         />
       </label>
       <label class="text-caption text-fg-secondary"
@@ -88,13 +103,15 @@ async function start() {
           size="sm"
           min="1"
           max="32"
-          :disabled="disabled || submitting || !installed"
+          :disabled="disabled || submitting || !accessible"
         />
       </label>
     </div>
     <UiButton size="sm" :disabled="disabled || submitting || !canStart" @click="start">{{
       t("spaces.transcript.speakers.generate")
     }}</UiButton>
-    <p v-if="error" class="text-caption text-fg-danger" role="alert">{{ error }}</p>
+    <p v-if="error || resources.error.value" class="text-caption text-fg-danger" role="alert">
+      {{ error ?? getErrorMessage(resources.error.value) }}
+    </p>
   </section>
 </template>

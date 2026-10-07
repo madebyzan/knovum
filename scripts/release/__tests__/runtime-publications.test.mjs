@@ -14,7 +14,7 @@ function publication() {
       version: "3.11.17",
       dependencyRequirementsSha256: "b".repeat(64),
       dependencyLockSha256: "c".repeat(64),
-      sources: { global: "https://example.test/runtime", china: "https://china.example.test/runtime" },
+      archiveUrl: "https://example.test/runtime",
       size: 123,
       sha256: "d".repeat(64),
       manifestSha256: "e".repeat(64),

@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use tauri::{AppHandle, Manager, Runtime};
+#[cfg(not(debug_assertions))]
+use tauri::Manager;
+use tauri::{AppHandle, Runtime};
 
 mod catalog;
 mod coordinator;
@@ -25,11 +27,17 @@ pub(crate) struct PreparedMediaImportTools {
     pub(crate) deno: PathBuf,
 }
 
-fn bundled_runtime_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
+#[cfg(debug_assertions)]
+fn bundled_runtime_dir<R: Runtime>(_: &AppHandle<R>) -> Result<PathBuf, String> {
+    Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/bundled-runtime"))
+}
+
+#[cfg(not(debug_assertions))]
+fn bundled_runtime_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
     app.path()
         .resource_dir()
-        .ok()
-        .map(|directory| directory.join("resources").join("bundled-runtime"))
+        .map(|directory| directory.join("resources/bundled-runtime"))
+        .map_err(|error| error.to_string())
 }
 
 pub fn resolve_tool<R: Runtime>(
@@ -40,9 +48,7 @@ pub fn resolve_tool<R: Runtime>(
     if let Some(path) = super::configured_path::configured_path(env_key)? {
         return Ok(Some(path));
     }
-    let Some(directory) = bundled_runtime_dir(app) else {
-        return Ok(None);
-    };
+    let directory = bundled_runtime_dir(app)?;
     let candidate = directory.join(platform_directory()).join(file_name);
     Ok(candidate.is_file().then_some(candidate))
 }

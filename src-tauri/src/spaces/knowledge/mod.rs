@@ -8,7 +8,7 @@ pub(crate) mod health;
 pub(crate) mod indexing;
 pub(crate) mod invalidation;
 pub(crate) mod locator;
-pub(in crate::spaces) mod node_contracts;
+pub(crate) mod node_contracts;
 pub(crate) mod object_references;
 pub(crate) mod object_types;
 pub(crate) mod provenance;
