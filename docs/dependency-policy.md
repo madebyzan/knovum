@@ -205,7 +205,7 @@ upgrade. Peer conflicts are resolved through compatible releases, not ignored or
 | Dependency family | Accepted selection | Reason a newer release is retained outside the selection                                                                                                                                                                           |
 | ----------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | TypeScript        | 6.0.3              | [TypeScript 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/) does not ship the compiler API required by current vue-tsc.                                                                                   |
-| WebdriverIO       | Latest 9.x         | Tauri service 1.4.0 declares `webdriverio ^9.0.0`. Its pinned old globals also requests expect-webdriverio 5 while current globals requests 6; this upstream peer warning remains visible.                                         |
+| WebdriverIO       | 9.29.1 / 9.30.1    | Tauri service 1.4.0 pins globals 9.29.1 with expect-webdriverio 5. CLI, runner and adapters use compatible 9.30.1 releases; newer releases require expect-webdriverio 6 or WebdriverIO 10. Strict peer checks pass.                |
 | LanceDB           | Exact 0.37.1       | 0.39 fails compilation with the local feature set: job.rs uses `Error::Http` while error.rs gates it behind `remote`. Inspection confirms the same defect in 0.38. No remote feature or vendor patch is added to a local database. |
 | Arrow             | 58.4.0             | LanceDB's public Arrow types require major 58; major 60 cannot be mixed at that boundary.                                                                                                                                          |
 | sse-stream        | 0.2.6              | RMCP 3.5.1 exposes the 0.2 SSE type in its public client trait; 0.3 changes that type.                                                                                                                                             |
@@ -217,6 +217,10 @@ Its new streaming `seed` parameter receives the selected seed directly; a preced
 `torch.manual_seed` no longer controls the SDK's own seeding. The regression verifies this
 handoff. CPAL 0.18 uses a numeric sample rate, owned stream configuration and typed error kinds;
 permission classification no longer searches localized error messages.
+
+The remote resource request boxes its HTTP transport future at the acquisition boundary.
+This keeps Reqwest's concrete transport type out of ACP's nested session futures while
+preserving cancellation and resource validation; the crate's recursion limit is unchanged.
 
 Knip 6's stricter export analysis removes unused handwritten exports and unreachable functions.
 Generated Rust-owned IPC DTO types are excluded only from the unused-type rule because native
