@@ -1,9 +1,10 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
+import { getLocalResourcesStatus, textEmbeddingReady } from "../../../../foundation/runtime/local-resources";
 import { indexKnowledgeRetrieval } from "../persistence/retrieval-index";
 
-export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unavailable";
+export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unprepared" | "unavailable";
 type StatusListener = (status: KnowledgeIndexStatus) => void;
 
 interface SpaceIndexState {
@@ -90,12 +91,10 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
   state.full = false;
   state.nodeIds.clear();
   state.running = true;
-  setStatus(spaceId, "indexing");
-  let failed = false;
+  let outcome: KnowledgeIndexStatus = "unavailable";
   try {
-    await indexKnowledgeRetrieval(spaceId, nodeIds);
+    outcome = await indexIfReady(spaceId, state, nodeIds);
   } catch (error) {
-    failed = true;
     void logError(`Knowledge semantic indexing failed: ${formatErrorDiagnostic(error)}`);
   } finally {
     state.running = false;
@@ -109,7 +108,19 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
     schedulePending(spaceId, state, 0);
     return;
   }
-  setStatus(spaceId, failed ? "unavailable" : "ready");
+  setStatus(spaceId, outcome);
+}
+
+async function indexIfReady(
+  spaceId: string,
+  state: SpaceIndexState,
+  nodeIds: string[] | undefined,
+): Promise<KnowledgeIndexStatus> {
+  const resources = await getLocalResourcesStatus();
+  if (states.get(spaceId) !== state || !textEmbeddingReady(resources)) return "unprepared";
+  setStatus(spaceId, "indexing");
+  await indexKnowledgeRetrieval(spaceId, nodeIds);
+  return "ready";
 }
 
 function setStatus(spaceId: string, status: KnowledgeIndexStatus) {
