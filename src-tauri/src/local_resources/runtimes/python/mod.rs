@@ -11,12 +11,16 @@ use tauri::{AppHandle, Runtime};
 mod archive;
 mod coordinator;
 mod descriptor;
+#[cfg(debug_assertions)]
+mod development;
+#[cfg(not(debug_assertions))]
 mod installation;
 mod profile;
 mod retention;
 pub(crate) use coordinator::prepare;
 pub(crate) use descriptor::RuntimeStatus;
 pub(crate) use profile::RuntimeProfile;
+pub(crate) use retention::RuntimeLease;
 
 #[cfg(test)]
 mod tests;
@@ -32,7 +36,7 @@ pub(crate) struct PythonRuntimePaths {
     pub(crate) package_root: PathBuf,
     pub(crate) digest: String,
     pub(crate) worker_root: PathBuf,
-    pub(crate) lease: Option<std::sync::Arc<std::fs::File>>,
+    pub(crate) lease: Option<std::sync::Arc<RuntimeLease>>,
 }
 
 pub(crate) fn verify_before_spawn(runtime: &PythonRuntimePaths) -> Result<(), String> {
@@ -46,7 +50,7 @@ pub(crate) fn verify_before_spawn(runtime: &PythonRuntimePaths) -> Result<(), St
         &bytes,
         digest,
         &tokio_util::sync::CancellationToken::new(),
-        descriptor::embedded(runtime.profile)?.as_ref(),
+        verification_descriptor(runtime.profile)?.as_ref(),
         runtime.profile,
     )?;
     if current.0 != runtime.executable || current.1 != runtime.package_root {
@@ -62,14 +66,14 @@ pub(crate) fn resolve<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,
 ) -> Result<Option<PythonRuntimePaths>, String> {
-    let manifest_path = match configured_manifest(profile)? {
-        Some(path) => path,
-        None => match descriptor::embedded(profile)? {
-            Some(value) => descriptor::destination(app, &value)?.join(MANIFEST_NAME),
-            None => return Ok(None),
-        },
+    #[cfg(debug_assertions)]
+    let manifest_path = profile.development_manifest();
+    #[cfg(not(debug_assertions))]
+    let manifest_path = match descriptor::embedded(profile)? {
+        Some(value) => descriptor::destination(app, &value)?.join(MANIFEST_NAME),
+        None => return Ok(None),
     };
-    let lease = if configured_manifest(profile)?.is_some() {
+    let lease = if cfg!(debug_assertions) {
         None
     } else {
         if !manifest_path.is_file() {
@@ -116,7 +120,7 @@ pub(crate) fn resolve<R: Runtime>(
         &manifest_bytes,
         digest.clone(),
         &tokio_util::sync::CancellationToken::new(),
-        descriptor::embedded(profile)?.as_ref(),
+        verification_descriptor(profile)?.as_ref(),
         profile,
     )?;
     let paths = PythonRuntimePaths {
@@ -132,23 +136,12 @@ pub(crate) fn resolve<R: Runtime>(
     Ok(Some(paths))
 }
 
-#[cfg(debug_assertions)]
-fn configured_manifest(profile: RuntimeProfile) -> Result<Option<PathBuf>, String> {
-    super::super::configured_path::configured_path(profile.manifest_key())
-}
-
-#[cfg(not(debug_assertions))]
-fn configured_manifest(_profile: RuntimeProfile) -> Result<Option<PathBuf>, String> {
-    Ok(None)
-}
-
 pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> RuntimeStatus {
     let inspect = || -> Result<RuntimeStatus, String> {
-        let descriptor = descriptor::embedded(profile)?;
         if resolve(app, profile)?.is_some() {
             return Ok(RuntimeStatus::Ready);
         }
-        Ok(match descriptor {
+        Ok(match verification_descriptor(profile)? {
             Some(value) => RuntimeStatus::NotInstalled {
                 download_size: value.size,
             },
@@ -161,20 +154,39 @@ pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) ->
 pub(crate) fn download_size<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,
-) -> Result<u64, String> {
+) -> Result<Option<u64>, String> {
     match status(app, profile) {
-        RuntimeStatus::Ready => Ok(0),
-        RuntimeStatus::NotInstalled { download_size } => Ok(download_size),
-        RuntimeStatus::NotPublished => Err("This build cannot download the resources required for this feature. A build with published local resources is required".into()),
+        RuntimeStatus::Ready => Ok(Some(0)),
+        RuntimeStatus::NotInstalled { download_size } => Ok(Some(download_size)),
+        RuntimeStatus::NotPublished => {
+            #[cfg(debug_assertions)]
+            {
+                Ok(None)
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                Err("This build cannot download the resources required for this feature. A build with published local resources is required".into())
+            }
+        }
         RuntimeStatus::Invalid { message } => Err(message),
     }
 }
 
+fn verification_descriptor(
+    profile: RuntimeProfile,
+) -> Result<Option<descriptor::Descriptor>, String> {
+    #[cfg(debug_assertions)]
+    {
+        let _ = profile;
+        Ok(None)
+    }
+    #[cfg(not(debug_assertions))]
+    descriptor::embedded(profile)
+}
+
 #[cfg(debug_assertions)]
 fn worker_root<R: Runtime>(_: &AppHandle<R>, profile: RuntimeProfile) -> Result<PathBuf, String> {
-    let root = std::env::var_os("KNOVUM_PYTHON_WORKER_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src"));
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src");
     checked_worker_root(root, profile)
 }
 
@@ -204,20 +216,23 @@ pub(crate) fn required_digest<R: Runtime>(
     profile: RuntimeProfile,
 ) -> Result<String, String> {
     #[cfg(debug_assertions)]
-    if configured_manifest(profile)?.is_some() {
-        return resolve(app, profile)?
+    {
+        resolve(app, profile)?
             .map(|runtime| runtime.digest)
-            .ok_or_else(|| "runtime_missing: configured development runtime is missing".into());
+            .ok_or_else(|| "runtime_missing: prepared development runtime is missing".into())
     }
-    let _ = app;
-    Ok(descriptor::required(profile)?.manifest_sha256)
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = app;
+        Ok(descriptor::required(profile)?.manifest_sha256)
+    }
 }
 
 pub(super) fn retire_unused<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,
 ) -> Result<(), String> {
-    if let Some(value) = descriptor::embedded(profile)? {
+    if let Some(value) = verification_descriptor(profile)? {
         retention::retire_unused(&descriptor::destination(app, &value)?)?;
     }
     Ok(())

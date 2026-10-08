@@ -5,11 +5,12 @@ import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/Sa
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import { useSpaceStore } from "../session/space-store";
 import { getSpeechProject, listSpeechProjects, saveSpeechProjectRevision } from "./ipc";
+import type { NodeSpeechProjectType } from "./node-speech";
 import { useSpeechGeneration } from "./use-speech-generation";
 import { useSpeechProjectCreation } from "./use-speech-project-creation";
 import { useSpeechVoices } from "./use-speech-voices";
 
-export function useSpeechWorkspace(sourceNodeId: () => string) {
+export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () => NodeSpeechProjectType) {
   const store = useSpaceStore();
   const projects = shallowRef<Awaited<ReturnType<typeof listSpeechProjects>>>([]);
   const loading = shallowRef(false);
@@ -29,7 +30,11 @@ export function useSpeechWorkspace(sourceNodeId: () => string) {
     error.value = message;
   }
   function belongsToNode(project: SpeechProjectSnapshot, spaceId: string) {
-    return project.project.spaceId === spaceId && project.project.sourceNodeId === sourceNodeId();
+    return (
+      project.project.spaceId === spaceId &&
+      project.project.sourceNodeId === sourceNodeId() &&
+      project.project.projectType === projectType()
+    );
   }
 
   const voiceLibrary = useSpeechVoices({
@@ -84,7 +89,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string) {
       ]);
       if (epoch !== refreshEpoch) return;
       voiceLibrary.replace(nextVoices);
-      projects.value = nextProjects;
+      projects.value = nextProjects.filter((project) => project.projectType === projectType());
     } catch (cause) {
       if (epoch === refreshEpoch) error.value = getErrorMessage(cause);
     } finally {
@@ -141,14 +146,18 @@ export function useSpeechWorkspace(sourceNodeId: () => string) {
     }
   }
 
-  watch([() => store.activeSpaceId, sourceNodeId], () => void refresh(), { immediate: true, flush: "sync" });
+  watch([() => store.activeSpaceId, sourceNodeId, projectType], () => void refresh(), {
+    immediate: true,
+    flush: "sync",
+  });
   return {
     voices: voiceLibrary.voices,
+    creatingVoice: voiceLibrary.creating,
+    addPresetVoice: voiceLibrary.addPreset,
     projects: readonly(projects),
     loading: readonly(loading),
     error: readonly(error),
     selectedProject: readonly(selectedProject),
-    creatingVoice: voiceLibrary.creating,
     creatingProject: projectCreation.creating,
     savingRevision: readonly(savingRevision),
     preview: generation.preview,
@@ -158,9 +167,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string) {
     activeJobId: generation.activeJobId,
     generationSubmitting: generation.submitting,
     generationCancelling: generation.cancelling,
-    addPreset: voiceLibrary.addPreset,
     addProject: projectCreation.add,
-    acceptVoice: voiceLibrary.accept,
     refreshVoices: voiceLibrary.refresh,
     openProject,
     saveRevision,

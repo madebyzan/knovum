@@ -6,14 +6,15 @@ use tauri::AppHandle;
 
 use models::{catalog::ModelKind, ModelStatus};
 
-mod configured_path;
 mod download;
 mod filesystem;
+pub(crate) mod model_catalog;
+pub(crate) mod model_commands;
+mod model_metadata;
+pub(crate) mod model_selection;
 pub(crate) mod models;
 pub(crate) mod preparation;
 pub(crate) mod runtimes;
-#[cfg(test)]
-mod tests;
 pub(crate) mod tools;
 mod verification;
 
@@ -26,7 +27,6 @@ pub struct LocalResourcesStatus {
     deno: ToolStatus,
     python_runtimes: PythonRuntimeStatuses,
     models: ModelStatuses,
-    kokoro: models::kokoro::KokoroPackageStatus,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -61,21 +61,18 @@ struct ModelStatuses {
     voxcpm2: Vec<ModelStatus>,
     speech_alignment: Vec<ModelStatus>,
     speech_separation: Vec<ModelStatus>,
-    diarization: models::diarization::DiarizationModelStatus,
+    diarization: Vec<ModelStatus>,
 }
 
 #[tauri::command]
 pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError> {
-    let token_configured = crate::secrets::read_secret(models::diarization::ACCESS_TOKEN_KEY)
-        .await?
-        .is_some();
-    Ok((crate::blocking::run(move || status(&app, token_configured)).await)?)
+    Ok(crate::blocking::run(move || status(&app)).await?)
 }
 
-fn status(app: &AppHandle, token_configured: bool) -> Result<LocalResourcesStatus, String> {
+fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
-        ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
+        ffmpeg: tool_status_from_path(tools::resolve_ffmpeg(app)?),
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
         python_runtimes: PythonRuntimeStatuses {
@@ -94,19 +91,25 @@ fn status(app: &AppHandle, token_configured: bool) -> Result<LocalResourcesStatu
             ),
             agent: runtimes::python::status(app, runtimes::python::RuntimeProfile::Agent),
         },
-        models: model_statuses(app, token_configured)?,
-        kokoro: models::kokoro::status(app)?,
+        models: model_statuses(app)?,
     })
 }
 
-fn model_statuses(app: &AppHandle, token_configured: bool) -> Result<ModelStatuses, String> {
+fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
     Ok(ModelStatuses {
-        transcription: models::catalog::TRANSCRIPTION_MODELS
+        transcription: model_selection::transcription(app)?
+            .transcription_models()
             .iter()
             .copied()
             .map(|kind| model_status(app, kind))
             .collect::<Result<Vec<_>, _>>()?,
-        image_segmentation: model_status(app, ModelKind::ImageSegmentation)?,
+        image_segmentation: model_status(
+            app,
+            model_selection::image_segmentation(app)?
+                .snapshot()
+                .expect("Image model owns a snapshot")
+                .models()[0],
+        )?,
         text_embedding_config: model_status(app, ModelKind::TextEmbeddingConfig)?,
         text_embedding_modules: model_status(app, ModelKind::TextEmbeddingModules)?,
         text_embedding_pooling_config: model_status(app, ModelKind::TextEmbeddingPoolingConfig)?,
@@ -135,18 +138,19 @@ fn model_statuses(app: &AppHandle, token_configured: bool) -> Result<ModelStatus
             .copied()
             .map(|kind| model_status(app, kind))
             .collect::<Result<Vec<_>, _>>()?,
-        diarization: models::diarization::status(app, token_configured)?,
+        diarization: model_selection::speech_diarization(app)?
+            .snapshot()
+            .expect("Diarization owns a snapshot")
+            .models()
+            .iter()
+            .copied()
+            .map(|kind| model_status(app, kind))
+            .collect::<Result<Vec<_>, _>>()?,
     })
 }
 
 fn model_status(app: &AppHandle, model: ModelKind) -> Result<ModelStatus, String> {
     models::status(app, models::catalog::descriptor(model))
-}
-
-fn tool_status(app: &AppHandle, env_key: &str, name: &str) -> Result<ToolStatus, String> {
-    Ok(tool_status_from_path(tools::resolve_tool(
-        app, env_key, name,
-    )?))
 }
 
 fn tool_status_from_path(path: Option<PathBuf>) -> ToolStatus {

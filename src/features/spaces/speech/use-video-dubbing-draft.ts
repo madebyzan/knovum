@@ -13,14 +13,14 @@ import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { selectBackground, selectSeparatedBackground } from "./video-background-selection";
 import {
   applyTranslation as applyTranslatedLines,
-  milliseconds,
+  bindVideoSpeaker,
   translationInputs as buildTranslationInputs,
-  validVideoWindow,
+  videoLineIsValid,
   videoLineFromSegment,
   type VideoLineDraft,
 } from "./video-dubbing-draft";
 import { videoRevisionInput } from "./video-revision-input";
-import { defaultVoiceRevisionId } from "./voice-options";
+import { defaultVoiceRevisionId, voiceSupportsDeliveryInstruction } from "./voice-options";
 export function useVideoDubbingDraft(
   project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
@@ -54,6 +54,7 @@ export function useVideoDubbingDraft(
       text: "",
       speakerKey: "",
       voiceRevisionId: defaultVoiceRevisionId(voices()),
+      deliveryInstruction: "",
       startSeconds: "0",
       endSeconds: "1",
       needsTimingEdit: false,
@@ -65,6 +66,7 @@ export function useVideoDubbingDraft(
       text: segment.text,
       speakerKey: segment.speakerId ?? "",
       voiceRevisionId: defaultVoiceRevisionId(voices()),
+      deliveryInstruction: "",
       startSeconds: String(segment.startMs / 1000),
       endSeconds: String(segment.endMs / 1000),
       needsTimingEdit: false,
@@ -85,6 +87,7 @@ export function useVideoDubbingDraft(
       text: cue.text,
       speakerKey: cue.speakerKey,
       voiceRevisionId: defaultVoiceRevisionId(voices()),
+      deliveryInstruction: "",
       startSeconds: String(cue.startMs / 1000),
       endSeconds: String(cue.endMs / 1000),
       needsTimingEdit: false,
@@ -97,8 +100,11 @@ export function useVideoDubbingDraft(
       };
   }
   function bindSpeaker(speakerKey: string, voiceRevisionId: string) {
-    lines.value = lines.value.map((line) =>
-      line.speakerKey.trim() === speakerKey ? { ...line, voiceRevisionId } : line,
+    lines.value = bindVideoSpeaker(
+      lines.value,
+      speakerKey,
+      voiceRevisionId,
+      voiceSupportsDeliveryInstruction(voices(), voiceRevisionId),
     );
   }
   function removeLine(index: number) {
@@ -118,17 +124,7 @@ export function useVideoDubbingDraft(
   const valid = computed(
     () =>
       lines.value.length > 0 &&
-      lines.value.every((line) => {
-        const start = milliseconds(line.startSeconds);
-        const end = milliseconds(line.endSeconds);
-        return (
-          line.text.trim() &&
-          voices().some((voice) => voice.revisionId === line.voiceRevisionId) &&
-          line.startSeconds.trim() &&
-          line.endSeconds.trim() &&
-          validVideoWindow(start, end, config.value?.video.durationMs ?? 0)
-        );
-      }) &&
+      lines.value.every((line) => videoLineIsValid(line, voices(), config.value?.video.durationMs ?? 0)) &&
       lexicon.isValid.value &&
       [voiceGain.value, backgroundGain.value].every(
         (gain) => gain.trim() && Number.isFinite(Number(gain)) && Number(gain) >= -30 && Number(gain) <= 6,

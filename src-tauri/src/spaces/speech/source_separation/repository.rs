@@ -4,7 +4,7 @@ use sqlx::{Row, SqlitePool};
 
 use super::{
     contracts::{SpeechSourceSeparationCandidate, SpeechSourceSeparationReviewStatus},
-    review_warning, MODEL_SPEC_ID,
+    review_warning, SeparationConfiguration,
 };
 use crate::{
     ai::local_runtime::separation,
@@ -20,27 +20,43 @@ pub(super) async fn load_candidate(
         .ok_or("Source separation candidate is unavailable".into())
 }
 
+macro_rules! candidate_query {
+    ($predicate:literal) => {
+        concat!("SELECT id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_duration_ms,review_status,review_warning FROM spaces_speech_source_separations ", $predicate)
+    };
+}
+
 pub(super) async fn load_candidate_optional(
     pool: &SqlitePool,
     separation_id: &str,
 ) -> Result<Option<SpeechSourceSeparationCandidate>, String> {
-    let row = sqlx::query(
-        "SELECT id,space_id,run_id,source_asset_path,source_revision,source_duration_ms, \
-         model_spec_id,background_asset_path,background_sha256,background_duration_ms, \
-         review_status,review_warning FROM spaces_speech_source_separations WHERE id=?",
-    )
-    .bind(separation_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?;
-    let Some(row) = row else {
-        return Ok(None);
-    };
+    sqlx::query(candidate_query!("WHERE id=?"))
+        .bind(separation_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(db::sql_error)?
+        .map(candidate_from_row)
+        .transpose()
+}
+
+pub(super) async fn accepted_for_source(
+    pool: &SqlitePool,
+    space_id: &str,
+    source: &SpeechMediaSource,
+) -> Result<Vec<SpeechSourceSeparationCandidate>, String> {
+    sqlx::query(candidate_query!("WHERE space_id=? AND source_asset_path=? AND source_revision=? AND review_status='accepted' ORDER BY created_at DESC,id DESC"))
+        .bind(space_id).bind(&source.asset_path).bind(&source.source_revision)
+        .fetch_all(pool).await.map_err(db::sql_error)?.into_iter().map(candidate_from_row).collect()
+}
+
+fn candidate_from_row(
+    row: sqlx::sqlite::SqliteRow,
+) -> Result<SpeechSourceSeparationCandidate, String> {
     let duration = |column: &str| -> Result<u64, String> {
         u64::try_from(row.try_get::<i64, _>(column).map_err(db::sql_error)?)
             .map_err(|_| "Source separation duration is invalid".into())
     };
-    Ok(Some(SpeechSourceSeparationCandidate {
+    Ok(SpeechSourceSeparationCandidate {
         separation_id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         run_id: row.try_get("run_id").map_err(db::sql_error)?,
@@ -60,13 +76,22 @@ pub(super) async fn load_candidate_optional(
             ),
             duration_ms: duration("background_duration_ms")?,
         },
+        vocals: SpeechMediaSource {
+            asset_path: row.try_get("vocals_asset_path").map_err(db::sql_error)?,
+            source_revision: format!(
+                "sha256:{}",
+                row.try_get::<String, _>("vocals_sha256")
+                    .map_err(db::sql_error)?
+            ),
+            duration_ms: duration("background_duration_ms")?,
+        },
         model_spec_id: row.try_get("model_spec_id").map_err(db::sql_error)?,
         review_status: SpeechSourceSeparationReviewStatus::parse(
             &row.try_get::<String, _>("review_status")
                 .map_err(db::sql_error)?,
         )?,
         review_warning: row.try_get("review_warning").map_err(db::sql_error)?,
-    }))
+    })
 }
 
 pub(super) async fn persist_candidate(
@@ -74,9 +99,16 @@ pub(super) async fn persist_candidate(
     claim: &AttemptClaim,
     source: &SpeechMediaSource,
     background: &Path,
-    metadata: &separation::SeparatedAudioMetadata,
+    vocals: &Path,
+    metadata: &separation::SeparatedAudio,
     duration_ms: u64,
 ) -> Result<(), String> {
+    let config = SeparationConfiguration::from_claim(claim)?;
+    if config.source != *source {
+        return Err(
+            "stale_revision: separation source differs from its frozen configuration".into(),
+        );
+    }
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let active: bool = sqlx::query_scalar(
@@ -99,9 +131,9 @@ pub(super) async fn persist_candidate(
     sqlx::query(
         "INSERT INTO spaces_speech_source_separations( \
            id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
-           background_asset_path,background_sha256,background_sample_rate,background_sample_count, \
+           background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_sample_rate,background_sample_count, \
            background_duration_ms,review_status,review_warning,created_at) \
-         VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'pending',?,?)",
+         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending',?,?)",
     )
     .bind(&claim.run_id)
     .bind(&claim.home_space_id)
@@ -109,24 +141,28 @@ pub(super) async fn persist_candidate(
     .bind(&source.asset_path)
     .bind(&source.source_revision)
     .bind(i64::try_from(source.duration_ms).map_err(|_| "Source duration exceeds SQLite range")?)
-    .bind(MODEL_SPEC_ID)
+    .bind(config.model.separation_spec()?)
     .bind(background.to_string_lossy().as_ref())
-    .bind(&metadata.sha256)
-    .bind(i64::from(metadata.sample_rate))
-    .bind(i64::try_from(metadata.sample_count).map_err(|_| "Sample count exceeds SQLite range")?)
+    .bind(&metadata.background.sha256)
+    .bind(vocals.to_string_lossy().as_ref())
+    .bind(&metadata.vocals.sha256)
+    .bind(i64::from(metadata.background.sample_rate))
+    .bind(i64::try_from(metadata.background.sample_count).map_err(|_| "Sample count exceeds SQLite range")?)
     .bind(i64::try_from(duration_ms).map_err(|_| "Background duration exceeds SQLite range")?)
     .bind(review_warning())
     .bind(now)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    super::super::asset_publication::remove_attempt_in_transaction(
-        &mut tx,
-        claim,
-        background,
-        &metadata.sha256,
-    )
-    .await?;
+    for (path, digest) in [
+        (background, &metadata.background.sha256),
+        (vocals, &metadata.vocals.sha256),
+    ] {
+        super::super::asset_publication::remove_attempt_in_transaction(
+            &mut tx, claim, path, digest,
+        )
+        .await?;
+    }
     tx.commit().await.map_err(db::sql_error)
 }
 

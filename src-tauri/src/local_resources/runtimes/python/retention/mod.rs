@@ -4,10 +4,21 @@ use std::{
     sync::Arc,
 };
 
-pub(super) fn acquire(directory: &Path) -> Result<Arc<File>, String> {
+#[derive(Debug)]
+pub(crate) struct RuntimeLease(File);
+
+impl Drop for RuntimeLease {
+    fn drop(&mut self) {
+        if let Err(error) = self.0.unlock() {
+            log::error!("Failed to release Python runtime lease: {error}");
+        }
+    }
+}
+
+pub(super) fn acquire(directory: &Path) -> Result<Arc<RuntimeLease>, String> {
     let file = open_lease(directory)?;
     file.lock_shared().map_err(|error| error.to_string())?;
-    Ok(Arc::new(file))
+    Ok(Arc::new(RuntimeLease(file)))
 }
 
 // Leases are outside immutable manifests and live until the last runtime/Worker reference is dropped.

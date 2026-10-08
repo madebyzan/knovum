@@ -14,7 +14,6 @@
   "deleteVoice": "永久删除音色",
   "deleteVoiceDescription": "删除已归档音色及其全部版本。被项目引用的音色无法删除。",
   "projectName": "项目名称",
-  "projectType": "项目类型",
   "scriptPlaceholder": "输入此版本的配音稿",
   "voice": "音色",
   "saveRevision": "保存版本",
@@ -61,12 +60,15 @@
   "transcriptConfirmed": "文本与录音内容一致",
   "voiceAuthorization": "我有权使用此声音",
   "designDescription": "描述声音特点、表达方式、年龄感和语气",
+  "deliveryInstruction": "演绎提示",
+  "deliveryInstructionPlaceholder": "可选：描述这段内容的节奏、语气和表达方式（最多 500 字）",
   "candidateText": "候选音色试听文本",
   "generateCandidate": "生成候选音色",
   "candidateAuditionRequired": "请完整试听一次候选音色，再保存该音色。",
   "saveCandidate": "保存音色",
   "discardCandidate": "丢弃候选音色",
-  "referenceRequirements": "请选择 5–30 秒干净、清晰的单人语音。系统会在本地转换为单声道并标准化音量。",
+  "referenceRequirements": "请选择 5–30 秒干净、清晰的单人语音。系统只保存选中的音频，并在本地转换为 16 kHz 单声道。",
+  "referenceTooShort": "这段音频不足 5 秒，请选择更长的参考录音。",
   "candidateSample": "欢迎使用音色试听。这段文字会检查声音的清晰度、自然停顿、数字读法、专有名词、语气变化和长句表达。请保持舒适的语速，依次读出今天是二零二六年十月三日，项目编号为一百零八。确认发音、节奏和音色符合预期后，再将候选音色保存到当前空间。",
   "stages": {
     "preparing": "准备资源",
@@ -75,24 +77,22 @@
     "done": "完成"
   },
   "createProject": "创建",
-  "voices": "音色",
   "noVoices": "当前 Space 还没有音色。",
   "types": {
-    "shortDubbing": "短配音",
     "audiobook": "有声书",
     "videoDubbing": "视频配音"
   },
   "backgroundAudio": "背景音频",
   "acceptedSeparatedBackground": "已验收的分离背景",
-  "sourceSeparationDescription": "在本机生成背景候选。Spleeter 分离人声与伴奏，不保证能准确去除对白。",
+  "sourceSeparationDescription": "在本机分离人声与伴奏。请试听两条轨道后接受结果；对白分离效果取决于原始录音。",
   "sourceSeparationTask": "人声与背景分离",
-  "sourceSeparationReviewWarning": "Spleeter 只能分离人声与伴奏，不保证能准确去除对白。接受前请完整试听候选背景。",
+  "sourceSeparationReviewWarning": "人声与伴奏分离不保证能准确去除对白。接受前请完整试听两条音轨。",
   "sourceSeparationTooLong": "人声与背景分离最多处理 10 分钟。请先切分视频，再生成背景候选。",
-  "separateBackground": "生成背景候选",
+  "separateBackground": "分离人声与伴奏",
   "cancelSeparation": "取消分离",
-  "separationAuditioned": "我已完整试听背景候选",
-  "acceptSeparatedBackground": "接受背景",
-  "rejectSeparatedBackground": "拒绝",
+  "separationAuditioned": "我已试听两条轨道",
+  "acceptSeparatedBackground": "接受两条轨道",
+  "rejectSeparatedBackground": "拒绝两条轨道",
   "separationStatus": {
     "accepted": "该背景候选已验收，可用于混音。",
     "rejected": "该背景候选已拒绝。"
@@ -118,8 +118,6 @@
   "needsTimingEdit": "生成语音的时长超出目标区间。请修改文本或时间区间，再保存新版本。",
   "female": "女声",
   "male": "男声",
-  "candidateSeed": "候选种子",
-  "newSeed": "新候选种子",
   "wavPrecision": "WAV 精度",
   "paragraphPause": "段落停顿（毫秒）",
   "chapterPause": "章节停顿（毫秒）",
@@ -158,8 +156,39 @@
     "clipping": "接近满幅的峰值",
     "invalid": "无效的信号采样"
   },
-  "nodeReadAloud": "朗读 / 有声书",
+  "nodeReadAloud": "生成语音",
   "nodeProjects": "此节点的语音任务",
   "readNodeManuscript": "读取当前节点文稿",
-  "referenceNodeChanged": "音频节点的源文件已变化，请更新节点后重新准备参考音频。"
+  "referenceNodeChanged": "音频节点的源文件已变化，请更新节点后重新准备参考音频。",
+  "manageVoices": "管理音色与参考音频",
+  "libraryDescription": "保存参考音频创建的音色，生成语音时可直接选择；也可以临时上传。音色可复制到其他空间。",
+  "librarySpace": "所属空间：{name}",
+  "libraryRequiresSpace": "创建一个空间后，即可管理其音色与参考音频。",
+  "presetVoices": "预设音色",
+  "addReferenceVoice": "上传参考音频或设计音色",
+  "extractBackground": "人声与伴奏分离",
+  "librarySpaceLabel": "音色所属空间",
+  "currentBackground": "当前背景音轨",
+  "voiceModel": "语音模型",
+  "modelFirstUse": "首次使用会自动下载所选模型和所需资源，可在任务中心查看进度或取消。",
+  "voiceModels": {
+    "mossNano": "推荐 · 轻量多语言生成与参考音频克隆，使用正常语速。",
+    "voxCpm2": "完整精度 · 高质量音色克隆与设计，适合内存充足的电脑。",
+    "voxCpm2Q8": "推荐的高质量选项 · 支持音色克隆与设计，量化权重的下载和磁盘占用低于完整精度。"
+  },
+  "exportStem": {
+    "vocals": "保存人声 WAV",
+    "background": "保存伴奏 WAV"
+  },
+  "separatedStem": {
+    "vocals": "人声",
+    "background": "伴奏"
+  },
+  "firstVoice": "选择一个预设声音即可开始，它也会保存到你的声音库。",
+  "addStemToSpace": "添加为音频节点",
+  "voiceOrigins": {
+    "preset": "预设音色",
+    "reference": "参考音色",
+    "designed": "设计音色"
+  }
 }

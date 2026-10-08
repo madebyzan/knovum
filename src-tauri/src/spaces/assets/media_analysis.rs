@@ -16,7 +16,7 @@ pub(crate) fn prepare(
     cancellation: &CancellationToken,
 ) -> Result<PreparedMediaAudio, String> {
     let source = super::authorize_spaces_asset(app, source)?;
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
+    let ffmpeg = tools::resolve_ffmpeg(app)?
         .ok_or("FFmpeg is required for media analysis and is not installed")?;
     let audio = prepared_audio::prepare(
         &ffmpeg,

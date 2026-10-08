@@ -8,7 +8,7 @@ use crate::spaces::{
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
 };
 
-const WORKFLOW: &str = "speech_project_generation_v1";
+pub(super) const WORKFLOW: &str = "speech_project_generation_v1";
 
 pub(super) async fn start(
     pool: &SqlitePool,

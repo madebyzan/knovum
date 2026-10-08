@@ -101,7 +101,7 @@ fn combined_progress_keeps_the_full_download_budget_across_phases() {
         total: Some(500),
         percent: Some(20),
     }
-    .with_overall_progress(1000, 1500);
+    .with_overall_progress(1000, Some(1500));
     assert_eq!(progress.downloaded, 1100);
     assert_eq!(progress.total, Some(1500));
     assert_eq!(progress.percent, Some(73));
@@ -109,4 +109,32 @@ fn combined_progress_keeps_the_full_download_budget_across_phases() {
         progress.stage,
         ResourcePreparationStage::Downloading
     ));
+}
+
+#[test]
+fn unknown_preparation_size_remains_indeterminate() {
+    let progress = ResourcePreparationProgress {
+        stage: ResourcePreparationStage::RuntimeInstalling,
+        downloaded: 0,
+        total: None,
+        percent: None,
+    }
+    .with_overall_progress(100, Some(1_500));
+    assert_eq!(progress.downloaded, 100);
+    assert_eq!(progress.total, None);
+    assert_eq!(progress.percent, None);
+}
+
+#[test]
+fn known_model_download_does_not_claim_an_unknown_combined_runtime_total() {
+    let progress = ResourcePreparationProgress {
+        stage: ResourcePreparationStage::Downloading,
+        downloaded: 200,
+        total: Some(500),
+        percent: Some(40),
+    }
+    .with_overall_progress(100, None);
+    assert_eq!(progress.downloaded, 300);
+    assert_eq!(progress.total, None);
+    assert_eq!(progress.percent, None);
 }

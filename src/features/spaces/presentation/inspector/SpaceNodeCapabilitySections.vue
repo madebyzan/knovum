@@ -36,7 +36,7 @@ defineProps<{ node: SpaceCanvasNode }>();
     :icon="ScanText"
     :default-expanded="false"
   >
-    <SpaceMediaKnowledge :node="node" />
+    <SpaceMediaKnowledge :key="node.id" :node="node" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection

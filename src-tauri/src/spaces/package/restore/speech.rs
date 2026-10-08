@@ -37,10 +37,10 @@ async fn insert_source_separations(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.speech_source_separations {
-        sqlx::query("INSERT INTO spaces_speech_source_separations(id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,background_sample_rate,background_sample_count,background_duration_ms,review_status,review_warning,created_at,reviewed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        sqlx::query("INSERT INTO spaces_speech_source_separations(id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_sample_rate,background_sample_count,background_duration_ms,review_status,review_warning,created_at,reviewed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
             .bind(&row.id).bind(&request.space.id).bind(&row.run_id).bind(&row.source_asset_path)
             .bind(&row.source_revision).bind(row.source_duration_ms).bind(&row.model_spec_id)
-            .bind(&row.background_asset_path).bind(&row.background_sha256).bind(row.background_sample_rate)
+            .bind(&row.background_asset_path).bind(&row.background_sha256).bind(&row.vocals_asset_path).bind(&row.vocals_sha256).bind(row.background_sample_rate)
             .bind(row.background_sample_count).bind(row.background_duration_ms).bind(&row.review_status)
             .bind(&row.review_warning).bind(row.created_at).bind(row.reviewed_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
@@ -93,9 +93,9 @@ async fn insert_projects(
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for row in &request.speech_segments {
-        sqlx::query("INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,speaker_key,text,normalized_text,voice_revision_id,language,target_start_ms,target_end_ms,source_segment_id,source_segment_revision,source_text,state,state_reason,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        sqlx::query("INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,speaker_key,text,normalized_text,delivery_instruction,voice_revision_id,language,target_start_ms,target_end_ms,source_segment_id,source_segment_revision,source_text,state,state_reason,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
             .bind(&row.id).bind(&row.project_revision_id).bind(row.ordinal).bind(&row.chapter_key).bind(&row.speaker_key)
-            .bind(&row.text).bind(&row.normalized_text).bind(&row.voice_revision_id).bind(&row.language)
+            .bind(&row.text).bind(&row.normalized_text).bind(&row.delivery_instruction).bind(&row.voice_revision_id).bind(&row.language)
             .bind(row.target_start_ms).bind(row.target_end_ms).bind(&row.source_segment_id)
             .bind(row.source_segment_revision).bind(&row.source_text).bind(&row.state).bind(&row.state_reason)
             .bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;

@@ -38,6 +38,14 @@ function fixture(context) {
     join(python, "uv.lock"),
     'source = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa#aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }\n',
   );
+  writeFileSync(
+    join(root, "python/runtime-source.json"),
+    JSON.stringify({
+      nativeSupplier: { profiles: { resources: "base" } },
+    }),
+  );
+  mkdirSync(join(root, "python/native-locks/base"), { recursive: true });
+  writeFileSync(join(root, `python/native-locks/base/${target}.json`), "native lock");
   const executable = platform === "windows" ? join(runtime, "python.exe") : join(runtime, "bin", "python3");
   mkdirSync(join(runtime, "bin"), { recursive: true });
   writeFileSync(executable, "interpreter fixture");

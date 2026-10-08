@@ -25,5 +25,6 @@
   "failed": "This task could not be completed.",
   "verifyingResource": "Verifying integrity…",
   "preparingLocalInference": "Preparing local AI components…",
-  "localResourceDownloadSize": "First use needs {size} of local resource downloads"
+  "localResourceDownloadSize": "First use needs {size} of local resource downloads",
+  "installingResource": "Installing local resources…"
 }

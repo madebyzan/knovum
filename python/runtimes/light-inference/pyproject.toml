@@ -8,9 +8,12 @@ dependencies = [
   "ctranslate2==4.8.2; (sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')) or (sys_platform == 'darwin' and platform_machine == 'x86_64')",
   "faster-whisper==1.2.1; (sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')) or (sys_platform == 'darwin' and platform_machine == 'x86_64')",
   "numpy==2.4.6",
-  "onnxruntime==1.30.0",
+  "onnxruntime==1.22.1",
   "pydantic==2.13.5",
+  "sentencepiece==0.2.2",
+  "soxr==1.1.0",
   "sherpa-onnx==1.13.8",
+  "sherpa-onnx-core==1.13.8",
 ]
 
 [tool.uv]

@@ -8,7 +8,7 @@
   "enrichmentJobType": {
     "analyze_visual": "Visual understanding",
     "analyze_media": "Media duration and waveform",
-    "transcribe_media": "Audio Whisper transcription",
+    "transcribe_media": "Audio and video transcription",
     "parse_document": "Document extraction",
     "analyze_document": "Document visual analysis",
     "align_media_transcript": "Selected transcript alignment",

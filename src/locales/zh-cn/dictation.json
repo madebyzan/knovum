@@ -20,5 +20,6 @@
     "noText": "未识别到文字。",
     "copy": "复制文字",
     "copied": "已复制听写结果"
-  }
+  },
+  "preparingResources": "首次使用正在下载本地资源…"
 }

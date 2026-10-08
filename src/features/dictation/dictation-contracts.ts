@@ -1,9 +1,12 @@
-type DictationPhase = "idle" | "recording" | "transcribing" | "result" | "failed";
+import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+
+type DictationPhase = "idle" | "recording" | "preparing_resources" | "transcribing" | "result" | "failed";
 
 type DictationInsertion = "inserted" | "not_attempted" | "focus_changed" | "permission_denied" | "failed";
 
 export interface DictationSnapshot {
   phase: DictationPhase;
+  resources: ResourcePreparationProgress | null;
   sessionId: string | null;
   startedAt: number | null;
   targetApplication: string | null;

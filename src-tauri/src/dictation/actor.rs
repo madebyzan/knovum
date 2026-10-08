@@ -47,6 +47,18 @@ pub(super) async fn run<R: Runtime>(
                 code,
                 message,
             } => lifecycle::device_failed(&app, &snapshot, &mut active, session_id, code, message),
+            DictationAction::PreparationProgress {
+                session_id,
+                progress,
+            } => {
+                if matches!(&active, ActiveSession::Transcribing { id, .. } if id == &session_id) {
+                    let current = snapshot.read().map(|value| value.clone());
+                    if let Ok(current) = current {
+                        let next = super::progress::update(current, progress);
+                        completion::publish(&app, &snapshot, next);
+                    }
+                }
+            }
             DictationAction::Finished {
                 session_id,
                 target,

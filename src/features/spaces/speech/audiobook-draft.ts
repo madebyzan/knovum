@@ -3,11 +3,13 @@ import type { DeepReadonly } from "vue";
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { ImportedAudiobookScript } from "./audiobook-script";
+import { deliveryInstructionIsValid, voiceSupportsDeliveryInstruction } from "./voice-options";
 
 interface ParagraphDraft {
   key: string;
   text: string;
   speakerKey: string;
+  deliveryInstruction: string;
 }
 export interface ChapterDraft {
   key: string;
@@ -18,6 +20,18 @@ export interface AudiobookRoleDraft {
   id: string;
   key: string;
   voiceRevisionId: string;
+}
+export function setAudiobookRoleVoice(
+  role: AudiobookRoleDraft,
+  voiceRevisionId: string,
+  chapters: readonly ChapterDraft[],
+  voices: readonly VoiceLibraryRevision[],
+) {
+  role.voiceRevisionId = voiceRevisionId;
+  if (voiceSupportsDeliveryInstruction(voices, voiceRevisionId)) return;
+  for (const chapter of chapters)
+    for (const paragraph of chapter.paragraphs)
+      if (paragraph.speakerKey === role.key) paragraph.deliveryInstruction = "";
 }
 export function readAudiobookRevision(snapshot: DeepReadonly<SpeechProjectSnapshot>) {
   const config = snapshot.revision.outputConfig;
@@ -45,7 +59,12 @@ export function readAudiobookRevision(snapshot: DeepReadonly<SpeechProjectSnapsh
         if (!segment.speakerKey || roleVoices.get(segment.speakerKey) !== segment.voiceRevisionId) {
           throw new Error("Audiobook paragraph voice differs from its role binding");
         }
-        return { key: segment.id, text: segment.text, speakerKey: segment.speakerKey };
+        return {
+          key: segment.id,
+          text: segment.text,
+          speakerKey: segment.speakerKey,
+          deliveryInstruction: segment.deliveryInstruction ?? "",
+        };
       }),
   }));
   return {
@@ -81,6 +100,7 @@ export function importedAudiobookDraft(
         key: crypto.randomUUID(),
         text: paragraph.text,
         speakerKey: paragraph.role,
+        deliveryInstruction: "",
       })),
     })),
   };
@@ -89,8 +109,9 @@ export function importedAudiobookDraft(
 export function audiobookDraftIsValid(input: {
   roles: readonly AudiobookRoleDraft[];
   chapters: readonly ChapterDraft[];
-  availableVoiceRevisionIds: ReadonlySet<string>;
+  voices: readonly VoiceLibraryRevision[];
 }) {
+  const voices = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
   const roleKeys = input.roles.map((role) => role.key.trim());
   const paragraphs = input.chapters.flatMap((chapter) => chapter.paragraphs);
   const characters = paragraphs.reduce((total, paragraph) => total + [...paragraph.text].length, 0);
@@ -103,7 +124,7 @@ export function audiobookDraftIsValid(input: {
         role.key === roleKeys[index] &&
         role.key.length > 0 &&
         [...role.key].length <= 120 &&
-        input.availableVoiceRevisionIds.has(role.voiceRevisionId),
+        voices.has(role.voiceRevisionId),
     ) &&
     input.chapters.length > 0 &&
     input.chapters.length <= 10_000 &&
@@ -114,9 +135,16 @@ export function audiobookDraftIsValid(input: {
         chapter.title.trim() &&
         [...chapter.title.trim()].length <= 200 &&
         chapter.paragraphs.length > 0 &&
-        chapter.paragraphs.every(
-          (paragraph) => paragraph.text.trim() && roleKeys.includes(paragraph.speakerKey),
-        ),
+        chapter.paragraphs.every((paragraph) => {
+          const voiceRevisionId = input.roles.find(
+            (role) => role.key === paragraph.speakerKey,
+          )?.voiceRevisionId;
+          return (
+            paragraph.text.trim() &&
+            roleKeys.includes(paragraph.speakerKey) &&
+            deliveryInstructionIsValid(input.voices, voiceRevisionId ?? "", paragraph.deliveryInstruction)
+          );
+        }),
     )
   );
 }
@@ -126,21 +154,22 @@ export function audiobookSegments(
   roles: readonly AudiobookRoleDraft[],
   voices: readonly VoiceLibraryRevision[],
 ) {
-  const voiceLanguages = new Map(voices.map((voice) => [voice.revisionId, voice.language]));
+  const voiceByRevision = new Map(voices.map((voice) => [voice.revisionId, voice]));
   const roleVoices = new Map(roles.map((role) => [role.key, role.voiceRevisionId]));
   return chapters.flatMap((chapter) =>
     chapter.paragraphs.map((paragraph) => {
       const voiceRevisionId = roleVoices.get(paragraph.speakerKey);
-      const language = voiceRevisionId ? voiceLanguages.get(voiceRevisionId) : undefined;
-      if (!voiceRevisionId || !language)
-        throw new Error("A valid role voice is required for every paragraph");
+      const voice = voiceRevisionId ? voiceByRevision.get(voiceRevisionId) : undefined;
+      if (!voiceRevisionId || !voice) throw new Error("A valid role voice is required for every paragraph");
+      const deliveryInstruction = paragraph.deliveryInstruction.trim();
       return {
         id: crypto.randomUUID(),
         chapterKey: chapter.key,
         speakerKey: paragraph.speakerKey,
         text: paragraph.text.trim(),
         voiceRevisionId,
-        language,
+        language: voice.language,
+        ...(deliveryInstruction ? { deliveryInstruction } : {}),
       };
     }),
   );

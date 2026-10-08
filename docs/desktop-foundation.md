@@ -125,15 +125,13 @@ FFmpeg discovery belongs to `src-tauri/src/local_resources/tools/mod.rs`; manage
 publication, installation and verification belong to `local_resources/runtimes/python`. Release/runtime configuration is explicit:
 
 Rust selects resource locations by build mode. Development FFmpeg resolves from this checkout’s
-`src-tauri/resources/bundled-runtime/<target>`; development application Workers resolve from
-`python/src`. Both `pnpm tauri dev` and `pnpm desktop:dev` use this policy. The CLI wrapper owns
-argument/cwd forwarding, without injecting resource paths. Python third-party development runtimes
-still require a verified manifest override or a trusted publication. Packaged FFmpeg and application
-Workers resolve from Resources; installed Python runtimes resolve from immutable app-data paths.
-
-- `KNOVUM_FFMPEG_PATH`, or bundled `bundled-runtime/<platform>/ffmpeg[.exe]`;
-- `KNOVUM_PYTHON_<PROFILE>_MANIFEST_PATH` is an explicit development/CI override for a verified runtime; profile names use uppercase underscores (`RESOURCES`, `LIGHT_INFERENCE`, `TORCH_INFERENCE`, `VOICE_GENERATION`, `AGENT`). Release builds use the trusted descriptor and verified app-data runtime.
-- `KNOVUM_FASTER_WHISPER_*_PATH` and `KNOVUM_MLX_WHISPER_*_PATH` are development/CI overrides for individually verified model files. Release weights live in application data, outside the application bundle.
+`src-tauri/resources/bundled-runtime/<target>`; development Workers resolve from `python/src`.
+Both `pnpm tauri dev` and `pnpm desktop:dev` invoke the official Tauri CLI and share its resource
+preparation hook. Python profiles are produced automatically on first use into a recipe-bound
+checkout directory. Packaged FFmpeg and Workers resolve from Resources; installed Python runtimes,
+models and media-import tools resolve from verified application-owned paths. No project environment
+variables select alternate resource files or directories. Signing/distribution configuration belongs
+to release tooling, and third-party worker environment settings are private process policy.
 
 The desktop release targets are `macos-arm64`, `macos-x64` and `windows-x64`. Missing bundled core tools are configuration errors; Python components and models are prepared on first capability use. Packaging and runtime manifests reject other architectures rather than presenting partial native inference support.
 

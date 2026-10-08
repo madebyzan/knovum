@@ -4,18 +4,8 @@ use std::{
 };
 
 #[test]
+#[ignore = "requires provisioned native runtime artifacts"]
 fn provisioned_local_resources_starts() {
-    if std::env::var("KNOVUM_BUNDLED_RUNTIME_SMOKE")
-        .ok()
-        .as_deref()
-        != Some("1")
-    {
-        eprintln!(
-            "bundled runtime smoke skipped; set KNOVUM_BUNDLED_RUNTIME_SMOKE=1 in a provisioned release environment"
-        );
-        return;
-    }
-
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("resources")
         .join("bundled-runtime")
@@ -26,44 +16,44 @@ fn provisioned_local_resources_starts() {
         root.display()
     );
 
-    let ffmpeg = root.join(executable("ffmpeg"));
+    let ffmpeg = root.join(if cfg!(target_os = "windows") {
+        "Library/bin/ffmpeg.exe"
+    } else {
+        "bin/ffmpeg"
+    });
     assert_command_starts(&ffmpeg, &["-version"]);
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
-    let runtime = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../runtime-artifacts")
-        .join(target_directory())
-        .join("runtime");
-    let python = runtime.join(if cfg!(target_os = "windows") {
-        "python.exe"
-    } else {
-        "bin/python3"
-    });
-    assert_command_starts(&python, &["--version"]);
-    let packages = runtime.join("packages");
     let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src");
     let worker = worker.to_str().expect("Worker path must be UTF-8");
-    let packages = packages
-        .to_str()
-        .expect("Python package path must be UTF-8");
-    let backend = if cfg!(target_os = "macos") {
-        "mlx_whisper"
-    } else {
-        "faster_whisper"
-    };
-    assert_command_starts(
-        &python,
-        &[
-            "-I",
-            "-B",
-            "-X",
-            "utf8",
-            "-c",
-            "import sys; sys.path[:0] = [sys.argv[1], sys.argv[2]]; import knovum_inference.server, onnxruntime, torch, sherpa_onnx, voxcpm; from pyannote.audio import Pipeline; __import__(sys.argv[3])",
-            worker,
-            packages,
-            backend,
-        ],
-    );
+    for (profile, module) in [
+        ("resources", "knovum_model_resources.server"),
+        ("light-inference", "knovum_inference.server"),
+        ("torch-inference", "knovum_inference.server"),
+        ("voice-generation", "knovum_inference.server"),
+        ("agent", "knovum_agent_runtime.server"),
+    ] {
+        let runtime = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../runtime-artifacts")
+            .join(profile)
+            .join(target_directory())
+            .join("runtime");
+        let python = runtime.join(if cfg!(target_os = "windows") {
+            "python.exe"
+        } else {
+            "bin/python3"
+        });
+        let packages = runtime.join("packages");
+        assert_command_starts(
+            &python,
+            &[
+                "-I", "-B", "-X", "utf8", "-c",
+                "import os,sys;dll=os.add_dll_directory(os.path.join(sys.prefix,'Library','bin')) if os.name=='nt' else None;sys.path[:0]=[sys.argv[1],sys.argv[2]];assert sys.version_info[:3]==(3,11,17);__import__(sys.argv[3])",
+                worker,
+                packages.to_str().expect("Python package path must be UTF-8"),
+                module,
+            ],
+        );
+    }
 }
 
 fn assert_ffmpeg_subtitle_burn_in(path: &Path) {
@@ -124,17 +114,11 @@ fn assert_command_starts(path: &Path, args: &[&str]) {
 const fn target_directory() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         "macos-arm64"
+    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
+        "macos-x64"
     } else if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
         "windows-x64"
     } else {
         "unsupported"
-    }
-}
-
-fn executable(base: &str) -> String {
-    if cfg!(target_os = "windows") {
-        format!("{base}.exe")
-    } else {
-        base.to_owned()
     }
 }

@@ -18,11 +18,7 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
   requireRegularFile(packageFile, "Windows package");
   const staging = mkdtempSync(join(tmpdir(), "knovum-windows-package-"));
   try {
-    extractPackage(
-      packageFile,
-      staging,
-      options.sevenZipPath ?? process.env.KNOVUM_WINDOWS_7ZIP_PATH ?? defaultSevenZip,
-    );
+    extractPackage(packageFile, staging, options.sevenZipPath ?? defaultSevenZip);
     return verifyExtractedWindowsApplication(staging, options);
   } finally {
     rmSync(staging, { recursive: true, force: true });

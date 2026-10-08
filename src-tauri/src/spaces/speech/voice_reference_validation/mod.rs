@@ -14,7 +14,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    local_resources::{models::catalog, preparation},
+    local_resources::preparation,
 };
 
 const MIN_SPEECH_PERCENT: u64 = 60;
@@ -30,18 +30,17 @@ pub(super) async fn validate<R: Runtime>(
     confirmed_text: Option<&str>,
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
-    let profile = speech::transcription_profile()?;
+    let model = crate::local_resources::model_selection::transcription(app)?;
+    let profile = speech::transcription_profile(model)?;
     let reader = hound::WavReader::open(&reference.path).map_err(|error| error.to_string())?;
     let expected_duration_ms = u64::from(reader.duration()) * 1_000 / 16_000;
     drop(reader);
-    let resources = preparation::prepare_models(
-        app,
-        catalog::TRANSCRIPTION_MODELS,
-        cancellation,
-        &mut |_| {},
-    )
-    .await
-    .map_err(|error| format!("Voice reference speech recognition is unavailable: {error}"))?;
+    let resources =
+        preparation::prepare_models(app, model.transcription_models(), cancellation, &mut |_| {})
+            .await
+            .map_err(|error| {
+                format!("Voice reference speech recognition is unavailable: {error}")
+            })?;
     let request_id = uuid::Uuid::new_v4().to_string();
     let artifact = speech::transcribe(
         app,

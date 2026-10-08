@@ -99,6 +99,7 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         target_end_ms: Some(1_000),
         source_segment_id: Some("source".into()),
         source_segment_revision: Some(1),
+        delivery_instruction: None,
         source_text: Some("Original".into()),
     }];
     let active_output = json!({});

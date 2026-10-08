@@ -20,8 +20,18 @@ pub(super) async fn verify_source_snapshot(
         &configuration.reference_source,
     ) {
         (VoiceCandidateSource::Designed { .. }, None) => Ok(()),
-        (VoiceCandidateSource::Reference { source_path, .. }, Some(snapshot)) => {
-            let path = PathBuf::from(source_path);
+        (
+            VoiceCandidateSource::Reference {
+                start_ms, end_ms, ..
+            },
+            Some(snapshot),
+        ) => {
+            if !(5_000..=30_000).contains(&snapshot.duration_ms)
+                || end_ms.checked_sub(*start_ms) != Some(snapshot.duration_ms)
+            {
+                return Err("Voice candidate reference duration differs from its selection".into());
+            }
+            let path = PathBuf::from(&snapshot.asset_path);
             let path = assets::authorize_spaces_asset(app, &path)?;
             let metadata = fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
             if !metadata.is_file()
@@ -31,8 +41,20 @@ pub(super) async fn verify_source_snapshot(
                 return Err("stale_revision: voice reference changed before execution".into());
             }
             let expected = snapshot.source_revision.clone();
-            crate::blocking::run(move || {
-                crate::file_inspection::verify_content_revision(&path, &expected)
+            let duration_ms = snapshot.duration_ms;
+            crate::blocking::run(move || -> Result<(), String> {
+                let audio = super::super::voice_assets::reference_metadata(&path)?;
+                let samples = u64::from(
+                    hound::WavReader::open(&path)
+                        .map_err(|error| error.to_string())?
+                        .duration(),
+                );
+                if format!("sha256:{}", audio.sha256) != expected
+                    || samples.abs_diff(duration_ms * 16) > 16
+                {
+                    return Err("Voice candidate reference differs from its frozen clip".into());
+                }
+                Ok(())
             })
             .await
             .map_err(|_| "stale_revision: voice reference changed before execution".into())

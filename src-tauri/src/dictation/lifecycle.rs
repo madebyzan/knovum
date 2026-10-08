@@ -107,7 +107,7 @@ pub(super) async fn stop<R: Runtime>(
         app,
         snapshot,
         DictationSnapshot {
-            phase: DictationPhase::Transcribing,
+            phase: DictationPhase::PreparingResources,
             session_id: Some(id.clone()),
             target_application: Some(target.display_name().to_owned()),
             ..DictationSnapshot::default()
@@ -134,8 +134,20 @@ fn spawn_transcription<R: Runtime>(
     cancellation: CancellationToken,
 ) {
     tauri::async_runtime::spawn(async move {
-        let capture =
-            transcription::transcribe(&app, &id, wav.clone(), recording, &cancellation).await;
+        let capture = transcription::transcribe(
+            &app,
+            &id,
+            wav.clone(),
+            recording,
+            &cancellation,
+            &mut |progress| {
+                let _ = sender.send(DictationAction::PreparationProgress {
+                    session_id: id.clone(),
+                    progress,
+                });
+            },
+        )
+        .await;
         if let Err(error) = tokio::fs::remove_file(&wav).await {
             if error.kind() != std::io::ErrorKind::NotFound {
                 log::warn!("failed to remove temporary dictation audio: {error}");

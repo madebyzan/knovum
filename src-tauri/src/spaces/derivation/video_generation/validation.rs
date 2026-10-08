@@ -52,6 +52,6 @@ pub(super) async fn validate(
 }
 
 pub(super) fn require_decoder(app: &AppHandle) -> Result<std::path::PathBuf, String> {
-    crate::local_resources::tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", crate::local_resources::tools::ffmpeg_name())?
+    crate::local_resources::tools::resolve_ffmpeg(app)?
         .ok_or_else(|| "local-tool-unavailable: FFmpeg is required to validate generated video and is not installed".into())
 }

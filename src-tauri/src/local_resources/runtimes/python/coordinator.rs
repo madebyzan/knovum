@@ -33,7 +33,12 @@ pub(crate) async fn prepare<R: Runtime>(
         progress(update(ResourcePreparationStage::Ready, 0, 0));
         return Ok(());
     }
+    #[cfg(not(debug_assertions))]
     let descriptor = super::descriptor::required(profile)?;
+    #[cfg(not(debug_assertions))]
+    let descriptor_size = descriptor.size;
+    #[cfg(debug_assertions)]
+    let descriptor_size = 0;
     static RESOURCES: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     static LIGHT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     static TORCH: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
@@ -48,12 +53,22 @@ pub(crate) async fn prepare<R: Runtime>(
     }
     .get_or_init(Registry::new);
     let handle = app.clone();
-    let descriptor_size = descriptor.size;
     let mut waiter = registry
         .join(
             cancellation,
-            update(ResourcePreparationStage::Queued, 0, descriptor.size),
+            update(ResourcePreparationStage::Queued, 0, descriptor_size),
             move |installation| async move {
+                #[cfg(debug_assertions)]
+                {
+                    installation.publish(ResourcePreparationProgress {
+                        stage: ResourcePreparationStage::RuntimeInstalling,
+                        downloaded: 0,
+                        total: None,
+                        percent: None,
+                    });
+                    super::development::install(&handle, profile, &installation.cancellation).await
+                }
+                #[cfg(not(debug_assertions))]
                 super::installation::install(
                     &handle,
                     &descriptor,

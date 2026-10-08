@@ -7,14 +7,18 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { CreateSpeechProjectRequest } from "../../contracts/generated/CreateSpeechProjectRequest";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { nodeSpeechProjectTypes, type NodeSpeechProjectType } from "../../speech/node-speech";
+import type { NodeSpeechProjectType } from "../../speech/node-speech";
 import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 
-const props = defineProps<{ node: SpaceCanvasNode; disabled?: boolean }>();
+const props = defineProps<{
+  node: SpaceCanvasNode;
+  projectType: NodeSpeechProjectType;
+  disabled?: boolean;
+}>();
 const emit = defineEmits<{ create: [input: Omit<CreateSpeechProjectRequest, "spaceId" | "sourceNodeId">] }>();
 const { t } = useI18n();
 const title = shallowRef(props.node.data.title);
-const projectType = shallowRef<NodeSpeechProjectType>(nodeSpeechProjectTypes(props.node)[0]!);
+const projectType = computed(() => props.projectType);
 const backgroundId = shallowRef("mute");
 const { videos, backgrounds } = useSpeechMediaSources();
 const sourceVideo = computed(() => videos.value.find((video) => video.id === props.node.id));
@@ -25,14 +29,6 @@ const backgroundOptions = computed(() => [
 const canSubmit = computed(
   () => title.value.trim() && (projectType.value !== "video_dubbing" || sourceVideo.value),
 );
-const typeOptions = computed(() =>
-  [
-    { value: "short_dubbing", label: t("spaces.speech.types.shortDubbing") },
-    { value: "audiobook", label: t("spaces.speech.types.audiobook") },
-    { value: "video_dubbing", label: t("spaces.speech.types.videoDubbing") },
-  ].filter((option) => nodeSpeechProjectTypes(props.node).includes(option.value as NodeSpeechProjectType)),
-);
-
 function submit() {
   if (!canSubmit.value) return;
   const video = sourceVideo.value;
@@ -78,13 +74,11 @@ function submit() {
 
 <template>
   <form class="space-y-2" @submit.prevent="submit">
-    <UiInput v-model="title" size="sm" :placeholder="t('spaces.speech.projectName')" :disabled="disabled" />
-    <UiSelect
-      v-if="typeOptions.length > 1"
-      v-model="projectType"
+    <UiInput
+      v-model="title"
       size="sm"
-      :label="t('spaces.speech.projectType')"
-      :options="typeOptions"
+      :placeholder="t('spaces.speech.projectName')"
+      :aria-label="t('spaces.speech.projectName')"
       :disabled="disabled"
     />
     <template v-if="projectType === 'video_dubbing'">

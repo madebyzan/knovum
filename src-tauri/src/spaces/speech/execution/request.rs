@@ -25,34 +25,29 @@ pub(in crate::spaces::speech) fn synthesis_params(
     app: &tauri::AppHandle,
     voice: &VoiceExecution,
     text: &str,
+    delivery_instruction: Option<&str>,
     attempt: SynthesisAttempt<'_>,
 ) -> Result<SpeechSynthesizeParams, String> {
     let config = parse_config(&voice.synthesis_config)?;
-    let (engine, source_kind, speaker_id, reference_audio, reference_text) =
-        match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
-            ("kokoro", "preset") => (
-                SpeechSynthesisEngine::Kokoro,
-                VoiceSourceKind::Preset,
-                Some(
-                    voice
-                        .preset_voice_id
-                        .as_deref()
-                        .ok_or("Preset speaker identity is missing")?
-                        .parse()
-                        .map_err(|_| "Preset speaker identity is invalid")?,
-                ),
-                None,
-                None,
-            ),
-            ("voxcpm2", "reference" | "designed") => (
-                SpeechSynthesisEngine::VoxCpm2,
-                VoiceSourceKind::Reference,
-                None,
-                Some(reference_audio(app, voice)?),
-                voice.reference_text.clone(),
-            ),
-            _ => return Err("Voice revision engine and source are incompatible".into()),
-        };
+    let style = super::super::delivery_instruction::validate(
+        delivery_instruction,
+        super::super::delivery_instruction::supports(
+            &voice.engine_id,
+            &voice.source_kind,
+            voice.reference_text.as_deref(),
+        ),
+    )?;
+    let engine = match voice.engine_id.as_str() {
+        "moss_nano" => SpeechSynthesisEngine::MossNano,
+        "voxcpm2" => SpeechSynthesisEngine::VoxCpm2,
+        _ => return Err("Voice revision engine is unsupported".into()),
+    };
+    let reference = if voice.source_kind == "preset" {
+        None
+    } else {
+        Some(reference_audio(app, voice)?)
+    };
+    let voice_revision = frozen_voice_revision(voice, reference)?;
     Ok(SpeechSynthesizeParams {
         identity: InferenceRequestIdentity {
             request_id: attempt.request_id.to_owned(),
@@ -65,15 +60,8 @@ pub(in crate::spaces::speech) fn synthesis_params(
             deadline_ms: deadline(300)?,
         },
         text: text.to_owned(),
-        voice_revision: VoiceRevisionReference {
-            revision_id: voice.revision_id.clone(),
-            source_kind,
-            speaker_id,
-            reference_audio,
-            reference_text,
-            design_prompt: voice.design_description.clone(),
-        },
-        style: None,
+        voice_revision,
+        style: style.map(str::to_owned),
         seed: u64::from(config.seed),
         profile: SynthesisProfile {
             engine,
@@ -83,6 +71,47 @@ pub(in crate::spaces::speech) fn synthesis_params(
         },
     })
 }
+
+fn frozen_voice_revision(
+    voice: &VoiceExecution,
+    reference_audio: Option<AudioFileReference>,
+) -> Result<VoiceRevisionReference, String> {
+    let (source_kind, speaker_id, reference_text) =
+        match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
+            ("moss_nano", "preset") => (
+                VoiceSourceKind::Preset,
+                Some(
+                    voice
+                        .preset_voice_id
+                        .as_deref()
+                        .ok_or("Preset speaker identity is missing")?
+                        .parse()
+                        .map_err(|_| "Preset speaker identity is invalid")?,
+                ),
+                None,
+            ),
+            ("moss_nano", "reference") => (VoiceSourceKind::Reference, None, None),
+            ("voxcpm2", "reference" | "designed") => (
+                VoiceSourceKind::Reference,
+                None,
+                voice.reference_text.clone(),
+            ),
+            _ => return Err("Voice revision engine and source are incompatible".into()),
+        };
+    Ok(VoiceRevisionReference {
+        revision_id: voice.revision_id.clone(),
+        source_kind,
+        speaker_id,
+        reference_audio,
+        reference_text,
+        // Saved designs reuse the selected immutable recording, rather than designing a new voice.
+        design_prompt: None,
+    })
+}
+
+#[cfg(test)]
+#[path = "tests/request.rs"]
+mod tests;
 
 fn reference_audio(
     app: &tauri::AppHandle,

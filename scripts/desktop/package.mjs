@@ -21,9 +21,10 @@ import {
 } from "../release/policy.mjs";
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
+import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
-import { verifyRuntimeSignatures } from "../runtime/signatures.mjs";
+import { verifyNativeResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
 import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -39,15 +40,12 @@ const target = buildRuntimeTarget;
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
 requireRuntime(target);
-const descriptorEnvironment = {};
 for (const profile of runtimeProfiles) {
   const distribution = distributionDirectory(repository, target, profile);
   validateRuntimeDistribution(repository, target, profile);
   if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repository, profile);
   const descriptor = join(repository, "src-tauri", "resources", `python-${profile}-descriptor.json`);
   copyFileSync(join(distribution, "runtime-descriptor.json"), descriptor);
-  descriptorEnvironment[`KNOVUM_PYTHON_${profile.toUpperCase().replaceAll("-", "_")}_DESCRIPTOR_PATH`] =
-    descriptor;
 }
 const worker = join(repository, "src-tauri", "resources", "python-worker");
 rmSync(worker, { recursive: true, force: true });
@@ -74,7 +72,6 @@ execFileSync(
   [cli, "build", ...args, "--config", JSON.stringify(config), ...(release ? ["--", "--locked"] : [])],
   {
     cwd: repository,
-    env: { ...process.env, ...descriptorEnvironment },
     stdio: "inherit",
   },
 );
@@ -110,10 +107,6 @@ if (target.startsWith("macos-")) {
 function productionConfiguration() {
   validateReleaseArguments(args);
   readVersion(repository);
-  const kokoro = readJson("src-tauri/src/local_resources/models/kokoro-int8-multi-lang-v1_0.json");
-  if (kokoro.licenseReview?.status !== "approved") {
-    throw new Error("Kokoro archive license review is unresolved; release packaging is blocked");
-  }
   const compiledSources = readJson("python/compiled-source-evidence.json");
   if (compiledSources.reviewStatus !== "approved") {
     throw new Error("Python native corresponding-source review is unresolved; release packaging is blocked");
@@ -130,7 +123,7 @@ function requireRuntime(runtimeTarget) {
   const windows = runtimeTarget.startsWith("windows-");
   const binary = (unixName, windowsName) =>
     join(runtimeRoot, runtimeTarget, windows ? windowsName : unixName);
-  const required = [binary("ffmpeg", "ffmpeg.exe"), join(runtimeRoot, "media-import-manifest.json")];
+  const required = [join(runtimeRoot, "media-import-manifest.json")];
   const missing = required.filter((path) => !existsSync(path));
   if (missing.length > 0) {
     throw new Error(`Bundled runtime is incomplete for ${runtimeTarget}:\n${missing.join("\n")}`);
@@ -141,6 +134,9 @@ function requireRuntime(runtimeTarget) {
   }
   if (existsSync(join(runtimeRoot, runtimeTarget, "python-runtime")))
     throw new Error("Bundled resources must exclude the on-demand Python runtime");
+  const directory = join(runtimeRoot, runtimeTarget);
+  const manifest = validateMediaRuntime(repository, directory, runtimeTarget);
+  if (release) verifyNativeResourceSignatures(directory, runtimeTarget, repository, manifest.producer);
 }
 
 function runtimeResources(runtimeTarget) {

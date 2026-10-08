@@ -25,10 +25,17 @@ it("queries projects for the source node and discards a late response after node
         resolveFirst = resolve;
       }),
   );
-  ipc.listSpeechProjects.mockResolvedValueOnce([{ id: "b-project", sourceNodeId: "b" }]);
+  ipc.listSpeechProjects.mockResolvedValueOnce([
+    { id: "b-project", sourceNodeId: "b", projectType: "short_dubbing" },
+  ]);
   const nodeId = shallowRef("a");
   const scope = effectScope();
-  const workspace = scope.run(() => useSpeechWorkspace(() => nodeId.value))!;
+  const workspace = scope.run(() =>
+    useSpeechWorkspace(
+      () => nodeId.value,
+      () => "short_dubbing",
+    ),
+  )!;
   expect(ipc.listSpeechProjects).toHaveBeenCalledWith("space", "a");
   nodeId.value = "b";
   await vi.waitFor(() => expect(workspace.projects.value[0]?.id).toBe("b-project"));
@@ -44,8 +51,34 @@ it("refuses to open a project owned by another source node", async () => {
     project: { id: "foreign", spaceId: "space", sourceNodeId: "other" },
   });
   const scope = effectScope();
-  const workspace = scope.run(() => useSpeechWorkspace(() => "source"))!;
+  const workspace = scope.run(() =>
+    useSpeechWorkspace(
+      () => "source",
+      () => "short_dubbing",
+    ),
+  )!;
   await workspace.openProject("foreign");
+  expect(workspace.selectedProject.value).toBeUndefined();
+  scope.stop();
+});
+
+it("keeps another operation's projects out of the selected node editor", async () => {
+  ipc.listSpeechProjects.mockResolvedValue([
+    { id: "speech", sourceNodeId: "source", projectType: "short_dubbing" },
+    { id: "book", sourceNodeId: "source", projectType: "audiobook" },
+  ]);
+  ipc.getSpeechProject.mockResolvedValue({
+    project: { id: "book", spaceId: "space", sourceNodeId: "source", projectType: "audiobook" },
+  });
+  const scope = effectScope();
+  const workspace = scope.run(() =>
+    useSpeechWorkspace(
+      () => "source",
+      () => "short_dubbing",
+    ),
+  )!;
+  await vi.waitFor(() => expect(workspace.projects.value.map((project) => project.id)).toEqual(["speech"]));
+  await workspace.openProject("book");
   expect(workspace.selectedProject.value).toBeUndefined();
   scope.stop();
 });

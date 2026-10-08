@@ -4,11 +4,11 @@ import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { SpaceTranscriptEdit } from "../../media/schema/knowledge";
 import type { SpaceTranscriptSegment } from "../../media/schema/transcript";
+import SpaceTranscriptAlignmentControl from "./SpaceTranscriptAlignmentControl.vue";
 import SpaceTranscriptSegmentEditor from "./SpaceTranscriptSegmentEditor.vue";
 
 const props = defineProps<{
@@ -101,12 +101,12 @@ async function remeasure() {
         <UiSwitch v-model="autoFollow" :label="t('spaces.media.player.followPlayback')" />
       </label>
     </div>
-    <div class="flex items-center gap-2 border-b border-stroke-divider p-2">
-      <UiButton size="sm" :disabled="alignmentDisabled || !canAlign" @click="emit('align', [...selected])">
-        {{ t("spaces.transcript.text.alignSelected") }} · {{ selected.length }}
-      </UiButton>
-      <span class="text-caption-sm text-fg-tertiary">{{ t("spaces.transcript.text.alignmentLimit") }}</span>
-    </div>
+    <SpaceTranscriptAlignmentControl
+      :disabled="Boolean(alignmentDisabled)"
+      :can-align="canAlign"
+      :selected-count="selected.length"
+      @align="emit('align', [...selected])"
+    />
     <div ref="scroller" class="h-80 overflow-y-auto">
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <SpaceTranscriptSegmentEditor

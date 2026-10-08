@@ -16,6 +16,7 @@ defineProps<{
 const emit = defineEmits<{
   add: [];
   rename: [role: AudiobookRoleDraft, value: string];
+  voice: [role: AudiobookRoleDraft, value: string];
   remove: [role: AudiobookRoleDraft];
 }>();
 const { t } = useI18n();
@@ -42,12 +43,13 @@ const { t } = useI18n();
         @update:model-value="emit('rename', role, $event)"
       />
       <UiSelect
-        v-model="role.voiceRevisionId"
+        :model-value="role.voiceRevisionId"
         class="min-w-0 flex-1"
         size="sm"
         :label="t('spaces.speech.voice')"
         :options="voiceOptions"
         :disabled="disabled"
+        @update:model-value="emit('voice', role, $event)"
       />
       <UiButton
         size="sm"

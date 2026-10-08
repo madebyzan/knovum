@@ -72,6 +72,9 @@ pub async fn revise_voice_profile(
     let previous = super::contracts::parse_synthesis_config(
         &serde_json::from_str(&current.synthesis_config).map_err(db::json_error)?,
     )?;
+    if let Some(speaker) = &current.preset_voice_id {
+        super::preset_voices::require(speaker, &request.language)?;
+    }
     let config = revision_config(&current.engine_id, request.speed, previous.seed)?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
@@ -155,9 +158,9 @@ struct RevisionSource {
 
 fn revision_config(engine_id: &str, speed: f32, seed: u32) -> Result<String, String> {
     let sample_rate = match engine_id {
-        "kokoro" if speed.is_finite() && (0.5..=2.0).contains(&speed) => 24_000,
+        "moss_nano" if speed == 1.0 => 48_000,
         "voxcpm2" if speed == 1.0 => 48_000,
-        "kokoro" => return Err("Kokoro speed must be between 0.5 and 2.0".into()),
+        "moss_nano" => return Err("MOSS-TTS-Nano requires normal speed".into()),
         "voxcpm2" => return Err("VoxCPM2 uses its fixed speed profile".into()),
         _ => return Err("Voice engine is unsupported".into()),
     };

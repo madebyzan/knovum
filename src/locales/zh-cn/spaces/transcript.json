@@ -15,16 +15,15 @@
     "liveHint": "实时转写文本将同步显示于此。",
     "alignSelected": "对齐所选片段",
     "alignmentLimit": "最多 8 段 / 5 分钟",
+    "alignmentFirstUse": "首次使用会自动下载所选模型与所需资源；可在设置中下载并选择其他模型。",
     "selectForAlignment": "选择此片段进行对齐"
   },
   "speakers": {
     "title": "说话人轨道",
-    "needsModel": "先为 Community-1 保存官方访问凭据；授权后，应用会自动下载模型。",
     "durationLimit": "说话人分离支持最长两小时的媒体。",
-    "minimum": "最少人数（可选）",
-    "maximum": "最多人数（可选）",
     "generate": "识别说话人",
-    "configureAccess": "设置模型访问凭据",
-    "firstUse": "首次使用将自动下载本地资源，可在任务中心取消。"
+    "firstUse": "首次使用将自动下载本地资源，可在任务中心取消。",
+    "count": "已知人数（可选）",
+    "automatic": "自动识别"
   }
 }

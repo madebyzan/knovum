@@ -16,7 +16,13 @@ pub(crate) mod alignment;
 pub(crate) mod diarization;
 
 pub(crate) fn engine_id() -> Result<&'static str, String> {
-    crate::ai::local_runtime::speech::transcription_profile().map(|profile| profile.id)
+    crate::ai::local_runtime::speech::transcription_profile(
+        crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
+    )
+    .map(|profile| match profile.engine {
+        crate::ai::contracts::speech_wire::AsrEngine::MlxWhisper => "mlx-whisper",
+        crate::ai::contracts::speech_wire::AsrEngine::FasterWhisper => "faster-whisper",
+    })
 }
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
@@ -81,16 +87,19 @@ pub(in crate::spaces) async fn transcribe_media(
     on_progress: Channel<MediaTranscriptionProgress>,
     cancellation: CancellationToken,
 ) -> Result<MediaTranscript, String> {
-    crate::ai::local_runtime::speech::transcription_profile()?;
+    crate::ai::local_runtime::speech::transcription_profile(
+        crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
+    )?;
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let inspected = source.clone();
     let revision = source_revision;
     let expected = revision.clone();
     blocking::run(move || crate::file_inspection::verify_content_revision(&inspected, &expected))
         .await?;
+    let model = crate::local_resources::model_selection::transcription(&app)?;
     let prepared = preparation::prepare_models_for_job(
         &app,
-        preparation::contracts::ResourcePreparationTarget::Transcription,
+        preparation::contracts::ResourcePreparationTarget::Model { model },
         &format!("resource:{job_id}"),
         "Preparing speech recognition",
         &cancellation,

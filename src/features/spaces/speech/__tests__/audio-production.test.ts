@@ -7,6 +7,30 @@ import { useAudiobookOutput } from "../use-audiobook-output";
 const entry = (path: string, text: string) => ({ path, text });
 
 describe("audio production scripts", () => {
+  it.each([
+    ["loudness", ""],
+    ["loudness", "NaN"],
+    ["loudness", "-25"],
+    ["loudness", "-15"],
+    ["peak", "Infinity"],
+    ["peak", "-4"],
+    ["peak", "0"],
+  ] as const)("rejects invalid audiobook %s input %s before saving", (field, value) => {
+    const output = useAudiobookOutput();
+    output[field].value = value;
+    expect(output.valid()).toBe(false);
+  });
+
+  it("accepts supported fractional loudness and inclusive peak bounds", () => {
+    const output = useAudiobookOutput();
+    output.loudness.value = "-20.5";
+    output.peak.value = "-3";
+    expect(output.valid()).toBe(true);
+    output.loudness.value = "-16";
+    output.peak.value = "-1";
+    expect(output.valid()).toBe(true);
+  });
+
   it("imports EPUB chapters in declared spine order and excludes navigation", () => {
     const source = {
       kind: "epub" as const,

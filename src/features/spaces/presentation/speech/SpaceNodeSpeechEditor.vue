@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, shallowRef } from "vue";
+import { RouterLink } from "vue-router";
 
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOutput";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { useSpaceStore } from "../../session/space-store";
+import type { NodeSpeechProjectType } from "../../speech/node-speech";
 import { useSpeechWorkspace } from "../../speech/use-speech-workspace";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
 import SpeechProjectForm from "./SpeechProjectForm.vue";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
-import VoiceManagement from "./VoiceManagement.vue";
 import VoiceProfileForm from "./VoiceProfileForm.vue";
 
-const props = defineProps<{ node: SpaceCanvasNode }>();
+const props = defineProps<{ node: SpaceCanvasNode; projectType: NodeSpeechProjectType }>();
 const {
   voices,
+  creatingVoice,
+  addPresetVoice,
   projects,
   selectedProject,
   preview,
@@ -21,16 +27,13 @@ const {
   runState,
   generationProgress,
   activeJobId,
-  creatingVoice,
   creatingProject,
   savingRevision,
   generationSubmitting,
   generationCancelling,
   loading,
   error,
-  addPreset,
   addProject,
-  acceptVoice,
   refreshVoices,
   openProject,
   saveRevision,
@@ -39,7 +42,13 @@ const {
   cancelGeneration,
   stopPreviewListening,
   exportRender,
-} = useSpeechWorkspace(() => props.node.id);
+} = useSpeechWorkspace(
+  () => props.node.id,
+  () => props.projectType,
+);
+
+const store = useSpaceStore();
+const addingVoice = shallowRef(false);
 
 const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
   const project = selectedProject.value;
@@ -70,20 +79,47 @@ const projectOptions = computed(() =>
       {{ error }}
     </p>
     <div class="space-y-5" :aria-busy="loading">
-      <details class="space-y-2">
-        <summary class="cursor-pointer text-label font-medium text-fg-primary">
-          {{ $t("spaces.speech.voices") }}
-        </summary>
-        <fieldset>
-          <VoiceProfileForm :disabled="creatingVoice" @create="addPreset" />
-          <VoiceCandidateForm @created="acceptVoice" />
-        </fieldset>
-        <VoiceManagement @changed="refreshVoices" />
-      </details>
+      <RouterLink
+        :to="{ path: '/settings', query: { pane: 'voices' } }"
+        class="text-caption text-fg-accent hover:underline"
+        data-testid="manage-voices"
+      >
+        {{ $t("spaces.speech.manageVoices") }}
+      </RouterLink>
+      <UiButton size="sm" variant="ghost" data-testid="add-reference-voice" @click="addingVoice = true">
+        {{ $t("spaces.speech.addReferenceVoice") }}
+      </UiButton>
+      <UiDialog v-if="addingVoice" v-model:open="addingVoice" :title="$t('spaces.speech.addReferenceVoice')">
+        <VoiceCandidateForm
+          v-if="store.activeSpaceId"
+          :space-id="store.activeSpaceId"
+          @created="refreshVoices"
+        />
+      </UiDialog>
+      <section
+        v-if="
+          !loading &&
+          !voices.some((voice) => voice.isActive && voice.archivedAt == null) &&
+          store.activeSpaceId
+        "
+        class="space-y-2"
+      >
+        <p class="text-caption text-fg-secondary">{{ $t("spaces.speech.firstVoice") }}</p>
+        <VoiceProfileForm
+          :space-id="store.activeSpaceId"
+          :disabled="creatingVoice"
+          @create="addPresetVoice"
+        />
+      </section>
       <section class="space-y-2 border-t border-stroke-divider pt-4">
         <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newProject") }}</h2>
         <fieldset>
-          <SpeechProjectForm :node="node" :disabled="creatingProject" @create="addProject" />
+          <SpeechProjectForm
+            :node="node"
+            :project-type="projectType"
+            :disabled="creatingProject"
+            @create="addProject"
+          />
         </fieldset>
       </section>
       <UiSelect

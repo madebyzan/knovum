@@ -102,6 +102,7 @@ fn collect_speech_assets(
         for (path, digest) in [
             ("sourceAssetPath", "sourceRevision"),
             ("backgroundAssetPath", "backgroundSha256"),
+            ("vocalsAssetPath", "vocalsSha256"),
         ] {
             let reference = separation
                 .get(path)
@@ -113,7 +114,7 @@ fn collect_speech_assets(
                 .get(digest)
                 .and_then(Value::as_str)
                 .ok_or("Package source separation digest is unavailable")?;
-            let revision = if digest == "backgroundSha256" {
+            let revision = if digest != "sourceRevision" {
                 format!("sha256:{raw}")
             } else {
                 raw.to_owned()

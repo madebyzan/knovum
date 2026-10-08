@@ -71,8 +71,7 @@ pub async fn export_video_audio_tracks(
             for track in &tracks {
                 verify_track(track)?;
             }
-            let ffmpeg = tools::resolve_tool(&app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-                .ok_or("Bundled FFmpeg is unavailable")?;
+            let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
             let output = work.join("tracks.mp4");
             mux_tracks(
                 TrackMuxRequest {

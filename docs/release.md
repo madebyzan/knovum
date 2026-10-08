@@ -29,11 +29,10 @@ smoke on a clean machine without a system Python installation. A matching hash a
 establish code-signing trust or native wheel support.
 
 Speech acceptance uses the exact candidate runtime and resources. On macOS arm64 it covers the MPS
-float32 VoxCPM2 profile with the 48 GiB conservative admission threshold; on Windows x64 it covers
-the CPU bfloat16 profile with the 32 GiB threshold. These gates are not performance evidence: native
-QA must still record peak memory, latency, cancellation, recovery and output quality. Pyannote import
-acceptance uses a user-authorized fixed-revision directory without storing a token or reading external
-YAML. Alignment acceptance covers the selected-range limits and manual timing invalidation.
+native Metal VoxCPM2 profile; Intel macOS and Windows also qualify the original-precision GGUF CPU profile with a minimum 32 GiB physical memory. These gates are not performance evidence: native
+QA must still record peak memory, latency, cancellation, recovery and output quality. Sherpa diarization
+acceptance covers anonymous fixed-revision downloads, automatic and known speaker counts, and
+offline inference without credentials or external configuration. Alignment acceptance covers the selected-range limits and manual timing invalidation.
 
 ### Native inference quality evidence
 
@@ -108,11 +107,7 @@ preregistered limits. An ASR round-trip score cannot replace these human
 records. The acceptance report remains attached to the exact candidate artifacts and is regenerated for
 every runtime, model, execution-config or corpus change.
 
-Kokoro blocks production promotion independently of functional QA until the distribution review
-contains complete corresponding-source and notice materials for the GPL eSpeak NG data and for the
-GPL-bearing sherpa Python native binary, plus an explicit maintainer legal decision. Release tooling
-must not manufacture or default that decision to approved. Disabling the on-demand Kokoro download
-does not resolve a candidate that still conveys the affected sherpa wheel in its bundled runtime.
+The light inference Sherpa native binary still requires complete corresponding-source and notice materials for its GPL-bearing eSpeak components and an explicit maintainer distribution decision. Removing the former Kokoro model archive does not establish approval for the remaining binary. Release tooling cannot manufacture that decision.
 
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
@@ -296,20 +291,20 @@ as plain text.
 
 ## Required acceptance matrix
 
-| Scenario                                            | Required outcome on every supported target                                                                                        |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                                     |
-| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                                     |
-| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                                       |
-| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                                       |
-| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                                  |
-| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                             |
-| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                              |
-| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                                 |
-| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                                        |
-| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                                |
-| Speech runtime and model resources                  | Native ASR, alignment, authorized diarization download, Kokoro gate and VoxCPM2 profiles are exercised on their supported target. |
-| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                                  |
+| Scenario                                            | Required outcome on every supported target                                                                                             |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                                          |
+| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                                          |
+| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                                            |
+| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                                            |
+| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                                       |
+| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                                  |
+| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                                   |
+| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                                      |
+| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                                             |
+| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                                     |
+| Speech runtime and model resources                  | Native ASR, alignment, public diarization download, MOSS-TTS-Nano and native VoxCPM2 profiles are exercised on their supported target. |
+| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                                       |
 
 The first update-enabled public installation establishes the trust/endpoint baseline. A previously
 shipped updater-disabled QA binary cannot be remotely taught an endpoint; install the baseline normally.
@@ -350,9 +345,10 @@ not establish full transfer or native execution. Clients do not ask users for re
 CDN routing belongs to the publisher. Current upstream URLs have not been qualified for every
 mainland network. If a route fails acceptance, publish a permitted identical qualified copy and
 update the catalog before release. Legacy dual-region descriptors are rejected.
-Kokoro retains its archive/license gates. Community-1 requires acceptance evidence for official
-authorized download, HTTP denial without credential leakage, cancellation, digest verification and
-subsequent offline inference. No manual folder import or application-owned terms declaration remains.
+MOSS-TTS-Nano and native VoxCPM2 require their exact source/model notices and platform qualification. Public Sherpa diarization requires native acceptance
+for anonymous download, cancellation, digest verification and subsequent offline inference.
+Automatic speaker counting and turn quality are separate from known-count sample correctness.
+No manual folder import or application-owned terms declaration remains.
 No provider failover, compatibility endpoint precedence or replacement model satisfies this gate.
 
 ## Deep Agents acceptance
@@ -437,7 +433,7 @@ and remeasurement; do not declare improvement from a constructed mock.
 ### Native runtime/control matrix
 
 On **macOS 14+ arm64/x64** and **Windows x64**, record clean installation without system Python,
-anonymous first download of all five profiles in both regions, cancellation, separate dependency
+anonymous first download of all five profiles through the application-managed sources, cancellation, separate dependency
 imports, restart/offline use, native CA/proxy behavior, protocol initialization, process-tree
 termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
 asset publication. The producer performs relocation imports from a path with spaces and Chinese

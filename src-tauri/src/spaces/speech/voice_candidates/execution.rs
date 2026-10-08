@@ -7,19 +7,16 @@ use std::{
 use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 
-use super::{
-    artifacts, repository, VoiceCandidateSource, VoiceCandidateStepConfiguration, MODEL_SPEC_ID,
-};
+use super::{artifacts, repository, VoiceCandidateSource, VoiceCandidateStepConfiguration};
 use crate::{
     ai::{
         contracts::speech_wire::{
-            AudioFileReference, InferenceRequestIdentity, SpeechSynthesisEngine,
-            SpeechSynthesizeParams, SynthesisProfile, VoiceRevisionReference, VoiceSourceKind,
+            AudioFileReference, InferenceRequestIdentity, SpeechSynthesizeParams, SynthesisProfile,
+            VoiceRevisionReference, VoiceSourceKind,
         },
         local_runtime::{admission::Priority, speech},
     },
     app_error::AppError,
-    local_resources::preparation,
     spaces::{
         db,
         runs::{AttemptClaim, StepOutcome},
@@ -75,12 +72,13 @@ async fn execute_inner(
     paths: &artifacts::CandidatePaths,
 ) -> Result<StepOutcome, AppError> {
     let request = &configuration.request;
-    let device_profile = crate::ai::local_runtime::device_profiles::voxcpm2()?;
     let (reference, reference_text, description, source_kind) =
         prepare_source(app, claim, configuration, &paths.reference_part).await?;
     artifacts::verify_source_snapshot(app, configuration).await?;
-    let models = preparation::prepare_voxcpm2_for_job(
+    let models = super::super::execution::prepare_synthesis(
         app,
+        request.model.engine(),
+        request.model.specification(),
         &claim.attempt_id,
         "Preparing voice candidate",
         &claim.cancellation,
@@ -97,51 +95,54 @@ async fn execute_inner(
         .checked_add(300_000)
         .ok_or("Voice candidate deadline overflow")?;
     let input = serde_json::to_vec(request).map_err(db::json_error)?;
-    let audio = speech::synthesize_voxcpm2(
-        app,
-        &models,
-        device_profile,
-        SpeechSynthesizeParams {
-            identity: InferenceRequestIdentity {
-                request_id: claim.run_id.clone(),
-                owner_kind: "voice_candidate".into(),
-                owner_id: claim.home_space_id.clone(),
-                attempt_id: claim.attempt_id.clone(),
-                attempt_epoch: u64::try_from(claim.execution_epoch)
-                    .map_err(|_| "Voice candidate execution epoch is invalid")?,
-                input_revision: hex::encode(Sha256::digest(input)),
-                model_spec_id: MODEL_SPEC_ID.into(),
-                deadline_ms,
-            },
-            text: request.text.trim().into(),
-            voice_revision: VoiceRevisionReference {
-                revision_id: claim.run_id.clone(),
-                source_kind: if source_kind == "reference" {
-                    VoiceSourceKind::Reference
-                } else {
-                    VoiceSourceKind::Designed
+    let audio = models
+        .synthesize(
+            app,
+            SpeechSynthesizeParams {
+                identity: InferenceRequestIdentity {
+                    request_id: claim.run_id.clone(),
+                    owner_kind: "voice_candidate".into(),
+                    owner_id: claim.home_space_id.clone(),
+                    attempt_id: claim.attempt_id.clone(),
+                    attempt_epoch: u64::try_from(claim.execution_epoch)
+                        .map_err(|_| "Voice candidate execution epoch is invalid")?,
+                    input_revision: hex::encode(Sha256::digest(input)),
+                    model_spec_id: request.model.specification().into(),
+                    deadline_ms,
                 },
-                speaker_id: None,
-                reference_audio: reference.clone(),
-                reference_text: reference_text.clone(),
-                design_prompt: description.clone(),
+                text: request.text.trim().into(),
+                voice_revision: VoiceRevisionReference {
+                    revision_id: claim.run_id.clone(),
+                    source_kind: if source_kind == "reference" {
+                        VoiceSourceKind::Reference
+                    } else {
+                        VoiceSourceKind::Designed
+                    },
+                    speaker_id: None,
+                    reference_audio: reference.clone(),
+                    reference_text: if source_kind == "reference" {
+                        reference_text.clone()
+                    } else {
+                        None
+                    },
+                    design_prompt: description.clone(),
+                },
+                style: None,
+                seed: u64::from(request.seed),
+                profile: SynthesisProfile {
+                    engine: request.model.wire_engine(),
+                    language: request.language.clone(),
+                    speed: 1.0,
+                    sample_rate: 48_000,
+                },
             },
-            style: None,
-            seed: u64::from(request.seed),
-            profile: SynthesisProfile {
-                engine: SpeechSynthesisEngine::VoxCpm2,
-                language: request.language.clone(),
-                speed: 1.0,
-                sample_rate: 48_000,
+            speech::SynthesisExecution {
+                cancellation: &claim.cancellation,
+                priority: Priority::Interactive,
+                on_chunk: None,
             },
-        },
-        speech::SynthesisExecution {
-            cancellation: &claim.cancellation,
-            priority: Priority::Interactive,
-            on_chunk: None,
-        },
-    )
-    .await?;
+        )
+        .await?;
     super::super::publication::validate_synthesized_audio(&audio)?;
     artifacts::write_new(&paths.preview_part, &audio.bytes, &claim.cancellation)?;
     let reference = if source_kind == "designed" {
@@ -219,25 +220,18 @@ async fn prepare_source(
             Some(description.trim().into()),
             "designed",
         )),
-        VoiceCandidateSource::Reference {
-            source_path,
-            start_ms,
-            end_ms,
-            reference_text,
-            ..
-        } => {
+        VoiceCandidateSource::Reference { reference_text, .. } => {
             let snapshot = configuration
                 .reference_source
                 .as_ref()
                 .ok_or("Voice candidate reference snapshot is missing")?;
-            let audio = super::super::voice_assets::prepare_reference_clip(
-                app,
-                Path::new(source_path),
+            super::source_snapshot::copy(
+                Path::new(&snapshot.asset_path),
                 reference_part,
                 snapshot.byte_length,
-                &claim.cancellation,
-                (*start_ms, *end_ms),
+                &snapshot.source_revision,
             )?;
+            let audio = super::super::voice_assets::reference_metadata(reference_part)?;
             let text = reference_text
                 .as_deref()
                 .map(str::trim)

@@ -78,7 +78,7 @@ async def speech_align(
     params: SpeechAlignParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
     engine = cast("AlignmentEngine", session.engine)
-    value = await asyncio.to_thread(engine.align, params)
+    value = await asyncio.to_thread(engine.align, params, active.cancelled)
     return value
 
 
@@ -86,7 +86,7 @@ async def speech_diarize(
     params: SpeechDiarizeParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
     engine = cast("DiarizationEngine", session.engine)
-    value = await asyncio.to_thread(engine.diarize, params)
+    value = await asyncio.to_thread(engine.diarize, params, active.cancelled)
     return value
 
 

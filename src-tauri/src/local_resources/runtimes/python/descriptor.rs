@@ -8,18 +8,33 @@ use tauri::{AppHandle, Manager, Runtime};
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct Descriptor {
+    #[cfg_attr(
+        debug_assertions,
+        expect(
+            dead_code,
+            reason = "Only released runtime archives use publication fields"
+        )
+    )]
     pub(super) schema_version: u8,
     pub(super) target: String,
     pub(super) version: String,
     pub(super) dependency_requirements_sha256: String,
     pub(super) profile: RuntimeProfile,
     pub(super) dependency_lock_sha256: String,
+    #[cfg_attr(
+        debug_assertions,
+        expect(
+            dead_code,
+            reason = "Only released runtime archives use publication fields"
+        )
+    )]
     pub(super) archive_url: String,
     pub(super) size: u64,
     pub(super) sha256: String,
     pub(super) manifest_sha256: String,
 }
 
+#[cfg(not(debug_assertions))]
 fn validate_archive_url(value: &str) -> Result<(), String> {
     let url = reqwest::Url::parse(value).map_err(|error| error.to_string())?;
     if url.scheme() != "https"
@@ -32,6 +47,7 @@ fn validate_archive_url(value: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(not(debug_assertions))]
 pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, String> {
     let descriptor: Option<Descriptor> = serde_json::from_slice(profile.descriptor_bytes())
         .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
@@ -58,6 +74,7 @@ pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, St
     Ok(descriptor)
 }
 
+#[cfg(not(debug_assertions))]
 pub(super) fn required(profile: RuntimeProfile) -> Result<Descriptor, String> {
     embedded(profile)?
         .ok_or_else(|| "runtime_missing: Python runtime publication is not configured".into())
@@ -77,6 +94,7 @@ pub(super) fn destination<R: Runtime>(
         .join(&value.sha256))
 }
 
+#[cfg(not(debug_assertions))]
 fn valid_hash(value: &str, length: usize) -> bool {
     value.len() == length
         && value

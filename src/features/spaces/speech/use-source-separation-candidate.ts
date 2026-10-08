@@ -1,4 +1,4 @@
-import { onScopeDispose, readonly, shallowRef } from "vue";
+import { computed, onScopeDispose, readonly, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -7,14 +7,23 @@ import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
-import { getSpeechSourceSeparation, reviewSpeechSourceSeparation, startSpeechSourceSeparation } from "./ipc";
+import {
+  getLatestSourceSeparationRun,
+  getSpeechSourceSeparation,
+  reviewSpeechSourceSeparation,
+  startSpeechSourceSeparation,
+} from "./source-separation-ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
 
 export function useSourceSeparationCandidate() {
   const candidate = shallowRef<SpeechSourceSeparationCandidate>();
   const activeRunId = shallowRef<string>();
-  const busy = shallowRef(false);
+  const preparing = shallowRef(false);
+  const loading = shallowRef(false);
+  const reviewing = shallowRef(false);
+  const cancelling = shallowRef(false);
+  const busy = computed(() => preparing.value || loading.value || reviewing.value || cancelling.value);
   const error = shallowRef<string>();
   let stopObservation: (() => unknown) | undefined;
   let epoch = 0;
@@ -25,8 +34,28 @@ export function useSourceSeparationCandidate() {
     stopObservation = undefined;
     candidate.value = undefined;
     activeRunId.value = undefined;
-    busy.value = false;
+    preparing.value = false;
+    loading.value = false;
+    reviewing.value = false;
+    cancelling.value = false;
     error.value = undefined;
+  }
+
+  async function restore(spaceId: string, source: SpeechMediaSource) {
+    reset();
+    const current = epoch;
+    preparing.value = true;
+    try {
+      const run = await getLatestSourceSeparationRun(spaceId, source);
+      if (run && current === epoch) {
+        activeRunId.value = run.id;
+        await observe(run, current);
+      }
+    } catch (cause) {
+      if (current === epoch) error.value = getErrorMessage(cause);
+    } finally {
+      if (current === epoch) preparing.value = false;
+    }
   }
 
   async function start(spaceId: string, source: SpeechMediaSource) {
@@ -35,25 +64,26 @@ export function useSourceSeparationCandidate() {
     const current = ++epoch;
     candidate.value = undefined;
     error.value = undefined;
-    busy.value = true;
+    preparing.value = true;
     try {
       const run = await startSpeechSourceSeparation({ requestId, spaceId, source });
       if (current !== epoch) return;
       activeRunId.value = run.id;
-      observe(run, current);
+      await observe(run, current);
     } catch (cause) {
       if (current === epoch) error.value = getErrorMessage(cause);
     } finally {
-      if (current === epoch) busy.value = false;
+      if (current === epoch) preparing.value = false;
     }
   }
 
-  function observe(run: RunObservation, current: number) {
+  async function observe(run: RunObservation, current: number) {
     stopObservation?.();
     if (TERMINAL_STATES.has(run.state)) {
       activeRunId.value = undefined;
-      if (run.state === "succeeded") void load(run.id, current);
-      else error.value = i18n.global.t(workflowStateLabelKey(run.state));
+      if (run.state === "succeeded") await load(run.id, current);
+      else
+        error.value = run.state === "cancelled" ? undefined : i18n.global.t(workflowStateLabelKey(run.state));
       return;
     }
     stopObservation = observeResourceRun(run, i18n.global.t("spaces.speech.sourceSeparationTask"), (next) => {
@@ -62,43 +92,62 @@ export function useSourceSeparationCandidate() {
       stopObservation = undefined;
       activeRunId.value = undefined;
       if (next.state === "succeeded") void load(run.id, current);
-      else error.value = i18n.global.t(workflowStateLabelKey(next.state));
+      else
+        error.value =
+          next.state === "cancelled" ? undefined : i18n.global.t(workflowStateLabelKey(next.state));
     });
   }
 
   async function load(separationId: string, current: number) {
+    loading.value = true;
     try {
       const loaded = await getSpeechSourceSeparation(separationId);
       if (current === epoch) candidate.value = loaded;
     } catch (cause) {
       if (current === epoch) error.value = getErrorMessage(cause);
+    } finally {
+      if (current === epoch) loading.value = false;
     }
   }
 
   async function cancel() {
-    if (activeRunId.value) await cancelResourceRun(activeRunId.value);
+    const runId = activeRunId.value;
+    const current = epoch;
+    if (!runId || cancelling.value) return;
+    cancelling.value = true;
+    try {
+      await cancelResourceRun(runId);
+    } catch (cause) {
+      if (current === epoch && activeRunId.value === runId) error.value = getErrorMessage(cause);
+    } finally {
+      if (current === epoch) cancelling.value = false;
+    }
   }
 
   async function review(accepted: boolean) {
     const current = candidate.value;
     if (!current || current.reviewStatus !== "pending" || busy.value) return;
-    busy.value = true;
+    const reviewEpoch = epoch;
+    reviewing.value = true;
     try {
-      candidate.value = await reviewSpeechSourceSeparation({
+      const reviewed = await reviewSpeechSourceSeparation({
         separationId: current.separationId,
         expectedReviewStatus: "pending",
         accepted,
       });
+      if (reviewEpoch !== epoch) return;
+      candidate.value = reviewed;
       error.value = undefined;
     } catch (cause) {
-      error.value = getErrorMessage(cause);
+      if (reviewEpoch === epoch) error.value = getErrorMessage(cause);
     } finally {
-      busy.value = false;
+      if (reviewEpoch === epoch) reviewing.value = false;
     }
   }
 
   onScopeDispose(reset);
   return {
+    restore,
     candidate: readonly(candidate),
     activeRunId: readonly(activeRunId),
     busy: readonly(busy),

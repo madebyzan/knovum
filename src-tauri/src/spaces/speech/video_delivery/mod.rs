@@ -75,8 +75,7 @@ pub async fn export_video_dubbing_asset(
                 fs::write(&path, subtitle).map_err(|error| error.to_string())?;
                 path
             } else {
-                let ffmpeg = tools::resolve_tool(&app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-                    .ok_or("Bundled FFmpeg is unavailable")?;
+                let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
                 let video = policy::verified_source(
                     &app,
                     &config.video.asset_path,

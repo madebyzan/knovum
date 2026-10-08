@@ -1,12 +1,13 @@
 import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
 
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { cancelResourceRun } from "../runs/resource-run-observation";
-import { useSpaceStore } from "../session/space-store";
-import { draftVoiceCandidate, getActiveVoiceCandidateRun, listVoiceCandidates } from "./voice-candidate-ipc";
+import { useVoiceCandidateSubmission } from "./use-voice-candidate-submission";
+import { getActiveVoiceCandidateRun, listVoiceCandidates } from "./voice-candidate-ipc";
 import { observeVoiceCandidateRun } from "./voice-candidate-run";
 import {
   auditionVoiceCandidate,
@@ -16,13 +17,16 @@ import {
   selectVoiceCandidate,
 } from "./voice-candidate-selection";
 
-export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => void) {
-  const store = useSpaceStore();
+export function useVoiceCandidates(
+  ownerSpaceId: () => string | undefined,
+  created: (voice: VoiceLibraryRevision) => void,
+) {
   const candidates = shallowRef<PlayableVoiceCandidate[]>([]);
   const activeRunId = shallowRef<string>();
   const submitting = shallowRef(false);
   const error = shallowRef<string>();
   const busy = computed(() => Boolean(activeRunId.value) || submitting.value);
+  const submission = useVoiceCandidateSubmission();
   let epoch = 0;
   let stopObservation: (() => unknown) | undefined;
 
@@ -32,11 +36,12 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     stopObservation = undefined;
     candidates.value = [];
     activeRunId.value = undefined;
+    submission.reset();
     submitting.value = false;
     error.value = undefined;
   }
   function current(spaceId: string, version: number) {
-    return store.activeSpaceId === spaceId && epoch === version;
+    return ownerSpaceId() === spaceId && epoch === version;
   }
   async function reload(spaceId: string, version: number) {
     const loaded = await listVoiceCandidates(spaceId);
@@ -66,7 +71,7 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     );
   }
   async function operation(action: (spaceId: string, version: number) => Promise<void>) {
-    const spaceId = store.activeSpaceId;
+    const spaceId = ownerSpaceId();
     const version = epoch;
     if (!spaceId || busy.value) return;
     submitting.value = true;
@@ -74,7 +79,8 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     try {
       await action(spaceId, version);
     } catch (cause) {
-      if (current(spaceId, version)) error.value = getErrorMessage(cause);
+      if (current(spaceId, version) && decodeAppError(cause)?.code !== "cancelled")
+        error.value = getErrorMessage(cause);
     } finally {
       if (current(spaceId, version)) submitting.value = false;
     }
@@ -86,11 +92,12 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
   }
   const draft = (input: Omit<DraftVoiceCandidateRequest, "requestId" | "spaceId">) =>
     operation(async (spaceId, version) => {
-      const run = await draftVoiceCandidate({ ...input, requestId: crypto.randomUUID(), spaceId });
-      if (current(spaceId, version)) observe(run, spaceId, version);
+      await submission.start({ ...input, spaceId }, (run) => {
+        if (current(spaceId, version)) observe(run, spaceId, version);
+      });
     });
   async function audition(id: string) {
-    const spaceId = store.activeSpaceId;
+    const spaceId = ownerSpaceId();
     const version = epoch;
     if (!spaceId) return;
     try {
@@ -115,15 +122,20 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
         candidates.value = candidates.value.filter((item) => item.candidateId !== id);
     });
   async function cancel() {
-    if (!activeRunId.value) return;
+    const spaceId = ownerSpaceId();
+    const version = epoch;
+    const runId = activeRunId.value ?? submission.jobId.value;
+    if (!spaceId || !runId) return;
     try {
-      await cancelResourceRun(activeRunId.value);
+      if (activeRunId.value) await cancelResourceRun(runId);
+      else await submission.cancel();
     } catch (cause) {
-      error.value = getErrorMessage(cause);
+      if (current(spaceId, version) && (activeRunId.value === runId || submission.jobId.value === runId))
+        error.value = getErrorMessage(cause);
     }
   }
   watch(
-    () => store.activeSpaceId,
+    () => ownerSpaceId(),
     (spaceId) => {
       reset();
       if (!spaceId) return;
@@ -138,6 +150,7 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
   return {
     candidates: readonly(candidates),
     activeRunId: readonly(activeRunId),
+    pendingRequestId: submission.jobId,
     busy,
     error: readonly(error),
     draft,

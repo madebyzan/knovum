@@ -3,7 +3,7 @@ mod voice;
 pub(super) use request::{synthesis_params, SynthesisAttempt};
 mod request;
 mod resources;
-pub(in crate::spaces::speech) use resources::prepare_synthesis;
+pub(in crate::spaces::speech) use resources::{prepare_synthesis, synthesis_device_profile};
 
 use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
@@ -19,7 +19,7 @@ use crate::{
     spaces::{db, runs::RunObservation},
 };
 
-pub(crate) const KOKORO_MODEL_SPEC_ID: &str = "kokoro-int8-multi-lang-v1_0";
+pub(crate) const MOSS_NANO_MODEL_SPEC_ID: &str = "moss-tts-nano-onnx-v1";
 // Preview packet sequence is a bounded IPC transport sequence. The runtime validates the
 // originating model-chunk or sentence sequence before this presentation-only split.
 const PREVIEW_AUDIO_PACKET_BYTES: usize = 128 * 1024;
@@ -51,17 +51,17 @@ pub async fn preview_voice(
             }
             super::preset_voices::require(speaker_id, language)?;
             VoiceExecution {
-                revision_id: format!("kokoro-preset:{speaker_id}"),
+                revision_id: format!("moss_nano-preset:{speaker_id}"),
                 source_kind: "preset".into(),
-                engine_id: "kokoro".into(),
-                model_spec_id: KOKORO_MODEL_SPEC_ID.into(),
+                engine_id: "moss_nano".into(),
+                model_spec_id: MOSS_NANO_MODEL_SPEC_ID.into(),
                 language: language.clone(),
                 preset_voice_id: Some(speaker_id.clone()),
                 reference_asset_id: None,
                 reference_source_revision: None,
                 reference_text: None,
                 design_description: None,
-                synthesis_config: serde_json::json!({ "speed": 1, "sampleRate": 24000, "seed": 0 })
+                synthesis_config: serde_json::json!({ "speed": 1, "sampleRate": 48000, "seed": 0 })
                     .to_string(),
             }
         }
@@ -75,11 +75,22 @@ pub async fn preview_voice(
     if normalized.chars().count() > 500 {
         return Err("Pronunciation substitutions exceed the preview limit".into());
     }
+    let delivery = super::delivery_instruction::validate(
+        request.delivery_instruction.as_deref(),
+        super::delivery_instruction::supports(
+            &voice.engine_id,
+            &voice.source_kind,
+            voice.reference_text.as_deref(),
+        ),
+    )?;
     send(&on_progress, "preparing", 0, 1, None);
-    let input_revision = digest_text(&normalized);
+    let input_revision = hex::encode(Sha256::digest(
+        serde_json::to_vec(&(normalized.as_str(), delivery)).map_err(db::json_error)?,
+    ));
     let model = prepare_synthesis(
         &app,
         &voice.engine_id,
+        &voice.model_spec_id,
         &request.job_id,
         "Preparing voice preview",
         lease.token(),
@@ -91,6 +102,7 @@ pub async fn preview_voice(
         &app,
         &voice,
         &normalized,
+        delivery,
         SynthesisAttempt {
             request_id: &request.job_id,
             owner_kind: "speech_preview",
@@ -157,14 +169,36 @@ pub async fn generate_speech_project(
     request: GenerateSpeechProjectRequest,
 ) -> Result<RunObservation, AppError> {
     let pool = db::pool(&app).await?;
-    let digests = super::runtime_identity::resolve(&app, pool, &request.project_id).await?;
-    Ok(run_start::start(pool, request, &digests).await?)
+    let lease = cancellation::acquire(&request.request_id)?;
+    let digests = super::runtime_identity::resolve(
+        &app,
+        pool,
+        &request.project_id,
+        &request.request_id,
+        lease.token(),
+    )
+    .await
+    .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
+    if lease.token().is_cancelled() {
+        return Err(AppError::cancelled("Speech preparation cancelled"));
+    }
+    let run = run_start::start(pool, request, &digests).await?;
+    if lease.token().is_cancelled() {
+        cancellation::cancel_project_run(pool, &run.id).await?;
+    }
+    Ok(run)
 }
 
 #[tauri::command]
-pub async fn cancel_speech_generation(job_id: String) -> Result<bool, AppError> {
+pub async fn cancel_speech_generation(
+    app: tauri::AppHandle,
+    job_id: String,
+) -> Result<bool, AppError> {
     uuid::Uuid::parse_str(&job_id).map_err(|_| "Speech job identity is invalid")?;
-    Ok(cancellation::cancel(&job_id)?)
+    let preparing = cancellation::cancel(&job_id)?;
+    let pool = db::pool(&app).await?;
+    let running = cancellation::cancel_project_run(pool, &job_id).await?;
+    Ok(preparing || running)
 }
 
 #[tauri::command]
@@ -184,19 +218,15 @@ pub(super) fn command_error(error: String, cancelled: bool) -> AppError {
     }
 }
 
-pub(super) fn kokoro_device_profile() -> RuntimeDeviceProfile {
+pub(super) fn moss_nano_device_profile() -> RuntimeDeviceProfile {
     let threads = std::thread::available_parallelism()
         .map(|count| count.get().min(4) as u8)
         .unwrap_or(1);
     RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: format!("cpu-int8-threads{threads}-v1"),
+        execution_profile_id: format!("moss-nano-cpu-f32-threads{threads}-v1"),
         cpu_threads: threads,
     }
-}
-
-pub(super) fn digest_text(value: &str) -> String {
-    hex::encode(Sha256::digest(value.as_bytes()))
 }
 
 fn send(

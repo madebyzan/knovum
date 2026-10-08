@@ -13,6 +13,10 @@ from knovum_inference.runtime.identity import verify_runtime_digest
 from knovum_inference.speech.alignment import AlignmentEngine
 from knovum_inference.speech.diarization import DiarizationEngine
 from knovum_inference.speech.synthesis.engine import SynthesisEngine
+from knovum_inference.speech.synthesis.voxcpm2 import (
+    FULL_MODEL_SPEC_ID,
+    Q8_MODEL_SPEC_ID,
+)
 from knovum_inference.speech.transcription import TranscriptionEngine
 
 if TYPE_CHECKING:
@@ -29,7 +33,13 @@ if TYPE_CHECKING:
         | ImageSegmentationEngine
     )
 
-_TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1", "mlx-whisper-small-mps-v1"})
+_TORCH_EXECUTION_PROFILES = frozenset(
+    {
+        "mlx-whisper-small-mps-v1",
+        "mlx-whisper-tiny-mps-v1",
+        "mlx-whisper-large-v3-mps-v1",
+    }
+)
 
 
 @dataclass(slots=True)
@@ -75,12 +85,11 @@ def _configure_engine_threads(params: RuntimeInitializeParams) -> None:
     ):
         os.environ[name] = threads
     uses_torch = (
-        params.capability
-        in {
-            RuntimeCapability.embedding,
-            RuntimeCapability.speech_alignment,
-            RuntimeCapability.speech_diarization,
-        }
+        params.capability is RuntimeCapability.embedding
+        or (
+            params.capability is RuntimeCapability.speech_alignment
+            and params.capability_spec_id == "qwen3-forced-aligner-0.6b-hf-v1"
+        )
         or params.device_profile.execution_profile_id in _TORCH_EXECUTION_PROFILES
     )
     if not uses_torch:
@@ -120,7 +129,7 @@ def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_direc
     device = params.device_profile.device
     threads = params.device_profile.cpu_threads
     if capability is RuntimeCapability.embedding:
-        if device != "cpu" or not model_path.is_dir():
+        if device not in {"cpu", "mps", "cuda"} or not model_path.is_dir():
             raise server_error("unsupported_device", "Embedding profile is unsupported")
         return EmbeddingEngine(str(model_path), device, threads)
     if capability is RuntimeCapability.speech_transcription:
@@ -128,23 +137,34 @@ def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_direc
             raise server_error("model_missing", "ASR model directory is missing")
         return TranscriptionEngine(model_path, work_directory, threads)
     if capability is RuntimeCapability.speech_alignment:
-        if device != "cpu" or not model_path.is_dir():
-            raise server_error("unsupported_device", "Qwen3 forced alignment requires CPU")
-        return AlignmentEngine(model_path, device, threads)
+        if not model_path.is_dir():
+            raise server_error("model_missing", "Forced alignment model directory is missing")
+        expected = params.capability_spec_id.removesuffix("-v1") + f"-{device}-v1"
+        if params.device_profile.execution_profile_id != expected:
+            raise server_error("runtime_mismatch", "Forced alignment model and execution profile differ")
+        return AlignmentEngine(model_path, device, threads, params.capability_spec_id)
     if capability is RuntimeCapability.speech_diarization:
         if device != "cpu" or not model_path.is_dir():
-            raise server_error("unsupported_device", "Community-1 diarization requires CPU")
-        return DiarizationEngine(model_path, device)
+            raise server_error("unsupported_device", "Sherpa-ONNX diarization requires CPU")
+        return DiarizationEngine(model_path, device, threads, params.capability_spec_id)
     if capability is RuntimeCapability.speech_synthesis:
-        if device not in {"cpu", "mps"} or not model_path.is_dir():
+        if device not in {"cpu", "mps", "cuda", "vulkan"} or not model_path.is_dir():
             raise server_error("unsupported_device", "Synthesis profile is unsupported")
-        return SynthesisEngine(model_path, device, threads)
+        quantization = {
+            FULL_MODEL_SPEC_ID: "orig",
+            Q8_MODEL_SPEC_ID: "q8_0",
+        }.get(params.capability_spec_id)
+        if quantization is not None:
+            expected = f"voxcpm2-{device}-gguf-{quantization}-v1"
+            if params.device_profile.execution_profile_id != expected:
+                raise server_error("runtime_mismatch", "VoxCPM2 model and execution profile differ")
+        return SynthesisEngine(model_path, device, threads, params.capability_spec_id)
     if capability is RuntimeCapability.speech_separation:
         if device != "cpu" or not model_path.is_dir():
             raise server_error("unsupported_device", "Spleeter source separation requires CPU")
         from knovum_inference.speech.separation import SpleeterSourceSeparator
 
-        return SpleeterSourceSeparator(model_path, work_directory, threads)
+        return SpleeterSourceSeparator(model_path, work_directory, threads, params.capability_spec_id)
     if capability is RuntimeCapability.image_segmentation:
         if device != "cpu" or not model_path.is_file():
             raise server_error("unsupported_device", "Image segmentation profile is unsupported")

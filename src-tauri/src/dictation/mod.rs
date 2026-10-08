@@ -3,6 +3,7 @@ mod completion;
 mod contracts;
 mod insertion;
 mod lifecycle;
+mod progress;
 mod recorder;
 mod service;
 mod transcription;

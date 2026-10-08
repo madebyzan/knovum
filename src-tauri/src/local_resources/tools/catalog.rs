@@ -14,7 +14,7 @@ pub(crate) enum MediaImportToolKind {
 pub(crate) struct ToolDescriptor {
     pub(crate) kind: MediaImportToolKind,
     pub(crate) directory: &'static str,
-    pub(crate) env_key: &'static str,
+
     pub(crate) version: String,
     pub(crate) asset: String,
     pub(crate) url: String,
@@ -67,7 +67,7 @@ pub(super) fn find_descriptor(kind: MediaImportToolKind) -> Result<Option<ToolDe
         MediaImportToolKind::YtDlp => Ok(Some(ToolDescriptor {
             kind,
             directory: "yt-dlp",
-            env_key: "KNOVUM_YT_DLP_PATH",
+
             version: manifest.yt_dlp.version.clone(),
             asset: target.yt_dlp.asset.clone(),
             url: format!(
@@ -81,7 +81,7 @@ pub(super) fn find_descriptor(kind: MediaImportToolKind) -> Result<Option<ToolDe
         MediaImportToolKind::Deno => Ok(Some(ToolDescriptor {
             kind,
             directory: "deno",
-            env_key: "KNOVUM_DENO_PATH",
+
             version: manifest.deno.version.clone(),
             asset: target.deno.asset.clone(),
             url: format!(

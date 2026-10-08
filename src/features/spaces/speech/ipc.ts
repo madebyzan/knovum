@@ -12,7 +12,6 @@ import type { GenerateSpeechProjectRequest } from "../contracts/generated/Genera
 import type { PresetVoice } from "../contracts/generated/PresetVoice";
 import type { PreviewVoiceRequest } from "../contracts/generated/PreviewVoiceRequest";
 import type { RenameVoiceProfileRequest } from "../contracts/generated/RenameVoiceProfileRequest";
-import type { ReviewSpeechSourceSeparationRequest } from "../contracts/generated/ReviewSpeechSourceSeparationRequest";
 import type { ReviseVoiceProfileRequest } from "../contracts/generated/ReviseVoiceProfileRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
@@ -21,8 +20,6 @@ import type { SpeechGenerationProgress } from "../contracts/generated/SpeechGene
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
 import type { SpeechProjectOverview } from "../contracts/generated/SpeechProjectOverview";
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
-import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
-import type { StartSpeechSourceSeparationRequest } from "../contracts/generated/StartSpeechSourceSeparationRequest";
 import type { TranslateVideoDubbingRequest } from "../contracts/generated/TranslateVideoDubbingRequest";
 import type { UnarchiveVoiceProfileRequest } from "../contracts/generated/UnarchiveVoiceProfileRequest";
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
@@ -130,22 +127,6 @@ export function getVideoTranslationRun(projectId: string, expectedRevision: numb
 
 export function getVideoTranslation(runId: string) {
   return invokeCommand<VideoTranslation>("plugin:spaces|get_video_translation", { runId });
-}
-
-export function startSpeechSourceSeparation(request: StartSpeechSourceSeparationRequest) {
-  return invokeCommand<RunObservation>("plugin:spaces|start_speech_source_separation", { request });
-}
-
-export function getSpeechSourceSeparation(separationId: string) {
-  return invokeCommand<SpeechSourceSeparationCandidate>("plugin:spaces|get_speech_source_separation", {
-    separationId,
-  });
-}
-
-export function reviewSpeechSourceSeparation(request: ReviewSpeechSourceSeparationRequest) {
-  return invokeCommand<SpeechSourceSeparationCandidate>("plugin:spaces|review_speech_source_separation", {
-    request,
-  });
 }
 
 export function createPresetVoice(request: CreatePresetVoiceRequest) {

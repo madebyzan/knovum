@@ -74,14 +74,12 @@ impl Worker {
                     .map_err(|error| format!("resource_exhausted: {error}"))
             }) => startup.map_err(|_| "deadline_exceeded".to_owned())??,
         }
-        let bootstrap = concat!(
-            "import sys; ",
-            "sys.path[:0] = [sys.argv[1], sys.argv[2]]; ",
-            "from knovum_inference.server import main; main()"
+        let bootstrap = crate::subprocess::python::isolated_bootstrap(
+            "from knovum_inference.server import main; main()",
         );
         let mut command = Command::new(&runtime.executable);
         command
-            .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
+            .args(["-I", "-B", "-X", "utf8", "-c", &bootstrap])
             .arg(&runtime.worker_root)
             .arg(&runtime.package_root)
             .current_dir(work_directory)
@@ -224,7 +222,9 @@ impl Worker {
 
 static VERIFY_GATE: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
 
-async fn verify_runtime_for_spawn(runtime: PythonRuntimePaths) -> Result<(), String> {
+pub(in crate::ai::local_runtime) async fn verify_runtime_for_spawn(
+    runtime: PythonRuntimePaths,
+) -> Result<(), String> {
     let (sender, receiver) = oneshot::channel();
     tokio::spawn(async move {
         let gate = VERIFY_GATE.get_or_init(|| tokio::sync::Mutex::new(()));

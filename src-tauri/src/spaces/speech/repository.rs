@@ -13,6 +13,7 @@ pub async fn list_voices(
     sqlx::query_as(
         "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision, \
          r.id=p.active_revision_id AS is_active,r.engine_id,r.model_spec_id,r.language,r.preset_voice_id, \
+         (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.profile_id=p.id \
          WHERE p.space_id=? ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
     )
@@ -90,27 +91,35 @@ pub async fn require_voice_in_space(
     tx: &mut Transaction<'_, Sqlite>,
     voice_revision_id: &str,
     project_id: &str,
+    delivery_instruction: Option<&str>,
 ) -> Result<String, String> {
-    let language: Option<String> = sqlx::query_scalar(
-        "SELECT r.language FROM spaces_voice_revisions r \
+    let voice: Option<(String, String, String, Option<String>)> = sqlx::query_as(
+        "SELECT r.language,r.engine_id,v.source_kind,r.reference_text FROM spaces_voice_revisions r \
          JOIN spaces_voice_profiles v ON v.id=r.profile_id \
          JOIN spaces_speech_projects p ON p.space_id=v.space_id \
          WHERE r.id=? AND p.id=? AND ( \
-           (v.source_kind='preset' AND r.engine_id='kokoro' AND r.model_spec_id=?) OR \
+           (v.source_kind IN ('preset','reference') AND r.engine_id='moss_nano' AND r.model_spec_id=?) OR \
            (v.source_kind IN ('reference','designed') AND r.engine_id='voxcpm2' \
-             AND r.model_spec_id=? \
+             AND r.model_spec_id IN (?,?) \
              AND r.reference_asset_id IS NOT NULL AND r.reference_source_revision IS NOT NULL \
              AND (v.source_kind='reference' OR \
                (r.reference_text IS NOT NULL AND length(trim(r.reference_text)) > 0))))",
     )
     .bind(voice_revision_id)
     .bind(project_id)
-    .bind(super::execution::KOKORO_MODEL_SPEC_ID)
+    .bind(super::execution::MOSS_NANO_MODEL_SPEC_ID)
     .bind(super::voice_candidates::MODEL_SPEC_ID)
+    .bind(super::voice_candidates::Q8_MODEL_SPEC_ID)
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    language.ok_or_else(|| "A compatible voice revision is required in this Space".to_owned())
+    let (language, engine, source, transcript) =
+        voice.ok_or("A compatible voice revision is required in this Space")?;
+    super::delivery_instruction::validate(
+        delivery_instruction,
+        super::delivery_instruction::supports(&engine, &source, transcript.as_deref()),
+    )?;
+    Ok(language)
 }
 
 pub(super) async fn load_segments(
@@ -120,7 +129,7 @@ pub(super) async fn load_segments(
     sqlx::query_as(
         "SELECT id, ordinal, chapter_key, speaker_key, text, normalized_text, voice_revision_id, \
          language, target_start_ms, target_end_ms,source_segment_id,source_segment_revision, \
-         source_text,state, state_reason \
+         source_text,delivery_instruction,state, state_reason \
          FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
     )
     .bind(revision_id)

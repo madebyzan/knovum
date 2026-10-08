@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.11.17"
 resolution-markers = [
     "sys_platform == 'win32'",
@@ -109,12 +109,12 @@ name = "black"
 version = "26.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click" },
-    { name = "mypy-extensions" },
-    { name = "packaging" },
-    { name = "pathspec" },
-    { name = "platformdirs" },
-    { name = "pytokens" },
+    { name = "click", marker = "sys_platform != 'emscripten'" },
+    { name = "mypy-extensions", marker = "sys_platform != 'emscripten'" },
+    { name = "packaging", marker = "sys_platform != 'emscripten'" },
+    { name = "pathspec", marker = "sys_platform != 'emscripten'" },
+    { name = "platformdirs", marker = "sys_platform != 'emscripten'" },
+    { name = "pytokens", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d9/38/02b7c5d2475f40c000a142b3bcddd29ff6674617eba1b2236f0cda9fff41/black-26.10.0.tar.gz", hash = "sha256:b3476ce71b494fc6e39d77e75488e8339a87583029bbf608416e955c83582bd6", size = 728037, upload-time = "2026-10-04T16:52:29.588Z" }
 wheels = [
@@ -216,6 +216,32 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c7/0e/7fa0ef50764b67090eca4114772a2abf8b6148198475e54c660b97caeee6/click-8.5.0.tar.gz", hash = "sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34", size = 382235, upload-time = "2026-08-26T13:33:14.56Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl", hash = "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360", size = 125251, upload-time = "2026-08-26T13:33:12.928Z" },
+]
+
+[[package]]
+name = "cmake"
+version = "4.3.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/ba/27ea7c1a258b44d249ff5eceb78660fee75ed2488eab425ea7d9bc514153/cmake-4.3.4.tar.gz", hash = "sha256:c97e84a62cf71aaa4f012da5aea411b432b1361d78e6421f987679869aa0fa7a", size = 36968, upload-time = "2026-06-20T09:04:03.308Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/61/57e2281a37cc3f60ff648568b3bc47694c2e38414d4037348a6c02d2809e/cmake-4.3.4-py3-none-macosx_10_10_universal2.whl", hash = "sha256:2751beafd188d4eca8cfcef06ad3812728d10aa2686df82dfe85e071957f28a4", size = 52910148, upload-time = "2026-06-20T09:02:42.996Z" },
+    { url = "https://files.pythonhosted.org/packages/81/ae/9342fb525fa2f9ed10bbdef92ec1540404413c371dd8839be3e8a1e9fc6a/cmake-4.3.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:189a38a194b669e2d2c8419240abb28c68293bb4779cb4505106fe97b06b77f5", size = 29596604, upload-time = "2026-06-20T09:02:47.168Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/91/4b4446468c9a58910bb468fb3ccbc6e922a617e38abdb3aaa8f91a5bbbc0/cmake-4.3.4-py3-none-manylinux2014_i686.manylinux_2_17_i686.whl", hash = "sha256:1a5ed4d38ab184422ff393afa1893eadfc732c42cdc4b8364f93fdd00e39fe09", size = 30697241, upload-time = "2026-06-20T09:02:50.84Z" },
+    { url = "https://files.pythonhosted.org/packages/05/22/fbbec7f83803f75c53eb094b1b62096010f4ec62700f13a7dbaba579de36/cmake-4.3.4-py3-none-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:3c052ee4414a431bd8d4e01b3e7b6ddedfa2007430303aa5e442a4579e4db39e", size = 30481908, upload-time = "2026-06-20T09:02:55.037Z" },
+    { url = "https://files.pythonhosted.org/packages/57/4d/7e3701787c8767c258bc555c95aaabe008deb38f07fde09d482a4d59308e/cmake-4.3.4-py3-none-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:6372aa6565e3b38afbd634a7d4171ff1f0e4cd5a4bd92c948797cf721012e7b5", size = 28397759, upload-time = "2026-06-20T09:02:59.42Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/0c/050f6470163998205646dcce8b262612eeae49486320b106be1cc2175f8b/cmake-4.3.4-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:61a34a746853b3740c6ad494e51faf4d457b9ef82099e19974148808c31cc2eb", size = 29528910, upload-time = "2026-06-20T09:03:03.713Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/c4/89017a058a028ad30a4f2cfce4ef5366f7768d8299a7b530091a2ed59aa5/cmake-4.3.4-py3-none-manylinux_2_31_armv7l.whl", hash = "sha256:ec21974344e7073dea495a961645316dc51bc7d38a8d8f29b0e19e4930d11f65", size = 26649678, upload-time = "2026-06-20T09:03:07.442Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/53/f1664540bfb6696764ade808026893cd4d129b95d97fdd8a5ad87f54e357/cmake-4.3.4-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:1b57929957ec779a55f00607e68e76f69e22701f42b0ac96502cf212e3953783", size = 26781169, upload-time = "2026-06-20T09:03:11.376Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/04/bdb3ca1b5fb243114bde8a20f6a4c38ffa9c14fee1dddeb06edb6a5d454f/cmake-4.3.4-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:5afc11495431a23d446b82fdb5f2aeeb8bde3a967c1f4fff278bdf4383422e54", size = 38616020, upload-time = "2026-06-20T09:03:15.59Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/22/7637b6d3aebfd45899c90b98dc44c1ef1b8d7212575fdb0dc1e6afb7bae2/cmake-4.3.4-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:ce0a77faf0a5c480616a29b778fe07dd19bba2d15b0b3d0e97798f12d1db7eff", size = 35246668, upload-time = "2026-06-20T09:03:19.89Z" },
+    { url = "https://files.pythonhosted.org/packages/93/5b/72e4678074b81b0504128ba78e39477d5a046b365b2cdc1f9989c6712c1e/cmake-4.3.4-py3-none-musllinux_1_2_i686.whl", hash = "sha256:269884c73a0710f07b006efbf5ba8ba2211e744302c79d02c9178333e0c91463", size = 41289294, upload-time = "2026-06-20T09:03:25.122Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/82/b770e3066ebaa6310461df05947c6100e09a67d50100ca6e4a8c89a58eaa/cmake-4.3.4-py3-none-musllinux_1_2_ppc64le.whl", hash = "sha256:fd2a9894a9aa798674a273d1e230b5ba9d1ab855d437ad86bf52f1cef29271b7", size = 40466774, upload-time = "2026-06-20T09:03:32.717Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/cd/b70d4749661d83749a350c94adace8f5517a46a64c7e58042e298cbc70fe/cmake-4.3.4-py3-none-musllinux_1_2_riscv64.whl", hash = "sha256:3abe3d85f94804053eb192d735ea4d86d9ff2ee41f709a47d686d5bbf5037f10", size = 35511793, upload-time = "2026-06-20T09:03:37.57Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/7d/01618054e4d597809a8ed3976e57fad6e86c1c778a1769fc3a60b33ef4a7/cmake-4.3.4-py3-none-musllinux_1_2_s390x.whl", hash = "sha256:232523e606c2089fc15bdc1e8f759268ca0dd03b9ccd31f30980dc723ace1d7e", size = 37749947, upload-time = "2026-06-20T09:03:41.964Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/eb/cc34dadcdb71e5218a765a2ebd8ba1bb9d113bd4d3724f71196e4ca7de6c/cmake-4.3.4-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:250deb91d4a25427b67624b6b1ec2b52a995995797549d552bda1025e5b6d8da", size = 38576617, upload-time = "2026-06-20T09:03:46.705Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/db/adb8a5d4c6f55faa346eef500e3f5eeae0168e21595085be212f9dcc0c0b/cmake-4.3.4-py3-none-win32.whl", hash = "sha256:03ba364755daf56c279df01da15a0cabdb8cfe87adae991d01e91ac08ab44a31", size = 37830944, upload-time = "2026-06-20T09:03:51Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/99/6600831fe0b1305d88494feaff5e995a5988332dd478b12457f92a79daf8/cmake-4.3.4-py3-none-win_amd64.whl", hash = "sha256:1ab14fad08f03e85a1fc837f18e12f72acb215c44eff91231dbe7f871cb5112e", size = 41282263, upload-time = "2026-06-20T09:03:55.524Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/5c/732027547d9d3d7381458c7ab868442a6485dc7841fd7ac3c10debfef837/cmake-4.3.4-py3-none-win_arm64.whl", hash = "sha256:757959349d216712bc311e7cd87f345f9143a90168294678f7017afe4dcae4e5", size = 39626350, upload-time = "2026-06-20T09:04:00.305Z" },
 ]
 
 [[package]]
@@ -573,7 +599,6 @@ wheels = [
 name = "knovum-python"
 version = "0.1.0"
 source = { editable = "." }
-default-groups = []
 
 [package.dev-dependencies]
 acceptance = [
@@ -585,6 +610,7 @@ contracts = [
     { name = "datamodel-code-generator" },
 ]
 publication = [
+    { name = "cmake" },
     { name = "cyclonedx-python-lib", extra = ["json-validation"] },
     { name = "packageurl-python" },
 ]
@@ -614,6 +640,7 @@ acceptance = [
 ]
 contracts = [{ name = "datamodel-code-generator", specifier = "==0.83.0" }]
 publication = [
+    { name = "cmake", specifier = "==4.3.4" },
     { name = "cyclonedx-python-lib", extras = ["json-validation"], specifier = "==11.12.0" },
     { name = "packageurl-python", specifier = "==0.17.6" },
 ]

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import sys
+import threading
 import types
 import wave
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -45,29 +45,35 @@ def _identity(audio_ref: dict[str, object]) -> dict[str, object]:
         "audioRef": audio_ref,
         "deadlineMs": 2**63,
         "inputRevision": "source-revision",
-        "modelSpecId": "model-v1",
+        "modelSpecId": "sherpa-diarization-cpu-v1",
         "ownerId": "media-node",
         "ownerKind": "media_transcript",
     }
 
 
-def test_alignment_rejects_unsupported_language_without_loading_model(tmp_path: Path) -> None:
+@pytest.mark.parametrize("device", ["cpu", "cuda", "mps"])
+def test_alignment_rejects_unsupported_language_without_loading_model(tmp_path: Path, device: str) -> None:
     params = SpeechAlignParams.model_validate(
         _identity(_audio(tmp_path / "source.wav"))
         | {
-            "profile": {"device": "cpu", "language": "xx"},
+            "modelSpecId": "qwen3-forced-aligner-0.6b-hf-v1",
+            "profile": {"device": device, "language": "xx"},
             "textSegments": [{"segmentId": "segment-1", "startMs": 0, "endMs": 500, "text": "hello"}],
         }
     )
-    engine = AlignmentEngine(tmp_path / "model", "cpu", 2)
+    engine = AlignmentEngine(tmp_path / "model", device, 2, "qwen3-forced-aligner-0.6b-hf-v1")
     engine._load = lambda: pytest.fail("unsupported languages must not load a model")  # type: ignore[method-assign]
 
     with pytest.raises(RpcError) as caught:
-        engine.align(params)
+        engine.align(params, threading.Event())
     assert caught.value.stable_code == "unsupported_language"
 
 
-def test_alignment_loader_is_local_cpu_float32(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+@pytest.mark.parametrize("device", ["cpu", "cuda", "mps"])
+@pytest.mark.parametrize("loading_issue", [None, "missing_keys", "unexpected_keys", "mismatched_keys", "error_msgs"])
+def test_alignment_loader_is_local_float32_on_the_frozen_device(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, loading_issue: str | None, device: str
+) -> None:
     calls: dict[str, Any] = {}
 
     class FakeModel:
@@ -87,9 +93,12 @@ def test_alignment_loader_is_local_cpu_float32(monkeypatch: pytest.MonkeyPatch, 
 
     class FakeModelFactory:
         @staticmethod
-        def from_pretrained(path: Path, **kwargs: object) -> FakeModel:
+        def from_pretrained(path: Path, **kwargs: object) -> tuple[FakeModel, dict[str, list[str]]]:
             calls["model"] = (path, kwargs)
-            return FakeModel()
+            loading = {key: [] for key in ("missing_keys", "unexpected_keys", "mismatched_keys", "error_msgs")}
+            if loading_issue is not None:
+                loading[loading_issue] = ["model-weight-does-not-match"]
+            return FakeModel(), loading
 
     fake_torch = types.SimpleNamespace(
         float32="float32",
@@ -104,13 +113,19 @@ def test_alignment_loader_is_local_cpu_float32(monkeypatch: pytest.MonkeyPatch, 
     monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
 
     model_directory = tmp_path / "alignment"
-    AlignmentEngine(model_directory, "cpu", 6)._load()
+    if loading_issue is not None:
+        with pytest.raises(RpcError) as caught:
+            AlignmentEngine(model_directory, device, 6, "qwen3-forced-aligner-0.6b-hf-v1")._load()
+        assert caught.value.stable_code == "model_corrupt"
+        assert "device" not in calls
+        return
+    AlignmentEngine(model_directory, device, 6, "qwen3-forced-aligner-0.6b-hf-v1")._load()
 
     assert calls == {
         "threads": 6,
         "processor": (model_directory, {"local_files_only": True}),
-        "model": (model_directory, {"local_files_only": True, "dtype": "float32"}),
-        "device": "cpu",
+        "model": (model_directory, {"local_files_only": True, "dtype": "float32", "output_loading_info": True}),
+        "device": device,
         "eval": True,
     }
 
@@ -119,12 +134,14 @@ def test_diarization_rejects_incomplete_offline_snapshot_before_vendor_import(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     params = SpeechDiarizeParams.model_validate(
-        _identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": {"minimum": 1, "maximum": 2}}
+        _identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": {"minimum": 2, "maximum": 2}}
     )
     monkeypatch.delitem(sys.modules, "pyannote.audio", raising=False)
 
     with pytest.raises(RpcError) as caught:
-        DiarizationEngine(tmp_path / "missing-model", "cpu").diarize(params)
+        DiarizationEngine(tmp_path / "missing-model", "cpu", 4, "sherpa-diarization-cpu-v1").diarize(
+            params, threading.Event()
+        )
     assert caught.value.stable_code == "model_corrupt"
 
 
@@ -142,85 +159,66 @@ def test_diarization_rejects_invalid_speaker_bounds_before_loading_model(
     params = SpeechDiarizeParams.model_validate(
         _identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": bounds}
     )
-    engine = DiarizationEngine(tmp_path / "model", "cpu")
+    engine = DiarizationEngine(tmp_path / "model", "cpu", 4, "sherpa-diarization-cpu-v1")
     engine._pipeline = lambda *_args, **_kwargs: pytest.fail("invalid bounds must not invoke the pipeline")
 
     with pytest.raises(RpcError) as caught:
-        engine.diarize(params)
+        engine.diarize(params, threading.Event())
     assert caught.value.stable_code == "invalid_output"
 
 
-def test_diarization_loads_owned_config_and_forwards_speaker_bounds(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+@pytest.mark.parametrize("model_spec", ["sherpa-diarization-cpu-v1", "sherpa-diarization-fp32-cpu-v1"])
+def test_diarization_uses_public_cpu_models_and_known_speaker_count(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, model_spec: str
 ) -> None:
     calls: dict[str, Any] = {}
     model_directory = tmp_path / "diarization"
-    for relative in (
-        "config.yaml",
-        "embedding/pytorch_model.bin",
-        "segmentation/pytorch_model.bin",
-        "plda/plda.npz",
-        "plda/xvec_transform.npz",
-    ):
-        path = model_directory / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.touch()
+    model_directory.mkdir()
+    for name in ("segmentation.onnx", "embedding.onnx"):
+        (model_directory / name).touch()
 
-    class FakeDiarization:
-        def itertracks(self, *, yield_label: bool) -> list[tuple[object, None, str]]:
-            assert yield_label is True
-            return [(types.SimpleNamespace(start=0.1, end=0.8), None, "speaker-1")]
+    class Pipeline:
+        def __init__(self, config: object) -> None:
+            calls["initial"] = config
 
-    class FakePipeline:
-        @classmethod
-        def from_pretrained(cls, path: str) -> FakePipeline:
-            calls["config"] = path
-            return cls()
+        def set_config(self, config: object) -> None:
+            calls["clustering"] = config
 
-        def to(self, device: object) -> None:
-            calls["device"] = device
+        def process(self, waveform: Any, *, callback: Any) -> Any:
+            assert waveform.dtype.name == "float32"
+            assert waveform.shape == (16000,)
+            assert callback(1, 1) == 0
+            return types.SimpleNamespace(
+                sort_by_start_time=lambda: [types.SimpleNamespace(start=0.1, end=0.8, speaker=1)]
+            )
 
-        def __call__(self, audio: dict[str, object], **kwargs: int) -> object:
-            calls["audio"] = audio
-            calls["bounds"] = kwargs
-            return types.SimpleNamespace(speaker_diarization=FakeDiarization())
+    def config(**kwargs: object) -> Any:
+        return types.SimpleNamespace(**kwargs, validate=lambda: True)
 
-    pyannote_audio = types.ModuleType("pyannote.audio")
-    pyannote_audio.Pipeline = FakePipeline  # type: ignore[attr-defined]
-    normalized = object()
-    tensor = Mock()
-    tensor.to.return_value.div_.return_value.unsqueeze.return_value = normalized
-    frombuffer = Mock(return_value=tensor)
     monkeypatch.setitem(
         sys.modules,
-        "torch",
+        "sherpa_onnx",
         types.SimpleNamespace(
-            device=lambda value: f"device:{value}", frombuffer=frombuffer, int16="int16", float32="float32"
+            OfflineSpeakerDiarizationConfig=config,
+            OfflineSpeakerSegmentationModelConfig=config,
+            OfflineSpeakerSegmentationPyannoteModelConfig=config,
+            SpeakerEmbeddingExtractorConfig=config,
+            FastClusteringConfig=config,
+            OfflineSpeakerDiarization=Pipeline,
         ),
     )
-    monkeypatch.setitem(sys.modules, "pyannote", types.ModuleType("pyannote"))
-    monkeypatch.setitem(sys.modules, "pyannote.audio", pyannote_audio)
-    audio_ref = _audio(tmp_path / "source.wav")
     params = SpeechDiarizeParams.model_validate(
-        _identity(audio_ref) | {"speakerCountBounds": {"minimum": 1, "maximum": 3}}
+        _identity(_audio(tmp_path / "source.wav"))
+        | {"modelSpecId": model_spec, "speakerCountBounds": {"minimum": 3, "maximum": 3}}
     )
-
-    result = DiarizationEngine(model_directory, "cpu").diarize(params)
-
-    assert calls == {
-        "config": str(model_directory / "config.yaml"),
-        "device": "device:cpu",
-        "audio": {"waveform": normalized, "sample_rate": 16000, "uri": "source"},
-        "bounds": {"min_speakers": 1, "max_speakers": 3},
-    }
-    assert frombuffer.call_args.kwargs == {"dtype": "int16"}
-    assert len(frombuffer.call_args.args[0]) == 32000
-    assert result == {
-        "requestId": params.request_id,
-        "attemptEpoch": 3,
-        "modelSpecId": "model-v1",
-        "turns": [{"speakerId": "speaker-1", "startMs": 100, "endMs": 800}],
-    }
+    engine = DiarizationEngine(model_directory, "cpu", 2, model_spec)
+    result = engine.diarize(params, threading.Event())
+    assert calls["initial"].segmentation.pyannote.model == str(model_directory / "segmentation.onnx")
+    assert calls["initial"].embedding.model == str(model_directory / "embedding.onnx")
+    assert calls["initial"].embedding.provider == "cpu"
+    assert calls["initial"].embedding.num_threads == 2
+    assert calls["clustering"].clustering.num_clusters == 3
+    assert result["turns"] == [{"speakerId": "1", "startMs": 100, "endMs": 800}]
 
 
 def test_alignment_clip_uses_selected_normalized_pcm_frames(tmp_path: Path) -> None:
@@ -245,14 +243,15 @@ def test_alignment_outside_audio_rejected_before_model_load(tmp_path: Path) -> N
     params = SpeechAlignParams.model_validate(
         _identity(_audio(tmp_path / "source.wav"))
         | {
+            "modelSpecId": "qwen3-forced-aligner-0.6b-hf-v1",
             "profile": {"device": "cpu", "language": "en"},
             "textSegments": [{"segmentId": "s", "startMs": 0, "endMs": 1001, "text": "hello"}],
         }
     )
-    engine = AlignmentEngine(tmp_path / "model", "cpu", 2)
+    engine = AlignmentEngine(tmp_path / "model", "cpu", 2, "qwen3-forced-aligner-0.6b-hf-v1")
     engine._load = lambda: pytest.fail("invalid segment must not load model")  # type: ignore[method-assign]
     with pytest.raises(RpcError):
-        engine.align(params)
+        engine.align(params, threading.Event())
 
 
 def test_diarization_truncated_pcm_is_rejected_before_vendor_import(tmp_path: Path) -> None:
@@ -269,8 +268,53 @@ def test_diarization_truncated_pcm_is_rejected_before_vendor_import(tmp_path: Pa
         "channels": 1,
         "sampleFormat": "pcm_s16le",
     }
-    params = SpeechDiarizeParams.model_validate(_identity(audio) | {"speakerCountBounds": {"minimum": 1, "maximum": 2}})
-    engine = DiarizationEngine(tmp_path / "model", "cpu")
+    params = SpeechDiarizeParams.model_validate(_identity(audio) | {"speakerCountBounds": {"minimum": 2, "maximum": 2}})
+    engine = DiarizationEngine(tmp_path / "model", "cpu", 4, "sherpa-diarization-cpu-v1")
     engine._pipeline = lambda *_args, **_kwargs: pytest.fail("truncated PCM must not reach model")
     with pytest.raises(RpcError, match="truncated"):
-        engine.diarize(params)
+        engine.diarize(params, threading.Event())
+
+
+def test_diarization_cancelled_before_loading_never_opens_the_model(tmp_path: Path) -> None:
+    params = SpeechDiarizeParams.model_validate(_identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": {}})
+    cancelled = threading.Event()
+    cancelled.set()
+    engine = DiarizationEngine(tmp_path / "model", "cpu", 4, "sherpa-diarization-cpu-v1")
+    engine._load = lambda: pytest.fail("cancelled request must not load the model")  # type: ignore[method-assign]
+    with pytest.raises(RpcError) as caught:
+        engine.diarize(params, cancelled)
+    assert caught.value.stable_code == "cancelled"
+
+
+def test_diarization_processing_callback_observes_cancellation(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    cancelled = threading.Event()
+
+    class Pipeline:
+        def set_config(self, config: object) -> None:
+            pass
+
+        def process(self, waveform: Any, *, callback: Any) -> Any:
+            cancelled.set()
+            callback(1, 10)
+            pytest.fail("native processing must stop after cancellation")
+
+    monkeypatch.setitem(sys.modules, "sherpa_onnx", types.SimpleNamespace(FastClusteringConfig=lambda **kwargs: kwargs))
+    params = SpeechDiarizeParams.model_validate(_identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": {}})
+    engine = DiarizationEngine(tmp_path / "model", "cpu", 4, "sherpa-diarization-cpu-v1")
+    engine._pipeline = Pipeline()
+    engine._config = types.SimpleNamespace(clustering=None)
+    with pytest.raises(RpcError) as caught:
+        engine.diarize(params, cancelled)
+    assert caught.value.stable_code == "cancelled"
+
+
+@pytest.mark.parametrize("model_spec", ["sherpa-diarization-cpu-v1", "sherpa-diarization-fp32-cpu-v1"])
+def test_diarization_rejects_a_request_for_another_frozen_model(tmp_path: Path, model_spec: str) -> None:
+    params = SpeechDiarizeParams.model_validate(
+        _identity(_audio(tmp_path / "source.wav")) | {"modelSpecId": "unknown-model", "speakerCountBounds": {}}
+    )
+    engine = DiarizationEngine(tmp_path / "model", "cpu", 2, model_spec)
+    engine._load = lambda: pytest.fail("model mismatch must not load a snapshot")  # type: ignore[method-assign]
+    with pytest.raises(RpcError) as caught:
+        engine.diarize(params, threading.Event())
+    assert caught.value.stable_code == "runtime_mismatch"

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const runtimeProfiles = [
@@ -18,6 +20,48 @@ export function runtimeProject(repository, profile) {
   return join(repository, "python", "runtimes", profile);
 }
 
+export function nativeLockPath(repository, target, profile) {
+  const source = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
+  const group = source.nativeSupplier.profiles[profile];
+  return join(repository, "python/native-locks", group, `${target}.json`);
+}
+
+export function dependencyIdentity(repository, target, profile) {
+  return createHash("sha256")
+    .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
+    .update(readFileSync(nativeLockPath(repository, target, profile)))
+    .digest("hex");
+}
+
+export function developmentDirectory(repository, target, profile) {
+  const identity = createHash("sha256")
+    .update(readFileSync(join(repository, "python/runtime-source.json")))
+    .update(producerBytes(repository, profile))
+    .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
+    .update(readFileSync(nativeLockPath(repository, target, profile)))
+    .digest("hex");
+  return join(repository, ".runtime-development", profile, target, identity);
+}
+
+export function producerBytes(repository, profile) {
+  if (profile !== "media") runtimeProject(repository, profile);
+  const { producerSources } = JSON.parse(
+    readFileSync(join(repository, "python/runtime-source.json"), "utf8"),
+  );
+  const names = [
+    ...producerSources.common,
+    ...(profile === "media" ? producerSources.media : producerSources.python),
+    ...(producerSources.profiles[profile] ?? []),
+  ].toSorted();
+  return Buffer.concat(
+    names.flatMap((name) => [
+      Buffer.from(`${name}\0`),
+      readFileSync(join(repository, "scripts/runtime", name)),
+      Buffer.from("\0"),
+    ]),
+  );
+}
+
 export function requirementsArguments(repository, profile) {
   return [
     "export",
@@ -28,7 +72,11 @@ export function requirementsArguments(repository, profile) {
     "--no-default-groups",
     "--no-header",
     "--no-annotate",
-    ...(profile === "voice-generation" ? ["--no-emit-package", "voxcpm"] : []),
+    ...JSON.parse(
+      readFileSync(join(repository, "python/runtime-source.json"), "utf8"),
+    ).nativeSupplier.pythonDistributions[profile === "torch-inference" ? "tensor" : "base"].flatMap(
+      (name) => ["--no-emit-package", name],
+    ),
   ];
 }
 
@@ -44,23 +92,4 @@ export function runtimeTargetFromTriple(triple) {
   const target = runtimeTargets[triple];
   if (!target) throw new Error(`Unsupported runtime target: ${triple}`);
   return target;
-}
-
-export function runtimeSources(target, profile, environment) {
-  const platform = target.toUpperCase().replaceAll("-", "_");
-  const python = `PYTHON_${profile.toUpperCase().replaceAll("-", "_")}`;
-  const names = {
-    ...(profile === "light-inference" ? { FFMPEG: "FFMPEG" } : {}),
-    PYTHON_RUNTIME: python,
-    PYTHON_RUNTIME_DESCRIPTOR: `${python}_DESCRIPTOR`,
-    PYTHON_RUNTIME_EVIDENCE: `${python}_EVIDENCE`,
-  };
-  return Object.entries(names).map(([kind, name]) => {
-    const prefix = `KNOVUM_${name}_${platform}`;
-    const url = environment[`${prefix}_URL`];
-    const expectedHash = environment[`${prefix}_SHA256`];
-    if (!url?.startsWith("https://") || !/^[a-f0-9]{64}$/u.test(expectedHash ?? ""))
-      throw new Error(`Missing controlled ${kind} source for ${target}; configure its HTTPS URL and SHA256.`);
-    return { kind, url, expectedHash };
-  });
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 const settingsPaneIds = [
   "appearance",
   "aiModels",
+  "voices",
   "desktopAgents",
   "extensions",
   "usage",

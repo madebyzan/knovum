@@ -25,5 +25,6 @@
   "failed": "此任务未能完成。",
   "verifyingResource": "校验完整性中…",
   "preparingLocalInference": "准备本地 AI 组件中…",
-  "localResourceDownloadSize": "首次使用需下载 {size} 本地资源"
+  "localResourceDownloadSize": "首次使用需下载 {size} 本地资源",
+  "installingResource": "正在安装本地资源…"
 }

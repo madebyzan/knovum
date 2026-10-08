@@ -87,6 +87,12 @@ pub(super) fn verify_runtime(
             );
         }
     }
+    #[cfg(debug_assertions)]
+    if descriptor.is_none() && manifest.dependency_lock_sha256 != digest(profile.lock_bytes()) {
+        return Err(
+            "python-runtime-invalid: development dependency lock differs from this checkout".into(),
+        );
+    }
     if !manifest.files.iter().any(|file| {
         file.path == "runtime-requirements.txt"
             && file.sha256 == manifest.dependency_requirements_sha256

@@ -41,19 +41,26 @@ pub(super) async fn synthesize(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
     voice: &crate::spaces::speech::contracts::VoiceExecution,
-    text: &str,
+    segment: &crate::spaces::speech::contracts::SpeechSegmentExecution,
     attempt: crate::spaces::speech::execution::SynthesisAttempt<'_>,
 ) -> Result<speech::SynthesizedAudio, String> {
     let model = crate::spaces::speech::execution::prepare_synthesis(
         app,
         &voice.engine_id,
+        &voice.model_spec_id,
         &claim.attempt_id,
         "Preparing speech synthesis",
         &claim.cancellation,
         &mut |_| {},
     )
     .await?;
-    let params = crate::spaces::speech::execution::synthesis_params(app, voice, text, attempt)?;
+    let params = crate::spaces::speech::execution::synthesis_params(
+        app,
+        voice,
+        &segment.normalized_text,
+        segment.delivery_instruction.as_deref(),
+        attempt,
+    )?;
     model
         .synthesize(
             app,

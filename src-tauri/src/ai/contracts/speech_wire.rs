@@ -266,7 +266,7 @@ pub struct VoiceRevisionReference {
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum SpeechSynthesisEngine {
-    Kokoro,
+    MossNano,
     VoxCpm2,
 }
 

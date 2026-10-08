@@ -34,6 +34,7 @@ struct SpeechIndex<'a> {
     segments: HashSet<&'a str>,
     revision_owners: HashMap<&'a str, &'a str>,
     voice_languages: HashMap<&'a str, &'a str>,
+    voice_deliveries: HashMap<&'a str, bool>,
     project_types: HashMap<&'a str, &'a str>,
     project_revision_owners: HashMap<&'a str, &'a str>,
     separation_rows: HashMap<
@@ -89,6 +90,28 @@ impl<'a> SpeechIndex<'a> {
             .iter()
             .map(|row| (row.id.as_str(), row.language.as_str()))
             .collect::<HashMap<_, _>>();
+        let voice_sources = request
+            .voice_profiles
+            .iter()
+            .map(|row| (row.id.as_str(), row.source_kind.as_str()))
+            .collect::<HashMap<_, _>>();
+        let voice_deliveries = request
+            .voice_revisions
+            .iter()
+            .map(|row| {
+                let source = voice_sources
+                    .get(row.profile_id.as_str())
+                    .ok_or("Package voice profile is unavailable")?;
+                Ok((
+                    row.id.as_str(),
+                    crate::spaces::speech::delivery_instruction::supports(
+                        &row.engine_id,
+                        source,
+                        row.reference_text.as_deref(),
+                    ),
+                ))
+            })
+            .collect::<Result<HashMap<_, _>, String>>()?;
         let project_types = request
             .speech_projects
             .iter()
@@ -121,6 +144,7 @@ impl<'a> SpeechIndex<'a> {
             segments,
             revision_owners,
             voice_languages,
+            voice_deliveries,
             project_types,
             project_revision_owners,
             separation_rows,

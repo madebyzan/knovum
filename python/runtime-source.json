@@ -1,22 +1,141 @@
 {
   "version": "3.11.17",
-  "standaloneRelease": "20261003",
   "uvVersion": "0.12.23",
-  "targets": {
-    "macos-arm64": {
-      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.11.17%2B20261003-aarch64-apple-darwin-install_only.tar.gz",
-      "sha256": "3663b71c18364eccfbad74c4f21f9f6149e40b07329cd776287410cc1da5d612",
-      "size": 27099994
+  "uv": {
+    "targets": {
+      "macos-arm64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.12.23/uv-aarch64-apple-darwin.tar.gz",
+        "sha256": "50487ae565ccd96e499056b4674d438f4c53170202617b4c759defe0c6a1b544",
+        "size": 17044217,
+        "entry": "uv-aarch64-apple-darwin/uv",
+        "executableSha256": "2f7be1879e3337eef20875c0f80ef033337305d0405efc5d72642d6292f66b3b"
+      },
+      "macos-x64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.12.23/uv-x86_64-apple-darwin.tar.gz",
+        "sha256": "960da44cb4b73685206ddd250b19e0a117fa41095710c1038f081f5cb613efb4",
+        "size": 21263712,
+        "entry": "uv-x86_64-apple-darwin/uv",
+        "executableSha256": "566a27247ff63f72260ed10c241fe4cf815b6c1b9439e17bdc808cf2d1c0d80f"
+      },
+      "windows-x64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.12.23/uv-x86_64-pc-windows-msvc.zip",
+        "sha256": "75d05de6762778c31ee183398de7dd15093fad0ed90b1f236d8205ea5ec00c90",
+        "size": 18043715,
+        "entry": "uv.exe",
+        "executableSha256": "70742ae9bd9f64f984fd69126662cfda5c03558bcb40075b2263833e4075f744"
+      }
+    }
+  },
+  "nativeSupplier": {
+    "name": "conda-forge",
+    "micromambaVersion": "2.9.0",
+    "profiles": {
+      "resources": "base",
+      "light-inference": "base",
+      "torch-inference": "tensor",
+      "voice-generation": "base",
+      "agent": "base"
     },
-    "windows-x64": {
-      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.11.17%2B20261003-x86_64-pc-windows-msvc-install_only.tar.gz",
-      "sha256": "0f7defa7a0ed99b61e0df0bba5027474711521f1307cc3830c2f456401beeed5",
-      "size": 48217207
+    "pythonDistributions": {
+      "base": ["cryptography", "cffi"],
+      "tensor": ["cryptography", "numpy", "torch", "torchaudio", "torchcodec", "cffi"]
+    }
+  },
+  "micromamba": {
+    "targets": {
+      "macos-x64": {
+        "url": "https://github.com/mamba-org/micromamba-releases/releases/download/2.9.0-0/micromamba-osx-64",
+        "size": 16317928,
+        "sha256": "1e71054bb3ac9a076e21f7ec48acfef536f9b3f1408f371a942784bf5ef83d8a",
+        "executableSha256": "1e71054bb3ac9a076e21f7ec48acfef536f9b3f1408f371a942784bf5ef83d8a"
+      },
+      "macos-arm64": {
+        "url": "https://github.com/mamba-org/micromamba-releases/releases/download/2.9.0-0/micromamba-osx-arm64",
+        "size": 14596096,
+        "sha256": "ec2a072f028e1a7cf20f3e2e74d5a8127cf5a5f27636375b5359811565f4e5be",
+        "executableSha256": "ec2a072f028e1a7cf20f3e2e74d5a8127cf5a5f27636375b5359811565f4e5be"
+      },
+      "windows-x64": {
+        "url": "https://github.com/mamba-org/micromamba-releases/releases/download/2.9.0-0/micromamba-win-64.exe",
+        "size": 11454464,
+        "sha256": "a6d804394b2418991c4e29562853eaace2f2ce9d9da661a98e74e02e8dbb44b0",
+        "executableSha256": "a6d804394b2418991c4e29562853eaace2f2ce9d9da661a98e74e02e8dbb44b0"
+      }
+    }
+  },
+  "mossNano": {
+    "revision": "8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb",
+    "license": "Apache-2.0",
+    "files": [
+      {
+        "fileName": "ort_cpu_runtime.py",
+        "url": "https://raw.githubusercontent.com/OpenMOSS/MOSS-TTS-Nano/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/ort_cpu_runtime.py",
+        "size": 40665,
+        "sha256": "99477efaff28c12c0c8e16a6b4aab4e880a70851693fa303d932415ba180cbd5"
+      },
+      {
+        "fileName": "LICENSE",
+        "url": "https://raw.githubusercontent.com/OpenMOSS/MOSS-TTS-Nano/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/LICENSE",
+        "size": 11374,
+        "sha256": "1dc6904a1959e039b44569c6a726a611f75287051284de1b6cc0dc7712b14d11"
+      }
+    ]
+  },
+  "voiceNative": {
+    "revision": "a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+    "license": "Apache-2.0",
+    "cmakeVersion": "4.3.4",
+    "vulkanSdk": {
+      "fileName": "vulkansdk-windows-X64-1.4.363.0.exe",
+      "url": "https://sdk.lunarg.com/sdk/download/1.4.363.0/windows/vulkansdk-windows-X64-1.4.363.0.exe",
+      "size": 303082720,
+      "sha256": "94a82d378f7a5e3e54c9db7d2fb7016af136e14ac0a18dbf0f2f67a36352d141"
     },
-    "macos-x64": {
-      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.11.17%2B20261003-x86_64-apple-darwin-install_only.tar.gz",
-      "sha256": "4338dc0c2b954f20ca6437406db5b806626c69bae3cafeec43f1b7d57dd72a88",
-      "size": 26992271
+    "source": {
+      "fileName": "audio-cpp-source.tar.gz",
+      "url": "https://codeload.github.com/0xShug0/audio.cpp/tar.gz/a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+      "size": 110784238,
+      "sha256": "a430eda3d0c9a8db6f81e762214eee61198bc6f720030f431966496536f2bf26"
+    }
+  },
+  "producerSources": {
+    "common": [
+      "__init__.py",
+      "artifacts.py",
+      "binaries.py",
+      "commands.py",
+      "host.py",
+      "native.py",
+      "signing.py",
+      "producer.mjs",
+      "toolchain.mjs",
+      "transfer.mjs"
+    ],
+    "python": [
+      "build_python.py",
+      "dependencies.py",
+      "inventory.py",
+      "windows_process.py",
+      "write-manifest.mjs",
+      "files.mjs",
+      "manifest.mjs",
+      "profiles.mjs",
+      "provenance.mjs",
+      "development.mjs"
+    ],
+    "media": [
+      "build_media.py",
+      "media_files.py",
+      "write-media-manifest.mjs",
+      "media-manifest.mjs",
+      "files.mjs",
+      "profiles.mjs",
+      "provenance.mjs",
+      "media.mjs"
+    ],
+    "profiles": {
+      "light-inference": ["moss_runtime.py"],
+      "voice-generation": ["voxcpm.py", "voice_bridge.cpp", "voice_bridge.cmake"]
     }
   }
 }

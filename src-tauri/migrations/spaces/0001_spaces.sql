@@ -425,6 +425,7 @@ CREATE TABLE spaces_enrichment_jobs (
 
 CREATE TABLE spaces_media_alignment_requests (
   job_id TEXT PRIMARY KEY NOT NULL,
+  model_spec_id TEXT NOT NULL CHECK (length(model_spec_id) BETWEEN 1 AND 160),
   expected_transcript_revision INTEGER NOT NULL CHECK (expected_transcript_revision > 0),
   segment_ids TEXT NOT NULL CHECK (json_valid(segment_ids) AND json_type(segment_ids) = 'array'),
   FOREIGN KEY (job_id) REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE
@@ -432,6 +433,7 @@ CREATE TABLE spaces_media_alignment_requests (
 
 CREATE TABLE spaces_media_diarization_requests (
   job_id TEXT PRIMARY KEY NOT NULL,
+  model_spec_id TEXT NOT NULL CHECK (length(model_spec_id) BETWEEN 1 AND 160),
   expected_transcript_revision INTEGER NOT NULL CHECK (expected_transcript_revision > 0),
   minimum_speakers INTEGER CHECK (minimum_speakers BETWEEN 1 AND 32),
   maximum_speakers INTEGER CHECK (maximum_speakers BETWEEN 1 AND 32),
@@ -1245,7 +1247,10 @@ CREATE TABLE spaces_voice_candidates (
   preview_sha256 TEXT NOT NULL CHECK (length(preview_sha256)=64),
   preview_sample_rate INTEGER NOT NULL CHECK (preview_sample_rate > 0),
   preview_sample_count INTEGER NOT NULL CHECK (preview_sample_count > 0),
-  model_spec_id TEXT NOT NULL CHECK (model_spec_id='voxcpm2-2b-v2_0'),
+  model_spec_id TEXT NOT NULL CHECK (
+    (model_spec_id='moss-tts-nano-onnx-v1' AND source_kind='reference' AND reference_text IS NULL)
+    OR model_spec_id IN ('voxcpm2-2b-gguf-orig-v1','voxcpm2-2b-gguf-q8_0-v1')
+  ),
   seed INTEGER NOT NULL,
   synthesis_config TEXT NOT NULL CHECK (json_valid(synthesis_config) AND json_type(synthesis_config)='object'),
   authorization TEXT NOT NULL CHECK (json_valid(authorization) AND json_type(authorization)='object'),
@@ -1345,6 +1350,7 @@ CREATE TABLE spaces_speech_segments (
   speaker_key TEXT,
   text TEXT NOT NULL CHECK (length(trim(text)) > 0),
   normalized_text TEXT NOT NULL CHECK (length(trim(normalized_text)) > 0),
+  delivery_instruction TEXT CHECK (delivery_instruction IS NULL OR length(trim(delivery_instruction)) BETWEEN 1 AND 500),
   voice_revision_id TEXT NOT NULL,
   language TEXT NOT NULL CHECK (length(trim(language)) > 0),
   target_start_ms INTEGER CHECK (target_start_ms IS NULL OR target_start_ms >= 0),
@@ -1457,8 +1463,10 @@ CREATE TABLE spaces_speech_source_separations (
   source_asset_path TEXT NOT NULL,
   source_revision TEXT NOT NULL CHECK (length(source_revision)=71 AND substr(source_revision,1,7)='sha256:'),
   source_duration_ms INTEGER NOT NULL CHECK (source_duration_ms > 0 AND source_duration_ms <= 600000),
-  model_spec_id TEXT NOT NULL CHECK (model_spec_id='spleeter-2stems-fp16-cpu-v1'),
+  model_spec_id TEXT NOT NULL CHECK (model_spec_id IN ('spleeter-2stems-fp16-cpu-v1','spleeter-2stems-fp32-cpu-v1')),
   background_asset_path TEXT NOT NULL UNIQUE,
+  vocals_asset_path TEXT NOT NULL UNIQUE,
+  vocals_sha256 TEXT NOT NULL CHECK (length(vocals_sha256)=64),
   background_sha256 TEXT NOT NULL CHECK (length(background_sha256)=64),
   background_sample_rate INTEGER NOT NULL CHECK (background_sample_rate=44100),
   background_sample_count INTEGER NOT NULL CHECK (background_sample_count > 0 AND background_sample_count <= 26460000),

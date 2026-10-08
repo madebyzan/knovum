@@ -29,6 +29,11 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
                 .and_then(Value::as_str)
                 .ok_or("Package source separation background asset is unavailable")?,
         )?);
+        row["vocalsAssetPath"] = json!(maps.asset(
+            row.get("vocalsAssetPath")
+                .and_then(Value::as_str)
+                .ok_or("Package source separation vocal asset is unavailable")?,
+        )?);
     }
     for row in array_mut(value, "speechProjects")? {
         maps.field(row, "sourceNodeId", "nodes")?;

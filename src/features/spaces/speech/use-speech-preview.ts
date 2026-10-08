@@ -7,12 +7,32 @@ import type { SpeechAudioOutput } from "../contracts/generated/SpeechAudioOutput
 import type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
 import type { VoicePreviewSource } from "../contracts/generated/VoicePreviewSource";
-import { useSpaceStore } from "../session/space-store";
 import { cancelSpeechGeneration, discardSpeechPreview, previewVoice } from "./ipc";
 import { PreviewAudioQueue } from "./preview-audio-queue";
 
-export function useSpeechPreview(setError: (message?: string) => void) {
-  const store = useSpaceStore();
+interface PreviewInput {
+  text: string;
+  source: VoicePreviewSource;
+  pronunciationLexicon: Record<string, string>;
+  deliveryInstruction: string;
+}
+
+function buildPreviewRequest(job: { id: string; spaceId: string }, input: PreviewInput) {
+  const instruction = input.deliveryInstruction.trim();
+  return {
+    jobId: job.id,
+    spaceId: job.spaceId,
+    source: input.source,
+    text: input.text,
+    pronunciationLexicon: input.pronunciationLexicon,
+    ...(instruction ? { deliveryInstruction: instruction } : {}),
+  };
+}
+
+export function useSpeechPreview(
+  setError: (message?: string) => void,
+  ownerSpaceId: () => string | undefined,
+) {
   const preview = shallowRef<SpeechAudioOutput & { source: string }>();
   const progress = shallowRef<SpeechGenerationProgress>();
   const jobId = shallowRef<string>();
@@ -21,29 +41,29 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     listening.value = playing;
   });
 
-  function discard(path: string) {
-    void discardSpeechPreview(path).catch((cause) => setError(getErrorMessage(cause)));
+  function discard(path: string, reportFailure = true) {
+    void discardSpeechPreview(path).catch((cause) => {
+      if (reportFailure) setError(getErrorMessage(cause));
+    });
   }
 
-  function clearPreview() {
+  function clearPreview(reportCleanupFailure = true) {
     audioQueue.stop();
     const path = preview.value?.path;
     preview.value = undefined;
     progress.value = undefined;
-    if (path) discard(path);
+    if (path) discard(path, reportCleanupFailure);
   }
 
   function reset() {
     const active = jobId.value;
-    if (active) {
-      void cancelSpeechGeneration(active).catch((cause) => setError(getErrorMessage(cause)));
-    }
+    if (active) void cancelSpeechGeneration(active).catch(() => undefined);
     jobId.value = undefined;
-    clearPreview();
+    clearPreview(false);
   }
 
   function isCurrent(job: string, spaceId: string) {
-    return jobId.value === job && store.activeSpaceId === spaceId;
+    return jobId.value === job && ownerSpaceId() === spaceId;
   }
 
   function clearJob(job: string) {
@@ -62,12 +82,32 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     }
   }
 
+  function updateProgress(value: SpeechGenerationProgress, job: string) {
+    if (jobId.value === job) progress.value = value;
+  }
+
+  function commitPreviewOutput(
+    output: SpeechAudioOutput,
+    expectedJobId: string,
+    spaceId: string,
+    previousPath?: string,
+  ) {
+    if (!isCurrent(expectedJobId, spaceId)) {
+      discard(output.path);
+      return;
+    }
+    preview.value = { ...output, source: convertFileSrc(output.path) };
+    if (previousPath) discard(previousPath);
+    setError();
+  }
+
   async function previewSource(
     text: string,
     source: VoicePreviewSource,
     pronunciationLexicon: Record<string, string>,
+    deliveryInstruction = "",
   ) {
-    const spaceId = store.activeSpaceId;
+    const spaceId = ownerSpaceId();
     if (!spaceId || jobId.value) return;
     const nextJobId = crypto.randomUUID();
     const previousPath = preview.value?.path;
@@ -75,21 +115,16 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     progress.value = undefined;
     try {
       const started = await audioQueue.start(nextJobId);
-      if (!started || jobId.value !== nextJobId || store.activeSpaceId !== spaceId) return;
+      if (!started || jobId.value !== nextJobId || ownerSpaceId() !== spaceId) return;
       const output = await previewVoice(
-        { jobId: nextJobId, spaceId, source, text, pronunciationLexicon },
-        (value) => {
-          if (jobId.value === nextJobId) progress.value = value;
-        },
+        buildPreviewRequest(
+          { id: nextJobId, spaceId },
+          { text, source, pronunciationLexicon, deliveryInstruction },
+        ),
+        (value) => updateProgress(value, nextJobId),
         (chunk) => handleChunk(chunk, nextJobId, spaceId),
       );
-      if (!isCurrent(nextJobId, spaceId)) {
-        discard(output.path);
-        return;
-      }
-      preview.value = { ...output, source: convertFileSrc(output.path) };
-      if (previousPath) discard(previousPath);
-      setError();
+      commitPreviewOutput(output, nextJobId, spaceId, previousPath);
     } catch (cause) {
       audioQueue.stop(nextJobId);
       reportPreviewFailure(cause, nextJobId);
@@ -106,7 +141,8 @@ export function useSpeechPreview(setError: (message?: string) => void) {
 
   async function cancel() {
     audioQueue.stop();
-    if (jobId.value) await cancelSpeechGeneration(jobId.value);
+    const active = jobId.value;
+    if (active) await cancelSpeechGeneration(active).catch((cause) => reportPreviewFailure(cause, active));
   }
 
   function stopListening() {
@@ -119,8 +155,12 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     jobId: readonly(jobId),
     listening: readonly(listening),
     previewSource,
-    previewSelection: (text: string, revisionId: string, lexicon: Record<string, string>) =>
-      previewSource(text, { kind: "revision", revisionId }, lexicon),
+    previewSelection: (
+      text: string,
+      revisionId: string,
+      lexicon: Record<string, string>,
+      deliveryInstruction = "",
+    ) => previewSource(text, { kind: "revision", revisionId }, lexicon, deliveryInstruction),
     clearPreview,
     reset,
     cancel,

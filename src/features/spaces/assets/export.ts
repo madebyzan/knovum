@@ -8,9 +8,13 @@ import { formatExportMarkdown } from "./markdown-document";
 
 export async function exportSpaceAsset(data: SpaceNodePayload): Promise<boolean> {
   if (!isSpaceManagedAssetPayload(data)) throw new Error("This node has no exportable asset");
-  const destinationPath = await save({ defaultPath: data.fileName });
+  return exportSpaceAssetFile(data.assetPath, data.fileName);
+}
+
+export async function exportSpaceAssetFile(sourcePath: string, defaultPath: string): Promise<boolean> {
+  const destinationPath = await save({ defaultPath });
   if (!destinationPath) return false;
-  await invokeCommand("plugin:spaces|export_asset", { sourcePath: data.assetPath, destinationPath });
+  await invokeCommand("plugin:spaces|export_asset", { sourcePath, destinationPath });
   return true;
 }
 

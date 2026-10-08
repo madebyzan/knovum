@@ -22,11 +22,26 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
-  preview: [text: string, voiceRevisionId: string, pronunciationLexicon: Record<string, string>];
+  preview: [
+    text: string,
+    voiceRevisionId: string,
+    pronunciationLexicon: Record<string, string>,
+    deliveryInstruction?: string,
+  ];
   dirty: [value: boolean];
 }>();
 const { t } = useI18n();
-const { text, voiceRevisionId, wavPrecision, lexicon, dirty, valid, revisionInput } = useShortDubbingDraft(
+const {
+  text,
+  voiceRevisionId,
+  deliveryInstruction,
+  supportsDeliveryInstruction,
+  wavPrecision,
+  lexicon,
+  dirty,
+  valid,
+  revisionInput,
+} = useShortDubbingDraft(
   () => props.project,
   () => props.voices,
   () => props.sourceText,
@@ -40,6 +55,7 @@ function preview() {
     [...text.value.trim()].slice(0, 500).join(""),
     voiceRevisionId.value,
     lexicon.serializeLexicon(),
+    deliveryInstruction.value.trim() || undefined,
   );
 }
 
@@ -60,6 +76,15 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
       :label="t('spaces.speech.voice')"
       :options="voiceOptions"
       :disabled="disabled || voices.length === 0"
+    />
+    <UiTextarea
+      v-if="supportsDeliveryInstruction"
+      v-model="deliveryInstruction"
+      :rows="2"
+      :maxlength="500"
+      :disabled="disabled"
+      :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
+      :aria-label="t('spaces.speech.deliveryInstruction')"
     />
     <WavPrecisionSelect v-model="wavPrecision" :disabled />
     <PronunciationLexiconEditor

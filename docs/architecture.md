@@ -128,7 +128,7 @@ qualified runtime; a common workspace does not provide dependency isolation.
 Inside `python/src/knovum_inference`, `runtime/` owns worker admission, session preparation,
 request lifecycle and capability dispatch; `transport/` owns bounded stdio framing, JSON-RPC
 and wire validation. `speech/` owns transcription, alignment, diarization and separation;
-`speech/synthesis/` separates engine selection, Kokoro, VoxCPM2 and stream credits/publication.
+`speech/synthesis/` separates engine selection, MOSS-TTS-Nano, native VoxCPM2 and stream credits/publication.
 The focused embedding and image segmentation implementations remain file owners.
 Capability implementations depend on their own modules, generated contracts and neutral errors;
 they do not import worker lifecycle or transport. Only runtime composition connects these owners. Session engines use an explicit concrete union;

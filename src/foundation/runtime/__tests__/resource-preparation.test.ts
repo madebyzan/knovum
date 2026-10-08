@@ -58,6 +58,18 @@ describe("resource preparation task lifetime", () => {
     expect(useTaskStore().tasks[0]).toMatchObject({ status: "cancelled" });
   });
 
+  it("keeps the combined progress when one resource becomes ready before the complete preparation", async () => {
+    vi.mocked(prepareResources).mockImplementationOnce(async ({ onProgress }) => {
+      onProgress({ stage: "ready", downloaded: 100, total: 400, percent: 25 });
+      expect(useTaskStore().tasks[0]).toMatchObject({ status: "running", progress: 25 });
+      onProgress({ stage: "downloading", downloaded: 200, total: 400, percent: 50 });
+      expect(useTaskStore().tasks[0]).toMatchObject({ status: "running", progress: 50 });
+    });
+
+    await startResourcePreparation({ kind: "transcription" }, "Transcribe").completion;
+    expect(useTaskStore().tasks[0]).toMatchObject({ status: "succeeded", progress: 100 });
+  });
+
   it("preserves a real preparation failure after cancellation was rejected", async () => {
     let fail!: (error: Error) => void;
     vi.mocked(prepareResources).mockReturnValueOnce(

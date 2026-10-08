@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../foundation/errors/error-format";
+import { resourceProgressMessage } from "../../foundation/runtime/resource-progress";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiDialog from "../../shared/ui/UiDialog.vue";
 import { useDictationSession } from "./use-dictation-session";
@@ -24,7 +25,9 @@ const errorMessages: Record<string, string> = {
   dictation_insertion_failed: "dictation.errors.dictationInsertionFailed",
   dictation_failed: "dictation.errors.dictationFailed",
 };
-const busy = computed(() => ["recording", "transcribing"].includes(session.state.value.phase));
+const busy = computed(() =>
+  ["recording", "preparing_resources", "transcribing"].includes(session.state.value.phase),
+);
 const isTranscriptDialogOpen = computed({
   get: () =>
     session.state.value.phase === "failed" ||
@@ -33,8 +36,18 @@ const isTranscriptDialogOpen = computed({
     if (!open) void dismiss();
   },
 });
-const status = computed(() =>
-  session.state.value.phase === "recording" ? t("dictation.recording") : t("dictation.transcribing"),
+const status = computed(() => {
+  const phase = session.state.value.phase;
+  return t(
+    phase === "recording"
+      ? "dictation.recording"
+      : phase === "preparing_resources"
+        ? "dictation.preparingResources"
+        : "dictation.transcribing",
+  );
+});
+const resourceProgress = computed(() =>
+  session.state.value.resources ? resourceProgressMessage(session.state.value.resources) : "",
 );
 const transcriptDescription = computed(() => {
   const value = session.state.value;
@@ -88,6 +101,13 @@ function reportFailure(error: unknown) {
     <AudioLines v-else class="size-4 animate-pulse text-fg-accent" />
     <div class="min-w-0">
       <p class="text-label font-medium text-fg-primary">{{ status }}</p>
+      <p
+        v-if="resourceProgress"
+        data-testid="dictation-resource-progress"
+        class="text-caption text-fg-secondary"
+      >
+        {{ resourceProgress }}
+      </p>
       <p v-if="session.state.value.targetApplication" class="truncate text-caption text-fg-secondary">
         {{ session.state.value.targetApplication }}
       </p>
@@ -106,6 +126,7 @@ function reportFailure(error: unknown) {
     <textarea
       v-if="session.state.value.text"
       readonly
+      :aria-label="t('dictation.result.title')"
       :value="session.state.value.text"
       class="min-h-32 w-full resize-y rounded-lg border border-stroke-default bg-surface-canvas p-3 text-body text-fg-primary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
     />

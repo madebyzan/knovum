@@ -11,6 +11,7 @@ pub(super) fn validate(
         revisions,
         project_revisions,
         voice_languages,
+        voice_deliveries,
         ..
     } = index;
     let mut ordinals = HashSet::new();
@@ -42,6 +43,16 @@ pub(super) fn validate(
         required(&row.language, usize::MAX, "Speech segment language")?;
         if voice_languages.get(row.voice_revision_id.as_str()) != Some(&row.language.as_str()) {
             return Err("Package speech segment language differs from its voice revision".into());
+        }
+        let supported = voice_deliveries
+            .get(row.voice_revision_id.as_str())
+            .ok_or("Package speech voice revision is unavailable")?;
+        let delivery = crate::spaces::speech::delivery_instruction::validate(
+            row.delivery_instruction.as_deref(),
+            *supported,
+        )?;
+        if delivery != row.delivery_instruction.as_deref() {
+            return Err("Package delivery instruction is not canonical".into());
         }
         if !matches!(
             row.state.as_str(),

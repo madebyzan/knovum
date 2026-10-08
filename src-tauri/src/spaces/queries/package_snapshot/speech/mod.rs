@@ -218,6 +218,7 @@ fn segment(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(json!({
         "id":decode_text(row,"id")?, "projectRevisionId":decode_text(row,"project_revision_id")?, "ordinal":decode_integer(row,"ordinal")?,
         "chapterKey":decode_optional_text(row,"chapter_key")?, "speakerKey":decode_optional_text(row,"speaker_key")?,
+        "deliveryInstruction":decode_optional_text(row,"delivery_instruction")?,
         "text":decode_text(row,"text")?, "normalizedText":decode_text(row,"normalized_text")?, "voiceRevisionId":decode_text(row,"voice_revision_id")?,
         "language":decode_text(row,"language")?, "targetStartMs":decode_optional_integer(row,"target_start_ms")?,
         "targetEndMs":decode_optional_integer(row,"target_end_ms")?, "sourceSegmentId":decode_optional_text(row,"source_segment_id")?,

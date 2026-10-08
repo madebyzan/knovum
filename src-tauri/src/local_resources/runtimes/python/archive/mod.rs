@@ -1,15 +1,18 @@
+#[cfg(any(not(debug_assertions), test))]
 use std::{
     collections::HashSet,
     fs,
     io::Read,
-    path::{Component, Path, PathBuf},
+    path::{Component, Path},
 };
 
+#[cfg(any(not(debug_assertions), test))]
 use flate2::read::GzDecoder;
 use tokio_util::sync::CancellationToken;
 
 use crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED;
 
+#[cfg(any(not(debug_assertions), test))]
 pub(super) fn extract(
     source: &Path,
     destination: &Path,
@@ -78,6 +81,7 @@ pub(super) fn extract(
     Ok(())
 }
 
+#[cfg(any(not(debug_assertions), test))]
 fn safe_path(path: &Path) -> bool {
     let value = path.to_string_lossy();
     let value = value.strip_suffix('/').unwrap_or(&value);
@@ -99,9 +103,10 @@ pub(super) fn require_active(cancellation: &CancellationToken) -> Result<(), Str
     }
 }
 
+#[cfg(not(debug_assertions))]
 pub(super) async fn unpack(
-    source: PathBuf,
-    destination: PathBuf,
+    source: std::path::PathBuf,
+    destination: std::path::PathBuf,
     cancellation: CancellationToken,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || extract(&source, &destination, &cancellation))

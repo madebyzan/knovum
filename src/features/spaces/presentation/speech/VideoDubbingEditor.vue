@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Plus, Save } from "@lucide/vue";
-import { computed, useTemplateRef, watch, type DeepReadonly } from "vue";
+import { computed, shallowRef, useTemplateRef, watch, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
@@ -13,9 +12,9 @@ import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 import { useVideoDubbingDraft } from "../../speech/use-video-dubbing-draft";
 import { voiceRevisionOptions } from "../../speech/voice-options";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
+import VideoBackgroundSelect from "./VideoBackgroundSelect.vue";
 import VideoDubbingLines from "./VideoDubbingLines.vue";
 import VideoSourceControls from "./VideoSourceControls.vue";
-import VideoSourceSeparationPanel from "./VideoSourceSeparationPanel.vue";
 import VideoTranslationPanel from "./VideoTranslationPanel.vue";
 
 const props = defineProps<{
@@ -25,16 +24,25 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
-  preview: [text: string, voiceRevisionId: string, pronunciationLexicon: Record<string, string>];
+  preview: [
+    text: string,
+    voiceRevisionId: string,
+    pronunciationLexicon: Record<string, string>,
+    deliveryInstruction?: string,
+  ];
   dirty: [value: boolean];
+  busy: [value: boolean];
 }>();
 const { t } = useI18n();
+const translationBusy = shallowRef(false);
+const editingDisabled = computed(() => props.disabled || translationBusy.value);
+watch(translationBusy, (value) => emit("busy", value), { immediate: true });
 const sourceControls = useTemplateRef("sourceControls");
 const draft = useVideoDubbingDraft(
   () => props.project,
   () => props.voices,
 );
-const { videos, backgrounds } = useSpeechMediaSources();
+const { videos } = useSpeechMediaSources();
 const transcript = computed(
   () =>
     videos.value.find(
@@ -49,34 +57,13 @@ const voiceOptions = computed(() =>
     draft.lines.value.map((line) => line.voiceRevisionId),
   ),
 );
-const backgroundValue = computed({
-  get: () => {
-    const current = draft.config.value?.background;
-    if (!current) return "mute";
-    return backgrounds.value.find(({ source }) => sameSource(source, current))?.id ?? "accepted-separation";
-  },
-  set: (value: string) => {
-    if (value === "accepted-separation") return;
-    draft.setBackground(
-      value === "mute" ? null : (backgrounds.value.find(({ id }) => id === value)?.source ?? null),
-    );
-  },
-});
-const backgroundOptions = computed(() => [
-  { value: "mute", label: t("spaces.speech.muteOriginal") },
-  ...backgrounds.value.map(({ id, name }) => ({ value: id, label: name })),
-  ...(backgroundValue.value === "accepted-separation"
-    ? [{ value: "accepted-separation", label: t("spaces.speech.acceptedSeparatedBackground") }]
-    : []),
-]);
+const deliveryInstructionVoiceIds = computed(
+  () =>
+    new Set(
+      props.voices.filter((voice) => voice.supportsDeliveryInstruction).map((voice) => voice.revisionId),
+    ),
+);
 watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
-
-function sameSource(
-  left: { assetPath: string; sourceRevision: string },
-  right: { assetPath: string; sourceRevision: string },
-) {
-  return left.assetPath === right.assetPath && left.sourceRevision === right.sourceRevision;
-}
 </script>
 
 <template>
@@ -87,7 +74,7 @@ function sameSource(
       v-model="draft.config.value"
       :lines="draft.lines.value"
       :voice-options="voiceOptions"
-      :disabled
+      :disabled="editingDisabled"
       @bind="draft.bindSpeaker"
       @imported="draft.importSubtitles"
     />
@@ -101,7 +88,7 @@ function sameSource(
           type="number"
           min="-30"
           max="6"
-          :disabled="disabled"
+          :disabled="editingDisabled"
         />
       </label>
       <label v-if="draft.config.value?.background" class="text-caption text-fg-secondary"
@@ -112,41 +99,36 @@ function sameSource(
           type="number"
           min="-30"
           max="6"
-          :disabled="disabled"
+          :disabled="editingDisabled"
         />
       </label>
     </div>
-    <UiSelect
-      v-model="backgroundValue"
-      size="sm"
-      :label="t('spaces.speech.backgroundAudio')"
-      :options="backgroundOptions"
-      :disabled="disabled"
-    />
-    <VideoSourceSeparationPanel
+    <VideoBackgroundSelect
       v-if="draft.config.value"
       :space-id="project.project.spaceId"
-      :source="draft.config.value.video"
-      :disabled="disabled"
-      @accepted="draft.setSeparatedBackground"
+      :config="draft.config.value"
+      :disabled="editingDisabled"
+      @background="draft.setBackground"
+      @separated="draft.setSeparatedBackground"
     />
     <PronunciationLexiconEditor
       v-model="draft.lexicon.entries.value"
       :valid="draft.lexicon.isValid.value"
-      :disabled="disabled"
+      :disabled="editingDisabled"
     />
     <VideoTranslationPanel
       :project-id="project.project.id"
       :expected-revision="project.project.activeRevision"
       :segments="draft.translationInputs()"
       :provenance="draft.config.value?.translation"
-      :disabled="disabled"
+      :disabled="editingDisabled"
       @translated="draft.applyTranslation"
+      @busy="translationBusy = $event"
     />
     <UiButton
       v-if="transcript && !draft.lines.value.length"
       size="sm"
-      :disabled="disabled"
+      :disabled="editingDisabled"
       @click="draft.importTranscript(transcript)"
     >
       {{ t("spaces.speech.importTranscript") }}
@@ -154,23 +136,25 @@ function sameSource(
     <VideoDubbingLines
       :lines="draft.lines.value"
       :voice-options="voiceOptions"
+      :delivery-instruction-voice-ids="deliveryInstructionVoiceIds"
       :lexicon-valid="draft.lexicon.isValid.value"
       :show-source="Boolean(draft.config.value?.translation)"
-      :disabled
+      :disabled="editingDisabled"
       @preview="
-        (text, voiceRevisionId) => emit('preview', text, voiceRevisionId, draft.lexicon.serializeLexicon())
+        (text, voiceRevisionId, instruction) =>
+          emit('preview', text, voiceRevisionId, draft.lexicon.serializeLexicon(), instruction)
       "
       @source="(start, end) => sourceControls?.audition(start, end)"
       @remove="draft.removeLine"
       @update="draft.updateLine"
     />
     <div class="flex gap-2">
-      <UiButton size="sm" :disabled="disabled" @click="draft.addLine()"
+      <UiButton size="sm" :disabled="editingDisabled" @click="draft.addLine()"
         ><Plus class="size-3.5" />{{ t("spaces.speech.addLine") }}</UiButton
       >
       <UiButton
         size="sm"
-        :disabled="disabled || !draft.dirty.value || !draft.valid.value"
+        :disabled="editingDisabled || !draft.dirty.value || !draft.valid.value"
         @click="emit('save', draft.revisionInput())"
         ><Save class="size-3.5" />{{ t("spaces.speech.saveRevision") }}</UiButton
       >

@@ -1,13 +1,13 @@
 use crate::local_resources::models::{snapshots::SnapshotKind, ModelDescriptor};
 
-pub(crate) const QWEN3_FORCED_ALIGNER_REVISION: &str = "c7cbfc2048c462b0d63a45797104fc9db3ad62b7";
+pub(crate) const QWEN3_FORCED_ALIGNER_REVISION: &str = "c07281df297b9905d24a508279258cccf987a064";
 
 macro_rules! qwen3_forced_aligner_descriptor {
-    ($name:ident, $file:literal, $env:literal, $sha:literal, $size:literal) => {
+    ($name:ident, $file:literal, $sha:literal, $size:literal) => {
         pub(crate) const $name: ModelDescriptor = ModelDescriptor {
             snapshot: SnapshotKind::SpeechAlignment,
             file: $file,
-            env_key: $env,
+
             sha256: $sha,
             download_size: $size,
         };
@@ -16,58 +16,74 @@ macro_rules! qwen3_forced_aligner_descriptor {
 
 qwen3_forced_aligner_descriptor!(
     QWEN3_FORCED_ALIGNER_CHAT_TEMPLATE,
-    "chat_template.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_CHAT_TEMPLATE_PATH",
-    "75a8cfca24f00de72d796fbfed6858fc9614ef3dabd8696684cc3bc03a9c58ff",
-    1_161
+    "chat_template.jinja",
+    "59b5ae119bda7c00089bba5f49af775791ea67c7aeb7d2b828cddda9463121bf",
+    551
 );
-
 qwen3_forced_aligner_descriptor!(
     QWEN3_FORCED_ALIGNER_CONFIG,
     "config.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_CONFIG_PATH",
-    "d616c65d46c4b90bdc651b0a0963ea932732241140f337f9bb6b0335a9c8ef09",
-    5_982
-);
-qwen3_forced_aligner_descriptor!(
-    QWEN3_FORCED_ALIGNER_GENERATION_CONFIG,
-    "generation_config.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_GENERATION_CONFIG_PATH",
-    "948d089b23bca1d214e768d59c4438365665f52ec6d33678f4062206b3fbbb8c",
-    115
-);
-qwen3_forced_aligner_descriptor!(
-    QWEN3_FORCED_ALIGNER_MERGES,
-    "merges.txt",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_MERGES_PATH",
-    "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
-    1_671_853
+    "82ac390b36a8f80c5a0c4e202367debd149e5d8c30abe4cf5eed439101b1c5ce",
+    248_029
 );
 qwen3_forced_aligner_descriptor!(
     QWEN3_FORCED_ALIGNER_WEIGHTS,
     "model.safetensors",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_WEIGHTS_PATH",
-    "47831d0e82f96b20e9034dba01a075ee06436654719f6a68289e49f1b65ce0e7",
-    1_835_544_544
+    "00568245ceca5af1991d28562a75fe1ddc9bfeb041c27fda66947ea05c47fb86",
+    1_835_545_960
 );
 qwen3_forced_aligner_descriptor!(
-    QWEN3_FORCED_ALIGNER_PREPROCESSOR_CONFIG,
-    "preprocessor_config.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_PREPROCESSOR_CONFIG_PATH",
-    "45e120a4eda2c20c5d7f2ea9354e63536bf35e27aa573fb7cdf78017b378770d",
-    330
+    QWEN3_FORCED_ALIGNER_PROCESSOR_CONFIG,
+    "processor_config.json",
+    "bc0b230081b44e629dd5b9045b78495615c1831b4b9f4cffe97bd37e82a6156a",
+    487
+);
+qwen3_forced_aligner_descriptor!(
+    QWEN3_FORCED_ALIGNER_TOKENIZER,
+    "tokenizer.json",
+    "cadfb9cbd9ff8f4e309075ec6a71b063295ff796afb4b5dbc0fd2873fbb301f2",
+    11_429_842
 );
 qwen3_forced_aligner_descriptor!(
     QWEN3_FORCED_ALIGNER_TOKENIZER_CONFIG,
     "tokenizer_config.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_TOKENIZER_CONFIG_PATH",
-    "3ab80063f8511deb9566e6ad438d17b7a6277fcffd52d92854112f19d36bd81c",
-    12_666
+    "945e980986de2ca7768f3326bfdbb4fbea3406f972b8ae0be233089f2b253c11",
+    998
 );
-qwen3_forced_aligner_descriptor!(
-    QWEN3_FORCED_ALIGNER_VOCABULARY,
-    "vocab.json",
-    "KNOVUM_QWEN3_FORCED_ALIGNER_VOCABULARY_PATH",
-    "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
-    2_776_833
-);
+
+pub(crate) const QWEN3_ALIGNER_Q8_REVISION: &str = "09fe073ba154561f4474162e8bd4ab233a848eca";
+pub(crate) const QWEN3_ALIGNER_Q8_MODELS: &[super::ModelKind] = &[
+    super::ModelKind::Qwen3AlignerQ8Weights,
+    super::ModelKind::Qwen3AlignerQ8License,
+    super::ModelKind::Qwen3AlignerQ8Readme,
+];
+
+pub(super) const QWEN3_ALIGNER_Q8_WEIGHTS: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::SpeechAlignmentQ8,
+    file: "qwen3-forced-aligner-0.6b-q8_0.gguf",
+
+    sha256: "75209490b11cec2b0db749ca5f4ff92266f58efd30f7fd04d9eb2a3ac9cc929f",
+    download_size: 1_129_966_496,
+};
+pub(super) const QWEN3_ALIGNER_Q8_LICENSE: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::SpeechAlignmentQ8,
+    file: "LICENSE",
+
+    sha256: "a44a6081c73ad75f0255bb2bb5cab74ef1829565a895a24e53a4f11290ab7655",
+    download_size: 11_343,
+};
+pub(super) const QWEN3_ALIGNER_Q8_README: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::SpeechAlignmentQ8,
+    file: "README.md",
+
+    sha256: "30de8315ece609b239c719539336b99188a2a92aef89a1fdcd60b11e40abd063",
+    download_size: 9_419,
+};
+pub(super) fn direct_url(kind: super::ModelKind) -> &'static str {
+    match kind {
+        super::ModelKind::Qwen3AlignerQ8Weights => "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/09fe073ba154561f4474162e8bd4ab233a848eca/Qwen3-ForcedAligner-0.6B-GGUF/qwen3-forced-aligner-0.6b-q8_0.gguf",
+        super::ModelKind::Qwen3AlignerQ8License => "https://raw.githubusercontent.com/QwenLM/Qwen3-ASR/7c6daf77a2421100f5fb066495372c00129d39ff/LICENSE",
+        super::ModelKind::Qwen3AlignerQ8Readme => "https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B-hf/resolve/c07281df297b9905d24a508279258cccf987a064/README.md",
+        _ => unreachable!("Native alignment owns exactly three frozen files"),
+    }
+}

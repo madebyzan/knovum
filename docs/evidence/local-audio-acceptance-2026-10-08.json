@@ -1,0 +1,1199 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-08",
+  "qualification": "native-engine-and-application-adapter",
+  "target": "macos-x64",
+  "host": {
+    "system": "Darwin",
+    "version": "15.6.1",
+    "architecture": "x86_64",
+    "gpu": "AMD Radeon Pro 5300M; native synthesis budget does not fit; CPU selected before inference"
+  },
+  "applicationBundled": false,
+  "resourcesPublished": false,
+  "runtimes": [
+    {
+      "profile": "light-inference",
+      "manifestSha256": "7a185c6254f1b3db046abb6c90a997d412963ae0e12c8055f84729ab514bb52d",
+      "cacheQualification": "Historical native qualification of the recorded manifest; producer/lock changes require a newly built runtime identity and fresh qualification."
+    },
+    {
+      "profile": "torch-inference",
+      "manifestSha256": "c3a861e6e640d0a3fda8eb406651847290a14ce382a8fc8fff477fce9006ded5",
+      "cacheQualification": "Historical native qualification of the recorded manifest; producer/lock changes require a newly built runtime identity and fresh qualification."
+    },
+    {
+      "profile": "voice-generation",
+      "target": "macos-x64",
+      "manifestSha256": "9ade082cd2f12d94feeb48f6f2496278bad5669ad987831090d232d32541dd88",
+      "nativeLibrarySha256": "bb53be4e8391e35524455372b9770c90c89865b5485a32e6f6e5cacfabcdbcac",
+      "cacheQualification": "Historical native qualification of the recorded manifest; producer/lock changes require a newly built runtime identity and fresh qualification."
+    },
+    {
+      "profile": "light-inference",
+      "manifestSha256": "9c81842ea5081125f6d03fc98b7d9d9dc49713a0eb835f041b5d0b493c6128f7",
+      "cacheQualification": "Historical native qualification of the recorded manifest; producer/lock changes require a newly built runtime identity and fresh qualification."
+    },
+    {
+      "profile": "resources",
+      "manifestSha256": "cebc00e199c1b3fa5697a46d412a25198e113df4bbb806235de5b7e996bbfcc5",
+      "cacheQualification": "Historical native qualification of the recorded manifest; producer/lock changes require a newly built runtime identity and fresh qualification."
+    }
+  ],
+  "cases": {
+    "fixedQwen3Embedding": {
+      "scope": "real isolated JSON-RPC worker; initialize, document/query encode, health and shutdown",
+      "specification": "qwen3-embedding-0.6b:28255eff53c370348c73c06e47af24a08692641967a32d1413bf18bb0867296e",
+      "profile": "cpu-f32-threads4-v1",
+      "results": {
+        "elapsedSeconds": 21.28,
+        "dimensions": 1024,
+        "norms": [1.0000000611168633, 0.9999999816568581, 1.0000000374019369],
+        "semanticScores": [0.6955603889843069, 0.19083407526234453],
+        "residentBytes": 3063181312,
+        "documentTokens": 18,
+        "queryTokens": 37
+      }
+    },
+    "mossNanoSynthesis": {
+      "scope": "real Knovum application adapter; stream publication, reference cloning and cancellation/reuse",
+      "supplierRevision": "8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb",
+      "ttsRevision": "f52645cb467506d8e18e746ddd59482685b74e58",
+      "codecRevision": "ceff0d0749bfb3fa2d61149794ec6feef0d1e1ae",
+      "sampleRate": 48000,
+      "channels": 1,
+      "results": [
+        {
+          "name": "zh",
+          "duration": 2.64,
+          "elapsed": 8.456119586997374,
+          "chunks": 5,
+          "sha256": "8a5345ce21f45d263fedcaf20c693964b98eef1315cf8c74dd492ac750841a65"
+        },
+        {
+          "name": "en",
+          "duration": 2.4,
+          "elapsed": 1.9420710769991274,
+          "chunks": 4,
+          "sha256": "df7853a10ff2cd5a2f9503d5962b1a05ed1b3fc757060a03a325480b650e4a3a"
+        },
+        {
+          "name": "after-cancel",
+          "duration": 3.52,
+          "elapsed": 2.7688181760022417,
+          "chunks": 6,
+          "sha256": "4fcb529b0c2468f9dbb501048627d3151c72e3055f7df316008fa622a40e9aa2"
+        },
+        {
+          "name": "clone",
+          "duration": 3.28,
+          "elapsed": 5.150429803994484,
+          "chunks": 6,
+          "sha256": "c32b1fad0d5b0805555e6fc92ff1e45f485b42d187272dc685d5830cdfefd983"
+        }
+      ],
+      "runtimeManifestSha256": "7a185c6254f1b3db046abb6c90a997d412963ae0e12c8055f84729ab514bb52d"
+    },
+    "voxCpm2Synthesis": {
+      "scope": "real Knovum application adapter; native design, stream callbacks, reference cloning and cancellation/reuse",
+      "supplierRevision": "a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+      "sampleRate": 48000,
+      "channels": 1,
+      "results": [
+        {
+          "name": "zh",
+          "duration": 3.36,
+          "elapsed": 73.46712285900139,
+          "chunks": 21,
+          "sha256": "4c13f7871727ddc89fd015fa40da5cb6030203ac893dd9b8d84a67418221a31d"
+        },
+        {
+          "name": "en",
+          "duration": 3.2,
+          "elapsed": 70.21506480799871,
+          "chunks": 20,
+          "sha256": "219b7f3d1c5a18f2fa12be531edb517c0a6e81e8ab4689f5dcab8edf198e1be8"
+        },
+        {
+          "name": "after-cancel",
+          "duration": 2.88,
+          "elapsed": 76.17843548699602,
+          "chunks": 18,
+          "sha256": "eb9c8621908ebdb669d603730826c61e13506ac8d257f2ed2ba62c543df21fd4"
+        },
+        {
+          "name": "clone",
+          "duration": 3.2,
+          "elapsed": 99.75730835599825,
+          "chunks": 20,
+          "sha256": "b753fdb5434060432a7671718f1c2f6a0a8ec8250c604520375abdbe1a9b2e2e"
+        }
+      ],
+      "qualityAcceptance": false,
+      "note": "Original-precision model took 70–100 seconds for a few seconds of speech on this Intel CPU; optional quality model, not a CPU real-time claim.",
+      "runtimeManifestSha256": "9ade082cd2f12d94feeb48f6f2496278bad5669ad987831090d232d32541dd88"
+    },
+    "whisperTinyTranscription": {
+      "scope": "real Knovum application adapter; VAD, word timestamps, progress notifications, artifact hash and result contract",
+      "profile": "faster-whisper-tiny-cpu-int8-v1",
+      "results": [
+        {
+          "case": "en",
+          "elapsedSeconds": 4.54,
+          "text": "Hello, welcome to your local knowledge space.",
+          "segments": 1,
+          "words": 7,
+          "artifactSha256": "e231fc507b658dc61ffec2f7a54ae21dc8ea095a369aa1c2241ace290ffd7f31"
+        },
+        {
+          "case": "zh",
+          "elapsedSeconds": 0.93,
+          "text": "你好 欢迎使用本地语英功能",
+          "segments": 1,
+          "words": 11,
+          "artifactSha256": "312f9c1471e70595d8eb62f96248e31cb6018662fa4601acfca3b6a131441667"
+        }
+      ],
+      "qualityAcceptance": false,
+      "note": "English matched the prompt. Chinese contains homophone errors; two short synthetic cases do not establish multilingual ASR quality.",
+      "runtimeManifestSha256": "9c81842ea5081125f6d03fc98b7d9d9dc49713a0eb835f041b5d0b493c6128f7"
+    },
+    "diarizationAndSeparation": {
+      "scope": "real Knovum application adapters and native progress cancellation; PCM/hash/result validation",
+      "results": [
+        {
+          "case": "diarization",
+          "elapsedSeconds": 6.8,
+          "inputSeconds": 28,
+          "turns": [
+            {
+              "speakerId": "1",
+              "startMs": 31,
+              "endMs": 7810
+            },
+            {
+              "speakerId": "0",
+              "startMs": 8452,
+              "endMs": 14206
+            },
+            {
+              "speakerId": "0",
+              "startMs": 16180,
+              "endMs": 21277
+            },
+            {
+              "speakerId": "3",
+              "startMs": 22222,
+              "endMs": 27976
+            }
+          ]
+        },
+        {
+          "case": "native-progress-cancel",
+          "elapsedSeconds": 1.26
+        },
+        {
+          "case": "source-separation",
+          "elapsedSeconds": 0.72,
+          "sampleCount": 141120,
+          "inputSamples": 141120,
+          "vocalsRef": {
+            "fileName": "attempt-d92b3acc-dc8d-451d-817e-8abf406ef9b9/vocals.wav",
+            "mediaType": "audio/wav",
+            "byteLength": 564524,
+            "sha256": "f97c135b8141f9527bf2d145acec785735b42e94c6428db53303856b2f52cb54",
+            "sampleRate": 44100,
+            "channels": 2,
+            "sampleFormat": "pcm_s16le"
+          },
+          "backgroundRef": {
+            "fileName": "attempt-d92b3acc-dc8d-451d-817e-8abf406ef9b9/background.wav",
+            "mediaType": "audio/wav",
+            "byteLength": 564524,
+            "sha256": "0bef7450005893cfc15bd16b6b1a9994c92dd3cdf4ae4ab4678c0ec60bb3555c",
+            "sampleRate": 44100,
+            "channels": 2,
+            "sampleFormat": "pcm_s16le"
+          }
+        },
+        {
+          "case": "source-separation-short",
+          "inputSamples": 1,
+          "outputSamples": 1
+        },
+        {
+          "case": "source-separation-short",
+          "inputSamples": 1024,
+          "outputSamples": 1024
+        },
+        {
+          "case": "source-separation-short",
+          "inputSamples": 4096,
+          "outputSamples": 4096
+        }
+      ],
+      "qualityAcceptance": false,
+      "note": "The four-speaker fixture produced four turns but three speaker identities; no speaker-count accuracy or music separation quality claim.",
+      "runtimeManifestSha256": "9c81842ea5081125f6d03fc98b7d9d9dc49713a0eb835f041b5d0b493c6128f7"
+    },
+    "qwen3ForcedAlignment": {
+      "scope": "real Knovum application adapter; strict complete weight loading and result contract",
+      "repository": "Qwen/Qwen3-ForcedAligner-0.6B-hf",
+      "revision": "c07281df297b9905d24a508279258cccf987a064",
+      "modelSha256": "00568245ceca5af1991d28562a75fe1ddc9bfeb041c27fda66947ea05c47fb86",
+      "profile": "qwen3-forced-aligner-0.6b-hf-cpu-v1",
+      "results": [
+        {
+          "case": "en",
+          "elapsedSeconds": 20.53,
+          "durationMs": 3200,
+          "coverage": 1,
+          "units": [
+            {
+              "segmentId": "en",
+              "text": "Hello",
+              "unitKind": "word",
+              "startMs": 0,
+              "endMs": 480,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "welcome",
+              "unitKind": "word",
+              "startMs": 480,
+              "endMs": 1200,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "to",
+              "unitKind": "word",
+              "startMs": 1280,
+              "endMs": 1360,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "your",
+              "unitKind": "word",
+              "startMs": 1360,
+              "endMs": 1520,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "local",
+              "unitKind": "word",
+              "startMs": 1520,
+              "endMs": 1920,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "knowledge",
+              "unitKind": "word",
+              "startMs": 1920,
+              "endMs": 2400,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "en",
+              "text": "space",
+              "unitKind": "word",
+              "startMs": 2400,
+              "endMs": 2960,
+              "score": null,
+              "unalignedReason": null
+            }
+          ]
+        },
+        {
+          "case": "zh",
+          "elapsedSeconds": 0.78,
+          "durationMs": 3360,
+          "coverage": 1,
+          "units": [
+            {
+              "segmentId": "zh",
+              "text": "你",
+              "unitKind": "character",
+              "startMs": 320,
+              "endMs": 480,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "好",
+              "unitKind": "character",
+              "startMs": 480,
+              "endMs": 880,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "欢",
+              "unitKind": "character",
+              "startMs": 1120,
+              "endMs": 1280,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "迎",
+              "unitKind": "character",
+              "startMs": 1280,
+              "endMs": 1440,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "使",
+              "unitKind": "character",
+              "startMs": 1440,
+              "endMs": 1680,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "用",
+              "unitKind": "character",
+              "startMs": 1680,
+              "endMs": 1760,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "本",
+              "unitKind": "character",
+              "startMs": 1760,
+              "endMs": 2000,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "地",
+              "unitKind": "character",
+              "startMs": 2000,
+              "endMs": 2240,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "语",
+              "unitKind": "character",
+              "startMs": 2240,
+              "endMs": 2320,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "音",
+              "unitKind": "character",
+              "startMs": 2320,
+              "endMs": 2480,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "功",
+              "unitKind": "character",
+              "startMs": 2480,
+              "endMs": 2720,
+              "score": null,
+              "unalignedReason": null
+            },
+            {
+              "segmentId": "zh",
+              "text": "能",
+              "unitKind": "character",
+              "startMs": 2720,
+              "endMs": 2880,
+              "score": null,
+              "unalignedReason": null
+            }
+          ]
+        }
+      ],
+      "qualityAcceptance": false
+    },
+    "fullU2netBackgroundRemoval": {
+      "platform": "macos-x64",
+      "modelSha256": "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491",
+      "modelBytes": 175997641,
+      "loadSeconds": 0.944,
+      "elapsedSeconds": 1.769,
+      "maskBytes": 409600,
+      "maskSha256": "f8185989bd744ee66250c2e3605b763d7f7c49b89ca9b1a01efef3e87cdc8848",
+      "maskMinimum": 0.0,
+      "maskMaximum": 0.0019361674785614014,
+      "preCancelled": "passed",
+      "subjectiveQualityAcceptance": false,
+      "runtimeQualification": "Existing Intel ONNX dependencies; current application adapter source, not a regenerated runtime package"
+    },
+    "coreMediaCompletePrefixHistorical": {
+      "version": "9.0.1",
+      "target": "macos-x64",
+      "executable": "bin/ffmpeg",
+      "manifestSha256": "c7f8ba48b092fbff16adee3bfd7eb51a92b3cc7a3db258dd1ed2a40821629167",
+      "recipeSha256": "0019aefb932b79c08f9a4e033ed2d2972b09932f4f1e4337ccec16bb983515a5",
+      "nativeLockSha256": "d5e44c8e17b26748ba3ddd1b57549c29bf8f9cbfda0a5d5c1399f9908befe70a",
+      "files": 2880,
+      "installedBytes": 587139487,
+      "nativePackages": 70,
+      "signing": {
+        "mode": "adhoc",
+        "identity": "-",
+        "compiledBinaryCount": 396
+      },
+      "relocationVerified": true,
+      "verifiedWarmPreparationSeconds": 9.263345120999999,
+      "scope": "Initial complete supplier prefix; signed ad hoc, relocated through a Chinese/spaced path, five actual media/audio production regressions passed. Superseded by the selective runtime export recipe; not qualification of the current recipe."
+    },
+    "coreMediaSelectiveNative": {
+      "target": "macos-x64",
+      "version": "9.0.1",
+      "recipeSha256": "ab5dfa8f76e5c7119eb66d638545d2329597e271bc844728ad5788493a61f34b",
+      "manifestSha256": "7518eb8dc6051b38a64f1a7f37d593100188094c541cc3015238e039fc545f82",
+      "fileCount": 560,
+      "installedBytes": 197372834,
+      "nativeDependencyFileCount": 72,
+      "signing": {
+        "mode": "adhoc",
+        "identity": "-",
+        "compiledBinaryCount": 72
+      },
+      "relocationVerified": true,
+      "warmPreparationSeconds": 3.8896617269999996,
+      "status": "passed",
+      "productionAudioTests": 5,
+      "developmentHook": "Actual desktop dev hook served Vite on port 1420 after verification; Ctrl-C closed cleanly.",
+      "applicationBundled": false,
+      "scope": "New producer native graph export, ad-hoc signing, spaced/Chinese-path relocation, subtitles/native H264 capabilities and actual x264/AAC/loudnorm output.",
+      "maximumNativeMinimumMacOS": "11.0",
+      "declaredApplicationMinimumMacOS": "14.0"
+    },
+    "fullPrecisionSourceSeparation": {
+      "target": "macos-x64",
+      "backend": "cpu",
+      "modelSpecId": "spleeter-2stems-fp32-cpu-v1",
+      "upstreamRevision": "7001ba316a615cacddb3f9ef3ec416661a277e26",
+      "modelFiles": {
+        "vocals.onnx": ["bdc16ab6bf6117ddd4842c19e80e40e2be188fc555295064d424616b0224ac97", 39318336],
+        "accompaniment.onnx": ["671ace17acd3720674a2bc14de32ac6292453dec20d9eb0ba4255d4ad8e3d8c0", 39318343]
+      },
+      "elapsedSeconds": 5.504847643998801,
+      "sampleRate": 44100,
+      "channels": 2,
+      "exactFrames": 44101,
+      "cancelledBeforeInference": true,
+      "adapterQualificationOnly": true,
+      "limitation": "Synthetic tones validate loading and output integrity, not perceived vocal isolation quality. Existing managed native dependencies with current application adapter; not a newly produced Python runtime.",
+      "results": {
+        "requestId": "a2e8eb36-ffb6-4f4f-bb08-8f113f044292",
+        "attemptEpoch": 1,
+        "modelSpecId": "spleeter-2stems-fp32-cpu-v1",
+        "vocalsRef": {
+          "fileName": "attempt-a2e8eb36-ffb6-4f4f-bb08-8f113f044292/vocals.wav",
+          "mediaType": "audio/wav",
+          "byteLength": 176448,
+          "sha256": "4cec3f120817c6ae6ce5d9a2f6a18f05bb96cb790fe39b2e457921d334301c15",
+          "sampleRate": 44100,
+          "channels": 2,
+          "sampleFormat": "pcm_s16le"
+        },
+        "backgroundRef": {
+          "fileName": "attempt-a2e8eb36-ffb6-4f4f-bb08-8f113f044292/background.wav",
+          "mediaType": "audio/wav",
+          "byteLength": 176448,
+          "sha256": "906ac8fb00b0d85356cfe97d3d92353d778dbf8d7c0c47850929f11919380c2c",
+          "sampleRate": 44100,
+          "channels": 2,
+          "sampleFormat": "pcm_s16le"
+        },
+        "sampleCount": 44101
+      }
+    },
+    "fullPrecisionSpeakerDiarization": {
+      "target": "macos-x64",
+      "backend": "cpu",
+      "modelSpecId": "sherpa-diarization-fp32-cpu-v1",
+      "segmentationRevision": "9403a6902bb58e3d5ae8c7e77c3422de279db2e0",
+      "modelFiles": {
+        "segmentation.onnx": {
+          "size": 5992913,
+          "sha256": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079"
+        },
+        "embedding.onnx": {
+          "size": 39593761,
+          "sha256": "1a331345f04805badbb495c775a6ddffcdd1a732567d5ec8b3d5749e3c7a5e4b"
+        }
+      },
+      "inputSha256": "af577814bdaf03db4894e418f0b60476cff106618f35e3dbe24e94b9db627ce7",
+      "inputDurationMs": 28000,
+      "elapsedSeconds": 27.666077560992562,
+      "nativeCallbackCancellation": true,
+      "reuseAfterCancellation": true,
+      "adapterQualificationOnly": true,
+      "limitation": "Existing managed native dependencies with current adapter; known-count generated speech does not qualify automatic counts, human audio quality, or other platforms.",
+      "result": {
+        "requestId": "1c5bcc09-0859-48aa-86d2-8a9339c4c135",
+        "attemptEpoch": 1,
+        "modelSpecId": "sherpa-diarization-fp32-cpu-v1",
+        "turns": [
+          {
+            "speakerId": "0",
+            "startMs": 31,
+            "endMs": 7760
+          },
+          {
+            "speakerId": "0",
+            "startMs": 8435,
+            "endMs": 14172
+          },
+          {
+            "speakerId": "0",
+            "startMs": 16180,
+            "endMs": 21277
+          },
+          {
+            "speakerId": "1",
+            "startMs": 22222,
+            "endMs": 22542
+          },
+          {
+            "speakerId": "1",
+            "startMs": 23065,
+            "endMs": 27976
+          }
+        ]
+      }
+    },
+    "qwen3ForcedAlignmentQ8": {
+      "scope": "Real application adapter and frozen Q8_0 weights on Intel CPU; generated bilingual fixtures establish execution and result contracts, not human listening quality.",
+      "repository": "audio-cpp/audio.cpp-gguf",
+      "revision": "09fe073ba154561f4474162e8bd4ab233a848eca",
+      "modelSha256": "75209490b11cec2b0db749ca5f4ff92266f58efd30f7fd04d9eb2a3ac9cc929f",
+      "modelBytes": 1129966496,
+      "profile": "qwen3-forced-aligner-0.6b-q8_0-cpu-v1",
+      "nativePayload": {
+        "target": "macos-x64",
+        "sourceRevision": "a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+        "sourceSha256": "a430eda3d0c9a8db6f81e762214eee61198bc6f720030f431966496536f2bf26",
+        "bridgeSha256": "11e48f80ffa1c1634564edbe98f5fa6ac19f4e7ccc582c17edefab7e885a3293",
+        "recipeSha256": "63c7d5a1d70db6ad1cc759bcc95dbfc5412c77c11124f35ac85f5fb83e2e55d7",
+        "composition": "compiled production CMake payload with frozen native CPython base and complete notices",
+        "signing": {
+          "mode": "adhoc",
+          "identity": "-",
+          "compiledBinaryCount": 280
+        },
+        "relocatedSmoke": "passed",
+        "runtimePrefix": "/tmp/knovum-alignment-production-supplier/runtime proof 中文"
+      },
+      "producerScope": "Production CMake payload was built and installed; the separate proof initially omitted the prerequisite native-notices base directory. Qualification composes that payload with the actual frozen CPython base and all supplier notices, then signs and relocates it. This is not a full published runtime archive or application bundle.",
+      "cancellationScope": "Pre-cancellation and cancellation during synchronous inference discard output; the same loaded engine remains usable. This does not establish an interrupt callback inside the supplier C API or replace the host process termination deadline.",
+      "results": [
+        {
+          "language": "en",
+          "sourceSha256": "5f558e14d31f2a7aaed7ae73176b096435eecef09ba5676a10dff7474adcfbd7",
+          "durationMs": 3200,
+          "elapsedSeconds": 11.537,
+          "peakRssBytes": 2404933632,
+          "result": {
+            "requestId": "39b397d1-b9b6-444d-a789-bd5d1339024f",
+            "attemptEpoch": 1,
+            "modelSpecId": "qwen3-forced-aligner-0.6b-q8_0-v1",
+            "units": [
+              {
+                "segmentId": "en",
+                "text": "Hello",
+                "unitKind": "word",
+                "startMs": 0,
+                "endMs": 480,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "welcome",
+                "unitKind": "word",
+                "startMs": 480,
+                "endMs": 1200,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "to",
+                "unitKind": "word",
+                "startMs": 1280,
+                "endMs": 1360,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "your",
+                "unitKind": "word",
+                "startMs": 1360,
+                "endMs": 1520,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "local",
+                "unitKind": "word",
+                "startMs": 1520,
+                "endMs": 1920,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "knowledge",
+                "unitKind": "word",
+                "startMs": 1920,
+                "endMs": 2400,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "en",
+                "text": "space",
+                "unitKind": "word",
+                "startMs": 2400,
+                "endMs": 2960,
+                "score": null,
+                "unalignedReason": null
+              }
+            ],
+            "coverage": 1.0
+          },
+          "synchronousCancellationSeconds": 3.686,
+          "cancelAndReuseVerified": true
+        },
+        {
+          "language": "zh",
+          "sourceSha256": "ddfdcfff2b306941b63578b10ff223f8f535ee4f6e2c278592331e5c3ea7c076",
+          "durationMs": 3360,
+          "elapsedSeconds": 4.86,
+          "peakRssBytes": 2404933632,
+          "result": {
+            "requestId": "cba03b4c-e448-465b-8900-fe0c1da2f63c",
+            "attemptEpoch": 1,
+            "modelSpecId": "qwen3-forced-aligner-0.6b-q8_0-v1",
+            "units": [
+              {
+                "segmentId": "zh",
+                "text": "你",
+                "unitKind": "character",
+                "startMs": 320,
+                "endMs": 480,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "好",
+                "unitKind": "character",
+                "startMs": 480,
+                "endMs": 880,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "欢",
+                "unitKind": "character",
+                "startMs": 1120,
+                "endMs": 1280,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "迎",
+                "unitKind": "character",
+                "startMs": 1280,
+                "endMs": 1440,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "使",
+                "unitKind": "character",
+                "startMs": 1440,
+                "endMs": 1680,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "用",
+                "unitKind": "character",
+                "startMs": 1680,
+                "endMs": 1760,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "本",
+                "unitKind": "character",
+                "startMs": 1760,
+                "endMs": 2000,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "地",
+                "unitKind": "character",
+                "startMs": 2000,
+                "endMs": 2240,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "语",
+                "unitKind": "character",
+                "startMs": 2240,
+                "endMs": 2320,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "音",
+                "unitKind": "character",
+                "startMs": 2320,
+                "endMs": 2480,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "功",
+                "unitKind": "character",
+                "startMs": 2480,
+                "endMs": 2720,
+                "score": null,
+                "unalignedReason": null
+              },
+              {
+                "segmentId": "zh",
+                "text": "能",
+                "unitKind": "character",
+                "startMs": 2720,
+                "endMs": 2880,
+                "score": null,
+                "unalignedReason": null
+              }
+            ],
+            "coverage": 1.0
+          },
+          "synchronousCancellationSeconds": 4.513,
+          "cancelAndReuseVerified": true
+        }
+      ]
+    }
+  },
+  "acceptanceGaps": [
+    "Apple Silicon native inference, cancellation and lifecycle acceptance",
+    "Windows x64 native inference, non-administrator producer, DLL relocation, cancellation and lifecycle acceptance",
+    "Windows CUDA 12.8/Torch 2.13/cuDNN 9 dependency closure and execution probes are implemented; native GPU qualification remains required",
+    "Metal/Vulkan native voice hardware-path acceptance; CPU qualification does not establish GPU acceleration",
+    "Published runtime hosting, release signing and complete native corresponding-source/license acceptance",
+    "Human listening, multilingual ASR/aligner accuracy, automatic diarization and music/source-separation quality",
+    "Alignment now integrates full Transformers and native Q8_0 snapshots; Q8_0 Intel CPU execution/cancellation/relocation qualification passed; Apple Silicon and Windows native execution remain pending. Speaker recognition offers INT8/FP32, separation FP16/FP32 and images compact/full U2net."
+  ],
+  "historicalVerification": {
+    "pythonCoreRegression": {
+      "passed": 36,
+      "scope": "embedding device/API, alignment weight loading, diarization cancellation, separation timeline"
+    },
+    "frontendTargeted": {
+      "passed": 25,
+      "files": 8
+    },
+    "accompanimentExportRegression": {
+      "passed": 9,
+      "files": 2
+    },
+    "runtimeMatrixRegression": {
+      "passed": 22
+    },
+    "webTypecheck": "passed after final combined-progress correction",
+    "webAffectedLint": "passed after final combined-progress correction",
+    "dependencyBoundaries": {
+      "status": "passed",
+      "modules": 1709,
+      "dependencies": 5367
+    },
+    "pythonTypecheck": {
+      "status": "passed",
+      "sourceFiles": 81
+    },
+    "pythonLint": "passed",
+    "rustCatalogRegression": {
+      "passed": 13,
+      "scope": "all local model source, download, cancellation, installation and verification tests"
+    },
+    "rustClippyAfterCommandCleanup": "passed; all targets, warnings denied",
+    "modelSettingsDeletionRegression": {
+      "passed": 8,
+      "scope": "model management behavior before and after obsolete IPC removal"
+    },
+    "combinedResourceProgressRegression": {
+      "passed": 15,
+      "files": 2,
+      "scope": "resource task lifetime, combined progress across child resources, model management"
+    },
+    "beforeSelectedReferenceClipsAndAlignmentChoice": {
+      "frontendAffectedRegression": {
+        "passed": 131,
+        "files": 40,
+        "scope": "Models, source node actions, speech drafts/translation, reference library, task progress and dictation before reference-controller extraction."
+      },
+      "referenceEditorFinalRegression": {
+        "passed": 6,
+        "scope": "Current reference controller: replacing/reselecting files, duration bounds, scope disposal, expected cancellation versus real failure, and obsolete authorization errors after Space changes."
+      },
+      "webTypecheck": {
+        "status": "passed",
+        "configurations": 4
+      },
+      "webLint": "passed before producer changes; changed producer/desktop scripts separately passed Oxc",
+      "dependencyBoundaries": {
+        "status": "passed",
+        "modules": 1724,
+        "dependencies": 5423
+      },
+      "unusedCode": "passed including the Python-invoked media manifest CLI entry; internal media identity/version helpers no longer exported",
+      "duplication": {
+        "status": "passed",
+        "linesPercent": 0.35,
+        "tokensPercent": 0.41,
+        "thresholdPercent": 1
+      },
+      "pythonAffectedRegression": {
+        "passed": 160,
+        "scope": "Inference runtime/speech plus producer checks before the final selective exporter was added."
+      },
+      "pythonRuntimeProducerRegression": {
+        "passed": 35,
+        "scope": "Frozen native installation, alias export, graph pruning, missing DLL and system-library boundaries, media capability qualification and producer evidence."
+      },
+      "pythonTypecheck": {
+        "status": "passed",
+        "sourceFiles": 95
+      },
+      "pythonLint": "passed",
+      "resourcePublicationRegression": {
+        "passed": 30,
+        "scope": "Complete publication, platform/profile identity, core file/descriptor corruption, actual packaged-resource validation, Windows installer extraction before the final retained-native graph field."
+      },
+      "coreMediaManifestFinalRegression": {
+        "passed": 16,
+        "scope": "Final core manifest/native graph identity, complete 18-entry publication and package corruption rejection."
+      },
+      "rustResources": {
+        "passed": 54,
+        "scope": "Catalog, strict selection, corrupt-model replacement, unknown combined totals, archive/install/verification/cancellation."
+      },
+      "rustSpeech": {
+        "passed": 42,
+        "ignored": 5
+      },
+      "rustNativeMediaCompletePrefix": {
+        "passed": 5,
+        "scope": "Actual produced FFmpeg: stereo/clipping, source/stem preservation, video/multilingual tracks, audiobook chapter/pause/metadata/precision output."
+      },
+      "rustSpacePackage": {
+        "passed": 32
+      },
+      "rustDictation": {
+        "passed": 3
+      },
+      "rustInference": {
+        "passed": 22,
+        "ignored": 1
+      },
+      "rustClippy": "passed; all targets, warnings denied, including the updated development/release core paths and profile smoke test",
+      "sourceLayout": "passed",
+      "capabilities": "passed",
+      "format": "passed; all 1601 authored files checked; controlled native artifacts and notices excluded",
+      "desktopDevHookHistorical": "Started actual scripts/desktop/dev.mjs, verified core resource and Vite served port 1420; Ctrl-C closed cleanly. Executed before final selective export recipe.",
+      "pythonTargetedContinuation": {
+        "passed": 98,
+        "scope": "Separated snapshots, native model file selection, identity rejection, exact stereo tail, inference runtime and core media exporter regression before exit-test startup handshake improvement. A repeat under concurrent compilation had one shutdown-test startup timeout; isolated reproduction passed, and the test now confirms native initialization before closing transport."
+      },
+      "workerExitAndSeparationFinal": {
+        "passed": 16,
+        "scope": "Shutdown timeout measured after initialization handshake; both separation models retain exact timelines and model identity."
+      },
+      "rustNativeMediaSelective": {
+        "passed": 5,
+        "scope": "Actual selective FFmpeg producer: audio inspection, stereo stems, video mux and multilingual tracks, audiobook precision/pause/metadata output."
+      },
+      "desktopDevHookCurrent": "Passed on final selective recipe; verified immutable core resource, Vite served 1420, native SIGINT shutdown exited 0.",
+      "separationFrontendFinal": {
+        "passed": 29,
+        "files": 5,
+        "scope": "Both model selections, pending result ownership, terminal subscription race, expected cancellation, double submission, changed source/review epochs, stem insertion/export and accepted dubbing backgrounds."
+      },
+      "audioWorkflowRegression": {
+        "passed": 109,
+        "files": 30,
+        "scope": "Node speech, audiobook, dubbing, voice library, dictation and model UI; before final reference authorization/cancellation regression additions."
+      },
+      "diarizationPythonRegression": {
+        "passed": 43,
+        "scope": "Alignment/diarization, frozen model rejection, both diarization variants, worker initialization and capability dispatch."
+      },
+      "diarizationPythonTypecheck": {
+        "status": "passed",
+        "sourceFiles": 49,
+        "scope": "All application inference modules after current diarization adaptation."
+      },
+      "diarizationPythonLint": {
+        "status": "passed",
+        "scope": "Changed diarization adapter, worker session and enrichment tests."
+      },
+      "diarizationRustVerification": {
+        "status": "pending",
+        "scope": "Fresh contract export, focused local-resource/media/Space regressions and all-targets Clippy."
+      },
+      "diarizationWebTypecheck": {
+        "status": "pending",
+        "reason": "Waiting for Rust-generated current model and status contracts."
+      }
+    },
+    "beforeVoxQ8DeliveryAndScriptCleanup": {
+      "phase": "Consolidated verification after the remaining implementation; no application packaging.",
+      "webAffectedRegression": {
+        "passed": 29,
+        "files": 6,
+        "scope": "Voice submission cancellation, candidate lifecycle, library ownership, audio/video reference editor and selected alignment model UI."
+      },
+      "webFinalTestEdits": {
+        "passed": 7,
+        "files": 2,
+        "scope": "Final typed cancellation mocks and alignment UI mocks."
+      },
+      "pythonAffectedRegression": {
+        "passed": 53,
+        "scope": "Alignment model freeze, native GPU failure without retry, selected PCM/timing, cancellation, diarization, thread profiles, native device inventory and native producer locks."
+      },
+      "pythonTypecheck": {
+        "status": "passed",
+        "sourceFiles": 67,
+        "scope": "Current inference sources and all runtime producer modules after contract regeneration; Windows process policy and its typed regression module separately passed."
+      },
+      "pythonLint": {
+        "status": "passed",
+        "scope": "Changed inference adapters, session/execution/probe, associated regression tests and native producer."
+      },
+      "pythonFormat": {
+        "status": "passed",
+        "files": 12
+      },
+      "sourceLayout": "passed after Windows process policy",
+      "capabilityPermissions": "passed",
+      "dependencyBoundaries": {
+        "status": "passed",
+        "modules": 1730,
+        "dependencies": 5455
+      },
+      "unusedCode": "passed",
+      "duplication": {
+        "status": "passed",
+        "linesPercent": 0.36,
+        "tokensPercent": 0.42,
+        "thresholdPercent": 1
+      },
+      "resourcePublicationRegression": {
+        "passed": 28,
+        "scope": "Producer identity, manifests, write-manifest and packaged-resource corruption rejection."
+      },
+      "webTypecheck": {
+        "status": "passed",
+        "configurations": ["app", "tests", "node", "e2e"]
+      },
+      "rustAffectedRegression": {
+        "passed": 214,
+        "scope": {
+          "localResources": 58,
+          "speech": 46,
+          "packageRestore": 34,
+          "databaseBaseline": 5,
+          "runtimeModelProfiles": 23,
+          "dictation": 3,
+          "mediaEnrichment": 41
+        },
+        "ignored": 7,
+        "fullSuiteRun": false,
+        "contractConsistency": 4
+      },
+      "rustClippy": "pending",
+      "nativeAlignmentQ8": "passed: actual C API ABI 0x000200, production voice bridge ABI 2, bilingual alignment, cancellation/reuse and signed native-prefix relocation; Intel CPU only",
+      "nativeSelectedReferenceClip": {
+        "passed": 6,
+        "elapsedSeconds": 64.29,
+        "scope": "Produced complete FFmpeg prefix; selected late PCM clip, quality inspection, audiobook precision/metadata, video dialogue/stems and language-track publication."
+      },
+      "windowsUtf8ProcessPolicy": {
+        "testsPassed": 5,
+        "newProcessPolicyTests": 3,
+        "scope": "Preserve CPython activation settings, embed only after manifest validation, select the installed x64 Windows SDK. Native GetACP smoke on Windows remains required."
+      },
+      "windowsProducerTypecheck": {
+        "status": "passed",
+        "sourceFiles": 2
+      },
+      "webLint": "passed: full repository oxlint",
+      "contractGeneration": {
+        "status": "passed",
+        "rustConsistencyTests": 4,
+        "pythonGeneration": "frozen contract group in an isolated producer environment"
+      },
+      "windowsProcessPolicyFinalRegression": {
+        "passed": 3,
+        "scope": "Typed mocks; privileges, DPI, long-path configuration and UTF-8 policy retained."
+      }
+    }
+  },
+  "verification": {
+    "phase": "Final verification after VoxCPM2 Q8, delivery instructions, source boundaries and producer cleanup; no application packaging.",
+    "stage": "Completed code remediation and focused verification; real platform acceptance remains user-owned",
+    "webAffectedRegression": {
+      "passed": 60,
+      "files": 12,
+      "log": "/tmp/knovum-audio-final-web-targeted.log"
+    },
+    "pythonAffectedRegression": {
+      "passed": 70,
+      "log": "/tmp/knovum-audio-final-python-targeted.log"
+    },
+    "pythonTypecheck": {
+      "status": "passed",
+      "sourceFiles": 51,
+      "log": "/tmp/knovum-audio-final-python-mypy.log"
+    },
+    "pythonLint": "passed",
+    "webLint": "passed: full repository Oxlint",
+    "sourceLayout": "passed",
+    "capabilityPermissions": "passed",
+    "producerIdentityRegression": {
+      "passed": 13,
+      "log": "/tmp/knovum-audio-final-producer-node.log"
+    },
+    "producerCleanupVerification": {
+      "nodeTestsPassed": 93,
+      "pythonTestsPassed": 38,
+      "mypySourceFiles": 24,
+      "scope": "Completed before the final voice model/instruction integration; historical scope, not final whole-tree evidence."
+    },
+    "nativeVoiceBridgeSyntax": {
+      "status": "passed",
+      "compiler": "Apple Clang 17.0.0",
+      "supplierRevision": "a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+      "flags": ["-std=c++17", "-fsyntax-only", "-Wall", "-Wextra", "-Werror"],
+      "runtimeInstalled": false
+    },
+    "contractGeneration": {
+      "status": "passed",
+      "rust": "Fresh export_space_contracts execution",
+      "python": "Frozen contract group in isolated environment",
+      "logs": ["/tmp/knovum-audio-final-contracts-rust.log", "/tmp/knovum-audio-final-contracts-python.log"]
+    },
+    "webTypecheck": {
+      "status": "passed",
+      "configurations": ["app", "tests", "node", "e2e"],
+      "log": "/tmp/knovum-audio-final-types.log"
+    },
+    "rustAffectedRegression": {
+      "status": "passed",
+      "passed": 177,
+      "failed": 0,
+      "ignored": 7,
+      "fullSuiteRun": false,
+      "scope": {
+        "localResources": 59,
+        "speech": 50,
+        "packageRestore": 34,
+        "databaseBaseline": 6,
+        "runtimeModelProfiles": 24,
+        "contractConsistency": 4
+      },
+      "logs": [
+        "/tmp/knovum-audio-final-rust-resources.log",
+        "/tmp/knovum-audio-final-rust-speech.log",
+        "/tmp/knovum-audio-final-rust-package.log",
+        "/tmp/knovum-audio-final-rust-database.log",
+        "/tmp/knovum-audio-final-rust-inference.log",
+        "/tmp/knovum-audio-final-rust-contracts.log"
+      ],
+      "ignoredScope": "Native runtime/model qualification tests; not counted as passed or platform acceptance"
+    },
+    "rustClippy": {
+      "status": "passed",
+      "scope": "all targets, warnings denied",
+      "log": "/tmp/knovum-audio-final-rust-clippy.log"
+    },
+    "applicationBundled": false,
+    "platformAcceptanceOwner": "user",
+    "rustFormat": "passed",
+    "dependencyBoundaries": {
+      "status": "passed",
+      "modules": 1732,
+      "dependencies": 5467
+    },
+    "unusedCode": "passed",
+    "duplication": {
+      "status": "passed",
+      "linesPercent": 0.35,
+      "tokensPercent": 0.42,
+      "thresholdPercent": 1
+    },
+    "finalBoundaryReview": {
+      "status": "no blocking defect found",
+      "scope": [
+        "Runtime lease ownership and explicit release",
+        "Frozen saved-design voice identity",
+        "Native audio frame conservation and cancellation reset"
+      ],
+      "nativeAcceptanceIncluded": false
+    },
+    "rustTestCompilation": {
+      "status": "passed",
+      "log": "/tmp/knovum-audio-final-rust-test-compile.log"
+    }
+  },
+  "voiceStudioScopeReview": {
+    "referenceRevision": "d961f65",
+    "deliveryInstructions": "VoxCPM2 in-text instructions are connected to reference voices without exact transcripts; project revisions, previews, render digests and Space export/import retain the same instruction. Effects vary with reference voice and language.",
+    "excludedEngineSpecificFeatures": "OmniVoice denoise generation parameters and training preprocessing are not desktop media denoising. IndexTTS2 graded emotion requires a different engine; it is not implemented or advertised.",
+    "savedDesignIdentity": "First design has no transcript; saved designs use frozen recording plus matching transcript, without reapplying design description."
+  }
+}

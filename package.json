@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "desktop:dev": "node scripts/desktop/tauri.mjs dev",
+    "desktop:dev": "tauri dev",
     "package": "node scripts/desktop/package.mjs",
     "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "lint": "oxlint .",
@@ -21,7 +21,8 @@
     "e2e:build": "vite build --mode e2e && tauri build --no-bundle --features e2e --config src-tauri/tauri.e2e.conf.json",
     "e2e": "pnpm e2e:build && wdio run wdio.conf.ts",
     "contracts:generate": "cargo run --locked --manifest-path src-tauri/Cargo.toml --bin export_space_contracts && uv run --project python --only-group contracts --frozen python scripts/generate_python_contracts.py",
-    "runtime:build": "uv run --project python --only-group publication --frozen python -I -B -X utf8 scripts/runtime/build_python.py",
+    "runtime:build": "node scripts/runtime/producer.mjs",
+    "runtime:prepare": "node scripts/runtime/development.mjs",
     "runtime:provision": "node scripts/runtime/provision.mjs",
     "inference:acceptance": "uv run --project python --only-group acceptance --frozen python -I -B -X utf8 python/tests/acceptance/report.py"
   },

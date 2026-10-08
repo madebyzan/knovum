@@ -19,7 +19,10 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    local_resources::{models::diarization, preparation},
+    local_resources::{
+        model_catalog::LocalModelId,
+        preparation::{self, contracts::ResourcePreparationTarget, PreparedDiarizationModel},
+    },
     media::transcript::{
         MediaTranscript, SpeakerTrack as TranscriptSpeakerTrack,
         SpeakerTurn as TranscriptSpeakerTurn, TranscriptDiarizationProvenance,
@@ -29,9 +32,8 @@ use crate::{
 
 use super::{pipeline::audio_reference, MediaTranscriptionProgress};
 
-const MODEL_SPEC_ID: &str = "community1-knovum-cpu-v1";
-
 struct Request {
+    model: LocalModelId,
     expected_revision: u32,
     minimum: Option<u16>,
     maximum: Option<u16>,
@@ -67,8 +69,12 @@ pub(crate) async fn diarize_media(
         media_analysis::prepare(&app_for_audio, Path::new(&source_path), &revision, &token)
     })
     .await?;
-    let model = preparation::prepare_diarization_for_job(
+    let variant = request.model.diarization_variant()?;
+    let models = preparation::prepare_models_for_job(
         app,
+        ResourcePreparationTarget::Model {
+            model: request.model,
+        },
         &format!("resource:{job_id}"),
         "Preparing speaker recognition resources",
         cancellation,
@@ -83,6 +89,7 @@ pub(crate) async fn diarize_media(
         },
     )
     .await?;
+    let model = PreparedDiarizationModel::from_models(models, variant)?;
     let audio_ref = crate::blocking::run({
         let wav = audio.wav.clone();
         move || audio_reference(&wav)
@@ -94,7 +101,7 @@ pub(crate) async fn diarize_media(
         &model,
         RuntimeDeviceProfile {
             device: "cpu".into(),
-            execution_profile_id: MODEL_SPEC_ID.into(),
+            execution_profile_id: variant.spec_id().into(),
             cpu_threads: ComputeBudget::detect()?.model_threads,
         },
         SpeechDiarizeParams {
@@ -108,7 +115,7 @@ pub(crate) async fn diarize_media(
                     "{source_revision}:transcript:{}",
                     request.expected_revision
                 ),
-                model_spec_id: MODEL_SPEC_ID.into(),
+                model_spec_id: variant.spec_id().into(),
                 deadline_ms: deadline(transcript.duration_ms)?,
             },
             audio_ref,
@@ -128,7 +135,7 @@ pub(crate) async fn diarize_media(
     {
         return Err("invalid_output: diarization turn exceeds media duration".into());
     }
-    publish(transcript, diarization.turns, data)?;
+    publish(transcript, diarization.turns, variant, data)?;
     super::send_progress(progress, "done", 100);
     Ok(())
 }
@@ -136,6 +143,7 @@ pub(crate) async fn diarize_media(
 fn publish(
     mut transcript: MediaTranscript,
     turns: Vec<SpeakerTurn>,
+    variant: crate::local_resources::models::catalog::DiarizationVariant,
     data: &mut serde_json::Value,
 ) -> Result<(), String> {
     let mut tracks = BTreeMap::<String, Vec<&SpeakerTurn>>::new();
@@ -190,9 +198,9 @@ fn publish(
         })
         .collect();
     transcript.diarization = Some(TranscriptDiarizationProvenance {
-        engine_id: "pyannote_community_1".into(),
-        model_spec_id: MODEL_SPEC_ID.into(),
-        model_revision: diarization::REVISION.into(),
+        engine_id: "sherpa_onnx".into(),
+        model_spec_id: variant.spec_id().into(),
+        model_revision: variant.revision().into(),
         diarized_at: u64::try_from(crate::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });
@@ -202,10 +210,14 @@ fn publish(
 }
 
 async fn load_request(app: &AppHandle, job_id: &str) -> Result<Request, String> {
-    let row = sqlx::query("SELECT expected_transcript_revision,minimum_speakers,maximum_speakers FROM spaces_media_diarization_requests WHERE job_id=$1")
+    let row = sqlx::query("SELECT model_spec_id,expected_transcript_revision,minimum_speakers,maximum_speakers FROM spaces_media_diarization_requests WHERE job_id=$1")
         .bind(job_id).fetch_optional(db::pool(app).await?).await.map_err(db::sql_error)?
         .ok_or("Diarization request payload is missing")?;
     Ok(Request {
+        model: LocalModelId::from_diarization_spec(
+            row.try_get::<&str, _>("model_spec_id")
+                .map_err(db::sql_error)?,
+        )?,
         expected_revision: u32::try_from(
             row.try_get::<i64, _>("expected_transcript_revision")
                 .map_err(db::sql_error)?,

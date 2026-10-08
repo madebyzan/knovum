@@ -2,4 +2,4 @@
 import type { SpeechMediaSource } from "./SpeechMediaSource";
 import type { SpeechSourceSeparationReviewStatus } from "./SpeechSourceSeparationReviewStatus";
 
-export type SpeechSourceSeparationCandidate = { separationId: string, spaceId: string, runId: string, source: SpeechMediaSource, background: SpeechMediaSource, modelSpecId: string, reviewStatus: SpeechSourceSeparationReviewStatus, reviewWarning: string, };
+export type SpeechSourceSeparationCandidate = { separationId: string, spaceId: string, runId: string, source: SpeechMediaSource, background: SpeechMediaSource, vocals: SpeechMediaSource, modelSpecId: string, reviewStatus: SpeechSourceSeparationReviewStatus, reviewWarning: string, };

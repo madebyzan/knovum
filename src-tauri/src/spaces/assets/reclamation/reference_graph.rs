@@ -61,6 +61,7 @@ pub(super) async fn all(
          UNION ALL SELECT asset_path FROM spaces_speech_asset_publications \
          UNION ALL SELECT part_path FROM spaces_speech_asset_publications WHERE part_path IS NOT NULL \
          UNION ALL SELECT asset_path FROM spaces_speech_chapter_checkpoints \
+         UNION ALL SELECT vocals_asset_path FROM spaces_speech_source_separations \
          UNION ALL SELECT background_asset_path FROM spaces_speech_source_separations \
          UNION ALL SELECT source_asset_path FROM spaces_speech_source_separations \
          UNION ALL SELECT preview_asset_path FROM spaces_voice_candidates \
@@ -168,6 +169,8 @@ pub(crate) async fn for_space(
          UNION ALL SELECT c.asset_path FROM spaces_speech_chapter_checkpoints c \
          JOIN spaces_speech_project_revisions r ON r.id=c.project_revision_id \
          JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=$1 \
+         UNION ALL SELECT vocals_asset_path FROM spaces_speech_source_separations \
+         WHERE space_id=$1 \
          UNION ALL SELECT background_asset_path FROM spaces_speech_source_separations \
          WHERE space_id=$1 \
          UNION ALL SELECT source_asset_path FROM spaces_speech_source_separations \

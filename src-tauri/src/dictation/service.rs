@@ -19,6 +19,10 @@ pub(crate) enum DictationAction {
         code: String,
         message: String,
     },
+    PreparationProgress {
+        session_id: String,
+        progress: crate::local_resources::preparation::contracts::ResourcePreparationProgress,
+    },
     Finished {
         session_id: String,
         target: TargetApplication,

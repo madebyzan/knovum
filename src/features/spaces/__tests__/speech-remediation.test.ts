@@ -4,7 +4,12 @@ import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-sett
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { selectBackground, selectSeparatedBackground } from "../speech/video-background-selection";
-import { applyTranslation, translationInputs, type VideoLineDraft } from "../speech/video-dubbing-draft";
+import {
+  applyTranslation,
+  bindVideoSpeaker,
+  translationInputs,
+  type VideoLineDraft,
+} from "../speech/video-dubbing-draft";
 import { isLocalTranslationTarget, persistedTranslationTarget } from "../speech/video-translation-targets";
 import { voiceRevisionOptions } from "../speech/voice-options";
 
@@ -16,9 +21,10 @@ function voice(id: string, revision: number, isActive: boolean, archivedAt?: num
     revisionId: id,
     revision,
     isActive,
-    engineId: "kokoro",
-    modelSpecId: "kokoro-v1",
+    engineId: "mossNano",
+    modelSpecId: "mossNano-v1",
     language: "en",
+    supportsDeliveryInstruction: false,
     presetVoiceId: "0",
     updatedAt: 1,
   };
@@ -82,6 +88,7 @@ describe("speech architecture policies", () => {
         text: "Original",
         speakerKey: "",
         voiceRevisionId: "active",
+        deliveryInstruction: "",
         startSeconds: "0",
         endSeconds: "1",
         needsTimingEdit: false,
@@ -117,6 +124,23 @@ describe("speech architecture policies", () => {
     ).toThrow("does not match");
   });
 
+  it("keeps per-line delivery instructions only when the selected voice supports them", () => {
+    const line: VideoLineDraft = {
+      key: "line",
+      text: "Hello",
+      speakerKey: "Narrator",
+      voiceRevisionId: "expressive",
+      deliveryInstruction: "Quiet and measured",
+      startSeconds: "0",
+      endSeconds: "1",
+      needsTimingEdit: false,
+    };
+    expect(bindVideoSpeaker([line], "Narrator", "compact", false)[0]?.deliveryInstruction).toBe("");
+    expect(bindVideoSpeaker([line], "Narrator", "expressive", true)[0]?.deliveryInstruction).toBe(
+      "Quiet and measured",
+    );
+  });
+
   it("freezes accepted separation source identity and clears it for manual background selection", () => {
     const video = { assetPath: "/video.mp4", sourceRevision: `sha256:${"a".repeat(64)}`, durationMs: 1_000 };
     const background = {
@@ -142,6 +166,7 @@ describe("speech architecture policies", () => {
       runId: "separation",
       source: { ...video },
       background,
+      vocals: { ...background, assetPath: "/managed/vocals.wav" },
       modelSpecId: "spleeter-2stems-fp16-cpu-v1",
       reviewStatus: "accepted",
       reviewWarning: "vocals_accompaniment_requires_full_audition",

@@ -5,10 +5,10 @@ import os
 import shutil
 from pathlib import Path
 
-from runtime.artifacts import digest, download
+from runtime.artifacts import download
 from runtime.commands import run
 from runtime.inventory import write_inventory
-from runtime.voxcpm import install as install_voxcpm
+from runtime.native import native_lock_path
 
 
 def export_requirements(project: Path, destination: Path, *options: str) -> None:
@@ -35,7 +35,7 @@ def install_dependencies(
     repository: Path,
     profile: str,
     target: str,
-) -> dict[str, str]:
+) -> dict[str, object]:
     shared_project = repository / "python"
     project = shared_project / "runtimes" / profile
     environment = dict(
@@ -47,7 +47,10 @@ def install_dependencies(
     requirements = scratch / "requirements.txt"
     packages = runtime / "packages"
     evidence = scratch / "build-evidence"
-    options = ("--no-emit-package", "voxcpm") if profile == "voice-generation" else ()
+    configuration = json.loads((shared_project / "runtime-source.json").read_text())
+    supplier = configuration["nativeSupplier"]
+    native_packages = supplier["pythonDistributions"][supplier["profiles"][profile]]
+    options = tuple(part for name in native_packages for part in ("--no-emit-package", name))
     export_requirements(project, requirements, *options)
     run(
         "uv",
@@ -65,50 +68,32 @@ def install_dependencies(
         str(requirements),
         env=environment,
     )
-    voxcpm: dict[str, str] = {}
+    voxcpm: dict[str, object] = {}
+    source_components: list[dict[str, object]] = []
     if profile == "voice-generation":
-        build_environment = scratch / "build-environment"
-        run(
-            "uv",
-            "venv",
-            "--python",
-            str(executable),
-            str(build_environment),
-            env=environment,
-        )
-        build_python = build_environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        build_requirements = scratch / "build-requirements.txt"
-        export_requirements(shared_project, build_requirements, "--only-group", "runtime-build")
-        run(
-            "uv",
-            "pip",
-            "install",
-            "--python",
-            str(build_python),
-            "--require-hashes",
-            "--no-deps",
-            "--only-binary",
-            ":all:",
-            "-r",
-            str(build_requirements),
-            env=environment,
-        )
-        # VoxCPM creates source evidence after the common inventory creates its directory.
-        voxcpm = install_voxcpm(project, scratch, packages, build_python, environment)
+        from runtime.voxcpm import install as install_voxcpm
+
+        voxcpm = install_voxcpm(shared_project, scratch, runtime, target)
+    if profile == "light-inference":
+        from runtime.moss_runtime import install as install_moss
+
+        source_components.append(install_moss(shared_project, packages))
+    if voxcpm:
+        source_components.append(voxcpm)
     write_inventory(
         runtime,
         project / "uv.lock",
         evidence,
-        shared_project / "runtime-source.json",
+        native_lock_path(shared_project, profile, target),
         target,
+        source_components,
     )
     shutil.copy2(requirements, evidence / "requirements.txt")
     shutil.copy2(requirements, runtime / "runtime-requirements.txt")
     if profile == "voice-generation":
-        for name in ("build-requirements.txt", "voxcpm-source.tar"):
-            shutil.copy2(scratch / name, evidence / name)
-        voxcpm["requirementsSha256"] = digest(requirements)
-        voxcpm["buildRequirementsSha256"] = digest(scratch / "build-requirements.txt")
+        shutil.copy2(scratch / "audio-cpp-source.tar.gz", evidence / "audio-cpp-source.tar.gz")
+        for name in ("voice_bridge.cpp", "voice_bridge.cmake"):
+            shutil.copy2(repository / "scripts/runtime" / name, evidence / name)
     if profile == "light-inference":
         policy = shared_project / "compiled-source-evidence.json"
         sources = evidence / "compiled-sources"

@@ -8,7 +8,7 @@ use super::{
         SpeechSourceSeparationReviewStatus, StartSpeechSourceSeparationRequest,
     },
     repository::{load_candidate, transition_review},
-    WORKFLOW,
+    SeparationConfiguration, WORKFLOW,
 };
 use crate::{
     app_error::AppError,
@@ -24,6 +24,7 @@ use crate::{
 struct SeparationRunInput {
     workflow: String,
     source: SpeechMediaSource,
+    model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[tauri::command]
@@ -35,7 +36,6 @@ pub async fn start_speech_source_separation(
     if request.source.duration_ms == 0 || request.source.duration_ms > 600_000 {
         return Err("Source separation requires media lasting no more than ten minutes".into());
     }
-    crate::ai::local_runtime::device_profiles::speech_separation()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     if let Some((space_id, kind, input_json)) = sqlx::query_as::<_, (String, String, String)>(
@@ -56,14 +56,9 @@ pub async fn start_speech_source_separation(
         }
         return Ok(crate::spaces::runs::load_run(pool, &request.request_id).await?);
     }
-    super::super::video_config::require_source(
-        &mut tx,
-        &request.space_id,
-        None,
-        "video",
-        &request.source,
-    )
-    .await?;
+    super::media::require_owned_source(&mut tx, &request.space_id, &request.source).await?;
+    let model = crate::local_resources::model_selection::speech_separation(&app)?;
+    crate::ai::local_runtime::device_profiles::speech_separation(model)?;
     let now = crate::clock::unix_time_millis()?;
     let principal = Principal {
         kind: PrincipalKind::User,
@@ -79,7 +74,7 @@ pub async fn start_speech_source_separation(
         valid_until: now + 7 * 24 * 60 * 60 * 1_000,
     };
     create_grant(&mut tx, &grant, now).await?;
-    let input = json!({"workflow":WORKFLOW,"source":request.source.clone()});
+    let input = json!({"workflow":WORKFLOW,"source":request.source.clone(),"model":model});
     let policy = json!({"grantId":grant.grant_id,"definition":{"failurePolicy":"stop_run"},"workflow":WORKFLOW});
     let budget = json!({"maxParallelism":1,"maxAttempts":3,"maxStepAttempts":3});
     create_run_in_transaction(
@@ -103,7 +98,7 @@ pub async fn start_speech_source_separation(
     )
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(&request.request_id)
-    .bind(serde_json::to_string(&json!({"source":request.source})).map_err(db::json_error)?)
+    .bind(serde_json::to_string(&SeparationConfiguration {source:request.source, model}).map_err(db::json_error)?)
     .bind(now)
     .bind(now)
     .execute(&mut *tx)
@@ -129,6 +124,33 @@ pub async fn get_speech_source_separation(
 }
 
 #[tauri::command]
+pub async fn list_accepted_source_separations(
+    app: tauri::AppHandle,
+    space_id: String,
+    source: SpeechMediaSource,
+) -> Result<Vec<SpeechSourceSeparationCandidate>, AppError> {
+    crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&source.asset_path))?;
+    Ok(super::repository::accepted_for_source(db::pool(&app).await?, &space_id, &source).await?)
+}
+
+#[tauri::command]
+pub async fn get_latest_source_separation_run(
+    app: tauri::AppHandle,
+    space_id: String,
+    source: SpeechMediaSource,
+) -> Result<Option<RunObservation>, AppError> {
+    crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&source.asset_path))?;
+    let pool = db::pool(&app).await?;
+    let run_id: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_runs WHERE home_space_id=? AND json_extract(input_snapshot,'$.workflow')=? AND json_extract(input_snapshot,'$.source.assetPath')=? AND json_extract(input_snapshot,'$.source.sourceRevision')=? ORDER BY created_at DESC,id DESC LIMIT 1")
+        .bind(&space_id).bind(WORKFLOW).bind(&source.asset_path).bind(&source.source_revision)
+        .fetch_optional(pool).await.map_err(db::sql_error)?;
+    match run_id {
+        Some(id) => Ok(Some(crate::spaces::runs::load_run(pool, &id).await?)),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
 pub async fn review_speech_source_separation(
     app: tauri::AppHandle,
     request: ReviewSpeechSourceSeparationRequest,
@@ -139,20 +161,20 @@ pub async fn review_speech_source_separation(
     }
     let pool = db::pool(&app).await?;
     let current = load_candidate(pool, &request.separation_id).await?;
-    let path = crate::spaces::assets::authorize_spaces_asset(
-        &app,
-        std::path::Path::new(&current.background.asset_path),
-    )?;
-    let actual_sha256: String =
-        crate::blocking::run(move || super::super::publication::hash_file(&path)).await?;
-    if actual_sha256
-        != current
-            .background
+    for stem in [&current.background, &current.vocals] {
+        let path = crate::spaces::assets::authorize_spaces_asset(
+            &app,
+            std::path::Path::new(&stem.asset_path),
+        )?;
+        let expected = stem
             .source_revision
             .strip_prefix("sha256:")
-            .ok_or("Separated background revision is invalid")?
-    {
-        return Err("stale_revision: separated background changed before review".into());
+            .ok_or("Separated track revision is invalid")?;
+        let actual_sha256: String =
+            crate::blocking::run(move || super::super::publication::hash_file(&path)).await?;
+        if actual_sha256 != expected {
+            return Err("stale_revision: separated track changed before review".into());
+        }
     }
     transition_review(
         pool,
@@ -184,5 +206,6 @@ pub(super) fn matches_existing_request(
             && space_id == request.space_id
             && input.workflow == WORKFLOW
             && input.source == request.source
+            && input.model.separation_spec().is_ok()
     })
 }

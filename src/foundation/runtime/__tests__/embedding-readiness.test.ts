@@ -31,16 +31,8 @@ function resources(): LocalResourcesStatus {
       textEmbeddingTokenizer: { ...model },
       textEmbeddingTokenizerConfig: { ...model },
       textEmbeddingWeights: { ...model },
-      diarization: {
-        installed: false,
-        verified: false,
-        path: "",
-        revision: "",
-        totalBytes: 0,
-        tokenConfigured: false,
-      },
+      diarization: [],
     },
-    kokoro: { installed: false, verified: false, path: "", downloadSize: 0, licenseReviewRequired: true },
   };
 }
 

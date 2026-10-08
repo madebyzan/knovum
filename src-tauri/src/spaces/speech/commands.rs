@@ -30,16 +30,16 @@ pub async fn create_preset_voice(
     required(&request.engine_id, "Engine identity", 160)?;
     required(&request.model_spec_id, "Model specification", 240)?;
     required(&request.language, "Language", 32)?;
-    if request.engine_id != "kokoro" {
-        return Err("Preset voices require the Kokoro synthesis engine".into());
+    if request.engine_id != "moss_nano" {
+        return Err("Preset voices require the MossNano synthesis engine".into());
     }
-    if request.model_spec_id != super::execution::KOKORO_MODEL_SPEC_ID {
+    if request.model_spec_id != super::execution::MOSS_NANO_MODEL_SPEC_ID {
         return Err("Preset voice model specification is not supported".into());
     }
     super::preset_voices::require(&request.preset_voice_id, &request.language)?;
     let parsed_config = parse_synthesis_config(&request.synthesis_config)?;
-    if parsed_config.sample_rate != 24_000 {
-        return Err("Kokoro voices require 24 kHz synthesis".into());
+    if parsed_config.sample_rate != 48_000 {
+        return Err("MossNano voices require 48 kHz synthesis".into());
     }
     let config = serde_json::to_string(&parsed_config).map_err(db::json_error)?;
     let profile_id = uuid::Uuid::new_v4().to_string();

@@ -7,7 +7,7 @@ pub(in crate::spaces) type RuntimeDigests = BTreeMap<RuntimeProfile, String>;
 
 pub(in crate::spaces) fn profile_for_engine(engine: &str) -> Result<RuntimeProfile, String> {
     match engine {
-        "kokoro" => Ok(RuntimeProfile::LightInference),
+        "moss_nano" => Ok(RuntimeProfile::LightInference),
         "voxcpm2" => Ok(RuntimeProfile::VoiceGeneration),
         _ => Err("runtime_mismatch: speech engine has no runtime package".into()),
     }
@@ -17,6 +17,8 @@ pub(super) async fn resolve(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     project_id: &str,
+    job_id: &str,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<RuntimeDigests, String> {
     let engines: Vec<String> = sqlx::query_scalar(
         "SELECT DISTINCT v.engine_id FROM spaces_speech_projects p \
@@ -29,6 +31,20 @@ pub(super) async fn resolve(
     .map_err(db::sql_error)?;
     let mut digests = BTreeMap::new();
     for engine in engines {
+        let target = match engine.as_str() {
+            "moss_nano" => crate::local_resources::preparation::contracts::ResourcePreparationTarget::SpeechSynthesis,
+            "voxcpm2" => crate::local_resources::preparation::contracts::ResourcePreparationTarget::VoiceDesign,
+            _ => return Err("runtime_mismatch: speech engine has no resource profile".into()),
+        };
+        crate::local_resources::preparation::prepare_models_for_job(
+            app,
+            target,
+            &format!("{job_id}:resources:{engine}"),
+            "Preparing speech resources",
+            cancellation,
+            &mut |_| {},
+        )
+        .await?;
         let profile = profile_for_engine(&engine)?;
         digests.insert(profile, python::required_digest(app, profile)?);
     }

@@ -20,10 +20,7 @@ use crate::{
             SynthesizedAudioFileReference,
         },
     },
-    local_resources::{
-        models::catalog::{self, ModelKind},
-        preparation::PreparedModels,
-    },
+    local_resources::{models::catalog, preparation::PreparedModels},
 };
 
 const SAMPLE_RATE: u32 = 44_100;
@@ -31,6 +28,11 @@ const CHANNELS: u16 = 2;
 const MAX_DURATION_SECONDS: u64 = 10 * 60;
 const MAX_STEM_BYTES: u64 =
     SAMPLE_RATE as u64 * CHANNELS as u64 * 2 * MAX_DURATION_SECONDS + 65_536;
+
+pub(crate) struct SeparatedAudio {
+    pub(crate) vocals: SeparatedAudioMetadata,
+    pub(crate) background: SeparatedAudioMetadata,
+}
 
 pub(crate) struct SeparatedAudioMetadata {
     pub(crate) sha256: String,
@@ -51,11 +53,14 @@ pub(crate) async fn separate_to_paths<R: Runtime>(
     cancellation: &CancellationToken,
     priority: Priority,
     targets: SeparationTargets<'_>,
-) -> Result<SeparatedAudioMetadata, String> {
+) -> Result<SeparatedAudio, String> {
     if device_profile.device != "cpu" {
         return Err("unsupported_device: Spleeter source separation requires CPU".into());
     }
-    let model_path = co_located_model_directory(resources)?;
+    if device_profile.execution_profile_id != params.identity.model_spec_id {
+        return Err("runtime_mismatch: source separation device and model profiles differ".into());
+    }
+    let model_path = co_located_model_directory(resources, &params.identity.model_spec_id)?;
     speech::execute(
         Execution {
             app,
@@ -80,7 +85,7 @@ fn finish(
     identity: &InferenceRequestIdentity,
     cancellation: &CancellationToken,
     targets: SeparationTargets<'_>,
-) -> Result<SeparatedAudioMetadata, String> {
+) -> Result<SeparatedAudio, String> {
     if separation.request_id != identity.request_id
         || separation.attempt_epoch != identity.attempt_epoch
         || separation.model_spec_id != identity.model_spec_id
@@ -130,7 +135,7 @@ fn finish(
         let _ = fs::remove_file(targets.background);
         return Err("invalid_output: published separation stems have different timelines".into());
     }
-    Ok(background)
+    Ok(SeparatedAudio { vocals, background })
 }
 
 fn validate_reference(reference: &SynthesizedAudioFileReference) -> Result<(), String> {
@@ -284,8 +289,16 @@ fn validate_wav(path: &Path, sample_count: u64) -> Result<(), String> {
     Ok(())
 }
 
-fn co_located_model_directory(resources: &PreparedModels) -> Result<&Path, String> {
-    let kinds = catalog::SPEECH_SEPARATION_MODELS;
+fn co_located_model_directory<'a>(
+    resources: &'a PreparedModels,
+    spec: &str,
+) -> Result<&'a Path, String> {
+    use crate::local_resources::model_catalog::LocalModelId;
+    let model = LocalModelId::from_separation_spec(spec)?;
+    let kinds = model
+        .preparation()
+        .models()
+        .expect("Separation models own a snapshot");
     let anchor = resources.path(kinds[0])?;
     let directory = anchor
         .parent()
@@ -295,11 +308,7 @@ fn co_located_model_directory(resources: &PreparedModels) -> Result<&Path, Strin
         if resources.path(*kind)? != expected {
             return Err(format!(
                 "runtime_mismatch: Spleeter model part {} is not co-located",
-                match kind {
-                    ModelKind::SpleeterAccompaniment => "accompaniment",
-                    ModelKind::SpleeterVocals => "vocals",
-                    _ => "unknown",
-                }
+                catalog::descriptor(*kind).file
             ));
         }
     }

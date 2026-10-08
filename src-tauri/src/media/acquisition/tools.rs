@@ -18,7 +18,7 @@ pub(crate) async fn prepare_required_for_job(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<AcquisitionTools, String> {
-    let ffmpeg = resolve_bundled(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name(), "FFmpeg")?;
+    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
     let prepared = tools::prepare_media_import_tools_for_job(
         app,
         job_id,
@@ -32,14 +32,4 @@ pub(crate) async fn prepare_required_for_job(
         deno: prepared.deno,
         ffmpeg,
     })
-}
-
-fn resolve_bundled(
-    app: &AppHandle,
-    env_key: &str,
-    file_name: &str,
-    label: &str,
-) -> Result<PathBuf, String> {
-    tools::resolve_tool(app, env_key, file_name)?
-        .ok_or_else(|| format!("The bundled {label} tool is unavailable"))
 }

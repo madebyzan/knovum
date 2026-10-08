@@ -18,8 +18,16 @@ pub(super) async fn start(
 ) -> Result<RunObservation, String> {
     super::require_uuid(&request.request_id, "Voice candidate request identity")?;
     validate_request(&request)?;
+    let preparation = super::super::cancellation::acquire(&request.request_id)?;
     let incoming_digest = request_digest(&request)?;
-    crate::ai::local_runtime::device_profiles::voxcpm2()?;
+    if matches!(
+        request.model,
+        super::VoiceModel::VoxCpm2 | super::VoiceModel::VoxCpm2Q8
+    ) {
+        crate::ai::local_runtime::device_profiles::voice::require_memory(
+            request.model.specification(),
+        )?;
+    }
     let pool = db::pool(app).await?;
     if let Some((space_id, kind, input)) = sqlx::query_as::<_, (String, String, String)>(
         "SELECT home_space_id,kind,input_snapshot FROM spaces_runs WHERE id=?",
@@ -44,9 +52,15 @@ pub(super) async fn start(
         }
         return crate::spaces::runs::load_run(pool, &request.request_id).await;
     }
-    let frozen =
-        super::source_snapshot::freeze(app, pool, request.clone(), incoming_digest).await?;
-    let creation = create(pool, &request, &frozen).await;
+    let frozen = super::source_snapshot::freeze(
+        app,
+        pool,
+        request.clone(),
+        incoming_digest,
+        preparation.token(),
+    )
+    .await?;
+    let creation = create(pool, &request, &frozen, preparation.token()).await;
     if let Err(error) = creation {
         if let Some(publication_id) = frozen.publication_id {
             super::super::asset_publication::abandon(app, pool, &publication_id)
@@ -63,7 +77,11 @@ async fn create(
     pool: &sqlx::SqlitePool,
     request: &DraftVoiceCandidateRequest,
     frozen: &super::source_snapshot::FrozenConfiguration,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(), String> {
+    if cancellation.is_cancelled() {
+        return Err("cancelled".into());
+    }
     let mut tx = db::begin_write(pool).await?;
     let raced: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE id=?)")
         .bind(&request.request_id)
@@ -112,6 +130,9 @@ async fn create(
     .await?;
     if let Some(publication_id) = &frozen.publication_id {
         super::super::asset_publication::remove_in_transaction(&mut tx, publication_id).await?;
+    }
+    if cancellation.is_cancelled() {
+        return Err("cancelled".into());
     }
     tx.commit().await.map_err(db::sql_error)
 }
@@ -200,6 +221,19 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
     {
         return Err("Voice candidate language or sample text is invalid".into());
     }
+    if request.model == super::VoiceModel::MossNano
+        && !matches!(
+            &request.source,
+            VoiceCandidateSource::Reference {
+                reference_text: None,
+                ..
+            }
+        )
+    {
+        return Err(
+            "MOSS-TTS-Nano supports audio-reference cloning without transcript conditioning".into(),
+        );
+    }
     match &request.source {
         VoiceCandidateSource::Designed { description }
             if description.trim().is_empty()
@@ -238,3 +272,7 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
         _ => Ok(()),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/request.rs"]
+mod tests;

@@ -16,21 +16,39 @@ from knovum_inference.errors import RpcError, invalid_params, server_error
 from knovum_inference.speech.request import attempt_directory, check_deadline, verify_audio
 
 MODEL_SPEC_ID = "spleeter-2stems-fp16-cpu-v1"
+FULL_MODEL_SPEC_ID = "spleeter-2stems-fp32-cpu-v1"
+_MODEL_FILES = {
+    MODEL_SPEC_ID: ("vocals.fp16.onnx", "accompaniment.fp16.onnx"),
+    FULL_MODEL_SPEC_ID: ("vocals.onnx", "accompaniment.onnx"),
+}
 SAMPLE_RATE = 44_100
 CHANNELS = 2
+STFT_HOP = 1024
+STFT_WINDOW = 4096
 
 
 class SpleeterSourceSeparator:
-    def __init__(self, model_directory: Path, work_directory: Path, cpu_threads: int) -> None:
+    def __init__(self, model_directory: Path, work_directory: Path, cpu_threads: int, model_spec_id: str) -> None:
+        if model_spec_id not in _MODEL_FILES:
+            raise invalid_params("Source separation model specification is unsupported")
+        self._model_spec_id = model_spec_id
         self._model_directory = model_directory
         self._work_directory = work_directory
         self._cpu_threads = cpu_threads
         self._engine: Any = None
 
     def separate(self, params: SpeechSeparateParams, cancelled: threading.Event) -> dict[str, Any]:
-        if params.model_spec_id != MODEL_SPEC_ID:
+        import numpy as np
+
+        if params.model_spec_id != self._model_spec_id:
             raise invalid_params("Source separation model specification is unsupported")
         source = _read_audio(params.audio_ref)
+        frame_count = source.shape[1]
+        # The frozen supplier reconstructs complete STFT hops. Pad before inference so the
+        # source tail is processed, then crop both stems to the original media timeline.
+        padded_count = max(STFT_WINDOW, (frame_count + STFT_HOP - 1) // STFT_HOP * STFT_HOP)
+        if padded_count != frame_count:
+            source = np.pad(source, ((0, 0), (0, padded_count - frame_count)))
         check_deadline(params.deadline_ms)
         if cancelled.is_set():
             raise server_error("cancelled", "Source separation was cancelled")
@@ -42,8 +60,10 @@ class SpleeterSourceSeparator:
             raise server_error("invalid_output", "Source separation returned an invalid stem profile")
         vocals = _validated_stem(separation.stems[0].data)
         background = _validated_stem(separation.stems[1].data)
-        if vocals.shape != background.shape:
-            raise server_error("invalid_output", "Source separation stems have different timelines")
+        if vocals.shape != source.shape or background.shape != source.shape:
+            raise server_error("invalid_output", "Source separation stems differ from the padded source timeline")
+        vocals = vocals[:, :frame_count]
+        background = background[:, :frame_count]
         directory = attempt_directory(self._work_directory, params.request_id)
         vocals_ref = _write_wav(directory, "vocals.wav", vocals, cancelled, params.deadline_ms)
         background_ref = _write_wav(directory, "background.wav", background, cancelled, params.deadline_ms)
@@ -59,8 +79,9 @@ class SpleeterSourceSeparator:
     def _load(self) -> Any:
         if self._engine is not None:
             return self._engine
-        vocals = self._model_directory / "vocals.fp16.onnx"
-        accompaniment = self._model_directory / "accompaniment.fp16.onnx"
+        vocals_name, accompaniment_name = _MODEL_FILES[self._model_spec_id]
+        vocals = self._model_directory / vocals_name
+        accompaniment = self._model_directory / accompaniment_name
         if not vocals.is_file() or not accompaniment.is_file():
             raise server_error("model_corrupt", "Spleeter model snapshot is incomplete")
         try:

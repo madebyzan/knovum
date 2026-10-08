@@ -24,6 +24,7 @@ pub(super) struct CompleteImageCutoutRequest {
     id: String,
     source_revision: String,
     source_edit: Value,
+    model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[derive(Deserialize)]
@@ -49,8 +50,12 @@ pub async fn check_source(
     .await
 }
 
-async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(), AppError> {
+async fn start(
+    app: &AppHandle,
+    request: &StartImageCutoutRequest,
+) -> Result<crate::local_resources::model_catalog::LocalModelId, AppError> {
     validate_request(request)?;
+    let model = crate::local_resources::model_selection::image_segmentation(app)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     contracts::validate_same_space_node(
@@ -97,7 +102,7 @@ async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(),
         .bind(&request.id)
         .bind(&request.space_id)
         .bind(&request.output_node_id)
-        .bind(crate::ai::contracts::image_wire::IMAGE_SEGMENTATION_SPEC_ID)
+        .bind(model.image_segmentation_spec()?)
         .bind(now)
         .execute(&mut *tx)
         .await
@@ -113,29 +118,34 @@ async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(),
         }],
     )
     .await?;
-    Ok(tx.commit().await.map_err(db::sql_error)?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(model)
 }
 
 pub async fn run(
     app: AppHandle,
     request: StartImageCutoutRequest,
 ) -> Result<CompletedDerivationOutput, AppError> {
-    if let Err(error) = start(&app, &request).await {
-        failure::fail_pending(
-            &app,
-            &request.space_id,
-            &request.output_node_id,
-            failure::PendingNodeState::Processing,
-        )
-        .await?;
-        return Err(error);
-    }
+    let model = match start(&app, &request).await {
+        Ok(model) => model,
+        Err(error) => {
+            failure::fail_pending(
+                &app,
+                &request.space_id,
+                &request.output_node_id,
+                failure::PendingNodeState::Processing,
+            )
+            .await?;
+            return Err(error);
+        }
+    };
     let completed = completion::complete(
         app.clone(),
         CompleteImageCutoutRequest {
             id: request.id.clone(),
             source_revision: request.source_revision,
             source_edit: request.source_edit,
+            model,
         },
     )
     .await;

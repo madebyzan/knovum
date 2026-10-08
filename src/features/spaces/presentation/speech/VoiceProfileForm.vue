@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -11,7 +11,7 @@ import { listPresetVoices } from "../../speech/ipc";
 import VoiceAudition from "./VoiceAudition.vue";
 
 const emit = defineEmits<{ create: [input: Omit<CreatePresetVoiceRequest, "spaceId">] }>();
-defineProps<{ disabled?: boolean }>();
+defineProps<{ disabled?: boolean; spaceId: string }>();
 const { t } = useI18n();
 const { data: presets, error } = useQuery({
   queryKey: ["speech-preset-voices"],
@@ -19,28 +19,35 @@ const { data: presets, error } = useQuery({
   staleTime: Infinity,
 });
 const presetOptions = computed(() =>
-  (presets.value ?? []).map((voice) => ({
-    value: voice.speakerId,
-    label: `${voice.name} · ${voice.primaryLanguage} · ${t(`spaces.speech.${voice.gender}`)}`,
-  })),
+  (presets.value ?? [])
+    .filter((voice) => voice.primaryLanguage === language.value)
+    .map((voice) => ({
+      value: voice.speakerId,
+      label: `${voice.name} · ${voice.primaryLanguage} · ${t(`spaces.speech.${voice.gender}`)}`,
+    })),
 );
 const name = shallowRef("");
 const speakerId = shallowRef("0");
 const language = shallowRef("zh-CN");
+watch([language, presets], ([value]) => {
+  const preferred = presets.value?.find((voice) => voice.primaryLanguage === value);
+  if (preferred) speakerId.value = preferred.speakerId;
+});
 const languageOptions = [
   { value: "zh-CN", label: "中文" },
   { value: "en", label: "English" },
 ] as const;
 
 function submit() {
-  if (!name.value.trim() || !presets.value?.some((voice) => voice.speakerId === speakerId.value)) return;
+  const preset = presets.value?.find((voice) => voice.speakerId === speakerId.value);
+  if (!preset) return;
   emit("create", {
-    name: name.value.trim(),
+    name: name.value.trim() || preset.name,
     presetVoiceId: speakerId.value,
-    engineId: "kokoro",
-    modelSpecId: "kokoro-int8-multi-lang-v1_0",
+    engineId: "moss_nano",
+    modelSpecId: "moss-tts-nano-onnx-v1",
     language: language.value,
-    synthesisConfig: { speed: 1, sampleRate: 24_000, seed: 0 },
+    synthesisConfig: { speed: 1, sampleRate: 48_000, seed: 0 },
   });
   name.value = "";
 }
@@ -48,7 +55,13 @@ function submit() {
 
 <template>
   <form class="space-y-2" @submit.prevent="submit">
-    <UiInput v-model="name" size="sm" :placeholder="t('spaces.speech.voiceName')" :disabled="disabled" />
+    <UiInput
+      v-model="name"
+      size="sm"
+      :placeholder="t('spaces.speech.voiceName')"
+      :aria-label="t('spaces.speech.voiceName')"
+      :disabled="disabled"
+    />
     <p v-if="error" class="text-caption text-fg-danger">{{ error.message }}</p>
     <div class="flex gap-2">
       <UiSelect
@@ -67,11 +80,12 @@ function submit() {
         :options="languageOptions"
         :disabled="disabled"
       />
-      <UiButton size="sm" variant="primary" type="submit" :disabled="disabled">{{
+      <UiButton size="sm" variant="primary" type="submit" :disabled="disabled || !presets">{{
         t("spaces.speech.addVoice")
       }}</UiButton>
     </div>
     <VoiceAudition
+      :space-id="spaceId"
       :source="{ kind: 'preset', speakerId, language }"
       :disabled="Boolean(disabled) || !presets"
     />

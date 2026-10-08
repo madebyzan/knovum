@@ -1,5 +1,8 @@
+mod cancellation;
 mod configuration;
+mod delivery_instruction;
 mod ownership;
+mod publication;
 
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
@@ -22,7 +25,7 @@ async fn voice_revision_cannot_change_under_existing_consumers() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES('voice','space','Voice','preset',1,1)")
         .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES('revision','voice',1,'kokoro','kokoro-v1','en','0','{}','{}',1)")
+    sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES('revision','voice',1,'moss_nano','moss_nano-v1','en','6','{}','{}',1)")
         .execute(&pool).await.unwrap();
     let error =
         sqlx::query("UPDATE spaces_voice_revisions SET language='zh-CN' WHERE id='revision'")
@@ -104,8 +107,8 @@ async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES('profile','space','Voice','preset',1,1)").execute(&pool).await.unwrap();
     for (id, revision, seed) in [("first", 1, 17), ("second", 2, 29)] {
-        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES(?,'profile',?,'kokoro','kokoro-int8-multi-lang-v1_0','en','0',?,'{}',1)")
-            .bind(id).bind(revision).bind(serde_json::json!({"speed":1,"sampleRate":24000,"seed":seed}).to_string()).execute(&pool).await.unwrap();
+        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES(?,'profile',?,'moss_nano','moss-tts-nano-onnx-v1','en','6',?,'{}',1)")
+            .bind(id).bind(revision).bind(serde_json::json!({"speed":1,"sampleRate":48000,"seed":seed}).to_string()).execute(&pool).await.unwrap();
     }
     sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id='second',archived_at=2 WHERE id='profile'").execute(&pool).await.unwrap();
     let catalog = super::repository::list_voices(&pool, "space")
@@ -131,27 +134,30 @@ async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
 
 #[test]
 fn pinned_preset_catalog_rejects_unknown_and_noncanonical_speakers() {
-    assert!(super::preset_voices::require("52", "en").is_ok());
-    assert!(super::preset_voices::require("53", "en").is_err());
+    assert!(super::preset_voices::require("9", "en").is_ok());
+    assert!(super::preset_voices::require("10", "en").is_err());
+    assert!(super::preset_voices::require("0", "en").is_err());
+    assert!(super::preset_voices::require("0", "zh-CN").is_ok());
     assert!(super::preset_voices::require("00", "en").is_err());
     assert!(super::preset_voices::require("0", "ja").is_err());
 }
 
 #[test]
 fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
-    let segment = super::contracts::SpeechSegmentExecution {
+    let mut segment = super::contracts::SpeechSegmentExecution {
         id: "segment".into(),
         normalized_text: "Hello".into(),
+        delivery_instruction: None,
         voice_revision_id: "revision".into(),
         language: "en".into(),
     };
     let voice = super::contracts::VoiceExecution {
         revision_id: "revision".into(),
         source_kind: "preset".into(),
-        engine_id: "kokoro".into(),
-        model_spec_id: "kokoro-int8-multi-lang-v1_0".into(),
+        engine_id: "moss_nano".into(),
+        model_spec_id: "moss-tts-nano-onnx-v1".into(),
         language: "en".into(),
-        preset_voice_id: Some("0".into()),
+        preset_voice_id: Some("6".into()),
         reference_asset_id: None,
         reference_source_revision: None,
         reference_text: None,
@@ -160,16 +166,37 @@ fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
     };
     let first = super::contracts::VoiceSynthesisConfig {
         speed: 1.0,
-        sample_rate: 24000,
+        sample_rate: 48000,
         seed: 17,
     };
     let second = super::contracts::VoiceSynthesisConfig { seed: 29, ..first };
     assert_ne!(
-        super::execution::input_digest(&segment, &voice, &first, "runtime").unwrap(),
-        super::execution::input_digest(&segment, &voice, &second, "runtime").unwrap()
+        super::execution::input_digest(
+            &segment,
+            &voice,
+            &first,
+            "runtime",
+            "moss-nano-cpu-f32-threads1-v1"
+        )
+        .unwrap(),
+        super::execution::input_digest(
+            &segment,
+            &voice,
+            &second,
+            "runtime",
+            "moss-nano-cpu-f32-threads1-v1"
+        )
+        .unwrap()
+    );
+    let plain =
+        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile").unwrap();
+    segment.delivery_instruction = Some("calm".into());
+    assert_ne!(
+        plain,
+        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile").unwrap()
     );
     assert!(super::contracts::parse_synthesis_config(
-        &serde_json::json!({"speed":1,"sampleRate":24000})
+        &serde_json::json!({"speed":1,"sampleRate":48000})
     )
     .is_err());
 }

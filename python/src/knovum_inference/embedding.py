@@ -65,7 +65,7 @@ class EmbeddingEngine:
     def _load(self) -> Any:
         if self._model is not None:
             return self._model
-        if self._device != "cpu":
+        if self._device not in {"cpu", "mps", "cuda"}:
             raise server_error("unsupported_device", f"Unsupported device: {self._device}")
         if not self._model_directory.is_dir():
             raise server_error("model_missing", "Embedding model directory is missing")
@@ -83,34 +83,23 @@ class EmbeddingEngine:
         os.environ["MKL_NUM_THREADS"] = str(self._cpu_threads)
         try:
             import torch
-            from sentence_transformers import SentenceTransformer, models
+            from sentence_transformers import SentenceTransformer
+            from sentence_transformers.sentence_transformer.modules import Pooling
 
-            torch.set_num_threads(self._cpu_threads)
-            torch.set_num_interop_threads(1)
             model = SentenceTransformer(
                 str(self._model_directory),
                 device=self._device,
                 local_files_only=True,
                 trust_remote_code=False,
+                model_kwargs={"dtype": torch.float32},
             )
         except Exception as error:
             raise server_error("model_corrupt", "Embedding model failed to load") from error
-        if model.get_sentence_embedding_dimension() != EXPECTED_DIMENSIONS:
+        if model.get_embedding_dimension() != EXPECTED_DIMENSIONS:
             raise server_error("model_corrupt", "Embedding model has unexpected dimensions")
-        pooling = [module for module in model.modules() if isinstance(module, models.Pooling)]
-        if len(pooling) != 1 or not _uses_only_last_token_pooling(pooling[0]):
-            raise server_error("model_corrupt", "Embedding model must use last-token pooling")
+        pooling = [module for module in model.modules() if isinstance(module, Pooling)]
+        if len(pooling) != 1 or pooling[0].pooling_mode != "lasttoken" or not pooling[0].include_prompt:
+            raise server_error("model_corrupt", "Embedding model must use last-token pooling including the prompt")
         model.max_seq_length = MAX_TOKENS
         self._model = model
         return model
-
-
-def _uses_only_last_token_pooling(pooling: Any) -> bool:
-    return bool(
-        pooling.pooling_mode_lasttoken
-        and not pooling.pooling_mode_cls_token
-        and not pooling.pooling_mode_max_tokens
-        and not pooling.pooling_mode_mean_tokens
-        and not pooling.pooling_mode_mean_sqrt_len_tokens
-        and not pooling.pooling_mode_weightedmean_tokens
-    )

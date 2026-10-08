@@ -31,7 +31,7 @@ pub(super) async fn complete(
     let cancellation = CancellationToken::new();
     let resources = crate::local_resources::preparation::prepare_models_for_job(
         &app,
-        crate::local_resources::preparation::contracts::ResourcePreparationTarget::ImageSegmentation,
+        request.model.preparation(),
         &request.id,
         "Remove image background",
         &cancellation,
@@ -42,6 +42,7 @@ pub(super) async fn complete(
         .map_err(|_| "System clock is before the Unix epoch")?
         .saturating_add(120_000);
     let identity = crate::ai::contracts::image_wire::ImageSegmentationExecutionIdentity {
+        model_spec_id: request.model.image_segmentation_spec()?,
         owner_kind: "space-derivation".into(),
         owner_id: request.id.clone(),
         attempt_id: request.id.clone(),

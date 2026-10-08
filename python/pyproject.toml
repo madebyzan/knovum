@@ -15,10 +15,19 @@ knovum-inference = "knovum_inference.server:main"
 
 [dependency-groups]
 runtime-build = ["setuptools==84.0.0", "wheel==0.48.0", "setuptools-scm==10.3.4"]
-publication = ["cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
+publication = ["cmake==4.3.4", "cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
 acceptance = ["jiwer==4.0.0", "numpy==2.4.6", "pydantic==2.13.5"]
 contracts = ["datamodel-code-generator==0.83.0"]
-quality = ["huggingface-hub==1.33.0", "modelscope-hub==0.4.5", "tqdm==4.70.1", "mypy==2.4.0", "numpy==2.4.6", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
+quality = [
+  "huggingface-hub==1.33.0",
+  "modelscope-hub==0.4.5",
+  "tqdm==4.70.1",
+  "mypy==2.4.0",
+  "numpy==2.4.6",
+  "pydantic==2.13.5",
+  "pytest==9.1.1",
+  "ruff==0.16.10",
+]
 
 [tool.ruff]
 target-version = "py311"

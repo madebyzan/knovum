@@ -7,7 +7,7 @@ use crate::local_resources::verification;
 const DESCRIPTOR: ModelDescriptor = ModelDescriptor {
     snapshot: super::super::snapshots::SnapshotKind::ImageSegmentation,
     file: "model.bin",
-    env_key: "KNOVUM_TEST_MODEL",
+
     sha256: "9372c470eeadd5ecd9c3c74c2b3cb633f8e2f2fad799250a0f70d652b6b825e4",
     download_size: 5,
 };

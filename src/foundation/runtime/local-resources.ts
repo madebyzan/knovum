@@ -1,5 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 
+import type { LocalModelEntry } from "../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelId } from "../../shared/contracts/generated/LocalModelId";
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
@@ -8,16 +10,6 @@ import { invokeCommand } from "../ipc/invoke-command";
 
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
   return invokeCommand("plugin:local-resources|get_status");
-}
-
-export function setDiarizationAccessToken(token: string | null) {
-  return invokeCommand<void>("plugin:local-resources|set_diarization_access_token", {
-    token,
-  });
-}
-
-export function removeDiarizationModel() {
-  return invokeCommand<void>("plugin:local-resources|remove_diarization_model");
 }
 
 interface ResourcePreparationInput {
@@ -58,4 +50,15 @@ export function textEmbeddingReady(status?: LocalResourcesStatus) {
     models.textEmbeddingTokenizerConfig,
     models.textEmbeddingWeights,
   ].every((model) => model.verified);
+}
+
+export function getLocalModelCatalog(): Promise<LocalModelEntry[]> {
+  return invokeCommand("plugin:local-resources|get_model_catalog");
+}
+export function removeLocalModel(model: LocalModelId): Promise<void> {
+  return invokeCommand("plugin:local-resources|remove_model", { model });
+}
+
+export function selectLocalModel(model: LocalModelId): Promise<void> {
+  return invokeCommand("plugin:local-resources|select_local_model", { model });
 }

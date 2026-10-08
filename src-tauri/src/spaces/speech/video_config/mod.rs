@@ -149,14 +149,7 @@ pub(crate) async fn require_source(
     kind: &str,
     source: &SpeechMediaSource,
 ) -> Result<(), String> {
-    let owned: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM spaces_nodes WHERE space_id=? AND kind=? AND deleted_at IS NULL \
-         AND json_extract(data,'$.assetPath')=? AND json_extract(data,'$.sourceRevision')=? \
-         AND json_extract(data,'$.mediaAnalysis.sourceRevision')=? \
-         AND json_extract(data,'$.mediaAnalysis.durationMs')=?)",
-    ).bind(space_id).bind(kind).bind(&source.asset_path).bind(&source.source_revision)
-        .bind(&source.source_revision).bind(i64::try_from(source.duration_ms).map_err(|_| "Media duration is too large")?)
-        .fetch_one(&mut **tx).await.map_err(db::sql_error)?;
+    let owned = super::media_source::is_owned(tx, space_id, &[kind], source).await?;
     if owned {
         return Ok(());
     }
@@ -192,3 +185,7 @@ pub(crate) fn validate_timing(
         _ => Err("Video dubbing segments require valid time windows within the source video and no chapter".into()),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/separation.rs"]
+mod tests;

@@ -111,6 +111,7 @@ pub async fn save_speech_project_revision(
                 &mut tx,
                 &role.voice_revision_id,
                 &request.project_id,
+                None,
             )
             .await?;
         }
@@ -185,6 +186,7 @@ pub async fn save_speech_project_revision(
             &mut tx,
             &segment.voice_revision_id,
             &request.project_id,
+            segment.delivery_instruction.as_deref(),
         )
         .await?;
         if voice_language != segment.language.trim() {
@@ -210,8 +212,8 @@ pub async fn save_speech_project_revision(
             sqlx::query(
                 "INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,speaker_key, \
                 text,normalized_text,voice_revision_id,language,target_start_ms,target_end_ms, \
-                 source_segment_id,source_segment_revision,source_text,state,created_at,updated_at) \
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ready',?,?)",
+                 source_segment_id,source_segment_revision,source_text,delivery_instruction,state,created_at,updated_at) \
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ready',?,?)",
             )
             .bind(segment_id)
             .bind(&revision_id)
@@ -227,6 +229,7 @@ pub async fn save_speech_project_revision(
             .bind(&segment.source_segment_id)
             .bind(segment.source_segment_revision.map(i64::from))
             .bind(segment.source_text.as_deref().map(str::trim))
+            .bind(segment.delivery_instruction.as_deref().map(str::trim))
             .bind(now)
             .bind(now)
             .execute(&mut *tx)
