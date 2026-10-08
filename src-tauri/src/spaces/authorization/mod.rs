@@ -2,7 +2,9 @@ mod grant;
 mod scope;
 
 pub(crate) use grant::{create_grant, load_grant};
-pub(crate) use scope::{AuthorizationContext, Principal, PrincipalKind};
+pub(crate) use scope::{
+    external_agent_grant, local_user_grant, AuthorizationContext, Principal, PrincipalKind,
+};
 
 pub(crate) async fn require_read(
     app: &tauri::AppHandle,
@@ -48,23 +50,16 @@ pub(crate) async fn create_external_agent_grant(
     app: &tauri::AppHandle,
     space_id: &str,
     actor_id: &str,
+    action_ids: Vec<String>,
 ) -> Result<String, String> {
     let now = crate::clock::unix_time_millis()?;
-    let grant = AuthorizationContext {
-        principal: Principal {
-            kind: PrincipalKind::ExternalAgent,
-            id: actor_id.to_owned(),
-        },
-        grant_id: uuid::Uuid::new_v4().to_string(),
-        home_space_id: space_id.to_owned(),
-        read_space_ids: vec![space_id.to_owned()],
-        write_space_ids: vec![space_id.to_owned()],
-        action_ids: crate::spaces::actions::definitions()
-            .iter()
-            .map(|definition| definition.id.to_owned())
-            .collect(),
-        valid_until: now + 8 * 60 * 60 * 1_000,
-    };
+    let grant = external_agent_grant(
+        uuid::Uuid::new_v4().to_string(),
+        space_id.to_owned(),
+        actor_id.to_owned(),
+        action_ids,
+        now,
+    );
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
     create_grant(&mut tx, &grant, now).await?;

@@ -7,7 +7,7 @@ use super::{
     VoiceCandidateStepConfiguration, WORKFLOW,
 };
 use crate::spaces::{
-    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+    authorization::{create_grant, local_user_grant},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
 };
@@ -144,19 +144,13 @@ async fn create_run(
     request_digest: &str,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
-    let principal = Principal {
-        kind: PrincipalKind::User,
-        id: "local-user".into(),
-    };
-    let grant = AuthorizationContext {
-        principal: principal.clone(),
-        grant_id: uuid::Uuid::new_v4().to_string(),
-        home_space_id: request.space_id.clone(),
-        read_space_ids: vec![request.space_id.clone()],
-        write_space_ids: vec![request.space_id.clone()],
-        action_ids: Vec::new(),
-        valid_until: now + 7 * 24 * 60 * 60 * 1_000,
-    };
+    let grant = local_user_grant(
+        uuid::Uuid::new_v4().to_string(),
+        request.space_id.clone(),
+        Vec::new(),
+        now,
+    );
+    let principal = grant.principal.clone();
     create_grant(tx, &grant, now).await?;
     let input = json!({
         "workflow":WORKFLOW,

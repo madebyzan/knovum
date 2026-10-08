@@ -1,10 +1,13 @@
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ResourcePreparationSnapshot } from "../../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { useTaskStore } from "../../tasks/task-store";
-import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "../local-resources";
-import { restoreResourcePreparationTasks, startResourcePreparation } from "../resource-preparation";
+import {
+  cancelResourcePreparation,
+  type listResourcePreparations,
+  prepareResources,
+} from "../local-resources";
+import { startResourcePreparation } from "../resource-preparation";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
 vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -58,6 +61,26 @@ describe("resource preparation task lifetime", () => {
     expect(useTaskStore().tasks[0]).toMatchObject({ status: "cancelled" });
   });
 
+  it("preserves a real producer failure after cancellation was accepted", async () => {
+    let fail!: (error: Error) => void;
+    vi.mocked(prepareResources).mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        fail = reject;
+      }),
+    );
+    const preparation = startResourcePreparation({ kind: "transcription" }, "Transcribe");
+    const tasks = useTaskStore();
+    const id = tasks.running[0]!.id;
+
+    await tasks.cancel(id);
+    const failure = new Error("Disk write failed after cancellation admission");
+    const completion = preparation.completion.catch((cause: unknown) => cause);
+    fail(failure);
+
+    expect(await completion).toBe(failure);
+    expect(tasks.tasks[0]).toMatchObject({ id, status: "failed", statusMessage: failure.message });
+  });
+
   it("keeps the combined progress when one resource becomes ready before the complete preparation", async () => {
     vi.mocked(prepareResources).mockImplementationOnce(async ({ onProgress }) => {
       onProgress({ stage: "ready", downloaded: 100, total: 400, percent: 25 });
@@ -85,86 +108,5 @@ describe("resource preparation task lifetime", () => {
     fail(failure);
     expect(await result).toBe(failure);
     expect(useTaskStore().tasks[0]?.status).toBe("failed");
-  });
-
-  it("restores a media tool request and observes its terminal state without another installation", async () => {
-    const snapshot: ResourcePreparationSnapshot = {
-      jobId: "resource:media-import",
-      title: "Prepare media import",
-      target: { kind: "mediaImportTools" },
-      startedAt: 1,
-      completedAt: null,
-      state: "preparing",
-      progress: { stage: "installing", downloaded: 20, total: null, percent: null },
-      error: null,
-    };
-    vi.mocked(listResourcePreparations)
-      .mockResolvedValueOnce([snapshot])
-      .mockResolvedValueOnce([snapshot])
-      .mockResolvedValueOnce([{ ...snapshot, state: "ready", completedAt: 2 }]);
-
-    const pinia = createPinia();
-    setActivePinia(pinia);
-    await restoreResourcePreparationTasks(pinia);
-    await vi.advanceTimersByTimeAsync(1_000);
-
-    expect(prepareResources).not.toHaveBeenCalled();
-    expect(useTaskStore().tasks).toMatchObject([
-      { id: snapshot.jobId, title: snapshot.title, status: "succeeded" },
-    ]);
-  });
-
-  it("keeps observing a restored task after a transient list failure", async () => {
-    const snapshot: ResourcePreparationSnapshot = {
-      jobId: "resource:transient",
-      title: "Prepare transcription",
-      target: { kind: "transcription" },
-      startedAt: 1,
-      completedAt: null,
-      state: "preparing",
-      progress: { stage: "installing", downloaded: 0, total: null, percent: null },
-      error: null,
-    };
-    vi.mocked(listResourcePreparations)
-      .mockResolvedValueOnce([snapshot])
-      .mockRejectedValueOnce(new Error("temporary IPC failure"))
-      .mockResolvedValueOnce([{ ...snapshot, state: "ready", completedAt: 2 }]);
-
-    const pinia = createPinia();
-    setActivePinia(pinia);
-    await restoreResourcePreparationTasks(pinia);
-    await vi.advanceTimersByTimeAsync(1_000);
-
-    expect(useTaskStore().tasks[0]).toMatchObject({ id: snapshot.jobId, status: "succeeded" });
-  });
-
-  it("fails a task whose restored snapshot disappears and can observe it again on retry", async () => {
-    const snapshot: ResourcePreparationSnapshot = {
-      jobId: "resource:missing",
-      title: "Prepare media tools",
-      target: { kind: "mediaImportTools" },
-      startedAt: 1,
-      completedAt: null,
-      state: "preparing",
-      progress: { stage: "installing", downloaded: 0, total: null, percent: null },
-      error: null,
-    };
-    vi.mocked(listResourcePreparations)
-      .mockResolvedValueOnce([snapshot])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ ...snapshot, state: "ready", completedAt: 2 }]);
-
-    const pinia = createPinia();
-    setActivePinia(pinia);
-    await restoreResourcePreparationTasks(pinia);
-    await vi.advanceTimersByTimeAsync(2_000);
-    const tasks = useTaskStore();
-    expect(tasks.tasks[0]).toMatchObject({ id: snapshot.jobId, status: "failed", retryable: true });
-
-    await tasks.retry(snapshot.jobId);
-    expect(tasks.tasks[0]).toMatchObject({ id: snapshot.jobId, status: "succeeded" });
-    expect(prepareResources).not.toHaveBeenCalled();
   });
 });

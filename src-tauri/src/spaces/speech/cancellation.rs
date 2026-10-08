@@ -62,6 +62,11 @@ pub(super) async fn cancel_project_run(
     .map_err(crate::spaces::db::sql_error)?;
     if active {
         crate::spaces::runs::request_cancellation(pool, job_id).await?;
+        if let Err(error) = crate::spaces::runs::cancel_active_attempts(pool, job_id).await {
+            log::warn!(
+                "Speech Run cancellation was accepted with a pending local interruption: {error}"
+            );
+        }
     }
     Ok(active)
 }

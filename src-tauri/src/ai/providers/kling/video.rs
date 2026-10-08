@@ -114,28 +114,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let status = payload["data"]["task_status"].as_str().unwrap_or_default();
-            match status {
-                "succeed" => {
-                    let video_url = payload["data"]["task_result"]["videos"][0]["url"]
-                        .as_str()
-                        .ok_or_else(|| {
-                            AppError::new("invalid_response", "No video URL in Kling response")
-                        })?
-                        .to_string();
-                    Ok(VideoGenerationStatus::Succeeded { video_url })
-                }
-                "failed" => {
-                    let message = payload["data"]["task_status_msg"]
-                        .as_str()
-                        .unwrap_or("Kling generation failed")
-                        .to_string();
-                    Ok(VideoGenerationStatus::Failed {
-                        error_message: message,
-                    })
-                }
-                "submitted" => Ok(VideoGenerationStatus::Pending { progress_pct: None }),
-                _ => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
-            }
+            parse_status(status, &payload)
         })
     }
 
@@ -151,3 +130,34 @@ impl VideoGenerationCapability for KlingVideoAdapter {
         })
     }
 }
+
+fn parse_status(status: &str, payload: &serde_json::Value) -> AppResult<VideoGenerationStatus> {
+    match status {
+        "succeed" => {
+            let video_url = payload["data"]["task_result"]["videos"][0]["url"]
+                .as_str()
+                .ok_or_else(|| AppError::new("invalid_response", "No video URL in Kling response"))?
+                .to_string();
+            Ok(VideoGenerationStatus::Succeeded { video_url })
+        }
+        "failed" => {
+            let message = payload["data"]["task_status_msg"]
+                .as_str()
+                .unwrap_or("Kling generation failed")
+                .to_string();
+            Ok(VideoGenerationStatus::Failed {
+                error_message: message,
+            })
+        }
+        "submitted" => Ok(VideoGenerationStatus::Pending { progress_pct: None }),
+        "processing" => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
+        _ => Err(AppError::new(
+            "invalid_response",
+            "Kling returned an unknown video task status",
+        )),
+    }
+}
+
+#[cfg(test)]
+#[path = "tests/video.rs"]
+mod tests;

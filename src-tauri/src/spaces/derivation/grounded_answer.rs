@@ -129,7 +129,14 @@ pub(super) async fn answer(
     )
     .await?;
     if let Some(usage) = completion.usage.as_ref() {
-        crate::spaces::runs::record_usage(pool, &request.id, usage).await?;
+        crate::spaces::runs::record_usage(
+            pool,
+            &request.id,
+            usage.prompt_tokens,
+            usage.completion_tokens,
+            usage.total_tokens,
+        )
+        .await?;
     }
     let citations = prompt::citations(&completion.text, &sources, &request.space_id)?;
     Ok(json!({"answer":completion.text,"citations":citations,

@@ -1,36 +1,12 @@
 use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
-use tauri::AppHandle;
 
 use super::shared::{completed, required_str, waiting};
 use crate::spaces::{
     actions::{self, ActionInvocationOutcome, ActionInvocationRequest},
     runs::{AttemptClaim, StepOutcome, WaitReason},
 };
-
-pub(super) async fn execute_run(
-    app: &AppHandle,
-    claim: &AttemptClaim,
-    input: &Value,
-) -> Result<StepOutcome, AppError> {
-    let action_id = required_str(input, "actionId")?;
-    let parameters = input
-        .get("parameters")
-        .ok_or("action-input-invalid: parameters are required")?;
-    let inputs = input.get("inputs").unwrap_or(&Value::Null);
-    let output = crate::spaces::action_execution::execute_durable(
-        app,
-        action_id,
-        &claim.run_id,
-        claim.execution_epoch,
-        &claim.home_space_id,
-        parameters,
-        inputs,
-    )
-    .await?;
-    Ok(completed(output)?)
-}
 
 pub(super) async fn execute_invocation(
     pool: &SqlitePool,

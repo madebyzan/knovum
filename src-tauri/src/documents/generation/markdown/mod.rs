@@ -41,7 +41,7 @@ pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
     Ok(Document { title, blocks })
 }
 
-fn validate_source(source: &DocumentSource) -> Result<(), String> {
+pub(super) fn validate_source(source: &DocumentSource) -> Result<(), String> {
     if source.citations.len() > 4096 {
         return Err("Document export exceeds 4096 citations".into());
     }

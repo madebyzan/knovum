@@ -10,7 +10,7 @@ pub(super) fn start(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         match ready(&app).await {
             Ok(()) => {
-                super::runs::start_scheduler(app.clone());
+                super::runs::start_scheduler(app.clone(), super::run_execution::hooks());
                 super::knowledge::retrieval::retired_generations::start(app.clone());
                 super::assets::enrichment::jobs::scheduler::start(app.clone());
                 super::conversations::recover_tasks(app.clone());

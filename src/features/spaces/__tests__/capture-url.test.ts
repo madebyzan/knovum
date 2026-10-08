@@ -167,6 +167,21 @@ describe("Space URL capture", () => {
     expect(harness.finish).toHaveBeenCalledWith("import-1");
   });
 
+  it("keeps navigation successful and reports downloaded asset cleanup failure", async () => {
+    const deferred = pendingImport();
+    mocks.acquireMediaSource.mockReturnValue(deferred.promise);
+    mocks.removeSpaceAssets.mockRejectedValue(new Error("asset locked"));
+    const harness = captureHarness();
+    const capture = captureSpaceUrl(harness.context, URL, POSITION);
+    await vi.waitFor(() => expect(mocks.acquireMediaSource).toHaveBeenCalledOnce());
+    harness.setActiveSpace("space-2");
+    deferred.resolve({ outcome: "imported", payload: importedVideo() });
+
+    await expect(capture).resolves.toBeUndefined();
+    expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("asset locked"));
+    expect(harness.finish).toHaveBeenCalledWith("import-1");
+  });
+
   it("removes downloaded assets when the media node cannot be persisted", async () => {
     mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
     const harness = captureHarness();

@@ -44,15 +44,13 @@ export async function permanentlyDeleteSpace(context: SpaceSessionContext, id: s
   try {
     await deleteSpaceCredentials(credentialIds);
   } catch (error) {
-    await restoreCredentials(credentialBackups);
-    throw error;
+    return throwAfterCredentialRestore(error, credentialBackups);
   }
   let paths: string[];
   try {
     paths = await deleteSpacePermanently(id);
   } catch (error) {
-    await restoreCredentials(credentialBackups);
-    throw error;
+    return throwAfterCredentialRestore(error, credentialBackups);
   }
   context.spaces.value = context.spaces.value.filter((candidate) => candidate.id !== id);
   void refreshEnrichmentJobs();
@@ -79,4 +77,22 @@ async function restoreCredentials(backups: readonly CredentialBackup[]) {
       credential ? saveSpaceCredential(nodeId, credential) : Promise.resolve(),
     ),
   );
+}
+
+async function throwAfterCredentialRestore(
+  error: unknown,
+  backups: readonly CredentialBackup[],
+): Promise<never> {
+  try {
+    await restoreCredentials(backups);
+  } catch (rollbackError) {
+    throw new AggregateError(
+      [error, rollbackError],
+      "Space deletion failed and credentials could not be restored",
+      {
+        cause: error,
+      },
+    );
+  }
+  throw error;
 }

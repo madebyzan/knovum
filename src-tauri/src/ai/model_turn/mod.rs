@@ -75,7 +75,18 @@ fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
         ProviderKind::Kling => Err(crate::app_error::AppError::unsupported(
             "Kling does not provide the ModelTurn text protocol",
         )),
-        _ => Ok(AdapterKind::OpenAI),
+        ProviderKind::OpenAi
+        | ProviderKind::OpenAiCompatible
+        | ProviderKind::OpenRouter
+        | ProviderKind::Zhipu
+        | ProviderKind::SiliconFlow
+        | ProviderKind::Grok
+        | ProviderKind::Mistral
+        | ProviderKind::Together
+        | ProviderKind::StepFun
+        | ProviderKind::Moonshot
+        | ProviderKind::Doubao
+        | ProviderKind::MiniMax => Ok(AdapterKind::OpenAI),
     }
 }
 

@@ -3,7 +3,7 @@ use sqlx::{sqlite::SqliteRow, Row, Sqlite, SqlitePool, Transaction};
 
 use super::contracts::GenerateSpeechProjectRequest;
 use crate::spaces::{
-    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+    authorization::{create_grant, local_user_grant},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
 };
@@ -157,19 +157,13 @@ async fn create(
     runtime_digests: &super::runtime_identity::RuntimeDigests,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
-    let principal = Principal {
-        kind: PrincipalKind::User,
-        id: "local-user".into(),
-    };
-    let grant = AuthorizationContext {
-        principal: principal.clone(),
-        grant_id: uuid::Uuid::new_v4().to_string(),
-        home_space_id: space_id.into(),
-        read_space_ids: vec![space_id.into()],
-        write_space_ids: vec![space_id.into()],
-        action_ids: Vec::new(),
-        valid_until: now + 7 * 24 * 60 * 60 * 1_000,
-    };
+    let grant = local_user_grant(
+        uuid::Uuid::new_v4().to_string(),
+        space_id.into(),
+        Vec::new(),
+        now,
+    );
+    let principal = grant.principal.clone();
     create_grant(tx, &grant, now).await?;
     let input = json!({
         "workflow": WORKFLOW,

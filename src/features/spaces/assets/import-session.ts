@@ -1,4 +1,6 @@
-import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { warn as logWarn } from "@tauri-apps/plugin-log";
+
+import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { prepareSpaceAssetImport, type SpaceImportSourceAccess } from "./asset-operations";
@@ -27,8 +29,7 @@ export async function importSpaceSource(input: SpaceImportSourceInput): Promise<
     await context.ensureImportTarget(spaceId);
     operation = await prepareSpaceImportSource(source, labels, "scoped");
   } catch (error) {
-    if (typeof source !== "string") await source.dispose?.();
-    throw error;
+    return disposeFailedSource(source, error);
   }
   return commitPreparedSpaceImport({ context, spaceId, operation, position, reveal });
 }
@@ -39,7 +40,13 @@ export async function prepareSpaceImportSource(
   sourceAccess: SpaceImportSourceAccess,
 ): Promise<PreparedSpaceImportOperation> {
   const tasks = useTaskStore();
-  const taskId = tasks.start(labels.title, labels.preparing);
+  const taskId = crypto.randomUUID();
+  tasks.restoreRunning({
+    id: taskId,
+    title: labels.title,
+    statusMessage: labels.preparing,
+    startedAt: Date.now(),
+  });
   const prepared = await prepareImportSource(source, sourceAccess, tasks, taskId);
   return { source, prepared, taskId };
 }
@@ -55,13 +62,16 @@ interface PreparedSpaceImportInput {
 export async function commitPreparedSpaceImport(input: PreparedSpaceImportInput): Promise<SpaceCanvasNode[]> {
   const { context, operation, position, spaceId, reveal = true } = input;
   const { prepared, source, taskId } = operation;
+  let nodes: SpaceCanvasNode[];
   try {
     if (!prepared.jobId)
-      return await finalizePreparedImport({ context, source, position, reveal, spaceId, taskId, prepared });
-    return await commitManagedImport({ context, spaceId, taskId, prepared, position, reveal, source });
-  } finally {
-    if (typeof source !== "string") await source.dispose?.();
+      nodes = await finalizePreparedImport({ context, source, position, reveal, spaceId, taskId, prepared });
+    else nodes = await commitManagedImport({ context, spaceId, taskId, prepared, position, reveal, source });
+  } catch (error) {
+    return disposeFailedSource(source, error);
   }
+  await disposeCommittedSource(source);
+  return nodes;
 }
 
 async function prepareImportSource(
@@ -98,10 +108,48 @@ async function finalizePreparedImport(options: CommitManagedImportOptions) {
     if (typeof source !== "string") await source.finalize?.();
     context.finalizePendingContent(spaceId, nodes, reveal);
   } catch (error) {
-    await Promise.all(nodes.map((node) => context.discardPendingContent(spaceId, node.id)));
     tasks.fail(taskId, getErrorMessage(error));
+    const cleanup = await Promise.allSettled(
+      nodes.map((node) => context.discardPendingContent(spaceId, node.id)),
+    );
+    const cleanupErrors = cleanup
+      .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+      .map(({ reason }) => reason);
+    if (cleanupErrors.length)
+      throw new AggregateError(
+        [error, ...cleanupErrors],
+        "Space import failed and pending nodes could not be removed",
+        { cause: error },
+      );
     throw error;
   }
   tasks.succeed(taskId);
   return nodes;
+}
+
+async function disposeFailedSource(source: SpaceImportSource, error: unknown): Promise<never> {
+  if (typeof source === "string" || !source.dispose) throw error;
+  try {
+    await source.dispose();
+  } catch (cleanupError) {
+    throw new AggregateError(
+      [error, cleanupError],
+      "Space import failed and its source could not be released",
+      {
+        cause: error,
+      },
+    );
+  }
+  throw error;
+}
+
+async function disposeCommittedSource(source: SpaceImportSource) {
+  if (typeof source === "string" || !source.dispose) return;
+  try {
+    await source.dispose();
+  } catch (error) {
+    void logWarn(
+      `Space import committed, but its source could not be released: ${formatErrorDiagnostic(error)}`,
+    );
+  }
 }

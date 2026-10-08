@@ -29,8 +29,25 @@ export async function settleConversationTaskResult(input: ConversationTaskSettle
       });
     throw terminalError;
   }
-  if (projectionError) throw projectionError;
-  if (successfulStates.has(input.outcome.state)) return;
-  const reason = await getConversationTaskError(input.accepted.runId);
-  throw new Error(reason ?? `Conversation task ended as ${input.outcome.state}`);
+  if (successfulStates.has(input.outcome.state)) {
+    if (projectionError) throw projectionError;
+    return;
+  }
+  let reason: string | null;
+  try {
+    reason = await getConversationTaskError(input.accepted.runId);
+  } catch (error) {
+    const diagnosticError = normalizeError(error);
+    if (projectionError)
+      throw new AggregateError([diagnosticError, projectionError], diagnosticError.message, {
+        cause: diagnosticError,
+      });
+    throw diagnosticError;
+  }
+  const terminalError = new Error(reason ?? `Conversation task ended as ${input.outcome.state}`);
+  if (projectionError)
+    throw new AggregateError([terminalError, projectionError], terminalError.message, {
+      cause: terminalError,
+    });
+  throw terminalError;
 }

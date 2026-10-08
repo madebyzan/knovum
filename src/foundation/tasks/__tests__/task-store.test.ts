@@ -108,6 +108,25 @@ describe("task store", () => {
     });
   });
 
+  it.each(["succeeded", "cancelled"] as const)(
+    "does not rewrite a %s task when its retry promise rejects late",
+    async (terminal) => {
+      const store = useTaskStore();
+      store.restoreFailed(
+        { id: "persisted-job", title: "Transcribe", statusMessage: "old error", startedAt: 1 },
+        async () => {
+          if (terminal === "succeeded") store.succeed("persisted-job");
+          else store.cancelled("persisted-job");
+          throw new Error("late retry rejection");
+        },
+      );
+
+      await store.retry("persisted-job");
+
+      expect(store.tasks[0]).toMatchObject({ id: "persisted-job", status: terminal });
+    },
+  );
+
   it("keeps the producer running when it rejects a cancellation request", async () => {
     const store = useTaskStore();
     const id = store.start("Publish", undefined, async () => {

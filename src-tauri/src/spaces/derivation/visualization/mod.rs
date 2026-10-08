@@ -64,14 +64,14 @@ pub(super) async fn generate_for_action(
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
     if let Err(error) = persistence::start(&app, &request, &target, &authority).await {
-        super::failure::fail_pending(
+        let settlement = super::failure::fail_pending(
             &app,
             &request.space_id,
             &request.output_node_id,
             super::failure::PendingNodeState::Processing,
         )
-        .await?;
-        return Err(error);
+        .await;
+        return Err(super::failure::with_settlement(error, settlement));
     }
     let generated_visualization = execute(&app, &request, &target, &stages, &cancellation).await;
     match generated_visualization {
@@ -79,8 +79,11 @@ pub(super) async fn generate_for_action(
             Ok(persistence::complete(&app, &request, image, &authority, &cancellation).await?)
         }
         Err(error) => {
-            persistence::fail(&app, &request.id, &error.message).await?;
-            Err(error)
+            let settlement = persistence::fail(&app, &request.id, &error.message).await;
+            Err(super::failure::with_settlement(
+                error,
+                settlement.map_err(|error| error.to_string()),
+            ))
         }
     }
 }

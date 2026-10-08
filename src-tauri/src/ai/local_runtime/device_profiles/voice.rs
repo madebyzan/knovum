@@ -15,7 +15,8 @@ struct Backend {
 }
 
 pub(crate) fn eligible(model_spec_id: &str) -> Result<bool, String> {
-    Ok(super::memory::physical_memory()? >= minimum_gib(model_spec_id)? * super::GIB)
+    Ok(crate::local_resources::system_memory::physical_memory()?
+        >= minimum_gib(model_spec_id)? * super::GIB)
 }
 pub(crate) fn require_memory(model_spec_id: &str) -> Result<(), String> {
     let minimum_gib = minimum_gib(model_spec_id)?;

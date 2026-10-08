@@ -1,6 +1,8 @@
+import { warn as logWarn } from "@tauri-apps/plugin-log";
 import { groupBy, uniq } from "es-toolkit";
 import pLimit from "p-limit";
 
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
@@ -34,7 +36,7 @@ export async function restoreDeletedStructure(deletedRoot: SpaceDeletedStructure
     },
     mutationId,
   );
-  await refreshDeletedStructure();
+  await refreshCommittedDeletedStructure("restore");
 }
 
 export async function permanentlyDeleteStructure(
@@ -42,6 +44,7 @@ export async function permanentlyDeleteStructure(
   wholeBatches: boolean,
 ) {
   const batches = groupBy(deletedRoots, ({ spaceId, batchId }) => `${spaceId}\u0000${batchId}`);
+  let primaryFailure: { error: unknown } | undefined;
   try {
     const paths = (
       await Promise.all(
@@ -51,9 +54,23 @@ export async function permanentlyDeleteStructure(
       )
     ).flat();
     if (paths.length) await cleanupDeletedSpaceAssets(uniq(paths));
-  } finally {
-    await refreshDeletedStructure();
+  } catch (error) {
+    primaryFailure = { error };
   }
+  try {
+    await refreshDeletedStructure();
+  } catch (projectionError) {
+    if (primaryFailure)
+      throw new AggregateError(
+        [primaryFailure.error, projectionError],
+        "Permanent structure deletion failed and its deleted-items projection could not be refreshed",
+        { cause: primaryFailure.error },
+      );
+    void logWarn(
+      `Structure deletion committed, but its deleted-items projection could not be refreshed: ${formatErrorDiagnostic(projectionError)}`,
+    );
+  }
+  if (primaryFailure) throw primaryFailure.error;
 }
 
 function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], wholeBatch: boolean) {
@@ -69,4 +86,14 @@ function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], who
 
 function refreshDeletedStructure() {
   return queryClient.invalidateQueries({ queryKey: [...spaceKnowledgeQueryKeys.root, "deleted"] });
+}
+
+async function refreshCommittedDeletedStructure(operation: string) {
+  try {
+    await refreshDeletedStructure();
+  } catch (error) {
+    void logWarn(
+      `Structure ${operation} committed, but its deleted-items projection could not be refreshed: ${formatErrorDiagnostic(error)}`,
+    );
+  }
 }

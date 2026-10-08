@@ -95,10 +95,21 @@ describe("TaskCenter", () => {
     expect(wrapper.findAll('[aria-label="tasks.dismiss"]')).toHaveLength(1);
   });
 
-  it("gives attention tasks an explicit route to the related item", () => {
-    const wrapper = mountActivity([{ ...baseTask, status: "attention", durable: true, openable: true }]);
+  it("keeps observation recovery and cancellation available for attention tasks", () => {
+    const wrapper = mountActivity([
+      {
+        ...baseTask,
+        status: "attention",
+        durable: true,
+        openable: true,
+        cancellable: true,
+        retryable: true,
+      },
+    ]);
 
     expect(wrapper.find('[aria-label="tasks.openSubject"]').exists()).toBe(true);
+    expect(wrapper.find('[aria-label="tasks.cancel"]').exists()).toBe(true);
+    expect(wrapper.find('[aria-label="common.retry"]').exists()).toBe(true);
     expect(wrapper.find('[aria-label="tasks.dismiss"]').exists()).toBe(false);
   });
 });

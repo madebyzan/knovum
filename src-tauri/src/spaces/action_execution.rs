@@ -94,20 +94,21 @@ pub(crate) async fn execute_immediate(
 pub(crate) async fn execute_durable(
     app: &AppHandle,
     action_id: &str,
-    run_id: &str,
-    execution_epoch: i64,
-    space_id: &str,
+    claim: &crate::spaces::runs::AttemptClaim,
     parameters: &Value,
     inputs: &Value,
 ) -> Result<Value, AppError> {
     crate::spaces::derivation::execute_action(
         app,
         action_id,
-        run_id,
-        execution_epoch,
-        space_id,
+        &claim.home_space_id,
         parameters,
         inputs,
+        crate::spaces::derivation::ExecutionAuthority {
+            run_id: claim.run_id.clone(),
+            execution_epoch: claim.execution_epoch,
+        },
+        &claim.cancellation,
     )
     .await
 }

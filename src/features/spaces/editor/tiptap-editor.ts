@@ -16,7 +16,7 @@ import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings, useHeadingNavigation } from "./tiptap-outline";
 import { createEditingState, persistSpaceTiptapContent, type EditingState } from "./tiptap-persistence";
-import { registerTiptapSessionParticipant } from "./tiptap-session-participant";
+import { persistTiptapSession, registerTiptapSessionParticipant } from "./tiptap-session-participant";
 import { createTiptapTextStatistics } from "./tiptap-text-statistics";
 
 export function useSpaceTiptapEditor() {
@@ -109,12 +109,12 @@ export function useSpaceTiptapEditor() {
 
   async function close() {
     try {
-      await persist();
+      await persistTiptapSession(persist, () => {
+        state.loadedId = undefined;
+        focusedEditorId.value = undefined;
+      });
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      state.loadedId = undefined;
-      focusedEditorId.value = undefined;
     }
   }
 

@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use crate::spaces::{conversations::tools, db, runs};
+use crate::spaces::{conversations::tools, db, run_control};
 
 pub(super) async fn retire(app: &AppHandle, pool: &sqlx::SqlitePool) -> Result<(), String> {
     let records: Vec<String> = sqlx::query_scalar("SELECT r.id FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id
@@ -51,7 +51,11 @@ async fn cancel(
         .execute(pool)
         .await
         .map_err(db::sql_error)?;
-    runs::cancel_run(app.clone(), run_id.into())
+    let receipt = run_control::cancel_run(app.clone(), run_id.into())
         .await
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string())?;
+    for error in receipt.interruption_errors {
+        log::warn!("Retired Built-in Agent Run with pending interruption: {error}");
+    }
+    Ok(())
 }

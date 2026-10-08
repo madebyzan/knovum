@@ -30,12 +30,19 @@ pub(super) async fn create_retry(
         .get("grantId")
         .and_then(Value::as_str)
         .ok_or("run-retry-invalid: source grant is missing")?;
-    let mut grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
-    if grant.home_space_id != source.space_id {
+    let source_grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
+    if source_grant.home_space_id != source.space_id
+        || source_grant.principal.kind != crate::spaces::authorization::PrincipalKind::User
+        || source_grant.principal.id != "local-user"
+    {
         return Err("run-retry-invalid: source grant belongs to another Space".into());
     }
-    grant.grant_id = uuid::Uuid::new_v4().to_string();
-    grant.valid_until = now + 7 * 24 * 60 * 60 * 1_000;
+    let grant = crate::spaces::authorization::local_user_grant(
+        uuid::Uuid::new_v4().to_string(),
+        source.space_id.clone(),
+        source_grant.action_ids,
+        now,
+    );
     crate::spaces::authorization::create_grant(&mut tx, &grant, now).await?;
     let retry_policy = retry_policy(&source.policy, source_run_id, &grant.grant_id)?;
     sqlx::query(

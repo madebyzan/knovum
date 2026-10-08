@@ -13,7 +13,7 @@ use super::{
 use crate::{
     app_error::AppError,
     spaces::{
-        authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+        authorization::{create_grant, local_user_grant},
         db,
         runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     },
@@ -60,19 +60,13 @@ pub async fn start_speech_source_separation(
     let model = crate::local_resources::model_selection::speech_separation(&app)?;
     crate::ai::local_runtime::device_profiles::speech_separation(model)?;
     let now = crate::clock::unix_time_millis()?;
-    let principal = Principal {
-        kind: PrincipalKind::User,
-        id: "local-user".into(),
-    };
-    let grant = AuthorizationContext {
-        principal: principal.clone(),
-        grant_id: uuid::Uuid::new_v4().to_string(),
-        home_space_id: request.space_id.clone(),
-        read_space_ids: vec![request.space_id.clone()],
-        write_space_ids: vec![request.space_id.clone()],
-        action_ids: Vec::new(),
-        valid_until: now + 7 * 24 * 60 * 60 * 1_000,
-    };
+    let grant = local_user_grant(
+        uuid::Uuid::new_v4().to_string(),
+        request.space_id.clone(),
+        Vec::new(),
+        now,
+    );
+    let principal = grant.principal.clone();
     create_grant(&mut tx, &grant, now).await?;
     let input = json!({"workflow":WORKFLOW,"source":request.source.clone(),"model":model});
     let policy = json!({"grantId":grant.grant_id,"definition":{"failurePolicy":"stop_run"},"workflow":WORKFLOW});

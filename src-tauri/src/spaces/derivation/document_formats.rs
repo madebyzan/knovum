@@ -1,30 +1,25 @@
-use crate::documents::generation::{self, document::DocumentSource};
-type DocumentRenderer = fn(&DocumentSource) -> Result<Vec<u8>, String>;
+use crate::documents::generation::{self, DocumentFormat as RendererFormat};
 
 pub(super) struct DocumentFormat {
     pub extension: &'static str,
     pub engine: &'static str,
-    pub render: DocumentRenderer,
+    pub kind: RendererFormat,
 }
 pub(super) fn require(action: &str) -> Result<DocumentFormat, String> {
-    let (extension, engine, render): (_, _, DocumentRenderer) = match action {
-        "render-presentation" => ("pptx", generation::pptx::ENGINE, generation::pptx::render),
+    let (extension, engine, kind) = match action {
+        "render-presentation" => ("pptx", generation::pptx::ENGINE, RendererFormat::Pptx),
         "export-document-as-docx" => (
             "docx",
             "docx-rs:0.4.22;knovum-document:2",
-            generation::docx::render,
+            RendererFormat::Docx,
         ),
-        "export-document-as-pdf" => (
-            "pdf",
-            "typst:0.15.1;knovum-document:2",
-            generation::pdf::render,
-        ),
-        "export-document-as-txt" => ("txt", "knovum-document:2", generation::render_text),
+        "export-document-as-pdf" => ("pdf", "typst:0.15.1;knovum-document:2", RendererFormat::Pdf),
+        "export-document-as-txt" => ("txt", "knovum-document:2", RendererFormat::Text),
         _ => return Err("action-input-invalid: unsupported document format".into()),
     };
     Ok(DocumentFormat {
         extension,
         engine,
-        render,
+        kind,
     })
 }

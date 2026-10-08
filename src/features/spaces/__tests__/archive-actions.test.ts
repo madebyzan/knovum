@@ -110,4 +110,22 @@ describe("Space lifecycle", () => {
     expect(credentialStore.saveSpaceCredential).toHaveBeenCalledWith("credential-node", backup);
     expect(state.spaces.value).toHaveLength(1);
   });
+
+  it("preserves database and credential rollback failures", async () => {
+    const research = space();
+    research.archivedAt = 3;
+    const state = context(research);
+    const primary = new Error("database failure");
+    const rollback = new Error("credential restore failure");
+    spaceRepository.listCredentialNodeIds.mockResolvedValue(["credential-node"]);
+    credentialStore.loadSpaceCredential.mockResolvedValue({ kind: "api-key", secret: "secret" });
+    spaceRepository.deleteSpacePermanently.mockRejectedValueOnce(primary);
+    credentialStore.saveSpaceCredential.mockRejectedValueOnce(rollback);
+
+    const error = await permanentlyDeleteSpace(state, research.id).catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(AggregateError);
+    expect(error).toMatchObject({ cause: primary });
+    expect((error as AggregateError).errors).toEqual([primary, rollback]);
+  });
 });

@@ -135,6 +135,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::speech::contracts::SpeechPreviewAudioChunk::export_all,
         crate::spaces::speech::contracts::SpeechProjectRenderOutput::export_all,
         crate::spaces::runs::RunObservation::export_all,
+        crate::spaces::RunControlReceipt::export_all,
         crate::spaces::runs::StepObservation::export_all,
         crate::spaces::runs::RunEvent::export_all,
         crate::spaces::knowledge::contracts::RelationKind::export_all,

@@ -14,6 +14,27 @@ import { externalAgentKindSchema } from "./external-agents";
 export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
 export const aiRoutingPurposeSchema = z.enum(routingPurposes);
+const INVALID_PROVIDER_URL = "Invalid AI provider URL";
+
+export const aiConnectionBaseUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .superRefine((value, context) => {
+    if (!URL.canParse(value)) {
+      context.addIssue({ code: "custom", message: INVALID_PROVIDER_URL });
+      return;
+    }
+    const url = new URL(value);
+    if (
+      (url.protocol !== "http:" && url.protocol !== "https:") ||
+      !url.hostname ||
+      url.username.length > 0 ||
+      url.password.length > 0
+    ) {
+      context.addIssue({ code: "custom", message: INVALID_PROVIDER_URL });
+    }
+  });
 
 const builtinAgentModelSettingsSchema = z
   .object({
@@ -41,14 +62,11 @@ export const aiConnectionSettingsSchema = z
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
     provider: aiProviderSchema,
-    baseUrl: z.string().trim().min(1),
+    baseUrl: aiConnectionBaseUrlSchema,
     models: z.array(aiModelDefinitionSchema),
   })
   .strict()
   .superRefine((connection, context) => {
-    if (URL.canParse(connection.baseUrl) === false) {
-      context.addIssue({ code: "custom", path: ["baseUrl"], message: "Invalid AI provider URL" });
-    }
     if (new Set(connection.models.map(({ id }) => id)).size !== connection.models.length) {
       context.addIssue({ code: "custom", path: ["models"], message: "Duplicate AI model id" });
     }

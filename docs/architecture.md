@@ -103,6 +103,7 @@ The Rust boundary is divided by business responsibility:
   capability owner.
 - `package/` owns package validation, snapshots, restore, and failed-import cleanup.
 - `agent_artifacts/` owns agent workspaces, previews, import, recovery, and consumption.
+- `run_execution.rs` composes finite Action, captured Workflow and speech step routing and capability-owned terminal maintenance. `run_control.rs` composes durable Run control with capability interruption. The scheduler receives three concrete hooks at startup; it never selects capabilities itself.
 - `recovery.rs` owns ordered reconciliation of interrupted Space workflows during bootstrap.
 
 `queries/` never mutates durable state or controls execution. `knowledge/` does not depend on
@@ -134,7 +135,7 @@ and owns durable publication.
 `local_resources/runtimes` owns trusted runtime publications and leases; and
 `local_resources/preparation` coordinates preparation and execution leases. `app_resources` may
 compose resource removal with consumers that must release an active model, while
-`local_resources` remains independent from AI and Spaces.
+`local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app_resources` composes catalog facts with that policy for product availability.
 
 Runtime selection, Python processes, model/device policy, downloads, packaging, and GPU behavior are
 specified in [system-architecture.md](system-architecture.md) and
@@ -298,10 +299,12 @@ The repository enforces these boundaries through:
 
 - `pnpm check:web`: TypeScript checks, Oxlint, source-layout policy tests, dependency-cruiser,
   frontend tests, Knip, jscpd, and Oxfmt;
-- `pnpm check:rust`: source-layout and capability checks, rustfmt, Clippy, and Rust tests;
+- `pnpm check:rust`: source-layout, capability and explicit Rust source-boundary checks, rustfmt, Clippy, and Rust tests;
 - `pnpm check:python`: Python source and contract checks;
-- `pnpm check`: all three groups;
-- `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation.
+- `pnpm check:scripts`: all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/native acceptance stays separate;
+- `pnpm check`: all four groups;
+- `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
+- `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including Model Resources Python constraints.
 
 Add or change an owner only with matching dependency rules and focused tests. Do not weaken a gate
 to admit a boundary violation; repair the ownership or record a narrow, explicit architectural

@@ -25,6 +25,8 @@
     "title": "Archived Spaces",
     "description": "Restore or permanently delete archived Spaces.",
     "restore": "Restore Space",
+    "restoreFailed": "Could not restore Space",
+    "loadFailed": "Could not load archived Spaces",
     "delete": {
       "label": "Delete permanently",
       "title": "Permanently delete “{title}”?",

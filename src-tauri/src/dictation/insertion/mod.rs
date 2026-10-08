@@ -32,6 +32,37 @@ impl InsertionDecision {
     }
 }
 
+pub(super) struct PasteError {
+    outcome: InsertionOutcome,
+    message: String,
+}
+
+impl PasteError {
+    #[cfg(any(target_os = "windows", test))]
+    pub(super) fn permission_denied(message: impl Into<String>) -> Self {
+        Self {
+            outcome: InsertionOutcome::PermissionDenied,
+            message: message.into(),
+        }
+    }
+
+    #[cfg(any(target_os = "macos", test))]
+    pub(super) fn failed(message: impl Into<String>) -> Self {
+        Self {
+            outcome: InsertionOutcome::Failed,
+            message: message.into(),
+        }
+    }
+
+    fn outcome(&self) -> InsertionOutcome {
+        self.outcome
+    }
+
+    fn message(&self) -> &str {
+        &self.message
+    }
+}
+
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 pub(crate) fn capture_target() -> Result<TargetApplication, String> {
     platform::capture_target()
@@ -70,12 +101,7 @@ pub(crate) fn insert(target: &TargetApplication, text: &str) -> InsertionDecisio
     }
     if let Err(error) = platform::paste() {
         transaction.restore_if_unchanged();
-        let (outcome, message) = error
-            .strip_prefix("permission_denied: ")
-            .map_or((InsertionOutcome::Failed, error.as_str()), |message| {
-                (InsertionOutcome::PermissionDenied, message)
-            });
-        return InsertionDecision::rejected(outcome, message);
+        return InsertionDecision::rejected(error.outcome(), error.message());
     }
     std::thread::sleep(std::time::Duration::from_millis(180));
     transaction.restore_if_unchanged();
@@ -93,3 +119,6 @@ use windows as platform;
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 compile_error!("dictation insertion is only compiled for supported desktop targets");
+
+#[cfg(test)]
+mod tests;

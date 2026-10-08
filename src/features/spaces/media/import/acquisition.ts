@@ -19,16 +19,15 @@ export async function acquireMediaSource(
 ): Promise<MediaSourceAcquisition> {
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
-  let cancelRequested = false;
   let loggedStage: MediaImportProgress["stage"] | undefined;
-  tasks.start(
-    i18n.global.t("spaces.media.import.title"),
-    i18n.global.t("spaces.media.import.resolving"),
-    () => {
-      cancelRequested = true;
-      return cancelMediaImport(jobId);
+  tasks.restoreRunning(
+    {
+      id: jobId,
+      title: i18n.global.t("spaces.media.import.title"),
+      statusMessage: i18n.global.t("spaces.media.import.resolving"),
+      startedAt: Date.now(),
     },
-    jobId,
+    () => cancelMediaImport(jobId),
   );
   try {
     void logInfo("[spaces.url-capture] media acquisition started");
@@ -55,7 +54,7 @@ export async function acquireMediaSource(
     void logInfo("[spaces.url-capture] media acquisition completed");
     return { outcome: "imported", payload: mediaPayloadFromImport(mediaAcquisition.media) };
   } catch (error) {
-    if (cancelRequested || decodeAppError(error)?.code === "media_acquisition_cancelled") {
+    if (decodeAppError(error)?.code === "media_acquisition_cancelled") {
       tasks.dismiss(jobId);
       throw createAppError("media_acquisition_cancelled", "Media acquisition cancelled");
     }

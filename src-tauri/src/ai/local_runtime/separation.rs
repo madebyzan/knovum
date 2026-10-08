@@ -1,7 +1,7 @@
 use std::{
     fs,
     io::{Read, Write},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use sha2::{Digest, Sha256};
@@ -159,7 +159,8 @@ fn copy_artifact(
     cancellation: &CancellationToken,
     target: &Path,
 ) -> Result<SeparatedAudioMetadata, String> {
-    let source = artifact_path(work_directory, request_id, &reference.file_name)?;
+    let source =
+        super::artifact::attempt_artifact_path(work_directory, request_id, &reference.file_name)?;
     let mut input = super::artifact::open_regular(&source)?;
     if input.metadata().map_err(|error| error.to_string())?.len() != reference.byte_length {
         return Err("invalid_output: source separation artifact length differs".into());
@@ -234,28 +235,6 @@ fn check_active(cancellation: &CancellationToken, deadline_ms: u64) -> Result<()
         return Err("deadline_exceeded".into());
     }
     Ok(())
-}
-
-fn artifact_path(
-    work_directory: &Path,
-    request_id: &str,
-    file_name: &str,
-) -> Result<PathBuf, String> {
-    let relative = Path::new(file_name);
-    let attempt_name = format!("attempt-{request_id}");
-    let mut components = relative.components();
-    if !matches!(components.next(), Some(std::path::Component::Normal(name)) if name.to_str() == Some(attempt_name.as_str()))
-        || !matches!(components.next(), Some(std::path::Component::Normal(_)))
-        || components.next().is_some()
-        || !file_name
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-' | b'/'))
-    {
-        return Err("invalid_output: source separation artifact name is invalid".into());
-    }
-    let directory = work_directory.join(&attempt_name);
-    super::artifact::checked_directory(&directory)?;
-    Ok(work_directory.join(relative))
 }
 
 fn validate_wav(path: &Path, sample_count: u64) -> Result<(), String> {

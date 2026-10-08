@@ -86,7 +86,15 @@ export async function insertSpaceTiptapImages(
     assertEditorAlive(editor);
     insertImages(editor, content, position);
   } catch (error) {
-    await removeSpaceAssets(savedPaths);
+    try {
+      await removeSpaceAssets(savedPaths);
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Image insertion failed and persisted images could not be removed",
+        { cause: error },
+      );
+    }
     throw error;
   }
 }

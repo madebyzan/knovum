@@ -3,7 +3,7 @@ import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { requireProvider } from "../../../foundation/ai/providers";
-import { aiConnectionSettingsSchema } from "../../../foundation/ai/schema/models";
+import { aiConnectionBaseUrlSchema, aiConnectionSettingsSchema } from "../../../foundation/ai/schema/models";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
 import type { ProviderKind } from "../../../shared/contracts/generated/ProviderKind";
@@ -47,10 +47,7 @@ const attempted = shallowRef(false);
 const secret = shallowRef<AiConnectionSecretChange>();
 const provider = computed(() => requireProvider(props.providers, draft.provider));
 const options = computed(() => providerOptions(props.providers));
-const validUrl = computed(() => {
-  if (!URL.canParse(draft.baseUrl)) return false;
-  return ["http:", "https:"].includes(new URL(draft.baseUrl).protocol);
-});
+const validUrl = computed(() => aiConnectionBaseUrlSchema.safeParse(draft.baseUrl).success);
 const valid = computed(() => aiConnectionSettingsSchema.safeParse(draft).success && validUrl.value);
 const initialName = draft.name.trim();
 const initialBaseUrl = draft.baseUrl.trim();

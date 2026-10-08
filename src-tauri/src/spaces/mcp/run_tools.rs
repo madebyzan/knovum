@@ -6,7 +6,7 @@ use super::{
     support::{json_text, mcp_error},
     SpaceMcpServer,
 };
-use crate::spaces::runs;
+use crate::spaces::{run_control, runs};
 
 #[tool_router(router = run_router, vis = "pub(super)")]
 impl SpaceMcpServer {
@@ -39,17 +39,20 @@ impl SpaceMcpServer {
     async fn pause_run(&self, Parameters(args): Parameters<RunArgs>) -> Result<String, McpError> {
         self.authorize_run_control(&args.space_id, &args.run_id)
             .await?;
-        runs::pause_run(self.app.clone(), args.run_id)
+        let receipt = run_control::pause_run(self.app.clone(), args.run_id)
             .await
             .map_err(mcp_error)?;
-        json_text(json!({"accepted": true}))
+        json_text(json!({
+            "accepted": true,
+            "interruptionErrors": receipt.interruption_errors,
+        }))
     }
 
     #[tool(description = "Resume a paused durable Run")]
     async fn resume_run(&self, Parameters(args): Parameters<RunArgs>) -> Result<String, McpError> {
         self.authorize_run_control(&args.space_id, &args.run_id)
             .await?;
-        runs::resume_run(self.app.clone(), args.run_id)
+        run_control::resume_run(self.app.clone(), args.run_id)
             .await
             .map_err(mcp_error)?;
         json_text(json!({"accepted": true}))
@@ -59,10 +62,13 @@ impl SpaceMcpServer {
     async fn cancel_run(&self, Parameters(args): Parameters<RunArgs>) -> Result<String, McpError> {
         self.authorize_run_control(&args.space_id, &args.run_id)
             .await?;
-        runs::cancel_run(self.app.clone(), args.run_id)
+        let receipt = run_control::cancel_run(self.app.clone(), args.run_id)
             .await
             .map_err(mcp_error)?;
-        json_text(json!({"accepted": true}))
+        json_text(json!({
+            "accepted": true,
+            "interruptionErrors": receipt.interruption_errors,
+        }))
     }
 
     #[tool(description = "Create a selective retry Run for failed or affected Steps")]

@@ -9,13 +9,14 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn<(url: string) => Promise<unknown>>(),
   cache: vi.fn<(url: string) => Promise<string>>(),
   remove: vi.fn<(paths: string[]) => Promise<void>>(),
+  warn: vi.fn<(message: string) => Promise<void>>(),
 }));
 vi.mock("../website/website-resource", () => ({
   fetchWebsiteResource: mocks.fetch,
   cacheWebsiteAsset: mocks.cache,
 }));
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.remove }));
-vi.mock("@tauri-apps/plugin-log", () => ({ warn: vi.fn<(message: string) => Promise<void>>() }));
+vi.mock("@tauri-apps/plugin-log", () => ({ warn: mocks.warn }));
 
 const saved: SpaceWebsitePayload = {
   kind: "website",
@@ -49,6 +50,7 @@ describe("saved website refresh", () => {
     mocks.fetch.mockReset();
     mocks.cache.mockReset();
     mocks.remove.mockReset().mockResolvedValue(undefined);
+    mocks.warn.mockReset().mockResolvedValue(undefined);
   });
 
   it("replaces source metadata instead of retaining unrelated old values", async () => {
@@ -95,5 +97,30 @@ describe("saved website refresh", () => {
     });
     expect(mocks.remove).toHaveBeenCalledTimes(1);
     expect(mocks.remove).toHaveBeenCalledWith(["/assets/old.ico"]);
+    expect(mocks.warn).toHaveBeenCalledWith(expect.stringContaining("cleanup unavailable"));
+  });
+
+  it("preserves metadata persistence and cached asset cleanup failures", async () => {
+    const primary = new Error("revision rejected");
+    const cleanup = new Error("asset locked");
+    mocks.fetch.mockResolvedValue({
+      kind: "document",
+      metadata: { title: "New", finalUrl: saved.url, faviconUrl: "https://example.com/new.ico" },
+    });
+    mocks.cache.mockResolvedValue("/assets/new.ico");
+    mocks.remove.mockRejectedValueOnce(cleanup);
+    const input = context();
+    input.saveNodeContentForSpace
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(primary)
+      .mockResolvedValueOnce(undefined);
+
+    await refreshSavedWebsite(input, "website-1", saved.url);
+
+    expect(mocks.warn).toHaveBeenCalledWith(expect.stringContaining("revision rejected"));
+    expect(mocks.warn).toHaveBeenCalledWith(expect.stringContaining("asset locked"));
+    expect(input.saveNodeContentForSpace.mock.lastCall?.[1]?.data).toMatchObject({
+      metadataState: "failed",
+    });
   });
 });

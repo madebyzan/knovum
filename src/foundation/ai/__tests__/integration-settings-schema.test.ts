@@ -101,6 +101,31 @@ describe("integration settings persisted contracts", () => {
     expect(() => decodeAiModelSettings({ schemaVersion: 1, value })).toThrow(/./u);
   });
 
+  it.each(["ftp://models.example.test/v1", "https://user:secret@models.example.test/v1", "https://"])(
+    "rejects an unsafe provider URL without reflecting credentials: %s",
+    (baseUrl) => {
+      const value = structuredClone(defaultAiModelSettings);
+      value.connections.push({
+        id: "unsafe",
+        name: "Unsafe",
+        provider: "openai",
+        baseUrl,
+        models: [],
+      });
+      const result = decodeAiModelSettings.bind(undefined, { schemaVersion: 1, value });
+      expect(result).toThrow("Invalid AI provider URL");
+      const error = (() => {
+        try {
+          result();
+        } catch (cause) {
+          return cause;
+        }
+        throw new Error("Expected URL validation to fail");
+      })();
+      expect(String(error)).not.toContain("secret");
+    },
+  );
+
   it("rejects unversioned or non-current envelopes", () => {
     expect(() => decodeAiModelSettings({ schemaVersion: 2, value: defaultAiModelSettings })).toThrow(/./u);
   });

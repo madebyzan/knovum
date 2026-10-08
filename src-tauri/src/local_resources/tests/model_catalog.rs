@@ -194,3 +194,22 @@ fn voxcpm2_choices_freeze_distinct_complete_snapshots() {
             .all(|kind| catalog::descriptor(*kind).snapshot == snapshot));
     }
 }
+
+#[test]
+fn catalog_availability_is_supplied_by_application_composition() {
+    assert_eq!(
+        availability_reason(LocalModelId::VoxCpm2, |_| Ok(false)).unwrap(),
+        Some("memory")
+    );
+    assert_eq!(
+        availability_reason(LocalModelId::VoxCpm2Q8, |_| Ok(true)).unwrap(),
+        None
+    );
+    assert_eq!(
+        availability_reason(LocalModelId::WhisperSmall, |_| {
+            panic!("non-voice models do not consult AI policy")
+        })
+        .unwrap(),
+        None
+    );
+}

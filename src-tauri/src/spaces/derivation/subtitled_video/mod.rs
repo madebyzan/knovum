@@ -49,14 +49,14 @@ pub(super) async fn render_for_action(
         match start::start(crate::spaces::db::pool(&app).await?, &request, &authority).await {
             Ok(source) => source,
             Err(error) => {
-                failure::fail_pending(
+                let settlement = failure::fail_pending(
                     &app,
                     &request.space_id,
                     &request.output_node_id,
                     failure::PendingNodeState::Processing,
                 )
-                .await?;
-                return Err(error.into());
+                .await;
+                return Err(failure::with_settlement(error.into(), settlement));
             }
         };
     let execution_app = app.clone();
@@ -103,11 +103,16 @@ pub(super) async fn render_for_action(
             {
                 Ok(completed) => Ok(completed),
                 Err(error) => {
-                    tokio::fs::remove_file(path).await.map_err(|cleanup| {
-                        format!("{error}; derived video cleanup failed: {cleanup}")
-                    })?;
-                    failure::fail_message(&app, &request.id, &error.message).await?;
-                    Err(error)
+                    let mut primary = error;
+                    if let Err(cleanup) = tokio::fs::remove_file(path).await {
+                        primary.message = format!(
+                            "{}; derived video cleanup failed: {cleanup}",
+                            primary.message
+                        );
+                    }
+                    let settlement =
+                        failure::fail_message(&app, &request.id, &primary.message).await;
+                    Err(failure::with_settlement(primary, settlement))
                 }
             }
         }
@@ -117,8 +122,8 @@ pub(super) async fn render_for_action(
             } else {
                 AppError::from(error)
             };
-            failure::fail_message(&app, &request.id, &error.message).await?;
-            Err(error)
+            let settlement = failure::fail_message(&app, &request.id, &error.message).await;
+            Err(failure::with_settlement(error, settlement))
         }
     }
 }

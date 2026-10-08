@@ -1,12 +1,14 @@
 /// Export-only semantic model. Space persistence and asset authorization stay in Spaces.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct DocumentSource {
     pub title: String,
     pub markdown: String,
     pub citations: Vec<Citation>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Citation {
     pub title: String,
     pub quote: String,

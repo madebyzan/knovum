@@ -9,6 +9,7 @@ import type { ConversationTaskUpdate } from "../contracts/generated/Conversation
 import type { InspectedConversationUpload } from "../contracts/generated/InspectedConversationUpload";
 import type { RunEvent } from "../contracts/generated/RunEvent";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
+import { requestRunControl } from "../runs/run-control";
 
 type ConversationTaskFinishedUpdate = Extract<ConversationTaskUpdate, { type: "finished" }>;
 
@@ -79,7 +80,11 @@ export async function startConversationTask(
 }
 
 export function cancelConversationTask(runId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|cancel_run", { runId });
+  return requestRunControl("cancel", runId);
+}
+
+export function pauseConversationTask(runId: string): Promise<void> {
+  return requestRunControl("pause", runId);
 }
 
 export function renameConversation(conversationId: string, title: string): Promise<void> {

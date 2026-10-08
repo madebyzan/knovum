@@ -1,9 +1,8 @@
 import { computed, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import { cancelConversationTask } from "./conversation-ipc";
+import { cancelConversationTask, pauseConversationTask } from "./conversation-ipc";
 import { createConversationTaskState } from "./conversation-task-state";
 import {
   createConversationTaskSubmission,
@@ -61,7 +60,7 @@ export function useConversationTask(input: ConversationTaskInput) {
     if (!canPause.value || !activeRunId.value) return;
     error.value = undefined;
     try {
-      await invokeCommand("plugin:spaces|pause_run", { runId: activeRunId.value });
+      await pauseConversationTask(activeRunId.value);
     } catch (cause) {
       error.value = getErrorMessage(cause);
     }

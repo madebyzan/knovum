@@ -30,7 +30,7 @@ pub(crate) mod visualization;
 use tauri::AppHandle;
 
 use crate::app_error::AppError;
-pub(crate) use action_execution::execute as execute_action;
+pub(crate) use action_execution::{execute as execute_action, ExecutionAuthority};
 pub use contracts::{CompletedDerivationOutput, DerivationRelation};
 
 pub(crate) async fn reconcile_interrupted(app: &AppHandle) -> Result<(), String> {

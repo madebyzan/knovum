@@ -1,4 +1,5 @@
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { formatBytes } from "../format/bytes";
 import { i18n } from "../i18n/i18n";
 import type { useTaskStore } from "../tasks/task-store";
@@ -37,4 +38,14 @@ export function updateTaskProgress(
   const transferable = ["downloading", "runtimeDownloading", "ready"].includes(progress.stage);
   if (!transferable || progress.percent === null) tasks.indeterminate(taskId, message);
   else tasks.progress(taskId, progress.percent, message);
+}
+
+export function resourcePreparationTask(snapshot: ResourcePreparationSnapshot) {
+  return {
+    id: snapshot.jobId,
+    title: snapshot.title,
+    startedAt: snapshot.startedAt,
+    ...(snapshot.error === null ? {} : { statusMessage: snapshot.error.message }),
+    ...(snapshot.progress.percent === null ? {} : { progress: snapshot.progress.percent }),
+  };
 }

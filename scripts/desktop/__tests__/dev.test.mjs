@@ -90,12 +90,12 @@ for (const args of [["dev", "--help"], ["dev", "-h"], ["dev", "--version"], ["in
   });
 }
 
-test("both development commands use preflight and the Tauri hook only starts Vite", () => {
+test("desktop development uses preflight and the Tauri hook only starts Vite", () => {
   const configuration = JSON.parse(
     readFileSync(new URL("../../../src-tauri/tauri.conf.json", import.meta.url)),
   );
   const { scripts } = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url)));
   assert.equal(configuration.build.beforeDevCommand, "pnpm dev");
-  assert.equal(scripts.tauri, "node scripts/desktop/dev.mjs");
+  assert.equal(Object.hasOwn(scripts, "tauri"), false);
   assert.equal(scripts["desktop:dev"], "node scripts/desktop/dev.mjs dev");
 });

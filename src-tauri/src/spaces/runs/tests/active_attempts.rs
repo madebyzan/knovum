@@ -47,6 +47,9 @@ async fn cancellation_interrupts_descendants_and_registration_races_without_wait
     super::super::request_cancellation(&pool, &root.run_id)
         .await
         .unwrap();
+    super::super::cancel_active_attempts(&pool, &root.run_id)
+        .await
+        .unwrap();
     assert!(root.cancellation.is_cancelled());
     assert!(child.cancellation.is_cancelled());
     assert!(!unrelated.cancellation.is_cancelled());

@@ -10,17 +10,19 @@ policy or workflow; vendor CLIs, standard libraries and existing packages perfor
 Everyday commands invoke vendor CLIs directly where no project policy is needed. They live in the root [README](../README.md): `desktop:dev`, `check`, `test`, `format`,
 and `package`. Scripts expose a task once; flags select variants. Use `pnpm run` to list commands.
 
-| Specialized command                       | When it is needed                                                                       |
-| ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| `check:web`, `check:rust`, `check:python` | Verify the changed language independently.                                              |
-| `typecheck`, `lint`                       | Run one frontend check; `lint --fix` applies supported fixes.                           |
-| `security:web`                            | Audit production dependencies and registry signatures, especially in CI/release review. |
-| `e2e:build`                               | Build the dedicated desktop E2E flavor used by `e2e`.                                   |
-| `e2e`                                     | Run desktop interaction acceptance.                                                     |
-| `contracts:generate`                      | Regenerate Rust-owned TypeScript/schema output and its Python models together.          |
-| `runtime:build`                           | Produce the controlled native Python runtime on its supported host.                     |
-| `runtime:provision`                       | Stage and verify controlled FFmpeg/Python artifacts for desktop development/packaging.  |
-| `inference:acceptance`                    | Score retained native corpus evidence, not synthetic unit fixtures.                     |
+| Specialized command                                        | When it is needed                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `check:web`, `check:rust`, `check:python`, `check:scripts` | Verify the changed language independently.                                                  |
+| `typecheck`, `lint`                                        | Run one frontend check; `lint --fix` applies supported fixes.                               |
+| `security:python`                                          | Audit the root Python project and all independent production runtime locks.                 |
+| `security:web`                                             | Audit production dependencies and registry signatures, especially in CI/release review.     |
+| `e2e:build`                                                | Build the dedicated desktop E2E flavor used by `e2e`.                                       |
+| `e2e`                                                      | Run desktop interaction acceptance.                                                         |
+| `contracts:check`                                          | Regenerate and fail on tracked or untracked drift in the single generated-output inventory. |
+| `contracts:generate`                                       | Regenerate Rust-owned TypeScript/schema output and its Python models together.              |
+| `runtime:build`                                            | Produce the controlled native Python runtime on its supported host.                         |
+| `runtime:provision`                                        | Stage and verify controlled FFmpeg/Python artifacts for desktop development/packaging.      |
+| `inference:acceptance`                                     | Score retained native corpus evidence, not synthetic unit fixtures.                         |
 
 `dev` and `build` are Tauri's Vite hooks. Browser preview is not a supported product runtime.
 For vendor operations such as test watch mode or compile-only Tauri smoke, use `pnpm exec vitest` or
@@ -96,7 +98,7 @@ The release contract and approvals are owned by [release.md](../docs/release.md)
 | `checks/source-layout.mjs`     | Enforce sibling-name, test-placement and Rust/Python size rules absent from vendor linters; language gates. |
 | `checks/capabilities.mjs`      | Reject explicitly prohibited WebView permissions in Tauri capability JSON; Rust/CI gates.                   |
 
-Each directory's `__tests__/` owns its regression tests. `scripts/__tests__/test_contracts.py` covers the
+Each directory's `__tests__/` owns its regression tests. `pnpm check:scripts` discovers all Node `.test.mjs` files in those directories; `.integration.mjs` signing/native tests remain explicitly invoked. Local `check` and the CI Script quality job use this same entry. `scripts/__tests__/test_contracts.py` covers the
 standalone contract generator. Python model qualification belongs to `python/tests/acceptance/`.
 
 ## Removed duplication

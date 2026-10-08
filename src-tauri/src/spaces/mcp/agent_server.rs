@@ -35,9 +35,13 @@ pub(crate) async fn start(
         std::sync::Arc<crate::extensions::contracts::AgentExtensionSnapshot>,
     >,
 ) -> Result<AgentMcpBinding, String> {
-    let grant_id =
-        crate::spaces::authorization::create_external_agent_grant(&app, &space_id, &actor_id)
-            .await?;
+    let grant_id = crate::spaces::authorization::create_external_agent_grant(
+        &app,
+        &space_id,
+        &actor_id,
+        super::action_tools::external_agent_action_ids(),
+    )
+    .await?;
     let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
         .await
         .map_err(|error| error.to_string())?;
