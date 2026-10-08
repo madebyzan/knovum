@@ -31,10 +31,10 @@ function create() {
   <section class="space-y-3">
     <form class="flex items-end gap-2" @submit.prevent="create">
       <label class="min-w-0 flex-1 space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.accountDisplayName")
+        >{{ $t("extensions.accounts.name")
         }}<UiInput v-model="displayName" data-testid="connector-account-name" /></label
       ><UiButton type="submit" :disabled="!displayName.trim() || changes.isPending.value">{{
-        $t("extensions.addAccount")
+        $t("extensions.accounts.add")
       }}</UiButton>
     </form>
     <p v-if="query.error.value || changes.error.value" role="alert" class="text-caption text-fg-danger">

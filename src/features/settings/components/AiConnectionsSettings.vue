@@ -67,7 +67,7 @@ async function confirmDiscard() {
     confirmAction({
       title: t("settings.ai.discardChangesTitle"),
       description: t("settings.ai.discardChanges"),
-      confirmLabel: t("settings.ai.discardChangesAction"),
+      confirmLabel: t("common.discardChanges"),
       danger: true,
     })
   );

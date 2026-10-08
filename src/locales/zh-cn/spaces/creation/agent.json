@@ -1,19 +1,19 @@
 {
-  "create": "Agent 创作",
-  "description": "向桌面 Agent 描述创作要求，检查其生成的文件，再将选中的结果导入当前 Space。",
-  "unavailable": "请先启用一个已安装的桌面 Agent。",
+  "create": "使用 Agent 创作",
+  "description": "向桌面 Agent 说明要求，检查生成的文件，再将所选结果导入当前空间。",
+  "unavailable": "请先启用已安装的桌面 Agent。",
   "configure": "配置桌面 Agent",
   "desktopAgent": "桌面 Agent",
-  "prompt": "描述希望 Agent 创建的文档、图片、视频或其他文件。",
+  "prompt": "描述希望 Agent 创建的内容。",
   "context": {
     "add": "添加参考文件",
     "remove": "移除 {name}"
   },
-  "knowledgeConnected": "当前 Space 的知识已通过 MCP 自动连接。",
+  "knowledgeConnected": "当前空间的知识已通过 MCP 自动连接。",
   "starting": "正在启动 Agent…",
   "task": "正在使用桌面 Agent 创作",
   "artifacts": {
-    "ready": "已有 {count} 个文件可供检查。",
+    "ready": "{count} 个文件可供检查。",
     "none": "Agent 已完成，但没有生成文件。",
     "import": "导入 {count} 个文件",
     "discard": "丢弃结果",
@@ -21,7 +21,7 @@
   },
   "recovered": {
     "runs": "可恢复的 Agent 运行",
-    "run": "恢复记录 {index} · {count} 个文件"
+    "run": "运行 {index} · {count} 个文件"
   },
   "failed": "Agent 创作失败",
   "run": "运行 Agent"

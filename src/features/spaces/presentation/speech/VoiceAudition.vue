@@ -29,21 +29,21 @@ onScopeDispose(preview.reset);
       :rows="2"
       :maxlength="500"
       :disabled="disabled || Boolean(preview.jobId.value)"
-      :placeholder="t('spaces.speech.previewText')"
-      :aria-label="t('spaces.speech.previewText')"
+      :placeholder="t('spaces.speech.project.previewText')"
+      :aria-label="t('spaces.speech.project.previewText')"
     />
     <div class="flex gap-2">
       <UiButton
         size="sm"
         :disabled="disabled || Boolean(preview.jobId.value) || !text.trim()"
         @click="preview.previewSource(text.trim(), source, {})"
-        >{{ t("spaces.speech.preview") }}</UiButton
+        >{{ t("spaces.speech.project.preview") }}</UiButton
       >
       <UiButton v-if="preview.jobId.value" size="sm" @click="preview.cancel">{{
-        t("spaces.speech.cancel")
+        t("common.cancel")
       }}</UiButton>
       <UiButton v-if="preview.listening.value" size="sm" @click="preview.stopListening">{{
-        t("spaces.speech.stopListening")
+        t("spaces.speech.project.stopListening")
       }}</UiButton>
     </div>
     <SpeechMediaPlayer v-if="preview.preview.value" kind="audio" :source="preview.preview.value.source" />

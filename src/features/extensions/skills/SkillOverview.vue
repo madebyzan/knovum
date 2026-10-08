@@ -22,13 +22,15 @@ defineEmits<{ edit: []; toggle: []; copy: []; export: []; delete: [] }>();
       <div class="flex flex-wrap items-center gap-2">
         <h3 class="text-body-lg font-medium break-words text-fg-primary">{{ skill.name }}</h3>
         <UiBadge size="sm">{{
-          $t(skill.pluginId ? "extensions.pluginSkill" : "extensions.personal")
+          $t(skill.pluginId ? "extensions.skills.plugin" : "extensions.skills.personal")
         }}</UiBadge>
       </div>
       <p class="mt-0.5 text-caption leading-normal text-fg-secondary">{{ skill.description }}</p>
       <p v-if="skill.unsupportedRequirements.length" class="mt-2 text-caption text-fg-warning">
         {{
-          $t("extensions.unsupportedRequirements", { requirements: skill.unsupportedRequirements.join(", ") })
+          $t("extensions.skills.unsupportedRequirements", {
+            requirements: skill.unsupportedRequirements.join(", "),
+          })
         }}
       </p>
       <UiButton
@@ -38,30 +40,32 @@ defineEmits<{ edit: []; toggle: []; copy: []; export: []; delete: [] }>();
         :disabled="busy"
         :data-testid="`edit-skill-${skill.id}`"
         @click="$emit('edit')"
-        >{{ $t(skill.pluginId ? "extensions.view" : "extensions.edit") }}</UiButton
+        >{{ $t(skill.pluginId ? "extensions.skills.view" : "common.edit") }}</UiButton
       >
     </div>
     <UiSwitch
       class="mt-1"
       :model-value="skill.enabled"
       :disabled="busy"
-      :label="$t(skill.enabled ? 'extensions.disableNamed' : 'extensions.enableNamed', { name: skill.name })"
+      :label="
+        $t(skill.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', { name: skill.name })
+      "
       :data-testid="`toggle-skill-${skill.id}`"
       @update:model-value="$emit('toggle')"
     />
     <UiDropdownMenu>
       <template #trigger
-        ><UiIconButton :label="$t('extensions.skillActions')" :tooltip="false" :disabled="busy"
+        ><UiIconButton :label="$t('extensions.skills.actions')" :tooltip="false" :disabled="busy"
           ><MoreHorizontal class="size-4" /></UiIconButton
       ></template>
       <UiDropdownMenuItem :disabled="busy" @select="$emit('copy')"
-        ><Copy class="size-3.5" />{{ $t("extensions.copy") }}</UiDropdownMenuItem
+        ><Copy class="size-3.5" />{{ $t("extensions.skills.copy") }}</UiDropdownMenuItem
       >
       <UiDropdownMenuItem :disabled="busy" @select="$emit('export')"
-        ><Download class="size-3.5" />{{ $t("extensions.export") }}</UiDropdownMenuItem
+        ><Download class="size-3.5" />{{ $t("common.export") }}</UiDropdownMenuItem
       >
       <UiDropdownMenuItem v-if="!skill.pluginId" destructive :disabled="busy" @select="$emit('delete')"
-        ><Trash2 class="size-3.5" />{{ $t("extensions.delete") }}</UiDropdownMenuItem
+        ><Trash2 class="size-3.5" />{{ $t("common.delete") }}</UiDropdownMenuItem
       >
     </UiDropdownMenu>
   </section>

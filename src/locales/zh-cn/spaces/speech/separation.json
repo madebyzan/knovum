@@ -1,0 +1,26 @@
+{
+  "acceptedBackground": "已接受的伴奏",
+  "description": "在本机分离人声与伴奏。",
+  "task": "人声与背景分离",
+  "reviewWarning": "分离结果可能仍含对白。接受前请试听两条音轨。",
+  "tooLong": "人声与背景分离最多处理 10 分钟。请先切分视频，再生成背景候选。",
+  "generate": "分离人声与伴奏",
+  "cancel": "取消分离",
+  "auditioned": "我已试听两条音轨",
+  "accept": "接受两条轨道",
+  "reject": "拒绝两条轨道",
+  "status": {
+    "accepted": "已接受，可用于混音。",
+    "rejected": "已拒绝。"
+  },
+  "title": "人声与伴奏分离",
+  "export": {
+    "vocals": "保存人声 WAV",
+    "background": "保存伴奏 WAV"
+  },
+  "stems": {
+    "vocals": "人声",
+    "background": "伴奏"
+  },
+  "addToSpace": "添加为音频节点"
+}

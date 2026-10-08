@@ -58,10 +58,10 @@ async function open() {
     @submit.prevent="accept"
     data-testid="mcp-elicitation-form"
   >
-    <h3 class="text-body font-medium">{{ $t("extensions.externalUserInput") }}</h3>
+    <h3 class="text-body font-medium">{{ $t("spaces.conversation.interactions.title") }}</h3>
     <p v-if="request" class="text-caption">{{ request.message }}</p>
     <p v-else role="alert" class="text-caption text-fg-danger">
-      {{ $t("extensions.interactionFieldsInvalid") }}
+      {{ $t("spaces.conversation.interactions.invalid") }}
     </p>
     <template v-if="request?.mode === 'form'">
       <McpElicitationField
@@ -76,18 +76,20 @@ async function open() {
     <template v-if="request?.mode === 'url'"
       ><p class="text-caption break-all text-fg-secondary">{{ request.url }}</p>
       <UiButton size="sm" :disabled="busy" @click="open">{{
-        $t("extensions.openExternalPage")
+        $t("spaces.conversation.interactions.openAuthorizationPage")
       }}</UiButton></template
     >
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
     <div class="flex gap-2">
-      <UiButton type="submit" size="sm" :disabled="busy || !request">{{ $t("extensions.accept") }}</UiButton
+      <UiButton type="submit" size="sm" :disabled="busy || !request">{{
+        $t("spaces.conversation.interactions.submit")
+      }}</UiButton
       ><UiButton
         size="sm"
         variant="ghost"
         :disabled="busy"
         @click="emit('answer', interaction.id, { action: 'decline' })"
-        >{{ $t("extensions.decline") }}</UiButton
+        >{{ $t("spaces.conversation.interactions.decline") }}</UiButton
       >
     </div>
   </form>

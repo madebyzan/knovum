@@ -36,5 +36,5 @@
     "visualAnalysis": "视觉理解",
     "builtinAgent": "内置 Agent"
   },
-  "providerReported": "这里汇总已记录的 Token 用量。部分操作没有用量信息，可能未计入总量。"
+  "providerReported": "仅汇总提供用量信息的活动；部分操作可能未计入。"
 }

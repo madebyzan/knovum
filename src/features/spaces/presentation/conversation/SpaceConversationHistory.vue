@@ -77,7 +77,7 @@ function toggleArchived() {
         {{
           archived
             ? t("spaces.conversation.conversations.archived")
-            : t("spaces.conversation.conversations.records")
+            : t("spaces.conversation.conversations.history")
         }}
       </h2>
       <UiSearchInput

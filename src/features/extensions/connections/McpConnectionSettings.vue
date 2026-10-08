@@ -54,13 +54,13 @@ function save(update: Partial<Pick<McpConnection, "name" | "tools">>) {
   <section class="space-y-3 border-t border-stroke-divider pt-3">
     <form class="flex items-end gap-2" @submit.prevent="save({ name })">
       <label class="min-w-0 flex-1 text-caption"
-        >{{ $t("extensions.connectionName") }}<UiInput v-model="name"
+        >{{ $t("extensions.connections.name") }}<UiInput v-model="name"
       /></label>
       <UiButton
         type="submit"
         size="sm"
         :disabled="!name.trim() || name === connection.name || changes.isPending.value"
-        >{{ $t("extensions.save") }}</UiButton
+        >{{ $t("common.save") }}</UiButton
       >
     </form>
     <ConnectionAccountSelection v-if="connector.authorization.type !== 'none'" :connection="connection" />
@@ -68,7 +68,7 @@ function save(update: Partial<Pick<McpConnection, "name" | "tools">>) {
       :disabled="checking.isPending.value"
       data-testid="check-mcp-connection"
       @click="checking.mutate(connection)"
-      >{{ $t("extensions.checkConnection") }}</UiButton
+      >{{ $t("extensions.connections.check") }}</UiButton
     >
     <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(changes.error.value || checking.error.value) }}

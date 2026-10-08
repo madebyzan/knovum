@@ -89,7 +89,7 @@ export function useVoiceReferenceEditor(
         multiple: false,
         directory: false,
         filters: [
-          { name: t("spaces.speech.referenceAudio"), extensions: ["wav", "flac", "mp3", "m4a", "ogg"] },
+          { name: t("spaces.speech.reference.title"), extensions: ["wav", "flac", "mp3", "m4a", "ogg"] },
         ],
       });
       if (typeof selected !== "string" || !isCurrent(version)) return;
@@ -120,7 +120,7 @@ export function useVoiceReferenceEditor(
         endMs: Math.round(Number(end.value) * 1000),
       });
       if (props.sourceNode && prepared.sourceRevision !== props.sourceNode.data.sourceRevision)
-        throw new Error(t("spaces.speech.referenceNodeChanged"));
+        throw new Error(t("spaces.speech.reference.sourceChanged"));
       if (isCurrent(version)) {
         model.value = prepared;
         error.value = undefined;

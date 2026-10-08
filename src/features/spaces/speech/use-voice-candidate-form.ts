@@ -21,7 +21,7 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
   const transcript = shallowRef("");
   const transcriptConfirmed = shallowRef(false);
   const authorized = shallowRef(false);
-  const text = shallowRef(t("spaces.speech.candidateSample"));
+  const text = shallowRef(t("spaces.speech.voice.candidate.sample"));
   watch(
     reference,
     (prepared) => {
@@ -33,8 +33,8 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
   const { candidates, activeRunId, pendingRequestId, busy, error, draft, save, cancel, discard, audition } =
     useVoiceCandidates(spaceId, created);
   const modes = computed(() => [
-    { value: "reference", label: t("spaces.speech.cloneVoice") },
-    { value: "designed", label: t("spaces.speech.designVoice") },
+    { value: "reference", label: t("spaces.speech.voice.clone") },
+    { value: "designed", label: t("spaces.speech.voice.design") },
   ]);
   const languages = [
     { value: "zh-CN", label: "中文" },

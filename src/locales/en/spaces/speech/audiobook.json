@@ -1,0 +1,29 @@
+{
+  "chapterTitle": "Chapter title",
+  "configurationInvalid": "This pre-release audiobook revision has no valid role bindings. Import or rebuild the script, then save a new revision.",
+  "lexicon": {
+    "title": "Pronunciation dictionary",
+    "hint": "Replace names or terms with the exact reading used during synthesis.",
+    "word": "Word or term",
+    "reading": "Pronunciation",
+    "add": "Add pronunciation",
+    "remove": "Remove pronunciation",
+    "invalid": "Complete every entry and remove duplicate words."
+  },
+  "moveUp": "Move chapter up",
+  "moveDown": "Move chapter down",
+  "removeChapter": "Remove chapter",
+  "removeParagraph": "Remove paragraph",
+  "addParagraph": "Add paragraph",
+  "addChapter": "Add chapter",
+  "wavPrecision": "WAV precision",
+  "paragraphPause": "Paragraph pause (ms)",
+  "chapterPause": "Chapter pause (ms)",
+  "title": "Book title",
+  "author": "Author",
+  "narrator": "Narrator",
+  "cover": "Cover",
+  "noCover": "No cover",
+  "boundCover": "Saved cover revision",
+  "coverRequiresEncodedOutput": "Choose MP3 or M4B to embed a cover."
+}

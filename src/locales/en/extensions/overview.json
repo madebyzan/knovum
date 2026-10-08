@@ -1,0 +1,7 @@
+{
+  "title": "Extensions",
+  "description": "Manage plugins, Skills, and external services.",
+  "plugins": "Plugins",
+  "skills": "Skills",
+  "connectors": "Connectors"
+}

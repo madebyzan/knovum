@@ -28,7 +28,7 @@
   },
   "status": {
     "disabled": "Updates are not enabled in this build.",
-    "idle": "Ready to check the release channel.",
+    "idle": "Ready to check for updates.",
     "checking": "Checking for updates…",
     "current": "Knovum is up to date.",
     "available": "Review the release notes, then download the signed update.",
@@ -38,8 +38,8 @@
     "installing": "Installing update…"
   },
   "failure": {
-    "check": "Could not check the release channel. Check your connection and try again.",
-    "download": "The download failed. Check your connection and available storage, then check again.",
+    "check": "Could not check for updates. Check your connection and try again.",
+    "download": "Download failed. Check your connection and free space, then try again.",
     "signature": "The update signature is invalid. Installation was refused. Check again after the publisher fixes the release.",
     "install": "Installation failed. Your changes were saved. Check permissions and storage before checking again."
   }

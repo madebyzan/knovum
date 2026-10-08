@@ -6,11 +6,21 @@ import { localeMessages } from "../../../locales/locale-registry";
 
 type LocaleTree = { readonly [key: string]: LocaleTree | string };
 
-const sourceModules = import.meta.glob("/src/**/*.{ts,vue}", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-}) as Record<string, string>;
+const sourceModules = import.meta.glob(
+  [
+    "/src/**/*.{ts,vue}",
+    "!/src/locales/**",
+    "!/src/**/__tests__/**",
+    "!/src/**/tests/**",
+    "!/src/**/*.test.ts",
+    "!/src/**/*.spec.ts",
+  ],
+  {
+    eager: true,
+    import: "default",
+    query: "?raw",
+  },
+) as Record<string, string>;
 
 const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
   eager: true,
@@ -27,15 +37,6 @@ const serializedValueMaps = new Set([
   "spaces.processing.jobStatus",
 ]);
 
-function flattenLocale(tree: LocaleTree, parent = "", keys = new Set<string>()) {
-  for (const [name, value] of Object.entries(tree)) {
-    const key = parent ? `${parent}.${name}` : name;
-    if (typeof value === "string") keys.add(key);
-    else flattenLocale(value, key, keys);
-  }
-  return keys;
-}
-
 function flattenMessages(tree: LocaleTree, parent = "", messages = new Map<string, string>()) {
   for (const [name, value] of Object.entries(tree)) {
     const key = parent ? `${parent}.${name}` : name;
@@ -46,7 +47,7 @@ function flattenMessages(tree: LocaleTree, parent = "", messages = new Map<strin
 }
 
 function placeholders(message: string) {
-  return [...message.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]).toSorted();
+  return [...new Set([...message.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]!))].toSorted();
 }
 
 function localeModulePath(path: string) {
@@ -67,8 +68,7 @@ function nonCamelCaseKeys(tree: Record<string, unknown>, parent = "", keys: stri
 function collectStaticTranslationKeys() {
   const keys = new Set<string>();
   const translationCall = /(?:\$t|\bt)\(\s*["'`]([^"'`$]+)["'`]/g;
-  for (const [path, source] of Object.entries(sourceModules)) {
-    if (path.includes("/locales/") || path.endsWith("locale-completeness.test.ts")) continue;
+  for (const source of Object.values(sourceModules)) {
     for (const match of source.matchAll(translationCall)) keys.add(match[1]!);
   }
   return keys;
@@ -77,11 +77,10 @@ function collectStaticTranslationKeys() {
 // Any dotted literal naming a locale key, which also covers keys held in a `labelKey`-style map
 // and translated later through a variable.
 function collectReferencedKeyLiterals() {
-  const literal =
-    /["'`]((?:spaces|settings|shell|common|ai|tasks|errors|dictation|extensions)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
+  const namespaces = Object.keys(localeMessages.en).join("|");
+  const literal = new RegExp(`["'\`]((?:${namespaces})(?:\\.[A-Za-z0-9_-]+)*\\.?)["'\`]`, "g");
   const keys = new Set<string>();
-  for (const [path, source] of Object.entries(sourceModules)) {
-    if (path.includes("/locales/") || path.endsWith("locale-completeness.test.ts")) continue;
+  for (const source of Object.values(sourceModules)) {
     for (const match of source.matchAll(literal)) keys.add(match[1]!);
   }
   return keys;
@@ -89,8 +88,10 @@ function collectReferencedKeyLiterals() {
 
 describe("locale completeness", () => {
   const { en, "zh-CN": zhCN } = localeMessages;
-  const enKeys = flattenLocale(en as LocaleTree);
-  const zhCNKeys = flattenLocale(zhCN as LocaleTree);
+  const english = flattenMessages(en as LocaleTree);
+  const chinese = flattenMessages(zhCN as LocaleTree);
+  const enKeys = new Set(english.keys());
+  const zhCNKeys = new Set(chinese.keys());
 
   it("keeps English and Simplified Chinese keys aligned", () => {
     expect(difference([...enKeys], [...zhCNKeys])).toEqual([]);
@@ -104,14 +105,16 @@ describe("locale completeness", () => {
   });
 
   it("keeps placeholders aligned between languages", () => {
-    const english = flattenMessages(en as LocaleTree);
-    const chinese = flattenMessages(zhCN as LocaleTree);
     const mismatches = [...english].flatMap(([key, message]) => {
       const expected = placeholders(message);
       const actual = placeholders(chinese.get(key) ?? "");
       return expected.join() === actual.join() ? [] : [{ key, expected, actual }];
     });
     expect(mismatches).toEqual([]);
+  });
+
+  it("treats repeated placeholders as one named argument", () => {
+    expect(placeholders("{count} item | {count} items")).toEqual(["count"]);
   });
 
   it("keeps locale module paths aligned", () => {

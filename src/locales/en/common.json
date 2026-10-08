@@ -30,9 +30,14 @@
   "showSecret": "Show secret",
   "hideSecret": "Hide secret",
   "productName": "Knovum",
-  "starting": "Starting Knovum…",
-  "loading": "Loading",
+  "loading": "Loading…",
   "saving": "Saving…",
   "saved": "Saved",
-  "unsaved": "Unsaved"
+  "unsaved": "Unsaved",
+  "export": "Export",
+  "done": "Done",
+  "remove": "Remove",
+  "archive": "Archive",
+  "restore": "Restore",
+  "required": "Required"
 }

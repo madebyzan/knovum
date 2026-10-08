@@ -51,7 +51,7 @@ it("binds a user-selected installed executable without modifying the publisher d
   });
   try {
     await flushPromises();
-    expect(wrapper.text()).toContain("extensions.localConfigurationRequired");
+    expect(wrapper.text()).toContain("extensions.connectors.process.configurationRequired");
     await wrapper.get('[data-testid="bind-plugin-executable"]').trigger("click");
     await flushPromises();
     expect(mocks.open).toHaveBeenCalledWith({ directory: false, multiple: false });

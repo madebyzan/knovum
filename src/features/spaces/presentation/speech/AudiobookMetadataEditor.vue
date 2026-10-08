@@ -19,10 +19,10 @@ const covers = computed(() =>
   ),
 );
 const options = computed(() => [
-  { value: "none", label: t("spaces.speech.noCover") },
+  { value: "none", label: t("spaces.speech.audiobook.noCover") },
   ...covers.value,
   ...(model.value.cover && !covers.value.some((cover) => cover.value === model.value.cover?.assetPath)
-    ? [{ value: model.value.cover.assetPath, label: t("spaces.speech.boundCover") }]
+    ? [{ value: model.value.cover.assetPath, label: t("spaces.speech.audiobook.boundCover") }]
     : []),
 ]);
 const cover = computed({
@@ -43,21 +43,21 @@ function text(field: "title" | "author" | "narrator", value: string) {
 <template>
   <section class="grid grid-cols-2 gap-2">
     <label class="text-caption text-fg-secondary"
-      >{{ t("spaces.speech.bookTitle")
+      >{{ t("spaces.speech.audiobook.title")
       }}<UiInput :model-value="model.title" size="sm" :disabled @update:model-value="text('title', $event)"
     /></label>
     <label class="text-caption text-fg-secondary"
-      >{{ t("spaces.speech.author")
+      >{{ t("spaces.speech.audiobook.author")
       }}<UiInput :model-value="model.author" size="sm" :disabled @update:model-value="text('author', $event)"
     /></label>
     <label class="text-caption text-fg-secondary"
-      >{{ t("spaces.speech.narrator")
+      >{{ t("spaces.speech.audiobook.narrator")
       }}<UiInput
         :model-value="model.narrator"
         size="sm"
         :disabled
         @update:model-value="text('narrator', $event)"
     /></label>
-    <UiSelect v-model="cover" size="sm" :label="t('spaces.speech.cover')" :options :disabled />
+    <UiSelect v-model="cover" size="sm" :label="t('spaces.speech.audiobook.cover')" :options :disabled />
   </section>
 </template>

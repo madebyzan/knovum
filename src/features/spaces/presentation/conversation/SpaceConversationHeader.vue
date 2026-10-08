@@ -31,17 +31,13 @@ const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
 const actions = computed(() => [
   { label: t("common.rename"), onSelect: () => (renaming.value = true) },
-  { label: t("spaces.conversation.conversations.export"), onSelect: () => void session.exportSelected() },
+  { label: t("common.export"), onSelect: () => void session.exportSelected() },
   {
-    label: t(
-      showingArchived.value
-        ? "spaces.conversation.conversations.restore"
-        : "spaces.conversation.conversations.archive",
-    ),
+    label: t(showingArchived.value ? "common.restore" : "common.archive"),
     onSelect: () => void (showingArchived.value ? session.unarchiveSelected() : session.archiveSelected()),
   },
   {
-    label: t("spaces.conversation.conversations.delete"),
+    label: t("common.delete"),
     destructive: true,
     onSelect: () => void session.deleteSelected(),
   },

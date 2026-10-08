@@ -9,7 +9,7 @@ defineProps<{ errors: string[] }>();
     class="space-y-1 text-caption text-fg-warning"
     data-testid="extension-cleanup-notice"
   >
-    <p>{{ $t("extensions.changeCommittedCleanupPending") }}</p>
+    <p>{{ $t("extensions.connections.cleanupPending") }}</p>
     <p v-for="error in errors" :key="error">{{ error }}</p>
   </section>
 </template>

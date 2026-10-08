@@ -62,7 +62,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       :disabled="disabled"
     />
     <p v-if="draft.format.value === 'wav' && draft.metadata.value.cover" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.coverRequiresEncodedOutput") }}
+      {{ t("spaces.speech.audiobook.coverRequiresEncodedOutput") }}
     </p>
     <AudiobookMetadataEditor v-model="draft.metadata.value" :disabled />
     <PronunciationLexiconEditor
@@ -72,14 +72,14 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
     />
     <AudiobookScriptImport :node="sourceNode" :disabled="disabled" @imported="draft.importScript" />
     <p v-if="draft.configurationError.value" class="text-danger text-caption-sm">
-      {{ t("spaces.speech.audiobookConfigurationInvalid") }}
+      {{ t("spaces.speech.audiobook.configurationInvalid") }}
     </p>
     <AudiobookRoleBindings
       :roles="draft.roles.value"
       :voice-options="voiceOptions"
       :used-role-keys="draft.usedRoleKeys.value"
       :disabled="disabled"
-      @add="draft.addRole(t('spaces.speech.defaultRole'))"
+      @add="draft.addRole(t('spaces.speech.project.defaultRole'))"
       @rename="draft.renameRole"
       @voice="draft.setRoleVoice"
       @remove="draft.removeRole"
@@ -107,14 +107,14 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
           :rows="3"
           :maxlength="1000000"
           :disabled="disabled"
-          :placeholder="t('spaces.speech.scriptPlaceholder')"
+          :placeholder="t('spaces.speech.project.scriptPlaceholder')"
         />
         <div class="flex items-center gap-1">
           <UiSelect
             :model-value="paragraph.speakerKey"
             size="sm"
             class="min-w-0 flex-1"
-            :label="t('spaces.speech.role')"
+            :label="t('spaces.speech.project.role')"
             :options="roleOptions"
             :disabled="disabled"
             @update:model-value="draft.setParagraphSpeaker(paragraph, $event)"
@@ -122,7 +122,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
           <UiButton
             size="sm"
             variant="ghost"
-            :aria-label="t('spaces.speech.preview')"
+            :aria-label="t('spaces.speech.project.preview')"
             :disabled="
               disabled ||
               !draft.lexicon.isValid.value ||
@@ -143,7 +143,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
           <UiButton
             size="sm"
             variant="dangerSubtle"
-            :aria-label="t('spaces.speech.removeParagraph')"
+            :aria-label="t('spaces.speech.audiobook.removeParagraph')"
             :disabled="disabled"
             @click="draft.removeParagraph(chapter, paragraphIndex)"
             ><Trash2 class="size-3.5"
@@ -155,23 +155,26 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
           :rows="2"
           :maxlength="500"
           :disabled="disabled"
-          :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
-          :aria-label="t('spaces.speech.deliveryInstruction')"
+          :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
+          :aria-label="t('spaces.speech.project.deliveryInstruction')"
         />
       </div>
       <UiButton size="sm" variant="ghost" :disabled="disabled" @click="draft.addParagraph(chapter)"
-        ><Plus class="size-3.5" />{{ t("spaces.speech.addParagraph") }}</UiButton
+        ><Plus class="size-3.5" />{{ t("spaces.speech.audiobook.addParagraph") }}</UiButton
       >
     </section>
     <div class="flex gap-2">
-      <UiButton size="sm" :disabled="disabled" @click="draft.addChapter(t('spaces.speech.chapterTitle'))"
-        ><Plus class="size-3.5" />{{ t("spaces.speech.addChapter") }}</UiButton
+      <UiButton
+        size="sm"
+        :disabled="disabled"
+        @click="draft.addChapter(t('spaces.speech.audiobook.chapterTitle'))"
+        ><Plus class="size-3.5" />{{ t("spaces.speech.audiobook.addChapter") }}</UiButton
       >
       <UiButton
         size="sm"
         :disabled="disabled || !draft.dirty.value || !draft.valid.value"
         @click="emit('save', draft.revisionInput())"
-        ><Save class="size-3.5" />{{ t("spaces.speech.saveRevision") }}</UiButton
+        ><Save class="size-3.5" />{{ t("spaces.speech.project.saveRevision") }}</UiButton
       >
     </div>
   </div>

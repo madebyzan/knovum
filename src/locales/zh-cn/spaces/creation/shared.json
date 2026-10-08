@@ -4,7 +4,7 @@
   "knowledgeDerivation": "基于知识创建",
   "resourceTask": "资源任务",
   "presets": {
-    "save": "保存为方案",
+    "save": "保存为预设",
     "saved": "生成预设已保存",
     "label": "生成预设",
     "empty": "暂无生成预设",

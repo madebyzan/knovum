@@ -27,11 +27,11 @@ const emit = defineEmits<{ install: []; cancel: [] }>();
     </div>
     <p class="flex items-start gap-2 rounded-lg bg-surface-muted p-3 text-caption text-fg-secondary">
       <ShieldCheck class="mt-0.5 size-4 shrink-0" :stroke-width="1.5" />{{
-        $t("extensions.installDoesNotAuthorize")
+        $t("extensions.plugins.installation.authorizationHint")
       }}
     </p>
     <section class="space-y-2">
-      <h3 class="text-body font-medium">{{ $t("extensions.capabilities") }}</h3>
+      <h3 class="text-body font-medium">{{ $t("extensions.plugins.capabilities") }}</h3>
       <ul class="divide-y divide-stroke-divider rounded-lg bg-surface-muted px-3">
         <li
           v-for="component in inspection.components"
@@ -50,7 +50,7 @@ const emit = defineEmits<{ install: []; cancel: [] }>();
       <summary
         class="w-fit rounded-sm py-1 outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
       >
-        {{ $t("extensions.packageVerification") }}
+        {{ $t("extensions.plugins.verification.title") }}
       </summary>
       <p class="mt-2 rounded-md bg-surface-muted p-3 font-mono break-all">SHA-256: {{ inspection.digest }}</p>
     </details>
@@ -76,12 +76,10 @@ const emit = defineEmits<{ install: []; cancel: [] }>();
         data-testid="confirm-plugin-installation"
         @click="emit('install')"
         ><UiSpinner v-if="busy" class="size-3.5" />{{
-          $t(updating ? "extensions.update" : "extensions.install")
+          $t(updating ? "extensions.plugins.update.action" : "extensions.plugins.installation.install")
         }}</UiButton
       >
-      <UiButton :disabled="busy" variant="ghost" @click="emit('cancel')">{{
-        $t("extensions.cancel")
-      }}</UiButton>
+      <UiButton :disabled="busy" variant="ghost" @click="emit('cancel')">{{ $t("common.cancel") }}</UiButton>
     </div>
   </section>
 </template>

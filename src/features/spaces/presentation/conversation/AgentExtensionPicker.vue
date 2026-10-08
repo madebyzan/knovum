@@ -63,16 +63,16 @@ function toggleSkill(id: string) {
   <UiPopover>
     <template #trigger
       ><UiButton size="sm" variant="ghost" :disabled="disabled" data-testid="conversation-extension-picker"
-        >{{ $t("extensions.selectedExtensions") }} · {{ count }}</UiButton
+        >{{ $t("spaces.conversation.extensions.label") }} · {{ count }}</UiButton
       ></template
     >
     <section
       class="max-h-80 w-72 space-y-3 overflow-auto p-3"
-      :aria-label="$t('extensions.selectedExtensions')"
+      :aria-label="$t('spaces.conversation.extensions.label')"
     >
       <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
       <p v-if="unavailable" role="alert" class="text-caption text-fg-warning">
-        {{ $t("extensions.extensionUnavailable") }}
+        {{ $t("spaces.conversation.extensions.unavailable") }}
       </p>
       <h3 class="text-caption font-medium">Skills</h3>
       <label v-for="skill in availability?.skills" :key="skill.id" class="flex items-start gap-2 text-body"
@@ -85,7 +85,7 @@ function toggleSkill(id: string) {
           }}<span class="block text-caption text-fg-secondary">{{ skill.description }}</span></span
         ></label
       >
-      <h3 class="text-caption font-medium">{{ $t("extensions.connectors") }}</h3>
+      <h3 class="text-caption font-medium">{{ $t("extensions.overview.connectors") }}</h3>
       <label
         v-for="connection in availability?.connections"
         :key="connection.id"
@@ -113,7 +113,7 @@ function toggleSkill(id: string) {
         size="sm"
         variant="ghost"
         @click="router.push({ path: '/settings', query: { pane: 'extensions' } })"
-        >{{ $t("extensions.manage") }}</UiButton
+        >{{ $t("spaces.conversation.extensions.manage") }}</UiButton
       >
     </section>
   </UiPopover>

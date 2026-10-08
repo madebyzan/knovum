@@ -81,12 +81,12 @@ async function exportStem(kind: "background" | "vocals") {
 
 <template>
   <section class="space-y-2 rounded-md border border-stroke-divider p-2">
-    <p class="text-caption text-fg-secondary">{{ t("spaces.speech.sourceSeparationDescription") }}</p>
+    <p class="text-caption text-fg-secondary">{{ t("spaces.speech.separation.description") }}</p>
     <p v-if="selectedModel" class="text-caption text-fg-tertiary" data-testid="separation-model">
       {{ selectedModel.name }} · {{ formatBytes(selectedModel.totalBytes) }}
     </p>
     <p v-if="selectedModel && !selectedModel.verified" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.modelFirstUse") }}
+      {{ t("spaces.speech.models.firstUse") }}
     </p>
     <div class="flex gap-2">
       <UiButton
@@ -99,7 +99,7 @@ async function exportStem(kind: "background" | "vocals") {
           separation.candidate.value?.reviewStatus === 'pending'
         "
         @click="separation.start(spaceId, source)"
-        ><AudioLines class="size-3.5" />{{ t("spaces.speech.separateBackground") }}</UiButton
+        ><AudioLines class="size-3.5" />{{ t("spaces.speech.separation.generate") }}</UiButton
       >
       <UiButton
         v-else
@@ -107,21 +107,21 @@ async function exportStem(kind: "background" | "vocals") {
         variant="dangerSubtle"
         :disabled="separation.busy.value"
         @click="separation.cancel"
-        ><Square class="size-3.5" />{{ t("spaces.speech.cancelSeparation") }}</UiButton
+        ><Square class="size-3.5" />{{ t("spaces.speech.separation.cancel") }}</UiButton
       >
     </div>
     <p v-if="sourceTooLong" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.sourceSeparationTooLong") }}
+      {{ t("spaces.speech.separation.tooLong") }}
     </p>
     <template v-if="separation.candidate.value">
-      <p class="text-caption text-fg-danger">{{ t("spaces.speech.sourceSeparationReviewWarning") }}</p>
+      <p class="text-caption text-fg-danger">{{ t("spaces.speech.separation.reviewWarning") }}</p>
       <div v-for="stem in stems" :key="stem" class="space-y-1">
-        <p class="text-caption text-fg-secondary">{{ t(`spaces.speech.separatedStem.${stem}`) }}</p>
+        <p class="text-caption text-fg-secondary">{{ t(`spaces.speech.separation.stems.${stem}`) }}</p>
         <audio
           class="h-8 w-full"
           controls
           preload="metadata"
-          :aria-label="t(`spaces.speech.separatedStem.${stem}`)"
+          :aria-label="t(`spaces.speech.separation.stems.${stem}`)"
           :src="convertFileSrc(separation.candidate.value[stem].assetPath)"
           @play="pauseOtherTracks"
         />
@@ -131,9 +131,9 @@ async function exportStem(kind: "background" | "vocals") {
           :disabled="disabled || insertion.busy.value"
           :data-testid="`insert-separated-${stem}`"
           @click="
-            insertion.insert(separation.candidate.value, stem, t(`spaces.speech.separatedStem.${stem}`))
+            insertion.insert(separation.candidate.value, stem, t(`spaces.speech.separation.stems.${stem}`))
           "
-          ><Plus class="size-3.5" />{{ t("spaces.speech.addStemToSpace") }}</UiButton
+          ><Plus class="size-3.5" />{{ t("spaces.speech.separation.addToSpace") }}</UiButton
         >
         <UiButton
           v-if="separation.candidate.value.reviewStatus === 'accepted'"
@@ -141,36 +141,36 @@ async function exportStem(kind: "background" | "vocals") {
           :disabled="disabled || exporting"
           :data-testid="`export-separated-${stem}`"
           @click="exportStem(stem)"
-          ><Download class="size-3.5" />{{ t(`spaces.speech.exportStem.${stem}`) }}</UiButton
+          ><Download class="size-3.5" />{{ t(`spaces.speech.separation.export.${stem}`) }}</UiButton
         >
       </div>
       <template v-if="separation.candidate.value.reviewStatus === 'pending'">
         <label class="flex items-center gap-2 text-caption text-fg-secondary">
           <UiCheckbox
             v-model="auditioned"
-            :label="t('spaces.speech.separationAuditioned')"
+            :label="t('spaces.speech.separation.auditioned')"
             :disabled="disabled || separation.busy.value"
           />
-          {{ t("spaces.speech.separationAuditioned") }}
+          {{ t("spaces.speech.separation.auditioned") }}
         </label>
         <div class="flex gap-2">
           <UiButton
             size="sm"
             :disabled="disabled || separation.busy.value || !auditioned"
             @click="review(true)"
-            ><Check class="size-3.5" />{{ t("spaces.speech.acceptSeparatedBackground") }}</UiButton
+            ><Check class="size-3.5" />{{ t("spaces.speech.separation.accept") }}</UiButton
           >
           <UiButton
             size="sm"
             variant="dangerSubtle"
             :disabled="disabled || separation.busy.value"
             @click="review(false)"
-            ><X class="size-3.5" />{{ t("spaces.speech.rejectSeparatedBackground") }}</UiButton
+            ><X class="size-3.5" />{{ t("spaces.speech.separation.reject") }}</UiButton
           >
         </div>
       </template>
       <p v-else class="text-caption text-fg-secondary">
-        {{ t(`spaces.speech.separationStatus.${separation.candidate.value.reviewStatus}`) }}
+        {{ t(`spaces.speech.separation.status.${separation.candidate.value.reviewStatus}`) }}
       </p>
     </template>
     <p v-if="separation.error.value" role="alert" class="text-caption text-fg-danger">

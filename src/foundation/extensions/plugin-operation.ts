@@ -8,9 +8,9 @@ import { invokeCommand } from "../ipc/invoke-command";
 import { useTaskStore } from "../tasks/task-store";
 
 const stageMessageKeys: Record<PluginOperationStage, string> = {
-  reading: "extensions.operationStages.reading",
-  validating: "extensions.operationStages.validating",
-  committing: "extensions.operationStages.committing",
+  reading: "extensions.plugins.stages.reading",
+  validating: "extensions.plugins.stages.validating",
+  committing: "extensions.plugins.stages.committing",
 };
 
 export async function runPluginOperation<T>(
@@ -38,7 +38,7 @@ export async function runPluginOperation<T>(
     const message = getErrorMessage(error);
     if (decodeAppError(error)?.code === "cancelled") {
       tasks.cancelled(jobId);
-      throw new Error(i18n.global.t("extensions.operationCancelled"), { cause: error });
+      throw new Error(i18n.global.t("extensions.plugins.tasks.cancelled"), { cause: error });
     }
     tasks.fail(jobId, message);
     throw error;

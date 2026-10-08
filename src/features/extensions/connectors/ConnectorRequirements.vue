@@ -38,22 +38,23 @@ const names = computed({
 <template>
   <div class="space-y-4">
     <div class="space-y-1.5">
-      <span class="text-caption text-fg-secondary">{{ $t("extensions.authorization") }}</span
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.accounts.authorization.label") }}</span
       ><UiSelect
         v-model="type"
         :disabled="disabled"
-        :label="$t('extensions.authorization')"
+        :label="$t('extensions.accounts.authorization.label')"
         :options="[
-          { value: 'none', label: $t('extensions.noAuthorization') },
+          { value: 'none', label: $t('extensions.accounts.authorization.none') },
           { value: 'bearer', label: 'API Token', disabled: !http },
-          { value: 'secret_fields', label: $t('extensions.secretFields') },
+          { value: 'secret_fields', label: $t('extensions.accounts.authorization.secretFields') },
           { value: 'oauth', label: 'OAuth + PKCE', disabled: !http },
         ]"
       />
     </div>
     <template v-if="authorization.type === 'oauth'">
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.publicClientId") }}<UiInput :disabled="disabled" v-model="publicClient"
+        >{{ $t("extensions.accounts.authorization.clientId")
+        }}<UiInput :disabled="disabled" v-model="publicClient"
       /></label>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
         >Scopes<UiInput :disabled="disabled" v-model="scopes"
@@ -62,7 +63,7 @@ const names = computed({
     <label
       v-if="authorization.type === 'secret_fields'"
       class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.secretFieldNames") }}<UiInput :disabled="disabled" v-model="names"
+      >{{ $t("extensions.accounts.authorization.fieldNames") }}<UiInput :disabled="disabled" v-model="names"
     /></label>
   </div>
 </template>

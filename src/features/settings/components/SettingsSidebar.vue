@@ -86,7 +86,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
       <UiSearchInput v-model="query" :placeholder="t('settings.general.search')" class="mt-2.5" />
     </div>
     <UiScrollArea class="mt-4 min-h-0 flex-1">
-      <nav :aria-label="t('settings.general.title')" class="px-3 pb-6">
+      <nav :aria-label="t('common.settings')" class="px-3 pb-6">
         <template v-if="query.trim()">
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>

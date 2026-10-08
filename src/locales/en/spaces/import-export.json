@@ -1,6 +1,5 @@
 {
   "import": "Import",
-  "export": "Export",
   "importFailed": "Import failed. Check file format and try again.",
   "website": {
     "add": "Add website",

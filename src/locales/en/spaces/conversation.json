@@ -32,15 +32,10 @@
     "history": "Conversation history",
     "none": "No conversations yet",
     "actions": "Conversation actions",
-    "export": "Export",
     "exportFailed": "Could not export conversation",
-    "archive": "Archive",
-    "restore": "Restore",
-    "delete": "Delete",
     "deleteConfirm": "Delete “{title}” and its task history? This cannot be undone.",
     "search": "Search conversations",
     "archived": "Archived",
-    "records": "Conversation history",
     "today": "Today",
     "yesterday": "Yesterday",
     "viewArchived": "View archived conversations",
@@ -91,8 +86,7 @@
     "modelResponseUncommitted": "The model replied, but its execution result was not committed. Automatic recovery cannot safely continue.",
     "modelUsageUnknown": "The model replied without usage information. Further model calls have stopped.",
     "modelRetryCost": "Continuing may send another paid request. Earlier charges remain recorded or unknown.",
-    "retryModel": "Authorize a new model attempt",
-    "pause": "Pause"
+    "retryModel": "Authorize a new model attempt"
   },
   "response": {
     "stopped": "Stopped",
@@ -116,13 +110,49 @@
   },
   "activity": {
     "generating": "Generating response…",
-    "running": "Working · {count} actions",
-    "finished": "Completed · {count} actions",
-    "recorded": "Activity · {count} actions",
+    "running": "Working · {count} action | Working · {count} actions",
+    "finished": "Completed · {count} action | Completed · {count} actions",
+    "recorded": "Activity · {count} action | Activity · {count} actions",
     "tool": "Tool action",
     "invalidResult": "Search results could not be displayed",
     "noSources": "No matching sources",
     "plan": "Plan"
   },
-  "askSelection": "Ask selection"
+  "askSelection": "Ask selection",
+  "extensions": {
+    "label": "Conversation extensions",
+    "unavailable": "A selected extension is unavailable. Review the selection.",
+    "manage": "Manage extensions"
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "External operation needs approval",
+      "allow": "Allow",
+      "deny": "Deny"
+    },
+    "outcomeUnknown": {
+      "title": "External outcome unknown",
+      "retry": "Checked; allow retry",
+      "stop": "Stop task",
+      "description": "The operation may have completed. Check the service before authorizing a retry."
+    },
+    "attempt": "Attempt",
+    "history": {
+      "title": "Tool history",
+      "empty": "No tool operations yet"
+    },
+    "progress": "Progress"
+  },
+  "interactions": {
+    "title": "External service needs input",
+    "openAuthorizationPage": "Open authorization page",
+    "submit": "Submit",
+    "decline": "Decline",
+    "invalid": "The external service sent an invalid form."
+  },
+  "extensionResources": {
+    "import": "Import into Space",
+    "select": "Choose a resource",
+    "readOnly": "This Space is read-only"
+  }
 }

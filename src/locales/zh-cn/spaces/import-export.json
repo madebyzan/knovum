@@ -1,6 +1,5 @@
 {
   "import": "导入",
-  "export": "导出",
   "importFailed": "导入失败，请检查文件格式。",
   "website": {
     "add": "添加网页",

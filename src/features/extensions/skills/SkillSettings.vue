@@ -44,15 +44,15 @@ const skills = computed(() =>
     <header class="flex flex-wrap items-end justify-between gap-3 px-0.5">
       <div class="min-w-0 flex-1 basis-48">
         <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
-          {{ $t("extensions.skills") }}
+          {{ $t("extensions.overview.skills") }}
         </h2>
-        <p class="mt-1 text-caption text-fg-secondary">{{ $t("extensions.skillsPurpose") }}</p>
+        <p class="mt-1 text-caption text-fg-secondary">{{ $t("extensions.skills.description") }}</p>
       </div>
       <div class="flex flex-wrap gap-2">
         <UiButton :disabled="busy" data-testid="import-skill" @click="mutate(importDirectory)"
-          ><FolderInput class="size-4" />{{ $t("extensions.import") }}</UiButton
+          ><FolderInput class="size-4" />{{ $t("extensions.skills.import") }}</UiButton
         ><UiButton :disabled="busy" data-testid="create-skill" @click="create"
-          ><Plus class="size-4" />{{ $t("extensions.createSkill") }}</UiButton
+          ><Plus class="size-4" />{{ $t("extensions.skills.create") }}</UiButton
         >
       </div>
     </header>
@@ -67,8 +67,8 @@ const skills = computed(() =>
     <UiSearchInput
       v-if="query.data.value?.length"
       v-model="search"
-      :label="$t('extensions.searchSkills')"
-      :placeholder="$t('extensions.searchSkills')"
+      :label="$t('extensions.skills.search')"
+      :placeholder="$t('extensions.skills.search')"
       data-testid="skill-search"
     />
     <div
@@ -76,15 +76,15 @@ const skills = computed(() =>
       role="status"
       class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
     >
-      <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
+      <UiSpinner class="size-4" />{{ $t("common.loading") }}
     </div>
     <UiSettingsSection v-else-if="!query.error.value && !skills.length">
       <div class="px-5 py-6">
         <h3 class="text-body-lg font-medium text-fg-primary">
-          {{ $t(search ? "extensions.noSearchResults" : "extensions.emptySkills") }}
+          {{ $t(search ? "extensions.plugins.search.empty" : "extensions.skills.empty.title") }}
         </h3>
         <p class="mt-1 text-caption text-fg-secondary">
-          {{ $t(search ? "extensions.tryAnotherSearch" : "extensions.emptySkillsHint") }}
+          {{ $t(search ? "extensions.plugins.search.hint" : "extensions.skills.empty.description") }}
         </p>
       </div>
     </UiSettingsSection>
@@ -105,7 +105,7 @@ const skills = computed(() =>
     </UiSettingsSection>
     <UiDialog
       :open="editing"
-      :title="selected ? selected.skill.name : $t('extensions.createSkill')"
+      :title="selected ? selected.skill.name : $t('extensions.skills.create')"
       size="wide"
       :closable="!changes.isPending.value"
       @update:open="!$event && closeEditor()"

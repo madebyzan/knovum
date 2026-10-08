@@ -53,22 +53,22 @@ watch(library.voices, refresh);
 
 <template>
   <section data-testid="voice-library-settings" class="space-y-5">
-    <p class="text-body text-fg-secondary">{{ t("spaces.speech.libraryDescription") }}</p>
+    <p class="text-body text-fg-secondary">{{ t("spaces.speech.library.description") }}</p>
     <UiSelect
       v-if="spaceOptions.length"
       :model-value="selectedSpaceId ?? ''"
       :options="spaceOptions"
-      :label="t('spaces.speech.librarySpaceLabel')"
+      :label="t('spaces.speech.library.spaceLabel')"
       @update:model-value="selectedSpaceId = $event"
     />
     <template v-if="space">
       <p class="text-caption text-fg-secondary">
-        {{ t("spaces.speech.librarySpace", { name: space.title }) }}
+        {{ t("spaces.speech.library.space", { name: space.title }) }}
       </p>
       <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
       <section :key="space.id" class="space-y-5">
         <section class="space-y-2">
-          <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.presetVoices") }}</h2>
+          <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.library.presets") }}</h2>
           <VoiceProfileForm
             :space-id="space.id"
             :disabled="library.creating.value"
@@ -76,12 +76,12 @@ watch(library.voices, refresh);
           />
         </section>
         <section class="space-y-2">
-          <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.addReferenceVoice") }}</h2>
+          <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.library.add") }}</h2>
           <VoiceCandidateForm :space-id="space.id" @created="refresh" />
         </section>
         <VoiceManagement ref="management" :space-id="space.id" />
       </section>
     </template>
-    <p v-else class="text-caption text-fg-secondary">{{ t("spaces.speech.libraryRequiresSpace") }}</p>
+    <p v-else class="text-caption text-fg-secondary">{{ t("spaces.speech.library.requiresSpace") }}</p>
   </section>
 </template>

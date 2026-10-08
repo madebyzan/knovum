@@ -19,7 +19,7 @@ export function useVoiceCandidateSubmission() {
     pending.value = job;
     try {
       const run = await draftVoiceCandidate({ ...input, requestId: job.id });
-      observeResourceRun(run, i18n.global.t("spaces.speech.generateCandidate"));
+      observeResourceRun(run, i18n.global.t("spaces.speech.voice.candidate.generate"));
       created(run);
       if (job.cancelRequested) await cancelResourceRun(run.id);
       return run;

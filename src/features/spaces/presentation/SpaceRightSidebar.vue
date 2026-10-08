@@ -33,7 +33,8 @@ watch(
 );
 
 const title = computed(() => {
-  if (rightSidebarView.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
+  if (rightSidebarView.value === "source")
+    return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.fields.source");
   return undefined;
 });
 const subtitle = computed(() =>

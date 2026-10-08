@@ -68,7 +68,7 @@ function removeTemplate(index: number) {
       />{{ tool.name }}</label
     >
     <UiButton size="sm" variant="ghost" :disabled="catalog.isPending.value" @click="catalog.mutate()">{{
-      $t("extensions.browseResourcesAndPrompts")
+      $t("extensions.catalog.browse")
     }}</UiButton>
     <p v-if="catalog.error.value" role="alert" class="text-fg-danger">
       {{ getErrorMessage(catalog.error.value) }}
@@ -97,7 +97,7 @@ function removeTemplate(index: number) {
       <section v-for="(template, index) in choices.resourceTemplates" :key="index" class="space-y-1">
         <p class="break-all">{{ template.uriTemplate }} · {{ JSON.stringify(template.parameters) }}</p>
         <UiButton size="sm" variant="ghost" @click="removeTemplate(index)">{{
-          $t("extensions.remove")
+          $t("common.remove")
         }}</UiButton>
         <McpResourcePreview
           :connection="connection"

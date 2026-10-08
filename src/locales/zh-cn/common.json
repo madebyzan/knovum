@@ -30,9 +30,14 @@
   "showSecret": "显示敏感内容",
   "hideSecret": "隐藏敏感内容",
   "productName": "知生知",
-  "starting": "正在启动知生知…",
-  "loading": "加载中",
+  "loading": "正在加载…",
   "saving": "正在保存…",
   "saved": "已保存",
-  "unsaved": "未保存"
+  "unsaved": "未保存",
+  "export": "导出",
+  "done": "完成",
+  "remove": "移除",
+  "archive": "归档",
+  "restore": "恢复",
+  "required": "请填写此项"
 }

@@ -37,7 +37,7 @@ async function importScript() {
     jobId.value = job;
     const script = await readNodeAudiobookScript(
       props.node,
-      t("spaces.speech.defaultRole"),
+      t("spaces.speech.project.defaultRole"),
       job,
       () => !disposed && jobId.value === job,
     );
@@ -57,10 +57,10 @@ async function importScript() {
     <div class="flex items-center justify-between gap-2">
       <p class="text-caption-sm text-fg-secondary">{{ props.node.data.title }}</p>
       <UiButton size="sm" variant="ghost" :disabled="disabled || importing" @click="importScript">
-        <FileUp class="size-3.5" />{{ t("spaces.speech.readNodeManuscript") }}
+        <FileUp class="size-3.5" />{{ t("spaces.speech.project.readManuscript") }}
       </UiButton>
     </div>
-    <UiButton v-if="importing" size="sm" @click="cancel">{{ t("spaces.speech.cancel") }}</UiButton>
+    <UiButton v-if="importing" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
     <p v-if="error" class="text-danger text-caption-sm">{{ error }}</p>
   </section>
 </template>

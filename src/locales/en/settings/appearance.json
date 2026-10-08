@@ -4,11 +4,11 @@
   "saveFailed": "Appearance settings could not be saved",
   "theme": {
     "label": "Theme",
-    "description": "Automatically synchronize with system light or dark mode."
+    "description": "Choose light, dark, or follow the system."
   },
   "textSize": {
     "label": "Font size",
-    "description": "Adjust interface text font size."
+    "description": "Adjust interface text size."
   },
   "density": {
     "label": "Density",

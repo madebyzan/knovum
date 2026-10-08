@@ -26,12 +26,14 @@ function select() {
       >{{ uriTemplate
       }}<textarea
         v-model="parameters"
-        :aria-label="$t('extensions.parameters')"
+        :aria-label="$t('extensions.catalog.parameters')"
         class="block w-full rounded-sm bg-surface-control p-1 font-mono"
         rows="2"
       />
     </label>
     <p v-if="error" role="alert" class="text-fg-danger">{{ error }}</p>
-    <UiButton type="submit" size="sm" variant="ghost">{{ $t("extensions.selectTemplateResource") }}</UiButton>
+    <UiButton type="submit" size="sm" variant="ghost">{{
+      $t("spaces.conversation.extensionResources.select")
+    }}</UiButton>
   </form>
 </template>

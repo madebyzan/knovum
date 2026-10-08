@@ -32,14 +32,14 @@ const open = computed({
 });
 const operations = computed(() => {
   if (!props.node) return [];
-  const clone = { id: "clone" as const, label: t("spaces.speech.cloneVoice") };
+  const clone = { id: "clone" as const, label: t("spaces.speech.voice.clone") };
   if (props.node.data.kind === "audio") return [clone];
   const projects = nodeSpeechProjectTypes(props.node).map((id) => ({
     id,
     label: t(
       id === "short_dubbing"
-        ? "spaces.speech.nodeReadAloud"
-        : `spaces.speech.types.${id === "audiobook" ? "audiobook" : "videoDubbing"}`,
+        ? "spaces.speech.project.generateFromNode"
+        : `spaces.speech.project.types.${id === "audiobook" ? "audiobook" : "videoDubbing"}`,
     ),
   }));
   return props.node.data.kind === "video" ? [...projects, clone] : projects;

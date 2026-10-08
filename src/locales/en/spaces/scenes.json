@@ -3,7 +3,7 @@
   "previous": "Previous scene",
   "next": "Next scene",
   "focus": {
-    "mode": "Focused view · {count} items",
+    "mode": "Focused view · {count} item | Focused view · {count} items",
     "exit": "Exit focus",
     "selection": "Focus selection",
     "unavailable": "This saved view references structure that no longer exists"

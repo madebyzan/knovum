@@ -75,7 +75,7 @@ async function remove() {
     !(await confirmAction({
       title: t("settings.ai.localModels.removeTitle", { name: props.model.name }),
       description: t("settings.ai.localModels.removeDescription"),
-      confirmLabel: t("settings.ai.localModels.remove"),
+      confirmLabel: t("common.remove"),
     }))
   )
     return;
@@ -150,7 +150,7 @@ async function remove() {
           variant="ghost"
           :disabled="removing || selecting"
           @click="remove"
-          >{{ t("settings.ai.localModels.remove") }}</UiButton
+          >{{ t("common.remove") }}</UiButton
         >
       </div>
     </div>

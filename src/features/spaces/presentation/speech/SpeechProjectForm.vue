@@ -23,7 +23,7 @@ const backgroundId = shallowRef("mute");
 const { videos, backgrounds } = useSpeechMediaSources();
 const sourceVideo = computed(() => videos.value.find((video) => video.id === props.node.id));
 const backgroundOptions = computed(() => [
-  { value: "mute", label: t("spaces.speech.muteOriginal") },
+  { value: "mute", label: t("spaces.speech.videoDubbing.muteOriginal") },
   ...backgrounds.value.map((background) => ({ value: background.id, label: background.name })),
 ]);
 const canSubmit = computed(
@@ -77,8 +77,8 @@ function submit() {
     <UiInput
       v-model="title"
       size="sm"
-      :placeholder="t('spaces.speech.projectName')"
-      :aria-label="t('spaces.speech.projectName')"
+      :placeholder="t('spaces.speech.project.name')"
+      :aria-label="t('spaces.speech.project.name')"
       :disabled="disabled"
     />
     <template v-if="projectType === 'video_dubbing'">
@@ -86,14 +86,14 @@ function submit() {
       <UiSelect
         v-model="backgroundId"
         size="sm"
-        :label="t('spaces.speech.backgroundAudio')"
+        :label="t('spaces.speech.videoDubbing.backgroundAudio')"
         :options="backgroundOptions"
         :disabled="disabled"
       />
-      <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoSourcesHint") }}</p>
+      <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoDubbing.sourcesHint") }}</p>
     </template>
     <UiButton class="w-full" size="sm" variant="primary" type="submit" :disabled="disabled || !canSubmit">
-      {{ t("spaces.speech.createProject") }}
+      {{ t("common.create") }}
     </UiButton>
   </form>
 </template>

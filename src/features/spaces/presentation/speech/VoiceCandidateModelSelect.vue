@@ -63,7 +63,7 @@ watchEffect(() => {
     <UiSelect
       v-model="model"
       size="sm"
-      :label="t('spaces.speech.voiceModel')"
+      :label="t('spaces.speech.models.label')"
       :options="options"
       :disabled="disabled || catalog.isPending.value"
     />
@@ -74,10 +74,10 @@ watchEffect(() => {
       t("common.retry")
     }}</UiButton>
     <p v-if="selected" class="text-caption text-fg-secondary">
-      {{ t(`spaces.speech.voiceModels.${model}`) }}
+      {{ t(`spaces.speech.models.descriptions.${model}`) }}
     </p>
     <p v-if="selected && !selected.verified" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.modelFirstUse") }}
+      {{ t("spaces.speech.models.firstUse") }}
     </p>
     <p v-if="selected?.unavailableReason" class="text-caption text-fg-secondary">
       {{ t(`settings.ai.localModels.unavailable.${selected.unavailableReason}`) }}

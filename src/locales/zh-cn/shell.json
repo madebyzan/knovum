@@ -26,5 +26,7 @@
     },
     "noMatches": "未找到匹配的快捷键"
   },
-  "runtimeModels": {}
+  "startup": {
+    "starting": "正在启动知生知…"
+  }
 }

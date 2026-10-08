@@ -77,9 +77,9 @@ export function useSkillManagement() {
     if (
       dirty &&
       !(await confirmAction({
-        title: t("extensions.discardChanges"),
-        description: t("extensions.discardChangesDescription"),
-        confirmLabel: t("extensions.discard"),
+        title: t("extensions.skills.discard.title"),
+        description: t("extensions.skills.discard.description"),
+        confirmLabel: t("common.discardChanges"),
         danger: true,
       }))
     )
@@ -89,9 +89,9 @@ export function useSkillManagement() {
   async function remove(id: string, skillName: string) {
     if (
       await confirmAction({
-        title: t("extensions.deleteSkillNamed", { name: skillName }),
-        description: t("extensions.deleteSkillDescription"),
-        confirmLabel: t("extensions.delete"),
+        title: t("extensions.skills.delete.title", { name: skillName }),
+        description: t("extensions.skills.delete.description"),
+        confirmLabel: t("common.delete"),
         danger: true,
       })
     )

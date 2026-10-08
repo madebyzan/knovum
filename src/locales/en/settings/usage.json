@@ -1,6 +1,6 @@
 {
   "title": "Usage",
-  "description": "Explore token usage and activity across built-in AI capabilities over the past year.",
+  "description": "Built-in AI token usage and activity over the past year.",
   "tokens": {
     "total": "Total tokens",
     "input": "Input tokens",
@@ -36,5 +36,5 @@
     "visualAnalysis": "Visual understanding",
     "builtinAgent": "Builtin Agent"
   },
-  "providerReported": "This total includes recorded token usage. Some activity may not provide usage data and may be missing from the total."
+  "providerReported": "Totals include only activity that reports usage; some operations may be missing."
 }

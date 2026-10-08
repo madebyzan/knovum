@@ -79,9 +79,9 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
   {
     id: "voices",
     group: "intelligence",
-    titleKey: "spaces.speech.voiceManagement",
-    descriptionKey: "spaces.speech.libraryDescription",
-    searchKeys: ["spaces.speech.referenceAudio", "spaces.speech.cloneVoice", "spaces.speech.designVoice"],
+    titleKey: "spaces.speech.library.title",
+    descriptionKey: "spaces.speech.library.description",
+    searchKeys: ["spaces.speech.reference.title", "spaces.speech.voice.clone", "spaces.speech.voice.design"],
     icon: AudioLines,
   },
   {
@@ -102,9 +102,13 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
   {
     id: "extensions",
     group: "intelligence",
-    titleKey: "extensions.title",
-    descriptionKey: "extensions.description",
-    searchKeys: ["extensions.plugins", "extensions.skills", "extensions.connectors"],
+    titleKey: "extensions.overview.title",
+    descriptionKey: "extensions.overview.description",
+    searchKeys: [
+      "extensions.overview.plugins",
+      "extensions.overview.skills",
+      "extensions.overview.connectors",
+    ],
     icon: Puzzle,
   },
   {
@@ -130,8 +134,8 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
       },
       {
         id: "settings-image-layers",
-        labelKey: "settings.ai.imageLayers.title",
-        descriptionKey: "settings.ai.imageLayers.description",
+        labelKey: "settings.creation.imageLayers.title",
+        descriptionKey: "settings.creation.imageLayers.description",
       },
     ],
   },
@@ -154,10 +158,10 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
 ] as const;
 
 export const settingsGroupTitleKeys: Record<SettingsGroupId, string> = {
-  general: "settings.general.preferences",
-  intelligence: "settings.ai.knowledgeSpace",
-  data: "settings.general.data",
-  information: "settings.general.information",
+  general: "settings.general.groups.general",
+  intelligence: "settings.general.groups.intelligence",
+  data: "settings.general.groups.data",
+  information: "settings.general.groups.information",
 };
 
 export function settingsDefinition(id: SettingsPaneId) {

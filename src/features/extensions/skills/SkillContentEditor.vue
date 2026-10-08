@@ -11,7 +11,7 @@ const emit = defineEmits<{ save: []; close: [] }>();
 <template>
   <form class="space-y-4" @submit.prevent="emit('save')" data-testid="skill-content-editor">
     <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.skillName")
+      >{{ $t("extensions.skills.name")
       }}<UiInput v-model="name" :disabled="busy || readonly || existing" data-testid="skill-name"
     /></label>
     <label class="block space-y-1.5 text-caption text-fg-secondary"
@@ -22,15 +22,13 @@ const emit = defineEmits<{ save: []; close: [] }>();
         class="min-h-64 font-mono text-caption"
         data-testid="skill-markdown"
     /></label>
-    <p v-if="readonly" class="text-caption text-fg-secondary">{{ $t("extensions.copyToEdit") }}</p>
+    <p v-if="readonly" class="text-caption text-fg-secondary">{{ $t("extensions.skills.readOnly") }}</p>
     <p v-if="files.length" class="text-caption text-fg-tertiary">{{ files.join(" · ") }}</p>
     <div class="flex gap-2">
       <UiButton v-if="!readonly" variant="primary" type="submit" :disabled="busy || !name || !markdown">{{
-        $t("extensions.save")
+        $t("common.save")
       }}</UiButton
-      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{
-        $t("extensions.close")
-      }}</UiButton>
+      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
     </div>
   </form>
 </template>

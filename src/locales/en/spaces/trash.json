@@ -9,9 +9,9 @@
     "space": "Filter by Space"
   },
   "structure": {
-    "deletedCount": "{count} deleted nodes",
+    "deletedCount": "{count} deleted node | {count} deleted nodes",
     "processing": "Processing…",
-    "deletedNotice": "Permanently deleted {count} nodes",
+    "deletedNotice": "Permanently deleted {count} node | Permanently deleted {count} nodes",
     "restoreNode": "Restore node",
     "restoreOperation": "Restore entire deletion",
     "restoreFailed": "Could not restore node",
@@ -21,7 +21,7 @@
   "deleteAll": {
     "action": "Permanently delete all…",
     "title": "Permanently delete all items?",
-    "description": "Permanently delete the {count} deleted items in “{scope}”? Active knowledge is not affected. This action cannot be undone."
+    "description": "Permanently delete the {count} deleted item in “{scope}”? Active knowledge is not affected. This action cannot be undone. | Permanently delete the {count} deleted items in “{scope}”? Active knowledge is not affected. This action cannot be undone."
   },
   "deletePermanently": "Delete permanently"
 }

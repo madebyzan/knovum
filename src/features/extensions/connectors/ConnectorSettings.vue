@@ -56,9 +56,9 @@ function save() {
 async function remove(connector: ConnectorDefinition) {
   if (
     await confirmAction({
-      title: t("extensions.deleteConnectorNamed", { name: connector.name }),
-      description: t("extensions.deleteConnectorDescription"),
-      confirmLabel: t("extensions.delete"),
+      title: t("extensions.connectors.delete.title", { name: connector.name }),
+      description: t("extensions.connectors.delete.description"),
+      confirmLabel: t("common.delete"),
       danger: true,
     })
   )
@@ -71,12 +71,14 @@ async function remove(connector: ConnectorDefinition) {
     <header class="flex flex-wrap items-end justify-between gap-3 px-0.5">
       <div class="min-w-0 flex-1 basis-48">
         <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
-          {{ $t("extensions.connectors") }}
+          {{ $t("extensions.overview.connectors") }}
         </h2>
-        <p class="mt-1 max-w-lg text-caption text-fg-secondary">{{ $t("extensions.connectorPurpose") }}</p>
+        <p class="mt-1 max-w-lg text-caption text-fg-secondary">
+          {{ $t("extensions.connectors.description") }}
+        </p>
       </div>
       <UiButton :disabled="changes.isPending.value" data-testid="create-connector" @click="edit()"
-        ><Plus class="size-4" />{{ $t("extensions.addConnector") }}</UiButton
+        ><Plus class="size-4" />{{ $t("extensions.connectors.add") }}</UiButton
       >
     </header>
     <p
@@ -90,8 +92,8 @@ async function remove(connector: ConnectorDefinition) {
     <UiSearchInput
       v-if="connectors.data.value?.length"
       v-model="search"
-      :label="$t('extensions.searchConnectors')"
-      :placeholder="$t('extensions.searchConnectors')"
+      :label="$t('extensions.connectors.search')"
+      :placeholder="$t('extensions.connectors.search')"
       data-testid="connector-search"
     />
     <div
@@ -99,15 +101,15 @@ async function remove(connector: ConnectorDefinition) {
       role="status"
       class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
     >
-      <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
+      <UiSpinner class="size-4" />{{ $t("common.loading") }}
     </div>
     <UiSettingsSection v-else-if="!connectors.error.value && !visible.length">
       <div class="px-5 py-6">
         <h3 class="text-body-lg font-medium text-fg-primary">
-          {{ $t(search ? "extensions.noSearchResults" : "extensions.emptyConnectors") }}
+          {{ $t(search ? "extensions.plugins.search.empty" : "extensions.connectors.empty.title") }}
         </h3>
         <p class="mt-1 text-caption text-fg-secondary">
-          {{ $t(search ? "extensions.tryAnotherSearch" : "extensions.emptyConnectorsHint") }}
+          {{ $t(search ? "extensions.plugins.search.hint" : "extensions.connectors.empty.description") }}
         </p>
       </div>
     </UiSettingsSection>
@@ -124,10 +126,10 @@ async function remove(connector: ConnectorDefinition) {
         />
       </div>
     </UiSettingsSection>
-    <p class="px-0.5 text-caption text-fg-tertiary">{{ $t("extensions.externalServiceBilling") }}</p>
+    <p class="px-0.5 text-caption text-fg-tertiary">{{ $t("extensions.accounts.billingHint") }}</p>
     <UiDialog
       :open="editing"
-      :title="$t(draft.id ? 'extensions.configure' : 'extensions.addConnector')"
+      :title="$t(draft.id ? 'extensions.connections.configure' : 'extensions.connectors.add')"
       size="wide"
       :closable="!changes.isPending.value"
       @update:open="!changes.isPending.value && (editing = $event)"

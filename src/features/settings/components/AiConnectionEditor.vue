@@ -104,7 +104,7 @@ function save() {
           {{ t("settings.ai.connectionName") }}
           <UiInput v-model="draft.name" />
           <span v-if="attempted && !draft.name.trim()" class="text-fg-danger">{{
-            t("settings.ai.requiredField")
+            t("common.required")
           }}</span>
         </label>
         <label class="grid min-w-0 gap-1.5 text-caption font-medium text-fg-secondary">
@@ -126,11 +126,7 @@ function save() {
     <template #footer>
       <UiButton variant="ghost" :disabled="busy" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="busy" @click="save">{{
-        busy
-          ? t("settings.ai.savingConnection")
-          : props.connection && !changed
-            ? t("settings.ai.finishEditing")
-            : t("settings.ai.saveConnection")
+        busy ? t("common.saving") : props.connection && !changed ? t("common.done") : t("common.save")
       }}</UiButton>
     </template>
   </UiDialog>

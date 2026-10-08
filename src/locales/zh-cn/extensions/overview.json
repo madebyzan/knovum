@@ -1,0 +1,7 @@
+{
+  "title": "扩展",
+  "description": "管理插件、Skill 和外部服务。",
+  "plugins": "插件",
+  "skills": "Skills",
+  "connectors": "连接器"
+}

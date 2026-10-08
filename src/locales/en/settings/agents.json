@@ -10,14 +10,14 @@
   },
   "entry": {
     "missing": "Command entry not detected",
-    "applicationOnly": "App only",
+    "applicationOnly": "App found; command unavailable",
     "commandDetected": "Command detected"
   },
   "requiredCommands": "Required command: {commands}",
   "connectionHelp": "{name} connection help",
   "officialDocumentation": "Official guidance",
   "acpSetup": "ACP setup",
-  "detectionBoundary": "Detection confirms command entries, not sign-in or ACP connectivity.",
+  "detectionBoundary": "Checks command availability only; sign-in and ACP connectivity are not verified.",
   "documentationOpenFailed": "Could not open the Agent's official link",
   "connections": {
     "executableCli": {

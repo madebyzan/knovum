@@ -78,7 +78,7 @@ it("saves an accepted accompaniment without requiring a dubbing project", async 
 it("shows the selected separation model and first-use preparation", () => {
   const wrapper = render();
   expect(wrapper.get('[data-testid="separation-model"]').text()).toContain("Spleeter");
-  expect(wrapper.text()).toContain("spaces.speech.modelFirstUse");
+  expect(wrapper.text()).toContain("spaces.speech.models.firstUse");
 });
 it("does not offer export for an unreviewed candidate", () => {
   expect(render("pending").find('[data-testid="export-separated-background"]').exists()).toBe(false);

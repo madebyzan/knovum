@@ -24,29 +24,30 @@ function submit() {
 <template>
   <form class="space-y-4" @submit.prevent="submit">
     <div class="space-y-1.5">
-      <span class="text-caption text-fg-secondary">{{ $t("extensions.marketplaceSource") }}</span>
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.plugins.catalogs.sourceType") }}</span>
       <UiSelect
         v-model="form.type"
-        :label="$t('extensions.marketplaceSource')"
+        :label="$t('extensions.plugins.catalogs.sourceType')"
         data-testid="marketplace-source-type"
         :disabled="busy"
         :options="[
           { value: 'https', label: 'HTTPS' },
-          { value: 'directory', label: $t('extensions.localDirectory') },
+          { value: 'directory', label: $t('extensions.plugins.source.localDirectory') },
           { value: 'git', label: 'HTTPS Git' },
         ]"
       />
     </div>
     <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.location")
+      >{{ $t("extensions.plugins.source.location")
       }}<UiInput :disabled="busy" v-model="form.location" data-testid="marketplace-location"
     /></label>
     <template v-if="form.type === 'git'">
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.gitReference") }}<UiInput :disabled="busy" v-model="form.reference"
+        >{{ $t("extensions.plugins.source.gitReference") }}<UiInput :disabled="busy" v-model="form.reference"
       /></label>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.subdirectory") }}<UiInput :disabled="busy" v-model="form.subdirectory"
+        >{{ $t("extensions.plugins.source.subdirectory")
+        }}<UiInput :disabled="busy" v-model="form.subdirectory"
       /></label>
     </template>
     <UiButton
@@ -55,7 +56,7 @@ function submit() {
       size="sm"
       :disabled="busy || !form.location.trim()"
       data-testid="add-marketplace"
-      >{{ $t("extensions.addSource") }}</UiButton
+      >{{ $t("extensions.plugins.catalogs.add") }}</UiButton
     >
   </form>
 </template>

@@ -31,7 +31,7 @@
   },
   "index": {
     "rebuild": "Rebuild retrieval index",
-    "rebuildDone": "Index rebuilt; generated {count} vector entries."
+    "rebuildDone": "Index rebuilt; generated {count} vector entry. | Index rebuilt; generated {count} vector entries."
   },
   "failed": "Processing failed",
   "nodeUnavailable": "The task's node is no longer available",
@@ -44,11 +44,11 @@
     "coverage": "Document processing",
     "ocrEvidence": "Machine-recognized text · Recognition errors are possible",
     "interpretationEvidence": "AI visual interpretation · Not an original document statement",
-    "textCoverage": "Text extracted from {count} of {total} pages.",
-    "unclassifiedPages": "{count} pages have no extractable body text or known images; they may be blank or contain unsupported content.",
+    "textCoverage": "Pages with extracted text: {count} of {total}.",
+    "unclassifiedPages": "{count} page has no extractable body text or known images. It may be blank or contain unsupported content. | {count} pages have no extractable body text or known images. They may be blank or contain unsupported content.",
     "recognitionRequired": "Pages requiring recognition: {pages}",
-    "visualCoverage": "Visual analysis: {count} of {total} sources completed.",
-    "visualUnavailable": "{count} referenced images cannot be decoded by the document parser.",
+    "visualCoverage": "Sources analyzed: {count} of {total}.",
+    "visualUnavailable": "{count} referenced image cannot be decoded by the document parser. | {count} referenced images cannot be decoded by the document parser.",
     "resources": {
       "title": "Document resources",
       "open": "Open document resource {index}",

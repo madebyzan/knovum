@@ -22,7 +22,7 @@ const query = useQuery(marketplaceQuery);
 const search = shallowRef("");
 const sourceId = shallowRef("all");
 const sourceOptions = computed(() => [
-  { value: "all", label: t("extensions.allSources") },
+  { value: "all", label: t("extensions.plugins.catalogs.all") },
   ...(query.data.value ?? []).map((source) => ({ value: source.id, label: source.displayName })),
 ]);
 const releases = computed(() =>
@@ -45,13 +45,18 @@ const releases = computed(() =>
       <UiSearchInput
         v-model="search"
         class="min-w-40 flex-1"
-        :label="$t('extensions.searchPlugins')"
-        :placeholder="$t('extensions.searchPlugins')"
+        :label="$t('extensions.plugins.search.placeholder')"
+        :placeholder="$t('extensions.plugins.search.placeholder')"
         data-testid="plugin-search"
       />
-      <UiSelect v-model="sourceId" class="w-40" :label="$t('extensions.source')" :options="sourceOptions" />
+      <UiSelect
+        v-model="sourceId"
+        class="w-40"
+        :label="$t('extensions.plugins.source.label')"
+        :options="sourceOptions"
+      />
       <UiButton :disabled="busy" data-testid="manage-marketplaces" @click="sourcesOpen = true"
-        ><Settings2 class="size-4" />{{ $t("extensions.manageSources") }}</UiButton
+        ><Settings2 class="size-4" />{{ $t("extensions.plugins.catalogs.title") }}</UiButton
       >
     </div>
     <p v-if="query.error.value" role="alert" class="text-body text-fg-danger">
@@ -62,15 +67,27 @@ const releases = computed(() =>
       role="status"
       class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
     >
-      <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
+      <UiSpinner class="size-4" />{{ $t("common.loading") }}
     </div>
     <UiSettingsSection v-else-if="!query.error.value && !releases.length">
       <div class="px-5 py-6">
         <h3 class="text-body-lg font-medium text-fg-primary">
-          {{ $t(search || sourceId !== "all" ? "extensions.noSearchResults" : "extensions.emptyCatalog") }}
+          {{
+            $t(
+              search || sourceId !== "all"
+                ? "extensions.plugins.search.empty"
+                : "extensions.plugins.catalogs.empty.title",
+            )
+          }}
         </h3>
         <p class="mt-1 text-caption text-fg-secondary">
-          {{ $t(query.data.value?.length ? "extensions.tryAnotherSearch" : "extensions.emptyCatalogHint") }}
+          {{
+            $t(
+              query.data.value?.length
+                ? "extensions.plugins.search.hint"
+                : "extensions.plugins.catalogs.empty.description",
+            )
+          }}
         </p>
         <UiButton
           v-if="!query.data.value?.length"
@@ -78,7 +95,7 @@ const releases = computed(() =>
           size="sm"
           data-testid="add-first-marketplace"
           @click="sourcesOpen = true"
-          >{{ $t("extensions.addSource") }}</UiButton
+          >{{ $t("extensions.plugins.catalogs.add") }}</UiButton
         >
       </div>
     </UiSettingsSection>
@@ -95,7 +112,9 @@ const releases = computed(() =>
             <p class="mt-1.5 text-caption break-words text-fg-tertiary">
               {{ item.sourceName }} · {{ item.release.publisherId }}
             </p>
-            <p class="mt-0.5 text-caption text-fg-tertiary">{{ $t("extensions.publisherUnverified") }}</p>
+            <p class="mt-0.5 text-caption text-fg-tertiary">
+              {{ $t("extensions.plugins.verification.unverified") }}
+            </p>
           </div>
           <UiButton
             size="sm"
@@ -108,7 +127,7 @@ const releases = computed(() =>
                 pluginName: item.release.name,
               })
             "
-            >{{ $t("extensions.preview") }}</UiButton
+            >{{ $t("extensions.plugins.installation.preview") }}</UiButton
           >
         </div>
       </div>

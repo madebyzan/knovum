@@ -23,7 +23,7 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
           <span v-if="plugin.revision.manifest.version" class="text-caption text-fg-tertiary">{{
             plugin.revision.manifest.version
           }}</span>
-          <UiBadge v-if="plugin.builtin" size="sm">{{ $t("extensions.builtin") }}</UiBadge>
+          <UiBadge v-if="plugin.builtin" size="sm">{{ $t("extensions.plugins.bundled") }}</UiBadge>
         </div>
         <p
           v-if="plugin.revision.manifest.description"
@@ -32,13 +32,13 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
           {{ plugin.revision.manifest.description }}
         </p>
         <p class="mt-1.5 text-caption text-fg-tertiary">
-          {{ $t("extensions.componentCount", { count: plugin.revision.components.length }) }}
+          {{ $t("extensions.plugins.capabilityCount", { count: plugin.revision.components.length }) }}
         </p>
       </div>
       <UiSwitch
         :model-value="plugin.enabled"
         :label="
-          $t(plugin.enabled ? 'extensions.disableNamed' : 'extensions.enableNamed', {
+          $t(plugin.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', {
             name: plugin.revision.manifest.name,
           })
         "
@@ -51,7 +51,7 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
         <UiDropdownMenu v-if="!plugin.builtin">
           <template #trigger>
             <UiIconButton
-              :label="$t('extensions.pluginActions')"
+              :label="$t('extensions.plugins.actions')"
               :tooltip="false"
               :disabled="busy"
               :data-testid="`plugin-actions-${plugin.id}`"
@@ -62,14 +62,14 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
             :data-testid="`update-plugin-${plugin.id}`"
             :disabled="busy"
             @select="emit('update')"
-            ><RefreshCw class="size-3.5" />{{ $t("extensions.checkUpdate") }}</UiDropdownMenuItem
+            ><RefreshCw class="size-3.5" />{{ $t("extensions.plugins.update.check") }}</UiDropdownMenuItem
           >
           <UiDropdownMenuItem
             destructive
             :data-testid="`uninstall-plugin-${plugin.id}`"
             :disabled="busy"
             @select="emit('uninstall')"
-            ><Trash2 class="size-3.5" />{{ $t("extensions.uninstall") }}</UiDropdownMenuItem
+            ><Trash2 class="size-3.5" />{{ $t("extensions.plugins.uninstall.action") }}</UiDropdownMenuItem
           >
         </UiDropdownMenu>
       </div>
@@ -80,11 +80,11 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
       >
         <ChevronDown
           class="size-3 transition-transform group-open:rotate-180 motion-reduce:transition-none"
-        />{{ $t("extensions.details") }}
+        />{{ $t("extensions.plugins.source.details") }}
       </summary>
       <dl class="mt-2 grid min-w-0 gap-2 rounded-md bg-surface-muted p-3">
         <div>
-          <dt class="text-fg-tertiary">{{ $t("extensions.source") }}</dt>
+          <dt class="text-fg-tertiary">{{ $t("extensions.plugins.source.label") }}</dt>
           <dd class="mt-0.5 break-all">
             {{
               plugin.source.type === "directory" || plugin.source.type === "zip"
@@ -94,11 +94,11 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
           </dd>
         </div>
         <div v-if="plugin.publication">
-          <dt class="text-fg-tertiary">{{ $t("extensions.publisherUnverified") }}</dt>
+          <dt class="text-fg-tertiary">{{ $t("extensions.plugins.verification.unverified") }}</dt>
           <dd class="mt-0.5 break-all">{{ plugin.publication.publisherId }}</dd>
         </div>
         <div>
-          <dt class="text-fg-tertiary">{{ $t("extensions.sourceRevision") }}</dt>
+          <dt class="text-fg-tertiary">{{ $t("extensions.plugins.source.revision") }}</dt>
           <dd class="mt-0.5 font-mono break-all">{{ plugin.revision.sourceRevision }}</dd>
         </div>
       </dl>

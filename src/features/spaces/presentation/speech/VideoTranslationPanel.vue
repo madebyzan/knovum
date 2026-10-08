@@ -43,7 +43,7 @@ const targetLanguage = shallowRef<TranslationTarget>("en");
 const localOnly = shallowRef(false);
 const translationRun = useVideoTranslationRun(
   (translation) => emit("translated", translation),
-  (message) => toast.error(t("spaces.speech.translationFailed"), { description: message }),
+  (message) => toast.error(t("spaces.speech.translation.failed"), { description: message }),
 );
 const translating = computed(
   () =>
@@ -135,14 +135,14 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
     <div class="grid grid-cols-2 gap-2">
       <UiSelect
         :model-value="targetLanguage"
-        :label="t('spaces.speech.translationLanguage')"
+        :label="t('spaces.speech.translation.language')"
         :options="languageOptions"
         :disabled="disabled || translating"
         @update:model-value="selectLanguage"
       />
       <UiSelect
         :model-value="targetValue"
-        :label="t('spaces.speech.translationModel')"
+        :label="t('spaces.speech.translation.model')"
         :options="targets"
         :placeholder="t('ai.noCompatibleTarget')"
         :disabled="disabled || translating || !ready || targets.length === 0"
@@ -152,20 +152,20 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
     <label class="flex items-center gap-2 text-caption text-fg-secondary">
       <UiCheckbox
         v-model="localOnly"
-        :label="t('spaces.speech.localTranslationOnly')"
+        :label="t('spaces.speech.translation.localOnly')"
         :disabled="disabled || translating"
       />
-      {{ t("spaces.speech.localTranslationOnly") }}
+      {{ t("spaces.speech.translation.localOnly") }}
     </label>
     <p v-if="localOnly && ready && targets.length === 0" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.localTranslationUnavailable") }}
+      {{ t("spaces.speech.translation.localUnavailable") }}
     </p>
     <div class="flex gap-2">
       <UiButton
         size="sm"
         :disabled="disabled || translating || !target || segments.length === 0"
         @click="translate"
-        ><Languages class="size-3.5" />{{ t("spaces.speech.translateScript") }}</UiButton
+        ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
       >
       <UiButton
         v-if="translationRun.activeRunId.value"
@@ -174,7 +174,7 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
         :disabled="translationRun.cancelling.value"
         @click="translationRun.cancel"
       >
-        <Square class="size-3.5" />{{ t("spaces.speech.cancelTranslation") }}
+        <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
       </UiButton>
     </div>
   </section>

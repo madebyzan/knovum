@@ -33,7 +33,7 @@ export function observeVoiceCandidateRun(
     finished(run);
     return undefined;
   }
-  return observeResourceRun(run, i18n.global.t("spaces.speech.generateCandidate"), (next) => {
+  return observeResourceRun(run, i18n.global.t("spaces.speech.voice.candidate.generate"), (next) => {
     if (TERMINAL_STATES.has(next.state)) finished(next);
   });
 }

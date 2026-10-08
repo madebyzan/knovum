@@ -16,10 +16,10 @@ const open = defineModel<boolean>("open", { required: true });
     <template #footer>
       <UiButton size="sm" :disabled="saving" @click="open = false">{{ $t("common.cancel") }}</UiButton>
       <UiButton size="sm" :disabled="saving" @click="$emit('discard')">
-        {{ $t("spaces.media.videoEditor.unsaved.discard") }}
+        {{ $t("common.discardChanges") }}
       </UiButton>
       <UiButton size="sm" variant="primary" :disabled="saving" @click="$emit('save')">
-        {{ saving ? $t("spaces.media.videoEditor.project.saving") : $t("common.save") }}
+        {{ saving ? $t("common.saving") : $t("common.save") }}
       </UiButton>
     </template>
   </UiDialog>

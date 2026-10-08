@@ -4,11 +4,11 @@
   "saveFailed": "外观设置未能保存",
   "theme": {
     "label": "主题",
-    "description": "自动同步操作系统的浅色或深色外观。"
+    "description": "选择浅色、深色或跟随系统。"
   },
   "textSize": {
     "label": "字体大小",
-    "description": "调整界面文本字号大小。"
+    "description": "调整界面字号。"
   },
   "density": {
     "label": "界面密度",

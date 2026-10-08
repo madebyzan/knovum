@@ -30,13 +30,13 @@ const title = computed({
       v-model="title"
       class="min-w-0 flex-1"
       size="sm"
-      :placeholder="t('spaces.speech.chapterTitle')"
+      :placeholder="t('spaces.speech.audiobook.chapterTitle')"
       :disabled="disabled"
     />
     <UiButton
       size="sm"
       variant="ghost"
-      :aria-label="t('spaces.speech.moveUp')"
+      :aria-label="t('spaces.speech.audiobook.moveUp')"
       :disabled="disabled || index === 0"
       @click="emit('move', -1)"
       ><ArrowUp class="size-3.5"
@@ -44,7 +44,7 @@ const title = computed({
     <UiButton
       size="sm"
       variant="ghost"
-      :aria-label="t('spaces.speech.moveDown')"
+      :aria-label="t('spaces.speech.audiobook.moveDown')"
       :disabled="disabled || index === count - 1"
       @click="emit('move', 1)"
       ><ArrowDown class="size-3.5"
@@ -52,7 +52,7 @@ const title = computed({
     <UiButton
       size="sm"
       variant="dangerSubtle"
-      :aria-label="t('spaces.speech.removeChapter')"
+      :aria-label="t('spaces.speech.audiobook.removeChapter')"
       :disabled="disabled"
       @click="emit('remove')"
       ><Trash2 class="size-3.5"

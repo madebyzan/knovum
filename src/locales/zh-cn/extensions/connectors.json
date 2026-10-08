@@ -1,0 +1,27 @@
+{
+  "process": {
+    "executable": "已安装服务的可执行文件（绝对路径）",
+    "arguments": "参数（每行一个；不支持 shell 语法）",
+    "workingDirectory": "工作目录",
+    "authorizationHint": "启用此连接后，应用可启动所选 MCP 服务。安装插件不会安装程序或运行包脚本。",
+    "declaredCommand": "插件声明的程序",
+    "configurationRequired": "使用此连接器前，请选择已安装的程序。",
+    "chooseExecutable": "选择已安装的程序"
+  },
+  "changes": "更改端点或授权身份后，需要重新绑定账号并审核工具权限。",
+  "name": "服务名称",
+  "descriptionField": "服务用途与能力说明",
+  "description": "连接外部服务供 Agent 读取数据和执行操作。请为各个连接配置账号和工具权限。",
+  "add": "添加自定义连接器",
+  "empty": {
+    "title": "尚未配置外部服务连接器",
+    "description": "添加自定义服务，或安装提供连接器的插件。"
+  },
+  "plugin": "由插件提供",
+  "custom": "自定义服务",
+  "search": "搜索连接器…",
+  "delete": {
+    "title": "删除 {name}？",
+    "description": "还会删除该服务的所有连接实例和本地账号凭据。"
+  }
+}

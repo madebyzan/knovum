@@ -27,11 +27,11 @@ const recoveryMessage = computed(() => {
 const toolWaitMessage = computed(() => {
   switch (props.waitReason) {
     case "tool_approval":
-      return t("extensions.toolApproval");
+      return t("spaces.conversation.toolOperations.approval.title");
     case "tool_outcome_unknown":
-      return t("extensions.toolOutcomeUnknown");
+      return t("spaces.conversation.toolOperations.outcomeUnknown.title");
     case "mcp_elicitation":
-      return t("extensions.externalUserInput");
+      return t("spaces.conversation.interactions.title");
     default:
       return undefined;
   }
@@ -40,9 +40,7 @@ const toolWaitMessage = computed(() => {
 
 <template>
   <div v-if="canPause" class="flex shrink-0 justify-end px-3 py-2">
-    <UiButton size="sm" variant="ghost" @click="emit('pause')">{{
-      t("spaces.conversation.tasks.pause")
-    }}</UiButton>
+    <UiButton size="sm" variant="ghost" @click="emit('pause')">{{ t("common.pause") }}</UiButton>
   </div>
   <div
     v-if="state === 'waiting' && recoveryMessage"
