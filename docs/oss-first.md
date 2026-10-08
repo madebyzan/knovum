@@ -1,371 +1,196 @@
 # OSS-first gate
 
-## Canvas image editing and video workbench reviewed 2026-09-29
+Knovum adopts maintained upstream implementations before creating a subsystem. The goal is not to
+maximize dependency count; it is to keep product code focused on Knovum policy, ownership and user
+experience while established libraries own commodity protocol and engine behavior.
 
-- The existing exact-pinned **Konva/vue-konva** canvas stack and browser Canvas 2D primitives own
-  interactive image projection. Crop, rotation, flip and tonal controls do not
-  justify another image-editor framework or a second scene graph. Rust's maintained `image` crate
-  owns canonical raster materialization and validates encoded outputs before managed persistence
-  or export. The shared strict image-edit contract keeps preview and output behavior aligned.
-- Local U²-Net ONNX inference remains the background removal engine. Mature Rust image crates do
-  not provide the requested generative layer decomposition or viewpoint synthesis. The existing
-  DashScope image provider is extended for [Wan image super-resolution](https://help.aliyun.com/en/model-studio/wanx-image-edit-api-reference)
-  and [Qwen image editing](https://help.aliyun.com/en/model-studio/qwen-image-edit-guide) rather
-  than adding a parallel AI routing stack. [Qwen-Image-Layered via fal](https://fal.ai/models/fal-ai/qwen-image-layered/api)
-  supplies actual separate transparent layers; its credential stays in the OS secret store and
-  layer publishing remains a Rust multi-output transaction. Local Qwen deployment needs a
-  Python/PyTorch/CUDA runtime and does not fit the Tauri desktop packaging contract.
-- Object removal reuses the existing image-derivation transaction and configured provider.
-  [DashScope `wanx2.1-imageedit`](https://help.aliyun.com/en/model-studio/wanx-image-edit-api-reference)
-  receives a black/white brush mask; [OpenAI GPT Image edits](https://developers.openai.com/api/docs/guides/image-generation)
-  receive the same selection as a transparent PNG mask. [Gemini image editing](https://ai.google.dev/gemini-api/docs/generate-content/image-generation)
-  receives the source image and an object description. The same prompt-based path uses the
-  documented source-image inputs for [xAI image edits](https://docs.x.ai/developers/model-capabilities/images/editing),
-  [Doubao Seedream](https://docs.volcengine.com/docs/ark/image-generation-api?lang=en),
-  [OpenRouter's image API](https://openrouter.ai/docs/guides/overview/multimodal/image-generation),
-  [SiliconFlow Qwen image editing](https://docs.siliconflow.cn/docs/api/images-generations-post),
-  and [Kling Omni Image](https://kling.ai/document-api/apiReference/model/OmniImage).
-  OpenAI submits PNG files as multipart form data; Gemini uses the existing Files API uploader,
-  and xAI references a private uploaded file ID with a one-hour expiry. The remaining edit APIs
-  require inline image bytes for local sources: a data URI for Qwen, Seedream, OpenRouter and
-  SiliconFlow, and raw Base64 for Kling.
-  Each publishes a separate derived node, leaving the source untouched. Models without a verified
-  source-image edit contract remain disabled; no new provider dependency is needed.
-- The official **FFmpeg filter graph** remains the video rendering engine. It already supplies
-  trim/atrim, concat, volume, rotation, flip and libass timed-text rendering, while the platform H.264 encoder
-  and Task Center cancellation are already provisioned by Knovum.
-- GStreamer Editing Services is a credible full nonlinear editing engine with official Rust
-  bindings, but would require a new native runtime and macOS/Windows packaging pipeline. The
-  current product contract is one managed source, ordered cuts and timed text. FFmpeg remains
-  the selected execution engine for that bounded scope; a future multi-source, multi-track
-  realtime editor requires a new engine decision rather than a second concurrent timeline model.
-- `vue-timeline-editor`, `vue-video-editor`, WebCut and small draggable timeline packages were
-  reviewed. The focused timeline packages are immature, while the larger editors introduce their
-  own WebCodecs/Pixi media engine and project model. Either choice would create a competing media
-  source of truth beside Knovum's managed assets and FFmpeg pipeline. Knovum therefore owns only
-  its small typed timeline/project interaction layer and delegates proxy preparation and final
-  rendering to the existing Rust/FFmpeg boundary. The browser media element plays only managed
-  source media during initial proxy preparation and the short-GOP proxy afterward.
-
-## Desktop Agent installation discovery reviewed 2026-09-17
-
-- Installation discovery and ACP execution are distinct requirements. Google publishes the [Antigravity ACP server separately](https://github.com/agentclientprotocol/registry/blob/main/antigravity-acp/agent.json); the GUI application's presence is not evidence that the ACP server is in PATH.
-- Selected implementation: Apple's [NSWorkspace Bundle ID query](<https://developer.apple.com/documentation/appkit/nsworkspace/urlforapplication(withbundleidentifier:)>) through the existing `objc2` runtime, and Microsoft's [installed-program registration](https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key) through the existing `windows` bindings. Only the target-local Windows Registry feature is added; no new package or WebView filesystem/process permission is introduced.
-- Tauri's OS and opener plugins do not expose installed-application identity queries. Broad filesystem scanning, application-name/path guesses, shell-script discovery and launching Agent processes to test installation do not satisfy the identity-based, read-only requirement.
-- Knovum owns the explicit application/ACP identities and maps native evidence into its existing installation contract. Native lookup failures are visible; no compatibility reader or alternate execution path is added. Desktop Agent settings is the sole automatic installation-query owner; execution still initializes ACP using only the configured server/host entry.
-
-Custom infrastructure is the exception.
+## Selection process
 
 Before implementing a non-trivial capability:
 
-1. Check Tauri/Vue first-party options.
-2. Compare credible GitHub projects: recent releases/commits, maintainer depth, issue/PR health, license, security and platform support.
-3. Check npm or crates.io/docs.rs release/adoption/dependency signals.
-4. Select a maintained stable solution that satisfies the requirements.
-5. Write custom logic only when every suitable maintained candidate misses a named, testable requirement.
+1. Define the requirement, authority boundary, supported targets and failure contract.
+2. Check official Tauri/Vue/platform APIs and dependencies already in the repository.
+3. Compare credible GitHub and npm/crates.io candidates for maintenance, releases, issue health,
+   license, security, platform support, dependency cost and public API fit.
+4. Select the smallest maintained implementation that satisfies every named requirement.
+5. Write custom code only for product policy or when all suitable candidates miss a testable
+   requirement.
 
-"We can write it ourselves", API naming preference or avoiding a small integration seam is not a rejection reason.
+“We can write it ourselves”, naming preference and avoidance of a small integration seam are not
+rejection reasons. Conversely, an OSS package is not selected merely because it exists: it must not
+introduce a competing source of truth, broaden WebView authority or carry an unacceptable runtime,
+license or maintenance burden.
 
-## No wrapper inflation
+Import upstream APIs directly. Add an adapter only when it enforces validation, security, domain
+translation, orchestration or lifecycle policy. Do not create rename-only wrappers.
 
-OSS-first does not mean wrapping the OSS API. Import vendor APIs directly unless Knovum adds policy, validation, security, domain translation or multi-step orchestration.
-
-## PR evidence
-
-For new non-trivial dependencies/subsystems record:
+For a new dependency or custom subsystem, record:
 
 ```text
-Capability / requirements:
-GitHub candidates:
-npm or crates.io candidates:
-Maintenance and release signal:
+Capability and requirements:
+GitHub and registry candidates:
+Maintenance, security, license and platform evidence:
 Selected implementation:
-Rejected alternatives + exact unmet requirement:
+Rejected alternatives and exact unmet requirements:
 Tauri/security capability impact:
-Why custom code is necessary (custom only):
+Why custom code remains necessary (custom implementation only):
 ```
 
-## Foundation selections reviewed 2026-08-13
+Exact version inventories belong to lockfiles and manifests. Dependency lifecycle rules are in
+[dependency-policy.md](dependency-policy.md).
 
-- Tauri 2 official plugins for desktop integration.
-- Vue 3 + TypeScript + Vite.
-- Reka UI for accessible headless behavior; Knovum owns the visual language.
-- Vue Sonner for an imperative, accessible toast API instead of a custom toast queue.
-- Pinia, TanStack Vue Query, VueUse and Zod for their focused responsibilities.
-- TanStack Virtual and stable TanStack Table v8 for high-volume list/grid work.
-- Oxlint + Oxfmt for lint/format; dependency-cruiser for Vue-aware dependency-graph rules; Knip + jscpd for dead/duplicate code.
-- tinykeys for application-local shortcut matching instead of a custom keyboard parser.
-- SQLx for the local credential database; no separate key-management subsystem or operating-system credential prompt.
+## Foundation and desktop integration
 
-Feature engines remain deliberately deferred until their business requirements are concrete.
+- Tauri 2 and its official plugins own supported desktop integrations; native framework bindings
+  are used only where Tauri has no suitable API. Vue 3, Reka UI, Pinia, TanStack Vue Query, VueUse,
+  Zod and the Oxc toolchain retain their focused responsibilities.
+- SQLx owns Rust-side SQLite access. The WebView does not receive SQL authority, and Knovum does not
+  add a generic database service.
+- Native application discovery uses Apple's
+  [NSWorkspace application lookup](https://developer.apple.com/documentation/appkit/nsworkspace)
+  and Microsoft's
+  [installed-program registration](https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key).
+  Tauri's OS/opener plugins do not expose identity-based discovery. Filesystem scanning, path guesses
+  and launching an Agent to test installation were rejected because they cannot prove identity and
+  widen authority.
+- Cross-application dictation uses Tauri's official global-shortcut plugin, RustAudio CPAL and narrow
+  macOS/Windows input bindings. Browser `MediaRecorder` cannot survive a hidden WebView;
+  `global-hotkey` would duplicate the Tauri boundary; Enigo does not own the required foreground
+  identity and clipboard transaction. Knovum custom code is limited to authorization, bounded
+  capture, cancellation and foreground revalidation.
+- macOS thumbnails use QuickLookThumbnailing and the preview panel uses QuickLookUI. The reviewed
+  Tauri quick-look plugin exposed arbitrary WebView-provided paths and did not supply thumbnails, so
+  narrow native bindings preserve Space-owned path authorization. Windows thumbnails use
+  `IShellItemImageFactory`; full preview remains a separate native `IPreviewHandler` capability.
 
-## Voice design and cloning reviewed 2026-10-08
+The resulting lifecycle, permissions and interaction contracts are owned by
+[desktop-foundation.md](desktop-foundation.md) and
+[system-architecture.md](system-architecture.md).
 
-MOSS-TTS-Nano's official independent ONNX implementation owns the small default preset/reference synthesis path. VoxCPM2 owns optional quality cloning and voice design. Its former official Python package requires a datasets dependency closure that fails the current audit, so production execution uses Apache-2.0 audio.cpp at `a1c24b2f90c6e6bcb9a525210d826717e96cdfa9` with the hash-bound original-precision GGUF conversion. The source archive, compiler recipe, callback bridge, model weights and notices are frozen and included in resource evidence.
+## Canvas, editing and documents
 
-The current upstream C streaming API accumulates results before exposing them. Knovum therefore provides a narrow callback ABI over the existing public C++ streaming session to preserve bounded chunk credits and mid-generation cancellation. No vendor source is modified. The worker loads one explicitly selected backend; failures remain visible and never rerun on CPU. The byte-oriented upstream tokenizer requires C character classification, established only inside the private worker. Metal kernels are precompiled into the managed runtime to avoid compiling shaders on the user's first request.
+- Exact-pinned Konva/vue-konva own canvas scene interaction. Adding another scene graph or graph
+  editor would create a second spatial source of truth. Vue owns workbench composition and Knovum
+  persists neutral canvas facts.
+- Tiptap and its first-party extensions own rich-text editing, tables, file handling and find/replace.
+  Markdown text remains canonical only for Markdown items; Notes keep their validated structured
+  document. Vendor JSON is not a compatibility model.
+- Rust `image` owns canonical raster materialization. U²-Net runs through the existing ONNX Runtime
+  worker for background removal; browser ONNX and browser compositing were rejected because they
+  block the desktop renderer. The maintained
+  [rembg U²-Net adapter](https://github.com/danielgatis/rembg/blob/main/rembg/sessions/u2net.py)
+  confirms the full model contract, but installing rembg would duplicate the existing adapter and
+  image pipeline.
+- `pdf-inspector` owns semantic PDF extraction; `office_oxide` owns Office semantic extraction.
+  Platform PDF rendering is used only for bounded visual regions. A private PDF walker, second Office
+  parser or custom fidelity renderer would duplicate mature parsers without satisfying native Office
+  preview fidelity.
+- Mozilla Readability owns readable webpage extraction. Knovum retains security-sensitive fetching,
+  normalization and persistence rather than maintaining selector heuristics.
+- `docx-rs` owns editable Word export; Typst owns fixed-layout PDF export; the existing Rust PPTX
+  serializer owns presentation export. These remain separate capabilities instead of a generic
+  office abstraction.
 
-Rust qualifies and freezes reference assets once. Both synthesis adapters verify the immutable digest, PCM16 mono 16 kHz format and 5–30 second bounds; duplicate Torch VAD is removed from native synthesis. Exact-transcript continuation and design guidance are exposed only for engines that support those controls. Candidate creation and saved voice revisions freeze the actual model identity.
+Detailed data and interaction contracts live in [spaces.md](spaces.md),
+[document-export.md](document-export.md) and [data-ownership.md](data-ownership.md).
 
-## Transcript forced alignment reviewed 2026-10-03
+## Media processing and acquisition
 
-- Capability / requirements: align user-selected transcript segments to the already prepared
-  16 kHz mono media timeline, preserve Unicode scalar ranges, and publish only through the existing
-  transcript revision and media-knowledge CAS boundaries.
-- Selected implementation: the official Apache-2.0 `Qwen/Qwen3-ForcedAligner-0.6B-hf` snapshot is
-  pinned to commit `c07281df297b9905d24a508279258cccf987a064`. Its six runtime files total
-  1,847,225,867 bytes; each has a fixed size and SHA-256 in the Rust resource catalog. The existing
-  exact-pinned Transformers 5.19.0 runtime provides `Qwen3ASRForTokenClassification`,
-  `prepare_forced_aligner_inputs`, and `decode_forced_alignment`, so no `qwen-asr` package or
-  custom alignment model implementation is added.
-- Device and task policy: all current desktop target profiles run this model on CPU. One existing
-  enrichment job owns 1–8 selected segments with at most five minutes of combined audio. Unsupported
-  languages, devices, targets, stale transcript revisions, and unmatched text remain explicit; ASR
-  is never rerun as a fallback.
-- WhisperX was rejected because its Torch 2.8 requirement conflicts with the packaged runtime.
-  CTC aligners would require a second language-dependent model catalog and do not satisfy the
-  selected multilingual model contract. Knovum custom code is limited to verified resource
-  preparation, durable job payload/CAS publication, and mapping official word results back to
-  source-owned scalar ranges without fabricating timestamps.
+- FFmpeg is the single local audio/video processing engine for normalization, cuts, concatenation,
+  filters, subtitles and supported hardware encoding. GStreamer Editing Services is credible for a
+  full nonlinear editor, but its native runtime and project model are excessive for Knovum's bounded
+  timeline. Web timeline packages that embed Pixi/WebCodecs engines were rejected because they would
+  introduce a competing media model.
+- The runtime is produced from pinned Conda-forge FFmpeg closures rather than a system dependency,
+  downloader library or handwritten platform URL set. The
+  [Conda-forge FFmpeg recipe](https://github.com/conda-forge/ffmpeg-feedstock/blob/main/recipe/meta.yaml)
+  is the maintained upstream source. Knovum retains the required runtime files, notices and native
+  dependency closure; SDK/build-only files are excluded only after native dependency traversal.
+- yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
+  executable with ambient config, plugins, cookies, playlists, self-update and remote components
+  disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.
+- VoiceStudio was reviewed as a workflow and engine reference, not imported as application code.
+  Knovum reuses its own native authorization, managed assets, node ownership and durable task model.
 
-## Cross-application dictation reviewed 2026-10-03
+FFmpeg and its native closure require exact inventory, license and corresponding-source review before
+distribution. Runtime topology is in [system-architecture.md](system-architecture.md); package
+construction and approval gates are in [packaging.md](packaging.md) and [release.md](release.md).
 
-- Capability / requirements: a Rust-owned press-to-talk shortcut must remain available while the
-  WebView is hidden, capture the default microphone, run the selected native Python ASR profile,
-  and insert only when the original foreground application and OS permission are still valid.
-- Selected dependencies: Tauri's official `tauri-plugin-global-shortcut` 2.4.0
-  (`Apache-2.0 OR MIT`) owns global press/release registration; RustAudio `cpal` 0.16.0
-  (`Apache-2.0`) owns macOS CoreAudio and Windows WASAPI input; `hound` 3.5.1 (`Apache-2.0`)
-  writes bounded PCM WAV files. All three are target-only macOS/Windows dependencies. Existing
-  `clipboard-rs` 0.3.5 (`MIT`) owns multi-format clipboard snapshots.
-- Native integration: `objc2-app-kit` 0.3.2 (`Zlib OR Apache-2.0 OR MIT`) and `core-graphics`
-  0.25.0 (`MIT OR Apache-2.0`) capture the macOS
-  frontmost process and post Command+V after Accessibility authorization. Existing `windows`
-  bindings capture the foreground HWND/process and call `SendInput`; Windows UIPI rejection is
-  an explicit permission outcome. Only the named framework features are enabled.
-- Rejected alternatives: browser `MediaRecorder` cannot satisfy hidden-WebView lifetime;
-  `global-hotkey` would duplicate the official Tauri plugin boundary; `rodio` is playback-focused;
-  Enigo 0.6 is early-alpha and does not own Knovum's required target-identity revalidation or
-  clipboard transaction. Separate platform recorders would duplicate CPAL's maintained backends.
-- Custom code is limited to Knovum policy: session cancellation, two-minute capture bound,
-  verified-ASR request assembly, foreground identity revalidation, and a private clipboard marker.
-  Clipboard restoration occurs only while that marker is unchanged, so user clipboard activity
-  during transcription is never overwritten. The WebView receives only typed session commands
-  and state events; it receives no global-shortcut, microphone, input-injection, or raw clipboard
-  plugin permission.
+## Local models and inference
 
-## Spaces selections reviewed 2026-08-14
+- The application-managed CPython worker uses capability-specific locked profiles. Rust owns resource
+  identity, process lifecycle, cancellation and publication; the worker receives verified local paths,
+  stays offline during inference and loads only the selected capability.
+- Qwen3 Embedding through Sentence Transformers remains the fixed semantic-index engine because the
+  persisted vector dimension and model identity are database contracts. Local ASR uses MLX Whisper
+  on Apple Silicon and faster-whisper/CTranslate2 on supported CPU/CUDA targets. FFmpeg owns input
+  normalization.
+- Qwen3 Forced Aligner was selected over WhisperX because WhisperX requires an older Torch line that
+  conflicts with the secure runtime. CTC alternatives require a second language-specific catalog.
+  The official Qwen aligner API supplies multilingual alignment while Knovum maps results to immutable
+  transcript ranges.
+- Speaker diarization uses Sherpa-ONNX with public ungated segmentation and embedding resources.
+  This avoids Pyannote account-token plumbing and its training stack while retaining a maintained
+  inference API.
+- Spleeter through Sherpa-ONNX owns vocals/accompaniment separation. Demucs code is permissive, but
+  the author's
+  [checkpoint clarification](https://github.com/facebookresearch/demucs/issues/508#issuecomment-1663033356)
+  restricts the reviewed pretrained weights; a third-party model-card tag cannot override it.
+- Hub downloads use the official
+  [huggingface-hub API](https://huggingface.co/docs/huggingface_hub/en/guides/download) and ModelScope
+  SDK public APIs for their respective repository protocols. Rust owns allowlists, hashes,
+  cancellation and atomic publication. The full ModelScope inference framework and Rust hf-hub file
+  path were rejected because they add unrelated machinery or fail the required resume contract.
 
-- Exact-pinned `konva` and `vue-konva` are the infinite-canvas runtime. Konva's Stage, layered scene graph, hit graph, drag events and Transformer replace the former Vue Flow interaction surface. Vue remains the workbench and business-orchestration owner.
-- Tauri 2 `Menu.popup()` owns right-click context menus in Spaces. This keeps context-menu rendering and interaction OS-native instead of recreating macOS/Windows menus in the WebView; standard OS behavior such as Canvas-background Paste uses Tauri's predefined native menu role. Reka remains the headless behavior layer for left-click Dialog/Listbox/Dropdown surfaces.
-- SQLite FTS5 is used for local Space search rather than adding a second indexing service.
-- Existing VueUse `watchDebounced` is used for bounded Note/Markdown autosave.
-- Tiptap Vue 3 + StarterKit is selected for structured Note/Markdown editing because it supplies the ProseMirror editing model, history, standard blocks/marks and Vue integration while leaving Knovum in control of desktop UI. TaskList/TaskItem, TableKit, Placeholder and CharacterCount are first-party Tiptap extensions rather than custom equivalents.
-- `@tiptap/markdown` is adopted only for the Markdown item: Markdown text remains canonical and only round-trippable features are enabled there. Knovum-owned Notes instead persist one validated structured document tree; the two products share the Tiptap engine without sharing a persistence contract.
-- Tauri official plugins remain the desktop integration baseline. Clipboard image paste uses the official Clipboard Manager image API for image reads and a typed Rust command for validated persistence into the private Space asset directory. Saved Website metadata is fetched by the Rust `web_capture` capability with HTTP status, MIME and response-size boundaries. Mozilla `@mozilla/readability` 0.6.0 owns article/main-content extraction; Knovum only maps the parsed article into its KnowledgeSection contract instead of maintaining a parallel readability heuristic.
-- Document ingestion is Rust-first. Exact-pinned `pdf-inspector` 1.25.2 owns PDF page-level Markdown and reading order, with default features disabled (no PDFium/OCR runtime). `office_oxide` owns DOC/DOCX/XLS/XLSX/PPT/PPTX plain-text and Markdown extraction. PDF source evidence displays extracted text and opens the original file; it does not render pages in the WebView. Office pixel-fidelity rendering remains separate from semantic ingestion.
+Source selection is explicit; there is no locale/IP routing or provider failover. A second SDK may be
+removed only after one qualified protocol covers every approved snapshot, redistribution permission
+and supported-network acceptance. Model identities, user-visible choices, GPU admission and resource
+preparation are owned by [local-models.md](local-models.md).
 
-PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspector/blob/v1.20.0/docs/rust-api.md) confirms the pinned version's public positioned image API. Knovum uses `extract_text_with_positions_mem_in_frame(..., PositionFrame::Display)` and `ItemType::Image`, not a private PDF walker. Normal text pages avoid visual calls; known recognition pages use explicit page inputs. Inline-image/vector coverage remains limited and visible. MIT/default-features-disabled extraction replaces PDFium and its dynamic libraries. Upstream speed claims are not Knovum benchmarks. Native Core Graphics (`objc2-core-graphics =0.3.2`) and Windows.Data.Pdf (existing `windows` bindings) render bounded selected regions without another renderer dependency. Existing `image` normalizes lossless PNGs; existing `zip` bounds Office expansion, never interprets Office semantics. `office_oxide =0.1.13` owns structure/images; its public XLSX cell API avoids IR row truncation. Knovum maps results and coordinates existing AI/job/asset contracts, with no alternate parser or compatibility reader.
+## Speech generation
 
-## Editor and Rust-processing selections reviewed 2026-08-15
+MOSS-TTS-Nano is the default compact CPU-capable synthesis and reference-cloning engine. Knovum uses
+the
+[official standalone ONNX runtime](https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/ort_cpu_runtime.py)
+rather than its full PyTorch application. Supertonic lacked Chinese support; the reviewed OmniVoice
+weights were noncommercial; CosyVoice's footprint was materially larger; Kokoro's reviewed archive
+did not provide sufficient eSpeak distribution evidence. Those implementations are not retained as
+aliases or dormant profiles.
 
-- Existing Tiptap Vue 3 + first-party Markdown/extensions remain the editor engine. `@tiptap/extension-file-handler` owns image drop/paste semantics, the first-party Image extension owns image nodes/resizing, TableKit owns table commands, and the first-party `@tiptap/extension-find-and-replace` owns editor search/highlighting/navigation. Knovum glue only persists selected image bytes into its private asset scope and applies desktop visual composition; it does not reimplement editor transactions.
-- Image conversion/resizing uses the maintained Rust `image` crate rather than browser Canvas. The current output matrix is PNG/JPEG/BMP/TIFF; resize uses the crate's Lanczos3 filter and rotate/flip use its built-in transforms.
-- Background removal keeps Rust `image` for bounded pixel preparation and compositing. The fixed U²-Net small ONNX model now executes in the private Python worker through ONNX Runtime; the model remains a verified Knovum resource. Browser-only `modern-rembg` and `onnxruntime-web` were removed because CPU inference and image compositing in the WebView made the desktop shell unresponsive.
-- Subtitled-video derivation reuses Knovum's provisioned FFmpeg runtime and current Whisper transcript contract. FFmpeg's libass `subtitles` filter plus the macOS VideoToolbox or Windows Media Foundation H.264 encoder own local subtitle burn-in, avoiding a GPL x264 distribution dependency. Knovum owns SubRip serialization, Space-scoped cancellation, source-revision validation, output persistence and lineage. No wrapper crate is added because the repository already has a bounded Rust process-control adapter.
-- Spaces binary document/media import/export uses Tauri dialog/filesystem/opener boundaries and preserves original bytes. Native PDF page rasters and supported Office images are private document resources for background analysis, not source-page previews. Their durable manifest participates in the existing package and asset-reference lifecycle. FFmpeg generates persistent video posters. Audio/video playback remains activation-only while heavy editing stays a professional-app handoff.
-- Sensitive Information nodes keep only non-secret metadata in Spaces SQLite and store values in the foundation-owned credential database. No parallel encryption subsystem or application-managed master key is introduced.
-- Spaces resource ingestion uses Rust `std::fs` for bounded private copies. The file-inspection boundary rejects directories before a canvas import job exists, while archive formats remain opaque binary file assets; workspace package ZIP transfer remains separate. Code/text preview is a bounded Rust read. Imported HTML runs only inside a sandboxed asset-protocol frame backed by Knovum-owned AppData; site-directory import is not supported.
-- External professional editing stays an explicit opener handoff. Resource refresh occurs when the Knovum window resumes rather than adding a file-watcher dependency solely for this workflow.
+VoxCPM2 owns optional high-quality cloning and voice design. Its published Python dependency graph
+requires a Datasets line below the security floor, so metadata rewriting, advisory suppression and
+environment splitting were rejected. The native path uses the upstream-recommended
+[audio.cpp](https://github.com/0xShug0/audio.cpp/tree/a1c24b2f90c6e6bcb9a525210d826717e96cdfa9)
+at the frozen reviewed revision with verified
+GGUF resources. Knovum adds a narrow callback bridge because upstream's public pull API exposes output
+only after synchronous generation; the bridge preserves bounded chunks and cancellation without
+modifying vendor source.
 
-## Spaces infinite canvas and media knowledge
+The worker initializes only the selected engine. Failure remains visible and does not rerun on a
+different device. Exact snapshots, controls and platform qualification remain in
+[local-models.md](local-models.md) and [release.md](release.md).
 
-- Infinite-canvas interaction uses Konva's official Stage, Layer, hit detection, drag events, transforms and redraw controls. Knovum adds only knowledge-object presentation, domain orchestration and the neutral persistence/exchange contract.
-- Long media transcripts use `@tanstack/vue-virtual`, the Vue adapter for TanStack Virtual. The Inspector keeps the complete transcript model while mounting only visible rows.
-- Local speech transcription uses explicit Python execution profiles: MLX Whisper on Apple Silicon and faster-whisper/CTranslate2 on Windows x64. FFmpeg normalizes imported audio/video to 16 kHz mono PCM. Rust verifies the pinned model snapshot, source revision, request identity, timestamps, and transcript before publication. Subtitle cues use the existing timed-token grouping; FFmpeg/libass measures glyphs and wraps against the rendered frame. Neither browser speech recognition nor cloud media upload participates in this path.
-- Semantic Knowledge Search executes locally through the application-managed CPython worker using the fixed `Qwen3-Embedding-0.6B` snapshot and upstream Sentence Transformers at 1,024 dimensions. Rust retains index generations, revision checks and publication; the worker neither reaches the network nor writes the vector store.
-- Translation uses the shared maintained `genai` multi-provider boundary and the same connection/model capability settings as other AI actions. Qwen-MT targets use Alibaba's documented `translation_options`; other explicitly translation-capable chat models use a provider-neutral translation-only chat protocol. Protocol selection is explicit from provider/model identity rather than a fallback, and Rust does not select a product-default model.
-- Token usage accounting reuses `genai`'s provider response usage instead of installing a second tokenizer or approximating vendor billing. The local embedding worker reports counts from the model tokenizer and rejects overlong input rather than truncating it. Provider omissions stay explicit; Knovum does not synthesize cloud usage from prompt text.
-- Background removal executes U²-Net in the private Python worker through ONNX Runtime's upstream API. Rust validates the model resource and tensor file contract, then composites the returned mask through the existing `image` path.
-- Chapter/Summary generation reuses Knovum's existing Rust generative-AI provider integration. It is opt-in, receives timestamped text rather than media binaries, and Chapter timestamps must resolve to real Transcript segment starts before persistence.
-- Desktop Agent sessions reuse `agent-client-protocol` v1 MCP server declarations and the existing `rmcp` streamable-HTTP server. Each creation session receives a loopback-only, bearer-authenticated, Space-scoped endpoint that is cancelled with the ACP session; no Agent-specific knowledge protocol or direct database access is implemented.
+## Agents, protocols and extensibility
 
-## Release-candidate OSS decisions reviewed 2026-08-18
+- Deep Agents/LangGraph own the built-in Agent graph, summaries, private workspace and checkpointing.
+  Rust owns product actions, authorization, fees, publication and recovery. A second scheduler or
+  custom graph/checkpoint framework would cross those boundaries.
+- `rmcp` owns MCP client/server and OAuth protocol behavior; `agent-client-protocol` owns desktop
+  Agent sessions. Knovum adds bounded transport, credential storage and Space authorization rather
+  than implementing either protocol.
+- Gitoxide reads reviewed HTTPS Git objects without shelling out to Git or honoring ambient user Git
+  configuration. `yaml-rust2`, `iri-string` and Unicode normalization own their standard parsing and
+  identity responsibilities.
+- Tauri/Vue/TanStack/Zod primitives remain the plugin UI foundation. No frontend plugin framework or
+  Python MCP client is added.
 
-- Saved Website readable-content extraction uses Mozilla `@mozilla/readability` 0.6.0 rather than Knovum-owned DOM stripping/selector heuristics. Knovum keeps only security-sensitive Rust fetching, metadata normalization and domain translation.
-- Space transactions use the already selected `sqlx` dependency in Rust. A generic renderer-to-Rust SQL transaction bridge was rejected because it would widen authority and obscure domain invariants; commands are named for their business mutation.
-- The Python ONNX Runtime and U²-Net resource remain exact-pinned. Runtime or model upgrades require cross-platform release builds, checksum/license review, representative-image fixtures, and a real inference smoke on macOS and Windows.
-- Editable Word export uses `docx-rs` in the Rust layer. Fixed-layout PDF export uses Typst's official compiler and PDF exporter through exact-pinned `typst-as-lib`, with its system-font discovery feature enabled; filesystem/package/network resolvers remain disabled. Presentation export uses the existing Rust PPTX serializer through the same validated document model. PDF and PPTX select the current platform's installed UI sans family. The light video editor uses exact-pinned `fontdb` (already present through Typst) to enumerate installed font families and face weights; libass burns the selected family and weight into the rendered video. Missing fonts are rejected before export. Editable projects still depend on fonts installed on the computer that renders them. None of these dependencies becomes a general office-document abstraction.
-- Video generation uses existing model/desktop-Agent execution and the current selected knowledge plus rendered image references. It does not require a hidden script-generation call. Deterministic subtitle burn-in reuses FFmpeg and local Whisper.
-- SQLite mutations that read before writing start with `BEGIN IMMEDIATE` through the Spaces-owned transaction boundary. This gives one explicit write-serialization policy without retry loops, busy-error fallbacks or a renderer-visible generic database service.
+Upstream references: [Rust MCP SDK](https://github.com/modelcontextprotocol/rust-sdk),
+[Gitoxide](https://github.com/GitoxideLabs/gitoxide),
+[yaml-rust2](https://github.com/Ethiraric/yaml-rust2),
+[iri-string](https://github.com/lo48576/iri-string),
+[unicode-normalization](https://github.com/unicode-rs/unicode-normalization),
+[Agent Plugins](https://agent-plugins.org/) and [Skills](https://skills.sh/).
 
-## Knowledge work system selections reviewed 2026-09-22
-
-- Builtin Agent uses Deep Agents 0.7.22 / LangGraph 1.2.13 / SQLite saver 3.1.1 in a dedicated locked Python process. These upstream APIs own planning, context summaries, private workspace, bounded research and graph durability. Rust owns Actions, grants, Runs, fee admission and public-history transactions. `rig-agent` and its Rust control loop have been removed; direct `genai` consumers remain. No Agent Server, framework fork, custom checkpointer/outbox or transport fallback is introduced.
-- Official LangChain model integrations preserve provider protocols and reasoning/tool structures. Protocol and qualified context limits are explicit model settings, frozen per segment; disabled automatic retries do not become model failover. `truststore` 0.10.4 gives the application native OS TLS trust at its process entry, rather than implementing certificate parsing. Local public-interface proofs live in `python/tests/agent_runtime`; real providers and target platforms have separate qualification gates.
-- Personal workflows reuse verified derivation ordering and the existing Action Run scheduler. Removing built-in recipe graphs removes the direct `petgraph` dependency; there is no second compiler or execution framework.
-- `rmcp` 3.5.1 is the official Rust MCP transport for the inbound Space knowledge server and outbound selected Agent connections. `agent-client-protocol` 3.0.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
-- `schemars` 1.2.2, `ts-rs` 12.0.1 and `jsonschema` 0.58.6 share Rust-owned static contracts with TypeScript and validate untrusted dynamic tool schemas in Rust. Remote schema references are not fetched, and Vue does not become a second dynamic-schema authority.
-- Space Action parameters are generated from typed Rust contracts with `schemars`, emitted as JSON Schema 2020-12 and validated by `jsonschema`. The former hand-written `text/number/json` descriptor was removed because it duplicated the standard while losing enums, ranges and object structure.
-- The existing Konva canvas owns workflow selection and spatial context. The former Vue Flow Studio and its dependency were removed because a separate graph editor duplicated canvas interaction.
-- Apalis and Temporal were rejected as alternate business Run schedulers. Deep Agents owns only the built-in model graph; SQLx/Tokio still owns business Actions, authorization and resource publication. The custom code is limited to Knovum-specific Run, authorization, publication and recovery semantics that these libraries cannot own without violating domain boundaries.
-
-## Space catalog thumbnails reviewed 2026-09-16
-
-Space catalog covers and Saved View previews are separate from file previews. `html-to-image` was removed because it cloned the live canvas DOM and made thumbnail work proportional to mounted UI complexity. Full-window and WebView snapshot APIs were rejected because they capture product chrome and couple derived content to platform window geometry. Knovum instead projects the neutral canvas scene through one non-interactive Konva thumbnail renderer: whole-Space covers use content bounds, while Saved Views use their persisted viewport. The renderer draws only canvas knowledge content and loads bounded local preview images; selection, handles, toolbars and zoom controls are not part of its input.
-
-## Quick Look thumbnails and preview panel reviewed 2026-09-05
-
-- macOS document thumbnails come from Apple's own QuickLookThumbnailing framework through the maintained `objc2-quick-look-thumbnailing` 0.3.2 bindings, with `objc2-image-io` 0.3.2 encoding the returned `CGImage` to PNG. Both live in a `cfg(target_os = "macos")` dependency block with narrow, non-default features. Knovum owns only the request policy, the completion-to-channel bridge and the private output path under the existing previews directory; the drawing itself is the system's.
-- The macOS preview panel uses `quicklook` 0.2.2 (MIT OR Apache-2.0), a thin binding to Apple's QuickLookUI `QLPreviewPanel`, in the same `cfg(target_os = "macos")` block. It depends on `objc2` 0.6.4 and the 0.3.2 framework crates the thumbnail path already pins, so it adds no second Objective-C runtime version to the lockfile. Knovum owns only the path authorization, the main-thread dispatch and the toggle rule; the panel is AppKit's, so a Space file renders exactly as it does in Finder.
-- `tauri-plugin-quicklook` 0.2.5 was reviewed and rejected for thumbnails: it exposes only the preview panel, fixes its own plugin command key, and Knovum needs the panel and the thumbnail to share one policy and one output directory. It was rejected for the panel as well: it registers seven commands that accept whatever path the WebView supplies, with no hook for a product-specific authorization rule, so adopting it would widen the WebView ACL from one authorized Space-asset preview to seven arbitrary-path panel operations. Its mature main-thread dispatch pattern was studied and re-implemented locally rather than adopting the plugin.
-- Credential-shaped names (`.env`, `.env.*`, `.npmrc`, private keys, keystores, password stores) are never rendered into AppData: a canvas thumbnail must not become a second, less protected copy of a secret.
-
-## Rich media links and Windows Shell preview reviewed 2026-09-10
-
-- Media-reference recognition and local import use exact-pinned official yt-dlp standalone executables. This replaces provider-specific URL parsers and oEmbed clients: yt-dlp's extractor registry is the source of truth for supported sites, while Knovum owns the normalized persisted contract and managed-asset lifecycle.
-- yt-dlp is invoked only by Rust with fixed machine-readable arguments. Ambient configuration, plugins, remote components, browser cookies, playlists and self-update are disabled. Downloads run in an isolated workspace and publish media plus poster into the Spaces managed-asset directory only after successful completion.
-- YouTube extraction uses the official yt-dlp standalone executable and an exact-pinned application-owned Deno runtime prepared on first use. The yt-dlp source is Unlicense, while official PyInstaller standalone executables are GPL-3.0-or-later combined works because of bundled components. Release URLs and SHA-256 hashes live in the repository-owned runtime manifest embedded in the Rust host.
-- Windows document thumbnails use `IShellItemImageFactory` through the target-only `windows` crate with only Foundation, GDI, COM and Shell features enabled. `THUMBNAILONLY` deliberately rejects generic icons. Extraction runs on a dedicated STA worker and publishes a PNG into the existing private preview cache.
-- Windows full preview remains a separate `IPreviewHandler` host capability because it requires a native HWND, STA message loop and deterministic handler lifecycle. It is not approximated with a Vue panel or custom Office renderer.
-
-## Catalog-owned model downloads reviewed 2026-10-07
-
-The official [huggingface-hub 1.33.0 download API](https://huggingface.co/docs/huggingface_hub/en/guides/download)
-and [modelscope-hub 0.4.5](https://pypi.org/project/modelscope-hub/0.4.5/) own Hub metadata,
-partial transfers, resume and download locking. Knovum calls only public `snapshot_download` and
-`HubApi.download_repo` APIs with an exact file allowlist and a full repository commit.
-The published Rust hf-hub 1.0.0 plain HTTP file path creates a fresh output file; adopting it would
-still leave Knovum owning the required resume behavior. The full `modelscope` framework would add
-unrelated inference machinery. Neither is selected for this download capability.
-
-The two SDKs serve different repository protocols; their download features overlap. Both are
-retained because the currently qualified sources span both platforms. Provider-specific code
-only invokes the public SDK and translates download progress; Knovum's installation lifecycle
-remains shared. A single SDK would be preferable if sources using its protocol covered every
-approved snapshot and passed complete download/resume acceptance in both regions. Consolidation
-must account for mirror publication, redistribution permissions and maintenance, rather than
-only the number of client libraries. Using two SDKs does not establish regional availability.
-
-`knovum_model_resources` is independent of `knovum_inference`. Rust owns the catalog-selected
-source, file inventory/SHA-256, cancellation, shared installation and immutable snapshot
-publication. SDK metadata stays with its staging directory, allowing another attempt to resume;
-model weights are not duplicated in a global Hub cache. SDK configuration/cache homes are private
-to Knovum, and public downloads use no personal Hub credentials. Inference receives local paths
-and remains offline.
-
-Each Hub snapshot declares exactly one source; MOSS-TTS-Nano and native VoxCPM2 instead declare exact per-file direct sources. Qwen3 Embedding and Qwen3 Forced
-Aligner select previously verified ModelScope revisions. Faster-whisper, MLX Whisper, U²-Net and
-Spleeter select their pinned Hugging Face repositories. The earlier comparison established matching
-size/SHA-256 metadata for all 28 required files in five cross-Hub snapshots and downloaded five
-configuration files through the official ModelScope SDK. Those records establish content identity,
-not network availability. File hashes, model inventory and inference identities are unchanged.
-
-The client has no geographic setting, locale/IP-based routing, community HF-Mirror endpoint or
-provider failover. Runtime publications declare one HTTPS archive URL. Worldwide delivery belongs
-to release configuration and distribution infrastructure, with actual anonymous download/cancel/resume
-acceptance required on supported networks. No CDN has been provisioned by this code change; when a
-source cannot pass acceptance, qualify a permitted copy of the same audited bytes and update the
-catalog or publication address before release.
-The former Kokoro archive is removed. Public Sherpa diarization and the new synthesis snapshots retain exact source, hash and notice contracts.
-
-# 文档提取与原生资源生命周期
-
-office_oxide 0.1.13 的公共工作表图片、文字形状、单元格接口直接复用，
-不为 XLS/XLSX 图片提取构造整份 IR；Word/Slides 使用借用的 IR 内容，
-包括库实际提供的页眉页脚。逐元素带位置分块因公开渲染接口不足而保留产品映射，
-不复制私有解析器，不克隆含图片的 IR。
-
-pdf-inspector 1.25.2 提供文本及 Display 坐标，不提供公开嵌入图片字节提取接口。
-必要区域由 CoreGraphics / Windows.Data.Pdf 渲染；不引入第二套 PDF 引擎。
-macOS 位图翻转原地进行；Windows 页面、流、读取器在作用域退出时释放，
-包括错误路径，不增加常驻原生渲染线程或跨线程句柄缓存。
-
-## Audio production reviewed 2026-10-05
-
-VoiceStudio was compared at commit `c4d63ef207f345b4405f8e8320a73d273ce7187f` for production
-workflows, precision and delivery contracts. Its implementation is not imported into Knovum.
-Knovum retains the existing Tauri native authorization, managed assets and durable Run model.
-
-Audio processing uses the already bundled FFmpeg filters/encoders; media playback reuses VueUse
-and the feature's existing playback composable. Manuscripts reuse MarkdownIt, the existing ZIP
-reader and native Office/PDF extraction. EPUB parsing needs only its bounded XML manifest/spine
-and paragraph mapping, so native DOMParser suffices without another archive/XML/document parser
-or a speculative dependency. Parsed markup remains inert and is never inserted into the UI.
-The fixed MOSS-TTS-Nano presets and native VoxCPM2 model identities belong to the application
-catalog; creation, preview, execution and package restore validate that membership. Supplier
-implementation, model files and notices are frozen independently. Model/license release gates
-remain authoritative.
-
-## Native voice supplier reviewed 2026-10-07
-
-The [VoxCPM upstream README](https://github.com/OpenBMB/VoxCPM/blob/main/README.md) recommends
-llama.cpp-omni for native VoxCPM2 inference and also lists audio.cpp. The existing Python package
-still requires Datasets below 4; its independently frozen dependency audit reports affected
-Datasets 3.6.0 and fsspec 2025.3.0. Splitting environments preserves this production blocker;
-metadata rewriting or ignored advisories cannot resolve it.
-
-[Native probe evidence](evidence/native-voice-engine-probe-2026-10-07.json) records audio.cpp at
-`a1c24b2f90c6e6bcb9a525210d826717e96cdfa9` and the hash-verified original-precision VoxCPM2 GGUF.
-The native Intel CLI compiled without its model manager and produced real 48 kHz speech, then
-reference-transcript clone chunks. These are engine-interface probes, not product quality acceptance.
-The public C ABI starts synthesis synchronously before pull events are available; the C++ callback
-emits earlier but retains whole-output and named-chunk buffers. The built-in HTTP adapter has no
-qualified authenticated local transport. That initial probe did not change the production engine.
-The subsequent native adapter uses a narrow callback ABI over the frozen public C++ session,
-retains application-owned chunk credits and cancellation, resets stopped sessions and validates
-48 kHz mono output. It replaces the blocked Python VoxCPM dependency graph without altering supplier
-code or bypassing model identity and Worker lifecycle contracts. The current Intel adapter evidence
-and remaining native-platform acceptance are recorded in `docs/local-models.md`.
-
-## Agent extension implementation choices
-
-Outbound MCP reuses official rmcp 3.5.1, alongside the existing server, including public OAuth
-state, PKCE, token refresh and credential-store APIs. Deep Agents 0.7.22 public SkillsMiddleware,
-StoreBackend and skill_tool_resolver load reviewed content; there is no Python MCP client.
-gix 0.88.0 reads HTTPS Git objects without an external Git process or checkout. yaml-rust2
-0.13.0 reads Skill frontmatter and detects duplicate keys. iri-string 0.7.14 performs RFC 6570
-resource-template expansion; unicode-normalization 0.1.25 supplies NFC identities for portable
-package paths. Existing ZIP, JSON Schema, SHA-256, SQLite and native dialogs are reused.
-
-Policy adapters have concrete boundaries: Git HTTPS pins the reviewed public destination and
-bounds request/response streams; MCP HTTP bounds JSON/SSE and rejects malformed responses
-instead of treating them as accepted requests. SDKs still own Git/MCP framing and semantics.
-No parallel harness, transport downgrade, package installation command or vendor global config
-writer is added. References: https://github.com/modelcontextprotocol/rust-sdk,
-https://github.com/GitoxideLabs/gitoxide, https://github.com/Ethiraric/yaml-rust2,
-https://github.com/lo48576/iri-string, https://github.com/unicode-rs/unicode-normalization,
-https://agent-plugins.org/ and https://skills.sh/.
-
-### Default speech generation: official standalone MOSS-TTS-Nano
-
-VoiceStudio's reviewed source (commit `d961f65b0df14cfaad9e45f39cfeae384b3e87de`) uses MOSS-TTS-Nano among its curated engines. Knovum uses the [official standalone ONNX runtime](https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/ort_cpu_runtime.py), pinned without modifications, rather than its full PyTorch application package. OpenMOSS explicitly supplies this independent NumPy/ONNX path for CPU inference and reference cloning. The Apache-2.0 source license and source hashes are recorded in `python/runtime-source.json`; the producer installs that component with source and notices, records it in CycloneDX and hashes its files in the runtime manifest. Knovum owns the fixed joint TTS/codec model layout, bounded stream credits, cancellation and immutable voice identities. No vendor application code is copied.
-
-Compared alternatives: Supertonic 3 does not cover Chinese; OmniVoice's reviewed weights have a noncommercial license; CosyVoice 3's full resource footprint is substantially larger; Kokoro's reviewed archive had unresolved eSpeak distribution evidence. The previous Kokoro installer and its dedicated locks are removed rather than retained behind an alias. MOSS exposes normal-speed synthesis and reference cloning; voice design and unsupported style/speed controls are rejected. VoxCPM2 remains the separate quality/design engine, subject to its own dependency and native qualification.
-
-The joint ONNX snapshot pins TTS repository `f52645cb467506d8e18e746ddd59482685b74e58` and codec repository `ceff0d0749bfb3fa2d61149794ec6feef0d1e1ae` with per-file SHA256 and byte lengths. Both pinned model cards declare Apache-2.0. Intel Mac native probing produced finite 48 kHz Chinese and English streams with first chunks under one second after load; this is evidence for this machine, not a substitute for Windows or Apple Silicon native acceptance.
-
-## Image model alternatives reviewed 2026-10-08
-
-The existing U²-Net ONNX adapter supports both the official compact and full architectures with
-identical 320×320 RGB input and first-mask output contracts. The maintained
-[rembg U²-Net session](https://github.com/danielgatis/rembg/blob/main/rembg/sessions/u2net.py)
-uses the full model for higher-capacity background removal. Knovum reuses the existing pinned
-ONNX Runtime, image compositing, snapshot installer and model settings contracts; installing
-rembg, adding a second image engine or introducing a wrapper is unnecessary. The existing
-immutable rembg snapshot already contains both files, and each retains its own hash, size and
-model specification. No Tauri capability permission changes are required.
-
-VoiceStudio's HTDemucs separation implementation was reviewed again. Its code is MIT, but the
-[author's checkpoint clarification](https://github.com/facebookresearch/demucs/issues/508#issuecomment-1663033356)
-limits the provided weights to research use. A third-party MIT model-card tag does not override
-that restriction. It is not added as a product download; the existing Spleeter engine remains
-the licensed separation implementation.
-
-# Core media production decision
-
-Reuse the existing pinned Conda-forge/micromamba native producer for FFmpeg 9.0.1 instead of adding a downloader package, a system installation path or manually configured platform URLs. The frozen media-only closures contain 70 packages on Intel macOS (73,740,388 compressed bytes), 87 on Apple Silicon (92,413,506 bytes), and 64 on Windows x64 (78,678,035 bytes); none includes Python. Retain the supplier prefix and its shared libraries, native package inventory and licenses. The [upstream Conda-forge FFmpeg recipe](https://github.com/conda-forge/ffmpeg-feedstock/blob/main/recipe/meta.yaml) provides maintained builds across these platforms. Package URLs and SHA-256 identities are frozen in the three checked-in locks; the reference to the recipe is explanatory and never a mutable build input. FFmpeg/GPL and the transitive native closure require complete corresponding-source review before production distribution.
-
-The development entry uses [Vite's official JavaScript API](https://vite.dev/guide/api-javascript.html) after core media preparation, preserving one server process and its normal config and shutdown lifecycle. No additional frontend dependency is introduced.
-
-The first complete Intel prefix measured 587,139,487 bytes and 396 native files. Exporting that SDK prefix is unnecessary for the desktop. [Delocate](https://github.com/matthew-brett/delocate) and [Delvewheel](https://github.com/adang1345/delvewheel) were considered for library inspection/relocation; their primary delivery contracts target Python wheels on their respective platforms. Knovum needs a fixed FFmpeg entry point, the existing Conda prefix layout, retained runtime data/notices, and rejection of third-party libraries outside that prefix. Use the native build tools directly for this small producer policy: macOS `otool -L` and MSVC's documented [`dumpbin /DEPENDENTS`](https://learn.microsoft.com/en-us/cpp/build/reference/dependents?view=msvc-170). Traverse the complete dependency graph before removing SDK tools, static archives and unreferenced aliases. Retain OS-provided library boundaries without conveying OS libraries. This adds no dependency or application-time library resolver; the resulting signed resource still undergoes relocation and feature qualification before publication.
+Protocol and authority boundaries are defined in [system-architecture.md](system-architecture.md)
+and [secrets.md](secrets.md). Exact package versions and license gates remain lockfile- and
+[dependency-policy.md](dependency-policy.md)-owned.

@@ -57,6 +57,9 @@ exposed to the WebView.
 
 A business invariant spanning multiple statements must execute in one Rust SQLx transaction. Never reproduce a transaction by issuing multiple IPC commands and never move a generic transaction/SQL bridge into Foundation.
 
+Model calls, network waiting and human approval must not hold a database write transaction.
+Prepare their results outside the transaction, then recheck the publication conditions when committing.
+
 Examples include Structure/Layout edits, content creation, subtree delete/restore, grounded messages,
 linked two-Space movement and Space-package restore.
 

@@ -15,29 +15,27 @@ First setup:
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.17.0 --activate
-pnpm install
-cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
+pnpm install --frozen-lockfile
 pnpm desktop:dev
 ```
 
-Commit both lockfiles after the first successful resolution:
+The checkout includes both lockfiles:
 
 ```text
 pnpm-lock.yaml
 src-tauri/Cargo.lock
 ```
 
-Use `pnpm install --frozen-lockfile` in CI and normal reproducible setup after the lockfile exists.
+Use the committed lockfiles for normal setup and CI. Regenerate a lockfile only for an intentional dependency change.
 
 ## Local validation
 
 ```bash
 pnpm check
-pnpm exec tauri build --no-bundle
+pnpm exec tauri build --no-bundle --debug
 ```
 
-`pnpm exec tauri build --no-bundle` compiles the desktop application without creating installers. Packaging is documented in `packaging.md`.
+`pnpm exec tauri build --no-bundle --debug` compiles the desktop application without creating installers or requiring published release resources. Packaging is documented in `packaging.md`.
 
 ## End-user installation
 

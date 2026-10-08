@@ -22,6 +22,8 @@ The candidate workflow requires the tag to match all three application versions,
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, native
 builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
 macOS arm64/x64 and Windows x64. A partial matrix cannot enter the stable manifest.
+Unauthorized writes, lost edits, duplicate irreversible effects, post-cancel publication, false
+success or evidence, secret leakage and unrecoverable data loss block release.
 The independently published, on-demand CPython interpreter, native extension modules and dependent dynamic libraries are
 part of the application trust boundary. Each target must verify the complete runtime manifest,
 native loadability, signing/notarization or Authenticode conditions, and an installed inference

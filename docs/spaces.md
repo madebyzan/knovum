@@ -80,10 +80,34 @@ Implemented action families include image background removal and the video-node 
 
 Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Add subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
 
-Editing an existing node keeps its identity; Create from selection publishes a separate resource.
-Duplicate copies a node without claiming derivation provenance, while Download writes an external
-file. The exact effect and revision rules for every node kind live in `docs/architecture.md` under
-“Space operation effects and source identity”.
+Operations are classified by their durable effect, independently of their toolbar, engine or AI use:
+
+| Effect          | Durable result                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| Inspect         | Read current state; disposable caches do not create history or lineage                     |
+| Edit            | Keep the node/Relation/Structure identity and commit its validated change/history          |
+| Create primary  | New authored or acquired resource, without transformation lineage                          |
+| Clone           | New identity preserving copied state, without claiming a Derivation                        |
+| Derive          | New resource from pinned inputs, with a Derivation and successful `derives-from` Relations |
+| Export external | Explicit external destination or system handoff, without creating a Space node             |
+
+Interactive drafts hold a separate occupancy gate until Apply, Cancel or gesture completion.
+Inspection and navigation remain available; competing edits, structure mutations, creation, cloning,
+export and derivation are blocked at both the originating control and submit entry. The gate projects
+the owning session, rather than copying its draft. Submitted background work releases this gate and
+retains its pinned input. An operation must not both edit its source and publish a derivative under
+one ambiguous intent. Indexing, thumbnails, media proxies and node-owned enrichment are maintained
+projections, not user-facing Derivations; `creates_resource` authorization alone does not claim lineage.
+
+Revision identity follows the consumed data: `sourceRevision` identifies managed source bytes;
+`rendered` identifies bytes plus the normalized image/video edit snapshot; `knowledgeRevision`
+identifies semantic content; Structure's `editRevision` fences layout and membership only.
+Derivation inputs record their `asset`, `rendered` or `knowledge` basis and consumed snapshot.
+Rust rechecks that basis and edit/project before publication. A later source edit marks the old
+output historical without rewriting or regenerating it. Image background removal/upscale consume
+`rendered`; subtitle burn-in pins video bytes and transcript knowledge; viewport movement consumes
+neither. Ordinary content edits compare the complete expected payload atomically, so stale edits
+cannot overwrite newer content or comments. Preview and external export use current rendered content.
 
 A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs does not turn that operation into a Workflow. A **Workflow** is a reusable dependency chain captured from completed, verified Space Action derivations. There are no built-in Workflow recipes.
 
@@ -291,6 +315,10 @@ Video dialogue may be stretched only from 0.9 through 1.1 to fit its assigned in
 mismatch becomes `needs_edit`, and overlapping dialogue is represented by explicit lanes. The editor
 offers source-voice mute or a separately imported background track. Knovum does not claim to retain
 environmental sound because no legally distributable, qualified dialogue-separation model is selected.
+
+Video translation owns restore, submission, observation and result loading. Editing and synthesis
+remain disabled until the matching result is applied or the job settles; revision changes invalidate
+late results. Audiobook output drafts validate loudness, peaks, pauses and metadata before submission.
 
 ## Sensitive information
 
@@ -510,21 +538,8 @@ Structured state lives in SQLite. Imported binary assets and cached website asse
 
 WebView access to private assets is limited to that app-data subtree through Tauri's asset protocol. Source files selected through the native dialog or dropped from the OS are authorized only for the import operation; Spaces keeps its own private copy and does not retain arbitrary filesystem scope.
 
-## OSS-first implementation choices
-
-The feature follows `AGENTS.md` and `docs/oss-first.md`:
-
-- The selected canvas engine owns rendering and transient interaction behind `CanvasEditorPort`; Knovum owns the engine-neutral Structure/Layout persistence contract. **JSON Canvas 1.0** is an explicitly lossy exchange boundary: visual groups import as Sections only when membership is unambiguous, while unsupported Groups, transforms, locks, folding and relation semantics are rejected instead of flattened. Imported edges become the same semantic `SpaceRelation` records used everywhere else.
-- **Tiptap** (`@tiptap/vue-3`, StarterKit, Markdown, task-list, table, placeholder and character-count extensions) owns the shared editing engine. The official Vue `BubbleMenu` handles selection-local formatting while Knovum keeps compact desktop chrome. Knovum Notes persist Knovum's validated structured document tree plus derived plain text; Markdown persists Markdown text and only enable round-trippable capabilities.
-- **MediaRecorder** owns local audio capture while a typed Rust command validates and persists the resulting container; a media framework is not introduced for a capability already covered by stable platform APIs.
-- **Tauri Menu** owns right-click context menus on non-editable desktop workspace surfaces so macOS/Windows render native menu typography, separators, highlighting, keyboard interaction and placement. Canvas-background Paste uses Tauri's predefined native Paste role; the keyboard shortcut uses the existing application command and clipboard pipeline. Editable text deliberately keeps the platform/WebView text-editing menu. **Reka UI** remains appropriate for in-app left-click Dropdown/Dialog/Listbox behavior.
-- **SQLite FTS5** provides the deterministic lexical index. Spaces uses the built-in trigram tokenizer for Chinese/English/code substring retrieval and a bounded short-term query for one- and two-character searches; Qwen3 embeddings remain a separate rebuildable semantic index, not a second source of truth.
-- **VueUse** provides the existing bounded debounce primitive for Note/Markdown autosave.
-- **Tauri official plugins + reqwest** provide the desktop integration surface. The website fetch command is custom only because arbitrary user-saved public websites require a dynamic, security-validated network boundary that cannot be expressed as a least-privilege static frontend origin allowlist.
-
-The official Rust **RMCP** SDK owns the local MCP protocol/server implementation. Knovum does not maintain a custom MCP protocol stack.
-
-The current Knowledge contract, SQLx migration policy, Provenance/History/Patch model and Work/MCP boundaries are documented in `knowledge.md`. The feature should continue to prefer stable maintained OSS before adding custom infrastructure.
+Dependency selection reasons belong to [oss-first.md](oss-first.md), while Knowledge revision,
+citation, package and retrieval rules belong to [knowledge.md](knowledge.md).
 
 ## Pre-release database reset boundary
 
@@ -550,25 +565,13 @@ Navigation flush failure preserves the current Space and reports the failure. Su
 
 Mutation IDs bind the entire request digest. A retry of the identical request returns its committed receipt; a different request using that ID fails with `mutation_id_conflict`. Renderer receipt confirmation is reserved for ambiguous transport errors without a returned failure payload. Command failures (including `operation_failed`), invalid arguments and permission rejections retain their normalized `cause` and are never replaced with an older receipt. Revision conflicts use `space_edit_revision_conflict` and preserve the current committed projection.
 
-## Conditional simplification decisions
+## Document delivery
 
-Structure edits validate a complete snapshot and persist it through one authoritative transaction.
-The writer compares typed structure records, updates changed rows and layouts, and removes absent
-relation styles. Comparison loads only requested identities rather than unrelated deletion history.
-Reordering temporarily retires only moved records to preserve the active sibling-order
-constraint. Layouts and relation styles publish through set-based JSON1 statements; unchanged
-structure and layout rows do not produce update writes. History, tombstones,
-retries and edit revisions retain their existing semantics; there is no second mutation path.
-Portal integrity uses set-based checks for references owned by or targeting the changed Spaces,
-including cross-Space inbound references. Partial deleted-subtree selection decodes the batch once
-and traverses a parent/children index. Malformed deleted content remains an explicit data error.
-Canvas viewport queries use an RBush index rebuilt when the scene changes and reused while panning.
-Rendering resolves only visible identities through scene maps and preserves canonical paint order.
-Snapshot and clipboard schemas parse external elements once; typed semantic validation owns hierarchy,
-order and world-geometry invariants. Canonical scene, outline and capability projections build indexes
-without parsing the same elements or validating the full snapshot again.
-
-All document serialization belongs to Rust `documents/generation`: DOCX, PDF, TXT and PPTX. The Renderer starts the corresponding local document Action; it never generates or submits document bytes. Spaces resolves and validates sources, owns authorization, output-node lifecycle and persistence, and calls the neutral document engine. PPTX uses the shared validated Markdown model and records the actual `knovum-pptx:1` engine. The former Web worker/PptxGenJS chain had no product consumer and is removed, together with its upload/path-allocation IPC. The presentation export capability generates text slides; the deleted image-slide worker was not an exposed product capability. More than 100 slides fails visibly rather than silently dropping content. Optional panel loading changes require a measured startup or interaction cost; no unmeasured lazy-loading abstraction is added.
+Rust `documents/generation` serializes DOCX, PDF, TXT and PPTX from one revision-checked Markdown
+source. Spaces owns authorization, pending output placement and publication; Vue submits intent and
+observes the same Action Run. PPTX produces text slides through `knovum-pptx:1`; more than 100 slides
+fails visibly. The supported Markdown subset and rendering limits belong to
+[document-export.md](document-export.md).
 
 ### Semantic search activation
 

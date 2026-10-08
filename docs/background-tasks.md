@@ -22,7 +22,7 @@ guards scheduling, retry and publication. Replacing or removing a cover invalida
 work without invalidating media analysis or transcription. Cover analysis describes a still image;
 it does not claim to understand the video timeline.
 
-[enrichment/job-observation.ts](../src/features/spaces/enrichment/job-observation.ts) observes
+[enrichment/use-enrichment-job-observation.ts](../src/features/spaces/enrichment/use-enrichment-job-observation.ts) observes
 `space-enrichment-update` and restores persisted actionable jobs. It projects progress, partial
 transcripts and terminal outcomes into Task Center without dispatching or sequencing work. Retry
 submits `retry_enrichment_job`; acceptance of that control intent does not mark the observed task as

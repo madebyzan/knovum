@@ -1,129 +1,90 @@
 # Desktop platform matrix
 
-This is the framework-level contract for macOS and Windows. Business features should not reimplement these behaviors.
+Knovum releases for macOS 14+ arm64, macOS 14+ x86_64, and Windows 10 1903+ x64. Windows arm64 and
+Linux are outside the product release scope. Unsupported targets fail explicitly; they do not receive
+partial native inference or compatibility execution paths.
 
-The supported Apple desktop baseline is macOS 14 or later on arm64 and x86_64. The application bundle
-declares the same minimum through Tauri, matching the controlled runtime deployment target;
-macOS 13 and earlier are outside the release scope.
+This document owns platform differences and real-machine acceptance requirements. Shared lifecycle
+and capability rules belong to [desktop-foundation.md](desktop-foundation.md). Model choices, runtime
+profiles, hardware admission, and download sizes belong to [local-models.md](local-models.md).
+Artifact construction and promotion belong to [packaging.md](packaging.md) and
+[release.md](release.md).
 
-| Concern                    | macOS                                                                                               | Windows                                                              | Foundation                                                                         |
-| -------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Startup                    | Dock launch feedback; main appears when usable                                                      | Taskbar launch feedback; main appears when usable                    | main starts hidden until usable/recoverable bootstrap state                        |
-| Window chrome              | native traffic lights + overlay titlebar/material                                                   | native caption + Mica content material                               | platform-specific Tauri config                                                     |
-| Leading pane chrome        | unified toolbar starts after traffic lights; pane splitters begin below it                          | ordinary pane geometry; native caption stays untouched               | shell-owned pane/titlebar contract                                                 |
-| Theme                      | follows system or explicit light/dark                                                               | follows system or explicit light/dark                                | configured + live OS listener                                                      |
-| Window state               | size/position/maximized/fullscreen                                                                  | size/position/maximized/fullscreen                                   | persisted                                                                          |
-| Close button               | hides main window; app remains available from Dock/menu-bar status item                             | hides main window to the system Tray                                 | Rust-owned desktop lifecycle                                                       |
-| Explicit quit              | native Application Menu / menu-bar status item                                                      | Windows system Tray                                                  | Rust-owned                                                                         |
-| Reopen                     | Dock/status item restores or focuses main                                                           | Tray focuses main window while running                               | Rust-owned                                                                         |
-| Command palette            | Cmd+K via native Application Menu                                                                   | Ctrl+K via WebView shortcut                                          | shared command registry + command palette                                          |
-| Shortcut display           | symbols                                                                                             | text modifiers                                                       | `UiKbd`                                                                            |
-| Tray / status item         | installed as a menu-bar status item with app actions                                                | installed as system Tray with app actions                            | shared Rust-owned desktop menu                                                     |
-| Task progress              | Dock progress                                                                                       | taskbar progress                                                     | mirrored from Task Center                                                          |
-| System dialogs             | macOS picker/dialog                                                                                 | Windows picker/dialog                                                | official dialog plugin ready                                                       |
-| Spaces clipboard images    | native clipboard image read -> Rust-managed private AppData PNG                                     | native clipboard image read -> Rust-managed private AppData PNG      | feature-scoped clipboard read + Rust persistence                                   |
-| Cross-app dictation        | Apple Silicon / Intel: CoreAudio capture; Accessibility-gated Command+V into the same frontmost app | x64: WASAPI capture; UIPI-aware Ctrl+V into the same foreground HWND | Rust press/release session, private clipboard marker, qualified Python ASR profile |
-| Spaces file/folder drop    | Finder drag -> validated private resource copy                                                      | Explorer drag -> validated private resource copy                     | Tauri drag paths; no persisted external scope                                      |
-| Spaces document thumbnails | system Quick Look page render cached as a private PNG                                               | Windows Shell provider render cached as a private PNG                | one system-rendering policy; unavailable thumbnails keep the resource presentation |
-| Spaces system preview      | spacebar or canvas menu opens the system panel for one private asset                                | native preview host for a private asset                              | Spaces asset preview operation over Rust platform adapters                         |
-| Locale                     | OS BCP-47 locale                                                                                    | OS BCP-47 locale                                                     | system/en/zh-CN mapping                                                            |
-| Font stack                 | system/SF family                                                                                    | Segoe UI Variable                                                    | tokenized                                                                          |
-| Generated text             | PingFang SC via Core Text                                                                           | Microsoft YaHei UI via DirectWrite                                   | installed system fonts; no packaged font file                                      |
-| Release trust              | signing + notarization                                                                              | code-signed installer recommended                                    | release configuration, credentials external                                        |
+## Product behavior
 
-## Scope-dependent integrations
+| Concern              | macOS arm64 / x86_64                                        | Windows x64                                                      | Shared contract                                                          |
+| -------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Launch               | Dock feedback                                               | Taskbar feedback                                                 | Hidden main window until usable or recoverable bootstrap state           |
+| Window chrome        | Native traffic lights; documented overlay titlebar/material | Native caption; Mica content where supported                     | Native controls remain OS-owned                                          |
+| Background lifecycle | Close hides to Dock/menu-bar status item                    | Close hides to system Tray                                       | Explicit Quit terminates through the Rust lifecycle                      |
+| Reopen               | Dock or status item focuses main                            | Tray focuses main                                                | Single-instance host owns focus and restore                              |
+| Application commands | Native Application Menu and `Command` shortcuts             | No classic menu bar; `Ctrl` shortcuts                            | One `AppCommand` registry and palette                                    |
+| Progress             | Dock progress                                               | Taskbar progress                                                 | Mirrors Task Center projection                                           |
+| Dialogs              | Native macOS dialogs                                        | Native Windows dialogs                                           | Official Tauri dialog boundary                                           |
+| Clipboard images     | Native read, validated managed PNG                          | Native read, validated managed PNG                               | Rust-owned persistence; no broad WebView write scope                     |
+| File drop            | Finder paths                                                | Explorer paths                                                   | Session authorization followed by Rust validation                        |
+| Dictation capture    | CoreAudio                                                   | WASAPI                                                           | One Rust press/release session and private ASR worker                    |
+| Dictation insertion  | Accessibility-gated paste to the same frontmost app         | UIPI-aware paste to the same foreground window                   | Target revalidation, private clipboard marker, text preserved on failure |
+| Document rendering   | Core Graphics                                               | Windows.Data.Pdf                                                 | Background analysis only; no custom reader                               |
+| System preview       | Quick Look adapter                                          | Windows preview adapter                                          | One authorized managed asset; explicit unavailability                    |
+| Locale and text      | BCP-47; system/SF and PingFang via Core Text                | BCP-47; Segoe UI Variable and Microsoft YaHei UI via DirectWrite | System fonts; no packaged UI font                                        |
+| Release trust        | Signed and notarized application/update                     | Code-signed installer/update                                     | Credentials remain outside source and build logs                         |
 
-Document visual processing uses background Core Graphics PDF rendering on macOS and
-Windows.Data.Pdf on Windows. No PDF renderer binary or rendering IPC is shipped.
-This is separate from system document thumbnails and does not create a custom reader.
-Other platforms return an explicit unsupported error. Native rendering/threading must
-be manually validated on both supported desktop platforms.
+Both macOS architectures are separate native targets with distinct runtime publications, signatures,
+and update artifacts. An arm64 result does not qualify x86_64, and an adapter test does not qualify an
+installed application.
 
-These are intentionally not globally enabled because the correct configuration cannot be known before the owning feature exists:
+## Native resources and inference
 
-- file associations / Open With: requires real extensions and ownership semantics;
-- Shell: requires the Git/tool command and exact argument scope;
-- filesystem writes outside app storage: requires a user-selected path or explicit feature scope;
-- Tauri HTTP/WebSocket: requires known hosts/endpoints;
-- updater endpoint/public key: requires the real release channel and signing keys;
-- camera/screen capture entitlements: only when a real feature needs them; microphone usage is scoped to audio recording and Rust-owned dictation;
-- secondary windows: requires a real window type, lifetime and capability set.
+FFmpeg is a bundled core resource on every supported target. Python environments, models, and optional
+media tools are prepared on demand into verified application-owned storage. Offline startup and basic
+Space editing do not require on-demand resources. Dictation and media transcription share the selected
+ASR runtime and model rather than installing independent copies.
 
-Installing a Tauri plugin does not grant the WebView permission to use it. Capability changes accompany the feature that needs the permission.
+A durable inference request freezes its target, runtime, model, and device profile before worker
+startup. GPU execution is chosen only when that target and model declare a qualified backend and current
+capacity satisfies admission. Otherwise CPU is selected before startup. An inference failure is returned
+to the user; the application does not retry on another device or engine.
 
-## QA rule
+Downloaded executables remain subject to native signing, quarantine, and execution policy. Hash
+verification alone does not satisfy macOS signing/notarization or Windows execution acceptance. Exact
+models and hardware requirements are maintained in [local-models.md](local-models.md).
 
-Any change to lifecycle, window, menu, keyboard, file, notification, updater or process behavior must be manually verified on both macOS and Windows in addition to CI compile checks.
+Windows runtime executables that use native narrow-string filesystem APIs require the documented UTF-8
+process manifest and must verify the active code page on the installed target. Python UTF-8 mode alone
+does not change those native APIs.
 
-## Optional runtime resources
+## Permissions and optional integrations
 
-Inference, model downloads and the Builtin Agent use five independently verified on-demand Python
-profiles: Resources, Light Inference, Torch Inference, Voice Generation and Agent. The installer
-carries the application capability source and one trusted descriptor per profile. All profiles
-use the frozen native CPython baseline with independent dependency roots and locks. Missing
-resources trigger preparation; users do not select environments. First-use/offline acceptance
-is required on all three native targets. Core FFmpeg is a separately verified bundled native
-resource, not a Python profile; the same native producer prepares it before Vite in development.
+Capability configuration follows the owning feature. File associations, external filesystem writes,
+Shell commands, native HTTP/WebSocket destinations, updater endpoints, camera or screen capture, and
+secondary windows are absent until a real product flow defines their scope. Microphone and native input
+permissions are limited to recording and dictation. Installing a Tauri plugin never grants WebView
+authority by itself.
 
-The approved desktop release scope for native Python inference is macOS 14+ arm64/x64 and Windows 10 1903+ x64.
-Qualification is tracked per architecture, not only per OS:
+## Real-machine acceptance
 
-| Target          | Current native ASR path                           | Release state                                                                |
-| --------------- | ------------------------------------------------- | ---------------------------------------------------------------------------- |
-| macOS 14+ arm64 | MLX Whisper                                       | Implementation present; model, latency, and clean-install acceptance pending |
-| macOS 14+ x64   | faster-whisper / CTranslate2 CPU INT8             | Implementation present; native runtime build and model acceptance pending    |
-| Windows x64     | faster-whisper / CTranslate2 CUDA F16 or CPU INT8 | Implementation present; clean-install and quality acceptance pending         |
+CI compilation is a required source gate, not platform acceptance. A release candidate must be tested
+as the actual signed or signing-equivalent installed artifact on all three targets.
 
-Spleeter separation offers FP16 and FP32 native ONNX snapshots using the same CPU engine. Both
-produce distinct, exact-length 44.1 kHz stereo vocal/accompaniment assets for audition. Sherpa
-speaker diarization uses the public segmentation/ERes2Net snapshot. These engine adapters are
-currently CPU-only; enumerating a GPU does not create a supported provider. Images offer
-compact/full U²-Net through the same Light Inference profile.
+| Area            | Required evidence on each target                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Installation    | Clean non-developer install, launch, resource location, uninstall/upgrade path, and no dependency on checkout tools or `PATH`                                      |
+| Lifecycle       | Hidden bootstrap, ready/error reveal, close-to-background, reopen, explicit Quit, single instance, and saved window state                                          |
+| Native UI       | Correct caption/traffic lights, menu or Tray/status item, shortcuts, dialogs, notifications, system preview, and Dock/taskbar progress                             |
+| Permissions     | Microphone, Accessibility or Windows input restrictions, clipboard protection, selected-path scope, and clear denial recovery                                      |
+| Core media      | Bundled FFmpeg verification and representative decode/probe without external installation                                                                          |
+| Local resources | First-use download, progress, cancellation, restart recovery, offline reuse, integrity rejection, and safe retirement while leased                                 |
+| CPU inference   | Required baseline features complete within declared memory and timeout limits and publish valid output                                                             |
+| GPU inference   | Every advertised Metal, CUDA, or Vulkan path proves device admission, execution, cancellation, and output validity; unavailable hardware does not expose that path |
+| Durable work    | Pause/cancel/restart, lease expiry, stale-result fencing, atomic publication, cleanup, and no duplicate output                                                     |
+| Quality         | Representative ASR, alignment, diarization, generation, and media outputs receive human review where the feature claims quality                                    |
+| Release trust   | Native signature, notarization or Windows trust, updater signature, architecture identity, licenses/notices, and rollback/promotion controls                       |
 
-Speech generation uses MOSS-TTS-Nano as the small CPU default for preset voices and reference
-cloning. VoxCPM2 is an optional original-precision native GGUF engine for quality cloning and
-voice design. It requires at least 32 GiB physical memory and admission against the selected
-profile's declared reservation. Before inference, the managed producer/runtime probes usable
-Metal, CUDA or Vulkan and their current capacity; it selects CPU when no eligible GPU profile
-fits. Inference errors are surfaced without a backend retry. Both engines return 48 kHz audio;
-unsupported engine controls are absent from the corresponding form.
+Evidence is target- and release-candidate-specific. It must record the application artifact, runtime and
+model identities, device/backend, inputs, cancellation or recovery scenario, outputs, and reviewer.
+Evidence from another architecture, a raw adapter, or an earlier candidate cannot satisfy the gate.
 
-| Target          | Optional VoxCPM2 execution             | Qualification                                                      |
-| --------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| macOS 14+ arm64 | native Metal or CPU, frozen before run | Native device/model and lifecycle acceptance required              |
-| macOS 14+ x64   | native supported GPU or CPU            | Actual Intel CPU synthesis/clone/design recorded; GPU not accepted |
-| Windows x64     | native CUDA / Vulkan or CPU            | Native non-administrator installation and GPU acceptance required  |
-
-Windows arm64 and Linux remain outside the release scope. Unsupported targets return an explicit
-error. Intel macOS uses frozen native dependency closures, with no emulation or legacy engine.
-Both macOS architectures use native signing, distinct runtime publications and updater artifacts.
-The [current Intel adapter record](evidence/local-audio-acceptance-2026-10-08.json) records actual
-model/runtime identities, cancellation and produced media. Adapter execution does not establish
-native application packaging, installer acceptance, human quality or another architecture.
-
-On both desktop platforms, models and optional media-import tools are prepared into Tauri app-data
-when the corresponding action needs them. Offline startup and basic Space editing do not require
-these resources. FFmpeg remains a bundled native dependency; dictation uses the same selected
-Python ASR model/runtime as media transcription. Downloaded
-executables retain the platform's signing and execution constraints; hash verification does not
-replace macOS signing/notarization or Windows execution checks. Release evidence belongs to
-`packaging.md` and `release.md`.
-
-The October 7 supplier, native voice and dependency-audit records describe earlier candidate
-investigations. They are historical evidence: the current application uses the adopted native
-VoxCPM2 execution path and MOSS default rather than the blocked Python VoxCPM2 package. The
-current acceptance record retains unresolved corresponding-source/license review, publishing,
-signing and real native-platform gaps instead of reusing old qualification claims.
-
-### Optional forced alignment models
-
-All supported desktop targets expose Qwen3 Forced Aligner FP32 and native Q8_0 model choices.
-Q8_0 shares the frozen audio.cpp runtime closure with VoxCPM2 and uses its public C API; the
-supplier is compiled for both families. Native backend discovery qualifies currently free GPU
-capacity before execution: Metal on macOS and the compiled CUDA/Vulkan backends on Windows,
-otherwise CPU is selected before worker startup. The full Transformers profile uses Torch's
-qualified CPU/MPS/CUDA backend. A durable request freezes the model, and neither adapter retries
-on another device after failure. Real Apple Silicon/Windows GPU and output-quality acceptance
-remain separate from the shared code and native supplier contract.
-
-The delivered CPython executable uses a UTF-8 Win32 process code page. Runtime production extracts and preserves its original activation manifest, adds `activeCodePage=UTF-8` with the Windows SDK Manifest Tool, then applies the existing signing and resource-file verification. Native relocation smoke checks `GetACP()==65001`; Python `-X utf8` alone does not configure native narrow-string filesystem APIs. This follows the [Microsoft UTF-8 process guidance](https://learn.microsoft.com/en-us/windows/apps/design/globalizing/use-utf8-code-page) without requiring a user to change Windows regional settings.
+Any change to lifecycle, window chrome, menus, shortcuts, files, clipboard, notifications, updater,
+processes, native resources, or device selection reopens the relevant acceptance rows. Release evidence
+retention and promotion rules are defined in [release.md](release.md).

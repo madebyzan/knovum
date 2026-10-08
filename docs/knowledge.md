@@ -91,6 +91,16 @@ Missing local model resources/tooling/source bytes are separate failures from an
 unselected AI executor. This change adds no speculative external long-audio ASR path,
 whole-video inference engine or hosted subscription service.
 
+## Visual result validation
+
+Visual-analysis requests state the node-owned description, detected-text and tag limits. Returned
+JSON passes the same Rust node validator used by persistence; invalid responses identify the field
+and retain `invalid_response`. Limits are generated into Spaces `contract-values.ts` for frontend
+validation. String limits count UTF-16 code units, including whitespace and joined-text separators.
+Results are not clipped, partially accepted or retried through another model to satisfy
+the schema. Prompt constraints improve compliance; they do not guarantee every provider response
+will be valid. Image evidence remains separate from instructions and verbatim detected text.
+
 ## Document locations and job checkpoints
 
 Office body, header and footer locations use the library's public logical positions; they do not infer rendered pagination. XLSX images and text shapes use public worksheet interfaces and retain EMU geometry. Geometry is not the original cell anchor. Legacy binary Office image locations remain limited by the parser's location support.
