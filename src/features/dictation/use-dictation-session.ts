@@ -7,6 +7,7 @@ import type { DictationSnapshot } from "./dictation-contracts";
 const STATE_EVENT = "knovum://dictation-state";
 const idle: DictationSnapshot = {
   phase: "idle",
+  resources: null,
   sessionId: null,
   startedAt: null,
   targetApplication: null,
@@ -32,15 +33,34 @@ async function copy() {
 export function useDictationSession() {
   const state = shallowRef<DictationSnapshot>(idle);
   let unlisten: UnlistenFn | undefined;
+  let epoch = 0;
 
   async function start() {
-    unlisten = await listen<DictationSnapshot>(STATE_EVENT, ({ payload }) => {
+    const owner = ++epoch;
+    let eventVersion = 0;
+    const release = await listen<DictationSnapshot>(STATE_EVENT, ({ payload }) => {
+      if (owner !== epoch) return;
+      eventVersion += 1;
       state.value = payload;
     });
-    state.value = await invokeCommand<DictationSnapshot>("plugin:dictation|get_state");
+    if (owner !== epoch) {
+      release();
+      return;
+    }
+    unlisten?.();
+    unlisten = release;
+    const version = eventVersion;
+    try {
+      const snapshot = await invokeCommand<DictationSnapshot>("plugin:dictation|get_state");
+      if (owner === epoch && eventVersion === version) state.value = snapshot;
+    } catch (error) {
+      if (owner === epoch) stop();
+      throw error;
+    }
   }
 
   function stop() {
+    epoch += 1;
     unlisten?.();
     unlisten = undefined;
   }

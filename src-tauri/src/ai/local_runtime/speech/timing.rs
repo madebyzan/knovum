@@ -9,10 +9,7 @@ use crate::{
         },
         local_runtime::admission::Priority,
     },
-    local_resources::{
-        models::catalog,
-        preparation::{PreparedDiarizationModel, PreparedModels},
-    },
+    local_resources::preparation::{PreparedDiarizationModel, PreparedModels},
 };
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
@@ -26,8 +23,12 @@ pub(crate) async fn align<R: Runtime>(
     priority: Priority,
 ) -> Result<SpeechAlignment, String> {
     validate_alignment_platform()?;
-    if device_profile.device != "cpu" || params.profile.device != "cpu" {
-        return Err("unsupported_device: Qwen3 forced alignment requires CPU".into());
+    if !matches!(
+        device_profile.device.as_str(),
+        "cpu" | "cuda" | "mps" | "vulkan"
+    ) || params.profile.device != device_profile.device
+    {
+        return Err("runtime_mismatch: alignment request and execution devices differ".into());
     }
     if params.text_segments.is_empty() || params.text_segments.len() > 8 {
         return Err("invalid_params: forced alignment requires one to eight segments".into());
@@ -40,7 +41,18 @@ pub(crate) async fn align<R: Runtime>(
     if requested_segments.len() != params.text_segments.len() {
         return Err("invalid_params: forced alignment segment identifiers must be unique".into());
     }
-    let model_path = co_located_model_directory(resources, catalog::QWEN3_FORCED_ALIGNER_MODELS)?;
+    let model = crate::local_resources::model_catalog::LocalModelId::from_alignment_spec(
+        &params.identity.model_spec_id,
+    )?;
+    let expected_profile =
+        super::super::device_profiles::alignment::execution_id(model, &device_profile.device)?;
+    if device_profile.execution_profile_id != expected_profile {
+        return Err("runtime_mismatch: forced alignment model and device profile differ".into());
+    }
+    let snapshot = model
+        .snapshot()
+        .ok_or("Forced alignment model snapshot is unavailable")?;
+    let model_path = co_located_model_directory(resources, snapshot.models())?;
     execute(
         Execution {
             app,
@@ -95,16 +107,16 @@ pub(crate) async fn diarize<R: Runtime>(
 ) -> Result<SpeechDiarization, String> {
     validate_diarization_platform()?;
     if device_profile.device != "cpu"
-        || device_profile.execution_profile_id != "community1-knovum-cpu-v1"
+        || device_profile.execution_profile_id != model.spec_id()
+        || params.identity.model_spec_id != model.spec_id()
     {
-        return Err("unsupported_device: Community-1 diarization requires its CPU profile".into());
+        return Err("unsupported_device: Sherpa-ONNX diarization requires its CPU profile".into());
     }
     let bounds = &params.speaker_count_bounds;
-    if bounds.minimum.is_some_and(|value| value == 0 || value > 32)
-        || bounds.maximum.is_some_and(|value| value == 0 || value > 32)
-        || matches!((bounds.minimum, bounds.maximum), (Some(minimum), Some(maximum)) if minimum > maximum)
+    if bounds.minimum != bounds.maximum
+        || bounds.minimum.is_some_and(|value| value == 0 || value > 32)
     {
-        return Err("invalid_params: speaker count bounds must be within one and 32".into());
+        return Err("invalid_params: specify a known speaker count from one to 32 or use automatic detection".into());
     }
     execute(
         Execution {
@@ -152,5 +164,5 @@ fn validate_diarization_platform() -> Result<(), String> {
     #[cfg(knovum_supported_desktop)]
     return Ok(());
     #[cfg(not(knovum_supported_desktop))]
-    Err("unsupported_device: Community-1 diarization is not qualified for this platform".into())
+    Err("unsupported_device: Sherpa-ONNX diarization is not qualified for this platform".into())
 }

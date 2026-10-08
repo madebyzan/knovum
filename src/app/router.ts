@@ -18,6 +18,9 @@ export const router = createRouter({
       name: "settings",
       component: () => import("../features/settings/SettingsView.vue"),
       props: () => ({
+        voiceLibraryComponent: defineAsyncComponent(
+          () => import("../features/spaces/presentation/speech/SpaceVoiceLibrarySettings.vue"),
+        ),
         extensionsComponent: defineAsyncComponent(
           () => import("../features/extensions/AgentExtensionsSettings.vue"),
         ),

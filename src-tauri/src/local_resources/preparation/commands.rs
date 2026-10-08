@@ -28,23 +28,39 @@ pub async fn prepare_resources(
             "unsupported_device: native speech resources are not available on this platform".into(),
         );
     }
+    if let ResourcePreparationTarget::Model { model } = &target {
+        let handle = app.clone();
+        let model = *model;
+        let entry = crate::blocking::run(move || {
+            crate::local_resources::model_catalog::inspect(&handle, model)
+        })
+        .await?;
+        if !entry.download_available {
+            return Err(AppError::new(
+                "model_unavailable",
+                "This model is unavailable for the current device or distribution",
+            ));
+        }
+    }
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
     tauri::async_runtime::spawn(async move {
-        let preparation_outcome = match target {
-            ResourcePreparationTarget::SpeechDiarization => super::prepare_diarization_for_request(
-                &app,
-                request,
-                &CancellationToken::new(),
-                &mut |progress| observe(&on_progress, progress),
-            )
-            .await
-            .map(|_| ()),
+        let effective_target = match target {
+            ResourcePreparationTarget::Model { model } if !model.is_transcription() => {
+                model.preparation()
+            }
+            other => other,
+        };
+        let preparation_outcome = match effective_target {
             target @ (ResourcePreparationTarget::Transcription
+            | ResourcePreparationTarget::SpeechSynthesis
             | ResourcePreparationTarget::TextEmbedding
             | ResourcePreparationTarget::ImageSegmentation
             | ResourcePreparationTarget::SpeechAlignment
-            | ResourcePreparationTarget::SpeechSeparation) => {
+            | ResourcePreparationTarget::SpeechSeparation
+            | ResourcePreparationTarget::SpeechDiarization
+            | ResourcePreparationTarget::VoiceDesign
+            | ResourcePreparationTarget::Model { .. }) => {
                 let kinds = target
                     .models()
                     .expect("model preparation targets own a fixed model profile");
@@ -77,14 +93,6 @@ pub async fn prepare_resources(
                 .await
                 .map(|_| ())
             }
-            ResourcePreparationTarget::SpeechSynthesis => super::prepare_kokoro_for_request(
-                &app,
-                request,
-                &CancellationToken::new(),
-                &mut |progress| observe(&on_progress, progress),
-            )
-            .await
-            .map(|_| ()),
         };
         let _ = finished_tx.send(preparation_outcome);
     });

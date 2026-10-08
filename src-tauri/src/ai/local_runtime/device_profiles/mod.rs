@@ -1,8 +1,14 @@
 use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile};
 
+pub(crate) mod alignment;
+pub(in crate::ai::local_runtime) mod backend_probe;
+pub(crate) mod embedding;
 mod memory;
+mod torch;
+pub(crate) mod voice;
 
 const GIB: u64 = 1024 * 1024 * 1024;
+pub(super) const EMBEDDING_PEAK_GIB: u64 = 4;
 
 #[derive(Debug)]
 pub(super) struct MemoryRequirement {
@@ -25,17 +31,17 @@ pub(super) struct MemorySnapshot {
 
 /// Conservative process peak reservations tied to exact frozen execution profiles.
 /// Release qualification must validate them and raise any budget below a measured peak.
-pub(super) fn memory_requirement(
+pub(in crate::ai::local_runtime) fn memory_requirement(
     capability: RuntimeCapability,
     device_profile: &RuntimeDeviceProfile,
 ) -> Result<MemoryRequirement, String> {
     let id = device_profile.execution_profile_id.as_str();
     let device = device_profile.device.as_str();
     let (load_peak_gib, inference_peak_gib, profile_name) = match (capability, id, device) {
-        (RuntimeCapability::Embedding, _, "cpu")
-            if valid_threaded_profile(device_profile, "cpu-f32-threads") =>
+        (RuntimeCapability::Embedding, _, "cpu" | "mps" | "cuda")
+            if valid_threaded_profile(device_profile, &format!("{device}-f32-threads")) =>
         {
-            (3, 4, "Qwen3 embedding CPU")
+            (3, EMBEDDING_PEAK_GIB, "Qwen3 embedding F32")
         }
         (RuntimeCapability::ImageSegmentation, _, "cpu")
             if valid_threaded_profile(device_profile, "cpu-f32-threads") =>
@@ -45,28 +51,64 @@ pub(super) fn memory_requirement(
         (RuntimeCapability::SpeechTranscription, "mlx-whisper-small-mps-v1", "mps") => {
             (2, 3, "MLX Whisper small MPS")
         }
-        (RuntimeCapability::SpeechTranscription, "faster-whisper-small-cpu-int8-v1", "cpu") => {
+        (RuntimeCapability::SpeechTranscription, "faster-whisper-small-cpu-int8-v1", "cpu")
+        | (RuntimeCapability::SpeechTranscription, "faster-whisper-small-cuda-f16-v1", "cuda") => {
             (2, 3, "faster-whisper small CPU INT8")
         }
-        (RuntimeCapability::SpeechAlignment, "qwen3-forced-aligner-0.6b-cpu-v1", "cpu") => {
+        (RuntimeCapability::SpeechTranscription, "mlx-whisper-tiny-mps-v1", "mps") => {
+            (1, 2, "MLX Whisper tiny MPS")
+        }
+        (RuntimeCapability::SpeechTranscription, "faster-whisper-tiny-cpu-int8-v1", "cpu")
+        | (RuntimeCapability::SpeechTranscription, "faster-whisper-tiny-cuda-f16-v1", "cuda") => {
+            (1, 2, "faster-whisper tiny CPU INT8")
+        }
+        (RuntimeCapability::SpeechTranscription, "mlx-whisper-large-v3-mps-v1", "mps") => {
+            (5, 7, "MLX Whisper large-v3 MPS")
+        }
+        (RuntimeCapability::SpeechTranscription, "faster-whisper-large-v3-cpu-int8-v1", "cpu")
+        | (RuntimeCapability::SpeechTranscription, "faster-whisper-large-v3-cuda-f16-v1", "cuda") => {
+            (5, 7, "faster-whisper large-v3 CPU INT8")
+        }
+        (RuntimeCapability::SpeechAlignment, _, "cpu" | "cuda" | "mps")
+            if id == format!("qwen3-forced-aligner-0.6b-hf-{device}-v1") =>
+        {
             (5, 6, "Qwen3 forced aligner CPU")
         }
-        (RuntimeCapability::SpeechDiarization, "community1-knovum-cpu-v1", "cpu") => {
-            (2, 4, "Pyannote Community-1 CPU")
+        (RuntimeCapability::SpeechAlignment, _, "cpu" | "cuda" | "mps" | "vulkan")
+            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-v1") =>
+        {
+            (5, 6, "Qwen3 forced aligner native Q8")
         }
-        (RuntimeCapability::SpeechSeparation, "spleeter-2stems-fp16-cpu-v1", "cpu") => {
-            (2, 8, "Spleeter 2-stem CPU FP16")
+        (
+            RuntimeCapability::SpeechDiarization,
+            "sherpa-diarization-cpu-v1" | "sherpa-diarization-fp32-cpu-v1",
+            "cpu",
+        ) => (1, 2, "Sherpa-ONNX speaker diarization CPU"),
+        (
+            RuntimeCapability::SpeechSeparation,
+            "spleeter-2stems-fp16-cpu-v1" | "spleeter-2stems-fp32-cpu-v1",
+            "cpu",
+        ) => (2, 8, "Spleeter 2-stem CPU"),
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-orig-v1", "mps") => {
+            (20, 24, "VoxCPM2 native Metal GGUF")
         }
-        (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-f32-v1", "mps") => {
-            (20, 24, "VoxCPM2 MPS F32")
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-orig-v1", "cpu")
+        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-orig-v1", "cuda")
+        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-orig-v1", "vulkan") => {
+            (14, 16, "VoxCPM2 native GGUF")
         }
-        (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-bf16-v1", "cpu") => {
-            (14, 16, "VoxCPM2 CPU BF16")
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-q8_0-v1", "mps") => {
+            (20, 24, "VoxCPM2 native Q8 Metal GGUF")
+        }
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-q8_0-v1", "cpu")
+        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-q8_0-v1", "cuda")
+        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-q8_0-v1", "vulkan") => {
+            (14, 16, "VoxCPM2 native Q8 GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, _, "cpu")
-            if valid_threaded_profile(device_profile, "cpu-int8-threads") =>
+            if valid_threaded_profile(device_profile, "moss-nano-cpu-f32-threads") =>
         {
-            (1, 2, "Kokoro CPU INT8")
+            (1, 2, "MOSS-TTS-Nano CPU F32")
         }
         _ => return Err("runtime_mismatch: execution profile has no memory manifest".into()),
     };
@@ -100,36 +142,9 @@ pub(super) fn memory_snapshot() -> Result<MemorySnapshot, String> {
     Ok(snapshot)
 }
 
-/// Advanced synthesis has a separate physical-memory floor from baseline capabilities.
-pub(crate) fn voxcpm2() -> Result<RuntimeDeviceProfile, String> {
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    let (device, precision, minimum_gib) = ("mps", "f32", 48);
-    #[cfg(all(
-        any(target_os = "macos", target_os = "windows"),
-        target_arch = "x86_64"
-    ))]
-    let (device, precision, minimum_gib) = ("cpu", "bf16", 32);
-    #[cfg(not(knovum_supported_desktop))]
-    return Err(
-        "unsupported_device: Voice cloning and design require macOS arm64/x64 or Windows x64"
-            .into(),
-    );
-    #[cfg(knovum_supported_desktop)]
-    {
-        let memory = memory::physical_memory()?;
-        if memory < minimum_gib * GIB {
-            return Err(format!("resource_exhausted: Voice cloning and design require at least {minimum_gib} GiB physical memory for the {device}/{precision} profile"));
-        }
-        Ok(RuntimeDeviceProfile {
-            device: device.into(),
-            execution_profile_id: format!("voxcpm2-{device}-{precision}-v1"),
-            cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
-                .model_threads,
-        })
-    }
-}
-
-pub(crate) fn speech_separation() -> Result<RuntimeDeviceProfile, String> {
+pub(crate) fn speech_separation(
+    model: crate::local_resources::model_catalog::LocalModelId,
+) -> Result<RuntimeDeviceProfile, String> {
     #[cfg(not(knovum_supported_desktop))]
     return Err(
         "unsupported_device: Source separation requires macOS arm64/x64 or Windows x64".into(),
@@ -137,7 +152,7 @@ pub(crate) fn speech_separation() -> Result<RuntimeDeviceProfile, String> {
     #[cfg(knovum_supported_desktop)]
     Ok(RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: "spleeter-2stems-fp16-cpu-v1".into(),
+        execution_profile_id: model.separation_spec()?.into(),
         cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
             .model_threads,
     })

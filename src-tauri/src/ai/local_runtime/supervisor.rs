@@ -14,9 +14,8 @@ use crate::{
             EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingExecutionIdentity, EmbeddingRole,
         },
         runtime::{
-            RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
-            RuntimeModelPaths, RuntimeShutdownAcknowledgement, RuntimeShutdownParams,
-            PROTOCOL_VERSION,
+            RuntimeCancelParams, RuntimeCapability, RuntimeInitializeParams, RuntimeModelPaths,
+            RuntimeShutdownAcknowledgement, RuntimeShutdownParams, PROTOCOL_VERSION,
         },
     },
     local_resources::{
@@ -44,14 +43,13 @@ pub(crate) async fn encode_embedding<R: Runtime>(
     let runtime =
         python::resolve(app, python::RuntimeProfile::TorchInference)?.ok_or("runtime_missing")?;
     let model_directory = embedding_directory(resources)?;
-    let threads = std::thread::available_parallelism()
-        .map(|count| count.get().min(4) as u8)
-        .unwrap_or(1);
-    let device_profile = RuntimeDeviceProfile {
-        device: "cpu".into(),
-        execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
-        cpu_threads: threads,
-    };
+    let device_profile = super::device_profiles::embedding::profile(
+        &runtime,
+        cancellation,
+        exit,
+        identity.deadline_ms,
+    )
+    .await?;
     super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(
             &runtime.digest,

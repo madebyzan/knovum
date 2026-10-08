@@ -15,16 +15,15 @@
     "liveHint": "Live transcript text will appear here as recognized.",
     "alignSelected": "Align selected",
     "alignmentLimit": "Up to 8 segments / 5 minutes",
+    "alignmentFirstUse": "First use downloads the selected model and required resources automatically. Manage model choices in Settings.",
     "selectForAlignment": "Select for alignment"
   },
   "speakers": {
     "title": "Speaker tracks",
-    "needsModel": "Save Community-1 access credentials first. The application downloads the model after authorization.",
     "durationLimit": "Speaker diarization supports recordings up to two hours.",
-    "minimum": "Minimum speakers (optional)",
-    "maximum": "Maximum speakers (optional)",
     "generate": "Identify speakers",
-    "configureAccess": "Configure model access",
-    "firstUse": "Local resources download automatically on first use; cancel in the Task Center."
+    "firstUse": "Local resources download automatically on first use; cancel in the Task Center.",
+    "count": "Known speaker count (optional)",
+    "automatic": "Automatic"
   }
 }

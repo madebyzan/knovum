@@ -36,8 +36,7 @@ pub(super) async fn render<R: Runtime>(
             Ok(path)
         })
         .collect::<Result<Vec<_>, String>>()?;
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("The bundled FFmpeg tool is unavailable")?;
+    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
     let mut normalized = crate::blocking::run({
         let ffmpeg = ffmpeg.clone();
         let sources = sources.clone();

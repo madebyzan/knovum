@@ -35,11 +35,12 @@ fn main() {
                 "local-resources",
                 tauri_build::InlinedPlugin::new().commands(&[
                     "get_status",
+                    "get_model_catalog",
+                    "remove_model",
+                    "select_local_model",
                     "prepare_resources",
                     "cancel_resource_preparation",
                     "list_resource_preparations",
-                    "set_diarization_access_token",
-                    "remove_diarization_model",
                 ]),
             )
             .plugin(
@@ -185,6 +186,8 @@ fn main() {
                         "save_speech_project_revision",
                         "start_speech_source_separation",
                         "get_speech_source_separation",
+                        "list_accepted_source_separations",
+                        "get_latest_source_separation_run",
                         "review_speech_source_separation",
                         "generate_speech_project",
                         "preview_voice",

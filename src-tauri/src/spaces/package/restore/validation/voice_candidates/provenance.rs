@@ -2,6 +2,7 @@ use super::{evidence, field};
 use crate::spaces::package::restore::contracts::{
     PackageRun, PackageRunAttempt, PackageRunStep, PackageVoiceCandidate, RestorePackageRequest,
 };
+use crate::spaces::speech::voice_candidates::VoiceModel;
 use serde_json::Value;
 
 pub(super) fn validate(
@@ -16,7 +17,7 @@ pub(super) fn validate(
         .get("request")
         .ok_or("Package voice candidate request snapshot is unavailable")?;
     if configuration.as_object().map(serde_json::Map::len) != Some(2)
-        || draft.as_object().map(serde_json::Map::len) != Some(7)
+        || draft.as_object().map(serde_json::Map::len) != Some(8)
     {
         return Err("Package voice candidate configuration shape is invalid".into());
     }
@@ -41,7 +42,16 @@ fn validate_draft(
     draft: &Value,
     space_id: &str,
 ) -> Result<(), String> {
+    let model = VoiceModel::from_specification(&candidate.model_spec_id)?;
+    let requested_model: VoiceModel = serde_json::from_value(
+        draft
+            .get("model")
+            .cloned()
+            .ok_or("Package voice candidate model is unavailable")?,
+    )
+    .map_err(|_| "Package voice candidate model is invalid")?;
     if field(draft, "requestId")? != candidate.id
+        || requested_model != model
         || field(draft, "spaceId")? != space_id
         || field(draft, "language")? != candidate.language
         || field(draft, "text")?.trim() != candidate.sample_text
@@ -111,14 +121,13 @@ fn validate_source(
             let snapshot = run_source
                 .filter(|value| value.is_object())
                 .ok_or("Package voice candidate frozen source is unavailable")?;
-            if snapshot.as_object().map(serde_json::Map::len) != Some(2)
+            if snapshot.as_object().map(serde_json::Map::len) != Some(3)
                 || snapshot.get("assetPath").is_some()
                 || field(snapshot, "sourceRevision")?
-                    != candidate
-                        .input_source_revision
-                        .as_deref()
-                        .unwrap_or_default()
+                    != format!("sha256:{}", candidate.reference_sha256)
                 || snapshot.get("byteLength").and_then(Value::as_i64) != candidate.input_byte_length
+                || candidate.input_byte_length != Some(candidate.reference_byte_length)
+                || snapshot.get("durationMs").and_then(Value::as_u64) != Some(end - start)
             {
                 return Err("Package voice candidate source revision differs".into());
             }
@@ -156,7 +165,7 @@ fn validate_selected_voice(
         .ok_or("Selected package voice revision authorization is invalid")?;
     let reference_revision = format!("sha256:{}", candidate.reference_sha256);
     if profile.source_kind != candidate.source_kind
-        || revision.engine_id != "voxcpm2"
+        || revision.engine_id != VoiceModel::from_specification(&candidate.model_spec_id)?.engine()
         || revision.model_spec_id != candidate.model_spec_id
         || revision.language != candidate.language
         || revision.reference_source_revision.as_deref() != Some(reference_revision.as_str())

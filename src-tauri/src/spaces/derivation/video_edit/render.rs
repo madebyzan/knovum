@@ -28,8 +28,7 @@ pub fn render(
     cancellation: &CancellationToken,
 ) -> Result<RenderedVideo, String> {
     report(progress, "preparingVideoEdit", 8)?;
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("FFmpeg is required to render a video edit")?;
+    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("FFmpeg is required to render a video edit")?;
     let directory = asset_directory(app)?;
     let output = ScratchFile::new(directory.join(format!("edited-{}.mp4", Uuid::new_v4())));
     let has_audio = source_has_audio(&ffmpeg, &source.path);

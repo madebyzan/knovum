@@ -18,22 +18,28 @@ pub(super) struct FrozenConfiguration {
 pub(super) async fn freeze(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
-    mut request: DraftVoiceCandidateRequest,
+    request: DraftVoiceCandidateRequest,
     digest: String,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<FrozenConfiguration, String> {
+    if cancellation.is_cancelled() {
+        return Err("cancelled".into());
+    }
     let frozen = match &request.source {
         VoiceCandidateSource::Designed { .. } => None,
         VoiceCandidateSource::Reference { source_path, .. } => Some(
-            freeze_reference(app, pool, &request, std::path::PathBuf::from(source_path)).await?,
+            freeze_reference(
+                app,
+                pool,
+                &request,
+                std::path::PathBuf::from(source_path),
+                cancellation,
+            )
+            .await?,
         ),
     };
     let (reference_source, publication_id) = match frozen {
-        Some((snapshot, publication_id)) => {
-            if let VoiceCandidateSource::Reference { source_path, .. } = &mut request.source {
-                source_path.clone_from(&snapshot.asset_path);
-            }
-            (Some(snapshot), Some(publication_id))
-        }
+        Some((snapshot, publication_id)) => (Some(snapshot), Some(publication_id)),
         None => (None, None),
     };
     Ok(FrozenConfiguration {
@@ -51,37 +57,12 @@ async fn freeze_reference(
     pool: &sqlx::SqlitePool,
     request: &DraftVoiceCandidateRequest,
     path: std::path::PathBuf,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(ReferenceSourceSnapshot, String), String> {
     crate::spaces::assets::authorize_source(app, &path)?;
     let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
     validate_source_metadata(&metadata)?;
-    let revision_path = path.clone();
-    let source_revision =
-        crate::blocking::run(move || crate::file_inspection::content_revision(&revision_path))
-            .await?;
-    if let VoiceCandidateSource::Reference {
-        source_revision: reviewed,
-        ..
-    } = &request.source
-    {
-        if reviewed != &source_revision {
-            return Err(
-                "stale_revision: Reference changed after preparation and transcript review".into(),
-            );
-        }
-    }
-    let verify_path = path.clone();
-    let expected_revision = source_revision.clone();
-    crate::blocking::run(move || {
-        crate::file_inspection::verify_content_revision(&verify_path, &expected_revision)
-    })
-    .await
-    .map_err(|_| "stale_revision: voice reference changed while its Run was created")?;
-    let after = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
-    if after.len() != metadata.len() || validate_source_metadata(&after).is_err() {
-        return Err("stale_revision: voice reference changed while its Run was created".into());
-    }
-    publish_snapshot(app, pool, request, &path, metadata.len(), source_revision).await
+    publish_snapshot(app, pool, request, &path, metadata.len(), cancellation).await
 }
 
 async fn publish_snapshot(
@@ -90,8 +71,18 @@ async fn publish_snapshot(
     request: &DraftVoiceCandidateRequest,
     source: &std::path::Path,
     byte_length: u64,
-    source_revision: String,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(ReferenceSourceSnapshot, String), String> {
+    let VoiceCandidateSource::Reference {
+        start_ms,
+        end_ms,
+        source_revision,
+        ..
+    } = &request.source
+    else {
+        return Err("Voice candidate has no reference selection".into());
+    };
+    let interval = (*start_ms, *end_ms);
     let directory = crate::spaces::assets::asset_directory(app)?
         .join("speech")
         .join("voice-candidate-inputs");
@@ -101,9 +92,6 @@ async fn publish_snapshot(
     if target.exists() || part.exists() {
         return Err("Voice candidate source snapshot path is already occupied".into());
     }
-    let raw_sha = source_revision
-        .strip_prefix("sha256:")
-        .ok_or("Voice reference source revision is invalid")?;
     let publication_id = super::super::asset_publication::stage_unowned(
         pool,
         &request.space_id,
@@ -112,45 +100,62 @@ async fn publish_snapshot(
             owner_id: &request.request_id,
             asset_path: &target,
             part_path: Some(&part),
-            sha256: raw_sha,
+            sha256: &"0".repeat(64),
         },
     )
     .await?;
-    let source_copy = source.to_owned();
-    let part_copy = part.clone();
-    let target_copy = target.clone();
-    let revision_copy = source_revision.clone();
-    let copied = crate::blocking::run(move || {
-        copy(&source_copy, &part_copy, byte_length, &revision_copy).and_then(|()| {
-            std::fs::rename(&part_copy, &target_copy).map_err(|error| error.to_string())
+    let original = source.to_owned();
+    let prepared = part.clone();
+    let published = target.clone();
+    let reviewed_revision = source_revision.clone();
+    let handle = app.clone();
+    let cancel = cancellation.clone();
+    let preparation: Result<ReferenceSourceSnapshot, String> = async {
+        let audio = crate::blocking::run(move || -> Result<_, String> {
+            let (revision, audio) = super::super::voice_assets::prepare_reference_clip(
+                &handle,
+                &original,
+                &prepared,
+                byte_length,
+                &cancel,
+                interval,
+            )?;
+            if revision != reviewed_revision {
+                return Err(
+                    "stale_revision: Reference changed after preparation and transcript review"
+                        .into(),
+                );
+            }
+            std::fs::rename(&prepared, &published).map_err(|error| error.to_string())?;
+            Ok(audio)
         })
-    })
-    .await;
-    if let Err(error) = copied {
-        super::super::asset_publication::abandon(app, pool, &publication_id)
-            .await
-            .map_err(|cleanup| format!("{error}; voice source cleanup failed: {cleanup}"))?;
-        return Err(error);
-    }
-    Ok((
-        ReferenceSourceSnapshot {
+        .await?;
+        super::super::asset_publication::seal_unowned(pool, &publication_id, &audio.sha256).await?;
+        Ok(ReferenceSourceSnapshot {
             asset_path: target.to_string_lossy().into_owned(),
-            byte_length,
-            source_revision,
-        },
-        publication_id,
-    ))
+            byte_length: audio.byte_length,
+            source_revision: format!("sha256:{}", audio.sha256),
+            duration_ms: interval.1 - interval.0,
+        })
+    }
+    .await;
+    match preparation {
+        Ok(snapshot) => Ok((snapshot, publication_id)),
+        Err(error) => {
+            super::super::asset_publication::abandon(app, pool, &publication_id)
+                .await
+                .map_err(|cleanup| format!("{error}; voice source cleanup failed: {cleanup}"))?;
+            Err(error)
+        }
+    }
 }
 
-fn validate_source_metadata(metadata: &std::fs::Metadata) -> Result<(), String> {
+pub(super) fn validate_source_metadata(metadata: &std::fs::Metadata) -> Result<(), String> {
     if !metadata.is_file() || metadata.file_type().is_symlink() {
-        return Err("Voice reference must be a regular audio file".into());
+        return Err("Voice reference must be a regular media file".into());
     }
     if metadata.len() == 0 {
         return Err("Voice reference source is empty".into());
-    }
-    if metadata.len() > 128 * 1024 * 1024 {
-        return Err("Voice reference source exceeds the 128 MiB input limit".into());
     }
     Ok(())
 }

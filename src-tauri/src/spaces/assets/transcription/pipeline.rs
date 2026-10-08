@@ -38,19 +38,19 @@ pub struct TranscriptionPipeline<'a> {
 
 impl TranscriptionPipeline<'_> {
     pub async fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
-        let profile = speech::transcription_profile()?;
+        let (attempt_epoch, deadline_ms) = deadline(audio.analysis.duration_ms)?;
+        let profile = speech::transcription_execution_profile(
+            self.app,
+            self.resources.transcription_model()?,
+            self.cancellation,
+            deadline_ms,
+        )
+        .await?;
         let engine = profile.engine;
         let device = profile.device;
         let compute_type = profile.compute_type;
         let profile_id = profile.id;
-        let model_kind = match &engine {
-            AsrEngine::MlxWhisper => {
-                crate::local_resources::models::catalog::ModelKind::MlxWhisperWeights
-            }
-            AsrEngine::FasterWhisper => {
-                crate::local_resources::models::catalog::ModelKind::FasterWhisperWeights
-            }
-        };
+        let model_kind = self.resources.transcription_model()?.transcription_models()[0];
         let provenance = TranscriptProvenance {
             engine_id: match &engine {
                 AsrEngine::MlxWhisper => "mlx-whisper",
@@ -68,7 +68,6 @@ impl TranscriptionPipeline<'_> {
         let threads = budget.model_threads;
         let wav = audio.wav.clone();
         let audio_ref = blocking::run(move || audio_reference(&wav)).await?;
-        let (attempt_epoch, deadline_ms) = deadline(audio.analysis.duration_ms)?;
         let request_id = uuid::Uuid::new_v4().to_string();
         let params = SpeechTranscribeParams {
             identity: InferenceRequestIdentity {

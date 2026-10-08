@@ -130,19 +130,23 @@ native acceptance run.
 Native wheel availability, model license and actual execution are per-target release gates. A
 locked Python version alone does not establish native execution. The product release targets
 are macOS arm64/x64 and Windows x64. Windows arm64 remains outside the release scope. Intel macOS
-has no qualified heavyweight dependency supplier yet. The unverified full-stack source builder has
-been removed. Maintained native distributions and capability-specific engines must be evaluated against
+now has a fixed conda-forge Tensor dependency graph and native relocated import evidence.
+The supplier records exact package URLs, sizes, SHA-256 values, installed inventory and license notices;
+all three targets still require full model and distribution qualification. The unverified full-stack
+source builder has been removed. Maintained native distributions and capability-specific engines must be evaluated against
 the security baseline and the existing verified runtime publication contract. Supplier selection requires
 actual native closure, provenance, relocation and model acceptance evidence; resolver/layout differences
 alone do not justify rejecting a maintained distributor. See `packaging.md` for publication gates.
 
 WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selected secure
-runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner snapshot pinned at
-`c7cbfc2048c462b0d63a45797104fc9db3ad62b7` through the Transformers 5.19.0 API. Its complete
+runtime baseline. Forced alignment uses the official Apache-2.0 Qwen3 Forced Aligner native `-hf` snapshot pinned at
+`c07281df297b9905d24a508279258cccf987a064` through the Transformers 5.19.0 API. Its complete
 verified manifest is prepared only by a selected-segment enrichment job and it is never an ASR
-fallback. Pyannote Community-1 requires individual gated model access. Knovum downloads exactly four files after official account authorization from revision
-`3533c8cf8e369892e6b79ff1bf80f7b0286a54ee`, verifies their manifest, and supplies its own fixed
-pipeline configuration. The access token stays in the Rust-owned secrets database and authenticated download transport; no worker credential, external YAML or unauthorized mirror is used.
+fallback. Speaker diarization uses the maintained Sherpa-ONNX 1.13.8 API with its official
+MIT Pyannote 3.0 INT8 segmentation export and Apache-2.0 3D-Speaker ERes2Net base embeddings.
+The 41 MB fixed files and license notices download without gated account access. Their exact
+identities are owned by the Rust diarization manifest; Pyannote's training stack and token plumbing
+are removed from this capability. See `local-models.md` for the input and counting contract.
 The plan's Demucs htdemucs code license does not grant commercial use of its official pretrained
 weights, so it is not the production baseline. Knovum instead selects sherpa-onnx 1.13.8 with the
 two-stem Spleeter FP16 ONNX snapshot pinned at

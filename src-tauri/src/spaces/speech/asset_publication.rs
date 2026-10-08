@@ -45,6 +45,30 @@ pub(crate) async fn stage_for_attempt(
     claim: &AttemptClaim,
     asset: PendingAsset<'_>,
 ) -> Result<String, String> {
+    Ok(stage_batch_for_attempt(pool, claim, &[asset])
+        .await?
+        .remove(0))
+}
+
+pub(crate) async fn stage_batch_for_attempt(
+    pool: &SqlitePool,
+    claim: &AttemptClaim,
+    assets: &[PendingAsset<'_>],
+) -> Result<Vec<String>, String> {
+    let mut tx = db::begin_write(pool).await?;
+    let mut staged = Vec::with_capacity(assets.len());
+    for asset in assets {
+        staged.push(stage_in_transaction(&mut tx, claim, asset).await?);
+    }
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(staged)
+}
+
+async fn stage_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
+    claim: &AttemptClaim,
+    asset: &PendingAsset<'_>,
+) -> Result<String, String> {
     if claim.cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
@@ -81,7 +105,7 @@ pub(crate) async fn stage_for_attempt(
     .bind(&claim.step_instance_id)
     .bind(claim.execution_epoch)
     .bind(now)
-    .execute(pool)
+    .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     db::require_one(
@@ -117,6 +141,24 @@ pub(crate) async fn stage_unowned(
     .await
     .map_err(db::sql_error)?;
     Ok(id)
+}
+
+pub(super) async fn seal_unowned(
+    pool: &SqlitePool,
+    publication_id: &str,
+    sha256: &str,
+) -> Result<(), String> {
+    let sealed = sqlx::query(
+        "UPDATE spaces_speech_asset_publications SET sha256=? \
+         WHERE id=? AND run_id IS NULL AND sha256=?",
+    )
+    .bind(sha256)
+    .bind(publication_id)
+    .bind("0".repeat(64))
+    .execute(pool)
+    .await
+    .map_err(db::sql_error)?;
+    db::require_one(sealed, "Asset preparation reservation is no longer active")
 }
 
 pub(crate) async fn remove_in_transaction(

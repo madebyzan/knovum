@@ -14,6 +14,7 @@ fn exports_exact_timings_and_escaped_webvtt_speaker() {
         target_end_ms: Some(3500),
         source_segment_id: None,
         source_segment_revision: None,
+        delivery_instruction: None,
         source_text: None,
         state: "pending".into(),
         state_reason: None,

@@ -1,8 +1,11 @@
 {
   "followPlayback": "Follow playback",
   "load": "Load {title}",
-  "reanalyze": "Reanalyze",
   "play": "Play",
   "closePlayback": "Close playback",
-  "timeline": "Media timeline"
+  "timeline": "Media timeline",
+  "transcribe": "Transcribe",
+  "transcribed": "Transcribed",
+  "transcribing": "Processing transcription",
+  "transcriptionFirstUse": "The selected model and required resources download automatically on first use. Track or cancel the task in Task Center."
 }

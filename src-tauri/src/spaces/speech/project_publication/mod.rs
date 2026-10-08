@@ -93,8 +93,7 @@ async fn publish_project_with_measurement<R: Runtime>(
     }
     let output_path = directory.join(format!("full-{digest}-{}.{format}", claim.attempt_id));
     let sources = inputs::authorize_sources(app, renders, cancellation)?;
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("The bundled FFmpeg tool is unavailable")?;
+    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
     let work_directory = directory.join(format!("assembly-{}", claim.attempt_id));
     if work_directory.exists() {
         fs::remove_dir_all(&work_directory).map_err(|error| error.to_string())?;

@@ -53,6 +53,7 @@ pub struct VoiceLibraryRevision {
     pub revision_id: String,
     pub revision: i64,
     pub is_active: bool,
+    pub supports_delivery_instruction: bool,
     pub engine_id: String,
     pub model_spec_id: String,
     pub language: String,
@@ -121,6 +122,9 @@ pub struct SpeechSegmentInput {
     #[ts(optional)]
     pub speaker_key: Option<String>,
     pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub delivery_instruction: Option<String>,
     pub voice_revision_id: String,
     pub language: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -180,6 +184,9 @@ pub struct SpeechSegment {
     #[ts(optional)]
     pub speaker_key: Option<String>,
     pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub delivery_instruction: Option<String>,
     pub normalized_text: String,
     pub voice_revision_id: String,
     pub language: String,
@@ -246,6 +253,9 @@ pub struct PreviewVoiceRequest {
     pub space_id: String,
     pub source: VoicePreviewSource,
     pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub delivery_instruction: Option<String>,
     pub pronunciation_lexicon: serde_json::Value,
 }
 
@@ -337,6 +347,7 @@ pub(super) struct VoiceExecution {
 pub(super) struct SpeechSegmentExecution {
     pub id: String,
     pub normalized_text: String,
+    pub delivery_instruction: Option<String>,
     pub voice_revision_id: String,
     pub language: String,
 }

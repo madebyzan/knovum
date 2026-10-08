@@ -8,7 +8,7 @@
   "enrichmentJobType": {
     "analyze_visual": "视觉理解",
     "analyze_media": "媒体时长与波形分析",
-    "transcribe_media": "音频 Whisper 转写",
+    "transcribe_media": "音视频转录",
     "parse_document": "文档内容提取",
     "analyze_document": "文档图片分析",
     "align_media_transcript": "所选转录片段对齐",

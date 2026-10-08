@@ -27,7 +27,12 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
-  preview: [text: string, voiceRevisionId: string, pronunciationLexicon: Record<string, string>];
+  preview: [
+    text: string,
+    voiceRevisionId: string,
+    pronunciationLexicon: Record<string, string>,
+    deliveryInstruction?: string,
+  ];
   dirty: [value: boolean];
 }>();
 const { t } = useI18n();
@@ -37,6 +42,10 @@ const draft = useAudiobookDraft(
 );
 const voiceOptions = computed(() => voiceRevisionOptions(props.voices, draft.selectedVoiceRevisionIds.value));
 const roleOptions = computed(() => draft.roles.value.map((role) => ({ value: role.key, label: role.key })));
+function supportsDeliveryInstruction(speakerKey: string) {
+  const revisionId = draft.roleVoiceRevisionId(speakerKey);
+  return Boolean(props.voices.find((voice) => voice.revisionId === revisionId)?.supportsDeliveryInstruction);
+}
 watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
 </script>
 
@@ -72,6 +81,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       :disabled="disabled"
       @add="draft.addRole(t('spaces.speech.defaultRole'))"
       @rename="draft.renameRole"
+      @voice="draft.setRoleVoice"
       @remove="draft.removeRole"
     />
     <section
@@ -101,12 +111,13 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
         />
         <div class="flex items-center gap-1">
           <UiSelect
-            v-model="paragraph.speakerKey"
+            :model-value="paragraph.speakerKey"
             size="sm"
             class="min-w-0 flex-1"
             :label="t('spaces.speech.role')"
             :options="roleOptions"
             :disabled="disabled"
+            @update:model-value="draft.setParagraphSpeaker(paragraph, $event)"
           />
           <UiButton
             size="sm"
@@ -124,6 +135,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
                 [...paragraph.text.trim()].slice(0, 500).join(''),
                 draft.roleVoiceRevisionId(paragraph.speakerKey),
                 draft.lexicon.serializeLexicon(),
+                paragraph.deliveryInstruction.trim() || undefined,
               )
             "
             ><Play class="size-3.5"
@@ -137,6 +149,15 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
             ><Trash2 class="size-3.5"
           /></UiButton>
         </div>
+        <UiTextarea
+          v-if="supportsDeliveryInstruction(paragraph.speakerKey)"
+          v-model="paragraph.deliveryInstruction"
+          :rows="2"
+          :maxlength="500"
+          :disabled="disabled"
+          :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
+          :aria-label="t('spaces.speech.deliveryInstruction')"
+        />
       </div>
       <UiButton size="sm" variant="ghost" :disabled="disabled" @click="draft.addParagraph(chapter)"
         ><Plus class="size-3.5" />{{ t("spaces.speech.addParagraph") }}</UiButton

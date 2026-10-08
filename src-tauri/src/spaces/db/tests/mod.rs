@@ -73,3 +73,137 @@ async fn obsolete_baseline_checksum_is_rejected_without_resetting_the_database()
         .expect("original data preserved");
     assert_eq!(title, "Keep");
 }
+
+#[tokio::test]
+async fn diarization_requests_require_and_preserve_their_frozen_model() {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    super::migrate(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('audio','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Audio\"}',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES('job','space','audio','diarize_media_transcript','pending','revision',1,1)").execute(&pool).await.unwrap();
+    assert!(sqlx::query("INSERT INTO spaces_media_diarization_requests(job_id,expected_transcript_revision) VALUES('job',1)").execute(&pool).await.is_err());
+    let model = crate::local_resources::model_catalog::LocalModelId::SherpaDiarizationFull;
+    let spec = model.diarization_variant().unwrap().spec_id();
+    sqlx::query("INSERT INTO spaces_media_diarization_requests(job_id,model_spec_id,expected_transcript_revision) VALUES('job',$1,1)").bind(spec).execute(&pool).await.unwrap();
+    sqlx::query("UPDATE spaces_enrichment_jobs SET attempts=2,status='running' WHERE id='job'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let stored: String = sqlx::query_scalar(
+        "SELECT model_spec_id FROM spaces_media_diarization_requests WHERE job_id='job'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        crate::local_resources::model_catalog::LocalModelId::from_diarization_spec(&stored)
+            .unwrap(),
+        model
+    );
+}
+
+#[tokio::test]
+async fn alignment_requests_require_the_model_before_scheduling() {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    super::migrate(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('audio','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Audio\"}',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES('job','space','audio','align_media_transcript','pending','revision',1,1)").execute(&pool).await.unwrap();
+    assert!(sqlx::query("INSERT INTO spaces_media_alignment_requests(job_id,expected_transcript_revision,segment_ids) VALUES('job',1,'[\"segment\"]')").execute(&pool).await.is_err());
+    let model = crate::local_resources::model_catalog::LocalModelId::Qwen3AlignerQ8;
+    sqlx::query("INSERT INTO spaces_media_alignment_requests(job_id,model_spec_id,expected_transcript_revision,segment_ids) VALUES('job',$1,1,'[\"segment\"]')")
+        .bind(model.alignment_spec().unwrap()).execute(&pool).await.unwrap();
+    let spec: String = sqlx::query_scalar(
+        "SELECT model_spec_id FROM spaces_media_alignment_requests WHERE job_id='job'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        crate::local_resources::model_catalog::LocalModelId::from_alignment_spec(&spec).unwrap(),
+        model
+    );
+}
+
+#[tokio::test]
+async fn speech_schema_accepts_moss_reference_and_full_separation() {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    super::migrate(&pool).await.unwrap();
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+    for run_id in ["moss-reference", "moss-designed", "full-separation"] {
+        sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','user','local-user','workflow','running','{}','{}','{}',1,1)")
+            .bind(run_id)
+            .execute(&pool)
+            .await
+            .unwrap();
+    }
+
+    sqlx::query(
+        "INSERT INTO spaces_voice_candidates( \
+         id,space_id,run_id,source_kind,language,sample_text,design_description,reference_text, \
+         input_source_revision,input_byte_length,reference_asset_path,reference_sha256,reference_byte_length, \
+         preview_asset_path,preview_sha256,preview_sample_rate,preview_sample_count,model_spec_id,seed, \
+         synthesis_config,authorization,status,created_at) \
+         VALUES('moss-reference','space','moss-reference','reference','en','Sample',NULL,NULL,?,32044, \
+         '/moss-reference.wav',?,32044,'/moss-preview.wav',?,48000,48000, \
+         'moss-tts-nano-onnx-v1',0,?,?,'ready',1)",
+    )
+    .bind(format!("sha256:{}", "a".repeat(64)))
+    .bind("b".repeat(64))
+    .bind("c".repeat(64))
+    .bind(r#"{"speed":1.0,"sampleRate":48000,"seed":0}"#)
+    .bind(r#"{"declared":true,"referenceTranscriptConfirmed":false}"#)
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let designed_moss = sqlx::query(
+        "INSERT INTO spaces_voice_candidates( \
+         id,space_id,run_id,source_kind,language,sample_text,design_description,reference_text, \
+         reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
+         preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization,status,created_at) \
+         VALUES('moss-designed','space','moss-designed','designed','en','Sample','Warm','Sample', \
+         '/moss-designed.wav',?,32044,'/moss-designed-preview.wav',?,48000,48000, \
+         'moss-tts-nano-onnx-v1',0,?,?,'ready',1)",
+    )
+    .bind("d".repeat(64))
+    .bind("e".repeat(64))
+    .bind(r#"{"speed":1.0,"sampleRate":48000,"seed":0}"#)
+    .bind(r#"{"declared":true,"referenceTranscriptConfirmed":true}"#)
+    .execute(&pool)
+    .await;
+    assert!(designed_moss.is_err());
+
+    sqlx::query(
+        "INSERT INTO spaces_speech_source_separations( \
+         id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
+         background_asset_path,vocals_asset_path,vocals_sha256,background_sha256,background_sample_rate, \
+         background_sample_count,background_duration_ms,review_status,review_warning,created_at) \
+         VALUES('full-separation','space','full-separation','/source.wav',?,1000, \
+         'spleeter-2stems-fp32-cpu-v1','/background.wav','/vocals.wav',?,?,44100,44100,1000, \
+         'pending','Review the separated tracks before use',1)",
+    )
+    .bind(format!("sha256:{}", "f".repeat(64)))
+    .bind("1".repeat(64))
+    .bind("2".repeat(64))
+    .execute(&pool)
+    .await
+    .unwrap();
+}

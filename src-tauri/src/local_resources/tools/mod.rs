@@ -40,16 +40,9 @@ fn bundled_runtime_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String
         .map_err(|error| error.to_string())
 }
 
-pub fn resolve_tool<R: Runtime>(
-    app: &AppHandle<R>,
-    env_key: &str,
-    file_name: &str,
-) -> Result<Option<PathBuf>, String> {
-    if let Some(path) = super::configured_path::configured_path(env_key)? {
-        return Ok(Some(path));
-    }
+pub fn resolve_ffmpeg<R: Runtime>(app: &AppHandle<R>) -> Result<Option<PathBuf>, String> {
     let directory = bundled_runtime_dir(app)?;
-    let candidate = directory.join(platform_directory()).join(file_name);
+    let candidate = directory.join(platform_directory()).join(ffmpeg_name());
     Ok(candidate.is_file().then_some(candidate))
 }
 
@@ -60,9 +53,6 @@ pub(crate) fn resolve_media_import_tool<R: Runtime>(
     let Some(descriptor) = catalog::find_descriptor(kind)? else {
         return Ok(None);
     };
-    if let Some(path) = super::configured_path::configured_path(descriptor.env_key)? {
-        return Ok(Some(path));
-    }
     filesystem::verified_installation_path(app, &descriptor)
 }
 
@@ -75,7 +65,7 @@ pub(crate) fn resolve_deno<R: Runtime>(app: &AppHandle<R>) -> Result<Option<Path
 }
 
 pub const fn ffmpeg_name() -> &'static str {
-    executable("ffmpeg", "ffmpeg.exe")
+    executable("bin/ffmpeg", "Library/bin/ffmpeg.exe")
 }
 
 pub const fn yt_dlp_name() -> &'static str {

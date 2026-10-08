@@ -1,16 +1,6 @@
 import { execFileSync } from "node:child_process";
-import {
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  copyFileSync,
-  renameSync,
-  rmSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, copyFileSync, renameSync, rmSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -19,36 +9,38 @@ import {
   readRuntimeDescriptor,
   validateRuntimeDistribution,
 } from "./distribution.mjs";
-import { safeRelativePath, sha256File } from "./files.mjs";
-import { hostRuntimeTarget, runtimeProject, runtimeSources, runtimeTargets } from "./profiles.mjs";
+import { activateDirectory, safeRelativePath, sha256File } from "./files.mjs";
+import { mediaManifestName, validateMediaDescriptor, validateMediaRuntime } from "./media-manifest.mjs";
+import { hostRuntimeTarget, runtimeProject, runtimeTargets } from "./profiles.mjs";
+import { publicationSources } from "./publication.mjs";
+import { downloadArtifact } from "./transfer.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
-const { values } = parseArgs({ options: { target: { type: "string" }, profile: { type: "string" } } });
+const { values } = parseArgs({
+  options: { target: { type: "string" }, profile: { type: "string" }, publication: { type: "string" } },
+});
 const target = values.target ?? hostRuntimeTarget();
 const profile = values.profile;
 runtimeProject(repository, profile);
 const supportedTargets = new Set(Object.values(runtimeTargets));
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
-const sources = runtimeSources(target, profile, process.env);
+if (!values.publication)
+  throw new Error("Provisioning requires the runtime-publication.json produced by native CI");
+const publication = JSON.parse(readFileSync(values.publication, "utf8"));
+const sources = publicationSources(publication, target, profile);
 
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
 const scratch = mkdtempSync(join(repository, ".bundled-runtime-stage-"));
 const destination = join(runtimeRoot, target);
-let preserveScratch = false;
 try {
-  const headers = { "User-Agent": "Knovum runtime provisioner" };
-  if (process.env.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION) {
-    headers.Authorization = process.env.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION;
-  }
   const stagedRuntime = join(scratch, "runtime");
   mkdirSync(stagedRuntime);
   const downloaded = await Promise.all(
     sources.map((source) =>
-      download(
-        source.url,
-        source.expectedHash,
+      downloadArtifact(
+        { url: source.url, sha256: source.expectedHash },
         join(scratch, `${source.kind}.tar`),
-        source.kind === "FFMPEG" ? headers : { "User-Agent": "Knovum runtime provisioner" },
+        { "User-Agent": "Knovum runtime provisioner" },
       ),
     ),
   );
@@ -68,7 +60,7 @@ try {
     descriptor.archiveUrl !== sourceByKind.PYTHON_RUNTIME.url
   )
     throw new Error("Runtime descriptor differs from the controlled archive source");
-  if ((await import("node:fs")).statSync(archives.PYTHON_RUNTIME).size !== descriptor.size)
+  if (statSync(archives.PYTHON_RUNTIME).size !== descriptor.size)
     throw new Error("Runtime archive size differs from its descriptor");
   for (const [kind, directory] of [
     ...(profile === "light-inference" ? [["FFMPEG", stagedRuntime]] : []),
@@ -84,68 +76,24 @@ try {
   rmSync(distributionDestination, { recursive: true, force: true });
   renameSync(distribution, distributionDestination);
   if (profile === "light-inference") {
-    validateRuntime(stagedRuntime);
-    mkdirSync(runtimeRoot, { recursive: true });
-    const previous = join(scratch, "previous-runtime");
-    if (existsSync(destination)) renameSync(destination, previous);
-    try {
-      renameSync(stagedRuntime, destination);
-    } catch (error) {
-      if (existsSync(previous)) {
-        try {
-          renameSync(previous, destination);
-        } catch (restoreError) {
-          preserveScratch = true;
-          throw new AggregateError(
-            [error, restoreError],
-            `Runtime activation and restoration failed; previous runtime preserved at ${previous}`,
-          );
-        }
-      }
-      throw error;
-    }
+    const media = JSON.parse(readFileSync(archives.FFMPEG_DESCRIPTOR, "utf8"));
+    validateMediaDescriptor(repository, media, target);
+    if (
+      media.sha256 !== sourceByKind.FFMPEG.expectedHash ||
+      media.archiveUrl !== sourceByKind.FFMPEG.url ||
+      statSync(archives.FFMPEG).size !== media.size ||
+      sha256File(join(stagedRuntime, mediaManifestName)) !== media.manifestSha256
+    )
+      throw new Error("Core media differs from its controlled publication descriptor");
+    validateMediaRuntime(repository, stagedRuntime, target);
+    activateDirectory(stagedRuntime, destination);
   }
   console.log(`Provisioned ${profile} runtime for ${target}`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 } finally {
-  if (!preserveScratch) rmSync(scratch, { recursive: true, force: true });
-}
-
-function validateRuntime(directory) {
-  const windows = target.startsWith("windows-");
-  const required = [join(directory, windows ? "ffmpeg.exe" : "ffmpeg")];
-  const missing = required.filter((path) => !existsSync(path));
-  if (missing.length > 0) {
-    throw new Error(`Bundled runtime is incomplete for ${target}:\n${missing.join("\n")}`);
-  }
-  const forbidden = [
-    join(directory, windows ? "yt-dlp.exe" : "yt-dlp"),
-    join(directory, windows ? "deno.exe" : "deno"),
-  ].filter(existsSync);
-  if (forbidden.length > 0) {
-    throw new Error(
-      `On-demand media tools must not be present in the bundled runtime:\n${forbidden.join("\n")}`,
-    );
-  }
-  if (existsSync(join(directory, "python-runtime"))) throw new Error("FFmpeg archive must exclude Python");
-}
-
-async function download(
-  downloadUrl,
-  expectedHash,
-  file,
-  headers = { "User-Agent": "Knovum runtime provisioner" },
-) {
-  const response = await fetch(downloadUrl, { headers });
-  if (!response.ok || !response.body) throw new Error(`Runtime download failed: HTTP ${response.status}`);
-  if (!response.url.startsWith("https://")) throw new Error("Runtime redirect must retain HTTPS");
-  await pipeline(Readable.fromWeb(response.body), createWriteStream(file));
-  if (sha256File(file) !== expectedHash) {
-    throw new Error(`Runtime SHA-256 mismatch: ${file}`);
-  }
-  return file;
+  rmSync(scratch, { recursive: true, force: true });
 }
 
 function preflightArchive(archive) {

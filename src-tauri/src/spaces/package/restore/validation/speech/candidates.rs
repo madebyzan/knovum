@@ -13,6 +13,14 @@ pub(super) fn validate(
         ..
     } = index;
     for row in &request.voice_candidates {
+        let model = crate::spaces::speech::voice_candidates::VoiceModel::from_specification(
+            &row.model_spec_id,
+        )?;
+        if model == crate::spaces::speech::voice_candidates::VoiceModel::MossNano
+            && (row.source_kind != "reference" || row.reference_text.is_some())
+        {
+            return Err("Package voice candidate uses unsupported model controls".into());
+        }
         reference(run_ids, &row.run_id, "voice candidate run")?;
         if row.id != row.run_id
             || !matches!(row.source_kind.as_str(), "reference" | "designed")
@@ -24,7 +32,6 @@ pub(super) fn validate(
             || row.reference_byte_length <= 44
             || row.preview_sample_rate <= 0
             || row.preview_sample_count <= 0
-            || row.model_spec_id != crate::spaces::speech::voice_candidates::MODEL_SPEC_ID
             || !row.synthesis_config.is_object()
             || row
                 .authorization
@@ -54,7 +61,7 @@ pub(super) fn validate(
                         .is_some_and(valid_revision)
                     && row
                         .input_byte_length
-                        .is_some_and(|value| value > 0 && value <= 128 * 1024 * 1024) => {}
+                        .is_some_and(|value| value == row.reference_byte_length) => {}
             _ => return Err("Package voice candidate source metadata is invalid".into()),
         }
         match (

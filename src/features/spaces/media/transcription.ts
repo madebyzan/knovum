@@ -22,8 +22,7 @@ export function requestMediaDiarization(request: {
   spaceId: string;
   nodeId: string;
   expectedRevision: number;
-  minimumSpeakers: number | null;
-  maximumSpeakers: number | null;
+  numSpeakers: number | null;
 }) {
   return invokeCommand<string>("plugin:spaces|request_media_diarization", request);
 }

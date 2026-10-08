@@ -9,11 +9,13 @@ from uuid import uuid4
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 from knovum_inference.contracts.generated.separation import SpeechSeparateParams
 from knovum_inference.errors import RpcError
 from knovum_inference.speech.separation import (
     CHANNELS,
+    FULL_MODEL_SPEC_ID,
     MODEL_SPEC_ID,
     SAMPLE_RATE,
     SpleeterSourceSeparator,
@@ -58,7 +60,7 @@ def test_invalid_wav_is_rejected_before_model_load(tmp_path: Path) -> None:
         output.setsampwidth(2)
         output.setframerate(SAMPLE_RATE)
         output.writeframes(b"\0\0" * 32)
-    engine = SpleeterSourceSeparator(tmp_path / "model", tmp_path / "work", 2)
+    engine = SpleeterSourceSeparator(tmp_path / "model", tmp_path / "work", 2, MODEL_SPEC_ID)
     engine._load = lambda: pytest.fail("invalid input must not load sherpa-onnx")  # type: ignore[method-assign]
 
     with pytest.raises(RpcError) as caught:
@@ -131,3 +133,95 @@ def test_pcm_conversion_clips_positive_full_scale_without_wrapping(tmp_path: Pat
     assert pcm.min() == -32768
     assert pcm.max() == 32767
     assert pcm[-2:].tolist() == [32767, 32767]
+
+
+@pytest.mark.parametrize("frame_count", [1, 1024, 4096, 4410])
+@pytest.mark.parametrize("spec", [MODEL_SPEC_ID, FULL_MODEL_SPEC_ID])
+def test_separation_keeps_the_exact_source_timeline_and_tail(tmp_path: Path, frame_count: int, spec: str) -> None:
+    source = tmp_path / "stereo.wav"
+    pcm = np.full((frame_count, CHANNELS), 1234, dtype="<i2")
+    with wave.open(str(source), "wb") as output:
+        output.setnchannels(CHANNELS)
+        output.setsampwidth(2)
+        output.setframerate(SAMPLE_RATE)
+        output.writeframes(pcm.tobytes())
+    work = tmp_path / "work"
+    work.mkdir()
+
+    class FrameEngine:
+        @staticmethod
+        def process(rate: int, samples: NDArray[np.float32]) -> SimpleNamespace:
+            assert rate == SAMPLE_RATE
+            complete_frames = samples.shape[1] // 1024 * 1024
+            stem = samples[:, :complete_frames]
+            return SimpleNamespace(sample_rate=rate, stems=[SimpleNamespace(data=stem), SimpleNamespace(data=stem)])
+
+    engine = SpleeterSourceSeparator(tmp_path / "model", work, 2, spec)
+    engine._engine = FrameEngine()
+    params = _params(_audio_reference(source))
+    params.model_spec_id = spec
+    result = engine.separate(params, threading.Event())
+    assert result["modelSpecId"] == spec
+    assert result["sampleCount"] == frame_count
+    for name in ("vocalsRef", "backgroundRef"):
+        with wave.open(str(work / result[name]["fileName"]), "rb") as output:
+            assert output.getnframes() == frame_count
+            samples = np.frombuffer(output.readframes(frame_count), dtype="<i2")
+            assert samples[-CHANNELS:].tolist() == [1234, 1234]
+
+
+@pytest.mark.parametrize("spec", [MODEL_SPEC_ID, FULL_MODEL_SPEC_ID])
+def test_separation_rejects_a_model_change_before_reading_input(tmp_path: Path, spec: str) -> None:
+    engine = SpleeterSourceSeparator(tmp_path / "model", tmp_path / "work", 2, spec)
+    # A mismatched request must fail before attempting to open a missing source.
+    request = _params(
+        {
+            "path": str(tmp_path / "missing.wav"),
+            "mediaType": "audio/wav",
+            "byteLength": 44,
+            "sha256": "a" * 64,
+            "sampleRate": SAMPLE_RATE,
+            "channels": CHANNELS,
+            "sampleFormat": "pcm_s16le",
+        }
+    )
+    request.model_spec_id = FULL_MODEL_SPEC_ID if spec == MODEL_SPEC_ID else MODEL_SPEC_ID
+    with pytest.raises(RpcError, match="specification is unsupported"):
+        engine.separate(request, threading.Event())
+
+
+@pytest.mark.parametrize(
+    "spec,names",
+    [
+        (MODEL_SPEC_ID, ("vocals.fp16.onnx", "accompaniment.fp16.onnx")),
+        (FULL_MODEL_SPEC_ID, ("vocals.onnx", "accompaniment.onnx")),
+    ],
+)
+def test_model_load_uses_only_the_frozen_snapshot_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, spec: str, names: tuple[str, str]
+) -> None:
+    import sys
+
+    for name in names:
+        (tmp_path / name).touch()
+    observed: list[dict[str, object]] = []
+
+    def config(**kwargs: object) -> SimpleNamespace:
+        observed.append(kwargs)
+        return SimpleNamespace(**kwargs)
+
+    engine = object()
+    monkeypatch.setitem(
+        sys.modules,
+        "sherpa_onnx",
+        SimpleNamespace(
+            OfflineSourceSeparationSpleeterModelConfig=config,
+            OfflineSourceSeparationModelConfig=config,
+            OfflineSourceSeparationConfig=config,
+            OfflineSourceSeparation=lambda _config: engine,
+        ),
+    )
+    separator = SpleeterSourceSeparator(tmp_path, tmp_path, 2, spec)
+    assert separator._load() is engine
+    assert observed[0] == {"vocals": str(tmp_path / names[0]), "accompaniment": str(tmp_path / names[1])}
+    assert observed[1]["provider"] == "cpu" and observed[1]["num_threads"] == 2

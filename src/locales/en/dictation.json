@@ -20,5 +20,6 @@
     "noText": "No text was recognized.",
     "copy": "Copy text",
     "copied": "Dictation copied"
-  }
+  },
+  "preparingResources": "Preparing local resources for dictation…"
 }

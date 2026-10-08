@@ -5,13 +5,20 @@ use super::catalog::{self, ModelKind};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub(crate) enum SnapshotKind {
+    Diarization(catalog::DiarizationVariant),
+    Whisper(catalog::WhisperVariant),
     FasterWhisper,
     MlxWhisper,
     ImageSegmentation,
+    ImageSegmentationQuality,
     TextEmbedding,
+    MossNano,
     VoxCpm2,
+    VoxCpm2Q8,
     SpeechAlignment,
+    SpeechAlignmentQ8,
     SpeechSeparation,
+    SpeechSeparationFull,
 }
 
 #[derive(Clone, Serialize, schemars::JsonSchema)]
@@ -27,34 +34,63 @@ impl SnapshotKind {
     ) -> crate::local_resources::runtimes::python::RuntimeProfile {
         use crate::local_resources::runtimes::python::RuntimeProfile as P;
         match self {
-            Self::FasterWhisper | Self::ImageSegmentation | Self::SpeechSeparation => {
-                P::LightInference
-            }
+            Self::Whisper(
+                catalog::WhisperVariant::FasterTiny | catalog::WhisperVariant::FasterLargeV3,
+            ) => faster_whisper_runtime(),
+            Self::Whisper(
+                catalog::WhisperVariant::MlxTiny | catalog::WhisperVariant::MlxLargeV3,
+            ) => P::TorchInference,
+            Self::FasterWhisper => faster_whisper_runtime(),
+            Self::MossNano
+            | Self::ImageSegmentation
+            | Self::ImageSegmentationQuality
+            | Self::SpeechSeparation
+            | Self::SpeechSeparationFull
+            | Self::Diarization(_) => P::LightInference,
             Self::MlxWhisper | Self::TextEmbedding | Self::SpeechAlignment => P::TorchInference,
-            Self::VoxCpm2 => P::VoiceGeneration,
+            Self::VoxCpm2 | Self::VoxCpm2Q8 | Self::SpeechAlignmentQ8 => P::VoiceGeneration,
         }
     }
     pub(crate) const fn name(self) -> &'static str {
         match self {
+            Self::Whisper(variant) => match variant {
+                catalog::WhisperVariant::FasterTiny => "faster-whisper-tiny",
+                catalog::WhisperVariant::FasterLargeV3 => "faster-whisper-large-v3",
+                catalog::WhisperVariant::MlxTiny => "mlx-whisper-tiny",
+                catalog::WhisperVariant::MlxLargeV3 => "mlx-whisper-large-v3",
+            },
             Self::FasterWhisper => "faster-whisper-small",
             Self::MlxWhisper => "mlx-whisper-small",
             Self::ImageSegmentation => "u2netp",
+            Self::ImageSegmentationQuality => "u2net",
             Self::TextEmbedding => "qwen3-embedding",
+            Self::MossNano => "moss-tts-nano",
             Self::VoxCpm2 => "voxcpm2",
-            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b",
+            Self::VoxCpm2Q8 => "voxcpm2-q8_0",
+            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-hf",
+            Self::SpeechAlignmentQ8 => "qwen3-forced-aligner-0.6b-q8_0",
             Self::SpeechSeparation => "spleeter-2stems-fp16",
+            Self::SpeechSeparationFull => "spleeter-2stems-fp32",
+            Self::Diarization(variant) => variant.revision(),
         }
     }
 
     pub(crate) const fn models(self) -> &'static [ModelKind] {
         match self {
+            Self::Whisper(variant) => variant.models(),
             Self::FasterWhisper => catalog::FASTER_WHISPER_MODELS,
             Self::MlxWhisper => catalog::MLX_WHISPER_MODELS,
             Self::ImageSegmentation => catalog::IMAGE_SEGMENTATION_MODELS,
+            Self::ImageSegmentationQuality => catalog::IMAGE_SEGMENTATION_QUALITY_MODELS,
             Self::TextEmbedding => catalog::TEXT_EMBEDDING_MODELS,
+            Self::MossNano => catalog::MOSS_NANO_MODELS,
             Self::VoxCpm2 => catalog::VOXCPM2_MODELS,
+            Self::VoxCpm2Q8 => catalog::VOXCPM2_Q8_MODELS,
             Self::SpeechAlignment => catalog::QWEN3_FORCED_ALIGNER_MODELS,
+            Self::SpeechAlignmentQ8 => catalog::QWEN3_ALIGNER_Q8_MODELS,
             Self::SpeechSeparation => catalog::SPEECH_SEPARATION_MODELS,
+            Self::SpeechSeparationFull => catalog::SPEECH_SEPARATION_FULL_MODELS,
+            Self::Diarization(variant) => variant.models(),
         }
     }
 
@@ -88,5 +124,14 @@ impl SnapshotKind {
             digest.update(file.size.to_le_bytes());
         }
         hex::encode(digest.finalize())
+    }
+}
+
+fn faster_whisper_runtime() -> crate::local_resources::runtimes::python::RuntimeProfile {
+    use crate::local_resources::runtimes::python::RuntimeProfile as P;
+    if cfg!(target_os = "windows") {
+        P::TorchInference
+    } else {
+        P::LightInference
     }
 }

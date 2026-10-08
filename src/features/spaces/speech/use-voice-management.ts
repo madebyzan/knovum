@@ -1,8 +1,7 @@
-import { readonly, shallowRef, watch, type DeepReadonly } from "vue";
+import { onScopeDispose, readonly, shallowRef, watch, type DeepReadonly } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { VoiceProfileHistory } from "../contracts/generated/VoiceProfileHistory";
-import { useSpaceStore } from "../session/space-store";
 import {
   copyVoiceProfile,
   deleteVoiceProfile,
@@ -13,42 +12,65 @@ import {
   unarchiveVoiceProfile,
 } from "./ipc";
 
-export function useVoiceManagement(changed: () => void) {
-  const store = useSpaceStore();
+export function useVoiceManagement(ownerSpaceId: () => string | undefined, changed: () => void) {
   const profiles = shallowRef<VoiceProfileHistory[]>([]);
   const busyProfileId = shallowRef<string>();
   const error = shallowRef<string>();
   let epoch = 0;
+  let contextEpoch = 0;
+
+  function current(spaceId: string | undefined, version: number) {
+    return ownerSpaceId() === spaceId && contextEpoch === version;
+  }
 
   async function load() {
-    const spaceId = store.activeSpaceId;
-    const current = ++epoch;
+    const spaceId = ownerSpaceId();
+    const requestVersion = ++epoch;
     if (!spaceId) return void (profiles.value = []);
+    error.value = undefined;
     try {
       const next = await listVoiceProfiles(spaceId);
-      if (current === epoch && store.activeSpaceId === spaceId) profiles.value = next;
+      if (requestVersion === epoch && ownerSpaceId() === spaceId) profiles.value = next;
     } catch (cause) {
-      if (current === epoch) error.value = getErrorMessage(cause);
+      if (requestVersion === epoch) error.value = getErrorMessage(cause);
     }
   }
 
   async function mutate(profileId: string, operation: () => Promise<unknown>) {
     if (busyProfileId.value) return;
+    const spaceId = ownerSpaceId();
+    const version = contextEpoch;
     busyProfileId.value = profileId;
+    error.value = undefined;
     try {
       await operation();
-      error.value = undefined;
+      if (!current(spaceId, version)) return;
       await load();
-      changed();
+      if (current(spaceId, version)) changed();
     } catch (cause) {
-      error.value = getErrorMessage(cause);
+      if (current(spaceId, version)) error.value = getErrorMessage(cause);
     } finally {
-      busyProfileId.value = undefined;
+      if (current(spaceId, version)) busyProfileId.value = undefined;
     }
   }
 
-  watch(() => store.activeSpaceId, load, { immediate: true });
+  watch(
+    () => ownerSpaceId(),
+    () => {
+      contextEpoch += 1;
+      profiles.value = [];
+      busyProfileId.value = undefined;
+      error.value = undefined;
+      void load();
+    },
+    { immediate: true },
+  );
+  onScopeDispose(() => {
+    epoch += 1;
+    contextEpoch += 1;
+  });
   return {
+    reload: load,
     profiles: readonly(profiles),
     busyProfileId: readonly(busyProfileId),
     error: readonly(error),

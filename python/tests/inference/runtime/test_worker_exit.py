@@ -5,7 +5,9 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 from pathlib import Path
+from queue import Queue
 
 from knovum_inference import PROTOCOL_VERSION
 
@@ -41,15 +43,33 @@ asyncio.run(worker.Worker().serve())
             "modelPaths": {"embedding": "unused"},
         },
     }
-    process = subprocess.run(
+    process = subprocess.Popen(
         [sys.executable, "-c", script],
         env={**os.environ, "PYTHONPATH": str(source)},
-        input=json.dumps(request).encode() + b"\n",
-        capture_output=True,
-        timeout=10,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         start_new_session=os.name == "posix",
-        check=False,
     )
-    assert b"native-initialization-started" in process.stderr
-    assert process.returncode == (-signal.SIGKILL if os.name == "posix" else 1)
-    assert process.stdout == b""
+    assert process.stdin is not None and process.stderr is not None
+    started: Queue[bytes] = Queue()
+    diagnostics = process.stderr
+    reader = threading.Thread(target=lambda: started.put(diagnostics.readline()), daemon=True)
+    reader.start()
+    try:
+        process.stdin.write(json.dumps(request).encode() + b"\n")
+        process.stdin.flush()
+        # Startup/import time is separate from the five-second shutdown contract.
+        assert started.get(timeout=30) == b"native-initialization-started\n"
+        reader.join(timeout=1)
+        assert not reader.is_alive()
+        process.stdin.close()
+        process.stdin = None
+        stdout, _stderr = process.communicate(timeout=10)
+        assert process.returncode == (-signal.SIGKILL if os.name == "posix" else 1)
+        assert stdout == b""
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.communicate(timeout=10)
+        reader.join(timeout=1)

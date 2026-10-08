@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-use crate::spaces::package::ImportedPackageAsset;
+use crate::spaces::{package::ImportedPackageAsset, speech::voice_candidates::VoiceModel};
 
 const COLLECTIONS: &[&str] = &[
     "nodes",
@@ -33,28 +33,30 @@ const COLLECTIONS: &[&str] = &[
     "speechSourceSeparations",
 ];
 
-pub(super) fn package(selected: bool) -> (Value, Vec<ImportedPackageAsset>) {
+pub(super) fn package(selected: bool, model: VoiceModel) -> (Value, Vec<ImportedPackageAsset>) {
     let source_kind = if selected { "reference" } else { "designed" };
     let source_revision = format!("sha256:{}", "1".repeat(64));
     let reference_sha = "2".repeat(64);
     let preview_sha = "3".repeat(64);
     let source = if selected {
-        json!({"kind":"reference","sourcePath":null,"sourceRevision":source_revision.clone(),"startMs":0,"endMs":10000,"referenceText":"sample","referenceTextConfirmed":true})
+        json!({"kind":"reference","sourcePath":null,"sourceRevision":source_revision.clone(),"startMs":0,"endMs":10000,"referenceText":reference_text(model),"referenceTextConfirmed":reference_text(model).is_some()})
     } else {
         json!({"kind":"designed","description":"calm narrator"})
     };
     let frozen =
-        selected.then(|| json!({"byteLength":32000,"sourceRevision":source_revision.clone()}));
+        selected.then(|| json!({"byteLength":320044,"sourceRevision":format!("sha256:{reference_sha}"),"durationMs":10000}));
     let output = output(
+        model,
         source_kind,
         (!selected).then_some("calm narrator"),
         &preview_sha,
     );
     let mut manifest = base();
     manifest["runs"] = json!([run(frozen.clone())]);
-    manifest["runSteps"] = json!([step(source, frozen, output.clone())]);
+    manifest["runSteps"] = json!([step(model, source, frozen, output.clone())]);
     manifest["runAttempts"] = json!([attempt(output)]);
     manifest["voiceCandidates"] = json!([candidate(
+        model,
         selected,
         &source_revision,
         &reference_sha,
@@ -66,12 +68,12 @@ pub(super) fn package(selected: bool) -> (Value, Vec<ImportedPackageAsset>) {
             "activeRevisionId":"revision","archivedAt":null,"createdAt":2,"updatedAt":4
         }]);
         manifest["voiceRevisions"] = json!([{
-            "id":"revision","profileId":"profile","revision":1,"engineId":"voxcpm2",
-            "modelSpecId":crate::spaces::speech::voice_candidates::MODEL_SPEC_ID,
+            "id":"revision","profileId":"profile","revision":1,"engineId":model.engine(),
+            "modelSpecId":model.specification(),
             "language":"zh-CN","presetVoiceId":null,"referenceAssetId":"knovum-package-asset:voice",
-            "referenceSourceRevision":format!("sha256:{reference_sha}"),"referenceText":"sample",
+            "referenceSourceRevision":format!("sha256:{reference_sha}"),"referenceText":reference_text(model),
             "designDescription":null,"synthesisConfig":{"speed":1.0,"sampleRate":48000,"seed":0},
-            "authorization":{"declared":true,"declaredAt":4,"referenceTranscriptConfirmed":true,
+            "authorization":{"declared":true,"declaredAt":4,"referenceTranscriptConfirmed":reference_text(model).is_some(),
                 "candidateId":"run","candidateRunId":"run"},"createdAt":4
         }]);
     }
@@ -108,11 +110,11 @@ fn run(frozen: Option<Value>) -> Value {
     })
 }
 
-fn step(source: Value, frozen: Option<Value>, output: Value) -> Value {
+fn step(model: VoiceModel, source: Value, frozen: Option<Value>, output: Value) -> Value {
     json!({
         "id":"step","runId":"run","definitionNodeId":"candidate","instancePath":"candidate",
         "nodeKind":"speech_voice_candidate","dependsOn":[],"configuration":{"request":{
-            "requestId":"run","spaceId":"original","language":"zh-CN","text":"sample",
+            "requestId":"run","spaceId":"original","model":model,"language":"zh-CN","text":"sample",
             "source":source,"authorized":true,"seed":0},"referenceSource":frozen},
         "state":"succeeded","stateVersion":2,"resolvedInput":{},"output":output,
         "createdAt":1,"updatedAt":3
@@ -129,6 +131,7 @@ fn attempt(output: Value) -> Value {
 }
 
 fn candidate(
+    model: VoiceModel,
     selected: bool,
     source_revision: &str,
     reference_sha: &str,
@@ -138,14 +141,14 @@ fn candidate(
         "id":"run","runId":"run","spaceId":"original",
         "sourceKind":if selected {"reference"} else {"designed"},"language":"zh-CN",
         "sampleText":"sample","designDescription":if selected {Value::Null} else {json!("calm narrator")},
-        "referenceText":"sample","inputSourceRevision":if selected {json!(source_revision)} else {Value::Null},
-        "inputByteLength":if selected {json!(32000)} else {Value::Null},
+        "referenceText":reference_text(model),"inputSourceRevision":if selected {json!(source_revision)} else {Value::Null},
+        "inputByteLength":if selected {json!(320044)} else {Value::Null},
         "referenceAssetPath":"knovum-package-asset:reference","referenceSha256":reference_sha,
-        "referenceByteLength":32044,"previewAssetPath":"knovum-package-asset:preview",
+        "referenceByteLength":320044,"previewAssetPath":"knovum-package-asset:preview",
         "previewSha256":preview_sha,"previewSampleRate":48000,"previewSampleCount":48000,
-        "modelSpecId":crate::spaces::speech::voice_candidates::MODEL_SPEC_ID,"seed":0,
+        "modelSpecId":model.specification(),"seed":0,
         "synthesisConfig":{"speed":1.0,"sampleRate":48000,"seed":0},
-        "authorization":{"declared":true,"declaredAt":3,"referenceTranscriptConfirmed":true},
+        "authorization":{"declared":true,"declaredAt":3,"referenceTranscriptConfirmed":reference_text(model).is_some()},
         "status":if selected {"selected"} else {"ready"},
         "auditionedAt":if selected {json!(4)} else {Value::Null},
         "selectedVoiceProfileId":if selected {json!("profile")} else {Value::Null},
@@ -154,13 +157,25 @@ fn candidate(
     })
 }
 
-fn output(source_kind: &str, description: Option<&str>, preview_sha: &str) -> Value {
+fn output(
+    model: VoiceModel,
+    source_kind: &str,
+    description: Option<&str>,
+    preview_sha: &str,
+) -> Value {
     json!({
-        "candidateId":"run","runId":"run","spaceId":"original","sourceKind":source_kind,"seed":0,
+        "candidateId":"run","runId":"run","spaceId":"original","model":model,"sourceKind":source_kind,"seed":0,
         "language":"zh-CN","sampleText":"sample","designDescription":description,
-        "referenceText":"sample","audio":{"sha256":preview_sha,"sampleRate":48000,
+        "referenceText":reference_text(model),"audio":{"sha256":preview_sha,"sampleRate":48000,
             "sampleCount":48000},"status":"ready","auditionedAt":null,
         "selectedVoiceProfileId":null,"selectedVoiceRevisionId":null,"selectedAt":null,
         "rejectedAt":null,"createdAt":3
     })
+}
+
+fn reference_text(model: VoiceModel) -> Option<&'static str> {
+    match model {
+        VoiceModel::MossNano => None,
+        VoiceModel::VoxCpm2 | VoiceModel::VoxCpm2Q8 => Some("sample"),
+    }
 }

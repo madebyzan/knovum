@@ -21,5 +21,6 @@ pub(crate) use runner::{wait_with_output, wait_with_stderr};
 mod tests;
 
 pub(crate) mod process_tree;
+pub(crate) mod python;
 #[cfg(windows)]
 pub(crate) mod windows_job;

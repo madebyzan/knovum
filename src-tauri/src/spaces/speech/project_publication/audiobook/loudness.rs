@@ -87,7 +87,7 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
     fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
     let normalization: Result<LoudnessCheckpoint, String> = async {
         let concat = write_concat_file(&directory, &normalized)?;
-        let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
+        let ffmpeg = tools::resolve_ffmpeg(app)?
             .ok_or("The bundled FFmpeg tool is unavailable")?;
         let measure_cancellation = cancellation.clone();
         let measurement = crate::blocking::run(move || {

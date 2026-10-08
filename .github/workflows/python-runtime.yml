@@ -3,17 +3,19 @@ name: Controlled Python runtime
 on:
   workflow_dispatch:
     inputs:
-      archive_base_url:
-        description: Immutable HTTPS publication directory for runtime archives and corresponding evidence
-        type: string
-        required: true
       production:
         description: Sign the runtime for production (requires configured native certificates)
         type: boolean
         default: false
 
+  workflow_call:
+    inputs:
+      production:
+        type: boolean
+        default: false
+
 permissions:
-  contents: read
+  contents: write
   id-token: write
   attestations: write
 
@@ -34,7 +36,7 @@ jobs:
             target: windows-x64
             signing: unsigned
     runs-on: ${{ matrix.platform.os }}
-    environment: ${{ inputs.production && 'release-build' || 'runtime-qa' }}
+    environment: ${{ inputs.production && 'release-signing' || 'runtime-qa' }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -76,20 +78,41 @@ jobs:
           "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signers[0].Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Build locked runtime and verify relocation
         env:
-          KNOVUM_RUNTIME_ARCHIVE_BASE_URL: ${{ inputs.archive_base_url }}
+          KNOVUM_RUNTIME_ARCHIVE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
           KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
         shell: bash
         run: npm run runtime:build -- --profile ${{ matrix.profile }} --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz"
+      - name: Name the target descriptor
+        shell: bash
+        run: mv runtime-artifacts/runtime-descriptor.json runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}-descriptor.json
+      - name: Produce locked core media and verify relocation
+        if: matrix.profile == 'light-inference'
+        env:
+          KNOVUM_RUNTIME_ARCHIVE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
+          KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
+          KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
+        shell: bash
+        run: node scripts/runtime/media.mjs --output core-media-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/ffmpeg-${{ matrix.platform.target }}.tar.gz"
       - name: Attest produced archive
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz
+      - name: Attest core media archive
+        if: matrix.profile == 'light-inference'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: core-media-artifacts/ffmpeg-${{ matrix.platform.target }}.tar.gz
       - uses: actions/upload-artifact@v6
         with:
           name: python-${{ matrix.profile }}-${{ matrix.platform.target }}
-          path: runtime-artifacts
+          path: |
+            runtime-artifacts/*.tar.gz
+            runtime-artifacts/*-descriptor.json
+            core-media-artifacts/*.tar.gz
+            core-media-artifacts/*-descriptor.json
           if-no-files-found: error
           retention-days: 30
       - name: Remove macOS signing material
@@ -104,3 +127,31 @@ jobs:
         run: |
           if ($env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT) { Remove-Item "Cert:\CurrentUser\My\$env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT" }
           Remove-Item -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'runtime-signing.pfx')
+
+  publish:
+    needs: runtime
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: python-*
+          path: runtime-publication
+          merge-multiple: true
+      - name: Verify the complete native publication
+        env:
+          ARCHIVE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node --input-type=module -e 'import { writePublication } from "./scripts/runtime/publication.mjs"; writePublication("runtime-publication", process.env.ARCHIVE_BASE_URL);'
+      - name: Publish immutable local resources
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNTIME_TAG: runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: gh release create "$RUNTIME_TAG" runtime-publication/* --target "$GITHUB_SHA" --title "Local resources $GITHUB_SHA" --notes "Hash-bound native resources and build evidence for macOS arm64, macOS x64 and Windows x64." --prerelease --latest=false
+      - uses: actions/upload-artifact@v6
+        with:
+          name: runtime-publication
+          path: runtime-publication/runtime-publication.json
+          if-no-files-found: error

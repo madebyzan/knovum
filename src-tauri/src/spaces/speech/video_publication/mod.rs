@@ -76,8 +76,7 @@ pub(super) async fn publish_video<R: Runtime>(
         .background
         .as_ref()
         .map(|source| source.source_revision.clone());
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("The bundled FFmpeg tool is unavailable")?;
+    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
     let inspect_ffmpeg = ffmpeg.clone();
     let inspect_video = video.clone();
     let expected_video_ms = config.video.duration_ms;

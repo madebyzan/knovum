@@ -12,9 +12,8 @@ mod installation;
 mod jobs;
 mod model_plan;
 pub(crate) use jobs::{
-    prepare_agent_for_job, prepare_agent_for_request, prepare_diarization_for_job,
-    prepare_diarization_for_request, prepare_kokoro_for_job, prepare_kokoro_for_request,
-    prepare_models_for_job, prepare_models_for_request, prepare_voxcpm2_for_job,
+    prepare_agent_for_job, prepare_agent_for_request, prepare_models_for_job,
+    prepare_models_for_request, prepare_voxcpm2_for_job,
 };
 pub(crate) mod locks;
 pub(crate) mod requests;
@@ -23,8 +22,7 @@ pub(crate) mod shared_installation;
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage};
 
 pub use locks::{
-    acquire_verified_models, PreparedDiarizationModel, PreparedKokoroModel, PreparedModels,
-    PreparedVoxCpm2Model,
+    acquire_verified_models, PreparedDiarizationModel, PreparedModels, PreparedVoxCpm2Model,
 };
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";
@@ -48,8 +46,8 @@ pub async fn prepare_models<R: Runtime>(
     progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Queued,
         downloaded: 0,
-        total: Some(total),
-        percent: Some(0),
+        total,
+        percent: total.map(|_| 0),
     });
     let mut completed = 0_u64;
     for (profile, size) in plan.runtimes {
@@ -59,7 +57,9 @@ pub async fn prepare_models<R: Runtime>(
             }
         })
         .await?;
-        completed += size;
+        if let Some(size) = size {
+            completed += size;
+        }
     }
 
     let mut waiters = Vec::with_capacity(plan.missing.len());
@@ -83,9 +83,10 @@ pub async fn prepare_models<R: Runtime>(
                 progress(ResourcePreparationProgress {
                     stage,
                     downloaded: current,
-                    total: Some(total),
-                    percent: (total > 0)
-                        .then(|| ((current.saturating_mul(100) / total).min(100)) as u8),
+                    total,
+                    percent: total
+                        .filter(|total| *total > 0)
+                        .map(|total| ((current.saturating_mul(100) / total).min(100)) as u8),
                 });
             })
             .await?;
@@ -94,8 +95,8 @@ pub async fn prepare_models<R: Runtime>(
     let prepared = locks::acquire_verified_models(app, kinds, request_cancellation).await?;
     progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Ready,
-        downloaded: total,
-        total: Some(total),
+        downloaded: completed + downloaded.values().copied().sum::<u64>(),
+        total,
         percent: Some(100),
     });
     Ok(prepared)

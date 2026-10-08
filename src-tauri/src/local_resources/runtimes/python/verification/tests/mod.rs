@@ -96,6 +96,29 @@ fn rejects_recomputed_manifest_from_another_publication() {
         .contains("trusted descriptor"));
 }
 
+#[cfg(debug_assertions)]
+#[test]
+fn development_runtime_must_match_the_current_capability_lock() {
+    let fixture = Fixture::new();
+    let profile = crate::local_resources::runtimes::python::RuntimeProfile::TorchInference;
+    let verify = |bytes: &[u8]| {
+        verify_runtime(
+            &fixture.root.join(MANIFEST_NAME),
+            bytes,
+            digest(bytes),
+            &CancellationToken::new(),
+            None,
+            profile,
+        )
+    };
+    assert!(verify(&fixture.bytes)
+        .unwrap_err()
+        .contains("dependency lock"));
+    let mut manifest: serde_json::Value = serde_json::from_slice(&fixture.bytes).unwrap();
+    manifest["dependencyLockSha256"] = json!(digest(profile.lock_bytes()));
+    verify(&serde_json::to_vec(&manifest).unwrap()).unwrap();
+}
+
 #[test]
 fn rejects_changed_and_undeclared_dependency_files() {
     let fixture = Fixture::new();

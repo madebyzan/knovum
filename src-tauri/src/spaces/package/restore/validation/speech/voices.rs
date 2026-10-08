@@ -58,8 +58,8 @@ pub(super) fn validate(
             .map(|profile| profile.source_kind.as_str())
             .ok_or("Package voice profile is unavailable")?;
         if source_kind == "preset" {
-            if row.engine_id != "kokoro"
-                || row.model_spec_id != crate::spaces::speech::execution::KOKORO_MODEL_SPEC_ID
+            if row.engine_id != "moss_nano"
+                || row.model_spec_id != crate::spaces::speech::execution::MOSS_NANO_MODEL_SPEC_ID
                 || row
                     .preset_voice_id
                     .as_deref()
@@ -67,7 +67,7 @@ pub(super) fn validate(
                     .is_none()
             {
                 return Err(
-                    "Package preset voice does not match the supported Kokoro contract".into(),
+                    "Package preset voice does not match the supported MossNano contract".into(),
                 );
             }
             crate::spaces::speech::preset_voices::require(
@@ -78,14 +78,20 @@ pub(super) fn validate(
             )?;
             let config =
                 crate::spaces::speech::contracts::parse_synthesis_config(&row.synthesis_config)?;
-            if config.sample_rate != 24_000 {
-                return Err("Kokoro voices require 24 kHz synthesis".into());
+            if config.sample_rate != 48_000 {
+                return Err("MossNano voices require 48 kHz synthesis".into());
             }
         } else {
             let config =
                 crate::spaces::speech::contracts::parse_synthesis_config(&row.synthesis_config)?;
-            if row.engine_id != "voxcpm2"
-                || row.model_spec_id != crate::spaces::speech::voice_candidates::MODEL_SPEC_ID
+            let model = crate::spaces::speech::voice_candidates::VoiceModel::from_specification(
+                &row.model_spec_id,
+            )?;
+            if row.engine_id != model.engine()
+                || (model == crate::spaces::speech::voice_candidates::VoiceModel::MossNano
+                    && (source_kind != "reference"
+                        || row.reference_text.is_some()
+                        || row.design_description.is_some()))
                 || config.sample_rate != 48_000
                 || config.speed != 1.0
                 || row
@@ -101,7 +107,8 @@ pub(super) fn validate(
                         != Some(true))
             {
                 return Err(
-                    "Package reference voice differs from its authorized VoxCPM2 contract".into(),
+                    "Package reference voice differs from its authorized synthesis model contract"
+                        .into(),
                 );
             }
         }

@@ -8,7 +8,6 @@ use tauri::{AppHandle, Manager};
 use super::{asset_publication, cancellation, voice_assets, voice_reference_validation};
 use crate::{
     app_error::AppError,
-    file_inspection,
     spaces::{assets, db},
 };
 
@@ -55,8 +54,8 @@ pub async fn prepare_voice_reference(
     let length = fs::metadata(&source)
         .map_err(|error| error.to_string())?
         .len();
-    if length == 0 || length > 128 * 1024 * 1024 {
-        return Err("Voice reference source exceeds 128 MiB".into());
+    if length == 0 {
+        return Err("Voice reference source is empty".into());
     }
     let pool = db::pool(&app).await?;
     let space_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=?)")
@@ -96,13 +95,11 @@ pub async fn prepare_voice_reference(
         let handle = app.clone();
         let interval = (request.start_ms, request.end_ms);
         let (revision, audio) = crate::blocking::run(move || -> Result<_, String> {
-            let revision = file_inspection::content_revision(&original)?;
-            fs::copy(&original, &snapshot).map_err(|error| error.to_string())?;
-            file_inspection::verify_content_revision(&snapshot, &revision)?;
-            file_inspection::verify_content_revision(&original, &revision)?;
-            let audio = voice_assets::prepare_reference_clip(
-                &handle, &snapshot, &reference, length, &cancel, interval,
+            let (revision, mut audio) = voice_assets::prepare_reference_clip(
+                &handle, &original, &snapshot, length, &cancel, interval,
             )?;
+            fs::rename(&snapshot, &reference).map_err(|error| error.to_string())?;
+            audio.path = reference.to_string_lossy().into_owned();
             Ok((revision, audio))
         })
         .await?;
@@ -148,8 +145,8 @@ pub fn authorize_voice_reference_source(
     let source = Path::new(&source_path);
     assets::authorize_source(&app, source)?;
     let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
-    if !metadata.is_file() || metadata.len() > 128 * 1024 * 1024 {
-        return Err("Voice reference must be a regular file up to 128 MiB".into());
+    if !metadata.is_file() || metadata.len() == 0 {
+        return Err("Voice reference must be a nonempty regular media file".into());
     }
     app.asset_protocol_scope()
         .allow_file(source)

@@ -59,7 +59,10 @@ describe("speech preview playback controls", () => {
   it("stops listening without cancelling generation", async () => {
     const pending = deferredPreview();
     mocks.previewVoice.mockReturnValue(pending.promise);
-    const preview = useSpeechPreview(() => undefined);
+    const preview = useSpeechPreview(
+      () => undefined,
+      () => mocks.activeSpaceId,
+    );
     const task = preview.previewSelection("hello", "voice-1", {});
     await Promise.resolve();
 
@@ -73,7 +76,10 @@ describe("speech preview playback controls", () => {
   it("cancels generation with the active preview identity", async () => {
     const pending = deferredPreview();
     mocks.previewVoice.mockReturnValue(pending.promise);
-    const preview = useSpeechPreview(() => undefined);
+    const preview = useSpeechPreview(
+      () => undefined,
+      () => mocks.activeSpaceId,
+    );
     const task = preview.previewSelection("hello", "voice-1", {});
     await Promise.resolve();
     const activeJobId = preview.jobId.value;
@@ -83,6 +89,57 @@ describe("speech preview playback controls", () => {
     expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(activeJobId);
 
     pending.reject(new Error("preview cancelled"));
+    await task;
+  });
+
+  it("sends a trimmed delivery instruction with the preview request", async () => {
+    const pending = deferredPreview();
+    mocks.previewVoice.mockReturnValue(pending.promise);
+    const preview = useSpeechPreview(
+      () => undefined,
+      () => mocks.activeSpaceId,
+    );
+    const task = preview.previewSelection("hello", "voice-1", {}, "  Calm narration  ");
+    await vi.waitFor(() =>
+      expect(mocks.previewVoice).toHaveBeenCalledWith(
+        expect.objectContaining({ deliveryInstruction: "Calm narration" }),
+        expect.any(Function),
+        expect.any(Function),
+      ),
+    );
+
+    pending.reject(new Error("cancelled", { cause: { code: "cancelled" } }));
+    await task;
+  });
+
+  it("shows a rejected cancellation without losing the active generation or leaking a UI rejection", async () => {
+    const pending = deferredPreview();
+    mocks.previewVoice.mockReturnValue(pending.promise);
+    mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Cancellation rejected"));
+    const report = vi.fn<(message?: string) => void>();
+    const preview = useSpeechPreview(report, () => mocks.activeSpaceId);
+    const task = preview.previewSelection("hello", "voice-1", {});
+    await Promise.resolve();
+    const job = preview.jobId.value;
+    await expect(preview.cancel()).resolves.toBeUndefined();
+    expect(preview.jobId.value).toBe(job);
+    expect(report).toHaveBeenCalledWith("Cancellation rejected");
+    pending.reject(new Error("Generation failed"));
+    await task;
+  });
+
+  it("does not write a teardown cancellation failure into the next editor", async () => {
+    const pending = deferredPreview();
+    mocks.previewVoice.mockReturnValue(pending.promise);
+    mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Old cancellation failure"));
+    const report = vi.fn<(message?: string) => void>();
+    const preview = useSpeechPreview(report, () => mocks.activeSpaceId);
+    const task = preview.previewSelection("hello", "voice-1", {});
+    await vi.waitFor(() => expect(mocks.previewVoice).toHaveBeenCalledOnce());
+    preview.reset();
+    await Promise.resolve();
+    expect(report).not.toHaveBeenCalled();
+    pending.reject(new Error("cancelled", { cause: { code: "cancelled" } }));
     await task;
   });
 });

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.metadata
 import json
 import re
@@ -30,13 +31,14 @@ def write_inventory(
     root: Path,
     lock_path: Path,
     output: Path,
-    interpreter_configuration: Path,
+    native_lock: Path,
     target: str,
+    source_components: list[dict[str, Any]] | None = None,
 ) -> None:
     root = root.resolve(strict=True)
     lock = tomllib.loads(lock_path.read_text())
     locked = {(canonical(package["name"]), package["version"]): package for package in lock["package"]}
-    interpreter = interpreter_inventory(root, interpreter_configuration, target)
+    interpreter = interpreter_inventory(root, native_lock, target)
     bom = Bom()
     bom.components.add(
         Component(
@@ -52,6 +54,41 @@ def write_inventory(
             ],
         )
     )
+    native = json.loads(native_lock.read_text())
+    for package in native["packages"]:
+        if package["name"] == "python":
+            continue
+        purl = PackageURL(
+            type="conda",
+            name=package["name"],
+            version=package["version"],
+            qualifiers={"build": package["build_string"], "subdir": native["platform"]},
+        )
+        bom.components.add(
+            Component(
+                type=ComponentType.LIBRARY,
+                name=package["name"],
+                version=package["version"],
+                bom_ref=purl.to_string(),
+                purl=purl,
+                external_references=[
+                    ExternalReference(type=ExternalReferenceType.DISTRIBUTION, url=XsUri(package["url"]))
+                ],
+            )
+        )
+    for supplier in source_components or []:
+        bom.components.add(
+            Component(
+                type=ComponentType.LIBRARY,
+                name=supplier["name"],
+                version=supplier["version"],
+                licenses=[LicenseExpression(supplier["license"])],
+                external_references=[
+                    ExternalReference(type=ExternalReferenceType.DISTRIBUTION, url=XsUri(file["url"]))
+                    for file in supplier["files"]
+                ],
+            )
+        )
     licenses = []
     for distribution in sorted(
         importlib.metadata.distributions(path=[str(root / "packages")]),
@@ -122,10 +159,12 @@ def write_inventory(
     (output / "dependency-evidence.json").write_text(
         json.dumps(
             {
-                "dependencyLockSha256": digest(lock_path),
+                "dependencyLockSha256": hashlib.sha256(lock_path.read_bytes() + native_lock.read_bytes()).hexdigest(),
+                "nativePackages": native,
                 "reviewStatus": "required",
                 "interpreter": interpreter,
                 "distributions": licenses,
+                "sourceComponents": source_components or [],
             },
             indent=2,
         )
@@ -134,7 +173,10 @@ def write_inventory(
 
 
 def interpreter_inventory(root: Path, configuration_path: Path, target: str) -> dict[str, Any]:
-    configuration = json.loads(configuration_path.read_text())
+    native = json.loads(configuration_path.read_text())
+    if native["target"] != target:
+        raise ValueError("Interpreter inventory belongs to another native target")
+    interpreter = next(package for package in native["packages"] if package["name"] == "python")
     notices = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.is_relative_to(root / "packages"):
@@ -149,10 +191,10 @@ def interpreter_inventory(root: Path, configuration_path: Path, target: str) -> 
     if not binaries:
         raise ValueError("Interpreter inventory has no binaries files")
     return {
-        "version": configuration["version"],
-        "standaloneRelease": configuration["standaloneRelease"],
+        "version": interpreter["version"],
+        "supplier": native["supplier"],
         "target": target,
-        "source": configuration["targets"][target],
+        "source": interpreter,
         "compiledBinaries": binaries,
         "notices": notices,
     }

@@ -25,6 +25,7 @@ fn map(row: &sqlx::sqlite::SqliteRow, assets: &mut PackageAssets) -> Result<Valu
         "runId":decode_text(row,"run_id")?, "sourceAssetPath":assets.reference(&decode_text(row,"source_asset_path")?),
         "sourceRevision":decode_text(row,"source_revision")?, "sourceDurationMs":decode_integer(row,"source_duration_ms")?,
         "modelSpecId":decode_text(row,"model_spec_id")?, "backgroundAssetPath":assets.reference(&decode_text(row,"background_asset_path")?),
+        "vocalsAssetPath":assets.reference(&decode_text(row,"vocals_asset_path")?), "vocalsSha256":decode_text(row,"vocals_sha256")?,
         "backgroundSha256":decode_text(row,"background_sha256")?, "backgroundSampleRate":decode_integer(row,"background_sample_rate")?,
         "backgroundSampleCount":decode_integer(row,"background_sample_count")?, "backgroundDurationMs":decode_integer(row,"background_duration_ms")?,
         "reviewStatus":decode_text(row,"review_status")?, "reviewWarning":decode_text(row,"review_warning")?,

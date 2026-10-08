@@ -35,7 +35,12 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
-  preview: [text: string, voiceRevisionId: string, pronunciationLexicon: Record<string, string>];
+  preview: [
+    text: string,
+    voiceRevisionId: string,
+    pronunciationLexicon: Record<string, string>,
+    deliveryInstruction?: string,
+  ];
   generate: [];
   cancel: [];
   stopListening: [];
@@ -43,16 +48,20 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const dirty = shallowRef(false);
+const operationBusy = shallowRef(false);
 const videoHasBackground = computed(
   () =>
     props.project.project.projectType === "video_dubbing" &&
     "background" in props.project.revision.outputConfig &&
     Boolean(props.project.revision.outputConfig.background),
 );
-const editorDisabled = computed(() => props.running || props.saving || props.submitting);
+const editorDisabled = computed(
+  () => props.running || props.saving || props.submitting || operationBusy.value,
+);
 const canGenerate = computed(
   () =>
     !dirty.value &&
+    !operationBusy.value &&
     !props.running &&
     !props.submitting &&
     props.project.segments.length > 0 &&
@@ -67,8 +76,13 @@ function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   return t("spaces.speech.stages.done");
 }
 
-function forwardPreview(text: string, voiceRevisionId: string, pronunciationLexicon: Record<string, string>) {
-  emit("preview", text, voiceRevisionId, pronunciationLexicon);
+function forwardPreview(
+  text: string,
+  voiceRevisionId: string,
+  pronunciationLexicon: Record<string, string>,
+  deliveryInstruction?: string,
+) {
+  emit("preview", text, voiceRevisionId, pronunciationLexicon, deliveryInstruction);
 }
 </script>
 
@@ -106,6 +120,7 @@ function forwardPreview(text: string, voiceRevisionId: string, pronunciationLexi
       @dirty="dirty = $event"
       @save="emit('save', $event)"
       @preview="forwardPreview"
+      @busy="operationBusy = $event"
     />
     <div class="flex items-center gap-2 border-t border-stroke-divider pt-2">
       <UiButton size="sm" variant="primary" :disabled="!canGenerate" @click="emit('generate')">

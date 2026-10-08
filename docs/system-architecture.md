@@ -413,7 +413,7 @@ when a request fails.
 `knovum_model_resources` invokes official Hugging Face/ModelScope SDKs in a bounded subprocess;
 `knovum_inference` receives verified local paths and cannot download. Rust catalog snapshots group
 all required model parts and select one pinned Hub source per snapshot. Qwen Embedding, Qwen Forced
-Aligner and VoxCPM2 use the existing verified ModelScope revisions; Whisper, U²-Net and Spleeter use
+Aligner use the existing verified ModelScope revisions; Whisper, U²-Net and Spleeter use
 their pinned Hugging Face repositories. There is no community-mirror endpoint or region setting.
 Installations share the snapshot identity, use a snapshot write lease, and retain SDK staging
 metadata on cancellation/failure for resume. Each file must match the recorded size and SHA-256
@@ -423,8 +423,7 @@ SDK state belongs to `local-resources/models/hub-cache/`, independently of perso
 The removed download-region store is no longer read or written; it is not migrated or deleted.
 No old descriptor reader, automatic source switch or alternate model is installed. Complete
 anonymous download/cancel/resume acceptance is still required in every supported network region;
-removing a selector does not establish CDN or upstream reachability. Kokoro's archive and gated
-diarization downloads retain their separate reviewed resource contracts.
+removing a selector does not establish CDN or upstream reachability. MOSS-TTS-Nano, VoxCPM2 GGUF and public Sherpa diarization use exact direct download contracts with the same snapshot activation boundary.
 
 Node writes derive enrichment intent inside the same Rust database transaction, so a WebView reload
 cannot lose required work. Rust owns enrichment dispatch, per-node serialization, concurrency lanes,
@@ -442,12 +441,12 @@ The Rust local inference supervisor grants one heavy-model compute permit across
 including model loading. Interactive work takes priority while queued background work ages into
 service. The application bundles its own Worker and five immutable platform download descriptors.
 The `resources` package owns Hub SDK downloads; `light-inference` owns ONNX, Sherpa and
-CTranslate2; `torch-inference` owns embeddings, alignment, diarization and Apple Silicon MLX ASR;
-`voice-generation` owns VoxCPM2; `agent` owns Deep Agents and model clients. Each package has
+CTranslate2 on Intel macOS; `torch-inference` owns embeddings, alignment, Apple Silicon MLX ASR and Windows Faster Whisper;
+`voice-generation` owns the native audio.cpp VoxCPM2 callback engine, without Torch/datasets; `agent` owns Deep Agents and model clients. Each package has
 an independent lock and installed dependency root. Preparation selects only the execution packages
 required by the requested model snapshots; it prepares `resources` only for snapshots still missing.
-Already verified models do not require the downloader package. Community-1 downloads require
-the Torch package; Kokoro uses direct verified archive preparation and the light package. Rust passes
+Already verified models do not require the downloader package. Sherpa diarization and MOSS-TTS-Nano
+use direct verified download preparation and the light package. Rust passes
 the application Worker root, dependency root and actual runtime manifest path explicitly.
 It launches only a verified, managed, on-demand CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
@@ -512,15 +511,26 @@ Copying a voice to another Space creates a new profile and managed reference ass
 asset publication journal; the whole Space package remains the complete voice export boundary.
 
 Selected forced alignment is bounded to eight segments or 300 seconds and publishes stable units
-against the transcript revision. Manual segment edits invalidate that segment's aligned units.
-Optional Pyannote diarization is CPU-bound to two hours and speaker bounds 1–32. It uses four
-files downloaded after official account authorization from the pinned Community-1 revision plus a
-repository-owned pipeline config. The dedicated access command stores tokens in `secrets.db`;
-resource status carries only `tokenConfigured`. Authenticated requests share the existing bounded
-download transport, which strips credentials across origins, retains HTTP denial status, and never
-logs tokens or response URLs. Model files are verified in staging before atomic directory publication.
-The node operation prepares the model and its selected runtime as one cancellable request; Rust never
-forwards a Hugging Face token or external YAML to Python.
+against the transcript revision. Its durable request freezes either Qwen3's full Transformers model
+or the smaller Q8_0 native snapshot before scheduling. Native alignment shares the existing native
+audio environment and supplier with VoxCPM2, using the supplier's public C API. Model identity is
+independent of the CPU/GPU execution profile; retries retain the original model. The node action
+shows the selected model, download size and automatic first-use preparation. Manual segment edits
+invalidate that segment's aligned units.
+Optional Sherpa-ONNX diarization is bounded to two hours and automatic or exact known speaker
+count 1–32. Its selectable, immutable Pyannote 3.0 INT8 / FP32 segmentation exports and 3D-Speaker ERes2Net embeddings,
+with license notices, are downloaded without credentials and verified before atomic publication.
+The node operation and Settings model entry prepare the model and light runtime as one cancellable
+request using the shared snapshot installer and model usage leases. A durable request freezes the selected
+model; worker identity and transcript provenance cannot change with later preferences. No user model
+import, access token or external configuration enters the worker.
+
+Local model settings are a projection of the Rust model catalog and existing preparation targets.
+They expose function, size, verification and download/removal actions; runtime selection remains
+application policy. GPU-capable engines prefer an available supported GPU before admission and
+freeze that execution identity. Qwen embedding probes the verified Torch runtime and selects
+CUDA/MPS before CPU without changing the fixed model/index contract. Detection failures remain
+errors and failed GPU requests are not rerun on CPU. The Windows Tensor closure includes CUDA 12.8 and CPU execution. GPU availability is reprobed per job because native voice and CUDA qualification depend on changing free GPU memory. Dynamic reports are not cached across jobs. Windows ASR additionally qualifies CTranslate2 float16 support; alignment shares Torch backend selection. Native platform acceptance remains separate from these dependency and execution contracts.
 
 ## Security boundary
 
@@ -675,9 +685,8 @@ network waits do not occupy a compute permit.
 The speech feature exposes a revision catalog (`profileId`, `revisionId`, revision number),
 including historical and archived revisions. Editors offer active revisions and their exact
 already-bound historical revisions; library history can audition each immutable revision.
-Preset audition resolves the pinned Kokoro catalog directly without creating a throwaway profile.
-The pinned v1_0 archive has 53 speakers (0–52). Its owned display catalog records native voice
-language and gender; production language remains the supported Chinese/English profile.
+Preset audition resolves the pinned MOSS-TTS-Nano catalog directly without creating a throwaway profile.
+The pinned MOSS-TTS-Nano supplier provides ten built-in prompt voices (0–9). The owned display catalog records their native language and gender; production uses the supported Chinese/English profile. Preset selection never binds a speaker identity from another engine.
 
 Reference preparation authorizes the selected file, freezes a private snapshot, decodes the
 chosen 5–30 second interval to the ASR/reference PCM16 profile and returns a review transcript.
@@ -756,3 +765,17 @@ asset processing, with immutable external provenance in the node payload.
 Plugin source inspection, installation, update and catalog reads reuse the existing JobRegistry and Tauri Channels to report reading, validation and commit stages in Task Center. The host owns cancellation: it interrupts source reads and rejects commit admission after cancellation. Commit admission and cancellation share one lock; once admitted, the operation completes its existing atomic revision/database publication and exposes its actual result. Task Center disables cancellation in that stage and waits for host terminal acknowledgement.
 
 The extension owner explicitly cancels pending source reads and OAuth flows at application exit, revokes all MCP sessions and terminates their owned stdio process trees, then clears OAuth client caches. Cleanup does not depend on dropping AppHandle cycles.
+
+### Two-track separation publication
+
+Source separation authorizes analyzed audio or video nodes through the shared speech media-source ownership query. Video dubbing continues to authorize its video and audio inputs using its own kind policy. Both operations require exact source revision and duration; sharing the query does not broaden project permissions.
+
+The separation attempt stages its vocals and accompaniment publication journals in one transaction before moving either file. Candidate persistence and removal of both journals commit together. A partial filesystem move remains covered by attempt recovery. Review and restored execution verify both digests. Package snapshot, remapping, validation and asset reclamation include both paths. Accepted stems become ordinary audio nodes by referencing the managed asset through the existing Space mutation boundary, without another import/copy or inference pipeline.
+
+A text-node speech editor can create a preset voice at first use. The voice uses the existing library transaction and immutable revision. A new empty narration selects the first newly available active voice while preserving edited text and explicit selections. Global ASR and reference-voice defaults are separate strict Store v1 preferences.
+
+Dictation resource preparation reuses the cancellable preparation registry and Task Center. The recording session owns its progress and the transition to transcription. Frontend event subscription epochs prevent a late initial-state response or disposed listener from overwriting the current session.
+
+# Core media resource ownership
+
+FFmpeg is a bundled core media resource, independent of the five on-demand Python environments. The native media producer uses frozen platform-specific Conda-forge closures and the shared installer/signing policy. Both development and publication use that producer; development prepares the host resource before Vite starts, while packaging consumes the complete native publication. The Rust host resolves only the fixed prefix executable (`bin/ffmpeg` on macOS, `Library/bin/ffmpeg.exe` on Windows). Required shared libraries and notices stay beside it. The file manifest, producer identity, signed native files and native package lock are verified before activation; the application never searches PATH for a replacement.

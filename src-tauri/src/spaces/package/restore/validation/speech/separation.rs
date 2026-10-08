@@ -14,7 +14,10 @@ pub(super) fn validate(
             .and_then(|samples| samples.checked_add(44_099))
             .map(|samples| samples / 44_100);
         if row.id != row.run_id
-            || row.model_spec_id != crate::spaces::speech::source_separation::MODEL_SPEC_ID
+            || crate::local_resources::model_catalog::LocalModelId::from_separation_spec(
+                &row.model_spec_id,
+            )
+            .is_err()
             || row.source_duration_ms <= 0
             || row.source_duration_ms > 600_000
             || row.background_sample_rate != 44_100
@@ -23,6 +26,8 @@ pub(super) fn validate(
             || Some(row.background_duration_ms) != expected_duration
             || row.source_asset_path.trim().is_empty()
             || row.background_asset_path.trim().is_empty()
+            || row.vocals_asset_path.trim().is_empty()
+            || row.vocals_asset_path == row.background_asset_path
             || row.review_warning != crate::spaces::speech::source_separation::review_warning()
             || row.created_at < 0
         {
@@ -35,6 +40,7 @@ pub(super) fn validate(
             &row.background_sha256,
             "Source separation background digest",
         )?;
+        hex64(&row.vocals_sha256, "Source separation vocal digest")?;
         match (row.review_status.as_str(), row.reviewed_at) {
             ("pending", None) => {}
             ("accepted" | "rejected", Some(reviewed)) if reviewed >= row.created_at => {}

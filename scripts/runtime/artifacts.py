@@ -6,6 +6,7 @@ import hashlib
 import shutil
 import tarfile
 import urllib.request
+from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -62,16 +63,37 @@ def extract_python(archive: Path, destination: Path) -> Path:
     return root
 
 
-def materialize_aliases(root: Path) -> None:
-    """Retain standalone's internal file aliases without conveying filesystem links."""
-    for path in sorted(root.rglob("*")):
+def materialize_aliases(root: Path, entries: Iterable[Path] | None = None) -> None:
+    """Export internal aliases as regular files; reject external targets and cycles."""
+    boundary = root.resolve(strict=True)
+
+    def copy_entry(source: Path, destination: Path, ancestors: set[Path]) -> None:
+        resolved = source.resolve(strict=True)
+        if not resolved.is_relative_to(boundary):
+            raise ValueError(f"Runtime alias must name an internal entry: {source}")
+        if resolved in ancestors:
+            raise ValueError(f"Runtime directory alias creates a cycle: {source}")
+        if resolved.is_file():
+            shutil.copy2(resolved, destination)
+        elif resolved.is_dir():
+            destination.mkdir()
+            for child in sorted(resolved.iterdir()):
+                copy_entry(child, destination / child.name, ancestors | {resolved})
+        else:
+            raise ValueError(f"Runtime alias must name a regular entry: {source}")
+
+    for path in sorted(root.rglob("*") if entries is None else entries):
         if not path.is_symlink():
             continue
         target = path.resolve(strict=True)
-        if not target.is_relative_to(root.resolve()) or not target.is_file():
-            raise ValueError(f"Standalone alias must name an internal regular file: {path}")
+        if not target.is_relative_to(boundary):
+            raise ValueError(f"Runtime alias must name an internal entry: {path}")
+        ancestors = {parent.resolve() for parent in path.parents if parent.is_relative_to(root)}
+        # Validate/copy before removing the alias so failed exports keep their source intact.
+        temporary = path.with_name(path.name + ".materializing")
+        copy_entry(target, temporary, ancestors)
         path.unlink()
-        shutil.copy2(target, path)
+        temporary.rename(path)
 
 
 def archive_runtime(root: Path, destination: Path) -> None:

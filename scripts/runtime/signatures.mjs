@@ -6,8 +6,13 @@ import { validateDependencyLicenseReview } from "./license-policy.mjs";
 
 export function verifyRuntimeSignatures(directory, runtimeTarget, repository, profile) {
   const record = JSON.parse(readFileSync(join(directory, "..", "build-evidence", "producer.json"), "utf8"));
+  validateDependencyLicenseReview(directory, runtimeTarget, repository, profile);
+  verifyNativeResourceSignatures(directory, runtimeTarget, repository, record);
+}
+
+export function verifyNativeResourceSignatures(directory, runtimeTarget, repository, record) {
   if (record.signing?.mode !== "production")
-    throw new Error("Production packages require a production-signed Python runtime");
+    throw new Error("Production packages require production-signed native resources");
   if (runtimeTarget.startsWith("macos-") && record.signing.identity !== process.env.APPLE_SIGNING_IDENTITY) {
     throw new Error("Python runtime signing identity differs from the application identity");
   }
@@ -18,7 +23,6 @@ export function verifyRuntimeSignatures(directory, runtimeTarget, repository, pr
   ) {
     throw new Error("Python runtime signing certificate differs from the approved certificate");
   }
-  validateDependencyLicenseReview(directory, runtimeTarget, repository, profile);
   execFileSync(
     "uv",
     [

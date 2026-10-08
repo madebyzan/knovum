@@ -38,7 +38,8 @@ defineExpose({ focus });
 <template>
   <input
     ref="input"
-    v-model="model"
+    :value="model"
+    @input="model = ($event.target as HTMLInputElement).value"
     :id="fieldId"
     :type="type"
     :placeholder="placeholder"

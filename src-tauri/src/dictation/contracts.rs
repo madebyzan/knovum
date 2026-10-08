@@ -5,6 +5,7 @@ use serde::Serialize;
 pub(crate) enum DictationPhase {
     Idle,
     Recording,
+    PreparingResources,
     Transcribing,
     Result,
     Failed,
@@ -24,6 +25,8 @@ pub(crate) enum InsertionOutcome {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct DictationSnapshot {
     pub(crate) phase: DictationPhase,
+    pub(crate) resources:
+        Option<crate::local_resources::preparation::contracts::ResourcePreparationProgress>,
     pub(crate) session_id: Option<String>,
     pub(crate) started_at: Option<u64>,
     pub(crate) target_application: Option<String>,
@@ -38,6 +41,7 @@ impl Default for DictationSnapshot {
     fn default() -> Self {
         Self {
             phase: DictationPhase::Idle,
+            resources: None,
             session_id: None,
             started_at: None,
             target_application: None,

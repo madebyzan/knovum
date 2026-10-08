@@ -8,13 +8,16 @@ import type { VoicePreviewSource } from "../../contracts/generated/VoicePreviewS
 import { useSpeechPreview } from "../../speech/use-speech-preview";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 
-const props = defineProps<{ source: VoicePreviewSource; disabled: boolean }>();
+const props = defineProps<{ source: VoicePreviewSource; disabled: boolean; spaceId: string }>();
 const { t } = useI18n();
 const text = shallowRef("");
 const error = shallowRef<string>();
-const preview = useSpeechPreview((message) => {
-  error.value = message;
-});
+const preview = useSpeechPreview(
+  (message) => {
+    error.value = message;
+  },
+  () => props.spaceId,
+);
 watch(() => props.source, preview.reset, { deep: true });
 onScopeDispose(preview.reset);
 </script>
@@ -27,6 +30,7 @@ onScopeDispose(preview.reset);
       :maxlength="500"
       :disabled="disabled || Boolean(preview.jobId.value)"
       :placeholder="t('spaces.speech.previewText')"
+      :aria-label="t('spaces.speech.previewText')"
     />
     <div class="flex gap-2">
       <UiButton

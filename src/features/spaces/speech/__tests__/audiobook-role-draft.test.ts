@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AudiobookRoleDraft, ChapterDraft } from "../audiobook-draft";
+import { setAudiobookRoleVoice, type AudiobookRoleDraft, type ChapterDraft } from "../audiobook-draft";
 import { nextAudiobookRoleKey, renamedAudiobookDraft } from "../audiobook-role-draft";
 
 const roles: AudiobookRoleDraft[] = [
@@ -12,8 +12,8 @@ const chapters: ChapterDraft[] = [
     key: "chapter-1",
     title: "Chapter 1",
     paragraphs: [
-      { key: "paragraph-1", text: "Opening", speakerKey: "Narrator" },
-      { key: "paragraph-2", text: "Reply", speakerKey: "Guest" },
+      { key: "paragraph-1", text: "Opening", speakerKey: "Narrator", deliveryInstruction: "Warm" },
+      { key: "paragraph-2", text: "Reply", speakerKey: "Guest", deliveryInstruction: "" },
     ],
   },
 ];
@@ -39,5 +39,26 @@ describe("audiobook role drafts", () => {
 
   it("rejects a duplicate role key", () => {
     expect(renamedAudiobookDraft(roles, chapters, "narrator", "Guest")).toBeUndefined();
+  });
+
+  it("clears an instruction when its role switches to an unsupported voice", () => {
+    const draftRoles = structuredClone(roles);
+    const draftChapters = structuredClone(chapters);
+    const voice = {
+      profileId: "profile-3",
+      name: "Voice 3",
+      sourceKind: "preset",
+      revisionId: "voice-3",
+      revision: 1,
+      isActive: true,
+      engineId: "moss_nano",
+      modelSpecId: "moss-tts-nano-onnx-v1",
+      language: "en",
+      supportsDeliveryInstruction: false,
+      updatedAt: 1,
+    };
+    setAudiobookRoleVoice(draftRoles[0]!, voice.revisionId, draftChapters, [voice]);
+    expect(draftRoles[0]!.voiceRevisionId).toBe(voice.revisionId);
+    expect(draftChapters[0]!.paragraphs[0]!.deliveryInstruction).toBe("");
   });
 });

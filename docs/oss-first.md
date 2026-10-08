@@ -99,39 +99,26 @@ Why custom code is necessary (custom only):
 
 Feature engines remain deliberately deferred until their business requirements are concrete.
 
-## Voice design and cloning reviewed 2026-10-03
+## Voice design and cloning reviewed 2026-10-08
 
-- Capability / requirements: local voice design and authorized voice cloning must produce 48 kHz
-  speech on Apple Silicon macOS and x64 Windows, keep one confirmed reference immutable across
-  audiobook segments, and reject changed, mostly silent or oversized reference audio.
-- Selected implementation: official OpenBMB `voxcpm` 2.0.3 is pinned to source commit
-  `f0c787f0937dc1c9a8f4f64d9a332d9c5da2e629` (`Apache-2.0`). The `openbmb/VoxCPM2` model is
-  pinned to revision `32279effe8c19989596f05d353d1447f51d9e915` (`Apache-2.0`); its seven runtime
-  files total 4,960,722,408 bytes and are downloaded on demand with a fixed size and SHA-256 for
-  every file. The worker imports `VoxCPM` directly and loads only that verified local directory.
-- Device policy: macOS arm64 selects MPS and Windows x64 selects CPU. Both use
-  `load_denoiser=False` and `optimize=False`; unsupported targets or devices fail without an
-  alternate engine. Model preparation never asks Hugging Face code to download resources.
-- Existing Kokoro remains the preset-voice engine. It cannot meet voice design, isolated cloning
-  or exact-transcript continuation. A cloud TTS provider would violate the local-first execution
-  requirement, and a custom PyTorch model wrapper would duplicate the official implementation.
-- Custom code is limited to Knovum policy: immutable reference digest verification, mono PCM16
-  16 kHz and 5–30 second bounds, a Silero speech ratio of at least 50%, exact-transcript routing,
-  bounded artifact publication and cancellation through the existing worker boundary. Voice
-  authorization and confirmation remain product-owned operations before this runtime is called.
+MOSS-TTS-Nano's official independent ONNX implementation owns the small default preset/reference synthesis path. VoxCPM2 owns optional quality cloning and voice design. Its former official Python package requires a datasets dependency closure that fails the current audit, so production execution uses Apache-2.0 audio.cpp at `a1c24b2f90c6e6bcb9a525210d826717e96cdfa9` with the hash-bound original-precision GGUF conversion. The source archive, compiler recipe, callback bridge, model weights and notices are frozen and included in resource evidence.
+
+The current upstream C streaming API accumulates results before exposing them. Knovum therefore provides a narrow callback ABI over the existing public C++ streaming session to preserve bounded chunk credits and mid-generation cancellation. No vendor source is modified. The worker loads one explicitly selected backend; failures remain visible and never rerun on CPU. The byte-oriented upstream tokenizer requires C character classification, established only inside the private worker. Metal kernels are precompiled into the managed runtime to avoid compiling shaders on the user's first request.
+
+Rust qualifies and freezes reference assets once. Both synthesis adapters verify the immutable digest, PCM16 mono 16 kHz format and 5–30 second bounds; duplicate Torch VAD is removed from native synthesis. Exact-transcript continuation and design guidance are exposed only for engines that support those controls. Candidate creation and saved voice revisions freeze the actual model identity.
 
 ## Transcript forced alignment reviewed 2026-10-03
 
 - Capability / requirements: align user-selected transcript segments to the already prepared
   16 kHz mono media timeline, preserve Unicode scalar ranges, and publish only through the existing
   transcript revision and media-knowledge CAS boundaries.
-- Selected implementation: the official Apache-2.0 `Qwen/Qwen3-ForcedAligner-0.6B` snapshot is
-  pinned to commit `c7cbfc2048c462b0d63a45797104fc9db3ad62b7`. Its eight runtime files total
-  1,840,013,484 bytes; each has a fixed size and SHA-256 in the Rust resource catalog. The existing
-  exact-pinned Transformers 5.13.1 runtime provides `Qwen3ASRForTokenClassification`,
+- Selected implementation: the official Apache-2.0 `Qwen/Qwen3-ForcedAligner-0.6B-hf` snapshot is
+  pinned to commit `c07281df297b9905d24a508279258cccf987a064`. Its six runtime files total
+  1,847,225,867 bytes; each has a fixed size and SHA-256 in the Rust resource catalog. The existing
+  exact-pinned Transformers 5.19.0 runtime provides `Qwen3ASRForTokenClassification`,
   `prepare_forced_aligner_inputs`, and `decode_forced_alignment`, so no `qwen-asr` package or
   custom alignment model implementation is added.
-- Device and task policy: both qualified release targets run this model on CPU. One existing
+- Device and task policy: all current desktop target profiles run this model on CPU. One existing
   enrichment job owns 1–8 selected segments with at most five minutes of combined audio. Unsupported
   languages, devices, targets, stale transcript revisions, and unmatched text remain explicit; ASR
   is never rerun as a fallback.
@@ -267,7 +254,7 @@ model weights are not duplicated in a global Hub cache. SDK configuration/cache 
 to Knovum, and public downloads use no personal Hub credentials. Inference receives local paths
 and remains offline.
 
-Each snapshot now declares exactly one Hub source. Qwen3 Embedding, VoxCPM2 and Qwen3 Forced
+Each Hub snapshot declares exactly one source; MOSS-TTS-Nano and native VoxCPM2 instead declare exact per-file direct sources. Qwen3 Embedding and Qwen3 Forced
 Aligner select previously verified ModelScope revisions. Faster-whisper, MLX Whisper, U²-Net and
 Spleeter select their pinned Hugging Face repositories. The earlier comparison established matching
 size/SHA-256 metadata for all 28 required files in five cross-Hub snapshots and downloaded five
@@ -280,8 +267,7 @@ to release configuration and distribution infrastructure, with actual anonymous 
 acceptance required on supported networks. No CDN has been provisioned by this code change; when a
 source cannot pass acceptance, qualify a permitted copy of the same audited bytes and update the
 catalog or publication address before release.
-Kokoro remains an independently verified upstream archive with its existing blocked eSpeak data
-license review; no unqualified Hub copy or replacement model is substituted.
+The former Kokoro archive is removed. Public Sherpa diarization and the new synthesis snapshots retain exact source, hash and notice contracts.
 
 # 文档提取与原生资源生命周期
 
@@ -306,9 +292,10 @@ and the feature's existing playback composable. Manuscripts reuse MarkdownIt, th
 reader and native Office/PDF extraction. EPUB parsing needs only its bounded XML manifest/spine
 and paragraph mapping, so native DOMParser suffices without another archive/XML/document parser
 or a speculative dependency. Parsed markup remains inert and is never inserted into the UI.
-The [Kokoro model documentation](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html)
-provides the canonical voice mapping for the pinned archive; catalog membership is validated by
-creation, preview, execution and package restore. Model/license release gates remain authoritative.
+The fixed MOSS-TTS-Nano presets and native VoxCPM2 model identities belong to the application
+catalog; creation, preview, execution and package restore validate that membership. Supplier
+implementation, model files and notices are frozen independently. Model/license release gates
+remain authoritative.
 
 ## Native voice supplier reviewed 2026-10-07
 
@@ -324,9 +311,12 @@ The native Intel CLI compiled without its model manager and produced real 48 kHz
 reference-transcript clone chunks. These are engine-interface probes, not product quality acceptance.
 The public C ABI starts synthesis synchronously before pull events are available; the C++ callback
 emits earlier but retains whole-output and named-chunk buffers. The built-in HTTP adapter has no
-qualified authenticated local transport. Neither interface is adopted as a shortcut around the
-existing bounded chunk, cancellation, model identity and Worker lifecycle contracts. The production
-engine and model snapshot remain unchanged; no new application dependency was added.
+qualified authenticated local transport. That initial probe did not change the production engine.
+The subsequent native adapter uses a narrow callback ABI over the frozen public C++ session,
+retains application-owned chunk credits and cancellation, resets stopped sessions and validates
+48 kHz mono output. It replaces the blocked Python VoxCPM dependency graph without altering supplier
+code or bypassing model identity and Worker lifecycle contracts. The current Intel adapter evidence
+and remaining native-platform acceptance are recorded in `docs/local-models.md`.
 
 ## Agent extension implementation choices
 
@@ -346,3 +336,36 @@ writer is added. References: https://github.com/modelcontextprotocol/rust-sdk,
 https://github.com/GitoxideLabs/gitoxide, https://github.com/Ethiraric/yaml-rust2,
 https://github.com/lo48576/iri-string, https://github.com/unicode-rs/unicode-normalization,
 https://agent-plugins.org/ and https://skills.sh/.
+
+### Default speech generation: official standalone MOSS-TTS-Nano
+
+VoiceStudio's reviewed source (commit `d961f65b0df14cfaad9e45f39cfeae384b3e87de`) uses MOSS-TTS-Nano among its curated engines. Knovum uses the [official standalone ONNX runtime](https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/ort_cpu_runtime.py), pinned without modifications, rather than its full PyTorch application package. OpenMOSS explicitly supplies this independent NumPy/ONNX path for CPU inference and reference cloning. The Apache-2.0 source license and source hashes are recorded in `python/runtime-source.json`; the producer installs that component with source and notices, records it in CycloneDX and hashes its files in the runtime manifest. Knovum owns the fixed joint TTS/codec model layout, bounded stream credits, cancellation and immutable voice identities. No vendor application code is copied.
+
+Compared alternatives: Supertonic 3 does not cover Chinese; OmniVoice's reviewed weights have a noncommercial license; CosyVoice 3's full resource footprint is substantially larger; Kokoro's reviewed archive had unresolved eSpeak distribution evidence. The previous Kokoro installer and its dedicated locks are removed rather than retained behind an alias. MOSS exposes normal-speed synthesis and reference cloning; voice design and unsupported style/speed controls are rejected. VoxCPM2 remains the separate quality/design engine, subject to its own dependency and native qualification.
+
+The joint ONNX snapshot pins TTS repository `f52645cb467506d8e18e746ddd59482685b74e58` and codec repository `ceff0d0749bfb3fa2d61149794ec6feef0d1e1ae` with per-file SHA256 and byte lengths. Both pinned model cards declare Apache-2.0. Intel Mac native probing produced finite 48 kHz Chinese and English streams with first chunks under one second after load; this is evidence for this machine, not a substitute for Windows or Apple Silicon native acceptance.
+
+## Image model alternatives reviewed 2026-10-08
+
+The existing U²-Net ONNX adapter supports both the official compact and full architectures with
+identical 320×320 RGB input and first-mask output contracts. The maintained
+[rembg U²-Net session](https://github.com/danielgatis/rembg/blob/main/rembg/sessions/u2net.py)
+uses the full model for higher-capacity background removal. Knovum reuses the existing pinned
+ONNX Runtime, image compositing, snapshot installer and model settings contracts; installing
+rembg, adding a second image engine or introducing a wrapper is unnecessary. The existing
+immutable rembg snapshot already contains both files, and each retains its own hash, size and
+model specification. No Tauri capability permission changes are required.
+
+VoiceStudio's HTDemucs separation implementation was reviewed again. Its code is MIT, but the
+[author's checkpoint clarification](https://github.com/facebookresearch/demucs/issues/508#issuecomment-1663033356)
+limits the provided weights to research use. A third-party MIT model-card tag does not override
+that restriction. It is not added as a product download; the existing Spleeter engine remains
+the licensed separation implementation.
+
+# Core media production decision
+
+Reuse the existing pinned Conda-forge/micromamba native producer for FFmpeg 9.0.1 instead of adding a downloader package, a system installation path or manually configured platform URLs. The frozen media-only closures contain 70 packages on Intel macOS (73,740,388 compressed bytes), 87 on Apple Silicon (92,413,506 bytes), and 64 on Windows x64 (78,678,035 bytes); none includes Python. Retain the supplier prefix and its shared libraries, native package inventory and licenses. The [upstream Conda-forge FFmpeg recipe](https://github.com/conda-forge/ffmpeg-feedstock/blob/main/recipe/meta.yaml) provides maintained builds across these platforms. Package URLs and SHA-256 identities are frozen in the three checked-in locks; the reference to the recipe is explanatory and never a mutable build input. FFmpeg/GPL and the transitive native closure require complete corresponding-source review before production distribution.
+
+The development entry uses [Vite's official JavaScript API](https://vite.dev/guide/api-javascript.html) after core media preparation, preserving one server process and its normal config and shutdown lifecycle. No additional frontend dependency is introduced.
+
+The first complete Intel prefix measured 587,139,487 bytes and 396 native files. Exporting that SDK prefix is unnecessary for the desktop. [Delocate](https://github.com/matthew-brett/delocate) and [Delvewheel](https://github.com/adang1345/delvewheel) were considered for library inspection/relocation; their primary delivery contracts target Python wheels on their respective platforms. Knovum needs a fixed FFmpeg entry point, the existing Conda prefix layout, retained runtime data/notices, and rejection of third-party libraries outside that prefix. Use the native build tools directly for this small producer policy: macOS `otool -L` and MSVC's documented [`dumpbin /DEPENDENTS`](https://learn.microsoft.com/en-us/cpp/build/reference/dependents?view=msvc-170). Traverse the complete dependency graph before removing SDK tools, static archives and unreferenced aliases. Retain OS-provided library boundaries without conveying OS libraries. This adds no dependency or application-time library resolver; the resulting signed resource still undergoes relocation and feature qualification before publication.

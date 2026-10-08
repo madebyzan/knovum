@@ -238,10 +238,10 @@ Settings. Cancelling preparation cancels that transcription demand, not another 
 Selected alignment is an explicit enrichment action over at most eight segments and 300 seconds.
 It preserves stable word or character unit identities and may publish partial progress; a manual edit
 invalidates the edited segment's timing rather than silently retaining stale alignment. Optional
-speaker diarization runs separately on CPU for media up to two hours with user bounds from 1 through
-32 speakers. Its node action prepares Community-1 and the matching dependencies automatically after the user
-has configured official model access. Download progress and cancellation belong to the same feature
-request; the WebView never passes a Hugging Face token to the inference worker.
+speaker diarization runs separately for media up to two hours. The speaker count may be automatic
+or one known value from 1 through 32. Its node action prepares the public Sherpa-ONNX model and
+matching dependencies automatically. Download progress and cancellation belong to the same feature
+request and are also available in the Settings model list. No account token or folder import is required.
 
 ## Speech projects
 
@@ -262,8 +262,12 @@ Space packages preserve the completed Run identity, candidate review state, froz
 and both referenced source/background assets so an accepted background remains verifiable after
 export and restore.
 
-A voice design or clone is a durable single-step Run. Rust freezes an external reference into a
-hash-bound managed input before scheduling, recovers interrupted attempts through the shared Run
+A voice design or clone is a durable single-step Run. Rust decodes only the selected 5–30 seconds
+from an authorized audio or video reference into a hash-bound, 16 kHz mono PCM16 input before scheduling. The original
+source revision and selected interval remain in the request; the managed snapshot records its own
+digest, byte length and duration. Retries copy this exact clip rather than reopening the original media.
+Preparation reserves an asset journal entry before creating files and seals it with the clip digest
+before the Run transaction takes ownership. Rust recovers interrupted attempts through the shared Run
 lease policy, and publishes the normalized reference plus 48 kHz audition as one candidate record.
 Audition completion, rejection, and the selected profile/revision identity are persisted. Creating a
 reusable voice requires an explicit authorization record and a completed audition; it copies the
@@ -271,7 +275,12 @@ candidate's verified 5–30 second 16 kHz mono reference into an immutable voice
 voice profiles may be archived without losing candidate history. Physical deletion is allowed only
 after no selected candidate, speech segment, or audiobook role still references any profile revision;
 candidate provenance is retained as a real Space-local reference rather than rewritten as a tombstone.
-Space packages preserve candidate decisions, source identity, Run identity, and both candidate assets.
+Space packages preserve candidate decisions, selected model, original source identity, clip identity,
+Run identity, and both candidate assets. Request, result and selected voice revision must agree on
+the model; MOSS audio-only references retain their own controls. Operational paths are redacted.
+Cancellation during creation belongs to the preparation request. If creation commits concurrently,
+the initiating view carries the cancellation intent to the durable Run, which remains in Task Center
+even after the view closes or changes Space.
 
 Cloning references must contain at least 60% VAD-detected speech. If a confirmed reference transcript
 is supplied, its normalized character edit distance from recognition must not exceed 20%; comparison
@@ -591,3 +600,11 @@ The current pre-release Spaces database baseline admits only the current job typ
 **Add subtitles** is an atomic video-node derivation (`add-video-subtitles`), not a built-in Workflow. It takes one current video and publishes one new video with burned-in subtitles and a `derives-from` relation to that video. The original video is unchanged. Current timed transcript cues are reused; when no transcript exists, the same local Whisper runtime recognizes speech inside the derivation. Neither step requires a user model/API key. Subtitle text is an internal temporary render input, not an intermediate canvas node or review gate.
 
 Local recognition and FFmpeg share the derivation cancellation token. Input asset and knowledge revisions are captured before execution and revalidated before atomic publication; cancelled or stale results cannot be published. Local resource/tool preparation failures remain visible. There is no standalone `subtitle` node kind or subtitle-resource Action. Subtitle tracks in the video editor and transcript cues remain media-owned editing/recognition data.
+
+### Vocal separation results
+
+The audio/video node separation operation produces vocals and accompaniment as separate durable assets. Both tracks remain part of one review candidate, can be auditioned individually, and are independently exported after acceptance. Each accepted track can be added as an ordinary audio node; existing Space placement, asset authorization and reference reclamation apply. The video dubbing background selector consumes only the accepted accompaniment, preserving its candidate/source provenance.
+
+The current pre-release v1 database/package baseline includes both stem paths and digests. Obsolete baselines are rejected by the existing strict schema policy; no compatibility reader, migration or silent reset is introduced. Snapshot, restore, remapping and deletion reference graphs preserve both outputs. Interrupted attempts retain publication journals until both assets can be committed or cleaned up.
+
+Audio and video node toolbars expose transcription as a separate operation. A current edited transcript remains authoritative: the action shows the existing transcript state and cannot silently replace it. A queued, running or resource-waiting enrichment job disables a second submission, including jobs restored from native state. Transcript and inspector components are keyed by node identity so local editing state cannot leak to another selection.

@@ -1,5 +1,6 @@
 use super::*;
 use flate2::{write::GzEncoder, Compression};
+use std::path::PathBuf;
 
 struct Fixture(PathBuf);
 impl Fixture {

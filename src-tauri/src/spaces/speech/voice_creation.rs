@@ -3,7 +3,7 @@ use crate::{ai::contracts::speech_wire::AudioFileReference, app_error::AppError,
 use super::{
     contracts::{CreateCandidateVoiceRequest, VoiceLibraryRevision},
     voice_assets,
-    voice_candidates::{self, VoiceCandidateStatus, MODEL_SPEC_ID},
+    voice_candidates::{self, VoiceCandidateStatus},
 };
 
 #[tauri::command]
@@ -63,8 +63,8 @@ pub async fn create_candidate_voice(
             "candidateId": request.candidate_id,
             "candidateRunId": record.candidate.run_id,
         });
-        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,1,'voxcpm2',?,?,NULL,?,?,?,?,?,?,?)")
-            .bind(&revision_id).bind(&request.candidate_id).bind(MODEL_SPEC_ID)
+        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,1,?,?,?,NULL,?,?,?,?,?,?,?)")
+            .bind(&revision_id).bind(&request.candidate_id).bind(record.candidate.model.engine()).bind(record.candidate.model.specification())
             .bind(&record.candidate.language).bind(persisted.path.to_string_lossy().as_ref())
             .bind(format!("sha256:{}", reference.sha256)).bind(&record.candidate.reference_text)
             .bind(&record.candidate.design_description).bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":record.candidate.seed}).to_string())
@@ -109,7 +109,9 @@ async fn load_selected(
 ) -> Result<VoiceLibraryRevision, String> {
     sqlx::query_as::<_, VoiceLibraryRevision>(
         "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision,1 AS is_active,r.engine_id,r.model_spec_id, \
-         r.language,r.preset_voice_id,p.archived_at,p.updated_at FROM spaces_voice_profiles p \
+         r.language,r.preset_voice_id, \
+         (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
+         p.archived_at,p.updated_at FROM spaces_voice_profiles p \
          JOIN spaces_voice_revisions r ON r.id=p.active_revision_id \
          JOIN spaces_voice_candidates c ON c.selected_voice_profile_id=p.id AND c.selected_voice_revision_id=r.id \
          WHERE c.id=? AND c.space_id=? AND c.status='selected'",

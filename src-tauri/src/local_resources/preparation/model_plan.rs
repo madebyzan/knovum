@@ -11,9 +11,9 @@ use crate::local_resources::{
 };
 
 pub(super) struct ModelPlan {
-    pub(super) runtimes: Vec<(RuntimeProfile, u64)>,
+    pub(super) runtimes: Vec<(RuntimeProfile, Option<u64>)>,
     pub(super) missing: Vec<ModelKind>,
-    pub(super) download_bytes: u64,
+    pub(super) download_bytes: Option<u64>,
 }
 
 pub(super) fn inspect<R: Runtime>(
@@ -29,30 +29,26 @@ pub(super) fn inspect<R: Runtime>(
     for &kind in kinds {
         let descriptor = catalog::descriptor(kind);
         let status = models::status(app, descriptor)?;
-        if !status.verified
-            && super::super::configured_path::configured_path(descriptor.env_key)?.is_some()
-        {
-            return Err(format!(
-                "Configured model {} failed verification",
-                descriptor.file
-            ));
-        }
         if !status.verified && snapshots.insert(descriptor.snapshot) {
             missing.push(kind);
         }
     }
-    if !missing.is_empty() {
+    if missing.iter().any(|kind| {
+        super::super::models::sources::for_snapshot(catalog::descriptor(*kind).snapshot).is_some()
+    }) {
         profiles.insert(RuntimeProfile::Resources);
     }
     let runtimes = profiles
         .into_iter()
         .map(|profile| Ok((profile, python::download_size(app, profile)?)))
         .collect::<Result<Vec<_>, String>>()?;
-    let download_bytes = runtimes.iter().map(|(_, size)| size).sum::<u64>()
-        + missing
-            .iter()
-            .map(|kind| catalog::descriptor(*kind).snapshot.total_bytes())
-            .sum::<u64>();
+    let model_bytes = missing
+        .iter()
+        .map(|kind| catalog::descriptor(*kind).snapshot.total_bytes())
+        .sum::<u64>();
+    let download_bytes = runtimes.iter().try_fold(model_bytes, |total, (_, size)| {
+        size.map(|bytes| total + bytes)
+    });
     Ok(ModelPlan {
         runtimes,
         missing,

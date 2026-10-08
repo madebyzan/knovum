@@ -48,8 +48,16 @@ pub(crate) async fn install<R: Runtime>(
         .parent()
         .ok_or("Model snapshot root is unavailable")?;
     fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    filesystem::verify_managed_root(
+        app,
+        parent
+            .parent()
+            .ok_or("Model resource root is unavailable")?,
+    )?;
+    filesystem::verify_regular_directory(parent)?;
     let staging = parent.join(format!(".{}.downloading", snapshot.digest()));
     fs::create_dir_all(&staging).map_err(|error| error.to_string())?;
+    filesystem::verify_regular_directory(&staging)?;
     download::snapshot(app, snapshot, &staging, progress, cancellation).await?;
     progress(update(snapshot, ResourcePreparationStage::Verifying));
     let verify_path = staging.clone();
@@ -62,7 +70,7 @@ pub(crate) async fn install<R: Runtime>(
         return Err(RESOURCE_PREPARATION_CANCELLED.into());
     }
     progress(update(snapshot, ResourcePreparationStage::Installing));
-    filesystem::remove_directory(target)?;
+    filesystem::remove_owned_directory(target, parent)?;
     fs::rename(&staging, target).map_err(|error| error.to_string())?;
     progress(update(snapshot, ResourcePreparationStage::Ready));
     Ok(())

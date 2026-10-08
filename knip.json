@@ -5,7 +5,8 @@
     "src/foundation/secrets/secret-store.ts",
     "src/**/*.css",
     "scripts/*/__tests__/*.test.mjs",
-    "scripts/*/__tests__/*.integration.mjs"
+    "scripts/*/__tests__/*.integration.mjs",
+    "scripts/runtime/write-media-manifest.mjs"
   ],
   "project": [
     "src/**/*.{ts,tsx,vue}",

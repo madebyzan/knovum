@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Play, Trash2 } from "@lucide/vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -9,21 +10,34 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { milliseconds, type VideoLineDraft } from "../../speech/video-dubbing-draft";
 
 const line = defineModel<VideoLineDraft>({ required: true });
-defineProps<{
+const props = defineProps<{
   voiceOptions: readonly { value: string; label: string }[];
+  deliveryInstructionVoiceIds: ReadonlySet<string>;
   lexiconValid: boolean;
   showSource: boolean;
   disabled: boolean;
 }>();
 const emit = defineEmits<{
-  preview: [text: string, voiceRevisionId: string];
+  preview: [text: string, voiceRevisionId: string, deliveryInstruction?: string];
   remove: [];
   source: [startMs: number, endMs: number];
 }>();
 const { t } = useI18n();
+const supportsDeliveryInstruction = computed(() =>
+  props.deliveryInstructionVoiceIds.has(line.value.voiceRevisionId),
+);
 
 function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[K]) {
   line.value = { ...line.value, [field]: value };
+}
+function selectVoice(voiceRevisionId: string) {
+  line.value = {
+    ...line.value,
+    voiceRevisionId,
+    deliveryInstruction: props.deliveryInstructionVoiceIds.has(voiceRevisionId)
+      ? line.value.deliveryInstruction
+      : "",
+  };
 }
 </script>
 
@@ -91,14 +105,21 @@ function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[
         :label="t('spaces.speech.voice')"
         :options="voiceOptions"
         :disabled="disabled"
-        @update:model-value="update('voiceRevisionId', $event)"
+        @update:model-value="selectVoice"
       />
       <UiButton
         size="sm"
         variant="ghost"
         :aria-label="t('spaces.speech.preview')"
         :disabled="disabled || !lexiconValid || !line.text.trim() || !line.voiceRevisionId"
-        @click="emit('preview', [...line.text.trim()].slice(0, 500).join(''), line.voiceRevisionId)"
+        @click="
+          emit(
+            'preview',
+            [...line.text.trim()].slice(0, 500).join(''),
+            line.voiceRevisionId,
+            line.deliveryInstruction.trim() || undefined,
+          )
+        "
         ><Play class="size-3.5"
       /></UiButton>
       <UiButton
@@ -110,6 +131,16 @@ function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[
         ><Trash2 class="size-3.5"
       /></UiButton>
     </div>
+    <UiTextarea
+      v-if="supportsDeliveryInstruction"
+      :model-value="line.deliveryInstruction"
+      :rows="2"
+      :maxlength="500"
+      :disabled="disabled"
+      :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
+      :aria-label="t('spaces.speech.deliveryInstruction')"
+      @update:model-value="update('deliveryInstruction', $event)"
+    />
     <p v-if="line.needsTimingEdit" class="text-caption text-fg-danger">
       {{ t("spaces.speech.needsTimingEdit") }}
     </p>

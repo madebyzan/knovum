@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { exportSpaceAssetFile } from "../assets/export";
 import { createSpaceNode } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
@@ -18,6 +19,23 @@ describe("Space node export", () => {
   beforeEach(() => {
     mocks.invoke.mockReset().mockResolvedValue(undefined);
     mocks.save.mockReset().mockResolvedValue("/exports/result");
+  });
+
+  it("saves a generated managed audio file through the authorized native exporter", async () => {
+    await expect(exportSpaceAssetFile("/managed/accompaniment.wav", "accompaniment.wav")).resolves.toBe(true);
+    expect(mocks.save).toHaveBeenCalledWith({ defaultPath: "accompaniment.wav" });
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_asset", {
+      sourcePath: "/managed/accompaniment.wav",
+      destinationPath: "/exports/result",
+    });
+  });
+
+  it("does not export a generated file when the native save dialog is cancelled", async () => {
+    mocks.save.mockResolvedValue(null);
+    await expect(exportSpaceAssetFile("/managed/accompaniment.wav", "accompaniment.wav")).resolves.toBe(
+      false,
+    );
+    expect(mocks.invoke).not.toHaveBeenCalled();
   });
 
   it("exports credential metadata from an explicit safe allowlist", async () => {

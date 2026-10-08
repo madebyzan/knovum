@@ -11,10 +11,11 @@ pub async fn request_media_diarization(
     space_id: String,
     node_id: String,
     expected_revision: u32,
-    minimum_speakers: Option<u16>,
-    maximum_speakers: Option<u16>,
+    num_speakers: Option<u16>,
 ) -> Result<String, AppError> {
-    validate_bounds(expected_revision, minimum_speakers, maximum_speakers)?;
+    validate_bounds(expected_revision, num_speakers, num_speakers)?;
+    let minimum_speakers = num_speakers;
+    let maximum_speakers = num_speakers;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -80,14 +81,16 @@ pub async fn request_media_diarization(
             "A different diarization request is already active",
         ));
     }
+    let model = crate::local_resources::model_selection::speech_diarization(&app)?;
+    let model_spec = model.diarization_variant()?.spec_id();
     let now = crate::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'diarize_media_transcript','pending',$4,0,$5,$5)")
         .bind(&id).bind(&space_id).bind(&node_id).bind(&source_revision).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
-    sqlx::query("INSERT INTO spaces_media_diarization_requests(job_id,expected_transcript_revision,minimum_speakers,maximum_speakers) VALUES($1,$2,$3,$4)")
+    sqlx::query("INSERT INTO spaces_media_diarization_requests(job_id,expected_transcript_revision,minimum_speakers,maximum_speakers,model_spec_id) VALUES($1,$2,$3,$4,$5)")
         .bind(&id).bind(i64::from(expected_revision)).bind(minimum_speakers.map(i64::from))
-        .bind(maximum_speakers.map(i64::from)).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(maximum_speakers.map(i64::from)).bind(model_spec).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(id)
 }

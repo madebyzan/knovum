@@ -7,20 +7,32 @@ import { createI18n } from "vue-i18n";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import SpaceNodeSpeechAction from "../SpaceNodeSpeechAction.vue";
 
+vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));
+
 const i18n = createI18n({
   legacy: false,
   locale: "en",
   messages: {
     en: {
       common: { close: "Close" },
-      spaces: { speech: { nodeReadAloud: "Read aloud", cloneVoice: "Clone voice" } },
+      spaces: {
+        speech: {
+          nodeReadAloud: "Read aloud",
+          cloneVoice: "Clone voice",
+          types: { audiobook: "Audiobook", videoDubbing: "Video dubbing" },
+        },
+      },
     },
   },
 });
 const global = {
   plugins: [i18n],
   stubs: {
-    SpaceNodeSpeechEditor: { props: ["node"], template: '<div data-testid="editor">{{ node.id }}</div>' },
+    SpaceNodeBackgroundAction: true,
+    SpaceNodeSpeechEditor: {
+      props: ["node", "projectType"],
+      template: '<div data-testid="editor" :data-project-type="projectType">{{ node.id }}</div>',
+    },
     VoiceCandidateForm: {
       props: ["sourceNode"],
       template: '<div data-testid="clone">{{ sourceNode.id }}</div>',
@@ -44,6 +56,9 @@ it("opens the selected node editor and closes it when the selected node changes"
   await wrapper.get('[data-testid="node-speech-action"]').trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
+  await wrapper.setProps({ node: { ...note, data: { ...note.data, title: "Renamed" } } });
+  await flushPromises();
+  expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
   await wrapper.setProps({ node: { ...note, id: "second" } });
   await flushPromises();
   expect(document.querySelector('[role="dialog"]')).toBeNull();
@@ -64,6 +79,28 @@ it("uses the selected audio as the cloning source", async () => {
   await wrapper.get("button").trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="clone"]')?.textContent).toBe("audio");
+  expect(document.querySelector('[data-testid="editor"]')).toBeNull();
+  await wrapper.setProps({ node: { ...audio, data: { ...audio.data, sourceRevision: "updated-source" } } });
+  await flushPromises();
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+});
+
+it("provides separate dubbing and reference-voice operations on a video node", async () => {
+  const video: SpaceCanvasNode = {
+    id: "video",
+    type: "video",
+    initialPosition: { x: 0, y: 0 },
+    data: { kind: "video", title: "Interview", assetPath: "/interview.mp4", fileName: "interview.mp4" },
+  };
+  wrapper = mount(SpaceNodeSpeechAction, { props: { node: video }, global, attachTo: document.body });
+  expect(
+    wrapper
+      .findAll('[data-testid="node-speech-action"]')
+      .map((action) => action.attributes("data-operation")),
+  ).toEqual(["video_dubbing", "clone"]);
+  await wrapper.get('[data-operation="clone"]').trigger("click");
+  await flushPromises();
+  expect(document.querySelector('[data-testid="clone"]')?.textContent).toBe("video");
   expect(document.querySelector('[data-testid="editor"]')).toBeNull();
 });
 
@@ -88,5 +125,25 @@ it("participates in the node toolbar keyboard navigation", async () => {
   await flushPromises();
   await action.trigger("keydown", { key: "ArrowRight" });
   await flushPromises();
-  await vi.waitFor(() => expect(document.activeElement).toBe(wrapper.get('[data-testid="next"]').element));
+  await vi.waitFor(() =>
+    expect(document.activeElement).toBe(wrapper.findAll('[data-testid="node-speech-action"]')[1]!.element),
+  );
+});
+
+it("provides separate text operations with one project type per editor", async () => {
+  wrapper = mount(SpaceNodeSpeechAction, { props: { node: note }, global, attachTo: document.body });
+  const actions = wrapper.findAll('[data-testid="node-speech-action"]');
+  expect(actions).toHaveLength(2);
+  await actions[1]!.trigger("click");
+  await flushPromises();
+  expect(document.querySelector('[data-testid="editor"]')?.getAttribute("data-project-type")).toBe(
+    "audiobook",
+  );
+  await wrapper.setProps({ node: { ...note, id: "next" } });
+  await flushPromises();
+  await wrapper.get('[data-testid="node-speech-action"]').trigger("click");
+  await flushPromises();
+  expect(document.querySelector('[data-testid="editor"]')?.getAttribute("data-project-type")).toBe(
+    "short_dubbing",
+  );
 });

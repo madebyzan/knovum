@@ -1,4 +1,3 @@
-use crate::ai::local_runtime::compute_budget::ComputeBudget;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -9,20 +8,16 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     ai::{
-        contracts::{
-            runtime::RuntimeDeviceProfile,
-            speech_wire::{AlignmentProfile, InferenceRequestIdentity, SpeechAlignParams},
-        },
-        local_runtime::{admission::Priority, speech},
+        contracts::speech_wire::{AlignmentProfile, InferenceRequestIdentity, SpeechAlignParams},
+        local_runtime::{admission::Priority, device_profiles, speech},
     },
-    local_resources::{models::catalog, preparation},
+    local_resources::preparation,
     media::transcript::{MediaTranscript, TranscriptAlignmentProvenance},
     spaces::assets::media_analysis,
 };
 
 use super::{pipeline::audio_reference, MediaTranscriptionProgress};
 
-const MODEL_SPEC_ID: &str = "qwen3-forced-aligner-0.6b-cpu-v1";
 const ENGINE_ID: &str = "qwen3_forced_aligner";
 mod profile;
 mod request;
@@ -64,7 +59,7 @@ pub(crate) async fn align_media(
     .await?;
     let resources = preparation::prepare_models_for_job(
         app,
-        preparation::contracts::ResourcePreparationTarget::SpeechAlignment,
+        request.model.preparation(),
         &format!("resource:{job_id}"),
         "Preparing forced alignment",
         cancellation,
@@ -93,15 +88,27 @@ pub(crate) async fn align_media(
         move || audio_reference(&wav)
     })
     .await?;
+    let deadline_ms = profile::deadline(total_duration)?;
+    let handle = app.clone();
+    let snapshot = request
+        .model
+        .snapshot()
+        .ok_or("Forced alignment model snapshot is unavailable")?;
+    let runtime = crate::blocking::run(move || {
+        crate::local_resources::runtimes::python::resolve(&handle, snapshot.runtime_profile())?
+            .ok_or_else(|| "runtime_mismatch: prepared alignment runtime is missing".to_owned())
+    })
+    .await?;
+    let device =
+        device_profiles::alignment::profile(&runtime, request.model, cancellation, deadline_ms)
+            .await?;
+    let model_spec_id = request.model.alignment_spec()?.to_owned();
+    let execution_device = device.device.clone();
     let request_id = uuid::Uuid::new_v4().to_string();
     let alignment = speech::align(
         app,
         &resources,
-        RuntimeDeviceProfile {
-            device: "cpu".into(),
-            execution_profile_id: MODEL_SPEC_ID.into(),
-            cpu_threads: ComputeBudget::detect()?.model_threads,
-        },
+        device,
         SpeechAlignParams {
             identity: InferenceRequestIdentity {
                 request_id: request_id.clone(),
@@ -113,14 +120,14 @@ pub(crate) async fn align_media(
                     "{source_revision}:transcript:{}",
                     request.expected_revision
                 ),
-                model_spec_id: MODEL_SPEC_ID.into(),
-                deadline_ms: profile::deadline(total_duration)?,
+                model_spec_id: model_spec_id.clone(),
+                deadline_ms,
             },
             audio_ref,
             text_segments: selected,
             profile: AlignmentProfile {
                 language: language.into(),
-                device: "cpu".into(),
+                device: execution_device,
             },
         },
         cancellation,
@@ -154,8 +161,8 @@ pub(crate) async fn align_media(
         .ok_or("Transcript revision exceeds the supported range")?;
     transcript.alignment = Some(TranscriptAlignmentProvenance {
         engine_id: ENGINE_ID.into(),
-        model_spec_id: MODEL_SPEC_ID.into(),
-        model_revision: catalog::QWEN3_FORCED_ALIGNER_REVISION.into(),
+        model_spec_id: model_spec_id.clone(),
+        model_revision: request.model.alignment_revision()?.into(),
         aligned_at: u64::try_from(crate::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });

@@ -8,7 +8,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from runtime.artifacts import archive_runtime, extract_python
+from runtime.artifacts import archive_runtime, extract_python, materialize_aliases
 from runtime.signing import sign_runtime, verify_runtime
 
 
@@ -145,3 +145,29 @@ def test_mac_signature_requirement_binds_approved_identity_and_team(
     assert command[:4] == ["codesign", "--verify", "--strict", "-R"]
     assert 'certificate leaf[subject.CN] = "' + identity + '"' in command[4]
     assert 'certificate leaf[subject.OU] = "ABCDEFGHIJ"' in command[4]
+
+
+def test_internal_directory_aliases_are_materialized_without_links(tmp_path: Path) -> None:
+    root = tmp_path / "runtime"
+    (root / "lib/python3.11").mkdir(parents=True)
+    (root / "lib/python3.11/module.py").write_text("module")
+    (root / "lib/python3.1").symlink_to("python3.11", target_is_directory=True)
+    materialize_aliases(root)
+    assert (root / "lib/python3.1/module.py").read_text() == "module"
+    assert not any(path.is_symlink() for path in root.rglob("*"))
+
+
+def test_directory_alias_cycle_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "runtime"
+    (root / "lib").mkdir(parents=True)
+    (root / "lib/cycle").symlink_to("..", target_is_directory=True)
+    with pytest.raises(ValueError, match="cycle"):
+        materialize_aliases(root)
+
+
+def test_external_directory_alias_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "runtime"
+    root.mkdir()
+    (root / "outside").symlink_to(tmp_path, target_is_directory=True)
+    with pytest.raises(ValueError, match="internal"):
+        materialize_aliases(root)

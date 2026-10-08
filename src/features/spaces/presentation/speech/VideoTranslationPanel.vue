@@ -12,7 +12,6 @@ import {
   translationTargets,
   type TranslationTarget,
 } from "../../../../foundation/ai/translation";
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { ModelTargetSelection } from "../../../../shared/contracts/generated/ModelTargetSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
@@ -35,7 +34,7 @@ const props = defineProps<{
   provenance?: VideoTranslationProvenance | null | undefined;
   disabled: boolean;
 }>();
-const emit = defineEmits<{ translated: [translation: VideoTranslation] }>();
+const emit = defineEmits<{ translated: [translation: VideoTranslation]; busy: [value: boolean] }>();
 const { t } = useI18n();
 const store = useAiSettingsStore();
 const { settings, ready } = storeToRefs(store);
@@ -47,8 +46,12 @@ const translationRun = useVideoTranslationRun(
   (message) => toast.error(t("spaces.speech.translationFailed"), { description: message }),
 );
 const translating = computed(
-  () => Boolean(translationRun.activeRunId.value) || translationRun.submitting.value,
+  () =>
+    Boolean(translationRun.activeRunId.value) ||
+    translationRun.submitting.value ||
+    translationRun.cancelling.value,
 );
+watch(translating, (value) => emit("busy", value), { immediate: true });
 const languageOptions = computed(() =>
   translationTargets.map((value) => ({ value, label: t(translationTargetLabelKey[value]) })),
 );
@@ -87,13 +90,13 @@ watch(
 );
 
 watch(
-  () => [props.projectId, props.expectedRevision] as const,
+  [() => props.projectId, () => props.expectedRevision],
   ([projectId, revision]) => void translationRun.restore(projectId, revision),
   { immediate: true },
 );
 
 watch(
-  () => [props.expectedRevision, props.provenance] as const,
+  [() => props.expectedRevision, () => props.provenance],
   () => {
     const language = props.provenance?.targetLanguage;
     targetLanguage.value = isTranslationTarget(language) ? language : "en";
@@ -116,14 +119,6 @@ async function translate() {
     executionTarget,
     segments: [...props.segments],
   });
-}
-
-async function cancel() {
-  try {
-    await translationRun.cancel();
-  } catch (error) {
-    toast.error(t("spaces.speech.translationFailed"), { description: getErrorMessage(error) });
-  }
 }
 
 function selectLanguage(value: string) {
@@ -172,7 +167,13 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
         @click="translate"
         ><Languages class="size-3.5" />{{ t("spaces.speech.translateScript") }}</UiButton
       >
-      <UiButton v-if="translating" size="sm" variant="dangerSubtle" @click="cancel">
+      <UiButton
+        v-if="translationRun.activeRunId.value"
+        size="sm"
+        variant="dangerSubtle"
+        :disabled="translationRun.cancelling.value"
+        @click="translationRun.cancel"
+      >
         <Square class="size-3.5" />{{ t("spaces.speech.cancelTranslation") }}
       </UiButton>
     </div>

@@ -22,7 +22,7 @@ pub(crate) struct Process {
     tree: ProcessTree,
     listener: JoinHandle<Result<(), String>>,
     pub(crate) peer: Peer,
-    _lease: Option<Arc<std::fs::File>>,
+    _lease: Option<Arc<python::RuntimeLease>>,
 }
 
 impl Process {
@@ -43,10 +43,12 @@ impl Process {
         tokio::fs::create_dir_all(&work)
             .await
             .map_err(|error| error.to_string())?;
-        let bootstrap = "import sys;sys.path[:0]=[sys.argv[1],sys.argv[2]];import runpy;runpy.run_module('knovum_agent_runtime',run_name='__main__')";
+        let bootstrap = crate::subprocess::python::isolated_bootstrap(
+            "import runpy;runpy.run_module('knovum_agent_runtime',run_name='__main__')",
+        );
         let mut command = Command::new(&runtime.executable);
         command
-            .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
+            .args(["-I", "-B", "-X", "utf8", "-c", &bootstrap])
             .arg(&runtime.worker_root)
             .arg(&runtime.package_root)
             .current_dir(work)

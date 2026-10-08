@@ -8,8 +8,10 @@ pub(super) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
         (None, None) | (Some(_), None) => Ok(()),
         (Some(_), Some(separation))
             if uuid::Uuid::parse_str(&separation.separation_id).is_ok()
-                && separation.model_spec_id
-                    == crate::spaces::speech::source_separation::MODEL_SPEC_ID
+                && crate::local_resources::model_catalog::LocalModelId::from_separation_spec(
+                    &separation.model_spec_id,
+                )
+                .is_ok()
                 && separation.source == config.video =>
         {
             Ok(())

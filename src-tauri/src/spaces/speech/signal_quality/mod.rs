@@ -61,8 +61,7 @@ pub async fn inspect_speech_audio(
         .bind(project_id).bind(revision_id).fetch_optional(db::pool(&app).await?).await.map_err(db::sql_error)?
         .ok_or("Generate a complete project output before checking its audio")?;
     let source = assets::authorize_spaces_asset(&app, Path::new(&source))?;
-    let ffmpeg = tools::resolve_tool(&app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("Bundled FFmpeg is unavailable")?;
+    let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
     let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         if hash_file(&source)? != sha256 {

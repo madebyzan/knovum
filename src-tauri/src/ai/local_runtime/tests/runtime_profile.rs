@@ -4,6 +4,21 @@ use super::*;
 fn execution_selects_one_package_before_worker_start() {
     for (capability, id, expected) in [
         (
+            RuntimeCapability::SpeechAlignment,
+            "qwen3-forced-aligner-0.6b-q8_0-cpu-v1",
+            RuntimeProfile::VoiceGeneration,
+        ),
+        (
+            RuntimeCapability::SpeechAlignment,
+            "qwen3-forced-aligner-0.6b-hf-cpu-v1",
+            RuntimeProfile::TorchInference,
+        ),
+        (
+            RuntimeCapability::SpeechDiarization,
+            "sherpa-diarization-cpu-v1",
+            RuntimeProfile::LightInference,
+        ),
+        (
             RuntimeCapability::Embedding,
             "cpu-f32-threads4-v1",
             RuntimeProfile::TorchInference,
@@ -16,16 +31,30 @@ fn execution_selects_one_package_before_worker_start() {
         (
             RuntimeCapability::SpeechTranscription,
             "faster-whisper-small-cpu-int8-v1",
+            if cfg!(windows) {
+                RuntimeProfile::TorchInference
+            } else {
+                RuntimeProfile::LightInference
+            },
+        ),
+        (
+            RuntimeCapability::SpeechTranscription,
+            "faster-whisper-small-cuda-f16-v1",
+            RuntimeProfile::TorchInference,
+        ),
+        (
+            RuntimeCapability::SpeechSynthesis,
+            "moss-nano-cpu-f32-threads4-v1",
             RuntimeProfile::LightInference,
         ),
         (
             RuntimeCapability::SpeechSynthesis,
-            "cpu-int8-threads4-v1",
-            RuntimeProfile::LightInference,
+            "voxcpm2-cpu-gguf-orig-v1",
+            RuntimeProfile::VoiceGeneration,
         ),
         (
             RuntimeCapability::SpeechSynthesis,
-            "voxcpm2-cpu-bf16-v1",
+            "voxcpm2-cpu-gguf-q8_0-v1",
             RuntimeProfile::VoiceGeneration,
         ),
     ] {

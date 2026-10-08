@@ -10,6 +10,10 @@ pub enum ResourcePreparationTarget {
     TextEmbedding,
     ImageSegmentation,
     SpeechSynthesis,
+    VoiceDesign,
+    Model {
+        model: crate::local_resources::model_catalog::LocalModelId,
+    },
     SpeechAlignment,
     SpeechSeparation,
     SpeechDiarization,
@@ -25,11 +29,30 @@ impl ResourcePreparationTarget {
             }
             Self::TextEmbedding => Some(catalog::TEXT_EMBEDDING_MODELS),
             Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_MODELS),
-            Self::SpeechSynthesis => None,
+            Self::SpeechSynthesis => Some(catalog::MOSS_NANO_MODELS),
+            Self::VoiceDesign => Some(catalog::VOXCPM2_MODELS),
+            Self::Model { model } if model.is_transcription() => Some(model.transcription_models()),
+            Self::Model {
+                model: crate::local_resources::model_catalog::LocalModelId::U2net,
+            } => Some(catalog::IMAGE_SEGMENTATION_QUALITY_MODELS),
+            Self::Model {
+                model: crate::local_resources::model_catalog::LocalModelId::Spleeter2StemsFull,
+            } => Some(catalog::SPEECH_SEPARATION_FULL_MODELS),
+            Self::Model {
+                model: crate::local_resources::model_catalog::LocalModelId::SherpaDiarizationFull,
+            } => Some(catalog::DiarizationVariant::Full.models()),
+            Self::Model {
+                model: crate::local_resources::model_catalog::LocalModelId::Qwen3AlignerQ8,
+            } => Some(catalog::QWEN3_ALIGNER_Q8_MODELS),
+            Self::Model {
+                model: crate::local_resources::model_catalog::LocalModelId::VoxCpm2Q8,
+            } => Some(catalog::VOXCPM2_Q8_MODELS),
+            Self::Model { model } => model.preparation().models(),
             Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
-            Self::SpeechDiarization | Self::MediaImportTools | Self::BuiltinAgent => None,
+            Self::SpeechDiarization => Some(catalog::DiarizationVariant::Int8.models()),
+            Self::MediaImportTools | Self::BuiltinAgent => None,
         }
     }
 }
@@ -57,11 +80,13 @@ pub struct ResourcePreparationProgress {
 }
 
 impl ResourcePreparationProgress {
-    pub(super) fn with_overall_progress(mut self, completed: u64, total: u64) -> Self {
+    pub(super) fn with_overall_progress(mut self, completed: u64, total: Option<u64>) -> Self {
         self.downloaded += completed;
-        self.total = Some(total);
-        self.percent =
-            (total > 0).then(|| ((self.downloaded.saturating_mul(100) / total).min(100)) as u8);
+        self.total = self.total.and(total);
+        self.percent = self
+            .total
+            .filter(|total| *total > 0)
+            .map(|total| ((self.downloaded.saturating_mul(100) / total).min(100)) as u8);
         self
     }
 }

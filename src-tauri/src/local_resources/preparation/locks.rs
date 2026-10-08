@@ -12,91 +12,49 @@ use super::RESOURCE_PREPARATION_CANCELLED;
 use crate::local_resources::models::{
     self,
     catalog::{self, ModelKind},
-    diarization::VerifiedDiarizationDirectory,
-    kokoro::VerifiedKokoroDirectory,
 };
-
-fn kokoro_lock() -> Arc<RwLock<()>> {
-    static LOCK: OnceLock<Arc<RwLock<()>>> = OnceLock::new();
-    Arc::clone(LOCK.get_or_init(|| Arc::new(RwLock::new(()))))
-}
-
-fn diarization_lock() -> Arc<RwLock<()>> {
-    static LOCK: OnceLock<Arc<RwLock<()>>> = OnceLock::new();
-    Arc::clone(LOCK.get_or_init(|| Arc::new(RwLock::new(()))))
-}
-
-pub(crate) async fn acquire_diarization_installation() -> tokio::sync::OwnedRwLockWriteGuard<()> {
-    diarization_lock().write_owned().await
-}
-
-pub(super) async fn acquire_kokoro_installation(
-    cancellation: &CancellationToken,
-) -> Result<tokio::sync::OwnedRwLockWriteGuard<()>, String> {
-    tokio::select! {
-        biased;
-        _ = cancellation.cancelled() => Err(RESOURCE_PREPARATION_CANCELLED.to_string()),
-        guard = kokoro_lock().write_owned() => Ok(guard),
-    }
-}
-
-pub struct PreparedKokoroModel {
-    directory: VerifiedKokoroDirectory,
-    _usage: OwnedRwLockReadGuard<()>,
-}
 
 pub struct PreparedVoxCpm2Model {
     directory: PathBuf,
+    model: super::super::model_catalog::LocalModelId,
     _models: PreparedModels,
 }
 
 pub struct PreparedDiarizationModel {
-    directory: VerifiedDiarizationDirectory,
-    _usage: OwnedRwLockReadGuard<()>,
+    directory: PathBuf,
+    variant: catalog::DiarizationVariant,
+    _models: PreparedModels,
 }
 
 impl PreparedDiarizationModel {
+    pub fn from_models(
+        models: PreparedModels,
+        variant: catalog::DiarizationVariant,
+    ) -> Result<Self, String> {
+        let directory = models.directory(variant.models())?;
+        Ok(Self {
+            directory,
+            variant,
+            _models: models,
+        })
+    }
     pub fn directory(&self) -> &Path {
-        self.directory.as_path()
+        &self.directory
+    }
+    pub(crate) fn spec_id(&self) -> &'static str {
+        self.variant.spec_id()
     }
 }
 
-pub async fn acquire_verified_diarization<R: Runtime>(
-    app: &AppHandle<R>,
-    cancellation: &CancellationToken,
-) -> Result<PreparedDiarizationModel, String> {
-    let usage = tokio::select! {
-        biased;
-        _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
-        guard = diarization_lock().read_owned() => guard,
-    };
-    let app = app.clone();
-    let directory = crate::blocking::run(move || {
-        crate::local_resources::models::diarization::require_verified_directory(&app)
-    })
-    .await?;
-    Ok(PreparedDiarizationModel {
-        directory,
-        _usage: usage,
-    })
-}
-
 impl PreparedVoxCpm2Model {
-    pub fn from_models(models: PreparedModels) -> Result<Self, String> {
-        let anchor = models.path(catalog::VOXCPM2_MODELS[0])?;
-        let directory = anchor
-            .parent()
-            .ok_or_else(|| "VoxCPM2 model directory is unavailable".to_string())?
-            .to_owned();
-        for kind in catalog::VOXCPM2_MODELS {
-            let actual = models.path(*kind)?;
-            let expected = directory.join(catalog::descriptor(*kind).file);
-            if actual != expected {
-                return Err("VoxCPM2 model snapshot is not co-located".to_string());
-            }
-        }
+    pub fn from_models(
+        models: PreparedModels,
+        model: super::super::model_catalog::LocalModelId,
+    ) -> Result<Self, String> {
+        let directory = models.directory(model.voxcpm2_models()?)?;
         Ok(Self {
             directory,
+            model,
             _models: models,
         })
     }
@@ -104,33 +62,10 @@ impl PreparedVoxCpm2Model {
     pub fn directory(&self) -> &Path {
         &self.directory
     }
-}
 
-impl PreparedKokoroModel {
-    pub fn directory(&self) -> &VerifiedKokoroDirectory {
-        &self.directory
+    pub(crate) fn spec_id(&self) -> Result<&'static str, String> {
+        self.model.voxcpm2_spec()
     }
-}
-
-pub async fn acquire_verified_kokoro<R: Runtime>(
-    app: &AppHandle<R>,
-    cancellation: &CancellationToken,
-) -> Result<PreparedKokoroModel, String> {
-    let usage = tokio::select! {
-        biased;
-        _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.to_string()),
-        guard = kokoro_lock().read_owned() => guard,
-    };
-    let app = app.clone();
-    let cancellation = cancellation.clone();
-    let directory = crate::blocking::run(move || {
-        models::kokoro::require_verified_directory(&app, &cancellation)
-    })
-    .await?;
-    Ok(PreparedKokoroModel {
-        directory,
-        _usage: usage,
-    })
 }
 
 #[derive(Clone)]
@@ -140,6 +75,45 @@ pub struct PreparedModels {
 }
 
 impl PreparedModels {
+    fn directory(&self, kinds: &[ModelKind]) -> Result<PathBuf, String> {
+        let anchor = self.path(kinds[0])?;
+        let directory = anchor
+            .parent()
+            .ok_or("Model snapshot directory is unavailable")?
+            .to_owned();
+        for kind in kinds {
+            if self.path(*kind)? != directory.join(catalog::descriptor(*kind).file) {
+                return Err("runtime_mismatch: model snapshot is not co-located".into());
+            }
+        }
+        Ok(directory)
+    }
+    pub(crate) fn transcription_model(
+        &self,
+    ) -> Result<super::super::model_catalog::LocalModelId, String> {
+        use super::super::{
+            model_catalog::LocalModelId as M,
+            models::{catalog::WhisperVariant as V, snapshots::SnapshotKind as S},
+        };
+        let snapshots = self
+            .paths
+            .keys()
+            .map(|kind| catalog::descriptor(*kind).snapshot)
+            .filter(|snapshot| matches!(snapshot, S::FasterWhisper | S::MlxWhisper | S::Whisper(_)))
+            .collect::<std::collections::HashSet<_>>();
+        if snapshots.len() != 1 {
+            return Err(
+                "runtime_mismatch: ASR requires exactly one prepared model snapshot".into(),
+            );
+        }
+        match snapshots.into_iter().next().unwrap() {
+            S::FasterWhisper | S::MlxWhisper => Ok(M::WhisperSmall),
+            S::Whisper(V::FasterTiny | V::MlxTiny) => Ok(M::WhisperTiny),
+            S::Whisper(V::FasterLargeV3 | V::MlxLargeV3) => Ok(M::WhisperLargeV3),
+            _ => unreachable!("Only ASR snapshots remain after filtering"),
+        }
+    }
+
     pub fn path(&self, kind: ModelKind) -> Result<&Path, String> {
         self.paths
             .get(&kind)
@@ -183,7 +157,7 @@ pub async fn acquire_verified_models<R: Runtime>(
     })
 }
 
-pub(super) fn resource_lock(
+pub(crate) fn resource_lock(
     identity: models::snapshots::SnapshotKind,
 ) -> Result<Arc<RwLock<()>>, String> {
     static LOCKS: OnceLock<Mutex<HashMap<models::snapshots::SnapshotKind, Arc<RwLock<()>>>>> =

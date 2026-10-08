@@ -12,17 +12,21 @@ export function observeVoiceCandidateRun(
   run: RunObservation,
   spaceId: string,
   succeeded: (candidate: VoiceCandidate) => void,
-  failed: (message: string) => void,
+  settled: (error?: string) => void,
 ) {
   const finished = (observation: RunObservation) => {
     if (observation.state !== "succeeded") {
-      failed(i18n.global.t(workflowStateLabelKey(observation.state)));
+      settled(
+        observation.state === "cancelled"
+          ? undefined
+          : i18n.global.t(workflowStateLabelKey(observation.state)),
+      );
       return;
     }
     void getVoiceCandidate(observation.id, spaceId)
       .then(succeeded)
       .catch((cause: unknown) => {
-        failed(getErrorMessage(cause));
+        settled(getErrorMessage(cause));
       });
   };
   if (TERMINAL_STATES.has(run.state)) {

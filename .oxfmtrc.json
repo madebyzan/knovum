@@ -16,6 +16,11 @@
     "node_modules/**",
     "src-tauri/target/**",
     "src-tauri/gen/**",
+    "src-tauri/resources/bundled-runtime/*/**",
+    "src-tauri/resources/python-worker/**",
+    "src-tauri/resources/runtime-artifacts/**",
+    ".runtime-development/**",
+    "runtime-artifacts/**",
     "src/shared/contracts/generated/**",
     "python/schemas/*.schema.json",
     "src/features/spaces/contracts/generated/**"

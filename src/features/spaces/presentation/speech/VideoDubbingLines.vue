@@ -8,6 +8,7 @@ import VideoDubbingLineEditor from "./VideoDubbingLineEditor.vue";
 const props = defineProps<{
   lines: readonly VideoLineDraft[];
   voiceOptions: readonly { value: string; label: string }[];
+  deliveryInstructionVoiceIds: ReadonlySet<string>;
   lexiconValid: boolean;
   showSource: boolean;
   disabled: boolean;
@@ -15,7 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   update: [index: number, line: VideoLineDraft];
   remove: [index: number];
-  preview: [text: string, revisionId: string];
+  preview: [text: string, revisionId: string, deliveryInstruction?: string];
   source: [startMs: number, endMs: number];
 }>();
 const scroller = useTemplateRef<HTMLElement>("scroller");
@@ -50,12 +51,13 @@ function measure(element: Element | ComponentPublicInstance | null) {
         <VideoDubbingLineEditor
           :model-value="lines[row.index]!"
           :voice-options
+          :delivery-instruction-voice-ids
           :lexicon-valid
           :show-source
           :disabled
           @update:model-value="emit('update', row.index, $event)"
           @remove="emit('remove', row.index)"
-          @preview="(text, revision) => emit('preview', text, revision)"
+          @preview="(text, revision, instruction) => emit('preview', text, revision, instruction)"
           @source="(start, end) => emit('source', start, end)"
         />
       </div>

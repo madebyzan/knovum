@@ -6,21 +6,26 @@ import { useSpaceStore } from "../../session/space-store";
 import { useVoiceManagement } from "../../speech/use-voice-management";
 import VoiceProfileEditor from "./VoiceProfileEditor.vue";
 
+const props = defineProps<{ spaceId: string }>();
 const emit = defineEmits<{ changed: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
-const management = useVoiceManagement(() => emit("changed"));
+const management = useVoiceManagement(
+  () => props.spaceId,
+  () => emit("changed"),
+);
 const targets = computed(() =>
   store.spaces
-    .filter((space) => space.id !== store.activeSpaceId && space.archivedAt == null)
+    .filter((space) => space.id !== props.spaceId && space.archivedAt == null)
     .map((space) => ({ value: space.id, label: space.title })),
 );
+defineExpose({ reload: management.reload });
 </script>
 
 <template>
   <section class="space-y-2 border-t border-stroke-divider pt-4">
     <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.voiceManagement") }}</h2>
-    <p v-if="management.error.value" class="text-caption text-fg-danger">
+    <p v-if="management.error.value" role="alert" class="text-caption text-fg-danger">
       {{ management.error.value }}
     </p>
     <p v-if="management.profiles.value.length === 0" class="text-caption text-fg-tertiary">

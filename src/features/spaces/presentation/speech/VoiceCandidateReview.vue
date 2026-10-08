@@ -15,12 +15,17 @@ const { t } = useI18n();
 
 <template>
   <section class="space-y-2 rounded-md border border-stroke-divider p-2">
-    <p class="text-caption text-fg-secondary">{{ t("spaces.speech.candidateSeed") }}: {{ candidate.seed }}</p>
     <SpeechMediaPlayer kind="audio" :source="candidate.source" @ended="emit('audition')" />
     <p v-if="candidate.auditionedAt === null" class="text-caption text-fg-tertiary">
       {{ t("spaces.speech.candidateAuditionRequired") }}
     </p>
-    <UiInput v-model="name" size="sm" :disabled :placeholder="t('spaces.speech.voiceName')" />
+    <UiInput
+      v-model="name"
+      size="sm"
+      :disabled
+      :placeholder="t('spaces.speech.voiceName')"
+      :aria-label="t('spaces.speech.voiceName')"
+    />
     <div class="flex gap-2">
       <UiButton
         size="sm"

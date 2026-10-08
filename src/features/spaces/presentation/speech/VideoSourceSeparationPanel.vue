@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { AudioLines, Check, Square, X } from "@lucide/vue";
+import { AudioLines, Check, Download, Plus, Square, X } from "@lucide/vue";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { formatBytes } from "../../../../foundation/format/bytes";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/resource-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
+import { exportSpaceAssetFile } from "../../assets/export";
 import type { SpeechMediaSource } from "../../contracts/generated/SpeechMediaSource";
 import type { SpeechSourceSeparationCandidate } from "../../contracts/generated/SpeechSourceSeparationCandidate";
+import { useSeparatedTrackInsertion } from "../../speech/use-separated-track-insertion";
 import { useSourceSeparationCandidate } from "../../speech/use-source-separation-candidate";
 
 const props = defineProps<{
@@ -18,15 +23,29 @@ const props = defineProps<{
 const emit = defineEmits<{ accepted: [candidate: SpeechSourceSeparationCandidate] }>();
 const { t } = useI18n();
 const separation = useSourceSeparationCandidate();
+const models = useLocalModelsQuery();
+const selectedModel = computed(() =>
+  models.data.value?.find((model) => model.capability === "speechSeparation" && model.selected),
+);
+const insertion = useSeparatedTrackInsertion();
 const auditioned = shallowRef(false);
+const exporting = shallowRef(false);
+const exportError = shallowRef<string>();
+const stems = ["vocals", "background"] as const;
+function pauseOtherTracks(event: Event) {
+  const audio = event.currentTarget as HTMLAudioElement;
+  for (const other of audio.closest("section")!.querySelectorAll("audio")) if (other !== audio) other.pause();
+}
 const sourceTooLong = computed(() => props.source.durationMs > 600_000);
 
 watch(
-  () => props.source.sourceRevision,
+  [() => props.spaceId, () => props.source.assetPath, () => props.source.sourceRevision],
   () => {
     auditioned.value = false;
-    separation.reset();
+    exportError.value = undefined;
+    void separation.restore(props.spaceId, props.source);
   },
+  { immediate: true },
 );
 watch(
   () => separation.candidate.value?.separationId,
@@ -40,11 +59,35 @@ async function review(accepted: boolean) {
   const candidate = separation.candidate.value;
   if (candidate?.reviewStatus === "accepted") emit("accepted", candidate);
 }
+
+async function exportStem(kind: "background" | "vocals") {
+  const candidate = separation.candidate.value;
+  if (exporting.value || candidate?.reviewStatus !== "accepted") return;
+  exporting.value = true;
+  exportError.value = undefined;
+  try {
+    await exportSpaceAssetFile(
+      candidate[kind].assetPath,
+      kind === "background" ? "accompaniment.wav" : "vocals.wav",
+    );
+  } catch (cause) {
+    if (separation.candidate.value?.separationId === candidate.separationId)
+      exportError.value = getErrorMessage(cause);
+  } finally {
+    exporting.value = false;
+  }
+}
 </script>
 
 <template>
   <section class="space-y-2 rounded-md border border-stroke-divider p-2">
     <p class="text-caption text-fg-secondary">{{ t("spaces.speech.sourceSeparationDescription") }}</p>
+    <p v-if="selectedModel" class="text-caption text-fg-tertiary" data-testid="separation-model">
+      {{ selectedModel.name }} · {{ formatBytes(selectedModel.totalBytes) }}
+    </p>
+    <p v-if="selectedModel && !selectedModel.verified" class="text-caption text-fg-tertiary">
+      {{ t("spaces.speech.modelFirstUse") }}
+    </p>
     <div class="flex gap-2">
       <UiButton
         v-if="!separation.activeRunId.value"
@@ -72,11 +115,35 @@ async function review(accepted: boolean) {
     </p>
     <template v-if="separation.candidate.value">
       <p class="text-caption text-fg-danger">{{ t("spaces.speech.sourceSeparationReviewWarning") }}</p>
-      <audio
-        class="h-8 w-full"
-        controls
-        :src="convertFileSrc(separation.candidate.value.background.assetPath)"
-      />
+      <div v-for="stem in stems" :key="stem" class="space-y-1">
+        <p class="text-caption text-fg-secondary">{{ t(`spaces.speech.separatedStem.${stem}`) }}</p>
+        <audio
+          class="h-8 w-full"
+          controls
+          preload="metadata"
+          :aria-label="t(`spaces.speech.separatedStem.${stem}`)"
+          :src="convertFileSrc(separation.candidate.value[stem].assetPath)"
+          @play="pauseOtherTracks"
+        />
+        <UiButton
+          v-if="separation.candidate.value.reviewStatus === 'accepted'"
+          size="sm"
+          :disabled="disabled || insertion.busy.value"
+          :data-testid="`insert-separated-${stem}`"
+          @click="
+            insertion.insert(separation.candidate.value, stem, t(`spaces.speech.separatedStem.${stem}`))
+          "
+          ><Plus class="size-3.5" />{{ t("spaces.speech.addStemToSpace") }}</UiButton
+        >
+        <UiButton
+          v-if="separation.candidate.value.reviewStatus === 'accepted'"
+          size="sm"
+          :disabled="disabled || exporting"
+          :data-testid="`export-separated-${stem}`"
+          @click="exportStem(stem)"
+          ><Download class="size-3.5" />{{ t(`spaces.speech.exportStem.${stem}`) }}</UiButton
+        >
+      </div>
       <template v-if="separation.candidate.value.reviewStatus === 'pending'">
         <label class="flex items-center gap-2 text-caption text-fg-secondary">
           <UiCheckbox
@@ -106,6 +173,12 @@ async function review(accepted: boolean) {
         {{ t(`spaces.speech.separationStatus.${separation.candidate.value.reviewStatus}`) }}
       </p>
     </template>
-    <p v-if="separation.error.value" class="text-caption text-fg-danger">{{ separation.error.value }}</p>
+    <p v-if="separation.error.value" role="alert" class="text-caption text-fg-danger">
+      {{ separation.error.value }}
+    </p>
+    <p v-if="insertion.error.value" role="alert" class="text-caption text-fg-danger">
+      {{ insertion.error.value }}
+    </p>
+    <p v-if="exportError" role="alert" class="text-caption text-fg-danger">{{ exportError }}</p>
   </section>
 </template>

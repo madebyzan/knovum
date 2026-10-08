@@ -47,6 +47,25 @@ pub fn cancel(job_id: &str) -> Result<bool, String> {
     Ok(true)
 }
 
+pub(super) async fn cancel_project_run(
+    pool: &sqlx::SqlitePool,
+    job_id: &str,
+) -> Result<bool, String> {
+    let active: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE id=? AND completed_at IS NULL \
+         AND json_extract(input_snapshot,'$.workflow')=?)",
+    )
+    .bind(job_id)
+    .bind(super::run_start::WORKFLOW)
+    .fetch_one(pool)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    if active {
+        crate::spaces::runs::request_cancellation(pool, job_id).await?;
+    }
+    Ok(active)
+}
+
 pub struct JobLease {
     job_id: String,
     token: CancellationToken,

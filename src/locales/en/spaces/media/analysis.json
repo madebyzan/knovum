@@ -3,7 +3,7 @@
   "preparing": "Preparing media",
   "unavailable": "Duration and waveform are not available yet",
   "audioPreparing": "Preparing audio",
-  "transcribing": "Whisper local transcription",
+  "transcribing": "Transcribing locally",
   "organizing": "Creating chapters & summary",
   "knowledge": {
     "title": "Media knowledge",

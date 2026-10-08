@@ -6,7 +6,7 @@ fn mixed_voice_runs_freeze_both_packages_and_reject_obsolete_identity() {
     let snapshot = json!({"runtimeDigests": {"light-inference": "a".repeat(64), "voice-generation": "b".repeat(64)}});
     let digests = read_snapshot(&snapshot).unwrap();
     assert_eq!(
-        digests[&profile_for_engine("kokoro").unwrap()],
+        digests[&profile_for_engine("moss_nano").unwrap()],
         "a".repeat(64)
     );
     assert_eq!(
@@ -39,7 +39,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         .execute(&pool)
         .await
         .unwrap();
-    for (ordinal, engine) in [(0, "kokoro"), (1, "voxcpm2")] {
+    for (ordinal, engine) in [(0, "moss_nano"), (1, "voxcpm2")] {
         sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES(?,'space',?,'reference',1,1)")
             .bind(engine).bind(engine).execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,reference_asset_id,reference_source_revision,synthesis_config,authorization,created_at) VALUES(?,?,1,?,'model','en','reference','sha256:reference','{}','{}',1)")

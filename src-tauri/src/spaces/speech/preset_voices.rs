@@ -11,17 +11,17 @@ pub struct PresetVoice {
 }
 
 pub(super) fn catalog() -> Vec<PresetVoice> {
-    serde_json::from_str(include_str!("preset-voices.json")).expect("Owned Kokoro voice catalog")
+    serde_json::from_str(include_str!("preset-voices.json")).expect("Owned MossNano voice catalog")
 }
 
 pub(crate) fn require(speaker_id: &str, language: &str) -> Result<PresetVoice, String> {
     if !matches!(language, "zh-CN" | "en") {
-        return Err("Kokoro requires a supported Chinese or English language profile".into());
+        return Err("MossNano requires a supported Chinese or English language profile".into());
     }
     catalog()
         .into_iter()
-        .find(|voice| voice.speaker_id == speaker_id)
-        .ok_or_else(|| "Kokoro voice is absent from the pinned model catalog".into())
+        .find(|voice| voice.speaker_id == speaker_id && voice.primary_language == language)
+        .ok_or_else(|| "MossNano voice is absent from the pinned model catalog".into())
 }
 
 #[tauri::command]

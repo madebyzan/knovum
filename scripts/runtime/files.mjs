@@ -1,6 +1,38 @@
-import { createHash } from "node:crypto";
-import { closeSync, lstatSync, openSync, readdirSync, readSync } from "node:fs";
-import { isAbsolute, join, relative } from "node:path";
+import { createHash, randomUUID } from "node:crypto";
+import {
+  closeSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readSync,
+  renameSync,
+  rmSync,
+} from "node:fs";
+import { dirname, isAbsolute, join, relative } from "node:path";
+
+export function activateDirectory(staged, destination) {
+  mkdirSync(dirname(destination), { recursive: true });
+  const previous = `${destination}.previous-${randomUUID()}`;
+  if (existsSync(destination)) renameSync(destination, previous);
+  try {
+    renameSync(staged, destination);
+  } catch (error) {
+    if (existsSync(previous)) {
+      try {
+        renameSync(previous, destination);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Resource activation failed; previous resource preserved at ${previous}`,
+        );
+      }
+    }
+    throw error;
+  }
+  rmSync(previous, { recursive: true, force: true });
+}
 
 export function listRuntimeFiles(root, options = {}) {
   return walkRuntimeFiles(root, root)

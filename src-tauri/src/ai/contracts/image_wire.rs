@@ -3,12 +3,15 @@ use serde::{Deserialize, Serialize};
 
 pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
     "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v1";
+pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
+    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
 pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = 320;
 pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * 320 * 320 * 4;
 pub const IMAGE_SEGMENTATION_MASK_BYTES: u64 = 320 * 320 * 4;
 
 #[derive(Clone, Debug)]
 pub struct ImageSegmentationExecutionIdentity {
+    pub model_spec_id: &'static str,
     pub owner_kind: String,
     pub owner_id: String,
     pub attempt_id: String,

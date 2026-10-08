@@ -1,7 +1,7 @@
 use sqlx::{Row, SqlitePool};
 use std::path::Path;
 
-use super::{VoiceCandidate, VoiceCandidateStatus, VoiceCandidateStepConfiguration, MODEL_SPEC_ID};
+use super::{VoiceCandidate, VoiceCandidateStatus, VoiceCandidateStepConfiguration, VoiceModel};
 use crate::{
     ai::contracts::speech_wire::AudioFileReference,
     spaces::speech::contracts::SpeechAudioOutput,
@@ -68,7 +68,10 @@ pub(crate) async fn persist_candidate(
     .bind(request.text.trim())
     .bind(design_description)
     .bind(reference_text)
-    .bind(configuration.reference_source.as_ref().map(|source| source.source_revision.as_str()))
+    .bind(match &request.source {
+        super::VoiceCandidateSource::Reference { source_revision, .. } => Some(source_revision.as_str()),
+        super::VoiceCandidateSource::Designed { .. } => None,
+    })
     .bind(input_byte_length)
     .bind(reference_path.to_string_lossy().as_ref())
     .bind(&reference.sha256)
@@ -77,7 +80,7 @@ pub(crate) async fn persist_candidate(
     .bind(preview_sha256)
     .bind(i64::from(preview_sample_rate))
     .bind(preview_sample_count)
-    .bind(MODEL_SPEC_ID)
+    .bind(request.model.specification())
     .bind(i64::from(request.seed))
     .bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":request.seed}).to_string())
     .bind(authorization)
@@ -127,7 +130,7 @@ pub(crate) async fn load_record(
     let row = sqlx::query(
         "SELECT id,run_id,space_id,source_kind,language,sample_text,design_description,reference_text, \
          reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
-         preview_sample_rate,preview_sample_count,seed,status,auditioned_at,selected_voice_profile_id, \
+         preview_sample_rate,preview_sample_count,model_spec_id,seed,status,auditioned_at,selected_voice_profile_id, \
          selected_voice_revision_id,selected_at,rejected_at,created_at \
          FROM spaces_voice_candidates WHERE id=? AND space_id=?",
     )
@@ -269,6 +272,10 @@ fn decode(row: sqlx::sqlite::SqliteRow) -> Result<StoredVoiceCandidate, String> 
         reference_sha256: row.try_get("reference_sha256").map_err(db::sql_error)?,
         reference_byte_length,
         candidate: VoiceCandidate {
+            model: VoiceModel::from_specification(
+                &row.try_get::<String, _>("model_spec_id")
+                    .map_err(db::sql_error)?,
+            )?,
             candidate_id: row.try_get("id").map_err(db::sql_error)?,
             run_id: row.try_get("run_id").map_err(db::sql_error)?,
             space_id: row.try_get("space_id").map_err(db::sql_error)?,

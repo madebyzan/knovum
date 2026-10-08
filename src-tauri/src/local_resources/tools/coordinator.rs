@@ -77,9 +77,7 @@ pub(super) async fn install_missing<R: Runtime>(
     ];
     let mut completed = 0_u64;
     for descriptor in descriptors {
-        if super::super::configured_path::configured_path(descriptor.env_key)?.is_some()
-            || filesystem::verified_installation_path(app, &descriptor)?.is_some()
-        {
+        if filesystem::verified_installation_path(app, &descriptor)?.is_some() {
             continue;
         }
         let mut transferred = 0_u64;

@@ -14,7 +14,6 @@
   "deleteVoice": "Delete voice permanently",
   "deleteVoiceDescription": "Delete this archived voice and all of its revisions. A voice used by a project cannot be deleted.",
   "projectName": "Project name",
-  "projectType": "Project type",
   "scriptPlaceholder": "Enter the script for this revision",
   "voice": "Voice",
   "saveRevision": "Save revision",
@@ -61,12 +60,15 @@
   "transcriptConfirmed": "The transcript matches the recording",
   "voiceAuthorization": "I have permission to use this voice",
   "designDescription": "Describe the voice, delivery, age range, and tone",
+  "deliveryInstruction": "Delivery instruction",
+  "deliveryInstructionPlaceholder": "Optional: describe the pacing, tone, and delivery for this segment (up to 500 characters)",
   "candidateText": "Text for the candidate sample",
   "generateCandidate": "Generate candidate",
   "candidateAuditionRequired": "Play the candidate through once before saving this voice.",
   "saveCandidate": "Save voice",
   "discardCandidate": "Discard candidate",
-  "referenceRequirements": "Use 5–30 seconds of clean speech. Audio is converted to mono and normalized locally.",
+  "referenceRequirements": "Select 5–30 seconds of clean speech from one speaker. Only the selected audio is saved and converted to 16 kHz mono locally.",
+  "referenceTooShort": "This audio is shorter than five seconds. Choose a longer reference recording.",
   "candidateSample": "Welcome. This sample checks clarity, pacing, names, numbers, and natural sentence endings before you save the voice.",
   "stages": {
     "preparing": "Preparing resources",
@@ -75,24 +77,22 @@
     "done": "Complete"
   },
   "createProject": "Create",
-  "voices": "Voices",
   "noVoices": "No voice profiles in this Space.",
   "types": {
-    "shortDubbing": "Short dubbing",
     "audiobook": "Audiobook",
     "videoDubbing": "Video dubbing"
   },
   "backgroundAudio": "Background audio",
   "acceptedSeparatedBackground": "Accepted separated background",
-  "sourceSeparationDescription": "Create a local background candidate. Spleeter separates vocals from accompaniment and does not guarantee spoken-dialogue removal.",
+  "sourceSeparationDescription": "Separate vocals and accompaniment locally. Audition both tracks before accepting them; dialogue separation quality depends on the recording.",
   "sourceSeparationTask": "Source separation",
-  "sourceSeparationReviewWarning": "Spleeter separates vocals from accompaniment and does not guarantee spoken-dialogue removal. Audition the full candidate before accepting it.",
+  "sourceSeparationReviewWarning": "Vocal and accompaniment separation does not guarantee spoken-dialogue removal. Audition both tracks before accepting them.",
   "sourceSeparationTooLong": "Source separation supports up to 10 minutes. Split the video before creating a background candidate.",
-  "separateBackground": "Create background candidate",
+  "separateBackground": "Separate vocals and accompaniment",
   "cancelSeparation": "Cancel separation",
-  "separationAuditioned": "I auditioned the full background candidate",
-  "acceptSeparatedBackground": "Accept background",
-  "rejectSeparatedBackground": "Reject",
+  "separationAuditioned": "I have auditioned both tracks",
+  "acceptSeparatedBackground": "Accept tracks",
+  "rejectSeparatedBackground": "Reject tracks",
   "separationStatus": {
     "accepted": "This background candidate is accepted for mixing.",
     "rejected": "This background candidate was rejected."
@@ -118,8 +118,6 @@
   "needsTimingEdit": "The generated speech does not fit this target interval. Adjust the text or interval, then save a new revision.",
   "female": "Female",
   "male": "Male",
-  "candidateSeed": "Variation seed",
-  "newSeed": "New variation",
   "wavPrecision": "WAV precision",
   "paragraphPause": "Paragraph pause (ms)",
   "chapterPause": "Chapter pause (ms)",
@@ -158,8 +156,39 @@
     "clipping": "Near full-scale peak",
     "invalid": "Invalid signal samples"
   },
-  "nodeReadAloud": "Read aloud / audiobook",
+  "nodeReadAloud": "Generate speech",
   "nodeProjects": "Productions from this node",
   "readNodeManuscript": "Load this node as manuscript",
-  "referenceNodeChanged": "The audio node source changed. Refresh the node before preparing a voice reference."
+  "referenceNodeChanged": "The audio node source changed. Refresh the node before preparing a voice reference.",
+  "manageVoices": "Manage voices and reference audio",
+  "libraryDescription": "Save voices from reference audio and select them when generating speech, or upload a temporary reference. Voices can be copied to other Spaces.",
+  "librarySpace": "Space: {name}",
+  "libraryRequiresSpace": "Create a Space to manage its voices and reference audio.",
+  "presetVoices": "Preset voices",
+  "addReferenceVoice": "Upload reference audio or design a voice",
+  "extractBackground": "Vocal separation",
+  "librarySpaceLabel": "Voice library Space",
+  "currentBackground": "Current background track",
+  "voiceModel": "Voice model",
+  "modelFirstUse": "The selected model and required resources download automatically on first use. Track or cancel the task in Task Center.",
+  "voiceModels": {
+    "mossNano": "Recommended · Compact multilingual generation and reference cloning. Normal speed.",
+    "voxCpm2": "Full precision · Higher-quality cloning and voice design for computers with ample memory.",
+    "voxCpm2Q8": "Recommended quality option · Voice cloning and design with quantized weights that use less download and disk space than Full."
+  },
+  "exportStem": {
+    "vocals": "Save vocals WAV",
+    "background": "Save accompaniment WAV"
+  },
+  "separatedStem": {
+    "vocals": "Vocals",
+    "background": "Accompaniment"
+  },
+  "firstVoice": "Choose a preset voice to start. It will also be saved to your voice library.",
+  "addStemToSpace": "Add as audio node",
+  "voiceOrigins": {
+    "preset": "Preset voice",
+    "reference": "Reference voice",
+    "designed": "Designed voice"
+  }
 }

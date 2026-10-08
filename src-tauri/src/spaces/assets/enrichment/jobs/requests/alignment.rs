@@ -32,6 +32,8 @@ pub async fn request_media_alignment(
         ));
     }
 
+    let model = crate::local_resources::model_selection::speech_alignment(&app)?;
+    let model_spec_id = model.alignment_spec()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -87,7 +89,7 @@ pub async fn request_media_alignment(
 
     let segment_ids_json = serde_json::to_string(&segment_ids).map_err(db::json_error)?;
     if let Some(row) = sqlx::query(
-        "SELECT j.id,r.expected_transcript_revision,r.segment_ids FROM spaces_enrichment_jobs j \
+        "SELECT j.id,r.model_spec_id,r.expected_transcript_revision,r.segment_ids FROM spaces_enrichment_jobs j \
          JOIN spaces_media_alignment_requests r ON r.job_id=j.id \
          WHERE j.space_id=$1 AND j.node_id=$2 AND j.job_type='align_media_transcript' \
            AND j.source_revision=$3 AND j.status IN ('pending','running','awaiting_configuration')",
@@ -103,7 +105,8 @@ pub async fn request_media_alignment(
             .try_get("expected_transcript_revision")
             .map_err(db::sql_error)?;
         let queued_segments: String = row.try_get("segment_ids").map_err(db::sql_error)?;
-        if queued_revision == i64::from(expected_revision) && queued_segments == segment_ids_json {
+        if queued_revision == i64::from(expected_revision) && queued_segments == segment_ids_json
+            && row.try_get::<String, _>("model_spec_id").map_err(db::sql_error)? == model_spec_id {
             return Ok(row.try_get("id").map_err(db::sql_error)?);
         }
         return Err(AppError::invalid(
@@ -116,8 +119,8 @@ pub async fn request_media_alignment(
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'align_media_transcript','pending',$4,0,$5,$5)")
         .bind(&id).bind(&space_id).bind(&node_id).bind(&revision).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
-    sqlx::query("INSERT INTO spaces_media_alignment_requests(job_id,expected_transcript_revision,segment_ids) VALUES($1,$2,$3)")
-        .bind(&id).bind(i64::from(expected_revision)).bind(segment_ids_json)
+    sqlx::query("INSERT INTO spaces_media_alignment_requests(job_id,model_spec_id,expected_transcript_revision,segment_ids) VALUES($1,$2,$3,$4)")
+        .bind(&id).bind(model_spec_id).bind(i64::from(expected_revision)).bind(segment_ids_json)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(id)

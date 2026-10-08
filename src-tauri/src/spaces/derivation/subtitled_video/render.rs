@@ -77,8 +77,8 @@ fn run_ffmpeg(
     channel: &Channel<SubtitledVideoProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
-        .ok_or("FFmpeg is required to create a subtitled video")?;
+    let ffmpeg =
+        tools::resolve_ffmpeg(app)?.ok_or("FFmpeg is required to create a subtitled video")?;
     progress(channel, "renderingSubtitles", 68)?;
     let subtitle_name = subtitle
         .file_name()

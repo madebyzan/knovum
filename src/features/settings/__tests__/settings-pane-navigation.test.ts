@@ -50,7 +50,11 @@ it.each(["loading", "ready", "failed"])(
     await router.push("/settings?pane=appearance");
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = mount(SettingsView, {
-      props: { loadGenerationActions: async () => [], extensionsComponent: extensions },
+      props: {
+        loadGenerationActions: async () => [],
+        extensionsComponent: extensions,
+        voiceLibraryComponent: extensions,
+      },
       global: {
         plugins: [createPinia(), i18n, router, [VueQueryPlugin, { queryClient }]],
         stubs: {
@@ -59,7 +63,7 @@ it.each(["loading", "ready", "failed"])(
           AiConnectionsSettings: { template: '<section data-testid="model-connections" />' },
           AiRoutingSettings: true,
           PythonRuntimeSettings: { template: '<section data-testid="python-runtimes" />' },
-          LocalSpeechResourcesSettings: true,
+          LocalModelsSettings: true,
           CreationSettingsPane: { template: '<section data-testid="creation-pane" />' },
           UsageSettingsPane: { template: '<section data-testid="usage-pane" />' },
         },

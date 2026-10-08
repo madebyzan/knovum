@@ -21,7 +21,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    local_resources::{models::catalog, preparation},
+    local_resources::preparation,
 };
 
 use super::recorder::RecordedAudio;
@@ -37,17 +37,29 @@ pub(crate) async fn transcribe<R: Runtime>(
     wav: PathBuf,
     recording: RecordedAudio,
     cancellation: &CancellationToken,
+    progress: &mut (impl FnMut(preparation::contracts::ResourcePreparationProgress) + Send),
 ) -> Result<TranscriptionOutcome, String> {
-    let profile = speech::transcription_profile()?;
-    let resources = preparation::prepare_models(
+    let model = crate::local_resources::model_selection::transcription(app)?;
+    let resources = preparation::prepare_models_for_job(
         app,
-        catalog::TRANSCRIPTION_MODELS,
+        preparation::contracts::ResourcePreparationTarget::Model { model },
+        &format!("dictation-resource:{session_id}"),
+        "Preparing dictation resources",
         cancellation,
-        &mut |_| {},
+        progress,
     )
-    .await?;
+    .await
+    .map_err(|error| {
+        if cancellation.is_cancelled() || error == preparation::RESOURCE_PREPARATION_CANCELLED {
+            "cancelled".to_owned()
+        } else {
+            format!("local_resource_unavailable: {error}")
+        }
+    })?;
     let audio_ref = crate::blocking::run(move || audio_reference(&wav, recording)).await?;
     let (attempt_epoch, deadline_ms) = deadline(120_000)?;
+    let profile =
+        speech::transcription_execution_profile(app, model, cancellation, deadline_ms).await?;
     let request_id = uuid::Uuid::new_v4().to_string();
     let identity = InferenceRequestIdentity {
         request_id: request_id.clone(),

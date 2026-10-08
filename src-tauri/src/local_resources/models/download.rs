@@ -35,11 +35,15 @@ pub(super) async fn snapshot<R: Runtime>(
         _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
         permit = DOWNLOADS.acquire() => permit.map_err(|error| error.to_string())?,
     };
+    if sources::for_snapshot(snapshot).is_none() {
+        return super::direct_download::snapshot(snapshot, directory, progress, cancellation).await;
+    }
     let runtime = python::resolve(app, python::RuntimeProfile::Resources)?
         .ok_or("Python runtime is not prepared")?;
     let request = DownloadRequest {
         directory,
-        source: sources::for_snapshot(snapshot),
+        source: sources::for_snapshot(snapshot)
+            .ok_or("Snapshot does not use a model hub worker")?,
         files: snapshot.files(),
     };
     let payload = serde_json::to_vec(&request).map_err(|error| error.to_string())?;
@@ -83,10 +87,12 @@ fn run_download(
     if cancellation.is_cancelled() {
         return Err(RESOURCE_PREPARATION_CANCELLED.into());
     }
-    let bootstrap = "import sys; sys.path[:0] = [sys.argv[1], sys.argv[2]]; from knovum_model_resources.server import main; main()";
+    let bootstrap = crate::subprocess::python::isolated_bootstrap(
+        "from knovum_model_resources.server import main; main()",
+    );
     let mut command = Command::new(&runtime.executable);
     command
-        .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
+        .args(["-I", "-B", "-X", "utf8", "-c", &bootstrap])
         .arg(&runtime.worker_root)
         .arg(&runtime.package_root)
         .stdin(Stdio::piped())

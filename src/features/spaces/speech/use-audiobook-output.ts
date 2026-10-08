@@ -40,6 +40,8 @@ export function useAudiobookOutput() {
     const config = value();
     return (
       !(config.format === "wav" && config.metadata.cover !== null) &&
+      withinBounds(config.loudnessLufs, -24, -16) &&
+      withinBounds(config.truePeakDb, -3, -1) &&
       [config.paragraphPauseMs, config.chapterPauseMs].every(Number.isSafeInteger) &&
       config.paragraphPauseMs >= 0 &&
       config.paragraphPauseMs <= 10000 &&
@@ -63,4 +65,8 @@ export function useAudiobookOutput() {
     value,
     valid,
   };
+}
+
+function withinBounds(value: number, minimum: number, maximum: number) {
+  return value >= minimum && value <= maximum;
 }

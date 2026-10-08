@@ -8,11 +8,11 @@ use super::{
     contracts::{SpeechSourceSeparationReviewStatus, StartSpeechSourceSeparationRequest},
     execution::candidate_matches_claim,
     media::{pcm_wav_metadata, MAX_SAMPLE_COUNT, SAMPLE_RATE},
-    repository::{load_candidate, persist_candidate, transition_review},
+    repository::{accepted_for_source, load_candidate, persist_candidate, transition_review},
     review_warning, MODEL_SPEC_ID, WORKFLOW,
 };
 use crate::{
-    ai::local_runtime::separation::SeparatedAudioMetadata,
+    ai::local_runtime::separation::{SeparatedAudio, SeparatedAudioMetadata},
     spaces::{runs::AttemptClaim, speech::video_config::SpeechMediaSource},
 };
 
@@ -48,7 +48,9 @@ fn existing_run_idempotence_requires_the_exact_workflow_space_and_source() {
         space_id: "space".into(),
         source: source(),
     };
-    let input = json!({"workflow":WORKFLOW,"source":request.source.clone()}).to_string();
+    let input =
+        json!({"workflow":WORKFLOW,"source":request.source.clone(),"model":"spleeter2Stems"})
+            .to_string();
     assert!(matches_existing_request(
         "space", "workflow", &input, &request
     ));
@@ -104,21 +106,37 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
         attempt_number: 1,
         home_space_id: "space".into(),
         node_kind: "speech_source_separation".into(),
-        configuration: json!({}),
+        configuration: json!({"source":source(),"model":"spleeter2Stems"}),
         resolved_input: json!({}),
         policy_snapshot: json!({}),
         budget: json!({}),
         cancellation: CancellationToken::new(),
     };
     let background = Path::new("/managed/background.wav");
-    let metadata = SeparatedAudioMetadata {
-        sha256: "c".repeat(64),
-        sample_rate: SAMPLE_RATE,
-        sample_count: SAMPLE_RATE.into(),
+    let vocals = Path::new("/managed/vocals.wav");
+    let metadata = SeparatedAudio {
+        background: SeparatedAudioMetadata {
+            sha256: "c".repeat(64),
+            sample_rate: SAMPLE_RATE,
+            sample_count: SAMPLE_RATE.into(),
+        },
+        vocals: SeparatedAudioMetadata {
+            sha256: "e".repeat(64),
+            sample_rate: SAMPLE_RATE,
+            sample_count: SAMPLE_RATE.into(),
+        },
     };
-    let error = persist_candidate(&pool, &claim, &source(), background, &metadata, 1_000)
-        .await
-        .unwrap_err();
+    let error = persist_candidate(
+        &pool,
+        &claim,
+        &source(),
+        background,
+        vocals,
+        &metadata,
+        1_000,
+    )
+    .await
+    .unwrap_err();
     assert!(error.contains("attempt-stale"));
 
     sqlx::query("UPDATE spaces_run_attempts SET lease_until=? WHERE id=?")
@@ -127,12 +145,69 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
         .execute(&pool)
         .await
         .unwrap();
-    sqlx::query("INSERT INTO spaces_speech_asset_publications(id,space_id,owner_kind,owner_id,asset_path,part_path,sha256,run_id,run_step_id,run_attempt_id,run_execution_epoch,created_at) VALUES('publication','space','source_separation',?,?,NULL,?,?,?,?,2,1)")
-        .bind(&run_id).bind(background.to_string_lossy().as_ref()).bind(&metadata.sha256)
-        .bind(&run_id).bind(&step_id).bind(&attempt_id).execute(&pool).await.unwrap();
-    persist_candidate(&pool, &claim, &source(), background, &metadata, 1_000)
+    crate::spaces::speech::asset_publication::stage_batch_for_attempt(&pool, &claim, &[
+        crate::spaces::speech::asset_publication::PendingAsset { owner_kind: crate::spaces::speech::asset_publication::PublicationOwnerKind::SourceSeparation, owner_id: &run_id, asset_path: background, part_path: None, sha256: &metadata.background.sha256 },
+        crate::spaces::speech::asset_publication::PendingAsset { owner_kind: crate::spaces::speech::asset_publication::PublicationOwnerKind::SourceSeparation, owner_id: &run_id, asset_path: vocals, part_path: None, sha256: &metadata.vocals.sha256 },
+    ]).await.unwrap();
+    sqlx::query("DELETE FROM spaces_speech_asset_publications WHERE asset_path=?")
+        .bind(vocals.to_string_lossy().as_ref())
+        .execute(&pool)
         .await
         .unwrap();
+    assert!(persist_candidate(
+        &pool,
+        &claim,
+        &source(),
+        background,
+        vocals,
+        &metadata,
+        1_000
+    )
+    .await
+    .is_err());
+    assert!(super::repository::load_candidate_optional(&pool, &run_id)
+        .await
+        .unwrap()
+        .is_none());
+    let remaining: i64 =
+        sqlx::query_scalar("SELECT count(*) FROM spaces_speech_asset_publications")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(
+        remaining, 1,
+        "a failed two-track commit must retain the first recovery journal"
+    );
+    crate::spaces::speech::asset_publication::stage_for_attempt(
+        &pool,
+        &claim,
+        crate::spaces::speech::asset_publication::PendingAsset {
+            owner_kind:
+                crate::spaces::speech::asset_publication::PublicationOwnerKind::SourceSeparation,
+            owner_id: &run_id,
+            asset_path: vocals,
+            part_path: None,
+            sha256: &metadata.vocals.sha256,
+        },
+    )
+    .await
+    .unwrap();
+    persist_candidate(
+        &pool,
+        &claim,
+        &source(),
+        background,
+        vocals,
+        &metadata,
+        1_000,
+    )
+    .await
+    .unwrap();
+
+    assert!(accepted_for_source(&pool, "space", &source())
+        .await
+        .unwrap()
+        .is_empty());
 
     let reviewed_at = crate::clock::unix_time_millis().unwrap() + 1;
     transition_review(
@@ -146,8 +221,35 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
     .unwrap();
     let candidate = load_candidate(&pool, &run_id).await.unwrap();
     assert!(candidate_matches_claim(&claim, &source(), &candidate));
+    assert_eq!(candidate.vocals.asset_path, vocals.to_string_lossy());
+    assert_eq!(
+        candidate.vocals.source_revision,
+        format!("sha256:{}", metadata.vocals.sha256)
+    );
+    assert_eq!(
+        candidate.vocals.duration_ms,
+        candidate.background.duration_ms
+    );
+    let pending: i64 = sqlx::query_scalar("SELECT count(*) FROM spaces_speech_asset_publications")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(pending, 0);
+    let accepted = accepted_for_source(&pool, "space", &source())
+        .await
+        .unwrap();
+    assert_eq!(accepted.len(), 1);
+    assert_eq!(accepted[0].separation_id, run_id);
+    assert!(accepted_for_source(&pool, "other", &source())
+        .await
+        .unwrap()
+        .is_empty());
     let mut changed_source = source();
     changed_source.source_revision = format!("sha256:{}", "d".repeat(64));
+    assert!(accepted_for_source(&pool, "space", &changed_source)
+        .await
+        .unwrap()
+        .is_empty());
     assert!(!candidate_matches_claim(
         &claim,
         &changed_source,
@@ -175,6 +277,30 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
         load_candidate(&pool, &run_id).await.unwrap().review_warning,
         review_warning()
     );
+    let mut changed_claim = claim;
+    changed_claim.configuration = json!({"source":source(), "model":"spleeter2StemsFull"});
+    assert!(!candidate_matches_claim(
+        &changed_claim,
+        &source(),
+        &candidate
+    ));
+    let mut full_candidate = candidate;
+    full_candidate.model_spec_id =
+        crate::local_resources::model_catalog::LocalModelId::Spleeter2StemsFull
+            .separation_spec()
+            .unwrap()
+            .into();
+    assert!(candidate_matches_claim(
+        &changed_claim,
+        &source(),
+        &full_candidate
+    ));
+    changed_claim.configuration = json!({"source":source()});
+    assert!(!candidate_matches_claim(
+        &changed_claim,
+        &source(),
+        &full_candidate
+    ));
 }
 
 fn write_sparse_wav(path: &Path, sample_count: u64) {
@@ -196,4 +322,35 @@ fn write_sparse_wav(path: &Path, sample_count: u64) {
     let mut file = fs::File::create(path).unwrap();
     file.write_all(&header).unwrap();
     file.set_len(data_bytes + 44).unwrap();
+}
+
+#[tokio::test]
+async fn separation_accepts_owned_audio_and_video_but_rejects_other_spaces_and_stale_analysis() {
+    let pool = database().await;
+    for kind in ["audio", "video"] {
+        sqlx::query("DELETE FROM spaces_nodes")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let data = json!({"kind":kind,"title":"Media","assetPath":source().asset_path,"sourceRevision":source().source_revision,"mediaAnalysis":{"schemaVersion":1,"sourceRevision":source().source_revision,"durationMs":1000,"waveform":[0.5]}});
+        sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('media','space',?,0,0,?,1,1)")
+            .bind(kind).bind(data.to_string()).execute(&pool).await.unwrap();
+        let mut tx = pool.begin().await.unwrap();
+        super::media::require_owned_source(&mut tx, "space", &source())
+            .await
+            .unwrap();
+        assert!(
+            super::media::require_owned_source(&mut tx, "other", &source())
+                .await
+                .is_err()
+        );
+        let mut changed = source();
+        changed.duration_ms = 1001;
+        assert!(
+            super::media::require_owned_source(&mut tx, "space", &changed)
+                .await
+                .is_err()
+        );
+        tx.rollback().await.unwrap();
+    }
 }

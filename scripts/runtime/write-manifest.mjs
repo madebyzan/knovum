@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
-import { hostRuntimeTarget, runtimeProject, runtimeTargets } from "./profiles.mjs";
+import { dependencyIdentity, hostRuntimeTarget, runtimeProject, runtimeTargets } from "./profiles.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
@@ -37,14 +37,14 @@ if (!target.startsWith("windows-")) {
 }
 
 const profile = args[5];
-const project = runtimeProject(repository, profile);
+runtimeProject(repository, profile);
 const manifest = {
   schemaVersion: 1,
   runtimeId: "cpython",
   version: "3.11.17",
   dependencyRequirementsSha256: sha256File(join(root, "runtime-requirements.txt")),
   profile,
-  dependencyLockSha256: sha256File(join(project, "uv.lock")),
+  dependencyLockSha256: dependencyIdentity(repository, target, profile),
   target,
   executable,
   packageRoot: "packages",

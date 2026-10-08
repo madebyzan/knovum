@@ -84,3 +84,23 @@ fn audiobook_cover_tokens_carry_exact_digests_and_reject_external_paths() {
         json!("sha256:invalid");
     assert!(parse(&manifest.to_string()).is_err());
 }
+
+#[test]
+fn separation_packages_both_stems_with_independent_digest_validation() {
+    let mut manifest = json!({ "nodes":[], "layouts":[], "voiceRevisions":[], "voiceCandidates":[], "speechRenders":[], "speechProjectRevisions":[],
+        "speechSourceSeparations":[{
+            "sourceAssetPath":"knovum-package-asset:source", "sourceRevision":digest('a'),
+            "backgroundAssetPath":"knovum-package-asset:background", "backgroundSha256":"b".repeat(64),
+            "vocalsAssetPath":"knovum-package-asset:vocals", "vocalsSha256":"c".repeat(64)
+        }] });
+    let assets = parse(&manifest.to_string()).unwrap();
+    assert_eq!(assets.source_revisions["vocals"], digest('c'));
+    assert_eq!(assets.source_revisions["background"], digest('b'));
+    manifest["speechSourceSeparations"][0]["vocalsSha256"] = json!("invalid");
+    assert!(parse(&manifest.to_string()).is_err());
+    manifest["speechSourceSeparations"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("vocalsAssetPath");
+    assert!(parse(&manifest.to_string()).is_err());
+}

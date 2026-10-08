@@ -2,6 +2,46 @@ use serde::{Deserialize, Serialize};
 
 use super::super::contracts::SpeechAudioOutput;
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum VoiceModel {
+    MossNano,
+    VoxCpm2,
+    VoxCpm2Q8,
+}
+
+impl VoiceModel {
+    pub(crate) fn engine(self) -> &'static str {
+        match self {
+            Self::MossNano => "moss_nano",
+            Self::VoxCpm2 => "voxcpm2",
+            Self::VoxCpm2Q8 => "voxcpm2",
+        }
+    }
+    pub(crate) fn specification(self) -> &'static str {
+        match self {
+            Self::MossNano => super::super::execution::MOSS_NANO_MODEL_SPEC_ID,
+            Self::VoxCpm2 => super::MODEL_SPEC_ID,
+            Self::VoxCpm2Q8 => super::Q8_MODEL_SPEC_ID,
+        }
+    }
+    pub(crate) fn wire_engine(self) -> crate::ai::contracts::speech_wire::SpeechSynthesisEngine {
+        use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
+        match self {
+            Self::MossNano => E::MossNano,
+            Self::VoxCpm2 => E::VoxCpm2,
+            Self::VoxCpm2Q8 => E::VoxCpm2,
+        }
+    }
+    pub(crate) fn from_specification(value: &str) -> Result<Self, String> {
+        [Self::MossNano, Self::VoxCpm2, Self::VoxCpm2Q8]
+            .into_iter()
+            .find(|model| model.specification() == value)
+            .ok_or_else(|| "Voice model specification is unsupported".into())
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",
@@ -28,6 +68,7 @@ pub enum VoiceCandidateSource {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct DraftVoiceCandidateRequest {
+    pub model: VoiceModel,
     pub request_id: String,
     pub space_id: String,
     pub language: String,
@@ -50,6 +91,7 @@ pub enum VoiceCandidateStatus {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VoiceCandidate {
+    pub model: VoiceModel,
     pub candidate_id: String,
     pub run_id: String,
     pub space_id: String,
@@ -92,4 +134,5 @@ pub(super) struct ReferenceSourceSnapshot {
     pub asset_path: String,
     pub byte_length: u64,
     pub source_revision: String,
+    pub duration_ms: u64,
 }

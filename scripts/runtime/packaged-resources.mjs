@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { distributionDirectory, readRuntimeDescriptor } from "./distribution.mjs";
 import { listRuntimeFiles, sha256File } from "./files.mjs";
+import { validateMediaRuntime } from "./media-manifest.mjs";
 import { runtimeProfiles } from "./profiles.mjs";
 
 export function validatePackagedResources(resources, repository, target) {
@@ -15,6 +16,7 @@ export function validatePackagedResources(resources, repository, target) {
     )
       throw new Error(`Packaged ${profile} descriptor differs from the trusted build input`);
   }
+  validateMediaRuntime(repository, join(resources, "bundled-runtime", target), target);
   const source = join(repository, "python", "src");
   const payload = join(resources, "python-worker");
   const expected = listRuntimeFiles(source).filter((path) => path.endsWith(".py"));

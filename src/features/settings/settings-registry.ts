@@ -1,4 +1,14 @@
-import { Activity, Archive, Boxes, Info, MonitorCog, Puzzle, Terminal, WandSparkles } from "@lucide/vue";
+import {
+  Activity,
+  Archive,
+  AudioLines,
+  Boxes,
+  Info,
+  MonitorCog,
+  Puzzle,
+  Terminal,
+  WandSparkles,
+} from "@lucide/vue";
 import type { Component } from "vue";
 
 import type { SettingsPaneId } from "./settings-pane";
@@ -65,6 +75,14 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         descriptionKey: "settings.routing.defaultsDescription",
       },
     ],
+  },
+  {
+    id: "voices",
+    group: "intelligence",
+    titleKey: "spaces.speech.voiceManagement",
+    descriptionKey: "spaces.speech.libraryDescription",
+    searchKeys: ["spaces.speech.referenceAudio", "spaces.speech.cloneVoice", "spaces.speech.designVoice"],
+    icon: AudioLines,
   },
   {
     id: "desktopAgents",

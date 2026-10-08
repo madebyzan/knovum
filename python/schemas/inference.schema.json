@@ -1611,7 +1611,7 @@
     "SpeechSynthesisEngine": {
       "type": "string",
       "enum": [
-        "kokoro",
+        "moss_nano",
         "vox_cpm2"
       ]
     },

@@ -1,65 +1,32 @@
-import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
+import { computed, onScopeDispose, readonly, shallowRef } from "vue";
 
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { RunObservation } from "../contracts/generated/RunObservation";
-import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import { exportSpeechRender, generateSpeechProject } from "./ipc";
+import { cancelSpeechGeneration, exportSpeechRender, generateSpeechProject } from "./ipc";
 import { useSpeechPreview } from "./use-speech-preview";
+import { useSpeechRunObservation, type SpeechRunOwner } from "./use-speech-run-observation";
 
-interface SpeechGenerationOwner {
-  project: () => SpeechProjectSnapshot | undefined;
-  reloadProject: (projectId: string) => Promise<void>;
-  setError: (message?: string) => void;
-}
-
-const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
-
-export function useSpeechGeneration(owner: SpeechGenerationOwner) {
+export function useSpeechGeneration(owner: SpeechRunOwner) {
   const store = useSpaceStore();
-  const preview = useSpeechPreview(owner.setError);
-  const runState = shallowRef<RunObservation["state"]>();
+  const preview = useSpeechPreview(owner.setError, () => owner.project()?.project.spaceId);
   const submitting = shallowRef(false);
+  const preparingJobId = shallowRef<string>();
   const cancelling = shallowRef(false);
-  const activeJobId = computed(() => preview.jobId.value ?? owner.project()?.project.activeRunId);
-  let stopObservation: (() => unknown) | undefined;
-  let observationEpoch = 0;
+  const activeJobId = computed(
+    () => preview.jobId.value ?? preparingJobId.value ?? owner.project()?.project.activeRunId,
+  );
+  const observation = useSpeechRunObservation(owner);
   let submissionEpoch = 0;
-
-  function stopRunObservation() {
-    observationEpoch += 1;
-    stopObservation?.();
-    stopObservation = undefined;
-    runState.value = undefined;
-  }
 
   function reset() {
     preview.reset();
-    stopRunObservation();
+    observation.reset();
     submissionEpoch += 1;
     submitting.value = false;
+    preparingJobId.value = undefined;
     cancelling.value = false;
-  }
-
-  function attachRun(run: RunObservation, projectId: string, spaceId: string) {
-    stopRunObservation();
-    const epoch = observationEpoch;
-    runState.value = run.state;
-    stopObservation = observeResourceRun(run, owner.project()?.project.title ?? "Speech", (next) => {
-      if (
-        epoch !== observationEpoch ||
-        store.activeSpaceId !== spaceId ||
-        owner.project()?.project.id !== projectId
-      )
-        return;
-      runState.value = next.state;
-      if (TERMINAL_STATES.has(next.state)) {
-        void owner.reloadProject(projectId).catch((cause) => owner.setError(getErrorMessage(cause)));
-        void store.refreshActiveSpace().catch((cause) => owner.setError(getErrorMessage(cause)));
-      }
-    });
   }
 
   function isCurrentSubmission(epoch: number, projectId: string, spaceId: string) {
@@ -69,23 +36,21 @@ export function useSpeechGeneration(owner: SpeechGenerationOwner) {
       owner.project()?.project.id === projectId
     );
   }
-  function isCurrentObservation(epoch: number, runId: string, spaceId: string) {
-    return (
-      epoch === observationEpoch &&
-      owner.project()?.project.activeRunId === runId &&
-      store.activeSpaceId === spaceId
-    );
+  function reportSubmissionError(cause: unknown, epoch: number, projectId: string, spaceId: string) {
+    if (decodeAppError(cause)?.code === "cancelled") return;
+    if (isCurrentSubmission(epoch, projectId, spaceId)) owner.setError(getErrorMessage(cause));
   }
-
   async function generateProject() {
     const project = owner.project()?.project;
     const spaceId = store.activeSpaceId;
     if (!project || !spaceId || activeJobId.value || submitting.value) return;
     const epoch = ++submissionEpoch;
     submitting.value = true;
+    const requestId = crypto.randomUUID();
+    preparingJobId.value = requestId;
     try {
       const run = await generateSpeechProject({
-        requestId: crypto.randomUUID(),
+        requestId,
         projectId: project.id,
         expectedRevision: project.activeRevision,
       });
@@ -93,15 +58,16 @@ export function useSpeechGeneration(owner: SpeechGenerationOwner) {
         observeResourceRun(run, project.title);
         return;
       }
-      attachRun(run, project.id, spaceId);
+      observation.attachRun(run, project.id, spaceId);
       await owner.reloadProject(project.id);
       owner.setError();
     } catch (cause) {
-      if (isCurrentSubmission(epoch, project.id, spaceId)) {
-        owner.setError(getErrorMessage(cause));
-      }
+      reportSubmissionError(cause, epoch, project.id, spaceId);
     } finally {
-      if (epoch === submissionEpoch) submitting.value = false;
+      if (epoch === submissionEpoch) {
+        submitting.value = false;
+        preparingJobId.value = undefined;
+      }
     }
   }
 
@@ -110,6 +76,7 @@ export function useSpeechGeneration(owner: SpeechGenerationOwner) {
     cancelling.value = true;
     try {
       if (preview.jobId.value) await preview.cancel();
+      else if (preparingJobId.value) await cancelSpeechGeneration(preparingJobId.value);
       else {
         const runId = owner.project()?.project.activeRunId;
         if (runId) await cancelResourceRun(runId);
@@ -131,32 +98,12 @@ export function useSpeechGeneration(owner: SpeechGenerationOwner) {
     }
   }
 
-  watch(
-    () => owner.project()?.project.activeRunId,
-    async (runId) => {
-      stopRunObservation();
-      const epoch = observationEpoch;
-      const projectId = owner.project()?.project.id;
-      const spaceId = store.activeSpaceId;
-      if (!runId || !projectId || !spaceId) return;
-      try {
-        const run = await invokeCommand<RunObservation>("plugin:spaces|get_run", { runId });
-        if (isCurrentObservation(epoch, runId, spaceId)) attachRun(run, projectId, spaceId);
-      } catch (cause) {
-        if (isCurrentObservation(epoch, runId, spaceId)) {
-          owner.setError(getErrorMessage(cause));
-        }
-      }
-    },
-    { immediate: true },
-  );
-
   onScopeDispose(reset);
   return {
     preview: preview.preview,
     progress: preview.progress,
     listening: preview.listening,
-    runState: readonly(runState),
+    runState: observation.runState,
     activeJobId,
     submitting: readonly(submitting),
     cancelling: readonly(cancelling),

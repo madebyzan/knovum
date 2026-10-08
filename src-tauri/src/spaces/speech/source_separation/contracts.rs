@@ -57,6 +57,7 @@ pub struct SpeechSourceSeparationCandidate {
     pub run_id: String,
     pub source: SpeechMediaSource,
     pub background: SpeechMediaSource,
+    pub vocals: SpeechMediaSource,
     pub model_spec_id: String,
     pub review_status: SpeechSourceSeparationReviewStatus,
     pub review_warning: String,

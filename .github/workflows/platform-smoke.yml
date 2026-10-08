@@ -36,8 +36,8 @@ jobs:
           node-version: "22"
           check-latest: false
       - uses: ./.github/actions/setup-protoc
-      - name: Test desktop launcher and configuration
-        run: node --test scripts/desktop/__tests__/tauri.test.mjs scripts/desktop/__tests__/tauri-config.test.mjs
+      - name: Test desktop configuration
+        run: node --test scripts/desktop/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         shell: bash
         run: |
@@ -53,6 +53,4 @@ jobs:
       - name: Run web gates
         run: pnpm check:web
       - name: Build desktop binary (compile smoke only)
-        env:
-          KNOVUM_ALLOW_MISSING_BUNDLED_RUNTIME_FOR_COMPILE_SMOKE: "1"
-        run: pnpm exec tauri build --no-bundle
+        run: pnpm exec tauri build --no-bundle --debug

@@ -7,6 +7,7 @@ import {
   audiobookSegments,
   importedAudiobookDraft,
   readAudiobookRevision,
+  setAudiobookRoleVoice,
   type AudiobookRoleDraft,
   type ChapterDraft,
 } from "./audiobook-draft";
@@ -14,7 +15,7 @@ import { nextAudiobookRoleKey, renamedAudiobookDraft } from "./audiobook-role-dr
 import type { ImportedAudiobookScript } from "./audiobook-script";
 import { useAudiobookOutput } from "./use-audiobook-output";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
-import { defaultVoiceRevisionId } from "./voice-options";
+import { defaultVoiceRevisionId, voiceSupportsDeliveryInstruction } from "./voice-options";
 
 export function useAudiobookDraft(
   project: () => DeepReadonly<SpeechProjectSnapshot>,
@@ -77,7 +78,12 @@ export function useAudiobookDraft(
     roles.value = roles.value.filter((candidate) => candidate.id !== role.id);
   }
   function addParagraph(chapter: ChapterDraft) {
-    chapter.paragraphs.push({ key: crypto.randomUUID(), text: "", speakerKey: roles.value[0]?.key ?? "" });
+    chapter.paragraphs.push({
+      key: crypto.randomUUID(),
+      text: "",
+      speakerKey: roles.value[0]?.key ?? "",
+      deliveryInstruction: "",
+    });
   }
   function addChapter(title: string) {
     const chapter: ChapterDraft = { key: crypto.randomUUID(), title, paragraphs: [] };
@@ -98,20 +104,15 @@ export function useAudiobookDraft(
   ]);
   const selectedVoiceRevisionIds = computed(() => roles.value.map((role) => role.voiceRevisionId));
   const valid = computed(() => {
-    const available = new Set(voices().map((voice) => voice.revisionId));
     return (
       !configurationError.value &&
       audiobookDraftIsValid({
         roles: roles.value,
         chapters: chapters.value,
-        availableVoiceRevisionIds: available,
+        voices: voices(),
       }) &&
       lexicon.isValid.value &&
-      output.valid() &&
-      Number(loudness.value) >= -24 &&
-      Number(loudness.value) <= -16 &&
-      Number(peak.value) >= -3 &&
-      Number(peak.value) <= -1
+      output.valid()
     );
   });
 
@@ -129,6 +130,14 @@ export function useAudiobookDraft(
   }
   function roleVoiceRevisionId(speakerKey: string) {
     return roles.value.find((role) => role.key === speakerKey)?.voiceRevisionId ?? "";
+  }
+  function setRoleVoice(role: AudiobookRoleDraft, voiceRevisionId: string) {
+    setAudiobookRoleVoice(role, voiceRevisionId, chapters.value, voices());
+  }
+  function setParagraphSpeaker(paragraph: ChapterDraft["paragraphs"][number], speakerKey: string) {
+    paragraph.speakerKey = speakerKey;
+    const voiceRevisionId = roleVoiceRevisionId(speakerKey);
+    if (!voiceSupportsDeliveryInstruction(voices(), voiceRevisionId)) paragraph.deliveryInstruction = "";
   }
   function moveChapter(index: number, delta: number) {
     const destination = index + delta;
@@ -166,6 +175,8 @@ export function useAudiobookDraft(
     removeParagraph,
     importScript,
     roleVoiceRevisionId,
+    setRoleVoice,
+    setParagraphSpeaker,
     revisionInput,
   };
 }

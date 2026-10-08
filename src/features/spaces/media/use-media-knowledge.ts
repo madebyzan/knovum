@@ -7,6 +7,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
+import { useNodeEnrichmentStatus } from "../enrichment/use-node-enrichment-status";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
@@ -28,7 +29,19 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const { t } = useI18n();
   const transcriptOpen = ref(false);
   const alignmentSubmitting = ref(false);
-  const analyzing = computed(() => mediaAnalysisIds.value.includes(node.value.id));
+  const submitting = ref(false);
+  const { status } = useNodeEnrichmentStatus(
+    computed(() => store.activeSpaceId),
+    computed(() => node.value.id),
+  );
+  const analyzing = computed(
+    () =>
+      submitting.value ||
+      status.value.pending > 0 ||
+      status.value.running > 0 ||
+      status.value.waiting > 0 ||
+      mediaAnalysisIds.value.includes(node.value.id),
+  );
   const analysisPreview = computed(() => mediaAnalysisPreviews.value[node.value.id]);
   const mediaContent = computed(() => (isSpaceMediaPayload(node.value.data) ? node.value.data : undefined));
   const knowledge = computed(() => mediaContent.value?.mediaKnowledge);
@@ -55,12 +68,27 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     if (!knowledge.value?.transcript.segments.length) return t("spaces.media.analysis.insights.unavailable");
     return undefined;
   });
+  const transcribed = computed(() => Boolean(knowledge.value && !stale.value));
+  const canTranscribe = computed(
+    () =>
+      canDerive.value &&
+      !analyzing.value &&
+      !transcribed.value &&
+      Boolean(
+        mediaContent.value?.sourceRevision &&
+        mediaContent.value.mediaAnalysis?.sourceRevision === mediaContent.value.sourceRevision,
+      ),
+  );
   async function analyze() {
-    if (!canDerive.value) return;
+    if (!canTranscribe.value) return;
+    submitting.value = true;
     try {
       await store.analyzeMedia(node.value.id);
+      await refreshEnrichmentJobs();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      submitting.value = false;
     }
   }
   async function alignSegments(segmentIds: string[]) {
@@ -136,6 +164,8 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     stale,
     canEdit,
     canDerive,
+    canTranscribe,
+    transcribed,
     canGenerateInsights,
     insightsDisabledReason,
     analyze,

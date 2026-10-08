@@ -3,6 +3,13 @@
  * Every entry must stay narrow: a prefix here exempts all keys beneath it from the dead-key gate.
  */
 export const dynamicLocaleKeyPrefixes = [
+  "settings.ai.localModels.capabilities.",
+  "settings.ai.localModels.groups.",
+  "settings.ai.localModels.modelDescriptions.",
+  "spaces.speech.voiceModels.",
+  "spaces.speech.voiceOrigins.",
+  "spaces.speech.exportStem.",
+  "spaces.speech.separatedStem.",
   "settings.agents.connections.",
   "settings.creation.knowledgeActions.",
   "settings.routing.routes.",
@@ -48,6 +55,16 @@ export const dynamicLocaleKeyPrefixes = [
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
 export const dynamicLocaleKeys = [
+  "settings.ai.localModels.download",
+  "settings.ai.localModels.redownload",
+  "settings.ai.localModels.ready",
+  "settings.ai.localModels.notInstalled",
+  "settings.ai.localModels.selected",
+  "settings.ai.localModels.selectedVoiceModel",
+  "settings.ai.localModels.unavailable.memory",
+  "spaces.media.player.transcribe",
+  "spaces.speech.types.audiobook",
+  "spaces.speech.types.videoDubbing",
   "spaces.speech.female",
   "spaces.speech.male",
   "spaces.media.import.downloading",

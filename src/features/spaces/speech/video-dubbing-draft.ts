@@ -1,12 +1,15 @@
 import type { SpeechSegment } from "../contracts/generated/SpeechSegment";
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import type { VideoTranslationSegmentInput } from "../contracts/generated/VideoTranslationSegmentInput";
+import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
+import { deliveryInstructionIsValid } from "./voice-options";
 
 export interface VideoLineDraft {
   key: string;
   text: string;
   speakerKey: string;
   voiceRevisionId: string;
+  deliveryInstruction: string;
   startSeconds: string;
   endSeconds: string;
   needsTimingEdit: boolean;
@@ -17,12 +20,47 @@ export interface VideoLineDraft {
 
 export const milliseconds = (seconds: string) => Math.round(Number(seconds) * 1000);
 
+export function bindVideoSpeaker(
+  lines: readonly VideoLineDraft[],
+  speakerKey: string,
+  voiceRevisionId: string,
+  supportsDeliveryInstruction: boolean,
+) {
+  return lines.map((line) =>
+    line.speakerKey.trim() === speakerKey
+      ? {
+          ...line,
+          voiceRevisionId,
+          deliveryInstruction: supportsDeliveryInstruction ? line.deliveryInstruction : "",
+        }
+      : line,
+  );
+}
+
+export function videoLineIsValid(
+  line: VideoLineDraft,
+  voices: readonly VoiceLibraryRevision[],
+  durationMs: number,
+) {
+  const start = milliseconds(line.startSeconds);
+  const end = milliseconds(line.endSeconds);
+  return Boolean(
+    line.text.trim() &&
+    voices.some((voice) => voice.revisionId === line.voiceRevisionId) &&
+    deliveryInstructionIsValid(voices, line.voiceRevisionId, line.deliveryInstruction) &&
+    line.startSeconds.trim() &&
+    line.endSeconds.trim() &&
+    validVideoWindow(start, end, durationMs),
+  );
+}
+
 export function videoLineFromSegment(segment: SpeechSegment): VideoLineDraft {
   return {
     key: segment.id,
     text: segment.text,
     speakerKey: segment.speakerKey ?? "",
     voiceRevisionId: segment.voiceRevisionId,
+    deliveryInstruction: segment.deliveryInstruction ?? "",
     startSeconds: String((segment.targetStartMs ?? 0) / 1000),
     endSeconds: String((segment.targetEndMs ?? 0) / 1000),
     needsTimingEdit: segment.state === "needs_edit",
@@ -34,7 +72,7 @@ export function videoLineFromSegment(segment: SpeechSegment): VideoLineDraft {
   };
 }
 
-export function validVideoWindow(start: number, end: number, duration: number) {
+function validVideoWindow(start: number, end: number, duration: number) {
   return (
     Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && end > start && end <= duration
   );

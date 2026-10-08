@@ -1,12 +1,13 @@
 # Repository scripts
 
-These scripts support development, verification and desktop publication. They are not bundled business
-code and do not run on end-user machines. A tool is retained for a concrete project policy or workflow;
-vendor CLIs, standard libraries and existing packages perform the underlying work.
+These tools support development, verification and desktop publication. Command-line producers and
+checks run on development/CI hosts; the installed application consumes their finished resources.
+`voice_bridge.cpp` is compiled into the native voice resource. A tool is retained for a concrete project
+policy or workflow; vendor CLIs, standard libraries and existing packages perform the underlying work.
 
 ## Commands to remember
 
-Everyday commands live in the root [README](../README.md): `desktop:dev`, `check`, `test`, `format`,
+Everyday commands invoke vendor CLIs directly where no project policy is needed. They live in the root [README](../README.md): `desktop:dev`, `check`, `test`, `format`,
 and `package`. Scripts expose a task once; flags select variants. Use `pnpm run` to list commands.
 
 | Specialized command                       | When it is needed                                                                       |
@@ -27,11 +28,11 @@ For vendor operations such as test watch mode or compile-only Tauri smoke, use `
 
 ## Desktop
 
-| File                                    | Responsibility and caller                                                                      |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `desktop/tauri.mjs`                     | Bind provisioned development runtime paths, then invoke the official Tauri CLI; `desktop:dev`. |
-| `desktop/package.mjs`                   | Validate target resources, production configuration and final packaged runtimes; `package`.    |
-| `desktop/verify-windows-signatures.ps1` | Check final application/NSIS Authenticode status and timestamps; release CI.                   |
+| File                                    | Responsibility and caller                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `desktop/dev.mjs`                       | Prepare and verify owned core media, then start Vite; Tauri BeforeDevCommand.               |
+| `desktop/package.mjs`                   | Validate target resources, production configuration and final packaged runtimes; `package`. |
+| `desktop/verify-windows-signatures.ps1` | Check final application/NSIS Authenticode status and timestamps; release CI.                |
 
 ## Bundled runtime
 
@@ -39,25 +40,37 @@ For vendor operations such as test watch mode or compile-only Tauri smoke, use `
 interpreter/dependency packaging and OS signing; Node integrates manifests and verification with
 desktop packaging. They share one owner and call each other where the workflow requires it.
 
-| File                                       | Responsibility and caller                                                                            |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `runtime/build_python.py`                  | Controlled interpreter/dependency build, relocation smoke and artifact publication; `runtime:build`. |
-| `runtime/verify_signatures.py`             | Isolated native signature verification entry; `runtime/signatures.mjs`.                              |
-| `runtime/artifacts.py`                     | Interpreter download/hash/size, safe extraction and runtime archive rules.                           |
-| `runtime/binaries.py`                      | Enumerate native binaries for inventory/signing.                                                     |
-| `runtime/inventory.py`                     | Record actual installed distributions, notices and source evidence; official CycloneDX output.       |
-| `runtime/signing.py`                       | Invoke OS signing/verifying commands under approved identity policy.                                 |
-| `runtime/__init__.py`                      | Regular Python package marker; no exported facade.                                                   |
-| `runtime/provision.mjs`                    | Download, verify and activate controlled target archives; `runtime:provision`.                       |
-| `runtime/write-manifest.mjs`               | Enumerate and hash the signed runtime; called automatically by its producer.                         |
-| `runtime/files.mjs`                        | Strict runtime path/tree rules and file hashing reused by provisioning/manifests.                    |
-| `runtime/manifest.mjs`                     | Validate manifest identity, size limits and the exact installed file set.                            |
-| `runtime/provenance.mjs`                   | Bind interpreter/worker/source/build identities to frozen inputs.                                    |
-| `runtime/license-policy.mjs`               | Require explicit license approval bound to the exact inventory and lock.                             |
-| `runtime/signatures.mjs`                   | Bind runtime signing identity to desktop production identity before isolated verification.           |
-| `runtime/windows-package-verification.mjs` | Extract final Windows installers and verify the exact contained runtime.                             |
+| File                                          | Responsibility and caller                                                                         |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `runtime/producer.mjs`                        | Bootstrap pinned build tools and invoke the native producer; `runtime:build`.                     |
+| `runtime/development.mjs`                     | Prepare the selected recipe-bound Python environment; on-demand debug host and `runtime:prepare`. |
+| `runtime/build_python.py`                     | Build the controlled interpreter/dependency resource and qualify relocation.                      |
+| `runtime/media.mjs`, `runtime/build_media.py` | Prepare or publish the core FFmpeg dependency closure.                                            |
+| `runtime/verify_signatures.py`                | Isolated native signature verification entry; `runtime/signatures.mjs`.                           |
+| `runtime/artifacts.py`                        | Interpreter download/hash/size, safe extraction and runtime archive rules.                        |
+| `runtime/binaries.py`                         | Enumerate native binaries for inventory/signing.                                                  |
+| `runtime/inventory.py`                        | Record actual installed distributions, notices and source evidence; official CycloneDX output.    |
+| `runtime/signing.py`                          | Invoke OS signing/verifying commands under approved identity policy.                              |
+| `runtime/__init__.py`                         | Regular Python package marker; no exported facade.                                                |
+| `runtime/provision.mjs`                       | Download, verify and activate controlled target archives; `runtime:provision`.                    |
+| `runtime/write-manifest.mjs`                  | Enumerate and hash the signed runtime; called automatically by its producer.                      |
+| `runtime/files.mjs`                           | Strict runtime path/tree rules and file hashing reused by provisioning/manifests.                 |
+| `runtime/manifest.mjs`                        | Validate manifest identity, size limits and the exact installed file set.                         |
+| `runtime/provenance.mjs`                      | Bind interpreter/worker/source/build identities to frozen inputs.                                 |
+| `runtime/license-policy.mjs`                  | Require explicit license approval bound to the exact inventory and lock.                          |
+| `runtime/signatures.mjs`                      | Bind runtime signing identity to desktop production identity before isolated verification.        |
+| `runtime/windows-package-verification.mjs`    | Extract final Windows installers and verify the exact contained runtime.                          |
 
-These are necessary publication/verification rules. They are not everyday commands. Library or OS
+Supplier-specific modules `moss_runtime.py` and `voxcpm.py` install the selected engine’s pinned
+resource. `voice_bridge.cpp` / `.cmake` provide the bounded native streaming ABI. `native.py`,
+`media_files.py` and `windows_process.py` own native closure installation, FFmpeg dependency
+export and Windows UTF-8 process configuration. `toolchain.mjs` / `transfer.mjs` bootstrap and
+verify pinned tools; `publication.mjs` assembles the complete target/profile publication.
+`media-manifest.mjs` owns the core-media inventory; `write-media-manifest.mjs` is its Python-to-Node
+producer entry. Recipe input lists have one owner in `python/runtime-source.json`; unrelated tooling
+is excluded from resource cache identities. `profiles.mjs` binds profile and target identities.
+
+These are publication/verification rules. They are not everyday commands. Library or OS
 verification does not establish Knovum's exact target, source, lock, inventory or approval policy.
 
 ## Release and updater
@@ -96,5 +109,11 @@ standalone contract generator. Python model qualification belongs to `python/tes
   The architectural boundary remains a Rust module/code-review requirement.
 - The empty background-removal smoke entry, its orphan WDIO configuration and stale CI callers were removed.
 - The provisioner reuses the existing runtime file hash implementation.
+
+- The pass-through Tauri launcher and its forwarding tests were removed; `desktop:dev` uses `tauri dev`.
+- Thin build/prepare entries were folded into their existing producer/development modules.
+- Per-model/tool/runtime path overrides and descriptor-path environment variables were removed;
+  resource locations are owned by the application and checkout.
+- The unused compile-smoke environment flag and duplicate default 7-Zip path override were removed.
 
 No compatibility aliases, generic command dispatcher or extra task-runner framework are retained.

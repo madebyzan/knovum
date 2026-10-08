@@ -195,3 +195,16 @@ pub(in crate::spaces::speech) fn cleanup_stale_workspaces(
     }
     Ok(())
 }
+
+pub(super) async fn require_owned_source(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    source: &super::super::video_config::SpeechMediaSource,
+) -> Result<(), String> {
+    if !super::super::media_source::is_owned(tx, space_id, &["audio", "video"], source).await? {
+        return Err(
+            "Source separation requires an analyzed audio or video node in this Space".into(),
+        );
+    }
+    Ok(())
+}

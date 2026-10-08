@@ -4,10 +4,9 @@ use tauri::{AppHandle, Manager, Runtime};
 
 pub mod catalog;
 pub(crate) mod contracts;
-pub mod diarization;
+mod direct_download;
 mod download;
 pub(crate) mod installation;
-pub mod kokoro;
 pub(crate) mod snapshots;
 pub(crate) mod sources;
 #[cfg(test)]
@@ -17,7 +16,7 @@ mod tests;
 pub(crate) struct ModelDescriptor {
     pub snapshot: snapshots::SnapshotKind,
     pub file: &'static str,
-    pub env_key: &'static str,
+
     pub sha256: &'static str,
     pub download_size: u64,
 }
@@ -30,16 +29,6 @@ pub struct ModelStatus {
     pub path: String,
     pub size: Option<u64>,
     pub download_size: u64,
-}
-
-pub(crate) fn resolve_model_path<R: Runtime>(
-    app: &AppHandle<R>,
-    descriptor: ModelDescriptor,
-) -> Result<PathBuf, String> {
-    if let Some(path) = super::configured_path::configured_path(descriptor.env_key)? {
-        return Ok(path);
-    }
-    installation_path(app, descriptor)
 }
 
 pub(crate) fn installation_path<R: Runtime>(
@@ -62,7 +51,7 @@ pub(crate) fn status<R: Runtime>(
     app: &AppHandle<R>,
     descriptor: ModelDescriptor,
 ) -> Result<ModelStatus, String> {
-    let path = resolve_model_path(app, descriptor)?;
+    let path = installation_path(app, descriptor)?;
     let metadata = match fs::metadata(&path) {
         Ok(metadata) => Some(metadata),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,

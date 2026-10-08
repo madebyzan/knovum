@@ -1,4 +1,4 @@
-use super::{kokoro_device_profile, parse_config, KOKORO_MODEL_SPEC_ID};
+use super::{parse_config, MOSS_NANO_MODEL_SPEC_ID};
 use crate::spaces::{
     db,
     speech::contracts::{SpeechSegmentExecution, VoiceExecution, VoiceSynthesisConfig},
@@ -16,7 +16,7 @@ pub(in crate::spaces::speech) async fn load_voice(
     .bind(revision_id).bind(space_id).fetch_optional(pool).await.map_err(db::sql_error)?
     .ok_or("Voice revision is unavailable")?;
     match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
-        ("kokoro", "preset") if voice.model_spec_id == KOKORO_MODEL_SPEC_ID => {
+        ("moss_nano", "preset") if voice.model_spec_id == MOSS_NANO_MODEL_SPEC_ID => {
             crate::spaces::speech::preset_voices::require(
                 voice
                     .preset_voice_id
@@ -25,8 +25,17 @@ pub(in crate::spaces::speech) async fn load_voice(
                 &voice.language,
             )?;
         }
+        ("moss_nano", "reference")
+            if voice.model_spec_id == MOSS_NANO_MODEL_SPEC_ID
+                && voice.reference_asset_id.is_some()
+                && voice.reference_source_revision.is_some()
+                && voice.reference_text.is_none()
+                && voice.design_description.is_none() => {}
         ("voxcpm2", "reference" | "designed")
-            if voice.model_spec_id == crate::spaces::speech::voice_candidates::MODEL_SPEC_ID
+            if crate::local_resources::model_catalog::LocalModelId::from_voxcpm2_spec(
+                &voice.model_spec_id,
+            )
+            .is_ok()
                 && voice.reference_asset_id.is_some()
                 && voice.reference_source_revision.is_some()
                 && (voice.source_kind == "reference"
@@ -37,7 +46,9 @@ pub(in crate::spaces::speech) async fn load_voice(
         _ => return Err("Voice revision has an unsupported production configuration".into()),
     }
     let config = parse_config(&voice.synthesis_config)?;
-    if voice.engine_id == "voxcpm2" && (config.sample_rate != 48_000 || config.speed != 1.0) {
+    if matches!(voice.engine_id.as_str(), "voxcpm2" | "moss_nano")
+        && (config.sample_rate != 48_000 || config.speed != 1.0)
+    {
         return Err("VoxCPM2 voice revision requires its fixed 48 kHz profile".into());
     }
     Ok(voice)
@@ -48,14 +59,11 @@ pub(in crate::spaces::speech) fn input_digest(
     voice: &VoiceExecution,
     config: &VoiceSynthesisConfig,
     runtime_digest: &str,
+    execution_profile_id: &str,
 ) -> Result<String, String> {
-    let execution_profile_id = match voice.engine_id.as_str() {
-        "kokoro" => kokoro_device_profile().execution_profile_id,
-        "voxcpm2" => crate::ai::local_runtime::device_profiles::voxcpm2()?.execution_profile_id,
-        _ => return Err("Speech voice uses an unsupported engine".into()),
-    };
     let value = serde_json::json!({
         "text": segment.normalized_text,
+        "deliveryInstruction": segment.delivery_instruction,
         "voiceRevisionId": voice.revision_id,
         "engineId": voice.engine_id,
         "modelSpecId": voice.model_spec_id,

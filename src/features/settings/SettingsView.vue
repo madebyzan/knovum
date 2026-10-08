@@ -22,6 +22,7 @@ import { settingsDefinition } from "./settings-registry";
 const props = defineProps<{
   loadGenerationActions: () => Promise<GenerationActionOption[]>;
   extensionsComponent: Component;
+  voiceLibraryComponent: Component;
 }>();
 const { t } = useI18n();
 const router = useRouter();
@@ -58,6 +59,7 @@ watch(
 
 const paneComponentMap = {
   aiModels: AiModelsSettingsPane,
+  voices: props.voiceLibraryComponent,
   desktopAgents: DesktopAgentsSettingsPane,
   extensions: props.extensionsComponent,
   usage: UsageSettingsPane,

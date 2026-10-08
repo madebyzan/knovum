@@ -19,7 +19,7 @@ class VoiceSourceKind(StrEnum):
 
 
 class SpeechSynthesisEngine(StrEnum):
-    kokoro = "kokoro"
+    moss_nano = "moss_nano"
     vox_cpm2 = "vox_cpm2"
 
 

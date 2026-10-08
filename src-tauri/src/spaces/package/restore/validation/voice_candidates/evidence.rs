@@ -5,8 +5,10 @@ use super::{field, lower_hex64};
 use crate::spaces::package::restore::contracts::{
     PackageRunAttempt, PackageRunStep, PackageVoiceCandidate,
 };
+use crate::spaces::speech::voice_candidates::VoiceModel;
 
 pub(super) fn validate_metadata(candidate: &PackageVoiceCandidate) -> Result<(), String> {
+    VoiceModel::from_specification(&candidate.model_spec_id)?;
     let config = candidate
         .synthesis_config
         .as_object()
@@ -15,8 +17,7 @@ pub(super) fn validate_metadata(candidate: &PackageVoiceCandidate) -> Result<(),
         .authorization
         .as_object()
         .ok_or("Package voice candidate authorization is invalid")?;
-    if candidate.model_spec_id != crate::spaces::speech::voice_candidates::MODEL_SPEC_ID
-        || u32::try_from(candidate.seed).is_err()
+    if u32::try_from(candidate.seed).is_err()
         || config.len() != 3
         || config.get("seed").and_then(Value::as_i64) != Some(candidate.seed)
         || config.get("speed").and_then(Value::as_f64) != Some(1.0)
@@ -39,10 +40,19 @@ pub(super) fn validate_output(
     output: &Value,
     space_id: &str,
 ) -> Result<(), String> {
+    let model = VoiceModel::from_specification(&candidate.model_spec_id)?;
+    let output_model: VoiceModel = serde_json::from_value(
+        output
+            .get("model")
+            .cloned()
+            .ok_or("Package voice candidate output model is unavailable")?,
+    )
+    .map_err(|_| "Package voice candidate output model is invalid")?;
     let audio = output
         .get("audio")
         .ok_or("Package voice candidate output audio is unavailable")?;
     if field(output, "candidateId")? != candidate.id
+        || output_model != model
         || field(output, "runId")? != candidate.run_id
         || field(output, "spaceId")? != space_id
         || field(output, "sourceKind")? != candidate.source_kind
