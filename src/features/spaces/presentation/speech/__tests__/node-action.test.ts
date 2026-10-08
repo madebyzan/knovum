@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import { createI18n } from "vue-i18n";
 
+import { localeMessages } from "../../../../../locales/locale-registry";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import SpaceNodeSpeechAction from "../SpaceNodeSpeechAction.vue";
 
@@ -12,18 +13,7 @@ vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => ({ activeS
 const i18n = createI18n({
   legacy: false,
   locale: "en",
-  messages: {
-    en: {
-      common: { close: "Close" },
-      spaces: {
-        speech: {
-          nodeReadAloud: "Read aloud",
-          cloneVoice: "Clone voice",
-          types: { audiobook: "Audiobook", videoDubbing: "Video dubbing" },
-        },
-      },
-    },
-  },
+  messages: localeMessages,
 });
 const global = {
   plugins: [i18n],
@@ -75,7 +65,7 @@ it("uses the selected audio as the cloning source", async () => {
     data: { kind: "audio", title: "Recording", assetPath: "/recording.wav", fileName: "recording.wav" },
   };
   wrapper = mount(SpaceNodeSpeechAction, { props: { node: audio }, global, attachTo: document.body });
-  expect(wrapper.get("button").attributes("aria-label")).toBe("Clone voice");
+  expect(wrapper.get("button").attributes("aria-label")).toBe("Clone from reference");
   await wrapper.get("button").trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="clone"]')?.textContent).toBe("audio");

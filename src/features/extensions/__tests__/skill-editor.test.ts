@@ -50,7 +50,7 @@ afterEach(() => {
 it("keeps the editor closed until requested and distinguishes empty search results", async () => {
   expect(wrapper.find('[data-testid="skill-content-editor"]').exists()).toBe(false);
   await wrapper.get('[data-testid="skill-search"] input').setValue("not-found");
-  expect(wrapper.text()).toContain("extensions.noSearchResults");
+  expect(wrapper.text()).toContain("extensions.plugins.search.empty");
   expect(wrapper.find('[data-testid="skill-personal"]').exists()).toBe(false);
   await wrapper.get('[data-testid="skill-search"] input').setValue("");
   expect(wrapper.find('[data-testid="skill-personal"]').exists()).toBe(true);

@@ -34,7 +34,7 @@ onMounted(async () => {
       <span
         v-if="hasKey"
         class="rounded-sm bg-surface-success-subtle px-1.5 py-0.5 text-caption-sm text-fg-success"
-        >{{ t("settings.ai.keyStored") }}</span
+        >{{ t("common.saved") }}</span
       >
     </div>
     <div class="relative min-w-0">

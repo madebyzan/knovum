@@ -1,5 +1,5 @@
 {
-  "itemsSelected": "{count} items selected",
+  "itemsSelected": "{count} item selected | {count} items selected",
   "title": "Details",
   "basicInformation": "General",
   "showSource": "Source view",
@@ -22,7 +22,6 @@
     "content": "Content excerpt"
   },
   "openSource": "Locate source node",
-  "source": "Source",
   "targetSpace": "Target Space",
   "none": "Not set",
   "renameHint": "Click to rename",

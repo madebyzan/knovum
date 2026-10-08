@@ -17,14 +17,14 @@ const { t } = useI18n();
   <section class="space-y-2 rounded-md border border-stroke-divider p-2">
     <SpeechMediaPlayer kind="audio" :source="candidate.source" @ended="emit('audition')" />
     <p v-if="candidate.auditionedAt === null" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.candidateAuditionRequired") }}
+      {{ t("spaces.speech.voice.candidate.auditionRequired") }}
     </p>
     <UiInput
       v-model="name"
       size="sm"
       :disabled
-      :placeholder="t('spaces.speech.voiceName')"
-      :aria-label="t('spaces.speech.voiceName')"
+      :placeholder="t('spaces.speech.voice.name')"
+      :aria-label="t('spaces.speech.voice.name')"
     />
     <div class="flex gap-2">
       <UiButton
@@ -32,10 +32,10 @@ const { t } = useI18n();
         variant="primary"
         :disabled="disabled || !name.trim() || !authorized || candidate.auditionedAt === null"
         @click="emit('save', name.trim())"
-        >{{ t("spaces.speech.saveCandidate") }}</UiButton
+        >{{ t("spaces.speech.voice.candidate.save") }}</UiButton
       >
       <UiButton size="sm" :disabled @click="emit('discard')">{{
-        t("spaces.speech.discardCandidate")
+        t("spaces.speech.voice.candidate.discard")
       }}</UiButton>
     </div>
   </section>

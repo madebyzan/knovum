@@ -136,7 +136,7 @@
   },
   "dropToSave": "Drop to save in current Space",
   "cancelInteraction": "Cancel canvas interaction",
-  "htmlSandboxAssetsBlocked": "Current HTML is missing {count} assets. Importing the complete folder is recommended.",
+  "htmlSandboxAssetsBlocked": "Current HTML is missing {count} asset. Importing the complete folder is recommended. | Current HTML is missing {count} assets. Importing the complete folder is recommended.",
   "moveToContainer": "Move to container",
   "spaceRoot": "Space root",
   "addContent": {

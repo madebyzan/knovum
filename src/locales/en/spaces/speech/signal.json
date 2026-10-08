@@ -1,0 +1,14 @@
+{
+  "inspect": "Inspect audio signal",
+  "advisory": "Signal checks flag places to review. They do not rate voice naturalness and may flag intentional pauses.",
+  "noFindings": "No signal anomalies found in the scanned interval.",
+  "truncated": "Inspection scans up to two hours and reports up to 100 findings.",
+  "issues": {
+    "empty": "No audio samples",
+    "silence": "Silence",
+    "quiet": "Relatively quiet",
+    "loud": "Relatively loud",
+    "clipping": "Near full-scale peak",
+    "invalid": "Invalid signal samples"
+  }
+}

@@ -76,10 +76,10 @@ async function cancel() {
       {{
         $t(
           account.cleanupPending
-            ? "extensions.credentialCleanupPending"
+            ? "extensions.accounts.cleanupPending"
             : account.enabled
-              ? "extensions.authorized"
-              : "extensions.authorizationRequired",
+              ? "extensions.accounts.authorized"
+              : "extensions.accounts.required",
         )
       }}
     </p>
@@ -98,14 +98,18 @@ async function cancel() {
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
     <div class="flex gap-2">
       <UiButton type="submit" size="sm" :disabled="busy" data-testid="authorize-connector">{{
-        $t(account.authorization.type === "oauth" ? "extensions.authorizeInBrowser" : "extensions.authorize")
+        $t(
+          account.authorization.type === "oauth"
+            ? "extensions.accounts.authorizeInBrowser"
+            : "extensions.accounts.authorize",
+        )
       }}</UiButton>
       <UiButton
         v-if="busy && account.authorization.type === 'oauth'"
         size="sm"
         variant="ghost"
         @click="cancel"
-        >{{ $t("extensions.cancel") }}</UiButton
+        >{{ $t("common.cancel") }}</UiButton
       >
       <UiButton
         v-if="account.enabled || account.cleanupPending"
@@ -113,7 +117,7 @@ async function cancel() {
         variant="dangerSubtle"
         :disabled="busy"
         @click="disconnect"
-        >{{ $t("extensions.disconnect") }}</UiButton
+        >{{ $t("extensions.accounts.disconnect") }}</UiButton
       >
     </div>
   </form>

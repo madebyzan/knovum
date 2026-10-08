@@ -30,7 +30,7 @@ describe("plugin operations in Task Center", () => {
       expect(useTaskStore().tasks[0]?.cancellable).toBe(false);
       return { id: "installation" };
     });
-    const installation = await runPluginOperation("install_plugin", "extensions.taskInstall", {
+    const installation = await runPluginOperation("install_plugin", "extensions.plugins.tasks.install", {
       source: "source",
     });
     const task = useTaskStore().tasks[0]!;
@@ -51,7 +51,7 @@ describe("plugin operations in Task Center", () => {
             rejectOperation = reject;
           }),
     );
-    const completion = runPluginOperation("inspect_plugin_source", "extensions.taskInspect", {});
+    const completion = runPluginOperation("inspect_plugin_source", "extensions.plugins.tasks.inspect", {});
     const rejected = completion.catch((error: Error) => error);
     const tasks = useTaskStore();
     await tasks.cancel(tasks.tasks[0]!.id);
@@ -63,9 +63,9 @@ describe("plugin operations in Task Center", () => {
 
   it("records a failed download without treating it as cancellation", async () => {
     mocks.invoke.mockRejectedValue(new Error("source unreachable"));
-    await expect(runPluginOperation("inspect_plugin_source", "extensions.taskInspect", {})).rejects.toThrow(
-      "source unreachable",
-    );
+    await expect(
+      runPluginOperation("inspect_plugin_source", "extensions.plugins.tasks.inspect", {}),
+    ).rejects.toThrow("source unreachable");
     expect(useTaskStore().tasks[0]).toMatchObject({ status: "failed", statusMessage: "source unreachable" });
   });
 });

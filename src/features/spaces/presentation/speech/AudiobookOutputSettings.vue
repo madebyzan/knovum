@@ -28,28 +28,34 @@ const sampleRates = [
 
 <template>
   <div class="grid grid-cols-2 gap-2">
-    <UiSelect v-model="format" size="sm" :label="t('spaces.speech.format')" :options="formats" :disabled />
+    <UiSelect
+      v-model="format"
+      size="sm"
+      :label="t('spaces.speech.project.format')"
+      :options="formats"
+      :disabled
+    />
     <UiSelect
       v-model="sampleRate"
       size="sm"
-      :label="t('spaces.speech.sampleRate')"
+      :label="t('spaces.speech.project.sampleRate')"
       :options="sampleRates"
       :disabled
     />
     <label class="text-caption text-fg-secondary">
-      {{ t("spaces.speech.loudness") }}
+      {{ t("spaces.speech.project.loudness") }}
       <UiInput v-model="loudness" size="sm" type="number" min="-24" max="-16" :disabled />
     </label>
     <label class="text-caption text-fg-secondary">
-      {{ t("spaces.speech.truePeak") }}
+      {{ t("spaces.speech.project.truePeak") }}
       <UiInput v-model="peak" size="sm" type="number" min="-3" max="-1" :disabled />
     </label>
     <label class="text-caption text-fg-secondary"
-      >{{ t("spaces.speech.paragraphPause")
+      >{{ t("spaces.speech.audiobook.paragraphPause")
       }}<UiInput v-model="paragraphPause" size="sm" type="number" min="0" max="10000" :disabled
     /></label>
     <label class="text-caption text-fg-secondary"
-      >{{ t("spaces.speech.chapterPause")
+      >{{ t("spaces.speech.audiobook.chapterPause")
       }}<UiInput v-model="chapterPause" size="sm" type="number" min="0" max="30000" :disabled
     /></label>
     <WavPrecisionSelect v-if="format === 'wav'" v-model="wavPrecision" :disabled />

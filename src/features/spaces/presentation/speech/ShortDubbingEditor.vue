@@ -68,12 +68,12 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
       v-model="text"
       :rows="6"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.scriptPlaceholder')"
+      :placeholder="t('spaces.speech.project.scriptPlaceholder')"
     />
     <UiSelect
       v-model="voiceRevisionId"
       size="sm"
-      :label="t('spaces.speech.voice')"
+      :label="t('spaces.speech.voice.label')"
       :options="voiceOptions"
       :disabled="disabled || voices.length === 0"
     />
@@ -83,8 +83,8 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
       :rows="2"
       :maxlength="500"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
-      :aria-label="t('spaces.speech.deliveryInstruction')"
+      :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
+      :aria-label="t('spaces.speech.project.deliveryInstruction')"
     />
     <WavPrecisionSelect v-model="wavPrecision" :disabled />
     <PronunciationLexiconEditor
@@ -94,10 +94,10 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
     />
     <div class="flex gap-2">
       <UiButton size="sm" :disabled="disabled || !valid" @click="preview">
-        <Play class="size-3.5" />{{ t("spaces.speech.preview") }}
+        <Play class="size-3.5" />{{ t("spaces.speech.project.preview") }}
       </UiButton>
       <UiButton size="sm" :disabled="disabled || !dirty || !valid" @click="emit('save', revisionInput())">
-        <Save class="size-3.5" />{{ t("spaces.speech.saveRevision") }}
+        <Save class="size-3.5" />{{ t("spaces.speech.project.saveRevision") }}
       </UiButton>
     </div>
   </div>

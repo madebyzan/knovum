@@ -84,12 +84,12 @@ const projectOptions = computed(() =>
         class="text-caption text-fg-accent hover:underline"
         data-testid="manage-voices"
       >
-        {{ $t("spaces.speech.manageVoices") }}
+        {{ $t("spaces.speech.library.manage") }}
       </RouterLink>
       <UiButton size="sm" variant="ghost" data-testid="add-reference-voice" @click="addingVoice = true">
-        {{ $t("spaces.speech.addReferenceVoice") }}
+        {{ $t("spaces.speech.library.add") }}
       </UiButton>
-      <UiDialog v-if="addingVoice" v-model:open="addingVoice" :title="$t('spaces.speech.addReferenceVoice')">
+      <UiDialog v-if="addingVoice" v-model:open="addingVoice" :title="$t('spaces.speech.library.add')">
         <VoiceCandidateForm
           v-if="store.activeSpaceId"
           :space-id="store.activeSpaceId"
@@ -104,7 +104,7 @@ const projectOptions = computed(() =>
         "
         class="space-y-2"
       >
-        <p class="text-caption text-fg-secondary">{{ $t("spaces.speech.firstVoice") }}</p>
+        <p class="text-caption text-fg-secondary">{{ $t("spaces.speech.library.firstVoice") }}</p>
         <VoiceProfileForm
           :space-id="store.activeSpaceId"
           :disabled="creatingVoice"
@@ -112,7 +112,7 @@ const projectOptions = computed(() =>
         />
       </section>
       <section class="space-y-2 border-t border-stroke-divider pt-4">
-        <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newProject") }}</h2>
+        <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.project.new") }}</h2>
         <fieldset>
           <SpeechProjectForm
             :node="node"
@@ -126,7 +126,7 @@ const projectOptions = computed(() =>
         v-if="projects.length"
         :model-value="selectedProject?.project.id ?? ''"
         :options="projectOptions"
-        :label="$t('spaces.speech.nodeProjects')"
+        :label="$t('spaces.speech.project.nodeProjects')"
         @update:model-value="openProject"
       />
       <SpeechProjectEditor

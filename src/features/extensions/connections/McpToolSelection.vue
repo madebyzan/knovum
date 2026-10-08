@@ -22,40 +22,40 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
 
 <template>
   <section class="space-y-3" data-testid="mcp-tool-selection">
-    <p class="text-caption text-fg-warning">{{ $t("extensions.toolPermissionPolicy") }}</p>
+    <p class="text-caption text-fg-warning">{{ $t("extensions.connections.tools.policyHint") }}</p>
     <div v-for="tool in catalog.tools" :key="tool.name" class="space-y-2 border-b border-stroke-divider py-3">
       <h3 class="text-body font-medium">{{ tool.name }}</h3>
       <p class="text-caption text-fg-secondary">{{ tool.description }}</p>
       <div class="flex flex-wrap gap-3 text-caption">
         <UiSelect
           :model-value="permission(tool.name)?.policy ?? 'deny'"
-          :label="$t('extensions.policy')"
+          :label="$t('extensions.connections.tools.policy')"
           class="w-40"
           size="sm"
           :disabled="busy"
           :options="[
-            { value: 'deny', label: $t('extensions.deny') },
-            { value: 'confirm', label: $t('extensions.confirm') },
-            { value: 'allow', label: $t('extensions.allow') },
+            { value: 'deny', label: $t('extensions.connections.tools.deny') },
+            { value: 'confirm', label: $t('extensions.connections.tools.confirm') },
+            { value: 'allow', label: $t('extensions.connections.tools.allow') },
           ]"
           @update:model-value="change(tool.name, $event, permission(tool.name)?.readOnly ?? false)"
         />
         <label class="flex items-center gap-2"
           ><UiCheckbox
             :model-value="permission(tool.name)?.readOnly ?? false"
-            :label="$t('extensions.confirmReadOnly')"
+            :label="$t('extensions.connections.tools.reviewedReadOnly')"
             :disabled="busy"
             @update:model-value="change(tool.name, permission(tool.name)?.policy ?? 'deny', $event)"
-          />{{ $t("extensions.confirmReadOnly") }}</label
+          />{{ $t("extensions.connections.tools.reviewedReadOnly") }}</label
         >
         <span v-if="tool.readOnlyHint" class="text-fg-tertiary">{{
-          $t("extensions.serverReadOnlyHint")
+          $t("extensions.connections.tools.serverReadOnlyHint")
         }}</span>
       </div>
     </div>
     <p class="text-caption text-fg-secondary">
       {{
-        $t("extensions.catalogCounts", {
+        $t("extensions.catalog.counts", {
           resources: catalog.resources.length,
           prompts: catalog.prompts.length,
           templates: catalog.resourceTemplates.length,
@@ -63,7 +63,7 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
       }}
     </p>
     <UiButton :disabled="busy" data-testid="save-mcp-tool-permissions" @click="emit('save')">{{
-      $t("extensions.savePermissions")
+      $t("extensions.connections.tools.savePermissions")
     }}</UiButton>
   </section>
 </template>

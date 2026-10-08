@@ -32,19 +32,14 @@
     "history": "对话历史",
     "none": "暂无对话",
     "actions": "对话操作",
-    "export": "导出",
     "exportFailed": "导出对话失败",
-    "archive": "归档",
-    "restore": "恢复",
-    "delete": "删除",
     "deleteConfirm": "删除“{title}”及其任务记录？此操作无法撤销。",
     "search": "搜索对话",
     "archived": "已归档",
-    "records": "会话记录",
     "today": "今天",
     "yesterday": "昨天",
-    "viewArchived": "查看已归档会话",
-    "backToRecent": "返回最近会话",
+    "viewArchived": "查看已归档对话",
+    "backToRecent": "返回最近对话",
     "branch": "从这里分支",
     "branchNumber": "分支 {number}",
     "regenerateAttachments": "这条消息含有附件，请重新添加资料后发送",
@@ -91,8 +86,7 @@
     "modelResponseUncommitted": "已收到模型响应，但执行结果未提交，无法安全地自动继续。",
     "modelUsageUnknown": "模型响应缺少用量信息，后续模型调用已停止。",
     "modelRetryCost": "继续可能发起新的付费请求；原请求的已知费用与未知用量仍会保留。",
-    "retryModel": "授权新的模型尝试",
-    "pause": "暂停"
+    "retryModel": "授权新的模型尝试"
   },
   "response": {
     "stopped": "已停止",
@@ -124,5 +118,41 @@
     "noSources": "没有找到相关资料",
     "plan": "执行计划"
   },
-  "askSelection": "询问选中项"
+  "askSelection": "询问选中项",
+  "extensions": {
+    "label": "对话扩展",
+    "unavailable": "所选扩展已不可用，请重新选择。",
+    "manage": "管理扩展"
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "外部操作需要授权",
+      "allow": "允许",
+      "deny": "拒绝"
+    },
+    "outcomeUnknown": {
+      "title": "外部操作结果未知",
+      "retry": "已检查，允许重试",
+      "stop": "终止任务",
+      "description": "操作可能已完成。请先检查服务状态，再授权重试。"
+    },
+    "attempt": "尝试",
+    "history": {
+      "title": "工具历史",
+      "empty": "暂无工具操作记录"
+    },
+    "progress": "进度"
+  },
+  "interactions": {
+    "title": "外部服务需要输入",
+    "openAuthorizationPage": "打开授权页面",
+    "submit": "提交",
+    "decline": "拒绝",
+    "invalid": "外部服务发送的表单无效。"
+  },
+  "extensionResources": {
+    "import": "导入空间",
+    "select": "选择资源",
+    "readOnly": "当前空间为只读"
+  }
 }

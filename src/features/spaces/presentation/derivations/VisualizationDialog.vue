@@ -100,7 +100,7 @@ function applyPreset(preset: GenerationPreset) {
     <template #footer
       ><UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton
       ><UiButton variant="primary" :disabled="!valid" @click="emit('submit', { ...form })">{{
-        t("spaces.creation.image.visualize")
+        t("spaces.creation.image.visualization.title")
       }}</UiButton></template
     >
   </UiDialog>

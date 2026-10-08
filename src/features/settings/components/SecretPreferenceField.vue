@@ -91,7 +91,7 @@ async function remove() {
         </UiIconButton>
       </div>
       <UiButton size="sm" :disabled="disabled || saving || !draft.trim()" @click="save">{{
-        t("settings.ai.saveConnection")
+        t("common.save")
       }}</UiButton>
       <UiButton v-if="configured" size="sm" variant="ghost" :disabled="disabled || saving" @click="remove">{{
         t("settings.ai.removeSavedKey")

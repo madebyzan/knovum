@@ -42,7 +42,7 @@ const {
       size="sm"
       :disabled="disabled || Boolean(jobId)"
       @click="choose"
-      >{{ t("spaces.speech.chooseReference") }}</UiButton
+      >{{ t("spaces.speech.reference.choose") }}</UiButton
     >
     <template v-if="path">
       <SpeechMediaPlayer
@@ -57,17 +57,17 @@ const {
         class="text-caption text-fg-secondary"
         role="status"
       >
-        {{ t("spaces.speech.referenceTooShort") }}
+        {{ t("spaces.speech.reference.tooShort") }}
       </p>
       <UiButton
         size="sm"
         :disabled="!selectionValid"
         @click="player?.seekTo(Number(start) * 1000, Number(end) * 1000)"
-        >{{ t("spaces.speech.playSelection") }}</UiButton
+        >{{ t("spaces.speech.reference.play") }}</UiButton
       >
       <div class="grid grid-cols-2 gap-2">
         <label class="text-caption text-fg-secondary"
-          >{{ t("spaces.speech.referenceStart")
+          >{{ t("spaces.speech.reference.start")
           }}<UiInput
             v-model="start"
             data-testid="reference-start"
@@ -78,7 +78,7 @@ const {
             :disabled="disabled || Boolean(jobId)"
         /></label>
         <label class="text-caption text-fg-secondary"
-          >{{ t("spaces.speech.referenceEnd")
+          >{{ t("spaces.speech.reference.end")
           }}<UiInput
             v-model="end"
             data-testid="reference-end"
@@ -90,10 +90,10 @@ const {
         /></label>
       </div>
       <UiButton data-testid="reference-prepare" size="sm" :disabled="!canPrepare" @click="prepare">{{
-        t("spaces.speech.prepareReference")
+        t("spaces.speech.reference.prepare")
       }}</UiButton>
       <UiButton v-if="jobId" data-testid="reference-cancel" size="sm" @click="cancel">{{
-        t("spaces.speech.cancel")
+        t("common.cancel")
       }}</UiButton>
     </template>
     <p v-if="error" class="text-caption text-fg-danger" role="alert">{{ error }}</p>

@@ -3,7 +3,7 @@
     "title": "Knowledge checks",
     "description": "Find unsupported, conflicting, or outdated knowledge in this Space.",
     "clean": "No issues found.",
-    "critical": "{count} critical issues detected",
+    "critical": "{count} critical issue detected | {count} critical issues detected",
     "issues": {
       "unsupported-claim": "Claim lacks a supporting relation (Supports).",
       "contradicted-claim": "Accepted claim has an active contradiction (Contradicts).",

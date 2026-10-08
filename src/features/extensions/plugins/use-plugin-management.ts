@@ -75,9 +75,9 @@ export function usePluginManagement(onInspected: () => void, onInstalled: () => 
   async function remove(plugin: PluginInstallation) {
     if (
       await confirmAction({
-        title: t("extensions.uninstallNamed", { name: plugin.revision.manifest.name }),
-        description: t("extensions.uninstallDescription"),
-        confirmLabel: t("extensions.uninstall"),
+        title: t("extensions.plugins.uninstall.title", { name: plugin.revision.manifest.name }),
+        description: t("extensions.plugins.uninstall.description"),
+        confirmLabel: t("extensions.plugins.uninstall.action"),
         danger: true,
       })
     )

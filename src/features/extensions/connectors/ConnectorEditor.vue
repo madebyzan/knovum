@@ -26,8 +26,8 @@ watch(
 );
 const fieldsLabel = computed(() =>
   connector.value.endpoint.type === "streamable_http"
-    ? "extensions.publicHeaders"
-    : "extensions.publicEnvironment",
+    ? "extensions.connections.configuration.headers"
+    : "extensions.connections.configuration.environment",
 );
 function save() {
   try {
@@ -50,7 +50,7 @@ function save() {
     fieldError.value = "";
     emit("save");
   } catch {
-    fieldError.value = "extensions.publicFieldsInvalid";
+    fieldError.value = "extensions.connections.configuration.invalid";
   }
 }
 </script>
@@ -58,11 +58,11 @@ function save() {
 <template>
   <form class="space-y-4" data-testid="connector-editor" @submit.prevent="save">
     <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.connectorName")
+      >{{ $t("extensions.connectors.name")
       }}<UiInput :disabled="busy" v-model="connector.name" data-testid="connector-name"
     /></label>
     <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.connectorDescription") }}
+      >{{ $t("extensions.connectors.descriptionField") }}
       <UiTextarea :disabled="busy" v-model="connector.description" data-testid="connector-description" />
     </label>
     <McpEndpointFields :disabled="busy" v-model="connector.endpoint" />
@@ -70,7 +70,7 @@ function save() {
       >{{ $t(fieldsLabel)
       }}<UiTextarea :disabled="busy" v-model="publicFields" class="font-mono text-caption"
     /></label>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.noSecretsInConfiguration") }}</p>
+    <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.configuration.secretsHint") }}</p>
     <ConnectorRequirements
       :disabled="busy"
       v-model="connector.authorization"
@@ -83,10 +83,8 @@ function save() {
         type="submit"
         :disabled="busy || !connector.name.trim() || !connector.description.trim()"
         data-testid="save-connector"
-        >{{ $t("extensions.save") }}</UiButton
-      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{
-        $t("extensions.close")
-      }}</UiButton>
+        >{{ $t("common.save") }}</UiButton
+      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
     </div>
   </form>
 </template>

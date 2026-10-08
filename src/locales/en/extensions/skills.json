@@ -1,0 +1,27 @@
+{
+  "name": "Skill name (must match directory)",
+  "readOnly": "Plugin Skills are read-only. Copy to a personal Skill to edit.",
+  "create": "Create Skill",
+  "import": "Import directory",
+  "personal": "Personal Skill",
+  "view": "View",
+  "copy": "Copy as personal Skill",
+  "binaryResource": "This is a binary reference resource. Export the Skill to inspect its original bytes.",
+  "empty": {
+    "title": "No Skills available",
+    "description": "Create a personal Skill or import an existing Skill directory."
+  },
+  "actions": "Skill actions",
+  "description": "Manage reusable instructions you can select for a conversation.",
+  "search": "Search Skills…",
+  "plugin": "Plugin Skill",
+  "unsupportedRequirements": "Unsupported requirements: {requirements}",
+  "discard": {
+    "title": "Discard unsaved changes?",
+    "description": "Unsaved edits will be lost."
+  },
+  "delete": {
+    "title": "Delete {name}?",
+    "description": "This permanently deletes the personal Skill and its reference files."
+  }
+}

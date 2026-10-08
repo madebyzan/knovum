@@ -49,13 +49,15 @@ const plugins = computed(() =>
           class="mb-2 -ml-2.5"
           data-testid="back-to-installed-plugins"
           @click="discovering = false"
-          ><ArrowLeft class="size-3.5" />{{ $t("extensions.installedPlugins") }}</UiButton
+          ><ArrowLeft class="size-3.5" />{{ $t("extensions.plugins.title") }}</UiButton
         >
         <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
-          {{ $t(discovering ? "extensions.discovery" : "extensions.installedPlugins") }}
+          {{ $t(discovering ? "extensions.plugins.discovery.title" : "extensions.plugins.title") }}
         </h2>
         <p class="mt-1 text-caption text-fg-secondary">
-          {{ $t(discovering ? "extensions.discoveryDescription" : "extensions.pluginsPurpose") }}
+          {{
+            $t(discovering ? "extensions.plugins.discovery.description" : "extensions.plugins.description")
+          }}
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -66,14 +68,14 @@ const plugins = computed(() =>
             inspecting.reset();
             sourceOpen = true;
           "
-          ><FolderInput class="size-4" />{{ $t("extensions.installFromSource") }}</UiButton
+          ><FolderInput class="size-4" />{{ $t("extensions.plugins.source.install") }}</UiButton
         >
         <UiButton
           v-if="!discovering"
           :disabled="busy"
           data-testid="discover-plugins"
           @click="discovering = true"
-          ><Compass class="size-4" />{{ $t("extensions.discovery") }}</UiButton
+          ><Compass class="size-4" />{{ $t("extensions.plugins.discovery.title") }}</UiButton
         >
       </div>
     </header>
@@ -90,8 +92,8 @@ const plugins = computed(() =>
       <UiSearchInput
         v-if="query.data.value?.length"
         v-model="search"
-        :label="$t('extensions.searchPlugins')"
-        :placeholder="$t('extensions.searchPlugins')"
+        :label="$t('extensions.plugins.search.placeholder')"
+        :placeholder="$t('extensions.plugins.search.placeholder')"
         data-testid="installed-plugin-search"
       />
       <div
@@ -99,15 +101,15 @@ const plugins = computed(() =>
         role="status"
         class="flex items-center justify-center gap-2 py-12 text-body text-fg-secondary"
       >
-        <UiSpinner class="size-4" />{{ $t("extensions.loading") }}
+        <UiSpinner class="size-4" />{{ $t("common.loading") }}
       </div>
       <UiSettingsSection v-else-if="!query.error.value && !plugins.length">
         <div class="px-5 py-6">
           <h3 class="text-body-lg font-medium text-fg-primary">
-            {{ $t(search ? "extensions.noSearchResults" : "extensions.emptyPlugins") }}
+            {{ $t(search ? "extensions.plugins.search.empty" : "extensions.plugins.empty.title") }}
           </h3>
           <p class="mt-1 text-caption text-fg-secondary">
-            {{ $t(search ? "extensions.tryAnotherSearch" : "extensions.emptyPluginsHint") }}
+            {{ $t(search ? "extensions.plugins.search.hint" : "extensions.plugins.empty.description") }}
           </p>
         </div>
       </UiSettingsSection>
@@ -127,8 +129,8 @@ const plugins = computed(() =>
     </template>
     <UiDialog
       :open="sourceOpen"
-      :title="$t('extensions.installFromSource')"
-      :description="$t('extensions.sourceDescription')"
+      :title="$t('extensions.plugins.source.install')"
+      :description="$t('extensions.plugins.source.description')"
       :closable="!busy"
       @update:open="!busy && (sourceOpen = $event)"
     >
@@ -139,7 +141,9 @@ const plugins = computed(() =>
     </UiDialog>
     <UiDialog
       :open="Boolean(preview)"
-      :title="$t(preview?.previous ? 'extensions.reviewUpdate' : 'extensions.reviewInstallation')"
+      :title="
+        $t(preview?.previous ? 'extensions.plugins.update.title' : 'extensions.plugins.installation.title')
+      "
       size="wide"
       :closable="!changes.isPending.value"
       @update:open="!changes.isPending.value && (preview = undefined)"

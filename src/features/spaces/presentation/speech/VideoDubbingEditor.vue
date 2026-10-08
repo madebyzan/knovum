@@ -78,10 +78,10 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       @bind="draft.bindSpeaker"
       @imported="draft.importSubtitles"
     />
-    <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoTimingRule") }}</p>
+    <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoDubbing.timingRule") }}</p>
     <div class="grid grid-cols-2 gap-2">
       <label class="text-caption text-fg-secondary"
-        >{{ t("spaces.speech.voiceGain") }}
+        >{{ t("spaces.speech.videoDubbing.voiceGain") }}
         <UiInput
           v-model="draft.voiceGain.value"
           size="sm"
@@ -92,7 +92,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
         />
       </label>
       <label v-if="draft.config.value?.background" class="text-caption text-fg-secondary"
-        >{{ t("spaces.speech.backgroundGain") }}
+        >{{ t("spaces.speech.videoDubbing.backgroundGain") }}
         <UiInput
           v-model="draft.backgroundGain.value"
           size="sm"
@@ -131,7 +131,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       :disabled="editingDisabled"
       @click="draft.importTranscript(transcript)"
     >
-      {{ t("spaces.speech.importTranscript") }}
+      {{ t("spaces.speech.videoDubbing.importTranscript") }}
     </UiButton>
     <VideoDubbingLines
       :lines="draft.lines.value"
@@ -150,13 +150,13 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
     />
     <div class="flex gap-2">
       <UiButton size="sm" :disabled="editingDisabled" @click="draft.addLine()"
-        ><Plus class="size-3.5" />{{ t("spaces.speech.addLine") }}</UiButton
+        ><Plus class="size-3.5" />{{ t("spaces.speech.videoDubbing.addLine") }}</UiButton
       >
       <UiButton
         size="sm"
         :disabled="editingDisabled || !draft.dirty.value || !draft.valid.value"
         @click="emit('save', draft.revisionInput())"
-        ><Save class="size-3.5" />{{ t("spaces.speech.saveRevision") }}</UiButton
+        ><Save class="size-3.5" />{{ t("spaces.speech.project.saveRevision") }}</UiButton
       >
     </div>
   </div>

@@ -53,14 +53,14 @@ const {
         v-model="mode"
         class="min-w-0 flex-1"
         size="sm"
-        :label="t('spaces.speech.voiceMode')"
+        :label="t('spaces.speech.voice.mode')"
         :options="modes"
         :disabled="busy || preparingReference"
       />
       <UiSelect
         v-model="language"
         size="sm"
-        :label="t('spaces.speech.language')"
+        :label="t('spaces.speech.project.language')"
         :options="languages"
         :disabled="busy || preparingReference"
       />
@@ -81,14 +81,14 @@ const {
         :disabled="busy"
         @busy="preparingReference = $event"
       />
-      <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.referenceRequirements") }}</p>
+      <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.reference.requirements") }}</p>
       <UiTextarea
         v-if="referenceTranscript === 'optionalConfirmed'"
         v-model="transcript"
         :rows="2"
         :disabled="busy || preparingReference"
-        :placeholder="t('spaces.speech.referenceTranscript')"
-        :aria-label="t('spaces.speech.referenceTranscript')"
+        :placeholder="t('spaces.speech.reference.transcript')"
+        :aria-label="t('spaces.speech.reference.transcript')"
         @update:model-value="transcriptConfirmed = false"
       />
       <label
@@ -98,9 +98,9 @@ const {
         <UiCheckbox
           v-model="transcriptConfirmed"
           :disabled="busy || preparingReference"
-          :label="t('spaces.speech.transcriptConfirmed')"
+          :label="t('spaces.speech.reference.transcriptConfirmed')"
         />
-        {{ t("spaces.speech.transcriptConfirmed") }}
+        {{ t("spaces.speech.reference.transcriptConfirmed") }}
       </label>
     </template>
     <UiTextarea
@@ -108,26 +108,26 @@ const {
       v-model="description"
       :rows="2"
       :disabled="busy"
-      :placeholder="t('spaces.speech.designDescription')"
-      :aria-label="t('spaces.speech.designDescription')"
+      :placeholder="t('spaces.speech.voice.designDescription')"
+      :aria-label="t('spaces.speech.voice.designDescription')"
     />
     <UiTextarea
       v-model="text"
       :rows="3"
       :disabled="busy"
-      :placeholder="t('spaces.speech.candidateText')"
-      :aria-label="t('spaces.speech.candidateText')"
+      :placeholder="t('spaces.speech.voice.candidate.text')"
+      :aria-label="t('spaces.speech.voice.candidate.text')"
     />
     <label class="flex items-center gap-2 text-caption text-fg-secondary">
-      <UiCheckbox v-model="authorized" :disabled="busy" :label="t('spaces.speech.voiceAuthorization')" />
-      {{ t("spaces.speech.voiceAuthorization") }}
+      <UiCheckbox v-model="authorized" :disabled="busy" :label="t('spaces.speech.reference.authorization')" />
+      {{ t("spaces.speech.reference.authorization") }}
     </label>
     <div class="flex gap-2">
       <UiButton size="sm" :disabled="busy || !ready || candidates.length >= 16" @click="generate">{{
-        t("spaces.speech.generateCandidate")
+        t("spaces.speech.voice.candidate.generate")
       }}</UiButton>
       <UiButton v-if="activeRunId || pendingRequestId" size="sm" variant="dangerSubtle" @click="cancel">{{
-        t("spaces.speech.cancel")
+        t("common.cancel")
       }}</UiButton>
     </div>
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>

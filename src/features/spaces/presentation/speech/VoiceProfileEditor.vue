@@ -51,8 +51,8 @@ watch(
 async function remove() {
   if (
     await confirmAction({
-      title: t("spaces.speech.deleteVoice"),
-      description: t("spaces.speech.deleteVoiceDescription"),
+      title: t("spaces.speech.voice.delete.title"),
+      description: t("spaces.speech.voice.delete.description"),
       confirmLabel: t("common.delete"),
       danger: true,
     })
@@ -61,7 +61,7 @@ async function remove() {
 }
 
 function archiveLabel() {
-  return props.profile.archivedAt ? t("spaces.speech.restoreVoice") : t("spaces.speech.archiveVoice");
+  return props.profile.archivedAt ? t("common.restore") : t("common.archive");
 }
 </script>
 
@@ -72,7 +72,7 @@ function archiveLabel() {
         v-model="name"
         class="min-w-0 flex-1"
         size="sm"
-        :aria-label="t('spaces.speech.voiceName')"
+        :aria-label="t('spaces.speech.voice.name')"
         :disabled="disabled"
       />
       <UiButton
@@ -84,17 +84,22 @@ function archiveLabel() {
       >
     </div>
     <p class="text-caption text-fg-secondary">
-      {{ t(`spaces.speech.voiceOrigins.${profile.sourceKind}`) }} ·
+      {{ t(`spaces.speech.voice.origins.${profile.sourceKind}`) }} ·
       {{ activeRevision && voiceEngineLabels[activeRevision.engineId] }} ·
-      {{ profile.referencedSegmentCount }}
-      {{ t("spaces.speech.voiceReferences") }}
+      {{
+        t(
+          "spaces.speech.voice.usage",
+          { count: profile.referencedSegmentCount },
+          profile.referencedSegmentCount,
+        )
+      }}
     </p>
     <div v-if="!profile.archivedAt && profile.sourceKind !== 'preset'" class="flex gap-2">
       <UiSelect
         v-model="language"
         class="min-w-28"
         size="sm"
-        :label="t('spaces.speech.language')"
+        :label="t('spaces.speech.project.language')"
         :options="languageOptions"
         :disabled="disabled"
       />
@@ -102,7 +107,7 @@ function archiveLabel() {
         size="sm"
         :disabled="disabled || language === activeRevision?.language"
         @click="emit('revise', language, 1)"
-        >{{ t("spaces.speech.newVoiceRevision") }}</UiButton
+        >{{ t("spaces.speech.voice.revise") }}</UiButton
       >
     </div>
     <VoiceRevisionHistory :profile :disabled />
@@ -111,7 +116,7 @@ function archiveLabel() {
         v-model="targetSpaceId"
         class="min-w-0 flex-1"
         size="sm"
-        :label="t('spaces.speech.targetSpace')"
+        :label="t('spaces.speech.project.targetSpace')"
         :options="targets"
         :disabled="disabled"
       />
@@ -119,7 +124,7 @@ function archiveLabel() {
         v-model="copyName"
         class="min-w-0 flex-1"
         size="sm"
-        :aria-label="t('spaces.speech.voiceName')"
+        :aria-label="t('spaces.speech.voice.name')"
         :disabled="disabled"
       />
       <UiButton
@@ -127,7 +132,7 @@ function archiveLabel() {
         variant="ghost"
         :disabled="disabled || !targetSpaceId || !copyName.trim()"
         @click="emit('copy', targetSpaceId, copyName.trim())"
-        ><Copy class="size-3.5" />{{ t("spaces.speech.copyVoice") }}</UiButton
+        ><Copy class="size-3.5" />{{ t("common.copy") }}</UiButton
       >
     </div>
     <div class="flex gap-2">

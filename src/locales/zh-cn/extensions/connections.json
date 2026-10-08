@@ -1,0 +1,40 @@
+{
+  "name": "连接名称",
+  "configuration": {
+    "headers": "公开请求头（JSON）",
+    "environment": "公开环境变量（JSON）",
+    "secretsHint": "请在“授权”中添加 API Token、敏感请求头和环境变量。",
+    "invalid": "请输入 JSON 对象，所有字段值必须是字符串。"
+  },
+  "transport": "传输方式",
+  "allowLocalNetwork": "允许访问配置的本机或局域网地址",
+  "tools": {
+    "policyHint": "工具默认拒绝。请自行确认工具是否只读，服务端标记仅供参考。研究任务只能使用你标记为只读的工具。",
+    "policy": "调用策略",
+    "deny": "拒绝",
+    "confirm": "每次确认",
+    "allow": "允许",
+    "reviewedReadOnly": "已确认此工具只读",
+    "serverReadOnlyHint": "服务端声明只读",
+    "savePermissions": "保存工具权限"
+  },
+  "account": {
+    "label": "当前连接使用的账号",
+    "none": "不绑定账号",
+    "changeHint": "更换账号会停用此连接并清除工具权限。重新启用前请审核权限。"
+  },
+  "add": "添加连接实例",
+  "configure": "配置",
+  "accountsAndTools": "账号与工具",
+  "check": "检查连接并读取目录",
+  "empty": "该服务尚未添加连接实例",
+  "cleanupPending": "更改已保存，但清理尚未完成。相关账号仍不可用。",
+  "count": "{count} 个连接实例",
+  "delete": {
+    "title": "删除连接 {name}？",
+    "description": "仅删除此连接实例，同一服务的其他连接仍会保留。"
+  },
+  "accounts": "账号",
+  "title": "连接实例",
+  "manage": "管理"
+}

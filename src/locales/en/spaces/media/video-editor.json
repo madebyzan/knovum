@@ -72,8 +72,7 @@
   "center": "Center",
   "bottom": "Bottom",
   "project": {
-    "saved": "Video edit project saved",
-    "saving": "Saving…"
+    "saved": "Video edit project saved"
   },
   "render": {
     "action": "Render video",
@@ -95,7 +94,6 @@
   "unsaved": {
     "title": "Save changes to this video?",
     "status": "Unsaved changes",
-    "description": "Your edits will be lost if you close without saving.",
-    "discard": "Discard changes"
+    "description": "Your edits will be lost if you close without saving."
   }
 }

@@ -1,0 +1,41 @@
+{
+  "new": "New speech project",
+  "language": "Language",
+  "targetSpace": "Target Space",
+  "name": "Project name",
+  "scriptPlaceholder": "Enter the script for this revision",
+  "saveRevision": "Save revision",
+  "preview": "Preview",
+  "generate": "Generate",
+  "stopListening": "Stop listening",
+  "saving": "Saving revision",
+  "starting": "Starting generation",
+  "generatedAudio": "Generated audio",
+  "generatedVideo": "Generated video",
+  "format": "Format",
+  "sampleRate": "Sample rate",
+  "loudness": "Loudness (LUFS)",
+  "truePeak": "True peak (dB)",
+  "role": "Speaker role",
+  "roleBindings": "Role voices",
+  "roleBindingsHint": "Each role uses one fixed voice revision in this project revision.",
+  "addRole": "Add role",
+  "removeRole": "Remove role",
+  "defaultRole": "Narrator",
+  "deliveryInstruction": "Delivery instruction",
+  "deliveryInstructionPlaceholder": "Optional: describe the pacing, tone, and delivery for this segment (up to 500 characters)",
+  "stages": {
+    "preparing": "Preparing resources",
+    "synthesizing": "Synthesizing preview",
+    "rendering": "Generating segments",
+    "done": "Complete"
+  },
+  "types": {
+    "audiobook": "Audiobook",
+    "videoDubbing": "Video dubbing"
+  },
+  "previewText": "Enter up to 500 characters to audition this voice",
+  "generateFromNode": "Generate speech",
+  "nodeProjects": "Speech projects for this node",
+  "readManuscript": "Load this node as manuscript"
+}

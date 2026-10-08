@@ -1,0 +1,26 @@
+{
+  "acceptedBackground": "Accepted accompaniment",
+  "description": "Separate vocals and accompaniment on this device.",
+  "task": "Source separation",
+  "reviewWarning": "Results may still contain dialogue. Audition both tracks before accepting them.",
+  "tooLong": "Source separation supports up to 10 minutes. Split the video before creating a background candidate.",
+  "generate": "Separate vocals and accompaniment",
+  "cancel": "Cancel separation",
+  "auditioned": "I have auditioned both tracks",
+  "accept": "Accept tracks",
+  "reject": "Reject tracks",
+  "status": {
+    "accepted": "Accepted for mixing.",
+    "rejected": "Rejected."
+  },
+  "title": "Vocal separation",
+  "export": {
+    "vocals": "Save vocals WAV",
+    "background": "Save accompaniment WAV"
+  },
+  "stems": {
+    "vocals": "Vocals",
+    "background": "Accompaniment"
+  },
+  "addToSpace": "Add as audio node"
+}

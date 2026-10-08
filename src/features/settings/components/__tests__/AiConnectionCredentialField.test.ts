@@ -22,7 +22,7 @@ describe("AI credential configuration", () => {
     const wrapper = open();
     await flushPromises();
     expect(isSecretConfigured).toHaveBeenCalledWith("integrations.ai.connections.primary.api-key");
-    expect(wrapper.text()).toContain("settings.ai.keyStored");
+    expect(wrapper.text()).toContain("common.saved");
     expect(wrapper.get("input").element.value).toBe("");
     wrapper.unmount();
   });

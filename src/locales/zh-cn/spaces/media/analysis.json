@@ -3,7 +3,7 @@
   "preparing": "正在准备媒体文件",
   "unavailable": "时长与波形尚不可用",
   "audioPreparing": "正在准备音频",
-  "transcribing": "正在本地转写",
+  "transcribing": "正在本地转录",
   "organizing": "正在生成章节与摘要",
   "knowledge": {
     "title": "媒体知识",
@@ -13,7 +13,7 @@
   "summary": "摘要",
   "inProgress": "正在后台分析音视频…",
   "insights": {
-    "unavailable": "转写数据不可用，请先分析媒体文件。",
+    "unavailable": "转录数据不可用，请先分析媒体文件。",
     "generate": "生成结构化章节与摘要"
   }
 }

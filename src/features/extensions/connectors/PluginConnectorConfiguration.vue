@@ -57,7 +57,7 @@ async function chooseExecutable() {
     </p>
     <template v-if="configuration?.type === 'stdio'">
       <p class="text-caption text-fg-secondary">
-        {{ $t("extensions.declaredCommand") }}: {{ configuration.command }}
+        {{ $t("extensions.connectors.process.declaredCommand") }}: {{ configuration.command }}
       </p>
       <p v-if="configuration.args?.length" class="text-caption break-all text-fg-secondary">
         {{ configuration.args.join(" ") }}
@@ -66,17 +66,17 @@ async function chooseExecutable() {
         {{
           connector.endpoint?.type === "stdio"
             ? connector.endpoint.executable
-            : $t("extensions.localConfigurationRequired")
+            : $t("extensions.connectors.process.configurationRequired")
         }}
       </p>
-      <p class="text-caption text-fg-warning">{{ $t("extensions.explicitProcessAuthorization") }}</p>
+      <p class="text-caption text-fg-warning">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
       <UiButton
         size="sm"
         :disabled="changes.isPending.value"
         data-testid="bind-plugin-executable"
         @click="chooseExecutable"
       >
-        {{ $t("extensions.chooseInstalledExecutable") }}
+        {{ $t("extensions.connectors.process.chooseExecutable") }}
       </UiButton>
     </template>
     <form
@@ -89,12 +89,10 @@ async function chooseExecutable() {
         ><UiCheckbox
           v-model="localNetwork"
           :disabled="changes.isPending.value"
-          :label="$t('extensions.allowLocalNetwork')"
-        />{{ $t("extensions.allowLocalNetwork") }}</label
+          :label="$t('extensions.connections.allowLocalNetwork')"
+        />{{ $t("extensions.connections.allowLocalNetwork") }}</label
       >
-      <UiButton type="submit" size="sm" :disabled="changes.isPending.value">{{
-        $t("extensions.save")
-      }}</UiButton>
+      <UiButton type="submit" size="sm" :disabled="changes.isPending.value">{{ $t("common.save") }}</UiButton>
     </form>
     <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
   </section>

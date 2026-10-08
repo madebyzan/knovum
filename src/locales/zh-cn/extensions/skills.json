@@ -1,0 +1,27 @@
+{
+  "name": "Skill 名称（与目录一致）",
+  "readOnly": "插件 Skill 只读。复制为个人 Skill 后可编辑。",
+  "create": "创建 Skill",
+  "import": "导入目录",
+  "personal": "个人 Skill",
+  "view": "查看",
+  "copy": "复制为个人 Skill",
+  "binaryResource": "这是二进制参考资源，可导出 Skill 后查看原始文件。",
+  "empty": {
+    "title": "暂无可用 Skill",
+    "description": "创建个人 Skill，或导入已有的 Skill 目录。"
+  },
+  "actions": "Skill 操作",
+  "description": "将可复用的指令作为 Skill，在对话中按需使用。",
+  "search": "搜索 Skill…",
+  "plugin": "插件 Skill",
+  "unsupportedRequirements": "暂不支持的要求：{requirements}",
+  "discard": {
+    "title": "放弃未保存的修改？",
+    "description": "未保存的修改将丢失。"
+  },
+  "delete": {
+    "title": "删除 {name}？",
+    "description": "将永久删除此个人 Skill 及其参考文件。"
+  }
+}

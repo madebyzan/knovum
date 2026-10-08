@@ -1,0 +1,10 @@
+{
+  "language": "翻译目标语言",
+  "model": "翻译模型",
+  "translate": "翻译脚本",
+  "cancel": "取消翻译",
+  "failed": "视频脚本翻译失败",
+  "source": "原文",
+  "localOnly": "翻译全程仅在本机执行",
+  "localUnavailable": "未配置本地翻译模型。请直接输入目标语言脚本，或配置仅监听本机地址的 Ollama 模型。"
+}

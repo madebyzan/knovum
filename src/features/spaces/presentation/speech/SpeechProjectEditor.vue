@@ -70,10 +70,10 @@ const canGenerate = computed(
 const runLabel = computed(() => (props.runState ? t(workflowStateLabelKey(props.runState)) : undefined));
 
 function stageLabel(stage: SpeechGenerationProgress["stage"]) {
-  if (stage === "preparing") return t("spaces.speech.stages.preparing");
-  if (stage === "synthesizing") return t("spaces.speech.stages.synthesizing");
-  if (stage === "rendering") return t("spaces.speech.stages.rendering");
-  return t("spaces.speech.stages.done");
+  if (stage === "preparing") return t("spaces.speech.project.stages.preparing");
+  if (stage === "synthesizing") return t("spaces.speech.project.stages.synthesizing");
+  if (stage === "rendering") return t("spaces.speech.project.stages.rendering");
+  return t("spaces.speech.project.stages.done");
 }
 
 function forwardPreview(
@@ -124,7 +124,7 @@ function forwardPreview(
     />
     <div class="flex items-center gap-2 border-t border-stroke-divider pt-2">
       <UiButton size="sm" variant="primary" :disabled="!canGenerate" @click="emit('generate')">
-        <WandSparkles class="size-3.5" />{{ t("spaces.speech.generate") }}
+        <WandSparkles class="size-3.5" />{{ t("spaces.speech.project.generate") }}
       </UiButton>
       <UiButton
         v-if="running"
@@ -133,13 +133,13 @@ function forwardPreview(
         :disabled="cancelling"
         @click="emit('cancel')"
       >
-        <Square class="size-3.5" />{{ t("spaces.speech.cancel") }}
+        <Square class="size-3.5" />{{ t("common.cancel") }}
       </UiButton>
       <UiButton v-if="previewListening" size="sm" variant="ghost" @click="emit('stopListening')">
-        <Square class="size-3.5" />{{ t("spaces.speech.stopListening") }}
+        <Square class="size-3.5" />{{ t("spaces.speech.project.stopListening") }}
       </UiButton>
       <span v-if="submitting || saving" class="text-caption-sm text-fg-tertiary">
-        {{ t(submitting ? "spaces.speech.starting" : "spaces.speech.saving") }}
+        {{ t(submitting ? "spaces.speech.project.starting" : "spaces.speech.project.saving") }}
       </span>
     </div>
     <p v-if="runLabel && running" class="text-caption-sm text-fg-tertiary">{{ runLabel }}</p>

@@ -3,14 +3,14 @@
   "description": "Manage creation presets and the service used for image layer splitting.",
   "presets": {
     "title": "Generation presets",
-    "description": "Single-model configurations saved while creating content.",
+    "description": "Saved model settings for content creation.",
     "empty": "No generation presets have been saved yet.",
-    "deleteConfirm": "Delete this generation preset?",
+    "deleteConfirm": "Delete this preset?",
     "name": "Preset name",
     "edit": "Edit generation preset"
   },
   "parameters": "Parameters",
-  "copyName": "{name} Copy",
+  "copyName": "{name} copy",
   "saveFailed": "Could not save creation settings",
   "knowledgeActions": {
     "groundedAnswer": "Grounded answer",
@@ -24,5 +24,11 @@
     "extractSubtitles": "Subtitle extraction",
     "renderSubtitledVideo": "Subtitled video",
     "renderPresentation": "Presentation"
+  },
+  "imageLayers": {
+    "title": "Image layer splitting",
+    "description": "Connect fal for image layer splitting.",
+    "apiKey": "fal API key",
+    "apiKeyDescription": "Stored only on this device."
   }
 }

@@ -46,7 +46,7 @@ export function useSpaceManagementMenu() {
         }),
       ],
       [
-        spaceSubmenu(t("spaces.importExport.export"), [
+        spaceSubmenu(t("common.export"), [
           spaceMenuItem(t("spaces.importExport.space.export"), () => packages.exportPackage(space)),
           spaceMenuItem(
             t("spaces.importExport.jsonCanvas.export"),

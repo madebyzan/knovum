@@ -1,0 +1,41 @@
+{
+  "new": "新建语音项目",
+  "language": "语言",
+  "targetSpace": "目标空间",
+  "name": "项目名称",
+  "scriptPlaceholder": "输入此版本的配音稿",
+  "saveRevision": "保存版本",
+  "preview": "试听",
+  "generate": "生成",
+  "stopListening": "停止试听",
+  "saving": "正在保存版本",
+  "starting": "正在启动生成任务",
+  "generatedAudio": "完整音频",
+  "generatedVideo": "完整视频",
+  "format": "格式",
+  "sampleRate": "采样率",
+  "loudness": "响度（LUFS）",
+  "truePeak": "真峰值（dB）",
+  "role": "角色名称",
+  "roleBindings": "角色音色",
+  "roleBindingsHint": "当前项目版本中的每个角色使用一个固定的音色版本。",
+  "addRole": "添加角色",
+  "removeRole": "移除角色",
+  "defaultRole": "旁白",
+  "deliveryInstruction": "演绎提示",
+  "deliveryInstructionPlaceholder": "可选：描述这段内容的节奏、语气和表达方式（最多 500 字）",
+  "stages": {
+    "preparing": "准备资源",
+    "synthesizing": "生成试听",
+    "rendering": "生成片段",
+    "done": "完成"
+  },
+  "types": {
+    "audiobook": "有声书",
+    "videoDubbing": "视频配音"
+  },
+  "previewText": "输入不超过 500 字的试听文本",
+  "generateFromNode": "生成语音",
+  "nodeProjects": "此节点的语音项目",
+  "readManuscript": "读取当前节点文稿"
+}

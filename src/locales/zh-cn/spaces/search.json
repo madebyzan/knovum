@@ -1,7 +1,7 @@
 {
   "find": {
     "title": "查找",
-    "placeholder": "搜索笔记、网页、转写、文件、标签…",
+    "placeholder": "搜索笔记、网页、转录、文件、标签…",
     "noResults": "当前空间无匹配项。",
     "defaultTitle": "当前空间",
     "defaultContentLabel": "画布内容",

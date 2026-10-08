@@ -86,7 +86,7 @@ export function useSourceSeparationCandidate() {
         error.value = run.state === "cancelled" ? undefined : i18n.global.t(workflowStateLabelKey(run.state));
       return;
     }
-    stopObservation = observeResourceRun(run, i18n.global.t("spaces.speech.sourceSeparationTask"), (next) => {
+    stopObservation = observeResourceRun(run, i18n.global.t("spaces.speech.separation.task"), (next) => {
       if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
       stopObservation?.();
       stopObservation = undefined;

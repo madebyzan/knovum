@@ -1,0 +1,84 @@
+{
+  "source": {
+    "label": "来源",
+    "localDirectory": "本地目录",
+    "location": "地址或绝对路径",
+    "gitReference": "Git 引用（HEAD、完整 ref 或 commit）",
+    "subdirectory": "包所在子目录",
+    "install": "从来源安装",
+    "description": "选择本地包或远程 URL，确认内容后再安装。",
+    "details": "来源与版本详情",
+    "revision": "来源版本"
+  },
+  "installation": {
+    "preview": "预览",
+    "authorizationHint": "安装不会启动服务或授权账号。连接与工具权限需另行配置。",
+    "install": "安装",
+    "title": "确认安装内容"
+  },
+  "update": {
+    "action": "更新",
+    "revisionChange": "来源修订变化",
+    "added": "新增组件",
+    "removed": "移除组件",
+    "check": "检查更新",
+    "title": "确认更新内容"
+  },
+  "bundled": "应用内置",
+  "verification": {
+    "unverified": "发布者身份未验证",
+    "title": "包校验信息"
+  },
+  "uninstall": {
+    "action": "卸载",
+    "title": "卸载 {name}？",
+    "description": "插件及其提供的扩展能力将被移除。之后可重新安装。"
+  },
+  "catalogs": {
+    "sourceType": "目录源类型",
+    "add": "添加目录源",
+    "all": "全部来源",
+    "title": "管理目录源",
+    "description": "添加或刷新提供插件列表的目录源。",
+    "empty": {
+      "title": "暂无可发现的插件",
+      "description": "先添加一个目录源，再浏览其中的插件。"
+    },
+    "remove": {
+      "title": "移除目录源？",
+      "description": "该目录将不再用于发现插件，已安装的插件仍会保留。"
+    }
+  },
+  "discovery": {
+    "title": "发现插件",
+    "description": "浏览目录中的插件，安装前查看它们提供的能力。"
+  },
+  "empty": {
+    "title": "尚未安装插件",
+    "description": "发现新插件，或从本地与远程来源安装。"
+  },
+  "tasks": {
+    "inspect": "检查插件",
+    "install": "安装插件",
+    "update": "更新插件",
+    "catalog": "读取插件目录",
+    "cancelled": "插件操作已取消"
+  },
+  "stages": {
+    "reading": "读取包或目录源",
+    "validating": "验证包内容",
+    "committing": "提交更改"
+  },
+  "title": "已安装插件",
+  "description": "管理已安装插件及其能力。",
+  "search": {
+    "placeholder": "搜索插件…",
+    "empty": "没有匹配的结果",
+    "hint": "尝试其他关键词，或清空搜索。"
+  },
+  "capabilityCount": "包含 {count} 项扩展能力",
+  "disable": "停用 {name}",
+  "enable": "启用 {name}",
+  "actions": "插件操作",
+  "capabilities": "包含的能力"
+}

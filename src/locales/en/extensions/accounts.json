@@ -1,0 +1,18 @@
+{
+  "authorization": {
+    "label": "Authorization",
+    "none": "No authorization",
+    "secretFields": "Secret headers and environment variables",
+    "clientId": "Public client ID (leave blank for automatic registration)",
+    "fieldNames": "Secret field names (space-separated)"
+  },
+  "cleanupPending": "Disconnected · Credential cleanup pending",
+  "authorized": "Authorized",
+  "required": "Authorization required",
+  "authorizeInBrowser": "Authorize in browser",
+  "authorize": "Authorize",
+  "disconnect": "Disconnect and delete local credentials",
+  "name": "Account display name",
+  "add": "Add account",
+  "billingHint": "External services may charge separately; these charges are not included in application token usage."
+}

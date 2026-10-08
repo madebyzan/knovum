@@ -24,12 +24,12 @@ defineExpose({ reload: management.reload });
 
 <template>
   <section class="space-y-2 border-t border-stroke-divider pt-4">
-    <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.voiceManagement") }}</h2>
+    <h2 class="text-label font-medium text-fg-primary">{{ t("spaces.speech.library.title") }}</h2>
     <p v-if="management.error.value" role="alert" class="text-caption text-fg-danger">
       {{ management.error.value }}
     </p>
     <p v-if="management.profiles.value.length === 0" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.noVoices") }}
+      {{ t("spaces.speech.library.empty") }}
     </p>
     <VoiceProfileEditor
       v-for="profile in management.profiles.value"

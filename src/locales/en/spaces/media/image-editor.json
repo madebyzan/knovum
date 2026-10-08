@@ -1,7 +1,6 @@
 {
   "crop": {
     "title": "Crop",
-    "complete": "Done",
     "original": "Original",
     "presets": "Presets",
     "general": "General",
@@ -22,7 +21,10 @@
   "removeObject": {
     "tool": "Eraser",
     "mode": "Removal input",
-    "modes": { "mask": "Paint a mask", "prompt": "Describe" },
+    "modes": {
+      "mask": "Paint a mask",
+      "prompt": "Describe"
+    },
     "undo": "Undo selection stroke",
     "brushSize": "Selection brush",
     "promptLabel": "Describe what to remove",

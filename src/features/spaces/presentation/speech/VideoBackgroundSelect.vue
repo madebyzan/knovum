@@ -36,11 +36,11 @@ const value = computed(() => {
 });
 const options = computed(() => {
   const choices = [
-    { value: "mute", label: t("spaces.speech.muteOriginal") },
+    { value: "mute", label: t("spaces.speech.videoDubbing.muteOriginal") },
     ...backgrounds.value.map(({ id, name }) => ({ value: id, label: name })),
     ...(accepted.data.value ?? []).map((candidate, index) => ({
       value: `separation:${candidate.separationId}`,
-      label: `${t("spaces.speech.acceptedSeparatedBackground")} · ${index + 1}`,
+      label: `${t("spaces.speech.separation.acceptedBackground")} · ${index + 1}`,
     })),
   ];
   if (!choices.some((choice) => choice.value === value.value)) {
@@ -48,8 +48,8 @@ const options = computed(() => {
       value: value.value,
       label: t(
         props.config.backgroundSeparation
-          ? "spaces.speech.acceptedSeparatedBackground"
-          : "spaces.speech.currentBackground",
+          ? "spaces.speech.separation.acceptedBackground"
+          : "spaces.speech.videoDubbing.currentBackground",
       ),
     });
   }
@@ -73,7 +73,7 @@ function select(selected: string) {
   <UiSelect
     :model-value="value"
     size="sm"
-    :label="t('spaces.speech.backgroundAudio')"
+    :label="t('spaces.speech.videoDubbing.backgroundAudio')"
     :options
     :disabled
     @update:model-value="select"

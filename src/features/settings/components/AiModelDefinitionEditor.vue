@@ -43,15 +43,13 @@ function toggleCapability(capability: ExecutionCapability) {
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
         {{ t("settings.ai.modelDisplayName") }}
         <UiInput v-model="model.name" />
-        <span v-if="showErrors && !model.name.trim()" class="text-fg-danger">{{
-          t("settings.ai.requiredField")
-        }}</span>
+        <span v-if="showErrors && !model.name.trim()" class="text-fg-danger">{{ t("common.required") }}</span>
       </label>
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
         {{ t("settings.ai.modelIdentifier") }}
         <UiInput v-model="model.model" />
         <span v-if="showErrors && !model.model.trim()" class="text-fg-danger">{{
-          t("settings.ai.requiredField")
+          t("common.required")
         }}</span>
       </label>
     </div>

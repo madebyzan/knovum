@@ -18,7 +18,7 @@ const currentView = computed(() => {
     case "document-outline":
       return { label: t("spaces.sidebar.editorOutline.title"), icon: FileText };
     case "source":
-      return { label: t("spaces.inspector.source"), icon: Search };
+      return { label: t("spaces.inspector.fields.source"), icon: Search };
     default:
       return { label: t("spaces.conversation.title"), icon: MessageCircle };
   }

@@ -27,14 +27,14 @@ const connections = computed(() =>
         <div class="flex flex-wrap items-center gap-2">
           <h3 class="text-body-lg font-medium break-words text-fg-primary">{{ connector.name }}</h3>
           <UiBadge size="sm">{{
-            $t(connector.pluginId ? "extensions.pluginConnector" : "extensions.customConnector")
+            $t(connector.pluginId ? "extensions.connectors.plugin" : "extensions.connectors.custom")
           }}</UiBadge>
         </div>
         <p v-if="connector.description" class="mt-0.5 text-caption leading-normal text-fg-secondary">
           {{ connector.description }}
         </p>
         <p class="mt-1.5 text-caption text-fg-tertiary">
-          {{ $t("extensions.connectionCount", { count: connections.length }) }} · MCP
+          {{ $t("extensions.connections.count", { count: connections.length }) }} · MCP
         </p>
       </div>
       <UiButton
@@ -44,7 +44,7 @@ const connections = computed(() =>
         :aria-controls="`connector-details-${connector.id}`"
         :data-testid="`manage-connector-${connector.id}`"
         @click="expanded = !expanded"
-        >{{ $t(expanded ? "extensions.collapse" : "extensions.manageService")
+        >{{ $t(expanded ? "common.collapse" : "extensions.connections.manage")
         }}<ChevronDown
           class="size-3.5 transition-transform motion-reduce:transition-none"
           :class="expanded ? 'rotate-180' : ''"
@@ -57,7 +57,7 @@ const connections = computed(() =>
     >
       <div v-if="!connector.pluginId" class="flex flex-wrap gap-2">
         <UiButton size="sm" :disabled="busy" data-testid="edit-connector" @click="$emit('edit')">{{
-          $t("extensions.configure")
+          $t("extensions.connections.configure")
         }}</UiButton
         ><UiButton
           size="sm"
@@ -66,12 +66,12 @@ const connections = computed(() =>
           :disabled="busy"
           data-testid="delete-connector"
           @click="$emit('remove')"
-          >{{ $t("extensions.delete") }}</UiButton
+          >{{ $t("common.delete") }}</UiButton
         >
       </div>
       <PluginConnectorConfiguration v-if="connector.pluginId" :connector="connector" />
       <section v-if="connector.endpoint && connector.authorization.type !== 'none'" class="space-y-3">
-        <h4 class="text-body font-medium">{{ $t("extensions.accounts") }}</h4>
+        <h4 class="text-body font-medium">{{ $t("extensions.connections.accounts") }}</h4>
         <ConnectorAccounts :connector="connector" />
       </section>
       <ConnectorInstances :connector="connector" :connections="connections" :busy="busy" />

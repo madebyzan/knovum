@@ -42,7 +42,7 @@ const latestProgress = computed(() => [...progressByOperation.value.values()].at
 
 <template>
   <p v-if="active && latestProgress" role="status" class="mt-2 text-caption text-fg-secondary">
-    {{ $t("extensions.progress") }}: {{ latestProgress.progress
+    {{ $t("spaces.conversation.toolOperations.progress") }}: {{ latestProgress.progress
     }}<template v-if="latestProgress.total !== undefined"> / {{ latestProgress.total }}</template>
     {{ latestProgress.message }}
   </p>
@@ -51,22 +51,26 @@ const latestProgress = computed(() => [...progressByOperation.value.values()].at
     data-testid="conversation-tool-history"
     @toggle="open = ($event.target as HTMLDetailsElement).open"
   >
-    <summary class="cursor-pointer py-1">{{ $t("extensions.operationHistory") }}</summary>
-    <p v-if="query.isPending.value">{{ $t("extensions.loading") }}</p>
+    <summary class="cursor-pointer py-1">
+      {{ $t("spaces.conversation.toolOperations.history.title") }}
+    </summary>
+    <p v-if="query.isPending.value">{{ $t("common.loading") }}</p>
     <p v-else-if="query.error.value" role="alert" class="text-fg-danger">
       {{ getErrorMessage(query.error.value) }}
     </p>
-    <p v-else-if="!query.data.value?.length">{{ $t("extensions.noOperations") }}</p>
+    <p v-else-if="!query.data.value?.length">{{ $t("spaces.conversation.toolOperations.history.empty") }}</p>
     <article
       v-for="operation in query.data.value"
       :key="operation.id"
       class="space-y-1 border-l border-stroke-divider py-2 pl-3"
     >
       <p>
-        {{ operation.name }} · {{ $t("extensions.attempt") }} {{ operation.attempt }} · {{ operation.state }}
+        {{ operation.name }} · {{ $t("spaces.conversation.toolOperations.attempt") }}
+        {{ operation.attempt }} · {{ operation.state }}
       </p>
       <p v-if="progressByOperation.has(operation.id)">
-        {{ $t("extensions.progress") }}: {{ progressByOperation.get(operation.id)?.progress
+        {{ $t("spaces.conversation.toolOperations.progress") }}:
+        {{ progressByOperation.get(operation.id)?.progress
         }}<template v-if="progressByOperation.get(operation.id)?.total !== undefined">
           / {{ progressByOperation.get(operation.id)?.total }}</template
         >

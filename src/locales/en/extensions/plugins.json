@@ -1,0 +1,84 @@
+{
+  "source": {
+    "label": "Source",
+    "localDirectory": "Local directory",
+    "location": "URL or absolute path",
+    "gitReference": "Git reference (HEAD, full ref or commit)",
+    "subdirectory": "Package subdirectory",
+    "install": "Install from source",
+    "description": "Choose a local package or remote URL, then review it before installing.",
+    "details": "Source and version details",
+    "revision": "Source revision"
+  },
+  "installation": {
+    "preview": "Preview",
+    "authorizationHint": "Installation does not launch services or authorize accounts. Configure connections and tool permissions separately.",
+    "install": "Install",
+    "title": "Review installation"
+  },
+  "update": {
+    "action": "Update",
+    "revisionChange": "Source revision changes",
+    "added": "Added components",
+    "removed": "Removed components",
+    "check": "Check for updates",
+    "title": "Review update"
+  },
+  "bundled": "Bundled with Knovum",
+  "verification": {
+    "unverified": "Publisher identity unverified",
+    "title": "Package verification"
+  },
+  "uninstall": {
+    "action": "Uninstall",
+    "title": "Uninstall {name}?",
+    "description": "This removes the plugin and its capabilities. You can install it again later."
+  },
+  "catalogs": {
+    "sourceType": "Catalog source type",
+    "add": "Add catalog source",
+    "all": "All sources",
+    "title": "Manage catalogs",
+    "description": "Add or refresh catalogs that list available plugins.",
+    "empty": {
+      "title": "No plugins to discover",
+      "description": "Add a catalog to browse its available plugins."
+    },
+    "remove": {
+      "title": "Remove catalog?",
+      "description": "This catalog will no longer appear in discovery. Installed plugins are kept."
+    }
+  },
+  "discovery": {
+    "title": "Discover plugins",
+    "description": "Browse catalog plugins and review their capabilities before installing."
+  },
+  "empty": {
+    "title": "No installed plugins",
+    "description": "Discover plugins or install from a local or remote source."
+  },
+  "tasks": {
+    "inspect": "Inspect plugin",
+    "install": "Install plugin",
+    "update": "Update plugin",
+    "catalog": "Read plugin catalog",
+    "cancelled": "Plugin operation cancelled"
+  },
+  "stages": {
+    "reading": "Reading package or catalog",
+    "validating": "Validating package contents",
+    "committing": "Committing changes"
+  },
+  "title": "Installed plugins",
+  "description": "Manage installed plugins and their capabilities.",
+  "search": {
+    "placeholder": "Search plugins…",
+    "empty": "No matching results",
+    "hint": "Try another keyword or clear the search."
+  },
+  "capabilityCount": "{count} included capability | {count} included capabilities",
+  "disable": "Disable {name}",
+  "enable": "Enable {name}",
+  "actions": "Plugin actions",
+  "capabilities": "Included capabilities"
+}

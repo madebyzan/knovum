@@ -1,12 +1,11 @@
 {
   "removeBackground": "Remove background",
-  "visualize": "Generate image",
   "visualization": {
     "title": "Generate image",
-    "description": "Create a generated illustration beside its exact knowledge sources.",
+    "description": "Generate an image beside its selected sources.",
     "defaultTitle": "Generated image",
     "intent": "Image focus",
-    "placeholder": "Describe the concepts or relationships to show. Keep the image grounded in the selected sources.",
+    "placeholder": "Describe the concepts or relationships to show, grounded in the selected sources.",
     "task": "Generating image"
   },
   "style": "Visual direction",
@@ -20,6 +19,6 @@
     "task": "Creating transparent image",
     "segmenting": "Identifying foreground…",
     "failed": "Could not remove background",
-    "sourceMissing": "The original image file is missing. Reimport it before removing the background."
+    "sourceMissing": "The original image is missing. Reimport it before removing the background."
   }
 }

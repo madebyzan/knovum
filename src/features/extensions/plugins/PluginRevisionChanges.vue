@@ -20,11 +20,18 @@ const changes = computed(() => {
 
 <template>
   <section class="space-y-2 text-caption" data-testid="plugin-revision-changes">
-    <p>{{ $t("extensions.revisionChange") }}: {{ before.sourceRevision }} → {{ after.sourceRevision }}</p>
-    <p v-if="changes.added.length">{{ $t("extensions.added") }}: {{ changes.added.join(", ") }}</p>
-    <p v-if="changes.removed.length">{{ $t("extensions.removed") }}: {{ changes.removed.join(", ") }}</p>
+    <p>
+      {{ $t("extensions.plugins.update.revisionChange") }}: {{ before.sourceRevision }} →
+      {{ after.sourceRevision }}
+    </p>
+    <p v-if="changes.added.length">
+      {{ $t("extensions.plugins.update.added") }}: {{ changes.added.join(", ") }}
+    </p>
+    <p v-if="changes.removed.length">
+      {{ $t("extensions.plugins.update.removed") }}: {{ changes.removed.join(", ") }}
+    </p>
     <div v-if="changes.connectorsChanged" class="space-y-1">
-      <p>{{ $t("extensions.reviewConnectorChanges") }}</p>
+      <p>{{ $t("extensions.connectors.changes") }}</p>
       <pre class="max-h-48 overflow-auto whitespace-pre-wrap">{{
         JSON.stringify(before.connectors, null, 2)
       }}</pre>

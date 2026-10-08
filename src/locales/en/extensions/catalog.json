@@ -1,0 +1,12 @@
+{
+  "counts": "Resources {resources} · templates {templates} · prompts {prompts}",
+  "browse": "Browse resources and prompts",
+  "kind": "Content kind",
+  "item": "Content",
+  "resources": "Resources",
+  "templates": "Resource templates",
+  "prompts": "Prompts",
+  "parameters": "Parameters (JSON)",
+  "read": "Read selected content",
+  "source": "Choose source"
+}

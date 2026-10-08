@@ -3,9 +3,9 @@
   "description": "管理创作预设和图片图层拆分所需的服务。",
   "presets": {
     "title": "生成预设",
-    "description": "在内容创作过程中保存的单模型配置。",
+    "description": "用于内容创作的已保存模型设置。",
     "empty": "尚未保存生成预设。",
-    "deleteConfirm": "确定删除这个生成预设吗？",
+    "deleteConfirm": "删除此预设？",
     "name": "预设名称",
     "edit": "编辑生成预设"
   },
@@ -24,5 +24,11 @@
     "extractSubtitles": "提取字幕",
     "renderSubtitledVideo": "字幕视频",
     "renderPresentation": "演示文稿"
+  },
+  "imageLayers": {
+    "title": "图片图层拆分",
+    "description": "接入 fal，用于拆分图片图层。",
+    "apiKey": "fal API Key",
+    "apiKeyDescription": "仅保存在这台设备上。"
   }
 }

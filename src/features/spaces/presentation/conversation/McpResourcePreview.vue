@@ -23,7 +23,7 @@ const reading = useMutation({
 });
 const importing = useMutation({
   mutationFn: (index: number) => {
-    if (!gate.allows("create")) throw new Error(t("extensions.resourceImportUnavailable"));
+    if (!gate.allows("create")) throw new Error(t("spaces.conversation.extensionResources.readOnly"));
     return importMcpResource({
       store,
       connection: props.connection,
@@ -46,7 +46,7 @@ const importing = useMutation({
       variant="ghost"
       :disabled="reading.isPending.value || importing.isPending.value"
       @click="reading.mutate()"
-      >{{ $t("extensions.read") }}</UiButton
+      >{{ $t("extensions.catalog.read") }}</UiButton
     >
     <p v-if="reading.error.value || importing.error.value" role="alert" class="text-fg-danger">
       {{ getErrorMessage(reading.error.value || importing.error.value) }}
@@ -67,7 +67,7 @@ const importing = useMutation({
           size="sm"
           :disabled="importing.isPending.value || !gate.allows('create')"
           @click="importing.mutate(index)"
-          >{{ $t("extensions.importResourceToSpace") }}</UiButton
+          >{{ $t("spaces.conversation.extensionResources.import") }}</UiButton
         >
       </section>
     </template>

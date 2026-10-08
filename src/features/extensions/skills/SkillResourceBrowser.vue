@@ -32,7 +32,7 @@ const reading = useMutation({ mutationFn: (path: string) => readSkillFile(props.
         v-if="reading.data.value.encoding === 'utf8'"
         class="max-h-64 overflow-auto text-caption break-all whitespace-pre-wrap"
         >{{ reading.data.value.content }}</pre>
-      <p v-else class="text-caption text-fg-secondary">{{ $t("extensions.binarySkillResource") }}</p>
+      <p v-else class="text-caption text-fg-secondary">{{ $t("extensions.skills.binaryResource") }}</p>
     </template>
   </section>
 </template>

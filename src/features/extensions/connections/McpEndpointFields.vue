@@ -33,11 +33,11 @@ const cwd = computed({
 <template>
   <div class="space-y-4">
     <div class="space-y-1.5">
-      <span class="text-caption text-fg-secondary">{{ $t("extensions.transport") }}</span
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.connections.transport") }}</span
       ><UiSelect
         v-model="transport"
         :disabled="disabled"
-        :label="$t('extensions.transport')"
+        :label="$t('extensions.connections.transport')"
         :options="[
           { value: 'streamable_http', label: 'Streamable HTTP' },
           { value: 'stdio', label: 'stdio' },
@@ -52,22 +52,23 @@ const cwd = computed({
         ><UiCheckbox
           v-model="endpoint.allowLocalNetwork"
           :disabled="disabled"
-          :label="$t('extensions.allowLocalNetwork')"
-        />{{ $t("extensions.allowLocalNetwork") }}</label
+          :label="$t('extensions.connections.allowLocalNetwork')"
+        />{{ $t("extensions.connections.allowLocalNetwork") }}</label
       >
     </template>
     <template v-else>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.installedExecutable")
+        >{{ $t("extensions.connectors.process.executable")
         }}<UiInput :disabled="disabled" v-model="endpoint.executable" data-testid="mcp-executable"
       /></label>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.argumentsPerLine") }}<UiTextarea :disabled="disabled" v-model="args"
+        >{{ $t("extensions.connectors.process.arguments") }}<UiTextarea :disabled="disabled" v-model="args"
       /></label>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.workingDirectory") }}<UiInput :disabled="disabled" v-model="cwd"
+        >{{ $t("extensions.connectors.process.workingDirectory")
+        }}<UiInput :disabled="disabled" v-model="cwd"
       /></label>
-      <p class="text-caption text-fg-warning">{{ $t("extensions.explicitProcessAuthorization") }}</p>
+      <p class="text-caption text-fg-warning">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
     </template>
   </div>
 </template>

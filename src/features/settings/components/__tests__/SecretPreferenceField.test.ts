@@ -42,7 +42,7 @@ describe("SecretPreferenceField", () => {
     expect(setSecret).not.toHaveBeenCalled();
     await wrapper
       .findAll("button")
-      .find((button) => button.text() === "settings.ai.saveConnection")!
+      .find((button) => button.text() === "common.save")!
       .trigger("click");
     expect(setSecret).toHaveBeenCalledWith("ai.key", "replacement");
   });

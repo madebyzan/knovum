@@ -39,14 +39,14 @@ async function choose() {
 <template>
   <form class="space-y-4" @submit.prevent="!busy && form.location.trim() && emit('inspect', source)">
     <div class="space-y-1.5">
-      <span class="text-caption text-fg-secondary">{{ $t("extensions.source") }}</span>
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.plugins.source.label") }}</span>
       <UiSelect
         v-model="form.type"
-        :label="$t('extensions.source')"
+        :label="$t('extensions.plugins.source.label')"
         data-testid="plugin-source-type"
         :disabled="busy"
         :options="[
-          { value: 'directory', label: $t('extensions.localDirectory') },
+          { value: 'directory', label: $t('extensions.plugins.source.localDirectory') },
           { value: 'zip', label: 'ZIP' },
           { value: 'https_zip', label: 'HTTPS ZIP' },
           { value: 'git', label: 'HTTPS Git' },
@@ -54,7 +54,7 @@ async function choose() {
       />
     </div>
     <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.location")
+      >{{ $t("extensions.plugins.source.location")
       }}<UiInput :disabled="busy" v-model="form.location" data-testid="plugin-source-location"
     /></label>
     <UiButton
@@ -63,7 +63,7 @@ async function choose() {
       :disabled="busy"
       data-testid="choose-plugin-source"
       @click="choose"
-      >{{ $t("extensions.chooseSource") }}</UiButton
+      >{{ $t("extensions.catalog.source") }}</UiButton
     >
     <p v-if="pickerError" role="alert" class="text-caption text-fg-danger">{{ pickerError }}</p>
     <label v-if="form.type === 'https_zip'" class="block space-y-1.5 text-caption text-fg-secondary"
@@ -71,10 +71,11 @@ async function choose() {
     /></label>
     <template v-if="form.type === 'git'">
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.gitReference") }}<UiInput :disabled="busy" v-model="form.reference"
+        >{{ $t("extensions.plugins.source.gitReference") }}<UiInput :disabled="busy" v-model="form.reference"
       /></label>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.subdirectory") }}<UiInput :disabled="busy" v-model="form.subdirectory"
+        >{{ $t("extensions.plugins.source.subdirectory")
+        }}<UiInput :disabled="busy" v-model="form.subdirectory"
       /></label>
     </template>
     <UiButton
@@ -82,7 +83,7 @@ async function choose() {
       type="submit"
       :disabled="props.busy || !form.location.trim()"
       data-testid="inspect-plugin"
-      ><UiSpinner v-if="busy" class="size-3.5" />{{ $t("extensions.preview") }}</UiButton
+      ><UiSpinner v-if="busy" class="size-3.5" />{{ $t("extensions.plugins.installation.preview") }}</UiButton
     >
   </form>
 </template>

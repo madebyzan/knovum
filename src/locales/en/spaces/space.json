@@ -31,7 +31,7 @@
     "placeholder": "Search spaces…",
     "noResults": "No matching spaces"
   },
-  "nodeCount": "{count} items",
+  "nodeCount": "{count} item | {count} items",
   "favorite": "Favorite space",
   "unfavorite": "Remove from favorites",
   "open": "Open Space",

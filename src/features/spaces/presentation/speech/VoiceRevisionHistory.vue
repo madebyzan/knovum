@@ -27,13 +27,13 @@ const options = computed(() =>
 <template>
   <details>
     <summary class="cursor-pointer text-caption text-fg-secondary">
-      {{ t("spaces.speech.voiceHistory") }} ({{ profile.revisions.length }})
+      {{ t("spaces.speech.voice.history") }} ({{ profile.revisions.length }})
     </summary>
     <div class="mt-2 space-y-2">
       <UiSelect
         v-model="selected"
         size="sm"
-        :label="t('spaces.speech.voiceHistory')"
+        :label="t('spaces.speech.voice.history')"
         :options="options"
         :disabled
       />

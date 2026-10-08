@@ -22,8 +22,8 @@ const { t } = useI18n();
       {{
         t(
           project.project.projectType === "video_dubbing"
-            ? "spaces.speech.generatedVideo"
-            : "spaces.speech.generatedSegments",
+            ? "spaces.speech.project.generatedVideo"
+            : "spaces.speech.project.generatedAudio",
         )
       }}
     </p>
@@ -34,7 +34,7 @@ const { t } = useI18n();
         :source="convertFileSrc(output.path)"
       />
       <UiButton size="sm" variant="ghost" @click="emit('export', props.output.path)"
-        ><Download class="size-3.5" />{{ t("spaces.speech.export") }}</UiButton
+        ><Download class="size-3.5" />{{ t("common.export") }}</UiButton
       >
     </div>
     <SpeechSignalInspection

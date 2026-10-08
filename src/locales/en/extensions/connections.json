@@ -1,0 +1,40 @@
+{
+  "name": "Connection name",
+  "configuration": {
+    "headers": "Public request headers (JSON)",
+    "environment": "Public environment variables (JSON)",
+    "secretsHint": "Add API tokens, sensitive headers, and secret environment variables under Authorization.",
+    "invalid": "Enter a JSON object with string values."
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Allow access to the configured localhost or LAN address",
+  "tools": {
+    "policyHint": "Tools are denied by default. Verify read-only tools yourself; server labels are only claims. Research can use only tools you mark read-only.",
+    "policy": "Invocation policy",
+    "deny": "Deny",
+    "confirm": "Confirm each invocation",
+    "allow": "Allow",
+    "reviewedReadOnly": "Reviewed as read-only",
+    "serverReadOnlyHint": "Server claims read-only",
+    "savePermissions": "Save tool permissions"
+  },
+  "account": {
+    "label": "Account used by this connection",
+    "none": "No account bound",
+    "changeHint": "Changing accounts disables this connection and clears its tool permissions. Review permissions before enabling it again."
+  },
+  "add": "Add connection",
+  "configure": "Configure",
+  "accountsAndTools": "Accounts and tools",
+  "check": "Check connection and read catalog",
+  "empty": "No connections for this service",
+  "cleanupPending": "Changes saved, but cleanup is incomplete. Affected accounts remain unavailable.",
+  "count": "{count} connection | {count} connections",
+  "delete": {
+    "title": "Delete connection {name}?",
+    "description": "Only this connection is deleted. Other connections to the service are kept."
+  },
+  "accounts": "Accounts",
+  "title": "Connections",
+  "manage": "Manage"
+}

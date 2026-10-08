@@ -23,7 +23,7 @@ const presetOptions = computed(() =>
     .filter((voice) => voice.primaryLanguage === language.value)
     .map((voice) => ({
       value: voice.speakerId,
-      label: `${voice.name} · ${voice.primaryLanguage} · ${t(`spaces.speech.${voice.gender}`)}`,
+      label: `${voice.name} · ${voice.primaryLanguage} · ${t(`spaces.speech.voice.gender.${voice.gender}`)}`,
     })),
 );
 const name = shallowRef("");
@@ -58,8 +58,8 @@ function submit() {
     <UiInput
       v-model="name"
       size="sm"
-      :placeholder="t('spaces.speech.voiceName')"
-      :aria-label="t('spaces.speech.voiceName')"
+      :placeholder="t('spaces.speech.voice.name')"
+      :aria-label="t('spaces.speech.voice.name')"
       :disabled="disabled"
     />
     <p v-if="error" class="text-caption text-fg-danger">{{ error.message }}</p>
@@ -68,7 +68,7 @@ function submit() {
         v-model="speakerId"
         class="min-w-0 flex-1"
         size="sm"
-        :label="t('spaces.speech.voice')"
+        :label="t('spaces.speech.voice.label')"
         :options="presetOptions"
         :disabled="disabled || !presets"
       />
@@ -76,12 +76,12 @@ function submit() {
         v-model="language"
         class="min-w-28"
         size="sm"
-        :label="t('spaces.speech.language')"
+        :label="t('spaces.speech.project.language')"
         :options="languageOptions"
         :disabled="disabled"
       />
       <UiButton size="sm" variant="primary" type="submit" :disabled="disabled || !presets">{{
-        t("spaces.speech.addVoice")
+        t("spaces.speech.voice.add")
       }}</UiButton>
     </div>
     <VoiceAudition

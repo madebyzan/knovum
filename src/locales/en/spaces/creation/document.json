@@ -9,11 +9,11 @@
   },
   "generate": "Generate document",
   "title": "Create a document from selected knowledge",
-  "description": "Knovum will draft a cited Markdown resource beside the selected sources.",
+  "description": "Draft a cited Markdown resource beside the selected sources.",
   "defaultTitle": "Knowledge draft",
   "purpose": "Document brief",
   "purposePlaceholder": "Describe the document’s goal, format, and key points.",
-  "sources": "{count} knowledge sources",
+  "sources": "{count} knowledge source | {count} knowledge sources",
   "task": "Generating document",
   "generating": "Generating from selected knowledge…",
   "failed": "Could not generate document"

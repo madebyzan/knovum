@@ -27,7 +27,7 @@ export const creationIntentDefinitions = [
   },
   {
     id: "generate-visualization",
-    labelKey: "spaces.creation.image.visualize",
+    labelKey: "spaces.creation.image.visualization.title",
     icon: "image",
     decide: decideKnowledgeIntent,
   },

@@ -26,7 +26,7 @@ function bind(id: string) {
 }
 const selected = computed({ get: () => props.connection.accountId ?? "none", set: bind });
 const options = computed(() => [
-  { value: "none", label: t("extensions.noAccount") },
+  { value: "none", label: t("extensions.connections.account.none") },
   ...accounts.value.map((account) => ({
     value: account.id,
     label: account.displayName,
@@ -38,16 +38,16 @@ const options = computed(() => [
 <template>
   <section class="space-y-1">
     <div class="space-y-1.5">
-      <span class="text-caption text-fg-secondary">{{ $t("extensions.selectedAccount") }}</span
+      <span class="text-caption text-fg-secondary">{{ $t("extensions.connections.account.label") }}</span
       ><UiSelect
         v-model="selected"
-        :label="$t('extensions.selectedAccount')"
+        :label="$t('extensions.connections.account.label')"
         :options="options"
         :disabled="query.isPending.value || changes.isPending.value"
         data-testid="select-connector-account"
       />
     </div>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.accountBindingChanges") }}</p>
+    <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.account.changeHint") }}</p>
     <p v-if="query.error.value || changes.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(query.error.value || changes.error.value) }}
     </p>

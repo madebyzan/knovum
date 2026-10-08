@@ -1,0 +1,12 @@
+{
+  "title": "Voice management",
+  "empty": "No voices in this Space.",
+  "manage": "Manage voices and reference audio",
+  "description": "Save voices for speech generation, use temporary reference audio, and copy voices between Spaces.",
+  "space": "Space: {name}",
+  "requiresSpace": "Create a Space to manage voices and reference audio.",
+  "presets": "Preset voices",
+  "add": "Upload reference audio or design a voice",
+  "spaceLabel": "Voice library Space",
+  "firstVoice": "Choose a preset voice to get started. It will be saved to the voice library."
+}

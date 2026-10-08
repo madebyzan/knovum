@@ -147,7 +147,7 @@ function toggleAspect() {
         size="sm"
         class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         @click="emit('apply')"
-        >{{ t("spaces.media.imageEditor.crop.complete") }}</UiButton
+        >{{ t("common.done") }}</UiButton
       >
     </footer>
   </section>

@@ -50,11 +50,11 @@ it("refreshes authorization state after a failed authorization flow", async () =
   try {
     await flushPromises();
     const form = wrapper.get('[data-testid="connector-authorization"]');
-    expect(form.text()).toContain("extensions.authorized");
+    expect(form.text()).toContain("extensions.accounts.authorized");
     await form.get('input[type="password"]').setValue("submitted-token");
     await form.trigger("submit");
     await flushPromises();
-    expect(form.text()).toContain("extensions.credentialCleanupPending");
+    expect(form.text()).toContain("extensions.accounts.cleanupPending");
     expect(form.text()).toContain("credential-write-failed");
     expect(form.get('input[type="password"]').element).toHaveProperty("value", "");
   } finally {

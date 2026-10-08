@@ -71,18 +71,22 @@ export function useVideoTranslationRun(
       }
       return;
     }
-    stopObservation = observeResourceRun(run, i18n.global.t("spaces.speech.translateScript"), (next) => {
-      if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
-      stopObservation?.();
-      stopObservation = undefined;
-      if (next.state === "succeeded") void load(next.id, current);
-      else if (next.state === "cancelled") {
-        activeRunId.value = undefined;
-      } else {
-        activeRunId.value = undefined;
-        report(i18n.global.t(workflowStateLabelKey(next.state)));
-      }
-    });
+    stopObservation = observeResourceRun(
+      run,
+      i18n.global.t("spaces.speech.translation.translate"),
+      (next) => {
+        if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
+        stopObservation?.();
+        stopObservation = undefined;
+        if (next.state === "succeeded") void load(next.id, current);
+        else if (next.state === "cancelled") {
+          activeRunId.value = undefined;
+        } else {
+          activeRunId.value = undefined;
+          report(i18n.global.t(workflowStateLabelKey(next.state)));
+        }
+      },
+    );
   }
 
   async function load(runId: string, current: number) {

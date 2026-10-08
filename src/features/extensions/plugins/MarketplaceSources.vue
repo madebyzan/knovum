@@ -33,9 +33,9 @@ function add(source: MarketplaceSource) {
 async function remove(id: string) {
   if (
     await confirmAction({
-      title: t("extensions.removeSource"),
-      description: t("extensions.removeSourceDescription"),
-      confirmLabel: t("extensions.remove"),
+      title: t("extensions.plugins.catalogs.remove.title"),
+      description: t("extensions.plugins.catalogs.remove.description"),
+      confirmLabel: t("common.remove"),
       danger: true,
     })
   ) {
@@ -48,8 +48,8 @@ async function remove(id: string) {
   <UiDialog
     :open="open"
     @update:open="!changes.isPending.value && (open = $event)"
-    :title="$t('extensions.manageSources')"
-    :description="$t('extensions.sourcesDescription')"
+    :title="$t('extensions.plugins.catalogs.title')"
+    :description="$t('extensions.plugins.catalogs.description')"
     :closable="!changes.isPending.value"
   >
     <div class="space-y-5">
@@ -68,7 +68,7 @@ async function remove(id: string) {
             variant="ghost"
             :disabled="changes.isPending.value"
             @click="mutate(() => refreshPluginMarketplace(source.id))"
-            >{{ $t("extensions.refresh") }}</UiButton
+            >{{ $t("common.refresh") }}</UiButton
           >
           <UiButton
             size="sm"
@@ -76,12 +76,12 @@ async function remove(id: string) {
             :disabled="changes.isPending.value"
             class="text-fg-danger"
             @click="remove(source.id)"
-            >{{ $t("extensions.remove") }}</UiButton
+            >{{ $t("common.remove") }}</UiButton
           >
         </div>
       </div>
       <section>
-        <h3 class="mb-3 text-body font-medium">{{ $t("extensions.addSource") }}</h3>
+        <h3 class="mb-3 text-body font-medium">{{ $t("extensions.plugins.catalogs.add") }}</h3>
         <MarketplaceSourceForm :busy="changes.isPending.value" @add="add" />
       </section>
       <p v-if="changes.error.value" role="alert" class="text-body text-fg-danger">
@@ -90,7 +90,7 @@ async function remove(id: string) {
     </div>
     <template #footer
       ><UiButton :disabled="changes.isPending.value" data-testid="close-marketplaces" @click="open = false">{{
-        $t("extensions.close")
+        $t("common.close")
       }}</UiButton></template
     >
   </UiDialog>

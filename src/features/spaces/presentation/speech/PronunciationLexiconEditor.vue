@@ -31,12 +31,12 @@ function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word
     <div class="flex items-center justify-between gap-2">
       <div>
         <h3 class="text-caption font-medium text-fg-secondary">
-          {{ t("spaces.speech.pronunciationLexicon") }}
+          {{ t("spaces.speech.audiobook.lexicon.title") }}
         </h3>
-        <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.pronunciationHint") }}</p>
+        <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.audiobook.lexicon.hint") }}</p>
       </div>
       <UiButton size="sm" variant="ghost" :disabled="disabled || entries.length >= 1000" @click="addRule">
-        <Plus class="size-3.5" />{{ t("spaces.speech.addPronunciation") }}
+        <Plus class="size-3.5" />{{ t("spaces.speech.audiobook.lexicon.add") }}
       </UiButton>
     </div>
     <div v-for="entry in entries" :key="entry.id" class="flex items-center gap-1">
@@ -45,7 +45,7 @@ function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word
         class="min-w-0 flex-1"
         size="sm"
         :disabled="disabled"
-        :placeholder="t('spaces.speech.pronunciationWord')"
+        :placeholder="t('spaces.speech.audiobook.lexicon.word')"
         @update:model-value="updateRule(entry.id, { word: $event })"
       />
       <UiInput
@@ -53,20 +53,20 @@ function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word
         class="min-w-0 flex-1"
         size="sm"
         :disabled="disabled"
-        :placeholder="t('spaces.speech.pronunciationReading')"
+        :placeholder="t('spaces.speech.audiobook.lexicon.reading')"
         @update:model-value="updateRule(entry.id, { pronunciation: $event })"
       />
       <UiIconButton
         size="sm"
         :disabled="disabled"
-        :label="t('spaces.speech.removePronunciation')"
+        :label="t('spaces.speech.audiobook.lexicon.remove')"
         @click="removeRule(entry.id)"
       >
         <Trash2 class="size-3.5" />
       </UiIconButton>
     </div>
     <p v-if="!valid" class="text-caption-sm text-fg-danger">
-      {{ t("spaces.speech.pronunciationInvalid") }}
+      {{ t("spaces.speech.audiobook.lexicon.invalid") }}
     </p>
   </section>
 </template>

@@ -1,26 +1,22 @@
 {
-  "title": "设置",
   "backToApp": "返回应用",
   "search": "搜索设置项…",
-  "preferences": "通用",
   "noResults": "未找到匹配的设置项。",
   "load": {
     "failed": "无法载入设置",
-    "failedDescription": "已保存的数据不符合当前设置格式。请重试，或仅重置此设置区域。"
+    "failedDescription": "已保存数据与当前格式不兼容。请重试或重置此区域。"
   },
   "reset": {
     "action": "重置此区域",
-    "confirmation": "要重置此设置区域保存的数据吗？此操作无法撤销。"
+    "confirmation": "重置此区域的已保存设置？此操作无法撤销。"
   },
   "about": {
     "title": "关于",
     "author": "作者",
-    "description": "应用版本与系统信息。"
+    "description": "版本与系统信息。"
   },
   "version": "版本 {version}",
   "readingVersion": "正在读取版本…",
-  "data": "数据与归档",
-  "information": "信息",
   "archived": {
     "title": "已归档空间",
     "description": "恢复或永久删除归档的空间。",
@@ -40,5 +36,11 @@
     },
     "empty": "暂无已归档的空间。"
   },
-  "inboxSpace": "收集箱"
+  "inboxSpace": "收集箱",
+  "groups": {
+    "intelligence": "智能能力",
+    "general": "通用",
+    "data": "数据与归档",
+    "information": "信息"
+  }
 }

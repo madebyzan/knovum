@@ -67,7 +67,10 @@ it.each([false, true])(
     if (closed) submission.reset();
     created(run);
     await completion;
-    expect(mocks.observeResourceRun).toHaveBeenCalledExactlyOnceWith(run, "spaces.speech.generateCandidate");
+    expect(mocks.observeResourceRun).toHaveBeenCalledExactlyOnceWith(
+      run,
+      "spaces.speech.voice.candidate.generate",
+    );
     expect(attach).toHaveBeenCalledExactlyOnceWith(run);
     expect(mocks.cancelResourceRun).toHaveBeenCalledExactlyOnceWith(run.id);
     expect(submission.jobId.value).toBeUndefined();

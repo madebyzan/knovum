@@ -4,7 +4,7 @@
   "createFromSelection": "Save derivation chain as workflow",
   "derivation": {
     "loading": "Inspecting derivation…",
-    "separateChains": "The selection contains {count} disconnected derivation chains. Select the intended outputs separately.",
+    "separateChains": "The selection contains {count} disconnected derivation chain. Select the intended outputs separately. | The selection contains {count} disconnected derivation chains. Select the intended outputs separately.",
     "chain": "Chain {index}",
     "steps": "Verified actions",
     "inputs": "Process inputs",
@@ -21,7 +21,7 @@
     "slot": "Input {index}",
     "bind": "Bind selected materials to inputs",
     "select": "Select material",
-    "sequenceLimit": "Process in the order below, up to {count} items",
+    "sequenceLimit": "Process in the order below, up to {count} item | Process in the order below, up to {count} items",
     "moveUp": "Move material up",
     "moveDown": "Move material down",
     "missing": "The selection lacks a material type required by this workflow."

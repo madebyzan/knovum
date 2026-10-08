@@ -15,5 +15,5 @@ const options = [
 </script>
 
 <template>
-  <UiSelect v-model="model" size="sm" :label="t('spaces.speech.wavPrecision')" :options :disabled />
+  <UiSelect v-model="model" size="sm" :label="t('spaces.speech.audiobook.wavPrecision')" :options :disabled />
 </template>

@@ -26,5 +26,7 @@
     },
     "noMatches": "No matching shortcuts"
   },
-  "runtimeModels": {}
+  "startup": {
+    "starting": "Starting Knovum…"
+  }
 }

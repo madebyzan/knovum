@@ -67,9 +67,9 @@ async function importSubtitles() {
     if (typeof path !== "string" || version !== epoch) return;
     const text = await readDubbingSubtitles(path);
     if (version !== epoch) return;
-    const cues = parseDubbingSubtitles(text, t("spaces.speech.defaultRole"));
+    const cues = parseDubbingSubtitles(text, t("spaces.speech.project.defaultRole"));
     if (cues.some((cue) => cue.endMs > config.value.video.durationMs))
-      throw new Error(t("spaces.speech.subtitleBeyondSource"));
+      throw new Error(t("spaces.speech.videoDubbing.subtitleBeyondSource"));
     emit("imported", cues);
     error.value = undefined;
   } catch (cause) {
@@ -90,7 +90,7 @@ defineExpose({ audition: (startMs: number, endMs: number) => player.value?.seekT
         :checked="config.retainOriginalTrack"
         :disabled
         @change="update('retainOriginalTrack', ($event.target as HTMLInputElement).checked)"
-      />{{ t("spaces.speech.retainOriginalTrack") }}</label
+      />{{ t("spaces.speech.videoDubbing.retainOriginalTrack") }}</label
     >
     <label class="flex gap-2 text-caption text-fg-secondary"
       ><input
@@ -98,10 +98,10 @@ defineExpose({ audition: (startMs: number, endMs: number) => player.value?.seekT
         :checked="config.preserveOriginalOutsideDialogue"
         :disabled="disabled || !config.backgroundSeparation || !config.sourceDialogueIntervals.length"
         @change="update('preserveOriginalOutsideDialogue', ($event.target as HTMLInputElement).checked)"
-      />{{ t("spaces.speech.preserveOriginalOutsideDialogue") }}</label
+      />{{ t("spaces.speech.videoDubbing.preserveOriginalOutsideDialogue") }}</label
     >
     <UiButton size="sm" :disabled="disabled || importing" @click="importSubtitles">{{
-      t("spaces.speech.importSubtitles")
+      t("spaces.speech.videoDubbing.importSubtitles")
     }}</UiButton>
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
     <div v-for="speaker in speakers" :key="speaker.key" class="flex items-center gap-2">
@@ -110,8 +110,8 @@ defineExpose({ audition: (startMs: number, endMs: number) => player.value?.seekT
         :model-value="speaker.revisionId"
         size="sm"
         :options="voiceOptions"
-        :label="t('spaces.speech.voice')"
-        :placeholder="t('spaces.speech.mixedVoiceBindings')"
+        :label="t('spaces.speech.voice.label')"
+        :placeholder="t('spaces.speech.videoDubbing.mixedVoiceBindings')"
         :disabled
         @update:model-value="emit('bind', speaker.key, $event)"
       />

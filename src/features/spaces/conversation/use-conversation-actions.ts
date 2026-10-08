@@ -56,7 +56,7 @@ export function useConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation) return;
     const confirmed = await confirmAction({
-      title: i18n.global.t("spaces.conversation.conversations.delete"),
+      title: i18n.global.t("common.delete"),
       description: i18n.global.t("spaces.conversation.conversations.deleteConfirm", {
         title: conversation.title,
       }),

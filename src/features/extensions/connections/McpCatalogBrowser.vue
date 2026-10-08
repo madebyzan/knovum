@@ -71,37 +71,37 @@ function change() {
 
 <template>
   <section class="space-y-3" data-testid="mcp-catalog-browser">
-    <h3 class="text-body font-medium">{{ $t("extensions.browseResourcesAndPrompts") }}</h3>
+    <h3 class="text-body font-medium">{{ $t("extensions.catalog.browse") }}</h3>
     <form class="space-y-2" @submit.prevent="reading.mutate()">
       <div class="space-y-1.5">
-        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalogKind") }}</span
+        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.kind") }}</span
         ><UiSelect
           v-model="kind"
           :disabled="reading.isPending.value"
-          :label="$t('extensions.catalogKind')"
+          :label="$t('extensions.catalog.kind')"
           :options="[
-            { value: 'resource', label: $t('extensions.resources') },
-            { value: 'template', label: $t('extensions.resourceTemplates') },
-            { value: 'prompt', label: $t('extensions.prompts') },
+            { value: 'resource', label: $t('extensions.catalog.resources') },
+            { value: 'template', label: $t('extensions.catalog.templates') },
+            { value: 'prompt', label: $t('extensions.catalog.prompts') },
           ]"
           @update:model-value="change"
         />
       </div>
       <div class="space-y-1.5">
-        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalogItem") }}</span
+        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.item") }}</span
         ><UiSelect
           v-model="name"
           :disabled="reading.isPending.value || !items.length"
-          :label="$t('extensions.catalogItem')"
+          :label="$t('extensions.catalog.item')"
           :options="items"
         />
       </div>
       <label v-if="kind !== 'resource'" class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.parameters")
+        >{{ $t("extensions.catalog.parameters")
         }}<UiTextarea v-model="parameters" :disabled="reading.isPending.value" class="font-mono" :rows="3"
       /></label>
       <UiButton size="sm" type="submit" :disabled="reading.isPending.value || !name || !connection.enabled">{{
-        $t("extensions.read")
+        $t("extensions.catalog.read")
       }}</UiButton>
     </form>
     <p v-if="reading.error.value" role="alert" class="text-caption text-fg-danger">

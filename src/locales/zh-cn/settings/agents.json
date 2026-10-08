@@ -10,14 +10,14 @@
   },
   "entry": {
     "missing": "未检测到命令入口",
-    "applicationOnly": "仅检测到应用",
+    "applicationOnly": "已找到应用，命令不可用",
     "commandDetected": "已检测到命令"
   },
   "requiredCommands": "所需命令：{commands}",
   "connectionHelp": "{name} 接入说明",
   "officialDocumentation": "官方说明",
   "acpSetup": "ACP 接入",
-  "detectionBoundary": "检测仅确认命令入口，不验证登录或 ACP 连接。",
+  "detectionBoundary": "仅检查命令是否可用，不验证登录状态或 ACP 连接。",
   "documentationOpenFailed": "无法打开 Agent 官方链接",
   "connections": {
     "executableCli": {

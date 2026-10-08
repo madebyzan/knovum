@@ -70,11 +70,19 @@ function answer(id: string, response: Parameters<typeof answerMcpUserInteraction
       >
         <h3 class="text-body font-medium">
           {{
-            $t(operation.state === "prepared" ? "extensions.toolApproval" : "extensions.toolOutcomeUnknown")
+            $t(
+              operation.state === "prepared"
+                ? "spaces.conversation.toolOperations.approval.title"
+                : "spaces.conversation.toolOperations.outcomeUnknown.title",
+            )
           }}
         </h3>
+        <p v-if="operation.state === 'outcome_unknown'" class="text-fg-muted text-caption">
+          {{ $t("spaces.conversation.toolOperations.outcomeUnknown.description") }}
+        </p>
         <p class="text-caption">
-          {{ operation.name }} · {{ $t("extensions.attempt") }} {{ operation.attempt }}
+          {{ operation.name }} · {{ $t("spaces.conversation.toolOperations.attempt") }}
+          {{ operation.attempt }}
         </p>
         <pre class="max-h-32 overflow-auto rounded-sm bg-surface-control p-2 text-caption">{{
           JSON.stringify(
@@ -85,14 +93,14 @@ function answer(id: string, response: Parameters<typeof answerMcpUserInteraction
         }}</pre>
         <div v-if="operation.state === 'prepared'" class="flex gap-2">
           <UiButton size="sm" :disabled="mutation.isPending.value" @click="decide(operation.id, 'approve')">{{
-            $t("extensions.approve")
+            $t("spaces.conversation.toolOperations.approval.allow")
           }}</UiButton
           ><UiButton
             size="sm"
             variant="dangerSubtle"
             :disabled="mutation.isPending.value"
             @click="decide(operation.id, 'deny')"
-            >{{ $t("extensions.denyOperation") }}</UiButton
+            >{{ $t("spaces.conversation.toolOperations.approval.deny") }}</UiButton
           >
         </div>
         <div v-else class="flex gap-2">
@@ -100,13 +108,13 @@ function answer(id: string, response: Parameters<typeof answerMcpUserInteraction
             size="sm"
             :disabled="mutation.isPending.value"
             @click="decide(operation.id, 'new_attempt')"
-            >{{ $t("extensions.newAttempt") }}</UiButton
+            >{{ $t("spaces.conversation.toolOperations.outcomeUnknown.retry") }}</UiButton
           ><UiButton
             size="sm"
             variant="dangerSubtle"
             :disabled="mutation.isPending.value"
             @click="decide(operation.id, 'stop')"
-            >{{ $t("extensions.stop") }}</UiButton
+            >{{ $t("spaces.conversation.toolOperations.outcomeUnknown.stop") }}</UiButton
           >
         </div>
       </article>

@@ -9,7 +9,7 @@
   },
   "generate": "生成文档",
   "title": "用选中知识生成文档",
-  "description": "知生知会在来源旁生成一份带引用的 Markdown 知识资源。",
+  "description": "在所选来源旁生成带引用的 Markdown 知识资源。",
   "defaultTitle": "知识草稿",
   "purpose": "文档要求",
   "purposePlaceholder": "说明文档目标、形式和需要保留的重点。",

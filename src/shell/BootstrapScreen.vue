@@ -46,7 +46,7 @@ function reload() {
         </div>
       </div>
       <p class="mt-4 text-label font-medium tracking-tight text-fg-secondary">
-        {{ t("common.starting") }}
+        {{ t("shell.startup.starting") }}
       </p>
     </div>
   </main>

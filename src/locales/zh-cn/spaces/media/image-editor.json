@@ -1,7 +1,6 @@
 {
   "crop": {
     "title": "裁剪",
-    "complete": "完成",
     "original": "原始比例",
     "presets": "预设",
     "general": "通用",
@@ -22,7 +21,10 @@
   "removeObject": {
     "tool": "橡皮擦",
     "mode": "移除方式",
-    "modes": { "mask": "涂抹选区", "prompt": "文字描述" },
+    "modes": {
+      "mask": "涂抹选区",
+      "prompt": "文字描述"
+    },
     "undo": "撤销选区笔画",
     "brushSize": "选区画笔",
     "promptLabel": "描述要移除的内容",

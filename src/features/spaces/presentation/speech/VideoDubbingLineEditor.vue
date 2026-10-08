@@ -45,7 +45,7 @@ function selectVoice(voiceRevisionId: string) {
   <section class="space-y-2 rounded-md border border-stroke-divider p-2">
     <div class="grid grid-cols-2 gap-2">
       <label class="text-caption text-fg-secondary">
-        {{ t("spaces.speech.startSeconds") }}
+        {{ t("spaces.speech.videoDubbing.startSeconds") }}
         <UiInput
           :model-value="line.startSeconds"
           size="sm"
@@ -57,7 +57,7 @@ function selectVoice(voiceRevisionId: string) {
         />
       </label>
       <label class="text-caption text-fg-secondary">
-        {{ t("spaces.speech.endSeconds") }}
+        {{ t("spaces.speech.videoDubbing.endSeconds") }}
         <UiInput
           :model-value="line.endSeconds"
           size="sm"
@@ -73,11 +73,11 @@ function selectVoice(voiceRevisionId: string) {
       :model-value="line.text"
       :rows="3"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.scriptPlaceholder')"
+      :placeholder="t('spaces.speech.project.scriptPlaceholder')"
       @update:model-value="update('text', $event)"
     />
     <p v-if="showSource && line.sourceText" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.translationSource") }}: {{ line.sourceText }}
+      {{ t("spaces.speech.translation.source") }}: {{ line.sourceText }}
     </p>
     <UiButton
       size="sm"
@@ -87,14 +87,14 @@ function selectVoice(voiceRevisionId: string) {
         milliseconds(line.endSeconds) <= milliseconds(line.startSeconds)
       "
       @click="emit('source', milliseconds(line.startSeconds), milliseconds(line.endSeconds))"
-      >{{ t("spaces.speech.auditionSourceWindow") }}</UiButton
+      >{{ t("spaces.speech.videoDubbing.auditionSourceWindow") }}</UiButton
     >
     <div class="flex items-center gap-1">
       <UiInput
         :model-value="line.speakerKey"
         size="sm"
         class="min-w-0 flex-1"
-        :placeholder="t('spaces.speech.role')"
+        :placeholder="t('spaces.speech.project.role')"
         :disabled="disabled"
         @update:model-value="update('speakerKey', $event)"
       />
@@ -102,7 +102,7 @@ function selectVoice(voiceRevisionId: string) {
         :model-value="line.voiceRevisionId"
         size="sm"
         class="min-w-0 flex-1"
-        :label="t('spaces.speech.voice')"
+        :label="t('spaces.speech.voice.label')"
         :options="voiceOptions"
         :disabled="disabled"
         @update:model-value="selectVoice"
@@ -110,7 +110,7 @@ function selectVoice(voiceRevisionId: string) {
       <UiButton
         size="sm"
         variant="ghost"
-        :aria-label="t('spaces.speech.preview')"
+        :aria-label="t('spaces.speech.project.preview')"
         :disabled="disabled || !lexiconValid || !line.text.trim() || !line.voiceRevisionId"
         @click="
           emit(
@@ -125,7 +125,7 @@ function selectVoice(voiceRevisionId: string) {
       <UiButton
         size="sm"
         variant="dangerSubtle"
-        :aria-label="t('spaces.speech.removeLine')"
+        :aria-label="t('spaces.speech.videoDubbing.removeLine')"
         :disabled="disabled"
         @click="emit('remove')"
         ><Trash2 class="size-3.5"
@@ -137,12 +137,12 @@ function selectVoice(voiceRevisionId: string) {
       :rows="2"
       :maxlength="500"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.deliveryInstructionPlaceholder')"
-      :aria-label="t('spaces.speech.deliveryInstruction')"
+      :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
+      :aria-label="t('spaces.speech.project.deliveryInstruction')"
       @update:model-value="update('deliveryInstruction', $event)"
     />
     <p v-if="line.needsTimingEdit" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.needsTimingEdit") }}
+      {{ t("spaces.speech.videoDubbing.needsTimingEdit") }}
     </p>
   </section>
 </template>
