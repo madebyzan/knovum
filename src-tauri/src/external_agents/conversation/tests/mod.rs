@@ -4,7 +4,7 @@ use futures::StreamExt;
 use serde_json::json;
 use std::time::Duration;
 
-async fn respond(peer: &mut Channel, method: &str, result: serde_json::Value) {
+async fn respond(peer: &mut Channel, method: &str, outcome: serde_json::Value) {
     let TransportFrame::Single(RawJsonRpcMessage::Request(request)) = peer.rx.next().await.unwrap()
     else {
         panic!("expected an ACP request");
@@ -12,7 +12,7 @@ async fn respond(peer: &mut Channel, method: &str, result: serde_json::Value) {
     let request = serde_json::to_value(request).unwrap();
     assert_eq!(request["method"], method);
     let response = serde_json::from_value(json!({
-        "jsonrpc": "2.0", "id": request["id"], "result": result,
+        "jsonrpc": "2.0", "id": request["id"], "result": outcome,
     }))
     .unwrap();
     peer.tx
@@ -38,7 +38,7 @@ async fn idle_transport_disconnect_ends_the_session_and_notifies_its_owner() {
         let (ready, session) = oneshot::channel();
         let (settled, completion) = oneshot::channel();
         let task = tokio::spawn(async move {
-            let result = serve_connection(
+            let outcome = serve_connection(
                 transport,
                 context(completion),
                 receiver,
@@ -46,7 +46,7 @@ async fn idle_transport_disconnect_ends_the_session_and_notifies_its_owner() {
                 ready,
             )
             .await;
-            let _ = settled.send(result);
+            let _ = settled.send(outcome);
         });
         initialized_peer(&mut peer).await;
         let session = session.await.unwrap().unwrap();
@@ -85,11 +85,11 @@ async fn explicit_finish_and_cancellation_keep_their_distinct_outcomes() {
             } else {
                 requests.send(ConversationRequest::Finish).await.unwrap();
             }
-            let result = task.await.unwrap();
+            let outcome = task.await.unwrap();
             if cancel {
-                assert_eq!(result.unwrap_err().code, "cancelled");
+                assert_eq!(outcome.unwrap_err().code, "cancelled");
             } else {
-                result.unwrap();
+                outcome.unwrap();
             }
         })
         .await
@@ -104,7 +104,7 @@ async fn disconnect_during_initialization_fails_without_a_ready_session() {
     let (ready, session) = oneshot::channel();
     let (_settled, completion) = oneshot::channel();
     drop(peer);
-    let result = tokio::time::timeout(
+    let outcome = tokio::time::timeout(
         Duration::from_secs(3),
         serve_connection(
             transport,
@@ -116,7 +116,7 @@ async fn disconnect_during_initialization_fails_without_a_ready_session() {
     )
     .await
     .unwrap();
-    assert!(result.is_err());
+    assert!(outcome.is_err());
     assert!(session.await.is_err());
 }
 

@@ -15,10 +15,10 @@ pub(in crate::spaces) struct LocalActionOperationOutcome {
     pub target_selection: Option<Value>,
 }
 
-fn arguments_digest(arguments: &Value) -> Result<String, String> {
+fn context_digest(context: &Value) -> Result<String, String> {
     use sha2::{Digest, Sha256};
     Ok(hex::encode(Sha256::digest(
-        serde_json::to_vec(arguments).map_err(|error| error.to_string())?,
+        serde_json::to_vec(context).map_err(|error| error.to_string())?,
     )))
 }
 

@@ -23,8 +23,8 @@ fn reclamation_only_removes_unretained_directories() {
     ] {
         fs::write(root.join(file), b"unmanaged file").unwrap();
     }
-    let result = collect_content(&root, &retained, BTreeSet::new());
-    assert!(result.is_ok(), "{result:?}");
+    let collection = collect_content(&root, &retained, BTreeSet::new());
+    assert!(collection.is_ok(), "{collection:?}");
     for directory in [
         "plugins/installed/revisions/current",
         "plugin-data/installed",

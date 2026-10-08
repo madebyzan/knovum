@@ -52,23 +52,23 @@ def test_tool_intent_is_durable_before_side_effect_and_interrupt_replays_identit
             graph = create_deep_agent(
                 model=model, tools=[publish], backend=StateBackend(), checkpointer=saver, context_schema=dict
             )
-            result = await graph.ainvoke(
+            graph_state = await graph.ainvoke(
                 {"messages": [HumanMessage(content="publish", id="input-1")]},
                 config,
                 durability="sync",
                 context={"runId": "intent-run"},
             )
-            assert result["__interrupt__"][0].value == {"childRunId": "existing-child"}
+            assert graph_state["__interrupt__"][0].value == {"childRunId": "existing-child"}
             assert len(model.requests) == 1
 
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             graph = create_deep_agent(
                 model=model, tools=[publish], backend=StateBackend(), checkpointer=saver, context_schema=dict
             )
-            result = await graph.ainvoke(
+            graph_state = await graph.ainvoke(
                 Command(resume="child finished"), config, durability="sync", context={"runId": "intent-run"}
             )
-            assert result["messages"][-1].content == "published"
+            assert graph_state["messages"][-1].content == "published"
             assert observed == [("model-intent", "call-publish")] * 2
             assert len(committed) == 1
             assert len(set(namespaces)) == 1
@@ -113,17 +113,17 @@ def test_pause_is_a_durable_boundary_and_resume_does_not_append_input_twice(tmp_
         config = {"configurable": {"thread_id": "paused-thread"}}
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             graph = create_deep_agent(model=model, middleware=[boundary], checkpointer=saver)
-            result = await graph.ainvoke(
+            graph_state = await graph.ainvoke(
                 {"messages": [HumanMessage(content="hello", id="accepted-input")]}, config, durability="sync"
             )
-            assert result["__interrupt__"][0].value == {"reason": "pause"}
+            assert graph_state["__interrupt__"][0].value == {"reason": "pause"}
             assert model.requests == []
             state = await graph.aget_state(config)
             assert [message.id for message in state.values["messages"]] == ["accepted-input"]
             boundary.paused = False
-            result = await graph.ainvoke(Command(resume=True), config, durability="sync")
-            assert len([message for message in result["messages"] if message.id == "accepted-input"]) == 1
-            assert result["messages"][-1].content == "resumed"
+            graph_state = await graph.ainvoke(Command(resume=True), config, durability="sync")
+            assert len([message for message in graph_state["messages"] if message.id == "accepted-input"]) == 1
+            assert graph_state["messages"][-1].content == "resumed"
 
     asyncio.run(run())
 
@@ -160,8 +160,8 @@ def test_research_uses_its_own_admission_and_cannot_inherit_writes() -> None:
             tools=[write_asset],
             subagents=[{"name": "research", "description": "Read-only research", "model": research, "tools": []}],
         )
-        result = await graph.ainvoke({"messages": [HumanMessage(content="research", id="research-input")]})
-        assert result["messages"][-1].content == "research complete"
+        graph_state = await graph.ainvoke({"messages": [HumanMessage(content="research", id="research-input")]})
+        assert graph_state["messages"][-1].content == "research complete"
         assert len(main_recorder.starts) == len(main_recorder.completions) == 2
         assert len(research_recorder.starts) == len(research_recorder.completions) == 1
         assert "write_asset" not in research.advertised_tools[0]

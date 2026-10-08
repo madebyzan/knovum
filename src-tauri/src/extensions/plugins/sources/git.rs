@@ -53,7 +53,7 @@ pub(super) fn read(
             }
         }
     });
-    let result = read_objects(
+    let object_read = read_objects(
         url,
         reference,
         subdirectory,
@@ -74,7 +74,7 @@ pub(super) fn read(
             "package_size_limit_exceeded",
             "Plugin Git source exceeded the staging size limit",
         )),
-        _ => result,
+        _ => object_read,
     }
 }
 

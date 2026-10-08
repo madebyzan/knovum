@@ -2,18 +2,18 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, expect, it, vi } from "vitest";
 import { shallowRef, type ShallowRef } from "vue";
 
-import type { LocalModelEntry } from "../../../../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import SpaceTranscriptAlignmentControl from "../SpaceTranscriptAlignmentControl.vue";
 
 type ModelState = {
-  data: ShallowRef<LocalModelEntry[] | undefined>;
+  data: ShallowRef<LocalModelAvailability[] | undefined>;
   isPending: ShallowRef<boolean>;
   error: ShallowRef<Error | null>;
 };
 const models = vi.hoisted(() => ({ useLocalModelsQuery: vi.fn<() => ModelState>() }));
 vi.mock("../../../../../foundation/runtime/resource-query", () => models);
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-const selected: LocalModelEntry = {
+const selected: LocalModelAvailability = {
   id: "qwen3AlignerQ8",
   name: "Qwen3 Q8",
   capability: "speechAlignment",

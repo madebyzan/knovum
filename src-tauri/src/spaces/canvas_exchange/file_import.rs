@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle};
 
-use super::{contract::JsonCanvasDocumentV1, import::JsonCanvasImportReceipt};
+use super::{contracts::JsonCanvasDocumentV1, import::JsonCanvasImportReceipt};
 use crate::app_error::AppError;
 use crate::spaces::{
     assets::import::commit::AssetImportProgress,

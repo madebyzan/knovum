@@ -130,7 +130,7 @@ def test_tts_requires_three_distinct_reviews_before_reveal(tmp_path: Path, chang
 def test_unavailable_cannot_hide_failed_scores(tmp_path: Path) -> None:
     corpus, capture = acceptance_files(tmp_path)
     manifest = json.loads(capture.read_text())
-    manifest["capabilities"]["tts"] = {"status": "unavailable", "reason": "native audio absent"}
+    manifest["capabilities"]["tts"] = {"status": "unavailable", "reason": "compiled audio absent"}
     capture.write_text(json.dumps(manifest))
     assert evaluate_files(corpus, capture)["status"] == "unavailable"
     assert run_report(tmp_path)[0] == 2

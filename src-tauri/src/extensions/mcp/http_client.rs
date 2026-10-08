@@ -192,7 +192,7 @@ impl BoundedHttpClient {
             return Ok(StreamableHttpPostResponse::Accepted);
         }
         let stream = response.bytes_stream().scan(0usize, move |length, chunk| {
-            let result = chunk.map_err(std::io::Error::other).and_then(|chunk| {
+            let chunk_read = chunk.map_err(std::io::Error::other).and_then(|chunk| {
                 *length += chunk.len();
                 if *length > limit {
                     Err(std::io::Error::other("mcp-raw-response-budget-exceeded"))
@@ -200,7 +200,7 @@ impl BoundedHttpClient {
                     Ok(chunk)
                 }
             });
-            futures::future::ready(Some(result))
+            futures::future::ready(Some(chunk_read))
         });
         if status.is_success()
             && content_type

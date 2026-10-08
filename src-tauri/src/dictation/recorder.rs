@@ -10,7 +10,7 @@ use cpal::{
 use tokio::sync::mpsc::UnboundedSender;
 
 use super::service::DictationAction;
-use crate::dictation_contracts::DictationFailure;
+use crate::dictation::contracts::DictationFailure;
 
 const MAX_RECORDING_SECONDS: usize = 120;
 

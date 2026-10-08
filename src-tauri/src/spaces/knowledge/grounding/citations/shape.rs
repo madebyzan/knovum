@@ -2,7 +2,7 @@ use serde_json::Value;
 
 use super::super::{MAX_CITATIONS, MAX_CITATION_QUOTE_CHARS, MAX_CITATION_TITLE_CHARS};
 use super::CurrentCitationRef;
-use crate::spaces::knowledge::{contracts, locator};
+use crate::spaces::knowledge::locator;
 
 pub(super) fn citation_shapes(citations: &Value) -> Result<Vec<CurrentCitationRef>, String> {
     let citations = citations
@@ -74,22 +74,31 @@ fn citation_shape(citation: &Value) -> Result<Option<CurrentCitationRef>, String
 }
 
 fn validate_snapshot_text(citation: &Value) -> Result<(), String> {
-    contracts::validate_text_limit(
+    validate_citation_text(
         required_text(citation, "nodeTitle")?,
         MAX_CITATION_TITLE_CHARS,
         "Grounded AI citation title",
     )?;
-    contracts::validate_text_limit(
+    validate_citation_text(
         required_text(citation, "quote")?,
         MAX_CITATION_QUOTE_CHARS,
         "Grounded AI citation quote",
     )?;
     if let Some(space_title) = citation.get("sourceSpaceTitle").and_then(Value::as_str) {
-        contracts::validate_text_limit(
+        validate_citation_text(
             space_title,
             MAX_CITATION_TITLE_CHARS,
             "Grounded AI citation Space title",
         )?;
+    }
+    Ok(())
+}
+
+fn validate_citation_text(value: &str, max_chars: usize, label: &str) -> Result<(), String> {
+    if value.encode_utf16().count() > max_chars {
+        return Err(format!(
+            "{label} exceeds the maximum of {max_chars} characters"
+        ));
     }
     Ok(())
 }

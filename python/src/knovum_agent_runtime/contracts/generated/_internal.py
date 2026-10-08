@@ -73,7 +73,7 @@ class AgentSkillFile(WireModel):
     digest: str
 
 
-class AgentExecutionResult(WireModel):
+class AgentExecutionObservation(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )

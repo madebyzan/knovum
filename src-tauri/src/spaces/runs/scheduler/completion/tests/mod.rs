@@ -263,10 +263,10 @@ async fn waiting_outcome_pauses_after_drain_and_settles_after_resume() {
     crate::spaces::runs::repository::request_control(&fixture.pool, "run", "resume")
         .await
         .unwrap();
-    let result = json!({"done": true});
+    let run_output = json!({"done": true});
     let mut changes = crate::spaces::runs::subscribe_to_changes();
     let version = *changes.borrow_and_update();
-    settle_waiting_step(&fixture.pool, "step", "run", Ok(&result))
+    settle_waiting_step(&fixture.pool, "step", "run", Ok(&run_output))
         .await
         .unwrap();
     assert_ne!(*changes.borrow_and_update(), version);

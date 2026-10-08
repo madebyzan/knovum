@@ -1,4 +1,4 @@
-use super::contract::JsonCanvasDocumentV1;
+use super::contracts::JsonCanvasDocumentV1;
 
 #[test]
 fn cancelled_import_has_an_explicit_command_code() {

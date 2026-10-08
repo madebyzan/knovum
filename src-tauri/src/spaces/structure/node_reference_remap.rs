@@ -53,7 +53,7 @@ pub(super) fn remap(
                     }
                 }
             }
-            crate::spaces::knowledge::indexing::revision::apply(data)?;
+            crate::spaces::knowledge::model::revision::apply(data)?;
         }
         _ => {}
     }

@@ -100,9 +100,9 @@ fn contracts_keep_their_capability_owner() {
     use ts_rs::TS;
     let dictation = std::path::Path::new("../../../features/dictation/contracts/generated");
     for path in [
-        crate::dictation_contracts::DictationPhase::output_path(),
-        crate::dictation_contracts::InsertionOutcome::output_path(),
-        crate::dictation_contracts::DictationSnapshot::output_path(),
+        crate::dictation::contracts::DictationPhase::output_path(),
+        crate::dictation::contracts::InsertionOutcome::output_path(),
+        crate::dictation::contracts::DictationSnapshot::output_path(),
     ] {
         assert!(path
             .expect("exported Dictation contract")

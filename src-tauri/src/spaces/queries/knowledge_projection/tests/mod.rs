@@ -22,7 +22,7 @@ async fn database() -> SqlitePool {
 
 async fn seed(pool: &SqlitePool, id: &str, kind: &str, space: &str) {
     let mut data = json!({"kind":kind,"title":id,"sourceRevision":"source-r1","assetPath":"/managed/source.png"});
-    crate::spaces::knowledge::indexing::revision::apply(&mut data).unwrap();
+    crate::spaces::knowledge::model::revision::apply(&mut data).unwrap();
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES($1,$2,$3,0,0,$4,1,1)")
         .bind(id).bind(space).bind(kind).bind(data.to_string()).execute(pool).await.unwrap();
 }
@@ -114,7 +114,7 @@ async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_results(
     let data = json!({"kind":"note","title":"Space evidence","plainText":"画布有图片资料","tiptapContent":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"画布有图片资料"}]}]}});
     let mut normalized = data;
     normalized["knowledgeRevision"] = Value::String(
-        crate::spaces::knowledge::indexing::revision::authoritative(&normalized)
+        crate::spaces::knowledge::model::revision::authoritative(&normalized)
             .unwrap()
             .unwrap(),
     );

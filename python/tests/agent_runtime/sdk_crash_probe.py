@@ -41,8 +41,8 @@ async def run(directory: Path, crash: str) -> None:
     async with AsyncSqliteSaver.from_conn_string(str(directory / "checkpoint.sqlite")) as saver:
         graph = create_deep_agent(model=model, tools=[publish], checkpointer=saver, context_schema=dict)
         inputs = None if crash == "resume" else {"messages": [HumanMessage(content="publish", id="input:crash")]}
-        result = await graph.ainvoke(inputs, config, durability="sync", context={})
-        assert result["messages"][-1].content == "completed"
+        graph_state = await graph.ainvoke(inputs, config, durability="sync", context={})
+        assert graph_state["messages"][-1].content == "completed"
         assert len(model.requests) == 1
 
 

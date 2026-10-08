@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 afterEach(() => clearMocks());
 
 describe("clipboard validation after the Valibot security update", () => {
-  it("accepts native payloads and rejects malformed payloads", async () => {
+  it("accepts clipboard payloads and rejects malformed payloads", async () => {
     mockIPC(() => undefined, { shouldMockEvents: true });
     const text = vi.fn<(value: string) => void>();
     const files = vi.fn<(value: string[]) => void>();

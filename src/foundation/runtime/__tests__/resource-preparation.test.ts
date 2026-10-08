@@ -104,9 +104,9 @@ describe("resource preparation task lifetime", () => {
     const preparation = startResourcePreparation({ kind: "transcription" }, "Transcribe");
     await expect(preparation.cancel()).rejects.toThrow("Cancellation rejected");
     const failure = new Error("Disk write failed");
-    const result = preparation.completion.catch((error: unknown) => error);
+    const failureSettlement = preparation.completion.catch((error: unknown) => error);
     fail(failure);
-    expect(await result).toBe(failure);
+    expect(await failureSettlement).toBe(failure);
     expect(useTaskStore().tasks[0]?.status).toBe("failed");
   });
 });

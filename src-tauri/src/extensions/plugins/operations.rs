@@ -56,15 +56,15 @@ impl PluginOperation {
 
     pub(super) async fn read<T>(&self, future: impl Future<Output = AppResult<T>>) -> AppResult<T> {
         self.observe(PluginOperationStage::Reading);
-        let result = tokio::select! {
+        let operation = tokio::select! {
             biased;
             _ = self.control.cancellation.cancelled() => {
                 Err(AppError::cancelled("Plugin operation was cancelled"))
             },
-            result = future => result,
+            operation = future => operation,
         }?;
         self.observe(PluginOperationStage::Validating);
-        Ok(result)
+        Ok(operation)
     }
 
     pub(super) fn commit(&self) -> AppResult<()> {

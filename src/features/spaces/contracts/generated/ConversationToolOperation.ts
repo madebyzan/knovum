@@ -2,4 +2,4 @@
 import type { AgentToolBinding } from "../../../../shared/contracts/generated/AgentToolBinding";
 import type { JsonValue } from "../../../../shared/contracts/generated/serde_json/JsonValue";
 
-export type ConversationToolOperation = { id: string, runId: string, name: string, source: AgentToolBinding, arguments: JsonValue, state: string, approval: string | null, result: JsonValue | null, resolution: string | null, attempt: number, };
+export type ConversationToolOperation = { id: string, runId: string, name: string, source: AgentToolBinding, context: JsonValue, state: string, approval: string | null, output: JsonValue | null, resolution: string | null, attempt: number, };

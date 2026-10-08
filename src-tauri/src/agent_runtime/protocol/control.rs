@@ -59,7 +59,7 @@ pub(crate) enum AgentControlOperation {
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct AgentExecutionResult {
+pub(crate) struct AgentExecutionObservation {
     pub(crate) identity: AgentExecutionIdentity,
     pub(crate) checkpoint_id: String,
     pub(crate) state: AgentExecutionState,

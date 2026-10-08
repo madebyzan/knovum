@@ -49,7 +49,7 @@ to prove the feature's contract. The sections below own the implementation and r
 ## Names and boundaries
 
 - Rust uses snake_case modules/functions, PascalCase types and explicit serde names for stable external IDs. Web uses kebab-case TS files, PascalCase Vue components and `use` only for reactive lifecycle APIs.
-- Keep module and test ownership obvious. Prefer conventional Rust module paths and use `mod.rs` for directory modules. Keep reusable fixtures under `test-support`; executable TypeScript suites use `.test.ts`.
+- Keep module and test ownership obvious. Prefer conventional Rust module paths and use `mod.rs` for directory modules. Keep reusable TypeScript fixtures under the owning `__tests__/support/`; executable TypeScript suites use `.test.ts`.
 - Path, symbol, IPC and suffix rules are defined only in [naming-conventions.md](naming-conventions.md). Name by the actual operation or owned concept; do not add a service/manager/adapter suffix to a forwarding function.
 - Application IPC errors follow the envelope and normalization boundary in `architecture.md`. Cancellation decisions use stable codes, not message substrings. Log at the owner that can add context; cleanup failures do not overwrite the original failure or a successful commit.
 - Keep committed Space facts in the single session projection. Derive display values directly; retain drafts only with their Space/node identity and an explicit reset lifetime, as defined in `spaces.md`.

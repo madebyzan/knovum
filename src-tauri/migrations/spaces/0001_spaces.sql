@@ -125,7 +125,7 @@ CREATE TABLE spaces_edit_receipts (
   selection_suggestion TEXT NOT NULL CHECK (
     json_valid(selection_suggestion) AND json_type(selection_suggestion) = 'array'
   ),
-  result_json TEXT NOT NULL CHECK (json_valid(result_json)),
+  committed_projection TEXT NOT NULL CHECK (json_valid(committed_projection)),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
@@ -547,7 +547,7 @@ CREATE TABLE spaces_run_attempts (
   execution_epoch INTEGER NOT NULL CHECK (execution_epoch >= 0),
   lease_until INTEGER,
   checkpoint TEXT CHECK (checkpoint IS NULL OR json_valid(checkpoint)),
-  result TEXT CHECK (result IS NULL OR json_valid(result)),
+  output TEXT CHECK (output IS NULL OR json_valid(output)),
   error_code TEXT,
   started_at INTEGER NOT NULL,
   finished_at INTEGER,
@@ -704,14 +704,14 @@ CREATE TABLE spaces_conversation_tool_operations (
   source TEXT NOT NULL CHECK(json_valid(source)),
   invocation_id TEXT NOT NULL,
   attempt INTEGER NOT NULL DEFAULT 1,
-  arguments TEXT NOT NULL CHECK(json_valid(arguments)),
-  arguments_digest TEXT NOT NULL,
+  context TEXT NOT NULL CHECK(json_valid(context)),
+  context_digest TEXT NOT NULL,
   read_only INTEGER NOT NULL CHECK(read_only IN (0,1)),
   approval TEXT CHECK(approval IS NULL OR approval IN ('allow','deny')),
   state TEXT NOT NULL DEFAULT 'prepared' CHECK(state IN ('prepared','dispatching','completed','failed','outcome_unknown')),
   resolution TEXT CHECK(resolution IS NULL OR resolution IN ('new_attempt','stop')),
   target_selection TEXT CHECK(target_selection IS NULL OR json_valid(target_selection)),
-  result TEXT CHECK(result IS NULL OR json_valid(result)),
+  output TEXT CHECK(output IS NULL OR json_valid(output)),
   created_at INTEGER NOT NULL,
   completed_at INTEGER,
   UNIQUE(invocation_id, attempt),

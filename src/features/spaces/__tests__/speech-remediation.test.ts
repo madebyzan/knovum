@@ -14,7 +14,7 @@ import { isLocalTranslationTarget, persistedTranslationTarget } from "../speech/
 import { voiceRevisionOptions } from "../speech/voice-options";
 
 function voice(id: string, revision: number, isActive: boolean, archivedAt?: number): VoiceLibraryRevision {
-  const result: VoiceLibraryRevision = {
+  const voiceRevision: VoiceLibraryRevision = {
     profileId: `profile-${id}`,
     name: `Voice ${id}`,
     sourceKind: "preset",
@@ -28,8 +28,8 @@ function voice(id: string, revision: number, isActive: boolean, archivedAt?: num
     presetVoiceId: "0",
     updatedAt: 1,
   };
-  if (archivedAt !== undefined) result.archivedAt = archivedAt;
-  return result;
+  if (archivedAt !== undefined) voiceRevision.archivedAt = archivedAt;
+  return voiceRevision;
 }
 
 describe("speech architecture policies", () => {

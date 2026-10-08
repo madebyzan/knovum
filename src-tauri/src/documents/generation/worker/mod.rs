@@ -37,14 +37,14 @@ pub(crate) fn run_if_requested() {
     if arguments.len() != 1 {
         std::process::exit(2);
     }
-    let result = serve(&mut std::io::stdin().lock(), &mut std::io::stdout().lock());
-    std::process::exit(if result.is_ok() { 0 } else { 1 });
+    let rendering = serve(&mut std::io::stdin().lock(), &mut std::io::stdout().lock());
+    std::process::exit(if rendering.is_ok() { 0 } else { 1 });
 }
 
 fn serve(reader: &mut impl Read, writer: &mut impl Write) -> Result<(), String> {
     let request = protocol::read_request(reader)?;
-    let result = request.format.render(&request.source);
-    let (outcome, bytes) = match result {
+    let rendering = request.format.render(&request.source);
+    let (outcome, bytes) = match rendering {
         Ok(bytes) if bytes.len() <= protocol::MAX_OUTPUT_BYTES as usize => (
             protocol::Outcome::Rendered {
                 length: bytes.len() as u32,

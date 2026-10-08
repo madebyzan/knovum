@@ -10,7 +10,7 @@ from knovum_inference.errors import invalid_params, server_error
 from knovum_inference.speech.request import check_deadline, milliseconds, verify_audio
 
 if TYPE_CHECKING:
-    from knovum_inference.speech.native_alignment import NativeAlignment
+    from knovum_inference.speech.compiled_alignment import CompiledAlignment
 
 LANGUAGES = {
     "zh": "Chinese",
@@ -32,7 +32,7 @@ class AlignmentEngine:
         self._device = device
         self._cpu_threads = cpu_threads
         self._loaded: tuple[Any, Any] | None = None
-        self._native: NativeAlignment | None = None
+        self._compiled: CompiledAlignment | None = None
         if model_spec_id not in {"qwen3-forced-aligner-0.6b-hf-v1", "qwen3-forced-aligner-0.6b-q8_0-v1"}:
             raise server_error("runtime_mismatch", "Forced alignment model is unsupported")
         self._model_spec_id = model_spec_id
@@ -128,13 +128,13 @@ class AlignmentEngine:
 
     def _align_clip(self, samples: Any, text: str, language: str) -> list[dict[str, Any]]:
         if self._model_spec_id == "qwen3-forced-aligner-0.6b-q8_0-v1":
-            if self._native is None:
-                from knovum_inference.speech.native_alignment import NativeAlignment
+            if self._compiled is None:
+                from knovum_inference.speech.compiled_alignment import CompiledAlignment
 
-                self._native = NativeAlignment(
+                self._compiled = CompiledAlignment(
                     self._model_directory / "qwen3-forced-aligner-0.6b-q8_0.gguf", self._device, self._cpu_threads
                 )
-            return self._native.align(samples, text, language)
+            return self._compiled.align(samples, text, language)
         processor, model = self._load()
         inputs, word_lists = processor.prepare_forced_aligner_inputs(
             audio=[samples],
@@ -169,7 +169,7 @@ class AlignmentEngine:
                 output_loading_info=True,
             )
             if any(loading[key] for key in ("missing_keys", "unexpected_keys", "mismatched_keys", "error_msgs")):
-                raise server_error("model_corrupt", "Forced alignment weights do not match the native architecture")
+                raise server_error("model_corrupt", "Forced alignment weights do not match the selected architecture")
             model = model.to(self._device).eval()
             self._loaded = processor, model
         return self._loaded

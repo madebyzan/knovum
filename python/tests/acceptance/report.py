@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Evaluate real native inference evidence against a fixed corpus")
+    parser = argparse.ArgumentParser(description="Evaluate real compiled inference evidence against a fixed corpus")
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--capture", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)

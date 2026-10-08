@@ -13,7 +13,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
         r#"{"description":"Visible diagram","detectedText":["Evidence"],"tags":["diagram"]}"#,
     );
     let image = std::path::PathBuf::from("/authorized/actual-edited-image.png");
-    let result = interpret(
+    let interpretation = interpret(
         &spy,
         agent_target(ExecutionCapability::VisionUnderstanding),
         image,
@@ -27,10 +27,10 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
         let inputs = spy.inputs.lock().unwrap();
         assert_eq!(inputs[0].max_tokens, Some(8192));
         for limit in [
-            contract::MAX_DESCRIPTION,
-            contract::MAX_DETECTED_TEXT,
-            contract::MAX_TAGS,
-            contract::MAX_TAG,
+            visual::MAX_DESCRIPTION,
+            visual::MAX_DETECTED_TEXT,
+            visual::MAX_TAGS,
+            visual::MAX_TAG,
         ] {
             assert!(inputs[0].instruction.contains(&limit.to_string()));
         }
@@ -40,7 +40,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
         Some(std::path::Path::new("/authorized/actual-edited-image.png"))
     );
     assert_eq!(
-        serde_json::to_value(&result).unwrap()["executionSource"],
+        serde_json::to_value(&interpretation).unwrap()["executionSource"],
         serde_json::json!({"type":"agent","runtimeKind":"codex"})
     );
 
@@ -48,12 +48,12 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     let published = crate::spaces::assets::enrichment::commit::tests::publish(
         &pool,
         &data,
-        serde_json::Map::from_iter([("visualKnowledge".into(), result.clone())]),
+        serde_json::Map::from_iter([("visualKnowledge".into(), interpretation.clone())]),
         &tokio_util::sync::CancellationToken::new(),
     )
     .await
     .unwrap();
-    assert_eq!(published["visualKnowledge"], result);
+    assert_eq!(published["visualKnowledge"], interpretation);
 }
 #[tokio::test]
 async fn invalid_visual_results_are_rejected() {
@@ -119,7 +119,7 @@ async fn visual_limits_use_utf16_and_include_text_separators() {
         })
         .to_string();
         let spy = ExecutorSpy::returns(&response);
-        let result = interpret(
+        let interpretation = interpret(
             &spy,
             agent_target(ExecutionCapability::VisionUnderstanding),
             std::path::PathBuf::from("/authorized/image.png"),
@@ -127,7 +127,7 @@ async fn visual_limits_use_utf16_and_include_text_separators() {
             "source",
         )
         .await;
-        assert_eq!(result.is_ok(), valid);
+        assert_eq!(interpretation.is_ok(), valid);
     }
 }
 

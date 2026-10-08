@@ -181,7 +181,7 @@
   "deleteConnectionDescription": "Only this connection is removed. Other connections to the service are kept.",
   "accounts": "Accounts",
   "connections": "Connections",
-  "packageDetails": "Package verification",
+  "packageVerification": "Package verification",
   "capabilities": "Included capabilities",
   "manageService": "Manage",
   "collapse": "Collapse",

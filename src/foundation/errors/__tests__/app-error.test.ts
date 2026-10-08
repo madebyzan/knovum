@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { createAppError, decodeAppError, normalizeError } from "../app-error";
 import { formatErrorDiagnostic, getErrorMessage } from "../error-format";
 
-it("uses the same contract for AI, native commands and local cancellation", () => {
+it("uses the same contract for AI, IPC commands and local cancellation", () => {
   for (const code of [
     "not_configured",
     "authentication_failed",
@@ -19,7 +19,7 @@ it("uses the same contract for AI, native commands and local cancellation", () =
   expect(decodeAppError(createAppError("cancelled", "Cancelled"))?.code).toBe("cancelled");
 });
 
-it("preserves native error identity and reports vendor strings at the boundary", () => {
+it("preserves IPC error identity and reports vendor strings at the boundary", () => {
   const error = new TypeError("Invalid input");
   expect(normalizeError(error)).toBe(error);
   expect(getErrorMessage(error)).toBe("Invalid input");
@@ -41,7 +41,7 @@ it("retains both the outer error and the structured cause details", () => {
   expect(diagnostic).toContain("[permission_denied] Source file is not accessible");
 });
 
-it("retains nested native errors and their classified causes", () => {
+it("retains nested IPC errors and their classified causes", () => {
   const cause = createAppError("operation_failed", "Read failed");
   const diagnostic = formatErrorDiagnostic(new Error("Import failed", { cause }));
   expect(diagnostic).toContain("Import failed");
@@ -68,7 +68,7 @@ it("keeps causes and all aggregate failures available in diagnostics", () => {
   expect(formatErrorDiagnostic(error)).not.toContain("[Circular error cause]");
 });
 
-it("bounds diagnostics for a circular native error cause", () => {
+it("bounds diagnostics for a circular IPC error cause", () => {
   const error = new Error("Failed");
   error.cause = error;
   expect(formatErrorDiagnostic(error)).toContain("[Circular error cause]");

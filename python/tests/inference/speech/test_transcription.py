@@ -76,15 +76,15 @@ def _artifact() -> dict[str, object]:
 def test_publish_validates_generated_artifact_and_preserves_response_identity(tmp_path: Path) -> None:
     request_id = str(uuid4())
     params = _params(request_id)
-    result = TranscriptionEngine(tmp_path / "model", tmp_path, 2)._publish(params, _artifact())
+    publication = TranscriptionEngine(tmp_path / "model", tmp_path, 2)._publish(params, _artifact())
 
-    transcript_ref = result["transcriptRef"]
+    transcript_ref = publication["transcriptRef"]
     artifact_path = tmp_path / transcript_ref["fileName"]
     payload = artifact_path.read_bytes()
     assert json.loads(payload)["speechDurationMs"] == 900
-    assert result["requestId"] == request_id
-    assert result["attemptEpoch"] == 7
-    assert result["modelSpecId"] == "asr-model-v1"
+    assert publication["requestId"] == request_id
+    assert publication["attemptEpoch"] == 7
+    assert publication["modelSpecId"] == "asr-model-v1"
     assert transcript_ref["byteLength"] == len(payload)
     assert transcript_ref["sha256"] == hashlib.sha256(payload).hexdigest()
     assert list(artifact_path.parent.iterdir()) == [artifact_path]
@@ -139,7 +139,7 @@ def test_cancelled_transcription_never_publishes_completed_artifact(tmp_path: Pa
 
 
 @pytest.mark.parametrize(("system", "machine"), [("Darwin", "x86_64"), ("Windows", "AMD64")])
-def test_cpu_transcription_uses_native_faster_whisper(
+def test_cpu_transcription_uses_compiled_faster_whisper(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, system: str, machine: str
 ) -> None:
     from knovum_inference.speech import transcription

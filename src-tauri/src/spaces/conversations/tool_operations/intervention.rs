@@ -13,10 +13,10 @@ pub struct ConversationToolOperation {
     pub run_id: String,
     pub name: String,
     pub source: crate::extensions::contracts::AgentToolBinding,
-    pub arguments: Value,
+    pub context: Value,
     pub state: String,
     pub approval: Option<String>,
-    pub result: Option<Value>,
+    pub output: Option<Value>,
     pub resolution: Option<String>,
     pub attempt: i64,
 }
@@ -37,7 +37,7 @@ pub async fn list_conversation_tool_operations(
     run_id: String,
 ) -> Result<Vec<ConversationToolOperation>, String> {
     let pool = db::pool(&app).await?;
-    let rows = sqlx::query("SELECT id,run_id,wire_name,source,arguments,state,approval,result,resolution,attempt FROM spaces_conversation_tool_operations WHERE run_id=$1 ORDER BY created_at,attempt").bind(run_id).fetch_all(pool).await.map_err(db::sql_error)?;
+    let rows = sqlx::query("SELECT id,run_id,wire_name,source,context,state,approval,output,resolution,attempt FROM spaces_conversation_tool_operations WHERE run_id=$1 ORDER BY created_at,attempt").bind(run_id).fetch_all(pool).await.map_err(db::sql_error)?;
     rows.iter()
         .map(|row| {
             Ok(ConversationToolOperation {
@@ -48,17 +48,16 @@ pub async fn list_conversation_tool_operations(
                     &row.try_get::<String, _>("source").map_err(db::sql_error)?,
                 )
                 .map_err(db::json_error)?,
-                arguments: serde_json::from_str(
-                    &row.try_get::<String, _>("arguments")
-                        .map_err(db::sql_error)?,
+                context: serde_json::from_str(
+                    &row.try_get::<String, _>("context").map_err(db::sql_error)?,
                 )
                 .map_err(db::json_error)?,
                 state: row.try_get("state").map_err(db::sql_error)?,
                 approval: row.try_get("approval").map_err(db::sql_error)?,
-                result: row
-                    .try_get::<Option<String>, _>("result")
+                output: row
+                    .try_get::<Option<String>, _>("output")
                     .map_err(db::sql_error)?
-                    .map(|result| serde_json::from_str(&result).map_err(db::json_error))
+                    .map(|output| serde_json::from_str(&output).map_err(db::json_error))
                     .transpose()?,
                 resolution: row.try_get("resolution").map_err(db::sql_error)?,
                 attempt: row.try_get("attempt").map_err(db::sql_error)?,

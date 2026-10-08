@@ -21,7 +21,7 @@ export function useAgentCreationCatalog() {
         label: displayName,
         disabled: false,
         description:
-          !runtime || runtime.detected ? t("ai.targetAgentWorkflow") : t("ai.desktopAgentNotInstalled"),
+          !runtime || runtime.detected ? t("ai.targetExternalAgent") : t("ai.desktopAgentNotInstalled"),
       };
     }),
   );

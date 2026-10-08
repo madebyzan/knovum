@@ -4,7 +4,7 @@ use std::{
 };
 
 #[test]
-#[ignore = "requires provisioned native runtime artifacts"]
+#[ignore = "requires provisioned compiled runtime artifacts"]
 fn provisioned_local_resources_starts() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("resources")

@@ -8,7 +8,7 @@ use crate::app_error::AppError;
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output, relations, source_validation, CompletedDerivationOutput},
-    knowledge::{contracts, indexing::revision},
+    knowledge::model::revision,
 };
 
 pub async fn start(
@@ -19,7 +19,7 @@ pub async fn start(
     validation::request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    contracts::validate_same_space_node(
+    crate::spaces::knowledge::validation::validate_same_space_node(
         &mut tx,
         &request.space_id,
         &request.source_node_id,
@@ -152,7 +152,8 @@ async fn persist(
     object.remove("imageEdit");
     object.remove("previewPath");
     revision::apply(data)?;
-    contracts::validate_node(tx, &request.space_id, "image", data).await?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", data)
+        .await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
     let relation = relations::derives_from(
         &request.space_id,

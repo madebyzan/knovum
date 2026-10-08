@@ -1,5 +1,5 @@
 use super::{audio_error, classify_audio_error};
-use crate::dictation_contracts::DictationFailure;
+use crate::dictation::contracts::DictationFailure;
 
 #[test]
 fn permission_denial_uses_the_error_kind_even_with_a_localized_message() {

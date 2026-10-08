@@ -23,7 +23,7 @@ export async function prepareDevelopment(repository, profiles, scratchParent) {
       continue;
     }
     console.log(`Preparing ${profile} development runtime for ${target}`);
-    // Profiles share producer tooling and native caches; sequential builds bound disk and memory.
+    // Profiles share producer tooling and Conda caches; sequential builds bound disk and memory.
     // oxlint-disable-next-line no-await-in-loop
     await runProducer(repository, [
       "--profile",

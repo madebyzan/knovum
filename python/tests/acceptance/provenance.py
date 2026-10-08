@@ -28,7 +28,7 @@ def load_execution_evidence(
     output = load_evidence(resolve_hashed_file(reference, base, location), model)
     source = output.source
     if source.kind != expected_kind or source.method != expected_method:
-        raise EvidenceError(f"{location} is not evidence from the required native execution path")
+        raise EvidenceError(f"{location} is not evidence from the required compiled execution path")
     if expected_model_spec is not None and source.model_spec_id != expected_model_spec:
         raise EvidenceError(f"{location} model differs from the fixed reference profile")
     if expected_config is not None and source.config_id != expected_config:

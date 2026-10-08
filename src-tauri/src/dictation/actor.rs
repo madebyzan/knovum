@@ -5,16 +5,15 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    completion, insertion::TargetApplication, lifecycle, recorder::Recorder,
-    service::DictationAction,
+    completion, insertion::InsertionTarget, lifecycle, recorder::Recorder, service::DictationAction,
 };
-use crate::dictation_contracts::DictationSnapshot;
+use crate::dictation::contracts::DictationSnapshot;
 
 pub(super) enum ActiveSession {
     Idle,
     Recording {
         id: String,
-        target: TargetApplication,
+        target: InsertionTarget,
         recorder: Recorder,
         wav: std::path::PathBuf,
     },

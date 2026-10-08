@@ -1,7 +1,7 @@
 use image::{Rgba, RgbaImage};
 
 use super::{
-    contract::ImageEdit,
+    contracts::ImageEdit,
     geometry::{crop_contains, RenderGeometry},
     glow::apply_glow,
     texture::apply_texture,

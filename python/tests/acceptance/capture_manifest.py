@@ -1,4 +1,4 @@
-"""Native inference capture manifest and capability evidence."""
+"""Compiled inference capture manifest and capability evidence."""
 
 from __future__ import annotations
 

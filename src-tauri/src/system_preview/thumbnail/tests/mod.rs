@@ -16,16 +16,16 @@ fn owned_thumbnail_claims_final_and_partial_before_writing() {
 }
 
 #[test]
-fn rejected_partial_claim_stops_before_native_writer_starts() {
+fn rejected_partial_claim_stops_before_system_writer_starts() {
     let target = Path::new("/managed/preview.png");
-    let result = super::claim_output_paths(target, &mut |path| {
+    let claim = super::claim_output_paths(target, &mut |path| {
         if path.extension().and_then(|value| value.to_str()) == Some("partial") {
             Err("owner cancelled".into())
         } else {
             Ok(())
         }
     });
-    assert_eq!(result.unwrap_err(), "owner cancelled");
+    assert_eq!(claim.unwrap_err(), "owner cancelled");
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn documents_are_drawn() {
 }
 
 #[test]
-fn native_visual_formats_are_drawn() {
+fn system_visual_formats_are_drawn() {
     for name in ["photo.png", "recording.mp4", "interview.mp3"] {
         assert!(
             renderable(Path::new(name)),

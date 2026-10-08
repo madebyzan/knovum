@@ -20,7 +20,7 @@ pub(crate) async fn find_typed<T: DeserializeOwned>(
     digest: &str,
 ) -> Result<Option<T>, String> {
     let row = sqlx::query(
-        "SELECT request_digest,result_json FROM spaces_edit_receipts WHERE mutation_id=$1",
+        "SELECT request_digest,committed_projection FROM spaces_edit_receipts WHERE mutation_id=$1",
     )
     .bind(mutation_id)
     .fetch_optional(&mut **tx)
@@ -33,7 +33,7 @@ pub(crate) async fn find_typed<T: DeserializeOwned>(
             "mutation-id-conflict: Mutation ID was already used for a different request".into(),
         );
     }
-    let value: String = row.try_get("result_json").map_err(db::sql_error)?;
+    let value: String = row.try_get("committed_projection").map_err(db::sql_error)?;
     Ok(Some(serde_json::from_str(&value).map_err(db::json_error)?))
 }
 
@@ -41,12 +41,13 @@ pub(crate) async fn load_committed_projection(
     pool: &sqlx::SqlitePool,
     mutation_id: &str,
 ) -> Result<Option<serde_json::Value>, String> {
-    let raw: Option<String> =
-        sqlx::query_scalar("SELECT result_json FROM spaces_edit_receipts WHERE mutation_id=$1")
-            .bind(mutation_id)
-            .fetch_optional(pool)
-            .await
-            .map_err(db::sql_error)?;
+    let raw: Option<String> = sqlx::query_scalar(
+        "SELECT committed_projection FROM spaces_edit_receipts WHERE mutation_id=$1",
+    )
+    .bind(mutation_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(db::sql_error)?;
     raw.map(|value| serde_json::from_str(&value).map_err(db::json_error))
         .transpose()
 }
@@ -64,7 +65,7 @@ pub(crate) async fn insert_typed<T: Serialize>(
     let committed_projection =
         serde_json::to_string(committed_projection).map_err(db::json_error)?;
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,result_json,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(selection).bind(committed_projection).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,committed_projection,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(selection).bind(committed_projection).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }
 

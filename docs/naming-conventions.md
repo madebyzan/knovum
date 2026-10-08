@@ -6,6 +6,8 @@
   and MCP. Do not introduce `KnowledgeAction`, generic `Capability` or `Task` synonyms.
 - `Invocation` identifies one authenticated SpaceAction call; `Receipt` identifies its committed
   result.
+- `AgentExecutionObservation` reports an executor's checkpoint, execution state and interruptions;
+  it does not represent a committed SpaceAction receipt.
 - `Run`, `StepInstance` and `Attempt` describe durable execution. `Job` remains local to an engine or
   process.
 - `Workflow` is the only product term for a user-owned published program. Do not use `Pipeline` or
@@ -248,7 +250,7 @@ Ending async work keeps three verbs apart: `cancel` abandons a job that has not 
 terminates a service that is still running, and `fail` records that the work already ended in error.
 A command that only writes a failure record is `fail_*`, not `stop_*`.
 
-Voice profiles expose `archive_voice_profile` and `unarchive_voice_profile` as separate public intents. Their shared private persistence operation may accept a boolean; the public request contracts do not. Conversation tool activity uses `context` for invocation inputs or execution context and `output` for the displayed tool response. Vendor tool-result payloads retain their protocol fields.
+Voice profiles expose `archive_voice_profile` and `unarchive_voice_profile` as separate public intents. Their shared private persistence operation may accept a boolean; the public request contracts do not. Conversation tool activity uses `context` for invocation inputs or execution context and `output` for the tool response, consistently across storage and presentation. Run attempts and steps use `output` for their produced artifacts. Vendor tool-result payloads retain their protocol fields.
 
 ### Persistence and Renderer-local verbs
 
@@ -305,7 +307,7 @@ wrapper still represents a collection. Preserve idiomatic mass nouns (`list_prov
 its resource API rules are guidance rather than a mandatory REST model for all local commands.
 
 Custom in-process plugins currently registered in `src-tauri/build.rs` are `spaces`, `ai`,
-`secrets`, `desktop` and `local-resources`. Official plugins such as Store remain vendor-owned;
+`secrets`, `desktop`, `local-resources` and `extensions`. Official plugins such as Store remain vendor-owned;
 there are no custom `preferences` or `database` namespaces. A business capability does not
 automatically require a separate plugin.
 
@@ -378,7 +380,7 @@ Use names that reflect ownership:
 - `spaces/derivation`: source-grounded artifact generation, rendering, persistence and their read projections; `commands.rs` owns execution, `queries.rs` owns reads.
 - `spaces/db.rs`: Space connection/error foundation.
 - `local_resources/models/`: locally installed AI model descriptors, downloads, integrity verification and installation lifecycle.
-- `local_resources/tools/`: discovery of application-bundled executables and shared native libraries.
+- `local_resources/tools/`: discovery of application-bundled executables and shared compiled libraries.
 
 Shared/foundation modules must never depend on a feature solely to reuse a helper.
 
@@ -467,8 +469,8 @@ coverage and do not attempt to infer business behavior. What remains:
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment script lines, complexity 10 and four
   parameters;
 - Knip reports dead code and unused dependencies;
-- `scripts/checks/source-layout.mjs` checks sibling stems, test placement and the handwritten Rust/Python
-  size limit specified in `architecture.md`.
+- `scripts/checks/source-layout.mjs` rejects `native` path prefixes and `index.ts`, and checks sibling
+  stems, test placement and the Rust/Python/Vue size limits specified in `architecture.md`.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
 catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging

@@ -3,7 +3,7 @@ use tauri::{ipc::Channel, plugin::TauriPlugin, AppHandle, Wry};
 use crate::{
     app_error::AppError,
     local_resources::{
-        model_catalog::{self, LocalModelEntry, LocalModelId},
+        model_catalog::{self, LocalModelAvailability, LocalModelId},
         preparation::contracts::{ResourcePreparationProgress, ResourcePreparationTarget},
     },
 };
@@ -23,7 +23,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
 }
 
 #[tauri::command]
-async fn get_model_catalog(app: tauri::AppHandle) -> Result<Vec<LocalModelEntry>, AppError> {
+async fn get_model_catalog(app: tauri::AppHandle) -> Result<Vec<LocalModelAvailability>, AppError> {
     Ok(crate::blocking::run(move || {
         model_catalog::list(&app, |model| {
             crate::ai::local_runtime::device_profiles::voice::eligible(model.voxcpm2_spec()?)

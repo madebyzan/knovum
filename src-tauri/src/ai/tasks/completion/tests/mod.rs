@@ -177,11 +177,11 @@ async fn direct_model_dispatch_still_uses_the_explicit_user_account() {
         secret_key: "integrations.ai.connections.user.api-key".into(),
         temperature: 0.2,
     });
-    let result = execute(&spy, target, input(), CancellationToken::new())
+    let completion = execute(&spy, target, input(), CancellationToken::new())
         .await
         .unwrap();
     assert!(matches!(
-        result.execution_source,
+        completion.execution_source,
         ExecutionSource::Model { .. }
     ));
     assert_eq!(spy.agent_calls.load(Ordering::SeqCst), 0);

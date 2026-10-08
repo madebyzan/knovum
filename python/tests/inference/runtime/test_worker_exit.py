@@ -12,7 +12,7 @@ from queue import Queue
 from knovum_inference import PROTOCOL_VERSION
 
 
-def test_closed_transport_terminates_stuck_native_initialization() -> None:
+def test_closed_transport_terminates_stuck_compiled_initialization() -> None:
     source = Path(__file__).resolve().parents[3] / "src"
     script = """
 import asyncio
@@ -21,7 +21,7 @@ import time
 from knovum_inference.runtime import worker
 
 def prepare(params):
-    print("native-initialization-started", file=sys.stderr, flush=True)
+    print("compiled-initialization-started", file=sys.stderr, flush=True)
     time.sleep(60)
 
 worker.prepare_session = prepare
@@ -60,7 +60,7 @@ asyncio.run(worker.Worker().serve())
         process.stdin.write(json.dumps(request).encode() + b"\n")
         process.stdin.flush()
         # Startup/import time is separate from the five-second shutdown contract.
-        assert started.get(timeout=30) == b"native-initialization-started\n"
+        assert started.get(timeout=30) == b"compiled-initialization-started\n"
         reader.join(timeout=1)
         assert not reader.is_alive()
         process.stdin.close()

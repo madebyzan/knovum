@@ -35,8 +35,8 @@ def test_summary_receipts_commit_and_old_main_answers_remain_unique(tmp_path: Pa
         ]
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "completed"
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "completed"
             purposes = [value["purpose"] for method, value in host.calls if method == "agentRuntime.admitModel"]
             assert purposes == ["context_summary", "main"]
             assert set(host.states.values()) == {"committed"}
@@ -95,8 +95,8 @@ def test_research_receipts_reconcile_in_their_durable_scope_and_cannot_delegate(
         ]
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "completed"
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "completed"
             assert set(host.states.values()) == {"committed"}
             assert "task" not in models["research"].advertised_tools[0]
             assert "write_file" not in models["research"].advertised_tools[0]
@@ -171,8 +171,8 @@ def test_agent_publishes_sdk_todos_through_the_product_projection(tmp_path: Path
         value = request_value()
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "completed"
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "completed"
             projections = [value for method, value in host.calls if method == "agentRuntime.commitProjection"]
             assert projections[-1]["plan"] == [{"content": "Read authorized sources", "state": "pending"}]
             assert set(host.states.values()) == {"committed"}

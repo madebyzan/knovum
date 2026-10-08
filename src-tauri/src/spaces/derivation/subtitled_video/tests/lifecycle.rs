@@ -8,7 +8,7 @@ use super::super::{
 use crate::spaces::{
     db,
     derivation::{action_execution::ExecutionAuthority, video_output::RenderedVideo},
-    knowledge::indexing::revision,
+    knowledge::model::revision,
     nodes::contracts::InsertNodesRequest,
     structure::repository,
 };
@@ -82,7 +82,7 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
     let (pool, request, original) = fixture(true).await;
     let source = start::start(&pool, &request, &authority()).await.unwrap();
     assert!(matches!(source.subtitles, PreparedSubtitles::Ready(srt) if srt.contains("Hello")));
-    let result = persistence::complete(
+    let completion = persistence::complete(
         &pool,
         "job",
         rendered(),
@@ -91,8 +91,8 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
     )
     .await
     .unwrap();
-    assert_eq!(result.data["sourceRevision"], "asset:output");
-    assert!(result.data.get("processingState").is_none());
+    assert_eq!(completion.data["sourceRevision"], "asset:output");
+    assert!(completion.data.get("processingState").is_none());
     let counts: (i64, i64, i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_nodes),(SELECT COUNT(*) FROM spaces_nodes WHERE kind='subtitle'),(SELECT COUNT(*) FROM spaces_relations WHERE source_id='output' AND target_id='source')").fetch_one(&pool).await.unwrap();
     assert_eq!(counts, (2, 0, 1));
     let encoded: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='source'")
@@ -106,16 +106,16 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
 async fn untranscribed_video_requires_a_qualified_recognition_engine() {
     let (pool, request, _) = fixture(false).await;
     let engine = crate::spaces::assets::transcription::engine_id();
-    let result = start::start(&pool, &request, &authority()).await;
+    let completion = start::start(&pool, &request, &authority()).await;
     match engine {
         Ok(_) => {
-            let source = result.unwrap();
+            let source = completion.unwrap();
             assert!(matches!(source.subtitles, PreparedSubtitles::Recognize));
             let row: (String, i64) = sqlx::query_as("SELECT action_kind,(SELECT COUNT(*) FROM spaces_knowledge_derivation_inputs WHERE derivation_id='job') FROM spaces_knowledge_derivations WHERE id='job'").fetch_one(&pool).await.unwrap();
             assert_eq!(row, ("add-video-subtitles".into(), 1));
         }
         Err(error) => {
-            assert_eq!(result.err().unwrap(), error);
+            assert_eq!(completion.err().unwrap(), error);
             let count: i64 = sqlx::query_scalar(
                 "SELECT COUNT(*) FROM spaces_knowledge_derivations WHERE id='job'",
             )

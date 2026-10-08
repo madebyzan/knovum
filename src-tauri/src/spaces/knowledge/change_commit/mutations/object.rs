@@ -1,11 +1,7 @@
 use serde_json::{Map, Value};
 use sqlx::{Sqlite, Transaction};
 
-use crate::spaces::{
-    db,
-    knowledge::chunk_store,
-    knowledge::{contracts, events},
-};
+use crate::spaces::{db, knowledge::chunk_store, knowledge::events};
 
 pub(in crate::spaces::knowledge::change_commit) struct ObjectInsert<'a> {
     pub space_id: &'a str,
@@ -58,10 +54,11 @@ pub(in crate::spaces::knowledge::change_commit) async fn update_object(
     let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let before = data.clone();
     apply_object_changes(&mut data, &input)?;
-    crate::spaces::knowledge::indexing::revision::apply(&mut data)?;
-    let object_type_id = contracts::validate_node(tx, input.space_id, "object", &data)
-        .await?
-        .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
+    crate::spaces::knowledge::model::revision::apply(&mut data)?;
+    let object_type_id =
+        crate::spaces::knowledge::validation::validate_node(tx, input.space_id, "object", &data)
+            .await?
+            .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
     if before.get("knowledgeRevision") != data.get("knowledgeRevision") {
         chunk_store::detach_canonical(tx, input.space_id, input.id).await?;
     }

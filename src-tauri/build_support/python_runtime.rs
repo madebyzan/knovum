@@ -1,10 +1,10 @@
-pub(super) fn embed_descriptors() {
+pub(crate) fn embed_descriptors() {
     let root =
         std::path::PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("../python");
     let source_path = root.join("runtime-source.json");
     println!("cargo:rerun-if-changed={}", source_path.display());
     let source: serde_json::Value = serde_json::from_slice(&std::fs::read(&source_path).unwrap())
-        .expect("read native runtime supplier configuration");
+        .expect("read Conda runtime supplier configuration");
     let target = match std::env::var("TARGET").unwrap().as_str() {
         "aarch64-apple-darwin" => "macos-arm64",
         "x86_64-apple-darwin" => "macos-x64",
@@ -19,24 +19,23 @@ pub(super) fn embed_descriptors() {
         "agent",
     ] {
         embed_producer_sources(&root, &source, profile);
-        let group = source["nativeSupplier"]["profiles"][profile]
+        let group = source["condaSupplier"]["profiles"][profile]
             .as_str()
-            .expect("native runtime profile group");
+            .expect("Conda runtime profile group");
         let mut dependency_bytes = Vec::new();
         for path in [
             root.join("runtimes").join(profile).join("uv.lock"),
-            root.join("native-locks")
+            root.join("conda-locks")
                 .join(group)
                 .join(format!("{target}.json")),
         ] {
             println!("cargo:rerun-if-changed={}", path.display());
             dependency_bytes
-                .extend(std::fs::read(path).expect("read native runtime dependency lock"));
+                .extend(std::fs::read(path).expect("read Conda runtime dependency lock"));
         }
         let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap())
             .join(format!("python-{profile}-dependencies.lock"));
-        std::fs::write(destination, dependency_bytes)
-            .expect("embed native runtime dependency lock");
+        std::fs::write(destination, dependency_bytes).expect("embed Conda runtime dependency lock");
         let descriptor = root
             .join("../src-tauri/resources")
             .join(format!("python-{profile}-descriptor.json"));
@@ -84,7 +83,7 @@ fn embed_producer_sources(root: &std::path::Path, source: &serde_json::Value, pr
         println!("cargo:rerun-if-changed={}", path.display());
         bytes.extend(name.as_bytes());
         bytes.push(0);
-        bytes.extend(std::fs::read(path).expect("read native runtime producer source"));
+        bytes.extend(std::fs::read(path).expect("read runtime producer source"));
         bytes.push(0);
     }
     let output = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
@@ -92,5 +91,5 @@ fn embed_producer_sources(root: &std::path::Path, source: &serde_json::Value, pr
         output.join(format!("python-{profile}-producer.source")),
         bytes,
     )
-    .expect("embed native runtime producer source identity");
+    .expect("embed runtime producer source identity");
 }

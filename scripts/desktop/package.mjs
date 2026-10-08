@@ -24,7 +24,7 @@ import { listRuntimeFiles } from "../runtime/files.mjs";
 import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
-import { verifyNativeResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
+import { verifyCompiledResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
 import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -109,7 +109,7 @@ function productionConfiguration() {
   readVersion(repository);
   const compiledSources = readJson("python/compiled-source-evidence.json");
   if (compiledSources.reviewStatus !== "approved") {
-    throw new Error("Python native corresponding-source review is unresolved; release packaging is blocked");
+    throw new Error("Python corresponding-source review is unresolved; release packaging is blocked");
   }
   const production = readJson("src-tauri/tauri.release.conf.json");
   return {
@@ -136,7 +136,7 @@ function requireRuntime(runtimeTarget) {
     throw new Error("Bundled resources must exclude the on-demand Python runtime");
   const directory = join(runtimeRoot, runtimeTarget);
   const manifest = validateMediaRuntime(repository, directory, runtimeTarget);
-  if (release) verifyNativeResourceSignatures(directory, runtimeTarget, repository, manifest.producer);
+  if (release) verifyCompiledResourceSignatures(directory, runtimeTarget, repository, manifest.producer);
 }
 
 function runtimeResources(runtimeTarget) {

@@ -5,29 +5,31 @@ mod validation;
 use validation::{validate_event_entity, validate_provenance_target, validate_relation_lifecycle};
 
 use super::contracts::RestorePackageRequest;
-use crate::spaces::{
-    db,
-    knowledge::{contracts, locator},
-};
+use crate::spaces::{db, knowledge::locator};
 
 pub(super) async fn insert_relations(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.relations {
-        contracts::validate_relation_rationale(&row.rationale)?;
+        crate::spaces::knowledge::relations::validate_rationale(&row.rationale)?;
         validate_relation_lifecycle(
             row.status.as_str(),
             row.status_before_invalidation.map(|status| status.as_str()),
         )?;
-        contracts::validate_confidence(row.confidence)?;
-        let (source_id, target_id) = contracts::canonical_relation_endpoints(
+        crate::spaces::knowledge::relations::validate_confidence(row.confidence)?;
+        let (source_id, target_id) = crate::spaces::knowledge::relations::canonical_endpoints(
             row.kind.as_str(),
             &row.source_id,
             &row.target_id,
         );
-        contracts::validate_relation_endpoints(tx, &request.space.id, &source_id, &target_id)
-            .await?;
+        crate::spaces::knowledge::relations::validate_endpoints(
+            tx,
+            &request.space.id,
+            &source_id,
+            &target_id,
+        )
+        .await?;
         sqlx::query(
             "INSERT INTO spaces_relations(id,space_id,source_id,target_id,kind,rationale,status,status_before_invalidation,confidence,actor_kind,actor_id,created_at,updated_at) \
              VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
@@ -44,15 +46,15 @@ pub(super) async fn insert_provenance(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.provenance {
-        contracts::validate_provenance_target_kind(&row.target_kind)?;
-        contracts::validate_provenance_status(&row.status)?;
-        contracts::validate_actor_kind(&row.actor_kind)?;
+        crate::spaces::knowledge::provenance::validation::validate_target_kind(&row.target_kind)?;
+        crate::spaces::knowledge::provenance::validation::validate_status(&row.status)?;
+        crate::spaces::knowledge::events::validation::validate_actor_kind(&row.actor_kind)?;
         if row.source_revision.trim().is_empty() {
             return Err("Provenance source revision is required".into());
         }
         locator::validate(&row.locator, Some(&row.source_revision))?;
-        contracts::validate_provenance_quote(&row.quote)?;
-        contracts::validate_provenance_node(
+        crate::spaces::knowledge::provenance::validation::validate_quote(&row.quote)?;
+        crate::spaces::knowledge::semantic_nodes::require(
             tx,
             &request.space.id,
             &row.source_node_id,
@@ -77,8 +79,11 @@ pub(super) async fn insert_events(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.knowledge_events {
-        contracts::validate_event_pair(&row.entity_kind, &row.event_kind)?;
-        contracts::validate_actor_kind(&row.actor_kind)?;
+        crate::spaces::knowledge::events::validation::validate_pair(
+            &row.entity_kind,
+            &row.event_kind,
+        )?;
+        crate::spaces::knowledge::events::validation::validate_actor_kind(&row.actor_kind)?;
         validate_event_entity(tx, &request.space.id, &row.entity_kind, &row.entity_id).await?;
         let payload = serde_json::to_string(&row.payload).map_err(db::json_error)?;
         sqlx::query(

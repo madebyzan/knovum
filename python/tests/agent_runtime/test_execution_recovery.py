@@ -71,11 +71,11 @@ def test_lost_projection_ack_recovers_accepted_input_without_another_model_call(
         lost = False
 
         async def request(self, method, params):
-            result = await super().request(method, params)
+            response = await super().request(method, params)
             if method == "agentRuntime.commitProjection" and self.calls[-1][1]["messages"] and not self.lost:
                 self.lost = True
                 raise HostRejected(-32000, "projection-ack-lost")
-            return result
+            return response
 
     async def run() -> None:
         models = bind_script(
@@ -92,8 +92,8 @@ def test_lost_projection_ack_recovers_accepted_input_without_another_model_call(
             with pytest.raises(HostRejected, match="projection-ack-lost"):
                 await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
             first_model = models["main"]
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "completed"
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "completed"
             assert len(first_model.requests) == 1
             assert not models["main"].requests
             assert set(host.states.values()) == {"committed"}

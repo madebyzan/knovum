@@ -10,7 +10,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from knovum_agent_runtime.composition import create_agent_graph
 from knovum_agent_runtime.contracts.generated.control import (
     AgentExecute,
-    AgentExecutionResult,
+    AgentExecutionObservation,
     AgentExecutionState,
 )
 from knovum_agent_runtime.contracts.generated.messages import AgentContentDelta
@@ -32,7 +32,7 @@ class Execution:
         self.context = ExecutionContext(request.identity, peer, graph=self.graph, projection=self.publisher)
         self.task: asyncio.Task[Any] | None = None
 
-    async def run(self) -> AgentExecutionResult:
+    async def run(self) -> AgentExecutionObservation:
         self.task = asyncio.current_task()
         config: RunnableConfig = {
             "configurable": {"thread_id": self.request.identity.thread_id},
@@ -69,7 +69,7 @@ class Execution:
             snapshot = await self.graph.aget_state(config)
             await self.publisher.commit()
             interrupts = [item.value for task in snapshot.tasks for item in task.interrupts]
-            return AgentExecutionResult(
+            return AgentExecutionObservation(
                 identity=self.request.identity,
                 checkpoint_id=snapshot.config["configurable"]["checkpoint_id"],
                 state=AgentExecutionState.interrupted if interrupts else AgentExecutionState.completed,

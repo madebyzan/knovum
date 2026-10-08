@@ -1,4 +1,4 @@
-mod contract;
+mod contracts;
 mod geometry;
 mod glow;
 mod pixels;
@@ -10,7 +10,7 @@ use std::{fs, io::Cursor, path::Path};
 use image::{DynamicImage, GenericImageView, ImageFormat, ImageReader, Limits};
 use serde_json::Value;
 
-use self::contract::ImageEdit;
+use self::contracts::ImageEdit;
 use super::EditedImageOutput;
 
 const MAX_SOURCE_BYTES: u64 = 64 * 1024 * 1024;

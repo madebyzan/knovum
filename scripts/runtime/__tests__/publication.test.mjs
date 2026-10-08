@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { sha256File } from "../files.mjs";
-import { mediaLockPath } from "../media-manifest.mjs";
+import { mediaCondaLockPath } from "../media-manifest.mjs";
 import { runtimeProfiles, runtimeTargets } from "../profiles.mjs";
 import { publicationSources, writePublication } from "../publication.mjs";
 
@@ -31,7 +31,7 @@ test("provisioning selects exactly the published platform and profile", () => {
   );
 });
 
-test("publication binds every native target and profile to its actual archive", (context) => {
+test("publication binds every target and profile to its actual archive", (context) => {
   const directory = mkdtempSync(join(tmpdir(), "knovum-publication-"));
   context.after(() => rmSync(directory, { recursive: true, force: true }));
   const baseUrl = "https://release.example/immutable-version";
@@ -49,8 +49,8 @@ test("publication binds every native target and profile to its actual archive", 
         size: Buffer.byteLength(`media/${target}`),
         sha256: sha256File(join(directory, `${mediaPrefix}.tar.gz`)),
         manifestSha256: "a".repeat(64),
-        nativeLockSha256: sha256File(
-          mediaLockPath(fileURLToPath(new URL("../../../", import.meta.url)), target),
+        condaLockSha256: sha256File(
+          mediaCondaLockPath(fileURLToPath(new URL("../../../", import.meta.url)), target),
         ),
       }),
     );
@@ -70,12 +70,15 @@ test("publication binds every native target and profile to its actual archive", 
     }
   }
   writePublication(directory, baseUrl);
-  const result = JSON.parse(readFileSync(join(directory, "runtime-publication.json"), "utf8"));
-  assert.equal(result.entries.length, 18);
-  assert.equal(publicationSources(result, "macos-arm64", "voice-generation").length, 3);
-  assert.equal(publicationSources(result, "macos-arm64", "light-inference").length, 5);
-  assert.equal(publicationSources(result, "windows-x64", "core-media").length, 2);
-  const incomplete = { ...result, entries: result.entries.filter((entry) => entry.profile !== "core-media") };
+  const published = JSON.parse(readFileSync(join(directory, "runtime-publication.json"), "utf8"));
+  assert.equal(published.entries.length, 18);
+  assert.equal(publicationSources(published, "macos-arm64", "voice-generation").length, 3);
+  assert.equal(publicationSources(published, "macos-arm64", "light-inference").length, 5);
+  assert.equal(publicationSources(published, "windows-x64", "core-media").length, 2);
+  const incomplete = {
+    ...published,
+    entries: published.entries.filter((entry) => entry.profile !== "core-media"),
+  };
   assert.throws(() => publicationSources(incomplete, "macos-arm64", "light-inference"), /core-media/u);
 
   const archive = join(directory, "python-agent-windows-x64.tar.gz");

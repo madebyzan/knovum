@@ -2,10 +2,10 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 
 import type { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
-import type { LocalModelEntry } from "../../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 import type { confirmAction } from "../../../shared/ui/confirm-action";
-import LocalModelRow from "../components/LocalModelRow.vue";
+import LocalModelConfiguration from "../components/LocalModelConfiguration.vue";
 
 const mocks = vi.hoisted(() => ({
   prepare: vi.fn<typeof startResourcePreparation>(),
@@ -27,7 +27,7 @@ vi.mock("../../../shared/ui/confirm-action", () => ({ confirmAction: mocks.confi
 vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
-const model: LocalModelEntry = {
+const model: LocalModelAvailability = {
   id: "sherpaDiarization",
   name: "Sherpa",
   capability: "speechDiarization",
@@ -50,8 +50,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.confirm.mockResolvedValue(true);
 });
-function render(overrides: Partial<LocalModelEntry> = {}) {
-  const wrapper = mount(LocalModelRow, { props: { model: { ...model, ...overrides } } });
+function render(overrides: Partial<LocalModelAvailability> = {}) {
+  const wrapper = mount(LocalModelConfiguration, { props: { model: { ...model, ...overrides } } });
   onTestFinished(() => wrapper.unmount());
   return wrapper;
 }

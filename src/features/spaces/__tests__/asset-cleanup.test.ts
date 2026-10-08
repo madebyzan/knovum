@@ -14,7 +14,7 @@ beforeEach(() => {
 });
 
 describe("batch asset cleanup", () => {
-  it("deduplicates candidates into one native request", async () => {
+  it("deduplicates candidates into one IPC request", async () => {
     await removeSpaceAssets(["/assets/a", "/assets/b", "/assets/a"]);
     expect(bridge.invoke).toHaveBeenCalledOnce();
     expect(bridge.invoke).toHaveBeenCalledWith("plugin:spaces|remove_assets", {

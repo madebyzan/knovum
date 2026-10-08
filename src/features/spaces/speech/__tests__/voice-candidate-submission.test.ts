@@ -60,13 +60,13 @@ it.each([false, true])(
     );
     const submission = useVoiceCandidateSubmission();
     const attach = vi.fn<(run: RunObservation) => void>();
-    const result = submission.start(input, attach);
+    const completion = submission.start(input, attach);
     const jobId = submission.jobId.value;
     await submission.cancel();
     expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(jobId);
     if (closed) submission.reset();
     created(run);
-    await result;
+    await completion;
     expect(mocks.observeResourceRun).toHaveBeenCalledExactlyOnceWith(run, "spaces.speech.generateCandidate");
     expect(attach).toHaveBeenCalledExactlyOnceWith(run);
     expect(mocks.cancelResourceRun).toHaveBeenCalledExactlyOnceWith(run.id);
@@ -84,10 +84,10 @@ it("attaches the created task before surfacing a persistent cancellation failure
   mocks.cancelResourceRun.mockRejectedValue(new Error("Cancellation denied"));
   const submission = useVoiceCandidateSubmission();
   const attach = vi.fn<(run: RunObservation) => void>();
-  const result = submission.start(input, attach);
+  const completion = submission.start(input, attach);
   await submission.cancel();
   created(run);
-  await expect(result).rejects.toThrow("Cancellation denied");
+  await expect(completion).rejects.toThrow("Cancellation denied");
   expect(attach).toHaveBeenCalledExactlyOnceWith(run);
   expect(submission.jobId.value).toBeUndefined();
 });

@@ -13,7 +13,7 @@ export function scriptUnitTests(root) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const tests = scriptUnitTests(fileURLToPath(new URL("../", import.meta.url)));
   if (!tests.length) throw new Error("No script unit tests found");
-  const result = spawnSync(process.execPath, ["--test", ...tests], { stdio: "inherit" });
-  if (result.error) throw result.error;
-  process.exitCode = result.status ?? 1;
+  const testExecution = spawnSync(process.execPath, ["--test", ...tests], { stdio: "inherit" });
+  if (testExecution.error) throw testExecution.error;
+  process.exitCode = testExecution.status ?? 1;
 }

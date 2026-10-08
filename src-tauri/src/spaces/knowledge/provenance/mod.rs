@@ -2,7 +2,7 @@ use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
-use super::{contracts, events, locator, semantic_nodes};
+use super::{events, locator, semantic_nodes};
 use crate::{app_error::AppError, spaces::db};
 
 mod command_contracts;
@@ -15,7 +15,7 @@ pub async fn list_provenance<R: Runtime>(
     target_kind: String,
     target_id: String,
 ) -> Result<Vec<Value>, AppError> {
-    contracts::validate_provenance_target_kind(&target_kind)?;
+    validation::validate_target_kind(&target_kind)?;
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT id,space_id,target_kind,target_id,source_node_id,locator,source_revision,quote,status,\
@@ -45,7 +45,7 @@ pub async fn list_knowledge_events<R: Runtime>(
     let pool = db::pool(&app).await?;
     let rows = match (entity_kind, entity_id) {
         (Some(entity_kind), Some(entity_id)) => {
-            contracts::validate_event_entity_kind(&entity_kind)?;
+            events::validation::validate_entity_kind(&entity_kind)?;
             // Entity IDs are globally stable across Space moves. Keep the Space column as event-time
             // context, but do not split one entity's history when its current Space changes.
             sqlx::query(
@@ -162,7 +162,7 @@ pub async fn revoke_provenance<R: Runtime>(
     Ok(())
 }
 
-mod validation;
+pub(crate) mod validation;
 use validation::{ensure_target, validate_input};
 
 mod rows;

@@ -25,7 +25,18 @@ pub(super) fn required_string<'a>(
         .ok_or_else(|| format!("{label} must be a non-empty string"))
 }
 
-use super::super::contracts::validate_text_limit;
+pub(super) fn validate_text_limit(
+    value: &str,
+    max_chars: usize,
+    label: &str,
+) -> Result<(), String> {
+    if value.encode_utf16().count() > max_chars {
+        return Err(format!(
+            "{label} exceeds the maximum of {max_chars} characters"
+        ));
+    }
+    Ok(())
+}
 
 pub(super) fn required_string_limited<'a>(
     object: &'a Map<String, Value>,

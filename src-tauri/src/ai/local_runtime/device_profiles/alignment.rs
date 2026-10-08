@@ -46,7 +46,7 @@ pub(crate) async fn profile(
         LocalModelId::Qwen3AlignerQ8 => {
             let report: Backend = super::backend_probe::report(
                 runtime,
-                super::backend_probe::Probe::Native(6 * super::GIB),
+                super::backend_probe::Probe::CompiledLibrary(6 * super::GIB),
                 cancellation,
                 cancellation,
                 deadline_ms,

@@ -89,7 +89,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &before_snapshot)
             .await?;
     for node in &mut nodes {
-        crate::spaces::knowledge::contracts::normalize_node(
+        crate::spaces::knowledge::validation::normalize_node(
             &mut tx,
             &request.space_id,
             &node.kind,

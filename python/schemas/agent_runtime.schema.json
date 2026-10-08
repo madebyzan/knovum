@@ -15,8 +15,8 @@
     "execute": {
       "$ref": "#/$defs/AgentExecute"
     },
-    "execution_result": {
-      "$ref": "#/$defs/AgentExecutionResult"
+    "execution_observation": {
+      "$ref": "#/$defs/AgentExecutionObservation"
     },
     "control": {
       "$ref": "#/$defs/AgentControl"
@@ -54,7 +54,7 @@
     "ready",
     "prune_threads",
     "execute",
-    "execution_result",
+    "execution_observation",
     "control",
     "projection_request",
     "projection",
@@ -419,7 +419,7 @@
         "base64"
       ]
     },
-    "AgentExecutionResult": {
+    "AgentExecutionObservation": {
       "type": "object",
       "properties": {
         "identity": {

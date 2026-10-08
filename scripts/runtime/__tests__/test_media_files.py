@@ -10,7 +10,7 @@ from runtime import media_files
 def put(root: Path, name: str) -> Path:
     path = root / name
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(b"native file")
+    path.write_bytes(b"compiled file")
     return path
 
 
@@ -20,7 +20,13 @@ def test_media_export_retains_transitive_libraries_data_and_notices_without_sdk_
     ffmpeg = put(tmp_path, "bin/ffmpeg")
     codec = put(tmp_path, "lib/libavcodec.63.dylib")
     opus = put(tmp_path, "lib/libopus.0.dylib")
-    retained = {ffmpeg, codec, opus, put(tmp_path, "share/fonts/a.ttf"), put(tmp_path, "native-notices/opus/LICENSE")}
+    retained = {
+        ffmpeg,
+        codec,
+        opus,
+        put(tmp_path, "share/fonts/a.ttf"),
+        put(tmp_path, "conda-notices/opus/LICENSE"),
+    }
     put(tmp_path, "bin/other-tool")
     put(tmp_path, "include/opus.h")
     put(tmp_path, "lib/libopus.dylib")

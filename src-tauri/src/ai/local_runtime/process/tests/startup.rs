@@ -37,7 +37,7 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
             image_segmentation: None,
         },
     };
-    let result = Worker::start(
+    let startup = Worker::start(
         &runtime,
         &directory,
         &directory.join("model"),
@@ -48,7 +48,7 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
     )
     .await;
     assert!(
-        matches!(result, Err(error) if error == "runtime_mismatch: worker package does not own the execution profile")
+        matches!(startup, Err(error) if error == "runtime_mismatch: worker package does not own the execution profile")
     );
     assert!(!directory.exists());
 }

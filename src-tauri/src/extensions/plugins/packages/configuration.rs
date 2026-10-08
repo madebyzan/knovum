@@ -13,7 +13,7 @@ pub(super) fn read(
     if !files.contains_key("mcp.json") {
         return servers;
     }
-    let result = (|| {
+    let configuration = (|| {
         let value = super::json(files, "mcp.json")?;
         let object = value
             .as_object()
@@ -61,7 +61,7 @@ pub(super) fn read(
         }
         Ok::<_, String>(())
     })();
-    if let Err(error) = result {
+    if let Err(error) = configuration {
         diagnostic(components, "mcp.json", "mcp", error);
     }
     servers

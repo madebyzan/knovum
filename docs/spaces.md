@@ -52,7 +52,7 @@ Space packages export active knowledge, not the Recently Deleted collection. Der
 
 The sidebar keeps Space navigation fixed above a directly visible Outline and Recently Deleted fixed below it. Inbox comes first as the capture destination for knowledge saved before choosing an organizational Space, followed by All Spaces, Recently Opened and Favorites. These four entries use consistent row spacing without an extra divider or gap after Inbox. Only the Outline list scrolls. A subdued Outline heading identifies the content region without repeating the current Space title already shown in its tab. Whitespace separates navigation from the Outline; there are no decorative divider rules or whole-Outline disclosure state. The `spaces.focus-outline` command (`$mod+Shift+O`) reveals the sidebar and focuses its content region on every invocation. Section disclosures remain because they represent actual document structure.
 
-Truncated Outline titles scroll in one direction after a short hover delay and remain at the end until the pointer leaves. They never reverse or loop. Titles that fit stay still. Measurement and resize observation are limited to the hovered row; unchanged geometry does not restart the animation. Leaving or unmounting cancels the native animation and restores truncation. Reduced-motion preferences disable scrolling, while the original full title remains available to accessibility and the native title hint.
+Truncated Outline titles scroll in one direction after a short hover delay and remain at the end until the pointer leaves. They never reverse or loop. Titles that fit stay still. Measurement and resize observation are limited to the hovered row; unchanged geometry does not restart the animation. Leaving or unmounting cancels the Web Animations API animation and restores truncation. Reduced-motion preferences disable scrolling, while the original full title remains available to accessibility and the browser title hint.
 
 Recently Deleted has one workbench dialog and one entry in the persistent sidebar footer. It opens with all Spaces; Space filtering belongs inside the dialog. The query returns deleted Structure roots with deletion-batch identity, kind, title, Space and time. Deleting several effective roots creates one batch. A row can restore one root, while the batch action restores the complete user operation; both preserve StructureNodeIds, hierarchy, local transforms, content identities, internal relations and history semantics. Permanent deletion validates retained Portal targets and removes complete subtrees plus empty deleted containers in one Rust transaction. Filesystem cleanup receives only post-commit candidates and removes a file only after the asset command confirms it is unreferenced. The list remains virtualized and does not hide an arbitrary result limit.
 
@@ -123,7 +123,7 @@ The Builtin Agent has one visible conversation and message store for API models 
 The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
 execution session and Run, receives the selected Space resources through validated asset paths,
 and writes its streamed reply into the shared conversation. A later turn receives the visible
-history as context; it does not claim to resume hidden native session memory. Tool activity is
+history as context; it does not claim to resume hidden executor session memory. Tool activity is
 recorded as Run events, while Space changes still require Knovum MCP receipts. The former
 grounded-answer threads and messages are moved into the Builtin Agent store by a one-time local
 database migration; their verified source snapshots remain attached to the corresponding reply.
@@ -182,7 +182,7 @@ presentation stream. Public history remains available when an unsupported or uns
 segment is retired. Root pause is acknowledged only at a durable boundary. Unknown paid calls
 appear as actionable waiting in the conversation and Task Center, with a state-version checked
 explicit new-attempt command and possible duplicate-charge explanation. External Agent turns
-continue to support execution/cancellation through ACP, through the same mode-free product request, with their own native runtime controls.
+continue to support execution/cancellation through ACP, through the same mode-free product request, with their own runtime controls.
 Builtin Agent failures retain their reason with the task record; interrupted presentation text is
 never promoted to a completed answer. See `system-architecture.md` for graph/host ownership.
 
@@ -354,7 +354,7 @@ Current Markdown knowledge can be exported as DOCX or PDF. DOCX remains an edita
 
 ## Canvas cards and Sections
 
-Native website layers do not take initial keyboard focus from the canvas. During canvas motion or direct manipulation, the child WebView is suspended while the node shows its saved site identity or preview image; after the viewport settles, the browser is placed at the final bounds and shown again. Native placement requests coalesce to the latest frame rather than queuing obsolete coordinates. Browser content bounds are projected from the same scene frame and viewport that paint the canvas, using the host rectangle only as the origin; they are not sampled from CSS-transformed node DOM. The main WebView origin is then converted to the parent window's client-area logical pixels at the Rust boundary. Rotated or partially clipped website content stays on its saved preview because a native child WebView cannot rotate or clip with the canvas. Resizable nodes have semantic minimum sizes but no arbitrary presentation maximum; persisted frames must remain finite and positive.
+Child WebViews do not take initial keyboard focus from the canvas. During canvas motion or direct manipulation, the child WebView is suspended while the node shows its saved site identity or preview image; after the viewport settles, the browser is placed at the final bounds and shown again. Child-window placement requests coalesce to the latest frame rather than queuing obsolete coordinates. Browser content bounds are projected from the same scene frame and viewport that paint the canvas, using the host rectangle only as the origin; they are not sampled from CSS-transformed node DOM. The main WebView origin is then converted to the parent window's client-area logical pixels at the Rust boundary. Rotated or partially clipped website content stays on its saved preview because a child WebView cannot rotate or clip with the canvas. Resizable nodes have semantic minimum sizes but no arbitrary presentation maximum; persisted frames must remain finite and positive.
 
 Canvas items are **content-first spatial representations**, not a grid of generic file cards. Notes and Markdown remain bounded summaries because their full body has a Knovum editor. Images and document snapshots expose content directly; media stays an inert cover until activated. A video cover carries its duration; a separate, fixed-height caption shows at most two title lines and then platform and creator, without letting a long title push the source out of view. Code shows source. Saved Websites persist the URL immediately and enrich metadata in a bounded background queue. Website nodes render a stable local preview or site identity; the original URL remains available for opening in the system browser. The canvas does not host independent browser surfaces. Opaque specialist formats keep a restrained resource identity until a maintained renderer is selected.
 
@@ -405,7 +405,7 @@ panel sits over the preview stage while transport and timeline keep the full wor
 or the close control clears selection and returns focus to the ruler. Timed text is selectable from
 the preview and timeline. The panel offers a searchable subtitle list, live text edits, placement,
 font family, available face weights, size, color and four export-backed styles; clip selection exposes source in/out times, volume,
-rotation and both flips. Text size is expressed in 720p-relative pixels. The native font catalog
+rotation and both flips. Text size is expressed in 720p-relative pixels. The system font catalog
 reads installed upright faces once and exposes their families and weights to the inspector. Each
 text overlay saves its selected family and weight; WebView preview and libass export read the same
 values. A font missing from the current computer blocks export explicitly. The ASS script resolution follows the source
@@ -470,7 +470,7 @@ silently discarded or converted to an unrelated preset.
 
 The mounted canvas editor is the sole owner of transient camera interaction and selection. Outline, Find and Saved View actions publish typed workbench intents consumed through `CanvasEditorPort`; product components never acquire or retain a vendor editor instance.
 
-Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related native edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
+Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 
 On macOS one selected managed resource can open in the system Quick Look panel — the same non-modal preview Finder shows for a file. Content without private file bytes has nothing to hand to the platform and therefore does not expose the command. Space remains the focused canvas pan modifier; preview never delays or intercepts it.
 
@@ -545,6 +545,11 @@ citation, package and retrieval rules belong to [knowledge.md](knowledge.md).
 
 Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Space packages and media knowledge both start at version 1, but remain independent contracts from each other and the database baseline.
 
+Conversation tool operations persist invocation `context`, its `context_digest`, and response `output`.
+Run attempts persist `output`, matching step outputs and package `runAttempts[].output`. These are the
+current v1 fields; edit receipts persist their `committed_projection`. Obsolete development databases and packages follow the strict reset/rejection
+boundary above. External model and MCP protocol payloads retain their own field names.
+
 Content layout JSON uses `sizingMode` (`content` or `frame`). The baseline requires this field, so beta databases containing the earlier field name follow the same explicit reset boundary.
 
 ## Session state ownership
@@ -589,8 +594,8 @@ Document exports submit source identity/revision to the same canvas Action accep
 output path reservation, pending-node placement and source validation;
 render completion and failure update that same durable output. Vue does not allocate document
 paths or write a second pending output state. Image preview remains an interactive browser renderer,
-while native preview/export use Rust; shared tone fixtures constrain both environments without
-claiming full pixel equality across browser interpolation and native rendering.
+while image preview/export use Rust; shared tone fixtures constrain both environments without
+claiming full pixel equality across browser interpolation and Rust rendering.
 
 ## Visual enrichment revisions
 
@@ -610,4 +615,4 @@ The audio/video node separation operation produces vocals and accompaniment as s
 
 The current pre-release v1 database/package baseline includes both stem paths and digests. Obsolete baselines are rejected by the existing strict schema policy; no compatibility reader, migration or silent reset is introduced. Snapshot, restore, remapping and deletion reference graphs preserve both outputs. Interrupted attempts retain publication journals until both assets can be committed or cleaned up.
 
-Audio and video node toolbars expose transcription as a separate operation. A current edited transcript remains authoritative: the action shows the existing transcript state and cannot silently replace it. A queued, running or resource-waiting enrichment job disables a second submission, including jobs restored from native state. Transcript and inspector components are keyed by node identity so local editing state cannot leak to another selection.
+Audio and video node toolbars expose transcription as a separate operation. A current edited transcript remains authoritative: the action shows the existing transcript state and cannot silently replace it. A queued, running or resource-waiting enrichment job disables a second submission, including jobs restored from Rust state. Transcript and inspector components are keyed by node identity so local editing state cannot leak to another selection.

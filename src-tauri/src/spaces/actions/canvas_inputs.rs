@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use sqlx::{Sqlite, Transaction};
 
 use super::canvas::SpaceActionSource;
-use crate::spaces::{db, knowledge::indexing::revision};
+use crate::spaces::{db, knowledge::model::revision};
 
 pub(super) async fn pin(
     tx: &mut Transaction<'_, Sqlite>,

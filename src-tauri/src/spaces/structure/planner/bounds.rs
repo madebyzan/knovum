@@ -1,4 +1,4 @@
-use crate::spaces::structure::contract::{StructureLayout, StructureNode};
+use crate::spaces::structure::contracts::{StructureLayout, StructureNode};
 use crate::spaces::structure::planner::spatial::world_transform;
 use crate::spaces::structure::planner::tree_policy::Index;
 

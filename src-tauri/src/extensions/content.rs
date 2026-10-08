@@ -110,7 +110,7 @@ pub(super) fn publish(directory: &Path, files: &PackageFiles) -> Result<(), Stri
     std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     let staging = parent.join(format!(".staging-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir(&staging).map_err(|error| error.to_string())?;
-    let result = (|| {
+    let content_update = (|| {
         for (path, bytes) in files {
             let destination = staging.join(path);
             std::fs::create_dir_all(destination.parent().expect("content parent"))
@@ -119,10 +119,10 @@ pub(super) fn publish(directory: &Path, files: &PackageFiles) -> Result<(), Stri
         }
         std::fs::rename(&staging, directory).map_err(|error| error.to_string())
     })();
-    if result.is_err() {
+    if content_update.is_err() {
         let _ = std::fs::remove_dir_all(staging);
     }
-    result
+    content_update
 }
 
 fn verify(directory: &Path, files: &PackageFiles) -> Result<(), String> {

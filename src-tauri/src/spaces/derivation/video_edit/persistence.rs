@@ -6,10 +6,7 @@ use super::super::{
 };
 use crate::{
     app_error::AppError,
-    spaces::{
-        db,
-        knowledge::{contracts, indexing::revision},
-    },
+    spaces::{db, knowledge::model::revision},
 };
 
 pub async fn complete(
@@ -30,7 +27,7 @@ pub async fn complete(
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     pending_output::validate_separate_asset(&data, &row.4)?;
     apply_output(&mut data, &output, now)?;
-    contracts::validate_node(&mut tx, &row.0, "video", &data).await?;
+    crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
     let relation = relations::derives_from(
         &row.0,
         &row.2,

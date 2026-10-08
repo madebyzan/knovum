@@ -2,7 +2,7 @@ import { lstatSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 import { sha256File } from "./files.mjs";
-import { dependencyIdentity, nativeLockPath } from "./profiles.mjs";
+import { condaLockPath, dependencyIdentity } from "./profiles.mjs";
 
 export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const configuration = JSON.parse(
@@ -13,29 +13,29 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const metadata = lstatSync(path);
   if (!metadata.isFile() || metadata.size > 16 * 1024 * 1024)
     throw new Error("Runtime producer record is invalid");
-  const record = JSON.parse(readFileSync(path, "utf8"));
+  const producer = JSON.parse(readFileSync(path, "utf8"));
   const repository = resolve(dirname(dependencyLock), "../../..");
-  const nativePath = nativeLockPath(repository, manifest.target, manifest.profile);
-  validateProducerIdentity(record, manifest, configuration);
-  validateNativeSupplier(record.nativeSupplier, configuration.nativeSupplier, nativePath);
+  const condaPath = condaLockPath(repository, manifest.target, manifest.profile);
+  validateProducerIdentity(producer, manifest, configuration);
+  validateCondaSupplier(producer.condaSupplier, configuration.condaSupplier, condaPath);
   if (
-    record.dependencyLockSha256 !== dependencyIdentity(repository, manifest.target, manifest.profile) ||
-    manifest.dependencyLockSha256 !== record.dependencyLockSha256
+    producer.dependencyLockSha256 !== dependencyIdentity(repository, manifest.target, manifest.profile) ||
+    manifest.dependencyLockSha256 !== producer.dependencyLockSha256
   )
     throw new Error("Runtime dependency lock differs from the application");
   if (manifest.dependencyRequirementsSha256 !== sha256File(join(evidence, "requirements.txt")))
     throw new Error("Runtime requirements differ from the producer evidence");
   validateEvidenceFiles(evidence, manifest.profile);
   if (
-    JSON.stringify(JSON.parse(readFileSync(join(evidence, "native-packages.json"), "utf8"))) !==
-    JSON.stringify(record.nativeSupplier)
+    JSON.stringify(JSON.parse(readFileSync(join(evidence, "conda-packages.json"), "utf8"))) !==
+    JSON.stringify(producer.condaSupplier)
   )
-    throw new Error("Native package inventory differs from the producer record");
+    throw new Error("Conda package inventory differs from the producer receipt");
   if (manifest.profile === "light-inference") {
     validateCompiledSources(evidence, dependencyLock);
   }
   if (manifest.profile === "voice-generation") {
-    validateVoxCpm(record.voxcpm, evidence, configuration.voiceNative, repository);
+    validateVoxCpm(producer.voxcpm, evidence, configuration.voiceLibrary, repository);
   }
 }
 
@@ -57,14 +57,14 @@ function validateProducerIdentity(record, manifest, configuration) {
   validateSigningRecord(record.signing, manifest.target);
 }
 
-export function validateNativeSupplier(supplier, configuration, nativePath, ErrorType = Error) {
-  const native = JSON.parse(readFileSync(nativePath, "utf8"));
+export function validateCondaSupplier(supplier, configuration, condaPath, ErrorType = Error) {
+  const packages = JSON.parse(readFileSync(condaPath, "utf8"));
   if (
     supplier?.supplier !== configuration.name ||
     supplier?.micromambaVersion !== configuration.micromambaVersion ||
-    supplier?.lockSha256 !== sha256File(nativePath) ||
+    supplier?.lockSha256 !== sha256File(condaPath) ||
     JSON.stringify(supplier?.packages.map(({ files: _files, ...identity }) => identity)) !==
-      JSON.stringify(native.packages)
+      JSON.stringify(packages.packages)
   )
     throw new ErrorType("Runtime producer identity differs from the controlled build");
 }
@@ -82,7 +82,7 @@ export function validateSigningRecord(signing, target, ErrorType = Error) {
 function validateEvidenceFiles(evidence, profile) {
   for (const name of [
     "producer.json",
-    "native-packages.json",
+    "conda-packages.json",
     "dependency-evidence.json",
     "sbom.cdx.json",
     "requirements.txt",
@@ -99,16 +99,16 @@ function validateEvidenceFiles(evidence, profile) {
 function validateCompiledSources(evidence, dependencyLock) {
   const policy = join(dirname(dependencyLock), "../../compiled-source-evidence.json");
   if (sha256File(join(evidence, "compiled-source-evidence.json")) !== sha256File(policy))
-    throw new Error("Native source review evidence differs from the application");
+    throw new Error("Compiled source review evidence differs from the application");
   const compiledSources = JSON.parse(readFileSync(policy, "utf8"));
   for (const source of compiledSources.sources) {
     const path = join(evidence, "compiled-sources", source.fileName);
     if (sha256File(path) !== source.sha256 || lstatSync(path).size !== source.size)
-      throw new Error(`Native source archive differs: ${source.name}`);
+      throw new Error(`Compiled source archive differs: ${source.name}`);
   }
 }
 
-function validateVoxCpm(native, evidence, configuration, repository) {
+function validateVoxCpm(voiceReceipt, evidence, configuration, repository) {
   const expected = {
     name: "audio.cpp",
     version: configuration.revision,
@@ -118,18 +118,18 @@ function validateVoxCpm(native, evidence, configuration, repository) {
     sourceSha256: configuration.source.sha256,
   };
   if (
-    Object.entries(expected).some(([key, value]) => native?.[key] !== value) ||
+    Object.entries(expected).some(([key, value]) => voiceReceipt?.[key] !== value) ||
     sha256File(join(evidence, "audio-cpp-source.tar.gz")) !== configuration.source.sha256
   )
-    throw new Error("VoxCPM native source identity differs from the frozen supplier");
+    throw new Error("VoxCPM compiled source identity differs from the frozen supplier");
   for (const [file, key] of [
     ["voice_bridge.cpp", "bridgeSha256"],
     ["voice_bridge.cmake", "recipeSha256"],
   ]) {
     if (
-      sha256File(join(evidence, file)) !== native[key] ||
-      sha256File(join(repository, "scripts/runtime", file)) !== native[key]
+      sha256File(join(evidence, file)) !== voiceReceipt[key] ||
+      sha256File(join(repository, "scripts/runtime", file)) !== voiceReceipt[key]
     )
-      throw new Error(`VoxCPM native adapter identity differs: ${file}`);
+      throw new Error(`VoxCPM compiled adapter identity differs: ${file}`);
   }
 }

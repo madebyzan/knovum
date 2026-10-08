@@ -17,7 +17,7 @@ pub(super) async fn invoke(
     let name = request.name.into_owned();
     let arguments = serde_json::Value::Object(request.arguments.unwrap_or_default());
     let value = invoke_value(server, &name, arguments, context).await?;
-    let result = if value.get("content").is_some() {
+    let tool_output = if value.get("content").is_some() {
         serde_json::from_value::<CallToolResult>(value)
             .map_err(|error| mcp_error(error.to_string()))?
     } else {
@@ -25,7 +25,7 @@ pub(super) async fn invoke(
             serde_json::to_string(&value).map_err(|error| mcp_error(error.to_string()))?,
         )])
     };
-    Ok(CallToolResponse::Complete(result))
+    Ok(CallToolResponse::Complete(tool_output))
 }
 
 pub(super) async fn invoke_value(
@@ -78,7 +78,7 @@ pub(super) async fn invoke_value(
                 db::require_one(waiting, "conversation-tool-run-inactive").map_err(mcp_error)?;
                 runs::announce_change();
                 tokio::select! {
-                    result = tool_operations::intervention::wait(pool, &server.parent_run_id, &operation_id) => result.map_err(mcp_error)?,
+                    tool_output = tool_operations::intervention::wait(pool, &server.parent_run_id, &operation_id) => tool_output.map_err(mcp_error)?,
                     _ = context.ct.cancelled() => return Err(mcp_error("external Agent request cancelled")),
                 }
                 let resumed = sqlx::query("UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1 WHERE id=$1 AND state IN ('waiting','running') AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL").bind(&server.parent_run_id).execute(pool).await.map_err(|error| mcp_error(error.to_string()))?;

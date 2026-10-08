@@ -17,7 +17,7 @@ def manifest_tool() -> Path:
     sdk = Path(os.environ["PROGRAMFILES(X86)"]) / "Windows Kits/10/bin"
     tools = list(sdk.glob("10.*/x64/mt.exe"))
     if not tools:
-        raise ValueError("Native Windows runtime production requires the Windows SDK Manifest Tool")
+        raise ValueError("Windows CPython production requires the Windows SDK Manifest Tool")
     return max(
         tools,
         key=lambda tool: tuple(int(part) for part in tool.parent.parent.name.split(".")),

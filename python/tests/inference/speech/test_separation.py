@@ -160,11 +160,11 @@ def test_separation_keeps_the_exact_source_timeline_and_tail(tmp_path: Path, fra
     engine._engine = FrameEngine()
     params = _params(_audio_reference(source))
     params.model_spec_id = spec
-    result = engine.separate(params, threading.Event())
-    assert result["modelSpecId"] == spec
-    assert result["sampleCount"] == frame_count
+    separation = engine.separate(params, threading.Event())
+    assert separation["modelSpecId"] == spec
+    assert separation["sampleCount"] == frame_count
     for name in ("vocalsRef", "backgroundRef"):
-        with wave.open(str(work / result[name]["fileName"]), "rb") as output:
+        with wave.open(str(work / separation[name]["fileName"]), "rb") as output:
             assert output.getnframes() == frame_count
             samples = np.frombuffer(output.readframes(frame_count), dtype="<i2")
             assert samples[-CHANNELS:].tolist() == [1234, 1234]

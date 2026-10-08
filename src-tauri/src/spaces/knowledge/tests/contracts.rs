@@ -70,7 +70,7 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
         source_chunks: Vec::new(),
     };
     let mut setup = pool.begin().await.expect("begin canvas setup");
-    crate::spaces::knowledge::contracts::normalize_node(
+    crate::spaces::knowledge::validation::normalize_node(
         &mut setup,
         "space",
         "note",
@@ -201,7 +201,7 @@ async fn change_commit_preserves_actor_identity_across_rows_and_events() {
     ]});
 
     let mut tx = pool.begin().await.expect("begin knowledge change");
-    let result = super::super::action::commit_changes(
+    let commit = super::super::action::commit_changes(
         &mut tx,
         &crate::spaces::authorization::Principal {
             kind: crate::spaces::authorization::PrincipalKind::ExternalAgent,
@@ -263,7 +263,7 @@ async fn change_commit_preserves_actor_identity_across_rows_and_events() {
     .expect("knowledge object layouts");
     assert_eq!(layout_count, 2);
 
-    let resolved = result
+    let resolved = commit
         .get("resolvedIds")
         .and_then(serde_json::Value::as_object)
         .expect("resolved object ids");

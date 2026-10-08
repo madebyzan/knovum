@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 
-use super::contract::JsonCanvasNodeV1;
+use super::contracts::JsonCanvasNodeV1;
 use crate::spaces::assets::PreparedAsset;
 
 pub(super) fn payload(

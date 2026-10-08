@@ -111,8 +111,8 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
             host = Host()
             async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoints.db")) as saver:
                 execute = AgentExecute.model_validate_json(json.dumps(request_value()))
-                result = await Execution(execute, saver, host).run()
-                assert result.state.value == "completed"
+                observation = await Execution(execute, saver, host).run()
+                assert observation.state.value == "completed"
                 assert [value["text"] for _, value in host.notifications] == ["answer"]
                 projections = [value for method, value in host.calls if method == "agentRuntime.commitProjection"]
                 assert any(value["acceptedInputIds"] == ["input:1"] for value in projections)
@@ -121,7 +121,7 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
                 assert len(requests) == 1
                 assert "write_todos" in {tool["function"]["name"] for tool in requests[0]["tools"]}
                 replay = request_value()
-                replay["afterCheckpointId"] = result.checkpoint_id
+                replay["afterCheckpointId"] = observation.checkpoint_id
                 await Execution(AgentExecute.model_validate_json(json.dumps(replay)), saver, host).run()
                 assert len(requests) == 1
                 admission = [value for method, value in host.calls if method == "agentRuntime.admitModel"]

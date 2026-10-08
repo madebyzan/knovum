@@ -101,18 +101,17 @@ fn validate_memory_reservation(
             snapshot.available_bytes
         ));
     }
-    let application_budget =
-        super::device_profiles::application_memory_budget(snapshot.total_bytes);
+    let inference_budget = super::device_profiles::inference_memory_budget(snapshot.total_bytes);
     let requested = reserved_memory_bytes
         .checked_add(peak_bytes)
         .ok_or("resource_exhausted: Local inference memory reservation overflowed")?;
-    if requested > application_budget {
+    if requested > inference_budget {
         return Err(format!(
-            "resource_exhausted: {} requires {} bytes, with {} bytes already reserved against the {} byte application budget",
+            "resource_exhausted: {} requires {} bytes, with {} bytes already reserved against the {} byte inference budget",
             profile_name,
             peak_bytes,
             reserved_memory_bytes,
-            application_budget
+            inference_budget
         ));
     }
     Ok(requested)
@@ -126,12 +125,11 @@ fn ensure_runtime_headroom(admission: &Admission) -> Result<(), String> {
         ));
     }
     let state = admission.state.lock().map_err(|_| "resource_busy")?;
-    let application_budget =
-        super::device_profiles::application_memory_budget(snapshot.total_bytes);
-    if state.reserved_memory_bytes > application_budget {
+    let inference_budget = super::device_profiles::inference_memory_budget(snapshot.total_bytes);
+    if state.reserved_memory_bytes > inference_budget {
         return Err(format!(
-            "resource_exhausted: {} bytes are reserved against the {} byte application budget",
-            state.reserved_memory_bytes, application_budget
+            "resource_exhausted: {} bytes are reserved against the {} byte inference budget",
+            state.reserved_memory_bytes, inference_budget
         ));
     }
     Ok(())

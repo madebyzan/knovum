@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use super::contract::Adjustments;
+use super::contracts::Adjustments;
 
 pub(super) struct ToneAdjuster {
     active: bool,

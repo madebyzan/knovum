@@ -12,7 +12,7 @@ def test_media_export_materializes_only_the_required_soname_before_removing_sdk_
     (tmp_path / "lib").mkdir()
     (tmp_path / "bin/ffmpeg").write_bytes(b"executable")
     original = tmp_path / "lib/libcodec.63.1.dylib"
-    original.write_bytes(b"frozen native library")
+    original.write_bytes(b"frozen compiled library")
     soname = tmp_path / "lib/libcodec.63.dylib"
     soname.symlink_to(original.name)
     (tmp_path / "lib/libcodec.dylib").symlink_to(original.name)
@@ -30,7 +30,7 @@ def test_media_export_materializes_only_the_required_soname_before_removing_sdk_
         "lib/libcodec.63.dylib",
     ]
     assert soname.is_file() and not soname.is_symlink()
-    assert soname.read_bytes() == b"frozen native library"
+    assert soname.read_bytes() == b"frozen compiled library"
     assert not original.exists() and not (tmp_path / "lib/libcodec.dylib").exists()
     assert not (tmp_path / "lib/icu/current").is_symlink()
     assert not (tmp_path / "lib/icu").exists()

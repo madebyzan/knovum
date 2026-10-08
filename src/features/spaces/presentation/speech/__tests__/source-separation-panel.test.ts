@@ -83,7 +83,7 @@ it("shows the selected separation model and first-use preparation", () => {
 it("does not offer export for an unreviewed candidate", () => {
   expect(render("pending").find('[data-testid="export-separated-background"]').exists()).toBe(false);
 });
-it("shows a native export failure and allows another attempt", async () => {
+it("shows a Rust export failure and allows another attempt", async () => {
   mocks.exportFile.mockRejectedValueOnce(new Error("Cannot write destination"));
   const wrapper = render();
   await wrapper.get('[data-testid="export-separated-background"]').trigger("click");

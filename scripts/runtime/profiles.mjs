@@ -20,16 +20,16 @@ export function runtimeProject(repository, profile) {
   return join(repository, "python", "runtimes", profile);
 }
 
-export function nativeLockPath(repository, target, profile) {
+export function condaLockPath(repository, target, profile) {
   const source = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
-  const group = source.nativeSupplier.profiles[profile];
-  return join(repository, "python/native-locks", group, `${target}.json`);
+  const group = source.condaSupplier.profiles[profile];
+  return join(repository, "python/conda-locks", group, `${target}.json`);
 }
 
 export function dependencyIdentity(repository, target, profile) {
   return createHash("sha256")
     .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
-    .update(readFileSync(nativeLockPath(repository, target, profile)))
+    .update(readFileSync(condaLockPath(repository, target, profile)))
     .digest("hex");
 }
 
@@ -38,7 +38,7 @@ export function developmentDirectory(repository, target, profile) {
     .update(readFileSync(join(repository, "python/runtime-source.json")))
     .update(producerBytes(repository, profile))
     .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
-    .update(readFileSync(nativeLockPath(repository, target, profile)))
+    .update(readFileSync(condaLockPath(repository, target, profile)))
     .digest("hex");
   return join(repository, ".runtime-development", profile, target, identity);
 }
@@ -74,9 +74,10 @@ export function requirementsArguments(repository, profile) {
     "--no-annotate",
     ...JSON.parse(
       readFileSync(join(repository, "python/runtime-source.json"), "utf8"),
-    ).nativeSupplier.pythonDistributions[profile === "torch-inference" ? "tensor" : "base"].flatMap(
-      (name) => ["--no-emit-package", name],
-    ),
+    ).condaSupplier.pythonDistributions[profile === "torch-inference" ? "tensor" : "base"].flatMap((name) => [
+      "--no-emit-package",
+      name,
+    ]),
   ];
 }
 

@@ -1,7 +1,7 @@
 {
   "target": "执行目标",
-  "targetModelNative": "模型 API · 原生能力",
-  "targetAgentWorkflow": "桌面 Agent · 产出取决于当前工具与 Skills",
+  "targetModelApi": "模型 API · 直接执行",
+  "targetExternalAgent": "桌面 Agent · 产出取决于当前工具与 Skills",
   "noCompatibleTarget": "没有兼容的执行目标",
   "desktopAgentNotInstalled": "未检测到",
   "disabledTitle": "没有兼容的 AI 执行目标",

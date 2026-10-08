@@ -2,7 +2,7 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use super::resource;
-use crate::spaces::knowledge::node_contracts::document_coverage::{
+use crate::spaces::knowledge::model::document_coverage::{
     DocumentCoverage, DocumentResource, MAX_TOTAL_RESOURCE_BYTES,
 };
 

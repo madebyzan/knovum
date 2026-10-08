@@ -19,18 +19,18 @@ import {
 test("development identity binds the producer recipe as well as dependency locks", (context) => {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-identity-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  for (const name of ["python/runtimes/resources", "python/native-locks/base", "scripts/runtime"])
+  for (const name of ["python/runtimes/resources", "python/conda-locks/base", "scripts/runtime"])
     mkdirSync(join(root, name), { recursive: true });
   copyFileSync(join(repository, "python/runtime-source.json"), join(root, "python/runtime-source.json"));
   cpSync(join(repository, "scripts/runtime"), join(root, "scripts/runtime"), { recursive: true });
   writeFileSync(join(root, "python/runtimes/resources/uv.lock"), "frozen dependencies");
-  writeFileSync(join(root, "python/native-locks/base/macos-x64.json"), "frozen native packages");
-  writeFileSync(join(root, "scripts/runtime/native.py"), "first producer");
+  writeFileSync(join(root, "python/conda-locks/base/macos-x64.json"), "frozen Conda packages");
+  writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "first producer");
   const first = developmentDirectory(root, "macos-x64", "resources");
   assert.equal(developmentDirectory(root, "macos-x64", "resources"), first);
-  writeFileSync(join(root, "scripts/runtime/native.py"), "corrected producer");
+  writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "corrected producer");
   assert.notEqual(developmentDirectory(root, "macos-x64", "resources"), first);
-  writeFileSync(join(root, "scripts/runtime/native.py"), "first producer");
+  writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "first producer");
   writeFileSync(join(root, "scripts/runtime/provision.mjs"), "changed distribution consumer");
   writeFileSync(join(root, "scripts/runtime/unrelated.mjs"), "unrelated tool");
   assert.equal(developmentDirectory(root, "macos-x64", "resources"), first);
@@ -82,7 +82,7 @@ test("Agent Runtime requirements select their independent project and exclude in
   assert.throws(() => requirementsArguments(repository, "unknown"), /Unsupported/);
 });
 
-test("Only the supported native release triples can select a runtime", () => {
+test("only supported desktop release triples can select a runtime", () => {
   assert.equal(runtimeTargetFromTriple("aarch64-apple-darwin"), "macos-arm64");
   assert.equal(runtimeTargetFromTriple("x86_64-pc-windows-msvc"), "windows-x64");
   assert.equal(runtimeTargetFromTriple(undefined), undefined);
@@ -91,13 +91,13 @@ test("Only the supported native release triples can select a runtime", () => {
 });
 
 test("development preparation rejects an unknown profile before downloading build tools", () => {
-  const result = spawnSync(
+  const execution = spawnSync(
     process.execPath,
     [join(repository, "scripts/runtime/development.mjs"), "--profile", "unsupported"],
     { cwd: tmpdir(), encoding: "utf8", timeout: 10_000 },
   );
-  assert.equal(result.error, undefined);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /Unsupported Python runtime profile/u);
-  assert.equal(result.stdout, "");
+  assert.equal(execution.error, undefined);
+  assert.notEqual(execution.status, 0);
+  assert.match(execution.stderr, /Unsupported Python runtime profile/u);
+  assert.equal(execution.stdout, "");
 });

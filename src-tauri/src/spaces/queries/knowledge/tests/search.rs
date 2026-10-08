@@ -24,7 +24,7 @@ async fn database() -> SqlitePool {
         ("deleted", "one", "bob's alpha"),
     ] {
         let mut data = json!({"kind":"image","title":title,"sourceRevision":"asset-r1","assetPath":"/managed/image.png"});
-        crate::spaces::knowledge::indexing::revision::apply(&mut data).unwrap();
+        crate::spaces::knowledge::model::revision::apply(&mut data).unwrap();
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES($1,$2,'image',0,0,$3,1,1)")
             .bind(id).bind(space).bind(data.to_string()).execute(&pool).await.unwrap();
     }

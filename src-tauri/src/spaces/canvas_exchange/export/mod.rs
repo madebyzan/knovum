@@ -7,7 +7,7 @@ use std::{
 use serde::Deserialize;
 use tauri::AppHandle;
 
-use super::contract::{JsonCanvasDocumentV1, JsonCanvasNodeV1};
+use super::contracts::{JsonCanvasDocumentV1, JsonCanvasNodeV1};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

@@ -23,18 +23,18 @@ pub(crate) async fn upload_file(
     let form = Form::new()
         .part("file", part)
         .text("purpose", purpose.to_owned());
-    let result = http_client()
+    let upload_response = http_client()
         .post(url)
         .bearer_auth(api_key)
         .multipart(form)
         .send()
         .await
         .map_err(|error| AppError::new("provider_request_failed", error.to_string()))?;
-    if !result.status().is_success() {
+    if !upload_response.status().is_success() {
         return Err(AppError::new(
             "provider_request_failed",
-            response::read_text(result).await?,
+            response::read_text(upload_response).await?,
         ));
     }
-    response::read_json(result, response::MAX_CONTROL_JSON_BYTES).await
+    response::read_json(upload_response, response::MAX_CONTROL_JSON_BYTES).await
 }

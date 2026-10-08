@@ -10,7 +10,7 @@ use super::{
     persistence::{persist_processing_state, take_chunks},
 };
 use crate::app_error::AppError;
-use crate::spaces::knowledge::indexing::revision;
+use crate::spaces::knowledge::model::revision;
 
 pub(in crate::spaces::assets) async fn refresh_node(
     app: &AppHandle,

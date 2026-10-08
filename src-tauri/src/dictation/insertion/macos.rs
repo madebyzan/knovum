@@ -7,41 +7,39 @@ use objc2_app_kit::NSWorkspace;
 use super::PasteError;
 
 #[derive(Clone)]
-pub(crate) struct TargetApplication {
+pub(crate) struct InsertionTarget {
     pid: i32,
     bundle_id: Option<String>,
     display_name: String,
 }
 
-impl TargetApplication {
+impl InsertionTarget {
     pub(crate) fn display_name(&self) -> &str {
         &self.display_name
     }
 }
 
-pub(super) fn capture_target() -> Result<TargetApplication, String> {
-    let application = NSWorkspace::sharedWorkspace()
+pub(super) fn capture_target() -> Result<InsertionTarget, String> {
+    let frontmost = NSWorkspace::sharedWorkspace()
         .frontmostApplication()
         .ok_or_else(|| "No frontmost application is available".to_string())?;
-    let pid = application.processIdentifier();
+    let pid = frontmost.processIdentifier();
     if pid <= 0 {
         return Err("The frontmost application has no process identity".into());
     }
-    let bundle_id = application
-        .bundleIdentifier()
-        .map(|value| value.to_string());
-    let display_name = application.localizedName().map_or_else(
+    let bundle_id = frontmost.bundleIdentifier().map(|value| value.to_string());
+    let display_name = frontmost.localizedName().map_or_else(
         || bundle_id.clone().unwrap_or_else(|| format!("PID {pid}")),
         |value| value.to_string(),
     );
-    Ok(TargetApplication {
+    Ok(InsertionTarget {
         pid,
         bundle_id,
         display_name,
     })
 }
 
-pub(super) fn is_focused(expected: &TargetApplication) -> bool {
+pub(super) fn is_focused(expected: &InsertionTarget) -> bool {
     capture_target()
         .is_ok_and(|current| current.pid == expected.pid && current.bundle_id == expected.bundle_id)
 }

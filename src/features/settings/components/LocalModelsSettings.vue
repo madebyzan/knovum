@@ -7,7 +7,7 @@ import { useLocalModelsQuery } from "../../../foundation/runtime/resource-query"
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import { localModelGroups } from "../local-model-groups";
-import LocalModelRow from "./LocalModelRow.vue";
+import LocalModelConfiguration from "./LocalModelConfiguration.vue";
 
 const { t } = useI18n();
 const models = useLocalModelsQuery();
@@ -41,7 +41,7 @@ const groups = computed(() => localModelGroups(models.data.value ?? []));
           <h3 class="bg-surface-muted px-4 py-2 text-caption font-medium text-fg-secondary">
             {{ t(`settings.ai.localModels.capabilities.${capability.id}`) }}
           </h3>
-          <LocalModelRow v-for="model in capability.models" :key="model.id" :model="model" />
+          <LocalModelConfiguration v-for="model in capability.models" :key="model.id" :model="model" />
         </section>
       </section>
     </div>

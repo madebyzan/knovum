@@ -55,7 +55,7 @@ beforeEach(() => {
   mocks.analyze.mockResolvedValue("job");
   mocks.refresh.mockResolvedValue(undefined);
 });
-it("starts an analyzed source and makes its native task visible immediately", async () => {
+it("starts an analyzed source and makes its Rust task visible immediately", async () => {
   const scope = effectScope();
   try {
     const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
@@ -83,7 +83,7 @@ it("does not dispatch against pending media analysis or an editing gate", async 
   }
 });
 it.each(["pending", "running", "waiting"] as const)(
-  "does not dispatch while a native %s job owns the node",
+  "does not dispatch while a Rust %s job owns the node",
   async (field) => {
     const scope = effectScope();
     try {

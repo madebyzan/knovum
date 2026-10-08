@@ -1,5 +1,5 @@
 mod boundary;
-mod node_contracts;
+mod node_selection;
 
 use std::collections::HashSet;
 
@@ -27,7 +27,7 @@ pub(super) async fn validate_dependencies(
     selected: &[String],
 ) -> Result<(), String> {
     let selected_set: HashSet<&str> = selected.iter().map(String::as_str).collect();
-    node_contracts::validate(tx, space_id, &selected_set).await?;
+    node_selection::validate(tx, space_id, &selected_set).await?;
     boundary::validate_relations(tx, space_id, &selected_set).await?;
     boundary::validate_provenance(tx, space_id, &selected_set).await
 }

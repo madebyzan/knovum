@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use super::DerivationRelation;
 use crate::spaces::commands::relations::SpaceRelationInput;
-use crate::spaces::knowledge::contracts::{RelationActorKind, RelationKind, RelationStatus};
+use crate::spaces::knowledge::contracts::{KnowledgeActorKind, RelationKind, RelationStatus};
 
 pub fn derives_from(
     space_id: &str,
@@ -19,7 +19,7 @@ pub fn derives_from(
         kind: RelationKind::DerivesFrom,
         rationale,
         status: RelationStatus::Active,
-        actor_kind: RelationActorKind::System,
+        actor_kind: KnowledgeActorKind::System,
         created_at: now,
         updated_at: now,
     }

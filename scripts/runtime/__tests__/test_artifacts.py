@@ -64,13 +64,13 @@ def test_interpreter_archive_rejects_external_alias(tmp_path: Path) -> None:
 def test_runtime_archive_never_conveys_symbolic_links(tmp_path: Path) -> None:
     root = tmp_path / "runtime"
     root.mkdir()
-    (root / "reference").write_bytes(b"native")
+    (root / "reference").write_bytes(b"compiled")
     (root / "alias").symlink_to("reference")
     with pytest.raises(ValueError, match="nonregular"):
         archive_runtime(root, tmp_path / "runtime.tar.gz")
 
 
-def test_windows_native_extensions_are_signed_and_verified(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_windows_compiled_extensions_are_signed_and_verified(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     for name in ("python.exe", "lib.dll", "extension.pyd"):
         (tmp_path / name).write_bytes(b"MZ\0\0binary")
     (tmp_path / "worker.py").write_text("pass\n")
@@ -102,8 +102,8 @@ def test_qa_signing_modes_cannot_impersonate_other_platforms(tmp_path: Path) -> 
 def test_runtime_archive_materializes_hardlinked_files(tmp_path: Path) -> None:
     root = tmp_path / "runtime"
     root.mkdir()
-    (root / "native").write_bytes(b"binary")
-    os.link(root / "native", root / "alias")
+    (root / "compiled").write_bytes(b"binary")
+    os.link(root / "compiled", root / "alias")
     output = tmp_path / "runtime.tar.gz"
     archive_runtime(root, output)
     with tarfile.open(output) as archive_file:

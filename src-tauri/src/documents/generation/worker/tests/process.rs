@@ -45,11 +45,11 @@ async fn cancellation_reaps_blocked_worker_before_return_and_capacity_release() 
     assert!(is_alive(pid));
     assert_eq!(capacity.available_permits(), 0);
     cancellation.cancel();
-    let result = tokio::time::timeout(std::time::Duration::from_secs(5), task)
+    let processing = tokio::time::timeout(std::time::Duration::from_secs(5), task)
         .await
         .unwrap()
         .unwrap();
-    assert_eq!(result.unwrap_err().code, "cancelled");
+    assert_eq!(processing.unwrap_err().code, "cancelled");
     assert!(
         !is_alive(pid),
         "worker must exit before returning cancellation"
@@ -65,24 +65,24 @@ async fn malformed_response_terminates_worker_and_never_falls_back_to_rendering(
         "printf '%s' $$ > \"$1\"; printf '\\377\\377\\377\\377'; sleep 120",
         &path,
     );
-    let result = tokio::time::timeout(
+    let processing = tokio::time::timeout(
         std::time::Duration::from_secs(5),
         super::process::run(command, vec![], &CancellationToken::new()),
     )
     .await
     .unwrap();
-    assert_eq!(result.unwrap_err().code, "document_worker_failed");
+    assert_eq!(processing.unwrap_err().code, "document_worker_failed");
     assert!(!is_alive(wait_pid(&path).await));
     std::fs::remove_file(path).unwrap();
 }
 
 #[tokio::test]
 async fn worker_crash_is_an_explicit_failure() {
-    let result = super::process::run(
+    let processing = super::process::run(
         command("exit 7", Path::new("unused")),
         vec![],
         &CancellationToken::new(),
     )
     .await;
-    assert_eq!(result.unwrap_err().code, "document_worker_failed");
+    assert_eq!(processing.unwrap_err().code, "document_worker_failed");
 }

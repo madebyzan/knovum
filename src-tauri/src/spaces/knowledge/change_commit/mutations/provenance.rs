@@ -3,7 +3,7 @@ use sqlx::{Sqlite, Transaction};
 
 use crate::spaces::{
     db,
-    knowledge::{contracts, events, locator, relations, semantic_nodes},
+    knowledge::{events, locator, relations, semantic_nodes},
 };
 
 pub(in crate::spaces::knowledge::change_commit) struct ProvenanceInsert<'a> {
@@ -23,7 +23,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
     input: ProvenanceInsert<'_>,
 ) -> Result<(), String> {
     locator::validate(input.locator, Some(input.source_revision))?;
-    contracts::validate_provenance_node(
+    semantic_nodes::require(
         tx,
         input.space_id,
         input.source_node_id,

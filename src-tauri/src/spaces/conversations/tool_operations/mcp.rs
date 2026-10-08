@@ -42,7 +42,7 @@ pub(crate) async fn invoke(
     if run.state.is_terminal() || run.state == runs::RunState::Paused {
         return Err("conversation-tool-run-inactive".into());
     }
-    let digest = super::arguments_digest(&call.arguments)?;
+    let digest = super::context_digest(&call.arguments)?;
     let id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
@@ -57,7 +57,7 @@ pub(crate) async fn invoke(
         if !call.tool.read_only {
             super::require_reconciled_on(&mut tx, call.run_id).await?;
         }
-        sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,arguments,arguments_digest,read_only,approval,created_at)
+        sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,context,context_digest,read_only,approval,created_at)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)")
             .bind(&id).bind(call.run_id).bind(call.task_id).bind(call.graph_namespace).bind(call.checkpoint_id).bind(call.message_id).bind(call.call_id).bind(&call.tool.name)
             .bind(serde_json::to_string(&call.tool.binding).map_err(db::json_error)?).bind(call.intent_id).bind(serde_json::to_string(&call.arguments).map_err(db::json_error)?).bind(&digest)
@@ -66,13 +66,13 @@ pub(crate) async fn invoke(
     }
     tx.commit().await.map_err(db::sql_error)?;
     let id = existing.unwrap_or(id);
-    let row = sqlx::query("SELECT state,result,approval,arguments_digest,source,run_id,wire_name FROM spaces_conversation_tool_operations WHERE id=$1").bind(&id).fetch_one(pool).await.map_err(db::sql_error)?;
+    let row = sqlx::query("SELECT state,output,approval,context_digest,source,run_id,wire_name FROM spaces_conversation_tool_operations WHERE id=$1").bind(&id).fetch_one(pool).await.map_err(db::sql_error)?;
     if row
-        .try_get::<String, _>("arguments_digest")
+        .try_get::<String, _>("context_digest")
         .map_err(db::sql_error)?
         != digest
     {
-        return Err("conversation-tool-intent-arguments-changed".into());
+        return Err("conversation-tool-intent-context-changed".into());
     }
     if row.try_get::<String, _>("run_id").map_err(db::sql_error)? != call.run_id
         || row
@@ -87,7 +87,7 @@ pub(crate) async fn invoke(
     let state: String = row.try_get("state").map_err(db::sql_error)?;
     if matches!(state.as_str(), "completed" | "failed") {
         return Ok(ToolInvocationOutcome::Completed(
-            serde_json::from_str(&row.try_get::<String, _>("result").map_err(db::sql_error)?)
+            serde_json::from_str(&row.try_get::<String, _>("output").map_err(db::sql_error)?)
                 .map_err(db::json_error)?,
         ));
     }
@@ -142,10 +142,10 @@ pub(crate) async fn invoke(
         .bind(&id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(dispatched, "conversation-tool-dispatch-inactive")?;
     tx.commit().await.map_err(db::sql_error)?;
-    let result = prepared
+    let execution = prepared
         .execute(&id, Duration::from_millis(remaining.min(120_000) as u64))
         .await;
-    let (state, value) = match result {
+    let (state, value) = match execution {
         crate::extensions::mcp::invocation::InvocationObservation::Received(value) => (
             if value["isError"] == true {
                 "failed"

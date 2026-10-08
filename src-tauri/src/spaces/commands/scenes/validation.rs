@@ -1,7 +1,7 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::SpaceSceneInput;
-use crate::spaces::{db, knowledge::contracts};
+use crate::spaces::db;
 
 pub(super) async fn validate_scene(
     tx: &mut Transaction<'_, Sqlite>,
@@ -37,7 +37,12 @@ pub(super) async fn validate_scene(
             ));
         }
     }
-    contracts::validate_query_filter(tx, &scene.space_id, &scene.query_filter).await
+    crate::spaces::knowledge::validation::validate_query_filter(
+        tx,
+        &scene.space_id,
+        &scene.query_filter,
+    )
+    .await
 }
 pub(super) fn json(value: &impl serde::Serialize) -> Result<String, String> {
     serde_json::to_string(value).map_err(db::json_error)

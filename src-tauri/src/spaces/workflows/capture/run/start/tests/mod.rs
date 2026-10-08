@@ -1,7 +1,7 @@
 use super::*;
 use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
 use crate::spaces::{
-    knowledge::indexing::revision,
+    knowledge::model::revision,
     runs::{AttemptClaim, StepOutcome},
     workflows::capture::contracts::*,
 };

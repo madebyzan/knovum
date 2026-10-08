@@ -39,7 +39,7 @@ class ExecutionSource(EvidenceModel):
         if self.kind == "bundled_worker" and self.worker_digest is None:
             raise ValueError("candidate execution requires the shipped Worker digest")
         if len({item.request_id for item in self.invocations}) != len(self.invocations):
-            raise ValueError("execution repeats a native request id")
+            raise ValueError("execution repeats a compiled-engine request id")
         return self
 
 

@@ -14,13 +14,13 @@ async fn cancellation_prevents_source_admission_and_commit() {
     let (id, operation) = operation();
     let read = AtomicBool::new(false);
     cancel_plugin_operation(id).unwrap();
-    let result = operation
+    let operation_outcome = operation
         .read(async {
             read.store(true, Ordering::SeqCst);
             Ok::<(), AppError>(())
         })
         .await;
-    let error = result.unwrap_err();
+    let error = operation_outcome.unwrap_err();
     assert_eq!(error.code, "cancelled");
     assert_eq!(error.message, "Plugin operation was cancelled");
     assert!(!read.load(Ordering::SeqCst));

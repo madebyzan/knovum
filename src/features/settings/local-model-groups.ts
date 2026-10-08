@@ -1,9 +1,9 @@
-import type { LocalModelEntry } from "../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../shared/contracts/generated/LocalModelAvailability";
 import type { LocalModelGroup } from "../../shared/contracts/generated/LocalModelGroup";
 
 const groupOrder: readonly LocalModelGroup[] = ["knowledge", "audio", "images"];
 
-export function localModelGroups(models: readonly LocalModelEntry[]) {
+export function localModelGroups(models: readonly LocalModelAvailability[]) {
   return groupOrder.flatMap((id) => {
     const entries = models.filter((model) => model.group === id);
     if (!entries.length) return [];

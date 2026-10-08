@@ -9,7 +9,7 @@ use crate::{
         TaskExecutionTarget,
     },
     spaces::{
-        assets::authorize_spaces_asset, knowledge::node_contracts::visual as contract,
+        assets::authorize_spaces_asset, knowledge::validation::nodes::visual,
         previews::authorize_generated_preview,
     },
 };
@@ -81,7 +81,7 @@ async fn interpret(
             "The segments joined with newline separators must not exceed {detected_text} UTF-16 code units. ",
             "tags: at most {tags} relevant non-empty strings, each at most {tag} UTF-16 code units; use [] if none. ",
             "Separate interpretation from visible text. Do not invent facts or include Markdown fences."
-        ), description=contract::MAX_DESCRIPTION, detected_text=contract::MAX_DETECTED_TEXT, tags=contract::MAX_TAGS, tag=contract::MAX_TAG),
+        ), description=visual::MAX_DESCRIPTION, detected_text=visual::MAX_DETECTED_TEXT, tags=visual::MAX_TAGS, tag=visual::MAX_TAG),
         max_tokens: Some(8192),
     };
     let completion = completion::execute(executor, target, input, cancellation).await?;
@@ -103,7 +103,7 @@ async fn interpret(
     if !detected_text.is_empty() {
         knowledge["detectedText"] = Value::from(detected_text);
     }
-    contract::validate(Some(&knowledge)).map_err(|cause| {
+    visual::validate(Some(&knowledge)).map_err(|cause| {
         AppError::new(
             "invalid_response",
             format!("Visual analysis returned invalid result: {cause}"),

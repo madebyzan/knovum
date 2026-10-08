@@ -1,7 +1,7 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::RestorePackageRequest;
-use crate::spaces::{db, knowledge::contracts};
+use crate::spaces::db;
 
 pub(super) async fn insert_scenes(
     tx: &mut Transaction<'_, Sqlite>,
@@ -39,7 +39,8 @@ async fn validate_scene(
     if !row.query_filter.is_object() {
         return Err("Saved View queryFilter must be an object".into());
     }
-    contracts::validate_query_filter(tx, space_id, &row.query_filter).await?;
+    crate::spaces::knowledge::validation::validate_query_filter(tx, space_id, &row.query_filter)
+        .await?;
     if row
         .focus_structure_node_ids
         .iter()

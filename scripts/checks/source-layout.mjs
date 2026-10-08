@@ -2,10 +2,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { basename, dirname, extname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const sourceRoots = [
+export const sourceRoots = [
   "src",
   "src-tauri/src",
   "src-tauri/tests",
+  "src-tauri/build_support",
   "scripts",
   "python/src",
   "python/tests",
@@ -14,6 +15,17 @@ const sourceRoots = [
 ];
 const sourceExtensions = new Set([".rs", ".ts", ".vue", ".mjs", ".py"]);
 const testDirectories = new Set(["tests", "__tests__", "e2e"]);
+const generatedDirectories = new Set(["__pycache__"]);
+
+function inspectPathIdentity(path, kind) {
+  const name = basename(path);
+  if (/^native(?:[-_.]|$)/iu.test(name) || /^[Nn]ative[A-Z0-9]/u.test(name)) {
+    return [`${path}: native is not a path identity`];
+  }
+  if (kind === "file" && name.toLowerCase() === "index.ts")
+    return [`${path}: TypeScript index modules are forbidden`];
+  return [];
+}
 
 export function inspectSourceLayout(root, recursive = true) {
   const violations = [];
@@ -24,12 +36,19 @@ export function inspectSourceLayout(root, recursive = true) {
       .map((entry) => join(entry.parentPath, entry.name).toLowerCase()),
   );
   for (const entry of entries) {
+    if (entry.isDirectory())
+      violations.push(...inspectPathIdentity(join(entry.parentPath, entry.name), "directory"));
+  }
+  for (const entry of entries) {
     if (!entry.isFile()) continue;
     const file = join(entry.parentPath, entry.name);
     const extension = extname(file);
     const directory = join(dirname(file), basename(file, extension));
     if (directories.has(directory.toLowerCase())) {
       violations.push(`${file}: conflicts with directory ${directory}`);
+    }
+    if (!file.split(sep).some((part) => generatedDirectories.has(part))) {
+      violations.push(...inspectPathIdentity(file, "file"));
     }
     if (!sourceExtensions.has(extension)) continue;
     violations.push(...inspectSourceFile(file, extension));
@@ -69,6 +88,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.error(violations.join("\n"));
     process.exitCode = 1;
   } else {
-    console.log("Source layout: names, test placement and source size meet policy.");
+    console.log("Source layout: path identities, test placement and source size meet policy.");
   }
 }

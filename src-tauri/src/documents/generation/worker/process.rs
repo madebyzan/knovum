@@ -83,7 +83,7 @@ pub(super) async fn run(
         tokio::select! {
             biased;
             _ = cancellation.cancelled() => Err(AppError::cancelled("Document rendering was cancelled")),
-            result = &mut exchange => result,
+            rendering = &mut exchange => rendering,
         }
     };
     // Even a protocol error must reap the process before the caller releases its Run permit.
@@ -125,7 +125,7 @@ async fn read_response(mut stream: impl AsyncRead + Unpin) -> AppResult<AppResul
     if response.version != protocol::VERSION {
         return Err(worker_error("Document worker response version differs"));
     }
-    let result = match response.outcome {
+    let rendering = match response.outcome {
         protocol::Outcome::Rendered { length } if length <= protocol::MAX_OUTPUT_BYTES => {
             let mut bytes = vec![0; length as usize];
             stream.read_exact(&mut bytes).await.map_err(worker_error)?;
@@ -142,7 +142,7 @@ async fn read_response(mut stream: impl AsyncRead + Unpin) -> AppResult<AppResul
     if stream.read(&mut trailing).await.map_err(worker_error)? != 0 {
         return Err(worker_error("Document worker response has trailing bytes"));
     }
-    Ok(result)
+    Ok(rendering)
 }
 
 fn worker_error(error: impl std::fmt::Display) -> AppError {

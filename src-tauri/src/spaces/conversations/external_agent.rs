@@ -148,18 +148,19 @@ pub async fn start(
             Ok(pool) => match crate::spaces::runs::load_run(pool, &session.run_id).await {
                 Ok(run) => match run.state {
                     RunState::Succeeded => (
-                        super::contract::ConversationTaskFinishedState::Succeeded,
+                        super::contracts::ConversationTaskFinishedState::Succeeded,
                         None,
                     ),
                     RunState::CompletedWithErrors => (
-                        super::contract::ConversationTaskFinishedState::CompletedWithErrors,
+                        super::contracts::ConversationTaskFinishedState::CompletedWithErrors,
                         None,
                     ),
-                    RunState::Failed => {
-                        (super::contract::ConversationTaskFinishedState::Failed, None)
-                    }
+                    RunState::Failed => (
+                        super::contracts::ConversationTaskFinishedState::Failed,
+                        None,
+                    ),
                     RunState::Cancelled => (
-                        super::contract::ConversationTaskFinishedState::Cancelled,
+                        super::contracts::ConversationTaskFinishedState::Cancelled,
                         None,
                     ),
                     state @ (RunState::Queued
@@ -172,7 +173,7 @@ pub async fn start(
                         );
                         log::error!("{state_error}");
                         (
-                            super::contract::ConversationTaskFinishedState::SettlementFailed,
+                            super::contracts::ConversationTaskFinishedState::SettlementFailed,
                             Some(match settlement_error {
                                 Some(settlement) => format!("{settlement}; {state_error}"),
                                 None => state_error,
@@ -186,7 +187,7 @@ pub async fn start(
                         session.run_id
                     );
                     (
-                        super::contract::ConversationTaskFinishedState::SettlementFailed,
+                        super::contracts::ConversationTaskFinishedState::SettlementFailed,
                         Some(match settlement_error {
                             Some(settlement) => {
                                 format!("{settlement}; final state could not be read: {error}")
@@ -204,7 +205,7 @@ pub async fn start(
                     session.run_id
                 );
                 (
-                    super::contract::ConversationTaskFinishedState::SettlementFailed,
+                    super::contracts::ConversationTaskFinishedState::SettlementFailed,
                     Some(match settlement_error {
                         Some(settlement) => format!(
                             "{settlement}; database was unavailable during settlement: {error}"

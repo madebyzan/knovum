@@ -1,5 +1,5 @@
 use crate::spaces::db;
-use crate::spaces::knowledge::contracts::{RelationActorKind, RelationKind, RelationStatus};
+use crate::spaces::knowledge::contracts::{KnowledgeActorKind, RelationKind, RelationStatus};
 use serde::Serialize;
 use sqlx::{Row, Sqlite, Transaction};
 use ts_rs::TS;
@@ -17,7 +17,7 @@ pub(crate) struct SpaceRelationProjection {
     pub status: RelationStatus,
     pub status_before_invalidation: Option<RelationStatus>,
     pub confidence: Option<f64>,
-    pub actor_kind: RelationActorKind,
+    pub actor_kind: KnowledgeActorKind,
     pub actor_id: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -67,7 +67,7 @@ fn decode_relation_projection(
         confidence: row
             .try_get::<Option<f64>, _>("confidence")
             .map_err(db::sql_error)?,
-        actor_kind: RelationActorKind::parse(
+        actor_kind: KnowledgeActorKind::parse(
             &row.try_get::<String, _>("actor_kind")
                 .map_err(db::sql_error)?,
         )?,

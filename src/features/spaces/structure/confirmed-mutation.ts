@@ -13,7 +13,7 @@ export async function invokeConfirmedMutation<T>(
   try {
     return await invokeCommand<T>(command, args);
   } catch (error) {
-    // Returned command/dispatcher rejections carry their native payload as cause.
+    // Returned command/dispatcher rejections carry their IPC payload as cause.
     // Do not replace an explicit failure with an older request's receipt.
     if (error instanceof Error && error.cause !== undefined) throw error;
     const committed = await confirmReceipt<T>(mutationId, 0);

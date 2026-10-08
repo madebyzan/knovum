@@ -46,13 +46,13 @@ it("queues route edits until a failed Agent mutation has rolled back", async () 
   );
   const disabling = setDesktopAgentEnabled("codex", false);
   const failure = new Error("Agent save failed");
-  const result = disabling.catch((error: unknown) => error);
+  const settlement = disabling.catch((error: unknown) => error);
   await vi.waitFor(() => expect(state.flush).toHaveBeenCalledOnce());
   const target = { type: "agent", runtimeKind: "codex" } as const;
   const route = setDefaultExecutionTarget("translation", target);
   expect(state.settings.defaults.translation).toEqual({ type: "agent", runtimeKind: "gemini_cli" });
   rejectSave(failure);
-  expect(await result).toBe(failure);
+  expect(await settlement).toBe(failure);
   await route;
   expect(state.settings.defaults.translation).toEqual(target);
 });

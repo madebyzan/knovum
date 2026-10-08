@@ -1,5 +1,4 @@
-#[path = "build_support/python_runtime.rs"]
-mod python_runtime;
+mod build_support;
 
 fn main() {
     println!("cargo:rustc-check-cfg=cfg(knovum_supported_desktop)");
@@ -11,7 +10,7 @@ fn main() {
     ) {
         println!("cargo:rustc-cfg=knovum_supported_desktop");
     }
-    python_runtime::embed_descriptors();
+    build_support::python_runtime::embed_descriptors();
     tauri_build::try_build(
         tauri_build::Attributes::new()
             .app_manifest(tauri_build::AppManifest::new().commands(&[

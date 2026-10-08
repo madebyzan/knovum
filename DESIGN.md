@@ -53,7 +53,7 @@ Changes to conversation history, contextual workflow editing and external-tool c
 - Primary navigation: the Spaces sidebar selects a Space or its internal navigator; the unified toolbar owns canvas and application-level actions. Settings is a temporary route, not a peer product module.
 - Core routes/screens: Space canvas, full Note/Markdown editor, selection Inspector, Knowledge history, Task Center and Settings.
 - Conversations have one history, message timeline and composer. Grounded retrieval is a conversation
-  capability; API models and desktop Agents are execution targets with distinct native session behavior.
+  capability; API models and desktop Agents are execution targets with distinct session behavior.
 - Reusable workflows are captured from actual canvas derivations and applied to new selections. Their
   library and contextual editing belong to the canvas work area. External-tool connections belong in Settings.
 - Task progress and required decisions appear at the initiating message or canvas result, with the existing

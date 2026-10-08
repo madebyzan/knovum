@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use super::contract::JsonCanvasDocumentV1;
+use super::contracts::JsonCanvasDocumentV1;
 
 pub(crate) fn validate(document: &JsonCanvasDocumentV1) -> Result<(), String> {
     let mut node_ids = HashSet::with_capacity(document.nodes.len());
@@ -35,7 +35,7 @@ pub(crate) fn validate(document: &JsonCanvasDocumentV1) -> Result<(), String> {
     Ok(())
 }
 
-fn validate_frame(index: usize, frame: &super::contract::NodeFrameV1) -> Result<(), String> {
+fn validate_frame(index: usize, frame: &super::contracts::NodeFrameV1) -> Result<(), String> {
     const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
     if frame.id.is_empty() {
         return Err(format!("nodes[{index}].id must not be empty"));

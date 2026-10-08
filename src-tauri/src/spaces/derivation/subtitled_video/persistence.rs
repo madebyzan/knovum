@@ -5,10 +5,7 @@ use tokio_util::sync::CancellationToken;
 use super::super::video_output::RenderedVideo;
 use super::super::{pending_output, relations, CompletedDerivationOutput};
 use crate::app_error::AppError;
-use crate::spaces::{
-    db,
-    knowledge::{contracts, indexing::revision},
-};
+use crate::spaces::{db, knowledge::model::revision};
 
 pub struct VideoSubtitleSource {
     pub path: String,
@@ -38,7 +35,7 @@ pub async fn complete(
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&data)?;
     apply_output(&mut data, &output, now)?;
-    contracts::validate_node(&mut tx, &row.0, "video", &data).await?;
+    crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
     let relation = relations::derives_from(
         &row.0,
         &row.2,

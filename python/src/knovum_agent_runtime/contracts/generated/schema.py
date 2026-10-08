@@ -10,7 +10,7 @@ from ._internal import (
     AgentContentDelta,
     AgentControl,
     AgentExecute,
-    AgentExecutionResult,
+    AgentExecutionObservation,
     AgentInitialize,
     AgentModelAdmission,
     AgentModelCompletion,
@@ -29,7 +29,7 @@ class AgentWireSchemas(WireModel):
     ready: AgentReady
     prune_threads: AgentPruneThreads
     execute: AgentExecute
-    execution_result: AgentExecutionResult
+    execution_observation: AgentExecutionObservation
     control: AgentControl
     projection_request: AgentProjectionRequest
     projection: AgentProjection

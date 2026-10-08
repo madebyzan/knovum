@@ -1,4 +1,4 @@
-"""Native signing is a build step, preceding the runtime file manifest."""
+"""System signing is a build step, preceding the runtime file manifest."""
 
 from __future__ import annotations
 
@@ -40,8 +40,8 @@ def _verify_binary_signature(path: Path, target: str, *, production: bool) -> No
     identity = _windows_thumbprint()
     script = (
         "$ErrorActionPreference='Stop'; "
-        "$s=Get-AuthenticodeSignature -LiteralPath $env:KNOVUM_NATIVE_VERIFY_PATH; "
-        "if($s.Status -ne 'Valid' -or $null -eq $s.SignerCertificate){throw 'Invalid native signature'}; "
+        "$s=Get-AuthenticodeSignature -LiteralPath $env:KNOVUM_SIGNATURE_VERIFY_PATH; "
+        "if($s.Status -ne 'Valid' -or $null -eq $s.SignerCertificate){throw 'Invalid system signature'}; "
         "$s.SignerCertificate.Thumbprint"
     )
     verification = subprocess.run(
@@ -49,7 +49,7 @@ def _verify_binary_signature(path: Path, target: str, *, production: bool) -> No
         check=True,
         capture_output=True,
         text=True,
-        env={**os.environ, "KNOVUM_NATIVE_VERIFY_PATH": str(path)},
+        env={**os.environ, "KNOVUM_SIGNATURE_VERIFY_PATH": str(path)},
     )
     if verification.stdout.strip().upper() != identity:
         raise ValueError(f"Runtime signer differs from the approved certificate: {path}")

@@ -34,7 +34,7 @@ use the bootstrap error state before the main window is revealed.
 ## Capability policy
 
 Register only plugins used by current product flows. Shell, arbitrary process execution, WebSocket,
-and broad native HTTP access remain absent until an owning feature has a concrete, scoped need.
+and broad system HTTP access remain absent until an owning feature has a concrete, scoped need.
 Installing a plugin does not grant its commands to a WebView.
 
 Base capabilities cover low-risk lifecycle primitives. Clipboard, filesystem, network, preview, and
@@ -43,7 +43,7 @@ SQL capability. Provider and model traffic stays behind validated Rust boundarie
 referenced by stable identifiers and never cross into the WebView.
 
 External desktop Agent installation, updates, and sign-in remain user- or vendor-owned. Detection
-returns a validated descriptor for a native CLI, Node adapter, or standalone ACP server; it does not
+returns a validated descriptor for a platform CLI, Node adapter, or standalone ACP server; it does not
 infer login readiness or introduce a product-owned installer. Missing commands expose the official
 vendor guidance. On macOS, discovery reads a non-interactive login-shell `PATH`, does not source
 interactive shell configuration, and does not guess vendor installation paths.
@@ -60,10 +60,10 @@ Rust writes them to managed storage. Operating-system file-list paste is not emu
 objects or broad filesystem permission.
 
 Imported and generated files are exposed to the WebView only through their feature's narrow asset
-protocol scope. Popup menu and other native resources are closed after use. Editable WebView text keeps
+protocol scope. Popup menu and other OS resources are closed after use. Editable WebView text keeps
 native editing behavior rather than being intercepted by feature context menus.
 
-Native thumbnail caches are keyed by managed-resource identity, source modification time, requested
+System-thumbnail caches are keyed by managed-resource identity, source modification time, requested
 dimensions, and generator version, then written atomically. Preview-provider availability never changes
 semantic document extraction or knowledge publication.
 
@@ -73,7 +73,7 @@ Cross-application dictation is one Rust-owned press/release session. It owns mic
 temporary audio, cancellation, recognition submission, and guarded insertion while the WebView is
 hidden. Cancel removes temporary media and prevents insertion.
 
-The session captures the foreground target and validates the same native identity before insertion.
+The session captures the foreground target and validates the same foreground-window identity before insertion.
 Permission denial, focus change, or OS integrity restrictions preserve recognized text for explicit
 copying. Automatic insertion uses a private clipboard marker and restores the previous clipboard only
 when that marker is still present, so user clipboard changes are not overwritten.
@@ -101,7 +101,7 @@ application.
 
 ## Local resources
 
-Core native tools resolve from fixed checkout resources in development and application Resources after
+Core compiled tools resolve from fixed checkout resources in development and application Resources after
 installation. Python environments and models are prepared into verified application-owned storage when
 their capability is first used. Project environment variables and `PATH` do not select substitute
 resources. Exact runtime and model contracts are defined in [local-models.md](local-models.md), and

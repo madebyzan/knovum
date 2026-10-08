@@ -83,7 +83,7 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   image pipeline.
 - `pdf-inspector` owns semantic PDF extraction; `office_oxide` owns Office semantic extraction.
   Platform PDF rendering is used only for bounded visual regions. A private PDF walker, second Office
-  parser or custom fidelity renderer would duplicate mature parsers without satisfying native Office
+  parser or custom fidelity renderer would duplicate mature parsers without satisfying Office
   preview fidelity.
 - Mozilla Readability owns readable webpage extraction. Knovum retains security-sensitive fetching,
   normalization and persistence rather than maintaining selector heuristics.
@@ -94,9 +94,9 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   dependency or another runtime. Knovum retains section mapping and the 100-slide limit.
   [`python-pptx`](https://python-pptx.readthedocs.io/en/latest/) and
   [`PptxGenJS`](https://github.com/gitbrent/PptxGenJS) cover broader authoring but require an additional
-  Python/Node execution and packaging boundary that this limited native export does not need.
+  Python/Node execution and packaging boundary that this bounded Rust export does not need.
   The three formats remain separate capabilities rather than a generic Office framework. Real
-  PowerPoint/Keynote viewing remains a native acceptance requirement.
+  PowerPoint/Keynote viewing remains a platform acceptance requirement.
 
 Detailed data and interaction contracts live in [spaces.md](spaces.md),
 [document-export.md](document-export.md) and [data-ownership.md](data-ownership.md).
@@ -105,21 +105,21 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
 
 - FFmpeg is the single local audio/video processing engine for normalization, cuts, concatenation,
   filters, subtitles and supported hardware encoding. GStreamer Editing Services is credible for a
-  full nonlinear editor, but its native runtime and project model are excessive for Knovum's bounded
+  full nonlinear editor, but its compiled runtime and project model are excessive for Knovum's bounded
   timeline. Web timeline packages that embed Pixi/WebCodecs engines were rejected because they would
   introduce a competing media model.
 - The runtime is produced from pinned Conda-forge FFmpeg closures rather than a system dependency,
   downloader library or handwritten platform URL set. The
   [Conda-forge FFmpeg recipe](https://github.com/conda-forge/ffmpeg-feedstock/blob/main/recipe/meta.yaml)
-  is the maintained upstream source. Knovum retains the required runtime files, notices and native
-  dependency closure; SDK/build-only files are excluded only after native dependency traversal.
+  is the maintained upstream source. Knovum retains the required runtime files, notices and compiled
+  dependency closure; SDK/build-only files are excluded only after compiled dependency traversal.
 - yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
   executable with ambient config, plugins, cookies, playlists, self-update and remote components
   disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.
 - VoiceStudio was reviewed as a workflow and engine reference, not imported as application code.
-  Knovum reuses its own native authorization, managed assets, node ownership and durable task model.
+  Knovum reuses its own Space authorization, managed assets, node ownership and durable task model.
 
-FFmpeg and its native closure require exact inventory, license and corresponding-source review before
+FFmpeg and its compiled dependency closure require exact inventory, license and corresponding-source review before
 distribution. Runtime topology is in [system-architecture.md](system-architecture.md); package
 construction and approval gates are in [packaging.md](packaging.md) and [release.md](release.md).
 
@@ -166,7 +166,7 @@ aliases or dormant profiles.
 
 VoxCPM2 owns optional high-quality cloning and voice design. Its published Python dependency graph
 requires a Datasets line below the security floor, so metadata rewriting, advisory suppression and
-environment splitting were rejected. The native path uses the upstream-recommended
+environment splitting were rejected. The audio.cpp path uses the upstream-recommended
 [audio.cpp](https://github.com/0xShug0/audio.cpp/tree/a1c24b2f90c6e6bcb9a525210d826717e96cdfa9)
 at the frozen reviewed revision with verified
 GGUF resources. Knovum adds a narrow callback bridge because upstream's public pull API exposes output

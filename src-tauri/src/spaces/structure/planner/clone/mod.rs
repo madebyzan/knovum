@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use sqlx::{Sqlite, Transaction};
 use uuid::Uuid;
 
-use crate::spaces::structure::contract::{LocalTransform, StructureNode};
+use crate::spaces::structure::contracts::{LocalTransform, StructureNode};
 use crate::spaces::structure::edit_contract::SpacePoint;
 use crate::spaces::structure::planner::spatial::world_transform;
 use crate::spaces::structure::planner::tree_policy::{effective_roots, Index};

@@ -2,7 +2,7 @@ use super::{checked_worker_root, RuntimeProfile};
 
 #[cfg(debug_assertions)]
 #[test]
-fn development_locations_match_the_native_producer_for_every_profile() {
+fn development_locations_match_the_runtime_producer_for_every_profile() {
     let repository = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap();

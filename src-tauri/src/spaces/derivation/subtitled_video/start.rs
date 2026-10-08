@@ -7,7 +7,7 @@ use super::{
 };
 use crate::spaces::derivation::inputs;
 use crate::spaces::derivation::pending_output;
-use crate::spaces::{assets::transcription, db, knowledge::contracts};
+use crate::spaces::{assets::transcription, db};
 
 pub async fn start(
     pool: &SqlitePool,
@@ -17,7 +17,7 @@ pub async fn start(
     validate_job_id(&request.id)?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
-    contracts::validate_same_space_node(
+    crate::spaces::knowledge::validation::validate_same_space_node(
         &mut tx,
         &request.space_id,
         &request.source_node_id,

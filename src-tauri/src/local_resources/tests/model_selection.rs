@@ -40,7 +40,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
 }
 
 #[test]
-fn alignment_defaults_to_the_smaller_native_model_and_keeps_full_precision_selectable() {
+fn alignment_defaults_to_the_smaller_compiled_model_and_keeps_full_precision_selectable() {
     assert_eq!(
         Group::SpeechAlignment.default_model(),
         LocalModelId::Qwen3AlignerQ8

@@ -13,7 +13,7 @@ use crate::{
         process::Process,
         protocol::{
             control::{
-                AgentControl, AgentControlOperation, AgentExecute, AgentExecutionResult,
+                AgentControl, AgentControlOperation, AgentExecute, AgentExecutionObservation,
                 AgentExecutionState,
             },
             messages::{AgentInputMessage, AgentProjection, AgentProjectionRequest},
@@ -104,7 +104,7 @@ pub(super) async fn drive(
                     }
                     return Err("builtin-agent-cancelled".into());
                 }
-                result = crate::spaces::conversations::execution::retention::prune(&host.pool, &process.peer) => result?,
+                retention = crate::spaces::conversations::execution::retention::prune(&host.pool, &process.peer) => retention?,
             }
             execute_loop(&process, &host, execute, cancellation.clone()).await
         },
@@ -126,7 +126,7 @@ async fn execute_loop(
         let outcome = {
             let execution = process
                 .peer
-                .request::<AgentExecutionResult>("agentRuntime.execute", &execute);
+                .request::<AgentExecutionObservation>("agentRuntime.execute", &execute);
             tokio::pin!(execution);
             tokio::select! {
                 outcome = &mut execution => outcome,
@@ -152,7 +152,7 @@ async fn execute_loop(
         if outcome.identity.run_id != execute.identity.run_id
             || outcome.identity.thread_id != execute.identity.thread_id
         {
-            return Err("builtin-agent-execution-result-mismatch".into());
+            return Err("builtin-agent-execution-retention-mismatch".into());
         }
         if matches!(outcome.state, AgentExecutionState::Completed) {
             if is_pause(host).await? {

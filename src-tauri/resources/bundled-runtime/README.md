@@ -5,7 +5,7 @@ Deno, CPython and third-party Python packages are installed on demand outside th
 `pnpm runtime:provision` verifies build inputs; Python publication/evidence are staged in
 `runtime-artifacts/<profile>/<target>/`, never in this bundle tree. Core FFmpeg preserves its
 supplier prefix (`bin/ffmpeg` on macOS; `Library/bin/ffmpeg.exe` on Windows), license notices,
-native production evidence and `media-manifest.json`.
+compiled dependency evidence and `media-manifest.json`.
 
 The package command copies the current application Worker to `resources/python-worker/` and
 its five trusted descriptors to `resources/python-<profile>-descriptor.json`, with an explicit resource

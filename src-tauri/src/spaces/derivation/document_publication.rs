@@ -5,11 +5,7 @@ use tauri::AppHandle;
 
 use super::{inputs, pending_output, relations, source_validation};
 use crate::app_error::AppError;
-use crate::spaces::{
-    assets::asset_directory,
-    db,
-    knowledge::{contracts, indexing::revision},
-};
+use crate::spaces::{assets::asset_directory, db, knowledge::model::revision};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -86,7 +82,7 @@ pub(super) async fn publish(
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
-        contracts::validate_same_space_node(
+        crate::spaces::knowledge::validation::validate_same_space_node(
             &mut tx,
             &request.space_id,
             &input.node_id,
@@ -161,7 +157,8 @@ async fn persist(
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
     revision::apply(data)?;
-    contracts::validate_node(tx, &request.space_id, "file", data).await?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "file", data)
+        .await?;
     super::persist_output_node(tx, &request.output_node_id, data, now).await?;
     let changed = sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',updated_at=$1,completed_at=$1 WHERE id=$2 AND status='running' AND action_kind=$3 AND engine=$4")
         .bind(now).bind(&request.id).bind(action_id).bind(engine).execute(&mut **tx).await.map_err(db::sql_error)?;

@@ -11,7 +11,7 @@ use super::{
     service::DictationAction,
     transcription,
 };
-use crate::dictation_contracts::{DictationFailure, DictationPhase, DictationSnapshot};
+use crate::dictation::contracts::{DictationFailure, DictationPhase, DictationSnapshot};
 
 pub(super) fn cleanup_cache<R: Runtime>(app: &AppHandle<R>) {
     let Ok(directory) = app.path().app_cache_dir() else {
@@ -132,7 +132,7 @@ fn spawn_transcription<R: Runtime>(
     app: AppHandle<R>,
     sender: UnboundedSender<DictationAction>,
     id: String,
-    target: insertion::TargetApplication,
+    target: insertion::InsertionTarget,
     wav: std::path::PathBuf,
     recording: RecordedAudio,
     cancellation: CancellationToken,

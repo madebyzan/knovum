@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::spaces::structure::contract::{LocalTransform, StructureLayout};
+use crate::spaces::structure::contracts::{LocalTransform, StructureLayout};
 use crate::spaces::structure::edit_contract::SpacePoint;
 use crate::spaces::structure::planner::spatial::{local_from_world, world_transform};
 use crate::spaces::structure::planner::tree_policy::{effective_roots, require_editable, Index};

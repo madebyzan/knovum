@@ -49,7 +49,7 @@ it("shows a completed transcript without offering destructive retranscription", 
   expect(action.attributes("disabled")).toBeDefined();
   expect(action.attributes("aria-label")).toBe("spaces.media.player.transcribed");
 });
-it("keeps the queued or running native task visible and prevents duplicate dispatch", async () => {
+it("keeps the queued or running Rust task visible and prevents duplicate dispatch", async () => {
   analyzing.value = true;
   canTranscribe.value = false;
   const wrapper = render();

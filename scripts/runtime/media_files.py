@@ -1,4 +1,4 @@
-"""Export FFmpeg's native dependency closure, runtime data and supplier notices."""
+"""Export FFmpeg's compiled dependency closure, runtime data and supplier notices."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ def dumpbin_path() -> Path:
     )
     paths = [Path(line) for line in output.splitlines() if line.strip()]
     if not paths:
-        raise ValueError("Native Windows media production requires the MSVC build tools")
+        raise ValueError("Windows media production requires the MSVC build tools")
     return max(
         paths,
         key=lambda path: tuple(int(part) for part in path.parents[3].name.split(".")),
@@ -140,9 +140,9 @@ def _mac_dependencies(path: Path, root: Path, entry: Path) -> list[Path]:
         else:
             dependency = Path(name)
         if not dependency.resolve().is_relative_to(root):
-            raise ValueError(f"Media dependency is outside the frozen native prefix: {name}")
+            raise ValueError(f"Media dependency is outside the frozen Conda prefix: {name}")
         if not dependency.is_file():
-            raise ValueError(f"Media native dependency is not present: {name}")
+            raise ValueError(f"Media compiled dependency is not present: {name}")
         files.append(Path(os.path.abspath(dependency)))
     return files
 
@@ -163,10 +163,10 @@ def _windows_dependencies(path: Path, root: Path, inspector: Path) -> list[Path]
         dependency = libraries.get(name.lower())
         if dependency is not None:
             if not dependency.resolve().is_relative_to(root):
-                raise ValueError(f"Media dependency is outside the frozen native prefix: {name}")
+                raise ValueError(f"Media dependency is outside the frozen Conda prefix: {name}")
             files.append(dependency.absolute())
         elif not _windows_os_library(name, system):
-            raise ValueError(f"Media native dependency is not present: {name}")
+            raise ValueError(f"Media compiled dependency is not present: {name}")
     return files
 
 
@@ -177,31 +177,31 @@ def _windows_os_library(name: str, system: Path) -> bool:
     return name in WINDOWS_SYSTEM_LIBRARIES and (system / name).is_file()
 
 
-def media_native_files(root: Path, target: str) -> set[Path]:
+def media_compiled_files(root: Path, target: str) -> set[Path]:
     root = root.resolve(strict=True)
     entry = root / ("Library/bin/ffmpeg.exe" if target == "windows-x64" else "bin/ffmpeg")
     if not entry.is_file():
-        raise ValueError("The frozen native media package has no FFmpeg entry point")
+        raise ValueError("The frozen Conda media package has no FFmpeg entry point")
     inspector = dumpbin_path() if target == "windows-x64" else None
     remaining = [entry]
-    native: set[Path] = set()
+    compiled_files: set[Path] = set()
     while remaining:
         path = remaining.pop()
-        if path in native:
+        if path in compiled_files:
             continue
-        native.add(path)
+        compiled_files.add(path)
         dependencies = (
             _windows_dependencies(path, root, inspector)
             if inspector is not None
             else _mac_dependencies(path, root, entry)
         )
         remaining.extend(dependencies)
-    return native
+    return compiled_files
 
 
 def export_media_files(root: Path, target: str) -> list[str]:
     root = root.resolve(strict=True)
-    native = media_native_files(root, target)
+    compiled_files = media_compiled_files(root, target)
     # This producer owns the prefix. Validate the complete graph before changing any file.
     data = (
         "etc",
@@ -210,13 +210,13 @@ def export_media_files(root: Path, target: str) -> list[str]:
         "Library/etc",
         "Library/share",
         "Library/ssl",
-        "native-notices",
+        "conda-notices",
     )
     excluded = ("share/man", "share/doc", "Library/share/man", "Library/share/doc")
     retained = {
         path
         for path in root.rglob("*")
-        if path in native or _runtime_data(path.relative_to(root).as_posix(), data, excluded)
+        if path in compiled_files or _runtime_data(path.relative_to(root).as_posix(), data, excluded)
     }
     # Keep canonical targets until each selected alias is exported as an independent file.
     materialize_aliases(root, retained)
@@ -226,9 +226,9 @@ def export_media_files(root: Path, target: str) -> list[str]:
                 path.rmdir()
             continue
         relative = path.relative_to(root).as_posix()
-        if path not in native and not _runtime_data(relative, data, excluded):
+        if path not in compiled_files and not _runtime_data(relative, data, excluded):
             path.unlink()
-    return sorted(path.relative_to(root).as_posix() for path in native)
+    return sorted(path.relative_to(root).as_posix() for path in compiled_files)
 
 
 def _runtime_data(relative: str, data: tuple[str, ...], excluded: tuple[str, ...]) -> bool:

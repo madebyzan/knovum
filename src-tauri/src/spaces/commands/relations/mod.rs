@@ -39,8 +39,13 @@ async fn prepare_relation_write<R: Runtime>(
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    contracts::validate_relation_endpoints(&mut tx, &relation.space_id, &source_id, &target_id)
-        .await?;
+    crate::spaces::knowledge::relations::validate_endpoints(
+        &mut tx,
+        &relation.space_id,
+        &source_id,
+        &target_id,
+    )
+    .await?;
     Ok((tx, source_id, target_id, now))
 }
 
@@ -65,7 +70,13 @@ pub(crate) async fn create_relation_in_transaction(
 ) -> Result<(), String> {
     validate_relation(relation)?;
     let (source_id, target_id) = canonical_endpoints(relation);
-    contracts::validate_relation_endpoints(tx, &relation.space_id, &source_id, &target_id).await?;
+    crate::spaces::knowledge::relations::validate_endpoints(
+        tx,
+        &relation.space_id,
+        &source_id,
+        &target_id,
+    )
+    .await?;
     sqlx::query(
         "INSERT INTO spaces_relations(\
            id, space_id, source_id, target_id, kind, rationale, status, confidence, actor_kind, actor_id, created_at, updated_at\
@@ -142,13 +153,13 @@ pub async fn restore_relation<R: Runtime>(
 }
 
 pub(crate) fn validate_relation(relation: &SpaceRelationInput) -> Result<(), String> {
-    contracts::validate_current_relation_status(relation.status.as_str())?;
-    contracts::validate_relation_rationale(&relation.rationale)?;
-    contracts::validate_confidence(relation.confidence)
+    crate::spaces::knowledge::relations::validate_current_status(relation.status.as_str())?;
+    crate::spaces::knowledge::relations::validate_rationale(&relation.rationale)?;
+    crate::spaces::knowledge::relations::validate_confidence(relation.confidence)
 }
 
 pub(crate) fn canonical_endpoints(relation: &SpaceRelationInput) -> (String, String) {
-    contracts::canonical_relation_endpoints(
+    crate::spaces::knowledge::relations::canonical_endpoints(
         relation.kind.as_str(),
         &relation.source_id,
         &relation.target_id,

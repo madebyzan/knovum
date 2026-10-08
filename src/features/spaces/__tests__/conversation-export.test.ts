@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 describe("conversation export", () => {
-  it("writes through the authorized native export command", async () => {
+  it("writes through the authorized Rust export command", async () => {
     await actions().exportSelected();
 
     expect(mocks.save).toHaveBeenCalledWith({

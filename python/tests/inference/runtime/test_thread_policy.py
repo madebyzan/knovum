@@ -46,7 +46,7 @@ def test_alignment_session_accepts_the_frozen_torch_device(tmp_path: Path, devic
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda", "mps", "vulkan"])
-def test_native_alignment_initializes_without_torch(
+def test_compiled_alignment_initializes_without_torch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, device: str
 ) -> None:
     from knovum_inference.runtime.session import _create_engine

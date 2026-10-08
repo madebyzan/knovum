@@ -42,4 +42,4 @@ Use one authoritative document per concern.
 
 - [naming-conventions.md](naming-conventions.md) — authoritative path, symbol, IPC and suffix naming policy.
 
-The current pre-release data baseline is defined in [data-ownership.md](data-ownership.md) and [knowledge.md](knowledge.md). Release prerequisites and acceptance belong to [release.md](release.md). Candidate-specific test reports, native probes and dependency audits belong to the corresponding CI or release artifacts, rather than a second documentation tree.
+The current pre-release data baseline is defined in [data-ownership.md](data-ownership.md) and [knowledge.md](knowledge.md). Release prerequisites and acceptance belong to [release.md](release.md). Candidate-specific test reports, target-platform probes and dependency audits belong to the corresponding CI or release artifacts, rather than a second documentation tree.

@@ -7,7 +7,7 @@ mod tests;
 use serde_json::Value;
 use sqlx::SqlitePool;
 
-use crate::spaces::conversations::{contract::ConversationAttachment, upload};
+use crate::spaces::conversations::{contracts::ConversationAttachment, upload};
 pub(in crate::spaces::conversations) use image::image_input_from_file;
 use image::ImageAttachmentContent;
 

@@ -4,9 +4,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::resource;
 use crate::app_error::AppError;
-use crate::spaces::knowledge::node_contracts::document_coverage::{
-    DocumentAnalysis, DocumentCoverage,
-};
+use crate::spaces::knowledge::model::document_coverage::{DocumentAnalysis, DocumentCoverage};
 use crate::{
     ai::tasks::{
         completion::{self, TaskInput},

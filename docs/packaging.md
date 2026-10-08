@@ -129,21 +129,31 @@ Models and media-import tools are always downloaded into application-owned stora
 path override or PATH search exists. All profiles target macOS arm64/x64 and Windows x64;
 target qualification gaps are explicit below.
 
-## Native resource production and consumption
+## Compiled resource production and consumption
 
-macOS arm64, macOS x64 and Windows x64 each have immutable native dependency locks in `python/native-locks`. The Conda-forge CPython/native closure and hash-bound Python wheels are installed by the controlled producer; no dependency solver runs in the shipped application. The producer verifies inventory, notices, relocation, imports and signatures before creating a descriptor. The Intel MOSS application adapter has real generation, cloning and cancellation/reuse evidence; that does not qualify other engines or targets automatically.
+macOS arm64, macOS x64 and Windows x64 each have immutable Conda dependency locks in `python/conda-locks`. The Conda-forge CPython and compiled-library closure and hash-bound Python wheels are installed by the controlled producer; no dependency solver runs in the shipped application. The producer verifies inventory, notices, relocation, imports and signatures before creating a descriptor. The Intel MOSS application adapter has real generation, cloning and cancellation/reuse evidence; that does not qualify other engines or targets automatically.
 
-The reusable `python-runtime.yml` workflow builds all five profiles and the core media resource on all three native runners, verifies the complete 18-entry publication and publishes archives, descriptors and evidence under a commit/run/attempt-specific GitHub release tag. QA packaging and signed release candidates depend on this workflow and consume its `runtime-publication.json` artifact. A partial matrix cannot publish. Addresses and SHA-256 values are generated from the actual archives; maintainers do not configure separate FFmpeg or Python resource addresses.
+`runtime-source.json` names that supplier `condaSupplier`; producer evidence uses
+`conda-packages.json`, and the core-media descriptor binds `condaLockSha256`. Voice shared libraries
+are installed under `compiled-libraries/`, matching the inference loaders and relocation checks.
+`dependency-evidence.json` records CPython `version` and `source` under `cpython`; the separate
+`runtimeInstallation` inventory covers every non-package compiled binary and notice in the installed
+runtime, including audio.cpp libraries and source notices.
+Renaming a producer input changes its recipe identity. Previously prepared development resources
+must be rebuilt by the normal preparation path; published resources must be produced and verified
+against the current recipe rather than relabeled.
 
-`pnpm runtime:provision --profile <profile> --publication <runtime-publication.json>` verifies the selected target/profile archive, descriptor and evidence. The light-inference invocation additionally provisions the core FFmpeg archive from the same publication, verifies its descriptor, frozen native closure and complete file inventory, and activates it atomically. All published resources support anonymous download.
+The reusable `python-runtime.yml` workflow builds all five profiles and the core media resource on all three target runners, verifies the complete 18-entry publication and publishes archives, descriptors and evidence under a commit/run/attempt-specific GitHub release tag. QA packaging and signed release candidates depend on this workflow and consume its `runtime-publication.json` artifact. A partial matrix cannot publish. Addresses and SHA-256 values are generated from the actual archives; maintainers do not configure separate FFmpeg or Python resource addresses.
 
-Core FFmpeg 9.0.1 is produced independently from the Python environments using the frozen `python/native-locks/media/<target>.json` Conda-forge closures, the same pinned micromamba installer and native signing policy. Its prefix retains required shared libraries and license notices: macOS resolves `bin/ffmpeg`; Windows resolves `Library/bin/ffmpeg.exe`. The media manifest binds the exact producer recipe, native package inventory and every regular file. Production resource signatures and complete corresponding-source/license review remain release requirements.
+`pnpm runtime:provision --profile <profile> --publication <runtime-publication.json>` verifies the selected target/profile archive, descriptor and evidence. The light-inference invocation additionally provisions the core FFmpeg archive from the same publication, verifies its descriptor, frozen compiled closure and complete file inventory, and activates it atomically. All published resources support anonymous download.
 
-The producer exports the entry point's transitive native dependency graph and runtime data/notices, excluding SDK tools, headers, static archives and unreferenced library aliases. macOS uses the Xcode command-line `otool`; Windows uses the latest installed MSVC inspector located through official `vswhere`. These are producer requirements on native Rust/Tauri builders, never dependencies of the installed application. The signed native file count must equal the retained graph, and its paths must be present in the media file manifest. Dependency inspection or qualification failures prevent activation.
+Core FFmpeg 9.0.1 is produced independently from the Python environments using the frozen `python/conda-locks/media/<target>.json` Conda-forge closures, the same pinned micromamba installer and platform code-signing policy. Its prefix retains required shared libraries and license notices: macOS resolves `bin/ffmpeg`; Windows resolves `Library/bin/ffmpeg.exe`. The media manifest binds the exact producer recipe, Conda package inventory and every regular file. Production resource signatures and complete corresponding-source/license review remain release requirements.
+
+The producer exports the entry point's transitive compiled dependency graph and runtime data/notices, excluding SDK tools, headers, static archives and unreferenced library aliases. macOS uses the Xcode command-line `otool`; Windows uses the latest installed MSVC inspector located through official `vswhere`. These are producer requirements on target-platform Rust/Tauri builders, never dependencies of the installed application. The signed compiled file count must equal the retained graph, and its paths must be present in the media file manifest. Dependency inspection or qualification failures prevent activation.
 
 `pnpm tauri dev` and `pnpm desktop:dev` run `scripts/desktop/dev.mjs`: it verifies or automatically produces the host core media resource before entering the official Tauri CLI. Tauri's `beforeDevCommand` then starts only Vite through `pnpm dev`; resource production does not consume its 180-second frontend readiness window. Preparation failures stop startup with their actual error. A changed recipe or damaged owned resource is rebuilt before the desktop starts. This requires no developer-supplied FFmpeg path, URL, package manager or system Python. Python feature environments remain prepared on demand by the application. Recipe identity includes the common producer files and the selected resource/profile files declared in `python/runtime-source.json`; Node preparation and Rust resolution use the same declaration. Unrelated distribution scripts and other profiles’ supplier code do not invalidate an unchanged resource. Developer preparation uses the pinned tooling bootstrap; the packaged application contains the finished core media prefix and does not run this producer.
 
-Provisioning checks the archive URL/hash/size against its descriptor and validates manifest/dependency identity against the checkout. Python runtimes remain external on-demand resources; only current worker source and frozen descriptors enter the app. A release build without all five descriptors fails at compile time. Debug `pnpm tauri dev` prepares resources on feature use without a published archive. Publication workflow execution, hosting and native acceptance are required before claiming a distributable release; editing the workflow alone does not publish resources.
+Provisioning checks the archive URL/hash/size against its descriptor and validates manifest/dependency identity against the checkout. Python runtimes remain external on-demand resources; only current worker source and frozen descriptors enter the app. A release build without all five descriptors fails at compile time. Debug `pnpm tauri dev` prepares resources on feature use without a published archive. Publication workflow execution, hosting and target-platform acceptance are required before claiming a distributable release; editing the workflow alone does not publish resources.
 
 On-demand yt-dlp/Deno remain in `local_resources/tools`; they are not packaged. Their existing
 manifest, verified installation and no-PATH policy remain in force. No font files are packaged.
@@ -156,12 +166,12 @@ pnpm runtime:build --profile <resources|light-inference|torch-inference|voice-ge
   --archive-url <immutable-https-archive-url>
 ```
 
-The native producer uses the frozen publication group and pinned Conda-forge CPython 3.11.17/native closure from the per-target locks. uv 0.12.23 installs hash-bound dependencies in a
-frozen build environment. The native audio package builds the exact audio.cpp source archive for VoxCPM2 and Qwen3 forced alignment. VoxCPM2 uses the application callback bridge; alignment uses the supplier public C API. Both libraries share one verified backend closure; archive, compiler recipe and bridge hashes accompany the native runtime evidence. Metal kernels are compiled during resource production and installed beside the private interpreter.
+The CPython producer uses the frozen publication group and pinned Conda-forge CPython 3.11.17/compiled closure from the per-target locks. uv 0.12.23 installs hash-bound dependencies in a
+frozen build environment. The audio.cpp package builds the exact source archive for VoxCPM2 and Qwen3 forced alignment. VoxCPM2 uses the application callback bridge; alignment uses the supplier public C API. Both libraries share one verified backend closure; archive, compiler recipe and bridge hashes accompany the compiled-runtime evidence. Metal kernels are compiled during resource production and installed beside the private interpreter.
 The x64 producer enables the supplier's CPU instruction-set dispatch modules. Shared backends and their dependencies live beside the private interpreter; the isolated voice worker searches only that verified runtime. Windows builds the optional Vulkan module using LunarG SDK 1.4.363.0, pinned by archive size and SHA-256. The SDK's documented `copy_only=1` mode keeps its files in producer scratch space without modifying system PATH, registry or drivers. It is build tooling and is not shipped to users. Production runtimes and application packages use the same `release-signing` environment for certificate material.
 No development environment or application Worker is copied into the runtime. Relocation checks import the selected profile's actual third-party stack from a path containing
 spaces and Chinese characters. Resources import both Hub SDKs without Torch; light inference
-blocks Torch imports while loading ONNX/Sherpa and native CTranslate2 ASR; heavy inference,
+blocks Torch imports while loading ONNX/Sherpa and compiled CTranslate2 ASR; heavy inference,
 voice generation and Agent each import their independently selected stack.
 Signing precedes file-manifest creation. QA signing is explicitly ad-hoc on macOS/unsigned on
 Windows; production signing and signer/timestamp verification remain mandatory.
@@ -174,7 +184,7 @@ equivalent access. Runtime licenses/notices stay in the conveyed runtime; moving
 not distribution approval. The workflow publishes the generated immutable archive addresses before dependent application packaging. Anonymous reachability in supported networks remains a release acceptance criterion.
 
 `python/runtimes/<profile>/dependency-license-review.json` approves each profile's lock/requirements
-digests and exact per-target installed inventory. Voice generation conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper native-source
+digests and exact per-target installed inventory. Voice generation conveys pinned VoxCPM source evidence. The unresolved sherpa/eSpeak/piper corresponding-source
 review continues to block production for the conveyed light inference binary; the former Kokoro model/data archive is no longer distributed. Metadata, source hashes and
 QA artifacts are not legal approval. Required complete corresponding-source/build/installation
 materials must accompany the reviewed publication.
@@ -186,7 +196,7 @@ interpreter/runtime manifest. NSIS extraction uses pinned 7-Zip 26.03; MSI uses 
 administrative image. Temporary extraction is removed on success and failure. Runtime imports
 are smoke-tested separately with the current application Worker. Qualification binds both
 `workerDigest` and the published runtime manifest digest. Final signing/notarization, clean
-installation and actual first-download/offline functionality on both platforms remain native
+installation and actual first-download/offline functionality on both platforms remain target-platform
 release acceptance requirements.
 
 ## Artifact policy
@@ -221,7 +231,7 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all three supported native targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all three supported release targets; promotion, target-platform upgrade acceptance and GitHub/COS migration are documented in `release.md`.
 
 ## Bundled Agent plugin content
 
@@ -240,14 +250,14 @@ macOS arm64/x64 and Windows x64. Agent RPC/graph v1 and profile v1 reject obsole
 
 ### Windows GPU resource closure
 
-The Windows Tensor native lock freezes one CUDA 12.8 closure for Torch, torchaudio and torchcodec, including cuDNN 9.10.2.21. Its 137 immutable native archives total 2,979,077,089 compressed bytes before Python wheels and the application archive. Windows Faster Whisper/CTranslate2 belong to this runtime, while Intel macOS ASR remains in light-inference. The relocated producer verifies these imports and the Torch CUDA ABI. CPU execution remains available within the same verified package; no user-installed CUDA toolkit is required. Native Windows GPU and CPU operation must be qualified separately on real hardware; this document records the producer contract and does not claim that acceptance.
+The Windows Tensor Conda lock freezes one CUDA 12.8 closure for Torch, torchaudio and torchcodec, including cuDNN 9.10.2.21. Its 137 immutable Conda archives total 2,979,077,089 compressed bytes before Python wheels and the application archive. Windows Faster Whisper/CTranslate2 belong to this runtime, while Intel macOS ASR remains in light-inference. The relocated producer verifies these imports and the Torch CUDA ABI. CPU execution remains available within the same verified package; no user-installed CUDA toolkit is required. Windows GPU and CPU operation must be qualified separately on real hardware; this document records the producer contract and does not claim that acceptance.
 
 Windows Python runtime production preserves CPython’s original activation manifest and sets its Win32 process code page to UTF-8 with the installed x64 Windows SDK Manifest Tool before signing. Original execution privileges, DPI, and long-path settings remain in the manifest. The original/configured manifests are build evidence, and relocation smoke verifies code page 65001. This applies to every Python runtime profile; the supported Windows baseline is Windows 10 1903+ x64.
 
 ## Environment ownership
 
 Normal desktop development and end-user operation require no Knovum resource-path variables.
-Model selection and credentials belong to application settings. Native signing identities,
+Model selection and credentials belong to application settings. Release signing identities,
 certificate passwords, updater signing keys and distribution endpoints are release-CI inputs;
 GitHub job identifiers and artifact addresses are supplied by the workflows. OS variables such
 as `PATH`, `SystemRoot` and Windows SDK installation roots retain their system meanings.

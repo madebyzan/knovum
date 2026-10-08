@@ -5,10 +5,10 @@ import { expect, it, vi } from "vitest";
 import type { ConnectorAccount } from "../../../shared/contracts/generated/ConnectorAccount";
 import ConnectorAccounts from "../connectors/ConnectorAccounts.vue";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),
 }));
-vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: native.invoke }));
+vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 
 it("refreshes authorization state after a failed authorization flow", async () => {
   let account: ConnectorAccount = {
@@ -23,7 +23,7 @@ it("refreshes authorization state after a failed authorization flow", async () =
     enabled: true,
     cleanupPending: false,
   };
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:extensions|list_connector_accounts") return [{ ...account }];
     if (command === "plugin:extensions|authorize_connector_account") {
       account = { ...account, enabled: false, cleanupPending: true };

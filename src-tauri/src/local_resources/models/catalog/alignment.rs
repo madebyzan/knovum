@@ -84,6 +84,6 @@ pub(super) fn direct_url(kind: super::ModelKind) -> &'static str {
         super::ModelKind::Qwen3AlignerQ8Weights => "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/09fe073ba154561f4474162e8bd4ab233a848eca/Qwen3-ForcedAligner-0.6B-GGUF/qwen3-forced-aligner-0.6b-q8_0.gguf",
         super::ModelKind::Qwen3AlignerQ8License => "https://raw.githubusercontent.com/QwenLM/Qwen3-ASR/7c6daf77a2421100f5fb066495372c00129d39ff/LICENSE",
         super::ModelKind::Qwen3AlignerQ8Readme => "https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B-hf/resolve/c07281df297b9905d24a508279258cccf987a064/README.md",
-        _ => unreachable!("Native alignment owns exactly three frozen files"),
+        _ => unreachable!("Compiled alignment owns exactly three frozen files"),
     }
 }

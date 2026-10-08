@@ -74,7 +74,7 @@ fn register() -> Result<(), String> {
         hInstance: module_instance()?,
         hCursor: unsafe { LoadCursorW(None, IDC_ARROW) }.map_err(|error| error.to_string())?,
         hbrBackground: unsafe { GetSysColorBrush(COLOR_WINDOW) },
-        lpszClassName: w!("KnovumNativePreview"),
+        lpszClassName: w!("KnovumSystemPreview"),
         ..Default::default()
     };
     if unsafe { RegisterClassW(&class) } == 0 {

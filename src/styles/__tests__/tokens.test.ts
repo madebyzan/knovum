@@ -8,14 +8,14 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 const tokenSource = readFileSync("src/styles/tokens.css", "utf8");
 const spaceTokenSource = readFileSync("src/features/spaces/presentation/space-tokens.css", "utf8");
-const nativeTheme = readFileSync("node_modules/tailwindcss/theme.css", "utf8");
+const tailwindTheme = readFileSync("node_modules/tailwindcss/theme.css", "utf8");
 const allTokens = tokenSource + spaceTokenSource;
 const publicTheme = tokenSource.slice(
   tokenSource.indexOf("@theme static"),
   tokenSource.indexOf(":root[data-text-size"),
 );
 const declarations = new Set(
-  [...(allTokens + nativeTheme).matchAll(/(--[\w-]+):/g)].map((match) => match[1]),
+  [...(allTokens + tailwindTheme).matchAll(/(--[\w-]+):/g)].map((match) => match[1]),
 );
 const productSources = readdirSync("src", { recursive: true, withFileTypes: true })
   .filter((entry) => entry.isFile() && /\.(?:css|ts|vue)$/.test(entry.name))
@@ -35,9 +35,9 @@ beforeAll(async () => {
     server: { middlewareMode: true, hmr: false, watch: null },
   });
   try {
-    const result = await server.transformRequest("/src/styles/app.css?direct");
-    if (!result) throw new Error("Design-token stylesheet did not compile");
-    compiledCss = result.code;
+    const transformedStylesheet = await server.transformRequest("/src/styles/app.css?direct");
+    if (!transformedStylesheet) throw new Error("Design-token stylesheet did not compile");
+    compiledCss = transformedStylesheet.code;
   } finally {
     await server.close();
   }
@@ -54,7 +54,7 @@ describe("design-token contract", () => {
     expect(missing).toEqual([]);
   });
 
-  it("emits native theme variables used directly by CSS consumers", () => {
+  it("emits Tailwind theme variables used directly by CSS consumers", () => {
     const references = productSources
       .filter(({ path }) => !path.endsWith("tokens.css"))
       .flatMap(({ source }) =>
@@ -64,7 +64,7 @@ describe("design-token contract", () => {
     for (const [, name] of references) expect(compiledCss).toContain(`${name}:`);
   });
 
-  it("keeps feature attributes private and public decisions in native namespaces", () => {
+  it("keeps feature attributes private and public decisions in Tailwind namespaces", () => {
     expect(publicTheme).not.toMatch(/var\(--knovum-space-/);
     expect(tokenSource).not.toContain("@theme inline");
     expect(tokenSource).not.toMatch(/--knovum-(?:color|typography)-/);

@@ -15,30 +15,30 @@ function fixture(context, target = "windows-x64") {
   const directory = mkdtempSync(join(tmpdir(), "knovum-core-media-"));
   context.after(() => rmSync(directory, { recursive: true, force: true }));
   mkdirSync(join(directory, "Library/bin"), { recursive: true });
-  writeFileSync(join(directory, "Library/bin/ffmpeg.exe"), "native executable");
-  const lock = JSON.parse(readFileSync(join(repository, "python/native-locks/media", `${target}.json`)));
+  writeFileSync(join(directory, "Library/bin/ffmpeg.exe"), "compiled executable");
+  const lock = JSON.parse(readFileSync(join(repository, "python/conda-locks/media", `${target}.json`)));
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json")));
   writeMediaManifest(repository, directory, target, {
     schemaVersion: 1,
     appCommit: "a".repeat(40),
-    nativeDependencyFiles: ["Library/bin/ffmpeg.exe"],
+    compiledDependencyFiles: ["Library/bin/ffmpeg.exe"],
     target,
     version: "9.0.1",
     relocationVerified: true,
     signing: { mode: "unsigned", compiledBinaryCount: 1 },
-    nativeSupplier: {
+    condaSupplier: {
       supplier: "conda-forge",
-      micromambaVersion: configuration.nativeSupplier.micromambaVersion,
-      lockSha256: sha256File(join(repository, "python/native-locks/media", `${target}.json`)),
+      micromambaVersion: configuration.condaSupplier.micromambaVersion,
+      lockSha256: sha256File(join(repository, "python/conda-locks/media", `${target}.json`)),
       packages: lock.packages.map((p) => Object.assign({}, p, { files: [] })),
     },
   });
   return directory;
 }
 
-test("core media has a frozen native closure on all supported platforms without Python", () => {
+test("core media has a frozen Conda closure on all supported platforms without Python", () => {
   for (const target of ["macos-arm64", "macos-x64", "windows-x64"]) {
-    const lock = JSON.parse(readFileSync(join(repository, "python/native-locks/media", `${target}.json`)));
+    const lock = JSON.parse(readFileSync(join(repository, "python/conda-locks/media", `${target}.json`)));
     assert.equal(lock.packages.find((p) => p.name === "ffmpeg").version, "9.0.1");
     assert.equal(
       lock.packages.some((p) => p.name === "python"),
@@ -48,19 +48,19 @@ test("core media has a frozen native closure on all supported platforms without 
   }
 });
 
-test("media validation rejects corruption, injected files and a different native closure", (context) => {
+test("media validation rejects corruption, injected files and a different Conda closure", (context) => {
   const root = fixture(context);
   validateMediaRuntime(repository, root, "windows-x64");
   const executable = join(root, "Library/bin/ffmpeg.exe");
   writeFileSync(executable, "changed executable");
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), /file.*manifest/u);
-  writeFileSync(executable, "native executable");
+  writeFileSync(executable, "compiled executable");
   writeFileSync(join(root, "python.exe"), "unexpected Python");
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), /undeclared/u);
   rmSync(join(root, "python.exe"));
   const path = join(root, "media-manifest.json");
   const manifest = JSON.parse(readFileSync(path));
-  manifest.producer.nativeSupplier.packages[0].sha256 = "b".repeat(64);
+  manifest.producer.condaSupplier.packages[0].sha256 = "b".repeat(64);
   writeFileSync(path, JSON.stringify(manifest));
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), /controlled build/u);
 });
@@ -95,11 +95,11 @@ test("media cache non-file executable entries are explicitly rebuildable", (cont
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
 });
 
-test("invalid native supplier package entries are explicitly rebuildable", (context) => {
+test("invalid Conda supplier package entries are explicitly rebuildable", (context) => {
   const root = fixture(context);
   const path = join(root, "media-manifest.json");
   const manifest = JSON.parse(readFileSync(path));
-  manifest.producer.nativeSupplier.packages = [null];
+  manifest.producer.condaSupplier.packages = [null];
   writeFileSync(path, JSON.stringify(manifest));
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
 });

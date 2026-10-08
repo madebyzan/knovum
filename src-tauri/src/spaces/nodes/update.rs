@@ -11,7 +11,7 @@ use super::{
 use crate::spaces::{
     assets::enrichment::jobs,
     db,
-    knowledge::{chunk_store, contracts, events},
+    knowledge::{chunk_store, events},
 };
 
 pub(in crate::spaces) async fn update_many<R: Runtime>(
@@ -31,7 +31,13 @@ pub(in crate::spaces) async fn update_many<R: Runtime>(
             .as_str()
             .ok_or("Node kind is required")?
             .to_owned();
-        contracts::normalize_node(&mut tx, &request.space_id, &kind, &mut change.data).await?;
+        crate::spaces::knowledge::validation::normalize_node(
+            &mut tx,
+            &request.space_id,
+            &kind,
+            &mut change.data,
+        )
+        .await?;
     }
     let now = crate::clock::unix_time_millis()?;
     let edit_snapshot = update_many_in_transaction(
@@ -96,7 +102,9 @@ async fn apply_node_change(
             change.id
         ));
     }
-    let object_type_id = contracts::validate_node(tx, space_id, &kind, &change.data).await?;
+    let object_type_id =
+        crate::spaces::knowledge::validation::validate_node(tx, space_id, &kind, &change.data)
+            .await?;
     let revision_changed = field_changed(&before, &change.data, "knowledgeRevision");
     let source_revision_changed = field_changed(&before, &change.data, "sourceRevision");
     if revision_changed {

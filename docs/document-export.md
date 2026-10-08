@@ -20,7 +20,7 @@ inline code, fenced/indented code, and nested ordered/unordered lists are repres
 Only tables, strikethrough, and task lists are enabled as parser extensions. Parser upgrades must
 not expand this subset implicitly through `Options::all()`.
 
-DOCX writes native table cells, numbering definitions and hyperlink relationships, with declared
+DOCX writes OOXML table cells, numbering definitions and hyperlink relationships, with declared
 Normal, Title, Heading1–Heading6, and code styles. PDF emits structural Typst functions using a
 checked-in `pdf/document.typ` profile. Literal text is always a quoted function argument, never raw
 Typst markup. Export has no remote-content or filesystem/package resolver.
@@ -31,7 +31,7 @@ It never includes an image's private filesystem path. A title-only document is v
 is removed only when its plain text equals the separately stored title; distinct body headings remain.
 Citations are appended as literal structured source paragraphs, not interpolated Markdown.
 
-PPTX uses the already pinned `office_oxide` writer. Knovum maps title and Markdown sections into at most 100 plain-text slides; the library owns package XML, relationships and escaping. It does not promise native Markdown table/list styling, images, templates, animations or pixel fidelity. Existing shared Markdown validation applies before serialization.
+PPTX uses the already pinned `office_oxide` writer. Knovum maps title and Markdown sections into at most 100 plain-text slides; the library owns package XML, relationships and escaping. It does not promise direct Markdown table/list styling, images, templates, animations or pixel fidelity. Existing shared Markdown validation applies before serialization.
 
 ## Explicit limitations
 
@@ -54,7 +54,7 @@ The private protocol limits its JSON request to 16 MiB (including encoding overh
 ## Verification before merge
 
 Focused checks cover the semantic model, title/citation policy, safe output, unsupported inputs,
-DOCX package XML, revision identity and shared Action execution. The native PDF smoke requires a
+DOCX package XML, revision identity and shared Action execution. The platform PDF smoke requires a
 platform CJK font.
 
 Run on the supported desktop development environment:
@@ -65,7 +65,7 @@ cargo test --locked --manifest-path src-tauri/Cargo.toml documents::generation
 cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::tests::document_formats
 ```
 
-Native macOS and Windows build checks and opening representative output in Word/PDF viewers are
+macOS and Windows build checks and opening representative output in Word/PDF viewers are
 required before treating this as release-ready. Binary signatures and XML assertions do not prove
 visual fidelity, pagination quality, or full application lifecycle correctness.
 

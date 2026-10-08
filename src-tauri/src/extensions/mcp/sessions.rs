@@ -92,13 +92,13 @@ where
         }
         Ok(value)
     };
-    let result = tokio::select! {
+    let inspection = tokio::select! {
         biased;
         _ = slot.cancellation.cancelled() => Err("mcp-inspection-session-revoked".into()),
-        result = inspect => result,
+        inspection = inspect => inspection,
     };
     release(app, &scope).await;
-    result
+    inspection
 }
 
 pub(crate) async fn acquire(

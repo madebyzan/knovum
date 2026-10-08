@@ -4,12 +4,12 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
-use crate::dictation_contracts::InsertionOutcome;
+use crate::dictation::contracts::InsertionOutcome;
 
 #[cfg(target_os = "macos")]
-pub(crate) use macos::TargetApplication;
+pub(crate) use macos::InsertionTarget;
 #[cfg(target_os = "windows")]
-pub(crate) use windows::TargetApplication;
+pub(crate) use windows::InsertionTarget;
 
 pub(crate) struct InsertionDecision {
     pub(crate) outcome: InsertionOutcome,
@@ -64,12 +64,12 @@ impl PasteError {
 }
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-pub(crate) fn capture_target() -> Result<TargetApplication, String> {
+pub(crate) fn capture_target() -> Result<InsertionTarget, String> {
     platform::capture_target()
 }
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-pub(crate) fn insert(target: &TargetApplication, text: &str) -> InsertionDecision {
+pub(crate) fn insert(target: &InsertionTarget, text: &str) -> InsertionDecision {
     if text.trim().is_empty() {
         return InsertionDecision::rejected(
             InsertionOutcome::NotAttempted,

@@ -47,8 +47,8 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
             continue;
         }
         let step_id = step_id.to_owned();
-        if let Some(result) = attempt.get_mut("result").filter(|result| !result.is_null()) {
-            result["stepId"] = json!(step_id);
+        if let Some(output) = attempt.get_mut("output").filter(|output| !output.is_null()) {
+            output["stepId"] = json!(step_id);
         }
     }
     for revision in array_mut(value, "speechProjectRevisions")? {

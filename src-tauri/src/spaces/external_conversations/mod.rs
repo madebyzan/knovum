@@ -1,4 +1,4 @@
-mod contract;
+mod contracts;
 mod lifecycle;
 mod publication;
 mod publication_ownership;
@@ -7,7 +7,7 @@ mod runtime;
 mod staging;
 mod updates;
 
-pub(crate) use contract::{ExternalAgentSessionBinding, StartExternalConversationRequest};
+pub(crate) use contracts::{ExternalAgentSessionBinding, StartExternalConversationRequest};
 
 pub(crate) fn recover(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {

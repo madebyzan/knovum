@@ -80,7 +80,7 @@ fn moss_joint_snapshot_is_pinned_and_downloads_without_hub_runtime() {
 }
 
 #[test]
-fn native_vox_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
+fn compiled_voice_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
     for (snapshot, weight) in [
         (SnapshotKind::VoxCpm2, "voxcpm2-orig.gguf"),
         (SnapshotKind::VoxCpm2Q8, "voxcpm2-q8_0.gguf"),
@@ -96,7 +96,7 @@ fn native_vox_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
 }
 
 #[test]
-fn forced_alignment_uses_the_complete_native_transformers_checkpoint() {
+fn forced_alignment_uses_the_complete_compiled_transformers_checkpoint() {
     use super::super::catalog;
     let snapshot = SnapshotKind::SpeechAlignment;
     assert!(matches!(

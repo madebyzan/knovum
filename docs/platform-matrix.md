@@ -2,7 +2,7 @@
 
 Knovum releases for macOS 14+ arm64, macOS 14+ x86_64, and Windows 10 1903+ x64. Windows arm64 and
 Linux are outside the product release scope. Unsupported targets fail explicitly; they do not receive
-partial native inference or compatibility execution paths.
+partial local inference or compatibility execution paths.
 
 This document owns platform differences and real-machine acceptance requirements. Shared lifecycle
 and capability rules belong to [desktop-foundation.md](desktop-foundation.md). Model choices, runtime
@@ -30,11 +30,11 @@ Artifact construction and promotion belong to [packaging.md](packaging.md) and
 | Locale and text      | BCP-47; system/SF and PingFang via Core Text                | BCP-47; Segoe UI Variable and Microsoft YaHei UI via DirectWrite | System fonts; no packaged UI font                                        |
 | Release trust        | Signed and notarized application/update                     | Code-signed installer/update                                     | Credentials remain outside source and build logs                         |
 
-Both macOS architectures are separate native targets with distinct runtime publications, signatures,
+Both macOS architectures are separate release targets with distinct runtime publications, signatures,
 and update artifacts. An arm64 result does not qualify x86_64, and an adapter test does not qualify an
 installed application.
 
-## Native resources and inference
+## Compiled resources and inference
 
 FFmpeg is a bundled core resource on every supported target. Python environments, models, and optional
 media tools are prepared on demand into verified application-owned storage. Offline startup and basic
@@ -46,18 +46,18 @@ startup. GPU execution is chosen only when that target and model declare a quali
 capacity satisfies admission. Otherwise CPU is selected before startup. An inference failure is returned
 to the user; the application does not retry on another device or engine.
 
-Downloaded executables remain subject to native signing, quarantine, and execution policy. Hash
+Downloaded executables remain subject to system signing, quarantine, and execution policy. Hash
 verification alone does not satisfy macOS signing/notarization or Windows execution acceptance. Exact
 models and hardware requirements are maintained in [local-models.md](local-models.md).
 
-Windows runtime executables that use native narrow-string filesystem APIs require the documented UTF-8
+Windows runtime executables that use Win32 narrow-string filesystem APIs require the documented UTF-8
 process manifest and must verify the active code page on the installed target. Python UTF-8 mode alone
-does not change those native APIs.
+does not change those Win32 APIs.
 
 ## Permissions and optional integrations
 
 Capability configuration follows the owning feature. File associations, external filesystem writes,
-Shell commands, native HTTP/WebSocket destinations, updater endpoints, camera or screen capture, and
+Shell commands, system HTTP/WebSocket destinations, updater endpoints, camera or screen capture, and
 secondary windows are absent until a real product flow defines their scope. Microphone and native input
 permissions are limited to recording and dictation. Installing a Tauri plugin never grants WebView
 authority by itself.
@@ -79,12 +79,12 @@ as the actual signed or signing-equivalent installed artifact on all three targe
 | GPU inference   | Every advertised Metal, CUDA, or Vulkan path proves device admission, execution, cancellation, and output validity; unavailable hardware does not expose that path |
 | Durable work    | Pause/cancel/restart, lease expiry, stale-result fencing, atomic publication, cleanup, and no duplicate output                                                     |
 | Quality         | Representative ASR, alignment, diarization, generation, and media outputs receive human review where the feature claims quality                                    |
-| Release trust   | Native signature, notarization or Windows trust, updater signature, architecture identity, licenses/notices, and rollback/promotion controls                       |
+| Release trust   | System signature, notarization or Windows trust, updater signature, architecture identity, licenses/notices, and rollback/promotion controls                       |
 
 Evidence is target- and release-candidate-specific. It must record the application artifact, runtime and
 model identities, device/backend, inputs, cancellation or recovery scenario, outputs, and reviewer.
 Evidence from another architecture, a raw adapter, or an earlier candidate cannot satisfy the gate.
 
 Any change to lifecycle, window chrome, menus, shortcuts, files, clipboard, notifications, updater,
-processes, native resources, or device selection reopens the relevant acceptance rows. Release evidence
+processes, compiled resources, or device selection reopens the relevant acceptance rows. Release evidence
 retention and promotion rules are defined in [release.md](release.md).

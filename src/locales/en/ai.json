@@ -1,7 +1,7 @@
 {
   "target": "Execution target",
-  "targetModelNative": "Model API · native capability",
-  "targetAgentWorkflow": "Desktop Agent · output depends on its current tools and Skills",
+  "targetModelApi": "Model API · direct execution",
+  "targetExternalAgent": "Desktop Agent · output depends on its current tools and Skills",
   "noCompatibleTarget": "No compatible execution target",
   "desktopAgentNotInstalled": "Not detected",
   "disabledTitle": "No compatible AI target",

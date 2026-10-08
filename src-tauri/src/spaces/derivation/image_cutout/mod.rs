@@ -7,7 +7,7 @@ use tauri::AppHandle;
 
 use super::{failure, inputs, pending_output, CompletedDerivationOutput};
 use crate::app_error::AppError;
-use crate::spaces::{db, knowledge::contracts};
+use crate::spaces::db;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -58,7 +58,7 @@ async fn start(
     let model = crate::local_resources::model_selection::image_segmentation(app)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    contracts::validate_same_space_node(
+    crate::spaces::knowledge::validation::validate_same_space_node(
         &mut tx,
         &request.space_id,
         &request.source_node_id,

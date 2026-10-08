@@ -1,4 +1,4 @@
-pub(crate) mod contract;
+pub(crate) mod contracts;
 mod export;
 pub(crate) mod import;
 mod validation;

@@ -33,12 +33,12 @@ export function generateContracts() {
     ],
   ];
   for (const [command, args] of commands) {
-    const result = spawnSync(command, args, {
+    const execution = spawnSync(command, args, {
       cwd: fileURLToPath(new URL("../", import.meta.url)),
       stdio: "inherit",
     });
-    if (result.error) throw result.error;
-    if (result.status !== 0) process.exit(result.status ?? 1);
+    if (execution.error) throw execution.error;
+    if (execution.status !== 0) process.exit(execution.status ?? 1);
   }
 }
 

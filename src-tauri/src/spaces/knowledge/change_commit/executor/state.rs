@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use sqlx::{Sqlite, Transaction};
 
 use crate::spaces::{
-    knowledge::{contracts, relations},
+    knowledge::{relations, semantic_nodes},
     nodes::contracts::InsertNode,
 };
 
@@ -24,7 +24,7 @@ pub(super) async fn resolve_node(
     if let Some(id) = ids.get(reference) {
         return Ok(id.clone());
     }
-    contracts::validate_provenance_node(
+    semantic_nodes::require(
         tx,
         space_id,
         reference,

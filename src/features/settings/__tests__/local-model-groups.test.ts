@@ -1,13 +1,13 @@
 import { expect, it } from "vitest";
 
-import type { LocalModelEntry } from "../../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import { localModelGroups } from "../local-model-groups";
 
 function model(
-  id: LocalModelEntry["id"],
+  id: LocalModelAvailability["id"],
   capability: string,
-  group: LocalModelEntry["group"] = "audio",
-): LocalModelEntry {
+  group: LocalModelAvailability["group"] = "audio",
+): LocalModelAvailability {
   return {
     id,
     capability,

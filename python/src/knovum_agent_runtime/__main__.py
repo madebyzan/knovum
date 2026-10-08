@@ -1,4 +1,4 @@
-"""Start the application-owned Agent Runtime process with native certificate trust."""
+"""Start the application-owned Agent Runtime process with operating-system certificate trust."""
 
 
 def main() -> None:

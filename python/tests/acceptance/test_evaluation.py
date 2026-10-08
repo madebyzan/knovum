@@ -78,16 +78,16 @@ def test_missing_and_escaping_evidence_cannot_pass(tmp_path: Path) -> None:
 
 def test_unavailable_capability_is_reported_without_calculating_a_pass() -> None:
     assert evaluate_or_unavailable(
-        Unavailable(status="unavailable", reason="native output absent"),
+        Unavailable(status="unavailable", reason="compiled output absent"),
         lambda _: pytest.fail("missing output must not be scored"),
-    ) == {"status": "unavailable", "reason": "native output absent"}
+    ) == {"status": "unavailable", "reason": "compiled output absent"}
 
 
 @pytest.mark.parametrize(
     ("change", "message"),
     [
         ({}, None),
-        ({"method": "embedding.encode"}, "required native execution path"),
+        ({"method": "embedding.encode"}, "required compiled execution path"),
         ({"workerDigest": "b" * 64}, "Worker digest differs"),
         ({"runtimeDigest": "b" * 64}, "runtime digest differs"),
         ({"modelSpecId": "different-model"}, "frozen candidate model"),
