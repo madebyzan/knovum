@@ -17,8 +17,8 @@ from knovum_inference.contracts.generated.synthesis import (
     VoiceSourceKind,
 )
 from knovum_inference.errors import RpcError, server_error
+from knovum_inference.speech.synthesis.compiled_voice import CompiledVoice
 from knovum_inference.speech.synthesis.engine import SynthesisEngine
-from knovum_inference.speech.synthesis.native_voice import NativeVoice
 from knovum_inference.speech.synthesis.voxcpm2 import VoxCpm2SynthesisEngine
 
 ORIGINAL_MODEL_FILES = ("voxcpm2-orig.gguf", "LICENSE", "README.md")
@@ -76,7 +76,7 @@ def _design_params() -> SpeechSynthesizeParams:
     return _params({"sourceKind": VoiceSourceKind.designed, "designPrompt": "calm"})
 
 
-def test_native_supplier_receives_frozen_model_backend_threads_and_controls(
+def test_compiled_supplier_receives_frozen_model_backend_threads_and_controls(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -84,7 +84,7 @@ def test_native_supplier_receives_frozen_model_backend_threads_and_controls(
     for name in ORIGINAL_MODEL_FILES:
         (tmp_path / name).touch()
 
-    class FakeNative:
+    class FakeCompiled:
         def __init__(self, model: Path, device: str, threads: int) -> None:
             calls.append((model, device, threads))
 
@@ -100,7 +100,7 @@ def test_native_supplier_receives_frozen_model_backend_threads_and_controls(
             calls.append((text, reference, transcript, params.seed))
             publisher.publish([0.25, -0.25], 48_000, "model_chunk")
 
-    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.NativeVoice", FakeNative)
+    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.CompiledVoice", FakeCompiled)
     params = _design_params()
     publisher = RecordingPublisher(params)
     VoxCpm2SynthesisEngine(tmp_path, "mps", params.model_spec_id, 3).generate(params, publisher, threading.Event())
@@ -109,7 +109,7 @@ def test_native_supplier_receives_frozen_model_backend_threads_and_controls(
 
 
 @pytest.mark.parametrize("cancel_after_publish", [False, True])
-def test_callback_stops_native_work_and_preserves_the_original_python_outcome(cancel_after_publish: bool) -> None:
+def test_callback_stops_compiled_work_and_preserves_the_original_python_outcome(cancel_after_publish: bool) -> None:
     cancelled = threading.Event()
     original = server_error("resource_exhausted", "Audio credits could not be published")
     stops: list[int] = []
@@ -117,12 +117,12 @@ def test_callback_stops_native_work_and_preserves_the_original_python_outcome(ca
     class Library:
         def knovum_voice_generate(self, *arguments: Any) -> int:
             samples = np.array([0.25, -0.25], dtype=np.float32)
-            result = arguments[-1](samples.ctypes.data_as(ctypes.POINTER(ctypes.c_float)), len(samples), 48_000)
-            stops.append(result)
-            return result
+            status = arguments[-1](samples.ctypes.data_as(ctypes.POINTER(ctypes.c_float)), len(samples), 48_000)
+            stops.append(status)
+            return status
 
         def knovum_voice_error(self) -> bytes:
-            return b"native callback stopped"
+            return b"compiled callback stopped"
 
     class Publisher:
         def publish(self, *_arguments: Any) -> None:
@@ -131,7 +131,7 @@ def test_callback_stops_native_work_and_preserves_the_original_python_outcome(ca
             else:
                 raise original
 
-    voice = NativeVoice.__new__(NativeVoice)
+    voice = CompiledVoice.__new__(CompiledVoice)
     voice.library = Library()
     voice.handle = 1
     with pytest.raises(RpcError) as caught:
@@ -143,7 +143,7 @@ def test_callback_stops_native_work_and_preserves_the_original_python_outcome(ca
         assert caught.value is original
 
 
-def test_unavailable_native_backend_does_not_retry_another_backend(
+def test_unavailable_compiled_backend_does_not_retry_another_backend(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -157,7 +157,7 @@ def test_unavailable_native_backend_does_not_retry_another_backend(
         calls.append(device)
         raise server_error("unsupported_device", "GPU is unavailable")
 
-    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.NativeVoice", unavailable)
+    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.CompiledVoice", unavailable)
     params = _design_params()
     with pytest.raises(RpcError) as caught:
         VoxCpm2SynthesisEngine(tmp_path, "mps", params.model_spec_id).generate(
@@ -179,7 +179,7 @@ def test_cancelled_request_does_not_load_a_model(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("control", ["speed", "sample_rate", "preset"])
-def test_native_voice_rejects_controls_it_cannot_honor(tmp_path: Path, control: str) -> None:
+def test_compiled_voice_rejects_controls_it_cannot_honor(tmp_path: Path, control: str) -> None:
     params = _design_params()
     if control == "speed":
         params.profile.speed = 1.2
@@ -220,17 +220,17 @@ def test_synthesis_engine_routes_generated_vox_enum_to_vox_adapter(tmp_path: Pat
     assert engine._moss_nano is None
     publisher = RecordingPublisher(params)
 
-    result = engine.synthesize(params, publisher, threading.Event())
+    synthesis = engine.synthesize(params, publisher, threading.Event())
 
     assert routed == [params]
-    assert result["requestId"] == params.request_id
-    assert result["attemptEpoch"] == params.attempt_epoch
-    assert result["modelSpecId"] == params.model_spec_id
-    assert result["sampleCount"] == 2
-    assert result["byteLength"] == 8
-    assert result["sampleRate"] == 48_000
-    assert result["channels"] == 1
-    assert result["sampleFormat"] == "pcm_f32le"
+    assert synthesis["requestId"] == params.request_id
+    assert synthesis["attemptEpoch"] == params.attempt_epoch
+    assert synthesis["modelSpecId"] == params.model_spec_id
+    assert synthesis["sampleCount"] == 2
+    assert synthesis["byteLength"] == 8
+    assert synthesis["sampleRate"] == 48_000
+    assert synthesis["channels"] == 1
+    assert synthesis["sampleFormat"] == "pcm_f32le"
     assert publisher.chunks == [([0.25, -0.25], 48_000, "model_chunk")]
 
 
@@ -308,7 +308,7 @@ def test_q8_spec_loads_only_the_q8_weight(monkeypatch: pytest.MonkeyPatch, tmp_p
         (tmp_path / name).touch()
     loaded: list[Path] = []
 
-    class FakeNative:
+    class FakeCompiled:
         def __init__(self, model: Path, _device: str, _threads: int) -> None:
             loaded.append(model)
 
@@ -323,7 +323,7 @@ def test_q8_spec_loads_only_the_q8_weight(monkeypatch: pytest.MonkeyPatch, tmp_p
         ) -> None:
             publisher.publish([0.1], 48_000, "model_chunk")
 
-    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.NativeVoice", FakeNative)
+    monkeypatch.setattr("knovum_inference.speech.synthesis.voxcpm2.CompiledVoice", FakeCompiled)
     VoxCpm2SynthesisEngine(tmp_path, "cpu", params.model_spec_id).generate(
         params, RecordingPublisher(params), threading.Event()
     )

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use super::contract::{StructureLayout, StructureNode};
+use super::contracts::{StructureLayout, StructureNode};
 use super::geometry::{validate_layout, validate_world_transform};
 
 const MAX_STRUCTURE_NODES: usize = 100_000;

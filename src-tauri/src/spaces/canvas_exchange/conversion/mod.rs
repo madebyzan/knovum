@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 
 use super::acquisition::ImportResources;
 use super::{
-    contract::{JsonCanvasDocumentV1, JsonCanvasNodeV1, NodeFrameV1},
+    contracts::{JsonCanvasDocumentV1, JsonCanvasNodeV1, NodeFrameV1},
     file_import::ImportRequest,
     import::{ImportJsonCanvasNodesRequest, JsonCanvasNodeImport},
 };
@@ -199,7 +199,7 @@ fn appearance(frame: &NodeFrameV1) -> Value {
 fn section_appearance(
     frame: &NodeFrameV1,
     background: Option<String>,
-    style: Option<&super::contract::BackgroundStyleV1>,
+    style: Option<&super::contracts::BackgroundStyleV1>,
 ) -> Result<Value, AppError> {
     let mut section_appearance = appearance(frame);
     if let Some(background) = background {
@@ -269,7 +269,7 @@ fn memberships(document: &JsonCanvasDocumentV1) -> Result<HashMap<String, String
 }
 
 fn relation(
-    edge: &super::contract::JsonCanvasEdgeV1,
+    edge: &super::contracts::JsonCanvasEdgeV1,
     identities: &HashMap<String, String>,
     space: &str,
 ) -> Result<crate::spaces::commands::relations::SpaceRelationInput, AppError> {

@@ -1,7 +1,7 @@
 use crate::spaces::{conversations::execution::tests::fixture, db};
 use serde_json::json;
 async fn dispatched(pool: &sqlx::SqlitePool) {
-    sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,provider_call_id,wire_name,source,invocation_id,arguments,arguments_digest,read_only,approval,state,created_at) VALUES('operation','run','call','external', $1,'intent','{}','digest',0,'allow','dispatching',1)")
+    sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,provider_call_id,wire_name,source,invocation_id,context,context_digest,read_only,approval,state,created_at) VALUES('operation','run','call','external', $1,'intent','{}','digest',0,'allow','dispatching',1)")
         .bind(json!({"type":"mcp_tool","connectionId":"connection","accountId":null,"toolName":"publish","schemaDigest":"schema"}).to_string()).execute(pool).await.unwrap();
 }
 #[tokio::test]
@@ -140,11 +140,11 @@ async fn denial_is_a_canonical_receipt_and_cannot_be_approved_later() {
     super::decisions::apply(&pool, "operation", ToolOperationDecision::Deny)
         .await
         .unwrap();
-    let (state,approval,result):(String,String,String)=sqlx::query_as("SELECT state,approval,result FROM spaces_conversation_tool_operations WHERE id='operation'").fetch_one(&pool).await.unwrap();
+    let (state,approval,receipt):(String,String,String)=sqlx::query_as("SELECT state,approval,output FROM spaces_conversation_tool_operations WHERE id='operation'").fetch_one(&pool).await.unwrap();
     assert_eq!(state, "failed");
     assert_eq!(approval, "deny");
     assert_eq!(
-        serde_json::from_str::<serde_json::Value>(&result).unwrap()["isError"],
+        serde_json::from_str::<serde_json::Value>(&receipt).unwrap()["isError"],
         true
     );
     assert_eq!(

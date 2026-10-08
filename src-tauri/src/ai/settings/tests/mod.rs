@@ -7,7 +7,7 @@ fn configured() -> serde_json::Value {
     })
 }
 #[test]
-fn native_model_contract_does_not_accept_an_agent_identity() {
+fn local_model_contract_does_not_accept_an_agent_identity() {
     assert!(serde_json::from_value::<ModelTargetSelection>(
         json!({"type":"agent","runtimeKind":"codex"})
     )
@@ -36,7 +36,7 @@ fn explicit_override_precedes_the_default_execution_method() {
     );
 }
 #[test]
-fn disabled_agent_is_unavailable_and_model_native_capabilities_remain_enforced() {
+fn disabled_agent_is_unavailable_and_local_model_capabilities_remain_enforced() {
     let mut value = configured();
     value["desktopAgents"] = json!([]);
     let error = resolve_task_settings(

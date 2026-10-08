@@ -113,7 +113,7 @@ async function finalizePreparedImport(options: CommitManagedImportOptions) {
       nodes.map((node) => context.discardPendingContent(spaceId, node.id)),
     );
     const cleanupErrors = cleanup
-      .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+      .filter((settlement): settlement is PromiseRejectedResult => settlement.status === "rejected")
       .map(({ reason }) => reason);
     if (cleanupErrors.length)
       throw new AggregateError(

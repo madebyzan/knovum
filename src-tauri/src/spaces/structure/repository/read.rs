@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::super::contract::StructureNode;
+use super::super::contracts::StructureNode;
 use super::super::{RelationStyle, StructureLayout};
 use crate::spaces::db;
 

@@ -13,10 +13,10 @@ from runtime import build_media
         ("-version", "ffmpeg version 8.0 ", "version differs"),
         ("-buildconf", "--enable-nonfree", "redistributable"),
         ("-filters", " no subtitle support ", "subtitle rendering"),
-        ("-encoders", " libx264 ", "native platform H.264"),
+        ("-encoders", " libx264 ", "target platform H.264"),
     ],
 )
-def test_core_media_qualification_rejects_an_incomplete_native_build(
+def test_core_media_qualification_rejects_an_incomplete_target_build(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capability: str,

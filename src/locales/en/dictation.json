@@ -7,7 +7,7 @@
     "recordingLimitReached": "The recording reached the two minute limit and was cancelled.",
     "audioCaptureEmpty": "The microphone did not capture any audio.",
     "unsupportedAudioFormat": "The selected microphone format is not supported for dictation.",
-    "unsupportedDevice": "This device does not have a qualified native dictation profile.",
+    "unsupportedDevice": "This device does not have a qualified desktop dictation profile.",
     "dictationFocusChanged": "The target application changed, so no text was inserted.",
     "dictationPermissionDenied": "The operating system blocked text insertion. The recognized text is preserved below.",
     "dictationEmptyResult": "No insertable text was recognized.",

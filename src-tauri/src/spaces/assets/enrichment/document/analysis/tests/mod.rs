@@ -12,7 +12,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     input.image = Some(std::path::PathBuf::from(
         "/authorized/actual-edited-image.png",
     ));
-    let result = analyze_input(
+    let analysis = analyze_input(
         &spy,
         agent_target(ExecutionCapability::VisionUnderstanding),
         input,
@@ -26,7 +26,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
         Some(std::path::Path::new("/authorized/actual-edited-image.png"))
     );
     assert_eq!(
-        serde_json::to_value(&result).unwrap()["executionSource"],
+        serde_json::to_value(&analysis).unwrap()["executionSource"],
         serde_json::json!({"type":"agent","runtimeKind":"codex"})
     );
 
@@ -35,7 +35,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     let pool = crate::spaces::assets::enrichment::commit::tests::fixture(&data).await;
     let mut next = data["documentCoverage"].clone();
     next["occurrences"][0]["state"] = serde_json::json!("completed");
-    next["occurrences"][0]["analysis"] = serde_json::to_value(&result).unwrap();
+    next["occurrences"][0]["analysis"] = serde_json::to_value(&analysis).unwrap();
     let published = crate::spaces::assets::enrichment::commit::tests::publish(
         &pool,
         &data,

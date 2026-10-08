@@ -82,9 +82,9 @@ def test_pending_initialization_keeps_controls_responsive_and_rejects_duplicates
                 assert captured.value.stable_code == "runtime_mismatch"
         finally:
             release.set()
-        result = await preparing
-        assert result["sessionId"] == "session"
-        assert result["capabilities"] == ["embedding.encode"]
+        readiness = await preparing
+        assert readiness["sessionId"] == "session"
+        assert readiness["capabilities"] == ["embedding.encode"]
 
     asyncio.run(scenario())
 
@@ -134,7 +134,7 @@ def test_transport_close_cannot_activate_a_pending_session(monkeypatch: pytest.M
 
 def test_failed_preparation_never_exposes_a_ready_session(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def fail(params: Any) -> Session:
-        raise ImportError("native module failed to load")
+        raise ImportError("compiled module failed to load")
 
     writer = CapturingWriter()
     monkeypatch.setattr(worker, "prepare_session", fail)

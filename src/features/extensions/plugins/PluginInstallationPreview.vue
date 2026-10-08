@@ -50,7 +50,7 @@ const emit = defineEmits<{ install: []; cancel: [] }>();
       <summary
         class="w-fit rounded-sm py-1 outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
       >
-        {{ $t("extensions.packageDetails") }}
+        {{ $t("extensions.packageVerification") }}
       </summary>
       <p class="mt-2 rounded-md bg-surface-muted p-3 font-mono break-all">SHA-256: {{ inspection.digest }}</p>
     </details>

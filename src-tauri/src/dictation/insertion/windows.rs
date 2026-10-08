@@ -14,19 +14,19 @@ use windows::Win32::{
 use super::PasteError;
 
 #[derive(Clone)]
-pub(crate) struct TargetApplication {
+pub(crate) struct InsertionTarget {
     hwnd: isize,
     pid: u32,
     display_name: String,
 }
 
-impl TargetApplication {
+impl InsertionTarget {
     pub(crate) fn display_name(&self) -> &str {
         &self.display_name
     }
 }
 
-pub(super) fn capture_target() -> Result<TargetApplication, String> {
+pub(super) fn capture_target() -> Result<InsertionTarget, String> {
     let hwnd = unsafe { GetForegroundWindow() };
     if hwnd.0.is_null() {
         return Err("No foreground application is available".into());
@@ -36,14 +36,14 @@ pub(super) fn capture_target() -> Result<TargetApplication, String> {
     if pid == 0 {
         return Err("The foreground window has no process identity".into());
     }
-    Ok(TargetApplication {
+    Ok(InsertionTarget {
         hwnd: hwnd.0 as isize,
         pid,
         display_name: window_title(hwnd).unwrap_or_else(|| format!("PID {pid}")),
     })
 }
 
-pub(super) fn is_focused(expected: &TargetApplication) -> bool {
+pub(super) fn is_focused(expected: &InsertionTarget) -> bool {
     capture_target()
         .is_ok_and(|current| current.hwnd == expected.hwnd && current.pid == expected.pid)
 }

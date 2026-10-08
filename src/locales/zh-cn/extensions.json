@@ -181,7 +181,7 @@
   "deleteConnectionDescription": "仅删除此连接实例，同一服务的其他连接仍会保留。",
   "accounts": "账号",
   "connections": "连接实例",
-  "packageDetails": "包校验信息",
+  "packageVerification": "包校验信息",
   "capabilities": "包含的能力",
   "manageService": "管理",
   "collapse": "收起",

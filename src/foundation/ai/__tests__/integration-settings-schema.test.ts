@@ -112,11 +112,11 @@ describe("integration settings persisted contracts", () => {
         baseUrl,
         models: [],
       });
-      const result = decodeAiModelSettings.bind(undefined, { schemaVersion: 1, value });
-      expect(result).toThrow("Invalid AI provider URL");
+      const decodeInvalidSettings = decodeAiModelSettings.bind(undefined, { schemaVersion: 1, value });
+      expect(decodeInvalidSettings).toThrow("Invalid AI provider URL");
       const error = (() => {
         try {
-          result();
+          decodeInvalidSettings();
         } catch (cause) {
           return cause;
         }

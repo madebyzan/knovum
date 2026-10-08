@@ -24,7 +24,7 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
     token: &CancellationToken,
 ) -> Result<Value, AppError> {
     let mut tx = crate::spaces::db::begin_write(pool).await?;
-    let result = publish_in_transaction(
+    let publication = publish_in_transaction(
         &mut tx,
         ("space", "node"),
         PublicationGuard {
@@ -40,7 +40,7 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
     )
     .await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-    Ok(result)
+    Ok(publication)
 }
 
 #[tokio::test]

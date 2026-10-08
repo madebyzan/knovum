@@ -1,6 +1,6 @@
 use crate::{
     extensions::{contracts::McpResourceSelection, mcp::browsing},
-    spaces::knowledge::node_contracts::external_source::ExternalContentSource,
+    spaces::knowledge::contracts::ExternalContentSource,
 };
 use base64::Engine;
 use serde::Serialize;

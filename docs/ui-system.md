@@ -14,7 +14,7 @@ the Task Center. Download-region/source selection belongs to the catalog and pub
 
 Knovum is a desktop workbench. The target is Apple-like platform sensibility plus Linear-like information density, not a web dashboard and not a visual clone of either product.
 
-The design language is **quiet, layered, native-aware and keyboard-first**:
+The design language is **quiet, layered, platform-aware and keyboard-first**:
 
 - navigation/control chrome may use native material; content stays calm and opaque;
 - hierarchy comes from surface level, spacing, typography and selection before borders or shadows;
@@ -48,7 +48,7 @@ Do not use blur or glass effects inside normal content cards. Native material be
 
 Tailwind supplies spacing, fixed dimensions, default radii, font weights and ordinary durations.
 `src/styles/tokens.css` extends this foundation only for authored product decisions. Public tokens live
-once in native `@theme static` namespaces. CSS, utility classes and canvas readers consume the same
+once in Tailwind `@theme static` namespaces. CSS, utility classes and canvas readers consume the same
 variables; there is no parallel `--knovum-color-*` / typography API or inline adapter. Static emission
 keeps required variables available even when a utility is not used. Mode selectors override those names.
 
@@ -63,7 +63,7 @@ lowercase kebab-case and Tailwind's standard namespaces. Role names below are th
 | Public foreground             | `--color-fg-{role}`                                  | `--color-fg-secondary`                | `text-fg-secondary`                           |
 | Public boundary               | `--color-stroke-{role}[-{state}]`                    | `--color-stroke-default-hover`        | `border-stroke-default-hover`, rings/outlines |
 | Public typography             | `--text-{role}[-{size}]` and `--line-height` suffix  | `--text-body--line-height`            | text utilities and CSS                        |
-| Public shape/elevation/motion | native radius/shadow/ease/blur namespaces            | `--shadow-popover`                    | utilities and CSS                             |
+| Public shape/elevation/motion | Tailwind radius/shadow/ease/blur namespaces          | `--shadow-popover`                    | utilities and CSS                             |
 | Component                     | `--knovum-{component}[-{part}]-{property}[-{state}]` | `--knovum-sidebar-item-bg-selected`   | owning composition                            |
 | Domain                        | `--knovum-space-{object}-{property}[-{variant}]`     | `--knovum-space-grid-color`           | Spaces only                                   |
 
@@ -72,10 +72,10 @@ lowercase kebab-case and Tailwind's standard namespaces. Role names below are th
 consistent; do not introduce synonyms or repeat category words. Preserve owner and role when they
 carry meaning. A CSS token need not repeat the property already encoded by a framework namespace.
 
-Tailwind owns the base color palette. Use native --color-{hue}-{shade} variables; do not create a
-parallel product reference palette. Override native values only for an explicit product-wide adjustment.
+Tailwind owns the base color palette. Use built-in --color-{hue}-{shade} variables; do not create a
+parallel product reference palette. Override built-in values only for an explicit product-wide adjustment.
 Shared --color-content-{hue} roles serve user-selected text, relation strokes and annotations (600 light,
-400 dark). --color-content-{hue}-subtle uses the native 200 shade for colored backgrounds and highlights
+400 dark). --color-content-{hue}-subtle uses the built-in 200 shade for colored backgrounds and highlights
 in both appearances. Notes and grouping fills share these backgrounds. Highlighted text is black on
 these light fills in either appearance. Content colors carry no status
 meaning; UI accent/danger/warning roles remain separate decisions sourced from the same base palette.
@@ -94,25 +94,25 @@ modifiers remain valid for instance-specific composition, not as substitutes for
 
 Typography uses size/line-height pairs: caption, label, body, title and display are each role's default;
 caption-sm, body-lg and title-sm are the only alternate sizes. Add a size suffix only for a real
-alternate style, not to complete a hypothetical sm/md/lg matrix. Text-size modes override both native
+alternate style, not to complete a hypothetical sm/md/lg matrix. Text-size modes override both built-in
 variables without changing the role names. Label and body differ in leading even when size matches.
 Use title-sm for compact section, dialog and tool headings; body-lg belongs to reading content and
 larger descriptive text. HTML heading level describes document structure, not a font-size slot.
-Native font/tracking tokens contain only authored deviations from Tailwind.
+Product font/tracking tokens contain only authored deviations from Tailwind.
 
 Use `size-3`, `size-3.5`, `size-4`, `size-4.5`, `size-5` for 12–20px icons. Use Tailwind spacing/container
 widths for fixed geometry and `duration-100`, `duration-150`, `duration-220` for ordinary motion.
-Density-sensitive controls and native platform exclusion retain product variables; shared interaction and toolbar heights use native spacing extensions. Tags use the same interaction height as other single-line navigation. Settings entries share `--knovum-setting-min-height` (52px compact / 56px comfortable), retain py-3, and grow when content needs more room.
+Density-sensitive controls and platform-control exclusion retain product variables; shared interaction and toolbar heights use Tailwind spacing extensions. Tags use the same interaction height as other single-line navigation. Settings entries share `--knovum-setting-min-height` (52px compact / 56px comfortable), retain py-3, and grow when content needs more room.
 Settings and extension lists share `UiSettingsSection` for their raised surface, border and panel radius.
 Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
 use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
 an operation. Empty results retain the settings panel treatment and concise, left-aligned guidance.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
-workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the native radius scale.
+workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the built-in radius scale.
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
 
 Aliases require a deliberate semantic relationship: inverse surfaces pair with foreground roles;
-business colors never borrow a status meaning merely to reuse a hue. Note text is always native black on colored paper, while free canvas text uses the normal foreground.
+business colors never borrow a status meaning merely to reuse a hue. Note text is always solid black on colored paper, while free canvas text uses the normal foreground.
 Notes allow background selection, not node-level or selection-level text colors. Their editor omits the
 Color extension, and both editing and preview render without inline color support. Font size, bold,
 italic, underline, lists and alignment remain available.
@@ -134,7 +134,7 @@ are reserved for instance geometry or primitive-owned runtime values. Components
 composition. Scoped CSS must not create aliases through @apply; genuine scoped theme composition
 requires an explicit @reference to the main stylesheet.
 
-The contract uses [Tailwind's native theme mechanism](https://tailwindcss.com/docs/theme), with semantic
+The contract uses [Tailwind's built-in theme mechanism](https://tailwindcss.com/docs/theme), with semantic
 role separation informed by [DTCG](https://www.designtokens.org/TR/2025.10/format/).
 
 ## Color roles
@@ -466,7 +466,7 @@ and keyboard focus keeps the current thumbnail and adjacent tab targets mounted.
 the shared dialog viewer with every occurrence, source location,
 nearby context and optional analysis. Office resources are identified as extracted embedded images. PDF resources
 are identified as rendered page regions or recognition pages and are never described as original embedded files.
-Resource visibility depends on document parsing and native rendering, not on AI configuration.
+Resource visibility depends on document parsing and system rendering, not on AI configuration.
 
 ## Window and shell layout
 
@@ -581,7 +581,7 @@ optional models or tools.
 ## Product semantic selection rules
 
 Tokens represent an existing shared policy, not every distinct value or potential future customization.
-Prefer Tailwind's primitive scales for ordinary geometry; product density extensions use its native
+Prefer Tailwind's primitive scales for ordinary geometry; product density extensions use its built-in
 spacing namespace. Shared UI components own state combinations. New tokens need a concrete role,
 consumer boundary and reason an existing rule cannot serve it.
 
@@ -596,14 +596,14 @@ consumer boundary and reason an existing rule cannot serve it.
 
 Use shadow-popover for small transient panels and shadow-dialog for modal/command-palette depth.
 Control hover/press paint is an interaction state, not an alternative container surface. Selection and
-focus remain distinct. Native, ARIA and Reka disabled controls use opacity-40; this is a component rule,
+focus remain distinct. HTML, ARIA and Reka disabled controls use opacity-40; this is a component rule,
 not a new color token. Disabled controls keep the desktop default cursor. Informational capability
 badges and loading indicators are not disabled controls.
 
 Spaces owns `src/features/spaces/presentation/space-tokens.css`, imported once by app.css so DOM and
 runtime canvas paints remain available together. It owns canvas grid and object elevation, including appearance overrides. Shared content colors belong
 to the product theme. The remaining feature variables are not exported through @theme and must not be used
-outside Spaces. Native Tailwind palette variables are available to token definitions and content composition.
+outside Spaces. Built-in Tailwind palette variables are available to token definitions and content composition.
 
 Typography roles remain caption, label, body, title and display, with only existing meaningful size
 variants. Keep caption-sm for keyboard hints/debug metadata; use label for operation text, body/body-lg

@@ -41,18 +41,18 @@ fn rejects_tampered_candidate_execution_provenance() {
             }
             "seed" => manifest["voiceCandidates"][0]["synthesisConfig"]["seed"] = json!(1),
             "output" => {
-                manifest["runAttempts"][0]["result"]["audio"]["sha256"] = json!("f".repeat(64))
+                manifest["runAttempts"][0]["output"]["audio"]["sha256"] = json!("f".repeat(64))
             }
             _ => unreachable!(),
         }
-        let result = crate::spaces::package::remap::prepare(
+        let preparation = crate::spaces::package::remap::prepare(
             &manifest.to_string(),
             &assets,
             "imported-space",
         )
         .and_then(|request| super::super::validate_request_shape(&request));
         assert!(
-            result.is_err(),
+            preparation.is_err(),
             "tampered {mutation} provenance was accepted"
         );
     }
@@ -72,10 +72,10 @@ fn rejects_unknown_selected_revision_and_misplaced_candidate_contract_fields() {
     let (mut manifest, assets) = fixture::package(true, VoiceModel::VoxCpm2);
     manifest["voiceCandidates"][0]["inputSourceRevision"] =
         json!(format!("sha256:{}", "9".repeat(64)));
-    let result =
+    let preparation =
         crate::spaces::package::remap::prepare(&manifest.to_string(), &assets, "imported-space")
             .and_then(|request| super::super::validate_request_shape(&request));
-    assert!(result.is_err());
+    assert!(preparation.is_err());
 
     let (mut manifest, assets) = fixture::package(true, VoiceModel::VoxCpm2);
     manifest["voiceRevisions"][0]["inputSourceRevision"] = json!(null);
@@ -91,10 +91,10 @@ fn rejects_unknown_selected_revision_and_misplaced_candidate_contract_fields() {
 fn rejects_reference_selection_outside_supported_interval() {
     let (mut manifest, assets) = fixture::package(true, VoiceModel::VoxCpm2);
     manifest["runSteps"][0]["configuration"]["request"]["source"]["endMs"] = json!(1000);
-    let result =
+    let preparation =
         crate::spaces::package::remap::prepare(&manifest.to_string(), &assets, "imported-space")
             .and_then(|request| super::super::validate_request_shape(&request));
-    assert!(result.is_err());
+    assert!(preparation.is_err());
 }
 
 #[test]
@@ -140,14 +140,14 @@ fn rejects_model_and_selected_clip_provenance_changes() {
             "input_length" => manifest["voiceCandidates"][0]["inputByteLength"] = json!(32000),
             _ => unreachable!(),
         }
-        let result = crate::spaces::package::remap::prepare(
+        let preparation = crate::spaces::package::remap::prepare(
             &manifest.to_string(),
             &assets,
             "imported-space",
         )
         .and_then(|request| super::super::validate_request_shape(&request));
         assert!(
-            result.is_err(),
+            preparation.is_err(),
             "tampered {mutation} provenance was accepted"
         );
     }

@@ -1,6 +1,6 @@
 /* Canonical token contract: docs/ui-system.md.
- * Base palette: native Tailwind colors; no parallel reference palette.
- * Public: native Tailwind surface / foreground / stroke / content colors and typography.
+ * Base palette: built-in Tailwind colors; no parallel reference palette.
+ * Public: built-in Tailwind surface / foreground / stroke / content colors and typography.
  * Each public decision is declared once in @theme static, including runtime paints.
  * Component: component / part / property / state.
  * Spaces content attributes live in features/spaces/presentation/space-tokens.css.
@@ -46,7 +46,7 @@
   --color-content-pink-subtle: var(--color-pink-200);
   --color-content-gray-subtle: var(--color-gray-200);
 
-  /* Product density rules extend the native spacing namespace. */
+  /* Product density rules extend the Tailwind spacing namespace. */
   --spacing-interaction: 1.875rem;
   --spacing-toolbar: 2.75rem;
   --text-caption-sm: 0.6875rem;

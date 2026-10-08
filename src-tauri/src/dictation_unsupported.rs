@@ -36,6 +36,6 @@ fn copy_transcription() -> AppResult<()> {
 fn unsupported() -> AppError {
     AppError::new(
         "unsupported_device",
-        "Native dictation is available on Apple Silicon macOS and x64 Windows",
+        "Desktop dictation is available on Apple Silicon macOS and x64 Windows",
     )
 }

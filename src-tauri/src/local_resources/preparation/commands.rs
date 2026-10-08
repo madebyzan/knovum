@@ -24,7 +24,8 @@ pub async fn prepare_resources(
     ) && target.models().is_none()
     {
         return Err(
-            "unsupported_device: native speech resources are not available on this platform".into(),
+            "unsupported_device: compiled speech resources are not available on this platform"
+                .into(),
         );
     }
     let request = requests::begin(&job_id, &title, target.clone())?;

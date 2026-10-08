@@ -42,10 +42,10 @@ pub(super) fn convert(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| format!("Failed to start reference audio conversion: {error}"))?;
-    let result = wait_with_stderr(child, cancellation, "cancelled", |_| Ok(()))?;
-    if !result.status.success() {
+    let completion = wait_with_stderr(child, cancellation, "cancelled", |_| Ok(()))?;
+    if !completion.status.success() {
         return Err(diagnostic_error(
-            &result.diagnostics,
+            &completion.diagnostics,
             "Reference audio conversion failed",
         ));
     }

@@ -57,7 +57,7 @@ pub struct PackageRunAttempt {
     pub idempotency_key: String,
     pub external_task_id: Option<String>,
     pub checkpoint: Option<Value>,
-    pub result: Option<Value>,
+    pub output: Option<Value>,
     pub error_code: Option<String>,
     pub started_at: i64,
     pub finished_at: Option<i64>,

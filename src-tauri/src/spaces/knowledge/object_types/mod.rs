@@ -4,7 +4,7 @@ use sqlx::Row;
 
 use tauri::{AppHandle, Runtime};
 
-use super::{events, node_contracts};
+use super::{events, validation as node_validation};
 use crate::{app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize)]
@@ -155,7 +155,7 @@ async fn validate_existing_objects(
     for row in rows {
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
         let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        node_contracts::validate_node(tx, space_id, "object", &data).await?;
+        node_validation::validate_node(tx, space_id, "object", &data).await?;
     }
     Ok(())
 }

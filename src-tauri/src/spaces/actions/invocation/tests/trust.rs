@@ -93,6 +93,6 @@ async fn both_agent_principals_create_canvas_resources_without_approval_and_keep
             .unwrap();
     for encoded in nodes {
         let data = serde_json::from_str::<Value>(&encoded).unwrap();
-        crate::spaces::knowledge::indexing::revision::validate_declared(&data).unwrap();
+        crate::spaces::knowledge::model::revision::validate_declared(&data).unwrap();
     }
 }

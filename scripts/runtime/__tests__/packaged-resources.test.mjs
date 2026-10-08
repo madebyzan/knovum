@@ -19,29 +19,29 @@ function fixture(context) {
   const worker = join(resources, "python-worker/knovum_inference");
   const publication = join(repository, "runtime-artifacts/resources/windows-x64");
   const checkout = fileURLToPath(new URL("../../../", import.meta.url));
-  for (const name of ["python/native-locks/media", "scripts/runtime"])
+  for (const name of ["python/conda-locks/media", "scripts/runtime"])
     mkdirSync(join(repository, name), { recursive: true });
   copyFileSync(join(checkout, "python/runtime-source.json"), join(repository, "python/runtime-source.json"));
   cpSync(join(checkout, "scripts/runtime"), join(repository, "scripts/runtime"), { recursive: true });
-  const mediaLock = join(repository, "python/native-locks/media/windows-x64.json");
-  copyFileSync(join(checkout, "python/native-locks/media/windows-x64.json"), mediaLock);
-  const native = JSON.parse(readFileSync(mediaLock, "utf8"));
+  const mediaLock = join(repository, "python/conda-locks/media/windows-x64.json");
+  copyFileSync(join(checkout, "python/conda-locks/media/windows-x64.json"), mediaLock);
+  const condaInventory = JSON.parse(readFileSync(mediaLock, "utf8"));
   const media = join(resources, "bundled-runtime/windows-x64");
   mkdirSync(join(media, "Library/bin"), { recursive: true });
   writeFileSync(join(media, "Library/bin/ffmpeg.exe"), "controlled FFmpeg executable");
   writeMediaManifest(repository, media, "windows-x64", {
     schemaVersion: 1,
     appCommit: "a".repeat(40),
-    nativeDependencyFiles: ["Library/bin/ffmpeg.exe"],
+    compiledDependencyFiles: ["Library/bin/ffmpeg.exe"],
     target: "windows-x64",
     version: "9.0.1",
     relocationVerified: true,
     signing: { mode: "unsigned", compiledBinaryCount: 1 },
-    nativeSupplier: {
+    condaSupplier: {
       supplier: "conda-forge",
       micromambaVersion: "2.9.0",
       lockSha256: sha256File(mediaLock),
-      packages: native.packages.map((p) => Object.assign({}, p, { files: [] })),
+      packages: condaInventory.packages.map((p) => Object.assign({}, p, { files: [] })),
     },
   });
   for (const path of [source, worker, publication]) mkdirSync(path, { recursive: true });

@@ -25,7 +25,7 @@ use crate::{
 };
 
 use super::recorder::RecordedAudio;
-use crate::dictation_contracts::DictationFailure;
+use crate::dictation::contracts::DictationFailure;
 
 pub(crate) struct TranscriptionOutcome {
     pub(crate) text: String,

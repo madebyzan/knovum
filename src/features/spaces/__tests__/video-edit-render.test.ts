@@ -11,7 +11,7 @@ import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { createVideoEditProject } from "../video-editing/project";
 import { renderVideoEdit } from "../video-editing/render";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: InvokeArgs) => Promise<unknown>>(),
   toastError: vi.fn<(message: string) => void>(),
   tasks: {
@@ -22,8 +22,8 @@ const native = vi.hoisted(() => ({
     dismiss: vi.fn<ReturnType<typeof useTaskStore>["dismiss"]>(),
   },
 }));
-vi.mock("vue-sonner", () => ({ toast: { error: native.toastError } }));
-vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => native.tasks }));
+vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
+vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => mocks.tasks }));
 vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
 const source: SpaceCanvasNode<SpaceVideoPayload> = {
@@ -61,12 +61,12 @@ function createStore(): Parameters<typeof renderVideoEdit>[0] {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  native.invoke.mockReset();
-  native.tasks.start.mockReturnValue("task-id");
+  mocks.invoke.mockReset();
+  mocks.tasks.start.mockReturnValue("task-id");
   mockIPC((command, args) =>
     command === "plugin:spaces|allocate_video_edit_output_path"
       ? "/assets/edited-reserved.mp4"
-      : native.invoke(command, args),
+      : mocks.invoke(command, args),
   );
 });
 afterEach(() => clearMocks());
@@ -88,7 +88,7 @@ describe("video render IPC boundary", () => {
 
   it("sends the source revision, output identity and Channel, then publishes validated content", async () => {
     const store = createStore();
-    native.invoke.mockImplementationOnce(async (_command, args) => {
+    mocks.invoke.mockImplementationOnce(async (_command, args) => {
       const progress = (args as { onProgress: Channel<VideoEditProgress> }).onProgress;
       expect(progress).toBeInstanceOf(Channel);
       if (progress instanceof Channel)
@@ -106,7 +106,7 @@ describe("video render IPC boundary", () => {
     );
     const pendingContent = vi.mocked(store.addContent).mock.calls[0]?.[0];
     expect(pendingContent?.sourceRevision).toBeUndefined();
-    expect(native.invoke).toHaveBeenCalledExactlyOnceWith("plugin:spaces|render_video_edit", {
+    expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith("plugin:spaces|render_video_edit", {
       request: {
         id: expect.any(String),
         spaceId: "space-id",
@@ -117,13 +117,13 @@ describe("video render IPC boundary", () => {
       } satisfies RenderVideoEditRequest,
       onProgress: expect.any(Channel),
     });
-    expect(native.tasks.progress).toHaveBeenCalledWith(
+    expect(mocks.tasks.progress).toHaveBeenCalledWith(
       "task-id",
       45,
       "spaces.media.videoEditor.renderingVideoEdit",
     );
     expect(store.applyNodeContentForSpace).toHaveBeenCalledWith("space-id", pending.id, source.data);
-    expect(native.tasks.succeed).toHaveBeenCalledWith("task-id");
+    expect(mocks.tasks.succeed).toHaveBeenCalledWith("task-id");
     expect(store.closeVideoEditor).toHaveBeenCalledExactlyOnceWith();
   });
 
@@ -133,27 +133,27 @@ describe("video render IPC boundary", () => {
     { nodeId: pending.id, data: { ...source.data, assetPath: "" } },
   ])("does not publish invalid render output: %j", async (completed) => {
     const store = createStore();
-    native.invoke.mockResolvedValue(completed);
+    mocks.invoke.mockResolvedValue(completed);
     await renderVideoEdit(store, source, project);
     expect(store.applyNodeContentForSpace).not.toHaveBeenCalled();
     expect(store.closeVideoEditor).not.toHaveBeenCalled();
-    expect(native.tasks.succeed).not.toHaveBeenCalled();
-    expect(native.tasks.fail).toHaveBeenCalledWith("task-id", expect.any(String));
-    expect(native.toastError).toHaveBeenCalled();
+    expect(mocks.tasks.succeed).not.toHaveBeenCalled();
+    expect(mocks.tasks.fail).toHaveBeenCalledWith("task-id", expect.any(String));
+    expect(mocks.toastError).toHaveBeenCalled();
   });
 
   it("keeps cancellation in the video capability and dismisses the cancelled task", async () => {
-    native.invoke.mockRejectedValueOnce({ code: "video_edit_render_cancelled", message: "Cancelled" });
+    mocks.invoke.mockRejectedValueOnce({ code: "video_edit_render_cancelled", message: "Cancelled" });
     await renderVideoEdit(createStore(), source, project);
-    expect(native.tasks.dismiss).toHaveBeenCalledWith("task-id");
-    expect(native.toastError).not.toHaveBeenCalled();
-    native.invoke.mockResolvedValueOnce(undefined);
-    const cancel = native.tasks.start.mock.calls[0]?.[2];
+    expect(mocks.tasks.dismiss).toHaveBeenCalledWith("task-id");
+    expect(mocks.toastError).not.toHaveBeenCalled();
+    mocks.invoke.mockResolvedValueOnce(undefined);
+    const cancel = mocks.tasks.start.mock.calls[0]?.[2];
     await cancel?.();
-    const request = (native.invoke.mock.calls[0]?.[1] as { request: RenderVideoEditRequest } | undefined)
+    const request = (mocks.invoke.mock.calls[0]?.[1] as { request: RenderVideoEditRequest } | undefined)
       ?.request;
     expect(request).toBeDefined();
-    expect(native.invoke).toHaveBeenLastCalledWith("plugin:spaces|cancel_video_edit_render", {
+    expect(mocks.invoke).toHaveBeenLastCalledWith("plugin:spaces|cancel_video_edit_render", {
       derivationId: request?.id,
     });
   });
@@ -161,9 +161,9 @@ describe("video render IPC boundary", () => {
   it("settles the failed task when refreshing the Space fails", async () => {
     const store = createStore();
     vi.mocked(store.refreshActiveSpace).mockRejectedValueOnce(new Error("Refresh failed"));
-    native.invoke.mockRejectedValueOnce(new Error("Render failed"));
+    mocks.invoke.mockRejectedValueOnce(new Error("Render failed"));
     await expect(renderVideoEdit(store, source, project)).rejects.toThrow("Refresh failed");
-    expect(native.tasks.fail).toHaveBeenCalledWith("task-id", expect.stringContaining("Render failed"));
-    expect(native.toastError).toHaveBeenCalled();
+    expect(mocks.tasks.fail).toHaveBeenCalledWith("task-id", expect.stringContaining("Render failed"));
+    expect(mocks.toastError).toHaveBeenCalled();
   });
 });

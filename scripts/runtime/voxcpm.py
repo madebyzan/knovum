@@ -51,10 +51,10 @@ def vulkan_arguments(configuration: dict[str, Any], scratch: Path) -> list[str]:
 
 
 def install(project: Path, scratch: Path, runtime: Path, target: str) -> dict[str, Any]:
-    configuration = json.loads((project / "runtime-source.json").read_text())["voiceNative"]
+    configuration = json.loads((project / "runtime-source.json").read_text())["voiceLibrary"]
     version = run("cmake", "--version", capture=True).splitlines()[0].split()[-1]
     if version != configuration["cmakeVersion"]:
-        raise ValueError("Native voice builder CMake differs from the frozen toolchain")
+        raise ValueError("Voice library builder CMake differs from the frozen toolchain")
     source_archive = scratch / configuration["source"]["fileName"]
     download(configuration["source"], source_archive)
     source_root = f"audio.cpp-{configuration['revision']}"
@@ -62,7 +62,7 @@ def install(project: Path, scratch: Path, runtime: Path, target: str) -> dict[st
         for entry in source_tar.getmembers():
             path = PurePosixPath(entry.name)
             if path.is_absolute() or ".." in path.parts or path.parts[0] != source_root:
-                raise ValueError("Native voice source archive contains an invalid path")
+                raise ValueError("Voice library source archive contains an invalid path")
         source_tar.extractall(scratch, filter="data")
     supplier = scratch / source_root
     tools = project.parent / "scripts/runtime"
@@ -120,7 +120,7 @@ def install(project: Path, scratch: Path, runtime: Path, target: str) -> dict[st
         "knovum-voice",
     )
     materialize_aliases(runtime)
-    notices = runtime / "native-notices" / "audio-cpp"
+    notices = runtime / "source-notices" / "audio-cpp"
     notices.mkdir()
     for relative in (
         "LICENSE",

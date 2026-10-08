@@ -53,7 +53,7 @@ fn rejected_ownership_prevents_resource_creation() {
         std::env::temp_dir().join(format!("document-ownership-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir(&directory).unwrap();
     let path = directory.join("resource.png");
-    let result = store_at(
+    let storage = store_at(
         &path,
         hex::encode(Sha256::digest(b"png")),
         b"png",
@@ -61,7 +61,7 @@ fn rejected_ownership_prevents_resource_creation() {
         1,
         &mut |_| Err("inactive owner".into()),
     );
-    assert!(result.is_err());
+    assert!(storage.is_err());
     assert!(!path.exists());
     std::fs::remove_dir_all(directory).unwrap();
 }

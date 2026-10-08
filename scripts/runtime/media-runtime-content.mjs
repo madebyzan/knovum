@@ -27,21 +27,21 @@ export function validateMediaProducer(producer, target, version) {
   if (
     Object.entries(expected).some(([key, value]) => producer?.[key] !== value) ||
     !/^[a-f0-9]{40}$/u.test(producer.appCommit ?? "") ||
-    !Array.isArray(producer.nativeSupplier?.packages) ||
-    producer.nativeSupplier.packages.some((item) => item === null || typeof item !== "object")
+    !Array.isArray(producer.condaSupplier?.packages) ||
+    producer.condaSupplier.packages.some((item) => item === null || typeof item !== "object")
   )
     throw new MediaRuntimeContentError("Media runtime producer identity differs from the controlled build");
 }
 
-export function validateMediaNativeInventory(manifest) {
-  const native = manifest.producer.nativeDependencyFiles;
+export function validateCompiledDependencyInventory(manifest) {
+  const dependencies = manifest.producer.compiledDependencyFiles;
   const declared = new Set(manifest.files.map((file) => file.path));
   if (
-    !Array.isArray(native) ||
-    native.length !== manifest.producer.signing.compiledBinaryCount ||
-    new Set(native).size !== native.length ||
-    !native.includes(manifest.executable) ||
-    native.some((path) => !safeRelativePath(path) || !declared.has(path))
+    !Array.isArray(dependencies) ||
+    dependencies.length !== manifest.producer.signing.compiledBinaryCount ||
+    new Set(dependencies).size !== dependencies.length ||
+    !dependencies.includes(manifest.executable) ||
+    dependencies.some((path) => !safeRelativePath(path) || !declared.has(path))
   )
-    throw new MediaRuntimeContentError("Media native dependency inventory differs from its manifest");
+    throw new MediaRuntimeContentError("Media compiled dependency inventory differs from its manifest");
 }

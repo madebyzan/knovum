@@ -128,7 +128,7 @@ where
 {
     let mut cursor = None;
     let mut cursors = std::collections::BTreeSet::new();
-    let mut result = Vec::new();
+    let mut tools = Vec::new();
     let mut bytes = 0;
     for _ in 0..100 {
         let (page, next) = request(cursor.map(|cursor| {
@@ -139,12 +139,12 @@ where
         bytes += serde_json::to_vec(&page)
             .map_err(|error| error.to_string())?
             .len();
-        if result.len() + page.len() > 4096 || bytes > 8 * 1024 * 1024 {
+        if tools.len() + page.len() > 4096 || bytes > 8 * 1024 * 1024 {
             return Err("mcp-catalog-budget-exceeded".into());
         }
-        result.extend(page);
+        tools.extend(page);
         let Some(next) = next else {
-            return Ok(result);
+            return Ok(tools);
         };
         if !cursors.insert(next.clone()) {
             return Err("mcp-catalog-repeated-cursor".into());

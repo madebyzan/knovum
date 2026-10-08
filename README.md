@@ -56,7 +56,7 @@ Use flags for variants: `pnpm lint --fix`, `pnpm format --check`,
 Focused gates remain `check:web`, `check:rust`, and `check:python`.
 `dev` and `build` are Vite hooks used by Tauri, not independent supported product runtimes.
 Specialized runtime, E2E and contract commands and every internal tool are described in
-[scripts/README.md](scripts/README.md). Signing and native acceptance follow
+[scripts/README.md](scripts/README.md). Signing and target-platform acceptance follow
 [docs/packaging.md](docs/packaging.md) and [docs/release.md](docs/release.md).
 
 ## Gates
@@ -73,5 +73,5 @@ Before feature work, read `AGENTS.md` and `docs/README.md`. The documentation ma
 
 ## Release readiness
 
-Production acceptance, signing, native runtime qualification and update promotion follow
+Production acceptance, signing, managed-runtime qualification and update promotion follow
 [docs/release.md](docs/release.md). A successful source build alone does not establish release readiness.

@@ -150,7 +150,7 @@ describe("application update ownership", () => {
     expect(mocks.invoke).not.toHaveBeenCalledWith("install_update", expect.anything());
   });
 
-  it("installs the verified version after saving and releases the modal on native failure", async () => {
+  it("installs the verified version after saving and releases the modal on installer failure", async () => {
     const updates = useUpdateStore();
     await updates.initialize();
     emit(1, { status: "ready", release });

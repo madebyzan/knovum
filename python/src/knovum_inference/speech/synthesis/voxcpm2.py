@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 from knovum_inference.contracts.generated.synthesis import SpeechSynthesizeParams, VoiceSourceKind
 from knovum_inference.errors import invalid_params, server_error
 from knovum_inference.speech.request import check_deadline
-from knovum_inference.speech.synthesis.native_voice import NativeVoice
+from knovum_inference.speech.synthesis.compiled_voice import CompiledVoice
 from knovum_inference.speech.synthesis.reference_audio import read_reference
 from knovum_inference.speech.synthesis.stream import SynthesisChunkPublisher
 
@@ -36,7 +36,7 @@ class VoxCpm2SynthesisEngine:
         self._device = device
         self._model_spec_id = model_spec_id
         self._cpu_threads = cpu_threads
-        self._engine: NativeVoice | None = None
+        self._engine: CompiledVoice | None = None
 
     def generate(
         self, params: SpeechSynthesizeParams, publisher: SynthesisChunkPublisher, cancelled: threading.Event
@@ -79,13 +79,13 @@ class VoxCpm2SynthesisEngine:
         text = f"({', '.join(controls)}){params.text}" if controls else params.text
         return text, reference, None
 
-    def _load(self) -> NativeVoice:
+    def _load(self) -> CompiledVoice:
         if self._engine is None:
             model_file = _MODEL_FILES[self._model_spec_id]
             required = (model_file, "LICENSE", "README.md")
             if not all((self._model_directory / name).is_file() for name in required):
                 raise server_error("model_corrupt", "VoxCPM2 model snapshot is incomplete")
-            self._engine = NativeVoice(
+            self._engine = CompiledVoice(
                 self._model_directory / model_file,
                 self._device,
                 self._cpu_threads,

@@ -2,18 +2,18 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef, type ShallowRef } from "vue";
 
-import type { LocalModelEntry } from "../../../../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import VoiceCandidateModelSelect from "../VoiceCandidateModelSelect.vue";
 
 const mocks = vi.hoisted(() => ({
-  models: undefined as ShallowRef<LocalModelEntry[] | undefined> | undefined,
+  models: undefined as ShallowRef<LocalModelAvailability[] | undefined> | undefined,
 }));
 vi.mock("../../../../../foundation/runtime/resource-query", () => ({
   useLocalModelsQuery: () => ({ data: mocks.models, error: shallowRef(null), isPending: shallowRef(false) }),
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
-function entry(id: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelEntry {
+function entry(id: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelAvailability {
   const vox = id !== "mossNano";
   return {
     id,

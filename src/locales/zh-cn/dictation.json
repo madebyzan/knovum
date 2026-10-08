@@ -7,7 +7,7 @@
     "recordingLimitReached": "录音达到两分钟上限，已取消本次听写。",
     "audioCaptureEmpty": "麦克风没有采集到音频。",
     "unsupportedAudioFormat": "当前麦克风格式不支持听写。",
-    "unsupportedDevice": "当前设备没有通过验收的原生听写配置。",
+    "unsupportedDevice": "当前设备没有通过验收的桌面听写配置。",
     "dictationFocusChanged": "目标应用已改变，因此没有自动插入文字。",
     "dictationPermissionDenied": "系统阻止了文字插入，识别结果已保留在下方。",
     "dictationEmptyResult": "没有识别到可插入的文字。",

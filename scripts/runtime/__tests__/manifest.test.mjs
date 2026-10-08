@@ -33,7 +33,7 @@ test("application Worker changes do not invalidate the third-party runtime", (co
 
 test("changing an interpreter input remains invalid after recomputing file hashes", (context) => {
   const sample = fixture(context);
-  sample.producer.nativeSupplier.packages[0].size = 43;
+  sample.producer.condaSupplier.packages[0].size = 43;
   sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
   sample.manifest();
   assert.throws(sample.validate, /producer identity differs/);
@@ -44,7 +44,7 @@ test("producer cannot claim a different frozen VoxCPM source", (context) => {
   sample.producer.voxcpm.version = "d".repeat(40);
   sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
   sample.manifest();
-  assert.throws(sample.validate, /VoxCPM native source identity differs/);
+  assert.throws(sample.validate, /VoxCPM compiled source identity differs/);
 });
 
 test("requirements evidence must agree with producer digest", (context) => {
@@ -77,15 +77,15 @@ test("any changed dependency lock invalidates the frozen runtime identity", (con
   assert.throws(sample.validate, /dependency lock differs/);
 });
 
-test("light runtime retains native corresponding-source verification independently of VoxCPM", (context) => {
+test("light runtime retains compiled source verification independently of VoxCPM", (context) => {
   const sample = fixture(context, "light-inference");
   sample.validate();
-  sample.write(sample.evidence, "compiled-sources/native.zip", "changed");
-  assert.throws(sample.validate, /Native source archive differs/);
+  sample.write(sample.evidence, "compiled-sources/compiled.zip", "changed");
+  assert.throws(sample.validate, /Compiled source archive differs/);
 });
 
-test("native installed inventory is bound to the producer record", (context) => {
+test("Conda installed inventory is bound to the producer receipt", (context) => {
   const sample = fixture(context);
-  sample.write(sample.evidence, "native-packages.json", "{}");
-  assert.throws(sample.validate, /Native package inventory differs/);
+  sample.write(sample.evidence, "conda-packages.json", "{}");
+  assert.throws(sample.validate, /Conda package inventory differs/);
 });

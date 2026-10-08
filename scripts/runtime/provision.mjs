@@ -25,7 +25,7 @@ runtimeProject(repository, profile);
 const supportedTargets = new Set(Object.values(runtimeTargets));
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
 if (!values.publication)
-  throw new Error("Provisioning requires the runtime-publication.json produced by native CI");
+  throw new Error("Provisioning requires the runtime-publication.json produced by target CI");
 const publication = JSON.parse(readFileSync(values.publication, "utf8"));
 const sources = publicationSources(publication, target, profile);
 

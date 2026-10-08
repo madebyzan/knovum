@@ -8,7 +8,7 @@ use crate::{
     spaces::{
         db,
         derivation::{pending_output, relations, source_validation},
-        knowledge::{contracts, indexing::revision},
+        knowledge::model::revision,
     },
 };
 
@@ -61,7 +61,8 @@ pub async fn complete(
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
     revision::apply(&mut data)?;
-    contracts::validate_node(&mut tx, &request.space_id, "video", &data).await?;
+    crate::spaces::knowledge::validation::validate_node(&mut tx, &request.space_id, "video", &data)
+        .await?;
     crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
         .await?;
     let mut output_relations = Vec::with_capacity(request.inputs.len());

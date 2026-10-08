@@ -79,7 +79,7 @@ AGENT_RUNTIME_CONTRACT_MODULES = {
         "AgentControl",
         "AgentControlOperation",
         "AgentPruneThreads",
-        "AgentExecutionResult",
+        "AgentExecutionObservation",
         "AgentExecutionState",
     },
     "messages": {

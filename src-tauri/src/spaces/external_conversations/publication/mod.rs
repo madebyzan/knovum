@@ -248,7 +248,13 @@ async fn insert_outputs(
         };
         node.initial_x = x;
         node.initial_y = y;
-        knowledge::contracts::normalize_node(tx, space_id, &node.kind, &mut node.data).await?;
+        crate::spaces::knowledge::validation::normalize_node(
+            tx,
+            space_id,
+            &node.kind,
+            &mut node.data,
+        )
+        .await?;
         structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;
         nodes::insert_rows_with_actor(
             tx,

@@ -80,7 +80,7 @@ pub struct PackageRelation {
     pub status: crate::spaces::knowledge::contracts::RelationStatus,
     pub status_before_invalidation: Option<crate::spaces::knowledge::contracts::RelationStatus>,
     pub confidence: Option<f64>,
-    pub actor_kind: crate::spaces::knowledge::contracts::RelationActorKind,
+    pub actor_kind: crate::spaces::knowledge::contracts::KnowledgeActorKind,
     pub actor_id: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,

@@ -75,7 +75,7 @@ test("changed installed bytes invalidate a previously approved inventory", (cont
   assert.throws(() => sample.validate(), /conveyed inventory/);
 });
 
-test("production verification enforces unresolved review before invoking native tools", (context) => {
+test("production verification enforces unresolved review before invoking system signing tools", (context) => {
   const sample = fixture(context);
   sample.policy.reviewStatus = "required";
   sample.save();

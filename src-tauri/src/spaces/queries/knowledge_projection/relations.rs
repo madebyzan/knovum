@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::spaces::{db, knowledge::contracts};
+use crate::spaces::db;
 
 pub(crate) async fn find_relation_path(
     app: &AppHandle,
@@ -56,7 +56,7 @@ fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
             next_node_id: target.clone(),
             payload: edge.clone(),
         });
-        if contracts::is_symmetric_relation_kind(&kind) {
+        if crate::spaces::knowledge::relations::is_symmetric_kind(&kind) {
             graph.entry(target).or_default().push(RelationEdge {
                 next_node_id: source,
                 payload: edge,

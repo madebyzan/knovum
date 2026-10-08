@@ -10,14 +10,14 @@ fn source_limits_reject_empty_and_oversized_images() {
 }
 
 #[test]
-fn native_export_matches_shared_preview_tone_fixtures() {
+fn rust_export_matches_shared_preview_tone_fixtures() {
     #[derive(serde::Deserialize)]
     struct Fixture {
         name: String,
         width: u32,
         height: u32,
         source: Vec<u8>,
-        adjustments: super::contract::Adjustments,
+        adjustments: super::contracts::Adjustments,
         expected: Vec<u8>,
     }
     let fixtures: Vec<Fixture> = serde_json::from_str(include_str!(concat!(

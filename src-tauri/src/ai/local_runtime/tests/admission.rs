@@ -4,7 +4,7 @@ use crate::ai::local_runtime::device_profiles::MemorySnapshot;
 const GIB: u64 = 1024 * 1024 * 1024;
 
 #[test]
-fn reservation_accepts_exact_available_and_application_budget_boundaries() {
+fn reservation_accepts_exact_available_and_inference_budget_boundaries() {
     let snapshot = MemorySnapshot {
         total_bytes: 16 * GIB,
         available_bytes: 5 * GIB,
@@ -20,7 +20,7 @@ fn reservation_accepts_exact_available_and_application_budget_boundaries() {
 }
 
 #[test]
-fn reservation_rejects_missing_headroom_and_exceeded_application_budget() {
+fn reservation_rejects_missing_headroom_and_exceeded_inference_budget() {
     let low_available = MemorySnapshot {
         total_bytes: 16 * GIB,
         available_bytes: 5 * GIB - 1,
@@ -38,7 +38,7 @@ fn reservation_rejects_missing_headroom_and_exceeded_application_budget() {
     assert!(
         validate_memory_reservation(4 * GIB, "test", over_budget, 8 * GIB)
             .unwrap_err()
-            .contains("application budget")
+            .contains("inference budget")
     );
 }
 

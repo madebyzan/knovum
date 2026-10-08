@@ -2,8 +2,7 @@ mod locations;
 mod office_geometry;
 mod values;
 
-use super::contracts::validate_text_limit;
-use values::{ensure_keys, optional_string_limited, required_string};
+use values::{ensure_keys, optional_string_limited, required_string, validate_text_limit};
 
 use serde_json::Value;
 

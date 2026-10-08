@@ -43,7 +43,7 @@ def test_development_producer_activates_runtime_and_evidence_without_archiving(
     interpreter.mkdir()
     (interpreter / "runtime-manifest.json").write_text("{}")
     monkeypatch.setattr(build_python, "host_target", lambda: "macos-x64")
-    monkeypatch.setattr(build_python, "install_native", lambda *_: (interpreter, {}))
+    monkeypatch.setattr(build_python, "install_conda_packages", lambda *_: (interpreter, {}))
     monkeypatch.setattr(build_python, "sign_runtime", lambda *_: {"mode": "adhoc", "compiledBinaryCount": 1})
     smoke = Mock(side_effect=[None, RuntimeError("final smoke failed")] if fail_activation else None)
     monkeypatch.setattr(build_python, "relocated_smoke", smoke)

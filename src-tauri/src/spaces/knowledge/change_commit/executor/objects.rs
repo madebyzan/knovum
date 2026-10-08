@@ -3,10 +3,10 @@ use sqlx::{Sqlite, Transaction};
 
 use super::state::{resolve_node, ApplyState};
 use crate::spaces::knowledge::change_commit::{
-    contract::KnowledgeChange,
+    contracts::KnowledgeChange,
     mutations::{self, ObjectInsert, ObjectUpdate},
 };
-use crate::spaces::knowledge::{contracts, events};
+use crate::spaces::knowledge::events;
 use crate::spaces::{nodes::contracts::InsertNode, structure};
 
 const OBJECT_WIDTH: f64 = 256.0;
@@ -42,10 +42,11 @@ pub(super) async fn create(
             status,
             properties.clone(),
         );
-        crate::spaces::knowledge::indexing::revision::apply(&mut data)?;
-        let object_type_id = contracts::validate_node(tx, space_id, "object", &data)
-            .await?
-            .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
+        crate::spaces::knowledge::model::revision::apply(&mut data)?;
+        let object_type_id =
+            crate::spaces::knowledge::validation::validate_node(tx, space_id, "object", &data)
+                .await?
+                .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
         let (initial_x, initial_y) = match position {
             Some(position) => (position.x, position.y),
             None => structure::place_new_content(

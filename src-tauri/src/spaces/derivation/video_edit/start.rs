@@ -6,7 +6,6 @@ use super::{fonts, RenderVideoEditRequest, VideoEditProject};
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output},
-    knowledge::contracts,
 };
 
 pub struct VideoEditSource {
@@ -21,7 +20,7 @@ pub async fn start(
     validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    contracts::validate_same_space_node(
+    crate::spaces::knowledge::validation::validate_same_space_node(
         &mut tx,
         &request.space_id,
         &request.source_node_id,

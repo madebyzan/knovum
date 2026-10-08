@@ -14,7 +14,7 @@ pub(crate) struct AgentWireSchemas {
     ready: control::AgentReady,
     prune_threads: control::AgentPruneThreads,
     execute: control::AgentExecute,
-    execution_result: control::AgentExecutionResult,
+    execution_observation: control::AgentExecutionObservation,
     control: control::AgentControl,
     projection_request: messages::AgentProjectionRequest,
     projection: messages::AgentProjection,

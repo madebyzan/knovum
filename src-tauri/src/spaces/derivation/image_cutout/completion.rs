@@ -9,11 +9,7 @@ use uuid::Uuid;
 use super::{source, CompleteImageCutoutRequest, CompletedDerivationOutput};
 use crate::app_error::AppError;
 use crate::spaces::derivation::{pending_output, relations};
-use crate::spaces::{
-    assets::asset_directory,
-    db,
-    knowledge::{contracts, indexing::revision},
-};
+use crate::spaces::{assets::asset_directory, db, knowledge::model::revision};
 
 pub(super) async fn complete(
     app: AppHandle,
@@ -131,7 +127,8 @@ async fn persist_completion(
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&value)?;
     apply_output_content(&mut value, path, processed, now)?;
-    contracts::validate_node(&mut tx, &space_id, "image", &value).await?;
+    crate::spaces::knowledge::validation::validate_node(&mut tx, &space_id, "image", &value)
+        .await?;
     let relation = relations::derives_from(
         &space_id,
         &output_id,

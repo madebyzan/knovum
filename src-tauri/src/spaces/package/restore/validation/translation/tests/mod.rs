@@ -76,7 +76,7 @@ fn attempt(output: Value) -> Value {
     json!({
         "id":"attempt","runId":"run","stepInstanceId":"step","attemptNumber":1,
         "state":"succeeded","requestDigest":"a".repeat(64),"idempotencyKey":"step",
-        "externalTaskId":null,"checkpoint":null,"result":output,"errorCode":null,
+        "externalTaskId":null,"checkpoint":null,"output":output,"errorCode":null,
         "startedAt":2,"finishedAt":3
     })
 }
@@ -126,7 +126,7 @@ fn rejects_run_with_forged_base_source_identity() {
     request.runs[0].input_snapshot["segments"][0]["text"] = json!("Forged");
     request.run_steps[0].configuration["segment"]["text"] = json!("Forged");
     request.run_steps[0].output.as_mut().unwrap()["sourceText"] = json!("Forged");
-    request.run_attempts[0].result = request.run_steps[0].output.clone();
+    request.run_attempts[0].output = request.run_steps[0].output.clone();
     assert!(super::validate(&request).is_err());
 }
 

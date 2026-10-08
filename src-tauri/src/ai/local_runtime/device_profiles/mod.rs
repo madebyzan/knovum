@@ -72,7 +72,7 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::SpeechAlignment, _, "cpu" | "cuda" | "mps" | "vulkan")
             if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-v1") =>
         {
-            (5, 6, "Qwen3 forced aligner native Q8")
+            (5, 6, "Qwen3 forced aligner Q8 GGUF")
         }
         (
             RuntimeCapability::SpeechDiarization,
@@ -85,20 +85,20 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             "cpu",
         ) => (2, 8, "Spleeter 2-stem CPU"),
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-orig-v1", "mps") => {
-            (20, 24, "VoxCPM2 native Metal GGUF")
+            (20, 24, "VoxCPM2 audio.cpp Metal GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-orig-v1", "cpu")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-orig-v1", "cuda")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-orig-v1", "vulkan") => {
-            (14, 16, "VoxCPM2 native GGUF")
+            (14, 16, "VoxCPM2 audio.cpp GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-q8_0-v1", "mps") => {
-            (20, 24, "VoxCPM2 native Q8 Metal GGUF")
+            (20, 24, "VoxCPM2 audio.cpp Q8 Metal GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-q8_0-v1", "cpu")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-q8_0-v1", "cuda")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-q8_0-v1", "vulkan") => {
-            (14, 16, "VoxCPM2 native Q8 GGUF")
+            (14, 16, "VoxCPM2 audio.cpp Q8 GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, _, "cpu")
             if valid_threaded_profile(device_profile, "moss-nano-cpu-f32-threads") =>
@@ -123,7 +123,7 @@ fn valid_threaded_profile(profile: &RuntimeDeviceProfile, prefix: &str) -> bool 
         .is_some_and(|threads| (1..=4).contains(&threads) && threads == profile.cpu_threads)
 }
 
-pub(super) fn application_memory_budget(total_bytes: u64) -> u64 {
+pub(super) fn inference_memory_budget(total_bytes: u64) -> u64 {
     total_bytes
         .saturating_sub(4 * GIB)
         .min(total_bytes.saturating_mul(2) / 3)

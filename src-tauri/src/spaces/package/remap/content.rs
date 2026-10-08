@@ -12,7 +12,7 @@ pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Re
                 .as_str()
                 .is_some_and(|text| text.contains(crate::spaces::assets::PACKAGE_ASSET_PREFIX));
         if !packaged_markdown {
-            crate::spaces::knowledge::indexing::revision::validate_declared(data)?;
+            crate::spaces::knowledge::model::revision::validate_declared(data)?;
         } else if data["knowledgeRevision"].as_str().is_none_or(|revision| {
             revision.strip_prefix("node1:").is_none_or(|digest| {
                 digest.len() != 16 || !digest.bytes().all(|b| b.is_ascii_hexdigit())
@@ -55,7 +55,7 @@ pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Re
             }
             _ => {}
         }
-        crate::spaces::knowledge::indexing::revision::apply(data)?;
+        crate::spaces::knowledge::model::revision::apply(data)?;
     }
     for row in array_mut(value, "structureNodes")? {
         maps.optional(row, "parentId", "structureNodes")?;

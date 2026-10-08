@@ -48,13 +48,13 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
                 if let Some(response) = response {
                     return serde_json::from_str(&response).map_err(db::json_error);
                 }
-                tokio::select! { _ = cancellation.cancelled() => {}, result = changes.changed() => { result.map_err(|_| "run-observation-closed")?; } }
+                tokio::select! { _ = cancellation.cancelled() => {}, interaction = changes.changed() => { interaction.map_err(|_| "run-observation-closed")?; } }
             }
         })
     }
     fn progress(&self, progress: ProgressNotificationParam) -> BoxFuture<'_, ()> {
         Box::pin(async move {
-            let result = async {
+            let interaction = async {
                 let mut tx = db::begin_write(&self.pool).await?;
                 runs::append_event(
                     &mut tx,
@@ -71,7 +71,7 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
                 Ok::<_, String>(())
             }
             .await;
-            if let Err(error) = result {
+            if let Err(error) = interaction {
                 log::error!("MCP progress recording failed: {error}");
             }
         })

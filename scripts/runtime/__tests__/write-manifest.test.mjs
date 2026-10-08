@@ -41,11 +41,11 @@ function fixture(context) {
   writeFileSync(
     join(root, "python/runtime-source.json"),
     JSON.stringify({
-      nativeSupplier: { profiles: { resources: "base" } },
+      condaSupplier: { profiles: { resources: "base" } },
     }),
   );
-  mkdirSync(join(root, "python/native-locks/base"), { recursive: true });
-  writeFileSync(join(root, `python/native-locks/base/${target}.json`), "native lock");
+  mkdirSync(join(root, "python/conda-locks/base"), { recursive: true });
+  writeFileSync(join(root, `python/conda-locks/base/${target}.json`), "Conda lock");
   const executable = platform === "windows" ? join(runtime, "python.exe") : join(runtime, "bin", "python3");
   mkdirSync(join(runtime, "bin"), { recursive: true });
   writeFileSync(executable, "interpreter fixture");

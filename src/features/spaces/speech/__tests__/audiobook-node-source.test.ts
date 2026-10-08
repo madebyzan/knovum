@@ -55,7 +55,7 @@ it("turns node document text into owned chapters and paragraphs", async () => {
   ]);
 });
 
-it("reads current text-node content without a file picker or native extraction", async () => {
+it("reads current text-node content without a file picker or Rust extraction", async () => {
   const node: SpaceCanvasNode = {
     id: "text",
     type: "markdown",

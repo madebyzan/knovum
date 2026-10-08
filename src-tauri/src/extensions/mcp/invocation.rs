@@ -90,7 +90,7 @@ impl PreparedInvocation {
         let meta = RequestMetaObject::with_progress_token(ProgressToken(NumberOrString::String(
             operation_id.into(),
         )));
-        let result = tokio::time::timeout(duration, async {
+        let response = tokio::time::timeout(duration, async {
             match &self.binding {
                 AgentToolBinding::McpTool { tool_name, .. } => {
                     let mut parameters = CallToolRequestParams::new(tool_name.clone())
@@ -101,8 +101,8 @@ impl PreparedInvocation {
                                 .clone(),
                         );
                     parameters.meta = Some(meta);
-                    let result = self.session.service.call_tool(parameters).await?;
-                    Ok(serde_json::to_value(result).expect("SDK response serializes"))
+                    let response = self.session.service.call_tool(parameters).await?;
+                    Ok(serde_json::to_value(response).expect("SDK response serializes"))
                 }
                 AgentToolBinding::McpReadResource { .. } => {
                     let params = ReadResourceRequestParams::new(
@@ -111,8 +111,8 @@ impl PreparedInvocation {
                             .expect("validated resource URI"),
                     )
                     .with_meta(meta);
-                    let result = self.session.service.read_resource(params).await?;
-                    Ok(serde_json::to_value(result).expect("SDK response serializes"))
+                    let response = self.session.service.read_resource(params).await?;
+                    Ok(serde_json::to_value(response).expect("SDK response serializes"))
                 }
                 AgentToolBinding::McpGetPrompt { .. } => {
                     let mut params = GetPromptRequestParams::new(
@@ -129,14 +129,14 @@ impl PreparedInvocation {
                                 .clone(),
                         );
                     }
-                    let result = self.session.service.get_prompt(params).await?;
-                    Ok(serde_json::to_value(result).expect("SDK response serializes"))
+                    let response = self.session.service.get_prompt(params).await?;
+                    Ok(serde_json::to_value(response).expect("SDK response serializes"))
                 }
                 AgentToolBinding::SpaceAction { .. } => unreachable!("prepared MCP binding"),
             }
         })
         .await;
-        let value = match result {
+        let value = match response {
             Ok(Ok(value)) => value,
             Ok(Err(ServiceError::McpError(error))) => {
                 return InvocationObservation::Received(

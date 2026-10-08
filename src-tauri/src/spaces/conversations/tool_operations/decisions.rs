@@ -52,8 +52,8 @@ pub(super) async fn apply(
                 .bind(&run_id).bind(now).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
             budget.ok_or("conversation-tool-budget-exhausted")?;
             sqlx::query("UPDATE spaces_conversation_tool_operations SET resolution='new_attempt' WHERE id=$1").bind(operation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-            sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,attempt,arguments,arguments_digest,read_only,approval,state,created_at)
-                SELECT $1,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,attempt+1,arguments,arguments_digest,read_only,'allow','prepared',$2 FROM spaces_conversation_tool_operations WHERE id=$3")
+            sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,attempt,context,context_digest,read_only,approval,state,created_at)
+                SELECT $1,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,attempt+1,context,context_digest,read_only,'allow','prepared',$2 FROM spaces_conversation_tool_operations WHERE id=$3")
                 .bind(uuid::Uuid::new_v4().to_string()).bind(now).bind(operation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
         }
         ToolOperationDecision::Stop => {

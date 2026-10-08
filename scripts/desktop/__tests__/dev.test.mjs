@@ -65,8 +65,8 @@ for (const args of [
 ]) {
   test(`${args.join(" ")}: resources finish before Tauri starts its frontend wait`, (context) => {
     const root = fixture(context);
-    const result = launch(root, args);
-    assert.equal(result.status, 0, result.stderr);
+    const execution = launch(root, args);
+    assert.equal(execution.status, 0, execution.stderr);
     assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "tauri", args }]);
   });
 }
@@ -74,9 +74,9 @@ for (const args of [
 test("failed resource preparation stops startup with the actual error", (context) => {
   const root = fixture(context);
   writeFileSync(join(root, "broken-resource"), "");
-  const result = launch(root, ["dev"]);
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /Core media verification failed/u);
+  const execution = launch(root, ["dev"]);
+  assert.equal(execution.status, 1);
+  assert.match(execution.stderr, /Core media verification failed/u);
   assert.equal(existsSync(join(root, "events.jsonl")), false);
 });
 
@@ -84,8 +84,8 @@ for (const args of [["dev", "--help"], ["dev", "-h"], ["dev", "--version"], ["in
   test(`${args.join(" ")} runs without preparing resources`, (context) => {
     const root = fixture(context);
     writeFileSync(join(root, "broken-resource"), "");
-    const result = launch(root, args);
-    assert.equal(result.status, 0, result.stderr);
+    const execution = launch(root, args);
+    assert.equal(execution.status, 0, execution.stderr);
     assert.deepEqual(events(root), [{ stage: "tauri", args }]);
   });
 }

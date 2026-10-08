@@ -2,13 +2,10 @@ use sqlx::{Sqlite, Transaction};
 
 use super::state::{resolve_node, resolve_relation, ApplyState};
 use crate::spaces::knowledge::change_commit::{
-    contract::KnowledgeChange,
+    contracts::KnowledgeChange,
     mutations::{self, ProvenanceInsert},
 };
-use crate::spaces::{
-    db,
-    knowledge::{contracts, events},
-};
+use crate::spaces::{db, knowledge::events};
 
 pub(super) async fn create_relations(
     tx: &mut Transaction<'_, Sqlite>,
@@ -32,8 +29,10 @@ pub(super) async fn create_relations(
         };
         let source = resolve_node(tx, space_id, &state.node_ids, source_id).await?;
         let target = resolve_node(tx, space_id, &state.node_ids, target_id).await?;
-        let (source, target) = contracts::canonical_relation_endpoints(kind, &source, &target);
-        contracts::validate_relation_endpoints(tx, space_id, &source, &target).await?;
+        let (source, target) =
+            crate::spaces::knowledge::relations::canonical_endpoints(kind, &source, &target);
+        crate::spaces::knowledge::relations::validate_endpoints(tx, space_id, &source, &target)
+            .await?;
         let id = uuid::Uuid::new_v4().to_string();
         sqlx::query(
             "INSERT INTO spaces_relations(id,space_id,source_id,target_id,kind,rationale,status,confidence,actor_kind,actor_id,created_at,updated_at) \

@@ -9,7 +9,7 @@ import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
+import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
 import InstalledPlugin from "./InstalledPlugin.vue";
 import PluginDiscovery from "./PluginDiscovery.vue";
 import PluginInstallationPreview from "./PluginInstallationPreview.vue";

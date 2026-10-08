@@ -145,11 +145,11 @@ fn profile_manifest_rejects_device_thread_and_capability_mismatches() {
 }
 
 #[test]
-fn application_budget_preserves_system_memory_and_caps_inference_share() {
-    assert_eq!(application_memory_budget(3 * GIB), 0);
-    assert_eq!(application_memory_budget(12 * GIB), 8 * GIB);
-    assert_eq!(application_memory_budget(16 * GIB), 16 * GIB * 2 / 3);
-    assert_eq!(application_memory_budget(48 * GIB), 32 * GIB);
+fn inference_budget_preserves_system_memory_and_caps_inference_share() {
+    assert_eq!(inference_memory_budget(3 * GIB), 0);
+    assert_eq!(inference_memory_budget(12 * GIB), 8 * GIB);
+    assert_eq!(inference_memory_budget(16 * GIB), 16 * GIB * 2 / 3);
+    assert_eq!(inference_memory_budget(48 * GIB), 32 * GIB);
 }
 
 #[test]

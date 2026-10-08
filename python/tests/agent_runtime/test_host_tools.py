@@ -20,14 +20,14 @@ def test_business_child_interrupt_replays_one_durable_intent_after_reopening(tmp
         intents: set[tuple[str, str, str]] = set()
 
         async def request(self, method, params):
-            result = await super().request(method, params)
+            response = await super().request(method, params)
             if method == "agentRuntime.invokeTool":
                 value = self.calls[-1][1]
                 self.intents.add((value["graphNamespace"], value["messageId"], value["toolCallId"]))
                 if not self.ready:
                     return {"type": "await_child", "runId": "existing-child"}
                 return {"type": "completed", "value": {"runId": "existing-child", "state": "succeeded"}, "media": []}
-            return result
+            return response
 
     async def run() -> None:
         scripts = {
@@ -56,20 +56,20 @@ def test_business_child_interrupt_replays_one_durable_intent_after_reopening(tmp
         host = ChildHost()
         path = str(tmp_path / "checkpoint.sqlite")
         async with AsyncSqliteSaver.from_conn_string(path) as saver:
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "interrupted"
-            assert result.interrupts == [{"type": "child_run", "runId": "existing-child"}]
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "interrupted"
+            assert observation.interrupts == [{"type": "child_run", "runId": "existing-child"}]
             assert len(host.intents) == 1
         host.ready = True
         scripts["main"] = [answer("published", message_id="final-answer")]
         bind_script(monkeypatch, scripts)
         value["messages"] = []
         value["resume"] = True
-        value["afterCheckpointId"] = result.checkpoint_id
+        value["afterCheckpointId"] = observation.checkpoint_id
         value["identity"]["controlEpoch"] = 1
         async with AsyncSqliteSaver.from_conn_string(path) as saver:
-            result = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
-            assert result.state.value == "completed"
+            observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()
+            assert observation.state.value == "completed"
             assert len(host.intents) == 1
             invocations = [params for method, params in host.calls if method == "agentRuntime.invokeTool"]
             assert len(invocations) == 2

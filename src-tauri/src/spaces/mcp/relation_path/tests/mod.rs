@@ -1,9 +1,9 @@
-use crate::spaces::knowledge::contracts::is_symmetric_relation_kind;
+use crate::spaces::knowledge::relations::is_symmetric_kind;
 
 #[test]
 fn only_semantically_symmetric_relations_are_bidirectional() {
-    assert!(is_symmetric_relation_kind("related"));
-    assert!(is_symmetric_relation_kind("contradicts"));
+    assert!(is_symmetric_kind("related"));
+    assert!(is_symmetric_kind("contradicts"));
     for kind in [
         "reference",
         "supports",
@@ -14,9 +14,6 @@ fn only_semantically_symmetric_relations_are_bidirectional() {
         "derives-from",
         "caused-by",
     ] {
-        assert!(
-            !is_symmetric_relation_kind(kind),
-            "{kind} must remain directional"
-        );
+        assert!(!is_symmetric_kind(kind), "{kind} must remain directional");
     }
 }

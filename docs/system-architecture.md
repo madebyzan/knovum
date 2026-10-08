@@ -1,7 +1,7 @@
 # System architecture
 
 Knovum is one local-first desktop application. A Tauri 2/Rust host owns the operating-system,
-storage, security, and native-runtime boundaries; one Vue 3 WebView owns product presentation.
+storage, security, and process-runtime boundaries; one Vue 3 WebView owns product presentation.
 Spaces is the primary product experience and Settings is an application-level destination. Source
 and dependency ownership is defined in [architecture.md](architecture.md); Space and node behavior
 belongs to [spaces.md](spaces.md), and visual rules belong to [ui-system.md](ui-system.md).
@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified native tools, private CPython workers and private document worker processes
+      +-- verified compiled tools, private CPython workers and private document worker processes
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -38,9 +38,9 @@ The WebView never receives unrestricted SQL, filesystem, process, shell, credent
 network access. Rust commands authorize and validate requests at the boundary, then return typed
 data and machine-readable reason codes. Vue owns localized copy and presentation.
 
-Native inference runs in verified, application-owned CPython environments over JSON-RPC on stdio.
+Local inference runs in verified, application-owned CPython environments over JSON-RPC on stdio.
 The application selects and prepares the required environment and model when a capability is used;
-users do not select internal runtimes. Native tools and workers are resolved from fixed development
+users do not select internal runtimes. Compiled tools and workers are resolved from fixed development
 or installed application locations, never from `PATH` or project environment overrides. Required
 resources fail explicitly when unavailable or invalid.
 
@@ -74,7 +74,7 @@ match.
 ## Commands and desktop events
 
 Features and application policy contribute typed `AppCommand` values to one registry. The command
-palette, WebView shortcuts, and native application menu dispatch the same command identifiers and
+palette, WebView shortcuts, and the native Application Menu dispatch the same command identifiers and
 execution guards. Visual disabled state never replaces the guard.
 
 Action availability is represented as `ready`, `checking`, `busy`, `blocked(reason)`, or `hidden`.
@@ -159,7 +159,7 @@ Space-package format belongs to [knowledge.md](knowledge.md); application distri
 
 Document export uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, versioned source/format frame and returns bounded bytes; it never receives paths, Run authority, or database access. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains source/epoch revalidation and publication. Spawn, protocol and render failures are explicit.
 
-## Native resources and local inference
+## Compiled resources and local inference
 
 FFmpeg is a bundled, verified core media resource. Python environments, models, and optional media
 tools are application-managed resources prepared on capability use. All resolve through signed or
@@ -227,7 +227,7 @@ Web capture decodes a recognized BOM or declared HTTP charset through `encoding_
 - Credentials never enter Pinia persistence, local storage, feature data, logs, query caches, Python
   arguments, or Agent configuration. AI connection URLs must be HTTP(S), have a host and contain no userinfo; saving and execution both enforce this before secret resolution.
 - Network destinations, redirects, response sizes, and local-network access are validated by the Rust
-  owner; the WebView has no wildcard native HTTP authority.
+  owner; the WebView has no wildcard system HTTP authority.
 - External callbacks, tool results, files, runtime manifests, and worker messages are untrusted inputs
   and must pass schema, identity, size, and authorization checks before publication.
 - Commit admission and cancellation share an ordering boundary. Once a commit is admitted, it reaches
@@ -237,7 +237,7 @@ Agent graph identity contains the exact locked DeepAgents and LangGraph versions
 
 ## Distribution gate
 
-The supported targets are shipped only when their runtime descriptors, native resources, application
+The supported targets are shipped only when their runtime descriptors, compiled resources, application
 binary, signing policy, and updater identity agree. A compile succeeds only as a compile gate; it does
 not establish clean installation, GPU execution, OS integration, cancellation, recovery, media quality,
 signing, or update acceptance. Each release candidate requires the real-machine evidence listed in

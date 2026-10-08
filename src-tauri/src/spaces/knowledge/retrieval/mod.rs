@@ -15,7 +15,7 @@ pub(crate) mod retired_generations;
 pub(crate) mod schema;
 pub(crate) mod search;
 pub(crate) mod search_control;
-mod search_results;
+mod search_projection;
 mod validation;
 
 pub(crate) use rebuild::{index_space, rebuild_space_index};

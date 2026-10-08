@@ -1,4 +1,4 @@
-"""Synthetic unit evidence only; these bytes cannot qualify a native release."""
+"""Synthetic unit evidence only; these bytes cannot qualify a compiled-engine release."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def execution_fixture(
 
 def acceptance_files(directory: Path) -> tuple[Path, Path]:
     audio = directory / "fixture.wav"
-    audio.write_bytes(b"unit fixture, not native qualification")
+    audio.write_bytes(b"unit fixture, not compiled-engine qualification")
     reference = HashedFile(path=audio.name, sha256=hashlib.sha256(audio.read_bytes()).hexdigest()).model_dump()
     scores = dict.fromkeys((field.alias for field in VoiceScores.model_fields.values()), 4.0)
     speech_samples = [
@@ -101,7 +101,7 @@ def acceptance_files(directory: Path) -> tuple[Path, Path]:
         "schemaVersion": 1,
         "corpusId": "unit-fixture",
         "corpusVersion": "1",
-        "description": "Synthetic unit evidence, not native qualification",
+        "description": "Synthetic unit evidence, not compiled-engine qualification",
         "embedding": {
             "referenceProfile": {
                 "modelSpecId": "embedding-model",

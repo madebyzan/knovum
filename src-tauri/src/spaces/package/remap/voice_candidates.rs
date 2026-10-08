@@ -89,9 +89,9 @@ fn remap_attempts(
         attempt["idempotencyKey"] = json!(step_id);
         let run_id = required(attempt, "runId")?.to_owned();
         let source_id = source_run_id(runs, &run_id)?;
-        if let Some(result) = attempt.get_mut("result").filter(|result| !result.is_null()) {
-            require_historical_identity(result, source_id, &maps.source_space)?;
-            remap_output(result, &run_id, &maps.target_space)?;
+        if let Some(output) = attempt.get_mut("output").filter(|output| !output.is_null()) {
+            require_historical_identity(output, source_id, &maps.source_space)?;
+            remap_output(output, &run_id, &maps.target_space)?;
         }
     }
     Ok(())

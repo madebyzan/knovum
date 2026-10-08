@@ -82,7 +82,7 @@ fn validated_chunks_advance_in_order_and_finish_removes_attempt_directory() {
         model_spec_id: "voxcpm2-2b-gguf-orig-v1".into(),
         deadline_ms: u64::MAX,
     };
-    let result = SpeechSynthesis {
+    let synthesis = SpeechSynthesis {
         request_id,
         attempt_epoch: 4,
         model_spec_id: identity.model_spec_id.clone(),
@@ -93,7 +93,7 @@ fn validated_chunks_advance_in_order_and_finish_removes_attempt_directory() {
         sample_format: "pcm_f32le".into(),
         sample_count: 2,
     };
-    let audio = finish_synthesis(result, &root.0, &identity, Some(stream))
+    let audio = finish_synthesis(synthesis, &root.0, &identity, Some(stream))
         .expect("matching summary should finish synthesis");
     assert!(!attempt.exists());
     assert_eq!(audio.sample_count, 2);

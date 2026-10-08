@@ -5,7 +5,7 @@ mod state;
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
-use super::contract::KnowledgeChange;
+use super::contracts::KnowledgeChange;
 use crate::{
     app_error::AppError,
     spaces::{knowledge::events::EventActor, structure},

@@ -6,10 +6,10 @@ import { i18n } from "../../../foundation/i18n/i18n";
 import { activeConfirmation, resolveConfirmation } from "../../../shared/ui/confirm-action";
 import SkillSettings from "../skills/SkillSettings.vue";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, input?: Record<string, unknown>) => Promise<unknown>>(),
 }));
-vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: native.invoke }));
+vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 const skill = {
   id: "personal",
   pluginId: null,
@@ -24,8 +24,8 @@ const skill = {
 let wrapper: ReturnType<typeof mount>;
 let queryClient: QueryClient;
 beforeEach(async () => {
-  native.invoke.mockReset();
-  native.invoke.mockImplementation(async (command) => {
+  mocks.invoke.mockReset();
+  mocks.invoke.mockImplementation(async (command) => {
     if (command === "plugin:extensions|list_skills") return [skill];
     if (command === "plugin:extensions|read_skill")
       return { skill, markdown: "Original instructions", files: [] };
@@ -71,7 +71,7 @@ it("preserves edits when discard is cancelled and closes only after confirming d
   await flushPromises();
   expect(wrapper.find('[data-testid="skill-content-editor"]').exists()).toBe(false);
   expect(
-    native.invoke.mock.calls.every(
+    mocks.invoke.mock.calls.every(
       ([command]) =>
         command === "plugin:extensions|list_skills" || command === "plugin:extensions|read_skill",
     ),

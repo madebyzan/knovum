@@ -104,7 +104,7 @@
       "voxCpm2": "Optional quality cloning and voice design. About 5 GB download and at least 32 GiB memory; uses an available supported GPU within its memory budget.",
       "voxCpm2Q8": "Recommended quality model for cloning and voice design. Quantized weights download about 3 GB and use less disk space than Full; the current availability budget remains 32 GiB physical memory, with a supported GPU preferred when capacity allows.",
       "qwen3Aligner": "Optional precise timing for an existing transcript. Limited to selected ranges of up to five minutes.",
-      "qwen3AlignerQ8": "Smaller Q8 model for precise transcript timing. Native GPU acceleration is selected when available; up to five minutes per request.",
+      "qwen3AlignerQ8": "Smaller Q8 model for precise transcript timing. GPU acceleration is selected when available; up to five minutes per request.",
       "sherpaDiarization": "Compact speaker identification, about 41 MB. Automatic or exact speaker count; no account token.",
       "spleeter2Stems": "Fast two-stem vocals/accompaniment separation on CPU. Up to ten minutes per source; audition before accepting a background.",
       "u2netp": "Compact CPU background removal. Small download suited to ordinary images; output quality depends on the source.",

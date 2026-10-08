@@ -7,7 +7,7 @@ use crate::app_error::AppError;
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output, relations, CompletedDerivationOutput},
-    knowledge::{contracts, indexing::revision},
+    knowledge::model::revision,
 };
 
 pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Result<(), AppError> {
@@ -15,7 +15,7 @@ pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Res
     let mut tx = db::begin_write(pool).await?;
     let source_path = source::validate(&mut tx, request).await?;
     for output_id in &request.output_node_ids {
-        contracts::validate_same_space_node(
+        crate::spaces::knowledge::validation::validate_same_space_node(
             &mut tx,
             &request.space_id,
             &request.source_node_id,
@@ -75,7 +75,13 @@ pub async fn complete(
             load_pending_output(&mut tx, &derivation_id(&request.generation_id, index)).await?;
         pending_output::validate_unpublished_asset(&data)?;
         apply_layer_content(&mut data, layer, now)?;
-        contracts::validate_node(&mut tx, &request.space_id, "image", &data).await?;
+        crate::spaces::knowledge::validation::validate_node(
+            &mut tx,
+            &request.space_id,
+            "image",
+            &data,
+        )
+        .await?;
         crate::spaces::derivation::persist_output_node(&mut tx, output_id, &data, now).await?;
         let relation = relations::derives_from(
             &request.space_id,

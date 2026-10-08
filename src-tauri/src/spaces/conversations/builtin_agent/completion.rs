@@ -211,8 +211,8 @@ pub(super) async fn settle_failure(
 pub(super) async fn stopped_state(
     pool: &sqlx::SqlitePool,
     run_id: &str,
-) -> Result<super::super::contract::ConversationTaskFinishedState, String> {
-    use super::super::contract::ConversationTaskFinishedState;
+) -> Result<super::super::contracts::ConversationTaskFinishedState, String> {
+    use super::super::contracts::ConversationTaskFinishedState;
     use crate::spaces::runs::RunState;
     let run = crate::spaces::runs::load_run(pool, run_id).await?;
     match run.state {

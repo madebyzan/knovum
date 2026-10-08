@@ -129,13 +129,13 @@ fn validate_step_attempts<'a>(
         }
         if attempt.state == "succeeded" {
             succeeded += 1;
-            if attempt.result.as_ref() != step.output.as_ref() {
+            if attempt.output.as_ref() != step.output.as_ref() {
                 return Err(
-                    "Package video translation attempt result differs from its step".into(),
+                    "Package video translation attempt output differs from its step".into(),
                 );
             }
-        } else if attempt.result.is_some() {
-            return Err("Package video translation terminal attempt contains a result".into());
+        } else if attempt.output.is_some() {
+            return Err("Package video translation terminal attempt contains an output".into());
         }
     }
     if succeeded != 1 {

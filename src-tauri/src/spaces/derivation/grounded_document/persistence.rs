@@ -1,9 +1,9 @@
 use tauri::AppHandle;
 
 use super::GenerateGroundedDocumentRequest;
+use crate::spaces::db;
 use crate::spaces::derivation::inputs;
 use crate::spaces::derivation::source_validation;
-use crate::spaces::{db, knowledge::contracts};
 
 pub async fn start(
     app: &AppHandle,
@@ -15,7 +15,7 @@ pub async fn start(
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
-        contracts::validate_same_space_node(
+        crate::spaces::knowledge::validation::validate_same_space_node(
             &mut tx,
             &request.space_id,
             &input.node_id,

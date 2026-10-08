@@ -1,5 +1,5 @@
 use super::*;
-use crate::spaces::knowledge::node_contracts::document_coverage::{DocumentAnalysis, VisualState};
+use crate::spaces::knowledge::model::document_coverage::{DocumentAnalysis, VisualState};
 
 fn occurrence(description: &str, state: VisualState) -> DocumentOccurrence {
     DocumentOccurrence {

@@ -1,4 +1,4 @@
-mod contract;
+mod contracts;
 mod digest;
 mod execute;
 mod store;
@@ -6,5 +6,5 @@ mod store;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use contract::{ActionInvocationOutcome, ActionInvocationRequest};
+pub(crate) use contracts::{ActionInvocationOutcome, ActionInvocationRequest};
 pub(crate) use execute::{invoke, invoke_in_transaction};

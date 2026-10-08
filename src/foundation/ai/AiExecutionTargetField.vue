@@ -35,7 +35,7 @@ const options = computed(() =>
               ({ kind }) => option.target.type === "agent" && kind === option.target.runtimeKind,
             )?.displayName ?? option.label)
           : option.label,
-      description: t(option.target.type === "model" ? "ai.targetModelNative" : "ai.targetAgentWorkflow"),
+      description: t(option.target.type === "model" ? "ai.targetModelApi" : "ai.targetExternalAgent"),
     }),
   ),
 );

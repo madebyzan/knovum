@@ -210,13 +210,13 @@ def test_diarization_uses_public_cpu_models_and_known_speaker_count(
         | {"modelSpecId": model_spec, "speakerCountBounds": {"minimum": 3, "maximum": 3}}
     )
     engine = DiarizationEngine(model_directory, "cpu", 2, model_spec)
-    result = engine.diarize(params, threading.Event())
+    diarization = engine.diarize(params, threading.Event())
     assert calls["initial"].segmentation.pyannote.model == str(model_directory / "segmentation.onnx")
     assert calls["initial"].embedding.model == str(model_directory / "embedding.onnx")
     assert calls["initial"].embedding.provider == "cpu"
     assert calls["initial"].embedding.num_threads == 2
     assert calls["clustering"].clustering.num_clusters == 3
-    assert result["turns"] == [{"speakerId": "1", "startMs": 100, "endMs": 800}]
+    assert diarization["turns"] == [{"speakerId": "1", "startMs": 100, "endMs": 800}]
 
 
 def test_alignment_clip_uses_selected_normalized_pcm_frames(tmp_path: Path) -> None:
@@ -294,7 +294,7 @@ def test_diarization_processing_callback_observes_cancellation(monkeypatch: pyte
         def process(self, waveform: Any, *, callback: Any) -> Any:
             cancelled.set()
             callback(1, 10)
-            pytest.fail("native processing must stop after cancellation")
+            pytest.fail("compiled processing must stop after cancellation")
 
     monkeypatch.setitem(sys.modules, "sherpa_onnx", types.SimpleNamespace(FastClusteringConfig=lambda **kwargs: kwargs))
     params = SpeechDiarizeParams.model_validate(_identity(_audio(tmp_path / "source.wav")) | {"speakerCountBounds": {}})

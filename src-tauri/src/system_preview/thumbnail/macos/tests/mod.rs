@@ -7,10 +7,13 @@ fn closed_writer_rejects_late_callbacks_before_they_touch_disk() {
     let active = Mutex::new(true);
     close_writer(&active).unwrap();
     let mut wrote = false;
-    let result = with_open_writer(&active, || {
+    let write_attempt = with_open_writer(&active, || {
         wrote = true;
         Ok(())
     });
-    assert_eq!(result.unwrap_err(), "Quick Look thumbnail writer is closed");
+    assert_eq!(
+        write_attempt.unwrap_err(),
+        "Quick Look thumbnail writer is closed"
+    );
     assert!(!wrote);
 }

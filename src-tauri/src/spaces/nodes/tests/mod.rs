@@ -6,12 +6,12 @@ async fn user_edits_receive_a_rust_owned_revision() {
     crate::spaces::db::migrate(&pool).await.unwrap();
     let mut tx = pool.begin().await.unwrap();
     let mut data = json!({"kind":"markdown","title":"Note","text":"Updated text","knowledgeRevision":"obsolete-ui-hash"});
-    crate::spaces::knowledge::contracts::normalize_node(&mut tx, "space", "markdown", &mut data)
+    crate::spaces::knowledge::validation::normalize_node(&mut tx, "space", "markdown", &mut data)
         .await
         .unwrap();
     assert_eq!(
         data["knowledgeRevision"].as_str(),
-        crate::spaces::knowledge::indexing::revision::authoritative(&data)
+        crate::spaces::knowledge::model::revision::authoritative(&data)
             .unwrap()
             .as_deref()
     );
@@ -53,7 +53,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
             "adjustments":adjustments
         }
     });
-    crate::spaces::knowledge::indexing::revision::apply(&mut before).unwrap();
+    crate::spaces::knowledge::model::revision::apply(&mut before).unwrap();
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
         .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','image',0,0,$1,1,1)")
@@ -64,7 +64,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
         .unwrap();
     let mut after = before.clone();
     after.as_object_mut().unwrap().remove("imageEdit");
-    crate::spaces::knowledge::contracts::normalize_node(&mut tx, "space", "image", &mut after)
+    crate::spaces::knowledge::validation::normalize_node(&mut tx, "space", "image", &mut after)
         .await
         .unwrap();
     super::update_many_in_transaction(

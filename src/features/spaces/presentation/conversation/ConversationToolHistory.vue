@@ -76,10 +76,10 @@ const latestProgress = computed(() => [...progressByOperation.value.values()].at
         JSON.stringify(
           {
             source: operation.source,
-            arguments: operation.arguments,
+            context: operation.context,
             approval: operation.approval,
             resolution: operation.resolution,
-            result: operation.result,
+            output: operation.output,
           },
           null,
           2,

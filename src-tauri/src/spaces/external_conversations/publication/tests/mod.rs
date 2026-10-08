@@ -57,7 +57,7 @@ async fn publishes_nodes_message_and_run_in_one_commit() {
     )
     .await
     .unwrap();
-    let result: (String, String, String, i64) = sqlx::query_as(
+    let publication: (String, String, String, i64) = sqlx::query_as(
         "SELECT r.state,m.content,n.kind,e.revision FROM spaces_runs r
              JOIN spaces_conversation_messages m ON m.id='reply'
              JOIN spaces_nodes n ON n.id='report'
@@ -66,10 +66,10 @@ async fn publishes_nodes_message_and_run_in_one_commit() {
     .fetch_one(&pool)
     .await
     .unwrap();
-    assert_eq!(result.0, "succeeded");
-    assert_eq!(result.2, "markdown");
-    assert_eq!(result.3, 1);
-    let message: Value = serde_json::from_str(&result.1).unwrap();
+    assert_eq!(publication.0, "succeeded");
+    assert_eq!(publication.2, "markdown");
+    assert_eq!(publication.3, 1);
+    let message: Value = serde_json::from_str(&publication.1).unwrap();
     assert_eq!(message["outputs"][0]["nodeId"], "report");
 }
 
@@ -103,9 +103,14 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
     let pool = fixture().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
     let mut node = output("mcp-note", "markdown");
-    knowledge::contracts::normalize_node(&mut tx, "space", &node.kind, &mut node.data)
-        .await
-        .unwrap();
+    crate::spaces::knowledge::validation::normalize_node(
+        &mut tx,
+        "space",
+        &node.kind,
+        &mut node.data,
+    )
+    .await
+    .unwrap();
     let (mut snapshot, revision) = structure::repository::load_in_transaction(&mut tx, "space")
         .await
         .unwrap();

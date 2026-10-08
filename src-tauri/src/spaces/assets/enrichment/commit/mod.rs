@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use crate::app_error::AppError;
 use crate::spaces::{
     db,
-    knowledge::indexing::{revision, KnowledgeChunkInput},
+    knowledge::{indexing::KnowledgeChunkInput, model::revision},
     nodes::{self, contracts::NodeContentChange},
 };
 

@@ -6,12 +6,12 @@ import { expect, it, vi } from "vitest";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import PluginConnectorConfiguration from "../connectors/PluginConnectorConfiguration.vue";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),
   open: vi.fn<typeof openDialog>(),
 }));
-vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: native.invoke }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({ open: native.open }));
+vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
+vi.mock("@tauri-apps/plugin-dialog", () => ({ open: mocks.open }));
 
 it("binds a user-selected installed executable without modifying the publisher declaration", async () => {
   const connector: ConnectorDefinition = {
@@ -24,8 +24,8 @@ it("binds a user-selected installed executable without modifying the publisher d
     authorization: { type: "none" },
     endpoint: null,
   };
-  native.open.mockResolvedValue("/installed/node");
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.open.mockResolvedValue("/installed/node");
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:extensions|list_plugin_installations")
       return [
         {
@@ -54,8 +54,8 @@ it("binds a user-selected installed executable without modifying the publisher d
     expect(wrapper.text()).toContain("extensions.localConfigurationRequired");
     await wrapper.get('[data-testid="bind-plugin-executable"]').trigger("click");
     await flushPromises();
-    expect(native.open).toHaveBeenCalledWith({ directory: false, multiple: false });
-    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|configure_plugin_connector", {
+    expect(mocks.open).toHaveBeenCalledWith({ directory: false, multiple: false });
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|configure_plugin_connector", {
       id: "service",
       revision: "one",
       configuration: { type: "stdio", executable: "/installed/node" },

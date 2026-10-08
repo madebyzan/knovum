@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::appearance::{validate_content_appearance, validate_section_appearance};
-use super::contract::{LocalTransform, Point, Size, StructureLayout, StructureNode};
+use super::contracts::{LocalTransform, Point, Size, StructureLayout, StructureNode};
 
 const MAX_COORDINATE: f64 = 1_000_000_000.0;
 const MIN_SCALE: f64 = 0.000_001;

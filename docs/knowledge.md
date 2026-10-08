@@ -52,9 +52,9 @@ are reclaimed by the existing startup orphan collector, not a collector racing i
 Budgets: one parser at a time across imports/jobs; input 128 MiB; 2000 PDF pages;
 4 Mi UTF-16 body units; Office ZIP expansion 256 MiB/20,000 entries;
 2000 visual resources/occurrences, 256 MiB normalized rasters, 32 MiB/24 MP per image,
-4 Mi UTF-16 analysis units; native raster long edge 2048 pixels and scale at most 2.
+4 Mi UTF-16 analysis units; source raster long edge 2048 pixels and scale at most 2.
 Excess fails visibly. PDF page count is checked after parsing and is not an internal
-decompression-work limit. Native rendering and visual calls are serial. Native rendering checks cancellation between operations; model calls and desktop Agent sessions support cooperative cancellation, with ACP acknowledgement before session teardown.
+decompression-work limit. System rendering and visual calls are serial. System rendering checks cancellation between operations; model calls and desktop Agent sessions support cooperative cancellation, with ACP acknowledgement before session teardown.
 
 ## AI task results and execution selection
 
@@ -157,7 +157,7 @@ SQLite and LanceDB do not share a distributed transaction. A failed vector upser
 
 ## Module boundary
 
-Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as native product actions.
+Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as product actions.
 
 Related Content reports `unindexed` when no active generation matches the current embedding spec.
 This is a preparation state; database errors remain failures. Semantic search continues to require

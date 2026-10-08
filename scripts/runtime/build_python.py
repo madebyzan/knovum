@@ -1,4 +1,4 @@
-"""Produce one locked, relocatable native Python runtime; no user-side installation."""
+"""Produce one locked, relocatable Python runtime; no user-side installation."""
 
 from __future__ import annotations
 
@@ -16,9 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from runtime.artifacts import archive_runtime, digest
 from runtime.commands import run
+from runtime.conda_packages import dependency_digest, install_conda_packages
 from runtime.dependencies import install_dependencies
 from runtime.host import host_target
-from runtime.native import dependency_digest, install_native
 from runtime.signing import sign_runtime
 from runtime.windows_process import configure_utf8
 
@@ -40,10 +40,10 @@ def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> N
         "voice-generation": "sys.modules['torch']=None;import numpy,pydantic,ctypes;"
         "os.chdir(os.path.join(sys.prefix,'bin'));os.environ.pop('GGML_BACKEND_PATH',None);"
         "_backend_dll=os.add_dll_directory(os.getcwd()) if os.name=='nt' else None;"
-        "_voice=ctypes.CDLL(os.path.join(sys.prefix,'native',"
+        "_voice=ctypes.CDLL(os.path.join(sys.prefix,'compiled-libraries',"
         "{'darwin':'knovum_voice.dylib','win32':'knovum_voice.dll'}[sys.platform]));"
         "assert _voice.knovum_voice_abi()==2;assert _voice.knovum_voice_devices()>0;"
-        "_align=ctypes.CDLL(os.path.join(sys.prefix,'native',"
+        "_align=ctypes.CDLL(os.path.join(sys.prefix,'compiled-libraries',"
         "{'darwin':'audiocpp.dylib','win32':'audiocpp.dll'}[sys.platform]));"
         "assert _align.audiocpp_abi_version()==0x000200;"
         "_registry=ctypes.c_void_p();assert _align.audiocpp_registry_create(None,ctypes.byref(_registry))==0;"
@@ -59,7 +59,7 @@ def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> N
     }[profile]
     codepage = "import ctypes;assert ctypes.windll.kernel32.GetACP()==65001;" if target == "windows-x64" else ""
     code = (
-        "import os,sys;_native_dll=os.add_dll_directory(os.path.join(sys.prefix,'Library','bin')) "
+        "import os,sys;_windows_dll_directory=os.add_dll_directory(os.path.join(sys.prefix,'Library','bin')) "
         "if os.name=='nt' else None;"
         + codepage
         + "sys.path.insert(0,sys.argv[1]);assert '.'.join(map(str,sys.version_info[:3]))==sys.argv[2];"
@@ -115,7 +115,7 @@ def build(
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="knovum-runtime-", dir=scratch_parent or output.parent) as directory:
         scratch = Path(directory)
-        runtime, native = install_native(PROJECT, profile, target, scratch)
+        runtime, conda_inventory = install_conda_packages(PROJECT, profile, target, scratch)
         executable = runtime / ("python.exe" if target == "windows-x64" else "bin/python3")
         run(
             str(executable),
@@ -136,7 +136,7 @@ def build(
             "profile": profile,
             "target": target,
             "version": config["version"],
-            "nativeSupplier": native,
+            "condaSupplier": conda_inventory,
             "uvVersion": actual_uv,
             "dependencyLockSha256": dependency_digest(PROJECT, profile, target),
             "appCommit": run("git", "rev-parse", "HEAD", cwd=REPOSITORY, capture=True),
@@ -146,7 +146,7 @@ def build(
         }
         if profile == "voice-generation":
             record["voxcpm"] = dependencies
-        (scratch / "build-evidence/native-packages.json").write_text(json.dumps(native, indent=2) + "\n")
+        (scratch / "build-evidence/conda-packages.json").write_text(json.dumps(conda_inventory, indent=2) + "\n")
         (scratch / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
         run(
             "node",
@@ -225,7 +225,7 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     if args.archive_url and not args.signing:
         parser.error("publication requires --signing")
     if args.development and args.signing:
-        parser.error("development selects native local signing; omit --signing")
+        parser.error("development selects host-local signing; omit --signing")
     return args
 
 

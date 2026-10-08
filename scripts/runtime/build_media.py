@@ -1,4 +1,4 @@
-"""Produce the frozen core FFmpeg resource on its native target."""
+"""Produce the frozen core FFmpeg resource on its target host."""
 
 from __future__ import annotations
 
@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from runtime.artifacts import archive_runtime, digest
 from runtime.commands import run
+from runtime.conda_packages import install_locked_conda_packages
 from runtime.host import host_target
 from runtime.media_files import export_media_files
-from runtime.native import install_locked_native
 from runtime.signing import sign_runtime
 
 REPOSITORY = Path(__file__).resolve().parents[2]
@@ -38,7 +38,7 @@ def relocated_smoke(root: Path, target: str) -> None:
     encoders = run(str(executable), "-hide_banner", "-encoders", capture=True)
     encoder = " h264_mf " if target == "windows-x64" else " h264_videotoolbox "
     if encoder not in encoders:
-        raise ValueError("Core FFmpeg requires the native platform H.264 encoder")
+        raise ValueError("Core FFmpeg requires the target platform H.264 encoder")
     # Exercise the actual encoding and loudness filters used by speech/video exports.
     run(
         str(executable),
@@ -75,12 +75,12 @@ def build(output: Path, signing: str, archive_url: str | None) -> None:
         if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
             raise ValueError("Core media publication requires an immutable HTTPS archive URL")
     target = host_target()
-    lock = PROJECT / "native-locks/media" / f"{target}.json"
+    lock = PROJECT / "conda-locks/media" / f"{target}.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="knovum-media-", dir=output.parent) as directory:
         scratch = Path(directory)
-        runtime, native = install_locked_native(PROJECT, lock, target, scratch)
-        native_files = export_media_files(runtime, target)
+        runtime, conda_inventory = install_locked_conda_packages(PROJECT, lock, target, scratch)
+        dependency_files = export_media_files(runtime, target)
         relocated = scratch / "relocated media 中文"
         runtime.rename(relocated)
         signature = sign_runtime(relocated, target, signing)
@@ -89,8 +89,8 @@ def build(output: Path, signing: str, archive_url: str | None) -> None:
             "schemaVersion": 1,
             "target": target,
             "version": VERSION,
-            "nativeSupplier": native,
-            "nativeDependencyFiles": native_files,
+            "condaSupplier": conda_inventory,
+            "compiledDependencyFiles": dependency_files,
             "appCommit": run("git", "rev-parse", "HEAD", cwd=REPOSITORY, capture=True),
             "relocationVerified": True,
             "signing": signature,
@@ -98,8 +98,15 @@ def build(output: Path, signing: str, archive_url: str | None) -> None:
         }
         evidence = relocated / "build-evidence"
         evidence.mkdir()
-        shutil.copy2(lock, evidence / "native-lock.json")
-        for name in ("build_media.py", "media_files.py", "native.py", "artifacts.py", "binaries.py", "signing.py"):
+        shutil.copy2(lock, evidence / "conda-lock.json")
+        for name in (
+            "artifacts.py",
+            "binaries.py",
+            "build_media.py",
+            "conda_packages.py",
+            "media_files.py",
+            "signing.py",
+        ):
             shutil.copy2(REPOSITORY / "scripts/runtime" / name, evidence / name)
         producer = scratch / "producer.json"
         producer.write_text(json.dumps(record, indent=2) + "\n")
@@ -122,7 +129,7 @@ def build(output: Path, signing: str, archive_url: str | None) -> None:
             "runtimeId": "ffmpeg",
             "target": target,
             "version": VERSION,
-            "nativeLockSha256": digest(lock),
+            "condaLockSha256": digest(lock),
             "archiveUrl": archive_url,
             "size": artifact.stat().st_size,
             "sha256": digest(artifact),
@@ -143,6 +150,6 @@ if __name__ == "__main__":
     if args.archive_url and not args.signing:
         parser.error("publication requires --signing")
     if args.development and args.signing:
-        parser.error("development selects native local signing; omit --signing")
+        parser.error("development selects host-local signing; omit --signing")
     signing = args.signing or ("adhoc" if host_target().startswith("macos-") else "unsigned")
     build(args.output.resolve(), signing, args.archive_url)

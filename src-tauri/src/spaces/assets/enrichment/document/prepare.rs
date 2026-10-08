@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use super::resource;
 use crate::documents::extraction::{pdf::PdfDocumentContent, visual::DocumentImage};
-use crate::spaces::knowledge::node_contracts::document_coverage::{
+use crate::spaces::knowledge::model::document_coverage::{
     DocumentCoverage, DocumentOccurrence, DocumentParser, VisualState, MAX_TOTAL_RESOURCE_BYTES,
 };
 

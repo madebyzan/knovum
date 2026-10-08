@@ -54,9 +54,9 @@ export function captureHarness() {
 }
 
 export function pendingImport() {
-  type Result = { outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" };
-  let deferredResolve!: (value: Result) => void;
-  const promise = new Promise<Result>((resolve) => {
+  type CaptureOutcome = { outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" };
+  let deferredResolve!: (value: CaptureOutcome) => void;
+  const promise = new Promise<CaptureOutcome>((resolve) => {
     deferredResolve = resolve;
   });
   return { promise, resolve: deferredResolve };

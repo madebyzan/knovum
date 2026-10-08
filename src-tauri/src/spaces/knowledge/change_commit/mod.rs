@@ -1,15 +1,16 @@
 use crate::app_error::AppError;
-mod contract;
+mod contracts;
 mod executor;
 mod mutations;
+mod validation;
 
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::events::EventActor;
 
-pub(crate) use contract::KnowledgeChange;
-pub(crate) use contract::{validate_references, validate_structure};
+pub(crate) use contracts::KnowledgeChange;
+pub(crate) use validation::{validate_references, validate_structure};
 
 pub async fn apply(
     tx: &mut Transaction<'_, Sqlite>,
@@ -19,6 +20,6 @@ pub async fn apply(
     now: i64,
 ) -> Result<Value, AppError> {
     validate_structure(&operations)?;
-    super::contracts::validate_actor_kind(actor.kind())?;
+    super::events::validation::validate_actor_kind(actor.kind())?;
     executor::execute(tx, space_id, actor, &operations, now).await
 }

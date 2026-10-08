@@ -83,7 +83,7 @@ async function settleFailedImport(
     ...(progress.copiedPath ? [removeSpaceAsset(progress.copiedPath)] : []),
   ]);
   const cleanupErrors = cleanup
-    .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+    .filter((settlement): settlement is PromiseRejectedResult => settlement.status === "rejected")
     .map(({ reason }) => reason);
   if (cleanupErrors.length)
     throw new AggregateError(

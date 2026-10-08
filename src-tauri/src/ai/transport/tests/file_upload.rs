@@ -43,7 +43,7 @@ async fn upload(status: &str, body: &str) -> crate::app_error::AppResult<serde_j
         api_key: Some("test-key".into()),
         temperature: 0.0,
     };
-    let result = upload_file(
+    let upload = upload_file(
         &context,
         &format!("http://{address}/files"),
         UploadFile {
@@ -62,7 +62,7 @@ async fn upload(status: &str, body: &str) -> crate::app_error::AppResult<serde_j
     assert!(body.contains("filename=\"source.txt\""));
     assert!(body.contains("assistants"));
     assert!(body.contains("file contents"));
-    result
+    upload
 }
 
 #[tokio::test]

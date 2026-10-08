@@ -24,7 +24,7 @@ KNOVUM_VOICE_API const char *knovum_voice_error() { return failure.c_str(); }
 KNOVUM_VOICE_API int knovum_voice_abi() { return 2; }
 KNOVUM_VOICE_API int knovum_audio_devices(uint64_t minimum_free_bytes) {
     try {
-        int result = 1;
+        int device_flags = 1;
         for (const auto &device : core::list_backend_devices()) {
             if (device.index != 0 || (device.type != "GPU" && device.type != "IGPU")) continue;
             core::BackendType backend;
@@ -34,10 +34,10 @@ KNOVUM_VOICE_API int knovum_audio_devices(uint64_t minimum_free_bytes) {
             else if (device.backend == "Vulkan") { backend = core::BackendType::Vulkan; flag = 8; }
             else continue;
             const auto memory = core::query_backend_memory({backend, 0, 1});
-            if (!memory.available) throw std::runtime_error("Native voice GPU memory statistics are unavailable");
-            if (memory.free_bytes >= minimum_free_bytes) result |= flag;
+            if (!memory.available) throw std::runtime_error("Compiled voice GPU memory statistics are unavailable");
+            if (memory.free_bytes >= minimum_free_bytes) device_flags |= flag;
         }
-        return result;
+        return device_flags;
     } catch (const std::exception &error) { failure = error.what(); return -1; }
 }
 KNOVUM_VOICE_API int knovum_voice_devices() {

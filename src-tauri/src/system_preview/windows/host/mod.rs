@@ -16,7 +16,7 @@ pub(super) fn open(source: &Path, owner: isize) -> Result<(), String> {
     let source = source.to_path_buf();
     let (sender, receiver) = sync_channel(1);
     std::thread::Builder::new()
-        .name("knovum-native-preview".into())
+        .name("knovum-system-preview".into())
         .spawn(move || preview_thread(source, owner, sender))
         .map_err(|error| format!("Windows could not start the preview thread: {error}"))?;
     receiver
@@ -45,7 +45,7 @@ fn preview_thread(
     }
     window.show();
     if let Err(error) = window.run() {
-        log::error!("Windows native preview failed: {error}");
+        log::error!("Windows system preview failed: {error}");
     }
 }
 

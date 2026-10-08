@@ -1,11 +1,11 @@
 mod acquisition;
-mod contract;
+mod contracts;
 mod jobs;
 mod publish;
 
 use crate::app_error::AppError;
 use crate::media::acquisition::contracts::AcquisitionProgress;
-pub(crate) use contract::ImportedMedia;
+pub(crate) use contracts::ImportedMedia;
 
 pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), String> {
     acquisition::cleanup_stale(app)

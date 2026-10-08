@@ -1,5 +1,5 @@
 import { relationKinds, relationStatuses } from "../../contracts/generated/contract-values";
-import type { RelationActorKind } from "../../contracts/generated/RelationActorKind";
+import type { KnowledgeActorKind } from "../../contracts/generated/KnowledgeActorKind";
 import type { RelationKind } from "../../contracts/generated/RelationKind";
 import type { RelationStatus } from "../../contracts/generated/RelationStatus";
 import { compareUtf8Binary } from "../text";
@@ -37,7 +37,7 @@ export interface SpaceRelation {
   status: SpaceRelationStatus;
   statusBeforeInvalidation?: "active" | "contested" | null;
   confidence?: number;
-  actorKind: RelationActorKind;
+  actorKind: KnowledgeActorKind;
   actorId?: string;
   createdAt: number;
   updatedAt: number;

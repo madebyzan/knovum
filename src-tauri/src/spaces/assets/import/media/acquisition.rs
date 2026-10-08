@@ -3,7 +3,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use super::{contract::ImportedMedia, publish};
+use super::{contracts::ImportedMedia, publish};
 use crate::media::acquisition::{
     contracts::AcquisitionProgress,
     metadata::is_http_url,

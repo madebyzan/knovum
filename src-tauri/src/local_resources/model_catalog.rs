@@ -37,7 +37,7 @@ pub enum LocalModelId {
 
 #[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
-pub struct LocalModelEntry {
+pub struct LocalModelAvailability {
     pub id: LocalModelId,
     pub name: &'static str,
     pub capability: &'static str,
@@ -144,7 +144,7 @@ impl LocalModelId {
 pub(crate) fn list<R: Runtime, F>(
     app: &AppHandle<R>,
     voice_eligible: F,
-) -> Result<Vec<LocalModelEntry>, String>
+) -> Result<Vec<LocalModelAvailability>, String>
 where
     F: Fn(LocalModelId) -> Result<bool, String>,
 {
@@ -158,7 +158,7 @@ pub(crate) fn inspect<R: Runtime, F>(
     app: &AppHandle<R>,
     id: LocalModelId,
     voice_eligible: &F,
-) -> Result<LocalModelEntry, String>
+) -> Result<LocalModelAvailability, String>
 where
     F: Fn(LocalModelId) -> Result<bool, String>,
 {
@@ -173,7 +173,7 @@ where
         .collect::<Result<Vec<_>, _>>()?;
     let unavailable_reason = availability_reason(id, voice_eligible)?;
     let transcription = super::model_selection::transcription(app)?;
-    Ok(LocalModelEntry {
+    Ok(LocalModelAvailability {
         id,
         name,
         capability,

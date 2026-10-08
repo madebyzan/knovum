@@ -3,7 +3,7 @@
 QA packaging and production publishing are different concerns. `packaging.md` owns local installer
 creation and bundled-runtime provisioning. This document owns signed distribution, the stable update
 channel and release acceptance. Workflow files implement the process; their existence does not prove
-that signing credentials, environment protection or native upgrade acceptance have been configured.
+that signing credentials, environment protection or target-platform upgrade acceptance have been configured.
 
 ## Agent conversation pre-release contract cutover
 
@@ -19,37 +19,37 @@ The new release does not restore old Ask/Plan/Execute records by defaulting them
 
 A production candidate must use committed pnpm/Cargo lockfiles and one reviewed commit on `main`.
 The candidate workflow requires the tag to match all three application versions, reviewed notes at
-`docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, native
+`docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, target-platform
 builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
 macOS arm64/x64 and Windows x64. A partial matrix cannot enter the stable manifest.
 Unauthorized writes, lost edits, duplicate irreversible effects, post-cancel publication, false
 success or evidence, secret leakage and unrecoverable data loss block release.
-The independently published, on-demand CPython interpreter, native extension modules and dependent dynamic libraries are
+The independently published, on-demand CPython interpreter, compiled extension modules and dependent dynamic libraries are
 part of the application trust boundary. Each target must verify the complete runtime manifest,
-native loadability, signing/notarization or Authenticode conditions, and an installed inference
+compiled-library loadability, signing/notarization or Authenticode conditions, and an installed inference
 smoke on a clean machine without a system Python installation. A matching hash alone does not
-establish code-signing trust or native wheel support.
+establish code-signing trust or binary-wheel support.
 
 Speech acceptance uses the exact candidate runtime and resources. On macOS arm64 it covers the MPS
-native Metal VoxCPM2 profile; Intel macOS and Windows also qualify the original-precision GGUF CPU profile with a minimum 32 GiB physical memory. These gates are not performance evidence: native
+Metal VoxCPM2 profile; Intel macOS and Windows also qualify the original-precision GGUF CPU profile with a minimum 32 GiB physical memory. These gates are not performance evidence: target-platform
 QA must still record peak memory, latency, cancellation, recovery and output quality. Sherpa diarization
 acceptance covers anonymous fixed-revision downloads, automatic and known speaker counts, and
 offline inference without credentials or external configuration. Alignment acceptance covers the selected-range limits and manual timing invalidation.
 
-### Native inference quality evidence
+### Target-platform inference quality evidence
 
 `python/tests/acceptance/report.py` is the model qualification evaluator. It reads a fixed corpus
 manifest, candidate outputs captured from the private worker and hash-bound reference/baseline outputs;
-it does not generate inference, substitute fixture values or infer a pass from imports. Capture native outputs on each supported target, then score their retained evidence in the frozen
+it does not generate inference, substitute fixture values or infer a pass from imports. Capture target-platform outputs on each supported target, then score their retained evidence in the frozen
 acceptance development environment. The scoring libraries are not installed in the bundled worker:
 
 ```text
 pnpm inference:acceptance \
-  --corpus <corpus.json> --capture <native-capture.json> --output <acceptance-report.json>
+  --corpus <corpus.json> --capture <target-capture.json> --output <acceptance-report.json>
 ```
 
 The release workflows build candidate artifacts; they do not capture this corpus or run the evaluator
-automatically. Native quality acceptance remains an explicit release requirement. Unit fixtures are
+automatically. Target-platform quality acceptance remains an explicit release requirement. Unit fixtures are
 never acceptance evidence.
 
 Exit code `0` means every scored capability passed. Exit code `1` means invalid evidence or a failed
@@ -76,7 +76,7 @@ declared digest. Licensed/private recordings may live in the controlled QA evide
 Git, but the immutable corpus manifest, audio bytes and annotations must remain reviewable under the
 recorded corpus version. Missing assets make the run unavailable.
 
-The native capture manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
+The target capture manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
 capability states and provenance containing the application version/full commit, shipped Worker digest, runtime version/digest, target, model
 spec IDs and identity digests, execution config IDs and parameters, corpus digest, and complete device,
 OS, driver and power-mode information. It accepts only `macos-arm64` and `windows-x64`. Every capability
@@ -109,7 +109,7 @@ preregistered limits. An ASR round-trip score cannot replace these human
 records. The acceptance report remains attached to the exact candidate artifacts and is regenerated for
 every runtime, model, execution-config or corpus change.
 
-The light inference Sherpa native binary still requires complete corresponding-source and notice materials for its GPL-bearing eSpeak components and an explicit maintainer distribution decision. Removing the former Kokoro model archive does not establish approval for the remaining binary. Release tooling cannot manufacture that decision.
+The light inference Sherpa compiled binary still requires complete corresponding-source and notice materials for its GPL-bearing eSpeak components and an explicit maintainer distribution decision. Removing the former Kokoro model archive does not establish approval for the remaining binary. Release tooling cannot manufacture that decision.
 
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
@@ -120,12 +120,12 @@ must be approved before the first public distribution.
 FFmpeg and the locked Python runtime must be provisioned for each target. Pinned yt-dlp/Deno downloads must
 remain available and match their embedded hashes. Clean-profile tests must install that pair and
 exercise representative PDF, media and transcription workflows. Hashes prove artifact identity,
-not publisher signing or successful native execution. The inspected macOS arm64 yt-dlp standalone
+not publisher signing or successful target execution. The inspected macOS arm64 yt-dlp standalone
 asset is ad-hoc signed, not publisher-signed. Never remove quarantine metadata or weaken OS security
 to make an unsigned tool run. Where policy requires publisher signatures, use controlled signed
-artifacts, review their provenance/hashes and repeat native acceptance.
+artifacts, review their provenance/hashes and repeat target-platform acceptance.
 
-Candidate metadata uses `localRuntimes`: one entry per native target, containing the shipped
+Candidate metadata uses `localRuntimes`: one entry per target, containing the shipped
 Worker tree digest and the complete five-profile descriptor collection. Collection and candidate
 validation require every profile exactly once, matching the artifact target and the strict runtime
 descriptor contract. Old `localInference` metadata cannot qualify a candidate.
@@ -249,7 +249,7 @@ records their hashes, original signatures, source commit, endpoint and public ke
 mixed commits/versions/configurations. Publication verifies every updater artifact with the official
 `minisign` verifier before creating a **draft** Release in the public distribution repository.
 
-Perform native acceptance on those exact candidate bytes. Record the OS/architecture, source and
+Perform target-platform acceptance on those exact candidate bytes. Record the OS/architecture, source and
 destination versions, source commit, hashes and observations at a reviewable evidence URL. Then run
 `.github/workflows/promote-update.yml` from `main`, providing `version` and `upgrade_evidence_url`.
 The evidence URL identifies reviewer-owned evidence; the workflow does not pretend that a URL proves
@@ -267,14 +267,14 @@ entrypoint; no successful build alone pushes an update to users.
 Rust owns the selected `Update`, verified bytes and single-flight operation lock. The frontend receives
 strictly validated versioned snapshots; subscribing before the initial read and ignoring old revisions
 prevents delayed messages from overwriting newer state. Settings is a view of one Pinia session, not
-the owner of an installation. The direct native updater JS commands remain ungranted.
+the owner of an installation. The direct updater JS commands remain ungranted.
 
 Enabled builds check after 30 seconds and every six hours, without interrupting startup or repeatedly
 replacing a selected update. About also supports explicit checks. Downloads are user initiated,
 cancellable and visible in Task Center/Dock/Taskbar. The official plugin verifies the signature before
 the state becomes Ready. Files larger than 1 GiB are rejected by publishing and download policy;
 Tauri buffers accepted archives in memory, so this is not a streaming-to-disk/resume implementation.
-Cancellation and the transition to Ready are decided under the same native state lock. A cancellation
+Cancellation and the transition to Ready are decided under the same updater state lock. A cancellation
 accepted before completion discards the verified bytes; a request arriving after Ready is rejected
 instead of falsely reporting that it cancelled an installable update.
 Exiting before installation discards the in-memory download and requires another download next time.
@@ -283,30 +283,30 @@ Only the version actually reviewed and downloaded may be installed. Installation
 while other Task Center jobs run, and shares the existing registered-save barrier with ordinary quit.
 All save attempts settle; a failed save prevents installation. A shared lifecycle admission lock
 excludes concurrent quit, hide-after-save and installation.
-Application commands, including native-menu commands and already-queued shortcut callbacks, cannot
+Application commands, including Application Menu commands and already-queued shortcut callbacks, cannot
 start while that lock is held. The lock releases on save or installer failure. A modal prevents new
 user edits while preparing/installing, and task state is checked again after saving. Windows may exit
-from inside its installer, so saving happens before invoking it. During native replacement, ordinary
+from inside its installer, so saving happens before invoking it. During the system replacement transition, ordinary
 quit is blocked; Tauri's distinguished restart exit is allowed. Network, signature and installation
 failures become recoverable, visible update states, not a claim of success. Release notes are rendered
 as plain text.
 
 ## Required acceptance matrix
 
-| Scenario                                            | Required outcome on every supported target                                                                                             |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                                          |
-| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                                          |
-| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                                            |
-| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                                            |
-| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                                       |
-| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                                  |
-| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                                   |
-| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                                      |
-| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                                             |
-| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                                     |
-| Speech runtime and model resources                  | Native ASR, alignment, public diarization download, MOSS-TTS-Nano and native VoxCPM2 profiles are exercised on their supported target. |
-| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                                       |
+| Scenario                                            | Required outcome on every supported target                                                                                        |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                                     |
+| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                                     |
+| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                                       |
+| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                                       |
+| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                                  |
+| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                             |
+| Repeated clicks / leave and reopen About            | One updater download/install, retained progress and selected version.                                                             |
+| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                                 |
+| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                                        |
+| Relaunch / system installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                                |
+| Speech runtime and model resources                  | ASR, alignment, public diarization download, MOSS-TTS-Nano and compiled VoxCPM2 profiles are exercised on their supported target. |
+| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                                  |
 
 The first update-enabled public installation establishes the trust/endpoint baseline. A previously
 shipped updater-disabled QA binary cannot be remotely taught an endpoint; install the baseline normally.
@@ -315,7 +315,7 @@ crypto rejection tests complement this matrix, not replace it.
 
 ## Recovery and post-release
 
-Monitor the real manifest and anonymous downloads after promotion, verify native signatures and
+Monitor the real manifest and anonymous downloads after promotion, verify platform code signatures and
 review sanitized update failures. Stop a bad rollout by removing that version from the channel or
 restoring the previous known-good manifest through an explicitly reviewed emergency change. That
 stops offers to old clients; it does not downgrade machines already upgraded.
@@ -328,7 +328,7 @@ previous release available. Do not claim automatic application/database rollback
 ## Python distribution acceptance
 
 The desktop installer excludes CPython/third-party packages and includes the current application
-Worker and trusted runtime descriptor. Native acceptance must cover anonymous first download,
+Worker and trusted runtime descriptor. Target-platform acceptance must cover anonymous first download,
 cancellation/retry, concurrent sharing and offline use after preparation, with all existing local
 AI profiles. Runtime components are prepared before models and inference deadlines. Release
 `platform.json`/`candidate.json` retain the descriptor and Worker digest beside installer identities.
@@ -341,13 +341,13 @@ immutable URLs before distributing an application that requires them. Workflow a
 are build outputs, not confirmation that those public locations exist.
 
 Resource acceptance requires each descriptor's single `archiveUrl` to serve the declared SHA-256
-without credentials, and every catalog-selected Hub source to pass native download/cancel/resume
+without credentials, and every catalog-selected Hub source to pass application download/cancel/resume
 and offline inference acceptance on supported networks. ModelScope content identity evidence does
-not establish full transfer or native execution. Clients do not ask users for regions or infer them;
+not establish full transfer or target execution. Clients do not ask users for regions or infer them;
 CDN routing belongs to the publisher. Current upstream URLs have not been qualified for every
 mainland network. If a route fails acceptance, publish a permitted identical qualified copy and
 update the catalog before release. Legacy dual-region descriptors are rejected.
-MOSS-TTS-Nano and native VoxCPM2 require their exact source/model notices and platform qualification. Public Sherpa diarization requires native acceptance
+MOSS-TTS-Nano and compiled VoxCPM2 require their exact source/model notices and platform qualification. Public Sherpa diarization requires target-platform acceptance
 for anonymous download, cancellation, digest verification and subsequent offline inference.
 Automatic speaker counting and turn quality are separate from known-count sample correctness.
 No manual folder import or application-owned terms declaration remains.
@@ -359,13 +359,13 @@ The Agent Runtime is an independent profile with its own descriptor, installed i
 license policy. The current locked SDK proof suite uses actual public Deep Agents/LangGraph APIs,
 real SQLite persistence and controlled model responses/HTTP streams. Those checks establish
 host admission, durable tool intent, projection and replay behavior; they do not qualify a real
-provider, a model's quality, native TLS/proxy behavior or either release platform.
+provider, a model's quality, system TLS/proxy behavior or either release platform.
 
 Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
-checkout before native acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
+checkout before target-platform acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
 inside its own locked environment. Provision/build commands select one of the five strict
 profiles explicitly. Packaging verifies every profile and ships only current owned source
-and all five descriptors. The maintainer owns native build/signing/installation acceptance.
+and all five descriptors. The maintainer owns target build/signing/installation acceptance.
 
 ### Provider qualification record
 
@@ -376,12 +376,12 @@ for Responses, Anthropic, Gemini, Ollama, DeepSeek, Groq or a compatible service
 
 | Endpoint family         | Required evidence                                                             | Current real-provider qualification |
 | ----------------------- | ----------------------------------------------------------------------------- | ----------------------------------- |
-| OpenAI Chat             | streaming usage, simultaneous tools/images, interruption/recovery             | Pending credentials/native run      |
-| OpenAI Responses        | reasoning/tool correlation, encrypted reasoning, no response-store dependency | Pending credentials/native run      |
-| Anthropic               | native tool/image blocks and usage under summary/research                     | Pending credentials/native run      |
-| Gemini v1/v1beta        | declared API version, tool/image content and usage                            | Pending credentials/native run      |
-| Ollama                  | selected local model supports tools/images and reports usage                  | Pending configured model/native run |
-| DeepSeek / Groq         | native integration preserves reasoning/tool sequence and usage                | Pending credentials/native run      |
+| OpenAI Chat             | streaming usage, simultaneous tools/images, interruption/recovery             | Pending credentials/target run      |
+| OpenAI Responses        | reasoning/tool correlation, encrypted reasoning, no response-store dependency | Pending credentials/target run      |
+| Anthropic               | provider tool/image blocks and usage under summary/research                   | Pending credentials/target run      |
+| Gemini v1/v1beta        | declared API version, tool/image content and usage                            | Pending credentials/target run      |
+| Ollama                  | selected local model supports tools/images and reports usage                  | Pending configured model/target run |
+| DeepSeek / Groq         | provider integration preserves reasoning/tool sequence and usage              | Pending credentials/target run      |
 | China/custom compatible | exact declared endpoint/protocol, regional access, tool/image/usage           | Pending per-endpoint run            |
 
 ### Business regression corpus
@@ -432,14 +432,14 @@ Zero authorization violations or duplicate business effects are required. Invest
 feature loss. More than 20% median cost/time increase requires evidence, a strategy correction
 and remeasurement; do not declare improvement from a constructed mock.
 
-### Native runtime/control matrix
+### Managed-runtime/control matrix
 
 On **macOS 14+ arm64/x64** and **Windows x64**, record clean installation without system Python,
 anonymous first download of all five profiles through the application-managed sources, cancellation, separate dependency
-imports, restart/offline use, native CA/proxy behavior, protocol initialization, process-tree
+imports, restart/offline use, system CA/proxy behavior, protocol initialization, process-tree
 termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
 asset publication. The producer performs relocation imports from a path with spaces and Chinese
-characters before and after signing. Verify native binary signers/timestamps, app signing,
+characters before and after signing. Verify compiled binary signers/timestamps, app signing,
 install/uninstall and upgrade separately. macOS x64 development checks do not satisfy this matrix.
 
 ## Agent extension qualification

@@ -50,7 +50,7 @@ quality and restricted imports; it is not a dependency-graph engine.
   and persistence adapters.
 - `shared/contracts/` owns stable neutral contracts with several consumers.
 - `shared/ui/` owns durable Knovum visual compositions. Reka remains the primitive behavior owner.
-- `src-tauri/src/desktop/` owns native lifecycle that must remain correct while the WebView is hidden
+- `src-tauri/src/desktop/` owns desktop lifecycle that must remain correct while the WebView is hidden
   or unavailable.
 
 Directories express stable ownership, not temporary implementation stages. Start a capability flat
@@ -72,7 +72,7 @@ validation, security, domain translation, or real multi-API orchestration.
 
 Use `cloneDeep` from the existing `es-toolkit` dependency for independent editable copies of
 repository-owned data, including Vue reactive data. Do not add a clone wrapper or use serialization
-as cloning. Native `structuredClone` remains appropriate when platform structured-clone semantics
+as cloning. Built-in `structuredClone` remains appropriate when platform structured-clone semantics
 are the actual requirement. Validation remains the responsibility of the owning boundary.
 
 ## Capability boundaries
@@ -112,6 +112,14 @@ produce resources. `commands/` and `derivation/` may depend on `knowledge/`, ind
 infrastructure adapters, but cannot duplicate semantic policy. A command/query split for one
 aggregate is intentional, not duplicate behavior. Files are duplicates only when both decide the
 same policy, validate the same invariant, translate the same boundary, or own the same side effect.
+
+Within `knowledge/`, `contracts/` holds shared actor, relation and external-source shapes;
+`model/` owns canonical semantic revisions and shared document-coverage models, invariants and
+projections. Neither owns persistence. `validation/` composes node boundary validation with those
+models, while `relations/`, `provenance/` and `events/` own their respective policies. Indexing owns
+chunk generation and index operations rather than shared semantic revision rules.
+`change_commit/contracts.rs` defines proposed changes; `change_commit/validation/` owns their
+structural and database-reference checks before execution.
 
 `spaces/structure/planner/` is private except for the structure-scoped clone, deletion, bounds, and
 spatial/tree-policy boundaries consumed by transactions and transfer. Neutral image engines accept
@@ -198,7 +206,7 @@ are state owners rather than jobs and do not use that primitive.
 
 - Component-local refs own local visual state.
 - Pinia owns cross-view session state.
-- TanStack Vue Query owns async/native query cache.
+- TanStack Vue Query owns async/IPC query cache.
 - Tauri Store owns durable non-secret preferences through the strict current v1 schema.
 - Feature-owned SQLite databases own structured local product data and indexes.
 - The foundation-owned `secrets.db` owns credentials and tokens.
@@ -233,7 +241,7 @@ entering the frontend model.
 
 Expose one command per user or application intent so the WebView cannot compose a second domain
 implementation from low-level primitives. Vue components consume capability operations and query
-options, never native application-command transport directly. Application composition may invoke
+options, never Tauri application-command transport directly. Application composition may invoke
 startup operations; the owning capability still owns its command contract.
 
 Frontend model schemas may impose stricter product policy than a serialized DTO. That refinement is
@@ -255,12 +263,12 @@ message text or converts a classified error back to a string before acting on it
 
 Renderer application calls use `foundation/ipc/invoke-command` and
 `foundation/errors/app-error`. The boundary preserves an existing `Error` and invoke arguments,
-normalizes valid product envelopes, and retains malformed/native causes. It owns normalization only;
+normalizes valid product envelopes, and retains malformed/transport causes. It owns normalization only;
 Tauri owns transport, serialization, and Channels. It does not own notifications, caching, retries,
 cancellation, or business recovery.
 
 `foundation/errors/error-format` owns user-facing messages and diagnostic formatting. An operation
-has one notification owner. Native `AggregateError` is reserved for independent failures such as an
+has one notification owner. Built-in `AggregateError` is reserved for independent failures such as an
 operation and failed rollback, with the original failure retained as its cause. Cleanup or Renderer
 projection failure must not replace an original failure or undo an already committed result.
 
@@ -301,7 +309,7 @@ The repository enforces these boundaries through:
   frontend tests, Knip, jscpd, and Oxfmt;
 - `pnpm check:rust`: source-layout, capability and explicit Rust source-boundary checks, rustfmt, Clippy, and Rust tests;
 - `pnpm check:python`: Python source and contract checks;
-- `pnpm check:scripts`: all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/native acceptance stays separate;
+- `pnpm check:scripts`: all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
 - `pnpm check`: all four groups;
 - `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
 - `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including Model Resources Python constraints.

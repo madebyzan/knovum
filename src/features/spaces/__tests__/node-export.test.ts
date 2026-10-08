@@ -21,7 +21,7 @@ describe("Space node export", () => {
     mocks.save.mockReset().mockResolvedValue("/exports/result");
   });
 
-  it("saves a generated managed audio file through the authorized native exporter", async () => {
+  it("saves a generated managed audio file through the authorized Rust exporter", async () => {
     await expect(exportSpaceAssetFile("/managed/accompaniment.wav", "accompaniment.wav")).resolves.toBe(true);
     expect(mocks.save).toHaveBeenCalledWith({ defaultPath: "accompaniment.wav" });
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_asset", {

@@ -64,8 +64,8 @@ class ScriptedModel(ChatOpenAI):
     async def _astream(
         self, messages: list[BaseMessage], stop: list[str] | None = None, **kwargs: Any
     ) -> AsyncIterator[ChatGenerationChunk]:
-        result = await self._agenerate(messages, stop=stop, **kwargs)
-        message = result.generations[0].message
+        completion = await self._agenerate(messages, stop=stop, **kwargs)
+        message = completion.generations[0].message
         yield ChatGenerationChunk(message=AIMessageChunk(**message.model_dump(exclude={"type"})))
 
 

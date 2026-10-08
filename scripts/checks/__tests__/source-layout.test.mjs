@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-import { inspectSourceLayout } from "../source-layout.mjs";
+import { inspectSourceLayout, sourceRoots } from "../source-layout.mjs";
 
 function fixture(t, files, directories = []) {
   const root = mkdtempSync(join(tmpdir(), "knovum-source-layout-"));
@@ -17,9 +17,47 @@ function fixture(t, files, directories = []) {
   return root;
 }
 
+test("source roots include Rust build support", () => {
+  assert.ok(sourceRoots.includes("src-tauri/build_support"));
+});
+
 test("sibling stems conflict across supported platform case conventions", (t) => {
   const root = fixture(t, { "Worker.py": "pass\n" }, ["worker"]);
   assert.match(inspectSourceLayout(root)[0], /conflicts with directory/);
+});
+
+test("path checks do not infer owner responsibility from directory tokens", (t) => {
+  const root = fixture(t, { "services/catalog.ts": "export {};\n" });
+  assert.deepEqual(inspectSourceLayout(root), []);
+});
+
+test("explicit owner paths reject native identities and index modules", (t) => {
+  const root = fixture(
+    t,
+    {
+      "runtime/native.cpp": "// compiled adapter\n",
+      "runtime/native.json": "{}\n",
+      "runtime/native.cmake": "# compiled recipe\n",
+      "runtime/native.py": "pass\n",
+      "runtime/pascal/NativeRenderer.ts": "export {};\n",
+      "runtime/camel/nativeRenderer.ts": "export {};\n",
+      "runtime/natively.ts": "export {};\n",
+      "runtime/__pycache__/native.cpython.pyc": "generated cache\n",
+      "workspace/index.ts": "export {};\n",
+    },
+    ["native-locks", "NativeRuntime"],
+  );
+  const violations = inspectSourceLayout(root);
+  assert.equal(violations.length, 9);
+  assert.ok(violations.some((message) => /native-locks: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /native\.cpp: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /native\.json: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /native\.cmake: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /native\.py: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /NativeRenderer\.ts: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /nativeRenderer\.ts: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /NativeRuntime: native is not a path identity/.test(message)));
+  assert.ok(violations.some((message) => /index\.ts: TypeScript index modules are forbidden/.test(message)));
 });
 
 test("embedded tests are rejected in Rust, Python and frontend business sources", (t) => {
@@ -32,7 +70,7 @@ test("embedded tests are rejected in Rust, Python and frontend business sources"
   assert.equal(inspectSourceLayout(root).length, 4);
 });
 
-test("native test modules and dedicated test directories are accepted", (t) => {
+test("language test modules and dedicated test directories are accepted", (t) => {
   const root = fixture(t, {
     "publication/mod.rs": "#[cfg(test)]\nmod tests;\n",
     "publication/tests/mod.rs": "#[test]\nfn commits() {}\n",

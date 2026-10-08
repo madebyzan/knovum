@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::spaces::structure::contract::{Point, Size, StructureLayout, StructureNode};
+use crate::spaces::structure::contracts::{Point, Size, StructureLayout, StructureNode};
 use crate::spaces::structure::edit_contract::SpaceRect;
 
 mod content;

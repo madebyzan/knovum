@@ -156,7 +156,7 @@ where
             *guard = None;
             return Err("cancelled".into());
         }
-        result = tokio::time::timeout_at(
+        synthesis = tokio::time::timeout_at(
             deadline,
             async {
                 loop {
@@ -206,7 +206,7 @@ where
                     }
                 }
             },
-        ) => match result {
+        ) => match synthesis {
             Ok(value) => value,
             Err(_) => {
                 cancel(worker, &request_id, attempt_epoch).await;

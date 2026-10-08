@@ -48,7 +48,7 @@ def test_inference_always_settles_its_active_request(
                 started.set()
                 assert release.wait(3)
                 if outcome == "failure":
-                    raise MemoryError("native allocation failed")
+                    raise MemoryError("compiled dependency allocation failed")
                 return [[float("nan") if outcome == "invalid_output" else 0.25]], 1
 
         server._session = Session("session", RuntimeCapability.embedding, "embedding-spec", Engine(), tmp_path)
@@ -74,9 +74,9 @@ def test_inference_always_settles_its_active_request(
                 monkeypatch.setattr(time, "time", lambda: elapsed_seconds)
             release.set()
             if outcome == "success":
-                result = await task
-                assert result["vectors"] == [[0.25]]
-                assert result["requestId"] == "request"
+                embedding = await task
+                assert embedding["vectors"] == [[0.25]]
+                assert embedding["requestId"] == "request"
             elif outcome == "failure":
                 with pytest.raises(MemoryError):
                     await task

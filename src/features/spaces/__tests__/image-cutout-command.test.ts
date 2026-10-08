@@ -7,7 +7,7 @@ import { createImageCutout } from "../knowledge-derivations/image-cutout";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: InvokeArgs) => Promise<unknown>>(),
   toastError: vi.fn<(message: string) => void>(),
   tasks: {
@@ -17,8 +17,8 @@ const native = vi.hoisted(() => ({
     fail: vi.fn<ReturnType<typeof useTaskStore>["fail"]>(),
   },
 }));
-vi.mock("vue-sonner", () => ({ toast: { error: native.toastError } }));
-vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => native.tasks }));
+vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
+vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => mocks.tasks }));
 vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("../canvas/editor-session", () => ({
   getCanvasEditorSession: () => ({
@@ -69,14 +69,14 @@ function createStore(): Parameters<typeof createImageCutout>[0] {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  native.tasks.start.mockReturnValue("task");
-  mockIPC((command, args) => native.invoke(command, args));
+  mocks.tasks.start.mockReturnValue("task");
+  mockIPC((command, args) => mocks.invoke(command, args));
 });
 afterEach(() => clearMocks());
 
 it("submits one Rust cutout command after creating the existing canvas output", async () => {
   const store = createStore();
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:spaces|check_image_cutout_source") return true;
     if (command === "plugin:spaces|allocate_visualization_output_path") return pending.data.assetPath;
     if (command === "plugin:spaces|run_image_cutout_derivation")
@@ -85,7 +85,7 @@ it("submits one Rust cutout command after creating the existing canvas output", 
   });
   await createImageCutout(store, source);
   expect(store.addContent).toHaveBeenCalledWith(pending.data, { x: 314, y: 20 }, { reveal: true });
-  expect(native.invoke).toHaveBeenCalledWith("plugin:spaces|run_image_cutout_derivation", {
+  expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|run_image_cutout_derivation", {
     request: {
       id: expect.any(String),
       spaceId: "space",
@@ -95,13 +95,13 @@ it("submits one Rust cutout command after creating the existing canvas output", 
       sourceEdit: null,
     },
   });
-  expect(native.invoke).toHaveBeenCalledTimes(3);
-  expect(native.tasks.succeed).toHaveBeenCalledWith("task");
+  expect(mocks.invoke).toHaveBeenCalledTimes(3);
+  expect(mocks.tasks.succeed).toHaveBeenCalledWith("task");
 });
 
 it("marks a pending output failed when the combined Rust command cannot run", async () => {
   const store = createStore();
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:spaces|check_image_cutout_source") return true;
     if (command === "plugin:spaces|allocate_visualization_output_path") return pending.data.assetPath;
     throw new Error("Cutout failed");
@@ -112,20 +112,20 @@ it("marks a pending output failed when the combined Rust command cannot run", as
     expectedData: pending.data,
     data: { ...pending.data, processingState: "failed" },
   });
-  expect(native.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
+  expect(mocks.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
 });
 
 it("records the task failure even when refreshing the failed output fails", async () => {
   const store = createStore();
   vi.mocked(store.refreshActiveSpace).mockRejectedValueOnce(new Error("Refresh failed"));
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:spaces|check_image_cutout_source") return true;
     if (command === "plugin:spaces|allocate_visualization_output_path") return pending.data.assetPath;
     throw new Error("Cutout failed");
   });
   await expect(createImageCutout(store, source)).rejects.toThrow("Refresh failed");
-  expect(native.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
-  expect(native.toastError).toHaveBeenCalled();
+  expect(mocks.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
+  expect(mocks.toastError).toHaveBeenCalled();
 });
 
 it("does not apply a pending-node fallback to another active Space", async () => {
@@ -133,12 +133,12 @@ it("does not apply a pending-node fallback to another active Space", async () =>
   vi.mocked(store.refreshActiveSpace).mockImplementationOnce(async () => {
     store.activeSpaceId = "another-space";
   });
-  native.invoke.mockImplementation(async (command: string) => {
+  mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:spaces|check_image_cutout_source") return true;
     if (command === "plugin:spaces|allocate_visualization_output_path") return pending.data.assetPath;
     throw new Error("Cutout failed");
   });
   await createImageCutout(store, source);
   expect(store.saveNodeContentForSpace).not.toHaveBeenCalled();
-  expect(native.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
+  expect(mocks.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
 });

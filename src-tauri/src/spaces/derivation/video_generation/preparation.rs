@@ -6,7 +6,7 @@ use tauri::AppHandle;
 use super::GenerateVideoRequest;
 use crate::ai::tasks::TaskExecutionTarget;
 use crate::spaces::derivation::{inputs, pending_output, source_validation};
-use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
+use crate::spaces::{assets::asset_directory, db};
 
 pub struct PreparedVideo {
     pub path: String,
@@ -29,7 +29,7 @@ pub async fn start(
     authority.require_active(&mut *tx).await?;
     let asset_directory = asset_directory(app)?;
     for input in &request.inputs {
-        contracts::validate_same_space_node(
+        crate::spaces::knowledge::validation::validate_same_space_node(
             &mut tx,
             &request.space_id,
             &input.node_id,

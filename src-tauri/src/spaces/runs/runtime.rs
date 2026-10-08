@@ -158,7 +158,7 @@ async fn execute_attempt(
                 Err(error) if error.code == "budget_exhausted" => {
                     scheduler::fail_step(pool, claim, &error).await
                 }
-                result => result,
+                completion => completion,
             }
         }
         Ok(StepOutcome::Waiting { reason, checkpoint }) => {

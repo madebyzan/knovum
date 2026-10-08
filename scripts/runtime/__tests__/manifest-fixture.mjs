@@ -30,19 +30,21 @@ export function fixture(context, profile = "voice-generation") {
     "runtime-source.json",
     JSON.stringify({
       uvVersion: "0.12.23",
-      voiceNative: {
+      voiceLibrary: {
         revision: commit,
         license: "Apache-2.0",
         cmakeVersion: "4.3.4",
         source: { sha256: hash("source") },
       },
-      nativeSupplier: { name: "conda-forge", micromambaVersion: "2.9.0", profiles: { [profile]: "base" } },
+      condaSupplier: { name: "conda-forge", micromambaVersion: "2.9.0", profiles: { [profile]: "base" } },
     }),
   );
-  const nativeLock = JSON.stringify({ packages: [{ name: "python", ...source }] });
-  write(shared, `native-locks/base/${target}.json`, nativeLock);
-  const native = { sources: [{ fileName: "native.zip", name: "native", sha256: hash("native"), size: 6 }] };
-  write(shared, "compiled-source-evidence.json", JSON.stringify(native));
+  const condaLock = JSON.stringify({ packages: [{ name: "python", ...source }] });
+  write(shared, `conda-locks/base/${target}.json`, condaLock);
+  const compiledSources = {
+    sources: [{ fileName: "compiled.zip", name: "compiled", sha256: hash("source"), size: 6 }],
+  };
+  write(shared, "compiled-source-evidence.json", JSON.stringify(compiledSources));
   write(python, "src/knovum_inference/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
@@ -55,12 +57,12 @@ export function fixture(context, profile = "voice-generation") {
     target,
     version: "3.11.17",
     uvVersion: "0.12.23",
-    dependencyLockSha256: hash(lock + nativeLock),
+    dependencyLockSha256: hash(lock + condaLock),
     appCommit: commit,
-    nativeSupplier: {
+    condaSupplier: {
       supplier: "conda-forge",
       micromambaVersion: "2.9.0",
-      lockSha256: hash(nativeLock),
+      lockSha256: hash(condaLock),
       packages: [{ name: "python", ...source, files: [] }],
     },
     relocationVerified: true,
@@ -77,16 +79,25 @@ export function fixture(context, profile = "voice-generation") {
     },
   };
   write(evidence, "producer.json", JSON.stringify(producer));
+  const dependencyEvidence = {
+    cpython: { version: "3.11.17", source },
+    runtimeInstallation: {
+      supplier: "conda-forge",
+      target,
+      compiledBinaries: ["bin/python3"],
+      notices: [],
+    },
+  };
   for (const [name, bytes] of [
-    ["dependency-evidence.json", "{}"],
-    ["native-packages.json", JSON.stringify(producer.nativeSupplier)],
+    ["dependency-evidence.json", JSON.stringify(dependencyEvidence)],
+    ["conda-packages.json", JSON.stringify(producer.condaSupplier)],
     ["sbom.cdx.json", "{}"],
     ["requirements.txt", "requirements"],
     ["audio-cpp-source.tar.gz", "source"],
     ["voice_bridge.cpp", "bridge"],
     ["voice_bridge.cmake", "recipe"],
-    ["compiled-source-evidence.json", JSON.stringify(native)],
-    ["compiled-sources/native.zip", "native"],
+    ["compiled-source-evidence.json", JSON.stringify(compiledSources)],
+    ["compiled-sources/compiled.zip", "source"],
   ])
     write(evidence, name, bytes);
   write(root, "scripts/runtime/voice_bridge.cpp", "bridge");
@@ -102,7 +113,7 @@ export function fixture(context, profile = "voice-generation") {
       JSON.stringify({
         schemaVersion: 1,
         profile,
-        dependencyLockSha256: hash(lock + nativeLock),
+        dependencyLockSha256: hash(lock + condaLock),
         runtimeId: "cpython",
         version: "3.11.17",
         dependencyRequirementsSha256: hash("requirements"),

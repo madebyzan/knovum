@@ -7,8 +7,8 @@ from pathlib import Path
 
 from runtime.artifacts import download
 from runtime.commands import run
+from runtime.conda_packages import conda_lock_path
 from runtime.inventory import write_inventory
-from runtime.native import native_lock_path
 
 
 def export_requirements(project: Path, destination: Path, *options: str) -> None:
@@ -48,9 +48,9 @@ def install_dependencies(
     packages = runtime / "packages"
     evidence = scratch / "build-evidence"
     configuration = json.loads((shared_project / "runtime-source.json").read_text())
-    supplier = configuration["nativeSupplier"]
-    native_packages = supplier["pythonDistributions"][supplier["profiles"][profile]]
-    options = tuple(part for name in native_packages for part in ("--no-emit-package", name))
+    supplier = configuration["condaSupplier"]
+    conda_packages = supplier["pythonDistributions"][supplier["profiles"][profile]]
+    options = tuple(part for name in conda_packages for part in ("--no-emit-package", name))
     export_requirements(project, requirements, *options)
     run(
         "uv",
@@ -84,7 +84,7 @@ def install_dependencies(
         runtime,
         project / "uv.lock",
         evidence,
-        native_lock_path(shared_project, profile, target),
+        conda_lock_path(shared_project, profile, target),
         target,
         source_components,
     )

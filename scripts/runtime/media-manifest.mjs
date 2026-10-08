@@ -7,11 +7,11 @@ import {
   MediaRuntimeContentError,
   parseMediaManifest,
   runtimeFileMetadata,
-  validateMediaNativeInventory,
+  validateCompiledDependencyInventory,
   validateMediaProducer,
 } from "./media-runtime-content.mjs";
 import { producerBytes, runtimeTargets } from "./profiles.mjs";
-import { validateNativeSupplier, validateSigningRecord } from "./provenance.mjs";
+import { validateCondaSupplier, validateSigningRecord } from "./provenance.mjs";
 
 const mediaVersion = "9.0.1";
 export const mediaManifestName = "media-manifest.json";
@@ -21,15 +21,15 @@ export function mediaExecutable(target) {
   return target === "windows-x64" ? "Library/bin/ffmpeg.exe" : "bin/ffmpeg";
 }
 
-export function mediaLockPath(repository, target) {
-  return join(repository, "python/native-locks/media", `${target}.json`);
+export function mediaCondaLockPath(repository, target) {
+  return join(repository, "python/conda-locks/media", `${target}.json`);
 }
 
 function mediaRecipeIdentity(repository, target) {
   return createHash("sha256")
     .update(readFileSync(join(repository, "python/runtime-source.json")))
     .update(producerBytes(repository, "media"))
-    .update(readFileSync(mediaLockPath(repository, target)))
+    .update(readFileSync(mediaCondaLockPath(repository, target)))
     .digest("hex");
 }
 
@@ -76,15 +76,15 @@ export function validateMediaRuntime(repository, directory, target) {
     throw new MediaRuntimeContentError("Media runtime identity differs from the controlled build");
   validateMediaProducer(manifest.producer, target, mediaVersion);
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
-  validateNativeSupplier(
-    manifest.producer.nativeSupplier,
-    configuration.nativeSupplier,
-    mediaLockPath(repository, target),
+  validateCondaSupplier(
+    manifest.producer.condaSupplier,
+    configuration.condaSupplier,
+    mediaCondaLockPath(repository, target),
     MediaRuntimeContentError,
   );
   validateSigningRecord(manifest.producer.signing, target, MediaRuntimeContentError);
   validateFiles(directory, manifest, target);
-  validateMediaNativeInventory(manifest);
+  validateCompiledDependencyInventory(manifest);
   return manifest;
 }
 
@@ -159,7 +159,7 @@ export function validateMediaDescriptor(repository, descriptor, target) {
     runtimeId: "ffmpeg",
     target,
     version: mediaVersion,
-    nativeLockSha256: sha256File(mediaLockPath(repository, target)),
+    condaLockSha256: sha256File(mediaCondaLockPath(repository, target)),
   };
   if (
     !exactKeys(descriptor, [...Object.keys(expected), "archiveUrl", "size", "sha256", "manifestSha256"]) ||

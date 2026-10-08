@@ -7,7 +7,7 @@ use std::{
 use sha2::{Digest, Sha256};
 
 use crate::spaces::assets::{asset_directory, authorize_spaces_asset};
-use crate::spaces::knowledge::node_contracts::document_coverage::{
+use crate::spaces::knowledge::model::document_coverage::{
     DocumentResource, MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS,
 };
 
@@ -160,7 +160,7 @@ pub(super) fn save_render(
     claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, String> {
     let raster = crate::documents::rendering::render(source, input)?;
-    // The native adapter already owns bounded PNG generation; do not decode and encode it again.
+    // The system preview adapter already owns bounded PNG generation; do not decode and encode it again.
     if raster.bytes.len() as u64 > MAX_RESOURCE_BYTES {
         return Err("Rendered PDF input exceeds 32 MiB".into());
     }

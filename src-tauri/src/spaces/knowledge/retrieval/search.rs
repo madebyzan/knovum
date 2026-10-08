@@ -21,7 +21,7 @@ use super::{
     lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists},
     predicates::escape_sql_literal,
     schema::VECTOR_COLUMN,
-    search_results::batches_to_values,
+    search_projection::project_search_matches,
     validation::validate_query_vector,
 };
 
@@ -133,7 +133,7 @@ pub(super) async fn query_vectors(
         .try_collect::<Vec<RecordBatch>>()
         .await
         .map_err(|error| format!("Failed to read LanceDB vector search results: {error}"))?;
-    batches_to_values(&batches)
+    project_search_matches(&batches)
 }
 
 fn build_filter(

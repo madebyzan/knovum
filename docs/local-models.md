@@ -9,7 +9,7 @@ Platform-specific runtime binaries belong to the application release and are nev
 - FFmpeg
 - trusted platform descriptors for the on-demand CPython 3.11.17 inference and Agent profiles
 
-Debug builds prepare the selected managed runtime from this checkout on first use. CI publishes native resources for all three desktop targets and embeds the resulting immutable descriptors in the application. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. Each separately published Python runtime has its own manifest listing every file, size and SHA-256. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing resources do not block ordinary startup or Space editing; feature execution prepares its required runtime and model through the shared cancellable Task Center.
+Debug builds prepare the selected managed runtime from this checkout on first use. CI publishes compiled resources for all three desktop targets and embeds the resulting immutable descriptors in the application. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. Each separately published Python runtime has its own manifest listing every file, size and SHA-256. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing resources do not block ordinary startup or Space editing; feature execution prepares its required runtime and model through the shared cancellable Task Center.
 
 ## Prepared on first use
 
@@ -61,21 +61,21 @@ timeline before MLX transcription; speech interval filtering does not compress t
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer
-than eight transcript segments or 300 seconds. Settings offers a smaller Q8_0 native model (default)
-and the official full Transformers checkpoint. The native snapshot fixes the audio.cpp GGUF export
+than eight transcript segments or 300 seconds. Settings offers a smaller Q8_0 GGUF model (default)
+and the official full Transformers checkpoint. The GGUF snapshot fixes the audio.cpp export
 at `09fe073ba154561f4474162e8bd4ab233a848eca`; weights, Apache-2.0 license and model card total
-1,129,987,258 bytes. It uses the same frozen audio.cpp supplier as native voice generation,
+1,129,987,258 bytes. It uses the same frozen audio.cpp supplier as audio.cpp voice generation,
 through its public C API, and selects Metal/CUDA/Vulkan when the compiled backend has sufficient
 currently free memory. CPU selection happens before inference; failures are reported without
 trying another engine or device. The full snapshot is `Qwen/Qwen3-ForcedAligner-0.6B-hf` at
 `c07281df297b9905d24a508279258cccf987a064`, matched to the frozen Transformers 5.19 API.
-Its six native-layout files total 1,847,225,867 bytes. The obsolete checkpoint layout is not read or
+Its six Transformers-layout files total 1,847,225,867 bytes. The obsolete checkpoint layout is not read or
 converted. The adapter requests supplier loading evidence and rejects missing, unexpected or
 mismatched parameters before inference; no randomly initialized weights are accepted. See the
-[official native model documentation](https://huggingface.co/docs/transformers/model_doc/qwen3_asr).
+[official model documentation](https://huggingface.co/docs/transformers/model_doc/qwen3_asr).
 Each durable alignment request freezes a model specification independent of its execution device.
 Retries use that specification; transcript provenance retains the selected model and upstream revision.
-The native synchronous C API owns one session per worker and does not expose an inference abort hook.
+The synchronous audio.cpp C API owns one session per worker and does not expose an inference abort hook.
 Cancellation is checked before/after inference and between segments; the host's existing bounded
 worker shutdown terminates a call that does not settle. No additional cancellation protocol is simulated.
 Alignment writes stable word or character units against the selected transcript revision; partial
@@ -98,7 +98,7 @@ entry share the same cancellable capability preparation request and light infere
 Diarization is bounded to two hours of mono 16 kHz PCM16 WAV. The user may leave the speaker count
 automatic or provide one exact known count from 1 through 32. Sherpa clustering does not expose
 arbitrary minimum/maximum constraints; the product does not simulate them. Existing durable job
-columns retain the automatic/exact-count invariant. Native acceptance must measure automatic
+columns retain the automatic/exact-count invariant. Target-platform acceptance must measure automatic
 speaker-count and turn quality; a successful known-count sample does not qualify automatic counting.
 Video source separation uses the two fixed
 selected Spleeter FP16 or FP32 ONNX pair through sherpa-onnx on CPU. Rust converts the source to 44.1 kHz stereo
@@ -129,7 +129,7 @@ Rust verifies resources and freezes the engine, model, device, owner, attempt, a
 deadline before starting a private worker. Workers load verified snapshots offline, return validated
 results or request-scoped artifacts, and cannot write the Knowledge database or vector index.
 Process admission, resident-memory checks, idle reuse, cancellation and publication are defined in
-[system-architecture.md](system-architecture.md); native source and license approval remains a
+[system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
 ## Generative AI and privacy
@@ -153,20 +153,20 @@ Detection runs before each execution profile is frozen. CUDA qualification uses 
 The request and worker identity freeze the selected backend, F32 precision and thread budget.
 The model revision, last-token pooling, token limit and 1,024-dimensional index remain fixed.
 The unified-memory restriction is in the pinned [Torch MPS allocator](https://github.com/pytorch/pytorch/blob/v2.13.0/aten/src/ATen/mps/MPSAllocator.mm).
-Apple Silicon transcription already selects MLX/Metal. Windows uses the frozen CUDA 12.8 Tensor closure (Torch 2.13.0, cuDNN 9.10.2.21) for Qwen and Faster Whisper. It includes CPU execution for computers without a qualified CUDA device. Faster Whisper checks CTranslate2 float16 support before selecting its CUDA profile. The closure is application-managed; users do not install a CUDA toolkit. Windows native GPU execution still requires hardware acceptance. Other CPU-only engine packages retain their supplier execution contract.
-VoxCPM2's native x64 runtime builds the supplier's CPU instruction-set variants and chooses a supported kernel before loading the model. Its Windows Vulkan backend is a separately loaded module; a machine without a Vulkan driver can initialize the CPU backend. Native Metal/Vulkan availability and free GPU capacity are probed before the request freezes its device. The Windows build path still needs actual Windows native acceptance; the Intel host does not prove that target.
+Apple Silicon transcription already selects MLX/Metal. Windows uses the frozen CUDA 12.8 Tensor closure (Torch 2.13.0, cuDNN 9.10.2.21) for Qwen and Faster Whisper. It includes CPU execution for computers without a qualified CUDA device. Faster Whisper checks CTranslate2 float16 support before selecting its CUDA profile. The closure is application-managed; users do not install a CUDA toolkit. Windows GPU execution still requires hardware acceptance. Other CPU-only engine packages retain their supplier execution contract.
+VoxCPM2's audio.cpp x64 runtime builds the supplier's CPU instruction-set variants and chooses a supported kernel before loading the model. Its Windows Vulkan backend is a separately loaded module; a machine without a Vulkan driver can initialize the CPU backend. Metal/Vulkan availability and free GPU capacity are probed before the request freezes its device. The Windows build path still needs actual Windows target acceptance; the Intel host does not prove that target.
 Backend selection follows the official [PyTorch backend availability API](https://docs.pytorch.org/docs/stable/backends)
 and [Sentence Transformers device contract](https://sbert.net/docs/package_reference/sentence_transformer/model.html).
 
 ## Hardware guidance
 
 - Preset speech and the smaller local models retain the ordinary supported-target acceptance matrix.
-- VoxCPM2 is optional and currently requires at least 32 GiB physical memory. The frozen native CPU profile reserves a 16 GiB peak; Metal currently reserves 24 GiB pending native qualification. Admission accounts for the application memory budget and currently available memory. These conservative bounds are qualification gates, not measured claims for every platform.
+- VoxCPM2 is optional and currently requires at least 32 GiB physical memory. The frozen CPU profile reserves a 16 GiB peak; Metal currently reserves 24 GiB pending target qualification. Admission accounts for the application memory budget and currently available memory. These conservative bounds are qualification gates, not measured claims for every platform.
 - Both alignment profiles currently reserve 6 GiB of host memory and qualify GPU capacity before
-  worker startup. This is a conservative admission bound; native qualification must raise it if a
+  worker startup. This is a conservative admission bound; target qualification must raise it if a
   supported input exceeds it. A smaller download is not a claim of measured peak memory or speed.
 - Discrete GPU: optional for Knovum's core knowledge runtime.
-- Native latency, peak memory and output-quality acceptance remain required on macOS arm64, macOS x64 and Windows x64.
+- Target-platform latency, peak memory and output-quality acceptance remain required on macOS arm64, macOS x64 and Windows x64.
 
 ## Model selection and identity
 

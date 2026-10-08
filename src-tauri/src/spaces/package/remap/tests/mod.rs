@@ -69,7 +69,7 @@ fn restores_markdown_image_tokens_to_imported_asset_paths() {
         "title": "Image",
         "text": "![photo](</source/photo.png>)"
     });
-    crate::spaces::knowledge::indexing::revision::apply(&mut data).unwrap();
+    crate::spaces::knowledge::model::revision::apply(&mut data).unwrap();
     data["text"] = json!("![photo](<knovum-package-asset:photo>)");
     let mut value = json!({
         "nodes": [{"data": data}],

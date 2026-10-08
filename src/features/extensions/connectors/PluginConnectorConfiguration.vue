@@ -10,7 +10,7 @@ import type { ConnectorDefinition } from "../../../shared/contracts/generated/Co
 import type { PluginConnectorConfiguration } from "../../../shared/contracts/generated/PluginConnectorConfiguration";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
-import ExtensionCleanupNotice from "../ExtensionCleanupNotice.vue";
+import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 
 const props = defineProps<{ connector: ConnectorDefinition }>();

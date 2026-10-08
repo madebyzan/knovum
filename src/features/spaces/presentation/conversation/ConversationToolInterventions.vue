@@ -78,7 +78,7 @@ function answer(id: string, response: Parameters<typeof answerMcpUserInteraction
         </p>
         <pre class="max-h-32 overflow-auto rounded-sm bg-surface-control p-2 text-caption">{{
           JSON.stringify(
-            { source: operation.source, arguments: operation.arguments, result: operation.result },
+            { source: operation.source, context: operation.context, output: operation.output },
             null,
             2,
           )

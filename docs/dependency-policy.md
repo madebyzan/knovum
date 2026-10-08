@@ -22,7 +22,7 @@ translation or multi-step orchestration. Knip exceptions are limited to dependen
 artifacts that static analysis cannot observe.
 
 Tauri plugins are admitted with the product flow that calls them. Installation does not grant the
-WebView permission: capabilities remain narrowly scoped, SQL stays Rust-owned, and native platform
+WebView permission: capabilities remain narrowly scoped, SQL stays Rust-owned, and operating-system
 bindings remain target dependencies behind `cfg(target_os)`. Desktop behavior and permission
 ownership are defined in [desktop-foundation.md](desktop-foundation.md) and
 [system-architecture.md](system-architecture.md).
@@ -31,12 +31,12 @@ ownership are defined in [desktop-foundation.md](desktop-foundation.md) and
 
 - `pnpm-lock.yaml`, `src-tauri/Cargo.lock` and each Python runtime's `uv.lock` are generated only by
   their owning package managers and are committed.
-- Exact pins are required where an SDK protocol, native ABI, model/runtime supplier or coordinated
+- Exact pins are required where an SDK protocol, compiled-library ABI, model/runtime supplier or coordinated
   package family can change product behavior. Compatible ranges are acceptable only where the
   lockfile remains the shipped identity and the public API is stable.
 - Coordinated families such as Tauri core/API/CLI/plugins, Tiptap packages, WebdriverIO adapters and
-  native Python stacks are upgraded as a tested unit. A single-package version bump is not a
-  completed migration when public types, peer constraints or native ABI cross package boundaries.
+  CPython dependency stacks are upgraded as a tested unit. A single-package version bump is not a
+  completed migration when public types, peer constraints or compiled-library ABI cross package boundaries.
 - Transitive features are not relied on for production callers. If Knovum imports an API or requires
   a feature, declare the dependency or feature directly.
 - Registry mirrors, metadata rewrites, advisory suppression and local vendor edits are not used to
@@ -50,7 +50,7 @@ strict checks pass.
 ## Upgrade and removal
 
 An upgrade must regenerate the owning lockfile, preserve the declared security floor and license
-policy, and pass the focused contracts plus the native checks required by the affected target.
+policy, and pass the focused contracts plus the target-platform checks required by the affected target.
 Availability in a registry or successful resolution does not establish ABI, model or platform
 compatibility.
 
@@ -88,31 +88,31 @@ hide an advisory are prohibited.
   [upstream PR #44](https://github.com/typst/citationberg/pull/44), which moves its XML dependency
   off the vulnerable release. Remove the patch when a compatible published `citationberg` release
   contains that change; regenerate `src-tauri/Cargo.lock`, confirm the vulnerable XML versions are
-  absent, and run the affected document-export and native checks.
+  absent, and run the affected document-export and target-platform checks.
 - `tauri-plugin-clipboard-api@2.1.11 > valibot` is overridden to `1.4.2`. Remove the override when a
   compatible plugin release selects a supported secure Valibot version and the valid and malformed
   clipboard payload regressions pass.
 
 No exception constitutes platform, distribution or legal approval.
 
-## Native and Python supply chain
+## Compiled and Python supply chain
 
-The application-managed CPython runtimes, native media closure and native inference components are
+The application-managed CPython runtimes, compiled media closure and compiled inference components are
 producer outputs, not development-environment copies. Their manifests and per-target locks own the
-interpreter, packages, native libraries, source archives, hashes and supplier identities. End-user
+interpreter, packages, shared compiled libraries, source archives, hashes and supplier identities. End-user
 machines never resolve or install production dependencies.
 
 Every conveyed target inventory must be bound to:
 
 - exact installed files and cryptographic identities;
-- package and native-library license notices;
+- package and compiled-library license notices;
 - corresponding source and build inputs where required;
 - a generated SBOM for the actual published inventory;
-- relocation and native execution evidence for that target.
+- relocation and target execution evidence for that target.
 
 Package metadata, a top-level repository license, populated hashes or execution on another target do
 not approve distribution. GPL/LGPL and other source-offer obligations apply to the complete conveyed
-native closure, including FFmpeg, eSpeak NG, piper and any libraries embedded by a wheel or archive.
+compiled dependency closure, including FFmpeg, eSpeak NG, piper and any libraries embedded by a wheel or archive.
 The compiled-source evidence and license-review records remain required packaging inputs.
 
 Each `python/runtimes/<profile>/dependency-license-review.json` starts unapproved. Production
@@ -129,7 +129,7 @@ platform gates live in [packaging.md](packaging.md) and [release.md](release.md)
 ## Verification ownership
 
 Dependency changes run the smallest checks that prove the affected boundary, followed by the
-repository lint/type/dependency gates. Native runtime, desktop lifecycle and release changes also
+repository lint/type/dependency gates. Managed runtime, desktop lifecycle and release changes also
 require supported-target evidence; a local compile does not claim that evidence.
 
 Keep verification output with CI or release artifacts. This policy records durable rules and live

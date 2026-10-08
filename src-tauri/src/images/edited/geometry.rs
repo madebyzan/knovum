@@ -1,4 +1,4 @@
-use super::contract::{Crop, ImageEdit};
+use super::contracts::{Crop, ImageEdit};
 
 pub(super) struct RenderGeometry {
     pub source_width: f64,

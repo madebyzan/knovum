@@ -21,7 +21,7 @@ const options = {
   baseUrl: "https://github.com/example/distribution/releases/download/v1.2.3",
 };
 
-test("release policy contains only the approved native targets", () => {
+test("release policy contains only the approved targets", () => {
   assert.deepEqual(Object.keys(releaseTargets), [
     "aarch64-apple-darwin",
     "x86_64-apple-darwin",

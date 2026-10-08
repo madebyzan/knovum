@@ -20,7 +20,7 @@ const observer = () => ({
 afterEach(() => vi.clearAllMocks());
 
 describe("run observation ownership", () => {
-  it("shares one native subscription between policies and releases it at completion", async () => {
+  it("shares one IPC subscription between policies and releases it at completion", async () => {
     let complete!: () => void;
     bridge.invoke.mockReturnValue(
       new Promise<void>((resolve) => {
@@ -45,7 +45,7 @@ describe("run observation ownership", () => {
     await vi.waitFor(() => expect(bridge.invoke).toHaveBeenCalledTimes(2));
   });
 
-  it("reports native failure to every observer before releasing the subscription", async () => {
+  it("reports IPC failure to every observer before releasing the subscription", async () => {
     const cause = new Error("connection lost");
     bridge.invoke.mockRejectedValue(cause);
     const first = observer();

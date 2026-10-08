@@ -40,7 +40,7 @@ impl AgentPrompt {
         let mut content = vec![ContentBlock::Text(TextContent::new(self.text))];
         for path in self.attachments.into_paths() {
             content.push(ContentBlock::Text(TextContent::new(format!(
-                "Attached local source (read-only input): {}. Inspect this file with your native tools; save deliverables in the output workspace.",
+                "Attached local source (read-only input): {}. Inspect this file with your available tools; save deliverables in the output workspace.",
                 path.display()
             ))));
             content.push(attachment(path).await?);

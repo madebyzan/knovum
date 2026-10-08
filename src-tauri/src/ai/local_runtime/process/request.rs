@@ -20,8 +20,8 @@ impl Worker {
                 biased;
                 _ = exit.cancelled() => Err("cancelled".to_owned()),
                 _ = cancellation.cancelled() => Err("cancelled".to_owned()),
-                result = tokio::time::timeout_at(deadline, self.protocol.send_request(request_id, method, params)) => {
-                    result.map_err(|_| "deadline_exceeded".to_owned())?.map(|()| deadline)
+                response = tokio::time::timeout_at(deadline, self.protocol.send_request(request_id, method, params)) => {
+                    response.map_err(|_| "deadline_exceeded".to_owned())?.map(|()| deadline)
                 }
             }
         }.await;

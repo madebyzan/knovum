@@ -9,11 +9,7 @@ use crate::spaces::derivation::{inputs, pending_output, relations, source_valida
 use crate::{
     ai::tasks::TaskExecutionTarget,
     app_error::AppError,
-    spaces::{
-        assets::asset_directory,
-        db,
-        knowledge::{contracts, indexing::revision},
-    },
+    spaces::{assets::asset_directory, db, knowledge::model::revision},
 };
 
 pub async fn start(
@@ -27,7 +23,7 @@ pub async fn start(
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
-        contracts::validate_same_space_node(
+        crate::spaces::knowledge::validation::validate_same_space_node(
             &mut tx,
             &request.space_id,
             &input.node_id,
@@ -159,7 +155,8 @@ async fn persist_completion(
     object.insert("intrinsicHeight".into(), height.into());
     object.remove("processingState");
     revision::apply(data)?;
-    contracts::validate_node(tx, &request.space_id, "image", data).await?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", data)
+        .await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
     let mut output_relations = Vec::with_capacity(request.inputs.len());
     for input in &request.inputs {

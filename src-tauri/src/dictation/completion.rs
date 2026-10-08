@@ -4,10 +4,10 @@ use tauri::{AppHandle, Emitter, Runtime};
 
 use super::{
     actor::ActiveSession,
-    insertion::{self, TargetApplication},
+    insertion::{self, InsertionTarget},
     transcription::TranscriptionOutcome,
 };
-use crate::dictation_contracts::{
+use crate::dictation::contracts::{
     DictationFailure, DictationPhase, DictationSnapshot, InsertionOutcome,
 };
 
@@ -18,7 +18,7 @@ pub(super) async fn finish<R: Runtime>(
     snapshot: &Arc<RwLock<DictationSnapshot>>,
     active: &mut ActiveSession,
     session_id: String,
-    target: TargetApplication,
+    target: InsertionTarget,
     transcription: Result<TranscriptionOutcome, DictationFailure>,
 ) {
     if !matches!(active, ActiveSession::Transcribing { id, .. } if id == &session_id) {
@@ -38,7 +38,7 @@ async fn publish_transcription<R: Runtime>(
     app: &AppHandle<R>,
     snapshot: &Arc<RwLock<DictationSnapshot>>,
     session_id: String,
-    target: TargetApplication,
+    target: InsertionTarget,
     transcription: TranscriptionOutcome,
 ) {
     let text = transcription.text.clone();

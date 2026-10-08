@@ -244,10 +244,10 @@ async fn request(
             cancel(worker, request_id, attempt_epoch).await;
             Err("cancelled".into())
         }
-        result = tokio::time::timeout_at(
+        generation = tokio::time::timeout_at(
             deadline,
             worker.protocol.read_response::<ImageSegmentation>(request_id),
-        ) => match result {
+        ) => match generation {
             Ok(value) => value,
             Err(_) => {
                 cancel(worker, request_id, attempt_epoch).await;

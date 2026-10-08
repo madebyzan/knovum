@@ -1,4 +1,4 @@
-use crate::spaces::structure::contract::{LocalTransform, StructureLayout, StructureNode};
+use crate::spaces::structure::contracts::{LocalTransform, StructureLayout, StructureNode};
 use crate::spaces::structure::planner::tree_policy::{ancestors, Index};
 
 pub(in crate::spaces::structure) fn world_transform(

@@ -1,7 +1,7 @@
 mod builtin_agent;
 pub(crate) mod commands;
 mod context;
-mod contract;
+mod contracts;
 mod execution;
 pub(in crate::spaces) mod extensions;
 mod external_agent;
@@ -20,8 +20,8 @@ pub(crate) async fn resume_task(app: tauri::AppHandle, run_id: &str) -> Result<(
     builtin_agent::resume(app, run_id).await
 }
 
-pub(crate) use contract::ConversationTaskFinishedState;
-pub use contract::{
+pub(crate) use contracts::ConversationTaskFinishedState;
+pub use contracts::{
     Conversation, ConversationTaskAccepted, ConversationTaskUpdate, StartBuiltinAgentTaskRequest,
     SubmitConversationTaskRequest,
 };

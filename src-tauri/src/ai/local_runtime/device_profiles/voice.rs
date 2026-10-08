@@ -39,14 +39,14 @@ pub(crate) async fn profile(
         .ok_or("GPU probe deadline overflow")?;
     let backend: Backend = super::backend_probe::report(
         runtime,
-        super::backend_probe::Probe::Native(gpu_reserve_gib(model_spec_id)? * super::GIB),
+        super::backend_probe::Probe::CompiledLibrary(gpu_reserve_gib(model_spec_id)? * super::GIB),
         cancellation,
         cancellation,
         u64::try_from(deadline).map_err(|_| "GPU probe deadline is invalid")?,
     )
     .await?;
     if !matches!(backend.device.as_str(), "cpu" | "mps" | "cuda" | "vulkan") {
-        return Err("runtime_mismatch: Native voice selected an unsupported backend".into());
+        return Err("runtime_mismatch: Compiled voice selected an unsupported backend".into());
     }
     select_profile(
         &backend.device,
@@ -76,7 +76,7 @@ fn select_profile(
     let peak =
         super::memory_requirement(RuntimeCapability::SpeechSynthesis, &selected)?.peak_bytes();
     if device != "cpu"
-        && (peak > super::application_memory_budget(memory.total_bytes)
+        && (peak > super::inference_memory_budget(memory.total_bytes)
             || peak > memory.available_bytes)
     {
         return Ok(make("cpu"));

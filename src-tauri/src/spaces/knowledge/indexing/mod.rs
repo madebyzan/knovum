@@ -1,6 +1,5 @@
 pub(crate) mod media;
 pub(crate) mod node;
-pub(crate) mod revision;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

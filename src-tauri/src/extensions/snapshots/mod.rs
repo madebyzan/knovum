@@ -146,7 +146,7 @@ pub(crate) async fn prepare(
         .await
         .map_err(|error| error.to_string())?;
     drop(_guard);
-    let result = async {
+    let snapshot_build = async {
         for (connection, choices) in snapshot.connections.iter().zip(&selection.connections) {
             let catalog =
                 super::mcp::sessions::inspect(app, &snapshot, connection, interaction.clone())
@@ -176,10 +176,10 @@ pub(crate) async fn prepare(
     }
     .await;
     super::mcp::sessions::release(app, &snapshot.id).await;
-    if result.is_err() {
+    if snapshot_build.is_err() {
         super::reclamation::release(app, &snapshot.id).await?;
     }
-    result
+    snapshot_build
 }
 
 pub(crate) async fn require_current(

@@ -79,7 +79,7 @@ fn image(
         return;
     };
     let mime = content["mimeType"].as_str().unwrap_or("");
-    let result = (|| {
+    let inspection = (|| {
         if !target
             .capabilities
             .contains(&ExecutionCapability::VisionUnderstanding)
@@ -95,7 +95,7 @@ fn image(
             data,
         })
     })();
-    match result {
+    match inspection {
         Ok(image) => {
             media.push(image);
             content["knovumModelNotice"] = json!(

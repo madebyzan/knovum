@@ -5,10 +5,7 @@ pub(super) mod contracts;
 
 use crate::{
     app_error::AppError,
-    spaces::{
-        db,
-        knowledge::{contracts as knowledge_contracts, object_types},
-    },
+    spaces::{db, knowledge::object_types},
 };
 use contracts::RestorePackageRequest;
 use validation::validate_request_shape;
@@ -172,7 +169,13 @@ async fn validate_nodes(
     request: &RestorePackageRequest,
 ) -> Result<(), AppError> {
     for row in &request.nodes {
-        knowledge_contracts::validate_node(tx, &request.space.id, &row.kind, &row.data).await?;
+        crate::spaces::knowledge::validation::validate_node(
+            tx,
+            &request.space.id,
+            &row.kind,
+            &row.data,
+        )
+        .await?;
     }
     Ok(())
 }

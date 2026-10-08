@@ -9,7 +9,7 @@ pub(in crate::ai::local_runtime) enum Probe {
     Torch(u64),
     #[cfg(windows)]
     Transcription(u64),
-    Native(u64),
+    CompiledLibrary(u64),
 }
 pub(in crate::ai::local_runtime) async fn report<T: DeserializeOwned>(
     runtime: &PythonRuntimePaths,
@@ -42,7 +42,7 @@ async fn detect(
         Probe::Torch(_) => "knovum_inference.runtime.device_probe",
         #[cfg(windows)]
         Probe::Transcription(_) => "knovum_inference.runtime.device_probe",
-        Probe::Native(_) => "knovum_inference.runtime.voice_device_probe",
+        Probe::CompiledLibrary(_) => "knovum_inference.runtime.voice_device_probe",
     };
     let script = crate::subprocess::python::isolated_bootstrap(&format!(
         "from {module} import main; main()"
@@ -57,7 +57,7 @@ async fn detect(
                 Probe::Torch(memory) => memory,
                 #[cfg(windows)]
                 Probe::Transcription(memory) => memory,
-                Probe::Native(memory) => memory,
+                Probe::CompiledLibrary(memory) => memory,
             }
             .to_string(),
         )

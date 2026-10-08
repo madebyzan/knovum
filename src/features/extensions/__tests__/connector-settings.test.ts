@@ -8,10 +8,10 @@ import type { McpConnection } from "../../../shared/contracts/generated/McpConne
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
 import ConnectorSettings from "../connectors/ConnectorSettings.vue";
 
-const native = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, input?: Record<string, unknown>) => Promise<unknown>>(),
 }));
-vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: native.invoke }));
+vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 const service: ConnectorDefinition = {
   id: "github",
   revision: "service-one",
@@ -47,8 +47,8 @@ beforeEach(() => {
   services = [structuredClone(service)];
   connections = [instanceFixture("Work"), instanceFixture("Personal")];
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  native.invoke.mockReset();
-  native.invoke.mockImplementation(async (command: string, input?: Record<string, unknown>) => {
+  mocks.invoke.mockReset();
+  mocks.invoke.mockImplementation(async (command: string, input?: Record<string, unknown>) => {
     switch (command) {
       case "plugin:extensions|list_connector_definitions":
         return structuredClone(services);
@@ -105,7 +105,7 @@ describe("service connector management", () => {
     await connector.get('[data-testid="connection-instance-name"]').setValue("Research");
     await connector.get("form").trigger("submit");
     await flushPromises();
-    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|create_mcp_connection", {
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|create_mcp_connection", {
       connectorId: "github",
       name: "Research",
     });
@@ -122,7 +122,7 @@ describe("service connector management", () => {
     await editor.get('[data-testid="mcp-endpoint-url"]').setValue("https://notion.example.com/mcp");
     await editor.trigger("submit");
     await flushPromises();
-    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|create_connector_definition", {
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|create_connector_definition", {
       definition: expect.objectContaining({
         name: "Notion",
         description: "Read and update documents",
@@ -137,13 +137,13 @@ describe("service connector management", () => {
     const wrapper = await open();
     await wrapper.get('[data-testid="manage-connector-github"]').trigger("click");
     await wrapper.get('[data-testid="delete-connection-Work"]').trigger("click");
-    expect(native.invoke).not.toHaveBeenCalledWith(
+    expect(mocks.invoke).not.toHaveBeenCalledWith(
       "plugin:extensions|delete_mcp_connection",
       expect.anything(),
     );
     resolveConfirmation(true);
     await flushPromises();
-    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|delete_mcp_connection", {
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|delete_mcp_connection", {
       id: "Work",
       revision: "instance-one",
     });
@@ -153,8 +153,8 @@ describe("service connector management", () => {
   });
 
   it("shows committed changes and cleanup failures together after refreshing the service", async () => {
-    const original = native.invoke.getMockImplementation()!;
-    native.invoke.mockImplementation(async (command, input) => {
+    const original = mocks.invoke.getMockImplementation()!;
+    mocks.invoke.mockImplementation(async (command, input) => {
       if (command === "plugin:extensions|update_connector_definition") {
         const definition = {
           ...(JSON.parse(JSON.stringify(input!.definition)) as ConnectorDefinition),
@@ -172,7 +172,7 @@ describe("service connector management", () => {
     await editor.get('[data-testid="connector-description"]').setValue("Updated purpose");
     await editor.trigger("submit");
     await flushPromises();
-    expect(native.invoke).toHaveBeenCalledWith("plugin:extensions|update_connector_definition", {
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|update_connector_definition", {
       definition: expect.objectContaining({ description: "Updated purpose" }),
     });
     expect(wrapper.get('[data-testid="connector-github"]').text()).toContain("Updated purpose");

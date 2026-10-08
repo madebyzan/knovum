@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 mod dissolve;
 pub(in crate::spaces::structure) use dissolve::dissolve;
 
-use crate::spaces::structure::contract::{LocalTransform, StructureLayout, StructureNode};
+use crate::spaces::structure::contracts::{LocalTransform, StructureLayout, StructureNode};
 use crate::spaces::structure::planner::spatial::{layout_keeping_world, local_transform};
 use crate::spaces::structure::planner::tree_policy::{
     apply_sequences, effective_roots, require_editable, Index,

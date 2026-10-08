@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::spaces::knowledge::node_contracts::document_coverage::{
+use crate::spaces::knowledge::model::document_coverage::{
     DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
 };
 use crate::spaces::{assets::enrichment::jobs::RunEnrichmentJobRequest, db};

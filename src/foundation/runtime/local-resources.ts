@@ -1,6 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
 
-import type { LocalModelEntry } from "../../shared/contracts/generated/LocalModelEntry";
+import type { LocalModelAvailability } from "../../shared/contracts/generated/LocalModelAvailability";
 import type { LocalModelId } from "../../shared/contracts/generated/LocalModelId";
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
@@ -52,7 +52,7 @@ export function textEmbeddingReady(status?: LocalResourcesStatus) {
   ].every((model) => model.verified);
 }
 
-export function getLocalModelCatalog(): Promise<LocalModelEntry[]> {
+export function getLocalModelCatalog(): Promise<LocalModelAvailability[]> {
   return invokeCommand("plugin:local-resources|get_model_catalog");
 }
 export function removeLocalModel(model: LocalModelId): Promise<void> {

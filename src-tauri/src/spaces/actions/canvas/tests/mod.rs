@@ -1,6 +1,6 @@
 use super::*;
 use crate::app_error::AppError;
-use crate::spaces::knowledge::indexing::revision;
+use crate::spaces::knowledge::model::revision;
 
 pub(super) async fn database() -> SqlitePool {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()

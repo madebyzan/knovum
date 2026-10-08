@@ -2,7 +2,7 @@ mod appearance;
 mod clipboard;
 pub(crate) mod commands;
 mod content_height_read_set;
-mod contract;
+mod contracts;
 pub(crate) mod creation;
 pub(crate) mod deletion;
 mod deletion_transaction;
@@ -19,7 +19,7 @@ pub(crate) mod repository;
 pub(crate) mod search;
 mod validation;
 
-pub(crate) use contract::{
+pub(crate) use contracts::{
     LocalTransform, Point, RelationColor, RelationStyle, Size, SizingMode, StructureLayout,
     StructureNode,
 };

@@ -70,7 +70,7 @@ async fn denied_access_preserves_http_status_without_creating_a_model_file() {
         "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".into(),
     ));
     let path = destination();
-    let result = to_path(
+    let path_resolution = to_path(
         reqwest::Client::new().get(url).bearer_auth("test-access"),
         &path,
         policy(),
@@ -79,7 +79,7 @@ async fn denied_access_preserves_http_status_without_creating_a_model_file() {
     )
     .await;
     assert!(matches!(
-        result,
+        path_resolution,
         Err(DownloadError::Http { status: 403, .. })
     ));
     assert!(!path.exists());
@@ -91,7 +91,7 @@ async fn cancellation_stops_before_sending_credentials_or_creating_a_file() {
     let cancellation = CancellationToken::new();
     cancellation.cancel();
     let path = destination();
-    let result = to_path(
+    let path_resolution = to_path(
         reqwest::Client::new()
             .get("http://127.0.0.1:1/model")
             .bearer_auth("test-access"),
@@ -101,7 +101,9 @@ async fn cancellation_stops_before_sending_credentials_or_creating_a_file() {
         &mut |_, _| {},
     )
     .await;
-    assert!(matches!(result, Err(DownloadError::Terminal(message)) if message == "cancelled"));
+    assert!(
+        matches!(path_resolution, Err(DownloadError::Terminal(message)) if message == "cancelled")
+    );
     assert!(!path.exists());
 }
 
@@ -114,7 +116,7 @@ async fn declared_oversize_is_rejected_before_creating_a_file() {
         "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\nlarge".into(),
     ));
     let path = destination();
-    let result = to_path(
+    let path_resolution = to_path(
         reqwest::Client::new().get(url),
         &path,
         policy(),
@@ -122,7 +124,7 @@ async fn declared_oversize_is_rejected_before_creating_a_file() {
         &mut |_, _| {},
     )
     .await;
-    assert!(matches!(result, Err(DownloadError::Terminal(_))));
+    assert!(matches!(path_resolution, Err(DownloadError::Terminal(_))));
     assert!(!path.exists());
     server.await.unwrap();
 }

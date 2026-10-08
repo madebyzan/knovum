@@ -18,7 +18,7 @@ if (!Object.values(runtimeTargets).includes(target)) {
   throw new Error(`Unsupported runtime target: ${target}`);
 }
 const host = hostRuntimeTarget();
-if (target !== host) throw new Error(`Runtime manifest must be written on its native target (${host})`);
+if (target !== host) throw new Error(`Runtime manifest must be written on its target host (${host})`);
 const root = resolve(args[3]);
 const rootMetadata = lstatSync(root);
 if (!rootMetadata.isDirectory() || rootMetadata.isSymbolicLink()) {

@@ -68,11 +68,11 @@ pub async fn restore_relation(
         .try_get::<Option<String>, _>("status_before_invalidation")
         .map_err(db::sql_error)?
         .ok_or_else(|| "Invalidated Space Relation is missing its prior status".to_string())?;
-    super::contracts::validate_relation_status(&restore_status)?;
+    super::relations::validate_status(&restore_status)?;
     if restore_status == "invalidated" {
         return Err("Invalid prior Space Relation status".to_string());
     }
-    super::contracts::validate_relation_endpoints(tx, &space_id, &source_id, &target_id).await?;
+    super::relations::validate_endpoints(tx, &space_id, &source_id, &target_id).await?;
     sqlx::query("UPDATE spaces_relations SET status=$1,status_before_invalidation=NULL,updated_at=$2 WHERE id=$3")
         .bind(&restore_status).bind(now).bind(relation_id)
         .execute(&mut **tx).await.map_err(db::sql_error)?;

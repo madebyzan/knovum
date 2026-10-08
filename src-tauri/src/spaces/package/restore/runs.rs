@@ -45,11 +45,11 @@ async fn insert_attempts(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.run_attempts {
-        sqlx::query("INSERT INTO spaces_run_attempts(id,run_id,step_instance_id,attempt_number,state,request_digest,executor_id,idempotency_key,external_task_id,execution_epoch,checkpoint,result,error_code,started_at,finished_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10,$11,$12,$13,$14)")
+        sqlx::query("INSERT INTO spaces_run_attempts(id,run_id,step_instance_id,attempt_number,state,request_digest,executor_id,idempotency_key,external_task_id,execution_epoch,checkpoint,output,error_code,started_at,finished_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10,$11,$12,$13,$14)")
             .bind(&row.id).bind(&row.run_id).bind(&row.step_instance_id).bind(row.attempt_number)
             .bind(&row.state).bind(&row.request_digest).bind(format!("package:{}", row.id))
             .bind(&row.idempotency_key).bind(&row.external_task_id).bind(optional_json(row.checkpoint.as_ref())?)
-            .bind(optional_json(row.result.as_ref())?).bind(&row.error_code).bind(row.started_at)
+            .bind(optional_json(row.output.as_ref())?).bind(&row.error_code).bind(row.started_at)
             .bind(row.finished_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())

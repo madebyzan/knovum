@@ -1,15 +1,6 @@
 use crate::spaces::knowledge::indexing::{self, KnowledgeChunkSeed};
-use crate::spaces::knowledge::node_contracts::document_coverage::{DocumentCoverage, VisualState};
+use crate::spaces::knowledge::model::document_coverage::{DocumentCoverage, VisualState};
 use serde_json::{json, Value};
-
-pub(in crate::spaces) fn projection(data: &Value) -> Value {
-    let occurrences = data.get("documentCoverage").and_then(|value| value.get("occurrences"))
-        .and_then(Value::as_array).into_iter().flatten()
-        .filter(|value| !value.get("analysis").is_none_or(Value::is_null))
-        .map(|value| json!({"id":value["id"], "location":value["location"], "analysis":value["analysis"]}))
-        .collect::<Vec<_>>();
-    json!(occurrences)
-}
 
 pub(in crate::spaces) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
     if data.get("documentCoverage").is_none() {

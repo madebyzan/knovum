@@ -206,7 +206,7 @@ async fn finish_attempt(
         .map(serde_json::to_string)
         .transpose()
         .map_err(db::json_error)?;
-    let changed = sqlx::query("UPDATE spaces_run_attempts SET state=$1,result=$2,error_code=$3,lease_until=NULL,finished_at=$4 WHERE id=$5 AND state='executing' AND execution_epoch=$6")
+    let changed = sqlx::query("UPDATE spaces_run_attempts SET state=$1,output=$2,error_code=$3,lease_until=NULL,finished_at=$4 WHERE id=$5 AND state='executing' AND execution_epoch=$6")
         .bind(state).bind(attempt_output).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     if changed.rows_affected() != 1 {

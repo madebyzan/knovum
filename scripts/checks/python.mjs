@@ -42,7 +42,7 @@ const checks = [
   [agentRuntime, "pytest", "-c", "python/pyproject.toml", "python/tests/agent_runtime"],
 ];
 for (const [environment, ...command] of checks) {
-  const result = spawnSync("uv", ["run", ...environment, ...command], { stdio: "inherit" });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  const checkExecution = spawnSync("uv", ["run", ...environment, ...command], { stdio: "inherit" });
+  if (checkExecution.error) throw checkExecution.error;
+  if (checkExecution.status !== 0) process.exit(checkExecution.status ?? 1);
 }

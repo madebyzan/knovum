@@ -10,7 +10,7 @@ use crate::{
     subprocess::process_tree::ProcessTree,
 };
 
-/// Debug builds own their native producer. Released apps only use frozen published archives.
+/// Debug builds own their runtime producer. Released apps only use frozen published archives.
 pub(super) async fn install<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,

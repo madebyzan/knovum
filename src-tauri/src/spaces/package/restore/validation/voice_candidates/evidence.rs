@@ -98,11 +98,11 @@ pub(super) fn validate_attempts(
     let encoded = serde_json::to_string(&step.resolved_input).map_err(|error| error.to_string())?;
     let digest = hex::encode(Sha256::digest(encoded.as_bytes()));
     for attempt in attempts {
-        let expected_result = (attempt.state == "succeeded").then_some(output);
+        let expected_output = (attempt.state == "succeeded").then_some(output);
         if !lower_hex64(&attempt.request_digest)
             || attempt.request_digest != digest
             || attempt.idempotency_key != step.id
-            || attempt.result.as_ref() != expected_result
+            || attempt.output.as_ref() != expected_output
             || attempt
                 .finished_at
                 .is_none_or(|finished| finished < attempt.started_at)

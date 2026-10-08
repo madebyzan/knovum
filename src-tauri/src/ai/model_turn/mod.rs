@@ -30,7 +30,7 @@ pub async fn execute(
     let response = tokio::select! {
         biased;
         _ = cancellation.cancelled() => return Err(crate::app_error::AppError::cancelled("Model task was cancelled")),
-        result = capability.execute_turn(&context, request) => result?,
+        turn = capability.execute_turn(&context, request) => turn?,
     };
     crate::ai::usage::record_turn(request.purpose, &response).await?;
     Ok(response)

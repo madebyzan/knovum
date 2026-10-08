@@ -143,24 +143,24 @@ fn contained(root: &Path, relative: &str) -> Result<PathBuf, String> {
     Ok(root.join(relative))
 }
 fn expand(value: &str, root: &Path, data: &Path) -> String {
-    let mut result = String::new();
+    let mut command_line = String::new();
     let mut remaining = value;
     while let Some(offset) = remaining.find("${PLUGIN_") {
-        result.push_str(&remaining[..offset]);
+        command_line.push_str(&remaining[..offset]);
         remaining = &remaining[offset..];
         if let Some(rest) = remaining.strip_prefix("${PLUGIN_ROOT}") {
-            result.push_str(&root.to_string_lossy());
+            command_line.push_str(&root.to_string_lossy());
             remaining = rest;
         } else if let Some(rest) = remaining.strip_prefix("${PLUGIN_DATA}") {
-            result.push_str(&data.to_string_lossy());
+            command_line.push_str(&data.to_string_lossy());
             remaining = rest;
         } else {
-            result.push_str("${PLUGIN_");
+            command_line.push_str("${PLUGIN_");
             remaining = &remaining[9..];
         }
     }
-    result.push_str(remaining);
-    result
+    command_line.push_str(remaining);
+    command_line
 }
 
 #[cfg(test)]

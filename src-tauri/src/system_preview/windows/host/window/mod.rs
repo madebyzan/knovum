@@ -44,7 +44,7 @@ impl PreviewWindow {
         let hwnd = unsafe {
             CreateWindowExW(
                 WINDOW_EX_STYLE::default(),
-                w!("KnovumNativePreview"),
+                w!("KnovumSystemPreview"),
                 &title,
                 WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
                 CW_USEDEFAULT,

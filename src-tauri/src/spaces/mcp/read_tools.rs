@@ -72,7 +72,7 @@ impl SpaceMcpServer {
     }
 
     #[tool(
-        description = "Resolve a canvas node at its exact asset_revision (get_node.assetRevision) to a readable local source file. For images this renders current crop/rotation/adjustments. Use the returned path with native image/file tools, then save a new result in the output workspace. No source is copied into the output folder.",
+        description = "Resolve a canvas node at its exact asset_revision (get_node.assetRevision) to a readable local source file. For images this renders current crop/rotation/adjustments. Use the returned path with available image or file tools, then save a new result in the output workspace. No source is copied into the output folder.",
         annotations(read_only_hint = true)
     )]
     async fn get_node_asset(

@@ -56,9 +56,9 @@ pub(super) async fn authorize(
         .lock()
         .await
         .insert(account.id.clone(), cancellation.clone());
-    let result = tokio::select! {
+    let authorization = tokio::select! {
         _ = cancellation.cancelled() => Err("connector-authorization-cancelled".into()),
-        result = authorize_flow(app, account, allow_local, cancellation.clone()) => result,
+        authorization = authorize_flow(app, account, allow_local, cancellation.clone()) => authorization,
     };
     cancellation.cancel();
     app.state::<ExtensionState>()
@@ -66,7 +66,7 @@ pub(super) async fn authorize(
         .lock()
         .await
         .remove(&account.id);
-    result
+    authorization
 }
 
 async fn authorize_flow(
@@ -136,7 +136,7 @@ async fn authorize_flow(
             .with_graceful_shutdown(shutdown.cancelled_owned())
             .await
     });
-    let result = async {
+    let authorization = async {
         app.opener().open_url(url, None::<String>).map_err(|_| "connector-browser-open-failed")?;
         let callback = tokio::select! {
             _ = cancellation.cancelled() => return Err("connector-authorization-cancelled".into()),
@@ -150,7 +150,7 @@ async fn authorize_flow(
     }.await;
     cancellation.cancel();
     let _ = server.await;
-    result
+    authorization
 }
 
 fn error_category(error: &rmcp::transport::auth::AuthError) -> &'static str {
