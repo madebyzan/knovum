@@ -44,12 +44,15 @@ fn archive_preserves_binary_resources_and_rejects_symlinks_and_oversized_files()
             archive.finish().unwrap().into_inner(),
             &CancellationToken::new()
         )
-        .unwrap_err(),
+        .unwrap_err()
+        .message,
         "package-special-file-not-supported"
     );
     let oversized = vec![0; crate::extensions::content::MAX_FILE_BYTES + 1];
     assert_eq!(
-        archive::extract(package(&[("large", &oversized)]), &CancellationToken::new()).unwrap_err(),
+        archive::extract(package(&[("large", &oversized)]), &CancellationToken::new())
+            .unwrap_err()
+            .message,
         "package-file-size-limit"
     );
 }
@@ -58,10 +61,24 @@ fn archive_preserves_binary_resources_and_rejects_symlinks_and_oversized_files()
 fn cancelled_archive_extraction_does_not_read_content() {
     let cancellation = CancellationToken::new();
     cancellation.cancel();
-    assert_eq!(
-        archive::extract(package(&[("resource", b"content")]), &cancellation).unwrap_err(),
-        crate::extensions::plugins::operations::CANCELLED
-    );
+    let error = archive::extract(package(&[("resource", b"content")]), &cancellation).unwrap_err();
+    assert_eq!(error.code, "cancelled");
+    assert_eq!(error.message, "Plugin source reading was cancelled");
+}
+
+#[test]
+fn cancelled_directory_read_returns_a_stable_error_code() {
+    let root = std::env::temp_dir().join(format!("knovum-source-test-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir(&root).unwrap();
+    std::fs::write(root.join("resource"), b"content").unwrap();
+    let cancellation = CancellationToken::new();
+    cancellation.cancel();
+
+    let error = directory_files(&root, &cancellation).unwrap_err();
+
+    assert_eq!(error.code, "cancelled");
+    assert_eq!(error.message, "Plugin source reading was cancelled");
+    std::fs::remove_dir_all(root).unwrap();
 }
 
 #[cfg(unix)]
@@ -72,13 +89,17 @@ fn local_sources_reject_symbolic_and_hard_links() {
     std::fs::write(root.join("original"), b"resource").unwrap();
     std::os::unix::fs::symlink("original", root.join("alias")).unwrap();
     assert_eq!(
-        directory_files(&root, &CancellationToken::new()).unwrap_err(),
+        directory_files(&root, &CancellationToken::new())
+            .unwrap_err()
+            .message,
         "package-special-file-not-supported"
     );
     std::fs::remove_file(root.join("alias")).unwrap();
     std::fs::hard_link(root.join("original"), root.join("alias")).unwrap();
     assert_eq!(
-        directory_files(&root, &CancellationToken::new()).unwrap_err(),
+        directory_files(&root, &CancellationToken::new())
+            .unwrap_err()
+            .message,
         "package-hardlink-not-supported"
     );
     std::fs::remove_dir_all(root).unwrap();

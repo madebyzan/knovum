@@ -1,4 +1,4 @@
-use super::contracts::{DictationPhase, DictationSnapshot};
+use crate::dictation_contracts::{DictationPhase, DictationSnapshot};
 use crate::local_resources::preparation::contracts::{
     ResourcePreparationProgress, ResourcePreparationStage,
 };

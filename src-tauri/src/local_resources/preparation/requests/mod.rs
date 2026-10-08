@@ -67,6 +67,12 @@ pub(crate) fn begin(
     title: &str,
     target: ResourcePreparationTarget,
 ) -> Result<PreparationRequest, String> {
+    if job_id.trim().is_empty() {
+        return Err("Resource preparation requires a job identifier".into());
+    }
+    if title.trim().is_empty() {
+        return Err("Resource preparation requires a task title".into());
+    }
     let active = ActivePreparation {
         cancellation: CancellationToken::new(),
         snapshot: Arc::new(Mutex::new(ResourcePreparationSnapshot {

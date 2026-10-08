@@ -2,7 +2,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { readonly, shallowRef } from "vue";
 
 import { invokeCommand } from "../../foundation/ipc/invoke-command";
-import type { DictationSnapshot } from "./dictation-contracts";
+import type { DictationSnapshot } from "./contracts/generated/DictationSnapshot";
 
 const STATE_EVENT = "knovum://dictation-state";
 const idle: DictationSnapshot = {

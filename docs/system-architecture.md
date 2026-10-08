@@ -104,6 +104,13 @@ after the producer accepts it; rejection leaves the producer responsible for set
 Queries reconcile their own producer snapshot and retain the last successful projection on read
 failure.
 
+Accepted conversation tasks send one `Finished` Channel update when their producer exits. The
+update carries the task outcome and an explicit error when settlement fails. `settlement_failed`
+means that durable Run settlement could not be recorded or confirmed; it is a Channel outcome,
+never a persisted Run state. The Renderer settles its submission from that update and displays its
+error without issuing another database read to recover the same cause. A failed cleanup cannot
+rewrite an already committed result.
+
 Durable knowledge work, Actions, Workflows, speech production, and Agent turns use the Space-owned Run
 scheduler. A Run freezes its principal, grant, definition or binding revision, input snapshot,
 resource choice, and budgets. Step instances and attempts own resolved inputs, outputs, leases,

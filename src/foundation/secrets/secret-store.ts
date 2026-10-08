@@ -4,6 +4,10 @@ export function getSecret(secretKey: string): Promise<string | null> {
   return invokeCommand<string | null>("plugin:secrets|get", { secretKey });
 }
 
+export function isSecretConfigured(secretKey: string): Promise<boolean> {
+  return invokeCommand<boolean>("plugin:secrets|is_configured", { secretKey });
+}
+
 export function setSecret(secretKey: string, secret: string): Promise<void> {
   return invokeCommand("plugin:secrets|set", { secretKey, secret });
 }

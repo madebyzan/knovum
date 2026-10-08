@@ -10,6 +10,7 @@ use cpal::{
 use tokio::sync::mpsc::UnboundedSender;
 
 use super::service::DictationAction;
+use crate::dictation_contracts::DictationFailure;
 
 const MAX_RECORDING_SECONDS: usize = 120;
 
@@ -33,20 +34,26 @@ impl Recorder {
     pub(crate) fn start(
         session_id: &str,
         events: UnboundedSender<DictationAction>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, DictationFailure> {
         let host = cpal::default_host();
-        let device = host
-            .default_input_device()
-            .ok_or_else(|| "microphone_unavailable: no default input device".to_string())?;
+        let device = host.default_input_device().ok_or_else(|| {
+            DictationFailure::classified(
+                "microphone_unavailable",
+                "No default input device is available",
+            )
+        })?;
         let supported = device
             .default_input_config()
             .map_err(classify_audio_error)?;
         let sample_format = supported.sample_format();
         let config: StreamConfig = supported.into();
         if !(1..=2).contains(&config.channels) {
-            return Err(format!(
-                "unsupported_audio_format: dictation requires one or two channels, got {}",
-                config.channels
+            return Err(DictationFailure::classified(
+                "unsupported_audio_format",
+                format!(
+                    "Dictation requires one or two channels, got {}",
+                    config.channels
+                ),
             ));
         }
         let samples = Arc::new(Mutex::new(Vec::new()));
@@ -80,8 +87,9 @@ impl Recorder {
                 events,
                 |sample| (i32::from(sample) - 32_768) as i16,
             ),
-            value => Err(format!(
-                "unsupported_audio_format: microphone format {value:?} is not supported"
+            value => Err(DictationFailure::classified(
+                "unsupported_audio_format",
+                format!("Microphone format {value:?} is not supported"),
             )),
         }?;
         stream.play().map_err(classify_audio_error)?;
@@ -93,16 +101,22 @@ impl Recorder {
         })
     }
 
-    pub(crate) fn finish(self, target: &std::path::Path) -> Result<RecordedAudio, String> {
+    pub(crate) fn finish(
+        self,
+        target: &std::path::Path,
+    ) -> Result<RecordedAudio, DictationFailure> {
         drop(self.stream);
-        let samples = std::mem::take(
-            &mut *self
-                .samples
-                .lock()
-                .map_err(|_| "audio_capture_failed: sample buffer is poisoned".to_string())?,
-        );
+        let samples = std::mem::take(&mut *self.samples.lock().map_err(|_| {
+            DictationFailure::classified(
+                "audio_capture_failed",
+                "The captured audio buffer is unavailable",
+            )
+        })?);
         if samples.is_empty() {
-            return Err("audio_capture_empty: microphone captured no samples".into());
+            return Err(DictationFailure::classified(
+                "audio_capture_empty",
+                "Microphone captured no samples",
+            ));
         }
         let spec = hound::WavSpec {
             channels: self.channels,
@@ -110,14 +124,17 @@ impl Recorder {
             bits_per_sample: 16,
             sample_format: hound::SampleFormat::Int,
         };
-        let mut writer =
-            hound::WavWriter::create(target, spec).map_err(|error| error.to_string())?;
+        let mut writer = hound::WavWriter::create(target, spec).map_err(|error| {
+            DictationFailure::classified("audio_capture_failed", error.to_string())
+        })?;
         for sample in &samples {
-            writer
-                .write_sample(*sample)
-                .map_err(|error| error.to_string())?;
+            writer.write_sample(*sample).map_err(|error| {
+                DictationFailure::classified("audio_capture_failed", error.to_string())
+            })?;
         }
-        writer.finalize().map_err(|error| error.to_string())?;
+        writer.finalize().map_err(|error| {
+            DictationFailure::classified("audio_capture_failed", error.to_string())
+        })?;
         Ok(RecordedAudio {
             sample_rate: self.sample_rate,
             channels: self.channels,
@@ -133,7 +150,7 @@ fn build_stream<T: cpal::SizedSample + 'static>(
     session_id: &str,
     events: UnboundedSender<DictationAction>,
     convert: fn(T) -> i16,
-) -> Result<Stream, String> {
+) -> Result<Stream, DictationFailure> {
     let signalled = AtomicBool::new(false);
     let failure_session = session_id.to_owned();
     let overflow_session = session_id.to_owned();
@@ -150,8 +167,10 @@ fn build_stream<T: cpal::SizedSample + 'static>(
                 if input.len() > remaining && !signalled.swap(true, Ordering::SeqCst) {
                     let _ = overflow_events.send(DictationAction::DeviceFailed {
                         session_id: overflow_session.clone(),
-                        code: "recording_limit_reached".into(),
-                        message: "Dictation recording exceeded the two minute limit".into(),
+                        failure: DictationFailure::classified(
+                            "recording_limit_reached",
+                            "Dictation recording exceeded the two minute limit",
+                        ),
                     });
                 }
             },
@@ -159,11 +178,9 @@ fn build_stream<T: cpal::SizedSample + 'static>(
                 if error.kind() == cpal::ErrorKind::DeviceChanged {
                     return;
                 }
-                let (code, message) = audio_error(&error);
                 let _ = events.send(DictationAction::DeviceFailed {
                     session_id: failure_session.clone(),
-                    code,
-                    message,
+                    failure: audio_error(&error),
                 });
             },
             None,
@@ -175,16 +192,15 @@ fn f32_to_i16(sample: f32) -> i16 {
     (sample.clamp(-1.0, 1.0) * f32::from(i16::MAX)).round() as i16
 }
 
-fn classify_audio_error(error: cpal::Error) -> String {
-    let (code, message) = audio_error(&error);
-    format!("{code}: {message}")
+fn classify_audio_error(error: cpal::Error) -> DictationFailure {
+    audio_error(&error)
 }
 
-fn audio_error(error: &cpal::Error) -> (String, String) {
+fn audio_error(error: &cpal::Error) -> DictationFailure {
     let code = if error.kind() == cpal::ErrorKind::PermissionDenied {
         "microphone_permission_denied"
     } else {
         "microphone_unavailable"
     };
-    (code.into(), error.to_string())
+    DictationFailure::classified(code, error.to_string())
 }

@@ -35,7 +35,7 @@ export function activateDirectory(staged, destination) {
 }
 
 export function listRuntimeFiles(root, options = {}) {
-  return walkRuntimeFiles(root, root)
+  return walkRuntimeFiles(root, root, options.ErrorType ?? Error)
     .filter((path) => !options.excludeManifest || path !== "runtime-manifest.json")
     .toSorted();
 }
@@ -60,21 +60,21 @@ export function sha256File(path) {
   return hash.digest("hex");
 }
 
-function walkRuntimeFiles(root, directory) {
+function walkRuntimeFiles(root, directory, ErrorType) {
   const files = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     const metadata = lstatSync(path);
-    assertRegularRuntimeEntry(path, metadata);
-    if (metadata.isDirectory()) files.push(...walkRuntimeFiles(root, path));
+    assertRegularRuntimeEntry(path, metadata, ErrorType);
+    if (metadata.isDirectory()) files.push(...walkRuntimeFiles(root, path, ErrorType));
     else files.push(relative(root, path).replaceAll("\\", "/"));
   }
   return files;
 }
 
-function assertRegularRuntimeEntry(path, metadata) {
-  if (metadata.isSymbolicLink()) throw new Error(`Runtime contains a link: ${path}`);
+function assertRegularRuntimeEntry(path, metadata, ErrorType) {
+  if (metadata.isSymbolicLink()) throw new ErrorType(`Runtime contains a link: ${path}`);
   if (!metadata.isFile() && !metadata.isDirectory()) {
-    throw new Error(`Runtime contains a non-file: ${path}`);
+    throw new ErrorType(`Runtime contains a non-file: ${path}`);
   }
 }

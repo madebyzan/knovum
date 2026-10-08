@@ -1,4 +1,4 @@
-use super::SubmitConversationTaskRequest;
+use super::{ConversationTaskFinishedState, ConversationTaskUpdate, SubmitConversationTaskRequest};
 use serde_json::json;
 
 #[test]
@@ -17,4 +17,22 @@ fn agent_requests_accept_both_targets_and_reject_removed_modes() {
             assert!(error.to_string().contains("unknown field `mode`"));
         }
     }
+}
+
+#[test]
+fn settlement_failure_is_explicit_in_the_finished_channel_payload() {
+    let payload = serde_json::to_value(ConversationTaskUpdate::Finished {
+        state: ConversationTaskFinishedState::SettlementFailed,
+        error: Some("final state could not be read".into()),
+    })
+    .unwrap();
+
+    assert_eq!(
+        payload,
+        json!({
+            "type": "finished",
+            "state": "settlement_failed",
+            "error": "final state could not be read"
+        })
+    );
 }

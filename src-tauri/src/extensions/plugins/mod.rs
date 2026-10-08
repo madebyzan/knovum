@@ -30,7 +30,8 @@ pub(crate) async fn ensure_builtin(app: &AppHandle) -> Result<(), String> {
     let files = crate::blocking::run(move || {
         sources::directory_files(&directory, &tokio_util::sync::CancellationToken::new())
     })
-    .await?;
+    .await
+    .map_err(|error| error.message)?;
     let digest = super::content::files_digest(&files);
     let previous = sqlx::query_scalar::<_, String>("SELECT document FROM plugins WHERE id=$1")
         .bind(BUILTIN_ID)

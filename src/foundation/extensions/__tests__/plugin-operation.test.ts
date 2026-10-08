@@ -41,7 +41,7 @@ describe("plugin operations in Task Center", () => {
   });
 
   it("keeps cancellation pending until the host acknowledges the terminal outcome", async () => {
-    let rejectOperation!: (reason: Error) => void;
+    let rejectOperation!: (reason: unknown) => void;
     native.invoke.mockImplementation((command: string) =>
       command.endsWith("cancel_plugin_operation")
         ? Promise.resolve()
@@ -54,7 +54,7 @@ describe("plugin operations in Task Center", () => {
     const tasks = useTaskStore();
     await tasks.cancel(tasks.tasks[0]!.id);
     expect(tasks.tasks[0]?.status).toBe("running");
-    rejectOperation(new Error("plugin-operation-cancelled"));
+    rejectOperation({ code: "cancelled", message: "Operation interrupted by the user" });
     expect(await rejected).toBeInstanceOf(Error);
     expect(tasks.tasks[0]?.status).toBe("cancelled");
   });

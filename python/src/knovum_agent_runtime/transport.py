@@ -4,8 +4,10 @@ import asyncio
 import json
 import sys
 import threading
+import traceback
 from collections.abc import Awaitable, Callable
 from concurrent.futures import CancelledError as ReadCancelled
+from pathlib import Path
 from typing import Any, BinaryIO, NoReturn
 from uuid import uuid4
 
@@ -14,6 +16,16 @@ from pydantic import BaseModel
 MAX_FRAME_BYTES = 32 * 1024 * 1024
 MAX_PENDING_REQUESTS = 64
 Handler = Callable[[str, Any], Awaitable[Any]]
+_DIAGNOSTIC_METHODS = frozenset(
+    {
+        "agentRuntime.control",
+        "agentRuntime.execute",
+        "agentRuntime.initialize",
+        "agentRuntime.projection",
+        "agentRuntime.pruneThreads",
+        "agentRuntime.shutdown",
+    }
+)
 
 
 class HostRejected(RuntimeError):
@@ -150,6 +162,7 @@ class Peer:
 
     async def _dispatch(self, value: dict[str, Any], handler: Handler) -> None:
         request_id = value.get("id")
+        failure: Exception | None = None
         try:
             response_value = await handler(value["method"], value.get("params"))
             response = {"jsonrpc": "2.0", "id": request_id, "result": wire_value(response_value)}
@@ -157,8 +170,9 @@ class Peer:
             raise
         except HostRejected as error:
             response = {"jsonrpc": "2.0", "id": request_id, "error": {"code": error.code, "message": str(error)}}
-        except Exception:
+        except Exception as error:
             # Pydantic and provider exception text can contain credentials/input.
+            failure = error
             response = {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -166,6 +180,8 @@ class Peer:
             }
         if request_id is not None:
             await self._write(response)
+        if failure is not None:
+            _report_handler_failure(value["method"], failure)
 
     def _handler_done(self, task: asyncio.Task[None]) -> None:
         self._handlers.discard(task)
@@ -182,3 +198,23 @@ class Peer:
     def _write_frame(self, frame: bytes) -> None:
         self.sink.write(frame)
         self.sink.flush()
+
+
+def _report_handler_failure(method: str, error: Exception) -> None:
+    diagnostic = {
+        "event": "agent_runtime_request_failed",
+        "method": method if method in _DIAGNOSTIC_METHODS else "unknown",
+        "exceptionType": _symbol(f"{type(error).__module__}.{type(error).__qualname__}"),
+        "frames": [
+            {"file": _symbol(Path(frame.filename).name), "line": frame.lineno}
+            for frame in traceback.extract_tb(error.__traceback__)[-8:]
+            if frame.lineno is not None
+        ],
+    }
+    print(json.dumps(diagnostic, separators=(",", ":")), file=sys.stderr, flush=True)
+
+
+def _symbol(value: str) -> str:
+    return "".join(
+        character for character in value[:128] if character.isascii() and (character.isalnum() or character in "_.<>-")
+    )

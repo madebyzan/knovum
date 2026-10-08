@@ -52,12 +52,16 @@ const validUrl = computed(() => {
   return ["http:", "https:"].includes(new URL(draft.baseUrl).protocol);
 });
 const valid = computed(() => aiConnectionSettingsSchema.safeParse(draft).success && validUrl.value);
-const initialDraft = finalizeAiConnectionDraft(draft);
+const initialName = draft.name.trim();
+const initialBaseUrl = draft.baseUrl.trim();
+const initialProvider = draft.provider;
 const changed = computed(
   () =>
     secret.value === null ||
     Boolean(secret.value?.trim()) ||
-    JSON.stringify(finalizeAiConnectionDraft(draft)) !== JSON.stringify(initialDraft),
+    draft.name.trim() !== initialName ||
+    draft.baseUrl.trim() !== initialBaseUrl ||
+    draft.provider !== initialProvider,
 );
 watch(changed, (value) => emit("dirty", value), { immediate: true });
 

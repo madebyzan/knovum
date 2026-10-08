@@ -24,6 +24,7 @@ def test_ctranslate_transcription_initializes_without_torch(monkeypatch: pytest.
     monkeypatch.setitem(sys.modules, "torch", None)
     _configure_engine_threads(params)
     assert os.environ["OMP_NUM_THREADS"] == "2"
+    assert os.environ["MKL_NUM_THREADS"] == "2"
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda", "mps"])

@@ -95,9 +95,9 @@ When adding or removing an IPC command, review the Rust handler, build-time plug
 
 ## Generation, rendering and desktop lifecycle names
 
-AI text generation uses `plugin:ai|generate_text` / `generate_text_stream`; editor text transformations
-use `transform_editor_text` / `transform_editor_text_stream`. Internal provider completion APIs keep
-their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
+Editor text transformations use `plugin:ai|transform_editor_text_stream`; translation uses
+`plugin:ai|translate_text_stream`. Both operations stream progress and retain explicit cancellation.
+Internal provider completion APIs keep their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
 specialized image-layer generation uses `generate_image_layers`; transformations use `derive_image`, and deterministic
 video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action. Cancellation names the ongoing
 operation (`cancel_image_layer_generation`, `cancel_run`). Image-layer generation

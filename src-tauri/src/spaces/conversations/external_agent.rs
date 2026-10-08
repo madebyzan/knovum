@@ -123,34 +123,106 @@ pub async fn start(
             }
             Err(error) => Err(error),
         };
-        if let Err(error) = outcome {
-            if let Err(settlement) = external_conversations::fail_for_conversation(
+        let settlement_error = if let Err(error) = outcome {
+            external_conversations::fail_for_conversation(
                 &app,
                 &session.id,
                 &session.run_id,
                 &error,
             )
             .await
-            {
-                log::error!("Agent task settlement failed: {settlement}");
-            }
-        }
-        let state = match db::pool(&app).await {
+            .err()
+            .map(|settlement| {
+                log::error!(
+                    "External Agent task settlement failed for run {}: {settlement}; original failure: {error}",
+                    session.run_id
+                );
+                format!(
+                    "External Agent failed: {error}; its failure could not be recorded: {settlement}"
+                )
+            })
+        } else {
+            None
+        };
+        let (state, terminal_error) = match db::pool(&app).await {
             Ok(pool) => match crate::spaces::runs::load_run(pool, &session.run_id).await {
-                Ok(run) if run.state == RunState::Succeeded => {
-                    super::contract::ConversationTaskFinishedState::Succeeded
+                Ok(run) => match run.state {
+                    RunState::Succeeded => (
+                        super::contract::ConversationTaskFinishedState::Succeeded,
+                        None,
+                    ),
+                    RunState::CompletedWithErrors => (
+                        super::contract::ConversationTaskFinishedState::CompletedWithErrors,
+                        None,
+                    ),
+                    RunState::Failed => {
+                        (super::contract::ConversationTaskFinishedState::Failed, None)
+                    }
+                    RunState::Cancelled => (
+                        super::contract::ConversationTaskFinishedState::Cancelled,
+                        None,
+                    ),
+                    state @ (RunState::Queued
+                    | RunState::Running
+                    | RunState::Waiting
+                    | RunState::Paused) => {
+                        let state_error = format!(
+                            "External Agent producer finished while run {} remained in non-terminal state {state:?}",
+                            session.run_id
+                        );
+                        log::error!("{state_error}");
+                        (
+                            super::contract::ConversationTaskFinishedState::SettlementFailed,
+                            Some(match settlement_error {
+                                Some(settlement) => format!("{settlement}; {state_error}"),
+                                None => state_error,
+                            }),
+                        )
+                    }
+                },
+                Err(error) => {
+                    log::error!(
+                        "External Agent final state unavailable for run {}: {error}",
+                        session.run_id
+                    );
+                    (
+                        super::contract::ConversationTaskFinishedState::SettlementFailed,
+                        Some(match settlement_error {
+                            Some(settlement) => {
+                                format!("{settlement}; final state could not be read: {error}")
+                            }
+                            None => {
+                                format!("External Agent final state could not be read: {error}")
+                            }
+                        }),
+                    )
                 }
-                Ok(run) if run.state == RunState::Cancelled => {
-                    super::contract::ConversationTaskFinishedState::Cancelled
-                }
-                _ => super::contract::ConversationTaskFinishedState::Failed,
             },
-            Err(_) => super::contract::ConversationTaskFinishedState::Failed,
+            Err(error) => {
+                log::error!(
+                    "External Agent database unavailable while settling run {}: {error}",
+                    session.run_id
+                );
+                (
+                    super::contract::ConversationTaskFinishedState::SettlementFailed,
+                    Some(match settlement_error {
+                        Some(settlement) => format!(
+                            "{settlement}; database was unavailable during settlement: {error}"
+                        ),
+                        None => format!(
+                            "External Agent database was unavailable during settlement: {error}"
+                        ),
+                    }),
+                )
+            }
         };
         if let Err(error) = crate::extensions::reclamation::release(&app, &snapshot_id).await {
             log::error!("Agent extension release failed: {error}");
         }
-        let _ = updates.send(ConversationTaskUpdate::Finished { state });
+        let _ = updates.send(ConversationTaskUpdate::Finished {
+            state,
+            error: terminal_error,
+        });
     });
     Ok(accepted)
 }

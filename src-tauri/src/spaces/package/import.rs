@@ -1,7 +1,10 @@
 use super::SpacePackageProgress;
 use crate::app_error::AppError;
 use serde_json::{json, Value};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use tauri::{ipc::Channel, AppHandle};
 
 pub(super) async fn execute(
@@ -24,10 +27,11 @@ pub(super) async fn execute(
         Ok::<_,AppError>(overview)
     }.await;
     match restored {
-        Ok(overview) => {
-            fs::remove_file(unpacked.namespace.join(".pending")).map_err(|e| format!("space-package-import-committed: Space {target_id} was imported but its staging marker could not be finalized: {e}"))?;
-            Ok(overview)
-        }
+        Ok(overview) => Ok(finalize_committed_import(
+            overview,
+            &unpacked.namespace.join(".pending"),
+            &target_id,
+        )),
         Err(cause) => {
             fs::remove_dir_all(&unpacked.namespace).map_err(|e| {
                 format!("Space package restore failed: {cause}; asset cleanup failed: {e}")
@@ -36,6 +40,19 @@ pub(super) async fn execute(
         }
     }
 }
+
+fn finalize_committed_import<T>(overview: T, marker: &Path, target_id: &str) -> T {
+    if let Err(error) = fs::remove_file(marker) {
+        log::warn!(
+            "Space package {target_id} was imported, but its staging marker could not be removed: {error}"
+        );
+    }
+    overview
+}
+
+#[cfg(test)]
+#[path = "tests/import.rs"]
+mod tests;
 
 pub(crate) async fn reconcile(app: &AppHandle) -> Result<(), String> {
     let root = crate::spaces::assets::asset_directory(app)?;

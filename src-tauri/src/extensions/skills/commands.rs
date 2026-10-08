@@ -90,7 +90,8 @@ pub async fn import_skill(
             &tokio_util::sync::CancellationToken::new(),
         )
     })
-    .await?;
+    .await
+    .map_err(|error| error.message)?;
     let skill = super::review(&files, &name)?;
     revisions::publish(&app, &skill, files).await?;
     Ok(ExtensionChange::committed(

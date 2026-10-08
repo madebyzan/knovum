@@ -1,7 +1,36 @@
 use serde::Serialize;
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Debug)]
+pub(crate) enum DictationFailure {
+    Cancelled,
+    Classified { code: &'static str, message: String },
+}
+
+impl DictationFailure {
+    pub(crate) fn classified(code: &'static str, message: impl Into<String>) -> Self {
+        Self::Classified {
+            code,
+            message: message.into(),
+        }
+    }
+
+    pub(crate) fn into_parts(self) -> (&'static str, String) {
+        match self {
+            Self::Cancelled => ("cancelled", "Dictation was cancelled".into()),
+            Self::Classified { code, message } => (code, message),
+        }
+    }
+}
+
+impl From<String> for DictationFailure {
+    fn from(message: String) -> Self {
+        Self::classified("dictation_failed", message)
+    }
+}
+
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/dictation/contracts/generated/")]
 pub(crate) enum DictationPhase {
     Idle,
     Recording,
@@ -11,8 +40,9 @@ pub(crate) enum DictationPhase {
     Failed,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/dictation/contracts/generated/")]
 pub(crate) enum InsertionOutcome {
     Inserted,
     NotAttempted,
@@ -21,8 +51,9 @@ pub(crate) enum InsertionOutcome {
     Failed,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/dictation/contracts/generated/")]
 pub(crate) struct DictationSnapshot {
     pub(crate) phase: DictationPhase,
     pub(crate) resources:

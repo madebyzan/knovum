@@ -10,6 +10,8 @@ import type { InspectedConversationUpload } from "../contracts/generated/Inspect
 import type { RunEvent } from "../contracts/generated/RunEvent";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 
+type ConversationTaskFinishedUpdate = Extract<ConversationTaskUpdate, { type: "finished" }>;
+
 export function listConversationRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
   return invokeCommand("plugin:spaces|list_run_events", { runId, afterSequence });
 }
@@ -59,11 +61,14 @@ export function activateConversationBranch(conversationId: string, branchId: str
 export async function startConversationTask(
   request: SubmitConversationTaskRequest,
   onUpdate: (update: ConversationTaskUpdate) => void,
-): Promise<{ accepted: ConversationTaskAccepted; settled: Promise<string> }> {
-  let finish!: (state: string) => void;
-  const settled = new Promise<string>((resolve) => (finish = resolve));
+): Promise<{
+  accepted: ConversationTaskAccepted;
+  settled: Promise<ConversationTaskFinishedUpdate>;
+}> {
+  let finish!: (update: ConversationTaskFinishedUpdate) => void;
+  const settled = new Promise<ConversationTaskFinishedUpdate>((resolve) => (finish = resolve));
   const updates = new Channel<ConversationTaskUpdate>((update) => {
-    if (update.type === "finished") finish(update.state);
+    if (update.type === "finished") finish(update);
     else onUpdate(update);
   });
   const accepted = await invokeCommand<ConversationTaskAccepted>("plugin:spaces|start_conversation_task", {

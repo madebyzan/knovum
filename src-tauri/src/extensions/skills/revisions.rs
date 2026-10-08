@@ -55,7 +55,8 @@ pub(crate) async fn files(app: &AppHandle, skill: &SkillRevision) -> Result<Pack
             &tokio_util::sync::CancellationToken::new(),
         )
     })
-    .await?;
+    .await
+    .map_err(|error| error.message)?;
     if content::files_digest(&files) != skill.digest {
         return Err(format!("skill-content-corrupt: {}", skill.name));
     }

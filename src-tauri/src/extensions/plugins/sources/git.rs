@@ -2,12 +2,19 @@ use super::super::super::content::{self, PackageFiles};
 use std::{
     path::Path,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU8, Ordering},
         Arc,
     },
     time::{Duration, Instant},
 };
 use tokio_util::sync::CancellationToken;
+
+use crate::app_error::{AppError, AppResult};
+
+const INTERRUPT_NONE: u8 = 0;
+const INTERRUPT_CANCELLED: u8 = 1;
+const INTERRUPT_TIMEOUT: u8 = 2;
+const INTERRUPT_SIZE_LIMIT: u8 = 3;
 
 pub(super) fn read(
     url: &str,
@@ -15,23 +22,32 @@ pub(super) fn read(
     subdirectory: &str,
     addresses: Vec<std::net::SocketAddr>,
     cancellation: CancellationToken,
-) -> Result<(PackageFiles, String), String> {
+) -> AppResult<(PackageFiles, String)> {
     if !subdirectory.is_empty() {
         content::validate_path(subdirectory)?;
     }
     let directory =
         std::env::temp_dir().join(format!("knovum-plugin-git-{}", uuid::Uuid::new_v4()));
     let interrupt = Arc::new(AtomicBool::new(false));
+    let interrupt_reason = Arc::new(AtomicU8::new(INTERRUPT_NONE));
     let (done, finished) = std::sync::mpsc::channel();
     let watchdog_path = directory.clone();
     let watchdog_interrupt = interrupt.clone();
+    let watchdog_reason = interrupt_reason.clone();
     let watchdog = std::thread::spawn(move || {
         let started = Instant::now();
         while finished.recv_timeout(Duration::from_millis(200)).is_err() {
-            if cancellation.is_cancelled()
-                || started.elapsed() > Duration::from_secs(120)
-                || disk_bytes(&watchdog_path) > 256 * 1024 * 1024
-            {
+            let reason = if cancellation.is_cancelled() {
+                INTERRUPT_CANCELLED
+            } else if started.elapsed() > Duration::from_secs(120) {
+                INTERRUPT_TIMEOUT
+            } else if disk_bytes(&watchdog_path) > 256 * 1024 * 1024 {
+                INTERRUPT_SIZE_LIMIT
+            } else {
+                INTERRUPT_NONE
+            };
+            if reason != INTERRUPT_NONE {
+                watchdog_reason.store(reason, Ordering::Relaxed);
                 watchdog_interrupt.store(true, Ordering::Relaxed);
                 break;
             }
@@ -48,7 +64,18 @@ pub(super) fn read(
     let _ = done.send(());
     let _ = watchdog.join();
     let _ = std::fs::remove_dir_all(directory);
-    result
+    match interrupt_reason.load(Ordering::Relaxed) {
+        INTERRUPT_CANCELLED => Err(AppError::cancelled("Plugin source reading was cancelled")),
+        INTERRUPT_TIMEOUT => Err(AppError::new(
+            "plugin_source_timeout",
+            "Plugin Git source reading timed out",
+        )),
+        INTERRUPT_SIZE_LIMIT => Err(AppError::new(
+            "package_size_limit_exceeded",
+            "Plugin Git source exceeded the staging size limit",
+        )),
+        _ => result,
+    }
 }
 
 fn disk_bytes(directory: &Path) -> u64 {
@@ -67,7 +94,7 @@ fn read_objects(
     directory: &Path,
     interrupt: &AtomicBool,
     addresses: Vec<std::net::SocketAddr>,
-) -> Result<(PackageFiles, String), String> {
+) -> AppResult<(PackageFiles, String)> {
     let origin = url::Url::parse(url).map_err(|error| error.to_string())?;
     let client = reqwest::blocking::Client::builder()
         .no_proxy()
@@ -144,10 +171,10 @@ fn collect(
     files: &mut PackageFiles,
     total: &mut usize,
     interrupt: &AtomicBool,
-) -> Result<(), String> {
+) -> AppResult<()> {
     for entry in tree.iter() {
         if interrupt.load(Ordering::Relaxed) {
-            return Err(super::super::operations::CANCELLED.into());
+            return Err(AppError::cancelled("Plugin source reading was interrupted"));
         }
         let entry = entry.map_err(|error| error.to_string())?;
         let name = std::str::from_utf8(entry.filename()).map_err(|_| "git-path-must-be-utf8")?;

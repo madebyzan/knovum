@@ -4,6 +4,7 @@ import asyncio
 import io
 import json
 import socket
+import sys
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any
@@ -80,9 +81,9 @@ def test_duplex_request_can_call_host_while_control_is_received() -> None:
     asyncio.run(run())
 
 
-def test_unexpected_exception_does_not_disclose_credentials() -> None:
+def test_unexpected_exception_does_not_disclose_credentials(capsys: pytest.CaptureFixture[str]) -> None:
     async def run() -> None:
-        source = io.BytesIO(b'{"jsonrpc":"2.0","id":"request","method":"fail","params":{}}\n')
+        source = io.BytesIO(b'{"jsonrpc":"2.0","id":"request","method":"agentRuntime.execute","params":{}}\n')
         sink = io.BytesIO()
         peer = Peer(source, sink)
 
@@ -93,6 +94,43 @@ def test_unexpected_exception_does_not_disclose_credentials() -> None:
         response = sink.getvalue()
         assert b"api-key-secret" not in response
         assert json.loads(response)["error"]["message"] == "agent-runtime-request-failed"
+
+    asyncio.run(run())
+    diagnostic_text = capsys.readouterr().err
+    assert "api-key-secret" not in diagnostic_text
+    diagnostic = json.loads(diagnostic_text)
+    assert diagnostic["event"] == "agent_runtime_request_failed"
+    assert diagnostic["method"] == "agentRuntime.execute"
+    assert diagnostic["exceptionType"] == "builtins.ValueError"
+    frame_files = [frame["file"] for frame in diagnostic["frames"]]
+    assert frame_files[-1] == "test_transport.py"
+    assert set(frame_files) <= {"transport.py", "test_transport.py"}
+    assert all(isinstance(frame["line"], int) for frame in diagnostic["frames"])
+
+
+def test_error_response_is_written_before_diagnostic_channel_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FailedDiagnosticStream:
+        def write(self, _value: str) -> int:
+            raise OSError("diagnostic-channel-failed")
+
+        def flush(self) -> None:
+            pass
+
+    async def run() -> None:
+        sink = io.BytesIO()
+        peer = Peer(io.BytesIO(), sink)
+
+        async def dispatch(_method: str, _value: Any) -> Any:
+            raise ValueError("api-key-secret")
+
+        monkeypatch.setattr(sys, "stderr", FailedDiagnosticStream())
+        with pytest.raises(OSError, match="diagnostic-channel-failed"):
+            await peer._dispatch(
+                {"jsonrpc": "2.0", "id": "request", "method": "agentRuntime.execute", "params": {}}, dispatch
+            )
+        response = json.loads(sink.getvalue())
+        assert response["error"]["message"] == "agent-runtime-request-failed"
+        assert b"api-key-secret" not in sink.getvalue()
 
     asyncio.run(run())
 

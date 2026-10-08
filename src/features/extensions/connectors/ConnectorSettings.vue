@@ -38,9 +38,8 @@ const changes = useExtensionChanges();
 const editing = shallowRef(false);
 const draft = ref(connectorDraft());
 function edit(connector?: ConnectorDefinition) {
-  draft.value = connector
-    ? { ...cloneDeep(connector), endpoint: cloneDeep(connector.endpoint!) }
-    : connectorDraft();
+  const editable = connector ? cloneDeep(connector) : connectorDraft();
+  draft.value = { ...editable, endpoint: editable.endpoint! };
   editing.value = true;
 }
 function save() {

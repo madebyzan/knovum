@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import types
 from pathlib import Path
@@ -155,6 +156,7 @@ def test_cpu_transcription_uses_native_faster_whisper(
     monkeypatch.setitem(sys.modules, "faster_whisper", types.SimpleNamespace(WhisperModel=WhisperModel))
     monkeypatch.setattr(transcription.platform, "system", lambda: system)
     monkeypatch.setattr(transcription.platform, "machine", lambda: machine)
+    monkeypatch.setenv("OMP_NUM_THREADS", "session-owned")
     artifact = TranscriptionEngine(tmp_path, tmp_path, 2)._faster(
         tmp_path / "source.wav", _params(str(uuid4())), lambda *_: None, Event()
     )
@@ -166,6 +168,7 @@ def test_cpu_transcription_uses_native_faster_whisper(
         "local_files_only": True,
     }
     assert artifact["durationMs"] == 1000
+    assert os.environ["OMP_NUM_THREADS"] == "session-owned"
 
 
 def test_intel_transcription_rejects_gpu_profile(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

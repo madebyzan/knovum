@@ -95,15 +95,14 @@ pub(crate) async fn fail_for_conversation(
             .err()
             .map(|error| error.to_string());
     }
-    runtime::lifecycle::mark_disconnected(
-        crate::spaces::db::pool(app).await?,
-        session_id,
-        run_id,
-        error,
-    )
-    .await?;
+    let settlement = match crate::spaces::db::pool(app).await {
+        Ok(pool) => runtime::lifecycle::mark_disconnected(pool, session_id, run_id, error).await,
+        Err(error) => Err(error),
+    };
     if let Some(close_error) = close_error {
-        return Err(close_error);
+        log::warn!(
+            "External Agent runtime cleanup failed for session {session_id}, run {run_id}: {close_error}"
+        );
     }
-    Ok(())
+    settlement.map(|_| ())
 }

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import { sha256File } from "../files.mjs";
 import { validateMediaRuntime, writeMediaManifest } from "../media-manifest.mjs";
+import { MediaRuntimeContentError } from "../media-runtime-content.mjs";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -73,3 +74,69 @@ test("media validation rejects another target and an obsolete producer recipe", 
   writeFileSync(path, JSON.stringify(manifest));
   assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), /identity/u);
 });
+
+test("media cache content failures are explicitly rebuildable", (context) => {
+  const root = fixture(context);
+  writeFileSync(join(root, "media-manifest.json"), "{");
+  assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
+});
+
+test("media cache links are explicitly rebuildable", { skip: process.platform === "win32" }, (context) => {
+  const root = fixture(context);
+  symlinkSync("Library/bin/ffmpeg.exe", join(root, "linked-ffmpeg"));
+  assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
+});
+
+test("media cache non-file executable entries are explicitly rebuildable", (context) => {
+  const root = fixture(context);
+  const executable = join(root, "Library/bin/ffmpeg.exe");
+  rmSync(executable);
+  mkdirSync(executable);
+  assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
+});
+
+test("invalid native supplier package entries are explicitly rebuildable", (context) => {
+  const root = fixture(context);
+  const path = join(root, "media-manifest.json");
+  const manifest = JSON.parse(readFileSync(path));
+  manifest.producer.nativeSupplier.packages = [null];
+  writeFileSync(path, JSON.stringify(manifest));
+  assert.throws(() => validateMediaRuntime(repository, root, "windows-x64"), MediaRuntimeContentError);
+});
+
+test("repository configuration syntax and validator type errors are not cache failures", (context) => {
+  const root = fixture(context);
+  const invalidJsonRepository = repositoryWithConfiguration(context, "{");
+  assert.throws(
+    () => validateMediaRuntime(invalidJsonRepository, root, "windows-x64"),
+    (error) => error instanceof SyntaxError && !(error instanceof MediaRuntimeContentError),
+  );
+
+  const invalidShapeRepository = repositoryWithConfiguration(context, "{}");
+  assert.throws(
+    () => validateMediaRuntime(invalidShapeRepository, root, "windows-x64"),
+    (error) => error instanceof TypeError && !(error instanceof MediaRuntimeContentError),
+  );
+});
+
+test(
+  "repository configuration permission errors are not cache failures",
+  { skip: process.platform === "win32" },
+  (context) => {
+    const root = fixture(context);
+    const restrictedRepository = repositoryWithConfiguration(context, "{}");
+    chmodSync(join(restrictedRepository, "python/runtime-source.json"), 0o000);
+    assert.throws(
+      () => validateMediaRuntime(restrictedRepository, root, "windows-x64"),
+      (error) => error?.code === "EACCES" && !(error instanceof MediaRuntimeContentError),
+    );
+  },
+);
+
+function repositoryWithConfiguration(context, configuration) {
+  const directory = mkdtempSync(join(tmpdir(), "knovum-media-repository-"));
+  context.after(() => rmSync(directory, { recursive: true, force: true }));
+  mkdirSync(join(directory, "python"), { recursive: true });
+  writeFileSync(join(directory, "python/runtime-source.json"), configuration);
+  return directory;
+}

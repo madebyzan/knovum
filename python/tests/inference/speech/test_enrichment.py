@@ -103,7 +103,6 @@ def test_alignment_loader_is_local_float32_on_the_frozen_device(
     fake_torch = types.SimpleNamespace(
         float32="float32",
         inference_mode=lambda: nullcontext(),
-        set_num_threads=lambda threads: calls.setdefault("threads", threads),
     )
     fake_transformers = types.SimpleNamespace(
         AutoModelForTokenClassification=FakeModelFactory,
@@ -122,7 +121,6 @@ def test_alignment_loader_is_local_float32_on_the_frozen_device(
     AlignmentEngine(model_directory, device, 6, "qwen3-forced-aligner-0.6b-hf-v1")._load()
 
     assert calls == {
-        "threads": 6,
         "processor": (model_directory, {"local_files_only": True}),
         "model": (model_directory, {"local_files_only": True, "dtype": "float32", "output_loading_info": True}),
         "device": device,

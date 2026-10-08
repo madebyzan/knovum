@@ -15,6 +15,7 @@
     "core:window:allow-request-user-attention",
     "dialog:default",
     "secrets:allow-get",
+    "secrets:allow-is-configured",
     "secrets:allow-set",
     "secrets:allow-delete",
     "desktop:allow-set-locale",

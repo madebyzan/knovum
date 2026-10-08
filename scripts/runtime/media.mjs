@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { activateDirectory } from "./files.mjs";
 import { mediaExecutable, mediaManifestName, validateMediaRuntime } from "./media-manifest.mjs";
+import { MediaRuntimeContentError } from "./media-runtime-content.mjs";
 import { runProducer } from "./producer.mjs";
 import { hostRuntimeTarget } from "./profiles.mjs";
 
@@ -16,6 +17,7 @@ export async function prepareCoreMedia(repository) {
       validateMediaRuntime(repository, destination, target);
       return;
     } catch (error) {
+      if (!(error instanceof MediaRuntimeContentError)) throw error;
       console.log(`Rebuilding owned core media resource: ${error.message}`);
     }
   }

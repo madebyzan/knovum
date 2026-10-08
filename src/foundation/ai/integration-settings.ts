@@ -42,10 +42,9 @@ async function readSetting<T>(key: string, schema: z.ZodType<T>, defaultValue: T
   if (isNil(raw)) return cloneDeep(defaultValue);
   return decodeSetting(raw, schema);
 }
-function writeSetting<T>(key: string, schema: z.ZodType<T>, value: T): Promise<void> {
-  const parsed = schema.parse(value);
+function persistSetting<T>(key: string, value: T): Promise<void> {
   return enqueueMutation(async () => {
-    await settingsStore.set(key, { schemaVersion: SETTINGS_SCHEMA_VERSION, value: parsed });
+    await settingsStore.set(key, { schemaVersion: SETTINGS_SCHEMA_VERSION, value });
     await settingsStore.save();
   });
 }
@@ -56,18 +55,18 @@ export function loadAiModelSettings() {
 export async function saveAiModelSettings(value: AiModelSettings) {
   const parsed = aiModelSettingsSchema.parse(value);
   await invokeCommand("plugin:ai|validate_model_settings", { settings: parsed });
-  return writeSetting(settingKeys.aiModels, aiModelSettingsSchema, parsed);
+  return persistSetting(settingKeys.aiModels, parsed);
 }
 export function resetAiModelSettings() {
-  return writeSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
+  return persistSetting(settingKeys.aiModels, defaultAiModelSettings);
 }
 export function loadCreationLibrary() {
   return readSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
 }
 export async function saveCreationLibrary(value: CreationLibrary) {
   const parsed = creationLibrarySchema.parse(value);
-  return writeSetting(settingKeys.creationLibrary, creationLibrarySchema, parsed);
+  return persistSetting(settingKeys.creationLibrary, parsed);
 }
 export function resetCreationLibrary() {
-  return writeSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+  return persistSetting(settingKeys.creationLibrary, defaultCreationLibrary);
 }

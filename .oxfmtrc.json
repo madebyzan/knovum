@@ -23,6 +23,7 @@
     "runtime-artifacts/**",
     "src/shared/contracts/generated/**",
     "python/schemas/*.schema.json",
+    "src/features/dictation/contracts/generated/**",
     "src/features/spaces/contracts/generated/**"
   ]
 }

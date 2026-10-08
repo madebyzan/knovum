@@ -3,10 +3,8 @@ use std::sync::{Arc, RwLock};
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::{self, UnboundedSender};
 
-use super::{
-    actor, contracts::DictationSnapshot, insertion::TargetApplication,
-    transcription::TranscriptionOutcome,
-};
+use super::{actor, insertion::TargetApplication, transcription::TranscriptionOutcome};
+use crate::dictation_contracts::{DictationFailure, DictationSnapshot};
 
 pub(crate) enum DictationAction {
     Press,
@@ -16,8 +14,7 @@ pub(crate) enum DictationAction {
     Shutdown,
     DeviceFailed {
         session_id: String,
-        code: String,
-        message: String,
+        failure: DictationFailure,
     },
     PreparationProgress {
         session_id: String,
@@ -26,7 +23,7 @@ pub(crate) enum DictationAction {
     Finished {
         session_id: String,
         target: TargetApplication,
-        transcription: Result<TranscriptionOutcome, String>,
+        transcription: Result<TranscriptionOutcome, DictationFailure>,
     },
 }
 

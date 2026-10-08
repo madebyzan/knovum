@@ -5,6 +5,8 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
+use crate::app_error::{AppError, AppResult};
+
 pub(in crate::extensions::plugins) fn read_bounded(
     path: &Path,
     limit: usize,
@@ -23,16 +25,13 @@ pub(in crate::extensions::plugins) fn read_bounded(
 pub(super) fn read_file(
     path: &Path,
     cancellation: &CancellationToken,
-) -> Result<(PackageFiles, String), String> {
+) -> AppResult<(PackageFiles, String)> {
     let bytes = read_bounded(path, 64 * 1024 * 1024)?;
     let digest = content::digest(&bytes);
     Ok((extract(bytes, cancellation)?, digest))
 }
 
-pub(super) fn extract(
-    bytes: Vec<u8>,
-    cancellation: &CancellationToken,
-) -> Result<PackageFiles, String> {
+pub(super) fn extract(bytes: Vec<u8>, cancellation: &CancellationToken) -> AppResult<PackageFiles> {
     let mut archive =
         zip::ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
     if archive.len() > content::MAX_FILES {
@@ -44,13 +43,13 @@ pub(super) fn extract(
     let mut paths = Vec::new();
     for index in 0..archive.len() {
         if cancellation.is_cancelled() {
-            return Err(super::super::operations::CANCELLED.into());
+            return Err(AppError::cancelled("Plugin source reading was cancelled"));
         }
         let mut entry = archive.by_index(index).map_err(|error| error.to_string())?;
         let path = entry.name().trim_end_matches('/').to_owned();
         content::validate_path(&path)?;
         if !names.insert(content::filesystem_identity(&path)) {
-            return Err(format!("package-case-collision: {path}"));
+            return Err(format!("package-case-collision: {path}").into());
         }
         let file_type = entry.unix_mode().unwrap_or(0) & 0o170000;
         if !matches!(file_type, 0 | 0o040000 | 0o100000) {

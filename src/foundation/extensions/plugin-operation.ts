@@ -1,6 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 
 import type { PluginOperationStage } from "../../shared/contracts/generated/PluginOperationStage";
+import { decodeAppError } from "../errors/app-error";
 import { getErrorMessage } from "../errors/error-format";
 import { i18n } from "../i18n/i18n";
 import { invokeCommand } from "../ipc/invoke-command";
@@ -35,7 +36,7 @@ export async function runPluginOperation<T>(
     return response;
   } catch (error) {
     const message = getErrorMessage(error);
-    if (message === "plugin-operation-cancelled") {
+    if (decodeAppError(error)?.code === "cancelled") {
       tasks.cancelled(jobId);
       throw new Error(i18n.global.t("extensions.operationCancelled"), { cause: error });
     }

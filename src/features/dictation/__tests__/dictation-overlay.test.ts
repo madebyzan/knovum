@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { readonly, shallowRef } from "vue";
 
-import type { DictationSnapshot } from "../dictation-contracts";
+import type { DictationSnapshot } from "../contracts/generated/DictationSnapshot";
 import DictationOverlay from "../DictationOverlay.vue";
 import type { useDictationSession } from "../use-dictation-session";
 

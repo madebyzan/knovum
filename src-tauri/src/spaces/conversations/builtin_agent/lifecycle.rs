@@ -30,22 +30,9 @@ pub(super) fn launch(
             Ok(DriveOutcome::Completed) => completion::complete(&pool, &ids).await,
             Err(error) => Err(error),
         };
-        let state = match state {
-            Ok(state) => state,
-            Err(error) => {
-                if let Err(write_error) = completion::fail(&pool, &ids.run_id, &error).await {
-                    log::error!("Builtin Agent failure recording failed: {write_error}");
-                }
-                match completion::stopped_state(&pool, &ids.run_id).await {
-                    Ok(state) => state,
-                    Err(error) => {
-                        log::error!("Builtin Agent final state unavailable: {error}");
-                        crate::extensions::mcp::sessions::release(&app, &snapshot_id).await;
-                        super::cancellation::remove(&ids.run_id);
-                        return;
-                    }
-                }
-            }
+        let (state, terminal_error) = match state {
+            Ok(state) => (state, None),
+            Err(error) => completion::settle_failure(&pool, &ids.run_id, &error).await,
         };
         let resumable = matches!(
             state,
@@ -59,7 +46,10 @@ pub(super) fn launch(
         }
         super::cancellation::remove(&ids.run_id);
         if let Some(channel) = updates {
-            let _ = channel.send(ConversationTaskUpdate::Finished { state });
+            let _ = channel.send(ConversationTaskUpdate::Finished {
+                state,
+                error: terminal_error,
+            });
         }
     });
 }

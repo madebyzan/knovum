@@ -4,6 +4,9 @@ type ContractExporter = fn(&Config) -> Result<(), ts_rs::ExportError>;
 
 pub(super) fn export(config: &Config) -> Result<(), String> {
     let exporters: &[ContractExporter] = &[
+        crate::dictation_contracts::DictationPhase::export_all,
+        crate::dictation_contracts::InsertionOutcome::export_all,
+        crate::dictation_contracts::DictationSnapshot::export_all,
         crate::extensions::contracts::PluginOperationStage::export_all,
         crate::extensions::contracts::ExtensionChange::<()>::export_all,
         crate::extensions::contracts::PluginConnectorConfiguration::export_all,
@@ -209,7 +212,6 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::ai::contracts::speech_wire::SpeechSeparation::export_all,
         crate::ai::contracts::ExecutionCapability::export_all,
         crate::ai::contracts::RoutingPurpose::export_all,
-        crate::ai::tasks::text::CompletionCommandRequest::export_all,
         crate::ai::tasks::text::EditorTransformCommandRequest::export_all,
         crate::ai::tasks::text::TranslationCommandRequest::export_all,
         crate::ai::models::text::CompletionOutput::export_all,

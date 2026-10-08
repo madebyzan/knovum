@@ -9,13 +9,14 @@ import type { ConversationMessage } from "../contracts/generated/ConversationMes
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
-import { getConversationTaskError, startConversationTask } from "./conversation-ipc";
+import { startConversationTask } from "./conversation-ipc";
 import {
   pendingConversationMessage,
   type VisibleConversationAttachment,
 } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
+import { settleConversationTaskResult } from "./conversation-task-settlement";
 
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
@@ -85,14 +86,15 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     }
     const outcome = await task.settled;
     if (submitted !== generation) return;
-    state.taskState.value = outcome;
-    await options.settled(task.accepted, selection.spaceId);
+    state.taskState.value = outcome.state;
     state.streamedText.value = "";
     state.error.value = undefined;
-    if (outcome === "succeeded" || outcome === "paused" || outcome === "waiting" || outcome === "cancelled")
-      return;
-    const reason = await getConversationTaskError(task.accepted.runId);
-    throw new Error(reason ?? `Conversation task ended as ${outcome}`);
+    await settleConversationTaskResult({
+      accepted: task.accepted,
+      outcome,
+      spaceId: selection.spaceId,
+      project: options.settled,
+    });
   }
 
   async function finish(submitted: number) {

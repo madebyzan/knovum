@@ -67,9 +67,9 @@ const paneComponentMap = {
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
   appearance: AppearanceSettingsPane,
-};
+} satisfies Record<SettingsPaneId, Component>;
 
-const paneComponent = computed(() => paneComponentMap[activePane.value] ?? AppearanceSettingsPane);
+const paneComponent = computed(() => paneComponentMap[activePane.value]);
 const paneHeaderAction = computed(() =>
   activePane.value === "archivedSpaces"
     ? ArchivedSpacesSettingsAction

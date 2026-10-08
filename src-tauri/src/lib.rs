@@ -10,6 +10,8 @@ pub mod contract_codegen;
 mod desktop;
 #[cfg(knovum_supported_desktop)]
 mod dictation;
+#[path = "dictation/contracts.rs"]
+mod dictation_contracts;
 #[cfg(not(knovum_supported_desktop))]
 mod dictation_unsupported;
 mod documents;

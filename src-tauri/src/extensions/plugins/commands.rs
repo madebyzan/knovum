@@ -6,6 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::{installation, operations::PluginOperation, packages, sources};
+use crate::app_error::AppResult;
 use tauri::{ipc::Channel, AppHandle, Manager};
 
 #[tauri::command]
@@ -14,7 +15,7 @@ pub async fn inspect_plugin_source(
     source: PluginSource,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginInspection, String> {
+) -> AppResult<PluginInspection> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -34,7 +35,7 @@ pub async fn install_plugin(
     publication: Option<PluginPublication>,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<super::super::contracts::ExtensionChange<PluginInstallation>, String> {
+) -> AppResult<super::super::contracts::ExtensionChange<PluginInstallation>> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -56,7 +57,7 @@ pub async fn install_plugin(
         }
     }
     operation.commit()?;
-    installation::commit(
+    Ok(installation::commit(
         &app,
         &uuid::Uuid::new_v4().to_string(),
         source,
@@ -65,7 +66,7 @@ pub async fn install_plugin(
         false,
         publication,
     )
-    .await
+    .await?)
 }
 
 #[tauri::command]
@@ -75,7 +76,7 @@ pub async fn update_plugin(
     expected_digest: String,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<super::super::contracts::ExtensionChange<PluginInstallation>, String> {
+) -> AppResult<super::super::contracts::ExtensionChange<PluginInstallation>> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -106,7 +107,7 @@ pub async fn update_plugin(
         super::marketplaces::require_publication(&app, publication, &source).await?;
     }
     operation.commit()?;
-    installation::commit(&app, &id, source, reviewed, files, false, old.publication).await
+    Ok(installation::commit(&app, &id, source, reviewed, files, false, old.publication).await?)
 }
 
 #[tauri::command]
@@ -183,7 +184,7 @@ pub async fn inspect_plugin_update(
     id: String,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginUpdatePreview, String> {
+) -> AppResult<PluginUpdatePreview> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,

@@ -94,10 +94,11 @@ pub enum ConversationTaskUpdate {
     ContentBoundary,
     Finished {
         state: ConversationTaskFinishedState,
+        error: Option<String>,
     },
 }
 
-#[derive(Clone, Copy, Debug, Serialize, TS)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ConversationTaskFinishedState {
@@ -105,6 +106,7 @@ pub enum ConversationTaskFinishedState {
     Succeeded,
     CompletedWithErrors,
     Failed,
+    SettlementFailed,
     Cancelled,
     Paused,
 }

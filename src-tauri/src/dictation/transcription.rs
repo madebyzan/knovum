@@ -25,6 +25,7 @@ use crate::{
 };
 
 use super::recorder::RecordedAudio;
+use crate::dictation_contracts::DictationFailure;
 
 pub(crate) struct TranscriptionOutcome {
     pub(crate) text: String,
@@ -38,8 +39,9 @@ pub(crate) async fn transcribe<R: Runtime>(
     recording: RecordedAudio,
     cancellation: &CancellationToken,
     progress: &mut (impl FnMut(preparation::contracts::ResourcePreparationProgress) + Send),
-) -> Result<TranscriptionOutcome, String> {
-    let model = crate::local_resources::model_selection::transcription(app)?;
+) -> Result<TranscriptionOutcome, DictationFailure> {
+    let model = crate::local_resources::model_selection::transcription(app)
+        .map_err(|error| DictationFailure::classified("local_resource_unavailable", error))?;
     let resources = preparation::prepare_models_for_job(
         app,
         preparation::contracts::ResourcePreparationTarget::Model { model },
@@ -51,15 +53,16 @@ pub(crate) async fn transcribe<R: Runtime>(
     .await
     .map_err(|error| {
         if cancellation.is_cancelled() || error == preparation::RESOURCE_PREPARATION_CANCELLED {
-            "cancelled".to_owned()
+            DictationFailure::Cancelled
         } else {
-            format!("local_resource_unavailable: {error}")
+            DictationFailure::classified("local_resource_unavailable", error)
         }
     })?;
     let audio_ref = crate::blocking::run(move || audio_reference(&wav, recording)).await?;
     let (attempt_epoch, deadline_ms) = deadline(120_000)?;
-    let profile =
-        speech::transcription_execution_profile(app, model, cancellation, deadline_ms).await?;
+    let profile = speech::transcription_execution_profile(app, model, cancellation, deadline_ms)
+        .await
+        .map_err(|error| transcription_failure(cancellation, error))?;
     let request_id = uuid::Uuid::new_v4().to_string();
     let identity = InferenceRequestIdentity {
         request_id: request_id.clone(),
@@ -77,7 +80,9 @@ pub(crate) async fn transcribe<R: Runtime>(
         RuntimeDeviceProfile {
             device: profile.device.into(),
             execution_profile_id: profile.id.into(),
-            cpu_threads: ComputeBudget::detect()?.model_threads,
+            cpu_threads: ComputeBudget::detect()
+                .map_err(|error| DictationFailure::classified("transcription_failed", error))?
+                .model_threads,
         },
         SpeechTranscribeParams {
             identity,
@@ -96,9 +101,13 @@ pub(crate) async fn transcribe<R: Runtime>(
         Priority::Interactive,
         |_| {},
     )
-    .await?;
+    .await
+    .map_err(|error| transcription_failure(cancellation, error))?;
     if artifact.language.trim().is_empty() || artifact.language.len() > 64 {
-        return Err("invalid_output: dictation language is invalid".into());
+        return Err(DictationFailure::classified(
+            "invalid_output",
+            "Dictation language is invalid",
+        ));
     }
     let mut previous_start = 0;
     for (index, segment) in artifact.segments.iter().enumerate() {
@@ -107,7 +116,10 @@ pub(crate) async fn transcribe<R: Runtime>(
             || segment.end_ms > 120_000
             || (index > 0 && segment.start_ms < previous_start)
         {
-            return Err("invalid_output: dictation segment is invalid".into());
+            return Err(DictationFailure::classified(
+                "invalid_output",
+                "Dictation segment is invalid",
+            ));
         }
         previous_start = segment.start_ms;
     }
@@ -117,15 +129,21 @@ pub(crate) async fn transcribe<R: Runtime>(
     })
 }
 
-fn audio_reference(path: &Path, recording: RecordedAudio) -> Result<AudioFileReference, String> {
+fn audio_reference(
+    path: &Path,
+    recording: RecordedAudio,
+) -> Result<AudioFileReference, DictationFailure> {
     let byte_length = std::fs::metadata(path)
-        .map_err(|error| error.to_string())?
+        .map_err(|error| DictationFailure::classified("audio_capture_failed", error.to_string()))?
         .len();
-    let mut file = File::open(path).map_err(|error| error.to_string())?;
+    let mut file = File::open(path)
+        .map_err(|error| DictationFailure::classified("audio_capture_failed", error.to_string()))?;
     let mut digest = Sha256::new();
     let mut buffer = [0_u8; 1024 * 1024];
     loop {
-        let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
+        let read = file.read(&mut buffer).map_err(|error| {
+            DictationFailure::classified("audio_capture_failed", error.to_string())
+        })?;
         if read == 0 {
             break;
         }
@@ -134,7 +152,12 @@ fn audio_reference(path: &Path, recording: RecordedAudio) -> Result<AudioFileRef
     Ok(AudioFileReference {
         path: path
             .to_str()
-            .ok_or("Recorded audio path is not valid Unicode")?
+            .ok_or_else(|| {
+                DictationFailure::classified(
+                    "audio_capture_failed",
+                    "Recorded audio path is not valid Unicode",
+                )
+            })?
             .into(),
         media_type: "audio/wav".into(),
         byte_length,
@@ -145,15 +168,27 @@ fn audio_reference(path: &Path, recording: RecordedAudio) -> Result<AudioFileRef
     })
 }
 
-fn deadline(allowance_ms: u64) -> Result<(u64, u64), String> {
+fn deadline(allowance_ms: u64) -> Result<(u64, u64), DictationFailure> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?;
-    let now_ms = u64::try_from(now.as_millis()).map_err(|error| error.to_string())?;
-    let deadline_ms = now_ms
-        .checked_add(allowance_ms)
-        .ok_or("ASR deadline exceeds the supported range")?;
+        .map_err(|error| DictationFailure::classified("dictation_failed", error.to_string()))?;
+    let now_ms = u64::try_from(now.as_millis())
+        .map_err(|error| DictationFailure::classified("dictation_failed", error.to_string()))?;
+    let deadline_ms = now_ms.checked_add(allowance_ms).ok_or_else(|| {
+        DictationFailure::classified(
+            "dictation_failed",
+            "ASR deadline exceeds the supported range",
+        )
+    })?;
     Ok((now_ms, deadline_ms))
+}
+
+fn transcription_failure(cancellation: &CancellationToken, message: String) -> DictationFailure {
+    if cancellation.is_cancelled() {
+        DictationFailure::Cancelled
+    } else {
+        DictationFailure::classified("transcription_failed", message)
+    }
 }
 
 fn join_segments(segments: impl Iterator<Item = String>) -> String {

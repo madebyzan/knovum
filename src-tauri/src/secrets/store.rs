@@ -46,6 +46,16 @@ pub(super) async fn get(pool: &SqlitePool, key: &str) -> Result<Option<String>, 
         .map_err(|error| error.to_string())
 }
 
+pub(super) async fn is_configured(pool: &SqlitePool, key: &str) -> Result<bool, String> {
+    sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM secrets WHERE secret_key = ? AND secret_value != '')",
+    )
+    .bind(key)
+    .fetch_one(pool)
+    .await
+    .map_err(|error| error.to_string())
+}
+
 pub(super) async fn set(pool: &SqlitePool, key: &str, value: &str) -> Result<(), String> {
     sqlx::query(
         "INSERT INTO secrets(secret_key, secret_value) VALUES (?, ?) \

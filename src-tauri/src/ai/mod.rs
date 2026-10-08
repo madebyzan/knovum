@@ -31,14 +31,10 @@ pub fn plugin() -> TauriPlugin<Wry> {
         })
         .invoke_handler(tauri::generate_handler![
             crate::ai::commands::text::cancel_job,
-            crate::ai::commands::text::generate_text,
-            crate::ai::commands::text::generate_text_stream,
             crate::ai::queries::catalog::detect_external_agent_installations,
             crate::ai::queries::catalog::list_external_agent_descriptors,
             crate::ai::queries::catalog::list_provider_descriptors,
-            crate::ai::commands::text::transform_editor_text,
             crate::ai::commands::text::transform_editor_text_stream,
-            crate::ai::commands::text::translate_text,
             crate::ai::commands::text::translate_text_stream,
             crate::ai::settings::validate_model_settings,
             crate::ai::usage::get_token_usage_report,

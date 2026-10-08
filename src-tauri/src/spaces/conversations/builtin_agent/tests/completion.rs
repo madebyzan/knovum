@@ -78,3 +78,109 @@ async fn paid_usage_at_the_limit_can_complete_but_an_overrun_cannot_succeed() {
         assert_eq!(run.total_tokens, tokens);
     }
 }
+
+#[tokio::test]
+async fn failure_settlement_preserves_write_and_state_read_failures() {
+    let pool = fixture::database().await;
+    sqlx::query("CREATE TRIGGER reject_run_update BEFORE UPDATE ON spaces_runs BEGIN SELECT RAISE(ABORT,'write rejected'); END")
+        .execute(&pool).await.unwrap();
+
+    let (state, error) = completion::settle_failure(&pool, "run", "driver failed").await;
+    assert!(matches!(
+        state,
+        ConversationTaskFinishedState::SettlementFailed
+    ));
+    let error = error.unwrap();
+    assert!(error.contains("driver failed"));
+    assert!(error.contains("write rejected"));
+    assert!(error.contains("remained Running"));
+
+    let closed = fixture::database().await;
+    closed.close().await;
+    let (state, error) = completion::settle_failure(&closed, "run", "transport failed").await;
+    assert!(matches!(
+        state,
+        ConversationTaskFinishedState::SettlementFailed
+    ));
+    let error = error.unwrap();
+    assert!(error.contains("transport failed"));
+    assert!(error.contains("failure could not be recorded"));
+    assert!(error.contains("final state could not be read"));
+}
+
+#[tokio::test]
+async fn confirmed_run_states_are_authoritative_during_failure_settlement() {
+    for (state, completed, control, expected) in [
+        (
+            "waiting",
+            None,
+            None,
+            ConversationTaskFinishedState::Waiting,
+        ),
+        (
+            "paused",
+            None,
+            Some("pause"),
+            ConversationTaskFinishedState::Paused,
+        ),
+        (
+            "failed",
+            Some(2),
+            None,
+            ConversationTaskFinishedState::Failed,
+        ),
+        (
+            "completed_with_errors",
+            Some(2),
+            None,
+            ConversationTaskFinishedState::CompletedWithErrors,
+        ),
+        (
+            "succeeded",
+            Some(2),
+            None,
+            ConversationTaskFinishedState::Succeeded,
+        ),
+        (
+            "cancelled",
+            Some(2),
+            Some("cancel"),
+            ConversationTaskFinishedState::Cancelled,
+        ),
+        (
+            "running",
+            None,
+            Some("pause"),
+            ConversationTaskFinishedState::Paused,
+        ),
+        (
+            "running",
+            None,
+            Some("cancel"),
+            ConversationTaskFinishedState::Cancelled,
+        ),
+    ] {
+        let pool = fixture::database().await;
+        sqlx::query(
+            "UPDATE spaces_runs SET state=$1,completed_at=$2,pause_requested_at=$3,cancel_requested_at=$4 WHERE id='run'",
+        )
+        .bind(state)
+        .bind(completed)
+        .bind(control.filter(|value| *value == "pause").map(|_| 2_i64))
+        .bind(control.filter(|value| *value == "cancel").map(|_| 2_i64))
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        let (actual, error) = completion::settle_failure(&pool, "run", "late failure").await;
+        assert_eq!(actual, expected);
+        assert!(error.is_none());
+    }
+}
+
+#[tokio::test]
+async fn uncontrolled_running_state_is_not_reported_as_failed() {
+    let pool = fixture::database().await;
+    let error = completion::stopped_state(&pool, "run").await.unwrap_err();
+    assert!(error.contains("remained Running"));
+}

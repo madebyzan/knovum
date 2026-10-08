@@ -1,6 +1,5 @@
 mod actor;
 mod completion;
-mod contracts;
 mod insertion;
 mod lifecycle;
 mod progress;
@@ -14,7 +13,7 @@ use tauri::{plugin::TauriPlugin, Manager, State, Wry};
 use tauri_plugin_global_shortcut::ShortcutState;
 
 use crate::app_error::{AppError, AppResult};
-use contracts::DictationSnapshot;
+use crate::dictation_contracts::DictationSnapshot;
 use service::{DictationAction, DictationService};
 
 const SHORTCUT: &str = "CommandOrControl+Shift+Space";

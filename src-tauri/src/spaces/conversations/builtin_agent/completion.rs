@@ -152,7 +152,8 @@ pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> 
     let mut tx = db::begin_write(pool).await?;
     let task_write = sqlx::query(
         "UPDATE spaces_runs SET state='failed',state_version=state_version+1,updated_at=$1,completed_at=$1
-         WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL",
+         WHERE id=$2 AND state IN ('queued','running') AND completed_at IS NULL
+         AND cancel_requested_at IS NULL AND pause_requested_at IS NULL",
     ).bind(now).bind(run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     if task_write.rows_affected() != 0 {
         let message = error.chars().take(4_000).collect::<String>();
@@ -169,11 +170,62 @@ pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> 
     Ok(())
 }
 
+pub(super) async fn settle_failure(
+    pool: &sqlx::SqlitePool,
+    run_id: &str,
+    original_error: &str,
+) -> (super::super::ConversationTaskFinishedState, Option<String>) {
+    use super::super::ConversationTaskFinishedState;
+    let recording_error = fail(pool, run_id, original_error)
+        .await
+        .err()
+        .map(|write_error| {
+            log::error!(
+                "Builtin Agent failure recording failed for run {run_id}: {write_error}; original failure: {original_error}"
+            );
+            format!(
+                "Conversation task failed: {original_error}; its failure could not be recorded: {write_error}"
+            )
+        });
+    match stopped_state(pool, run_id).await {
+        Ok(state) => (state, None),
+        Err(state_error) => {
+            log::error!(
+                "Builtin Agent final state unavailable for run {run_id}: {state_error}; original failure: {original_error}"
+            );
+            (
+                ConversationTaskFinishedState::SettlementFailed,
+                Some(match recording_error {
+                    Some(recording) => {
+                        format!("{recording}; final state could not be read: {state_error}")
+                    }
+                    None => format!(
+                        "Conversation task failed: {original_error}; final state could not be read: {state_error}"
+                    ),
+                }),
+            )
+        }
+    }
+}
+
 pub(super) async fn stopped_state(
     pool: &sqlx::SqlitePool,
     run_id: &str,
 ) -> Result<super::super::contract::ConversationTaskFinishedState, String> {
     use super::super::contract::ConversationTaskFinishedState;
+    use crate::spaces::runs::RunState;
+    let run = crate::spaces::runs::load_run(pool, run_id).await?;
+    match run.state {
+        RunState::Succeeded => return Ok(ConversationTaskFinishedState::Succeeded),
+        RunState::CompletedWithErrors => {
+            return Ok(ConversationTaskFinishedState::CompletedWithErrors)
+        }
+        RunState::Failed => return Ok(ConversationTaskFinishedState::Failed),
+        RunState::Cancelled => return Ok(ConversationTaskFinishedState::Cancelled),
+        RunState::Waiting => return Ok(ConversationTaskFinishedState::Waiting),
+        RunState::Paused => return Ok(ConversationTaskFinishedState::Paused),
+        RunState::Queued | RunState::Running => {}
+    }
     let controls = sqlx::query_as::<_, (Option<i64>, Option<i64>)>(
         "SELECT pause_requested_at,cancel_requested_at FROM spaces_runs WHERE id=$1",
     )
@@ -181,14 +233,12 @@ pub(super) async fn stopped_state(
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
-    if crate::spaces::runs::load_run(pool, run_id).await?.state
-        == crate::spaces::runs::RunState::Waiting
-    {
-        return Ok(ConversationTaskFinishedState::Waiting);
+    match controls {
+        (_, Some(_)) => Ok(ConversationTaskFinishedState::Cancelled),
+        (Some(_), None) => Ok(ConversationTaskFinishedState::Paused),
+        (None, None) => Err(format!(
+            "builtin-agent-final-state-unsettled: run {run_id} remained {:?}",
+            run.state
+        )),
     }
-    Ok(match controls {
-        (_, Some(_)) => ConversationTaskFinishedState::Cancelled,
-        (Some(_), None) => ConversationTaskFinishedState::Paused,
-        _ => ConversationTaskFinishedState::Failed,
-    })
 }

@@ -2,7 +2,7 @@ import type { EventCallback, listen } from "@tauri-apps/api/event";
 import { beforeEach, expect, it, vi } from "vitest";
 
 import type { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { DictationSnapshot } from "../dictation-contracts";
+import type { DictationSnapshot } from "../contracts/generated/DictationSnapshot";
 import { useDictationSession } from "../use-dictation-session";
 
 const mocks = vi.hoisted(() => ({

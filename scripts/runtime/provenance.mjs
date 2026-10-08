@@ -57,7 +57,7 @@ function validateProducerIdentity(record, manifest, configuration) {
   validateSigningRecord(record.signing, manifest.target);
 }
 
-export function validateNativeSupplier(supplier, configuration, nativePath) {
+export function validateNativeSupplier(supplier, configuration, nativePath, ErrorType = Error) {
   const native = JSON.parse(readFileSync(nativePath, "utf8"));
   if (
     supplier?.supplier !== configuration.name ||
@@ -66,17 +66,17 @@ export function validateNativeSupplier(supplier, configuration, nativePath) {
     JSON.stringify(supplier?.packages.map(({ files: _files, ...identity }) => identity)) !==
       JSON.stringify(native.packages)
   )
-    throw new Error("Runtime producer identity differs from the controlled build");
+    throw new ErrorType("Runtime producer identity differs from the controlled build");
 }
 
-export function validateSigningRecord(signing, target) {
+export function validateSigningRecord(signing, target, ErrorType = Error) {
   const modes = target.startsWith("macos-") ? ["adhoc", "production"] : ["unsigned", "production"];
   if (
     !modes.includes(signing?.mode) ||
     !Number.isSafeInteger(signing?.compiledBinaryCount) ||
     signing.compiledBinaryCount < 1
   )
-    throw new Error("Runtime producer signing record is invalid");
+    throw new ErrorType("Runtime producer signing record is invalid");
 }
 
 function validateEvidenceFiles(evidence, profile) {
