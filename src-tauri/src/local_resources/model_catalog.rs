@@ -10,6 +10,10 @@ use super::{
 
 pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
+pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
+    "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v1";
+pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
+    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -137,14 +141,27 @@ impl LocalModelId {
     }
 }
 
-pub(crate) fn list<R: Runtime>(app: &AppHandle<R>) -> Result<Vec<LocalModelEntry>, String> {
-    MODELS.iter().map(|&id| inspect(app, id)).collect()
+pub(crate) fn list<R: Runtime, F>(
+    app: &AppHandle<R>,
+    voice_eligible: F,
+) -> Result<Vec<LocalModelEntry>, String>
+where
+    F: Fn(LocalModelId) -> Result<bool, String>,
+{
+    MODELS
+        .iter()
+        .map(|&id| inspect(app, id, &voice_eligible))
+        .collect()
 }
 
-pub(crate) fn inspect<R: Runtime>(
+pub(crate) fn inspect<R: Runtime, F>(
     app: &AppHandle<R>,
     id: LocalModelId,
-) -> Result<LocalModelEntry, String> {
+    voice_eligible: &F,
+) -> Result<LocalModelEntry, String>
+where
+    F: Fn(LocalModelId) -> Result<bool, String>,
+{
     let (name, capability, operations, reference_transcript) = model_metadata::metadata(id);
     let snapshot = id
         .snapshot()
@@ -154,13 +171,7 @@ pub(crate) fn inspect<R: Runtime>(
         .iter()
         .map(|kind| models::status(app, catalog::descriptor(*kind)))
         .collect::<Result<Vec<_>, _>>()?;
-    let unavailable_reason = if matches!(id, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8)
-        && !crate::ai::local_runtime::device_profiles::voice::eligible(id.voxcpm2_spec()?)?
-    {
-        Some("memory")
-    } else {
-        None
-    };
+    let unavailable_reason = availability_reason(id, voice_eligible)?;
     let transcription = super::model_selection::transcription(app)?;
     Ok(LocalModelEntry {
         id,
@@ -180,6 +191,19 @@ pub(crate) fn inspect<R: Runtime>(
         download_available: unavailable_reason.is_none(),
         unavailable_reason,
     })
+}
+
+fn availability_reason<F>(
+    id: LocalModelId,
+    voice_eligible: F,
+) -> Result<Option<&'static str>, String>
+where
+    F: Fn(LocalModelId) -> Result<bool, String>,
+{
+    if matches!(id, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8) && !voice_eligible(id)? {
+        return Ok(Some("memory"));
+    }
+    Ok(None)
 }
 
 #[cfg(test)]
@@ -248,9 +272,6 @@ impl LocalModelId {
             )
     }
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
-        use crate::ai::contracts::image_wire::{
-            IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,
-        };
         match self {
             Self::U2netp => Ok(IMAGE_SEGMENTATION_SPEC_ID),
             Self::U2net => Ok(IMAGE_SEGMENTATION_QUALITY_SPEC_ID),

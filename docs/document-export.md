@@ -11,7 +11,7 @@ revision-checked `DocumentSource` containing the separately stored title, Markdo
 citation records. `pulldown-cmark` parses the body once per export into a temporary semantic document.
 The DOCX, PDF, and TXT backends consume that same model.
 
-The local `export-document-as-docx`, `export-document-as-pdf`, `export-document-as-txt` and `render-presentation` Actions share `spaces/derivation/document_formats` and `document_publication`. Canvas, Builtin Agent/MCP and saved workflow steps use the same Action Run. Rust reserves the managed file node, pins one current Markdown resource, renders off the async executor and publishes with cancellation/epoch/source checks. Failed or stale output bytes are removed. Vue submits Action intent and source identity; it neither allocates paths nor serializes bytes. This is format conversion with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
+The local `export-document-as-docx`, `export-document-as-pdf`, `export-document-as-txt` and `render-presentation` Actions share `spaces/derivation/document_formats` and `document_publication`. Canvas, Builtin Agent/MCP and saved workflow steps use the same Action Run. Rust reserves the managed file node, pins one current Markdown resource, renders in the application’s private document worker process and publishes with cancellation/epoch/source checks. The Run attempt cancellation token is the sole cancellation authority; the host terminates and waits for the worker before returning and releasing execution capacity. Failed or stale output bytes are removed. Vue submits Action intent and source identity; it neither allocates paths nor serializes bytes. This is format conversion with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
 
 ## Supported subset
 
@@ -31,23 +31,25 @@ It never includes an image's private filesystem path. A title-only document is v
 is removed only when its plain text equals the separately stored title; distinct body headings remain.
 Citations are appended as literal structured source paragraphs, not interpolated Markdown.
 
+PPTX uses the already pinned `office_oxide` writer. Knovum maps title and Markdown sections into at most 100 plain-text slides; the library owns package XML, relationships and escaping. It does not promise native Markdown table/list styling, images, templates, animations or pixel fidelity. Existing shared Markdown validation applies before serialization.
+
 ## Explicit limitations
 
 Export does **not** embed images in PDF/DOCX, render math or footnotes, export HTML,
-provide custom templates, or export rich Tiptap notes. Image-containing binary exports now fail
-explicitly instead of silently dropping images. TXT represents images by their alternative text.
+provide custom templates, or export rich Tiptap notes. Image-containing DOCX/PDF exports fail
+explicitly instead of silently dropping images. TXT and the plain-text PPTX subset represent images by their alternative text.
 Raw HTML is rejected in every backend rather than stripped. Disabled Markdown extensions are not
-promised semantic rendering. Binary hyperlinks currently accept only HTTP, HTTPS, and mailto;
+promised semantic rendering. Active DOCX/PDF hyperlinks currently accept only HTTP, HTTPS, and mailto;
 relative links, heading anchors, file links, and executable schemes fail explicitly.
 
 PDF still uses platform-installed fonts. It is not a bundled-font or cross-platform pixel-identity
 guarantee. Nonfatal Typst warnings log their count without logging source text. Compilation/export
 errors remain failures.
-The current synchronous Typst compilation stage does not introduce a new cancellation guarantee.
+Typst compilation remains synchronous inside the worker. Process isolation supplies interruption without changing the renderer or letting abandoned background threads keep computing.
 
 Input is bounded to 4 MiB across title/body/citations, 4,096 citations, 200,000 parser events,
 64 parser nesting frames, and 64 table columns. Unsupported control/XML characters are rejected.
-These limits bound conversion input; they are not a hard CPU-time or output-byte sandbox.
+The private protocol limits its JSON request to 16 MiB (including encoding overhead), its response header to 16 KiB, and output to 64 MiB. Unknown fields, wrong versions, malformed/trailing frames and non-zero worker exits fail explicitly. There is no in-process fallback. Run budgets and cancellation govern execution; parser limits alone are not a hard CPU-time sandbox.
 
 ## Verification before merge
 

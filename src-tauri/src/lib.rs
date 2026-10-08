@@ -34,5 +34,6 @@ mod utf16;
 mod web_capture;
 
 pub fn run() {
+    documents::generation::worker::run_if_requested();
     app_builder::run();
 }

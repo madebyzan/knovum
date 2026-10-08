@@ -130,12 +130,7 @@ pub async fn select_local_model(app: AppHandle, model: LocalModelId) -> Result<(
     .read_owned()
     .await;
     crate::blocking::run(move || {
-        let status = model_catalog::inspect(&app, model)?;
-        if !status.download_available {
-            return Err(
-                "Selected model does not meet this computer's hardware requirements".into(),
-            );
-        }
+        let status = model_catalog::inspect(&app, model, &|_| Ok(true))?;
         if !status.verified {
             return Err("Download and verify the model before selecting it".into());
         }

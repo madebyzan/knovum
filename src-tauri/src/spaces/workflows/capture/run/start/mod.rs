@@ -6,7 +6,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use super::{bindings::bind_inputs, validation, StartCapturedWorkflowRequest};
 use crate::spaces::{
-    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+    authorization::{create_grant, local_user_grant},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     workflows::capture::{contracts::CandidateSource, library::SavedCapturedWorkflow},
@@ -77,23 +77,17 @@ async fn create(
     .await?;
     let now = crate::clock::unix_time_millis()?;
     let run_id = request.request_id.clone();
-    let grant = AuthorizationContext {
-        principal: Principal {
-            kind: PrincipalKind::User,
-            id: "local-user".into(),
-        },
-        grant_id: uuid::Uuid::new_v4().to_string(),
-        home_space_id: request.space_id.clone(),
-        read_space_ids: vec![request.space_id.clone()],
-        write_space_ids: vec![request.space_id.clone()],
-        action_ids: saved
+    let grant = local_user_grant(
+        uuid::Uuid::new_v4().to_string(),
+        request.space_id.clone(),
+        saved
             .candidate
             .steps
             .iter()
             .map(|step| step.action_id.clone())
             .collect(),
-        valid_until: now + 7 * 24 * 60 * 60 * 1_000,
-    };
+        now,
+    );
     create_grant(tx, &grant, now).await?;
     let definition = serde_json::to_value(&saved.candidate).map_err(db::json_error)?;
     let digest = hex::encode(Sha256::digest(

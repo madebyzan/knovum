@@ -68,27 +68,33 @@ pub(super) async fn generate_for_action(
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(db::pool(&app).await?).await?;
     if let Err(error) = persistence::start(&app, &request, &authority).await {
-        super::failure::fail_pending(
+        let settlement = super::failure::fail_pending(
             &app,
             &request.space_id,
             &request.output_node_id,
             super::failure::PendingNodeState::Derivation,
         )
-        .await?;
-        return Err(error.into());
+        .await;
+        return Err(super::failure::with_settlement(error.into(), settlement));
     }
     let generated_document = execute(&app, &request, &target, &stages, cancellation.clone()).await;
     match generated_document {
         Ok(generated) => {
             if let Some(usage) = generated.usage.as_ref() {
-                crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)
-                    .await?;
+                crate::spaces::runs::record_usage(
+                    db::pool(&app).await?,
+                    &request.id,
+                    usage.prompt_tokens,
+                    usage.completion_tokens,
+                    usage.total_tokens,
+                )
+                .await?;
             }
             Ok(completion::complete(&app, &request, generated, &authority, &cancellation).await?)
         }
         Err(error) => {
-            persistence::fail(&app, &request.id, &error.message).await?;
-            Err(error)
+            let settlement = persistence::fail(&app, &request.id, &error.message).await;
+            Err(super::failure::with_settlement(error, settlement))
         }
     }
 }

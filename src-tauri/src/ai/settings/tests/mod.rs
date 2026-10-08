@@ -70,3 +70,17 @@ fn disabled_agent_is_unavailable_and_model_native_capabilities_remain_enforced()
     .unwrap_err();
     assert_eq!(error.code, "capability_not_supported");
 }
+
+#[test]
+fn settings_reject_url_credentials_without_reflecting_them() {
+    let mut value = configured();
+    value["connections"] = json!([{
+        "id":"unsafe", "name":"Unsafe", "provider":"openai",
+        "baseUrl":"https://user:secret@example.com/v1", "models":[]
+    }]);
+    let settings: AiSettings = serde_json::from_value(value).unwrap();
+    let error = super::validation::validate(&settings).unwrap_err();
+    assert_eq!(error.code, "invalid_request");
+    assert_eq!(error.message, "AI provider Base URL is invalid");
+    assert!(!error.message.contains("secret"));
+}

@@ -2,7 +2,7 @@ use crate::app_error::AppError;
 pub(crate) mod capture;
 mod execution;
 
-pub(crate) use execution::execute_step;
+pub(crate) use execution::execute_captured_step;
 
 #[tauri::command]
 pub async fn preview_workflow_capture(

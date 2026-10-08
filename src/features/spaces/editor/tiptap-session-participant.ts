@@ -14,7 +14,7 @@ export function registerTiptapSessionParticipant(options: TiptapSessionParticipa
   return registerSpaceSessionParticipant({
     async commit() {
       try {
-        await options.persist();
+        await persistTiptapSession(options.persist);
       } catch (error) {
         toast.error(getErrorMessage(error));
         throw error;
@@ -26,4 +26,9 @@ export function registerTiptapSessionParticipant(options: TiptapSessionParticipa
     },
     resume: () => options.editor()?.setEditable(true),
   });
+}
+
+export async function persistTiptapSession(persist: () => Promise<void>, afterPersist = () => {}) {
+  await persist();
+  afterPersist();
 }

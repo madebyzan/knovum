@@ -15,13 +15,7 @@ pub(super) fn validate(settings: &AiSettings) -> AppResult<()> {
         {
             return Err(AppError::invalid("AI connection settings are invalid"));
         }
-        let endpoint = reqwest::Url::parse(&connection.base_url)
-            .map_err(|_| AppError::invalid("AI connection Base URL is invalid"))?;
-        if !matches!(endpoint.scheme(), "http" | "https") {
-            return Err(AppError::invalid(
-                "AI connection Base URL must use HTTP or HTTPS",
-            ));
-        }
+        crate::ai::transport::validate_endpoint(&connection.base_url)?;
         let provider = connection.provider;
         let descriptor = crate::ai::providers::registry::descriptor(provider)
             .ok_or_else(|| AppError::unsupported("AI provider is not configurable"))?;

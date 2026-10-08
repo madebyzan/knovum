@@ -1,3 +1,4 @@
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceImport";
@@ -21,52 +22,77 @@ export interface CommitManagedImportOptions {
   source: SpaceImportSource;
 }
 
+interface ManagedImportProgress {
+  node: SpaceCanvasNode | undefined;
+  copiedPath: string | undefined;
+}
+
 export async function commitManagedImport(options: CommitManagedImportOptions) {
-  const { context, spaceId, taskId, prepared, position, reveal, source } = options;
-  const externalSource = typeof source === "string" ? undefined : source.externalSource;
   const tasks = useTaskStore();
-  const jobId = prepared.jobId!;
-  let cancelRequested = false;
-  let node: SpaceCanvasNode | undefined;
-  let copiedPath: string | undefined;
+  const progress: ManagedImportProgress = { node: undefined, copiedPath: undefined };
   let imported: { node: SpaceCanvasNode; data: SpaceNodePayload };
-  tasks.setCancellation(taskId, async () => {
-    cancelRequested = true;
-    await cancelSpaceAssetImport(jobId);
-  });
+  tasks.setCancellation(options.taskId, () => cancelSpaceAssetImport(options.prepared.jobId!));
   try {
-    [node] = await context.createPendingContentForSpace(
-      spaceId,
-      importedSpaceNodePayload(prepared.asset, externalSource),
-      position,
-    );
-    if (!node) throw new Error("Space import did not create a node");
-    const copied = await runSpaceAssetTransfer(() => {
-      if (cancelRequested) throw new Error("Space import cancelled");
-      return copyStagedSpaceAsset(jobId, (progress) => updateCopyProgress(taskId, progress));
-    });
-    if (cancelRequested) throw new Error("Space import cancelled");
-    copiedPath = copied.path;
-    const copiedContent = importedSpaceNodePayload(copied, externalSource);
-    await context.savePendingNodeContentForSpace(spaceId, {
-      id: node.id,
-      expectedData: node.data,
-      data: copiedContent,
-    });
-    node.data = copiedContent;
-    if (typeof source !== "string") await source.finalize?.();
-    context.finalizePendingContent(spaceId, [node], reveal);
-    imported = { node, data: copiedContent };
+    imported = await performManagedImport(options, progress);
   } catch (error) {
-    await cancelSpaceAssetImport(jobId);
-    if (node) await context.discardPendingContent(spaceId, node.id);
-    if (copiedPath) await removeSpaceAsset(copiedPath);
-    if (cancelRequested) return [];
-    tasks.fail(taskId, getErrorMessage(error));
-    throw error;
+    return settleFailedImport(options, progress, error);
   }
   completeImportProcessing(options, imported);
   return [imported.node];
+}
+
+async function performManagedImport(options: CommitManagedImportOptions, progress: ManagedImportProgress) {
+  const { context, spaceId, prepared, position, reveal, source, taskId } = options;
+  const externalSource = typeof source === "string" ? undefined : source.externalSource;
+  const [node] = await context.createPendingContentForSpace(
+    spaceId,
+    importedSpaceNodePayload(prepared.asset, externalSource),
+    position,
+  );
+  if (!node) throw new Error("Space import did not create a node");
+  progress.node = node;
+  const copied = await runSpaceAssetTransfer(() =>
+    copyStagedSpaceAsset(prepared.jobId!, (copyProgress) => updateCopyProgress(taskId, copyProgress)),
+  );
+  progress.copiedPath = copied.path;
+  const data = importedSpaceNodePayload(copied, externalSource);
+  await context.savePendingNodeContentForSpace(spaceId, {
+    id: node.id,
+    expectedData: node.data,
+    data,
+  });
+  node.data = data;
+  if (typeof source !== "string") await source.finalize?.();
+  context.finalizePendingContent(spaceId, [node], reveal);
+  return { node, data };
+}
+
+async function settleFailedImport(
+  options: CommitManagedImportOptions,
+  progress: ManagedImportProgress,
+  error: unknown,
+): Promise<SpaceCanvasNode[]> {
+  const { context, spaceId, taskId, prepared } = options;
+  const tasks = useTaskStore();
+  const cancelled = decodeAppError(error)?.code === "space_asset_import_cancelled";
+  if (cancelled) tasks.cancelled(taskId);
+  else tasks.fail(taskId, getErrorMessage(error));
+  const cleanup = await Promise.allSettled([
+    cancelSpaceAssetImport(prepared.jobId!),
+    ...(progress.node ? [context.discardPendingContent(spaceId, progress.node.id)] : []),
+    ...(progress.copiedPath ? [removeSpaceAsset(progress.copiedPath)] : []),
+  ]);
+  const cleanupErrors = cleanup
+    .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+    .map(({ reason }) => reason);
+  if (cleanupErrors.length)
+    throw new AggregateError(
+      [error, ...cleanupErrors],
+      "Space import failed and pending resources could not be removed",
+      { cause: error },
+    );
+  if (cancelled) return [];
+  throw error;
 }
 
 function completeImportProcessing(

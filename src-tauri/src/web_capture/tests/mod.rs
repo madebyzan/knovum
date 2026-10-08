@@ -1,4 +1,4 @@
-use super::{parse_url, validate_derived_url};
+use super::{decode_document, parse_url, validate_derived_url};
 use crate::public_network::public_address;
 
 #[test]
@@ -52,4 +52,37 @@ async fn derived_images_reject_loopback_before_connecting() {
         .await
         .unwrap_err();
     assert!(error.contains("public addresses"), "{error}");
+}
+
+#[test]
+fn decodes_declared_legacy_chinese_without_replacement() {
+    let media_type = "text/html; charset=gbk".parse().unwrap();
+    let (bytes, _, had_errors) = encoding_rs::GBK.encode("中文正文");
+    assert!(!had_errors);
+    assert_eq!(
+        decode_document(Some(&media_type), &bytes).unwrap(),
+        "中文正文"
+    );
+}
+
+#[test]
+fn rejects_invalid_or_unsupported_document_encoding() {
+    let utf8 = "text/plain; charset=utf-8".parse().unwrap();
+    assert_eq!(
+        decode_document(Some(&utf8), &[0xff]).unwrap_err(),
+        "Website document contains invalid encoded text"
+    );
+
+    let unsupported = "text/plain; charset=x-knovum-unknown".parse().unwrap();
+    assert_eq!(
+        decode_document(Some(&unsupported), b"text").unwrap_err(),
+        "Website document charset is not supported"
+    );
+}
+
+#[test]
+fn bom_selects_the_document_encoding_before_the_http_default() {
+    let media_type = "text/plain".parse().unwrap();
+    let bytes = [0xff, 0xfe, b'A', 0x00];
+    assert_eq!(decode_document(Some(&media_type), &bytes).unwrap(), "A");
 }

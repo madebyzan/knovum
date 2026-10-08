@@ -1,1 +1,2 @@
+mod diagnostics;
 mod framing;

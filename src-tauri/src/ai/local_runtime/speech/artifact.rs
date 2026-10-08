@@ -14,21 +14,12 @@ pub(super) fn read_artifact(
     if byte_length == 0 || byte_length > maximum_bytes {
         return Err("resource_exhausted: worker artifact exceeds its byte limit".into());
     }
-    let relative = Path::new(file_name);
-    let attempt_name = format!("attempt-{request_id}");
-    let mut components = relative.components();
-    if !matches!(components.next(), Some(std::path::Component::Normal(name)) if name.to_str() == Some(attempt_name.as_str()))
-        || !matches!(components.next(), Some(std::path::Component::Normal(_)))
-        || components.next().is_some()
-        || !file_name
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-' | b'/'))
-    {
-        return Err("invalid_output: worker artifact name is invalid".into());
-    }
-    let attempt_directory = work_directory.join(&attempt_name);
-    super::super::artifact::checked_directory(&attempt_directory)?;
-    let path = work_directory.join(relative);
+    let path =
+        super::super::artifact::attempt_artifact_path(work_directory, request_id, file_name)?;
+    let attempt_directory = path
+        .parent()
+        .ok_or("invalid_output: worker attempt directory is unavailable")?
+        .to_owned();
     let mut file = super::super::artifact::open_regular(&path)?;
     let metadata = file
         .metadata()

@@ -49,3 +49,23 @@ async fn settlement_failure_rolls_back_every_output() {
     .unwrap();
     assert_eq!(running, 2);
 }
+
+#[tokio::test]
+async fn database_settlement_failure_retains_the_producer_error_code_and_both_causes() {
+    let pool = action_pool().await;
+    pending(&pool).await;
+    sqlx::query("CREATE TRIGGER reject_failure BEFORE UPDATE ON spaces_knowledge_derivations BEGIN SELECT RAISE(ABORT,'settlement unavailable'); END")
+        .execute(&pool).await.unwrap();
+    let primary = crate::app_error::AppError::new("provider_request_failed", "generation rejected");
+    let settlement = fail_messages(&pool, &["first".into()], &primary.message).await;
+    let error = super::super::failure::with_settlement(primary, settlement);
+    assert_eq!(error.code, "provider_request_failed");
+    assert!(error.message.contains("generation rejected"));
+    assert!(error.message.contains("settlement unavailable"));
+    let state: String =
+        sqlx::query_scalar("SELECT status FROM spaces_knowledge_derivations WHERE id='first'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(state, "running");
+}

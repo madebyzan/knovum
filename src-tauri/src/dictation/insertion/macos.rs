@@ -4,6 +4,8 @@ use core_graphics::{
 };
 use objc2_app_kit::NSWorkspace;
 
+use super::PasteError;
+
 #[derive(Clone)]
 pub(crate) struct TargetApplication {
     pid: i32,
@@ -52,13 +54,13 @@ pub(super) fn permission_message() -> &'static str {
     "Knovum needs macOS Accessibility permission to insert text into another application"
 }
 
-pub(super) fn paste() -> Result<(), String> {
+pub(super) fn paste() -> Result<(), PasteError> {
     let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState)
-        .map_err(|()| "Unable to create a macOS keyboard event source".to_string())?;
+        .map_err(|()| PasteError::failed("Unable to create a macOS keyboard event source"))?;
     let down = CGEvent::new_keyboard_event(source.clone(), KeyCode::ANSI_V, true)
-        .map_err(|()| "Unable to create the paste key-down event".to_string())?;
+        .map_err(|()| PasteError::failed("Unable to create the paste key-down event"))?;
     let up = CGEvent::new_keyboard_event(source, KeyCode::ANSI_V, false)
-        .map_err(|()| "Unable to create the paste key-up event".to_string())?;
+        .map_err(|()| PasteError::failed("Unable to create the paste key-up event"))?;
     down.set_flags(CGEventFlags::CGEventFlagCommand);
     up.set_flags(CGEventFlags::CGEventFlagCommand);
     down.post(CGEventTapLocation::HID);

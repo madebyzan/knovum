@@ -1,39 +1,12 @@
-use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::io::AsyncRead;
 
 use crate::ai::contracts::diagnostics::RuntimeDiagnostic;
 
-pub(super) async fn observe(mut stream: impl AsyncRead + Unpin) {
-    let mut chunk = [0_u8; 4096];
-    let mut line = Vec::new();
-    let mut oversized = false;
-    loop {
-        let size = match stream.read(&mut chunk).await {
-            Ok(0) => break,
-            Ok(size) => size,
-            Err(error) => {
-                log::warn!("local inference diagnostic stream failed: {error}");
-                break;
-            }
-        };
-        for byte in &chunk[..size] {
-            if *byte == b'\n' {
-                if !oversized {
-                    report(&line);
-                }
-                line.clear();
-                oversized = false;
-            } else if !oversized {
-                if line.len() < 16 * 1024 {
-                    line.push(*byte);
-                } else {
-                    line.clear();
-                    oversized = true;
-                }
-            }
-        }
-    }
-    if !oversized && !line.is_empty() {
-        report(&line);
+pub(super) async fn observe(stream: impl AsyncRead + Unpin) {
+    if let Err(error) =
+        crate::subprocess::diagnostic_lines::consume(stream, 16 * 1024, report).await
+    {
+        log::warn!("local inference diagnostic stream failed: {error}");
     }
 }
 

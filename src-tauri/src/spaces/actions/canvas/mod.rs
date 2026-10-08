@@ -8,7 +8,7 @@ use super::{
 use crate::ai::tasks::TaskTargetRef;
 use crate::app_error::AppError;
 use crate::spaces::{
-    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+    authorization::{create_grant, local_user_grant, PrincipalKind},
     db,
     runs::{load_run, RunObservation},
 };
@@ -105,23 +105,13 @@ async fn accept(
         }
     } else {
         let now = crate::clock::unix_time_millis()?;
-        create_grant(
-            &mut tx,
-            &AuthorizationContext {
-                principal: Principal {
-                    kind: PrincipalKind::User,
-                    id: "local-user".into(),
-                },
-                grant_id: request.request_id.clone(),
-                home_space_id: request.space_id.clone(),
-                read_space_ids: vec![request.space_id.clone()],
-                write_space_ids: vec![request.space_id.clone()],
-                action_ids: vec![request.action_id.clone()],
-                valid_until: now + 7 * 24 * 60 * 60 * 1_000,
-            },
+        let grant = local_user_grant(
+            request.request_id.clone(),
+            request.space_id.clone(),
+            vec![request.action_id.clone()],
             now,
-        )
-        .await?;
+        );
+        create_grant(&mut tx, &grant, now).await?;
     }
     let ActionInvocationOutcome::AcceptedRun { run_id } =
         super::invoke_in_transaction(&mut tx, &invocation).await?

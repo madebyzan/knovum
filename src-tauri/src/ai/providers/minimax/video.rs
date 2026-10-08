@@ -84,8 +84,8 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
 
             let query_data: serde_json::Value =
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
-            match query_data["status"].as_str().unwrap_or_default() {
-                "Success" => {
+            match parse_status(query_data["status"].as_str().unwrap_or_default())? {
+                MiniMaxTaskStatus::Success => {
                     if let Some(direct_url) = query_data["video_url"]
                         .as_str()
                         .or_else(|| query_data["download_url"].as_str())
@@ -103,7 +103,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                         video_url: download_url,
                     })
                 }
-                "Fail" => {
+                MiniMaxTaskStatus::Fail => {
                     let msg = query_data["base_resp"]["status_msg"]
                         .as_str()
                         .unwrap_or("MiniMax video generation failed");
@@ -111,8 +111,12 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                         error_message: msg.to_string(),
                     })
                 }
-                "Processing" => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
-                _ => Ok(VideoGenerationStatus::Pending { progress_pct: None }),
+                MiniMaxTaskStatus::Processing => {
+                    Ok(VideoGenerationStatus::Processing { progress_pct: None })
+                }
+                MiniMaxTaskStatus::Pending => {
+                    Ok(VideoGenerationStatus::Pending { progress_pct: None })
+                }
             }
         })
     }
@@ -127,6 +131,27 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
+    }
+}
+
+#[derive(Debug)]
+enum MiniMaxTaskStatus {
+    Success,
+    Fail,
+    Processing,
+    Pending,
+}
+
+fn parse_status(status: &str) -> AppResult<MiniMaxTaskStatus> {
+    match status {
+        "Success" => Ok(MiniMaxTaskStatus::Success),
+        "Fail" => Ok(MiniMaxTaskStatus::Fail),
+        "Processing" => Ok(MiniMaxTaskStatus::Processing),
+        "Preparing" | "Queueing" => Ok(MiniMaxTaskStatus::Pending),
+        _ => Err(AppError::new(
+            "invalid_response",
+            "MiniMax returned an unknown video task status",
+        )),
     }
 }
 
@@ -154,3 +179,7 @@ async fn retrieve_file_url(endpoint: &str, api_key: &str, file_id: &str) -> AppR
         .map(ToString::to_string)
         .ok_or_else(|| parse_err("Missing download_url in MiniMax file retrieval"))
 }
+
+#[cfg(test)]
+#[path = "tests/video.rs"]
+mod tests;

@@ -87,9 +87,16 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   preview fidelity.
 - Mozilla Readability owns readable webpage extraction. Knovum retains security-sensitive fetching,
   normalization and persistence rather than maintaining selector heuristics.
-- `docx-rs` owns editable Word export; Typst owns fixed-layout PDF export; the existing Rust PPTX
-  serializer owns presentation export. These remain separate capabilities instead of a generic
-  office abstraction.
+- `docx-rs` owns editable Word export; Typst owns fixed-layout PDF export. The already pinned
+  [`office_oxide` 0.1.13 PPTX writer](https://github.com/yfedoseev/office_oxide/blob/v0.1.13/src/pptx/write.rs)
+  owns presentation package serialization. Its `PptxWriter`/`SlideData` APIs accept title/body text
+  and `Write + Seek`, so the same private Rust process can return bytes without file access, a new
+  dependency or another runtime. Knovum retains section mapping and the 100-slide limit.
+  [`python-pptx`](https://python-pptx.readthedocs.io/en/latest/) and
+  [`PptxGenJS`](https://github.com/gitbrent/PptxGenJS) cover broader authoring but require an additional
+  Python/Node execution and packaging boundary that this limited native export does not need.
+  The three formats remain separate capabilities rather than a generic Office framework. Real
+  PowerPoint/Keynote viewing remains a native acceptance requirement.
 
 Detailed data and interaction contracts live in [spaces.md](spaces.md),
 [document-export.md](document-export.md) and [data-ownership.md](data-ownership.md).

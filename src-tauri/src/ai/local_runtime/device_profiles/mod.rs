@@ -3,7 +3,6 @@ use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile};
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
 pub(crate) mod embedding;
-mod memory;
 mod torch;
 pub(crate) mod voice;
 
@@ -23,11 +22,7 @@ impl MemoryRequirement {
     }
 }
 
-#[derive(Clone, Copy)]
-pub(super) struct MemorySnapshot {
-    pub total_bytes: u64,
-    pub available_bytes: u64,
-}
+pub(super) use crate::local_resources::system_memory::MemorySnapshot;
 
 /// Conservative process peak reservations tied to exact frozen execution profiles.
 /// Release qualification must validate them and raise any budget below a measured peak.
@@ -135,7 +130,7 @@ pub(super) fn application_memory_budget(total_bytes: u64) -> u64 {
 }
 
 pub(super) fn memory_snapshot() -> Result<MemorySnapshot, String> {
-    let snapshot = memory::platform_memory_snapshot()?;
+    let snapshot = crate::local_resources::system_memory::snapshot()?;
     if snapshot.total_bytes == 0 || snapshot.available_bytes == 0 {
         return Err("resource_exhausted: Platform memory statistics are invalid".into());
     }

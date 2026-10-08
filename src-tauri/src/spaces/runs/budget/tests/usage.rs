@@ -16,14 +16,6 @@ async fn database() -> sqlx::SqlitePool {
     pool
 }
 
-fn usage(tokens: u32) -> crate::ai::contracts::TokenUsage {
-    crate::ai::contracts::TokenUsage {
-        prompt_tokens: tokens,
-        completion_tokens: 0,
-        total_tokens: tokens,
-    }
-}
-
 #[tokio::test]
 async fn a_child_receipt_is_recorded_on_its_cancelled_ancestors() {
     let pool = database().await;
@@ -31,7 +23,7 @@ async fn a_child_receipt_is_recorded_on_its_cancelled_ancestors() {
         .execute(&pool)
         .await
         .unwrap();
-    record_usage(&pool, "child", &usage(20)).await.unwrap();
+    record_usage(&pool, "child", 20, 0, 20).await.unwrap();
     let totals: Vec<i64> = sqlx::query_scalar("SELECT total_tokens FROM spaces_runs ORDER BY id")
         .fetch_all(&pool)
         .await
@@ -42,7 +34,7 @@ async fn a_child_receipt_is_recorded_on_its_cancelled_ancestors() {
 #[tokio::test]
 async fn budget_exhaustion_cannot_roll_back_already_paid_child_usage() {
     let pool = database().await;
-    assert!(record_usage(&pool, "child", &usage(200))
+    assert!(record_usage(&pool, "child", 200, 0, 200)
         .await
         .unwrap_err()
         .starts_with("budget-exhausted"));

@@ -1,10 +1,14 @@
-use super::MemorySnapshot;
+#[derive(Clone, Copy)]
+pub(crate) struct MemorySnapshot {
+    pub(crate) total_bytes: u64,
+    pub(crate) available_bytes: u64,
+}
 
 #[cfg(target_os = "macos")]
 use std::sync::OnceLock;
 
 #[cfg(target_os = "macos")]
-pub(super) fn physical_memory() -> Result<u64, String> {
+pub(crate) fn physical_memory() -> Result<u64, String> {
     let bytes = objc2_foundation::NSProcessInfo::processInfo().physicalMemory();
     if bytes == 0 {
         return Err("resource_exhausted: Physical memory could not be determined".into());
@@ -13,7 +17,7 @@ pub(super) fn physical_memory() -> Result<u64, String> {
 }
 
 #[cfg(target_os = "macos")]
-pub(super) fn platform_memory_snapshot() -> Result<MemorySnapshot, String> {
+pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
     #[repr(C, align(8))]
     #[derive(Default)]
     struct VmStatistics64 {
@@ -92,7 +96,7 @@ pub(super) fn platform_memory_snapshot() -> Result<MemorySnapshot, String> {
 }
 
 #[cfg(target_os = "windows")]
-pub(super) fn physical_memory() -> Result<u64, String> {
+pub(crate) fn physical_memory() -> Result<u64, String> {
     use windows::Win32::System::SystemInformation::GetPhysicallyInstalledSystemMemory;
     let mut installed_kib = 0_u64;
     unsafe { GetPhysicallyInstalledSystemMemory(&mut installed_kib) }.map_err(|error| {
@@ -107,7 +111,7 @@ pub(super) fn physical_memory() -> Result<u64, String> {
 }
 
 #[cfg(target_os = "windows")]
-pub(super) fn platform_memory_snapshot() -> Result<MemorySnapshot, String> {
+pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
     use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
     let mut status = MEMORYSTATUSEX {
         dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32,
@@ -123,11 +127,11 @@ pub(super) fn platform_memory_snapshot() -> Result<MemorySnapshot, String> {
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-pub(super) fn physical_memory() -> Result<u64, String> {
+pub(crate) fn physical_memory() -> Result<u64, String> {
     Err("unsupported_device: Local inference is not qualified for this platform".into())
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-pub(super) fn platform_memory_snapshot() -> Result<MemorySnapshot, String> {
+pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
     Err("unsupported_device: Local inference is not qualified for this platform".into())
 }

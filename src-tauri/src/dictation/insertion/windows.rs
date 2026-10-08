@@ -11,6 +11,8 @@ use windows::Win32::{
     },
 };
 
+use super::PasteError;
+
 #[derive(Clone)]
 pub(crate) struct TargetApplication {
     hwnd: isize,
@@ -54,7 +56,7 @@ pub(super) const fn permission_message() -> &'static str {
     "Windows denied keyboard input to the target application"
 }
 
-pub(super) fn paste() -> Result<(), String> {
+pub(super) fn paste() -> Result<(), PasteError> {
     let inputs = [
         key(VK_CONTROL, false),
         key(VK_V, false),
@@ -65,10 +67,9 @@ pub(super) fn paste() -> Result<(), String> {
     if sent != inputs.len() as u32 {
         let releases = [key(VK_V, true), key(VK_CONTROL, true)];
         unsafe { SendInput(&releases, std::mem::size_of::<INPUT>() as i32) };
-        return Err(
-            "permission_denied: Windows blocked keyboard input to the foreground application"
-                .into(),
-        );
+        return Err(PasteError::permission_denied(
+            "Windows blocked keyboard input to the foreground application",
+        ));
     }
     Ok(())
 }

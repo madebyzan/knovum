@@ -63,7 +63,14 @@ pub(crate) async fn execute(
         _ => return Err("invalid_output: video translation execution source differs".into()),
     }
     if let Some(usage) = &output.usage {
-        crate::spaces::runs::record_usage(pool, &claim.run_id, usage).await?;
+        crate::spaces::runs::record_usage(
+            pool,
+            &claim.run_id,
+            usage.prompt_tokens,
+            usage.completion_tokens,
+            usage.total_tokens,
+        )
+        .await?;
     }
     let translated_text = output.text.trim();
     if translated_text.is_empty() || translated_text.chars().count() > 10_000 {

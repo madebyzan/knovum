@@ -13,15 +13,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  runtime-distribution:
-    name: Runtime distribution
+  scripts:
+    name: Script quality
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node --test scripts/runtime/__tests__/*.test.mjs
+      - run: npm run check:scripts
 
   python:
     name: Python quality
@@ -37,9 +37,7 @@ jobs:
       - name: Check Python worker
         run: npm run check:python
       - name: Audit locked Python dependencies
-        run: |
-          uv audit --project python --locked
-          uv audit --project python/runtimes/agent --locked
+        run: npm run security:python
 
   web:
     name: Web quality
@@ -50,8 +48,6 @@ jobs:
         with:
           node-version: "22"
           check-latest: false
-      - name: Verify Tauri configuration invariants
-        run: node --test scripts/desktop/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         run: |
           corepack enable
@@ -81,7 +77,7 @@ jobs:
 
   rust-check:
     name: Rust compile and tests
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -91,15 +87,13 @@ jobs:
         with:
           version: "0.12.23"
       - uses: ./.github/actions/setup-protoc
-      - name: Install Tauri Linux prerequisites
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev fontconfig fonts-noto-cjk
-          test "$(fc-match -f '%{family}' 'Noto Sans CJK SC')" = "Noto Sans CJK SC"
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
-      - name: Verify capability permission policy
-        run: node scripts/checks/capabilities.mjs
+      - name: Verify source and capability boundaries
+        run: |
+          node scripts/checks/source-layout.mjs
+          node scripts/checks/capabilities.mjs
+          node scripts/checks/rust-boundaries.mjs
       - name: Verify Rust toolchain
         id: toolchain
         run: rustc --version && cargo --version
@@ -114,10 +108,7 @@ jobs:
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml
       - name: Verify generated Rust, TypeScript and Python contracts
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: |
-          npm run contracts:generate
-          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/inference.schema.json python/schemas/agent_runtime.schema.json python/src/knovum_inference/contracts/generated python/src/knovum_agent_runtime/contracts
-          test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated python/src/knovum_agent_runtime/contracts)"
+        run: npm run contracts:check
       - name: Verify dependency inputs were not rewritten
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock

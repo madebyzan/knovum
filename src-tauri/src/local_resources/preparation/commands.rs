@@ -27,20 +27,6 @@ pub async fn prepare_resources(
             "unsupported_device: native speech resources are not available on this platform".into(),
         );
     }
-    if let ResourcePreparationTarget::Model { model } = &target {
-        let handle = app.clone();
-        let model = *model;
-        let entry = crate::blocking::run(move || {
-            crate::local_resources::model_catalog::inspect(&handle, model)
-        })
-        .await?;
-        if !entry.download_available {
-            return Err(AppError::new(
-                "model_unavailable",
-                "This model is unavailable for the current device or distribution",
-            ));
-        }
-    }
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
     tauri::async_runtime::spawn(async move {

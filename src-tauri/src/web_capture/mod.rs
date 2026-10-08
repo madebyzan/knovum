@@ -75,8 +75,25 @@ pub(crate) async fn capture(raw_url: &str) -> Result<CapturedWebResource, String
     Ok(CapturedWebResource::Document {
         final_url,
         kind,
-        content: String::from_utf8_lossy(&bytes).into_owned(),
+        content: decode_document(response_type.as_ref(), &bytes)?,
     })
+}
+
+fn decode_document(media_type: Option<&mime::Mime>, bytes: &[u8]) -> Result<String, String> {
+    let (encoding, bom_length) =
+        if let Some((encoding, length)) = encoding_rs::Encoding::for_bom(bytes) {
+            (encoding, length)
+        } else if let Some(label) = media_type.and_then(|value| value.get_param("charset")) {
+            let encoding = encoding_rs::Encoding::for_label(label.as_str().as_bytes())
+                .ok_or("Website document charset is not supported")?;
+            (encoding, 0)
+        } else {
+            (encoding_rs::UTF_8, 0)
+        };
+    encoding
+        .decode_without_bom_handling_and_without_replacement(&bytes[bom_length..])
+        .map(|content| content.into_owned())
+        .ok_or_else(|| "Website document contains invalid encoded text".to_owned())
 }
 
 pub(crate) async fn capture_derived_image(

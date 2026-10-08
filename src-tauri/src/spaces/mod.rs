@@ -19,10 +19,14 @@ pub(crate) mod package;
 mod previews;
 pub(crate) mod queries;
 mod recovery;
+mod run_control;
+mod run_execution;
 pub(crate) mod runs;
 pub(crate) mod speech;
 pub(crate) mod structure;
 pub(crate) mod workflows;
+
+pub(crate) use run_control::RunControlReceipt;
 
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     use tauri::Manager;

@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified native tools and private CPython workers
+      +-- verified native tools, private CPython workers and private document worker processes
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -102,7 +102,7 @@ Task Center is a presentation projection, not the authority for work. The featur
 state, cancellation, retries, cleanup, and terminal settlement. Cancellation becomes visible only
 after the producer accepts it; rejection leaves the producer responsible for settling the task.
 Queries reconcile their own producer snapshot and retain the last successful projection on read
-failure.
+failure. Resource observation outages use non-terminal `attention`, retaining progress and cancellation; an observation retry reconnects without restarting the producer. The next authoritative snapshot restores or settles the task.
 
 Accepted conversation tasks send one `Finished` Channel update when their producer exits. The
 update carries the task outcome and an explicit error when settlement fails. `settlement_failed`
@@ -156,6 +156,8 @@ Package export freezes a consistent Space snapshot and preserves stable ownershi
 and managed-asset references. Package restore validates before commit and cannot replay terminal Runs.
 Space-package format belongs to [knowledge.md](knowledge.md); application distribution belongs to
 [packaging.md](packaging.md).
+
+Document export uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, versioned source/format frame and returns bounded bytes; it never receives paths, Run authority, or database access. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains source/epoch revalidation and publication. Spawn, protocol and render failures are explicit.
 
 ## Native resources and local inference
 
@@ -211,6 +213,10 @@ Actions finish. Shutdown failure remains visible and retains those resources. Ap
 pending reads and authorization flows, revokes sessions, terminates owned process trees, and clears
 ephemeral credential caches.
 
+## Captured external documents
+
+Web capture decodes a recognized BOM or declared HTTP charset through `encoding_rs` without replacement characters. With neither declaration, bytes must be valid UTF-8. HTML metadata encoding sniffing is outside the supported capture contract; a legacy page without an HTTP charset fails explicitly rather than publishing damaged text. Unknown encodings and malformed bytes are errors.
+
 ## Security boundary
 
 - Tauri capabilities grant only the commands and paths required by the owning feature.
@@ -219,13 +225,15 @@ ephemeral credential caches.
 - Imported content is copied or streamed through Rust validation into application-owned storage before
   normal feature use.
 - Credentials never enter Pinia persistence, local storage, feature data, logs, query caches, Python
-  arguments, or Agent configuration.
+  arguments, or Agent configuration. AI connection URLs must be HTTP(S), have a host and contain no userinfo; saving and execution both enforce this before secret resolution.
 - Network destinations, redirects, response sizes, and local-network access are validated by the Rust
   owner; the WebView has no wildcard native HTTP authority.
 - External callbacks, tool results, files, runtime manifests, and worker messages are untrusted inputs
   and must pass schema, identity, size, and authorization checks before publication.
 - Commit admission and cancellation share an ordering boundary. Once a commit is admitted, it reaches
   its atomic result and reports that result; cancellation cannot leave an ambiguous half-commit.
+
+Agent graph identity contains the exact locked DeepAgents and LangGraph versions. Contract generation synchronizes that identity with Python, while profile/lock/installed-SDK regression checks detect a stale source identity. Changed identities retire incompatible execution segments through the existing strict boundary; no compatibility reader is introduced.
 
 ## Distribution gate
 

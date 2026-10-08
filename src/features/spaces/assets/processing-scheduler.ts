@@ -24,24 +24,28 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
   const { context, spaceId, nodeId, data, existingTaskId } = input;
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
-  let cancelRequested = false;
   let currentContent = data;
-  const cancel = async () => {
-    cancelRequested = true;
-    await cancelSpaceAssetProcessing(jobId);
-  };
-  const taskId =
-    existingTaskId ?? tasks.start(data.title, i18n.global.t("spaces.importExport.progress.processing"));
+  const cancel = () => cancelSpaceAssetProcessing(jobId);
+  const taskId = existingTaskId ?? jobId;
+  if (existingTaskId) tasks.setCancellation(taskId, cancel);
+  else
+    tasks.restoreRunning(
+      {
+        id: taskId,
+        title: data.title,
+        statusMessage: i18n.global.t("spaces.importExport.progress.processing"),
+        startedAt: Date.now(),
+      },
+      cancel,
+    );
   tasks.setStatusMessage(taskId, i18n.global.t("spaces.importExport.progress.processing"));
-  tasks.setCancellation(taskId, cancel);
   void run();
 
   async function run() {
     let enriched: SpaceNodePayload;
     try {
-      enriched = await runSpaceAssetProcessing(async () => {
-        if (cancelRequested) throw new Error("Space asset processing cancelled");
-        return deriveSpaceAssetContent({
+      enriched = await runSpaceAssetProcessing(() =>
+        deriveSpaceAssetContent({
           spaceId,
           nodeId,
           jobId,
@@ -49,8 +53,8 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
             currentContent = updated;
             context.applyNodeContentForSpace(spaceId, nodeId, updated);
           },
-        });
-      });
+        }),
+      );
     } catch (error) {
       await handleEnrichmentFailure(error);
       return;
@@ -62,10 +66,11 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
   }
 
   async function handleEnrichmentFailure(error: unknown) {
-    if (cancelRequested || decodeAppError(error)?.code === "space_asset_processing_cancelled") {
+    if (decodeAppError(error)?.code === "space_asset_processing_cancelled") {
       if (isSpaceManagedAssetPayload(currentContent)) {
         context.applyNodeContentForSpace(spaceId, nodeId, { ...currentContent, processingState: undefined });
       }
+      tasks.cancelled(taskId);
       return;
     }
     if (isSpaceManagedAssetPayload(currentContent)) {

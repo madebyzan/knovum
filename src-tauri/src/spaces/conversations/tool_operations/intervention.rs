@@ -1,4 +1,4 @@
-use crate::spaces::{db, runs};
+use crate::spaces::{db, run_control, runs};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::Row;
@@ -77,9 +77,13 @@ pub async fn decide_conversation_tool_operation(
     let run_id = super::decisions::apply(pool, &operation_id, decision).await?;
     runs::announce_change();
     if matches!(decision, ToolOperationDecision::Stop) {
-        return runs::cancel_run(app, run_id)
+        let receipt = run_control::cancel_run(app, run_id)
             .await
-            .map_err(|error| error.to_string());
+            .map_err(|error| error.to_string())?;
+        for error in receipt.interruption_errors {
+            log::warn!("Stopped conversation tool Run with pending interruption: {error}");
+        }
+        return Ok(());
     }
     let run = runs::load_run(pool, &run_id).await?;
     let (pending, pause_clear): (i64, bool) = sqlx::query_as("SELECT (SELECT count(*) FROM spaces_conversation_tool_operations WHERE run_id=r.id AND ((state='prepared' AND approval IS NULL) OR (state='outcome_unknown' AND resolution IS NULL))), pause_requested_at IS NULL FROM spaces_runs r WHERE id=$1")

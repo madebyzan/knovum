@@ -13,6 +13,7 @@ use super::protocol::{
 use crate::local_resources::runtimes::python::{self, RuntimeProfile};
 use crate::subprocess::process_tree::ProcessTree;
 
+mod diagnostics;
 mod framing;
 mod peer;
 pub(crate) use peer::{Host, Peer};
@@ -94,15 +95,7 @@ impl Process {
             .stderr
             .take()
             .ok_or("agent-runtime-stderr-unavailable")?;
-        // Provider/Pydantic errors may include credentials: discard stderr while
-        // draining it to preserve pipe backpressure; report typed protocol failures.
-        tokio::spawn(async move {
-            let _ = tokio::io::copy(
-                &mut tokio::io::BufReader::new(diagnostics),
-                &mut tokio::io::sink(),
-            )
-            .await;
-        });
+        tokio::spawn(diagnostics::observe(diagnostics));
         let peer = Peer::new(input);
         let receiver = peer.clone();
         let listener = tokio::spawn(async move {

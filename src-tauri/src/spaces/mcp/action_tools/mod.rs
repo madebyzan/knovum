@@ -23,7 +23,7 @@ impl SpaceMcpServer {
         json_text(
             actions::definitions()
                 .iter()
-                .filter(|action| action.routing_purpose.is_none())
+                .filter(|action| is_external_agent_action(action))
                 .collect::<Vec<_>>(),
         )
     }
@@ -86,10 +86,22 @@ impl SpaceMcpServer {
 
 fn require_platform_action(id: &str) -> Result<&'static actions::SpaceActionDefinition, String> {
     let definition = actions::require(id)?;
-    if definition.routing_purpose.is_some() {
+    if !is_external_agent_action(definition) {
         return Err("agent-inference-reentry: use your own runtime and publish the result; Knovum inference Actions are unavailable in desktop Agent sessions".into());
     }
     Ok(definition)
+}
+
+fn is_external_agent_action(action: &actions::SpaceActionDefinition) -> bool {
+    action.routing_purpose.is_none()
+}
+
+pub(super) fn external_agent_action_ids() -> Vec<String> {
+    actions::definitions()
+        .iter()
+        .filter(|action| is_external_agent_action(action))
+        .map(|action| action.id.to_owned())
+        .collect()
 }
 
 #[cfg(test)]

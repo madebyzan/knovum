@@ -46,13 +46,26 @@ impl SecurityContext {
 }
 
 fn normalize_endpoint(base_url: &str) -> AppResult<String> {
-    let trimmed = base_url.trim().trim_end_matches('/');
-    if trimmed.is_empty() {
+    if base_url.trim().is_empty() {
         return Err(AppError::not_configured(
             "AI provider base URL is not configured.",
         ));
     }
-    Ok(trimmed.to_string())
+    validate_endpoint(base_url)?;
+    Ok(base_url.trim().trim_end_matches('/').to_string())
+}
+
+pub(crate) fn validate_endpoint(base_url: &str) -> AppResult<reqwest::Url> {
+    let endpoint = reqwest::Url::parse(base_url.trim())
+        .map_err(|_| AppError::invalid("AI provider Base URL is invalid"))?;
+    if !matches!(endpoint.scheme(), "http" | "https")
+        || endpoint.host_str().is_none()
+        || !endpoint.username().is_empty()
+        || endpoint.password().is_some()
+    {
+        return Err(AppError::invalid("AI provider Base URL is invalid"));
+    }
+    Ok(endpoint)
 }
 
 async fn resolve_secret(provider: &str, secret_key: &str) -> AppResult<Option<String>> {
@@ -72,3 +85,7 @@ async fn resolve_secret(provider: &str, secret_key: &str) -> AppResult<Option<St
         ))),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/security.rs"]
+mod tests;

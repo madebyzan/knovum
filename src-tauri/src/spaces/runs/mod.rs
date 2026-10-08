@@ -22,16 +22,32 @@ pub(crate) use contract::{RunKind, RunObservation, RunState, StepState, WaitReas
 pub(crate) use events::append_event;
 pub use events::RunEventKind;
 pub(crate) use observation::{RunEvent, StepObservation};
-pub(crate) use repository::{create_run_in_transaction, load_run, transition_run, NewRun};
-pub(crate) use runtime::start as start_scheduler;
+pub(crate) use repository::{
+    create_run_in_transaction, durable_action_id, load_run, transition_run, NewRun,
+};
+pub(crate) use runtime::{start as start_scheduler, SchedulerHooks};
 pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_changes};
 
 pub(crate) async fn request_cancellation(
     pool: &sqlx::SqlitePool,
     run_id: &str,
 ) -> Result<(), String> {
-    repository::request_control(pool, run_id, "cancel").await?;
+    repository::request_control(pool, run_id, "cancel").await
+}
+
+pub(crate) async fn cancel_active_attempts(
+    pool: &sqlx::SqlitePool,
+    run_id: &str,
+) -> Result<(), String> {
     active_attempts::cancel_tree(pool, run_id).await
+}
+
+pub(crate) async fn request_pause(pool: &sqlx::SqlitePool, run_id: &str) -> Result<(), String> {
+    repository::request_control(pool, run_id, "pause").await
+}
+
+pub(crate) async fn request_resume(pool: &sqlx::SqlitePool, run_id: &str) -> Result<(), String> {
+    repository::request_control(pool, run_id, "resume").await
 }
 
 #[tauri::command]
@@ -45,61 +61,6 @@ pub async fn list_runs(
 #[tauri::command]
 pub async fn get_run(app: tauri::AppHandle, run_id: String) -> Result<RunObservation, AppError> {
     Ok((load_run(crate::spaces::db::pool(&app).await?, &run_id).await)?)
-}
-
-#[tauri::command]
-pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let run = load_run(pool, &run_id).await?;
-    request_cancellation(pool, &run_id).await?;
-    let action_runs: Vec<String> = sqlx::query_scalar(
-        "WITH RECURSIVE run_tree(id) AS (
-         SELECT id FROM spaces_runs WHERE id=$1
-         UNION ALL SELECT child.id FROM spaces_runs child JOIN run_tree parent ON child.parent_run_id=parent.id)
-         SELECT id FROM spaces_runs WHERE id IN (SELECT id FROM run_tree) AND kind='action' AND completed_at IS NULL",
-    ).bind(&run_id).fetch_all(pool).await.map_err(crate::spaces::db::sql_error)?;
-    for action_run in action_runs {
-        if let Some(action_id) = repository::durable_action_id(pool, &action_run).await? {
-            crate::spaces::derivation::action_execution::cancel(&action_id, &action_run).await?;
-        }
-    }
-    if run.kind == RunKind::ExternalAgent
-        && !crate::spaces::external_conversations::cancel_by_run(&app, &run_id).await?
-    {
-        crate::ai::executions::cancel(&run_id)?;
-    }
-    if run.kind == RunKind::BuiltinAgent {
-        crate::spaces::conversations::cancel_task(&run_id)?;
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let kind = load_run(pool, &run_id).await?.kind;
-    if kind == RunKind::ExternalAgent {
-        return Err(
-            "run-control-unsupported: External Agent sessions support cancellation, not pause"
-                .into(),
-        );
-    }
-    repository::request_control(pool, &run_id, "pause").await?;
-    if kind == RunKind::BuiltinAgent {
-        crate::spaces::conversations::cancel_task(&run_id)?;
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn resume_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let run = load_run(pool, &run_id).await?;
-    if run.kind == RunKind::BuiltinAgent {
-        return Ok(crate::spaces::conversations::resume_task(app, &run_id).await?);
-    }
-    repository::request_control(pool, &run_id, "resume").await?;
-    Ok(())
 }
 
 #[tauri::command]

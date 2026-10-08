@@ -50,7 +50,9 @@ async function persistActiveCanvasThumbnail(state: SpaceState) {
   try {
     stagedPath = await saveCanvasThumbnailBlob(await editor.captureCanvasOverview());
     if (state.activeSpace.value?.id !== space.id) {
-      await removeSpaceAsset(stagedPath);
+      const abandonedPath = stagedPath;
+      stagedPath = undefined;
+      await removeSpaceAsset(abandonedPath);
       return;
     }
     const obsoletePaths = await updateSpaceThumbnail(space.id, stagedPath);
@@ -58,8 +60,21 @@ async function persistActiveCanvasThumbnail(state: SpaceState) {
     stagedPath = undefined;
     await cleanupDeletedSpaceAssets(obsoletePaths);
   } catch (error) {
-    if (stagedPath) await removeSpaceAsset(stagedPath);
     state.thumbnailDirty.value = true;
+    await removeFailedThumbnail(stagedPath, error);
     throw error;
+  }
+}
+
+async function removeFailedThumbnail(stagedPath: string | undefined, error: unknown) {
+  if (!stagedPath) return;
+  try {
+    await removeSpaceAsset(stagedPath);
+  } catch (cleanupError) {
+    throw new AggregateError(
+      [error, cleanupError],
+      "Space thumbnail update failed and its staged asset could not be removed",
+      { cause: error },
+    );
   }
 }

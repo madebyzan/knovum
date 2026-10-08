@@ -17,15 +17,17 @@ pub(crate) fn optional_limit(budget: &serde_json::Value, key: &str) -> Result<Op
 pub(crate) async fn record_usage(
     pool: &SqlitePool,
     run_id: &str,
-    usage: &crate::ai::contracts::TokenUsage,
+    input_tokens: u32,
+    output_tokens: u32,
+    total_tokens: u32,
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
     let within_budget = record_tokens_in_transaction(
         &mut tx,
         run_id,
-        i64::from(usage.prompt_tokens),
-        i64::from(usage.completion_tokens),
-        i64::from(usage.total_tokens),
+        i64::from(input_tokens),
+        i64::from(output_tokens),
+        i64::from(total_tokens),
     )
     .await?;
     // Paid usage remains recorded even when it exceeds the admission budget.

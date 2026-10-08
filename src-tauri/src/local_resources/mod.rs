@@ -15,6 +15,7 @@ pub(crate) mod model_selection;
 pub(crate) mod models;
 pub(crate) mod preparation;
 pub(crate) mod runtimes;
+pub(crate) mod system_memory;
 pub(crate) mod tools;
 mod verification;
 

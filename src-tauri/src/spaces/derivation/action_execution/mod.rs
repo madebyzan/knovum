@@ -1,3 +1,5 @@
+mod document;
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -37,20 +39,16 @@ fn handler(action_id: &str) -> Option<Handler> {
 pub(crate) async fn execute(
     app: &AppHandle,
     action_id: &str,
-    run_id: &str,
-    execution_epoch: i64,
     space_id: &str,
     parameters: &Value,
     inputs: &Value,
+    authority: ExecutionAuthority,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Value, AppError> {
-    let authority = ExecutionAuthority {
-        run_id: run_id.to_owned(),
-        execution_epoch,
-    };
     let prepared =
         super::action_request::prepare(app, action_id, space_id, parameters, inputs, &authority)
             .await?;
-    let request = request_value(run_id, space_id, parameters, &prepared)?;
+    let request = request_value(&authority.run_id, space_id, parameters, &prepared)?;
     match handler(action_id) {
         Some(Handler::Answer) => {
             super::grounded_answer::answer(app, decode(request)?, &authority).await
@@ -91,86 +89,14 @@ pub(crate) async fn execute(
             )
             .await?,
         )?),
-        Some(Handler::Document) => Ok(render_document(app, action_id, request, &authority).await?),
+        Some(Handler::Document) => {
+            document::execute(app, action_id, request, &authority, cancellation).await
+        }
         None => Err(AppError::new(
             "action_executor_unavailable",
             format!("Durable Action {action_id} has no registered handler"),
         )),
     }
-}
-
-async fn render_document(
-    app: &AppHandle,
-    action_id: &str,
-    request: Value,
-    authority: &ExecutionAuthority,
-) -> Result<Value, AppError> {
-    let document = request
-        .pointer("/document/data")
-        .and_then(Value::as_object)
-        .ok_or("action-input-invalid: presentation document data is required")?;
-    let node_id = request
-        .pointer("/document/nodeId")
-        .and_then(Value::as_str)
-        .ok_or("action-input-invalid: source document is required")?;
-    let pool = crate::spaces::db::pool(app).await?;
-    let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
-    let citations = super::document_citations::load(&mut tx, node_id).await?;
-    tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-    let source = crate::documents::generation::document::DocumentSource {
-        title: required_text(document, "title")?.to_owned(),
-        markdown: required_text(document, "text")?.to_owned(),
-        citations,
-    };
-    let format = super::document_formats::require(action_id)?;
-    if let Err(error) = super::document_publication::start(
-        app,
-        request.clone(),
-        action_id,
-        format.engine,
-        authority,
-    )
-    .await
-    {
-        super::failure::fail_pending(
-            app,
-            required_text(
-                request.as_object().ok_or("document request is invalid")?,
-                "spaceId",
-            )?,
-            required_text(
-                request.as_object().ok_or("document request is invalid")?,
-                "outputNodeId",
-            )?,
-            super::failure::PendingNodeState::Processing,
-        )
-        .await?;
-        return Err(error);
-    }
-    let run_id = required_text(
-        request.as_object().ok_or("document request is invalid")?,
-        "id",
-    )?
-    .to_owned();
-    let execution: Result<Value, AppError> = async {
-        let bytes = crate::blocking::run(move || (format.render)(&source)).await?;
-        Ok(serialize(
-            super::document_publication::publish(
-                app,
-                request,
-                bytes,
-                action_id,
-                format.engine,
-                authority,
-            )
-            .await?,
-        )?)
-    }
-    .await;
-    if let Err(error) = &execution {
-        super::failure::fail_message(app, &run_id, &error.message).await?;
-    }
-    execution
 }
 
 pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {
@@ -185,7 +111,7 @@ pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> 
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct ExecutionAuthority {
+pub(crate) struct ExecutionAuthority {
     pub run_id: String,
     pub execution_epoch: i64,
 }

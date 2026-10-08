@@ -100,7 +100,15 @@ async function importMediaSource(context: UrlCaptureContext, input: MediaSourceI
       }),
     );
     if (context.getActiveSpaceId() !== input.spaceId) {
-      if (acquisition.outcome === "imported") await removeImportedMedia(acquisition.payload);
+      if (acquisition.outcome === "imported") {
+        try {
+          await removeImportedMedia(acquisition.payload);
+        } catch (error) {
+          void logWarn(
+            `Media import completed after navigation, but downloaded assets could not be removed: ${formatErrorDiagnostic(error)}`,
+          );
+        }
+      }
       return { failed: false };
     }
     if (acquisition.outcome === "imported") {
@@ -110,7 +118,15 @@ async function importMediaSource(context: UrlCaptureContext, input: MediaSourceI
         void logInfo(`[spaces.url-capture] media node saved; created=${Boolean(node)}`);
         return { failed: false, node };
       } catch (error) {
-        await removeImportedMedia(acquisition.payload);
+        try {
+          await removeImportedMedia(acquisition.payload);
+        } catch (cleanupError) {
+          throw new AggregateError(
+            [error, cleanupError],
+            "Media node could not be saved and downloaded assets could not be removed",
+            { cause: error },
+          );
+        }
         throw error;
       }
     }

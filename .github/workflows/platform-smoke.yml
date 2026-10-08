@@ -5,6 +5,7 @@ on:
     paths:
       - "src/**"
       - "src-tauri/**"
+      - "python/**"
       - "scripts/**"
       - "package.json"
       - "pnpm-lock.yaml"

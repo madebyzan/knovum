@@ -93,4 +93,17 @@ describe("AI connection editor", () => {
     });
     wrapper.unmount();
   });
+
+  it("rejects URL credentials without emitting them", async () => {
+    const wrapper = open();
+    const url = wrapper.findAllComponents(UiInput)[1]!;
+    url.vm.$emit("update:modelValue", "https://user:secret@models.example.test/v1");
+    await flushPromises();
+    await wrapper.findAllComponents(UiButton).at(-1)!.trigger("click");
+
+    expect(wrapper.emitted("save")).toBeUndefined();
+    expect(wrapper.text()).toContain("settings.ai.invalidBaseUrl");
+    expect(wrapper.text()).not.toContain("secret");
+    wrapper.unmount();
+  });
 });

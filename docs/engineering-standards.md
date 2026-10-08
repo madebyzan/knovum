@@ -60,17 +60,21 @@ to prove the feature's contract. The sections below own the implementation and r
 ## Testing and gates
 
 ```bash
+pnpm check:scripts
 pnpm check:web
 pnpm check:rust
+pnpm check:python
 pnpm check
 ```
 
 Production Renderer and Node-backed test compilation use separate `tsconfig.json` and `tsconfig.tests.json` projects; both run in `pnpm typecheck`. Tests are not hidden from checking to avoid Node type errors.
 
-Dependency-cruiser proves the encoded Renderer dependency rules. Rust visibility and behavioral tests constrain module APIs, while Rust/Tauri compilation resolves handlers and generated ACLs. Capability policy checks cover the explicit permissions they inspect. Neither compilation, Knip nor capability scanning certifies all cross-language dependency directions or runtime grants; review additions at their owner, including the images/Spaces authorization boundary.
+Dependency-cruiser proves the encoded Renderer dependency rules. Rust visibility and behavioral tests constrain module APIs, while Rust/Tauri compilation resolves handlers and generated ACLs. Capability policy checks cover the explicit permissions they inspect. The Rust source-boundary gate explicitly rejects `local_resources` importing AI, Run scheduler importing concrete capabilities, authorization reading the Action catalog, and Workflow execution reclaiming generic dispatch. It covers these documented edges rather than parsing a complete Rust dependency graph. Neither compilation, Knip nor these focused scanners certifies all cross-language dependency directions or runtime grants; review additions at their owner, including the images/Spaces authorization boundary.
 
 The repository uses Oxlint/Oxfmt, dependency-cruiser, Knip, jscpd, Vitest, Vue Test Utils, rustfmt, Clippy and Rust tests. Desktop-affecting changes also require real macOS/Windows builds.
 
 ## Documentation required with code changes
 
 Update documentation in the same PR for changes to architecture, design tokens, permissions, persistence schema, commands, background task contracts, packaging, or release behavior.
+
+Rust compile/test quality runs on supported macOS; the platform smoke matrix covers macOS arm64, macOS x64 and Windows x64, including Python-only build inputs. Dependency audit targets match these three release triples. PR Python audits reuse the production profile inventory and audit all five locked runtimes plus the root project. Script unit tests use one local/CI entry; signing integration, real models and release acceptance remain separate. Generated-contract drift uses the single owner output list, including Model Resources Python output.

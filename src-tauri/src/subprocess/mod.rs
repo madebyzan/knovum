@@ -16,6 +16,7 @@ pub fn diagnostic_error(lines: &[String], default_message: &str) -> String {
 
 mod runner;
 pub(crate) use runner::{wait_with_output, wait_with_stderr};
+pub(crate) mod diagnostic_lines;
 
 #[cfg(test)]
 mod tests;

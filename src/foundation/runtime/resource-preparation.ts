@@ -8,12 +8,11 @@ import { createAppError, decodeAppError } from "../errors/app-error";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
-import { updateTaskProgress } from "./resource-progress";
+import { restoreRunningPreparation } from "./resource-preparation-observation";
+import { resourcePreparationTask, updateTaskProgress } from "./resource-progress";
 import { invalidateLocalResources } from "./resource-query";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
-const OBSERVATION_RETRIES = 3;
-const OBSERVATION_INTERVAL_MS = 1_000;
 
 export interface ResourcePreparationHandle {
   completion: Promise<void>;
@@ -25,7 +24,6 @@ interface PreparationRun {
   target: ResourcePreparationTarget;
   jobId: string;
   title: string;
-  isCancelled: () => boolean;
   onProgress?: ((progress: ResourcePreparationProgress) => void) | undefined;
 }
 
@@ -36,11 +34,7 @@ export function startResourcePreparation(
 ): ResourcePreparationHandle {
   const tasks = useTaskStore();
   const jobId = `runtime-resource:${crypto.randomUUID()}`;
-  let cancelled = false;
-  const cancel = async () => {
-    await cancelResourcePreparation(jobId);
-    cancelled = true;
-  };
+  const cancel = () => cancelResourcePreparation(jobId);
   tasks.restoreRunning({ id: jobId, title, startedAt: Date.now() }, cancel);
   return {
     completion: runPreparation({
@@ -48,7 +42,6 @@ export function startResourcePreparation(
       target,
       jobId,
       title,
-      isCancelled: () => cancelled,
       onProgress,
     }),
     cancel,
@@ -59,9 +52,11 @@ export async function restoreResourcePreparationTasks(pinia: Pinia): Promise<voi
   const tasks = useTaskStore(pinia);
   for (const snapshot of await listResourcePreparations()) {
     if (snapshot.state === "queued" || snapshot.state === "preparing") {
-      restoreRunning(tasks, snapshot);
+      restoreRunningPreparation(tasks, snapshot);
     } else if (snapshot.state === "failed") {
-      tasks.restoreFailed(snapshotTask(snapshot), () => retrySnapshot(tasks, snapshot));
+      tasks.restoreFailed(resourcePreparationTask(snapshot), () => retrySnapshot(tasks, snapshot), {
+        settlement: "external",
+      });
     } else {
       tasks.start(snapshot.title, undefined, undefined, snapshot.jobId);
       if (snapshot.state === "ready") tasks.succeed(snapshot.jobId);
@@ -71,7 +66,7 @@ export async function restoreResourcePreparationTasks(pinia: Pinia): Promise<voi
 }
 
 async function runPreparation(options: PreparationRun) {
-  const { tasks, target, jobId, title, isCancelled, onProgress } = options;
+  const { tasks, target, jobId, title, onProgress } = options;
   try {
     await prepareResources({
       target,
@@ -84,73 +79,37 @@ async function runPreparation(options: PreparationRun) {
     });
     tasks.succeed(jobId);
   } catch (error) {
-    if (isCancelled() || decodeAppError(error)?.code === CANCELLED_CODE) {
+    if (decodeAppError(error)?.code === CANCELLED_CODE) {
       tasks.cancelled(jobId);
       throw createAppError(CANCELLED_CODE, "Resource preparation cancelled");
     }
     tasks.fail(jobId, getErrorMessage(error));
     throw error;
   } finally {
-    await invalidateLocalResources();
+    await invalidateResourceProjection(jobId);
   }
-}
-
-function restoreRunning(tasks: ReturnType<typeof useTaskStore>, snapshot: ResourcePreparationSnapshot) {
-  const restored = tasks.restoreRunning(snapshotTask(snapshot), () =>
-    cancelResourcePreparation(snapshot.jobId),
-  );
-  if (restored) void observeRunning(tasks, snapshot.jobId);
-}
-
-async function observeRunning(tasks: ReturnType<typeof useTaskStore>, jobId: string): Promise<void> {
-  async function poll(failures: number): Promise<void> {
-    if (!tasks.running.some(({ id }) => id === jobId)) return;
-    let snapshot: ResourcePreparationSnapshot | undefined;
-    try {
-      snapshot = (await listResourcePreparations()).find(({ jobId: candidate }) => candidate === jobId);
-      if (!snapshot) throw new Error("Resource preparation snapshot is unavailable");
-    } catch (error) {
-      if (failures + 1 >= OBSERVATION_RETRIES) {
-        tasks.fail(jobId, `Unable to observe resource preparation: ${getErrorMessage(error)}`);
-        tasks.setObservedRetry(jobId, () => observeRunning(tasks, jobId));
-        await Promise.resolve(
-          logError(`Unable to observe resource preparation ${jobId}: ${formatErrorDiagnostic(error)}`),
-        ).catch(() => undefined);
-        return;
-      }
-      await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
-      return poll(failures + 1);
-    }
-    updateTaskProgress(tasks, jobId, snapshot.progress);
-    if (snapshot.state === "ready") return tasks.succeed(jobId);
-    if (snapshot.state === "failed")
-      return tasks.fail(jobId, snapshot.error?.message ?? "Resource preparation failed");
-    if (snapshot.state === "cancelled") return tasks.cancelled(jobId);
-    await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
-    return poll(0);
-  }
-  return poll(0);
 }
 
 async function retrySnapshot(
   tasks: ReturnType<typeof useTaskStore>,
   snapshot: ResourcePreparationSnapshot,
 ): Promise<void> {
-  await prepareResources({
+  tasks.setCancellation(snapshot.jobId, () => cancelResourcePreparation(snapshot.jobId));
+  await runPreparation({
+    tasks,
     target: snapshot.target,
     jobId: snapshot.jobId,
     title: snapshot.title,
     onProgress: (progress) => updateTaskProgress(tasks, snapshot.jobId, progress),
   });
-  await invalidateLocalResources();
 }
 
-function snapshotTask(snapshot: ResourcePreparationSnapshot) {
-  return {
-    id: snapshot.jobId,
-    title: snapshot.title,
-    startedAt: snapshot.startedAt,
-    ...(snapshot.error === null ? {} : { statusMessage: snapshot.error.message }),
-    ...(snapshot.progress.percent === null ? {} : { progress: snapshot.progress.percent }),
-  };
+async function invalidateResourceProjection(jobId: string): Promise<void> {
+  try {
+    await invalidateLocalResources();
+  } catch (error) {
+    await Promise.resolve(
+      logError(`Unable to refresh local resources after ${jobId}: ${formatErrorDiagnostic(error)}`),
+    ).catch(() => undefined);
+  }
 }

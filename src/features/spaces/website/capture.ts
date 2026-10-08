@@ -1,12 +1,15 @@
 import { warn as logWarn } from "@tauri-apps/plugin-log";
-import { compact } from "es-toolkit";
 import pLimit from "p-limit";
 
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
-import { removeSpaceAssets } from "../assets/asset-operations";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload, SpaceWebsitePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
+import {
+  markSavedWebsiteFailedAfter,
+  persistSavedWebsite,
+  type SavedWebsiteBinding,
+} from "./saved-website-persistence";
 import { websiteDefaultTitle } from "./url";
 import { cacheWebsiteAsset, fetchWebsiteResource } from "./website-resource";
 
@@ -17,13 +20,6 @@ interface WebsiteCaptureContext {
   nodes: SpaceCanvasNode[];
   addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
   saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
-}
-
-interface WebsiteBinding {
-  context: WebsiteCaptureContext;
-  spaceId: string;
-  id: string;
-  data: SpaceWebsitePayload;
 }
 
 export async function addSavedWebsite(
@@ -59,7 +55,7 @@ export async function refreshSavedWebsite(context: WebsiteCaptureContext, id: st
 }
 
 async function hydrateSavedWebsite(
-  target: WebsiteBinding,
+  target: SavedWebsiteBinding,
   url: string,
   behavior: { preserveTitle: boolean },
 ) {
@@ -71,7 +67,7 @@ async function hydrateSavedWebsite(
     }
     const metadata = resource.metadata;
     const paths = await cacheMetadataAssets(metadata.faviconUrl, metadata.previewImageUrl);
-    await persistWebsite(target, paths, {
+    await persistSavedWebsite(target, paths, {
       ...(behavior.preserveTitle ? {} : { title: metadata.title }),
       pageTitle: metadata.title,
       url: metadata.finalUrl,
@@ -86,18 +82,18 @@ async function hydrateSavedWebsite(
     void logWarn(
       `Website metadata hydration failed for ${target.id} (${url}): ${formatErrorDiagnostic(error)}`,
     );
-    await markWebsiteFailed(target);
+    await markSavedWebsiteFailedAfter(target, error);
   }
 }
 
 async function hydrateDirectImage(
-  target: WebsiteBinding,
+  target: SavedWebsiteBinding,
   url: string,
   previewImagePath: string,
   behavior: { preserveTitle: boolean },
 ) {
   try {
-    await persistWebsite(
+    await persistSavedWebsite(
       target,
       [undefined, previewImagePath],
       {
@@ -112,12 +108,8 @@ async function hydrateDirectImage(
     void logWarn(
       `Direct website image hydration failed for ${target.id} (${url}): ${formatErrorDiagnostic(error)}`,
     );
-    await markWebsiteFailed(target);
+    await markSavedWebsiteFailedAfter(target, error);
   }
-}
-
-async function markWebsiteFailed(target: WebsiteBinding): Promise<void> {
-  await saveBinding(target, { ...target.data, metadataState: "failed" });
 }
 
 async function cacheMetadataAssets(faviconUrl?: string, previewImageUrl?: string) {
@@ -138,52 +130,11 @@ async function cacheOptionalWebsiteAsset(url: string | undefined, kind: string) 
   }
 }
 
-async function persistWebsite(
-  target: WebsiteBinding,
-  paths: readonly (string | undefined)[],
-  metadata: Partial<Omit<SpaceWebsitePayload, "kind">>,
-  explicitPreviewPath?: string,
-) {
-  const cachedPaths = compact(paths);
-  const [faviconPath, previewImagePath] = paths;
-  const nextPreviewPath = explicitPreviewPath ?? previewImagePath;
-  const previous: SpaceWebsitePayload = { ...target.data };
-  delete previous.siteName;
-  delete previous.description;
-  delete previous.contentPreview;
-  delete previous.websiteSections;
-  delete previous.canonicalUrl;
-  delete previous.faviconPath;
-  delete previous.previewImagePath;
-  const next: SpaceWebsitePayload = { ...previous, ...metadata };
-  if (faviconPath && !explicitPreviewPath) next.faviconPath = faviconPath;
-  if (nextPreviewPath) next.previewImagePath = nextPreviewPath;
-  const stalePaths = compact([target.data.faviconPath, target.data.previewImagePath]).filter(
-    (path) => path !== next.faviconPath && path !== next.previewImagePath,
-  );
-  try {
-    await saveBinding(target, next);
-  } catch (error) {
-    await removeSpaceAssets(cachedPaths);
-    throw error;
-  }
-  try {
-    await removeSpaceAssets(stalePaths);
-  } catch (error) {
-    void logWarn(`Website asset reclamation failed for ${target.id}: ${formatErrorDiagnostic(error)}`);
-  }
-}
-
-async function saveBinding(target: WebsiteBinding, data: SpaceWebsitePayload) {
-  await target.context.saveNodeContentForSpace(target.spaceId, {
-    id: target.id,
-    expectedData: target.data,
-    data,
-  });
-  target.data = data;
-}
-
-function binding(context: WebsiteCaptureContext, spaceId: string, node: SpaceCanvasNode): WebsiteBinding {
+function binding(
+  context: WebsiteCaptureContext,
+  spaceId: string,
+  node: SpaceCanvasNode,
+): SavedWebsiteBinding {
   if (node.data.kind !== "website") throw new Error("Website capture created a non-website node");
   return { context, spaceId, id: node.id, data: node.data };
 }

@@ -3,6 +3,22 @@ use tauri::AppHandle;
 
 use crate::spaces::db;
 
+pub(super) fn with_settlement(
+    primary: crate::app_error::AppError,
+    settlement: Result<(), String>,
+) -> crate::app_error::AppError {
+    match settlement {
+        Ok(()) => primary,
+        Err(error) => crate::app_error::AppError {
+            code: primary.code,
+            message: format!(
+                "{}; derivation failure settlement also failed: {error}",
+                primary.message
+            ),
+        },
+    }
+}
+
 pub enum PendingNodeState {
     Processing,
     Derivation,

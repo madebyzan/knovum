@@ -94,20 +94,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let status = val["task_status"].as_str().unwrap_or_default();
-            match status {
-                "SUCCESS" => {
-                    let video_url = val["video_result"][0]["url"]
-                        .as_str()
-                        .ok_or_else(|| AppError::new("invalid_response", "Missing video URL"))?
-                        .to_string();
-                    Ok(VideoGenerationStatus::Succeeded { video_url })
-                }
-                "FAIL" => Ok(VideoGenerationStatus::Failed {
-                    error_message: "Zhipu video generation failed".to_string(),
-                }),
-                "PROCESSING" => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
-                _ => Ok(VideoGenerationStatus::Pending { progress_pct: None }),
-            }
+            parse_status(status, &val)
         })
     }
 
@@ -124,6 +111,26 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
     }
 }
 
+fn parse_status(status: &str, payload: &serde_json::Value) -> AppResult<VideoGenerationStatus> {
+    match status {
+        "SUCCESS" => {
+            let video_url = payload["video_result"][0]["url"]
+                .as_str()
+                .ok_or_else(|| AppError::new("invalid_response", "Missing video URL"))?
+                .to_string();
+            Ok(VideoGenerationStatus::Succeeded { video_url })
+        }
+        "FAIL" => Ok(VideoGenerationStatus::Failed {
+            error_message: "Zhipu video generation failed".to_string(),
+        }),
+        "PROCESSING" => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
+        _ => Err(AppError::new(
+            "invalid_response",
+            "Zhipu returned an unknown video task status",
+        )),
+    }
+}
+
 fn zhipu_endpoint(raw: &str) -> String {
     let trimmed = raw.trim().trim_end_matches('/');
     if trimmed.ends_with("/api/paas/v4") {
@@ -132,3 +139,7 @@ fn zhipu_endpoint(raw: &str) -> String {
         format!("{trimmed}/api/paas/v4")
     }
 }
+
+#[cfg(test)]
+#[path = "tests/video.rs"]
+mod tests;

@@ -2,17 +2,8 @@ use std::time::Duration;
 
 use tauri::{AppHandle, Manager};
 
-use super::{
-    filesystem,
-    model_catalog::{self, LocalModelEntry, LocalModelId},
-    preparation::locks,
-};
+use super::{filesystem, model_catalog::LocalModelId, preparation::locks};
 use crate::app_error::AppError;
-
-#[tauri::command]
-pub async fn get_model_catalog(app: AppHandle) -> Result<Vec<LocalModelEntry>, AppError> {
-    Ok(crate::blocking::run(move || model_catalog::list(&app)).await?)
-}
 
 #[tauri::command]
 pub async fn remove_model(app: AppHandle, model: LocalModelId) -> Result<(), AppError> {

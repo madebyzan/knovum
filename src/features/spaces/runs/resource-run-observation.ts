@@ -8,6 +8,7 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { useSpaceStore } from "../session/space-store";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
+import { requestRunControl } from "./run-control";
 import { observeRun } from "./run-observation";
 
 type Listener = (run: RunObservation) => void;
@@ -57,5 +58,5 @@ export async function restoreResourceRuns(title: string) {
 }
 
 export function cancelResourceRun(runId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|cancel_run", { runId });
+  return requestRunControl("cancel", runId);
 }

@@ -94,3 +94,20 @@ it("loads optional routing preferences without a reset and saves through the exi
   expect(boundary.set).toHaveBeenCalledExactlyOnceWith("ai.models", { schemaVersion: 1, value: canonical });
   expect(boundary.save).toHaveBeenCalledOnce();
 });
+
+it("rejects URL credentials before validation or store writes", async () => {
+  const value = structuredClone(defaultAiModelSettings);
+  value.connections.push({
+    id: "unsafe",
+    name: "Unsafe",
+    provider: "openai",
+    baseUrl: "https://user:secret@models.example.test/v1",
+    models: [],
+  });
+
+  await expect(saveAiModelSettings(value)).rejects.toThrow("Invalid AI provider URL");
+
+  expect(boundary.invoke).not.toHaveBeenCalled();
+  expect(boundary.set).not.toHaveBeenCalled();
+  expect(boundary.save).not.toHaveBeenCalled();
+});

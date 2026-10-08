@@ -78,14 +78,14 @@ async fn execute(
     let prepared = match preparation::start(app, request, target, authority).await {
         Ok(prepared) => prepared,
         Err(error) => {
-            super::failure::fail_pending(
+            let settlement = super::failure::fail_pending(
                 app,
                 &request.space_id,
                 &request.output_node_id,
                 super::failure::PendingNodeState::Processing,
             )
-            .await?;
-            return Err(error.into());
+            .await;
+            return Err(super::failure::with_settlement(error.into(), settlement));
         }
     };
     let generated = match target {
@@ -115,14 +115,13 @@ async fn execute(
     let generated = match generated {
         Ok(value) => value,
         Err(error) => {
-            super::failure::fail_message(app, &request.id, &error.message).await?;
-            return Err(error);
+            let settlement = super::failure::fail_message(app, &request.id, &error.message).await;
+            return Err(super::failure::with_settlement(error, settlement));
         }
     };
     if let Err(error) = tokio::fs::write(&prepared.path, &generated.bytes).await {
         let message = error.to_string();
-        super::failure::fail_message(app, &request.id, &message).await?;
-        return Err(message.into());
+        return Err(fail_output(app, &request.id, &prepared.path, message.into()).await);
     }
     let completion = async {
         validation::validate(app, &prepared.path, cancellation).await?;
@@ -137,11 +136,10 @@ async fn execute(
         .await
     }
     .await;
-    if let Err(error) = &completion {
-        let _ = tokio::fs::remove_file(prepared.path).await;
-        super::failure::fail_message(app, &request.id, &error.message).await?;
+    match completion {
+        Ok(output) => Ok(output),
+        Err(error) => Err(fail_output(app, &request.id, &prepared.path, error).await),
     }
-    completion
 }
 
 pub(super) struct VideoContent {
@@ -160,4 +158,17 @@ impl From<GeneratedVideo> for VideoContent {
             operation_id: Some(value.operation_id),
         }
     }
+}
+
+async fn fail_output(app: &AppHandle, id: &str, path: &str, mut primary: AppError) -> AppError {
+    if let Err(cleanup) = tokio::fs::remove_file(path).await {
+        if cleanup.kind() != std::io::ErrorKind::NotFound {
+            primary.message = format!(
+                "{}; derived video cleanup also failed: {cleanup}",
+                primary.message
+            );
+        }
+    }
+    let settlement = super::failure::fail_message(app, id, &primary.message).await;
+    super::failure::with_settlement(primary, settlement)
 }

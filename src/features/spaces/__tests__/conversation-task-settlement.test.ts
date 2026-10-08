@@ -55,4 +55,39 @@ describe("conversation task result settlement", () => {
       }),
     ).rejects.toThrow("provider rejected request");
   });
+
+  it("preserves the persisted terminal failure when projection also fails", async () => {
+    const projectionError = new Error("projection unavailable");
+    ipc.getConversationTaskError.mockResolvedValue("provider rejected request");
+
+    const error = await settleConversationTaskResult({
+      accepted,
+      outcome: { type: "finished", state: "failed", error: null },
+      spaceId: "space",
+      project: vi.fn<() => Promise<void>>().mockRejectedValue(projectionError),
+    }).catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(AggregateError);
+    expect(error).toMatchObject({ cause: expect.objectContaining({ message: "provider rejected request" }) });
+    expect((error as AggregateError).errors).toEqual([
+      expect.objectContaining({ message: "provider rejected request" }),
+      projectionError,
+    ]);
+  });
+
+  it("preserves diagnostic lookup and projection failures", async () => {
+    const diagnosticError = new Error("diagnostic database unavailable");
+    const projectionError = new Error("projection unavailable");
+    ipc.getConversationTaskError.mockRejectedValue(diagnosticError);
+
+    const error = await settleConversationTaskResult({
+      accepted,
+      outcome: { type: "finished", state: "failed", error: null },
+      spaceId: "space",
+      project: vi.fn<() => Promise<void>>().mockRejectedValue(projectionError),
+    }).catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toEqual([diagnosticError, projectionError]);
+  });
 });

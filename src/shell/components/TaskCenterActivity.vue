@@ -26,6 +26,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const active = (status: TaskStatus) => status === "queued" || status === "running";
+const canCancel = (status: TaskStatus) => active(status) || status === "attention";
 const terminal = (status: TaskStatus) => status === "succeeded" || status === "cancelled";
 
 function statusClass(status: TaskStatus) {
@@ -121,7 +122,7 @@ function statusLabel(status: TaskStatus) {
           <ArrowUpRight class="size-3" />
         </UiIconButton>
         <UiIconButton
-          v-if="active(task.status) && task.cancellable"
+          v-if="canCancel(task.status) && task.cancellable"
           :label="t('tasks.cancel')"
           size="sm"
           @click="emit('cancel', task.id)"
