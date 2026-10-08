@@ -97,7 +97,6 @@ class TranscriptionEngine:
         except ImportError as error:
             raise server_error("runtime_mismatch", "faster-whisper is unavailable") from error
         if self._engine is None:
-            os.environ["OMP_NUM_THREADS"] = str(self._cpu_threads)
             self._engine = (
                 AsrEngine.faster_whisper,
                 WhisperModel(

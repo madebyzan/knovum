@@ -1,4 +1,5 @@
 use super::*;
+use crate::app_error::AppResult;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 fn operation() -> (String, PluginOperation) {
@@ -16,12 +17,14 @@ async fn cancellation_prevents_source_admission_and_commit() {
     let result = operation
         .read(async {
             read.store(true, Ordering::SeqCst);
-            Ok(())
+            Ok::<(), AppError>(())
         })
         .await;
-    assert_eq!(result.unwrap_err(), CANCELLED);
+    let error = result.unwrap_err();
+    assert_eq!(error.code, "cancelled");
+    assert_eq!(error.message, "Plugin operation was cancelled");
     assert!(!read.load(Ordering::SeqCst));
-    assert_eq!(operation.commit().unwrap_err(), CANCELLED);
+    assert_eq!(operation.commit().unwrap_err().code, "cancelled");
 }
 
 #[test]
@@ -29,8 +32,8 @@ fn commit_admission_rejects_late_cancellation() {
     let (id, operation) = operation();
     operation.commit().unwrap();
     assert_eq!(
-        cancel_plugin_operation(id).unwrap_err(),
-        "plugin-operation-already-committing"
+        cancel_plugin_operation(id).unwrap_err().code,
+        "plugin_operation_committing"
     );
     assert!(!operation.cancellation().is_cancelled());
 }
@@ -56,10 +59,11 @@ async fn owner_shutdown_cancels_pending_reading_and_prevents_commit() {
     parent.cancel();
     assert_eq!(
         operation
-            .read(std::future::pending::<Result<(), String>>())
+            .read(std::future::pending::<AppResult<()>>())
             .await
-            .unwrap_err(),
-        CANCELLED
+            .unwrap_err()
+            .code,
+        "cancelled"
     );
-    assert_eq!(operation.commit().unwrap_err(), CANCELLED);
+    assert_eq!(operation.commit().unwrap_err().code, "cancelled");
 }

@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { aiConnectionSecretKey } from "../../../foundation/ai/schema/models";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { getSecret } from "../../../foundation/secrets/secret-store";
+import { isSecretConfigured } from "../../../foundation/secrets/secret-store";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import type { AiConnectionSecretChange } from "../ai-connection-draft";
@@ -20,7 +20,7 @@ const loadError = shallowRef("");
 onMounted(async () => {
   if (!props.existing) return;
   try {
-    hasKey.value = Boolean(await getSecret(aiConnectionSecretKey(props.connectionId)));
+    hasKey.value = await isSecretConfigured(aiConnectionSecretKey(props.connectionId));
   } catch (error) {
     loadError.value = getErrorMessage(error);
   }

@@ -100,11 +100,6 @@ pub(crate) async fn prepare_media_import_tools_for_job<R: Runtime>(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedMediaImportTools, String> {
-    if job_id.trim().is_empty() || title.trim().is_empty() {
-        return Err(
-            "Media import tool preparation requires a job identifier and title".to_string(),
-        );
-    }
     let request = requests::begin(job_id, title, ResourcePreparationTarget::MediaImportTools)?;
     prepare_media_import_tools_for_request(app, request, business_cancellation, progress).await
 }

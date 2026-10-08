@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { deleteSecret, getSecret, setSecret } from "../../../foundation/secrets/secret-store";
+import { deleteSecret, isSecretConfigured, setSecret } from "../../../foundation/secrets/secret-store";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -25,7 +25,7 @@ const configured = shallowRef<boolean | null>(null);
 
 onMounted(async () => {
   try {
-    configured.value = Boolean(await getSecret(props.secretKey));
+    configured.value = await isSecretConfigured(props.secretKey);
   } catch (error) {
     toast.error(`${t("settings.ai.secretLoadFailed")}: ${getErrorMessage(error)}`);
   }

@@ -5,9 +5,10 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    completion, contracts::DictationSnapshot, insertion::TargetApplication, lifecycle,
-    recorder::Recorder, service::DictationAction,
+    completion, insertion::TargetApplication, lifecycle, recorder::Recorder,
+    service::DictationAction,
 };
+use crate::dictation_contracts::DictationSnapshot;
 
 pub(super) enum ActiveSession {
     Idle,
@@ -44,9 +45,8 @@ pub(super) async fn run<R: Runtime>(
             }
             DictationAction::DeviceFailed {
                 session_id,
-                code,
-                message,
-            } => lifecycle::device_failed(&app, &snapshot, &mut active, session_id, code, message),
+                failure,
+            } => lifecycle::device_failed(&app, &snapshot, &mut active, session_id, failure),
             DictationAction::PreparationProgress {
                 session_id,
                 progress,

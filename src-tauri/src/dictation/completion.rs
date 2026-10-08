@@ -4,9 +4,11 @@ use tauri::{AppHandle, Emitter, Runtime};
 
 use super::{
     actor::ActiveSession,
-    contracts::{DictationPhase, DictationSnapshot, InsertionOutcome},
     insertion::{self, TargetApplication},
     transcription::TranscriptionOutcome,
+};
+use crate::dictation_contracts::{
+    DictationFailure, DictationPhase, DictationSnapshot, InsertionOutcome,
 };
 
 const STATE_EVENT: &str = "knovum://dictation-state";
@@ -17,7 +19,7 @@ pub(super) async fn finish<R: Runtime>(
     active: &mut ActiveSession,
     session_id: String,
     target: TargetApplication,
-    transcription: Result<TranscriptionOutcome, String>,
+    transcription: Result<TranscriptionOutcome, DictationFailure>,
 ) {
     if !matches!(active, ActiveSession::Transcribing { id, .. } if id == &session_id) {
         return;
@@ -27,8 +29,8 @@ pub(super) async fn finish<R: Runtime>(
         Ok(transcription) => {
             publish_transcription(app, snapshot, session_id, target, transcription).await
         }
-        Err(error) if error == "cancelled" => publish(app, snapshot, DictationSnapshot::default()),
-        Err(error) => fail(app, snapshot, Some(session_id), error),
+        Err(DictationFailure::Cancelled) => publish(app, snapshot, DictationSnapshot::default()),
+        Err(failure) => fail(app, snapshot, Some(session_id), failure),
     }
 }
 
@@ -78,17 +80,13 @@ pub(super) fn fail<R: Runtime>(
     app: &AppHandle<R>,
     snapshot: &Arc<RwLock<DictationSnapshot>>,
     session_id: Option<String>,
-    error: String,
+    failure: DictationFailure,
 ) {
-    let (code, message) = error
-        .split_once(": ")
-        .map_or(("dictation_failed", error.as_str()), |(code, message)| {
-            (code, message)
-        });
+    let (code, message) = failure.into_parts();
     publish(
         app,
         snapshot,
-        DictationSnapshot::failed(session_id, code, message.into()),
+        DictationSnapshot::failed(session_id, code, message),
     );
     reveal(app);
 }

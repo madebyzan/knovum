@@ -107,14 +107,13 @@ pub async fn update_scene<R: Runtime>(
     .await
     .map_err(db::sql_error)?;
     db::require_one(executed, "Space Saved View no longer exists")?;
+    let obsolete_paths = crate::spaces::assets::unreferenced_paths_in_transaction(
+        &mut tx,
+        previous.into_iter().collect(),
+    )
+    .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    match crate::spaces::assets::unreferenced_paths(pool, previous.into_iter().collect()).await {
-        Ok(paths) => Ok(paths),
-        Err(error) => {
-            log::warn!("Saved View was updated, but obsolete-thumbnail cleanup could not be planned: {error}");
-            Ok(Vec::new())
-        }
-    }
+    Ok(obsolete_paths)
 }
 
 fn validate_thumbnail_path<R: Runtime>(
@@ -176,14 +175,11 @@ pub async fn delete_scene<R: Runtime>(
         .await
         .map_err(db::sql_error)?;
     db::require_one(executed, "Space Saved View no longer exists")?;
+    let obsolete_paths = crate::spaces::assets::unreferenced_paths_in_transaction(
+        &mut tx,
+        previous.into_iter().collect(),
+    )
+    .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    match crate::spaces::assets::unreferenced_paths(pool, previous.into_iter().collect()).await {
-        Ok(paths) => Ok(paths),
-        Err(error) => {
-            log::warn!(
-                "Saved View was deleted, but thumbnail cleanup could not be planned: {error}"
-            );
-            Ok(Vec::new())
-        }
-    }
+    Ok(obsolete_paths)
 }

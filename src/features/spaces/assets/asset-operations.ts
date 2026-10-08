@@ -127,8 +127,7 @@ export async function cleanupDeletedSpaceAssets(paths: readonly string[]): Promi
     await removeSpaceAssets(paths);
   } catch (error) {
     void logError(
-      `Space database deletion committed, but local asset cleanup failed: ${formatErrorDiagnostic(error)}`,
+      `Space data change committed, but local asset cleanup failed: ${formatErrorDiagnostic(error)}`,
     );
-    throw new Error("Space data was deleted, but local asset cleanup failed", { cause: error });
   }
 }

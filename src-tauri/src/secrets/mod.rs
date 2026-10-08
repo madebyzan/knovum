@@ -58,6 +58,12 @@ pub async fn get(secret_key: String) -> Result<Option<String>, AppError> {
 }
 
 #[tauri::command]
+pub async fn is_configured(secret_key: String) -> Result<bool, AppError> {
+    validate_key(&secret_key)?;
+    Ok(store::is_configured(database().await?, &secret_key).await?)
+}
+
+#[tauri::command]
 pub async fn set(secret_key: String, secret: String) -> Result<(), AppError> {
     Ok(write_secret(&secret_key, &secret).await?)
 }
@@ -69,7 +75,7 @@ pub async fn delete(secret_key: String) -> Result<(), AppError> {
 
 pub fn plugin() -> TauriPlugin<Wry> {
     tauri::plugin::Builder::new("secrets")
-        .invoke_handler(tauri::generate_handler![get, set, delete])
+        .invoke_handler(tauri::generate_handler![get, is_configured, set, delete])
         .build()
 }
 

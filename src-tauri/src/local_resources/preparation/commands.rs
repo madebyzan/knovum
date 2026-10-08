@@ -18,7 +18,6 @@ pub async fn prepare_resources(
     title: String,
     on_progress: Channel<ResourcePreparationProgress>,
 ) -> Result<(), AppError> {
-    validate_request(&job_id, &title)?;
     if matches!(
         &target,
         ResourcePreparationTarget::Transcription | ResourcePreparationTarget::SpeechAlignment
@@ -118,16 +117,6 @@ pub fn cancel_resource_preparation(job_id: String) -> Result<(), AppError> {
 #[tauri::command]
 pub fn list_resource_preparations() -> Result<Vec<ResourcePreparationSnapshot>, AppError> {
     Ok(requests::list()?)
-}
-
-fn validate_request(job_id: &str, title: &str) -> Result<(), AppError> {
-    if job_id.trim().is_empty() {
-        return Err(("Resource preparation requires a job identifier".to_string()).into());
-    }
-    if title.trim().is_empty() {
-        return Err(("Resource preparation requires a task title".to_string()).into());
-    }
-    Ok(())
 }
 
 fn observe(channel: &Channel<ResourcePreparationProgress>, progress: ResourcePreparationProgress) {

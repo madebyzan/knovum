@@ -4,7 +4,7 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
-use crate::dictation::contracts::InsertionOutcome;
+use crate::dictation_contracts::InsertionOutcome;
 
 #[cfg(target_os = "macos")]
 pub(crate) use macos::TargetApplication;

@@ -25,10 +25,9 @@ REQUIRED_MODEL_FILES = (
 
 
 class EmbeddingEngine:
-    def __init__(self, model_directory: str, device: str, cpu_threads: int) -> None:
+    def __init__(self, model_directory: str, device: str) -> None:
         self._model_directory = Path(model_directory)
         self._device = device
-        self._cpu_threads = cpu_threads
         self._model: Any | None = None
 
     def encode(self, texts: list[str], role: Literal["query", "document"]) -> tuple[list[list[float]], int]:
@@ -79,8 +78,6 @@ class EmbeddingEngine:
         os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
         os.environ["TRANSFORMERS_OFFLINE"] = "1"
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
-        os.environ["OMP_NUM_THREADS"] = str(self._cpu_threads)
-        os.environ["MKL_NUM_THREADS"] = str(self._cpu_threads)
         try:
             import torch
             from sentence_transformers import SentenceTransformer

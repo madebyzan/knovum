@@ -6,6 +6,7 @@ use super::super::{
     content::{self, PackageFiles},
     contracts::PluginSource,
 };
+use crate::app_error::{AppError, AppResult};
 pub(super) use archive::read_bounded;
 use std::path::Path;
 use tokio_util::sync::CancellationToken;
@@ -13,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 pub(crate) async fn read(
     source: &PluginSource,
     cancellation: &CancellationToken,
-) -> Result<(PackageFiles, String), String> {
+) -> AppResult<(PackageFiles, String)> {
     match source {
         PluginSource::Directory { path } => {
             let path = path.clone();
@@ -60,7 +61,7 @@ pub(crate) async fn read(
 pub(crate) fn directory_files(
     root: &Path,
     cancellation: &CancellationToken,
-) -> Result<PackageFiles, String> {
+) -> AppResult<PackageFiles> {
     if !std::fs::symlink_metadata(root)
         .map_err(|error| error.to_string())?
         .is_dir()
@@ -71,7 +72,7 @@ pub(crate) fn directory_files(
     let mut total = 0usize;
     for entry in walkdir::WalkDir::new(root).follow_links(false) {
         if cancellation.is_cancelled() {
-            return Err(super::operations::CANCELLED.into());
+            return Err(AppError::cancelled("Plugin source reading was cancelled"));
         }
         let entry = entry.map_err(|error| error.to_string())?;
         if entry.depth() == 0 {

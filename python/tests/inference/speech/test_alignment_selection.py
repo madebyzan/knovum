@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import sys
 import threading
+import types
 from pathlib import Path
 from typing import Any
 
@@ -33,9 +35,10 @@ def test_changing_default_cannot_change_the_existing_alignment_model(tmp_path: P
 
 
 def test_cancelled_alignment_never_loads_a_model(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "knovum_inference.speech.alignment.NativeAlignment",
-        lambda *_args: pytest.fail("cancelled request loaded model"),
+    monkeypatch.setitem(
+        sys.modules,
+        "knovum_inference.speech.native_alignment",
+        types.SimpleNamespace(NativeAlignment=lambda *_args: pytest.fail("cancelled request loaded model")),
     )
     cancelled = threading.Event()
     cancelled.set()
@@ -54,7 +57,11 @@ def test_gpu_model_failure_is_reported_without_trying_another_engine(
         devices.append(device)
         raise server_error("model_load_failed", "Frozen GPU model cannot load")
 
-    monkeypatch.setattr("knovum_inference.speech.alignment.NativeAlignment", fail_gpu)
+    monkeypatch.setitem(
+        sys.modules,
+        "knovum_inference.speech.native_alignment",
+        types.SimpleNamespace(NativeAlignment=fail_gpu),
+    )
     engine = AlignmentEngine(tmp_path, "mps", 2, NATIVE_SPEC)
     monkeypatch.setattr(engine, "_load", lambda: pytest.fail("native failure invoked Transformers"))
     with pytest.raises(RpcError) as caught:
@@ -76,7 +83,11 @@ def test_native_alignment_preserves_exact_selected_pcm_and_absolute_timing(
             calls["input"] = (len(samples), text, language)
             return [{"text": "Hello", "start_time": 0.1, "end_time": 0.5}]
 
-    monkeypatch.setattr("knovum_inference.speech.alignment.NativeAlignment", Native)
+    monkeypatch.setitem(
+        sys.modules,
+        "knovum_inference.speech.native_alignment",
+        types.SimpleNamespace(NativeAlignment=Native),
+    )
     params = request(tmp_path / "source.wav")
     params.text_segments[0].start_ms = 200
     params.text_segments[0].end_ms = 800

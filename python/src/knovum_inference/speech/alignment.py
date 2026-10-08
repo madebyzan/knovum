@@ -3,12 +3,14 @@ from __future__ import annotations
 import threading
 import wave
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from knovum_inference.contracts.generated.alignment import SpeechAlignParams
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech.native_alignment import NativeAlignment
 from knovum_inference.speech.request import check_deadline, milliseconds, verify_audio
+
+if TYPE_CHECKING:
+    from knovum_inference.speech.native_alignment import NativeAlignment
 
 LANGUAGES = {
     "zh": "Chinese",
@@ -127,6 +129,8 @@ class AlignmentEngine:
     def _align_clip(self, samples: Any, text: str, language: str) -> list[dict[str, Any]]:
         if self._model_spec_id == "qwen3-forced-aligner-0.6b-q8_0-v1":
             if self._native is None:
+                from knovum_inference.speech.native_alignment import NativeAlignment
+
                 self._native = NativeAlignment(
                     self._model_directory / "qwen3-forced-aligner-0.6b-q8_0.gguf", self._device, self._cpu_threads
                 )
@@ -157,7 +161,6 @@ class AlignmentEngine:
             import torch
             from transformers import AutoModelForTokenClassification, AutoProcessor
 
-            torch.set_num_threads(self._cpu_threads)
             processor = AutoProcessor.from_pretrained(self._model_directory, local_files_only=True)
             model, loading = AutoModelForTokenClassification.from_pretrained(
                 self._model_directory,

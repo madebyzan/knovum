@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import types
 from pathlib import Path
@@ -23,6 +24,8 @@ def test_frozen_embedding_loads_on_the_selected_device_without_reconfiguring_thr
     pooling_mode: str | tuple[str, ...],
     include_prompt: bool,
 ) -> None:
+    monkeypatch.setenv("OMP_NUM_THREADS", "session-owned-omp")
+    monkeypatch.setenv("MKL_NUM_THREADS", "session-owned-mkl")
     for relative in REQUIRED_MODEL_FILES:
         path = tmp_path / relative
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -56,7 +59,7 @@ def test_frozen_embedding_loads_on_the_selected_device_without_reconfiguring_thr
     monkeypatch.setitem(
         sys.modules, "sentence_transformers.sentence_transformer.modules", types.SimpleNamespace(Pooling=Pooling)
     )
-    engine = EmbeddingEngine(str(tmp_path), device, 4)
+    engine = EmbeddingEngine(str(tmp_path), device)
     if pooling_mode != "lasttoken" or not include_prompt:
         with pytest.raises(RpcError) as caught:
             engine._load()
@@ -73,6 +76,8 @@ def test_frozen_embedding_loads_on_the_selected_device_without_reconfiguring_thr
         }
     ]
     assert loaded.max_seq_length == 2048
+    assert os.environ["OMP_NUM_THREADS"] == "session-owned-omp"
+    assert os.environ["MKL_NUM_THREADS"] == "session-owned-mkl"
 
 
 def test_failed_gpu_load_is_not_retried_on_cpu(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -92,5 +97,5 @@ def test_failed_gpu_load_is_not_retried_on_cpu(monkeypatch: pytest.MonkeyPatch, 
         sys.modules, "sentence_transformers.sentence_transformer.modules", types.SimpleNamespace(Pooling=object)
     )
     with pytest.raises(RpcError):
-        EmbeddingEngine(str(tmp_path), "mps", 4)._load()
+        EmbeddingEngine(str(tmp_path), "mps")._load()
     assert attempts == ["mps"]

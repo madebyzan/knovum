@@ -20,14 +20,14 @@ describe("application IPC error boundary", () => {
     const args = { jobId: "job-id", onEvent: { id: 12 } };
     const options = { headers: { "X-Request-ID": "request-id" } };
     native.invoke.mockResolvedValue(undefined);
-    await invokeCommand<void>("plugin:ai|generate_text", args);
-    expect(native.invoke.mock.calls[0]).toEqual(["plugin:ai|generate_text", args]);
+    await invokeCommand<void>("plugin:ai|validate_model_settings", args);
+    expect(native.invoke.mock.calls[0]).toEqual(["plugin:ai|validate_model_settings", args]);
     expect(native.invoke.mock.calls[0]?.[1]).toBe(args);
-    await invokeCommand<void>("plugin:ai|generate_text", args, options);
-    expect(native.invoke.mock.calls[1]).toEqual(["plugin:ai|generate_text", args, options]);
+    await invokeCommand<void>("plugin:ai|validate_model_settings", args, options);
+    expect(native.invoke.mock.calls[1]).toEqual(["plugin:ai|validate_model_settings", args, options]);
     expect(native.invoke.mock.calls[1]?.[2]).toBe(options);
-    await invokeCommand<void>("plugin:ai|generate_text", undefined, options);
-    expect(native.invoke.mock.calls[2]).toEqual(["plugin:ai|generate_text", undefined, options]);
+    await invokeCommand<void>("plugin:ai|validate_model_settings", undefined, options);
+    expect(native.invoke.mock.calls[2]).toEqual(["plugin:ai|validate_model_settings", undefined, options]);
   });
   it("turns a native code/message rejection into an Error while preserving its machine code", async () => {
     const payload = { code: "conversation_upload_size", message: "Attachment exceeds the limit" };
@@ -41,7 +41,7 @@ describe("application IPC error boundary", () => {
   it("preserves errors that are already normalized", async () => {
     const error = new Error("Cancelled", { cause: { code: "cancelled", message: "Cancelled" } });
     native.invoke.mockRejectedValue(error);
-    await expect(invokeCommand("plugin:ai|generate_text")).rejects.toBe(error);
+    await expect(invokeCommand("plugin:ai|validate_model_settings")).rejects.toBe(error);
   });
   it("reports Tauri argument/permission rejections as visible errors", async () => {
     native.invoke.mockRejectedValue("Command not permitted");

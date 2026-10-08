@@ -6,13 +6,12 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     actor::ActiveSession,
-    completion,
-    contracts::{DictationPhase, DictationSnapshot},
-    insertion,
+    completion, insertion,
     recorder::{RecordedAudio, Recorder},
     service::DictationAction,
     transcription,
 };
+use crate::dictation_contracts::{DictationFailure, DictationPhase, DictationSnapshot};
 
 pub(super) fn cleanup_cache<R: Runtime>(app: &AppHandle<R>) {
     let Ok(directory) = app.path().app_cache_dir() else {
@@ -36,16 +35,21 @@ pub(super) fn start<R: Runtime>(
     }
     let id = uuid::Uuid::new_v4().to_string();
     let capture = (|| {
-        let target = insertion::capture_target()?;
+        let target = insertion::capture_target()
+            .map_err(|error| DictationFailure::classified("dictation_target_unavailable", error))?;
         let directory = app
             .path()
             .app_cache_dir()
-            .map_err(|error| error.to_string())?
+            .map_err(|error| {
+                DictationFailure::classified("dictation_audio_cache_failed", error.to_string())
+            })?
             .join("dictation");
-        std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
+        std::fs::create_dir_all(&directory).map_err(|error| {
+            DictationFailure::classified("dictation_audio_cache_failed", error.to_string())
+        })?;
         let wav = directory.join(format!("{id}.wav"));
         let recorder = Recorder::start(&id, sender.clone())?;
-        Ok::<_, String>((target, wav, recorder))
+        Ok::<_, DictationFailure>((target, wav, recorder))
     })();
     match capture {
         Ok((target, wav, recorder)) => {
@@ -181,15 +185,15 @@ pub(super) fn device_failed<R: Runtime>(
     snapshot: &Arc<RwLock<DictationSnapshot>>,
     active: &mut ActiveSession,
     session_id: String,
-    code: String,
-    message: String,
+    failure: DictationFailure,
 ) {
     if matches!(active, ActiveSession::Recording { id, .. } if id == &session_id) {
         *active = ActiveSession::Idle;
+        let (code, message) = failure.into_parts();
         completion::publish(
             app,
             snapshot,
-            DictationSnapshot::failed(Some(session_id), &code, message),
+            DictationSnapshot::failed(Some(session_id), code, message),
         );
         completion::reveal(app);
     }

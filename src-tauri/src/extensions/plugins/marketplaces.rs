@@ -6,6 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::operations::PluginOperation;
+use crate::app_error::AppResult;
 use serde::Deserialize;
 use tauri::{ipc::Channel, AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
@@ -22,7 +23,7 @@ struct MarketplaceManifest {
 async fn read(
     source: &MarketplaceSource,
     cancellation: &CancellationToken,
-) -> Result<MarketplaceManifest, String> {
+) -> AppResult<MarketplaceManifest> {
     let bytes = match source {
         MarketplaceSource::Directory { path } => {
             let path = std::path::PathBuf::from(path).join("marketplace.json");
@@ -101,7 +102,7 @@ pub async fn add_plugin_marketplace(
     source: MarketplaceSource,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginMarketplace, String> {
+) -> AppResult<PluginMarketplace> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,
@@ -133,7 +134,7 @@ pub async fn refresh_plugin_marketplace(
     id: String,
     job_id: String,
     on_progress: Channel<PluginOperationStage>,
-) -> Result<PluginMarketplace, String> {
+) -> AppResult<PluginMarketplace> {
     let operation = PluginOperation::begin(
         &job_id,
         on_progress,

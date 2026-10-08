@@ -58,6 +58,7 @@ fn committed_contracts_match_rust_sources() {
     );
     for directory in [
         "src/shared/contracts/generated",
+        "src/features/dictation/contracts/generated",
         "src/features/spaces/contracts/generated",
         "python/schemas",
     ] {
@@ -66,6 +67,7 @@ fn committed_contracts_match_rust_sources() {
     super::export(&temporary.0).expect("Rust contracts must export");
     for directory in [
         "src/shared/contracts/generated",
+        "src/features/dictation/contracts/generated",
         "src/features/spaces/contracts/generated",
         "python/schemas",
     ] {
@@ -96,6 +98,16 @@ fn committed_contracts_match_rust_sources() {
 #[test]
 fn contracts_keep_their_capability_owner() {
     use ts_rs::TS;
+    let dictation = std::path::Path::new("../../../features/dictation/contracts/generated");
+    for path in [
+        crate::dictation_contracts::DictationPhase::output_path(),
+        crate::dictation_contracts::InsertionOutcome::output_path(),
+        crate::dictation_contracts::DictationSnapshot::output_path(),
+    ] {
+        assert!(path
+            .expect("exported Dictation contract")
+            .starts_with(dictation));
+    }
     let spaces = std::path::Path::new("../../../features/spaces/contracts/generated");
     for path in [
         crate::spaces::structure::edit_contract::ExecuteSpaceEditRequest::output_path(),

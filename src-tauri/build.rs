@@ -45,20 +45,21 @@ fn main() {
             )
             .plugin(
                 "secrets",
-                tauri_build::InlinedPlugin::new().commands(&["get", "set", "delete"]),
+                tauri_build::InlinedPlugin::new().commands(&[
+                    "get",
+                    "is_configured",
+                    "set",
+                    "delete",
+                ]),
             )
             .plugin(
                 "ai",
                 tauri_build::InlinedPlugin::new().commands(&[
                     "cancel_job",
-                    "generate_text",
-                    "generate_text_stream",
                     "detect_external_agent_installations",
                     "list_external_agent_descriptors",
                     "list_provider_descriptors",
-                    "transform_editor_text",
                     "transform_editor_text_stream",
-                    "translate_text",
                     "translate_text_stream",
                     "validate_model_settings",
                     "get_token_usage_report",

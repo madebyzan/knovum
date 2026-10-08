@@ -129,7 +129,8 @@ fn verify(directory: &Path, files: &PackageFiles) -> Result<(), String> {
     let actual = super::plugins::sources::directory_files(
         directory,
         &tokio_util::sync::CancellationToken::new(),
-    )?;
+    )
+    .map_err(|error| error.message)?;
     if files_digest(&actual) != files_digest(files) {
         return Err("extension-content-corrupt".into());
     }

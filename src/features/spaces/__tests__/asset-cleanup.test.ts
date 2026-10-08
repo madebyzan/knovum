@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const bridge = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<void>>() }));
+const logs = vi.hoisted(() => ({ error: vi.fn<(message: string) => Promise<void>>() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: bridge.invoke, Channel: vi.fn<() => void>() }));
-import { removeSpaceAsset, removeSpaceAssets } from "../assets/asset-operations";
+vi.mock("@tauri-apps/plugin-log", () => ({ error: logs.error }));
+import { cleanupDeletedSpaceAssets, removeSpaceAsset, removeSpaceAssets } from "../assets/asset-operations";
 
 beforeEach(() => {
   bridge.invoke.mockReset();
   bridge.invoke.mockResolvedValue(undefined);
+  logs.error.mockReset();
+  logs.error.mockResolvedValue(undefined);
 });
 
 describe("batch asset cleanup", () => {
@@ -26,5 +30,13 @@ describe("batch asset cleanup", () => {
     bridge.invoke.mockRejectedValue(failure);
     await expect(removeSpaceAsset("/assets/a")).rejects.toBe(failure);
     expect(bridge.invoke).toHaveBeenCalledWith("plugin:spaces|remove_assets", { sourcePaths: ["/assets/a"] });
+  });
+
+  it("reports post-commit cleanup failures without replacing the committed result", async () => {
+    bridge.invoke.mockRejectedValue(new Error("file is locked"));
+
+    await expect(cleanupDeletedSpaceAssets(["/assets/a"])).resolves.toBeUndefined();
+
+    expect(logs.error).toHaveBeenCalledWith(expect.stringContaining("file is locked"));
   });
 });

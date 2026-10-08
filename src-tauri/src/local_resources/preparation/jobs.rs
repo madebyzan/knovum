@@ -14,12 +14,6 @@ pub async fn prepare_models_for_job<R: Runtime>(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedModels, String> {
-    if job_id.trim().is_empty() {
-        return Err("Model preparation requires a job identifier".to_string());
-    }
-    if title.trim().is_empty() {
-        return Err("Model preparation requires a task title".to_string());
-    }
     let kinds = target
         .models()
         .ok_or_else(|| "Resource preparation target does not contain models".to_string())?;
@@ -35,12 +29,6 @@ pub async fn prepare_voxcpm2_for_job<R: Runtime>(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedVoxCpm2Model, String> {
-    if job_id.trim().is_empty() {
-        return Err("VoxCPM2 preparation requires a job identifier".to_string());
-    }
-    if title.trim().is_empty() {
-        return Err("VoxCPM2 preparation requires a task title".to_string());
-    }
     let model =
         crate::local_resources::model_catalog::LocalModelId::from_voxcpm2_spec(model_spec_id)?;
     let request = requests::begin(job_id, title, model.preparation())?;

@@ -7,21 +7,17 @@ from typing import TYPE_CHECKING, TypeAlias
 
 from knovum_inference import PROTOCOL_VERSION
 from knovum_inference.contracts.generated.control import RuntimeCapability, RuntimeInitializeParams
-from knovum_inference.embedding import EmbeddingEngine
 from knovum_inference.errors import invalid_params, server_error
 from knovum_inference.runtime.identity import verify_runtime_digest
-from knovum_inference.speech.alignment import AlignmentEngine
-from knovum_inference.speech.diarization import DiarizationEngine
-from knovum_inference.speech.synthesis.engine import SynthesisEngine
-from knovum_inference.speech.synthesis.voxcpm2 import (
-    FULL_MODEL_SPEC_ID,
-    Q8_MODEL_SPEC_ID,
-)
-from knovum_inference.speech.transcription import TranscriptionEngine
 
 if TYPE_CHECKING:
+    from knovum_inference.embedding import EmbeddingEngine
     from knovum_inference.image_segmentation import ImageSegmentationEngine
+    from knovum_inference.speech.alignment import AlignmentEngine
+    from knovum_inference.speech.diarization import DiarizationEngine
     from knovum_inference.speech.separation import SpleeterSourceSeparator
+    from knovum_inference.speech.synthesis.engine import SynthesisEngine
+    from knovum_inference.speech.transcription import TranscriptionEngine
 
     InferenceEngine: TypeAlias = (
         EmbeddingEngine
@@ -129,14 +125,20 @@ def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_direc
     device = params.device_profile.device
     threads = params.device_profile.cpu_threads
     if capability is RuntimeCapability.embedding:
+        from knovum_inference.embedding import EmbeddingEngine
+
         if device not in {"cpu", "mps", "cuda"} or not model_path.is_dir():
             raise server_error("unsupported_device", "Embedding profile is unsupported")
-        return EmbeddingEngine(str(model_path), device, threads)
+        return EmbeddingEngine(str(model_path), device)
     if capability is RuntimeCapability.speech_transcription:
+        from knovum_inference.speech.transcription import TranscriptionEngine
+
         if not model_path.is_dir():
             raise server_error("model_missing", "ASR model directory is missing")
         return TranscriptionEngine(model_path, work_directory, threads)
     if capability is RuntimeCapability.speech_alignment:
+        from knovum_inference.speech.alignment import AlignmentEngine
+
         if not model_path.is_dir():
             raise server_error("model_missing", "Forced alignment model directory is missing")
         expected = params.capability_spec_id.removesuffix("-v1") + f"-{device}-v1"
@@ -144,10 +146,15 @@ def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_direc
             raise server_error("runtime_mismatch", "Forced alignment model and execution profile differ")
         return AlignmentEngine(model_path, device, threads, params.capability_spec_id)
     if capability is RuntimeCapability.speech_diarization:
+        from knovum_inference.speech.diarization import DiarizationEngine
+
         if device != "cpu" or not model_path.is_dir():
             raise server_error("unsupported_device", "Sherpa-ONNX diarization requires CPU")
         return DiarizationEngine(model_path, device, threads, params.capability_spec_id)
     if capability is RuntimeCapability.speech_synthesis:
+        from knovum_inference.speech.synthesis.engine import SynthesisEngine
+        from knovum_inference.speech.synthesis.voxcpm2 import FULL_MODEL_SPEC_ID, Q8_MODEL_SPEC_ID
+
         if device not in {"cpu", "mps", "cuda", "vulkan"} or not model_path.is_dir():
             raise server_error("unsupported_device", "Synthesis profile is unsupported")
         quantization = {

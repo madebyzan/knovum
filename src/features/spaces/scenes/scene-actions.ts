@@ -74,10 +74,10 @@ export async function updateSpaceScene(context: SceneActionContext, id: string, 
     updatedAt: Date.now(),
   };
   const obsoletePaths = await updateScene(next);
-  await cleanupDeletedSpaceAssets(obsoletePaths);
   if (context.activeSpaceId.value === scene.spaceId) {
     context.scenes.value = context.scenes.value.map((candidate) => (candidate.id === id ? next : candidate));
   }
+  await cleanupDeletedSpaceAssets(obsoletePaths);
   return next;
 }
 
@@ -143,10 +143,10 @@ export async function removeSpaceScene(context: SceneActionContext, id: string) 
   const scene = context.scenes.value.find((candidate) => candidate.id === id);
   if (!scene) return;
   const obsoletePaths = await deleteScene(id);
-  await cleanupDeletedSpaceAssets(obsoletePaths);
   if (context.activeSpaceId.value === scene.spaceId) {
     context.scenes.value = context.scenes.value.filter((candidate) => candidate.id !== id);
   }
+  await cleanupDeletedSpaceAssets(obsoletePaths);
 }
 
 function currentView(context: SceneActionContext) {

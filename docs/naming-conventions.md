@@ -214,7 +214,7 @@ industry mandates one spelling for every use case.
 | Domain      | Produce a rendered artifact                                    | `render`     |
 | Domain      | Produce a copy of an object                                    | `duplicate`  |
 
-Model-produced text and artifacts use `generate` (`generate_text`, `generate_grounded_document`,
+Model-produced text and artifacts use `generate` (`generate_grounded_document`,
 `generate_image_layers`, `generate_video`). `render` names deterministic media/artifact processing
 (`render_video_edit`). `create` allocates a durable entity or owned resource;
 `derive_image` executes an image transformation. `request` accepts work for later execution;

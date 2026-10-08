@@ -2,6 +2,9 @@ import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { useAiSettingsStore } from "../ai-settings-store";
+import { saveAiModelSettings, saveCreationLibrary } from "../integration-settings";
+import { creationLibrarySchema, defaultCreationLibrary } from "../schema/creation-library";
+import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
 
 const boundary = vi.hoisted(() => ({
   get: vi.fn<(key: string) => Promise<unknown>>(),
@@ -26,7 +29,22 @@ beforeEach(() => {
   vi.clearAllMocks();
   setActivePinia(createPinia());
 });
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
+it("canonicalizes each save once before persisting", async () => {
+  const aiParse = vi.spyOn(aiModelSettingsSchema, "parse");
+  const creationParse = vi.spyOn(creationLibrarySchema, "parse");
+
+  await saveAiModelSettings(structuredClone(defaultAiModelSettings));
+  await saveCreationLibrary(structuredClone(defaultCreationLibrary));
+
+  expect(aiParse).toHaveBeenCalledOnce();
+  expect(creationParse).toHaveBeenCalledOnce();
+  expect(boundary.set).toHaveBeenCalledTimes(2);
+});
 
 it("loads optional routing preferences without a reset and saves through the existing validated boundary", async () => {
   const stored = {

@@ -1,4 +1,7 @@
-use crate::job_registry::{JobLease, JobRegistry};
+use crate::{
+    app_error::{AppError, AppResult},
+    job_registry::{JobLease, JobRegistry},
+};
 use std::{
     future::Future,
     sync::{Arc, Mutex, OnceLock},
@@ -7,8 +10,6 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use super::super::contracts::PluginOperationStage;
-
-pub(crate) const CANCELLED: &str = "plugin-operation-cancelled";
 
 struct Control {
     cancellation: CancellationToken,
@@ -31,9 +32,11 @@ impl PluginOperation {
         id: &str,
         progress: Channel<PluginOperationStage>,
         parent: &CancellationToken,
-    ) -> Result<Self, String> {
+    ) -> AppResult<Self> {
         if id.trim().is_empty() {
-            return Err("plugin-operation-id-required".into());
+            return Err(AppError::invalid(
+                "Plugin operation requires a job identifier",
+            ));
         }
         let control = Arc::new(Control {
             cancellation: parent.child_token(),
@@ -51,28 +54,27 @@ impl PluginOperation {
         &self.control.cancellation
     }
 
-    pub(super) async fn read<T>(
-        &self,
-        future: impl Future<Output = Result<T, String>>,
-    ) -> Result<T, String> {
+    pub(super) async fn read<T>(&self, future: impl Future<Output = AppResult<T>>) -> AppResult<T> {
         self.observe(PluginOperationStage::Reading);
         let result = tokio::select! {
             biased;
-            _ = self.control.cancellation.cancelled() => Err(CANCELLED.into()),
+            _ = self.control.cancellation.cancelled() => {
+                Err(AppError::cancelled("Plugin operation was cancelled"))
+            },
             result = future => result,
         }?;
         self.observe(PluginOperationStage::Validating);
         Ok(result)
     }
 
-    pub(super) fn commit(&self) -> Result<(), String> {
+    pub(super) fn commit(&self) -> AppResult<()> {
         let mut committing = self
             .control
             .committing
             .lock()
             .map_err(|error| error.to_string())?;
         if self.control.cancellation.is_cancelled() {
-            return Err(CANCELLED.into());
+            return Err(AppError::cancelled("Plugin operation was cancelled"));
         }
         *committing = true;
         self.observe(PluginOperationStage::Committing);
@@ -93,14 +95,17 @@ impl Drop for PluginOperation {
 }
 
 #[tauri::command]
-pub fn cancel_plugin_operation(job_id: String) -> Result<(), String> {
+pub fn cancel_plugin_operation(job_id: String) -> AppResult<()> {
     let control = registry().get(&job_id)?;
     let committing = control
         .committing
         .lock()
         .map_err(|error| error.to_string())?;
     if *committing {
-        return Err("plugin-operation-already-committing".into());
+        return Err(AppError::new(
+            "plugin_operation_committing",
+            "Plugin operation is already committing",
+        ));
     }
     control.cancellation.cancel();
     Ok(())

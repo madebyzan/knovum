@@ -3,6 +3,13 @@ import { lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
+import {
+  MediaRuntimeContentError,
+  parseMediaManifest,
+  runtimeFileMetadata,
+  validateMediaNativeInventory,
+  validateMediaProducer,
+} from "./media-runtime-content.mjs";
 import { producerBytes, runtimeTargets } from "./profiles.mjs";
 import { validateNativeSupplier, validateSigningRecord } from "./provenance.mjs";
 
@@ -50,9 +57,10 @@ export function writeMediaManifest(repository, directory, target, producer) {
 
 export function validateMediaRuntime(repository, directory, target) {
   const path = join(directory, mediaManifestName);
-  const metadata = lstatSync(path);
-  if (!metadata.isFile() || metadata.size > 16 * 1024 ** 2) throw new Error("Invalid media manifest");
-  const manifest = JSON.parse(readFileSync(path, "utf8"));
+  const metadata = runtimeFileMetadata(path, "Invalid media manifest");
+  if (!metadata.isFile() || metadata.size > 16 * 1024 ** 2)
+    throw new MediaRuntimeContentError("Invalid media manifest");
+  const manifest = parseMediaManifest(path);
   const expected = {
     schemaVersion: 1,
     runtimeId: "ffmpeg",
@@ -65,58 +73,40 @@ export function validateMediaRuntime(repository, directory, target) {
     !exactKeys(manifest, [...Object.keys(expected), "producer", "files"]) ||
     Object.entries(expected).some(([key, value]) => manifest[key] !== value)
   )
-    throw new Error("Media runtime identity differs from the controlled build");
-  validateProducer(manifest.producer, target);
+    throw new MediaRuntimeContentError("Media runtime identity differs from the controlled build");
+  validateMediaProducer(manifest.producer, target, mediaVersion);
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
   validateNativeSupplier(
     manifest.producer.nativeSupplier,
     configuration.nativeSupplier,
     mediaLockPath(repository, target),
+    MediaRuntimeContentError,
   );
-  validateSigningRecord(manifest.producer.signing, target);
+  validateSigningRecord(manifest.producer.signing, target, MediaRuntimeContentError);
   validateFiles(directory, manifest, target);
-  validateNativeInventory(manifest);
+  validateMediaNativeInventory(manifest);
   return manifest;
-}
-
-function validateNativeInventory(manifest) {
-  const native = manifest.producer.nativeDependencyFiles;
-  const declared = new Set(manifest.files.map((file) => file.path));
-  if (
-    !Array.isArray(native) ||
-    native.length !== manifest.producer.signing.compiledBinaryCount ||
-    new Set(native).size !== native.length ||
-    !native.includes(manifest.executable) ||
-    native.some((path) => !safeRelativePath(path) || !declared.has(path))
-  )
-    throw new Error("Media native dependency inventory differs from its manifest");
 }
 
 function validateFiles(directory, manifest, target) {
   if (!Array.isArray(manifest.files) || manifest.files.length > 100_000)
-    throw new Error("Invalid media file inventory");
+    throw new MediaRuntimeContentError("Invalid media file inventory");
   const declared = new Set();
   let total = 0;
   for (const file of manifest.files) {
     validateFileEntry(file, declared);
     declared.add(file.path);
     total += file.size;
-    if (total > 4 * 1024 ** 3) throw new Error("Media runtime exceeds its size limit");
+    if (total > 4 * 1024 ** 3) throw new MediaRuntimeContentError("Media runtime exceeds its size limit");
     validateFileContent(directory, file, manifest.executable, target);
   }
-  const actual = listRuntimeFiles(directory).filter((path) => path !== mediaManifestName);
+  const actual = listRuntimeFiles(directory, { ErrorType: MediaRuntimeContentError }).filter(
+    (path) => path !== mediaManifestName,
+  );
   if (actual.length !== declared.size || actual.some((path) => !declared.has(path)))
-    throw new Error("Media runtime contains undeclared files");
-  if (!declared.has(manifest.executable)) throw new Error("Media runtime has no FFmpeg executable");
-}
-
-function validateProducer(producer, target) {
-  const expected = { schemaVersion: 1, target, version: mediaVersion, relocationVerified: true };
-  if (
-    Object.entries(expected).some(([key, value]) => producer?.[key] !== value) ||
-    !/^[a-f0-9]{40}$/u.test(producer.appCommit ?? "")
-  )
-    throw new Error("Media runtime producer identity differs from the controlled build");
+    throw new MediaRuntimeContentError("Media runtime contains undeclared files");
+  if (!declared.has(manifest.executable))
+    throw new MediaRuntimeContentError("Media runtime has no FFmpeg executable");
 }
 
 function exactKeys(value, keys) {
@@ -140,21 +130,27 @@ function validateFileEntry(file, declared) {
     !validSize(file.size) ||
     !/^[a-f0-9]{64}$/u.test(file.sha256 ?? "")
   )
-    throw new Error("Invalid media file inventory");
+    throw new MediaRuntimeContentError("Invalid media file inventory");
 }
 
 function validateFileContent(directory, file, executable, target) {
   const path = join(directory, file.path);
-  const metadata = lstatSync(path);
-  const missingExecutableBit =
-    target !== "windows-x64" && file.path === executable && !(metadata.mode & 0o111);
-  if (
-    !metadata.isFile() ||
-    metadata.size !== file.size ||
-    missingExecutableBit ||
-    sha256File(path) !== file.sha256
-  )
-    throw new Error(`Media runtime file differs from its manifest: ${file.path}`);
+  const message = `Media runtime file differs from its manifest: ${file.path}`;
+  const metadata = runtimeFileMetadata(path, message);
+  try {
+    const missingExecutableBit =
+      target !== "windows-x64" && file.path === executable && !(metadata.mode & 0o111);
+    if (
+      !metadata.isFile() ||
+      metadata.size !== file.size ||
+      missingExecutableBit ||
+      sha256File(path) !== file.sha256
+    )
+      throw new MediaRuntimeContentError(message);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+    throw new MediaRuntimeContentError(message, { cause: error });
+  }
 }
 
 export function validateMediaDescriptor(repository, descriptor, target) {
