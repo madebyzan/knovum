@@ -202,9 +202,22 @@ tauri-plugin-global-shortcut = "=2.4.0"
 [profile.dev]
 opt-level = 0
 incremental = true
+# Keep useful application backtraces without retaining full debug object files.
+debug = "line-tables-only"
+split-debuginfo = "packed"
+
+[profile.dev.package."*"]
+debug = 0
 
 [profile.dev.package.matrixmultiply]
 opt-level = 3
+
+[profile.debugging]
+inherits = "dev"
+debug = 2
+
+[profile.debugging.package."*"]
+debug = 2
 
 [lints.rust]
 linker_messages = "allow"
