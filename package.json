@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "desktop:dev": "tauri dev",
+    "desktop:dev": "node scripts/desktop/dev.mjs dev",
     "package": "node scripts/desktop/package.mjs",
     "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "lint": "oxlint .",
