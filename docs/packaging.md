@@ -18,6 +18,39 @@ Compile development code without bundling:
 pnpm exec tauri build --no-bundle --debug
 ```
 
+Daily development and tests use Cargo's `dev`/`test` profiles with application line-table
+debug information, no dependency debug information, and packed debug information. Incremental
+compilation remains enabled. This keeps useful application panic locations while avoiding
+macOS's default full-debug, unpacked object-file accumulation. Release profiles are unchanged.
+The profile split follows [Cargo's build-performance guidance](https://doc.rust-lang.org/cargo/guide/build-performance.html#reduce-amount-of-generated-debug-information).
+Packed symbols use `.dSYM` on macOS and `.pdb` on Windows MSVC; macOS adds a `dsymutil` step
+at link time. Measure whole-project disk usage and link time rather than treating symbol packing
+alone as a guaranteed size reduction.
+
+For deliberate Rust breakpoint and variable debugging, use the separate full-debug profile:
+
+```bash
+pnpm exec tauri dev -- --profile debugging
+cargo test --locked --manifest-path src-tauri/Cargo.toml --profile debugging --lib
+```
+
+The `debugging` profile has its own `src-tauri/target/debugging` artifacts and includes dependency
+debug information. It is not the profile for routine verification. Changing an existing profile
+requires rebuilding its affected dependencies; old artifacts are not automatically reclaimed.
+
+After all Cargo/Tauri development processes using the checkout have stopped, reclaim old
+Knovum-owned artifacts while retaining dependency caches:
+
+```bash
+cargo clean --manifest-path src-tauri/Cargo.toml -p knovum
+```
+
+For the one-time transition from older full-debug builds, a complete
+`cargo clean --manifest-path src-tauri/Cargo.toml` also removes obsolete dependency artifacts,
+but the next build must rebuild dependencies. Do not clean a target used by a running build.
+Cargo does not automatically prune target artifacts. Keep verification builds on the checkout's
+normal target; serialize conflicting builds instead of copying targets to bypass Cargo's lock.
+
 Build the platform's default configured bundles:
 
 ```bash

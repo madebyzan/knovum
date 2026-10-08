@@ -38,6 +38,8 @@ For UI work, use `docs/ui-system.md` and its token source, `src/styles/tokens.cs
 
 Use Oxc tooling; do not add ESLint or Prettier. Run focused checks for the changed behavior and fix failures caused by the change. For substantial web or Rust changes, use `pnpm check:web` or `pnpm check:rust` respectively; `pnpm check` covers both. Release and desktop-lifecycle changes also need real Tauri builds on macOS and Windows. E2E selectors must not depend on translated visible strings.
 
+For routine Rust verification, use the manifest's default profiles and the checkout's normal target directory. Serialize builds that share a target instead of copying/cloning target directories to bypass Cargo locks. Avoid ad hoc `RUSTFLAGS`, `CARGO_INCREMENTAL`, or profile overrides that create separate artifact sets; use the documented `debugging` profile only when full debugger information is required. Never clean a target while a build or desktop development process is using it. Development build and cache-reclamation guidance lives in `docs/packaging.md`.
+
 Update the authoritative document when its contract changes:
 
 | Change                  | Document                                                |
