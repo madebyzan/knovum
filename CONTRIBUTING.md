@@ -8,7 +8,7 @@ Read these before the first product change:
 2. `docs/architecture.md`
 3. `docs/system-architecture.md`
 4. `docs/ui-system.md`
-5. `docs/feature-checklist.md`
+5. `docs/engineering-standards.md`
 6. `docs/oss-first.md`
 
 ## Local setup
@@ -17,11 +17,11 @@ Follow `docs/installation.md`. The supported workflow is the Tauri desktop runti
 
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm desktop:dev
 ```
 
-Commit `pnpm-lock.yaml` and `src-tauri/Cargo.lock`.
+Dependency changes must include the corresponding committed lockfile changes.
 
 ## Feature workflow
 

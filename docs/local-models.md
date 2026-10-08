@@ -35,15 +35,16 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                         | Model                                                                                                         | Ownership | Product action |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------- | -------------- |
-| Local text embedding               | `Qwen3-Embedding-0.6B` (Sentence Transformers)                                                                | Knovum    | Prepare on use |
-| Multilingual media transcription   | `mlx-community/whisper-small-mlx` on macOS arm64; `Systran/faster-whisper-small` on macOS x64 and Windows x64 | Knovum    | Prepare on use |
-| Preset speech synthesis            | `MOSS-TTS-Nano` joint ONNX TTS/codec snapshot                                                                 | Knovum    | Prepare on use |
-| Designed-voice synthesis           | `VoxCPM2` Q8_0 / original-precision GGUF                                                                      | Knovum    | Prepare on use |
-| Selected transcript alignment      | `Qwen3-ForcedAligner-0.6B-hf`                                                                                 | Knovum    | Prepare on use |
-| Optional speaker diarization       | `Sherpa-ONNX segmentation 3.0 INT8 / FP32 + 3D-Speaker ERes2Net base`                                         | Knovum    | Prepare on use |
-| Video vocals/background separation | `csukuangfj/sherpa-onnx-spleeter-2stems-fp16` at `93ba771920ade509f8cbd6825b1a90856c797e08`                   | Knovum    | Prepare on use |
+| Capability                     | Supported models                                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Sentence Transformers                                                        |
+| Transcription                  | Whisper Tiny / Small (default) / Large-v3; MLX on Apple Silicon, Faster Whisper on Intel Mac and Windows |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / original-precision GGUF                                    |
+| Voice design                   | VoxCPM2 Q8_0 / original-precision GGUF                                                                   |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / full Transformers checkpoint                                       |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32 + ERes2Net embeddings                                          |
+| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                        |
+| Image background removal       | U²-Net Compact (default) / full, ONNX engine                                                             |
 
 Preparation selects the model snapshot's execution package: Intel ASR, background
 removal, separation, diarization and MOSS-TTS-Nano use `light-inference`; Windows ASR, Apple Silicon ASR, embeddings
@@ -124,16 +125,12 @@ Installed weights live under the current `local-resources/models/` application-d
 
 ## Runtime ownership
 
-- Rust verifies each platform's ASR and speech files before starting the private Python worker. The request fixes engine, device, model specification, audio hash, owner, attempt, and deadline; no engine is silently selected after a failure.
-- Source separation is a dedicated durable Run. Its source revision, attempt and output publication are Rust-owned; Python can write only request-scoped artifacts. Long stems are hashed and copied as streams rather than accumulated in Rust memory.
-- Designed and cloned voice candidates run through the durable Run/Attempt scheduler. Rust freezes only the selected 5–30 second clone reference as 16 kHz mono PCM16, retains the original source revision separately, publishes the reference and 48 kHz audition through the shared asset journal, and persists audition plus selected/rejected identity. Voice creation requires explicit authorization and a completed audition, then publishes one immutable revision. The selected MOSS or VoxCPM2 model consumes that revision with its own supported controls.
-- Idle-worker admission verifies `runtime.health` against the current session and empty request slot, including real resident bytes from Mach task information or the Windows process working set. An unavailable or mismatched health result fails visibly. Memory pressure reclaims the idle worker before admission; interactive requests also reclaim an incompatible idle worker. In-flight stdio is never read by the health path. The existing single-worker reservation, priority fairness and 60-second idle TTL remain the lifecycle owners.
-- Local text embedding runs in the application-managed Python worker through JSON-RPC 2.0 over private stdio. Rust owns resource verification, request identity, cancellation and index publication. The worker loads the verified Qwen snapshot offline, uses the selected F32 execution profile, and returns 1,024-dimensional normalized vectors. It cannot write the Knowledge database or LanceDB index.
-- Ollama remains an optional **generative AI provider**. It is not required by media transcription or semantic vector search.
-
-Core media analysis resolves the application-bundled FFmpeg; web-media imports own the separate yt-dlp/Deno preparation. Embedding, image segmentation and speech inference use the single Rust-owned local runtime supervisor. MOSS-TTS-Nano uses the official independent NumPy/ONNX implementation for small Chinese/English preset and reference-cloned voices. VoxCPM2 uses pinned audio.cpp and an application-owned callback ABI over its public streaming session; its runtime contains NumPy and Pydantic, without the former Torch/datasets execution closure. Both produce 48 kHz mono audio at normal speed. The native adapter propagates cancellation and publication errors after resetting its session; it never retries another backend.
-
-The former Kokoro model archive and installer are removed. The light inference package still conveys the Sherpa binary needed for transcription, diarization and separation. Its compiled eSpeak/piper corresponding-source review remains a production distribution requirement; removing a model does not establish approval for that binary.
+Rust verifies resources and freezes the engine, model, device, owner, attempt, audio identity and
+deadline before starting a private worker. Workers load verified snapshots offline, return validated
+results or request-scoped artifacts, and cannot write the Knowledge database or vector index.
+Process admission, resident-memory checks, idle reuse, cancellation and publication are defined in
+[system-architecture.md](system-architecture.md); native source and license approval remains a
+[release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
 ## Generative AI and privacy
 
@@ -171,85 +168,37 @@ and [Sentence Transformers device contract](https://sbert.net/docs/package_refer
 - Discrete GPU: optional for Knovum's core knowledge runtime.
 - Native latency, peak memory and output-quality acceptance remain required on macOS arm64, macOS x64 and Windows x64.
 
-## Visual enrichment result contract
+## Model selection and identity
 
-Visual-analysis requests state the node-owned description, detected-text and tag limits. Returned
-JSON passes the same Rust node validator used by persistence; invalid responses identify the field
-and retain `invalid_response`. Limits are generated into Spaces `contract-values.ts` for frontend
-validation. String limits count UTF-16 code units, including whitespace and joined-text separators.
-Results are not clipped, partially accepted or retried through another model to satisfy
-the schema. Prompt constraints improve compliance; they do not guarantee every provider response
-will be valid. Image evidence remains separate from instructions and verbatim detected text.
+The Rust resource catalog owns model groups, defaults, supported operations, immutable revisions,
+file sizes and hashes. Settings groups its entries by knowledge, audio and image capabilities; it
+shows effect/hardware guidance, download and installed size, verification, progress, cancellation
+and idle removal. The UI does not maintain another model allowlist or package selector.
 
-## Model and voice selection
+Each selectable capability has an independent strict v1 preference. A new request reads its default
+once and persists the selected model in the durable request/configuration or derivation engine.
+Preparation, admission, worker identity, render caches, retries, provenance and package restore use
+that frozen identity. Changing defaults affects new work only. Existing voices, projects, queued
+requests and accepted outputs retain their model. Removing an idle optional snapshot preserves its
+preference; its next use prepares the same snapshot. Obsolete baselines missing required identities
+fail explicitly, without conversion or automatic deletion. Qwen vectors are fixed by the stored index.
 
-Settings groups models by knowledge, audio and image capability. Whisper Tiny, Small (default) and Large-v3 are actual downloadable transcription alternatives; each platform uses its matching execution package. MOSS-TTS-Nano is the small default synthesis/clone option, while VoxCPM2 supplies optional quality cloning and voice design. Candidate creation selects and freezes the engine/model identity, and a saved voice keeps that identity across auditions and projects. Unsupported engine controls are absent from the form and rejected at the request boundary. Fixed Qwen3 vectors cannot be switched because their identity belongs to the stored index.
+U²-Net Compact/full snapshots are 4,574,861 / 175,997,641 bytes and share the same ONNX mask and
+Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
+the exact source timeline and two-output review contract. Both separation models execute on CPU;
+no qualified GPU path is implemented for this engine. A precision choice changes the model rather
+than the operation or the user's acceptance responsibility.
 
-Reusable reference voices remain Space-owned assets with immutable revisions. Settings exposes the same voice library through application composition; it does not create a second database or duplicate uploads. Audio/video nodes own transcription, alignment, diarization and separation actions; audio nodes additionally create reusable voices. Text nodes own short speech and audiobook creation, while video nodes own dubbing. Each operation has a separate entry and editor.
+Speaker variants use the shared snapshot installer, preparation, leases and removal path. Their
+public sources need no account or import. The supported clustering controls follow the
+[Sherpa diarization API](https://k2-fsa.github.io/sherpa/onnx/speaker-diarization/index.html).
+Full precision is not a promise of better automatic speaker counts on every recording.
 
-## Native acceptance evidence
-
-The [2026-10-08 native adapter record](evidence/local-audio-acceptance-2026-10-08.json) covers Intel macOS CPU execution of fixed Qwen3 embeddings, Whisper Tiny transcription, native HF forced alignment, public speaker diarization, exact-length separation, MOSS-TTS-Nano and VoxCPM2. It records runtime/model identities and output checksums. Synthetic short-sample execution does not qualify model quality, other desktop platforms or GPU paths. Apple Silicon, Windows, distribution and model-alternative gaps remain explicit in that record.
-
-### Model preference ownership and aligned execution
-
-Settings stores strict v1 preferences independently for transcription and reference-voice creation. Qwen embedding remains fixed. A new reference voice starts with the selected compatible synthesis model; designed voices require VoxCPM2. Existing voice revisions, saved projects and outputs retain their original model identity. An optional synthesis model can be removed when not in use; its preference remains and its next use prepares the same resources again.
-
-Forced alignment shares the verified Torch backend probe with embedding and freezes a CPU/CUDA/MPS execution profile before admission. It always uses the original Qwen HF checkpoint and F32 precision; device selection does not change alignment semantics. Unsupported capacity selects CPU before inference. Detection or inference failures propagate, with no device retry.
-
-Vocal separation delivers two distinct managed WAV assets. Their timelines match the source, their digests are independent, and both are auditioned before acceptance. Accepted tracks can be saved independently or added as audio nodes. Separation accepts analyzed audio and video sources owned by the active Space.
-
-Resource progress uses one foundation formatter in the model list, Task Center and dictation. Unknown download totals show transferred bytes without an invented denominator. Verification and installation are distinct indeterminate phases; a downloaded child resource does not complete its parent task. Cancelling a preview reports a rejected cancellation without discarding its active job identity.
-
-Video translation owns its restore, submission, observation and result-loading states. The script and synthesis action remain disabled until the matching result is applied or the job settles. Changing a project revision invalidates late responses and releases the old pending state; opening the panel cannot submit a second translation while restoring the existing run. Audiobook loudness and peak input validation belongs to the output draft alongside pauses and metadata.
-
-## Image model selection
-
-The resource catalog owns model groups and whether a model supports default selection. Settings
-only orders those groups and displays the catalog; it does not maintain a second per-model group
-map or capability allowlist. Image background removal offers U²-Net Compact (4,574,861 bytes)
-and full U²-Net (175,997,641 bytes), using the same maintained ONNX execution and image
-compositing boundaries. Both snapshots pin the existing rembg repository revision and distinct
-SHA-256 identities. No additional execution package is needed.
-
-The image derivation reads the default once before creating its transaction and stores that exact
-model specification in the derivation engine field. Resource preparation, worker reuse, request
-identity and output validation use the same frozen model. Changing the default only affects new
-derivations. Removing an idle optional image snapshot retains its preference; a later operation
-prepares that exact snapshot again. No output or saved source is rewritten.
-
-## Separation model selection
-
-Vocal/accompaniment separation offers Spleeter FP16 (39,362,041 bytes, default) and FP32
-(78,636,679 bytes). Both are anonymous, immutable Sherpa-ONNX model snapshots and use the
-same CPU engine; neither engine has an implemented qualified GPU path. FP32 changes model
-precision and download size, not the operation, output timeline or review responsibility.
-Settings stores this preference independently of ASR and synthesis. A new separation run
-freezes the selected model in its input and step configuration. Resource preparation, worker
-identity, retry, publication and package validation use that frozen model. Existing accepted
-backgrounds remain valid for dubbing after a default change. Removing an idle optional model
-keeps its preference; the next use prepares the same verified snapshot again. Missing model
-identity in obsolete pre-release run configurations is rejected explicitly.
-
-## Speaker model selection
-
-Speaker recognition uses the same immutable snapshot installer, shared preparation and usage leases
-as the other models. No dedicated downloader, lock registry or removal command remains. Each
-variant owns segmentation, embedding and both license notices. Direct anonymous sources are
-immutable; neither variant introduces a dependency or runtime profile.
-
-Settings stores a strict v1 speaker-recognition preference independently of transcription, synthesis
-and separation. A new durable diarization request records its exact model specification. Existing
-queued requests and retries keep it when the default changes. Resource preparation, admission,
-worker initialization and transcript provenance all use that frozen variant. The optional model
-can be removed when idle; its preference stays and the next use prepares the same resources. The
-current pre-release database baseline requires this identity and rejects obsolete baselines without
-resetting user data or attempting conversion.
-
-The supported segmentation variants and clustering APIs follow the
-[Sherpa-ONNX diarization documentation](https://k2-fsa.github.io/sherpa/onnx/speaker-diarization/index.html).
-A full-precision option is not a promise of better speaker counts on every recording; quality still
-requires listening and labelled audio acceptance.
+Reusable voices are Space-owned immutable assets, exposed by Settings through application composition.
+Audio/video nodes own transcription, alignment, speaker recognition, separation and reference-voice
+creation; text nodes own speech/audiobooks, and video nodes own dubbing. Operation/project and
+asset-review contracts belong to [spaces.md](spaces.md). Download presentation belongs to
+[ui-system.md](ui-system.md), and task lifetime to [background-tasks.md](background-tasks.md).
 
 ## Voice identity and delivery instructions
 

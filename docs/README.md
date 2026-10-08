@@ -20,7 +20,7 @@ Use one authoritative document per concern.
 - `commands.md` — command palette and shortcut contract.
 - `data-ownership.md` — Store/SQLite/session/secret ownership.
 - `spaces.md` — Space/Space product model, capture behavior and persistence boundary.
-- `knowledge.md` — current Spaces Knowledge, SQLx migrations, revision/citation/package contracts.
+- `knowledge.md` — current Spaces Knowledge, SQLx baseline, revision/citation/package contracts.
 - `document-export.md` — Markdown export subset, backend behavior, limitations and verification.
 - [secrets.md](secrets.md) — dedicated local credential database and its security properties.
 - `platform-matrix.md` — macOS/Windows behavior matrix.
@@ -31,19 +31,15 @@ Use one authoritative document per concern.
 - `ui-system.md` — desktop visual language and Tailwind v4 token contract.
 - `oss-first.md` — open-source-first selection requirement.
 - `dependency-policy.md` — dependency lifecycle and maintenance policy.
-- `feature-checklist.md` — checklist before a feature is considered complete.
 - `local-models.md` — signed runtime vs explicit model-download ownership and model inventory.
 
 ## Packaging and release
 
 - `packaging.md` — local/CI bundles and installer artifacts.
 - `release.md` — production signing, notarization, updater and release procedure.
-- `foundation-1.0.md` — foundation freeze criteria.
 
-## Design, naming and baseline decisions
+## Naming
 
 - [naming-conventions.md](naming-conventions.md) — authoritative path, symbol, IPC and suffix naming policy.
-- [spaces-resource-presentation.md](spaces-resource-presentation.md) — resource presentation contract.
-- [rfcs/knowledge-work-system.md](rfcs/knowledge-work-system.md) — dated execution/domain baseline and implementation-state map; current owner documents take precedence.
 
-The current pre-release data baseline is defined in [data-ownership.md](data-ownership.md) and [knowledge.md](knowledge.md); the freeze criteria are in [foundation-1.0.md](foundation-1.0.md).
+The current pre-release data baseline is defined in [data-ownership.md](data-ownership.md) and [knowledge.md](knowledge.md). Release prerequisites and acceptance belong to [release.md](release.md). Candidate-specific test reports, native probes and dependency audits belong to the corresponding CI or release artifacts, rather than a second documentation tree.

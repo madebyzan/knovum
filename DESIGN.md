@@ -3,15 +3,15 @@
 ## Source of truth
 
 - Status: Active
-- Last refreshed: 2026-10-07
+- Last refreshed: 2026-10-08
 - Primary product surfaces: desktop knowledge-space shell, infinite canvas, object actions, editors, Inspector, one conversation surface, canvas-derived reusable workflows, contextual task feedback and Settings.
 - Evidence reviewed: `AGENTS.md`, `docs/spaces.md`, `docs/knowledge.md`, `docs/ui-system.md`, `docs/background-tasks.md`, `docs/system-architecture.md`, `docs/architecture.md`, `docs/naming-conventions.md`, `docs/oss-first.md`, `src/features/spaces/*`, `src-tauri/src/spaces/*`, `src-tauri/src/ai/*`, and `src-tauri/src/external_agents/*`.
 
-This file owns the product and interaction goals specified below. The dated domain/execution baseline and its implementation-state map are recorded in [docs/rfcs/knowledge-work-system.md](docs/rfcs/knowledge-work-system.md). Current runtime, dependency and data contracts remain in their owning documents until implementation changes them.
+This file owns the product and interaction goals specified below. Current runtime, dependency and data contracts belong to [docs/system-architecture.md](docs/system-architecture.md), [docs/architecture.md](docs/architecture.md), [docs/knowledge.md](docs/knowledge.md) and [docs/spaces.md](docs/spaces.md).
 
-The target conversation/workflow direction is described in this file's Information architecture and Knowledge Derivation sections. It does not declare an unverified redesign complete or supersede current persistence contracts. Separate conversation/workflow and canvas redesign specifications previously referenced here are not present in this repository; no missing document is authoritative. Visual rules currently available to implementation are in this file and [docs/ui-system.md](docs/ui-system.md).
+The target conversation/workflow direction is described in this file's Information architecture and Knowledge Derivation sections. It does not declare an unverified redesign complete or supersede current persistence contracts. Visual rules belong to this file and [docs/ui-system.md](docs/ui-system.md).
 
-Changes to conversation history, contextual workflow editing and external-tool configuration need implementation evidence against the RFC state map. Product goals are distinct from completed platform acceptance.
+Changes to conversation history, contextual workflow editing and external-tool configuration need implementation evidence against the current owning contracts. Product goals are distinct from completed platform acceptance.
 
 ## Brand
 
@@ -302,9 +302,9 @@ Placement uses the measured bounds of the full source selection. A single-source
 
 ## Open questions
 
-- [ ] Audit each derivation action against the durable execution and Workflow contracts in `docs/rfcs/knowledge-work-system.md`: exact normalized parameters, named inputs/outputs, revision semantics and non-secret execution evidence / Spaces + Foundation / implementation evidence.
+- [ ] Audit each derivation action against the durable execution and Workflow contracts in `docs/system-architecture.md` and `docs/spaces.md`: exact normalized parameters, named inputs/outputs, revision semantics and non-secret execution evidence / Spaces + Foundation / implementation evidence.
 - [x] Generated documents remain directly usable artifacts; durable Knowledge-claim mutations use strict KnowledgeChangeSet validation, atomic commit and provenance presentation.
 - [ ] Decide when multiple source relations collapse into one lineage bundle on dense canvases / Spaces design / large-canvas readability.
-- [x] DOCX uses `docx-rs`, PDF uses the official Typst compiler/PDF exporter through a pinned embedding adapter, and PPTX uses `PptxGenJS` in a worker. All three remain derived delivery artifacts rather than editable knowledge sources.
+- [x] DOCX uses `docx-rs`, PDF uses the official Typst compiler/PDF exporter through a pinned embedding adapter, and PPTX uses the Rust document-generation engine. All three remain derived delivery artifacts rather than editable knowledge sources.
 - [x] Published Workflow definitions are immutable and versioned; saved bindings and durable Runs are
       included in the `.knovumspace` contract.

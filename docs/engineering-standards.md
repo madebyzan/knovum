@@ -2,6 +2,14 @@
 
 This is the review baseline. Detailed rules remain in their authoritative documents; do not copy them into feature-specific guides.
 
+## Before feature implementation
+
+Define the user outcome, owning capability, state and persistence boundaries, desktop permissions,
+and whether execution must continue while the WebView is hidden. Compare maintained solutions
+under [oss-first.md](oss-first.md) before adding a non-trivial dependency or custom subsystem.
+Identify keyboard/focus behavior, progress and cancellation, and the focused verification needed
+to prove the feature's contract. The sections below own the implementation and review baseline.
+
 ## Architecture
 
 - Respect the dependency graph in `architecture.md`.
