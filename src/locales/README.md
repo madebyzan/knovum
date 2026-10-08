@@ -13,6 +13,8 @@ Directory `zh-cn` maps to application locale `zh-CN`.
 - `ai`, `errors`, `tasks` and `dictation` own foundation capabilities; `shell` owns workbench and
   startup wording. These are domain packages, not extensions of `common`.
 - `settings/*` owns settings and navigation groups. `spaces/*` owns Space behavior.
+- `spaces/creation/shared.json` owns messages shared by creation types, such as presets, source
+  citations and derived resources. Other Space capabilities retain their own messages.
 - `extensions/*` separates overview, plugins, skills, connector definitions, connection instances,
   accounts and the resource catalog. Conversation approval, uncertain outcomes and interactions
   belong to `spaces/conversation.json`, not Extensions management.
