@@ -10,7 +10,7 @@ import SpaceCanvasNodeContent from "../presentation/canvas/nodes/SpaceCanvasNode
 
 const profiles = {
   compact: { level: "compact", previewItemLimit: 2 },
-  summary: { level: "summary", previewItemLimit: 4 },
+  standard: { level: "standard", previewItemLimit: 4 },
   full: { level: "full", previewItemLimit: 10 },
 } as const;
 

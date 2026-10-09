@@ -8,7 +8,7 @@ import { projectTiptapPreview } from "../presentation/canvas/nodes/tiptap-previe
 
 const contexts = {
   compact: { viewport: { level: "compact", previewItemLimit: 2 }, mode: "preview" },
-  summary: { viewport: { level: "summary", previewItemLimit: 4 }, mode: "preview" },
+  standard: { viewport: { level: "standard", previewItemLimit: 4 }, mode: "preview" },
   full: { viewport: { level: "full", previewItemLimit: 10 }, mode: "preview" },
   interactive: { viewport: { level: "compact", previewItemLimit: 2 }, mode: "interactive" },
 } as const satisfies Readonly<Record<string, CanvasNodePresentationContext>>;
@@ -18,7 +18,7 @@ describe("canvas preview projection", () => {
     const items = Array.from({ length: 12 }, (_, index) => index + 1);
 
     expect(projectPreviewItems(items, contexts.compact)).toEqual(items.slice(0, 2));
-    expect(projectPreviewItems(items, contexts.summary)).toEqual(items.slice(0, 4));
+    expect(projectPreviewItems(items, contexts.standard)).toEqual(items.slice(0, 4));
     expect(projectPreviewItems(items, contexts.full)).toEqual(items.slice(0, 10));
     expect(projectPreviewItems(items, contexts.interactive)).toEqual(items);
   });
@@ -33,7 +33,7 @@ describe("canvas preview projection", () => {
     };
 
     expect(projectTiptapPreview(document, contexts.compact).content).toHaveLength(2);
-    expect(projectTiptapPreview(document, contexts.summary).content).toHaveLength(4);
+    expect(projectTiptapPreview(document, contexts.standard).content).toHaveLength(4);
     expect(projectTiptapPreview(document, contexts.full).content).toHaveLength(10);
     expect(projectTiptapPreview(document, contexts.interactive)).toBe(document);
     expect(document.content).toHaveLength(12);
@@ -62,11 +62,11 @@ describe("canvas preview projection", () => {
     expect(compact.projectedSource).toContain("A paragraph with **formatting**.");
     expect(compact.projectedSource).not.toContain("- first");
 
-    const summary = projectMarkdownPreview({ text: source }, 4);
-    expect(summary.visibleBlockCount).toBe(4);
-    expect(summary.remainingBlockCount).toBe(1);
-    expect(summary.projectedSource).toContain("const answer = 42;");
-    expect(summary.projectedSource).not.toContain("> final block");
+    const standard = projectMarkdownPreview({ text: source }, 4);
+    expect(standard.visibleBlockCount).toBe(4);
+    expect(standard.remainingBlockCount).toBe(1);
+    expect(standard.projectedSource).toContain("const answer = 42;");
+    expect(standard.projectedSource).not.toContain("> final block");
   });
   it("bounds a single enormous nested block while interactive mode retains the canonical document", () => {
     const document: TiptapJsonNode = {

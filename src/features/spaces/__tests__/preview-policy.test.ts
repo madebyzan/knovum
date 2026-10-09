@@ -21,8 +21,8 @@ describe("spaces preview policy", () => {
 
   it("changes information density instead of merely scaling full cards", () => {
     expect(canvasPreviewPolicy(30, 100)).toEqual({ level: "compact", previewItemLimit: 2 });
-    expect(canvasPreviewPolicy(55, 100)).toEqual({ level: "summary", previewItemLimit: 4 });
+    expect(canvasPreviewPolicy(55, 100)).toEqual({ level: "standard", previewItemLimit: 4 });
     expect(canvasPreviewPolicy(78, 100)).toEqual({ level: "full", previewItemLimit: 10 });
-    expect(canvasPreviewPolicy(75, 900)).toEqual({ level: "summary", previewItemLimit: 4 });
+    expect(canvasPreviewPolicy(75, 900)).toEqual({ level: "standard", previewItemLimit: 4 });
   });
 });

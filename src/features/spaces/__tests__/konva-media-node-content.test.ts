@@ -8,7 +8,7 @@ import SpaceCanvasNodeBody from "../presentation/canvas/nodes/SpaceCanvasNodeBod
 import SpaceCanvasNodeContent from "../presentation/canvas/nodes/SpaceCanvasNodeContent.vue";
 
 const profiles = {
-  summary: { level: "summary", previewItemLimit: 4 },
+  standard: { level: "standard", previewItemLimit: 4 },
   full: { level: "full", previewItemLimit: 10 },
 } as const;
 
@@ -24,7 +24,7 @@ describe("Konva media node content", () => {
       props: {
         id: "audio",
         data,
-        presentationContext: { viewport: profiles.summary, mode: "preview" },
+        presentationContext: { viewport: profiles.standard, mode: "preview" },
         interactive: false,
         frameRotation: 0,
       },
@@ -78,7 +78,7 @@ describe("Konva media node content", () => {
           zIndex: 0,
         },
         node: { id: "video", type: "video", data, initialPosition: { x: 0, y: 0 } },
-        previewPolicy: profiles.summary,
+        previewPolicy: profiles.standard,
         interactive: false,
         selected: true,
         persist: async () => {},
@@ -87,12 +87,12 @@ describe("Konva media node content", () => {
     });
     const body = wrapper.findComponent({ name: "SpaceCanvasNodeBody" });
     expect(body.props("presentationContext")).toEqual({
-      viewport: profiles.summary,
+      viewport: profiles.standard,
       mode: "preview",
     });
     await wrapper.setProps({ interactive: true });
     expect(body.props("presentationContext")).toEqual({
-      viewport: profiles.summary,
+      viewport: profiles.standard,
       mode: "interactive",
     });
   });
