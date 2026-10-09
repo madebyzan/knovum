@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BookOpen, Clapperboard, Mic2, Speech } from "@lucide/vue";
-import { Primitive, ToolbarButton } from "reka-ui";
+import { ToolbarButton } from "reka-ui";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -14,7 +14,7 @@ import SpaceNodeBackgroundAction from "./SpaceNodeBackgroundAction.vue";
 import SpaceNodeSpeechEditor from "./SpaceNodeSpeechEditor.vue";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
 
-const props = defineProps<{ node?: SpaceCanvasNode | undefined; compact?: boolean }>();
+const props = defineProps<{ node?: SpaceCanvasNode | undefined }>();
 const { t } = useI18n();
 const store = useSpaceStore();
 const selectedOperation = shallowRef<NodeSpeechProjectType | "clone">();
@@ -51,13 +51,8 @@ watch([() => props.node?.id, () => props.node?.data.sourceRevision, () => store.
 </script>
 
 <template>
-  <component
-    :is="compact ? ToolbarButton : Primitive"
-    v-for="operation in operations"
-    :key="operation.id"
-    as-child
-  >
-    <UiTooltip :text="operation.label" :disabled="!compact" side="top">
+  <ToolbarButton v-for="operation in operations" :key="operation.id" as-child>
+    <UiTooltip :text="operation.label" side="top">
       <UiButton
         size="sm"
         variant="ghost"
@@ -67,14 +62,12 @@ watch([() => props.node?.id, () => props.node?.data.sourceRevision, () => store.
         @click="selectedOperation = operation.id"
       >
         <component :is="operationIcons[operation.id]" class="size-3.5" :stroke-width="1.6" />
-        <span v-if="!compact">{{ operation.label }}</span>
       </UiButton>
     </UiTooltip>
-  </component>
+  </ToolbarButton>
   <SpaceNodeBackgroundAction
     v-if="node && (node.data.kind === 'audio' || node.data.kind === 'video')"
     :node="node"
-    :compact="compact"
   />
   <UiDialog
     v-if="node && selectedOperation"

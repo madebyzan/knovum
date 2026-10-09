@@ -18,6 +18,7 @@ const i18n = createI18n({
 const global = {
   plugins: [i18n],
   stubs: {
+    ToolbarButton: { template: "<slot />" },
     SpaceNodeBackgroundAction: true,
     SpaceNodeSpeechEditor: {
       props: ["node", "projectType"],
@@ -102,13 +103,16 @@ it("participates in the node toolbar keyboard navigation", async () => {
         {},
         {
           default: () => [
-            h(SpaceNodeSpeechAction, { node: note, compact: true }),
+            h(SpaceNodeSpeechAction, { node: note }),
             h(ToolbarButton, { "data-testid": "next" }, () => "Next"),
           ],
         },
       ),
   });
-  wrapper = mount(Toolbar, { global, attachTo: document.body });
+  wrapper = mount(Toolbar, {
+    global: { ...global, stubs: { ...global.stubs, ToolbarButton: false } },
+    attachTo: document.body,
+  });
   await flushPromises();
   const action = wrapper.get<HTMLButtonElement>('[data-testid="node-speech-action"]');
   action.element.focus();
