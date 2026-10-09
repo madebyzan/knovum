@@ -35,9 +35,6 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
   const baseline = shallowRef<ReturnType<typeof fingerprint>>();
   const dirty = computed(() => baseline.value !== undefined && !isEqual(baseline.value, fingerprint()));
   const fieldKinds: SpaceObjectFieldKind[] = ["text", "number", "boolean", "date", "node-ref", "enum"];
-  function refreshTypes(spaceId: string) {
-    return queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
-  }
   watch(activeSpaceId, reset);
   watch(open, (value) => {
     if (value) {
@@ -105,7 +102,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
         editingId.value = input.id;
         baseline.value = fingerprint();
       }
-      await refreshTypes(spaceId);
+      await queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
     } catch (cause) {
       error.value = getErrorMessage(cause);
     } finally {
@@ -128,7 +125,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       )
         return;
       await deleteObjectType(id, spaceId);
-      await refreshTypes(spaceId);
+      await queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
       saving.value = false;
       if (activeSpaceId.value === spaceId) reset();
     } catch (cause) {
