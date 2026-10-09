@@ -7,14 +7,14 @@ use tauri::{AppHandle, Manager};
 #[tauri::command]
 pub async fn configure_plugin_connector(
     app: AppHandle,
-    id: String,
+    connector_id: String,
     revision: String,
     configuration: PluginConnectorConfiguration,
 ) -> Result<ExtensionChange<ConnectorDefinition>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let previous = super::definitions::load(&pool, &id).await?;
+    let previous = super::definitions::load(&pool, &connector_id).await?;
     if previous.revision != revision {
         return Err("connector-definition-changed-refresh-before-saving".into());
     }
@@ -41,7 +41,7 @@ pub async fn configure_plugin_connector(
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::definitions::replace_on(&mut tx, &definition, Some(&previous)).await?;
     tx.commit().await.map_err(|error| error.to_string())?;
-    super::super::mcp::sessions::revoke_connector(&app, &id).await;
+    super::super::mcp::sessions::revoke_connector(&app, &connector_id).await;
     Ok(ExtensionChange::committed(
         definition,
         [super::cleanup::collect(&app).await],

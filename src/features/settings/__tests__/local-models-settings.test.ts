@@ -22,7 +22,9 @@ vi.mock("../../../foundation/runtime/local-resources", () => ({
   removeLocalModel: mocks.remove,
   selectLocalModel: mocks.select,
 }));
-vi.mock("../../../foundation/runtime/resource-query", () => ({ invalidateLocalResources: mocks.invalidate }));
+vi.mock("../../../foundation/runtime/use-resource-queries", () => ({
+  invalidateLocalResources: mocks.invalidate,
+}));
 vi.mock("../../../shared/ui/confirm-action", () => ({ confirmAction: mocks.confirm }));
 vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

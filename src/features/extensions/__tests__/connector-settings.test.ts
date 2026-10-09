@@ -69,7 +69,7 @@ beforeEach(() => {
         return { value: definition, cleanupErrors: [] };
       }
       case "plugin:extensions|delete_mcp_connection": {
-        connections = connections.filter((connection) => connection.id !== input!.id);
+        connections = connections.filter((connection) => connection.id !== input!.connectionId);
         return;
       }
       default:
@@ -144,7 +144,7 @@ describe("service connector management", () => {
     resolveConfirmation(true);
     await flushPromises();
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|delete_mcp_connection", {
-      id: "Work",
+      connectionId: "Work",
       revision: "instance-one",
     });
     expect(wrapper.find('[data-testid="mcp-connection-Work"]').exists()).toBe(false);

@@ -3,18 +3,18 @@ import { FileText, Group, Tag } from "@lucide/vue";
 import { computed } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import { useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { useCanvasSelectionActions } from "../canvas/use-canvas-selection-actions";
 import SpaceDerivedInspection from "../derivations/SpaceDerivedInspection.vue";
 import SpaceKnowledgeHealth from "../knowledge/SpaceKnowledgeHealth.vue";
-import SpaceNodeIdentity from "../SpaceNodeIdentity.vue";
-import SpaceNodeKnowledgeSections from "../SpaceNodeKnowledgeSections.vue";
-import SpaceRelatedContent from "../SpaceRelatedContent.vue";
-import SpaceTags from "../SpaceTags.vue";
+import SpaceNodeKnowledgeSections from "../knowledge/SpaceNodeKnowledgeSections.vue";
+import SpaceRelatedContent from "../knowledge/SpaceRelatedContent.vue";
+import SpaceTags from "../knowledge/SpaceTags.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpaceNodeCapabilitySections from "./SpaceNodeCapabilitySections.vue";
+import SpaceNodeIdentity from "./SpaceNodeIdentity.vue";
 import SpaceNodeMetadata from "./SpaceNodeMetadata.vue";
 import SpaceNodeOverview from "./SpaceNodeOverview.vue";
 

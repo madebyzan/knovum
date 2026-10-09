@@ -11,11 +11,11 @@ import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
-import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasImageActionBar from "./SpaceCanvasImageActionBar.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
+import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
 defineProps<{

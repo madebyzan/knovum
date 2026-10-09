@@ -10,7 +10,6 @@ import {
   SpellCheck2,
   WandSparkles,
 } from "@lucide/vue";
-import type { Editor } from "@tiptap/vue-3";
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,12 +23,17 @@ import {
 } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-import { useSpaceTiptapWritingTools } from "../../editor/tiptap-writing-tools";
+import type { SpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
 
-const props = withDefaults(defineProps<{ editor: Editor; compact?: boolean }>(), { compact: false });
+const props = withDefaults(defineProps<{ writing: SpaceTiptapWritingTools; compact?: boolean }>(), {
+  compact: false,
+});
 const { t } = useI18n();
-const { runningAction, itemClass, submenuClass, tones, translations, run, runTranslation } =
-  useSpaceTiptapWritingTools(props.editor);
+const { runningAction, tones, translations, run, runTranslation } = props.writing;
+const itemClass =
+  "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
+const submenuClass =
+  "z-50 w-56 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay p-1.5 shadow-popover outline-none";
 </script>
 
 <template>

@@ -47,14 +47,14 @@ describe("canvas snapping", () => {
   });
 
   it("preserves equal-gap snapping between distant authored neighbors", () => {
-    const result = snapCanvasTranslation(
+    const snappedTranslation = snapCanvasTranslation(
       [frame(-49, 0, 100, 50)],
       createCanvasTranslationSnapIndex([frame(-5100, 0, 100, 50), frame(5000, 0, 100, 50)]),
       { x: 0, y: 0 },
       6,
     );
-    expect(result.x).toBe(-1);
-    expect(result.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
+    expect(snappedTranslation.x).toBe(-1);
+    expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
 
   it("provides resize snap points for every node edge and center", () => {

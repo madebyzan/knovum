@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { openSpaceNode } from "../../canvas/selection-actions";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import { useNodeOperationDrafts } from "../../session/node-operation-drafts";

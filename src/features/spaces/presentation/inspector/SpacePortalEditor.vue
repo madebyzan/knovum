@@ -12,7 +12,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpacePortalPayload } from "../../model/nodes/node-payload";
 import { spaceTargetOptions } from "../../model/space";
 import { useSpaceStore } from "../../session/space-store";
-import { useNodeDraft } from "../use-node-draft";
+import { useNodeDraft } from "./use-node-draft";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();

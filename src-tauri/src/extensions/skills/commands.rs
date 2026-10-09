@@ -12,8 +12,8 @@ pub async fn list_skills(app: AppHandle) -> Result<Vec<SkillRevision>, String> {
 }
 
 #[tauri::command]
-pub async fn read_skill(app: AppHandle, id: String) -> Result<SkillContent, String> {
-    let skill = super::load(&database::pool(&app).await?, &id).await?;
+pub async fn read_skill(app: AppHandle, skill_id: String) -> Result<SkillContent, String> {
+    let skill = super::load(&database::pool(&app).await?, &skill_id).await?;
     let files = super::files(&app, &skill).await?;
     let markdown =
         String::from_utf8(files["SKILL.md"].clone()).map_err(|error| error.to_string())?;
@@ -46,13 +46,13 @@ pub async fn create_skill(
 #[tauri::command]
 pub async fn save_skill_revision(
     app: AppHandle,
-    id: String,
+    skill_id: String,
     expected_digest: String,
     markdown: String,
 ) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
-    let previous = super::load(&database::pool(&app).await?, &id).await?;
+    let previous = super::load(&database::pool(&app).await?, &skill_id).await?;
     if previous.digest != expected_digest {
         return Err("skill-revised-refresh-before-saving".into());
     }
@@ -103,11 +103,11 @@ pub async fn import_skill(
 #[tauri::command]
 pub async fn copy_skill(
     app: AppHandle,
-    id: String,
+    skill_id: String,
 ) -> Result<ExtensionChange<SkillRevision>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
-    let previous = super::load(&database::pool(&app).await?, &id).await?;
+    let previous = super::load(&database::pool(&app).await?, &skill_id).await?;
     let files = super::files(&app, &previous).await?;
     let skill = super::review(&files, &previous.name)?;
     revisions::publish(&app, &skill, files).await?;
@@ -118,8 +118,8 @@ pub async fn copy_skill(
 }
 
 #[tauri::command]
-pub async fn export_skill(app: AppHandle, id: String, path: String) -> Result<(), String> {
-    let skill = super::load(&database::pool(&app).await?, &id).await?;
+pub async fn export_skill(app: AppHandle, skill_id: String, path: String) -> Result<(), String> {
+    let skill = super::load(&database::pool(&app).await?, &skill_id).await?;
     let files = super::files(&app, &skill).await?;
     let destination = std::path::PathBuf::from(path).join(&skill.name);
     if destination.exists() {
@@ -129,26 +129,35 @@ pub async fn export_skill(app: AppHandle, id: String, path: String) -> Result<()
 }
 
 #[tauri::command]
-pub async fn set_skill_enabled(app: AppHandle, id: String, enabled: bool) -> Result<(), String> {
+pub async fn enable_skill(app: AppHandle, skill_id: String) -> Result<(), String> {
+    set_enabled(app, skill_id, true).await
+}
+
+#[tauri::command]
+pub async fn disable_skill(app: AppHandle, skill_id: String) -> Result<(), String> {
+    set_enabled(app, skill_id, false).await
+}
+
+async fn set_enabled(app: AppHandle, skill_id: String, is_enabled: bool) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let mut skill = super::load(&pool, &id).await?;
-    skill.enabled = enabled;
+    let mut skill = super::load(&pool, &skill_id).await?;
+    skill.enabled = is_enabled;
     revisions::save(&pool, &skill).await
 }
 
 #[tauri::command]
-pub async fn delete_skill(app: AppHandle, id: String) -> Result<ExtensionChange<()>, String> {
+pub async fn delete_skill(app: AppHandle, skill_id: String) -> Result<ExtensionChange<()>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let skill = super::load(&pool, &id).await?;
+    let skill = super::load(&pool, &skill_id).await?;
     if skill.plugin_id.is_some() {
         return Err("plugin-skill-owned-by-plugin".into());
     }
     sqlx::query("DELETE FROM skills WHERE id=$1")
-        .bind(id)
+        .bind(skill_id)
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;
@@ -161,12 +170,12 @@ pub async fn delete_skill(app: AppHandle, id: String) -> Result<ExtensionChange<
 #[tauri::command]
 pub async fn read_skill_file(
     app: AppHandle,
-    id: String,
+    skill_id: String,
     path: String,
 ) -> Result<super::super::contracts::AgentSkillFile, String> {
     use base64::Engine;
     super::super::content::validate_path(&path)?;
-    let skill = super::load(&database::pool(&app).await?, &id).await?;
+    let skill = super::load(&database::pool(&app).await?, &skill_id).await?;
     let mut files = super::files(&app, &skill).await?;
     let bytes = files.remove(&path).ok_or("skill-resource-not-found")?;
     if bytes.len() > 8 * 1024 * 1024 {

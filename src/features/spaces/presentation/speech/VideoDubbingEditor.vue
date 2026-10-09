@@ -15,7 +15,7 @@ import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import VideoBackgroundSelect from "./VideoBackgroundSelect.vue";
 import VideoDubbingLines from "./VideoDubbingLines.vue";
 import VideoSourceControls from "./VideoSourceControls.vue";
-import VideoTranslationPanel from "./VideoTranslationPanel.vue";
+import VideoTranslationControls from "./VideoTranslationControls.vue";
 
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectSnapshot>;
@@ -116,7 +116,7 @@ watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
       :valid="draft.lexicon.isValid.value"
       :disabled="editingDisabled"
     />
-    <VideoTranslationPanel
+    <VideoTranslationControls
       :project-id="project.project.id"
       :expected-revision="project.project.activeRevision"
       :segments="draft.translationInputs()"

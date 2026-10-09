@@ -78,17 +78,17 @@ export function createStructureActions(context: StructureActionContext) {
   }
 
   async function reloadProjection(spaceId: string, projection: SpaceEditProjection) {
-    const result =
+    const loadedProjection =
       projection === "session"
         ? await loadSpaceSessionProjection(spaceId)
         : { editSnapshot: await spaceEditOperations.load(spaceId) };
     if (context.activeSpaceId.value !== spaceId) return;
-    if ("nodes" in result) {
-      context.nodes.value = result.nodes;
-      context.relations.value = result.relations;
+    if ("nodes" in loadedProjection) {
+      context.nodes.value = loadedProjection.nodes;
+      context.relations.value = loadedProjection.relations;
     }
     const current = context.editSnapshot.value;
-    const next = result.editSnapshot;
+    const next = loadedProjection.editSnapshot;
     context.editSnapshot.value = {
       ...next,
       structure: isEqual(current.structure, next.structure) ? current.structure : next.structure,

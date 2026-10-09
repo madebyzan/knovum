@@ -129,7 +129,8 @@ export interface ResolvedAiModelTarget {
   model: AiModelDefinition;
 }
 
-export const aiConnectionSecretKey = (connectionId: string) =>
-  `integrations.ai.connections.${connectionId}.api-key`;
+export function aiConnectionSecretKey(connectionId: string) {
+  return `integrations.ai.connections.${connectionId}.api-key`;
+}
 
 export type ResolvedAiTaskTarget = ResolvedAiModelTarget | Extract<TaskTargetRef, { type: "agent" }>;

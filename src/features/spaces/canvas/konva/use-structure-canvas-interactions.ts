@@ -11,7 +11,7 @@ import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { CanvasRect } from "../contracts/canvas-editor-port";
 import type { StructureScene } from "../document/structure-scene";
 import type { CanvasGestureUpdate } from "./interaction/canvas-gesture-update";
-import { useSectionDropPreview } from "./section-drop-preview";
+import { useSectionDropPreview } from "./use-section-drop-preview";
 
 interface StructureCanvasInteractionOptions {
   events: CanvasHostEvents;

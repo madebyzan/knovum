@@ -9,8 +9,9 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
 import { useContextDock } from "../../canvas/use-context-dock";
-import { useSpaceTiptapEditor } from "../../editor/tiptap-editor";
-import { useSpaceTiptapImageDrop } from "../../editor/tiptap-image-drop";
+import { useSpaceTiptapEditor } from "../../editor/use-space-tiptap-editor";
+import { useSpaceTiptapImageDrop } from "../../editor/use-space-tiptap-image-drop";
+import { useSpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
 import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
@@ -22,6 +23,7 @@ const dock = useContextDock();
 const state = useSpaceTiptapEditor();
 const { activeHeadingId, characterCount, close, editorLabel, editorNode, editor, headings } = state;
 const { persist, revealHeading, saveStatus, scrollRoot, syncActiveHeading, title, wordCount } = state;
+const writing = useSpaceTiptapWritingTools(editor);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () =>
   t("spaces.richtext.image.uploadFailed"),
 );
@@ -97,7 +99,7 @@ async function exportMarkdown() {
       </span>
     </header>
     <div v-if="editor" class="border-b border-stroke-divider bg-surface-chrome/80">
-      <SpaceTiptapToolbar :editor="editor" />
+      <SpaceTiptapToolbar :editor="editor" :writing="writing" />
     </div>
     <div class="relative flex min-h-0 flex-1">
       <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
@@ -119,7 +121,7 @@ async function exportMarkdown() {
             "
             @blur="persist"
           />
-          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" />
+          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>

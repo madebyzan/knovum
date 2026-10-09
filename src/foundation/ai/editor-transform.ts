@@ -12,6 +12,7 @@ interface EditorTextTransformInput {
   text: string;
   jobId: string;
   onEvent: (event: TaskStreamEvent) => void;
+  signal: AbortSignal;
 }
 
 export async function transformEditorTextStream({
@@ -19,8 +20,11 @@ export async function transformEditorTextStream({
   text,
   jobId,
   onEvent,
+  signal,
 }: EditorTextTransformInput): Promise<string> {
+  signal.throwIfAborted();
   const target = await loadAiExecutionTarget("writing");
+  signal.throwIfAborted();
   const channel = new Channel<TaskStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
   channel.onmessage = onEvent;

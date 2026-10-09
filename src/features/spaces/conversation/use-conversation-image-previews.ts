@@ -5,7 +5,9 @@ import type { ConversationAttachment } from "../contracts/generated/Conversation
 
 type FileAttachment = Extract<ConversationAttachment, { kind: "file" }>;
 
-export const isConversationImagePath = (path: string) => /\.(png|jpe?g|webp)$/i.test(path);
+export function isConversationImagePath(path: string) {
+  return /\.(png|jpe?g|webp)$/i.test(path);
+}
 const previewKey = ({ path, sourceRevision }: FileAttachment) => `${path}\0${sourceRevision}`;
 
 async function createPreview(path: string) {

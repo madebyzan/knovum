@@ -5,7 +5,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getCanvasEditorSession } from "../canvas/editor-session";
-import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import { useNodeEnrichmentStatus } from "../enrichment/use-node-enrichment-status";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";

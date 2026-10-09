@@ -23,7 +23,7 @@ function projectChildren(
   nodes: readonly TiptapJsonNode[],
   budget: { nodes: number; characters: number },
 ): TiptapJsonNode[] {
-  const result: TiptapJsonNode[] = [];
+  const projectedNodes: TiptapJsonNode[] = [];
   for (const node of nodes) {
     if (budget.nodes <= 0 || budget.characters <= 0) break;
     budget.nodes--;
@@ -36,7 +36,7 @@ function projectChildren(
       projected.content = projectChildren(node.content, budget);
       if (node.type !== "paragraph" && projected.content.length === 0) continue;
     }
-    result.push(projected);
+    projectedNodes.push(projected);
   }
-  return result;
+  return projectedNodes;
 }

@@ -12,7 +12,7 @@ vi.mock("../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore:
 vi.mock("../../../foundation/ai/creation-library-store", () => ({
   useCreationLibraryStore: calls.loadCreation,
 }));
-vi.mock("../../../foundation/ai/execution-catalog-query", () => ({
+vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
   useExecutionCatalogQuery: () => catalog,
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

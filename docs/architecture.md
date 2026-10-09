@@ -37,6 +37,9 @@ contracts, and injected operations; it must not create a global registry that by
 `dependency-cruiser` enforces the frontend graph and presentation boundaries. Oxlint owns source
 quality and restricted imports; it is not a dependency-graph engine.
 
+The Spaces core/presentation rule exempts tests in any capability-owned `__tests__/` directory.
+All other dependency rules remain in force, including the prohibition on production imports of tests.
+
 ## Ownership
 
 - `app/` owns the router, application-wide policy, workspace-session wiring, diagnostics, bootstrap

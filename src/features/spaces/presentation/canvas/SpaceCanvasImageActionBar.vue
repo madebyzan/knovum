@@ -11,17 +11,17 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import { canvasBarPlacement } from "./canvas-bar-density-policy";
-import SpaceCanvasImageActivePanel from "./SpaceCanvasImageActivePanel.vue";
 import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
+import SpaceCanvasImageEditing from "./SpaceCanvasImageEditing.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
-import SpaceCanvasImageRemovalPanel from "./SpaceCanvasImageRemovalPanel.vue";
 import SpaceCanvasImageRemoveBackgroundTrigger from "./SpaceCanvasImageRemoveBackgroundTrigger.vue";
 import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
+import SpaceCanvasObjectRemoval from "./SpaceCanvasObjectRemoval.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageAngleInspector from "./SpaceImageAngleInspector.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
-import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
+import SpaceImageLayerGeneration from "./SpaceImageLayerGeneration.vue";
 import SpaceImageUpscalePopover from "./SpaceImageUpscalePopover.vue";
 import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -83,8 +83,8 @@ watch(
 );
 </script>
 <template>
-  <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
-  <SpaceCanvasImageRemovalPanel v-else-if="removing" :node="node" />
+  <SpaceCanvasImageEditing v-if="activeTool" :node="node" />
+  <SpaceCanvasObjectRemoval v-else-if="removing" :node="node" />
   <SpaceImageAngleInspector v-else-if="angleOpen" :node="node" @close="emit('update:angleOpen', false)" />
   <SpaceImageCommentModeBar v-else-if="commenting" />
   <div
@@ -127,7 +127,7 @@ watch(
         :reason="removalReason"
         @begin="beginRemoval"
       />
-      <SpaceImageLayerPanel
+      <SpaceImageLayerGeneration
         :node="node"
         :compact="compact"
         :open="openPopover === 'layers'"

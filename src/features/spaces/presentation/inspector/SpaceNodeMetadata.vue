@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { formatByteSize } from "../../assets/format-byte-size";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { mediaProviderDisplayName } from "../../media/provider-display-name";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import {

@@ -105,12 +105,12 @@ pub async fn list_mcp_user_interactions(
 #[tauri::command]
 pub async fn answer_mcp_user_interaction(
     app: AppHandle,
-    id: String,
+    interaction_id: String,
     response: Value,
 ) -> Result<(), String> {
     let response: ElicitResult = serde_json::from_value(response).map_err(db::json_error)?;
     let pool = db::pool(&app).await?;
-    let row: (String,String) = sqlx::query_as("SELECT run_id,request FROM spaces_conversation_mcp_interactions WHERE id=$1 AND response IS NULL").bind(&id).fetch_one(pool).await.map_err(db::sql_error)?;
+    let row: (String,String) = sqlx::query_as("SELECT run_id,request FROM spaces_conversation_mcp_interactions WHERE id=$1 AND response IS NULL").bind(&interaction_id).fetch_one(pool).await.map_err(db::sql_error)?;
     let request: ElicitRequestParams = serde_json::from_str(&row.1).map_err(db::json_error)?;
     if response.action == rmcp::model::ElicitationAction::Accept {
         if let ElicitRequestParams::FormElicitationParams {
@@ -130,7 +130,7 @@ pub async fn answer_mcp_user_interaction(
         }
     }
     let mut tx = db::begin_write(pool).await?;
-    let updated = sqlx::query("UPDATE spaces_conversation_mcp_interactions SET response=$1 WHERE id=$2 AND response IS NULL AND EXISTS(SELECT 1 FROM spaces_runs r WHERE r.id=run_id AND r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL)").bind(sqlx::types::Json(&response)).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    let updated = sqlx::query("UPDATE spaces_conversation_mcp_interactions SET response=$1 WHERE id=$2 AND response IS NULL AND EXISTS(SELECT 1 FROM spaces_runs r WHERE r.id=run_id AND r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL)").bind(sqlx::types::Json(&response)).bind(interaction_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(updated, "mcp-elicitation-response-stale")?;
     sqlx::query("UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1 WHERE id=$1 AND state='waiting' AND wait_reason='mcp_elicitation' AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND NOT EXISTS(SELECT 1 FROM spaces_conversation_mcp_interactions WHERE run_id=$1 AND response IS NULL)").bind(row.0).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;

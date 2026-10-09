@@ -10,7 +10,7 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { useAgentAttachments } from "../../agent-creation/use-agent-attachments";
 import { useAgentCreation } from "../../agent-creation/use-agent-creation";
 import { isAssetPreviewAvailable } from "../../assets/asset-preview";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import SpaceAgentArtifactPicker from "./SpaceAgentArtifactPicker.vue";
 
 const open = defineModel<boolean>("open", { required: true });

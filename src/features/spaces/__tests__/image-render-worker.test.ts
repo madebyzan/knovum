@@ -61,8 +61,8 @@ it("closes a prepared bitmap if the worker fails before dispatch", async () => {
   const prepared = new Promise<ImageRenderRequest>((resolve) => {
     complete = resolve;
   });
-  const result = rendering.render({}, () => prepared, true);
-  const rejected = result.catch((error: unknown) => error);
+  const renderingCompletion = rendering.render({}, () => prepared, true);
+  const rejected = renderingCompletion.catch((error: unknown) => error);
   handlers.get("error")!({ message: "Worker stopped" } as ErrorEvent);
   expect(await rejected).toEqual(new Error("Worker stopped"));
   const image = { close: vi.fn<() => void>() } as unknown as ImageBitmap;

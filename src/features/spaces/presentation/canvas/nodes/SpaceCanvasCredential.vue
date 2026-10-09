@@ -9,7 +9,7 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
 import { useCredentialEditor } from "../../../credentials/use-credential-editor";
 import type { SpaceCredentialPayload } from "../../../model/nodes/node-payload";
-import { useNodeDraft } from "../../use-node-draft";
+import { useNodeDraft } from "../../inspector/use-node-draft";
 
 const props = defineProps<{
   id: string;

@@ -78,7 +78,10 @@ describe("external service connector lifecycle", () => {
         ),
       ).toBe(true);
       const currentWork = revised.find((connection) => connection.id === work.id)!;
-      await extensionCommand("delete_mcp_connection", { id: currentWork.id, revision: currentWork.revision });
+      await extensionCommand("delete_mcp_connection", {
+        connectionId: currentWork.id,
+        revision: currentWork.revision,
+      });
       expect((await listConnections()).some((connection) => connection.id === personal.id)).toBe(true);
       expect(
         (await extensionCommand<ConnectorDefinition[]>("list_connector_definitions")).some(
@@ -86,7 +89,7 @@ describe("external service connector lifecycle", () => {
         ),
       ).toBe(true);
       await extensionCommand("delete_connector_definition", {
-        id: definition.id,
+        connectorId: definition.id,
         revision: definition.revision,
       });
       expect((await listConnections()).some((connection) => connection.id === personal.id)).toBe(false);
@@ -94,7 +97,7 @@ describe("external service connector lifecycle", () => {
     } finally {
       if (definition)
         await extensionCommand("delete_connector_definition", {
-          id: definition.id,
+          connectorId: definition.id,
           revision: definition.revision,
         });
     }

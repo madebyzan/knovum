@@ -6,7 +6,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { refreshSpaceAsset } from "../../assets/asset-operations";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useDerivationMetadata } from "../../knowledge-derivations/use-derivation-metadata";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";

@@ -67,8 +67,7 @@ module.exports = {
     {
       name: "shell-does-not-own-features",
       severity: "error",
-      comment:
-        "The shell renders module contracts supplied by the composition root; it never imports feature implementation.",
+      comment: "The shell renders composition-root contracts without importing feature implementation.",
       from: { path: "^src/shell(?:/|$)" },
       to: { path: "^src/features(?:/|$)" },
     },
@@ -102,6 +101,7 @@ module.exports = {
       comment: "Only the Space composition surfaces may import presentation components.",
       from: {
         path: "^src/features/spaces/(?!presentation(?:/|$)|__tests__(?:/|$)|SpaceView\\.vue$|workspace-definition\\.ts$)",
+        pathNot: "(?:^|/)__tests__/",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },
     },

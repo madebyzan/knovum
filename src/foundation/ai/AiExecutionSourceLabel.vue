@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { ExecutionSource } from "../../shared/contracts/generated/ExecutionSource";
-import { useExecutionCatalogQuery } from "./execution-catalog-query";
+import { useExecutionCatalogQuery } from "./use-execution-catalog-query";
 
 const props = defineProps<{ source: ExecutionSource }>();
 const { t } = useI18n();

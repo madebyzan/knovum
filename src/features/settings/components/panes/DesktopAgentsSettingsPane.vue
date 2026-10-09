@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
-import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
 import { setDesktopAgentEnabled } from "../../../../foundation/ai/execution-settings";
 import { resetAiSettings } from "../../../../foundation/ai/settings-mutations";
+import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { ExternalAgentKind } from "../../../../shared/contracts/generated/ExternalAgentKind";
 import { confirmAction } from "../../../../shared/ui/confirm-action";

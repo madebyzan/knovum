@@ -1,6 +1,6 @@
 import { canRunAction } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
-import type { NodeOperationEffect } from "../canvas/node-operation-gate";
+import type { NodeOperationEffect } from "../canvas/use-node-operation-gate";
 
 export function guardNodeOperationCommand(
   command: AppCommand,

@@ -1,25 +1,15 @@
 <script setup lang="ts">
 import { Trash2 } from "@lucide/vue";
-import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  archiveSettingsKey,
-  type ArchiveSettingsContract,
-} from "../../../../shared/contracts/archive-settings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { useArchiveSettings } from "../../use-archive-settings";
 
-const archive = requireArchiveSettings();
+const archive = useArchiveSettings();
 const { t } = useI18n();
-
-function requireArchiveSettings(): ArchiveSettingsContract {
-  const contract = inject(archiveSettingsKey);
-  if (!contract) throw new Error("Archive settings contract is required");
-  return contract;
-}
 
 async function permanentlyDeleteAll() {
   const count = archive.spaces.value.length;

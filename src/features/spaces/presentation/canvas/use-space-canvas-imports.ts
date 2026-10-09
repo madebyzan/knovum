@@ -11,9 +11,9 @@ import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler"
 import type { CanvasFileImportRequest, CanvasFileImportReceipt } from "../../canvas/contracts/canvas-editor";
 import { importDroppedFiles } from "../../canvas/drop";
 import type { getCanvasEditorSession } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { pasteSpaceClipboardAt } from "../../canvas/selection-actions";
 import { noteFromPlainText } from "../../canvas/text-import";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { pasteSpaceClipboard } from "../../clipboard/paste";
 import type { useSpaceStore } from "../../session/space-store";
 import { captureSpaceUrl } from "../../sources/capture-url";

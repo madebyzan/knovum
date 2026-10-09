@@ -1,5 +1,5 @@
 import type { AppCommand } from "../../../shared/contracts/app-command";
-import type { NodeOperationEffect } from "../canvas/node-operation-gate";
+import type { NodeOperationEffect } from "../canvas/use-node-operation-gate";
 import { guardNodeOperationCommand } from "./guard-node-operation-command";
 
 type Allows = (effect: NodeOperationEffect) => boolean;

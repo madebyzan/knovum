@@ -91,6 +91,17 @@ product, so it separates nothing; name the mechanism that actually differs, such
 `bundled-runtime`, `menu` or `system`. Prose keeps the word only for operating-system provided UI and
 services, as in native window controls, native traffic lights or OS-native dialogs.
 
+## Functions and Vue composables
+
+Use `useCapability` for reactive behavior, component-context access, scoped effects, and composition
+of other composables. Pure transforms, IO operations and command factories remain ordinary functions;
+receiving or updating a caller-owned `Ref` does not by itself make a command factory a composable.
+Explicit state and resource factories may use `createCapability` when construction and ownership are
+their contract. They must expose cleanup for resources they own instead of hiding scope requirements.
+Pinia store accessors retain `useCapabilityStore`. Each reactive instance belongs to its actual session
+or view owner; multiple controls for one session consume that instance instead of creating copies.
+Scope-owned external subscriptions and async work must detach or invalidate when the owner stops.
+
 ## Model and contract ownership
 
 `model/` is an optional owner for pure data models, invariants and projections shared by several
@@ -249,6 +260,8 @@ split the command instead of naming both.
 Ending async work keeps three verbs apart: `cancel` abandons a job that has not finished, `stop`
 terminates a service that is still running, and `fail` records that the work already ended in error.
 A command that only writes a failure record is `fail_*`, not `stop_*`.
+
+Plugin and Skill availability exposes `enable_plugin` / `disable_plugin` and `enable_skill` / `disable_skill`; only private persistence helpers accept a boolean.
 
 Voice profiles expose `archive_voice_profile` and `unarchive_voice_profile` as separate public intents. Their shared private persistence operation may accept a boolean; the public request contracts do not. Conversation tool activity uses `context` for invocation inputs or execution context and `output` for the tool response, consistently across storage and presentation. Run attempts and steps use `output` for their produced artifacts. Vendor tool-result payloads retain their protocol fields.
 

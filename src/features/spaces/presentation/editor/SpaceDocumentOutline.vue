@@ -3,8 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../../session/space-store";
-import SpaceContextHeader from "../SpaceContextHeader.vue";
-import SpaceRightSidebarViewPicker from "../SpaceRightSidebarViewPicker.vue";
+import SpaceContextHeader from "../workspace/SpaceContextHeader.vue";
+import SpaceRightSidebarViewPicker from "../workspace/SpaceRightSidebarViewPicker.vue";
 
 const store = useSpaceStore();
 const { t } = useI18n();

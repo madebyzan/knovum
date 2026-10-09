@@ -1,7 +1,7 @@
 import { computed, shallowRef, type Ref } from "vue";
 
 import { canRunAction } from "../../../../shared/contracts/action-availability";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
 import {

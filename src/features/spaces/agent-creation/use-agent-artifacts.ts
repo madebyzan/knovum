@@ -7,7 +7,7 @@ import type { AgentArtifact } from "../../../shared/contracts/generated/AgentArt
 import { prepareAgentArtifactImport } from "../assets/asset-operations";
 import { spaceImportContext } from "../assets/import-context";
 import { importSpaceSource } from "../assets/import-session";
-import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
 import { useSpaceStore } from "../session/space-store";
 import { consumeAgentArtifact, discardAgentCreation, previewAgentArtifact } from "./agent-artifacts";

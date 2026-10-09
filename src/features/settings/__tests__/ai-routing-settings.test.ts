@@ -6,7 +6,7 @@ import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-sett
 import AiRoutingSettings from "../components/AiRoutingSettings.vue";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-vi.mock("../../../foundation/ai/execution-catalog-query", () => ({
+vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
   useExecutionCatalogQuery: () => ({ data: ref({ agents: [] }) }),
 }));
 const Select = defineComponent({ emits: ["update:modelValue"], setup: () => () => null });

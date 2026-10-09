@@ -101,13 +101,10 @@ pub async fn add_plugin_marketplace(
     app: AppHandle,
     source: MarketplaceSource,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<PluginMarketplace> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let manifest = operation
         .read(read(&source, operation.cancellation()))
         .await?;
@@ -131,17 +128,14 @@ pub async fn add_plugin_marketplace(
 #[tauri::command]
 pub async fn refresh_plugin_marketplace(
     app: AppHandle,
-    id: String,
+    marketplace_id: String,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<PluginMarketplace> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let document: String = sqlx::query_scalar("SELECT document FROM marketplaces WHERE id=$1")
-        .bind(&id)
+        .bind(&marketplace_id)
         .fetch_one(&database::pool(&app).await?)
         .await
         .map_err(|error| error.to_string())?;
@@ -159,7 +153,7 @@ pub async fn refresh_plugin_marketplace(
     operation.commit()?;
     let updated = sqlx::query("UPDATE marketplaces SET document=$1 WHERE id=$2")
         .bind(sqlx::types::Json(&marketplace))
-        .bind(id)
+        .bind(marketplace_id)
         .execute(&database::pool(&app).await?)
         .await
         .map_err(|error| error.to_string())?;
@@ -170,11 +164,14 @@ pub async fn refresh_plugin_marketplace(
 }
 
 #[tauri::command]
-pub async fn remove_plugin_marketplace(app: AppHandle, id: String) -> Result<(), String> {
+pub async fn remove_plugin_marketplace(
+    app: AppHandle,
+    marketplace_id: String,
+) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     sqlx::query("DELETE FROM marketplaces WHERE id=$1")
-        .bind(id)
+        .bind(marketplace_id)
         .execute(&database::pool(&app).await?)
         .await
         .map_err(|error| error.to_string())?;

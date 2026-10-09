@@ -47,9 +47,12 @@ export async function translateTextStream(
   request: TranslationInput,
   jobId: string,
   onEvent: (event: TaskStreamEvent) => void,
+  signal: AbortSignal,
 ): Promise<string> {
+  signal.throwIfAborted();
   if (!request.text.trim()) return "";
   const executionTarget = await loadAiExecutionTarget("translation");
+  signal.throwIfAborted();
   const channel = new Channel<TaskStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
   channel.onmessage = onEvent;

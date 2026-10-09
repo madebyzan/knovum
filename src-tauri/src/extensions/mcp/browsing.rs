@@ -75,24 +75,24 @@ pub(crate) async fn read_resource(
 #[tauri::command]
 pub async fn read_mcp_resource(
     app: AppHandle,
-    id: String,
+    connection_id: String,
     revision: String,
     catalog_digest: String,
     selection: McpResourceSelection,
 ) -> Result<McpResourceContent, String> {
-    read_resource(&app, &id, &revision, &catalog_digest, &selection).await
+    read_resource(&app, &connection_id, &revision, &catalog_digest, &selection).await
 }
 
 #[tauri::command]
 pub async fn get_mcp_prompt(
     app: AppHandle,
-    id: String,
+    connection_id: String,
     revision: String,
     catalog_digest: String,
     name: String,
     arguments: serde_json::Map<String, Value>,
 ) -> Result<Value, String> {
-    let connection = super::connections::load(&database::pool(&app).await?, &id).await?;
+    let connection = super::connections::load(&database::pool(&app).await?, &connection_id).await?;
     if connection.revision != revision {
         return Err("mcp-browse-connection-revised".into());
     }

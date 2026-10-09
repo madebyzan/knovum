@@ -9,18 +9,20 @@ import type { PluginUpdatePreview } from "../../shared/contracts/generated/Plugi
 import { invokeCommand } from "../ipc/invoke-command";
 import { runPluginOperation } from "./plugin-operation";
 
-export const listPluginInstallations = () =>
-  invokeCommand<PluginInstallation[]>("plugin:extensions|list_plugin_installations");
-export const inspectPluginSource = (source: PluginSource) =>
-  runPluginOperation<PluginInspection>("inspect_plugin_source", "extensions.plugins.tasks.inspect", {
+export function listPluginInstallations() {
+  return invokeCommand<PluginInstallation[]>("plugin:extensions|list_plugin_installations");
+}
+export function inspectPluginSource(source: PluginSource) {
+  return runPluginOperation<PluginInspection>("inspect_plugin_source", "extensions.plugins.tasks.inspect", {
     source,
   });
-export const installPlugin = (
+}
+export function installPlugin(
   source: PluginSource,
   expectedDigest: string,
   publication: PluginPublication | null,
-) =>
-  runPluginOperation<ExtensionChange<PluginInstallation>>(
+) {
+  return runPluginOperation<ExtensionChange<PluginInstallation>>(
     "install_plugin",
     "extensions.plugins.tasks.install",
     {
@@ -29,33 +31,53 @@ export const installPlugin = (
       publication,
     },
   );
-export const updatePlugin = (pluginId: string, expectedDigest: string) =>
-  runPluginOperation<ExtensionChange<PluginInstallation>>(
+}
+export function updatePlugin(pluginId: string, expectedDigest: string) {
+  return runPluginOperation<ExtensionChange<PluginInstallation>>(
     "update_plugin",
     "extensions.plugins.tasks.update",
     {
-      id: pluginId,
+      pluginId,
       expectedDigest,
     },
   );
-export const setPluginEnabled = (pluginId: string, enabled: boolean) =>
-  invokeCommand<void>("plugin:extensions|set_plugin_enabled", { id: pluginId, enabled });
-export const uninstallPlugin = (pluginId: string) =>
-  invokeCommand<ExtensionChange<null>>("plugin:extensions|uninstall_plugin", { id: pluginId });
-export const searchPlugins = (query: string) =>
-  invokeCommand<PluginMarketplace[]>("plugin:extensions|search_plugins", { query });
-export const addPluginMarketplace = (source: MarketplaceSource) =>
-  runPluginOperation<PluginMarketplace>("add_plugin_marketplace", "extensions.plugins.tasks.catalog", {
+}
+export function enablePlugin(pluginId: string) {
+  return invokeCommand<void>("plugin:extensions|enable_plugin", { pluginId });
+}
+export function disablePlugin(pluginId: string) {
+  return invokeCommand<void>("plugin:extensions|disable_plugin", { pluginId });
+}
+export function uninstallPlugin(pluginId: string) {
+  return invokeCommand<ExtensionChange<null>>("plugin:extensions|uninstall_plugin", { pluginId });
+}
+export function searchPlugins(query: string) {
+  return invokeCommand<PluginMarketplace[]>("plugin:extensions|search_plugins", { query });
+}
+export function addPluginMarketplace(source: MarketplaceSource) {
+  return runPluginOperation<PluginMarketplace>("add_plugin_marketplace", "extensions.plugins.tasks.catalog", {
     source,
   });
-export const refreshPluginMarketplace = (marketplaceId: string) =>
-  runPluginOperation<PluginMarketplace>("refresh_plugin_marketplace", "extensions.plugins.tasks.catalog", {
-    id: marketplaceId,
-  });
-export const removePluginMarketplace = (marketplaceId: string) =>
-  invokeCommand<void>("plugin:extensions|remove_plugin_marketplace", { id: marketplaceId });
+}
+export function refreshPluginMarketplace(marketplaceId: string) {
+  return runPluginOperation<PluginMarketplace>(
+    "refresh_plugin_marketplace",
+    "extensions.plugins.tasks.catalog",
+    {
+      marketplaceId,
+    },
+  );
+}
+export function removePluginMarketplace(marketplaceId: string) {
+  return invokeCommand<void>("plugin:extensions|remove_plugin_marketplace", { marketplaceId });
+}
 
-export const inspectPluginUpdate = (pluginId: string) =>
-  runPluginOperation<PluginUpdatePreview>("inspect_plugin_update", "extensions.plugins.tasks.inspect", {
-    id: pluginId,
-  });
+export function inspectPluginUpdate(pluginId: string) {
+  return runPluginOperation<PluginUpdatePreview>(
+    "inspect_plugin_update",
+    "extensions.plugins.tasks.inspect",
+    {
+      pluginId,
+    },
+  );
+}

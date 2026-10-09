@@ -3,7 +3,7 @@ import { computed, shallowRef } from "vue";
 
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
-import { useConversationActions } from "../conversation/use-conversation-actions";
+import { createConversationActions } from "../conversation/conversation-actions";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args: unknown) => Promise<unknown>>(),
@@ -22,7 +22,7 @@ function actions() {
     title: "Research / Notes",
     updatedAt: 1,
   };
-  return useConversationActions({
+  return createConversationActions({
     selected: computed(() => conversation),
     selectedId: shallowRef(conversation.id),
     messages: shallowRef<ConversationMessage[]>([]),

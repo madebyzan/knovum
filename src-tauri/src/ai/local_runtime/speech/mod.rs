@@ -57,23 +57,25 @@ pub(crate) async fn transcribe<R: Runtime>(
         params,
         Some(&mut on_progress),
         None,
-        |result, work_directory, identity, _| {
+        |speech_output, work_directory, identity, _| {
             validate_identity(
-                &result.request_id,
-                result.attempt_epoch,
-                &result.model_spec_id,
+                &speech_output.request_id,
+                speech_output.attempt_epoch,
+                &speech_output.model_spec_id,
                 identity,
             )?;
             let bytes = read_artifact(
                 work_directory,
                 &identity.request_id,
-                &result.transcript_ref.file_name,
-                result.transcript_ref.byte_length,
-                &result.transcript_ref.sha256,
+                &speech_output.transcript_ref.file_name,
+                speech_output.transcript_ref.byte_length,
+                &speech_output.transcript_ref.sha256,
                 MAX_TRANSCRIPT_BYTES,
                 true,
             )?;
-            if result.transcript_ref.media_type != "application/vnd.knovum.speech-transcript+json" {
+            if speech_output.transcript_ref.media_type
+                != "application/vnd.knovum.speech-transcript+json"
+            {
                 return Err("invalid_output: transcript artifact media type differs".into());
             }
             serde_json::from_slice(&bytes).map_err(|error| format!("invalid_output: {error}"))

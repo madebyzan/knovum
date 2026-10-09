@@ -17,7 +17,7 @@ vi.mock("../local-resources", () => ({
   cancelResourcePreparation: vi.fn<typeof cancelResourcePreparation>().mockResolvedValue(undefined),
   listResourcePreparations: vi.fn<typeof listResourcePreparations>().mockResolvedValue([]),
 }));
-vi.mock("../resource-query", () => ({
+vi.mock("../use-resource-queries", () => ({
   invalidateLocalResources: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
 

@@ -11,7 +11,7 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceTranscriptEdit } from "../../media/schema/knowledge";
 import type { SpaceTranscriptSegment } from "../../media/schema/transcript";
-import { useNodeDraft } from "../use-node-draft";
+import { useNodeDraft } from "../inspector/use-node-draft";
 
 const props = defineProps<{
   nodeId: string;

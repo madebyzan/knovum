@@ -26,10 +26,10 @@ import type {
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceDerivationMenuItems from "../derivations/SpaceDerivationMenuItems.vue";
-import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
 import SpaceCanvasLayerMenu from "./SpaceCanvasLayerMenu.vue";
 import SpaceCanvasParentMenu from "./SpaceCanvasParentMenu.vue";
+import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
 defineProps<{

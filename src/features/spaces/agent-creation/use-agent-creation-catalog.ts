@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
+import { useExecutionCatalogQuery } from "../../../foundation/ai/use-execution-catalog-query";
 
 export function useAgentCreationCatalog() {
   const { t } = useI18n();

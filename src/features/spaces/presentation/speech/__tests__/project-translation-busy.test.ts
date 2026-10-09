@@ -70,7 +70,7 @@ it("prevents synthesis while the dubbing script is being translated and releases
     },
     global: {
       plugins: [i18n],
-      stubs: { VideoDubbingEditor: true, VideoDeliveryPanel: true, SpeechOutputPanel: true },
+      stubs: { VideoDubbingEditor: true, VideoDeliveryExport: true, SpeechOutputReview: true },
     },
   });
   onTestFinished(() => wrapper.unmount());

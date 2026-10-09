@@ -92,10 +92,10 @@ pub async fn list_mcp_connections(app: AppHandle) -> Result<Vec<McpConnection>, 
 #[tauri::command]
 pub async fn check_mcp_connection(
     app: AppHandle,
-    id: String,
+    connection_id: String,
 ) -> Result<McpConnectionCatalog, String> {
     let pool = database::pool(&app).await?;
-    let connection = super::connections::load(&pool, &id).await?;
+    let connection = super::connections::load(&pool, &connection_id).await?;
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
     super::sessions::with_inspection(&app, &connection, &connector, |session| async move {
@@ -107,20 +107,20 @@ pub async fn check_mcp_connection(
 #[tauri::command]
 pub async fn delete_mcp_connection(
     app: AppHandle,
-    id: String,
+    connection_id: String,
     revision: String,
 ) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
-    super::connections::require_revision_on(&mut tx, &id, &revision).await?;
+    super::connections::require_revision_on(&mut tx, &connection_id, &revision).await?;
     sqlx::query("DELETE FROM connections WHERE id=$1")
-        .bind(&id)
+        .bind(&connection_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     tx.commit().await.map_err(|error| error.to_string())?;
-    super::sessions::revoke_connection(&app, &id).await;
+    super::sessions::revoke_connection(&app, &connection_id).await;
     Ok(())
 }

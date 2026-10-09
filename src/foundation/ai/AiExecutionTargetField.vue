@@ -11,7 +11,7 @@ import UiSelect from "../../shared/ui/UiSelect.vue";
 import { getErrorMessage } from "../errors/error-format";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
-import { useExecutionCatalogQuery } from "./execution-catalog-query";
+import { useExecutionCatalogQuery } from "./use-execution-catalog-query";
 
 const props = defineProps<{
   purpose: RoutingPurpose;

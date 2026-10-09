@@ -2,7 +2,7 @@ import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasHostEvents } from "../../canvas/contracts/canvas-editor";
 import type { CanvasEditorPort } from "../../canvas/contracts/canvas-editor-port";
 import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from "../../canvas/editor-session";
-import type { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import type { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import type { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";

@@ -1,33 +1,24 @@
 <script setup lang="ts">
 import { Archive, RotateCcw, Trash2 } from "@lucide/vue";
-import { inject, onMounted, shallowRef } from "vue";
+import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  archiveSettingsKey,
-  type ArchivedSpace,
-  type ArchiveSettingsContract,
-} from "../../../../shared/contracts/archive-settings";
+import type { ArchivedSpace } from "../../../../shared/contracts/archive-settings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
+import { useArchiveSettings } from "../../use-archive-settings";
 
-const archive = requireArchiveSettings();
+const archive = useArchiveSettings();
 const { t } = useI18n();
 const initializing = shallowRef(false);
 const loadError = shallowRef("");
 const busySpaceIds = shallowRef<ReadonlySet<string>>(new Set());
 
 onMounted(() => void initialize());
-
-function requireArchiveSettings(): ArchiveSettingsContract {
-  const contract = inject(archiveSettingsKey);
-  if (!contract) throw new Error("Archive settings contract is required");
-  return contract;
-}
 
 async function permanentlyDelete(space: ArchivedSpace) {
   const confirmed = await confirmAction({

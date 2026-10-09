@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
-import SpaceEmptyState from "../SpaceEmptyState.vue";
+import SpaceEmptyState from "../workspace/SpaceEmptyState.vue";
 import SpaceCanvasMediaImport from "./SpaceCanvasMediaImport.vue";
 import SpaceCanvasSceneFeedback from "./SpaceCanvasSceneFeedback.vue";
 

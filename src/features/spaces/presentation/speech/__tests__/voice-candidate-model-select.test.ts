@@ -8,7 +8,7 @@ import VoiceCandidateModelSelect from "../VoiceCandidateModelSelect.vue";
 const mocks = vi.hoisted(() => ({
   models: undefined as ShallowRef<LocalModelAvailability[] | undefined> | undefined,
 }));
-vi.mock("../../../../../foundation/runtime/resource-query", () => ({
+vi.mock("../../../../../foundation/runtime/use-resource-queries", () => ({
   useLocalModelsQuery: () => ({ data: mocks.models, error: shallowRef(null), isPending: shallowRef(false) }),
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

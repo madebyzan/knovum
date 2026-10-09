@@ -22,7 +22,7 @@ export async function runPluginOperation<T>(
   const jobId = crypto.randomUUID();
   const cancel = () => invokeCommand<void>("plugin:extensions|cancel_plugin_operation", { jobId });
   tasks.restoreRunning({ id: jobId, title: i18n.global.t(titleKey), startedAt: Date.now() }, cancel);
-  const onProgress = new Channel<PluginOperationStage>((stage) => {
+  const onStage = new Channel<PluginOperationStage>((stage) => {
     tasks.indeterminate(jobId, i18n.global.t(stageMessageKeys[stage]));
     if (stage === "committing") tasks.setCancellation(jobId);
   });
@@ -30,7 +30,7 @@ export async function runPluginOperation<T>(
     const response = await invokeCommand<T>(`plugin:extensions|${command}`, {
       ...payload,
       jobId,
-      onProgress,
+      onStage,
     });
     tasks.succeed(jobId);
     return response;

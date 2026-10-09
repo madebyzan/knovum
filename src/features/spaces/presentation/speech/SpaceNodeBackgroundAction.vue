@@ -10,7 +10,7 @@ import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
-import VideoSourceSeparationPanel from "./VideoSourceSeparationPanel.vue";
+import VideoSourceSeparationReview from "./VideoSourceSeparationReview.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode; compact?: boolean }>();
 const { t } = useI18n();
@@ -45,6 +45,6 @@ watch([() => props.node.id, () => props.node.data.sourceRevision, () => store.ac
     :title="t('spaces.speech.separation.title')"
     :description="node.data.title"
   >
-    <VideoSourceSeparationPanel :space-id="store.activeSpaceId" :source="source.source" :disabled="false" />
+    <VideoSourceSeparationReview :space-id="store.activeSpaceId" :source="source.source" :disabled="false" />
   </UiDialog>
 </template>

@@ -18,7 +18,9 @@ export interface VideoLineDraft {
   sourceText?: string;
 }
 
-export const milliseconds = (seconds: string) => Math.round(Number(seconds) * 1000);
+export function milliseconds(seconds: string) {
+  return Math.round(Number(seconds) * 1000);
+}
 
 export function bindVideoSpeaker(
   lines: readonly VideoLineDraft[],

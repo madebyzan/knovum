@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import SpaceGlobalFind from "../presentation/SpaceGlobalFind.vue";
+import SpaceGlobalFind from "../presentation/search/SpaceGlobalFind.vue";
 import type { GlobalSearchMatch } from "../search/search-match";
 
 const { select } = vi.hoisted(() => ({ select: vi.fn<(match: GlobalSearchMatch) => void>() }));
