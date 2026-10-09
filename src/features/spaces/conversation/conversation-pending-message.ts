@@ -2,12 +2,12 @@ import { basename } from "pathe";
 
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
+import type { ConversationAttachmentPresentation } from "./conversation-attachment-presentation";
 
-export interface VisibleConversationAttachment {
-  title: string;
-  isImage: boolean;
-  previewSource: string;
-}
+export type VisibleConversationAttachment = Pick<
+  ConversationAttachmentPresentation,
+  "title" | "isImage" | "previewSource"
+>;
 
 export function pendingConversationMessage(
   request: SubmitConversationTaskRequest,

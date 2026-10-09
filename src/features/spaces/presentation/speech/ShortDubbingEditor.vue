@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Play, Save } from "@lucide/vue";
-import { computed, watch, type DeepReadonly } from "vue";
+import { computed, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -28,7 +28,10 @@ const emit = defineEmits<{
     pronunciationLexicon: Record<string, string>,
     deliveryInstruction?: string,
   ];
-  dirty: [value: boolean];
+  draftState: [
+    value: boolean,
+    input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
+  ];
 }>();
 const { t } = useI18n();
 const {
@@ -59,7 +62,7 @@ function preview() {
   );
 }
 
-watch(dirty, (value) => emit("dirty", value), { immediate: true });
+watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? revisionInput() : undefined));
 </script>
 
 <template>

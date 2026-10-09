@@ -146,6 +146,13 @@ Credential deletion keeps an explicit read-backup/restore compensation path beca
 
 Spaces SQLite owns conversations, branches, public messages, grants, Action receipts and Runs.
 `spaces_conversations` and `spaces_conversation_messages` serve both built-in and external Agents.
+`spaces_conversation_drafts` owns unsent prompt text, current managed attachments and extension
+selection per `(space_id, conversation_id)`. Rust validates node revisions and managed asset paths
+before writing or restoring a draft. A directly selected external file is never restored from its
+old path: only its display name is retained so the composer can require an explicit picker or drop
+authorization again. Sending remains blocked until each retained reference is reattached or explicitly removed; picker
+callbacks belong to the current draft lifetime, including reopening the same conversation. Serialized
+attachment input is bounded before persistence and before decoding disk data. Draft commands remain domain-shaped; the WebView never receives SQL access.
 Run kinds, authorization principals and knowledge actors distinguish `builtin_agent` from
 `external_agent`; usage purpose uses `builtin_agent`. Model settings name the built-in profile
 `builtinAgent`; message roles retain the standard `assistant` value. These current prerelease
@@ -170,3 +177,17 @@ reviewed Skills and the Space index snapshot are read-only inputs. Persistent me
 user-visible Space notes managed by explicit Actions. Completed superseded graph segments have a
 30-day retention policy; unmatched orphan threads use the same grace period. Product records and
 published resources retain their existing lifetime. Obsolete prerelease baselines fail explicitly.
+
+## Local recovery archives
+
+The application backup capability composes feature-owned `spaces.db`, `extensions.db`, `ai-usage.db`,
+strict Tauri Store settings, Space managed assets and installed Agent extension files. It does not
+become a database owner: SQLx baselines and Space quiescence checks remain authoritative. Unsent
+conversation drafts are included; active or replayable execution is not admitted.
+
+Backups are local recovery archives for the original canonical storage roots. A versioned manifest
+records those roots, exact baseline fingerprints, declared files and their hashes. Restore publishes
+validated roots only during exclusive startup maintenance and reconciles its publication journal
+before any feature storage opens. The credential database and its sidecars are excluded from archives
+and cleared on successful restore so restored identifiers cannot inherit current credentials.
+Agent SDK checkpoints, models, runtimes, caches, logs and disposable UI sessions are outside the archive.

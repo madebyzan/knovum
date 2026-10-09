@@ -5,13 +5,15 @@
 - Space commands live with `features/spaces/workspace-definition.ts` as a command factory that receives the current translation function; titles/descriptions therefore follow the app locale without a second locale listener.
 - Window-local shortcuts use `tinykeys` syntax such as `$mod+Shift+P`.
 - Commands exposed in the macOS Application Menu set `appMenuShortcut: true`. macOS lets the menu own those accelerators; Windows/Linux bind the same shortcut through tinykeys because no classic application menu bar is installed there.
-- The macOS Edit submenu carries only the responder-chain Cut/Copy/Paste. Undo, Redo and Select All are never menu-owned on any platform: their accelerator belongs to the focused control — Tiptap history in the editor, native text editing in a field, canvas history/selection otherwise — and a native key equivalent would consume the press before the WebView saw it.
-- The tinykeys binding passes an `ignore` predicate that allows every event, so editable targets are decided per command by the shortcut layer's own guards (`allowInEditable`, bare-key yielding) instead of being dropped before they run.
+- The macOS Edit submenu dispatches palette-hidden `editing.cut`, `editing.copy` and `editing.paste` without native accelerators. When a WebView input or editor is focused, the desktop command sends AppKit's fixed Cut/Copy/Paste selector through the first-responder chain, preserving system rich-text clipboard and native undo behavior. Outside an editable target, the same commands dispatch `spaces.cut`, `spaces.copy` or `spaces.paste`; those Space commands own the canvas shortcuts on every platform. Undo, Redo and Select All remain with the focused control or canvas command.
+- The tinykeys binding passes an `ignore` predicate that rejects repeat and composing events, so editable targets are decided per command by the shortcut layer's own guards (`allowInEditable`, bare-key yielding) instead of being dropped before they run.
 - Canvas zoom accelerators (`$mod+=`, `$mod+-`, `$mod+0`) stay tinykeys-owned on every platform: the macOS View submenu carries only Fullscreen, so marking them `appMenuShortcut` would leave them unbound on macOS. Each one publishes a typed zoom request that the mounted Canvas applies through its single viewport funnel (`docs/spaces.md`).
 - Canvas workbench shortcuts are registered once through `AppCommand` and call the mounted `CanvasEditorPort`; feature-level global key listeners are forbidden. Space/middle-button panning remains local to the focused Konva surface.
 - System Preview remains available through its explicit workbench command and does not compete with Space-drag panning.
 - Do not add feature-level `window.addEventListener("keydown", ...)`.
 - Do not create a second command registry for menus, context menus, or toolbars; adapt those surfaces to command ids.
+- `runAppCommand` is the single execution decision for palette, tinykeys, native application-menu and native context-menu entry points. An open modal dialog suppresses commands unless that dialog explicitly lists allowed command ids; closing the command palette completes before its selected command enters the dispatcher.
+- Canvas right-click and Shift+F10/Menu-key invocation use a native Tauri Menu composed from the registered `AppCommand` objects. Invoking a menu on an unselected hit target selects that target first, while invoking it inside an existing multi-selection preserves the selection.
 
 On macOS, Settings follows the conventional application submenu and Command Palette is exposed under Navigate; the application menu emits `knovum-run-command` with an existing command id. The Shell resolves that id against the same command list used by the palette. Windows uses the same command ids through WebView shortcuts and keeps desktop integration in Tray/Taskbar rather than adding a classic menu bar.
 
@@ -75,6 +77,10 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 - Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal workflow, and inspect its Run.
 - External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
 - Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
+- Conversation drafts use `load_conversation_draft`, `save_conversation_draft`,
+  `remove_conversation_draft` and `move_conversation_draft`; the Spaces baseline owns unsent text
+  and managed attachment references. External-file display names require picker/drop authorization
+  again after restart.
 - Builtin Agent conversation reads are `list_conversations`, `list_conversation_messages` and
   `load_conversation_branch_messages`; the last returns the complete branch for Renderer-owned file export.
   `archive_conversation` and `unarchive_conversation` are separate intents accepting

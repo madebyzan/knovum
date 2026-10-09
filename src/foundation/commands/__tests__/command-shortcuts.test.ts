@@ -121,6 +121,18 @@ describe("application command shortcuts", () => {
     unbind();
   });
 
+  it("preserves a native text-editing chord in an editable field", async () => {
+    const copy = command("Meta+C");
+    const unbind = bindCommandShortcuts([copy]);
+
+    const event = press(mounted("input"), { key: "c", code: "KeyC", metaKey: true });
+    await settle();
+
+    expect(copy.run).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    unbind();
+  });
+
   it("leaves autorepeat and IME composition to the focused control", async () => {
     const palette = command("Meta+K", { allowInEditable: true });
     const unbind = bindCommandShortcuts([palette]);

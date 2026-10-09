@@ -120,7 +120,7 @@ function insertUrl() {
           type="url"
           placeholder="https://…"
           @input="touched = true"
-          @keydown.enter.prevent="insertUrl"
+          @commit.prevent="insertUrl"
         />
       </label>
       <p v-if="invalidUrl" class="-mt-1 text-caption text-fg-danger">
@@ -131,7 +131,7 @@ function insertUrl() {
         <UiInput
           v-model="alt"
           :placeholder="t('spaces.richtext.image.altPlaceholder')"
-          @keydown.enter.prevent="insertUrl"
+          @commit.prevent="insertUrl"
         />
       </label>
       <div class="flex justify-end pt-0.5">

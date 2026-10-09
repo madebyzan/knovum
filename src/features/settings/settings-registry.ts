@@ -11,6 +11,7 @@ import {
 } from "@lucide/vue";
 import type { Component } from "vue";
 
+import { backupSettingsDefinition } from "./backup/settings-definition";
 import type { SettingsPaneId } from "./settings-pane";
 
 export type SettingsGroupId = "general" | "intelligence" | "data" | "information";
@@ -53,6 +54,11 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         id: "settings-appearance-language",
         labelKey: "settings.appearance.language.label",
         descriptionKey: "settings.appearance.language.description",
+      },
+      {
+        id: "settings-background-task-notifications",
+        labelKey: "settings.appearance.notifications.backgroundTasks.label",
+        descriptionKey: "settings.appearance.notifications.backgroundTasks.description",
       },
     ],
   },
@@ -139,6 +145,7 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
       },
     ],
   },
+  backupSettingsDefinition,
   {
     id: "archivedSpaces",
     group: "data",

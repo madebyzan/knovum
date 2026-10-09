@@ -5,6 +5,7 @@ use std::{
 };
 
 use tauri::ipc::Channel;
+use tokio_util::sync::CancellationToken;
 use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
 
 use super::super::{send_progress, validation, SpacePackageProgress};
@@ -17,142 +18,147 @@ pub(super) fn write(
     plans: &[AssetPlan],
     progress: &Channel<SpacePackageProgress>,
     total: u64,
-) -> Result<(), String> {
-    let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
-    let mut processed = 0_u64;
-    write_bytes(
-        &mut zip,
-        "manifest.json",
-        manifest.as_bytes(),
-        options,
-        &mut processed,
-        total,
-        progress,
-    )?;
+    cancellation: &CancellationToken,
+) -> Result<(), crate::app_error::AppError> {
+    let mut archive = ArchiveWriter::new(file, progress, total, cancellation);
+    archive.write_bytes("manifest.json", manifest.as_bytes())?;
     for plan in plans {
-        write_asset(&mut zip, plan, options, &mut processed, total, progress)?;
+        archive.check_cancelled()?;
+        archive.write_asset(plan)?;
     }
-    write_bytes(
-        &mut zip,
-        "assets-index.json",
-        index,
-        options,
-        &mut processed,
-        total,
-        progress,
-    )?;
-    let file = zip.finish().map_err(|error| error.to_string())?;
-    file.sync_all().map_err(|error| error.to_string())?;
-    send_progress(progress, "writing", total, total)
+    archive.write_bytes("assets-index.json", index)?;
+    archive.finish()
 }
 
-fn write_asset(
-    zip: &mut ZipWriter<fs::File>,
-    plan: &AssetPlan,
+struct ArchiveWriter<'a> {
+    zip: ZipWriter<fs::File>,
     options: SimpleFileOptions,
-    processed: &mut u64,
+    processed: u64,
     total: u64,
-    progress: &Channel<SpacePackageProgress>,
-) -> Result<(), String> {
-    if plan.source.is_file() {
-        return write_file(
-            zip,
-            &plan.source,
-            &format!("assets/{}/content", plan.token),
-            options,
-            processed,
+    progress: &'a Channel<SpacePackageProgress>,
+    cancellation: &'a CancellationToken,
+}
+
+impl<'a> ArchiveWriter<'a> {
+    fn new(
+        file: fs::File,
+        progress: &'a Channel<SpacePackageProgress>,
+        total: u64,
+        cancellation: &'a CancellationToken,
+    ) -> Self {
+        Self {
+            zip: ZipWriter::new(file),
+            options: SimpleFileOptions::default().compression_method(CompressionMethod::Stored),
+            processed: 0,
             total,
             progress,
-        );
+            cancellation,
+        }
     }
-    let mut stack = vec![(plan.source.clone(), PathBuf::new())];
-    while let Some((directory, relative)) = stack.pop() {
-        let mut empty = true;
-        for entry in fs::read_dir(&directory).map_err(|error| error.to_string())? {
-            empty = false;
-            let entry = entry.map_err(|error| error.to_string())?;
-            let meta = fs::symlink_metadata(entry.path()).map_err(|error| error.to_string())?;
-            let next = relative.join(entry.file_name());
-            if meta.is_dir() {
-                stack.push((entry.path(), next));
-            } else if meta.is_file() {
-                write_file(
-                    zip,
-                    &entry.path(),
-                    &archive_name(&plan.token, &next)?,
-                    options,
-                    processed,
-                    total,
-                    progress,
-                )?;
+
+    fn check_cancelled(&self) -> Result<(), crate::app_error::AppError> {
+        super::super::control::check(self.cancellation)
+    }
+
+    fn write_asset(&mut self, plan: &AssetPlan) -> Result<(), crate::app_error::AppError> {
+        if plan.source.is_file() {
+            return self.write_file(&plan.source, &format!("assets/{}/content", plan.token));
+        }
+        let mut stack = vec![(plan.source.clone(), PathBuf::new())];
+        while let Some((directory, relative)) = stack.pop() {
+            self.check_cancelled()?;
+            let mut empty = true;
+            for entry in fs::read_dir(&directory).map_err(|error| error.to_string())? {
+                self.check_cancelled()?;
+                empty = false;
+                let entry = entry.map_err(|error| error.to_string())?;
+                let meta = fs::symlink_metadata(entry.path()).map_err(|error| error.to_string())?;
+                let next = relative.join(entry.file_name());
+                if meta.is_dir() {
+                    stack.push((entry.path(), next));
+                } else if meta.is_file() {
+                    self.write_file(&entry.path(), &archive_name(&plan.token, &next)?)?;
+                }
+            }
+            if empty && !relative.as_os_str().is_empty() {
+                self.zip
+                    .add_directory(
+                        format!("{}/", archive_name(&plan.token, &relative)?),
+                        self.options,
+                    )
+                    .map_err(|error| error.to_string())?;
             }
         }
-        if empty && !relative.as_os_str().is_empty() {
-            zip.add_directory(
-                format!("{}/", archive_name(&plan.token, &relative)?),
-                options,
-            )
-            .map_err(|error| error.to_string())?;
-        }
+        Ok(())
     }
-    Ok(())
-}
 
-fn write_file(
-    zip: &mut ZipWriter<fs::File>,
-    source: &Path,
-    name: &str,
-    options: SimpleFileOptions,
-    processed: &mut u64,
-    total: u64,
-    progress: &Channel<SpacePackageProgress>,
-) -> Result<(), String> {
-    zip.start_file(name, options)
-        .map_err(|error| error.to_string())?;
-    let mut file = fs::File::open(source).map_err(|error| error.to_string())?;
-    let mut buffer = [0_u8; 1024 * 1024];
-    loop {
-        let count = file.read(&mut buffer).map_err(|error| error.to_string())?;
-        if count == 0 {
-            break;
+    fn write_file(&mut self, source: &Path, name: &str) -> Result<(), crate::app_error::AppError> {
+        self.zip
+            .start_file(name, self.options)
+            .map_err(|error| error.to_string())?;
+        let mut file = fs::File::open(source).map_err(|error| error.to_string())?;
+        let mut buffer = [0_u8; 1024 * 1024];
+        loop {
+            self.check_cancelled()?;
+            let count = file.read(&mut buffer).map_err(|error| error.to_string())?;
+            if count == 0 {
+                break;
+            }
+            self.write_chunk(
+                &buffer[..count],
+                "A Space asset changed size while the Space package was being written",
+            )?;
         }
-        let next = (*processed)
-            .checked_add(count as u64)
+        Ok(())
+    }
+
+    fn write_bytes(&mut self, name: &str, bytes: &[u8]) -> Result<(), crate::app_error::AppError> {
+        self.check_cancelled()?;
+        self.zip
+            .start_file(name, self.options)
+            .map_err(|error| error.to_string())?;
+        for chunk in bytes.chunks(1024 * 1024) {
+            self.check_cancelled()?;
+            self.write_chunk(chunk, "Space package output exceeded its validated size")?;
+        }
+        Ok(())
+    }
+
+    fn write_chunk(
+        &mut self,
+        chunk: &[u8],
+        size_error: &str,
+    ) -> Result<(), crate::app_error::AppError> {
+        let next = self
+            .processed
+            .checked_add(chunk.len() as u64)
             .ok_or("Space package size overflow")?;
-        if next > total {
-            return Err(
-                "A Space asset changed size while the Space package was being written".into(),
-            );
+        if next > self.total {
+            return Err(size_error.into());
         }
-        zip.write_all(&buffer[..count])
+        self.zip
+            .write_all(chunk)
             .map_err(|error| error.to_string())?;
-        *processed = next;
-        send_progress(progress, "writing", *processed, total)?;
+        self.processed = next;
+        Ok(send_progress(
+            self.progress,
+            "writing",
+            self.processed,
+            self.total,
+        )?)
     }
-    Ok(())
-}
 
-fn write_bytes(
-    zip: &mut ZipWriter<fs::File>,
-    name: &str,
-    bytes: &[u8],
-    options: SimpleFileOptions,
-    processed: &mut u64,
-    total: u64,
-    progress: &Channel<SpacePackageProgress>,
-) -> Result<(), String> {
-    zip.start_file(name, options)
-        .map_err(|error| error.to_string())?;
-    let next = (*processed)
-        .checked_add(bytes.len() as u64)
-        .ok_or("Space package size overflow")?;
-    if next > total {
-        return Err("Space package output exceeded its validated size".into());
+    fn finish(self) -> Result<(), crate::app_error::AppError> {
+        self.check_cancelled()?;
+        let file = self.zip.finish().map_err(|error| error.to_string())?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        Ok(send_progress(
+            self.progress,
+            "writing",
+            self.total,
+            self.total,
+        )?)
     }
-    zip.write_all(bytes).map_err(|error| error.to_string())?;
-    *processed = next;
-    send_progress(progress, "writing", *processed, total)
 }
 
 fn archive_name(token: &str, relative: &Path) -> Result<String, String> {

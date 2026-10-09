@@ -18,6 +18,13 @@
     "label": "Language",
     "description": "Choose display language or match system locale."
   },
+  "notifications": {
+    "title": "Notifications",
+    "backgroundTasks": {
+      "label": "Background task notifications",
+      "description": "Notify when a long-running background task finishes or fails while Knovum is hidden."
+    }
+  },
   "options": {
     "followSystem": "Follow system",
     "theme": {

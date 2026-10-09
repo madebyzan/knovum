@@ -29,6 +29,7 @@ import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
+import SpaceImageEditLeaveDialog from "./presentation/canvas/SpaceImageEditLeaveDialog.vue";
 import SpaceEditorLoading from "./presentation/editor/SpaceEditorLoading.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
@@ -139,6 +140,7 @@ onMounted(() => void initialize());
         @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
       />
       <SpaceVideoEditor v-if="store.videoEditorNodeId" />
+      <SpaceImageEditLeaveDialog />
     </template>
   </main>
 </template>

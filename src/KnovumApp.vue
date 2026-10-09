@@ -2,7 +2,8 @@
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { storeToRefs } from "pinia";
 import { TooltipProvider } from "reka-ui";
-import { provide } from "vue";
+import { nextTick, provide, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { Toaster } from "vue-sonner";
 
 // oxlint-disable-next-line import/no-unassigned-import
@@ -10,6 +11,7 @@ import "vue-sonner/style.css";
 
 import ApplicationUpdates from "./app/ApplicationUpdates.vue";
 import DictationOverlay from "./features/dictation/DictationOverlay.vue";
+import { showBackupMaintenanceNotice } from "./features/settings/backup/maintenance-notice";
 import { useSpaceArchiveSettings } from "./features/spaces/assets/use-space-archive-settings";
 import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
@@ -20,6 +22,7 @@ import AppShell from "./shell/AppShell.vue";
 import BootstrapScreen from "./shell/BootstrapScreen.vue";
 
 const bootstrap = useBootstrapStore();
+const { t } = useI18n();
 const preferences = usePreferencesStore();
 const { status, failure } = storeToRefs(bootstrap);
 const { theme } = storeToRefs(preferences);
@@ -27,6 +30,17 @@ const workspace = useSpacesWorkspace();
 const dictationSupported =
   (platform() === "macos" && arch() === "aarch64") || (platform() === "windows" && arch() === "x86_64");
 provide(archiveSettingsKey, useSpaceArchiveSettings());
+let hasCheckedMaintenanceNotice = false;
+watch(
+  status,
+  async (currentStatus) => {
+    if (currentStatus !== "ready" || hasCheckedMaintenanceNotice) return;
+    hasCheckedMaintenanceNotice = true;
+    await nextTick();
+    await showBackupMaintenanceNotice(t);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

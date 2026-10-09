@@ -5,6 +5,8 @@
   "name": "Project name",
   "scriptPlaceholder": "Enter the script for this revision",
   "saveRevision": "Save revision",
+  "unsavedTitle": "Save speech project changes?",
+  "unsavedDescription": "Save this revision before leaving, or discard the unsaved changes.",
   "preview": "Preview",
   "generate": "Generate",
   "stopListening": "Stop listening",

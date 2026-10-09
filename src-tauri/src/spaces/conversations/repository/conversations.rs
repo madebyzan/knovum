@@ -138,6 +138,11 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_conversation_drafts WHERE conversation_id=$1")
+        .bind(id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
     let conversation_write = sqlx::query("DELETE FROM spaces_conversations WHERE id=$1")
         .bind(id)
         .execute(&mut *tx)

@@ -91,6 +91,7 @@ const groupedSections = computed(() => {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim" />
       <DialogContent
+        data-app-command-scope=""
         class="fixed top-4 right-4 bottom-4 z-50 flex w-90 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-stroke-default material-overlay outline-none select-none"
       >
         <div class="shrink-0 px-5 pt-4 pb-2">

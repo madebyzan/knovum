@@ -25,11 +25,13 @@ const props = withDefaults(
     closable?: boolean | undefined;
     class?: HTMLAttributes["class"];
     bodyClass?: HTMLAttributes["class"];
+    allowedCommandIds?: readonly string[] | undefined;
   }>(),
   {
     description: undefined,
     size: "default",
     closable: true,
+    allowedCommandIds: () => [],
   },
 );
 
@@ -44,6 +46,7 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
         class="fixed inset-0 z-40 bg-surface-scrim duration-150 ease-standard data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
       />
       <DialogContent
+        :data-app-command-scope="allowedCommandIds.join(' ')"
         v-bind="description ? {} : { 'aria-describedby': undefined }"
         :class="
           cn(

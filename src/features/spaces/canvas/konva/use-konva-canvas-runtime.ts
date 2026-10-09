@@ -7,6 +7,7 @@ import type { CanvasDocumentV1 } from "../schema/document";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
 import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
+import { useCanvasContextMenu } from "./interaction/use-canvas-context-menu";
 import { useCanvasInteractionCancellation } from "./interaction/use-canvas-interaction-cancellation";
 import { useConnectorCreation } from "./interaction/use-connector-creation";
 import { useLayoutPreview } from "./interaction/use-layout-preview";
@@ -16,13 +17,13 @@ import { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
 import { useCanvasScenePreview } from "./scene/use-canvas-scene-preview";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
-import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
-import { useCanvasSelection } from "./selection/use-canvas-selection";
 import { useCanvasSceneProjections } from "./use-canvas-scene-projections";
 import { useRuntimeEditorRegistration } from "./use-runtime-editor-registration";
+import { useRuntimeSelection } from "./use-runtime-selection";
 import { useRuntimeViewport } from "./use-runtime-viewport";
 import { useSectionDrawCandidateBounds } from "./use-section-draw-candidates";
 import { useStructureCanvasInteractions } from "./use-structure-canvas-interactions";
+
 export function useKonvaCanvasRuntime(
   props: CanvasSurfaceProps,
   documentChanged: (document: CanvasDocumentV1) => void,
@@ -39,16 +40,7 @@ export function useKonvaCanvasRuntime(
   const viewport = useRuntimeViewport(props, host, model);
   const temporarilyExpandedSectionId = shallowRef<string>();
   const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
-  const selection = useCanvasSelection({
-    availableStructureNodeIds: computed(
-      () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
-    ),
-    layouts: computed(() => projections.scene.value.nodes.map(({ layout }) => layout)),
-    relationBounds: projections.relationBounds,
-    structureBounds: projections.structureBounds,
-    changed: props.events.onSelectionChange,
-    structureSelectionForNode: projections.structureSelectionForNode,
-  });
+  const { selection, transformPolicy } = useRuntimeSelection(props, projections);
   const structureInteractions = useStructureCanvasInteractions({
     clearSelection: selection.clear,
     events: props.events,
@@ -80,9 +72,6 @@ export function useKonvaCanvasRuntime(
     size: viewport.size,
     viewport: viewport.viewport,
   });
-  const transformPolicy = computed(() =>
-    projectSelectionTransformPolicy(projections.scene.value.nodes, selection.nodeIds.value),
-  );
   const gestures = createCanvasGestureSession({
     document: model,
     events: props.events,
@@ -106,6 +95,7 @@ export function useKonvaCanvasRuntime(
     createTextNode,
     createSection: props.events.onCreateSection,
   });
+  const contextMenu = useCanvasContextMenu({ host, selection, stage });
   const nodeDrag = useNodeDragAutoPan({ gestures, viewport });
   const connectors = useConnectorCreation({
     createRelation: props.events.onCreateRelation,
@@ -158,6 +148,7 @@ export function useKonvaCanvasRuntime(
     activateNode,
     capturesCanvasInteraction,
     connectors,
+    contextMenu,
     finishDrag: (id: string) => void nodeDrag.end(id).catch(props.events.onError),
     finishTransform: () => void gestures.finish({ kind: "transform" }).catch(props.events.onError),
     gestures,

@@ -8,6 +8,7 @@ import {
   routingPurposes,
   chatModelProtocols,
 } from "../../../shared/contracts/generated/contract-values";
+import type { GenerationPreset as PersistedGenerationPreset } from "../../../shared/contracts/generated/GenerationPreset";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import { externalAgentKindSchema } from "./external-agents";
 
@@ -119,7 +120,7 @@ export const generationPresetSchema = z
     target: executionTargetSchema,
     parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
   })
-  .strict();
+  .strict() satisfies z.ZodType<PersistedGenerationPreset>;
 
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
 

@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import { TabsRoot, TabsList, TabsTrigger, TabsContent } from "reka-ui";
+import { shallowRef } from "vue";
 
+import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
+import { useSettingsLeaveContext } from "../../shared/contracts/settings-leave";
 import ConnectorSettings from "./connectors/ConnectorSettings.vue";
 import PluginSettings from "./plugins/PluginSettings.vue";
 import SkillSettings from "./skills/SkillSettings.vue";
 
 const tabs = ["plugins", "skills", "connectors"] as const;
+type ExtensionTab = (typeof tabs)[number];
+const activeTab = shallowRef<ExtensionTab>("plugins");
+const leaveCoordinator = useSettingsLeaveContext();
+
+async function selectTab(value: string | number) {
+  if (!tabs.includes(value as ExtensionTab) || value === activeTab.value) return;
+  try {
+    await leaveCoordinator.requestLeave();
+    activeTab.value = value as ExtensionTab;
+  } catch (error) {
+    if (!isApplicationLeaveCancelled(error)) throw error;
+  }
+}
 </script>
 
 <template>
   <section data-testid="agent-extensions-settings" class="min-w-0 space-y-5">
     <p class="max-w-xl text-body text-fg-secondary">{{ $t("extensions.overview.description") }}</p>
-    <TabsRoot default-value="plugins">
+    <TabsRoot :model-value="activeTab" @update:model-value="selectTab">
       <TabsList
         class="mb-5 inline-flex max-w-full gap-0.5 rounded-md bg-surface-control p-1"
         :aria-label="$t('extensions.overview.title')"

@@ -1,3 +1,6 @@
+mod desktop_tasks;
+pub(crate) use desktop_tasks::{snapshot as desktop_tasks, subscribe};
+
 use std::{
     collections::{HashMap, VecDeque},
     sync::{Arc, Mutex, OnceLock},
@@ -30,6 +33,19 @@ pub(crate) struct PreparationRequest {
     finished: bool,
 }
 
+pub(crate) struct PreparationAdmissionReservation {
+    registry: &'static Mutex<RegistryState>,
+}
+
+impl Drop for PreparationAdmissionReservation {
+    fn drop(&mut self) {
+        match self.registry.lock() {
+            Ok(mut registry) => registry.maintenance_reserved = false,
+            Err(_) => log::error!("Failed to release resource preparation maintenance admission"),
+        }
+    }
+}
+
 impl PreparationRequest {
     pub(crate) fn cancellation(&self) -> &CancellationToken {
         &self.active.cancellation
@@ -40,6 +56,7 @@ impl PreparationRequest {
             Ok(mut snapshot) => snapshot.progress = progress,
             Err(_) => log::error!("Resource preparation snapshot lock poisoned"),
         }
+        desktop_tasks::announce();
     }
 
     pub(crate) fn finish(mut self, error: Option<&String>) -> Result<(), String> {
@@ -94,6 +111,9 @@ pub(crate) fn begin(
     let mut registry = registry()
         .lock()
         .map_err(|_| "Resource preparation registry lock poisoned".to_string())?;
+    if registry.maintenance_reserved {
+        return Err("Resource preparation is closed for maintenance".into());
+    }
     if registry.active.contains_key(job_id) {
         return Err(format!("Resource preparation job already exists: {job_id}"));
     }
@@ -104,6 +124,7 @@ pub(crate) fn begin(
         .state = ResourcePreparationState::Preparing;
     registry.completed.retain(|item| item.job_id != job_id);
     registry.active.insert(job_id.to_owned(), active.clone());
+    desktop_tasks::announce();
     Ok(PreparationRequest {
         job_id: job_id.to_owned(),
         active,
@@ -119,6 +140,23 @@ pub(crate) fn cancel(job_id: &str) -> Result<(), String> {
         active.cancellation.cancel();
     }
     Ok(())
+}
+
+pub(crate) fn reserve_maintenance() -> Result<PreparationAdmissionReservation, String> {
+    let state = registry();
+    let mut registry = state
+        .lock()
+        .map_err(|_| "Resource preparation registry lock poisoned".to_string())?;
+    if registry.maintenance_reserved {
+        return Err("Resource preparation maintenance admission is already reserved".into());
+    }
+    if !registry.active.is_empty() {
+        return Err(
+            "Wait for active model preparation tasks to finish before data maintenance".into(),
+        );
+    }
+    registry.maintenance_reserved = true;
+    Ok(PreparationAdmissionReservation { registry: state })
 }
 
 pub(crate) fn list() -> Result<Vec<ResourcePreparationSnapshot>, String> {
@@ -181,6 +219,7 @@ fn finish_request(
     registry.active.remove(job_id);
     registry.completed.push_front(terminal);
     registry.completed.truncate(COMPLETED_LIMIT);
+    desktop_tasks::announce();
     completed_at.map(|_| ())
 }
 
@@ -195,6 +234,7 @@ fn now() -> Result<u64, String> {
 
 #[derive(Default)]
 struct RegistryState {
+    maintenance_reserved: bool,
     active: HashMap<String, ActivePreparation>,
     completed: VecDeque<ResourcePreparationSnapshot>,
 }

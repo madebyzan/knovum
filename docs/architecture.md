@@ -55,6 +55,10 @@ All other dependency rules remain in force, including the prohibition on product
 - `shared/ui/` owns durable Knovum visual compositions. Reka remains the primitive behavior owner.
 - `src-tauri/src/desktop/` owns desktop lifecycle that must remain correct while the WebView is hidden
   or unavailable.
+- `src-tauri/src/job_registry/` owns job leases and atomic maintenance admission. Engines expose
+  reservations for their own registries; `backup/admission.rs` holds them while composing
+  reconciliation, durable checks and restart scheduling. Resource preparation retains its own
+  registry because it also owns completed task snapshots.
 
 Directories express stable ownership, not temporary implementation stages. Start a capability flat
 and split it only when distinct responsibilities exist. Once split, move its implementation under
@@ -86,6 +90,11 @@ Spaces is the product bounded context, and `Space` is its aggregate root. The In
 Space. The Spaces Browser is application navigation rather than a second domain model. Source paths,
 database tables, commands, types, and UI use `spaces` for the bounded context and `space` for one
 aggregate; aliases and dual command registrations are forbidden.
+
+Renderer `workspace/session-participants.ts` owns registration and the ordered content, layout and
+persistence leave barrier. Editor owners prepare saves or decisions and defer draft cleanup until
+that barrier accepts all participants. `canvas/editor-session.ts` owns canvas editor state and
+suspension, consuming a readonly participant snapshot rather than hosting workspace policy.
 
 The Rust boundary is divided by business responsibility:
 
@@ -230,6 +239,14 @@ errors. Reads do not rewrite storage. Normal saves write one complete canonical 
 serialized Store mutation path. The TypeScript and Rust decoders must agree where both consume the
 schema.
 
+The preference defaults are owned by `src-tauri/src/preferences/mod.rs` and exported as `preferenceDefaults` for
+the frontend. `backgroundTaskNotifications`, `workbench`, and individual workbench layout fields
+are optional on disk; absence uses their declared product defaults while existing choices remain
+unchanged. The theme, density, text size, and locale remain required. Adding a nonessential preference
+must declare its absence semantics in both decoders; removing or changing a field's meaning is a
+contract change and must not be hidden behind defaults. Persisted optionality does not make fields
+optional in the normalized application state or canonical saved value.
+
 The non-sensitive last-workspace route may use one disposable `localStorage` value so optional
 session restoration cannot make Store a bootstrap dependency. Secrets never enter Store,
 `localStorage`, Pinia persistence, feature databases, logs, or query cache.
@@ -309,10 +326,10 @@ direction.
 The repository enforces these boundaries through:
 
 - `pnpm check:web`: TypeScript checks, Oxlint, source-layout policy tests, dependency-cruiser,
-  frontend tests, Knip, jscpd, and Oxfmt;
-- `pnpm check:rust`: source-layout, capability and explicit Rust source-boundary checks, rustfmt, Clippy, and Rust tests;
-- `pnpm check:python`: Python source and contract checks;
-- `pnpm check:scripts`: all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
+  frontend tests, Knip, frontend duplication checks, and Oxfmt;
+- `pnpm check:rust`: Rust source-layout, structured capability policy, rustfmt, Clippy, Rust tests and Rust duplication checks;
+- `pnpm check:python`: Python source-layout, lint/type checks and application/tooling tests;
+- `pnpm check:scripts`: tooling/documentation source-layout and all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
 - `pnpm check`: all four groups;
 - `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
 - `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including Model Resources Python constraints.

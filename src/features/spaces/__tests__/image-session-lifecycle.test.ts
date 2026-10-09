@@ -143,6 +143,7 @@ describe("image session ownership", () => {
       y: 0.5,
       text: "old comment",
     });
+    edits.cancel();
     context.space!.activeSpaceId = "second";
     expect(edits.active).toBeUndefined();
     expect(removal.active).toBeUndefined();

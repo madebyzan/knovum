@@ -78,7 +78,7 @@ async function remove() {
                 : t('settings.ai.apiKeyNotSet')
           "
           :disabled="disabled || saving"
-          @keydown.enter="save"
+          @commit.prevent="save"
         />
         <UiIconButton
           class="absolute top-1/2 right-1 -translate-y-1/2"

@@ -17,7 +17,10 @@ const choices = computed(() =>
   selection.value.connections.find((candidate) => candidate.connectionId === props.connection.id)!,
 );
 const availableTools = computed(() => props.connection.tools.filter((tool) => tool.policy !== "deny"));
-const catalog = useMutation({ mutationFn: () => checkMcpConnection(props.connection.id) });
+const catalog = useMutation({
+  mutationFn: () => checkMcpConnection(props.connection.id),
+  networkMode: "online",
+});
 const resources = computed(() => catalog.data.value?.resources ?? []);
 const prompts = computed(() => catalog.data.value?.prompts.map((prompt) => prompt.name) ?? []);
 function toggle(kind: "toolNames" | "resourceUris" | "promptNames", value: string) {

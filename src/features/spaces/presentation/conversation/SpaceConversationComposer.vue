@@ -9,6 +9,10 @@ import { isFileDropInside, listenForFileDrops } from "../../../../foundation/fil
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import type {
+  ConversationAttachmentCandidatePresentation,
+  ConversationAttachmentPresentation,
+} from "../../conversation/conversation-attachment-presentation";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
@@ -18,22 +22,11 @@ const target = defineModel<TaskTargetRef | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
-  attachments: readonly {
-    key: string;
-    kind: "node" | "file";
-    title: string;
-    isImage: boolean;
-    previewSource: string;
-  }[];
-  attachmentCandidates: readonly {
-    nodeId: string;
-    title: string;
-    previewSource: string;
-    selected: boolean;
-    attached: boolean;
-  }[];
+  attachments: readonly ConversationAttachmentPresentation[];
+  attachmentCandidates: readonly ConversationAttachmentCandidatePresentation[];
   attachmentError?: string | undefined;
   pickingFiles: boolean;
+  unresolvedFileNames: readonly string[];
 }>();
 const emit = defineEmits<{
   send: [];
@@ -42,6 +35,7 @@ const emit = defineEmits<{
   addAttachment: [nodeId: string];
   chooseFiles: [];
   dropFiles: [paths: string[]];
+  discardFileReference: [name: string];
   removeAttachment: [key: string];
   previewAttachment: [key: string];
 }>();
@@ -53,7 +47,8 @@ const canSend = computed(
   () =>
     Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
     !props.busy &&
-    !props.pickingFiles,
+    !props.pickingFiles &&
+    !props.unresolvedFileNames.length,
 );
 defineExpose({
   focus(selection?: string) {
@@ -105,6 +100,8 @@ onBeforeUnmount(fileDropListener.dispose);
       </div>
       <SpaceConversationAttachmentTray
         :attachments="attachments"
+        :unresolved-file-names="unresolvedFileNames"
+        @discard-reference="emit('discardFileReference', $event)"
         @remove="emit('removeAttachment', $event)"
         @preview="emit('previewAttachment', $event)"
       />

@@ -1,6 +1,6 @@
 import { isEqual } from "es-toolkit";
 import { defineStore } from "pinia";
-import { readonly, shallowRef, watch } from "vue";
+import { computed, readonly, shallowRef, watch } from "vue";
 
 import { useSpaceStore } from "../session/space-store";
 import { imageEditOf, type ImageEdit } from "./image-edit";
@@ -18,7 +18,14 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
   const space = useSpaceStore();
   const active = shallowRef<ActiveImageEdit>();
   const applying = shallowRef(false);
+  let applyPromise: Promise<void> | undefined;
   const cropAspectRatio = shallowRef<number>();
+  const dirty = computed(() => {
+    const current = active.value;
+    if (!current) return false;
+    const node = space.nodes.find(({ id }) => id === current.nodeId);
+    return !node || node.data.kind !== "image" || !isEqual(imageEditOf(node.data), current.draft);
+  });
 
   function begin(nodeId: string, tool: ImageEditTool) {
     if (applying.value || active.value) return;
@@ -50,11 +57,12 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     cropAspectRatio.value = undefined;
   }
 
-  async function apply() {
+  function apply(): Promise<void> {
+    if (applyPromise) return applyPromise;
     const current = active.value;
-    if (!current || applying.value) return;
+    if (!current) return Promise.resolve();
     applying.value = true;
-    try {
+    applyPromise = (async () => {
       if (space.activeSpaceId !== current.spaceId) throw new Error("Image edit belongs to another Space");
       const node = space.nodes.find(({ id }) => id === current.nodeId);
       if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
@@ -71,19 +79,13 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
       ]);
       if (active.value === current) active.value = undefined;
       cropAspectRatio.value = undefined;
-    } finally {
+    })().finally(() => {
       applying.value = false;
-    }
+      applyPromise = undefined;
+    });
+    return applyPromise;
   }
 
-  watch(
-    () => space.activeSpaceId,
-    () => {
-      active.value = undefined;
-      cropAspectRatio.value = undefined;
-    },
-    { flush: "sync" },
-  );
   watch(
     () => space.nodes,
     (nodes) => {
@@ -97,6 +99,7 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     active: readonly(active),
     applying: readonly(applying),
     cropAspectRatio: readonly(cropAspectRatio),
+    dirty,
     begin,
     previewFor,
     update,
@@ -105,5 +108,6 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     },
     cancel,
     apply,
+    settleApply: () => applyPromise ?? Promise.resolve(),
   };
 });

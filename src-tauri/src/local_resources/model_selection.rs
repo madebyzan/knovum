@@ -58,6 +58,26 @@ fn group(model: LocalModelId) -> Option<Group> {
     }
 }
 
+pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> Result<(), String> {
+    let expected = [
+        Group::Transcription,
+        Group::SpeechSynthesis,
+        Group::ImageSegmentation,
+        Group::SpeechSeparation,
+        Group::SpeechDiarization,
+        Group::SpeechAlignment,
+    ]
+    .into_iter()
+    .find(|group| group.key() == key)
+    .ok_or("Unknown local model selection")?;
+    let model: LocalModelId = serde_json::from_value(value)
+        .map_err(|error| format!("Invalid local model selection: {error}"))?;
+    if group(model) != Some(expected) {
+        return Err("Invalid local model selection".into());
+    }
+    Ok(())
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct Selection {

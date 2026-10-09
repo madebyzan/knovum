@@ -9,7 +9,9 @@ import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOut
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import type { NodeSpeechProjectType } from "../../speech/node-speech";
+import { useSpeechProjectLeave } from "../../speech/use-speech-project-leave";
 import { useSpeechWorkspace } from "../../speech/use-speech-workspace";
+import SpaceUnsavedChangesDialog from "../workspace/SpaceUnsavedChangesDialog.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
 import SpeechProjectForm from "./SpeechProjectForm.vue";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
@@ -37,6 +39,7 @@ const {
   refreshVoices,
   openProject,
   saveRevision,
+  settleRevisionSave,
   previewSelection,
   generateProject,
   cancelGeneration,
@@ -49,6 +52,13 @@ const {
 
 const store = useSpaceStore();
 const addingVoice = shallowRef(false);
+const draftEpoch = shallowRef(0);
+const projectLeave = useSpeechProjectLeave(
+  saveRevision,
+  openProject,
+  () => (draftEpoch.value += 1),
+  settleRevisionSave,
+);
 
 const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
   const project = selectedProject.value;
@@ -127,10 +137,11 @@ const projectOptions = computed(() =>
         :model-value="selectedProject?.project.id ?? ''"
         :options="projectOptions"
         :label="$t('spaces.speech.project.nodeProjects')"
-        @update:model-value="openProject"
+        @update:model-value="projectLeave.selectProject"
       />
       <SpeechProjectEditor
         v-if="selectedProject"
+        :key="`${selectedProject.project.id}:${draftEpoch}`"
         :source-node="node"
         :project="selectedProject"
         :voices="voices"
@@ -144,6 +155,7 @@ const projectOptions = computed(() =>
         :submitting="generationSubmitting"
         :cancelling="generationCancelling"
         @save="saveRevision"
+        @draft-state="projectLeave.updateDraft"
         @preview="previewSelection"
         @generate="generateProject"
         @cancel="cancelGeneration"
@@ -152,4 +164,14 @@ const projectOptions = computed(() =>
       />
     </div>
   </div>
+  <SpaceUnsavedChangesDialog
+    :open="projectLeave.leave.dialogOpen.value"
+    :saving="projectLeave.leave.saving.value"
+    :can-save="Boolean(projectLeave.draft.value)"
+    :title="$t('spaces.speech.project.unsavedTitle')"
+    :description="$t('spaces.speech.project.unsavedDescription')"
+    @cancel="projectLeave.leave.cancel"
+    @discard="projectLeave.leave.discard"
+    @save="projectLeave.leave.save"
+  />
 </template>

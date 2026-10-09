@@ -1,9 +1,9 @@
 import { nextTick } from "vue";
 
 import { beginSpaceMutation } from "../history/mutation-barrier";
-import { clearSpaceHistory } from "../history/stack";
 import type { Space } from "../model/space";
 import { recordWorkspaceNavigation } from "./navigation-history";
+import { switchSpaceHistory } from "./session-history";
 import { createSpaceDraft, persistAndTrackSpace } from "./space-creation";
 import type { SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
@@ -41,7 +41,7 @@ export async function activateDraftSpace(
       context.focusedEditorId.value = undefined;
       await nextTick();
     }
-    clearSpaceHistory(context.history);
+    switchSpaceHistory(context, space.id);
     context.activeSpaceId.value = space.id;
     context.nodes.value = [];
     context.editSnapshot.value = { editRevision: 0, structure: [], layouts: [], relationStyles: [] };

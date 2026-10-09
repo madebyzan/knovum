@@ -10,7 +10,7 @@ interface ConversationTaskStateInput {
   activeConversationId: ShallowRef<string>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
-  moveDraft: (fromId: string, toId: string) => void;
+  moveDraft: (fromId: string, toId: string) => Promise<void>;
 }
 
 export function createConversationTaskState(input: ConversationTaskStateInput) {
@@ -26,7 +26,7 @@ export function createConversationTaskState(input: ConversationTaskStateInput) {
     if (!isSelected(selection)) return;
     await input.refresh();
     if (!isSelected(selection)) return;
-    if (!selection.conversationId) input.moveDraft("", task.conversationId);
+    if (!selection.conversationId) await input.moveDraft("", task.conversationId);
     await input.select(task.conversationId, !selection.conversationId, task.branchId);
   }
 

@@ -3,6 +3,7 @@ use tauri_plugin_store::StoreExt;
 
 mod builtin_agent;
 pub(crate) mod contracts;
+pub(crate) mod creation_library;
 mod validation;
 pub(crate) use builtin_agent::resolve as resolve_builtin_agent;
 

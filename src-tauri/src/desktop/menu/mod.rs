@@ -69,22 +69,18 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<Menu
     menu.insert(&file_submenu, 1)?;
     remove_window_close_item(&menu)?;
 
-    // Predefined Cut/Copy/Paste items always install Cmd+X/C/V accelerators, even when their
-    // optional text is None. Those accelerators consume canvas shortcuts before the WebView sees
-    // them. The focused editor and the canvas therefore own these chords in the WebView.
-    let mut edit_index = None;
-    for (index, item) in default_items.iter().enumerate() {
-        if let Some(sub) = item.as_submenu() {
-            let text = sub.text().unwrap_or_default();
-            if text.eq_ignore_ascii_case("edit") || text == "编辑" {
-                edit_index = Some(index);
-                break;
-            }
-        }
-    }
-    if let Some(index) = edit_index {
-        menu.remove_at(index)?;
-    }
+    let cut = MenuItem::with_id(app, "editing.cut", labels.cut, true, None::<&str>)?;
+    let copy = MenuItem::with_id(app, "editing.copy", labels.copy, true, None::<&str>)?;
+    let paste = MenuItem::with_id(app, "editing.paste", labels.paste, true, None::<&str>)?;
+    let edit = Submenu::with_id_and_items(
+        app,
+        "knovum.edit",
+        labels.edit,
+        true,
+        &[&cut, &copy, &paste],
+    )?;
+    menu.remove_at(2)?;
+    menu.insert(&edit, 2)?;
 
     Ok(menu)
 }
@@ -123,7 +119,7 @@ pub fn set_workspace_state<R: Runtime>(
 pub fn handle_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let handled = match event.id().as_ref() {
         id @ (COMMAND_PALETTE_ID | SETTINGS_ID | NEW_SPACE_ID | REOPEN_CLOSED_TAB_ID
-        | CLOSE_TAB_ID) => app
+        | CLOSE_TAB_ID | "editing.cut" | "editing.copy" | "editing.paste") => app
             .emit(COMMAND_EVENT, id)
             .map_err(|error| error.to_string()),
         _ => Ok(()),

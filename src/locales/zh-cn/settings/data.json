@@ -1,0 +1,33 @@
+{
+  "title": "数据",
+  "description": "创建和恢复知生知托管数据的完整备份。",
+  "tasksActive": "请先完成或取消活动任务，再开始数据维护。",
+  "backup": {
+    "title": "备份",
+    "description": "知生知将在维护模式下重启，并创建一致性归档。",
+    "contentsTitle": "托管数据",
+    "contentsDescription": "包含空间、用量历史、偏好设置、托管的空间与声音资产及已安装扩展。凭据、已下载模型、运行时、缓存和日志不会包含在内。",
+    "action": "创建备份",
+    "confirmTitle": "重启知生知以创建此备份？",
+    "confirmDescription": "知生知将保存待处理更改并重启，在打开数据库之前创建所选备份，然后继续启动。活动运行和处理任务必须先完成或取消。",
+    "failed": "无法开始备份"
+  },
+  "restore": {
+    "title": "恢复备份",
+    "description": "先完整验证归档，再替换托管数据；发布失败时会回滚。完整备份仅能恢复到原知生知数据位置；如需在不同安装之间移动空间，请使用空间包。",
+    "credentialsTitle": "凭据永不恢复",
+    "credentialsDescription": "恢复会清除当前保存的凭据，避免旧授权与恢复后的记录错误匹配。之后请重新配置提供商和连接器凭据。",
+    "action": "恢复备份",
+    "confirmTitle": "重启知生知并恢复此备份？",
+    "confirmDescription": "知生知将保存待处理更改并重启。归档必须与当前版本完全匹配；恢复成功前，当前托管数据会保留用于回滚。",
+    "failed": "无法开始恢复"
+  },
+  "receipt": {
+    "backup": { "success": "备份已创建", "failed": "备份失败" },
+    "restore": { "success": "备份已恢复", "failed": "恢复失败" },
+    "credentials": "备份不包含凭据。请先重新配置提供商和连接器凭据。",
+    "exclusions": "凭据、已下载模型、运行时、缓存和日志未包含在备份中。",
+    "readFailed": "无法读取维护结果",
+    "acknowledgeFailed": "无法关闭维护结果"
+  }
+}

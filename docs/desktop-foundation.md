@@ -8,13 +8,24 @@ listed in [platform-matrix.md](platform-matrix.md); visual composition belongs t
 ## Lifecycle
 
 - The main window starts hidden and appears only after bootstrap reaches a usable or recoverable-error
-  state. There is no splash WebView.
+  state. There is no splash WebView. Rust starts the 30-second startup deadline before renderer
+  initialization; entry/import/mount failures report to its native Retry/Quit error dialog. A retry
+  reloads the existing main WebView and starts a new startup generation. Explicit data maintenance
+  holds the deadline while native progress reports the operation. No timer forces an exit.
 - A single-instance Rust lifecycle owns reopen, focus, close-to-background, explicit quit, window-state
   persistence, and rotating logs.
 - macOS uses the native Application Menu and menu-bar status item. Windows keeps the native caption and
   uses the system Tray. Both dispatch the shared `AppCommand` identifiers.
-- Close, Quit, and updater installation pass through the registered-save barrier. Admitted preference
-  and configuration writes must settle; a failure blocks the transition and is reported by its owner.
+- Close, Quit, and updater installation pass through the registered-save barrier. Leave decisions
+  run in registration order. Explicit cancellation stops the transition; failed saves retain the
+  editor and produce visible owner feedback. Admitted writes settle before transition completion.
+  Settings and Space editor owners prepare their decisions before the enclosing leave barrier
+  finalizes discarded drafts. A later cancellation keeps earlier unsaved drafts available.
+- Rust creates numbered close/quit requests. The renderer acknowledges them and sends a heartbeat
+  every two seconds while awaiting saves or user decisions. A response may complete only its own
+  pending request. Fifteen seconds without a heartbeat produces a native error: Close retains the
+  window; Quit offers an explicit warning about unsaved edits and a choice to keep open or quit.
+  Rust hides the window only after an approved close. Renderer reload invalidates its ready state.
 - Rust owns OS progress, notification delivery, and lifecycle events because these must continue when
   the WebView is hidden.
 
@@ -61,7 +72,13 @@ objects or broad filesystem permission.
 
 Imported and generated files are exposed to the WebView only through their feature's narrow asset
 protocol scope. Popup menu and other OS resources are closed after use. Editable WebView text keeps
-native editing behavior rather than being intercepted by feature context menus.
+native keyboard editing behavior rather than being intercepted by feature context menus. The macOS
+Edit menu dispatches palette-hidden AppCommands without installing competing accelerators. For a
+focused WebView input or rich-text editor, one narrow desktop command maps a strict Cut/Copy/Paste
+enum to AppKit's fixed first-responder selectors on the main thread. AppKit therefore preserves its
+native rich-text clipboard and undo behavior. With no editable target, the AppCommand dispatches the
+existing `spaces.cut`, `spaces.copy` or `spaces.paste` canvas command. The WebView does not synthesize
+clipboard payloads or replay editor transactions for application-menu editing.
 
 System-thumbnail caches are keyed by managed-resource identity, source modification time, requested
 dimensions, and generator version, then written atomically. Preview-provider availability never changes
@@ -84,10 +101,18 @@ path. ASR runtime and model behavior belongs to [local-models.md](local-models.m
 
 ## Tasks, notifications, and progress
 
-The shared task projection mirrors running work to Dock or taskbar progress. No running work clears the
-indicator; unknown progress is indeterminate; determinate work is aggregated. The producer remains the
-authority for cancellation and terminal state. Notifications require feature-owned permission and are
-used only for meaningful transitions.
+Rust aggregates committed Run state, enrichment state and resource preparation snapshots independently
+of the renderer. Session-only tasks publish a bounded projection through a desktop command; Rust
+producer identities override matching session entries. No queued/running work clears Dock/taskbar
+progress; unknown progress is indeterminate and known progress is averaged. Paused/attention tasks do
+not keep a running indicator. The WebView has no direct set-progress-bar permission.
+
+The official Tauri notification plugin delivers background task completion/failure notifications after
+at least ten seconds of work, only when the main window is hidden or unfocused. Historical terminal
+snapshots and cancelled tasks do not notify. Notifications contain no prompts, output or producer
+errors. The strict preference controls delivery; OS notification settings remain authoritative.
+The official desktop plugin does not expose delivery acknowledgement or the real OS authorization
+state, so enabling the preference does not claim that the OS delivered a notification. Feature engines retain cancellation and terminal authority.
 
 ## Native preview and document integration
 
@@ -117,3 +142,28 @@ and the registered-save barrier. Endpoint, signing, promotion, and artifact poli
 CI compilation on macOS and Windows proves source compatibility only. Lifecycle, menus, shortcuts,
 dialogs, permissions, preview, native input, progress, installation, signing, and updating require the
 real-machine acceptance defined in [platform-matrix.md](platform-matrix.md).
+
+## Local backup and restore
+
+Settings exposes explicit local backup and restore through native file dialogs. Both operations first
+pass the registered save barrier and restart into exclusive maintenance before product storage opens.
+Backup uses SQLx/SQLite snapshots and the existing ZIP library for the current database baselines,
+strict settings and managed assets. Active or replayable Space work must settle before backup.
+Before scheduling either restart, the Renderer checks Task Center work and Rust checks durable Space
+work plus active package transfers, imports, canvas exchanges, model preparation and extension
+publication owned by their engines. Spaces reconciles interrupted package-import namespaces before
+admitting a backup, so uncommitted imported assets cannot enter it. Rust atomically reserves each
+idle engine's admission before reconciliation or durable checks. These reservations reject new
+jobs through pending-operation publication and native restart; any scheduling failure releases them.
+
+Restore accepts the current format only at its original canonical application data location. Space
+packages own transfer between installations. Hashes, bounded archive paths, database baselines and
+integrity are validated before publication. A restore journal reconciles interrupted publication
+before normal startup; an unresolved journal blocks storage initialization. One journal records the
+prepared or committed publication phase. Committed restore data remains active if obsolete staging
+cleanup fails; the retained journal retries cleanup and the receipt exposes the cleanup warning.
+Other interrupted maintenance stages use canonical UUID-owned directories. Startup removes only
+these real directories after journal reconciliation; cleanup failures remain visible and prevent
+normal initialization until resolved. A successful backup reports any staging cleanup warning.
+Credentials, downloaded models, runtimes, caches and logs are excluded. Restore removes existing credentials together with
+publication, requiring explicit reauthorization. Maintenance results remain visible until dismissed.

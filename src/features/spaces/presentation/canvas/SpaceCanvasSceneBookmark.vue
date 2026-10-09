@@ -87,8 +87,8 @@ const menuItems = computed(() => [
         ref="titleInput"
         v-model="title"
         class="h-7 w-full min-w-0"
-        @keydown.enter="finishRename"
-        @keydown.escape="editing = false"
+        @commit.prevent="finishRename"
+        @cancel.prevent="editing = false"
       />
       <div class="flex items-center justify-self-end">
         <UiIconButton :label="t('common.save')" size="sm" class="size-6" @click="finishRename">

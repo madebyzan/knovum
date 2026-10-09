@@ -20,7 +20,7 @@ The new release does not restore old Ask/Plan/Execute records by defaulting them
 A production candidate must use committed pnpm/Cargo lockfiles and one reviewed commit on `main`.
 The candidate workflow requires the tag to match all three application versions, reviewed notes at
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, target-platform
-builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
+builds and provisioned runtime smoke. Real background-removal acceptance remains target-platform evidence. The release matrix contains
 macOS arm64/x64 and Windows x64. A partial matrix cannot enter the stable manifest.
 Unauthorized writes, lost edits, duplicate irreversible effects, post-cancel publication, false
 success or evidence, secret leakage and unrecoverable data loss block release.
@@ -205,15 +205,16 @@ protection. Promotion is separately manual even after candidate builds succeed.
 
 Repository/environment variables, consistent between build and publication jobs:
 
-| Variable                             | Value                                                                      |
-| ------------------------------------ | -------------------------------------------------------------------------- |
-| `KNOVUM_DISTRIBUTION_REPOSITORY`     | The public distribution-only `owner/repository`.                           |
-| `KNOVUM_UPDATER_ENDPOINT`            | The permanent anonymous HTTPS channel JSON URL.                            |
-| `KNOVUM_UPDATER_PUBKEY`              | Entire base64 public-key output produced by the Tauri signer, not a path.  |
-| `APPLE_SIGNING_IDENTITY`             | Actual `Developer ID Application: ...` identity.                           |
-| `APPLE_API_ISSUER`, `APPLE_API_KEY`  | App Store Connect notarization issuer and key IDs.                         |
-| `KNOVUM_WINDOWS_SIGN_COMMAND`        | Explicit production signing command containing Tauri's `%1` file argument. |
-| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | Identity used by the selected Windows Artifact Signing client.             |
+| Variable                             | Value                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| `KNOVUM_RUNTIME_PUBLICATION_TAG`     | Reviewed signed controlled-runtime release tag; required by candidate builds. |
+| `KNOVUM_DISTRIBUTION_REPOSITORY`     | The public distribution-only `owner/repository`.                              |
+| `KNOVUM_UPDATER_ENDPOINT`            | The permanent anonymous HTTPS channel JSON URL.                               |
+| `KNOVUM_UPDATER_PUBKEY`              | Entire base64 public-key output produced by the Tauri signer, not a path.     |
+| `APPLE_SIGNING_IDENTITY`             | Actual `Developer ID Application: ...` identity.                              |
+| `APPLE_API_ISSUER`, `APPLE_API_KEY`  | App Store Connect notarization issuer and key IDs.                            |
+| `KNOVUM_WINDOWS_SIGN_COMMAND`        | Explicit production signing command containing Tauri's `%1` file argument.    |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | Identity used by the selected Windows Artifact Signing client.                |
 
 Secrets are scoped to the step/environment that needs them:
 
@@ -225,8 +226,7 @@ Secrets are scoped to the step/environment that needs them:
 | `AZURE_CLIENT_SECRET`                                             | Windows signing service credential.                                                |
 | `KNOVUM_DISTRIBUTION_TOKEN`                                       | Fine-grained distribution-repository Contents write access only.                   |
 
-The existing controlled-runtime URL/hash variables and optional runtime authorization secret remain
-required as documented in `packaging.md`. Public verification keys are intentionally not secrets.
+The selected controlled-runtime publication must be anonymously downloadable as documented in `packaging.md`; packaging obtains resource URLs and hashes from that manifest. Public verification keys are intentionally not secrets.
 Generate updater keys with the official Tauri signer, outside the repository, and keep an encrypted
 backup under release ownership. Loss of the private key breaks trust continuity for already-installed
 clients. Key rotation requires a separately reviewed bridge/recovery plan; changing a CI variable is
@@ -243,7 +243,7 @@ Authenticode signatures and timestamps. Signing does not promise immediate Smart
 
 ## Candidate, acceptance, promotion
 
-`.github/workflows/release-candidate.yml` builds both signed targets from a reviewed version tag.
+`.github/workflows/release-candidate.yml` builds all three supported signed targets from a reviewed version tag. First publish the controlled runtime with `python-runtime.yml` and `production: true`, then set `KNOVUM_RUNTIME_PUBLICATION_TAG` in `release-signing` to that immutable `runtime-*` release. The candidate downloads its publication manifest and validates current recipes, dependency identities, complete resources and production signatures; it does not rebuild runtimes for application-only changes.
 It collects immutable uniquely named update artifacts and human-facing installers. `candidate.json`
 records their hashes, original signatures, source commit, endpoint and public key. Collection rejects
 mixed commits/versions/configurations. Publication verifies every updater artifact with the official

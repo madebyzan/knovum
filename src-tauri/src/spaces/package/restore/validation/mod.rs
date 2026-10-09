@@ -1,11 +1,16 @@
 use super::contracts::RestorePackageRequest;
+use tokio_util::sync::CancellationToken;
 
 mod references;
 mod speech;
 mod translation;
 mod voice_candidates;
 
-pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<(), String> {
+pub(super) fn validate_request_shape_cancellable(
+    request: &RestorePackageRequest,
+    cancellation: &CancellationToken,
+) -> Result<(), crate::app_error::AppError> {
+    super::super::control::check(cancellation)?;
     let space = &request.space;
     if space.kind != "space"
         || space.title.trim().is_empty()
@@ -67,10 +72,20 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
         ),
     ];
     if let Some((_, _, label)) = limits.into_iter().find(|(actual, limit, _)| actual > limit) {
-        return Err(format!("Package contains too many {label}"));
+        return Err(format!("Package contains too many {label}").into());
     }
     references::validate(request)?;
+    super::super::control::check(cancellation)?;
     speech::validate(request)?;
+    super::super::control::check(cancellation)?;
     voice_candidates::validate(request)?;
-    translation::validate(request)
+    super::super::control::check(cancellation)?;
+    Ok(translation::validate(request)?)
+}
+
+#[cfg(test)]
+pub(super) fn validate_request_shape(
+    request: &RestorePackageRequest,
+) -> Result<(), crate::app_error::AppError> {
+    validate_request_shape_cancellable(request, &CancellationToken::new())
 }

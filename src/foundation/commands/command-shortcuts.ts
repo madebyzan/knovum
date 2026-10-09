@@ -18,7 +18,8 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
       const bareKey = !keybinding.includes("+");
 
       bindings[keybinding] = (event) => {
-        if (!command.allowInEditable && isEditableTarget(event.target)) return;
+        const editable = isEditableTarget(event.target);
+        if (editable && !command.allowInEditable) return;
         if (bareKey && isInteractiveTarget(event.target)) return;
         event.preventDefault();
         runAppCommand(command);

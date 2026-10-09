@@ -8,6 +8,7 @@ use std::{
 };
 
 use tauri::ipc::Channel;
+use tokio_util::sync::CancellationToken;
 use zip::ZipArchive;
 
 use super::{
@@ -21,21 +22,32 @@ pub fn read_package(
     source: &Path,
     progress: &Channel<SpacePackageProgress>,
     target_space: &str,
-) -> Result<PackageImport, String> {
+    cancellation: &CancellationToken,
+) -> Result<PackageImport, crate::app_error::AppError> {
+    super::control::check(cancellation)?;
     let file = fs::File::open(source).map_err(|error| error.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|error| error.to_string())?;
-    let total = validation::validate_archive(&mut archive)?;
-    let manifest = read_text_entry(&mut archive, "manifest.json", MAX_MANIFEST)?;
+    let total = validation::validate_archive(&mut archive, cancellation)?;
+    let manifest = read_text_entry(&mut archive, "manifest.json", MAX_MANIFEST, cancellation)?;
     validation::validate_manifest_version(&manifest)?;
     let index: Vec<AssetIndex> = serde_json::from_str(&read_text_entry(
         &mut archive,
         "assets-index.json",
         MAX_MANIFEST,
+        cancellation,
     )?)
     .map_err(|error| error.to_string())?;
-    let manifest_assets = super::manifest_assets::parse(&manifest)?;
-    validate_index(&index, &manifest_assets)?;
-    let assets = extract::extract_assets(app, &mut archive, &index, progress, total, target_space)?;
+    let manifest_assets = super::manifest_assets::parse_cancellable(&manifest, cancellation)?;
+    validate_index(&index, &manifest_assets, cancellation)?;
+    let assets = extract::extract_assets(
+        app,
+        &mut archive,
+        &index,
+        progress,
+        total,
+        target_space,
+        cancellation,
+    )?;
     Ok(PackageImport {
         manifest,
         assets: assets.assets,
@@ -43,13 +55,18 @@ pub fn read_package(
     })
 }
 
-fn validate_index(index: &[AssetIndex], manifest: &ManifestAssets) -> Result<(), String> {
+fn validate_index(
+    index: &[AssetIndex],
+    manifest: &ManifestAssets,
+    cancellation: &CancellationToken,
+) -> Result<(), crate::app_error::AppError> {
     if index.len() > MAX_ASSETS {
         return Err("Space package contains too many assets".into());
     }
     let mut tokens = HashSet::new();
     let mut revisions = HashMap::new();
     for asset in index {
+        super::control::check(cancellation)?;
         validation::validate_token(&asset.token)?;
         validation::validate_basename(&asset.name)?;
         if !tokens.insert(asset.token.clone()) {
@@ -79,16 +96,23 @@ fn read_text_entry(
     archive: &mut ZipArchive<fs::File>,
     name: &str,
     limit: u64,
-) -> Result<String, String> {
+    cancellation: &CancellationToken,
+) -> Result<String, crate::app_error::AppError> {
     let mut entry = archive
         .by_name(name)
         .map_err(|_| format!("Space package is missing {name}"))?;
     if entry.size() > limit {
-        return Err(format!("{name} exceeds the package limit"));
+        return Err(format!("{name} exceeds the package limit").into());
     }
-    let mut text = String::new();
-    entry
-        .read_to_string(&mut text)
-        .map_err(|error| error.to_string())?;
-    Ok(text)
+    let mut bytes = Vec::with_capacity(entry.size() as usize);
+    let mut buffer = [0_u8; 256 * 1024];
+    loop {
+        super::control::check(cancellation)?;
+        let count = entry.read(&mut buffer).map_err(|error| error.to_string())?;
+        if count == 0 {
+            break;
+        }
+        bytes.extend_from_slice(&buffer[..count]);
+    }
+    String::from_utf8(bytes).map_err(|error| error.to_string().into())
 }

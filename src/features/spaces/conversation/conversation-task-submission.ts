@@ -9,6 +9,7 @@ import type { ConversationMessage } from "../contracts/generated/ConversationMes
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
+import { restoreConversationDraftAfterFailure } from "./conversation-draft-recovery";
 import { startConversationTask } from "./conversation-ipc";
 import {
   pendingConversationMessage,
@@ -17,10 +18,8 @@ import {
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
 import { settleConversationTaskResult } from "./conversation-task-settlement";
-
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
-
 interface ConversationSubmissionState {
   activeRun: ShallowRef<RunObservation | undefined>;
   activeRunId: ShallowRef<string | undefined>;
@@ -32,7 +31,6 @@ interface ConversationSubmissionState {
   streamedText: ShallowRef<string>;
   activityRevision: ShallowRef<number>;
 }
-
 export interface ConversationSubmissionInput {
   extensions: Ref<AgentExtensionSelection>;
   spaceId: Ref<string | undefined>;
@@ -42,17 +40,21 @@ export interface ConversationSubmissionInput {
   target: Ref<TaskTargetRef | undefined>;
   attachments: Ref<ConversationAttachment[]>;
   visibleAttachments: Ref<readonly VisibleConversationAttachment[]>;
+  hasUnresolvedFileReferences: Ref<boolean>;
   messages: ShallowRef<ConversationMessage[]>;
-  clearDraft: (request: SubmitConversationTaskRequest) => void;
-  restoreDraft: (request: SubmitConversationTaskRequest) => void;
+  clearDraft: (request: SubmitConversationTaskRequest) => Promise<void>;
+  restoreDraft: (request: SubmitConversationTaskRequest) => Promise<void>;
 }
-
 interface ConversationTaskSubmissionOptions {
   input: ConversationSubmissionInput;
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
   settled: (task: StartedTask["accepted"], spaceId: string) => Promise<void>;
   restoreForSpace: (spaceId: string) => Promise<void>;
+}
+
+function canSubmitConversation(input: ConversationSubmissionInput, state: ConversationSubmissionState) {
+  return !state.loading.value && !state.activeRunId.value && !input.hasUnresolvedFileReferences.value;
 }
 
 export function createConversationTaskSubmission(options: ConversationTaskSubmissionOptions) {
@@ -127,7 +129,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   }
 
   async function send() {
-    if (state.loading.value || state.activeRunId.value) return;
+    if (!canSubmitConversation(input, state)) return;
     const request = conversationTaskRequest({
       spaceId: input.spaceId.value,
       conversation: input.conversation.value,
@@ -150,8 +152,6 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       },
       input.visibleAttachments.value,
     );
-    input.clearDraft(request);
-    input.messages.value = [...input.messages.value, pendingMessage];
     state.activeSpaceId.value = selection.spaceId;
     state.activeConversationId.value = selection.conversationId;
     state.loading.value = true;
@@ -159,6 +159,8 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.error.value = undefined;
     state.streamedText.value = "";
     try {
+      await input.clearDraft(request);
+      input.messages.value = [...input.messages.value, pendingMessage];
       const task = await startConversationTask(request, (update) => handleUpdate(update, submitted));
       accepted = true;
       if (submitted !== generation) return;
@@ -167,8 +169,10 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       await settle(task, selection, submitted);
     } catch (reason) {
       if (submitted === generation) {
-        if (!accepted) input.restoreDraft(request);
-        state.error.value = getErrorMessage(reason);
+        const failure = accepted
+          ? reason
+          : await restoreConversationDraftAfterFailure(input.restoreDraft, request, reason);
+        state.error.value = getErrorMessage(failure);
       }
     } finally {
       clearPending(pendingId);
@@ -176,10 +180,5 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     }
   }
 
-  return {
-    send,
-    invalidate: () => {
-      generation += 1;
-    },
-  };
+  return { send, invalidate: () => (generation += 1) };
 }

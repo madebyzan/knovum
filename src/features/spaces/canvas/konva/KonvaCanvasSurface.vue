@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Stage as KonvaStage } from "vue-konva/core";
 
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contracts/canvas-surface";
@@ -17,6 +18,19 @@ const props = defineProps<CanvasSurfaceProps>();
 const emit = defineEmits<{ documentChange: [document: CanvasDocumentV1] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const runtime = useKonvaCanvasRuntime(props, (document) => emit("documentChange", document));
+const selectGesturesEnabled = computed(
+  () =>
+    props.interactionEnabled &&
+    props.canvasGesturesEnabled &&
+    props.tool === "select" &&
+    !runtime.viewport.panning.value,
+);
+const cursorClass = computed(() => {
+  if (runtime.connectors.draft.value) return "cursor-crosshair";
+  if (runtime.viewport.panning.value) return "cursor-grabbing";
+  if (runtime.viewport.spacePressed.value || props.tool === "pan") return "cursor-grab";
+  return ["note", "text", "section"].includes(props.tool) ? "cursor-crosshair" : "";
+});
 defineExpose({ flushViewport: runtime.viewport.flushViewport });
 </script>
 
@@ -25,18 +39,12 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     ref="host"
     data-space-thumbnail-source
     class="relative h-full min-h-0 w-full overflow-hidden outline-none"
-    :class="[
-      runtime.connectors.draft.value && 'cursor-crosshair',
-      runtime.viewport.panning.value
-        ? 'cursor-grabbing'
-        : runtime.viewport.spacePressed.value || tool === 'pan'
-          ? 'cursor-grab'
-          : tool === 'note' || tool === 'text' || tool === 'section'
-            ? 'cursor-crosshair'
-            : '',
-    ]"
+    :class="cursorClass"
     tabindex="0"
-    @keydown="interactionEnabled && runtime.viewport.key($event, true)"
+    @contextmenu="interactionEnabled && runtime.contextMenu.pointer($event)"
+    @keydown="
+      interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.key($event, true)
+    "
   >
     <KonvaStage
       ref="stage"
@@ -67,19 +75,13 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       />
       <CanvasSceneLayers
         :interactive="
-          interactionEnabled &&
-          canvasGesturesEnabled &&
-          tool === 'select' &&
-          !runtime.viewport.panning.value &&
+          selectGesturesEnabled &&
           !runtime.capturesCanvasInteraction.value &&
           !runtime.viewport.spacePressed.value
         "
         :selection-chrome-visible="
-          interactionEnabled &&
-          canvasGesturesEnabled &&
-          tool === 'select' &&
+          selectGesturesEnabled &&
           !runtime.viewport.spacePressed.value &&
-          !runtime.viewport.panning.value &&
           runtime.gestures.directManipulation.value !== 'drag'
         "
         :connector-draft="runtime.connectors.draft.value"
@@ -115,9 +117,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       <CanvasStructureInteractionLayer
         :groups="runtime.structure.structureScene.value.groups"
         :group-scope-path="groupScopePath"
-        :interactive="
-          interactionEnabled && canvasGesturesEnabled && tool === 'select' && !runtime.viewport.panning.value
-        "
+        :interactive="selectGesturesEnabled"
         :palette="runtime.palette.value"
         :sections="runtime.visibility.visibleSections.value"
         :selected-ids="runtime.selection.structureNodeIds.value"

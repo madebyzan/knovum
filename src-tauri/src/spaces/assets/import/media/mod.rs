@@ -11,6 +11,11 @@ pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), Str
     acquisition::cleanup_stale(app)
 }
 
+pub(super) fn reserve_maintenance() -> Result<crate::job_registry::JobAdmissionReservation, String>
+{
+    jobs::reserve_maintenance()
+}
+
 #[tauri::command]
 pub async fn import_media_from_url(
     app: tauri::AppHandle,

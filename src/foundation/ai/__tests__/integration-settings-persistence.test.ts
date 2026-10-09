@@ -9,6 +9,7 @@ import {
   saveCreationLibrary,
 } from "../integration-settings";
 import { creationLibrarySchema, defaultCreationLibrary } from "../schema/creation-library";
+import type { CreationLibrary } from "../schema/creation-library";
 import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
 
 const boundary = vi.hoisted(() => ({
@@ -132,6 +133,24 @@ it("rejects URL credentials before validation or store writes", async () => {
   await expect(saveAiModelSettings(value)).rejects.toThrow("Invalid AI provider URL");
 
   expect(boundary.invoke).not.toHaveBeenCalled();
+  expect(boundary.set).not.toHaveBeenCalled();
+  expect(boundary.save).not.toHaveBeenCalled();
+});
+
+it("rejects duplicate preset identities and unknown creation-library fields before persistence", async () => {
+  const preset = {
+    id: "duplicate",
+    name: "Preset",
+    actionId: "write",
+    target: { type: "agent" as const, runtimeKind: "codex" as const },
+    parameters: {},
+  };
+  await expect(saveCreationLibrary({ generationPresets: [preset, structuredClone(preset)] })).rejects.toThrow(
+    "Duplicate generation preset id",
+  );
+  await expect(
+    saveCreationLibrary({ generationPresets: [], legacyPresets: [] } as unknown as CreationLibrary),
+  ).rejects.toThrow(/unrecognized/i);
   expect(boundary.set).not.toHaveBeenCalled();
   expect(boundary.save).not.toHaveBeenCalled();
 });

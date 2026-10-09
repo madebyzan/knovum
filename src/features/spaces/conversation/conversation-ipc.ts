@@ -3,15 +3,44 @@ import { Channel } from "@tauri-apps/api/core";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { ActiveConversationRun } from "../contracts/generated/ActiveConversationRun";
 import type { Conversation } from "../contracts/generated/Conversation";
+import type { ConversationDraft } from "../contracts/generated/ConversationDraft";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import type { ConversationTaskAccepted } from "../contracts/generated/ConversationTaskAccepted";
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { InspectedConversationUpload } from "../contracts/generated/InspectedConversationUpload";
 import type { RunEvent } from "../contracts/generated/RunEvent";
+import type { SaveConversationDraftRequest } from "../contracts/generated/SaveConversationDraftRequest";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 import { requestRunControl } from "../runs/run-control";
 
 type ConversationTaskFinishedUpdate = Extract<ConversationTaskUpdate, { type: "finished" }>;
+
+export function loadConversationDraft(
+  spaceId: string,
+  conversationId: string,
+): Promise<ConversationDraft | null> {
+  return invokeCommand("plugin:spaces|load_conversation_draft", { spaceId, conversationId });
+}
+
+export function saveConversationDraft(request: SaveConversationDraftRequest): Promise<ConversationDraft> {
+  return invokeCommand("plugin:spaces|save_conversation_draft", { request });
+}
+
+export function removeConversationDraft(spaceId: string, conversationId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|remove_conversation_draft", { spaceId, conversationId });
+}
+
+export function moveConversationDraft(
+  spaceId: string,
+  fromConversationId: string,
+  toConversationId: string,
+): Promise<void> {
+  return invokeCommand("plugin:spaces|move_conversation_draft", {
+    spaceId,
+    fromConversationId,
+    toConversationId,
+  });
+}
 
 export function listConversationRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
   return invokeCommand("plugin:spaces|list_run_events", { runId, afterSequence });

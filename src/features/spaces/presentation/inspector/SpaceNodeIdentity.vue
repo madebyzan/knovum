@@ -116,8 +116,8 @@ async function open() {
       :disabled="saving"
       class="mt-2 w-full text-title font-semibold"
       @blur="submit"
-      @keydown.enter.prevent="submit"
-      @keydown.esc.prevent="cancel"
+      @commit.prevent="submit"
+      @cancel.prevent="cancel"
     />
     <p v-if="modifiedAt" class="mt-1 text-caption text-fg-tertiary">
       {{ t("spaces.inspector.fields.modified") }} · {{ modifiedAt }}

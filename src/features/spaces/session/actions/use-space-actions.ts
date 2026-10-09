@@ -118,7 +118,7 @@ function createSpaceContext(state: SpaceState): SpaceSessionContext {
     loading: state.loading,
     focusedEditorId: state.focusedEditorId,
     history: state.history,
-    runtime: { openGeneration: 0 },
+    runtime: { openGeneration: 0, historyBySpace: new Map() },
     openSpaceIds: state.openSpaceIds,
     closedSpaceIds: state.closedSpaceIds,
     navigationHistory: state.navigationHistory,

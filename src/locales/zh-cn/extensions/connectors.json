@@ -20,6 +20,10 @@
   "plugin": "由插件提供",
   "custom": "自定义服务",
   "search": "搜索连接器…",
+  "discard": {
+    "title": "放弃连接器更改？",
+    "description": "对此连接器的未保存更改将会丢失。"
+  },
   "delete": {
     "title": "删除 {name}？",
     "description": "还会删除该服务的所有连接实例和本地账号凭据。"

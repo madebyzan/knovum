@@ -22,12 +22,16 @@ fn main() {
             ]))
             .plugin(
                 "desktop",
+                tauri_build::InlinedPlugin::new().commands(build_support::desktop::COMMANDS),
+            )
+            .plugin(
+                "backup",
                 tauri_build::InlinedPlugin::new().commands(&[
-                    "set_locale",
-                    "set_workspace_menu_state",
-                    "reveal_main_window",
-                    "mark_exit_coordinator_ready",
-                    "decide_app_exit_request",
+                    "await_data_maintenance",
+                    "schedule_backup",
+                    "schedule_restore",
+                    "get_maintenance_receipt",
+                    "acknowledge_maintenance_receipt",
                 ]),
             )
             .plugin(
@@ -54,6 +58,7 @@ fn main() {
             .plugin(
                 "ai",
                 tauri_build::InlinedPlugin::new().commands(&[
+                    "await_ai_runtime",
                     "cancel_job",
                     "detect_external_agent_installations",
                     "list_external_agent_descriptors",
@@ -149,6 +154,7 @@ fn main() {
                         "export_image",
                         "export_space_package",
                         "import_space_package",
+                        "cancel_space_package_transfer",
                         "cancel_enrichment_job",
                         "retry_enrichment_job",
                         "request_media_transcription",
@@ -262,6 +268,10 @@ fn main() {
                         "list_knowledge_health_issues",
                         "list_space_actions",
                         "start_conversation_task",
+                        "load_conversation_draft",
+                        "save_conversation_draft",
+                        "remove_conversation_draft",
+                        "move_conversation_draft",
                         "list_conversation_tool_operations",
                         "decide_conversation_tool_operation",
                         "list_mcp_user_interactions",

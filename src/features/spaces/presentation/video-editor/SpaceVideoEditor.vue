@@ -173,7 +173,8 @@ async function onAddText() {
   <SpaceVideoUnsavedDialog
     v-model:open="closeDialogOpen"
     :saving="saving"
-    @discard="store.closeVideoEditor"
-    @save="actions.saveAndClose"
+    @cancel="actions.cancelLeave"
+    @discard="actions.confirmDiscard"
+    @save="actions.confirmSave"
   />
 </template>

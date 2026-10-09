@@ -96,6 +96,7 @@ watch(
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-surface-chrome/90" />
       <DialogContent
+        data-app-command-scope=""
         class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 text-fg-primary outline-none"
         @escape-key-down.prevent
         @pointer-down-outside.prevent

@@ -6,16 +6,12 @@ import { computed, shallowRef, watch } from "vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
+import type { ConversationAttachmentCandidatePresentation } from "../../conversation/conversation-attachment-presentation";
 
-interface Candidate {
-  nodeId: string;
-  title: string;
-  previewSource: string;
-  selected: boolean;
-  attached: boolean;
-}
-
-const props = defineProps<{ candidates: readonly Candidate[]; pickingFiles: boolean }>();
+const props = defineProps<{
+  candidates: readonly ConversationAttachmentCandidatePresentation[];
+  pickingFiles: boolean;
+}>();
 const emit = defineEmits<{
   addAttachment: [nodeId: string];
   addSelection: [];

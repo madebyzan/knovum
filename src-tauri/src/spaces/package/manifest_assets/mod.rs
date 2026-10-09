@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use serde_json::Value;
+use tokio_util::sync::CancellationToken;
 
 use super::validation;
 use crate::spaces::assets::{visit_asset_references, AssetReference, PACKAGE_ASSET_PREFIX};
@@ -10,7 +11,11 @@ pub(super) struct ManifestAssets {
     pub source_revisions: HashMap<String, String>,
 }
 
-pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
+pub(super) fn parse_cancellable(
+    manifest: &str,
+    cancellation: &CancellationToken,
+) -> Result<ManifestAssets, crate::app_error::AppError> {
+    super::control::check(cancellation)?;
     let value: Value = serde_json::from_str(manifest).map_err(|error| error.to_string())?;
     let mut used_tokens = HashSet::new();
     let mut source_revisions = HashMap::new();
@@ -20,6 +25,7 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
         .into_iter()
         .flatten()
     {
+        super::control::check(cancellation)?;
         let Some(data) = node.get("data") else {
             continue;
         };
@@ -45,6 +51,7 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
         .into_iter()
         .flatten()
     {
+        super::control::check(cancellation)?;
         let Some(reference) = layout
             .get("appearance")
             .and_then(|appearance| appearance.get("background"))
@@ -56,23 +63,35 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
             used_tokens.insert(token.to_owned());
         }
     }
-    collect_speech_assets(&value, &mut used_tokens, &mut source_revisions)?;
+    collect_speech_assets(
+        &value,
+        &mut used_tokens,
+        &mut source_revisions,
+        cancellation,
+    )?;
     Ok(ManifestAssets {
         used_tokens,
         source_revisions,
     })
 }
 
+#[cfg(test)]
+pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, crate::app_error::AppError> {
+    parse_cancellable(manifest, &CancellationToken::new())
+}
+
 fn collect_speech_assets(
     value: &Value,
     used_tokens: &mut HashSet<String>,
     source_revisions: &mut HashMap<String, String>,
-) -> Result<(), String> {
+    cancellation: &CancellationToken,
+) -> Result<(), crate::app_error::AppError> {
     for candidate in value
         .get("voiceCandidates")
         .and_then(Value::as_array)
         .ok_or("Space package voiceCandidates must be an array")?
     {
+        super::control::check(cancellation)?;
         for (path, digest) in [
             ("referenceAssetPath", "referenceSha256"),
             ("previewAssetPath", "previewSha256"),
@@ -99,6 +118,7 @@ fn collect_speech_assets(
         .and_then(Value::as_array)
         .ok_or("Space package speechSourceSeparations must be an array")?
     {
+        super::control::check(cancellation)?;
         for (path, digest) in [
             ("sourceAssetPath", "sourceRevision"),
             ("backgroundAssetPath", "backgroundSha256"),
@@ -130,6 +150,7 @@ fn collect_speech_assets(
         .and_then(Value::as_array)
         .ok_or("Space package voiceRevisions must be an array")?
     {
+        super::control::check(cancellation)?;
         let Some(reference) = revision.get("referenceAssetId").and_then(Value::as_str) else {
             continue;
         };
@@ -147,6 +168,7 @@ fn collect_speech_assets(
         .and_then(Value::as_array)
         .ok_or("Space package speechRenders must be an array")?
     {
+        super::control::check(cancellation)?;
         let Some(reference) = render.get("assetPath").and_then(Value::as_str) else {
             continue;
         };
@@ -165,6 +187,7 @@ fn collect_speech_assets(
         .and_then(Value::as_array)
         .ok_or("Space package speechProjectRevisions must be an array")?
     {
+        super::control::check(cancellation)?;
         if let Some(config) = revision
             .get("outputConfig")
             .filter(|config| config.get("video").is_some())

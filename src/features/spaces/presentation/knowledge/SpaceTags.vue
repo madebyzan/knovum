@@ -127,8 +127,8 @@ async function showTagMenu(tag: string) {
           class="pr-8"
           :placeholder="t('spaces.tags.add')"
           :aria-label="t('spaces.tags.add')"
-          @keydown.enter.prevent="applyTag()"
-          @keydown.esc="draft = ''"
+          @commit.prevent="applyTag()"
+          @cancel.prevent="draft = ''"
         />
         <UiIconButton
           :label="t('spaces.tags.add')"

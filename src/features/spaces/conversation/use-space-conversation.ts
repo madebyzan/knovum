@@ -5,17 +5,17 @@ import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import { useSpaceStore } from "../session/space-store";
 import { createConversationActions } from "./conversation-actions";
-import { createConversationDraftSession } from "./conversation-draft-session";
-import { useConversationDraftStore } from "./conversation-draft-store";
+import { createConversationFilePicker } from "./conversation-file-reacquisition";
 import { createConversationSelection } from "./conversation-selection";
 import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationAttachments } from "./use-conversation-attachments";
 import { useConversationBranches } from "./use-conversation-branches";
+import { useConversationDraftPersistence } from "./use-conversation-draft-persistence";
 import { useConversationExtensions } from "./use-conversation-extensions";
 import { useConversationMessagePages } from "./use-conversation-message-pages";
+import { useConversationSpaceRestoration } from "./use-conversation-space-restoration";
 import { useConversationTask } from "./use-conversation-task";
 import { useImageCommentDraft } from "./use-image-comment-draft";
-
 export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const attachmentSession = useConversationAttachments();
@@ -26,16 +26,9 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const extensionSession = useConversationExtensions(spaceId, selectedConversationId);
   const prompt = shallowRef("");
   const target = shallowRef<TaskTargetRef>();
+  const restorationError = shallowRef<string>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
-  function chooseFiles(paths?: readonly string[]) {
-    const selectedSpace = spaceId.value;
-    const selectedConversation = selectedConversationId.value;
-    return attachmentSession.chooseFiles(
-      () => spaceId.value === selectedSpace && selectedConversationId.value === selectedConversation,
-      paths,
-    );
-  }
   const selectedConversation = computed(() =>
     selectedConversationId.value ? selectedSnapshot.value : undefined,
   );
@@ -45,13 +38,22 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedConversation,
     messages,
   });
-  const draftSession = createConversationDraftSession({
-    drafts: useConversationDraftStore(),
+  const draftPersistence = useConversationDraftPersistence({
     spaceId,
-    selectedConversationId,
+    conversationId: selectedConversationId,
     prompt,
     attachments: attachmentSession.attachments,
     extensions: extensionSession.extensionSelection,
+  });
+  const { session: draftSession, error: draftError, reacquireFileNames } = draftPersistence;
+  const hasUnresolvedFileReferences = computed(() => reacquireFileNames.value.length > 0);
+  const chooseFiles = createConversationFilePicker({
+    spaceId,
+    conversationId: selectedConversationId,
+    ownerEpoch: draftSession.ownerEpoch,
+    attachments: attachmentSession.attachments,
+    reacquireFileNames,
+    choose: attachmentSession.chooseFiles,
   });
   const { refreshConversations, selectConversation } = createConversationSelection({
     spaceId,
@@ -79,7 +81,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     select: selectConversation,
   });
   useImageCommentDraft(spaceId, prompt);
-
   const task = useConversationTask({
     spaceId,
     selectedConversationId,
@@ -88,6 +89,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     target,
     attachments: attachmentSession.attachments,
     extensions: extensionSession.extensionSelection,
+    hasUnresolvedFileReferences,
     visibleAttachments: attachmentSession.visibleAttachments,
     messages,
     refresh: refreshConversations,
@@ -96,26 +98,21 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     clearDraft: draftSession.clearSubmitted,
     restoreDraft: draftSession.restoreSubmitted,
   });
-  const activitySession = useConversationActivities(
-    selectedConversationId,
-    task.activeRunId,
-    task.activityRevision,
-  );
-
-  watch(
+  const { activeRunId, activityRevision } = task;
+  const activitySession = useConversationActivities(selectedConversationId, activeRunId, activityRevision);
+  useConversationSpaceRestoration({
     spaceId,
-    async (_, previousSpaceId) => {
-      draftSession.remember(selectedConversationId.value, previousSpaceId);
+    error: restorationError,
+    reset: () => {
       selectedConversationId.value = "";
       selectedSnapshot.value = undefined;
       messages.value = [];
       branchSession.branches.value = [];
-      draftSession.restore("");
-      await refreshConversations();
-      if (spaceId.value) await task.restoreForSpace(spaceId.value);
     },
-    { immediate: true },
-  );
+    restoreDraft: (requestedSpace) => draftSession.restore("", requestedSpace),
+    refresh: refreshConversations,
+    restoreTask: task.restoreForSpace,
+  });
   watch(
     () => store.askScopeRequest,
     async (request) => {
@@ -147,9 +144,13 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedConversationId,
     selectedConversation,
     prompt,
+    draftError,
+    restorationError,
+    restoringDraft: draftSession.restoring,
+    reacquireFileNames,
     target,
-    activityRevision: task.activityRevision,
-    activeRunId: task.activeRunId,
+    activityRevision,
+    activeRunId,
     activeConversationId: task.activeConversationId,
     visibleTaskState: task.visibleTaskState,
     visibleWaitReason: task.visibleWaitReason,
@@ -161,6 +162,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     visibleStreamedText: task.visibleStreamedText,
     ...attachmentSession,
     chooseFiles,
+    discardFileReference: draftSession.discardFileReference,
     send: task.send,
     cancel: task.cancel,
     pause: task.pause,

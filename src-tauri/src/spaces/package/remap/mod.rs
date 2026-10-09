@@ -11,6 +11,7 @@ mod voice_candidates;
 use super::{restore::contracts::RestorePackageRequest, ImportedPackageAsset};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use tokio_util::sync::CancellationToken;
 
 pub(super) struct IdMaps {
     source_space: String,
@@ -72,12 +73,15 @@ const COLLECTIONS: &[&str] = &[
     "speechSourceSeparations",
 ];
 
-pub(super) fn prepare(
+pub(super) fn prepare_cancellable(
     source: &str,
     assets: &[ImportedPackageAsset],
     target_space: &str,
-) -> Result<RestorePackageRequest, String> {
+    cancellation: &CancellationToken,
+) -> Result<RestorePackageRequest, crate::app_error::AppError> {
+    super::control::check(cancellation)?;
     let mut value: Value = serde_json::from_str(source).map_err(|e| e.to_string())?;
+    super::control::check(cancellation)?;
     let root = value
         .as_object()
         .ok_or("Package manifest must be an object")?;
@@ -104,23 +108,28 @@ pub(super) fn prepare(
             .collect(),
     };
     for &collection in ENTITIES {
+        super::control::check(cancellation)?;
         let mut ids = HashMap::new();
         for row in array(&value, collection)? {
+            super::control::check(cancellation)?;
             let id = string(row, "id")?;
             if ids
                 .insert(id.into(), uuid::Uuid::new_v4().to_string())
                 .is_some()
             {
-                return Err(format!("Duplicate package {collection} identity"));
+                return Err(format!("Duplicate package {collection} identity").into());
             }
         }
         maps.entities.insert(collection, ids);
     }
     knowledge::validate_source(&value)?;
+    super::control::check(cancellation)?;
     let original_types = array(&value, "objectTypes")?.clone();
     for &collection in COLLECTIONS {
+        super::control::check(cancellation)?;
         let rows = array_mut(&mut value, collection)?;
         for row in rows {
+            super::control::check(cancellation)?;
             let owner = row.get("spaceId");
             let owned = [
                 "scenes",
@@ -158,11 +167,17 @@ pub(super) fn prepare(
         }
     }
     content::remap(&mut value, &mut maps, &original_types)?;
+    super::control::check(cancellation)?;
     execution::remap(&mut value, &maps)?;
+    super::control::check(cancellation)?;
     voice_candidates::remap(&mut value, &maps)?;
+    super::control::check(cancellation)?;
     speech::remap(&mut value, &maps)?;
+    super::control::check(cancellation)?;
     translation::remap(&mut value, &maps)?;
+    super::control::check(cancellation)?;
     knowledge::remap(&mut value, &maps)?;
+    super::control::check(cancellation)?;
     let now = crate::clock::unix_time_millis()?;
     let space = &value["space"];
     let created = space["createdAt"]
@@ -175,7 +190,16 @@ pub(super) fn prepare(
     root.remove("format");
     root.remove("version");
     root.remove("exportedAt");
-    serde_json::from_value(value).map_err(|e| format!("Invalid Space restore contract: {e}"))
+    serde_json::from_value(value).map_err(|e| format!("Invalid Space restore contract: {e}").into())
+}
+
+#[cfg(test)]
+pub(super) fn prepare(
+    source: &str,
+    assets: &[ImportedPackageAsset],
+    target_space: &str,
+) -> Result<RestorePackageRequest, crate::app_error::AppError> {
+    prepare_cancellable(source, assets, target_space, &CancellationToken::new())
 }
 
 impl IdMaps {

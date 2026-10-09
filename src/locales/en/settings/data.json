@@ -1,0 +1,33 @@
+{
+  "title": "Data",
+  "description": "Create and restore complete backups of Knovum's managed data.",
+  "tasksActive": "Finish or cancel active tasks before starting data maintenance.",
+  "backup": {
+    "title": "Backup",
+    "description": "Creates a consistent archive while Knovum restarts in maintenance mode.",
+    "contentsTitle": "Managed data",
+    "contentsDescription": "Includes Spaces, usage history, preferences, managed Space and voice assets, and installed extensions. Credentials, downloaded models, runtimes, caches, and logs are excluded.",
+    "action": "Create backup",
+    "confirmTitle": "Restart Knovum to create this backup?",
+    "confirmDescription": "Knovum will save pending changes, restart, create the selected backup before opening its databases, then continue startup. Active Runs and processing jobs must finish or be cancelled first.",
+    "failed": "Backup could not be started"
+  },
+  "restore": {
+    "title": "Restore backup",
+    "description": "Validates the complete archive before replacing managed data, with rollback if publication fails. Full backups restore only to the same Knovum data location; use Space packages to move Spaces between installations.",
+    "credentialsTitle": "Credentials are never restored",
+    "credentialsDescription": "Restore removes current saved credentials to prevent old authorization from matching restored records. Configure provider and connector credentials again afterward.",
+    "action": "Restore backup",
+    "confirmTitle": "Restart Knovum and restore this backup?",
+    "confirmDescription": "Knovum will save pending changes and restart. The archive must match this release exactly. Current managed data remains available for rollback until restoration succeeds.",
+    "failed": "Restore could not be started"
+  },
+  "receipt": {
+    "backup": { "success": "Backup created", "failed": "Backup failed" },
+    "restore": { "success": "Backup restored", "failed": "Restore failed" },
+    "credentials": "Credentials were not included. Configure provider and connector credentials again before using them.",
+    "exclusions": "Credentials, downloaded models, runtimes, caches, and logs were excluded.",
+    "readFailed": "Maintenance result could not be read",
+    "acknowledgeFailed": "Maintenance result could not be dismissed"
+  }
+}

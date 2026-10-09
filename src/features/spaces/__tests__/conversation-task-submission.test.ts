@@ -45,7 +45,7 @@ describe("conversation task settlement", () => {
       streamedText: shallowRef(""),
       activityRevision: shallowRef(0),
     };
-    const restoreDraft = vi.fn<(request: unknown) => void>();
+    const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
     const submission = createConversationTaskSubmission({
       input: {
         extensions: ref({ skillIds: [], connections: [] }),
@@ -56,8 +56,9 @@ describe("conversation task settlement", () => {
         target: ref({ type: "agent", runtimeKind: "codex" }),
         attachments: ref([]),
         visibleAttachments: ref([]),
+        hasUnresolvedFileReferences: ref(false),
         messages: shallowRef([]),
-        clearDraft: vi.fn<(request: unknown) => void>(),
+        clearDraft: vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined),
         restoreDraft,
       },
       state,
@@ -74,5 +75,52 @@ describe("conversation task settlement", () => {
     expect(state.activeRunId.value).toBeUndefined();
     expect(ipc.getConversationTaskError).not.toHaveBeenCalled();
     expect(restoreDraft).not.toHaveBeenCalled();
+  });
+
+  it("keeps and reports the draft when persisted deletion rejects", async () => {
+    const state = {
+      activeRun: shallowRef(),
+      activeRunId: shallowRef<string>(),
+      activeConversationId: shallowRef("conversation"),
+      activeSpaceId: shallowRef<string>(),
+      taskState: shallowRef<string>(),
+      loading: shallowRef(false),
+      error: shallowRef<string>(),
+      streamedText: shallowRef(""),
+      activityRevision: shallowRef(0),
+    };
+    const restoreDraft = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const clearDraft = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(new Error("draft database is read-only"));
+    const prompt = ref("unsent work");
+    const submission = createConversationTaskSubmission({
+      input: {
+        extensions: ref({ skillIds: [], connections: [] }),
+        spaceId: ref("space"),
+        selectedConversationId: ref("conversation"),
+        conversation: ref(),
+        prompt,
+        target: ref({ type: "agent", runtimeKind: "codex" }),
+        attachments: ref([]),
+        visibleAttachments: ref([]),
+        hasUnresolvedFileReferences: ref(false),
+        messages: shallowRef([]),
+        clearDraft,
+        restoreDraft,
+      },
+      state,
+      accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      settled: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    });
+
+    await submission.send();
+
+    expect(ipc.startConversationTask).not.toHaveBeenCalled();
+    expect(restoreDraft).toHaveBeenCalledOnce();
+    expect(state.error.value).toContain("draft database is read-only");
+    expect(state.loading.value).toBe(false);
+    expect(prompt.value).toBe("unsent work");
   });
 });

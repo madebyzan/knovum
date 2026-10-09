@@ -10,6 +10,7 @@ import AiModelsSettingsPane from "./components/panes/AiModelsSettingsPane.vue";
 import AppearanceSettingsPane from "./components/panes/AppearanceSettingsPane.vue";
 import ArchivedSpacesSettingsAction from "./components/panes/ArchivedSpacesSettingsAction.vue";
 import ArchivedSpacesSettingsPane from "./components/panes/ArchivedSpacesSettingsPane.vue";
+import BackupSettingsPane from "./components/panes/BackupSettingsPane.vue";
 import CreationSettingsPane from "./components/panes/CreationSettingsPane.vue";
 import DesktopAgentsSettingsAction from "./components/panes/DesktopAgentsSettingsAction.vue";
 import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
@@ -18,6 +19,7 @@ import SettingsSidebar from "./components/SettingsSidebar.vue";
 import type { GenerationActionOption } from "./generation-action-option";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
 import { settingsDefinition } from "./settings-registry";
+import { useSettingsLeaveCoordinator } from "./use-settings-leave-coordinator";
 
 const props = defineProps<{
   loadGenerationActions: () => Promise<GenerationActionOption[]>;
@@ -27,6 +29,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
+useSettingsLeaveCoordinator();
 const activePane = computed<SettingsPaneId>(() => {
   const value = Array.isArray(route.query.pane) ? route.query.pane[0] : route.query.pane;
   return resolveSettingsPaneId(value) ?? "appearance";
@@ -64,6 +67,7 @@ const paneComponentMap = {
   extensions: toRaw(props.extensionsComponent),
   usage: UsageSettingsPane,
   creation: CreationSettingsPane,
+  data: BackupSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
   appearance: AppearanceSettingsPane,

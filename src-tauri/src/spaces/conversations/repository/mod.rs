@@ -1,5 +1,6 @@
 mod context;
 mod conversations;
+mod drafts;
 mod message_branches;
 mod message_contract;
 mod messages;
@@ -10,6 +11,7 @@ pub(in crate::spaces::conversations) use context::load_history;
 pub use conversations::{
     archive, delete, ensure_branch_idle, ensure_conversation, list_conversations, rename, unarchive,
 };
+pub use drafts::{load_draft, remove_draft, save_draft};
 pub use message_branches::{activate as activate_branch, branch, list as list_branches};
 pub use message_contract::{
     ConversationMessage, ConversationMessageAttachment, ConversationMessageContent,

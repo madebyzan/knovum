@@ -8,6 +8,7 @@ const settingsPaneIds = [
   "extensions",
   "usage",
   "creation",
+  "data",
   "archivedSpaces",
   "about",
 ] as const;

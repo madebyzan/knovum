@@ -22,6 +22,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   const contentHeight = createCanvasContentHeightFitting(options);
   return {
     cancelInteraction: options.cancelInteraction,
+    focus: () => options.host().focus({ preventScroll: true }),
     copySelection: () => options.onCopyNodes(selection.placements()),
     cutSelection: async () => {
       await options.onCopyNodes(selection.placements());

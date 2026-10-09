@@ -1,5 +1,5 @@
 import { cloneDeep } from "es-toolkit";
-import type { Ref } from "vue";
+import { shallowRef, type Ref } from "vue";
 
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
@@ -23,80 +23,144 @@ function sameAttachments(left: readonly ConversationAttachment[], right: readonl
   );
 }
 
+function matchesRequest(
+  prompt: string,
+  attachments: readonly ConversationAttachment[],
+  request: SubmitConversationTaskRequest,
+) {
+  return prompt.trim() === request.prompt && sameAttachments(attachments, request.attachments);
+}
+
 interface ConversationDraftSessionInput {
-  drafts: Pick<ReturnType<typeof useConversationDraftStore>, "read" | "save" | "move" | "remove">;
+  drafts: Pick<ReturnType<typeof useConversationDraftStore>, "read" | "load" | "save" | "move" | "remove">;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   prompt: Ref<string>;
   attachments: Ref<ConversationAttachment[]>;
   extensions: Ref<AgentExtensionSelection>;
+  reacquireFileNames: Ref<string[]>;
 }
 
 export function createConversationDraftSession(input: ConversationDraftSessionInput) {
   const { drafts } = input;
+  const restoring = shallowRef(false);
+  let owner: { spaceId: string; conversationId: string } | undefined;
+  let restoreGeneration = 0;
 
-  function remember(id = input.selectedConversationId.value, currentSpaceId = input.spaceId.value) {
-    if (!currentSpaceId) return;
-    drafts.save(currentSpaceId, id, {
-      prompt: input.prompt.value,
-      attachments: input.attachments.value,
-      extensions: input.extensions.value,
-    });
+  function isCurrentRestore(generation: number, spaceId: string | undefined, conversationId: string) {
+    return (
+      generation === restoreGeneration &&
+      input.spaceId.value === spaceId &&
+      input.selectedConversationId.value === conversationId
+    );
   }
 
-  function restore(id: string) {
-    const draft = input.spaceId.value ? drafts.read(input.spaceId.value, id) : undefined;
+  function applyRestoredDraft(
+    spaceId: string | undefined,
+    conversationId: string,
+    draft: ReturnType<typeof drafts.read>,
+  ) {
     input.prompt.value = draft?.prompt ?? "";
     input.attachments.value = draft?.attachments ?? [];
+    input.reacquireFileNames.value = draft?.reacquireFileNames ?? [];
     if (draft) input.extensions.value = cloneDeep(draft.extensions);
-    return Boolean(draft);
+    if (spaceId) owner = { spaceId, conversationId };
   }
 
-  function move(fromId: string, toId: string) {
-    if (!input.spaceId.value) return;
-    drafts.move(input.spaceId.value, fromId, toId, {
+  function isActiveRequest(spaceId: string, conversationId: string) {
+    return input.spaceId.value === spaceId && input.selectedConversationId.value === conversationId;
+  }
+
+  async function remember() {
+    const current = owner;
+    if (!current) return;
+    const snapshot = {
       prompt: input.prompt.value,
-      attachments: input.attachments.value,
-      extensions: input.extensions.value,
-    });
+      attachments: cloneDeep(input.attachments.value),
+      extensions: cloneDeep(input.extensions.value),
+      reacquireFileNames: [...input.reacquireFileNames.value],
+    };
+    await drafts.save(current.spaceId, current.conversationId, snapshot);
   }
 
-  function clearSubmitted(request: SubmitConversationTaskRequest) {
+  async function restore(id: string, requestedSpaceId = input.spaceId.value) {
+    const generation = ++restoreGeneration;
+    owner = undefined;
+    restoring.value = true;
+    try {
+      const draft = requestedSpaceId ? await drafts.load(requestedSpaceId, id) : undefined;
+      if (!isCurrentRestore(generation, requestedSpaceId, id)) return false;
+      applyRestoredDraft(requestedSpaceId, id, draft);
+      return Boolean(draft);
+    } finally {
+      if (generation === restoreGeneration) restoring.value = false;
+    }
+  }
+
+  async function move(fromId: string, toId: string) {
+    if (!input.spaceId.value) return;
+    await drafts.move(input.spaceId.value, fromId, toId);
+  }
+
+  async function clearSubmitted(request: SubmitConversationTaskRequest) {
     const conversationId = request.conversationId ?? "";
     const stored = drafts.read(request.spaceId, conversationId);
-    const sent = request.attachments ?? [];
-    if (stored?.prompt.trim() === request.prompt && sameAttachments(stored.attachments, sent)) {
-      drafts.remove(request.spaceId, conversationId);
-    }
-    if (input.spaceId.value !== request.spaceId || input.selectedConversationId.value !== conversationId)
-      return;
-    if (input.prompt.value.trim() === request.prompt) input.prompt.value = "";
-    if (sameAttachments(input.attachments.value, sent)) input.attachments.value = [];
+    const currentMatches =
+      isActiveRequest(request.spaceId, conversationId) &&
+      matchesRequest(input.prompt.value, input.attachments.value, request);
+    const storedMatches = stored && matchesRequest(stored.prompt, stored.attachments, request);
+    if (currentMatches || storedMatches) await drafts.remove(request.spaceId, conversationId);
+    if (!isActiveRequest(request.spaceId, conversationId) || !currentMatches) return;
+    input.prompt.value = "";
+    input.attachments.value = [];
+    input.reacquireFileNames.value = [];
   }
 
-  function restoreSubmitted(request: SubmitConversationTaskRequest) {
+  async function restoreSubmitted(request: SubmitConversationTaskRequest) {
     const conversationId = request.conversationId ?? "";
     if (input.spaceId.value === request.spaceId && input.selectedConversationId.value === conversationId) {
       if (!input.prompt.value && !input.attachments.value.length) {
         input.prompt.value = request.prompt;
         input.attachments.value = [...(request.attachments ?? [])];
         input.extensions.value = cloneDeep(request.extensions);
-        drafts.save(request.spaceId, conversationId, {
+        input.reacquireFileNames.value = [];
+        await drafts.save(request.spaceId, conversationId, {
           prompt: request.prompt,
           attachments: [...(request.attachments ?? [])],
           extensions: cloneDeep(request.extensions),
+          reacquireFileNames: [],
         });
       }
       return;
     }
     if (!drafts.read(request.spaceId, conversationId)) {
-      drafts.save(request.spaceId, conversationId, {
+      await drafts.save(request.spaceId, conversationId, {
         prompt: request.prompt,
         attachments: [...(request.attachments ?? [])],
         extensions: cloneDeep(request.extensions),
+        reacquireFileNames: [],
       });
     }
   }
 
-  return { remember, restore, move, clearSubmitted, restoreSubmitted };
+  function discardFileReference(name: string) {
+    input.reacquireFileNames.value = input.reacquireFileNames.value.filter((candidate) => candidate !== name);
+  }
+
+  function invalidate() {
+    restoreGeneration += 1;
+    owner = undefined;
+  }
+
+  return {
+    restoring,
+    ownerEpoch: () => restoreGeneration,
+    remember,
+    restore,
+    move,
+    clearSubmitted,
+    restoreSubmitted,
+    discardFileReference,
+    invalidate,
+  };
 }

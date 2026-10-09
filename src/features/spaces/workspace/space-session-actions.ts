@@ -1,11 +1,11 @@
 import { difference, without } from "es-toolkit";
 import { nextTick } from "vue";
 
-import { clearSpaceHistory } from "../history/stack";
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { loadSpaceSessionProjection } from "../session/space-projection";
 import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
 import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
+import { switchSpaceHistory } from "./session-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
 import { listSpaces } from "./space-operations";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
@@ -104,6 +104,7 @@ function retireClosedSpaceTabs(context: SpaceSessionContext, closed: readonly st
 
 function leaveSpaceSession(context: SpaceSessionContext, ids: readonly string[]) {
   for (const id of ids) {
+    context.runtime.historyBySpace.delete(id);
     removeWorkspaceNavigation(context, id);
     releaseKnowledgeIndex(id);
   }
@@ -133,7 +134,7 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
       if (generation !== context.runtime.openGeneration) return false;
       if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
       if (generation !== context.runtime.openGeneration) return false;
-      if (options.resetHistory) clearSpaceHistory(context.history);
+      if (options.resetHistory) switchSpaceHistory(context, id);
       if (context.focusedEditorId.value) {
         context.focusedEditorId.value = undefined;
         await nextTick();

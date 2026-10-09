@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
-import { computed, shallowRef, watch } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { removeAiConnection, saveAiConnection } from "../../../foundation/ai/connection-settings";
 import { requireProvider } from "../../../foundation/ai/providers";
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
 import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
-import type { AiConnectionSubmission } from "../ai-connection-draft";
+import { useAiConnectionEditing } from "../use-ai-connection-editing";
 import AiConnectionConfiguration from "./AiConnectionConfiguration.vue";
 import AiConnectionEditor from "./AiConnectionEditor.vue";
 
@@ -24,12 +21,23 @@ const props = defineProps<{
   createModelRequest?: { purpose: RoutingPurpose } | undefined;
 }>();
 const { t } = useI18n();
-const selectedId = shallowRef<string | null>();
-const dirty = shallowRef(false);
-const busy = shallowRef(false);
-const error = shallowRef("");
-const expandedId = shallowRef<string>();
-const editing = computed(() => props.connections.find((connection) => connection.id === selectedId.value));
+const {
+  selectedId,
+  dirty,
+  busy,
+  error,
+  expandedId,
+  editing,
+  openConnection,
+  requestClose,
+  saveConnection,
+  removeConnection,
+} = useAiConnectionEditing({
+  connections: () => props.connections,
+  protectedConnectionIds: () => props.protectedConnectionIds,
+  providersAvailable: () => Boolean(props.providers.length),
+  t,
+});
 const requestedConnectionId = computed(() => {
   const purpose = props.createModelRequest?.purpose;
   return purpose
@@ -60,75 +68,6 @@ watch(
     else openConnection(null);
   },
 );
-
-async function confirmDiscard() {
-  return (
-    !dirty.value ||
-    confirmAction({
-      title: t("settings.ai.discardChangesTitle"),
-      description: t("settings.ai.discardChanges"),
-      confirmLabel: t("common.discardChanges"),
-      danger: true,
-    })
-  );
-}
-
-function openConnection(connectionId: string | null) {
-  if (busy.value || (connectionId === null && !props.providers.length)) return;
-  selectedId.value = connectionId;
-  dirty.value = false;
-  error.value = "";
-}
-
-function closeEditor() {
-  selectedId.value = undefined;
-  dirty.value = false;
-  error.value = "";
-}
-
-async function requestClose() {
-  if (!busy.value && (await confirmDiscard())) closeEditor();
-}
-
-async function saveConnection(submission: AiConnectionSubmission) {
-  if (busy.value) return;
-  busy.value = true;
-  error.value = "";
-  try {
-    const saveOutcome = await saveAiConnection(submission.connection, submission.secret);
-    if (saveOutcome.status === "credential-failed") {
-      error.value = `${t("settings.ai.secretSaveFailed")}: ${getErrorMessage(saveOutcome.cause)}`;
-      return;
-    }
-    expandedId.value = submission.connection.id;
-    closeEditor();
-  } catch (cause) {
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
-  } finally {
-    busy.value = false;
-  }
-}
-
-async function removeConnection(connection: AiConnectionSettings) {
-  if (busy.value || props.protectedConnectionIds.includes(connection.id)) return;
-  const confirmed = await confirmAction({
-    title: t("common.delete"),
-    description: t("settings.ai.deleteConnectionConfirm", { name: connection.name }),
-    confirmLabel: t("common.delete"),
-    danger: true,
-  });
-  if (!confirmed) return;
-  busy.value = true;
-  error.value = "";
-  try {
-    await removeAiConnection(connection.id);
-    if (selectedId.value === connection.id) closeEditor();
-  } catch (cause) {
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
-  } finally {
-    busy.value = false;
-  }
-}
 </script>
 
 <template>

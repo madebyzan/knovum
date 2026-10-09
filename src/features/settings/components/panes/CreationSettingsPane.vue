@@ -8,6 +8,7 @@ import { useCreationLibraryStore } from "../../../../foundation/ai/creation-libr
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import type { GenerationActionOption } from "../../generation-action-option";
+import { useSettingsLeaveDecision } from "../../use-settings-leave-decision";
 import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SavedGenerationPresets from "../SavedGenerationPresets.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
@@ -35,6 +36,18 @@ async function resetSection() {
   if (confirmed) await updatePresets(store.reset);
 }
 
+useSettingsLeaveDecision({
+  async prepare() {
+    try {
+      await store.flush();
+      return true;
+    } catch (error) {
+      toast.error(`${t("settings.creation.saveFailed")}: ${getErrorMessage(error)}`);
+      return false;
+    }
+  },
+});
+
 onMounted(store.ensureLoaded);
 </script>
 
@@ -52,10 +65,10 @@ onMounted(store.ensureLoaded);
     <SavedGenerationPresets
       :presets="library.generationPresets"
       :load-generation-actions="props.loadGenerationActions"
+      :save-preset="store.updatePreset"
       @remove="(id) => updatePresets(() => store.removePreset(id))"
       @duplicate="(id, name) => updatePresets(() => store.duplicatePreset(id, name))"
       @rename="(id, name) => updatePresets(() => store.renamePreset(id, name))"
-      @save="(preset) => updatePresets(() => store.updatePreset(preset))"
     />
     <FalImageLayerSettings />
   </div>

@@ -35,6 +35,7 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::assets::commands::export_image,
         crate::spaces::package::export_space_package,
         crate::spaces::package::import_space_package,
+        crate::spaces::package::cancel_space_package_transfer,
         crate::spaces::assets::enrichment::jobs::requests::request_media_transcription,
         crate::spaces::assets::enrichment::jobs::requests::alignment::request_media_alignment,
         crate::spaces::assets::enrichment::jobs::requests::diarization::request_media_diarization,

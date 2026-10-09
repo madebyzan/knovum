@@ -7,7 +7,9 @@
     "empty": "No generation presets have been saved yet.",
     "deleteConfirm": "Delete this preset?",
     "name": "Preset name",
-    "edit": "Edit generation preset"
+    "edit": "Edit generation preset",
+    "discardTitle": "Discard preset changes?",
+    "discardDescription": "Unsaved changes to this generation preset will be lost."
   },
   "parameters": "Parameters",
   "copyName": "{name} copy",

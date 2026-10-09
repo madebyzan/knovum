@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { nextTick, useTemplateRef } from "vue";
+import { computed, nextTick, useTemplateRef } from "vue";
+import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
@@ -37,10 +38,22 @@ const {
   visibleAttachments,
   attachmentCandidates,
   attachmentError,
+  draftError,
+  restorationError,
+  restoringDraft,
+  reacquireFileNames,
   pickingFiles,
   scrollPositions,
 } = storeToRefs(conversationSession);
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
+const { t } = useI18n();
+const composerError = computed(() => {
+  if (restorationError.value) return restorationError.value;
+  if (draftError.value) return draftError.value;
+  if (reacquireFileNames.value.length)
+    return t("spaces.conversation.uploads.reacquire", { names: reacquireFileNames.value.join(", ") });
+  return attachmentError.value;
+});
 
 async function applySuggestion(value: string, selection?: string) {
   prompt.value = value;
@@ -99,7 +112,9 @@ async function previewAttachment(key: string) {
     <AgentExtensionPicker
       v-model="extensionSelection"
       :availability="extensionAvailability"
-      :disabled="loading || Boolean(activeRunId) || extensionsLoading"
+      :disabled="
+        restoringDraft || Boolean(restorationError) || loading || Boolean(activeRunId) || extensionsLoading
+      "
       :error="extensionsError"
     />
     <SpaceConversationRunStatus
@@ -116,13 +131,22 @@ async function previewAttachment(key: string) {
       v-model:target="target"
       :attachments="visibleAttachments"
       :attachment-candidates="attachmentCandidates"
-      :attachment-error="attachmentError"
+      :attachment-error="composerError"
       :picking-files="pickingFiles"
-      :busy="loading || Boolean(activeRunId) || extensionsLoading || Boolean(extensionsError)"
+      :unresolved-file-names="reacquireFileNames"
+      :busy="
+        restoringDraft ||
+        Boolean(restorationError) ||
+        loading ||
+        Boolean(activeRunId) ||
+        extensionsLoading ||
+        Boolean(extensionsError)
+      "
       @add-selection="conversationSession.addSelectedAttachments"
       @add-attachment="(id) => conversationSession.addNodeAttachments([id])"
       @choose-files="conversationSession.chooseFiles"
       @drop-files="conversationSession.chooseFiles($event)"
+      @discard-file-reference="conversationSession.discardFileReference"
       @remove-attachment="conversationSession.removeAttachment"
       @preview-attachment="previewAttachment"
       @send="conversationSession.send"

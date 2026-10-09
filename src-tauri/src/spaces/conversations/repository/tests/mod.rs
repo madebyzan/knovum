@@ -1,3 +1,5 @@
+mod drafts;
+
 use super::{archive, ensure_conversation, list_conversations, unarchive};
 
 #[tokio::test]

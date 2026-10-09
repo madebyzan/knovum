@@ -28,6 +28,9 @@ function commands(workspaceActive: boolean) {
       toggleRightSidebar: vi.fn<() => void>(),
     },
     labels: {
+      copy: "copy",
+      cut: "cut",
+      paste: "paste",
       settings: "settings",
       commandPalette: "palette",
       shortcuts: "shortcuts",
@@ -38,6 +41,16 @@ function commands(workspaceActive: boolean) {
 }
 
 describe("shell commands", () => {
+  it("keeps native menu editing targets out of the shortcut bindings", () => {
+    const editing = commands(true).filter(({ id }) => id.startsWith("editing."));
+    expect(editing.map(({ id }) => id)).toEqual(["editing.cut", "editing.copy", "editing.paste"]);
+    for (const command of editing) {
+      expect(command.shortcut).toBeUndefined();
+      expect(command.keybindings).toBeUndefined();
+      expect(command.palette).toBe(false);
+    }
+  });
+
   it("exposes workspace view commands only on the Spaces route", () => {
     const settings = commands(false).map((command) => command.id);
     expect(settings).not.toContain("view.toggle-sidebar");
@@ -68,6 +81,9 @@ describe("shell commands", () => {
         toggleRightSidebar: vi.fn<() => void>(),
       },
       labels: {
+        copy: "copy",
+        cut: "cut",
+        paste: "paste",
         settings: "settings",
         commandPalette: "palette",
         toggleSidebar: "sidebar",

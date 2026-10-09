@@ -39,5 +39,6 @@
   "remove": "Remove",
   "archive": "Archive",
   "restore": "Restore",
-  "required": "Required"
+  "required": "Required",
+  "closeSaveFailed": "Changes could not be saved; the application stayed open"
 }

@@ -74,6 +74,30 @@ pub enum ConversationAttachment {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct ConversationDraft {
+    pub space_id: String,
+    pub conversation_id: String,
+    pub prompt: String,
+    pub attachments: Vec<ConversationAttachment>,
+    pub extensions: crate::extensions::contracts::AgentExtensionSelection,
+    pub reacquire_file_names: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct SaveConversationDraftRequest {
+    pub space_id: String,
+    pub conversation_id: String,
+    pub prompt: String,
+    pub attachments: Vec<ConversationAttachment>,
+    pub extensions: crate::extensions::contracts::AgentExtensionSelection,
+    pub reacquire_file_names: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize, TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/ConversationTaskAccepted.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct ConversationTaskAccepted {

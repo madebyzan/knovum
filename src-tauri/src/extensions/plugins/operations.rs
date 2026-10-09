@@ -1,6 +1,6 @@
 use crate::{
     app_error::{AppError, AppResult},
-    job_registry::{JobLease, JobRegistry},
+    job_registry::{JobAdmissionReservation, JobLease, JobRegistry},
 };
 use std::{
     future::Future,
@@ -19,6 +19,10 @@ struct Control {
 fn registry() -> &'static JobRegistry<Arc<Control>> {
     static REGISTRY: OnceLock<JobRegistry<Arc<Control>>> = OnceLock::new();
     REGISTRY.get_or_init(|| JobRegistry::new("Plugin operation"))
+}
+
+pub(in crate::extensions) fn reserve_maintenance() -> Result<JobAdmissionReservation, String> {
+    registry().reserve_maintenance()
 }
 
 pub(super) struct PluginOperation {

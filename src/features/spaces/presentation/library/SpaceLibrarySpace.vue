@@ -59,8 +59,8 @@ const { d, t } = useI18n();
         class="relative z-20 w-full"
         @click.stop
         @blur="emit('finish')"
-        @keydown.enter.prevent="emit('finish')"
-        @keydown.escape.prevent="emit('cancel')"
+        @commit.prevent="emit('finish')"
+        @cancel.prevent="emit('cancel')"
       />
       <h2 v-else class="truncate pr-7 text-label font-semibold text-fg-primary">
         {{ space.title }}

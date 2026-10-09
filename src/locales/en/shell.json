@@ -15,6 +15,7 @@
   },
   "toggleRightSidebar": "Show or hide right sidebar",
   "toggleSidebar": "Toggle sidebar",
+  "layoutSaveFailed": "Workbench layout could not be saved",
   "shortcuts": {
     "title": "Keyboard shortcuts",
     "search": "Search shortcuts",
