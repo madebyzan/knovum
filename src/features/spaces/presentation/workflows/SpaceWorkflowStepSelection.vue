@@ -28,8 +28,8 @@ function label(step: Step) {
   return captureActionLabel(step.actionId, t);
 }
 
-function choose(id: string, selected: boolean) {
-  emit("update:modelValue", selected ? [...props.modelValue, id] : without(props.modelValue, id));
+function choose(stepId: string, selected: boolean) {
+  emit("update:modelValue", selected ? [...props.modelValue, stepId] : without(props.modelValue, stepId));
 }
 </script>
 

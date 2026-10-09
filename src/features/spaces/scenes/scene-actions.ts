@@ -60,8 +60,8 @@ interface SpaceScenePatch {
   captureView?: boolean;
 }
 
-export async function updateSpaceScene(context: SceneActionContext, id: string, patch: SpaceScenePatch) {
-  const scene = context.scenes.value.find((candidate) => candidate.id === id);
+export async function updateSpaceScene(context: SceneActionContext, sceneId: string, patch: SpaceScenePatch) {
+  const scene = context.scenes.value.find((candidate) => candidate.id === sceneId);
   if (!scene) return;
   const viewport = patch.viewport;
   const view = patch.captureView ? currentView(context) : {};
@@ -75,14 +75,16 @@ export async function updateSpaceScene(context: SceneActionContext, id: string, 
   };
   const obsoletePaths = await updateScene(next);
   if (context.activeSpaceId.value === scene.spaceId) {
-    context.scenes.value = context.scenes.value.map((candidate) => (candidate.id === id ? next : candidate));
+    context.scenes.value = context.scenes.value.map((candidate) =>
+      candidate.id === sceneId ? next : candidate,
+    );
   }
   await cleanupDeletedSpaceAssets(obsoletePaths);
   return next;
 }
 
-export async function duplicateSpaceScene(context: SceneActionContext, id: string) {
-  const source = context.scenes.value.find((scene) => scene.id === id);
+export async function duplicateSpaceScene(context: SceneActionContext, sceneId: string) {
+  const source = context.scenes.value.find((scene) => scene.id === sceneId);
   if (!source) return;
   const now = Date.now();
   const duplicate: SpaceScene = {
@@ -119,9 +121,9 @@ function reorderArray<T>(array: readonly T[], fromIndex: number, toIndex: number
   return copy;
 }
 
-export async function moveSpaceScene(context: SceneActionContext, id: string, direction: -1 | 1) {
+export async function moveSpaceScene(context: SceneActionContext, sceneId: string, direction: -1 | 1) {
   const ordered = sortBy(context.scenes.value, [(scene) => scene.orderIndex, (scene) => scene.createdAt]);
-  const from = ordered.findIndex((scene) => scene.id === id);
+  const from = ordered.findIndex((scene) => scene.id === sceneId);
   const to = from + direction;
   if (from < 0 || to < 0 || to >= ordered.length) return;
   await persistReorderedScenes(context, reorderArray(ordered, from, to));
@@ -139,12 +141,12 @@ function reindexScene(scene: SpaceScene, order: number, updatedAt: number): Spac
   return { ...scene, orderIndex: (order + 1) * 100, updatedAt };
 }
 
-export async function removeSpaceScene(context: SceneActionContext, id: string) {
-  const scene = context.scenes.value.find((candidate) => candidate.id === id);
+export async function removeSpaceScene(context: SceneActionContext, sceneId: string) {
+  const scene = context.scenes.value.find((candidate) => candidate.id === sceneId);
   if (!scene) return;
-  const obsoletePaths = await deleteScene(id);
+  const obsoletePaths = await deleteScene(sceneId);
   if (context.activeSpaceId.value === scene.spaceId) {
-    context.scenes.value = context.scenes.value.filter((candidate) => candidate.id !== id);
+    context.scenes.value = context.scenes.value.filter((candidate) => candidate.id !== sceneId);
   }
   await cleanupDeletedSpaceAssets(obsoletePaths);
 }

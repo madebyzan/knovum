@@ -44,8 +44,8 @@ const pending = computed(
 );
 watch(nodeId, () => (expanded.value = false));
 
-function reveal(id: string) {
-  selectAndRevealSpaceNode(id);
+function reveal(relatedNodeId: string) {
+  selectAndRevealSpaceNode(relatedNodeId);
 }
 
 function retry() {

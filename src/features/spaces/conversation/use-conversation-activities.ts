@@ -9,10 +9,10 @@ export function useConversationActivities(
   activeRunId: Ref<string | undefined>,
   revision: Ref<number>,
 ) {
-  const eventsByRun = shallowRef<Record<string, RunEvent[]>>({});
+  const eventsByRunId = shallowRef<Record<string, RunEvent[]>>({});
   const error = shallowRef<string>();
   let selection = 0;
-  const pending = new Map<string, Promise<void>>();
+  const pendingLoadByRunId = new Map<string, Promise<void>>();
 
   async function loadPage(runId: string, events: RunEvent[], current: number): Promise<void> {
     const seen = events.at(-1)?.sequence ?? 0;
@@ -24,42 +24,42 @@ export function useConversationActivities(
 
   async function load(runId: string) {
     const current = selection;
-    const events = [...(eventsByRun.value[runId] ?? [])];
+    const events = [...(eventsByRunId.value[runId] ?? [])];
     await loadPage(runId, events, current);
     if (selection !== current) return;
-    eventsByRun.value = { ...eventsByRun.value, [runId]: events };
+    eventsByRunId.value = { ...eventsByRunId.value, [runId]: events };
     error.value = undefined;
   }
 
   function refresh(runId: string) {
     const current = selection;
-    const previous = pending.get(runId) ?? Promise.resolve();
+    const previous = pendingLoadByRunId.get(runId) ?? Promise.resolve();
     const next = previous
       .then(() => load(runId))
       .catch((cause: unknown) => {
         if (selection === current) error.value = getErrorMessage(cause);
       });
-    pending.set(runId, next);
+    pendingLoadByRunId.set(runId, next);
     void next.finally(() => {
-      if (pending.get(runId) === next) pending.delete(runId);
+      if (pendingLoadByRunId.get(runId) === next) pendingLoadByRunId.delete(runId);
     });
   }
 
   watch(selectedConversationId, () => {
     selection += 1;
-    eventsByRun.value = {};
+    eventsByRunId.value = {};
     error.value = undefined;
   });
   watch(revision, () => {
-    if (activeRunId.value && eventsByRun.value[activeRunId.value] !== undefined) refresh(activeRunId.value);
+    if (activeRunId.value && eventsByRunId.value[activeRunId.value] !== undefined) refresh(activeRunId.value);
   });
 
   function inspect(runId: string) {
-    if (eventsByRun.value[runId] === undefined) {
-      eventsByRun.value = { ...eventsByRun.value, [runId]: [] };
+    if (eventsByRunId.value[runId] === undefined) {
+      eventsByRunId.value = { ...eventsByRunId.value, [runId]: [] };
       refresh(runId);
     }
   }
 
-  return { eventsByRun, activityError: error, inspectActivity: inspect };
+  return { eventsByRunId, activityError: error, inspectActivity: inspect };
 }

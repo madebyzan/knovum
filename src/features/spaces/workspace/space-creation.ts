@@ -30,8 +30,8 @@ export async function persistAndTrackSpace(context: SpaceSessionContext, space: 
   context.spaces.value.push(space);
 }
 
-export async function markSpaceOpenedAndTrack(context: SpaceSessionContext, id: string) {
-  await markSpaceOpened(id);
-  const space = context.spaces.value.find((candidate) => candidate.id === id);
+export async function markSpaceOpenedAndTrack(context: SpaceSessionContext, spaceId: string) {
+  await markSpaceOpened(spaceId);
+  const space = context.spaces.value.find((candidate) => candidate.id === spaceId);
   if (space) space.lastOpenedAt = Date.now();
 }

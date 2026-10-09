@@ -17,10 +17,10 @@ const changes = useExtensionChanges();
 const accounts = computed(() =>
   (query.data.value ?? []).filter((account) => account.connectorId === props.connection.connectorId),
 );
-function bind(id: string) {
+function bind(accountId: string) {
   void changes
     .mutateAsync(async () => {
-      await updateMcpConnection({ ...props.connection, accountId: id === "none" ? null : id });
+      await updateMcpConnection({ ...props.connection, accountId: accountId === "none" ? null : accountId });
     })
     .catch(() => {});
 }

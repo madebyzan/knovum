@@ -20,7 +20,7 @@ const {
   extensionAvailability,
   extensionsLoading,
   extensionsError,
-  eventsByRun,
+  eventsByRunId,
   activityError,
   selectedConversationId,
   prompt,
@@ -43,7 +43,7 @@ const {
   restoringDraft,
   reacquireFileNames,
   pickingFiles,
-  scrollPositions,
+  scrollTopByConversationId,
 } = storeToRefs(conversationSession);
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 const { t } = useI18n();
@@ -85,9 +85,9 @@ async function previewAttachment(key: string) {
       <SpaceConversationMessages
         class="h-full"
         :scroll-key="selectedConversationId"
-        :saved-scroll-top="scrollPositions[selectedConversationId]"
+        :saved-scroll-top="scrollTopByConversationId[selectedConversationId]"
         :messages="messages"
-        :events-by-run="eventsByRun"
+        :events-by-run-id="eventsByRunId"
         :active-run-id="activeRunId"
         :busy="loading"
         :has-draft="Boolean(prompt.trim())"

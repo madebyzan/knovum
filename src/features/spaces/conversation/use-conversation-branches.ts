@@ -8,15 +8,15 @@ interface ConversationBranchesInput {
   selectedId: Ref<string>;
   loading: Ref<boolean>;
   refresh: () => Promise<void>;
-  select: (id: string) => Promise<void>;
+  select: (conversationId: string) => Promise<void>;
 }
 
 export function useConversationBranches(input: ConversationBranchesInput) {
   const branches = shallowRef<string[]>([]);
 
-  async function load(id: string) {
-    const loaded = id ? await listConversationBranches(id) : [];
-    if (input.selectedId.value === id) branches.value = loaded;
+  async function load(conversationId: string) {
+    const loaded = conversationId ? await listConversationBranches(conversationId) : [];
+    if (input.selectedId.value === conversationId) branches.value = loaded;
   }
 
   async function selectBranch(branchId: string) {

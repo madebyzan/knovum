@@ -8,8 +8,8 @@ export interface ArchivedSpace {
 export interface ArchiveSettingsContract {
   spaces: Readonly<Ref<readonly ArchivedSpace[]>>;
   initialize(inboxTitle: string): Promise<void>;
-  restore(id: string): Promise<void>;
-  permanentlyDelete(id: string): Promise<void>;
+  restore(spaceId: string): Promise<void>;
+  permanentlyDelete(spaceId: string): Promise<void>;
   permanentlyDeleteAll(): Promise<void>;
 }
 

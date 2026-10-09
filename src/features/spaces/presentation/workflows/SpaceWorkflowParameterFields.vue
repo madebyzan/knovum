@@ -6,7 +6,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import { captureActionLabel } from "./workflow-capture-labels";
 
-interface Field {
+interface WorkflowParameterField {
   stepId: string;
   actionId: string;
   key: string;
@@ -15,7 +15,7 @@ interface Field {
 }
 
 defineProps<{
-  fields: readonly Field[];
+  fields: readonly WorkflowParameterField[];
   parameters: Record<string, Record<string, unknown>>;
   text: Record<string, string>;
 }>();
@@ -25,8 +25,8 @@ const emit = defineEmits<{
 }>();
 const { t, te } = useI18n();
 
-function actionLabel(id: string) {
-  return captureActionLabel(id, t);
+function actionLabel(actionId: string) {
+  return captureActionLabel(actionId, t);
 }
 
 function parameterLabel(key: string) {

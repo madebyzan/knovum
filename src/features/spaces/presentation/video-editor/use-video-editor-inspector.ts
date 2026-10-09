@@ -16,20 +16,20 @@ export function useVideoEditorInspector(options: VideoEditorInspectorOptions) {
   const { project, video, editorRoot, selection, playback } = options;
   const visible = computed(() => !!selection.selectedClipId.value || !!selection.selectedTextId.value);
 
-  function selectText(id: string) {
-    const item = project.value?.textTrack.items.find((entry) => entry.id === id);
+  function selectText(textId: string) {
+    const item = project.value?.textTrack.items.find((entry) => entry.id === textId);
     if (!item) return;
     video.value?.pause();
-    selection.selectText(id);
+    selection.selectText(textId);
     if (playback.timelineMs.value < item.startMs || playback.timelineMs.value >= item.endMs)
       playback.seek(item.startMs);
   }
 
-  function selectClip(id: string) {
+  function selectClip(clipId: string) {
     if (!project.value) return;
     video.value?.pause();
-    selection.selectClip(id);
-    playback.seek(clipTimelineStart(project.value, id));
+    selection.selectClip(clipId);
+    playback.seek(clipTimelineStart(project.value, clipId));
   }
 
   async function close() {

@@ -29,11 +29,11 @@ const positiveControls = new Set<keyof ImageAdjustments>([
   "glow",
 ]);
 
-function navigate(id: ImageAdjustmentGroupId) {
+function navigate(groupId: ImageAdjustmentGroupId) {
   const viewport = list.value?.viewportElement;
-  const section = viewport?.querySelector<HTMLElement>(`[data-adjust-group="${id}"]`);
+  const section = viewport?.querySelector<HTMLElement>(`[data-adjust-group="${groupId}"]`);
   if (!section || !viewport) return;
-  active.value = id;
+  active.value = groupId;
   viewport.scrollTo({
     top: section.offsetTop,
     behavior: reducedMotion.value === "reduce" ? "auto" : "smooth",

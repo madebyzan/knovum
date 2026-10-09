@@ -51,10 +51,10 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
     fields.value = [];
     baseline.value = fingerprint();
   }
-  function selectType(id: string) {
+  function selectType(objectTypeId: string) {
     if (saving.value) return;
     error.value = "";
-    const type = types.value.find((knowledgeType) => knowledgeType.id === id);
+    const type = types.value.find((knowledgeType) => knowledgeType.id === objectTypeId);
     if (!type) return reset();
     editingId.value = type.id;
     name.value = type.name;

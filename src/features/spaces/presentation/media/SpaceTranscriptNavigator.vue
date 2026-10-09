@@ -38,8 +38,10 @@ const canAlign = computed(
       (segment) => segment.endMs - segment.startMs,
     ) <= 300_000,
 );
-function selectSegment(id: string, checked: boolean) {
-  selected.value = checked ? [...selected.value, id] : selected.value.filter((value) => value !== id);
+function selectSegment(segmentId: string, checked: boolean) {
+  selected.value = checked
+    ? [...selected.value, segmentId]
+    : selected.value.filter((value) => value !== segmentId);
 }
 watch(
   () => props.segments,

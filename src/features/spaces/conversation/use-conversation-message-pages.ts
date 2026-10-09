@@ -14,7 +14,7 @@ interface ConversationMessagePagesInput {
 export function useConversationMessagePages(input: ConversationMessagePagesInput) {
   const loadingOlder = shallowRef(false);
   const hasOlder = shallowRef(false);
-  const scrollPositions = shallowRef<Record<string, number>>({});
+  const scrollTopByConversationId = shallowRef<Record<string, number>>({});
 
   async function loadOlder() {
     const conversation = input.selectedConversation.value;
@@ -33,9 +33,9 @@ export function useConversationMessagePages(input: ConversationMessagePagesInput
     }
   }
 
-  function rememberScroll(id: string, top: number) {
-    scrollPositions.value = { ...scrollPositions.value, [id]: top };
+  function rememberScroll(conversationId: string, scrollTop: number) {
+    scrollTopByConversationId.value = { ...scrollTopByConversationId.value, [conversationId]: scrollTop };
   }
 
-  return { loadingOlder, hasOlder, scrollPositions, loadOlder, rememberScroll };
+  return { loadingOlder, hasOlder, scrollTopByConversationId, loadOlder, rememberScroll };
 }

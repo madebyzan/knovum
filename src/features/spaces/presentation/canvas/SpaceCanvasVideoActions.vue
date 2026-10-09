@@ -15,8 +15,8 @@ const tools = [
   { id: "edit", icon: Scissors, label: "spaces.media.videoEditor.edit" },
   { id: "subtitles", icon: Captions, label: "spaces.creation.video.subtitles.add" },
 ] as const;
-function invoke(id: "edit" | "subtitles") {
-  if (id === "edit") emit("edit");
+function invoke(actionId: "edit" | "subtitles") {
+  if (actionId === "edit") emit("edit");
   else emit("addSubtitles");
 }
 </script>

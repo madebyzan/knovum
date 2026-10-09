@@ -45,13 +45,13 @@ const groups = computed(() => {
   return [...groupsByDate.values()];
 });
 const emit = defineEmits<{
-  select: [id: string];
+  select: [conversationId: string];
   refresh: [];
 }>();
 const refreshSearch = useDebounceFn(() => emit("refresh"), 180);
 
-function choose(id: string) {
-  emit("select", id);
+function choose(conversationId: string) {
+  emit("select", conversationId);
   open.value = false;
 }
 

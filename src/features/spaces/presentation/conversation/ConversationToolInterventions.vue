@@ -23,13 +23,18 @@ const interactions = useQuery({
   queryFn: () => listMcpUserInteractions(props.runId),
 });
 const mutation = useMutation({
-  mutationFn: ({ id, decision }: { id: string; decision: ToolOperationDecision }) =>
-    decideConversationToolOperation(id, decision),
+  mutationFn: ({ operationId, decision }: { operationId: string; decision: ToolOperationDecision }) =>
+    decideConversationToolOperation(operationId, decision),
   onSuccess: () => client.invalidateQueries({ queryKey: ["conversation-tool-interventions"] }),
 });
 const answering = useMutation({
-  mutationFn: ({ id, response }: { id: string; response: Parameters<typeof answerMcpUserInteraction>[1] }) =>
-    answerMcpUserInteraction(id, response),
+  mutationFn: ({
+    interactionId,
+    response,
+  }: {
+    interactionId: string;
+    response: Parameters<typeof answerMcpUserInteraction>[1];
+  }) => answerMcpUserInteraction(interactionId, response),
   onSuccess: () => client.invalidateQueries({ queryKey: ["conversation-mcp-interactions"] }),
 });
 watch(
@@ -39,11 +44,11 @@ watch(
     void client.invalidateQueries({ queryKey: ["conversation-mcp-interactions", props.runId] });
   },
 );
-function decide(id: string, decision: ToolOperationDecision) {
-  mutation.mutate({ id, decision });
+function decide(operationId: string, decision: ToolOperationDecision) {
+  mutation.mutate({ operationId, decision });
 }
-function answer(id: string, response: Parameters<typeof answerMcpUserInteraction>[1]) {
-  answering.mutate({ id, response });
+function answer(interactionId: string, response: Parameters<typeof answerMcpUserInteraction>[1]) {
+  answering.mutate({ interactionId, response });
 }
 </script>
 

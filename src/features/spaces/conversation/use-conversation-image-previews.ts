@@ -32,7 +32,7 @@ async function createPreview(path: string) {
 }
 
 export function useConversationImagePreviews(attachments: Readonly<Ref<ConversationAttachment[]>>) {
-  const previews = shallowRef(new Map<string, string>());
+  const previewUrlByAttachmentKey = shallowRef(new Map<string, string>());
 
   watch(
     attachments,
@@ -43,14 +43,17 @@ export function useConversationImagePreviews(attachments: Readonly<Ref<Conversat
         (item): item is FileAttachment => item.kind === "file" && isConversationImagePath(item.path),
       );
       const keys = new Set(images.map(previewKey));
-      previews.value = new Map([...previews.value].filter(([key]) => keys.has(key)));
+      previewUrlByAttachmentKey.value = new Map(
+        [...previewUrlByAttachmentKey.value].filter(([key]) => keys.has(key)),
+      );
       void Promise.all(
         images.map(async (image) => {
           const key = previewKey(image);
-          if (!active || previews.value.has(key)) return;
+          if (!active || previewUrlByAttachmentKey.value.has(key)) return;
           try {
             const source = await createPreview(image.path);
-            if (active) previews.value = new Map(previews.value).set(key, source);
+            if (active)
+              previewUrlByAttachmentKey.value = new Map(previewUrlByAttachmentKey.value).set(key, source);
           } catch {
             // The attachment remains removable if its preview cannot be read.
           }
@@ -60,5 +63,5 @@ export function useConversationImagePreviews(attachments: Readonly<Ref<Conversat
     { immediate: true },
   );
 
-  return (file: FileAttachment) => previews.value.get(previewKey(file)) ?? "";
+  return (file: FileAttachment) => previewUrlByAttachmentKey.value.get(previewKey(file)) ?? "";
 }

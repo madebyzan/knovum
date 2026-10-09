@@ -51,8 +51,8 @@ const candidateListDirty = shallowRef(false);
 const dirty = computed(() => draftDirty.value || referenceEditorDirty.value || candidateListDirty.value);
 watch(dirty, (value) => emit("dirty", value), { immediate: true });
 
-async function saveCandidate(id: string, name: string) {
-  const voice = await save(id, name, authorized.value);
+async function saveCandidate(candidateId: string, name: string) {
+  const voice = await save(candidateId, name, authorized.value);
   if (voice) emit("created", voice);
 }
 </script>

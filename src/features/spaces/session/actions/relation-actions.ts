@@ -51,18 +51,26 @@ export async function createSpaceRelation(context: RelationContext, input: Creat
   return relation;
 }
 
-export async function changeSpaceRelationKind(context: RelationContext, id: string, kind: SpaceRelationKind) {
-  const current = context.relations.value.find((relation) => relation.id === id);
+export async function changeSpaceRelationKind(
+  context: RelationContext,
+  relationId: string,
+  kind: SpaceRelationKind,
+) {
+  const current = context.relations.value.find((relation) => relation.id === relationId);
   if (!current || current.kind === kind) return;
-  return updateSpaceRelation(context, id, { kind });
+  return updateSpaceRelation(context, relationId, { kind });
 }
 
-export async function updateSpaceRelation(context: RelationContext, id: string, patch: RelationPatch) {
-  const current = context.relations.value.find((relation) => relation.id === id);
+export async function updateSpaceRelation(
+  context: RelationContext,
+  relationId: string,
+  patch: RelationPatch,
+) {
+  const current = context.relations.value.find((relation) => relation.id === relationId);
   if (!current) return;
   const decision = reviseRelation(current, patch, context.relations.value);
   if (decision.kind === "duplicate") {
-    await removeSpaceRelation(context, id);
+    await removeSpaceRelation(context, relationId);
     return decision.relation;
   }
   const next = decision.relation;
@@ -77,12 +85,16 @@ export async function updateSpaceRelation(context: RelationContext, id: string, 
   return next;
 }
 
-export async function removeSpaceRelation(context: RelationContext, id: string) {
-  await removeSpaceRelations(context, [id]);
+export async function removeSpaceRelation(context: RelationContext, relationId: string) {
+  await removeSpaceRelations(context, [relationId]);
 }
 
-export async function removeSpaceRelations(context: RelationContext, ids: readonly string[]) {
-  const selection = selectRelationsForSpace(context.relations.value, ids, context.activeSpaceId.value);
+export async function removeSpaceRelations(context: RelationContext, relationIds: readonly string[]) {
+  const selection = selectRelationsForSpace(
+    context.relations.value,
+    relationIds,
+    context.activeSpaceId.value,
+  );
   if (!selection) return;
   await revokeRelations(selection.ids);
   removeRelationsFromState(context, selection.ids);
@@ -130,8 +142,8 @@ function removeRelationFromState(context: RelationContext, relation: SpaceRelati
   context.relations.value = context.relations.value.filter((candidate) => candidate.id !== relation.id);
 }
 
-function removeRelationsFromState(context: RelationContext, ids: readonly string[]) {
-  const removed = new Set(ids);
+function removeRelationsFromState(context: RelationContext, relationIds: readonly string[]) {
+  const removed = new Set(relationIds);
   context.relations.value = context.relations.value.filter(({ id }) => !removed.has(id));
 }
 
