@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
 import { availableExecutionTargets, availableModelTargets, defaultExecutionTarget } from "../ai-execution";
-import { encodeExecutionTarget } from "../execution-target-codec";
 import { defaultAiModelSettings } from "../schema/model-settings";
 
 describe("execution target options", () => {
@@ -60,7 +59,16 @@ describe("execution target options", () => {
 it("keeps distinct model references separate when identifiers contain separators", () => {
   const left = { type: "model" as const, connectionId: "a:b", modelId: "c" };
   const right = { type: "model" as const, connectionId: "a", modelId: "b:c" };
-  expect(encodeExecutionTarget(left)).not.toBe(encodeExecutionTarget(right));
+  const options = availableModelTargets({
+    connections: [left, right].map(({ connectionId, modelId }) => ({
+      id: connectionId,
+      name: connectionId,
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1/",
+      models: [{ id: modelId, name: modelId, model: modelId, capabilities: ["text-generation"] }],
+    })),
+  });
+  expect(options[0]!.value).not.toBe(options[1]!.value);
 });
 
 it("inherits an explicitly selected desktop Agent across product tasks without model connections", () => {

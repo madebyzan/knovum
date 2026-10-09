@@ -2,7 +2,6 @@ import { mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import AiRoutingSettings from "../components/AiRoutingSettings.vue";
 
@@ -35,7 +34,7 @@ it("selects the exact configured target with separator-containing identities and
   try {
     const selector = wrapper.findComponent({ name: "UiSelect" });
     const target = { type: "model" as const, connectionId: "provider:v1", modelId: "model:chat" };
-    selector.vm.$emit("update:modelValue", encodeExecutionTarget(target));
+    selector.vm.$emit("update:modelValue", JSON.stringify(target));
     selector.vm.$emit("update:modelValue", "__unassigned__");
     expect(wrapper.emitted("updateRoute")).toEqual([
       ["defaultTarget", target],

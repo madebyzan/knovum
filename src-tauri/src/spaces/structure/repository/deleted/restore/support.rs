@@ -93,11 +93,10 @@ pub(crate) async fn remove_tombstones(
     structure: &[StructureNode],
 ) -> Result<(), String> {
     // Parent foreign keys are deferred; snapshot publication restores the identities before commit.
-    let ids = serde_json::to_string(&structure.iter().map(StructureNode::id).collect::<Vec<_>>())
-        .map_err(db::json_error)?;
+    let ids = structure.iter().map(StructureNode::id).collect::<Vec<_>>();
     sqlx::query("DELETE FROM spaces_structure_layouts WHERE space_id=$1 AND structure_node_id IN (SELECT value FROM json_each($2))")
-        .bind(space_id).bind(&ids).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(space_id).bind(sqlx::types::Json(&ids)).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_structure_nodes WHERE space_id=$1 AND deleted_at IS NOT NULL AND id IN (SELECT value FROM json_each($2))")
-        .bind(space_id).bind(&ids).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(space_id).bind(sqlx::types::Json(&ids)).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

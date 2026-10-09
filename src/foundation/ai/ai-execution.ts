@@ -2,7 +2,6 @@ import { routingCapabilities } from "../../shared/contracts/generated/contract-v
 import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import { useAiSettingsStore } from "./ai-settings-store";
-import { encodeExecutionTarget } from "./execution-target-codec";
 import type { AiModelSettings } from "./schema/model-settings";
 import type { ResolvedAiModelTarget, ResolvedAiTaskTarget } from "./schema/models";
 
@@ -80,7 +79,7 @@ export function availableModelTargets(
       .filter((model) => !purpose || model.capabilities.includes(routingCapabilities[purpose]))
       .map((model) => {
         const target: TaskTargetRef = { type: "model", connectionId: connection.id, modelId: model.id };
-        return { value: encodeExecutionTarget(target), label: `${model.name} · ${connection.name}`, target };
+        return { value: JSON.stringify(target), label: `${model.name} · ${connection.name}`, target };
       }),
   );
 }
@@ -93,7 +92,7 @@ export function availableExecutionTargets(
     .filter(({ enabled }) => enabled)
     .map(({ kind }) => {
       const target: TaskTargetRef = { type: "agent", runtimeKind: kind };
-      return { value: encodeExecutionTarget(target), label: kind, target };
+      return { value: JSON.stringify(target), label: kind, target };
     });
   return [...availableModelTargets(settings, purpose), ...agents];
 }

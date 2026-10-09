@@ -160,8 +160,8 @@ async fn insert_step(
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(run_id)
     .bind(&step.id)
-    .bind(serde_json::to_string(dependencies).map_err(db::json_error)?)
-    .bind(serde_json::to_string(step).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(dependencies))
+    .bind(sqlx::types::Json(step))
     .bind(if dependencies.is_empty() {
         "ready"
     } else {

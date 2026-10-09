@@ -172,7 +172,7 @@ async fn persist_completion(
     }
     sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.intent).bind(&request.style).bind(request.aspect_ratio.as_str())
-        .bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?).bind(&generated.revised_prompt)
+        .bind(sqlx::types::Json(&generated.execution_source)).bind(&generated.revised_prompt)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut **tx).await.map_err(db::sql_error)?;

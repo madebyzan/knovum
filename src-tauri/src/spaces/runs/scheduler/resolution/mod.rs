@@ -16,7 +16,7 @@ async fn dependency_facts(
     tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,
     ids: &[String],
-) -> Result<Vec<(String, Option<String>)>, String> {
+) -> Result<Vec<(String, Option<Value>)>, String> {
     let mut facts = Vec::with_capacity(ids.len());
     for id in ids {
         let row = sqlx::query(
@@ -29,7 +29,9 @@ async fn dependency_facts(
         .map_err(db::sql_error)?;
         facts.push((
             row.try_get("state").map_err(db::sql_error)?,
-            row.try_get("output").map_err(db::sql_error)?,
+            row.try_get::<Option<sqlx::types::Json<Value>>, _>("output")
+                .map_err(db::sql_error)?
+                .map(|output| output.0),
         ));
     }
     Ok(facts)
@@ -37,21 +39,14 @@ async fn dependency_facts(
 
 fn dependency_input(
     ids: &[String],
-    facts: &[(String, Option<String>)],
+    facts: &[(String, Option<Value>)],
     include_states: bool,
-) -> Result<String, String> {
+) -> Value {
     let values = facts
         .iter()
-        .map(|(_, output)| {
-            output
-                .as_deref()
-                .map(serde_json::from_str)
-                .transpose()
-                .map_err(db::json_error)
-                .map(|value| value.unwrap_or(Value::Null))
-        })
-        .collect::<Result<Vec<Value>, String>>()?;
-    let value = if include_states {
+        .map(|(_, output)| output.clone().unwrap_or(Value::Null))
+        .collect::<Vec<_>>();
+    if include_states {
         Value::Array(
             ids.iter()
                 .zip(facts)
@@ -70,8 +65,7 @@ fn dependency_input(
             .expect("single dependency has one value")
     } else {
         Value::Object(ids.iter().cloned().zip(values).collect())
-    };
-    serde_json::to_string(&value).map_err(db::json_error)
+    }
 }
 
 fn join_policy(configuration: &str) -> Result<String, String> {

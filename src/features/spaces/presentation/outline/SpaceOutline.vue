@@ -153,7 +153,7 @@ onBeforeUnmount(finishRename);
           v-if="flattenItems.length"
           :estimate-size="30"
           :text-content="(item) => item.title"
-          v-slot="{ item: { level, value }, virtualizer: itemVirtualizer }"
+          v-slot="{ item: { level, value }, virtualizer: itemVirtualizer, virtualItem }"
         >
           <SpaceStructureTreeItem
             :ref="
@@ -175,6 +175,7 @@ onBeforeUnmount(finishRename);
             @menu="outlineMenu.show(value.id)"
             @toggle="toggle(value.id)"
             @finish="finishRename"
+            @height="itemVirtualizer.resizeItem(virtualItem.index, $event)"
           />
         </TreeVirtualizer>
         <p v-if="flattenItems.length === 0" class="px-1 text-caption text-fg-tertiary">

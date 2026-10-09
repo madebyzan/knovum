@@ -1,5 +1,5 @@
 use sha2::Digest;
-use sqlx::Row;
+use sqlx::{types::Json, Row};
 
 use crate::spaces::{db, runs::AttemptClaim};
 
@@ -26,8 +26,9 @@ pub(super) fn claim(
 }
 
 fn json(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<serde_json::Value, String> {
-    let encoded: String = row.try_get(field).map_err(db::sql_error)?;
-    serde_json::from_str(&encoded).map_err(db::json_error)
+    row.try_get::<Json<serde_json::Value>, _>(field)
+        .map(|Json(value)| value)
+        .map_err(db::sql_error)
 }
 
 pub(super) fn request_digest(encoded: &str) -> String {

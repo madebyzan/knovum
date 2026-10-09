@@ -1,4 +1,5 @@
 import { error as logError } from "@tauri-apps/plugin-log";
+import { promiseTimeout } from "@vueuse/core";
 
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
@@ -47,12 +48,12 @@ async function observeRunning(tasks: ReturnType<typeof useTaskStore>, jobId: str
         ).catch(() => undefined);
         return;
       }
-      await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
+      await promiseTimeout(OBSERVATION_INTERVAL_MS);
       continue;
     }
     failures = 0;
     if (applySnapshot(tasks, jobId, snapshot)) return;
-    await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
+    await promiseTimeout(OBSERVATION_INTERVAL_MS);
   }
   /* oxlint-enable no-await-in-loop */
 }

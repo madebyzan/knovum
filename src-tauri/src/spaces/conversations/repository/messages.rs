@@ -1,5 +1,5 @@
 use serde_json::Value;
-use sqlx::{Row, Sqlite, SqlitePool, Transaction};
+use sqlx::{types::Json, Row, Sqlite, SqlitePool, Transaction};
 
 use super::message_contract::{
     ConversationMessage, ConversationMessageContent, ConversationMessageRole,
@@ -18,7 +18,7 @@ pub async fn append_message_in_transaction(
     sqlx::query("INSERT INTO spaces_conversation_messages(id,conversation_id,branch_id,role,content,created_at)
          VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&id).bind(conversation_id).bind(branch_id).bind(role.as_str())
-        .bind(serde_json::to_string(content).map_err(db::json_error)?)
+        .bind(Json(content))
         .bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(id)
 }
@@ -70,9 +70,8 @@ pub async fn all_messages(
 }
 
 fn parse(row: sqlx::sqlite::SqliteRow) -> Result<ConversationMessage, String> {
-    let content: String = row.try_get("content").map_err(db::sql_error)?;
-    let content: ConversationMessageContent =
-        serde_json::from_str(&content).map_err(db::json_error)?;
+    let Json(content): Json<ConversationMessageContent> =
+        row.try_get("content").map_err(db::sql_error)?;
     crate::spaces::knowledge::grounding::validate_citation_snapshots(&Value::Array(
         content.citations.clone(),
     ))?;

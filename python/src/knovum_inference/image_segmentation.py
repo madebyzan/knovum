@@ -5,12 +5,12 @@ import os
 import re
 import stat
 import threading
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
 
+from knovum_inference.contracts.generated.image import TensorDataType, TensorFileReference
 from knovum_inference.errors import RpcError, invalid_params, server_error
 
 MODEL_RESOLUTION = 320
@@ -21,15 +21,6 @@ INPUT_BYTES = np.prod(INPUT_SHAPE, dtype=np.int64).item() * FLOAT32_BYTES
 MASK_BYTES = np.prod(MASK_SHAPE, dtype=np.int64).item() * FLOAT32_BYTES
 _REFERENCE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,159}\Z")
 _REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]{0,127}\Z")
-
-
-@dataclass(frozen=True, slots=True)
-class SegmentedMask:
-    file_name: str
-    sha256: str
-    byte_length: int = MASK_BYTES
-    shape: tuple[int, int, int, int] = MASK_SHAPE
-    data_type: str = "float32_little_endian"
 
 
 class ImageSegmentationEngine:
@@ -63,7 +54,7 @@ class ImageSegmentationEngine:
         tensor_sha256: str,
         request_id: str,
         cancelled: threading.Event,
-    ) -> SegmentedMask:
+    ) -> TensorFileReference:
         if not _REQUEST_ID.fullmatch(request_id):
             raise invalid_params("Image segmentation request identifier is invalid")
         if not re.fullmatch(r"[0-9a-f]{64}", tensor_sha256):
@@ -103,13 +94,18 @@ class ImageSegmentationEngine:
         except OSError as error:
             temporary.unlink(missing_ok=True)
             raise server_error("resource_exhausted", "Image mask cannot be written") from error
-        return SegmentedMask(
-            file_name=file_name,
-            sha256=hashlib.sha256(mask_bytes).hexdigest(),
+        return TensorFileReference.model_validate(
+            {
+                "fileName": file_name,
+                "byteLength": MASK_BYTES,
+                "sha256": hashlib.sha256(mask_bytes).hexdigest(),
+                "shape": list(MASK_SHAPE),
+                "dataType": TensorDataType.float32_little_endian,
+            }
         )
 
     def _input_path(self, file_name: str) -> Path:
-        if not _REFERENCE_NAME.fullmatch(file_name) or Path(file_name).name != file_name:
+        if not _REFERENCE_NAME.fullmatch(file_name):
             raise invalid_params("Image tensor reference is invalid")
         path = self._work_directory / file_name
         try:

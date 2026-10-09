@@ -121,12 +121,11 @@ async fn insert_object_types(
             &row.description,
             &row.fields,
         )?;
-        let fields = serde_json::to_string(&row.fields).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_object_types(id,space_id,name,icon,description,fields,system,created_at,updated_at) \
              VALUES($1,$2,$3,$4,$5,$6,0,$7,$8)",
         ).bind(&row.id).bind(&request.space.id).bind(&row.name).bind(&row.icon).bind(&row.description)
-            .bind(fields).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
+            .bind(sqlx::types::Json(&row.fields)).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())
 }
@@ -155,11 +154,10 @@ async fn insert_nodes(
         } else {
             None
         };
-        let data = serde_json::to_string(&row.data).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at) VALUES($1,$2,$3,$4,0,0,$5,$6,$7)",
         ).bind(&row.id).bind(&request.space.id).bind(&row.kind).bind(object_type)
-            .bind(data).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
+            .bind(sqlx::types::Json(&row.data)).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())
 }

@@ -31,9 +31,7 @@ pub(super) async fn insert(
         .bind(
             row.session_capabilities
                 .as_ref()
-                .map(serde_json::to_string)
-                .transpose()
-                .map_err(db::json_error)?,
+                .map(sqlx::types::Json),
         )
         .bind(&row.title)
         .bind(error)

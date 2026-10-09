@@ -11,7 +11,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { GroundedDocumentSource } from "../../knowledge-derivations/catalog/grounded-document";
-import { isImageAspectRatio, type VisualizationDraft } from "../../knowledge-derivations/visualization";
+import { imageAspectRatioSchema, type VisualizationDraft } from "../../knowledge-derivations/visualization";
 import GenerationPresetField from "./GenerationPresetField.vue";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -35,7 +35,7 @@ const styles = computed(() => [
   { value: "clean information diagram", label: t("spaces.creation.image.styles.diagram") },
   { value: "cinematic concept art", label: t("spaces.creation.image.styles.concept") },
 ]);
-const ratios = ["1:1", "3:2", "2:3", "16:9", "9:16"].map((value) => ({ value, label: value }));
+const ratios = imageAspectRatioSchema.options.map((value) => ({ value, label: value }));
 watch(open, (isOpen) => {
   if (!isOpen) return;
   form.title = t("spaces.creation.image.visualization.defaultTitle");
@@ -46,9 +46,8 @@ function applyPreset(preset: GenerationPreset) {
   form.target = preset.target;
   if (isString(preset.parameters.intent)) form.intent = preset.parameters.intent;
   if (isString(preset.parameters.style)) form.style = preset.parameters.style;
-  if (isImageAspectRatio(preset.parameters.aspectRatio)) {
-    form.aspectRatio = preset.parameters.aspectRatio;
-  }
+  const aspectRatio = imageAspectRatioSchema.safeParse(preset.parameters.aspectRatio);
+  if (aspectRatio.success) form.aspectRatio = aspectRatio.data;
 }
 </script>
 

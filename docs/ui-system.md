@@ -390,7 +390,8 @@ bitmap stays visible while the next render runs, and the last consumer releases 
 materialization and export retain their full-resolution policy.
 
 Outline uses Reka tree virtualization while keeping button TreeItems, hierarchy, type-ahead and rename
-leases. The Space library uses TanStack virtual rows; focused and renamed rows remain mounted, and arrow
+leases. Rows report their measured height to the virtualizer, including inline rename errors. The Space
+library uses TanStack virtual rows; focused and renamed rows remain mounted, and arrow
 keys/Home/End reveal the destination before transferring focus. Search input updates immediately and
 filters after a 150 ms pause. Full text/video editors and recovery surfaces load on demand. Long-document
 statistics and heading derivation follow input after a 200 ms pause; save and session commit remain immediate.

@@ -49,14 +49,13 @@ pub(super) async fn validate(
                 })
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let encoded_ids = serde_json::to_string(&node_ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT id,kind,json_extract(data,'$.knowledgeRevision') AS content_revision \
          FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL \
          AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(encoded_ids)
+    .bind(sqlx::types::Json(&node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

@@ -44,6 +44,3 @@ pub(super) async fn validate_scene(
     )
     .await
 }
-pub(super) fn json(value: &impl serde::Serialize) -> Result<String, String> {
-    serde_json::to_string(value).map_err(db::json_error)
-}

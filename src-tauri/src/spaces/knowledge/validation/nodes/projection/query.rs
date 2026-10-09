@@ -81,12 +81,11 @@ async fn validate_object_type_ids(
     if unique.len() != ids.len() {
         return Err("Saved View object types must not contain duplicates".into());
     }
-    let json = serde_json::to_string(ids).map_err(db::json_error)?;
     let count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM spaces_object_types WHERE (system=1 OR space_id=$1) AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(json)
+    .bind(sqlx::types::Json(ids))
     .fetch_one(&mut **tx)
     .await
     .map_err(db::sql_error)?;

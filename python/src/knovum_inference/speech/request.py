@@ -22,11 +22,9 @@ def verify_audio(audio_ref: AudioFileReference) -> Path:
         raise invalid_params("Audio reference must name an existing absolute file")
     if path.stat().st_size != audio_ref.byte_length:
         raise server_error("stale_revision", "Audio reference length changed")
-    digest = hashlib.sha256()
     with path.open("rb") as source:
-        while chunk := source.read(1024 * 1024):
-            digest.update(chunk)
-    if digest.hexdigest() != audio_ref.sha256:
+        digest = hashlib.file_digest(source, "sha256").hexdigest()
+    if digest != audio_ref.sha256:
         raise server_error("stale_revision", "Audio reference digest changed")
     return path
 

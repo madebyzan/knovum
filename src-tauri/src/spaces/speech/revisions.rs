@@ -63,7 +63,6 @@ pub async fn save_speech_project_revision(
         validate_segment(segment)?;
     }
     let pronunciations = text::parse_lexicon(&request.pronunciation_lexicon)?;
-    let lexicon = serde_json::to_string(&request.pronunciation_lexicon).map_err(db::json_error)?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -89,7 +88,6 @@ pub async fn save_speech_project_revision(
     }
     let config = super::project_config::parse(&project_type, &request.output_config)?;
     super::project_source::require(&mut tx, &space_id, &source_node_id, &config).await?;
-    let output = serde_json::to_string(&config).map_err(db::json_error)?;
     if let ProjectOutputConfig::Audiobook(config) = &config {
         super::book_assets::require_cover(
             &mut tx,
@@ -174,8 +172,8 @@ pub async fn save_speech_project_revision(
     .bind(&request.project_id)
     .bind(next_revision)
     .bind(request.source_revision.trim())
-    .bind(lexicon)
-    .bind(output)
+    .bind(sqlx::types::Json(&request.pronunciation_lexicon))
+    .bind(sqlx::types::Json(&config))
     .bind(now)
     .execute(&mut *tx)
     .await

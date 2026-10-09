@@ -1,3 +1,5 @@
+import { sumBy } from "es-toolkit";
+
 export interface DubbingSubtitle {
   startMs: number;
   endMs: number;
@@ -56,11 +58,7 @@ export function parseDubbingSubtitles(source: string, speakerKey: string): Dubbi
   const cues = blocks
     .filter((block) => !/^(?:NOTE(?:\s|$)|STYLE(?:\s|$)|REGION(?:\s|$))/u.test(block))
     .map((block) => cue(block, speakerKey));
-  if (
-    !cues.length ||
-    cues.length > 10_000 ||
-    cues.reduce((size, item) => size + [...item.text].length, 0) > 1_000_000
-  )
+  if (!cues.length || cues.length > 10_000 || sumBy(cues, (item) => [...item.text].length) > 1_000_000)
     throw new Error("Subtitle script exceeds dubbing limits");
   return cues;
 }

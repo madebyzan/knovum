@@ -39,13 +39,12 @@ async fn validate_live_refs(
         .iter()
         .map(|citation| citation.chunk_id.as_str())
         .collect::<Vec<_>>();
-    let chunk_ids_json = serde_json::to_string(&chunk_ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT c.id,c.node_id,c.source_revision FROM spaces_current_knowledge_chunks c \
          WHERE c.space_id=$1 AND c.id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(chunk_ids_json)
+    .bind(sqlx::types::Json(&chunk_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

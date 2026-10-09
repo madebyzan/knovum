@@ -1,23 +1,16 @@
-export interface KeyedSerialQueue<Key> {
-  run<Value>(key: Key, task: () => Promise<Value>): Promise<Value>;
-}
+import pLimit, { type LimitFunction } from "p-limit";
 
-export function createKeyedSerialQueue<Key>(): KeyedSerialQueue<Key> {
-  const tails = new Map<Key, Promise<void>>();
+export function createKeyedSerialQueue<Key>() {
+  const queues = new Map<Key, LimitFunction>();
 
   return {
     run<Value>(key: Key, task: () => Promise<Value>): Promise<Value> {
-      const previous = tails.get(key) ?? Promise.resolve();
-      const current = previous.catch(() => undefined).then(task);
-      const tail = current.then(
-        () => undefined,
-        () => undefined,
-      );
-      tails.set(key, tail);
-      void tail.finally(() => {
-        if (tails.get(key) === tail) tails.delete(key);
+      const queue = queues.get(key) ?? pLimit(1);
+      queues.set(key, queue);
+      return queue(task).finally(() => {
+        if (queue.activeCount === 0 && queue.pendingCount === 0 && queues.get(key) === queue)
+          queues.delete(key);
       });
-      return current;
     },
   };
 }

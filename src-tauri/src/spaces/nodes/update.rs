@@ -110,10 +110,9 @@ async fn apply_node_change(
     if revision_changed {
         chunk_store::detach_canonical(tx, space_id, &change.id).await?;
     }
-    let data = serde_json::to_string(&change.data).map_err(db::json_error)?;
     sqlx::query("UPDATE spaces_nodes SET object_type_id = $1, data = $2, updated_at = $3 WHERE space_id = $4 AND id = $5")
         .bind(object_type_id)
-        .bind(data)
+        .bind(sqlx::types::Json(&change.data))
         .bind(now)
         .bind(space_id)
         .bind(&change.id)

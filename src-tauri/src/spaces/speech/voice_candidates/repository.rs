@@ -42,12 +42,11 @@ pub(crate) async fn persist_candidate(
         .map(|source| i64::try_from(source.byte_length))
         .transpose()
         .map_err(|_| "Voice candidate input length exceeds storage range")?;
-    let authorization = serde_json::to_string(&serde_json::json!({
+    let authorization = serde_json::json!({
         "declared": request.authorized,
         "declaredAt": now,
         "referenceTranscriptConfirmed": reference_text.is_some(),
-    }))
-    .map_err(db::json_error)?;
+    });
     let mut tx = db::begin_write(pool).await?;
     let inserted = sqlx::query(
         "INSERT INTO spaces_voice_candidates( \
@@ -82,8 +81,8 @@ pub(crate) async fn persist_candidate(
     .bind(preview_sample_count)
     .bind(request.model.specification())
     .bind(i64::from(request.seed))
-    .bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":request.seed}).to_string())
-    .bind(authorization)
+    .bind(sqlx::types::Json(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":request.seed})))
+    .bind(sqlx::types::Json(&authorization))
     .bind(now)
     .bind(&claim.attempt_id)
     .bind(&claim.run_id)

@@ -82,7 +82,7 @@ pub async fn revise_voice_profile(
         .bind(&revision_id).bind(&request.profile_id).bind(current.revision + 1).bind(&current.engine_id)
         .bind(&current.model_spec_id).bind(&request.language).bind(&current.preset_voice_id)
         .bind(&current.reference_asset_id).bind(&current.reference_source_revision).bind(&current.reference_text)
-        .bind(&current.design_description).bind(config).bind(&current.authorization).bind(now)
+        .bind(&current.design_description).bind(sqlx::types::Json(&config)).bind(&current.authorization).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     let changed = sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id=?,updated_at=? WHERE id=? AND active_revision_id=? AND archived_at IS NULL")
         .bind(&revision_id).bind(now).bind(&request.profile_id).bind(&request.expected_active_revision_id)
@@ -156,7 +156,11 @@ struct RevisionSource {
     synthesis_config: String,
 }
 
-fn revision_config(engine_id: &str, speed: f32, seed: u32) -> Result<String, String> {
+fn revision_config(
+    engine_id: &str,
+    speed: f32,
+    seed: u32,
+) -> Result<super::contracts::VoiceSynthesisConfig, String> {
     let sample_rate = match engine_id {
         "moss_nano" if speed == 1.0 => 48_000,
         "voxcpm2" if speed == 1.0 => 48_000,
@@ -164,10 +168,9 @@ fn revision_config(engine_id: &str, speed: f32, seed: u32) -> Result<String, Str
         "voxcpm2" => return Err("VoxCPM2 uses its fixed speed profile".into()),
         _ => return Err("Voice engine is unsupported".into()),
     };
-    serde_json::to_string(&super::contracts::VoiceSynthesisConfig {
+    Ok(super::contracts::VoiceSynthesisConfig {
         speed,
         sample_rate,
         seed,
     })
-    .map_err(db::json_error)
 }

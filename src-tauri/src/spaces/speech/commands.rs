@@ -41,7 +41,6 @@ pub async fn create_preset_voice(
     if parsed_config.sample_rate != 48_000 {
         return Err("MossNano voices require 48 kHz synthesis".into());
     }
-    let config = serde_json::to_string(&parsed_config).map_err(db::json_error)?;
     let profile_id = uuid::Uuid::new_v4().to_string();
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
@@ -69,7 +68,7 @@ pub async fn create_preset_voice(
     .bind(request.model_spec_id.trim())
     .bind(request.language.trim())
     .bind(request.preset_voice_id.trim())
-    .bind(config)
+    .bind(sqlx::types::Json(&parsed_config))
     .bind(now)
     .execute(&mut *tx)
     .await
@@ -109,7 +108,6 @@ pub async fn create_speech_project(
             return Err("A new audiobook project must start with an empty script".into());
         }
     }
-    let output = serde_json::to_string(&config).map_err(db::json_error)?;
     let project_id = uuid::Uuid::new_v4().to_string();
     let revision_id = uuid::Uuid::new_v4().to_string();
     let source_revision = uuid::Uuid::new_v4().to_string();
@@ -151,7 +149,7 @@ pub async fn create_speech_project(
     .bind(&revision_id)
     .bind(&project_id)
     .bind(source_revision)
-    .bind(output)
+    .bind(sqlx::types::Json(&config))
     .bind(now)
     .execute(&mut *tx)
     .await

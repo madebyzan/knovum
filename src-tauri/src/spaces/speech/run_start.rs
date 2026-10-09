@@ -289,8 +289,8 @@ async fn insert_step(
          VALUES(?,?,?,?,?,?,?, ?,0,'{}',?,?)",
     )
     .bind(uuid::Uuid::new_v4().to_string()).bind(run_id).bind(node_id).bind(node_id)
-    .bind(node_kind).bind(serde_json::to_string(dependencies).map_err(db::json_error)?)
-    .bind(serde_json::to_string(configuration).map_err(db::json_error)?)
+    .bind(node_kind).bind(sqlx::types::Json(dependencies))
+    .bind(sqlx::types::Json(configuration))
     .bind(if dependencies.is_empty() { "ready" } else { "pending" }).bind(now).bind(now)
     .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())

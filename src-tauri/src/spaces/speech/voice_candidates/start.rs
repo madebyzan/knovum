@@ -178,7 +178,7 @@ async fn create_run(
     )
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(&request.request_id)
-    .bind(serde_json::to_string(configuration).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(configuration))
     .bind(now)
     .bind(now)
     .execute(&mut **tx)

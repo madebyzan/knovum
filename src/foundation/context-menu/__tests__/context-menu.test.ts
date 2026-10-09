@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { flattenMenuGroups, menuItem, normalizeAccelerator, separatorItem } from "../context-menu";
+import { flattenMenuGroups, menuItem, normalizeAccelerator } from "../context-menu";
 
 describe("context-menu", () => {
   it("normalizes $mod accelerators to CmdOrCtrl", () => {
@@ -25,9 +25,5 @@ describe("context-menu", () => {
     expect((flattened[1] as { text: string }).text).toBe("Copy");
     expect((flattened[2] as { item: string }).item).toBe("Separator");
     expect((flattened[3] as { text: string }).text).toBe("Delete");
-  });
-
-  it("returns explicit separator items", () => {
-    expect(separatorItem()).toEqual({ item: "Separator" });
   });
 });

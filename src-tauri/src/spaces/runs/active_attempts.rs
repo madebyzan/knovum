@@ -81,7 +81,7 @@ pub(super) async fn reconcile(pool: &sqlx::SqlitePool) -> Result<(), String> {
          AND a.execution_epoch=r.execution_epoch AND a.lease_until>=?
          AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL AND s.state='running'",
     )
-    .bind(serde_json::to_string(&ids).map_err(crate::spaces::db::json_error)?)
+    .bind(sqlx::types::Json(&ids))
     .bind(crate::clock::unix_time_millis()?)
     .fetch_all(pool)
     .await

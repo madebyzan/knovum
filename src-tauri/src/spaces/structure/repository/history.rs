@@ -7,7 +7,6 @@ pub(crate) async fn invalidate_for_nodes(
     space_id: &str,
     node_ids: &[String],
 ) -> Result<(), String> {
-    let ids = serde_json::to_string(node_ids).map_err(db::json_error)?;
     let groups: Vec<String> = sqlx::query_scalar(
         "SELECT DISTINCT history_group_id FROM spaces_edit_history h \
          WHERE h.space_id=$1 AND h.history_group_id IS NOT NULL AND \
@@ -15,7 +14,7 @@ pub(crate) async fn invalidate_for_nodes(
           OR EXISTS(SELECT 1 FROM json_each(h.after_node_ids) a JOIN json_each($2) n ON n.value=a.value))",
     )
     .bind(space_id)
-    .bind(&ids)
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -32,7 +31,7 @@ pub(crate) async fn invalidate_for_nodes(
           OR EXISTS(SELECT 1 FROM json_each(h.after_node_ids) a JOIN json_each($2) n ON n.value=a.value))",
     )
     .bind(space_id)
-    .bind(ids)
+    .bind(sqlx::types::Json(node_ids))
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;

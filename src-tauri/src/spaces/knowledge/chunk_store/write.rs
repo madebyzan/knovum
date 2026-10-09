@@ -47,10 +47,8 @@ pub(super) async fn insert(
         .get("sourceRevision")
         .and_then(Value::as_str)
         .ok_or_else(|| "Knowledge chunk locator is missing sourceRevision".to_owned())?;
-    let locator = serde_json::to_string(&chunk.locator).map_err(db::json_error)?;
     let empty_metadata = Value::Object(Default::default());
-    let metadata = serde_json::to_string(chunk.metadata.as_ref().unwrap_or(&empty_metadata))
-        .map_err(db::json_error)?;
+    let metadata = chunk.metadata.as_ref().unwrap_or(&empty_metadata);
     sqlx::query(
         r#"INSERT INTO spaces_knowledge_chunks(
              id, space_id, node_id, origin, kind, source_revision, text, locator, metadata,
@@ -64,8 +62,8 @@ pub(super) async fn insert(
     .bind(&chunk.kind)
     .bind(source_revision)
     .bind(chunk.text.trim())
-    .bind(locator)
-    .bind(metadata)
+    .bind(sqlx::types::Json(&chunk.locator))
+    .bind(sqlx::types::Json(metadata))
     .bind(now)
     .execute(&mut **tx)
     .await

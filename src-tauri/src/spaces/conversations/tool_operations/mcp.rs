@@ -60,7 +60,7 @@ pub(crate) async fn invoke(
         sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,context,context_digest,read_only,approval,created_at)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)")
             .bind(&id).bind(call.run_id).bind(call.task_id).bind(call.graph_namespace).bind(call.checkpoint_id).bind(call.message_id).bind(call.call_id).bind(&call.tool.name)
-            .bind(serde_json::to_string(&call.tool.binding).map_err(db::json_error)?).bind(call.intent_id).bind(serde_json::to_string(&call.arguments).map_err(db::json_error)?).bind(&digest)
+            .bind(sqlx::types::Json(&call.tool.binding)).bind(call.intent_id).bind(sqlx::types::Json(&call.arguments)).bind(&digest)
             .bind(call.tool.read_only).bind((call.tool.policy == McpToolPolicy::Allow).then_some("allow")).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
         runs::append_event(&mut tx,call.run_id,None,None,runs::RunEventKind::ConversationToolStarted,&serde_json::json!({"toolCallId":call.call_id,"title":call.tool.name,"context":{"source":call.tool.binding,"arguments":call.arguments}}),now).await?;
     }
@@ -79,16 +79,20 @@ pub(crate) async fn invoke(
             .try_get::<String, _>("wire_name")
             .map_err(db::sql_error)?
             != call.tool.name
-        || row.try_get::<String, _>("source").map_err(db::sql_error)?
-            != serde_json::to_string(&call.tool.binding).map_err(db::json_error)?
+        || row
+            .try_get::<sqlx::types::Json<serde_json::Value>, _>("source")
+            .map_err(db::sql_error)?
+            .0
+            != serde_json::to_value(&call.tool.binding).map_err(db::json_error)?
     {
         return Err("conversation-tool-intent-source-changed".into());
     }
     let state: String = row.try_get("state").map_err(db::sql_error)?;
     if matches!(state.as_str(), "completed" | "failed") {
         return Ok(ToolInvocationOutcome::Completed(
-            serde_json::from_str(&row.try_get::<String, _>("output").map_err(db::sql_error)?)
-                .map_err(db::json_error)?,
+            row.try_get::<sqlx::types::Json<serde_json::Value>, _>("output")
+                .map_err(db::sql_error)?
+                .0,
         ));
     }
     if matches!(state.as_str(), "dispatching" | "outcome_unknown") {

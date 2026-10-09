@@ -32,11 +32,6 @@ pub(super) async fn run<R: Runtime>(
     activate: bool,
     cancellation: &CancellationToken,
 ) -> Result<usize, String> {
-    let node_ids_json = node_ids
-        .as_ref()
-        .map(serde_json::to_string)
-        .transpose()
-        .map_err(db::json_error)?;
     let pool = db::pool(&app).await?;
     let mut indexed = 0usize;
     let started = std::time::Instant::now();
@@ -49,7 +44,7 @@ pub(super) async fn run<R: Runtime>(
             pool,
             space_id,
             &generation,
-            node_ids_json.as_deref(),
+            node_ids.as_ref(),
             embedding::active_text_provider().max_batch_size() as i64,
         )
         .await?;
@@ -135,7 +130,7 @@ async fn load_unindexed_chunks(
     pool: &SqlitePool,
     space_id: &str,
     generation: &IndexGeneration,
-    node_ids_json: Option<&str>,
+    node_ids: Option<&Vec<String>>,
     limit: i64,
 ) -> Result<Vec<KnowledgeChunkSource>, String> {
     let rows = sqlx::query(
@@ -150,7 +145,7 @@ async fn load_unindexed_chunks(
     .bind(&generation.id)
     .bind(&generation.embedding_spec_id)
     .bind(limit)
-    .bind(node_ids_json)
+    .bind(node_ids.map(sqlx::types::Json))
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;

@@ -19,15 +19,13 @@ pub(crate) async fn store_deletion_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     record: DeletionBatch<'_>,
 ) -> Result<(), String> {
-    let roots = serde_json::to_string(record.roots).map_err(db::json_error)?;
     sqlx::query("INSERT INTO spaces_deleted_structure_batches(id,space_id,root_structure_node_ids,deleted_at) VALUES($1,$2,$3,$4)")
-        .bind(record.batch_id).bind(record.space_id).bind(roots).bind(record.deleted_at)
+        .bind(record.batch_id).bind(record.space_id).bind(sqlx::types::Json(record.roots)).bind(record.deleted_at)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     store_structure(tx, record.batch_id, record.structure).await?;
     store_layouts(tx, record.batch_id, record.layouts).await?;
-    let node_ids = serde_json::to_string(record.node_ids).map_err(db::json_error)?;
     sqlx::query("INSERT INTO spaces_deleted_structure_relations(batch_id,relation_id,status,status_before_invalidation,color) SELECT $1,r.id,r.status,r.status_before_invalidation,s.color FROM spaces_relations r LEFT JOIN spaces_relation_styles s ON s.space_id=r.space_id AND s.relation_id=r.id WHERE r.space_id=$2 AND (r.source_id IN (SELECT value FROM json_each($3)) OR r.target_id IN (SELECT value FROM json_each($3)))")
-        .bind(record.batch_id).bind(record.space_id).bind(node_ids).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(record.batch_id).bind(record.space_id).bind(sqlx::types::Json(record.node_ids)).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }
 
@@ -37,13 +35,12 @@ async fn store_structure(
     structure: &[StructureNode],
 ) -> Result<(), String> {
     for structure_node in structure {
-        let data = serde_json::to_string(structure_node).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_deleted_structure_nodes(batch_id,structure_node_id,data) VALUES($1,$2,$3)",
         )
         .bind(batch_id)
         .bind(structure_node.id())
-        .bind(data)
+        .bind(sqlx::types::Json(structure_node))
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
@@ -57,13 +54,12 @@ async fn store_layouts(
     layouts: &[StructureLayout],
 ) -> Result<(), String> {
     for layout in layouts {
-        let data = serde_json::to_string(layout).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_deleted_structure_layouts(batch_id,structure_node_id,data) VALUES($1,$2,$3)",
         )
         .bind(batch_id)
         .bind(layout.structure_node_id())
-        .bind(data)
+        .bind(sqlx::types::Json(layout))
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;

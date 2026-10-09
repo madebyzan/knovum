@@ -22,7 +22,6 @@ pub(super) async fn active_unique_ids(
             unique.push(id.clone());
         }
     }
-    let requested_json = serde_json::to_string(&unique).map_err(db::json_error)?;
     let state_predicate = if deleting {
         "deleted_at IS NULL"
     } else {
@@ -36,7 +35,7 @@ pub(super) async fn active_unique_ids(
     let found_rows = sql
         .build_query_scalar::<String>()
         .bind(space_id)
-        .bind(requested_json)
+        .bind(sqlx::types::Json(&unique))
         .fetch_all(&mut **tx)
         .await
         .map_err(db::sql_error)?;

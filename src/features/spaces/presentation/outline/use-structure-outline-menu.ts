@@ -8,7 +8,7 @@ import { ancestorsOf, type StructureIndex } from "../../model/structure/structur
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import type { useSpaceStore } from "../../session/space-store";
 import { structureParentTargets } from "../../structure/structure-capabilities";
-import { popupSpaceContextMenu, spaceMenuItem, spaceSubmenu } from "../../workspace/space-menu";
+import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu";
 
 interface StructureOutlineMenuOptions {
   index: ComputedRef<StructureIndex>;
@@ -42,9 +42,9 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     const parentTargets = structureParentTargets(options.snapshot(), [id], t("spaces.canvas.spaceRoot"));
     const move = parentTargets.length
       ? [
-          spaceSubmenu(
-            t("spaces.canvas.moveToContainer"),
-            parentTargets.map((target) =>
+          {
+            text: t("spaces.canvas.moveToContainer"),
+            items: parentTargets.map((target) =>
               spaceMenuItem(target.title, () =>
                 execute({
                   kind: "structure.reparent",
@@ -54,7 +54,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
                 }),
               ),
             ),
-          ),
+          },
         ]
       : [];
     const hasLockedAncestor = ancestorsOf(id, index).some(({ locked }) => locked);

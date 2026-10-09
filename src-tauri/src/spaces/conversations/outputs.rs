@@ -1,5 +1,5 @@
 use serde_json::Value;
-use sqlx::{Row, Sqlite, Transaction};
+use sqlx::{types::Json, Row, Sqlite, Transaction};
 
 use super::ConversationMessageOutput;
 use crate::spaces::db;
@@ -33,8 +33,7 @@ pub(crate) async fn collect(
     .map_err(db::sql_error)?;
     rows.into_iter()
         .map(|row| {
-            let encoded: String = row.try_get("data").map_err(db::sql_error)?;
-            let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+            let Json(data): Json<Value> = row.try_get("data").map_err(db::sql_error)?;
             Ok(ConversationMessageOutput {
                 node_id: row.try_get("id").map_err(db::sql_error)?,
                 kind: row.try_get("kind").map_err(db::sql_error)?,

@@ -21,7 +21,7 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
             let now = crate::clock::unix_time_millis()?;
             let mut changes = runs::subscribe_to_changes();
             let mut tx = db::begin_write(&self.pool).await?;
-            sqlx::query("INSERT INTO spaces_conversation_mcp_interactions(id,run_id,request,created_at) VALUES($1,$2,$3,$4)").bind(&id).bind(&self.run_id).bind(serde_json::to_string(&request).map_err(db::json_error)?).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
+            sqlx::query("INSERT INTO spaces_conversation_mcp_interactions(id,run_id,request,created_at) VALUES($1,$2,$3,$4)").bind(&id).bind(&self.run_id).bind(sqlx::types::Json(&request)).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
             let waiting = sqlx::query("UPDATE spaces_runs SET state='waiting',wait_reason='mcp_elicitation',state_version=state_version+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL")
                 .bind(now).bind(&self.run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
             db::require_one(waiting, "conversation-tool-run-inactive")?;
@@ -130,7 +130,7 @@ pub async fn answer_mcp_user_interaction(
         }
     }
     let mut tx = db::begin_write(pool).await?;
-    let updated = sqlx::query("UPDATE spaces_conversation_mcp_interactions SET response=$1 WHERE id=$2 AND response IS NULL AND EXISTS(SELECT 1 FROM spaces_runs r WHERE r.id=run_id AND r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL)").bind(serde_json::to_string(&response).map_err(db::json_error)?).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    let updated = sqlx::query("UPDATE spaces_conversation_mcp_interactions SET response=$1 WHERE id=$2 AND response IS NULL AND EXISTS(SELECT 1 FROM spaces_runs r WHERE r.id=run_id AND r.completed_at IS NULL AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL)").bind(sqlx::types::Json(&response)).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(updated, "mcp-elicitation-response-stale")?;
     sqlx::query("UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1 WHERE id=$1 AND state='waiting' AND wait_reason='mcp_elicitation' AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND NOT EXISTS(SELECT 1 FROM spaces_conversation_mcp_interactions WHERE run_id=$1 AND response IS NULL)").bind(row.0).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;

@@ -203,7 +203,7 @@ async fn create_run(
         .bind(format!("translation:{ordinal}"))
         .bind(format!("translation:{ordinal}"))
         .bind(super::NODE_KIND)
-        .bind(serde_json::to_string(&configuration).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&configuration))
         .bind(now)
         .bind(now)
         .execute(&mut **tx)

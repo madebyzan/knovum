@@ -62,7 +62,7 @@ pub(super) async fn save_outcome(
     .bind(&request.idempotency_key)
     .bind(digest)
     .bind(kind)
-    .bind(serde_json::to_string(outcome).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(outcome))
     .bind(now)
     .execute(&mut **tx)
     .await

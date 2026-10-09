@@ -100,12 +100,11 @@ pub async fn create_provenance<R: Runtime>(
         )
         .await?;
     }
-    let locator = serde_json::to_string(&input.locator).map_err(db::json_error)?;
     sqlx::query(
         "INSERT INTO spaces_provenance(id,space_id,target_kind,target_id,source_node_id,locator,source_revision,\
          quote,status,actor_kind,actor_id,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'active',$9,$10,$11,$11)",
     ).bind(&input.id).bind(&input.space_id).bind(&input.target_kind).bind(&input.target_id)
-        .bind(&input.source_node_id).bind(locator).bind(&input.source_revision).bind(&input.quote)
+        .bind(&input.source_node_id).bind(sqlx::types::Json(&input.locator)).bind(&input.source_revision).bind(&input.quote)
         .bind("human").bind(Option::<&str>::None).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     events::append(
         &mut tx,

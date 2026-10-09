@@ -54,7 +54,7 @@ async fn insert_step(
     )
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(run_id)
-    .bind(serde_json::to_string(input).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(input))
     .bind(now)
     .execute(&mut **tx)
     .await

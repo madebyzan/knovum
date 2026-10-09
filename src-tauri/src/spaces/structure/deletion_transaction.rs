@@ -33,12 +33,11 @@ pub(super) async fn apply(
         crate::spaces::nodes::trash_in_transaction(tx, &request.space_id, &deletion.node_ids, now)
             .await?;
     require_exact_nodes(&deletion.node_ids, &trashed)?;
-    let deleted_nodes = serde_json::to_string(&deletion.node_ids).map_err(db::json_error)?;
     let invalidated: Vec<String> = sqlx::query_scalar(
         "SELECT id FROM spaces_relations WHERE space_id=$1 AND status='invalidated' AND (source_id IN (SELECT value FROM json_each($2)) OR target_id IN (SELECT value FROM json_each($2)))",
     )
     .bind(&request.space_id)
-    .bind(deleted_nodes)
+    .bind(sqlx::types::Json(&deletion.node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

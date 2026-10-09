@@ -1,3 +1,4 @@
+import { sumBy } from "es-toolkit";
 import { defineStore } from "pinia";
 import { computed, readonly, shallowRef, watch } from "vue";
 
@@ -25,9 +26,7 @@ export const useImageRemovalSession = defineStore("spaces-image-removal-session"
   const brushDiameter = shallowRef(0.045);
   const submitting = shallowRef(false);
   const remainingPoints = computed(
-    () =>
-      MAX_POINTS -
-      (active.value?.strokes.reduce((total, stroke) => total + stroke.points.length / 2, 0) ?? 0),
+    () => MAX_POINTS - sumBy(active.value?.strokes ?? [], (stroke) => stroke.points.length / 2),
   );
   const canDraw = computed(() =>
     Boolean(

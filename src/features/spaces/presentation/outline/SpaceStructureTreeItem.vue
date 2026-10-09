@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Boxes, ChevronDown, ChevronRight, LayoutPanelTop, LockKeyhole } from "@lucide/vue";
 import { error as logError } from "@tauri-apps/plugin-log";
+import { useResizeObserver } from "@vueuse/core";
 import { omit } from "es-toolkit";
 import { TreeItem, type TreeItemSelectEvent, type TreeItemToggleEvent } from "reka-ui";
 import { nextTick, shallowRef, useTemplateRef, watch } from "vue";
@@ -21,6 +22,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   finish: [];
+  height: [height: number];
   menu: [];
   open: [];
   select: [];
@@ -28,6 +30,10 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const input = useTemplateRef<HTMLInputElement>("input");
+const root = useTemplateRef<HTMLElement>("root");
+useResizeObserver(root, ([entry]) => {
+  if (entry) emit("height", entry.contentRect.height);
+});
 const draft = shallowRef("");
 const saving = shallowRef(false);
 const error = shallowRef("");
@@ -92,6 +98,7 @@ function keydown(event: KeyboardEvent) {
 
 <template>
   <div
+    ref="root"
     v-bind="omit($attrs, ['data-index'])"
     :data-active="selected"
     :style="{ paddingLeft: `${(level - 1) * 16}px` }"

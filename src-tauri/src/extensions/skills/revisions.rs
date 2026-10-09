@@ -28,7 +28,7 @@ pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<SkillRevision, S
 
 pub(super) async fn save(pool: &SqlitePool, skill: &SkillRevision) -> Result<(), String> {
     sqlx::query("INSERT INTO skills(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
-        .bind(&skill.id).bind(database::encode(skill)?).execute(pool).await.map_err(|error| error.to_string())?;
+        .bind(&skill.id).bind(sqlx::types::Json(skill)).execute(pool).await.map_err(|error| error.to_string())?;
     Ok(())
 }
 

@@ -28,7 +28,7 @@ pub async fn create_mcp_connection(
     };
     sqlx::query("INSERT INTO connections(id,document) VALUES($1,$2)")
         .bind(&connection.id)
-        .bind(database::encode(&connection)?)
+        .bind(sqlx::types::Json(&connection))
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;
@@ -73,7 +73,7 @@ pub async fn update_mcp_connection(
     super::connections::require_revision_on(&mut tx, &connection.id, &connection.revision).await?;
     connection.revision = uuid::Uuid::new_v4().to_string();
     sqlx::query("UPDATE connections SET document=$1 WHERE id=$2")
-        .bind(database::encode(&connection)?)
+        .bind(sqlx::types::Json(&connection))
         .bind(&connection.id)
         .execute(&mut *tx)
         .await

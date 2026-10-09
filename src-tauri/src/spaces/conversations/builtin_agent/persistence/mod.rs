@@ -116,7 +116,6 @@ pub(super) async fn persist_task(
     if active != 0 {
         return Err("builtin-agent-busy: another built-in execution is active".into());
     }
-    let binding = serde_json::to_string(&request.target).map_err(db::json_error)?;
     repository::insert_task(
         &mut tx,
         &NewBuiltinAgentTask {
@@ -125,7 +124,7 @@ pub(super) async fn persist_task(
             conversation_id: &ids.conversation_id,
             branch_id: &ids.branch_id,
             grant_id: &ids.grant_id,
-            model_binding: &binding,
+            model_binding: &request.target,
             catalog_digest: &catalog.digest,
             session: &session,
         },

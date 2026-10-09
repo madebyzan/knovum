@@ -21,6 +21,7 @@ pub(super) enum ConversationRequest {
 struct ConversationHandle {
     requests: mpsc::Sender<ConversationRequest>,
     cancellation: CancellationToken,
+    inactive: CancellationToken,
 }
 
 static ACTIVE: OnceLock<Mutex<HashMap<String, ConversationHandle>>> = OnceLock::new();
@@ -38,6 +39,7 @@ pub(super) fn register(
             ConversationHandle {
                 requests,
                 cancellation,
+                inactive: CancellationToken::new(),
             },
         );
     Ok(receiver)
@@ -56,31 +58,30 @@ pub async fn send(id: &str, prompt: super::super::prompt::AgentPrompt) -> AppRes
 }
 
 pub async fn close(id: &str) -> Result<(), String> {
-    let cancellation = active()
+    let (cancellation, inactive) = active()
         .lock()
         .map_err(|_| "ACP conversation registry unavailable")?
         .get(id)
-        .map(|handle| handle.cancellation.clone())
+        .map(|handle| (handle.cancellation.clone(), handle.inactive.clone()))
         .ok_or("ACP conversation is disconnected")?;
     cancellation.cancel();
-    wait_until_inactive(id).await
+    wait_until_inactive(inactive).await
 }
 
 pub async fn finish(id: &str) -> Result<(), String> {
-    sender(id)
-        .map_err(|error| error.to_string())?
+    let (requests, inactive) = handle(id).map_err(|error| error.to_string())?;
+    requests
         .send(ConversationRequest::Finish)
         .await
         .map_err(|_| "ACP conversation channel closed".to_owned())?;
-    wait_until_inactive(id).await
+    wait_until_inactive(inactive).await
 }
 
-async fn wait_until_inactive(id: &str) -> Result<(), String> {
-    tokio::time::timeout(super::super::connection::CANCEL_TIMEOUT, async {
-        while is_active(id) {
-            tokio::time::sleep(std::time::Duration::from_millis(20)).await;
-        }
-    })
+async fn wait_until_inactive(inactive: CancellationToken) -> Result<(), String> {
+    tokio::time::timeout(
+        super::super::connection::CANCEL_TIMEOUT,
+        inactive.cancelled(),
+    )
     .await
     .map_err(|_| "ACP conversation did not close before the deadline")?;
     Ok(())
@@ -92,17 +93,23 @@ pub fn is_active(id: &str) -> bool {
 
 pub(super) fn remove(id: &str) {
     if let Ok(mut conversations) = active().lock() {
-        conversations.remove(id);
+        if let Some(handle) = conversations.remove(id) {
+            handle.inactive.cancel();
+        }
     }
 }
 
 fn sender(id: &str) -> AppResult<mpsc::Sender<ConversationRequest>> {
+    handle(id).map(|(requests, _)| requests)
+}
+
+fn handle(id: &str) -> AppResult<(mpsc::Sender<ConversationRequest>, CancellationToken)> {
     let conversations = active()
         .lock()
         .map_err(|_| AppError::internal("ACP conversation registry unavailable"))?;
     conversations
         .get(id)
-        .map(|handle| handle.requests.clone())
+        .map(|handle| (handle.requests.clone(), handle.inactive.clone()))
         .ok_or_else(|| AppError::invalid("ACP conversation is disconnected"))
 }
 

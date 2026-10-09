@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
@@ -12,11 +14,13 @@ export interface VisualizationDraft {
   target?: TaskTargetRef | undefined;
 }
 
-const imageAspectRatios: ReadonlySet<unknown> = new Set(["1:1", "3:2", "2:3", "16:9", "9:16"]);
-
-export function isImageAspectRatio(value: unknown): value is ImageAspectRatio {
-  return imageAspectRatios.has(value);
-}
+export const imageAspectRatioSchema = z.enum([
+  "1:1",
+  "3:2",
+  "2:3",
+  "16:9",
+  "9:16",
+]) satisfies z.ZodType<ImageAspectRatio>;
 interface GenerateVisualizationContext {
   store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];

@@ -1,6 +1,7 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import { cloneDeep, isNil } from "es-toolkit";
+import pLimit from "p-limit";
 import { z } from "zod";
 
 import { formatErrorDiagnostic } from "../errors/error-format";
@@ -17,15 +18,7 @@ const settingKeys = { aiModels: "ai.models", creationLibrary: "creation.library"
 const SETTINGS_SCHEMA_VERSION = 1;
 const settingsStore = new LazyStore(SETTINGS_FILE, { autoSave: false });
 
-let writeQueue: Promise<void> = Promise.resolve();
-
-function enqueueMutation(mutation: () => Promise<void>): Promise<void> {
-  const operation = writeQueue.then(mutation);
-  writeQueue = operation.catch((error) => {
-    void logError(`Integration settings mutation failed: ${formatErrorDiagnostic(error)}`);
-  });
-  return operation;
-}
+const serialize = pLimit(1);
 
 function decodeSetting<T>(raw: unknown, schema: z.ZodType<T>): T {
   return z
@@ -37,15 +30,19 @@ export function decodeAiModelSettings(raw: unknown): AiModelSettings {
   return decodeSetting(raw, aiModelSettingsSchema);
 }
 async function readSetting<T>(key: string, schema: z.ZodType<T>, defaultValue: T): Promise<T> {
-  await writeQueue;
-  const raw = await settingsStore.get<unknown>(key);
-  if (isNil(raw)) return cloneDeep(defaultValue);
-  return decodeSetting(raw, schema);
+  return serialize(async () => {
+    const raw = await settingsStore.get<unknown>(key);
+    if (isNil(raw)) return cloneDeep(defaultValue);
+    return decodeSetting(raw, schema);
+  });
 }
 function persistSetting<T>(key: string, value: T): Promise<void> {
-  return enqueueMutation(async () => {
+  return serialize(async () => {
     await settingsStore.set(key, { schemaVersion: SETTINGS_SCHEMA_VERSION, value });
     await settingsStore.save();
+  }).catch((error) => {
+    void logError(`Integration settings mutation failed: ${formatErrorDiagnostic(error)}`);
+    throw error;
   });
 }
 

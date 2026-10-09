@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useVirtualizer } from "@tanstack/vue-virtual";
+import { sumBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,9 +33,10 @@ const canAlign = computed(
   () =>
     selected.value.length > 0 &&
     selected.value.length <= 8 &&
-    props.segments
-      .filter((segment) => selected.value.includes(segment.id))
-      .reduce((total, segment) => total + segment.endMs - segment.startMs, 0) <= 300_000,
+    sumBy(
+      props.segments.filter((segment) => selected.value.includes(segment.id)),
+      (segment) => segment.endMs - segment.startMs,
+    ) <= 300_000,
 );
 function selectSegment(id: string, checked: boolean) {
   selected.value = checked ? [...selected.value, id] : selected.value.filter((value) => value !== id);

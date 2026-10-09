@@ -10,13 +10,12 @@ pub(super) async fn invalidate_relations_for_nodes(
     ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    let node_ids = serde_json::to_string(ids).map_err(db::json_error)?;
     let selected: HashSet<String> = sqlx::query_scalar(
         "SELECT id FROM spaces_structure_nodes WHERE space_id=$1 AND deleted_at IS NULL \
          AND node_id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(node_ids)
+    .bind(sqlx::types::Json(ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?
@@ -80,11 +79,10 @@ pub(super) async fn remove_nodes_from_scene_focus(
         if focus.len() == before {
             continue;
         }
-        let focus = serde_json::to_string(&focus).map_err(db::json_error)?;
         sqlx::query(
             "UPDATE spaces_scenes SET focus_structure_node_ids=$1,updated_at=$2 WHERE id=$3",
         )
-        .bind(focus)
+        .bind(sqlx::types::Json(&focus))
         .bind(now)
         .bind(id)
         .execute(&mut **tx)

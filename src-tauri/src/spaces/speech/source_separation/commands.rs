@@ -92,7 +92,7 @@ pub async fn start_speech_source_separation(
     )
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(&request.request_id)
-    .bind(serde_json::to_string(&SeparationConfiguration {source:request.source, model}).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(SeparationConfiguration {source:request.source, model}))
     .bind(now)
     .bind(now)
     .execute(&mut *tx)

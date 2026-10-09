@@ -58,7 +58,7 @@ pub(in crate::spaces) async fn start_tool_call(
     let inserted = sqlx::query("INSERT OR IGNORE INTO spaces_conversation_tool_operations(id,task_id,graph_namespace,message_id,provider_call_id,
          wire_name,source,invocation_id,target_selection,created_at,run_id,checkpoint_id,context,context_digest,read_only,approval) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'allow')")
         .bind(&id).bind(task_id).bind(graph_namespace).bind(message_id).bind(provider_call_id).bind(wire_name)
-        .bind(serde_json::to_string(&crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id: action_id.into(), action_version: crate::spaces::actions::require(action_id)?.version }).map_err(db::json_error)?).bind(invocation_id).bind(target_selection.as_ref().map(serde_json::to_string).transpose().map_err(db::json_error)?).bind(now).bind(run_id).bind(checkpoint_id).bind(serde_json::to_string(arguments).map_err(db::json_error)?).bind(super::context_digest(arguments)?).bind(crate::spaces::actions::require(action_id)?.impact == crate::spaces::actions::SpaceActionImpact::ReadOnly)
+        .bind(sqlx::types::Json(crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id: action_id.into(), action_version: crate::spaces::actions::require(action_id)?.version })).bind(invocation_id).bind(target_selection.as_ref().map(sqlx::types::Json)).bind(now).bind(run_id).bind(checkpoint_id).bind(sqlx::types::Json(arguments)).bind(super::context_digest(arguments)?).bind(crate::spaces::actions::require(action_id)?.impact == crate::spaces::actions::SpaceActionImpact::ReadOnly)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     if inserted.rows_affected() != 0 {
         crate::spaces::runs::append_event(

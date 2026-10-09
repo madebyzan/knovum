@@ -141,7 +141,7 @@ pub(crate) async fn prepare(
     }
     sqlx::query("INSERT INTO content_leases(snapshot_id,document) VALUES($1,$2)")
         .bind(&snapshot.id)
-        .bind(database::encode(&retained)?)
+        .bind(sqlx::types::Json(&retained))
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;

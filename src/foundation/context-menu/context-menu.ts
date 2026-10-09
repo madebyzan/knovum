@@ -58,8 +58,7 @@ export function normalizeAccelerator(shortcut?: string | undefined): string | un
     .join("+");
 }
 
-function wrapAction(scope: string, action?: ((id: string) => void | Promise<void>) | undefined) {
-  if (!action) return undefined;
+function wrapAction(scope: string, action: (id: string) => void | Promise<void>) {
   return (id: string) => {
     void Promise.resolve()
       .then(() => action(id))
@@ -78,9 +77,7 @@ function processMenuItem(item: ContextMenuItem, scope: string): ContextMenuItem 
     else delete (processed as MenuItemOptions).accelerator;
   }
   if ("action" in item && item.action) {
-    const wrapped = wrapAction(scope, item.action);
-    if (wrapped) (processed as MenuItemOptions).action = wrapped;
-    else delete (processed as MenuItemOptions).action;
+    (processed as MenuItemOptions).action = wrapAction(scope, item.action);
   }
   return processed;
 }
@@ -109,7 +106,7 @@ function toMenuPosition(pos?: PopupMenuPosition): PhysicalPosition | LogicalPosi
   if (!pos) return undefined;
   if (pos instanceof LogicalPosition || pos instanceof PhysicalPosition || pos instanceof Position)
     return pos;
-  return "x" in pos && "y" in pos ? new LogicalPosition(pos.x, pos.y) : undefined;
+  return new LogicalPosition(pos.x, pos.y);
 }
 
 export async function popupContextMenu(
@@ -140,9 +137,11 @@ export function menuItem(
   action: () => void | Promise<void>,
   options: { enabled?: boolean; accelerator?: string; scope?: string } = {},
 ): MenuItemOptions {
-  const item: MenuItemOptions = { text, enabled: options.enabled ?? true };
-  const wrappedAction = wrapAction(options.scope ?? "MenuItem", action);
-  if (wrappedAction) item.action = wrappedAction;
+  const item: MenuItemOptions = {
+    text,
+    enabled: options.enabled ?? true,
+    action: wrapAction(options.scope ?? "MenuItem", action),
+  };
   if (options.accelerator) {
     const norm = normalizeAccelerator(options.accelerator);
     if (norm) item.accelerator = norm;
@@ -156,16 +155,10 @@ export function checkMenuItem(
   action: () => void | Promise<void>,
   options: { enabled?: boolean; scope?: string } = {},
 ): CheckMenuItemOptions {
-  const item: CheckMenuItemOptions = { text, checked, enabled: options.enabled ?? true };
-  const wrappedAction = wrapAction(options.scope ?? "CheckMenuItem", action);
-  if (wrappedAction) item.action = wrappedAction;
-  return item;
-}
-
-export function submenu(text: string, items: ContextMenuItem[]): SubmenuOptions {
-  return { text, items };
-}
-
-export function separatorItem(): PredefinedMenuItemOptions {
-  return { item: "Separator" };
+  return {
+    text,
+    checked,
+    enabled: options.enabled ?? true,
+    action: wrapAction(options.scope ?? "CheckMenuItem", action),
+  };
 }

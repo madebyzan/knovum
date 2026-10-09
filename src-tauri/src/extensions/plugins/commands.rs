@@ -124,7 +124,7 @@ pub async fn set_plugin_enabled(app: AppHandle, id: String, enabled: bool) -> Re
     let mut plugin = super::load(&pool, &id).await?;
     plugin.enabled = enabled;
     sqlx::query("UPDATE plugins SET document=$1 WHERE id=$2")
-        .bind(database::encode(&plugin)?)
+        .bind(sqlx::types::Json(&plugin))
         .bind(&id)
         .execute(&pool)
         .await

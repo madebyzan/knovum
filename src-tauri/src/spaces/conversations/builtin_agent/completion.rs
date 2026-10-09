@@ -67,7 +67,7 @@ pub(super) async fn complete(
             serde_json::from_str(&content).map_err(db::json_error)?;
         content["outputs"] = serde_json::to_value(outputs).map_err(db::json_error)?;
         sqlx::query("UPDATE spaces_conversation_messages SET content=$1 WHERE id=$2")
-            .bind(serde_json::to_string(&content).map_err(db::json_error)?)
+            .bind(sqlx::types::Json(&content))
             .bind(id)
             .execute(&mut *tx)
             .await

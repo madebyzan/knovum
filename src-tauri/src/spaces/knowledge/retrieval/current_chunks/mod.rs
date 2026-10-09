@@ -36,8 +36,8 @@ pub(super) async fn filter(
            AND e.source_revision=c.source_revision \
          WHERE c.id IN (SELECT value FROM json_each($2)) AND n.deleted_at IS NULL",
     )
-    .bind(serde_json::to_string(&allowed).map_err(db::json_error)?)
-    .bind(serde_json::to_string(&chunk_ids).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&allowed))
+    .bind(sqlx::types::Json(&chunk_ids))
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;

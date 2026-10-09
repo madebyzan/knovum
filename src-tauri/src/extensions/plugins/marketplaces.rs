@@ -121,7 +121,7 @@ pub async fn add_plugin_marketplace(
     operation.commit()?;
     sqlx::query("INSERT INTO marketplaces(id,document) VALUES($1,$2)")
         .bind(&marketplace.id)
-        .bind(database::encode(&marketplace)?)
+        .bind(sqlx::types::Json(&marketplace))
         .execute(&database::pool(&app).await?)
         .await
         .map_err(|error| error.to_string())?;
@@ -158,7 +158,7 @@ pub async fn refresh_plugin_marketplace(
     let _guard = state.content_lock.lock().await;
     operation.commit()?;
     let updated = sqlx::query("UPDATE marketplaces SET document=$1 WHERE id=$2")
-        .bind(database::encode(&marketplace)?)
+        .bind(sqlx::types::Json(&marketplace))
         .bind(id)
         .execute(&database::pool(&app).await?)
         .await

@@ -1,4 +1,5 @@
 import { error as logError } from "@tauri-apps/plugin-log";
+import { debounce } from "es-toolkit";
 import pLimit from "p-limit";
 
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
@@ -12,32 +13,25 @@ import { currentCanvasEditor } from "./editor-session";
 const SETTLE_DELAY_MS = 800;
 const publications = pLimit(1);
 const captures = new Map<string, symbol>();
-let pendingCapture: ReturnType<typeof globalThis.setTimeout> | undefined;
+const persistScheduledThumbnail = debounce((state: SpaceState) => {
+  void persistActiveCanvasThumbnail(state).catch((error) =>
+    logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
+  );
+}, SETTLE_DELAY_MS);
 
 export function scheduleCanvasThumbnail(state: SpaceState) {
-  cancelCanvasThumbnail();
+  persistScheduledThumbnail.cancel();
   const space = state.activeSpace.value;
   if (!space || !needsCapture(state, space)) return;
-  pendingCapture = globalThis.setTimeout(() => {
-    pendingCapture = undefined;
-    void persistActiveCanvasThumbnail(state).catch((error) =>
-      logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
-    );
-  }, SETTLE_DELAY_MS);
+  persistScheduledThumbnail(state);
 }
 
 function needsCapture(state: SpaceState, space: Space) {
   return state.thumbnailDirty.value || (!space.thumbnailPath && !captures.has(space.id));
 }
 
-function cancelCanvasThumbnail() {
-  if (pendingCapture === undefined) return;
-  globalThis.clearTimeout(pendingCapture);
-  pendingCapture = undefined;
-}
-
 export function captureActiveCanvasThumbnail(state: SpaceState) {
-  cancelCanvasThumbnail();
+  persistScheduledThumbnail.cancel();
   void persistActiveCanvasThumbnail(state).catch((error) =>
     logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
   );

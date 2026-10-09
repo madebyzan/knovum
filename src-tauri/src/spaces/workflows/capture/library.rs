@@ -132,7 +132,7 @@ pub(super) async fn save(
     )
     .bind(&saved.workflow_id)
     .bind(&saved.name)
-    .bind(serde_json::to_string(&saved).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&saved))
     .bind(now)
     .execute(&mut *tx)
     .await
@@ -143,7 +143,7 @@ pub(super) async fn save(
     )
     .bind(&saved.workflow_id)
     .bind(i64::from(saved.version))
-    .bind(serde_json::to_string(&saved).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&saved))
     .bind(now)
     .execute(&mut *tx)
     .await

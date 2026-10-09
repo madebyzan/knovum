@@ -14,7 +14,6 @@ import { useRouter } from "vue-router";
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import { encodeExecutionTarget } from "../../../../foundation/ai/execution-target-codec";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -52,12 +51,12 @@ const desktopAgents = computed(() =>
     settings.settings.desktopAgents.some((configured) => configured.kind === agent.kind),
   ),
 );
-const selectedKey = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
+const selectedKey = computed(() => (target.value ? JSON.stringify(target.value) : ""));
 const selectedLabel = computed(() => {
   const model = models.value.find(({ value }) => value === selectedKey.value);
   if (model) return model.label;
   const agent = desktopAgents.value.find(
-    ({ kind }) => encodeExecutionTarget({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+    ({ kind }) => JSON.stringify({ type: "agent", runtimeKind: kind }) === selectedKey.value,
   );
   if (agent) return agent.displayName;
   return t("spaces.conversation.agents.select");
@@ -70,7 +69,7 @@ watch(
       settings.ready &&
       (models.value.some(({ value }) => value === selectedKey.value) ||
         desktopAgents.value.some(
-          ({ kind }) => encodeExecutionTarget({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+          ({ kind }) => JSON.stringify({ type: "agent", runtimeKind: kind }) === selectedKey.value,
         )),
     );
   },
@@ -150,7 +149,7 @@ onMounted(() => void settings.ensureLoaded());
           <DropdownMenuRadioItem
             v-for="agent in desktopAgents"
             :key="agent.kind"
-            :value="encodeExecutionTarget({ type: 'agent', runtimeKind: agent.kind })"
+            :value="JSON.stringify({ type: 'agent', runtimeKind: agent.kind })"
             :text-value="agent.displayName"
             class="relative flex min-h-interaction cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
             @select="select({ type: 'agent', runtimeKind: agent.kind })"

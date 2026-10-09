@@ -27,7 +27,7 @@ pub(super) struct NewBuiltinAgentTask<'a> {
     pub conversation_id: &'a str,
     pub branch_id: &'a str,
     pub grant_id: &'a str,
-    pub model_binding: &'a str,
+    pub model_binding: &'a crate::ai::models::ModelTargetSelection,
     pub catalog_digest: &'a str,
     pub session: &'a crate::spaces::conversations::execution::session::Session,
 }

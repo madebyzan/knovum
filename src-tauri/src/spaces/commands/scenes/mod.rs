@@ -3,9 +3,10 @@ mod validation;
 
 use serde::Deserialize;
 use serde_json::Value;
+use sqlx::types::Json;
 use tauri::{AppHandle, Runtime};
 
-use self::validation::{json, validate_scene};
+use self::validation::validate_scene;
 use crate::spaces::db;
 
 #[derive(Debug, Deserialize)]
@@ -55,10 +56,10 @@ pub async fn create_scene<R: Runtime>(
     .bind(scene.viewport_zoom)
     .bind(&scene.thumbnail_path)
     .bind(scene.order_index)
-    .bind(json(&scene.focus_structure_node_ids)?)
-    .bind(json(&scene.relation_kinds)?)
-    .bind(json(&scene.relation_statuses)?)
-    .bind(json(&scene.query_filter)?)
+    .bind(Json(&scene.focus_structure_node_ids))
+    .bind(Json(&scene.relation_kinds))
+    .bind(Json(&scene.relation_statuses))
+    .bind(Json(&scene.query_filter))
     .bind(now)
     .execute(&mut *tx)
     .await
@@ -96,10 +97,10 @@ pub async fn update_scene<R: Runtime>(
     .bind(scene.viewport_zoom)
     .bind(&scene.thumbnail_path)
     .bind(scene.order_index)
-    .bind(json(&scene.focus_structure_node_ids)?)
-    .bind(json(&scene.relation_kinds)?)
-    .bind(json(&scene.relation_statuses)?)
-    .bind(json(&scene.query_filter)?)
+    .bind(Json(&scene.focus_structure_node_ids))
+    .bind(Json(&scene.relation_kinds))
+    .bind(Json(&scene.relation_statuses))
+    .bind(Json(&scene.query_filter))
     .bind(now)
     .bind(&scene.id)
     .bind(&scene.space_id)

@@ -2,7 +2,6 @@ import {
   checkMenuItem,
   menuItem,
   popupContextMenu,
-  submenu,
   type ContextMenuItem,
   type PopupContextMenuOptions,
 } from "../../../foundation/context-menu/context-menu";
@@ -17,10 +16,6 @@ export function spaceMenuItem(
 
 export function spaceCheckItem(text: string, checked: boolean, action: () => void | Promise<void>) {
   return checkMenuItem(text, checked, action, { scope: "Space" });
-}
-
-export function spaceSubmenu(text: string, items: ContextMenuItem[]) {
-  return submenu(text, items);
 }
 
 export function popupSpaceContextMenu(

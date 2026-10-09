@@ -66,7 +66,7 @@ pub(in crate::extensions) async fn replace_on(
                 account.issuer = None;
                 account.scopes.clear();
                 sqlx::query("UPDATE connector_accounts SET document=$1 WHERE id=$2")
-                    .bind(database::encode(&account)?)
+                    .bind(sqlx::types::Json(&account))
                     .bind(&account.id)
                     .execute(&mut *tx)
                     .await
@@ -79,7 +79,7 @@ pub(in crate::extensions) async fn replace_on(
             .bind(uuid::Uuid::new_v4().to_string()).bind(&definition.id).execute(&mut *tx).await.map_err(|error| error.to_string())?;
     }
     sqlx::query("INSERT INTO connectors(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
-        .bind(&definition.id).bind(database::encode(definition)?).execute(tx).await.map_err(|error| error.to_string())?;
+        .bind(&definition.id).bind(sqlx::types::Json(definition)).execute(tx).await.map_err(|error| error.to_string())?;
     Ok(())
 }
 
