@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { error as logError } from "@tauri-apps/plugin-log";
 import { useResizeObserver } from "@vueuse/core";
-import { computed, shallowRef, toRef, useTemplateRef, watch } from "vue";
+import { computed, inject, shallowRef, toRef, useTemplateRef, watch } from "vue";
 
+import { canvasPreviewZoomKey } from "../../../canvas/preview/viewport-zoom";
 import {
   displayedImageRect,
-  renderEditedImage,
+  paintImageBitmap,
   type ImageCanvasSize,
 } from "../../../image-editing/canvas-image-renderer";
 import { imageEditOf, type ImageEdit } from "../../../image-editing/image-edit";
@@ -18,6 +20,7 @@ import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
 import SpaceCanvasImageRemovalCursor from "./SpaceCanvasImageRemovalCursor.vue";
 import SpaceCanvasImageWorkOverlay from "./SpaceCanvasImageWorkOverlay.vue";
+import { useCanvasImageRaster } from "./use-canvas-image-raster";
 import { useCanvasImageSource } from "./use-canvas-image-source";
 import { useImageRemovalStrokes } from "./use-image-removal-strokes";
 const props = defineProps<{
@@ -26,6 +29,8 @@ const props = defineProps<{
   interactive: boolean;
   frameRotation: number;
 }>();
+const zoom = inject(canvasPreviewZoomKey)!;
+const renderFailed = shallowRef(false);
 const session = useImageEditSession();
 const dimensions = useImageSourceDimensions();
 const removalSession = useImageRemovalSession();
@@ -40,7 +45,8 @@ const { image, naturalSize, loadState } = useCanvasImageSource(source, {
   onReady: (loaded) => {
     if (props.data.sourceRevision)
       dimensions.set(props.id, props.data.sourceRevision, loaded.naturalWidth, loaded.naturalHeight);
-    draw();
+    renderFailed.value = false;
+    raster.update();
   },
   onReset: () => {
     dimensions.clear(props.id);
@@ -82,26 +88,43 @@ const brushCursor = removal.cursor;
 useResizeObserver(canvas, ([entry]) => {
   const box = entry?.contentRect;
   if (!box) return;
-  const pixelRatio = window.devicePixelRatio || 1;
+  const pixelRatio = Math.min(window.devicePixelRatio * zoom.value, 2);
   size.value = { width: box.width, height: box.height, pixelRatio };
-  if (canvas.value) {
-    canvas.value.width = Math.max(1, Math.round(box.width * pixelRatio));
-    canvas.value.height = Math.max(1, Math.round(box.height * pixelRatio));
-  }
-  draw();
+  raster.update();
 });
-watch(previewEdit, draw, { deep: true });
+const raster = useCanvasImageRaster({
+  image,
+  size: () => size.value,
+  edit: () => previewEdit.value,
+  ready: () => loadState.value === "ready",
+  active: () => session.active?.nodeId === props.id,
+  paint: draw,
+  error: (error) => {
+    renderFailed.value = true;
+    void logError(`Image preview failed: ${String(error)}`);
+  },
+});
+watch(source, () => raster.clear());
+watch(
+  [previewEdit, zoom],
+  () => {
+    size.value = { ...size.value, pixelRatio: Math.min(window.devicePixelRatio * zoom.value, 2) };
+    raster.update();
+  },
+  { deep: true },
+);
 function draw() {
-  const context = canvas.value?.getContext("2d", { willReadFrequently: true });
-  if (!context || loadState.value !== "ready") return;
-  renderEditedImage(context, image, size.value, previewEdit.value);
+  const context = canvas.value?.getContext("2d");
+  if (!context || !raster.bitmap.value) return;
+  const bitmap = raster.bitmap.value;
+  paintImageBitmap(context, bitmap);
   const rect = imageRect.value;
   if (removing.value && rect) {
     const strokes = removalSession.active?.strokes ?? [];
     drawRemovalMask(
       context,
       rect,
-      size.value.pixelRatio,
+      bitmap.width / size.value.width,
       removal.draftStroke.value
         ? [...strokes, { diameter: removalSession.brushDiameter, points: removal.draftStroke.value }]
         : strokes,
@@ -126,7 +149,12 @@ watch(() => (removalSession.active?.nodeId === props.id ? removalSession.active.
       @pointerup.stop.prevent="removal.commit"
       @pointercancel.stop="removal.cancel"
     />
-    <SpaceCanvasImageWorkOverlay :id="id" :data="data" :load-state="loadState" :image-rect="imageRect" />
+    <SpaceCanvasImageWorkOverlay
+      :id="id"
+      :data="data"
+      :load-state="renderFailed ? 'failed' : loadState"
+      :image-rect="imageRect"
+    />
     <SpaceCanvasImageRemovalCursor
       v-if="removing && imageRect"
       v-bind="brushCursor ? { position: brushCursor } : {}"

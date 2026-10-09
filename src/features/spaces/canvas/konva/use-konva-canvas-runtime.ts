@@ -14,7 +14,7 @@ import { useNodeContentActivation } from "./interaction/use-node-content-activat
 import { useNodeDragAutoPan } from "./interaction/use-node-drag-auto-pan";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
-import { createCanvasScenePreviewIndex, useCanvasScenePreview } from "./scene/scene-preview";
+import { useCanvasScenePreview } from "./scene/scene-preview";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
 import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
 import { useCanvasSelection } from "./selection/use-canvas-selection";
@@ -37,11 +37,8 @@ export function useKonvaCanvasRuntime(
   const sceneDocument = model.sceneDocumentState;
   const layouts = computed(() => sceneDocument.value.nodes);
   const viewport = useRuntimeViewport(props, host, model);
-  const preview = useLayoutPreview();
   const temporarilyExpandedSectionId = shallowRef<string>();
   const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
-  const previewIndex = computed(() => createCanvasScenePreviewIndex(projections.scene.value));
-  const scenePreview = useCanvasScenePreview(previewIndex, preview.layouts);
   const selection = useCanvasSelection({
     availableStructureNodeIds: computed(
       () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
@@ -61,8 +58,20 @@ export function useKonvaCanvasRuntime(
     snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId,
   });
+  const preview = useLayoutPreview(structureInteractions.previewContentMove);
+  const scenePreview = useCanvasScenePreview(projections.previewIndex, preview.layouts);
+  const { activateNode, capturesCanvasInteraction, createTextNode, interactiveNodeId } =
+    useNodeContentActivation({
+      activate: props.events.onNodeActivate,
+      create: props.events.onCreateTextNode,
+      tool: () => props.tool,
+      reportError: props.events.onError,
+      scene: projections.scene,
+      selection,
+    });
   const palette = useCanvasPalette();
   const visibility = useSceneVisibility({
+    activeNodeId: interactiveNodeId,
     nodeIds: selection.nodeIds,
     sectionIds: selection.structureNodeIds,
     sections: computed(() => projections.structureScene.value.sections),
@@ -80,22 +89,13 @@ export function useKonvaCanvasRuntime(
     layouts: () => layouts.value,
     lockedNodeIds: () => projections.lockedNodeIds.value,
     nodes: () => props.sceneInput.nodes,
-    previewFrames: structureInteractions.withContentDropPreview(preview.update),
+    previewFrames: preview.update,
     selectedNodeIds: () => selection.nodeIds.value,
     snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId: () => temporarilyExpandedSectionId.value,
     stage: () => stage.value,
     zoom: () => viewport.viewport.value.zoom,
   });
-  const { activateNode, capturesCanvasInteraction, createTextNode, interactiveNodeId } =
-    useNodeContentActivation({
-      activate: props.events.onNodeActivate,
-      create: props.events.onCreateTextNode,
-      tool: () => props.tool,
-      reportError: props.events.onError,
-      scene: projections.scene,
-      selection,
-    });
   const pointer = usePointerInteractions({
     cancelActiveGesture: gestures.cancelActiveGesture,
     host,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Boxes, ChevronDown, ChevronRight, LayoutPanelTop, LockKeyhole } from "@lucide/vue";
 import { error as logError } from "@tauri-apps/plugin-log";
+import { omit } from "es-toolkit";
 import { TreeItem, type TreeItemSelectEvent, type TreeItemToggleEvent } from "reka-ui";
 import { nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -9,6 +10,7 @@ import { formatErrorDiagnostic } from "../../../../foundation/errors/error-forma
 import type { OutlineTreeItem } from "./outline-tree-items";
 import SpaceOutlineTitle from "./SpaceOutlineTitle.vue";
 
+defineOptions({ inheritAttrs: false });
 const props = defineProps<{
   editing: boolean;
   expanded: boolean;
@@ -89,7 +91,11 @@ function keydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div :data-active="selected" :style="{ paddingLeft: `${(level - 1) * 16}px` }">
+  <div
+    v-bind="omit($attrs, ['data-index'])"
+    :data-active="selected"
+    :style="{ paddingLeft: `${(level - 1) * 16}px` }"
+  >
     <div class="flex h-interaction items-center rounded-md hover:bg-surface-control-hover">
       <button
         v-if="item.children"
@@ -107,6 +113,7 @@ function keydown(event: KeyboardEvent) {
       <TreeItem
         v-if="!editing"
         as-child
+        :data-index="$attrs['data-index']"
         :value="item"
         :level="level"
         @select="selectFromTree"

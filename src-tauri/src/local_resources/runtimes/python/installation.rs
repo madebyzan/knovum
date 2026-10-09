@@ -7,7 +7,7 @@ use super::{
     archive,
     coordinator::update,
     descriptor::{self, Descriptor},
-    verification, MANIFEST_NAME,
+    verification, RuntimeError, MANIFEST_NAME,
 };
 use crate::local_resources::{
     download, filesystem,
@@ -49,7 +49,7 @@ pub(super) async fn install<R: Runtime>(
                     ));
                     return Ok(());
                 }
-                Err(error) if error.starts_with("python-runtime-invalid:") => {
+                Err(error @ RuntimeError::InvalidPublication(_)) => {
                     drop(lease);
                     if let Some(installation) =
                         super::retention::try_acquire_exclusive(&destination)?
@@ -57,10 +57,10 @@ pub(super) async fn install<R: Runtime>(
                         break installation;
                     }
                     return Err(format!(
-                        "python-runtime-invalid: installed runtime is active and cannot be replaced: {error}"
+                        "Installed runtime is active and cannot be replaced: {error}"
                     ));
                 }
-                Err(error) => return Err(error),
+                Err(error) => return Err(error.into()),
             }
         }
         if let Some(installation) = super::retention::try_acquire_exclusive(&destination)? {
@@ -84,11 +84,11 @@ pub(super) async fn install<R: Runtime>(
                 ));
                 return Ok(());
             }
-            Err(error) if error.starts_with("python-runtime-invalid:") => {
+            Err(RuntimeError::InvalidPublication(_)) => {
                 let invalid = destination.clone();
                 crate::blocking::run(move || filesystem::remove_directory(&invalid)).await?;
             }
-            Err(error) => return Err(error),
+            Err(error) => return Err(error.into()),
         }
     }
     let staging = Staging::create(parent, &descriptor.sha256)?;
@@ -120,12 +120,14 @@ fn verify_installed(
     destination: &std::path::Path,
     descriptor: &Descriptor,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), RuntimeError> {
     let manifest_path = destination.join(MANIFEST_NAME);
     let bytes = verification::read_manifest(&manifest_path)?;
     let digest = verification::digest(&bytes);
     if digest != descriptor.manifest_sha256 {
-        return Err("python-runtime-invalid: installed manifest digest differs".into());
+        return Err(RuntimeError::InvalidPublication(
+            "installed manifest digest differs".into(),
+        ));
     }
     verification::verify_runtime(
         &manifest_path,
@@ -142,7 +144,7 @@ async fn verify_installed_async(
     destination: &std::path::Path,
     descriptor: &Descriptor,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), RuntimeError> {
     let destination = destination.to_path_buf();
     let descriptor = descriptor.clone();
     let cancellation = cancellation.clone();
@@ -229,7 +231,7 @@ async fn prepare_staging(
     )
     .await?
     {
-        return Err("python-runtime-invalid: downloaded archive digest differs".into());
+        return Err("Downloaded Python runtime archive digest differs".into());
     }
     let runtime = staging.join("runtime");
     fs::create_dir(&runtime).map_err(|error| error.to_string())?;
@@ -252,7 +254,9 @@ async fn prepare_staging(
         let bytes = verification::read_manifest(&manifest_path)?;
         let digest = verification::digest(&bytes);
         if digest != expected {
-            return Err("python-runtime-invalid: downloaded manifest digest differs".into());
+            return Err(RuntimeError::InvalidPublication(
+                "downloaded manifest digest differs".into(),
+            ));
         }
         verification::verify_runtime(
             &manifest_path,
@@ -266,4 +270,5 @@ async fn prepare_staging(
     })
     .await
     .map_err(|error| error.to_string())?
+    .map_err(String::from)
 }

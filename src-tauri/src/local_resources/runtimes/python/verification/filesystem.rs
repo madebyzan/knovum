@@ -6,6 +6,7 @@ use std::{
 
 use tokio_util::sync::CancellationToken;
 
+use super::super::RuntimeError;
 use super::{RuntimeFile, MANIFEST_NAME};
 
 const MAX_RUNTIME_FILE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
@@ -18,14 +19,16 @@ pub(super) fn verify(
     executable: &str,
     package_root: &str,
     cancellation: &CancellationToken,
-) -> Result<(PathBuf, PathBuf), String> {
+) -> Result<(PathBuf, PathBuf), RuntimeError> {
     let declared = verify_declared_files(root, files, cancellation)?;
     let executable = required_file(root, executable, &declared)?;
     ensure_executable(&executable)?;
     required_file(root, "runtime-requirements.txt", &declared)?;
     let package_root = runtime_path(root, package_root)?;
     if !checked_metadata(&package_root)?.is_dir() {
-        return Err("python-runtime-invalid: package root is not a directory".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "package root is not a directory".into(),
+        ));
     }
     verify_directory_contents(root, root, &declared)?;
     Ok((executable, package_root))
@@ -35,9 +38,11 @@ fn verify_declared_files<'a>(
     root: &Path,
     files: &'a [RuntimeFile],
     cancellation: &CancellationToken,
-) -> Result<HashMap<&'a str, &'a RuntimeFile>, String> {
+) -> Result<HashMap<&'a str, &'a RuntimeFile>, RuntimeError> {
     if files.len() > MAX_RUNTIME_FILES {
-        return Err("python-runtime-invalid: manifest declares too many files".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "manifest declares too many files".into(),
+        ));
     }
     let mut total = 0_u64;
     let mut declared = HashMap::with_capacity(files.len());
@@ -46,13 +51,15 @@ fn verify_declared_files<'a>(
         total = total
             .checked_add(file.size)
             .filter(|value| *value <= MAX_RUNTIME_TOTAL_BYTES)
-            .ok_or_else(|| "python-runtime-invalid: runtime size exceeds limit".to_string())?;
+            .ok_or_else(|| RuntimeError::InvalidPublication("runtime size exceeds limit".into()))?;
         if file.path == MANIFEST_NAME
             || file.size > MAX_RUNTIME_FILE_BYTES
             || !valid_sha256(&file.sha256)
             || declared.insert(file.path.as_str(), file).is_some()
         {
-            return Err("python-runtime-invalid: invalid or duplicate file entry".to_string());
+            return Err(RuntimeError::InvalidPublication(
+                "invalid or duplicate file entry".into(),
+            ));
         }
         verify_file(root, file, cancellation)?;
     }
@@ -63,11 +70,11 @@ fn required_file(
     root: &Path,
     relative: &str,
     declared: &HashMap<&str, &RuntimeFile>,
-) -> Result<PathBuf, String> {
+) -> Result<PathBuf, RuntimeError> {
     if !declared.contains_key(relative) {
-        return Err(format!(
-            "python-runtime-invalid: manifest does not declare {relative}"
-        ));
+        return Err(RuntimeError::InvalidPublication(format!(
+            "manifest does not declare {relative}"
+        )));
     }
     runtime_path(root, relative)
 }
@@ -76,22 +83,17 @@ fn verify_file(
     root: &Path,
     file: &RuntimeFile,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), RuntimeError> {
     let path = runtime_path(root, &file.path)?;
     let metadata = checked_metadata(&path)?;
     if !metadata.is_file()
         || metadata.len() != file.size
-        || !crate::local_resources::verification::verify_cancellable(
-            &path,
-            &file.sha256,
-            cancellation,
-            crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED,
-        )?
+        || crate::local_resources::verification::sha256_file(&path, cancellation)? != file.sha256
     {
-        return Err(format!(
-            "python-runtime-invalid: file mismatch: {}",
+        return Err(RuntimeError::InvalidPublication(format!(
+            "file mismatch: {}",
             file.path
-        ));
+        )));
     }
     Ok(())
 }
@@ -100,43 +102,43 @@ fn verify_directory_contents<'a>(
     root: &Path,
     directory: &Path,
     declared: &HashMap<&'a str, &'a RuntimeFile>,
-) -> Result<(), String> {
-    for entry in fs::read_dir(directory).map_err(|error| error.to_string())? {
-        let path = entry.map_err(|error| error.to_string())?.path();
+) -> Result<(), RuntimeError> {
+    for entry in fs::read_dir(directory)? {
+        let path = entry?.path();
         let metadata = checked_metadata(&path)?;
         if metadata.is_dir() {
             verify_directory_contents(root, &path, declared)?;
         } else if !metadata.is_file() {
-            return Err(format!(
-                "python-runtime-invalid: special file: {}",
+            return Err(RuntimeError::InvalidPublication(format!(
+                "special file: {}",
                 path.display()
-            ));
+            )));
         } else {
             let relative = relative_path(root, &path)?;
             if relative != MANIFEST_NAME && !declared.contains_key(relative.as_str()) {
-                return Err(format!(
-                    "python-runtime-invalid: undeclared file: {relative}"
-                ));
+                return Err(RuntimeError::InvalidPublication(format!(
+                    "undeclared file: {relative}"
+                )));
             }
         }
     }
     Ok(())
 }
 
-fn relative_path(root: &Path, path: &Path) -> Result<String, String> {
+fn relative_path(root: &Path, path: &Path) -> Result<String, RuntimeError> {
     path.strip_prefix(root)
-        .map_err(|error| error.to_string())
+        .map_err(|error| RuntimeError::Infrastructure(error.to_string()))
         .map(|path| path.to_string_lossy().replace('\\', "/"))
 }
 
-fn runtime_path(root: &Path, relative: &str) -> Result<PathBuf, String> {
+fn runtime_path(root: &Path, relative: &str) -> Result<PathBuf, RuntimeError> {
     validate_relative_path(relative)?;
     Ok(relative
         .split('/')
         .fold(root.to_path_buf(), |path, part| path.join(part)))
 }
 
-fn validate_relative_path(path: &str) -> Result<(), String> {
+fn validate_relative_path(path: &str) -> Result<(), RuntimeError> {
     if path.is_empty()
         || path.contains('\\')
         || path.starts_with('/')
@@ -151,7 +153,9 @@ fn validate_relative_path(path: &str) -> Result<(), String> {
             .components()
             .any(|part| !matches!(part, Component::Normal(_)))
     {
-        return Err(format!("python-runtime-invalid: unsafe path: {path}"));
+        return Err(RuntimeError::InvalidPublication(format!(
+            "unsafe path: {path}"
+        )));
     }
     Ok(())
 }
@@ -163,37 +167,39 @@ fn valid_sha256(value: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-pub(super) fn checked_metadata(path: &Path) -> Result<fs::Metadata, String> {
+pub(super) fn checked_metadata(path: &Path) -> Result<fs::Metadata, RuntimeError> {
     let metadata = fs::symlink_metadata(path).map_err(|error| {
         if error.kind() == std::io::ErrorKind::NotFound {
-            format!(
-                "python-runtime-invalid: required runtime file is missing: {}",
+            RuntimeError::InvalidPublication(format!(
+                "required runtime file is missing: {}",
                 path.display()
-            )
+            ))
         } else {
-            error.to_string()
+            error.into()
         }
     })?;
     if metadata.file_type().is_symlink() || is_windows_reparse_point(&metadata) {
-        return Err(format!(
-            "python-runtime-invalid: link is not allowed: {}",
+        return Err(RuntimeError::InvalidPublication(format!(
+            "link is not allowed: {}",
             path.display()
-        ));
+        )));
     }
     Ok(metadata)
 }
 
 #[cfg(unix)]
-fn ensure_executable(path: &Path) -> Result<(), String> {
+fn ensure_executable(path: &Path) -> Result<(), RuntimeError> {
     use std::os::unix::fs::PermissionsExt;
     if checked_metadata(path)?.permissions().mode() & 0o111 == 0 {
-        return Err("python-runtime-invalid: interpreter is not executable".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "interpreter is not executable".into(),
+        ));
     }
     Ok(())
 }
 
 #[cfg(not(unix))]
-fn ensure_executable(_: &Path) -> Result<(), String> {
+fn ensure_executable(_: &Path) -> Result<(), RuntimeError> {
     Ok(())
 }
 

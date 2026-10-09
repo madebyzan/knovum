@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <KonvaLayer :config="{ id: 'canvas-section-candidate-feedback', listening: false }">
+  <KonvaLayer v-if="bounds.length" :config="{ id: 'canvas-section-candidate-feedback', listening: false }">
     <KonvaRect
       v-for="(frame, index) in bounds"
       :key="index"

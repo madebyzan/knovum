@@ -1,7 +1,7 @@
 import { useEditor } from "@tiptap/vue-3";
 import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -30,6 +30,13 @@ export function useSpaceTiptapEditor() {
   initializeEditingState(state, editorNode.value);
   const initialContent = editorContent(editorNode.value);
   const statistics = createTiptapTextStatistics();
+  const headings = shallowRef<ReturnType<typeof spaceTiptapHeadings>>([]);
+  const derive = useDebounceFn(() => {
+    const instance = editor.value;
+    if (!instance || instance.isDestroyed) return;
+    statistics.update(instance.getText());
+    headings.value = spaceTiptapHeadings(instance);
+  }, 200);
 
   const persist = async () => {
     saveStatus.value = "saving";
@@ -76,10 +83,10 @@ export function useSpaceTiptapEditor() {
     content: initialContent.content,
     ...(initialContent.contentType === undefined ? {} : { contentType: initialContent.contentType }),
     editorProps: { attributes: { class: "space-tiptap-prose", spellcheck: "true" } },
-    onCreate: ({ editor: instance }) => statistics.update(instance.getText()),
-    onUpdate: ({ editor: instance }) => {
+    onCreate: () => void derive(),
+    onUpdate: () => {
       state.revision.value += 1;
-      statistics.update(instance.getText());
+      void derive();
       scheduleAutoSave();
     },
     onSelectionUpdate: ({ editor: instance }) => (state.selection.value = instance.state.selection.from),
@@ -94,10 +101,6 @@ export function useSpaceTiptapEditor() {
     { immediate: true },
   );
 
-  const headings = computed(() => {
-    void state.revision.value;
-    return spaceTiptapHeadings(editor.value);
-  });
   const outline = useHeadingNavigation(
     () => editor.value,
     () => headings.value,
@@ -127,6 +130,7 @@ export function useSpaceTiptapEditor() {
   onBeforeUnmount(() => {
     detachSessionCommit();
     outline.dispose();
+    derive.cancel();
     statistics.dispose();
   });
 

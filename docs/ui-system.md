@@ -361,15 +361,39 @@ Canvas zoom changes information density, not node geometry. The viewport resolve
 | full    | 10                  | the normal non-interactive reading projection |
 
 The item budget is semantic: Tiptap and Markdown count root blocks, subtitles count cues, code counts lines,
-archives count entries, and structured objects count fields. Markdown is projected from source block ranges before
-rendering; rendered rich DOM must never be line-clamped as the primary density mechanism. Media and fixed utility
+archives count entries, and structured objects count fields. A preview also allows 1024 characters per item;
+Tiptap limits nested nodes to 32 per item. Markdown parses a cached, bounded source prefix of at most the full
+profile character budget, then selects root-block ranges. A very large single block may end at the character
+budget; Markdown's renderer closes its rendered structure and the preview displays an ellipsis instead of
+inventing a remaining-block count. Rendered rich DOM must never be line-clamped as the primary density mechanism. Media and fixed utility
 nodes keep their type-owned representation instead of pretending every kind contains a list.
 
 Viewport detail and interaction are independent state. Activating a node switches it from `preview` to
 `interactive` content without rewriting the viewport profile; editors, complete source and embedded controls may
 then reveal the canonical content. Zooming alone must not persist a frame, derived height or content mutation.
-Text may keep an invisible canonical measurement plane while presenting a projected preview, so display density
-cannot feed back into persisted geometry.
+Text mounts its invisible canonical measurement plane only until an accurate measurement is available.
+Measurements are cached by immutable document identity, frame width, font size, typography scale, alignment
+and loaded-font epoch; these inputs invalidate the cache. An active editor keeps its complete measurement
+plane. Display density cannot feed back into persisted geometry.
+
+Selected offscreen objects retain operation geometry without mounting their full content. The active inline
+editor stays mounted when its object leaves the viewport or the workbench is covered. Other DOM content
+suspends while Library, Settings or a full editor covers the canvas. Empty relationship, Section, group and
+feedback layers allocate no Konva backing canvas; the drag layer remains available to synchronous drag start.
+
+Canvas image previews use a feature-owned module Worker and transferable bitmaps. The existing image edit
+algorithm owns crop, transforms and tone; preview dispatch replaces queued work for the same surface and
+prioritizes the active image. Interactive draft previews use a 512-pixel long edge, at most once per 100 ms;
+a settled preview follows after 180 ms. Settled backing resolution follows viewport zoom with DPR at most 2
+and at most two million pixels. Cropping/removal coordinates remain in logical image space. The previous
+bitmap stays visible while the next render runs, and the last consumer releases the Worker. Canonical Rust
+materialization and export retain their full-resolution policy.
+
+Outline uses Reka tree virtualization while keeping button TreeItems, hierarchy, type-ahead and rename
+leases. The Space library uses TanStack virtual rows; focused and renamed rows remain mounted, and arrow
+keys/Home/End reveal the destination before transferring focus. Search input updates immediately and
+filters after a 150 ms pause. Full text/video editors and recovery surfaces load on demand. Long-document
+statistics and heading derivation follow input after a 200 ms pause; save and session commit remain immediate.
 
 Every canvas node kind declares its projection strategy exhaustively. New kinds must choose a strategy when they
 enter the node union; there is no generic compatibility fallback and no component-local zoom threshold. The
@@ -416,7 +440,11 @@ Group and Section interaction uses the same compact desktop language while keepi
 
 Resize is a capability, not a default decoration. Image and video resize with their media viewport ratio preserved. Notes, Markdown, websites, files, code, folders, archives and knowledge objects resize within type-specific bounds. Audio, credentials, aliases, queries and portals remain fixed compact utilities. Sections use their dedicated container resize treatment.
 
-Space library covers are Canvas Overviews: they fit all visible authored objects, sections and relations into one fixed 16:9 image, independent of the current pan and zoom. The cover renderer uses the same document projection and color tokens as the editor but draws a simplified, non-interactive Konva scene; DOM content and workbench controls are never captured. Covers refresh after content or scene-geometry changes, not viewport navigation.
+Space library covers are Canvas Overviews: they fit all visible authored objects, sections and relations into one fixed 16:9 image, independent of the current pan and zoom. The cover renderer uses the same document projection and color tokens as the editor but draws a simplified, non-interactive Konva scene; DOM content and workbench controls are never captured. Covers refresh after content or scene-geometry changes, not viewport navigation. A session transition commits
+user content, layout and persistence before starting a cover capture of that committed scene. Image decoding
+and derived-cover publication continue outside the navigation barrier. Publication is serialized, belongs to
+the captured Space, and discards deleted, superseded or changed sources. Saved View captures decode only
+image sources intersecting their viewport.
 
 Relations connect knowledge-bearing objects, not every selectable canvas utility:
 

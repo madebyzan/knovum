@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
-import { computed, nextTick, onMounted, useTemplateRef } from "vue";
+import { computed, watch, useTemplateRef } from "vue";
 import { Layer as KonvaLayer } from "vue-konva/core";
 import type { VueKonvaRef } from "vue-konva/core";
 
@@ -51,11 +51,15 @@ function syncLayerOrder() {
   }
 }
 
-onMounted(() => void nextTick(syncLayerOrder));
+watch([sectionLayer, groupLayer], syncLayerOrder, { flush: "post" });
 </script>
 
 <template>
-  <KonvaLayer ref="sectionLayer" :config="{ id: 'canvas-section-interaction-layer', listening: interactive }">
+  <KonvaLayer
+    v-if="sections.length"
+    ref="sectionLayer"
+    :config="{ id: 'canvas-section-interaction-layer', listening: interactive }"
+  >
     <CanvasSectionChrome
       v-for="section in sections"
       :key="section.section.id"
@@ -72,7 +76,11 @@ onMounted(() => void nextTick(syncLayerOrder));
       @select="emit('select', section.section.id, $event)"
     />
   </KonvaLayer>
-  <KonvaLayer ref="groupLayer" :config="{ id: 'canvas-group-interaction-layer', listening: interactive }">
+  <KonvaLayer
+    v-if="selectedGroups.length"
+    ref="groupLayer"
+    :config="{ id: 'canvas-group-interaction-layer', listening: interactive }"
+  >
     <CanvasGroupChrome
       v-for="group in selectedGroups"
       :key="group.group.id"

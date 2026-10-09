@@ -55,17 +55,40 @@ describe("canvas preview projection", () => {
       "> final block",
     ].join("\n");
 
-    const compact = projectMarkdownPreview(source, 2);
+    const compact = projectMarkdownPreview({ text: source }, 2);
     expect(compact.visibleBlockCount).toBe(2);
     expect(compact.remainingBlockCount).toBe(3);
     expect(compact.projectedSource).toContain("# Heading");
     expect(compact.projectedSource).toContain("A paragraph with **formatting**.");
     expect(compact.projectedSource).not.toContain("- first");
 
-    const summary = projectMarkdownPreview(source, 4);
+    const summary = projectMarkdownPreview({ text: source }, 4);
     expect(summary.visibleBlockCount).toBe(4);
     expect(summary.remainingBlockCount).toBe(1);
     expect(summary.projectedSource).toContain("const answer = 42;");
     expect(summary.projectedSource).not.toContain("> final block");
+  });
+  it("bounds a single enormous nested block while interactive mode retains the canonical document", () => {
+    const document: TiptapJsonNode = {
+      type: "doc",
+      content: [
+        {
+          type: "bulletList",
+          content: Array.from({ length: 1000 }, () => ({
+            type: "listItem",
+            content: [{ type: "paragraph", content: [{ type: "text", text: "x".repeat(1000) }] }],
+          })),
+        },
+      ],
+    };
+    const preview = projectTiptapPreview(document, contexts.compact);
+    expect(JSON.stringify(preview).length).toBeLessThan(4000);
+    expect(document.content![0]!.content).toHaveLength(1000);
+    expect(projectTiptapPreview(document, contexts.interactive)).toBe(document);
+    const payload = { text: "```ts\n" + "const answer = 42;\n".repeat(10000) + "```" };
+    const markdown = projectMarkdownPreview(payload, 2);
+    expect(markdown.projectedSource.length).toBeLessThanOrEqual(2048);
+    expect(markdown.truncated).toBe(true);
+    expect(projectMarkdownPreview(payload, 2)).toBe(markdown);
   });
 });

@@ -41,6 +41,8 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     <KonvaStage
       ref="stage"
       :config="{
+        visible: renderingEnabled,
+        listening: renderingEnabled,
         width: runtime.viewport.stageSize.width,
         height: runtime.viewport.stageSize.height,
         x: runtime.viewport.viewport.value.x,
@@ -143,6 +145,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     </KonvaStage>
     <Teleport v-if="runtime.stage.value" :to="runtime.stage.value.getContent()">
       <CanvasDomOverlay
+        :rendering-enabled="renderingEnabled"
         :interaction-enabled="
           interactionEnabled &&
           tool === 'select' &&
@@ -153,7 +156,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :layout-previews="runtime.scenePreview.layouts"
         :scene="runtime.scene.value"
         :viewport="runtime.viewport.viewport.value"
-        :visible-node-ids="runtime.visibility.visibleNodeIds.value"
+        :visible-node-ids="runtime.visibility.visibleContentNodeIds.value"
         :selected-node-ids="runtime.selection.nodeIds.value"
       >
         <template #default="content">

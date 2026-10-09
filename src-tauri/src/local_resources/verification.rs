@@ -8,6 +8,18 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
+#[derive(Debug)]
+pub(crate) enum HashError {
+    Cancelled,
+    Io(std::io::Error),
+}
+
+impl From<std::io::Error> for HashError {
+    fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct VerificationReceipt {
@@ -54,7 +66,12 @@ pub(crate) fn verify_cancellable(
     cancellation: &CancellationToken,
     cancellation_message: &str,
 ) -> Result<bool, String> {
-    Ok(sha256_file(path, cancellation, cancellation_message)? == sha256)
+    sha256_file(path, cancellation)
+        .map(|digest| digest == sha256)
+        .map_err(|error| match error {
+            HashError::Cancelled => cancellation_message.to_owned(),
+            HashError::Io(error) => error.to_string(),
+        })
 }
 
 pub(crate) fn record(path: &Path, sha256: &str) -> Result<(), String> {
@@ -95,19 +112,18 @@ fn modified_nanos(metadata: &fs::Metadata) -> Result<u64, String> {
         .map_err(|error: std::num::TryFromIntError| error.to_string())
 }
 
-fn sha256_file(
+pub(crate) fn sha256_file(
     path: &Path,
     cancellation: &CancellationToken,
-    cancellation_message: &str,
-) -> Result<String, String> {
-    let mut file = fs::File::open(path).map_err(|error| error.to_string())?;
+) -> Result<String, HashError> {
+    let mut file = fs::File::open(path)?;
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 1024 * 1024];
     loop {
         if cancellation.is_cancelled() {
-            return Err(cancellation_message.to_string());
+            return Err(HashError::Cancelled);
         }
-        let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
+        let read = file.read(&mut buffer)?;
         if read == 0 {
             break;
         }

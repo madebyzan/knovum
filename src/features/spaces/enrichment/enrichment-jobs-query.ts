@@ -12,7 +12,10 @@ export function enrichmentJobsQuery(enabled = true) {
     queryKey: enrichmentJobsKey,
     queryFn: listActionableEnrichmentJobs,
     enabled,
-    refetchInterval: POLL_INTERVAL_MS,
+    refetchInterval: (query) =>
+      query.state.data?.some(({ job }) => job.status === "pending" || job.status === "running")
+        ? POLL_INTERVAL_MS
+        : false,
   });
 }
 

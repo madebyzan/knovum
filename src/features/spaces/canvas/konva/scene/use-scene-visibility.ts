@@ -6,6 +6,7 @@ import type { CanvasScene } from "./canvas-scene";
 import { createSceneVisibilityIndex, visibleSceneIds } from "./viewport-culling";
 
 interface SceneVisibilityOptions {
+  activeNodeId: Readonly<Ref<string | undefined>>;
   nodeIds: Readonly<Ref<ReadonlySet<string>>>;
   relationIds: Readonly<Ref<ReadonlySet<string>>>;
   scene: Readonly<Ref<CanvasScene>>;
@@ -25,6 +26,11 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   const visibleNodeIds = computed(() => {
     const ids = new Set(culledNodeIds.value);
     for (const id of options.nodeIds.value) ids.add(id);
+    return ids;
+  });
+  const visibleContentNodeIds = computed(() => {
+    const ids = new Set(culledNodeIds.value);
+    if (options.activeNodeId.value) ids.add(options.activeNodeId.value);
     return ids;
   });
   const visibleRelationIds = computed(() => {
@@ -71,5 +77,5 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
         temporarilyExpanded,
     ),
   );
-  return { selectedRelationIds, visibleNodeIds, visibleRelationIds, visibleSections };
+  return { selectedRelationIds, visibleContentNodeIds, visibleNodeIds, visibleRelationIds, visibleSections };
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { EditorContent } from "@tiptap/vue-3";
-import { computed, toRef } from "vue";
+import { computed, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/canvas-editor-port";
@@ -13,6 +13,7 @@ import SpaceCanvasTextPlane from "./SpaceCanvasTextPlane.vue";
 import SpaceCanvasTextSelectionBar from "./SpaceCanvasTextSelectionBar.vue";
 import { projectTiptapPreview } from "./tiptap-preview-projection";
 import { useCanvasTextEditor } from "./use-canvas-text-editor";
+import { useCanvasTextMeasurement } from "./use-canvas-text-measurement";
 
 const props = defineProps<{
   id: string;
@@ -41,6 +42,24 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   defaultTitle: t("spaces.editor.text.new"),
   persist: props.persist,
 });
+
+const measurement = useCanvasTextMeasurement(() => ({
+  content: props.data.tiptapContent,
+  width: props.frameWidth,
+  fontSize: props.fontSize,
+  scale: props.typographyScale,
+  alignment: props.textAlign,
+}));
+watch(
+  [measurement.cachedHeight, editing, () => props.sizingMode],
+  ([height]) => {
+    if (height !== undefined && !editing.value) reportContentHeight(height);
+  },
+  { immediate: true },
+);
+function recordPreviewHeight(height: number) {
+  measurement.record(height);
+}
 
 function reportContentHeight(height: number) {
   props.fitContentHeight(props.id, {
@@ -81,9 +100,10 @@ function reportContentHeight(height: number) {
     </SpaceCanvasTextPlane>
     <template v-else>
       <SpaceCanvasTextPlane
+        v-if="measurement.required.value"
         class="pointer-events-none invisible absolute inset-x-0 top-0"
         :scale="typographyScale"
-        @content-height="reportContentHeight"
+        @content-height="recordPreviewHeight"
       >
         <SpaceCanvasRichText
           :content="data.tiptapContent"

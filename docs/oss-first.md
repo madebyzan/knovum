@@ -75,6 +75,12 @@ The resulting lifecycle, permissions and interaction contracts are owned by
 - Tiptap and its first-party extensions own rich-text editing, tables, file handling and find/replace.
   Markdown text remains canonical only for Markdown items; Notes keep their validated structured
   document. Vendor JSON is not a compatibility model.
+- Browser-native module Worker/OffscreenCanvas own canvas image-preview execution. VueUse owns shared
+  consumer lifecycle; Spaces only orchestrates latest-surface requests, active priority and preview budgets.
+  `useWebWorkerFn` does not expose the module-import and bitmap-transfer contract required by the existing
+  edit renderer; a resize-only library such as Pica does not implement Knovum tone semantics. No additional
+  worker framework or raster engine is installed. Rust `image` remains the canonical export/materialization
+  authority.
 - Rust `image` owns canonical raster materialization. U²-Net runs through the existing ONNX Runtime
   worker for background removal; browser ONNX and browser compositing were rejected because they
   block the desktop renderer. The maintained

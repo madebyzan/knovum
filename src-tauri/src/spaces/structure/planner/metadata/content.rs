@@ -29,10 +29,10 @@ pub(in crate::spaces::structure) fn update_content(
         appearance: current_appearance,
         file_subpath: current_subpath,
         ..
-    }) = snapshot
-        .layouts
-        .iter_mut()
-        .find(|layout| layout.structure_node_id() == id)
+    }) = index
+        .layout
+        .get(id)
+        .and_then(|position| snapshot.layouts.get_mut(*position))
     else {
         return Err(format!("Content layout missing: {id}"));
     };
@@ -94,10 +94,10 @@ pub(in crate::spaces::structure) fn update_content_heights(
             sizing_mode,
             appearance,
             ..
-        }) = snapshot
-            .layouts
-            .iter_mut()
-            .find(|layout| layout.structure_node_id() == update.structure_node_id)
+        }) = index
+            .layout
+            .get(&update.structure_node_id)
+            .and_then(|position| snapshot.layouts.get_mut(*position))
         else {
             return Err(format!(
                 "Content layout missing: {}",

@@ -31,12 +31,19 @@ Vue 3 WebView
       +-- shell/       stable desktop workbench
       +-- foundation/  IPC, preferences, tasks, i18n and shared infrastructure
       +-- features/    product capabilities
+      |     +-- Spaces image-preview module Worker (bitmap input/output; no IPC or storage authority)
       +-- shared/      neutral contracts and durable UI compositions
 ```
 
 The WebView never receives unrestricted SQL, filesystem, process, shell, credential, or model
 network access. Rust commands authorize and validate requests at the boundary, then return typed
 data and machine-readable reason codes. Vue owns localized copy and presentation.
+
+Spaces shares one image-preview Worker among mounted preview consumers. The browser owns Worker and
+OffscreenCanvas execution; Spaces owns bounded resolution, active-image priority, stale-result disposal and
+consumer lifecycle. This worker receives decoded bitmaps and validated image edit facts, never credentials,
+filesystem paths or database authority. Failure stays visible and does not rerun tone processing on the main
+thread. Vue's long-document statistics Worker remains separate.
 
 Local inference runs in verified, application-owned CPython environments over JSON-RPC on stdio.
 The application selects and prepares the required environment and model when a capability is used;

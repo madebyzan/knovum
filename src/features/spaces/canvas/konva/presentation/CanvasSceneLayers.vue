@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
-import { nextTick, onMounted, shallowRef, useTemplateRef } from "vue";
+import { watch, shallowRef, useTemplateRef } from "vue";
 import { Layer as KonvaLayer } from "vue-konva/core";
 import type { VueKonvaRef } from "vue-konva/core";
 
@@ -82,7 +82,7 @@ function syncInteractionCanvas() {
   canvas.dataset.thumbnailExclude = "";
 }
 
-onMounted(() => void nextTick(syncInteractionCanvas));
+watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
 </script>
 
 <template>
@@ -112,7 +112,7 @@ onMounted(() => void nextTick(syncInteractionCanvas));
     />
   </KonvaLayer>
   <KonvaLayer :config="{ id: 'canvas-drag-layer' }" />
-  <KonvaLayer ref="interactionLayer">
+  <KonvaLayer v-if="selectedFrames.length || connectorDraft || feedback" ref="interactionLayer">
     <CanvasSelectionTransformer
       v-if="stage && !connectorDraft"
       :interactive="interactive"

@@ -1,26 +1,38 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, provide } from "vue";
 
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import { canvasPreviewPolicy } from "../../preview/policy";
+import { canvasPreviewZoomKey } from "../../preview/viewport-zoom";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene } from "../scene/canvas-scene";
 import CanvasDomNodeOverlay from "./CanvasDomNodeOverlay.vue";
+import { sceneNodesInPaintOrder } from "./use-canvas-scene-layer-projection";
 
 const props = defineProps<{
   scene: CanvasScene;
   interactionEnabled: boolean;
+  renderingEnabled: boolean;
   layoutPreviews: ReadonlyMap<string, CanvasNodeLayoutV1>;
   interactiveNodeId: string | undefined;
   viewport: CanvasViewport;
   visibleNodeIds: ReadonlySet<string>;
   selectedNodeIds: ReadonlySet<string>;
 }>();
+provide(
+  canvasPreviewZoomKey,
+  computed(() => props.viewport.zoom),
+);
 const previewPolicy = computed(() =>
   canvasPreviewPolicy(props.viewport.zoom * 100, props.scene.nodes.length),
 );
 const visibleNodes = computed(() =>
-  props.scene.nodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
+  sceneNodesInPaintOrder(
+    props.scene,
+    props.renderingEnabled
+      ? props.visibleNodeIds
+      : new Set(props.interactiveNodeId ? [props.interactiveNodeId] : []),
+  ),
 );
 const worldStyle = computed(() => ({
   transform: `translate(${props.viewport.x}px, ${props.viewport.y}px) scale(${props.viewport.zoom})`,
@@ -29,7 +41,7 @@ const worldStyle = computed(() => ({
 
 <template>
   <div
-    :inert="!interactionEnabled"
+    :inert="!interactionEnabled || !renderingEnabled"
     class="pointer-events-none absolute inset-0 z-[17] overflow-hidden select-none"
   >
     <div class="absolute top-0 left-0 origin-top-left" :style="worldStyle">

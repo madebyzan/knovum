@@ -8,6 +8,7 @@ import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot"
 import type { SpaceScene } from "../scenes/scene";
 
 export interface SpaceSessionContext {
+  captureOverview(): void;
   spaces: Ref<Space[]>;
   draftSpace: Ref<Space | undefined>;
   activeSpaceId: Ref<string | undefined>;

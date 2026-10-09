@@ -1,3 +1,4 @@
+import { isEqual } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { decodeAppError } from "../../../../foundation/errors/app-error";
@@ -7,7 +8,11 @@ import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack"
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { spaceEditCommandRecordsHistory } from "../../structure/space-edit-command";
+import {
+  spaceEditCommandProjection,
+  spaceEditCommandRecordsHistory,
+  type SpaceEditProjection,
+} from "../../structure/space-edit-command";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 
@@ -33,11 +38,13 @@ export function createStructureActions(context: StructureActionContext) {
         expectedEditRevision: context.editSnapshot.value.editRevision,
         command,
       });
-      await reloadProjection(spaceId);
-      if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId);
+      const projection = spaceEditCommandProjection(command);
+      await reloadProjection(spaceId, projection);
+      if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId, projection);
       return receipt;
     } catch (error) {
-      if (decodeAppError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      if (decodeAppError(error)?.code === "space_edit_revision_conflict")
+        await reloadProjection(spaceId, "session");
       throw error;
     } finally {
       releaseMutation();
@@ -47,34 +54,48 @@ export function createStructureActions(context: StructureActionContext) {
   function recordCommittedSpaceEdit() {
     const spaceId = context.activeSpaceId.value;
     if (!spaceId) throw new Error("A Space must be active");
-    recordRustEdit(spaceId);
+    recordRustEdit(spaceId, "session");
   }
 
-  function recordRustEdit(spaceId: string) {
+  function recordRustEdit(spaceId: string, projection: SpaceEditProjection) {
     recordSpaceHistory(context.history, {
-      undo: () => transition(spaceId, "undo"),
-      redo: () => transition(spaceId, "redo"),
+      undo: () => transition(spaceId, "undo", projection),
+      redo: () => transition(spaceId, "redo", projection),
     });
   }
 
-  async function transition(spaceId: string, direction: "undo" | "redo") {
+  async function transition(spaceId: string, direction: "undo" | "redo", projection: SpaceEditProjection) {
     if (context.activeSpaceId.value !== spaceId)
       throw new Error("Open the Space where this edit was made before changing its history");
     try {
       await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
-      await reloadProjection(spaceId);
+      await reloadProjection(spaceId, projection);
     } catch (error) {
-      if (decodeAppError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      if (decodeAppError(error)?.code === "space_edit_revision_conflict")
+        await reloadProjection(spaceId, "session");
       throw error;
     }
   }
 
-  async function reloadProjection(spaceId: string) {
-    const { editSnapshot, nodes, relations } = await loadSpaceSessionProjection(spaceId);
+  async function reloadProjection(spaceId: string, projection: SpaceEditProjection) {
+    const result =
+      projection === "session"
+        ? await loadSpaceSessionProjection(spaceId)
+        : { editSnapshot: await spaceEditOperations.load(spaceId) };
     if (context.activeSpaceId.value !== spaceId) return;
-    context.nodes.value = nodes;
-    context.relations.value = relations;
-    context.editSnapshot.value = editSnapshot;
+    if ("nodes" in result) {
+      context.nodes.value = result.nodes;
+      context.relations.value = result.relations;
+    }
+    const current = context.editSnapshot.value;
+    const next = result.editSnapshot;
+    context.editSnapshot.value = {
+      ...next,
+      structure: isEqual(current.structure, next.structure) ? current.structure : next.structure,
+      relationStyles: isEqual(current.relationStyles, next.relationStyles)
+        ? current.relationStyles
+        : next.relationStyles,
+    };
   }
 
   return { executeSpaceEdit, recordCommittedSpaceEdit };

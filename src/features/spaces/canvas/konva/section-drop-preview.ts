@@ -2,7 +2,7 @@ import { useTimeoutFn } from "@vueuse/core";
 import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
 
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { sectionDropCandidateId } from "../../structure/section-drop-reparent";
+import { sectionDropCandidateId, sectionDropIndex } from "../../structure/section-drop-reparent";
 
 interface SectionDropPreviewOptions {
   dropTargetId: ShallowRef<string | undefined>;
@@ -33,11 +33,8 @@ export function useSectionDropPreview(options: SectionDropPreviewOptions) {
     if (!delta) return clear();
     const snapshot = options.snapshot();
     const candidate = sectionDropCandidateId({ snapshot, rootIds, delta }, true);
-    const collapsed =
-      candidate &&
-      snapshot.layouts.some(
-        (layout) => layout.structureNodeId === candidate && layout.kind === "section" && layout.collapsed,
-      );
+    const layout = candidate ? sectionDropIndex(snapshot).layouts.get(candidate) : undefined;
+    const collapsed = layout?.kind === "section" && layout.collapsed;
     if (!candidate || !collapsed) {
       clear();
       options.dropTargetId.value = candidate;

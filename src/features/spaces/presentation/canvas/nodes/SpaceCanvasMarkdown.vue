@@ -17,8 +17,8 @@ const { t } = useI18n();
 const work = computed(() => nodePayloadWork(props.data));
 const projection = computed(() =>
   props.presentationContext.mode === "interactive"
-    ? { projectedSource: props.data.text, remainingBlockCount: 0 }
-    : projectMarkdownPreview(props.data.text, props.presentationContext.viewport.previewItemLimit),
+    ? { projectedSource: props.data.text, remainingBlockCount: 0, truncated: false }
+    : projectMarkdownPreview(props.data, props.presentationContext.viewport.previewItemLimit),
 );
 </script>
 
@@ -47,10 +47,10 @@ const projection = computed(() =>
       />
     </Transition>
     <span
-      v-if="projection.remainingBlockCount > 0"
+      v-if="projection.remainingBlockCount > 0 || projection.truncated"
       class="pointer-events-none absolute right-2 bottom-1 rounded-md bg-surface-panel/90 px-1.5 text-caption-sm text-fg-tertiary"
     >
-      +{{ projection.remainingBlockCount }}
+      {{ projection.remainingBlockCount > 0 ? `+${projection.remainingBlockCount}` : "…" }}
     </span>
   </div>
 </template>

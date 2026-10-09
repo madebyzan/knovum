@@ -155,21 +155,36 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
     structure: &mut Vec<StructureNode>,
     layouts: &mut Vec<StructureLayout>,
 ) -> HashSet<String> {
-    let mut removed = HashSet::new();
-    loop {
-        let empty = structure
-            .iter()
-            .find(|structure_node| {
-                structure_node.kind_name() == "group"
-                    && !structure
-                        .iter()
-                        .any(|child| child.parent_id() == Some(structure_node.id()))
-            })
-            .map(|structure_node| structure_node.id().to_owned());
-        let Some(id) = empty else { break };
-        removed.insert(id.clone());
-        structure.retain(|structure_node| structure_node.id() != id);
-        layouts.retain(|layout| layout.structure_node_id() != id);
+    let groups: HashMap<&str, Option<&str>> = structure
+        .iter()
+        .filter(|node| node.kind_name() == "group")
+        .map(|node| (node.id(), node.parent_id()))
+        .collect();
+    let mut child_counts = HashMap::<&str, usize>::new();
+    for node in structure.iter() {
+        if let Some(parent) = node.parent_id() {
+            *child_counts.entry(parent).or_default() += 1;
+        }
     }
+    let mut pending: Vec<&str> = groups
+        .keys()
+        .copied()
+        .filter(|id| !child_counts.contains_key(id))
+        .collect();
+    let mut removed = HashSet::new();
+    while let Some(id) = pending.pop() {
+        removed.insert(id.to_owned());
+        if let Some(parent) = groups[id] {
+            let remaining = child_counts
+                .get_mut(parent)
+                .expect("Group parent has a child count");
+            *remaining -= 1;
+            if *remaining == 0 && groups.contains_key(parent) {
+                pending.push(parent);
+            }
+        }
+    }
+    structure.retain(|node| !removed.contains(node.id()));
+    layouts.retain(|layout| !removed.contains(layout.structure_node_id()));
     removed
 }

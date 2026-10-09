@@ -11,7 +11,7 @@ import {
 } from "../../canvas-snap-geometry";
 import type { CanvasNodeFrame } from "../../schema/document";
 import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping";
-import type { CanvasTranslationSnapIndex, IndexedCanvasBounds } from "./canvas-translation-snap-index";
+import type { CanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
 
 export interface CanvasTranslationGestureState {
   frames: ReadonlyMap<string, CanvasNodeFrame>;
@@ -42,7 +42,7 @@ function axisSnap(
   axis: "x" | "y",
   tolerance: number,
 ) {
-  return spacingSnap(moving, index.tree, axis, tolerance) ?? alignmentSnap(moving, index, axis, tolerance);
+  return spacingSnap(moving, index, axis, tolerance) ?? alignmentSnap(moving, index, axis, tolerance);
 }
 
 function alignmentSnap(
@@ -99,12 +99,12 @@ function alignmentGuidePoints(
 
 function spacingSnap(
   moving: CanvasBounds,
-  tree: CanvasTranslationSnapIndex["tree"],
+  index: CanvasTranslationSnapIndex,
   axis: "x" | "y",
   tolerance: number,
 ) {
-  const before = nearestSpacingNeighbor(tree, moving, axis, "before");
-  const after = nearestSpacingNeighbor(tree, moving, axis, "after");
+  const before = nearestSpacingNeighbor(index, moving, axis, "before");
+  const after = nearestSpacingNeighbor(index, moving, axis, "after");
   if (!before || !after) return undefined;
   const available = boundsStart(after, axis) - boundsEnd(before, axis) - boundsSize(moving, axis);
   if (available < 0) return undefined;
@@ -122,31 +122,41 @@ function spacingSnap(
 }
 
 function nearestSpacingNeighbor(
-  tree: CanvasTranslationSnapIndex["tree"],
+  index: CanvasTranslationSnapIndex,
   moving: CanvasBounds,
   axis: "x" | "y",
   side: "after" | "before",
 ) {
-  const candidates = tree.search(crossAxisSearchBounds(moving, axis));
-  let nearest: IndexedCanvasBounds | undefined;
-  for (const target of candidates) {
-    if (!crossAxisOverlaps(moving, target, axis)) continue;
-    const eligible =
-      side === "before"
-        ? boundsEnd(target, axis) <= boundsStart(moving, axis)
-        : boundsStart(target, axis) >= boundsEnd(moving, axis);
-    if (!eligible) continue;
-    if (!nearest) nearest = target;
-    else if (side === "before" && boundsEnd(target, axis) > boundsEnd(nearest, axis)) nearest = target;
-    else if (side === "after" && boundsStart(target, axis) < boundsStart(nearest, axis)) nearest = target;
+  const candidates = index.neighbors[axis][side];
+  const step = side === "before" ? -1 : 1;
+  for (
+    let position = neighborBoundary(candidates, moving, axis, side);
+    position >= 0 && position < candidates.length;
+    position += step
+  ) {
+    const target = candidates[position]!;
+    if (crossAxisOverlaps(moving, target, axis)) return target;
   }
-  return nearest;
+  return undefined;
 }
 
-function crossAxisSearchBounds(bounds: CanvasBounds, axis: "x" | "y") {
-  return axis === "x"
-    ? { minX: -Infinity, maxX: Infinity, minY: bounds.top, maxY: bounds.bottom }
-    : { minX: bounds.left, maxX: bounds.right, minY: -Infinity, maxY: Infinity };
+function neighborBoundary(
+  candidates: readonly CanvasBounds[],
+  moving: CanvasBounds,
+  axis: "x" | "y",
+  side: "after" | "before",
+) {
+  const coordinate = side === "before" ? boundsEnd : boundsStart;
+  const boundary = side === "before" ? boundsStart(moving, axis) : boundsEnd(moving, axis);
+  let low = 0;
+  let high = candidates.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    const value = coordinate(candidates[middle]!, axis);
+    if (value < boundary || (side === "before" && value === boundary)) low = middle + 1;
+    else high = middle;
+  }
+  return side === "before" ? low - 1 : low;
 }
 
 function spacingGuide(from: number, to: number, cross: number, axis: "x" | "y"): CanvasSnapGuide {

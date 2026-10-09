@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { Virtualizer } from "@tanstack/vue-virtual";
 import { union, xor } from "es-toolkit";
-import { TreeRoot } from "reka-ui";
-import { computed, inject, onBeforeUnmount, shallowRef, watch } from "vue";
+import { TreeRoot, TreeVirtualizer } from "reka-ui";
+import { computed, inject, nextTick, onBeforeUnmount, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
@@ -25,7 +26,14 @@ const sidebar = inject(workspaceSidebarKey)!;
 const { t } = useI18n();
 const expandedIds = shallowRef<string[]>([]);
 const editingId = shallowRef<string>();
-const index = computed(() => createStructureIndex(store.editSnapshot.structure));
+const structure = computed(() => store.editSnapshot.structure);
+const index = computed(() => createStructureIndex(structure.value));
+const virtualizer = shallowRef<Virtualizer<Element | Window, Element>>();
+const outlineRows = shallowRef<{ value: OutlineTreeItem }[]>([]);
+const expandedSet = computed(() => new Set(expandedIds.value));
+const selectedIds = computed(
+  () => new Set([...editor.selection.value.structureNodeIds, ...editor.selection.value.nodeIds]),
+);
 const nodeById = computed(() => new Map(store.nodes.map((node) => [node.id, node])));
 const items = computed(() =>
   buildOutlineTreeItems(index.value, new Map(store.nodes.map((node) => [node.id, node.data.title]))),
@@ -44,9 +52,9 @@ function expand(ids: readonly string[]) {
 }
 
 function isSelected(id: string) {
-  if (editor.selection.value.structureNodeIds.includes(id)) return true;
+  if (selectedIds.value.has(id)) return true;
   const structureNode = index.value.structureById.get(id);
-  return structureNode?.kind === "content" && editor.selection.value.nodeIds.includes(structureNode.nodeId);
+  return structureNode?.kind === "content" && selectedIds.value.has(structureNode.nodeId);
 }
 
 function select(id: string) {
@@ -81,13 +89,18 @@ async function open(id: string) {
     await openSpaceNode(store, node);
 }
 
-function rename(id: string) {
+async function rename(id: string) {
   if (!operations.allows("edit")) return;
   finishRename();
   renameLease = drafts.begin(id, "outline-title");
   if (!renameLease) return;
+  const lease = renameLease;
   sidebar.reveal();
   expand(groupScopePathFor(id, index.value));
+  await nextTick();
+  if (renameLease !== lease) return;
+  const row = outlineRows.value.findIndex(({ value }) => value.id === id);
+  if (row >= 0) virtualizer.value?.scrollToIndex(row, { align: "auto" });
   editingId.value = id;
 }
 
@@ -135,22 +148,35 @@ onBeforeUnmount(finishRename);
 <template>
   <TreeRoot as-child :items="items" :get-key="outlineKey" v-model:expanded="expandedIds">
     <template #default="{ flattenItems }">
-      <section class="mt-2 space-y-0.5" :aria-label="t('spaces.sidebar.outline.title')">
-        <SpaceStructureTreeItem
-          v-for="{ level, value } in flattenItems"
-          :key="value.id"
-          :item="value"
-          :level="level"
-          :selected="isSelected(value.id)"
-          :expanded="expandedIds.includes(value.id)"
-          :editing="editingId === value.id"
-          :save-name="(title) => saveName(value.id, title)"
-          @select="select(value.id)"
-          @open="open(value.id)"
-          @menu="outlineMenu.show(value.id)"
-          @toggle="toggle(value.id)"
-          @finish="finishRename"
-        />
+      <section class="relative h-full overflow-auto" :aria-label="t('spaces.sidebar.outline.title')">
+        <TreeVirtualizer
+          v-if="flattenItems.length"
+          :estimate-size="30"
+          :text-content="(item) => item.title"
+          v-slot="{ item: { level, value }, virtualizer: itemVirtualizer }"
+        >
+          <SpaceStructureTreeItem
+            :ref="
+              (element) => {
+                if (element) {
+                  virtualizer = itemVirtualizer;
+                  outlineRows = flattenItems as { value: OutlineTreeItem }[];
+                }
+              }
+            "
+            :item="value as OutlineTreeItem"
+            :level="level"
+            :selected="isSelected(value.id)"
+            :expanded="expandedSet.has(value.id)"
+            :editing="editingId === value.id"
+            :save-name="(title) => saveName(value.id, title)"
+            @select="select(value.id)"
+            @open="open(value.id)"
+            @menu="outlineMenu.show(value.id)"
+            @toggle="toggle(value.id)"
+            @finish="finishRename"
+          />
+        </TreeVirtualizer>
         <p v-if="flattenItems.length === 0" class="px-1 text-caption text-fg-tertiary">
           {{ t("spaces.sidebar.outline.empty") }}
         </p>

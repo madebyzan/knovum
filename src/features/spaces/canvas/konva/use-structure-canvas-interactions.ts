@@ -1,11 +1,12 @@
+import { useRafFn } from "@vueuse/core";
 import { compact } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
+import { effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
-import { sectionDropMoveCommand } from "../../structure/section-drop-reparent";
+import { sectionDropIndex, sectionDropMoveCommand } from "../../structure/section-drop-reparent";
 import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { CanvasRect } from "../contracts/canvas-editor-port";
 import type { StructureScene } from "../document/structure-scene";
@@ -59,8 +60,22 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     );
   }
 
+  let groupMove: { id: string; delta: { x: number; y: number } } | undefined;
+  const groupPreview = useRafFn(
+    () => {
+      groupPreview.pause();
+      if (groupMove) dropPreview.update(gestureRootIds(groupMove.id), groupMove.delta);
+    },
+    { immediate: false },
+  );
   function previewMove(structureNodeId: string, delta: { x: number; y: number } | undefined) {
-    dropPreview.update(gestureRootIds(structureNodeId), delta);
+    if (!delta) {
+      groupPreview.pause();
+      dropPreview.clear();
+      return;
+    }
+    groupMove = { id: structureNodeId, delta };
+    groupPreview.resume();
   }
 
   function previewContentMove(updates: readonly CanvasGestureUpdate[]) {
@@ -68,9 +83,10 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
       dropPreview.clear();
       return;
     }
-    const snapshot = options.snapshot();
-    const index = createStructureIndex(snapshot.structure);
-    const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+    if (!options.scene.value.sections.length) return dropPreview.clear();
+    const cached = sectionDropIndex(options.snapshot());
+    const index = cached.structure;
+    const layouts = cached.layouts;
     const structureNodeIds = compact(updates.map(({ nodeId }) => index.nodeIdToStructureNodeId.get(nodeId)));
     const roots = effectiveOperationRoots(structureNodeIds, index).map(({ id }) => id);
     const firstStructureNodeId = index.nodeIdToStructureNodeId.get(updates[0]!.nodeId);
@@ -87,13 +103,6 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     }
     const delta = { x: updates[0]!.frame.x - world.x, y: updates[0]!.frame.y - world.y };
     dropPreview.update(roots, delta);
-  }
-
-  function withContentDropPreview(update: (updates: readonly CanvasGestureUpdate[]) => void) {
-    return (updates: readonly CanvasGestureUpdate[]) => {
-      update(updates);
-      previewContentMove(updates);
-    };
   }
 
   async function collapse(structureNodeId: string, collapsed: boolean) {
@@ -170,13 +179,16 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     enterGroup,
     exitGroup,
     dropTargetId,
-    clearExpansionPreview: dropPreview.clear,
+    clearExpansionPreview: () => {
+      groupPreview.pause();
+      dropPreview.clear();
+    },
     move,
     previewMove,
     renameTarget,
     renameError,
     resize,
     transform,
-    withContentDropPreview,
+    previewContentMove,
   };
 }
