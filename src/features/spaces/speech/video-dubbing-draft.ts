@@ -74,9 +74,13 @@ export function videoLineFromSegment(segment: SpeechSegment): VideoLineDraft {
   };
 }
 
-function validVideoWindow(start: number, end: number, duration: number) {
+function validVideoWindow(startMs: number, endMs: number, durationMs: number) {
   return (
-    Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && end > start && end <= duration
+    Number.isSafeInteger(startMs) &&
+    Number.isSafeInteger(endMs) &&
+    startMs >= 0 &&
+    endMs > startMs &&
+    endMs <= durationMs
   );
 }
 

@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, type Ref, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { i18n } from "../../../../foundation/i18n/i18n";
-import { locateTimelineTime, projectDuration, type VideoEditProject } from "../../video-editing/project";
+import { locateTimelineTime, projectDurationMs, type VideoEditProject } from "../../video-editing/project";
 
 export function useVideoProjectPlayback(
   video: Ref<HTMLVideoElement | null>,
@@ -11,7 +11,7 @@ export function useVideoProjectPlayback(
   const timelineMs = shallowRef(0);
   const playing = shallowRef(false);
   const audioError = shallowRef<string>();
-  const durationMs = computed(() => (project.value ? projectDuration(project.value) : 0));
+  const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
   let frameRequest: number | undefined;
   let awaitingSeek = false;
   let audioContext: AudioContext | undefined;

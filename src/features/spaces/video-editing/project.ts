@@ -43,17 +43,17 @@ export function createVideoEditProject({
   };
 }
 
-export function projectDuration(project: VideoEditProject) {
-  return sumBy(project.videoTrack.clips, clipDuration);
+export function projectDurationMs(project: VideoEditProject) {
+  return sumBy(project.videoTrack.clips, clipDurationMs);
 }
 
-export function clipDuration(clip: VideoClip) {
+export function clipDurationMs(clip: VideoClip) {
   return clip.endMs - clip.startMs;
 }
 
 export function splitClip(project: VideoEditProject, timelineMs: number): VideoEditProject {
   const location = locateTimelineTime(project, timelineMs);
-  if (!location || location.offsetMs < 100 || clipDuration(location.clip) - location.offsetMs < 100)
+  if (!location || location.offsetMs < 100 || clipDurationMs(location.clip) - location.offsetMs < 100)
     return project;
   const splitMs = location.clip.startMs + location.offsetMs;
   const clips = project.videoTrack.clips.flatMap((clip) =>
@@ -71,29 +71,29 @@ export function removeClip(project: VideoEditProject, clipId: string): VideoEdit
   if (project.videoTrack.clips.length === 1) return project;
   const clip = project.videoTrack.clips.find(({ id }) => id === clipId);
   if (!clip) return project;
-  const timelineStart = clipTimelineStart(project, clipId);
+  const timelineStartMs = clipTimelineStartMs(project, clipId);
   return fitTextToDuration({
     ...project,
     videoTrack: { clips: project.videoTrack.clips.filter(({ id }) => id !== clipId) },
-    textTrack: { items: spliceText(project.textTrack.items, timelineStart, clipDuration(clip), 0) },
+    textTrack: { items: spliceText(project.textTrack.items, timelineStartMs, clipDurationMs(clip), 0) },
   });
 }
 
 export function replaceClip(project: VideoEditProject, edited: VideoClip): VideoEditProject {
   const original = project.videoTrack.clips.find(({ id }) => id === edited.id);
   if (!original) return project;
-  const timelineStart = clipTimelineStart(project, edited.id);
+  const timelineStartMs = clipTimelineStartMs(project, edited.id);
   let text = project.textTrack.items;
   if (edited.startMs > original.startMs)
-    text = spliceText(text, timelineStart, edited.startMs - original.startMs, 0);
+    text = spliceText(text, timelineStartMs, edited.startMs - original.startMs, 0);
   else if (edited.startMs < original.startMs)
-    text = spliceText(text, timelineStart, 0, original.startMs - edited.startMs);
+    text = spliceText(text, timelineStartMs, 0, original.startMs - edited.startMs);
   if (edited.endMs < original.endMs)
-    text = spliceText(text, timelineStart + clipDuration(edited), original.endMs - edited.endMs, 0);
+    text = spliceText(text, timelineStartMs + clipDurationMs(edited), original.endMs - edited.endMs, 0);
   else if (edited.endMs > original.endMs)
     text = spliceText(
       text,
-      timelineStart + original.endMs - edited.startMs,
+      timelineStartMs + original.endMs - edited.startMs,
       0,
       edited.endMs - original.endMs,
     );
@@ -118,44 +118,44 @@ function spliceText(items: VideoTextOverlay[], atMs: number, removedMs: number, 
 }
 
 function fitTextToDuration(project: VideoEditProject): VideoEditProject {
-  const duration = projectDuration(project);
+  const durationMs = projectDurationMs(project);
   return {
     ...project,
     textTrack: {
       items: project.textTrack.items
-        .filter((item) => item.startMs < duration)
-        .map((item) => Object.assign({}, item, { endMs: Math.min(item.endMs, duration) })),
+        .filter((item) => item.startMs < durationMs)
+        .map((item) => Object.assign({}, item, { endMs: Math.min(item.endMs, durationMs) })),
     },
   };
 }
 
 export function locateTimelineTime(project: VideoEditProject, timelineMs: number) {
-  let cursor = 0;
+  let cursorMs = 0;
   for (const [clipIndex, clip] of project.videoTrack.clips.entries()) {
-    const duration = clipDuration(clip);
-    if (timelineMs < cursor + duration)
-      return { clip, clipIndex, offsetMs: timelineMs - cursor, timelineStartMs: cursor };
-    cursor += duration;
+    const durationMs = clipDurationMs(clip);
+    if (timelineMs < cursorMs + durationMs)
+      return { clip, clipIndex, offsetMs: timelineMs - cursorMs, timelineStartMs: cursorMs };
+    cursorMs += durationMs;
   }
   return undefined;
 }
 
-export function clipTimelineStart(project: VideoEditProject, clipId: string) {
-  let cursor = 0;
+export function clipTimelineStartMs(project: VideoEditProject, clipId: string) {
+  let cursorMs = 0;
   for (const clip of project.videoTrack.clips) {
-    if (clip.id === clipId) return cursor;
-    cursor += clipDuration(clip);
+    if (clip.id === clipId) return cursorMs;
+    cursorMs += clipDurationMs(clip);
   }
   return 0;
 }
 
 export function addTextOverlay(project: VideoEditProject, startMs: number, family: string): VideoEditProject {
-  const duration = projectDuration(project);
-  const boundedStart = clamp(Math.round(startMs), 0, Math.max(0, duration - 100));
+  const durationMs = projectDurationMs(project);
+  const boundedStart = clamp(Math.round(startMs), 0, Math.max(0, durationMs - 100));
   const item: VideoTextOverlay = {
     id: crypto.randomUUID(),
     startMs: boundedStart,
-    endMs: clamp(boundedStart + 3_000, boundedStart + 100, duration),
+    endMs: clamp(boundedStart + 3_000, boundedStart + 100, durationMs),
     text: "Text",
     placement: "bottom",
     style: defaultVideoTextStyle(family),

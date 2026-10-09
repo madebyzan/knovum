@@ -9,7 +9,7 @@ import { useSpaceManagementMenu } from "../../workspace/use-space-management-men
 import SpaceSidebarOutline from "../outline/SpaceSidebarOutline.vue";
 
 const store = useSpaceStore();
-const management = useSpaceManagementMenu();
+const { show: showSpaceMenu } = useSpaceManagementMenu();
 const { spaces, activeSpaceId, workspaceMode, libraryScope } = storeToRefs(store);
 const { t } = useI18n();
 const rowClass =
@@ -29,7 +29,7 @@ const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"
         :data-active="workspaceMode === 'space' && activeSpaceId === inbox.id"
         :class="rowClass"
         @click="store.openSpace(inbox.id)"
-        @contextmenu.prevent="management.show(inbox)"
+        @contextmenu.prevent="showSpaceMenu(inbox)"
       >
         <Inbox class="size-3.5" :stroke-width="1.55" />
         {{ t("spaces.space.inbox") }}

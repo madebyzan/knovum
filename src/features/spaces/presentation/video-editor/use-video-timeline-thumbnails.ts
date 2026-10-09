@@ -18,11 +18,11 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
 
   watch(
     [sourcePath, durationMs],
-    ([path, duration], _previous, onCleanup) => {
+    ([path, sourceDurationMs], _previous, onCleanup) => {
       frames.value = [];
       error.value = false;
-      if (!path || duration <= 0) return;
-      const cacheKey = `${path}\0${duration}`;
+      if (!path || sourceDurationMs <= 0) return;
+      const cacheKey = `${path}\0${sourceDurationMs}`;
       const cached = framesBySourceKey.get(cacheKey);
       if (cached) {
         frames.value = cached;
@@ -39,7 +39,7 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
       video.crossOrigin = "anonymous";
       video.muted = true;
       video.preload = "auto";
-      void loadFrames({ video, path, duration, cacheKey, abort, frames, error });
+      void loadFrames({ video, path, durationMs: sourceDurationMs, cacheKey, abort, frames, error });
     },
     { immediate: true },
   );
@@ -50,7 +50,7 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
 interface FrameLoad {
   video: HTMLVideoElement;
   path: string;
-  duration: number;
+  durationMs: number;
   cacheKey: string;
   abort: AbortController;
   frames: Ref<TimelineFrame[]>;
@@ -58,21 +58,21 @@ interface FrameLoad {
 }
 
 async function loadFrames(load: FrameLoad) {
-  const { video, path, duration, cacheKey, abort, frames, error } = load;
+  const { video, path, durationMs, cacheKey, abort, frames, error } = load;
   try {
     await waitForVideo(video, "loadedmetadata", abort.signal, () => {
       video.src = versionedMediaSource(path)!;
       video.load();
     });
-    const mediaDuration = Math.min(duration, Math.floor(video.duration * 1_000));
-    if (!Number.isFinite(mediaDuration) || mediaDuration <= 0) return;
+    const mediaDurationMs = Math.min(durationMs, Math.floor(video.duration * 1_000));
+    if (!Number.isFinite(mediaDurationMs) || mediaDurationMs <= 0) return;
     const canvas = document.createElement("canvas");
     canvas.width = 96;
     canvas.height = 54;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const count = clamp(Math.ceil(mediaDuration / 2_500), 1, MAX_FRAMES);
-    await sampleFrames(load, { canvas, context, duration: mediaDuration, count }, 0);
+    const count = clamp(Math.ceil(mediaDurationMs / 2_500), 1, MAX_FRAMES);
+    await sampleFrames(load, { canvas, context, durationMs: mediaDurationMs, count }, 0);
     if (!abort.signal.aborted) {
       if (framesBySourceKey.size >= 8) framesBySourceKey.delete(framesBySourceKey.keys().next().value!);
       framesBySourceKey.set(cacheKey, frames.value);
@@ -91,16 +91,16 @@ async function loadFrames(load: FrameLoad) {
 interface FrameSampler {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  duration: number;
+  durationMs: number;
   count: number;
 }
 
 async function sampleFrames(load: FrameLoad, sampler: FrameSampler, index: number): Promise<void> {
   if (index >= sampler.count || load.abort.signal.aborted) return;
-  const { canvas, context, duration, count } = sampler;
-  const startMs = (index / count) * duration;
-  const endMs = ((index + 1) / count) * duration;
-  const sourceMs = Math.min(duration - 1, (startMs + endMs) / 2);
+  const { canvas, context, durationMs, count } = sampler;
+  const startMs = (index / count) * durationMs;
+  const endMs = ((index + 1) / count) * durationMs;
+  const sourceMs = Math.min(durationMs - 1, (startMs + endMs) / 2);
   await waitForVideo(load.video, "seeked", load.abort.signal, () => {
     load.video.currentTime = sourceMs / 1_000;
   });

@@ -1,6 +1,6 @@
 import { computed, nextTick, type Ref } from "vue";
 
-import { clipTimelineStart, type VideoEditProject } from "../../video-editing/project";
+import { clipTimelineStartMs, type VideoEditProject } from "../../video-editing/project";
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
@@ -29,7 +29,7 @@ export function useVideoEditorInspector(options: VideoEditorInspectorOptions) {
     if (!project.value) return;
     video.value?.pause();
     selection.selectClip(clipId);
-    playback.seek(clipTimelineStart(project.value, clipId));
+    playback.seek(clipTimelineStartMs(project.value, clipId));
   }
 
   async function close() {

@@ -13,13 +13,13 @@ const props = defineProps<VideoTimelineProps>();
 const emit = defineEmits<{
   seek: [milliseconds: number];
   edit: [project: VideoEditProject];
-  selectClip: [id: string];
-  selectText: [id: string];
+  selectClip: [clipId: string];
+  selectText: [textId: string];
 }>();
 const {
   visibleProject,
   viewport,
-  duration,
+  durationMs,
   ticks,
   contentStyle,
   clipStyle,
@@ -36,8 +36,8 @@ const {
   selectClip: (clipId) => emit("selectClip", clipId),
 });
 const thumbnailSource = computed(() => props.thumbnailSource);
-const sourceDuration = computed(() => props.sourceDurationMs);
-const { frames, error: thumbnailError } = useVideoTimelineThumbnails(thumbnailSource, sourceDuration);
+const sourceDurationMs = computed(() => props.sourceDurationMs);
+const { frames, error: thumbnailError } = useVideoTimelineThumbnails(thumbnailSource, sourceDurationMs);
 
 function editText(edited: VideoTextOverlay) {
   emit("edit", {
@@ -78,19 +78,19 @@ function editText(edited: VideoTextOverlay) {
           class="relative h-8 cursor-crosshair touch-none border-b border-stroke-divider outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :aria-label="$t('spaces.media.videoEditor.timeline.seek')"
           aria-valuemin="0"
-          :aria-valuemax="Math.round(duration)"
+          :aria-valuemax="Math.round(durationMs)"
           :aria-valuenow="Math.round(playheadMs)"
           :aria-valuetext="formatVideoEditTime(playheadMs)"
           @pointerdown="startScrub"
           @pointermove="moveScrub"
           @keydown.left.prevent="$emit('seek', Math.max(0, playheadMs - 100))"
-          @keydown.right.prevent="$emit('seek', Math.min(duration, playheadMs + 100))"
+          @keydown.right.prevent="$emit('seek', Math.min(durationMs, playheadMs + 100))"
         >
           <span
             v-for="tick in ticks"
             :key="tick"
             class="pointer-events-none absolute top-2 bottom-0 border-l border-stroke-divider"
-            :style="{ left: `${(tick / duration) * 100}%` }"
+            :style="{ left: `${(tick / durationMs) * 100}%` }"
           >
             <span class="absolute -top-1 left-1 text-caption-sm text-fg-tertiary tabular-nums">
               {{ tick % 1_000 === 0 ? formatVideoTimelineTime(tick) : formatVideoEditTime(tick) }}
@@ -102,7 +102,7 @@ function editText(edited: VideoTextOverlay) {
             v-for="item in visibleProject.textTrack.items"
             :key="item.id"
             :item="item"
-            :duration-ms="duration"
+            :duration-ms="durationMs"
             :selected="selectedTextId === item.id"
             @select="$emit('selectText', item.id)"
             @edit="editText"
@@ -134,7 +134,7 @@ function editText(edited: VideoTextOverlay) {
         </div>
         <span
           class="pointer-events-none absolute inset-y-0 z-20 w-px bg-surface-danger"
-          :style="{ left: `${(playheadMs / duration) * 100}%` }"
+          :style="{ left: `${(playheadMs / durationMs) * 100}%` }"
         >
           <span class="absolute top-0 -left-1 size-2 rotate-45 bg-surface-danger" />
         </span>

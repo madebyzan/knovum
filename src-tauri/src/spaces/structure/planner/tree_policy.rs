@@ -185,8 +185,6 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
         }
     }
     structure.retain(|node| !removed.contains(node.id()));
-    layouts.retain(|layout_index_by_structure_node_id| {
-        !removed.contains(layout_index_by_structure_node_id.structure_node_id())
-    });
+    layouts.retain(|layout| !removed.contains(layout.structure_node_id()));
     removed
 }

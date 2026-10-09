@@ -1,7 +1,7 @@
 import { browser, expect } from "@wdio/globals";
 
 export async function runAppCommand(commandId: string): Promise<void> {
-  const outcome = (await browser.executeAsync(async (commandId, done) => {
+  const outcome = (await browser.executeAsync(async (requestedCommandId, done) => {
     const bridge = (
       globalThis as typeof globalThis & {
         __knovumE2eBridge?: { runCommand(commandId: string): Promise<void> };
@@ -12,7 +12,7 @@ export async function runAppCommand(commandId: string): Promise<void> {
       return;
     }
     try {
-      await bridge.runCommand(commandId);
+      await bridge.runCommand(requestedCommandId);
       done({ error: null });
     } catch (error) {
       done({ error: String(error) });

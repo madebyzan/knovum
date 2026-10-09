@@ -2,7 +2,7 @@ import { sumBy } from "es-toolkit";
 import { computed, shallowRef } from "vue";
 
 import {
-  clipDuration,
+  clipDurationMs,
   replaceClip,
   type VideoClip,
   type VideoEditProject,
@@ -26,7 +26,7 @@ interface TrimGesture {
   edge: "start" | "end";
   originX: number;
   trackWidth: number;
-  timelineDuration: number;
+  timelineDurationMs: number;
 }
 
 interface VideoTimelineActions {
@@ -49,17 +49,20 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
         }
       : props.project;
   });
-  const { viewport, duration, ticks, contentStyle, clipStyle } = useVideoTimelineScale({
+  const { viewport, durationMs, ticks, contentStyle, clipStyle } = useVideoTimelineScale({
     project: visibleProject,
     zoom: () => props.zoom,
-    playhead: () => props.playheadMs,
+    playheadMs: () => props.playheadMs,
     playing: () => props.playing,
   });
 
   function seekFromPointer(event: PointerEvent) {
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
     actions.seek(
-      Math.max(0, Math.min(duration.value, ((event.clientX - bounds.left) / bounds.width) * duration.value)),
+      Math.max(
+        0,
+        Math.min(durationMs.value, ((event.clientX - bounds.left) / bounds.width) * durationMs.value),
+      ),
     );
   }
 
@@ -80,7 +83,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
     const trackWidth = target.closest<HTMLElement>("[data-video-track]")?.getBoundingClientRect().width;
     if (!trackWidth) return;
     target.setPointerCapture(event.pointerId);
-    gesture.value = { clip, edge, originX: event.clientX, trackWidth, timelineDuration: duration.value };
+    gesture.value = { clip, edge, originX: event.clientX, trackWidth, timelineDurationMs: durationMs.value };
     draftClip.value = clip;
     actions.selectClip(clip.id);
   }
@@ -88,7 +91,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
   function moveTrim(event: PointerEvent) {
     const current = gesture.value;
     if (!current) return;
-    const delta = ((event.clientX - current.originX) / current.trackWidth) * current.timelineDuration;
+    const delta = ((event.clientX - current.originX) / current.trackWidth) * current.timelineDurationMs;
     const original = current.edge === "start" ? current.clip.startMs : current.clip.endMs;
     const proposed = event.altKey ? Math.round(original + delta) : Math.round((original + delta) / 100) * 100;
     if (current.edge === "start") {
@@ -117,9 +120,9 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
       return;
     const index = props.project.videoTrack.clips.findIndex(({ id }) => id === edited.id);
     if (index < 0) return;
-    const startMs = sumBy(props.project.videoTrack.clips.slice(0, index), clipDuration);
+    const startMs = sumBy(props.project.videoTrack.clips.slice(0, index), clipDurationMs);
     actions.trim(replaceClip(props.project, edited));
-    actions.seek(startMs + (current.edge === "start" ? 0 : clipDuration(edited)));
+    actions.seek(startMs + (current.edge === "start" ? 0 : clipDurationMs(edited)));
   }
 
   function cancelTrim() {
@@ -146,7 +149,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
   return {
     visibleProject,
     viewport,
-    duration,
+    durationMs,
     ticks,
     contentStyle,
     clipStyle,
