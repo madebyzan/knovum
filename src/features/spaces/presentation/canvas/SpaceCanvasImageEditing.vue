@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { defaultImageEdit, imageEditOf } from "../../image-editing/image-edit";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../../image-editing/image-edit-session-store";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
@@ -13,7 +13,7 @@ import SpaceImageCropEditor from "./SpaceImageCropEditor.vue";
 import SpaceImageTransformControls from "./SpaceImageTransformControls.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
-const session = useImageEditSession();
+const session = useImageEditSessionStore();
 const imageDimensions = useImageSourceDimensionsStore();
 const panel = useTemplateRef<HTMLElement>("panel");
 const active = computed(() => (session.active?.nodeId === props.node.id ? session.active : undefined));

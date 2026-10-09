@@ -3,11 +3,11 @@ import { toRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../../image-editing/image-edit-session-store";
 import { useUnsavedSessionParticipant } from "../../workspace/use-unsaved-session-participant";
 import SpaceUnsavedChangesDialog from "../workspace/SpaceUnsavedChangesDialog.vue";
 
-const session = useImageEditSession();
+const session = useImageEditSessionStore();
 const leave = useUnsavedSessionParticipant({
   dirty: toRef(session, "dirty"),
   beforeLeave: session.settleApply,

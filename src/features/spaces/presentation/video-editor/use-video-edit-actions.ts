@@ -19,7 +19,7 @@ import { useVideoEditLeave } from "./use-video-edit-leave";
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
-interface Options {
+interface VideoEditActionsOptions {
   updateNodeContents: UpdateNodeContents;
   close: () => void;
   renderProject: (source: SpaceCanvasNode<SpaceVideoPayload>, project: VideoEditProject) => Promise<void>;
@@ -32,7 +32,7 @@ interface Options {
   playback: ReturnType<typeof useVideoProjectPlayback>;
 }
 
-export function useVideoEditActions(options: Options) {
+export function useVideoEditActions(options: VideoEditActionsOptions) {
   const {
     updateNodeContents,
     close,

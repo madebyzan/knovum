@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import { enrichmentProjectionKey } from "../../../enrichment/enrichment-projection-key";
 import { enrichmentJobTitle } from "../../../enrichment/job-tasks";
-import { useImageEditSession } from "../../../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../../../image-editing/image-edit-session-store";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { useSpaceStore } from "../../../session/space-store";
 import { canvasNodeWork } from "./canvas-node-work";
@@ -17,7 +17,7 @@ const { t } = useI18n();
 const { activeSpaceId, mediaAnalysisIds } = storeToRefs(useSpaceStore());
 const enrichmentJobs = inject(enrichmentProjectionKey);
 if (!enrichmentJobs) throw new Error("Canvas enrichment projection is unavailable");
-const imageEditSession = useImageEditSession();
+const imageEditSession = useImageEditSessionStore();
 const enrichment = computed(() => {
   const jobs = enrichmentJobs.value.filter(
     ({ job }) => job.spaceId === activeSpaceId.value && job.nodeId === props.id,

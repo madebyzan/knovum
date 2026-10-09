@@ -3,7 +3,7 @@ import { MessageCircle } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
-import type { ImageEditTool } from "../../image-editing/image-edit-session";
+import type { ImageEditTool } from "../../image-editing/image-edit-session-store";
 import { IMAGE_EDIT_TOOL_ORDER } from "./canvas-bar-density-policy";
 import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
 

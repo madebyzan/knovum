@@ -21,7 +21,7 @@ import { useCanvasSceneProjections } from "./use-canvas-scene-projections";
 import { useRuntimeEditorRegistration } from "./use-runtime-editor-registration";
 import { useRuntimeSelection } from "./use-runtime-selection";
 import { useRuntimeViewport } from "./use-runtime-viewport";
-import { useSectionDrawCandidateBounds } from "./use-section-draw-candidates";
+import { useSectionDrawCandidateBounds } from "./use-section-draw-candidate-bounds";
 import { useStructureCanvasInteractions } from "./use-structure-canvas-interactions";
 
 export function useKonvaCanvasRuntime(

@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
-import type { ImageEditTool } from "../../image-editing/image-edit-session";
+import type { ImageEditTool } from "../../image-editing/image-edit-session-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 

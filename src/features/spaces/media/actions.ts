@@ -20,10 +20,10 @@ export interface SpaceMediaAnalysisLabels {
   transcribing: string;
   organizing: string;
 }
-interface Context {
+interface SpaceMediaActionsContext {
   nodes: Ref<SpaceCanvasNode[]>;
   activeSpaceId: Ref<string | undefined>;
-  applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
+  applyNodeContentForSpace(spaceId: string, nodeId: string, payload: SpaceNodePayload): void;
   analysisIds: Ref<string[]>;
   analysisPreviews: Ref<Record<string, SpaceMediaAnalysisPreview>>;
   seekRequest: Ref<SpaceMediaSeekRequest | undefined>;
@@ -31,26 +31,26 @@ interface Context {
   playback: Ref<{ id: string; state: SpaceMediaPlaybackState } | undefined>;
 }
 
-export function createSpaceMediaActions(context: Context) {
+export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
   let seekNonce = 0;
   let toggleNonce = 0;
-  async function analyzeMedia(id: string) {
+  async function analyzeMedia(nodeId: string) {
     const spaceId = requireSpace();
-    return requestMediaTranscription(spaceId, id);
+    return requestMediaTranscription(spaceId, nodeId);
   }
-  async function generateMediaInsights(id: string, labels: SpaceMediaAnalysisLabels) {
-    if (context.analysisIds.value.includes(id)) return;
+  async function generateMediaInsights(nodeId: string, labels: SpaceMediaAnalysisLabels) {
+    if (context.analysisIds.value.includes(nodeId)) return;
     const spaceId = requireSpace();
-    const node = context.nodes.value.find((candidate) => candidate.id === id);
+    const node = context.nodes.value.find((candidate) => candidate.id === nodeId);
     if (!node || !isSpaceMediaPayload(node.data) || !node.data.knowledgeRevision)
       throw new Error("Current media knowledge is unavailable");
     const jobId = crypto.randomUUID();
     const tasks = useTaskStore();
     tasks.start(labels.title, labels.organizing, () => cancelAiJob(jobId), jobId);
-    context.analysisIds.value = [...context.analysisIds.value, id];
+    context.analysisIds.value = [...context.analysisIds.value, nodeId];
     try {
-      const data = await generateInsights(
-        { spaceId, nodeId: id, jobId, expectedRevision: node.data.knowledgeRevision },
+      const mediaPayload = await generateInsights(
+        { spaceId, nodeId, jobId, expectedRevision: node.data.knowledgeRevision },
         ({ stage, progress, resources }) => {
           const statusMessage = resources
             ? `${labels.preparing} · ${formatBytes(resources.downloaded)}${resources.total === null ? "" : ` / ${formatBytes(resources.total)}`}`
@@ -58,7 +58,7 @@ export function createSpaceMediaActions(context: Context) {
           tasks.progress(jobId, progress, statusMessage);
         },
       );
-      context.applyNodeContentForSpace(spaceId, id, data);
+      context.applyNodeContentForSpace(spaceId, nodeId, mediaPayload);
       tasks.succeed(jobId);
     } catch (error) {
       if (decodeAppError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
@@ -67,7 +67,7 @@ export function createSpaceMediaActions(context: Context) {
         throw error;
       }
     } finally {
-      context.analysisIds.value = context.analysisIds.value.filter((candidate) => candidate !== id);
+      context.analysisIds.value = context.analysisIds.value.filter((candidate) => candidate !== nodeId);
     }
   }
   function requireSpace() {
@@ -75,23 +75,23 @@ export function createSpaceMediaActions(context: Context) {
     if (!spaceId) throw new Error("A persisted Space is required");
     return spaceId;
   }
-  function requestMediaSeek(id: string, positionMs: number) {
-    context.seekRequest.value = { id, positionMs, nonce: ++seekNonce };
+  function requestMediaSeek(nodeId: string, positionMs: number) {
+    context.seekRequest.value = { id: nodeId, positionMs, nonce: ++seekNonce };
   }
   function consumeMediaSeek(nonce: number) {
     if (context.seekRequest.value?.nonce === nonce) context.seekRequest.value = undefined;
   }
-  function requestMediaToggle(id: string) {
-    context.toggleRequest.value = { id, nonce: ++toggleNonce };
+  function requestMediaToggle(nodeId: string) {
+    context.toggleRequest.value = { id: nodeId, nonce: ++toggleNonce };
   }
   function consumeMediaToggle(nonce: number) {
     if (context.toggleRequest.value?.nonce === nonce) context.toggleRequest.value = undefined;
   }
-  function updateMediaPlayback(id: string, state: SpaceMediaPlaybackState) {
-    context.playback.value = { id, state };
+  function updateMediaPlayback(nodeId: string, state: SpaceMediaPlaybackState) {
+    context.playback.value = { id: nodeId, state };
   }
-  function clearMediaPlayback(id: string) {
-    if (context.playback.value?.id === id) context.playback.value = undefined;
+  function clearMediaPlayback(nodeId: string) {
+    if (context.playback.value?.id === nodeId) context.playback.value = undefined;
   }
   return {
     analyzeMedia,

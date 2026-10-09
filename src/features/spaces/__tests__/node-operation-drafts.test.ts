@@ -1,12 +1,12 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it } from "vitest";
 
-import { useNodeOperationDrafts } from "../session/node-operation-drafts";
+import { useNodeOperationDraftsStore } from "../session/node-operation-drafts-store";
 
 beforeEach(() => setActivePinia(createPinia()));
 
 it("leases one node operation at a time without a draft taxonomy", () => {
-  const drafts = useNodeOperationDrafts();
+  const drafts = useNodeOperationDraftsStore();
   const first = drafts.begin("node-a");
 
   expect(first).toBeTypeOf("number");

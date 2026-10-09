@@ -94,8 +94,8 @@ export function useVoiceCandidates() {
     mutation.mutate({ execute });
   }
 
-  function selected(id: string) {
-    const candidate = candidatesQuery.data.value?.find(({ candidateId }) => candidateId === id);
+  function selected(candidateId: string) {
+    const candidate = candidatesQuery.data.value?.find((current) => current.candidateId === candidateId);
     if (!candidate) throw new Error("Voice candidate is no longer available");
     return candidate;
   }
@@ -112,21 +112,21 @@ export function useVoiceCandidates() {
       });
   }
 
-  function audition(id: string) {
+  function audition(candidateId: string) {
     operate(async () => {
-      const updated = await auditionVoiceCandidate(selected(id));
-      editCandidates((current) => current.map((item) => (item.candidateId === id ? updated : item)));
+      const updated = await auditionVoiceCandidate(selected(candidateId));
+      editCandidates((current) => current.map((item) => (item.candidateId === candidateId ? updated : item)));
     });
   }
 
-  async function save(id: string, name: string, authorized: boolean) {
+  async function save(candidateId: string, name: string, authorized: boolean) {
     if (busy.value) return;
     localError.value = undefined;
     try {
       return await mutation.mutateAsync({
         execute: async () => {
-          const voice = await selectVoiceCandidate(selected(id), name, authorized);
-          editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
+          const voice = await selectVoiceCandidate(selected(candidateId), name, authorized);
+          editCandidates((current) => current.filter((candidate) => candidate.candidateId !== candidateId));
           await Promise.all([
             client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
             client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
@@ -139,10 +139,10 @@ export function useVoiceCandidates() {
     }
   }
 
-  function discard(id: string) {
+  function discard(candidateId: string) {
     operate(async () => {
-      await rejectVoiceCandidate(selected(id));
-      editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
+      await rejectVoiceCandidate(selected(candidateId));
+      editCandidates((current) => current.filter((candidate) => candidate.candidateId !== candidateId));
     });
   }
 

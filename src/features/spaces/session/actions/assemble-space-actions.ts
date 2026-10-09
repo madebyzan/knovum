@@ -40,7 +40,7 @@ import {
 import type { createStructureTransferActions } from "./structure-transfer-actions";
 import type { createSpaceViewActions } from "./view-actions";
 
-interface Input {
+interface SpaceActionsInput {
   state: SpaceState;
   mutations: ReturnType<typeof createSpaceMutations>;
   relation: RelationContext;
@@ -52,7 +52,7 @@ interface Input {
   view: ReturnType<typeof createSpaceViewActions>;
 }
 
-export function assembleSpaceActions(input: Input) {
+export function assembleSpaceActions(input: SpaceActionsInput) {
   const {
     state,
     mutations,
@@ -74,9 +74,9 @@ export function assembleSpaceActions(input: Input) {
     queryFilter: state.savedQueryFilter,
   };
   const initialize = (title: string) => initializeSpaces(spaceContext, title);
-  const openSpace = async (id: string) => {
+  const openSpace = async (spaceId: string) => {
     state.workspaceMode.value = "space";
-    await navigateToSpace(spaceContext, id);
+    await navigateToSpace(spaceContext, spaceId);
   };
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
@@ -86,11 +86,11 @@ export function assembleSpaceActions(input: Input) {
     state.urlCaptures.value = [...state.urlCaptures.value, projection];
     return projection;
   };
-  const finishUrlCapture = (id: string) => {
-    state.urlCaptures.value = state.urlCaptures.value.filter((capture) => capture.id !== id);
+  const finishUrlCapture = (captureId: string) => {
+    state.urlCaptures.value = state.urlCaptures.value.filter((capture) => capture.id !== captureId);
   };
   const updateUrlCapture = (
-    id: string,
+    captureId: string,
     patch: Partial<
       Pick<
         (typeof state.urlCaptures.value)[number],
@@ -99,7 +99,7 @@ export function assembleSpaceActions(input: Input) {
     >,
   ) => {
     state.urlCaptures.value = state.urlCaptures.value.map((capture) =>
-      capture.id === id ? { ...capture, ...patch } : capture,
+      capture.id === captureId ? { ...capture, ...patch } : capture,
     );
   };
   return {
@@ -111,47 +111,47 @@ export function assembleSpaceActions(input: Input) {
     },
     showSpaceLibrary: (scope: Parameters<typeof showSpaceLibrary>[1]) => showSpaceLibrary(state, scope),
     focusSpaceLibrarySearch: () => (state.librarySearchNonce.value += 1),
-    setSpaceFavorite: async (id: string, favorite: boolean) => {
-      await setSpaceFavorite(id, favorite);
-      const space = state.spaces.value.find((candidate) => candidate.id === id);
+    setSpaceFavorite: async (spaceId: string, favorite: boolean) => {
+      await setSpaceFavorite(spaceId, favorite);
+      const space = state.spaces.value.find((candidate) => candidate.id === spaceId);
       if (space) Object.assign(space, { favorite, updatedAt: Date.now() });
     },
     openSpace,
-    closeSpaceTab: (id: string) => closeSpaceTab(spaceContext, id),
-    closeOtherSpaceTabs: (id: string) => closeOtherSpaceTabs(spaceContext, id),
-    closeSpaceTabsToRight: (id: string) => closeSpaceTabsToRight(spaceContext, id),
+    closeSpaceTab: (spaceId: string) => closeSpaceTab(spaceContext, spaceId),
+    closeOtherSpaceTabs: (spaceId: string) => closeOtherSpaceTabs(spaceContext, spaceId),
+    closeSpaceTabsToRight: (spaceId: string) => closeSpaceTabsToRight(spaceContext, spaceId),
     reopenClosedSpaceTab: () => reopenClosedSpaceTab(spaceContext),
     navigateSpaceHistory: (direction: -1 | 1) => navigateSpaceHistory(spaceContext, direction),
     refreshActiveSpace,
     beginUrlCapture,
     updateUrlCapture,
     finishUrlCapture,
-    renameSpace: (id: string, title: string) => renameSpace(spaceContext, id, title),
-    archiveSpace: (id: string) => archiveSpace(spaceContext, id),
-    unarchiveSpace: (id: string) => unarchiveSpace(spaceContext, id),
-    permanentlyDeleteSpace: (id: string) => permanentlyDeleteSpace(spaceContext, id),
+    renameSpace: (spaceId: string, title: string) => renameSpace(spaceContext, spaceId, title),
+    archiveSpace: (spaceId: string) => archiveSpace(spaceContext, spaceId),
+    unarchiveSpace: (spaceId: string) => unarchiveSpace(spaceContext, spaceId),
+    permanentlyDeleteSpace: (spaceId: string) => permanentlyDeleteSpace(spaceContext, spaceId),
     search: (value: string, semantic = false, signal?: AbortSignal) =>
       searchSpace({ context: navigation, value, semantic, signal }),
     createScene: (title: string, viewport: { x: number; y: number; zoom: number }, thumbnailPath: string) =>
       createSpaceScene({ context: navigation, title, viewport, thumbnailPath }),
-    updateScene: (id: string, patch: Parameters<typeof updateSpaceScene>[2]) =>
-      updateSpaceScene(navigation, id, patch),
-    duplicateScene: (id: string) => duplicateSpaceScene(navigation, id),
-    moveScene: (id: string, direction: -1 | 1) => moveSpaceScene(navigation, id, direction),
+    updateScene: (sceneId: string, patch: Parameters<typeof updateSpaceScene>[2]) =>
+      updateSpaceScene(navigation, sceneId, patch),
+    duplicateScene: (sceneId: string) => duplicateSpaceScene(navigation, sceneId),
+    moveScene: (sceneId: string, direction: -1 | 1) => moveSpaceScene(navigation, sceneId, direction),
     reorderScenes: (sourceId: string, targetId: string) => reorderSpaceScenes(navigation, sourceId, targetId),
-    removeScene: (id: string) => removeSpaceScene(navigation, id),
+    removeScene: (sceneId: string) => removeSpaceScene(navigation, sceneId),
     createRelation: (
       sourceId: string,
       targetId: string,
       kind: Parameters<typeof createSpaceRelation>[1]["kind"],
       options: { rationale?: string; spaceId?: string } = {},
     ) => createSpaceRelation(relation, { sourceId, targetId, kind, ...options }),
-    revokeRelation: (id: string) => removeSpaceRelation(relation, id),
-    revokeRelations: (ids: readonly string[]) => removeSpaceRelations(relation, ids),
-    updateRelationKind: (id: string, kind: Parameters<typeof changeSpaceRelationKind>[2]) =>
-      changeSpaceRelationKind(relation, id, kind),
-    updateRelation: (id: string, patch: Parameters<typeof updateSpaceRelation>[2]) =>
-      updateSpaceRelation(relation, id, patch),
+    revokeRelation: (relationId: string) => removeSpaceRelation(relation, relationId),
+    revokeRelations: (relationIds: readonly string[]) => removeSpaceRelations(relation, relationIds),
+    updateRelationKind: (relationId: string, kind: Parameters<typeof changeSpaceRelationKind>[2]) =>
+      changeSpaceRelationKind(relation, relationId, kind),
+    updateRelation: (relationId: string, patch: Parameters<typeof updateSpaceRelation>[2]) =>
+      updateSpaceRelation(relation, relationId, patch),
     ...mutations,
     ...placementActions,
     ...media,

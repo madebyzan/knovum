@@ -14,7 +14,7 @@ interface ActiveImageEdit {
   draft: ImageEdit;
 }
 
-export const useImageEditSession = defineStore("spaces-image-edit-session", () => {
+export const useImageEditSessionStore = defineStore("spaces-image-edit-session", () => {
   const space = useSpaceStore();
   const active = shallowRef<ActiveImageEdit>();
   const applying = shallowRef(false);

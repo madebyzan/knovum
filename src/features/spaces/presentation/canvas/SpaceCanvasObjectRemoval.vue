@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
+import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
@@ -23,7 +23,7 @@ const { t } = useI18n();
 const router = useRouter();
 const panel = useTemplateRef<HTMLElement>("panel");
 const imageDimensions = useImageSourceDimensionsStore();
-const removal = useImageRemovalSession();
+const removal = useImageRemovalSessionStore();
 const open = computed(() => removal.active?.nodeId === props.node.id);
 const capability = useImageOperationCapabilities(open);
 const mode = computed(() => removal.active?.mode ?? "mask");

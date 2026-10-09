@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
-import type { ImageEditTool } from "../../image-editing/image-edit-session";
+import type { ImageEditTool } from "../../image-editing/image-edit-session-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { IMAGE_EDIT_TOOL_ORDER } from "./canvas-bar-density-policy";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";

@@ -1,11 +1,11 @@
 import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { useNodeOperationDrafts } from "../../session/node-operation-drafts";
+import { useNodeOperationDraftsStore } from "../../session/node-operation-drafts-store";
 
 export function useNodeDraft(nodeId: Readonly<Ref<string>>) {
   const gate = useNodeOperationGate();
-  const drafts = useNodeOperationDrafts();
+  const drafts = useNodeOperationDraftsStore();
   const lease = shallowRef<number>();
   const available = computed(() => gate.allows("edit"));
   const canContinue = computed(() => lease.value !== undefined || available.value);

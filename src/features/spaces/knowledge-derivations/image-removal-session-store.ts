@@ -20,7 +20,7 @@ interface RemovalSelection {
 const MAX_STROKES = 100;
 const MAX_POINTS = 10_000;
 
-export const useImageRemovalSession = defineStore("spaces-image-removal-session", () => {
+export const useImageRemovalSessionStore = defineStore("spaces-image-removal-session", () => {
   const space = useSpaceStore();
   const active = shallowRef<RemovalSelection>();
   const brushDiameter = shallowRef(0.045);

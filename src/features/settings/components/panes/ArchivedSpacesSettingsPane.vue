@@ -52,26 +52,26 @@ async function initialize() {
   }
 }
 
-async function restore(id: string) {
-  if (!beginSpaceOperation(id)) return;
+async function restore(spaceId: string) {
+  if (!beginSpaceOperation(spaceId)) return;
   try {
-    await archive.restore(id);
+    await archive.restore(spaceId);
   } catch (error) {
     toast.error(t("settings.general.archived.restoreFailed"), { description: getErrorMessage(error) });
   } finally {
-    finishSpaceOperation(id);
+    finishSpaceOperation(spaceId);
   }
 }
 
-function beginSpaceOperation(id: string) {
-  if (busySpaceIds.value.has(id)) return false;
-  busySpaceIds.value = new Set([...busySpaceIds.value, id]);
+function beginSpaceOperation(spaceId: string) {
+  if (busySpaceIds.value.has(spaceId)) return false;
+  busySpaceIds.value = new Set([...busySpaceIds.value, spaceId]);
   return true;
 }
 
-function finishSpaceOperation(id: string) {
+function finishSpaceOperation(spaceId: string) {
   const next = new Set(busySpaceIds.value);
-  next.delete(id);
+  next.delete(spaceId);
   busySpaceIds.value = next;
 }
 </script>
