@@ -96,7 +96,7 @@ rmcp = { version = "=3.5.1", features = [
 ] }
 async-trait = "=0.1.92"
 oauth2 = "=5.0.0"
-sse-stream = "=0.2.6"
+sse-stream = "=0.3.0"
 yaml-rust2 = "=0.13.0"
 iri-string = "=0.7.14"
 unicode-normalization = "=0.1.25"
