@@ -60,7 +60,7 @@ fn validate_chapters(
         .and_then(Value::as_object)
         .and_then(|value| value.get("startMs"))
         .and_then(Value::as_i64);
-    if first != transcript.first_start {
+    if first != transcript.first_segment_start_ms {
         return Err("Chapters must start at the first transcript segment".into());
     }
     Ok(())
@@ -90,10 +90,10 @@ fn validate_chapter(
         .and_then(Value::as_object)
         .and_then(|next| next.get("startMs"))
         .and_then(Value::as_i64)
-        .unwrap_or(transcript.duration);
+        .unwrap_or(transcript.duration_ms);
     let invalid = end <= start
-        || end > transcript.duration
-        || !transcript.starts.contains(&start)
+        || end > transcript.duration_ms
+        || !transcript.segment_starts_ms.contains(&start)
         || previous.is_some_and(|value| start <= value)
         || end != expected_end;
     if invalid {

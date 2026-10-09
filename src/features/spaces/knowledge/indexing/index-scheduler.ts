@@ -72,13 +72,13 @@ function stateFor(spaceId: string) {
   return state;
 }
 
-function schedulePending(spaceId: string, state: SpaceIndexState, delay = DEBOUNCE_MS) {
+function schedulePending(spaceId: string, state: SpaceIndexState, delayMs = DEBOUNCE_MS) {
   if (state.running) {
     setStatus(spaceId, "scheduled");
     return;
   }
   if (state.timer) clearTimeout(state.timer);
-  state.timer = setTimeout(() => void runPending(spaceId, state), delay);
+  state.timer = setTimeout(() => void runPending(spaceId, state), delayMs);
   setStatus(spaceId, "scheduled");
 }
 

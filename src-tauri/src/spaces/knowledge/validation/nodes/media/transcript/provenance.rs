@@ -27,7 +27,7 @@ pub(super) fn validate_speaker_tracks(
     Ok(ids)
 }
 
-fn validate_speaker_track(track: &SpeakerTrack, duration: u64) -> Result<(), String> {
+fn validate_speaker_track(track: &SpeakerTrack, duration_ms: u64) -> Result<(), String> {
     require_bounded_text(&track.speaker_id, 240, "Transcript speaker id")?;
     if track.turns.is_empty() || track.turns.len() > MAX_SPEAKER_TURNS {
         return Err("Transcript speaker turns count is invalid".into());
@@ -37,7 +37,7 @@ fn validate_speaker_track(track: &SpeakerTrack, duration: u64) -> Result<(), Str
         require_safe_timestamp(turn.start_ms, "Transcript speaker turn start")?;
         require_safe_timestamp(turn.end_ms, "Transcript speaker turn end")?;
         if turn.end_ms <= turn.start_ms
-            || turn.end_ms > duration
+            || turn.end_ms > duration_ms
             || previous_end.is_some_and(|previous| turn.start_ms < previous)
         {
             return Err(

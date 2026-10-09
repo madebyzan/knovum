@@ -20,10 +20,10 @@ export class PreviewAudioQueue {
   private requestId: string | undefined;
   private expectedSeq = 1;
   private sampleRate: number | undefined;
-  private scheduledUntil = 0;
+  private scheduledUntilSeconds = 0;
   private queuedBytes = 0;
   private readonly sources = new Set<AudioBufferSourceNode>();
-  private readonly completionListeners = new Map<AudioBufferSourceNode, EventListener>();
+  private readonly completionListenerBySource = new Map<AudioBufferSourceNode, EventListener>();
   private epoch = 0;
 
   constructor(private readonly setPlaying: (playing: boolean) => void) {}
@@ -34,7 +34,7 @@ export class PreviewAudioQueue {
     const context = new AudioContext({ latencyHint: "interactive" });
     this.context = context;
     this.requestId = requestId;
-    this.scheduledUntil = context.currentTime;
+    this.scheduledUntilSeconds = context.currentTime;
     await context.resume();
     if (epoch !== this.epoch || this.context !== context) {
       if (context.state !== "closed") await context.close();
@@ -47,11 +47,11 @@ export class PreviewAudioQueue {
     const context = this.context;
     if (!this.accepts(context, chunk)) return;
     this.validateMetadata(chunk);
-    const duration = chunk.sampleCount / chunk.sampleRate;
-    const ahead = Math.max(0, this.scheduledUntil - context.currentTime);
+    const durationSeconds = chunk.sampleCount / chunk.sampleRate;
+    const aheadSeconds = Math.max(0, this.scheduledUntilSeconds - context.currentTime);
     const capacityExceeded = [
       this.queuedBytes + chunk.pcm16.length > MAX_QUEUED_BYTES,
-      ahead + duration > MAX_AUDIO_AHEAD_SECONDS,
+      aheadSeconds + durationSeconds > MAX_AUDIO_AHEAD_SECONDS,
     ].some(Boolean);
     if (capacityExceeded) throw new Error("Preview audio queue exceeded its playback window");
     const samples = decodePcm16(chunk.pcm16, chunk.sampleCount);
@@ -61,8 +61,8 @@ export class PreviewAudioQueue {
     source.buffer = buffer;
     source.connect(context.destination);
     const byteLength = chunk.pcm16.length;
-    const startAt = Math.max(context.currentTime + START_DELAY_SECONDS, this.scheduledUntil);
-    this.scheduledUntil = startAt + duration;
+    const startAt = Math.max(context.currentTime + START_DELAY_SECONDS, this.scheduledUntilSeconds);
+    this.scheduledUntilSeconds = startAt + durationSeconds;
     this.queuedBytes += byteLength;
     this.expectedSeq += 1;
     this.sampleRate = chunk.sampleRate;
@@ -70,12 +70,12 @@ export class PreviewAudioQueue {
     this.setPlaying(true);
     const completed = () => {
       this.sources.delete(source);
-      this.completionListeners.delete(source);
+      this.completionListenerBySource.delete(source);
       this.queuedBytes = Math.max(0, this.queuedBytes - byteLength);
       source.disconnect();
       if (this.sources.size === 0) this.setPlaying(false);
     };
-    this.completionListeners.set(source, completed);
+    this.completionListenerBySource.set(source, completed);
     source.addEventListener("ended", completed, { once: true });
     source.start(startAt);
   }
@@ -84,7 +84,7 @@ export class PreviewAudioQueue {
     if (requestId !== undefined && requestId !== this.requestId) return;
     this.epoch += 1;
     for (const source of this.sources) {
-      const completed = this.completionListeners.get(source);
+      const completed = this.completionListenerBySource.get(source);
       if (completed) source.removeEventListener("ended", completed);
       try {
         source.stop();
@@ -94,13 +94,13 @@ export class PreviewAudioQueue {
       source.disconnect();
     }
     this.sources.clear();
-    this.completionListeners.clear();
+    this.completionListenerBySource.clear();
     const context = this.context;
     this.context = undefined;
     this.requestId = undefined;
     this.expectedSeq = 1;
     this.sampleRate = undefined;
-    this.scheduledUntil = 0;
+    this.scheduledUntilSeconds = 0;
     this.queuedBytes = 0;
     this.setPlaying(false);
     if (context && context.state !== "closed") void context.close();

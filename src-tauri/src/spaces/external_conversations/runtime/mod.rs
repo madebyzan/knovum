@@ -70,7 +70,7 @@ pub async fn start(
         }
     };
     let keepalive: Arc<dyn Send + Sync> = binding.clone();
-    let deadline: i64 = sqlx::query_scalar(
+    let deadline_at: i64 = sqlx::query_scalar(
         "SELECT created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER)*1000 \
          FROM spaces_runs WHERE id=$1",
     )
@@ -104,7 +104,7 @@ pub async fn start(
                 id.clone(),
                 run_id.clone(),
                 session.completion,
-                deadline,
+                deadline_at,
             );
             lifecycle::load(db::pool(&app).await?, &id).await
         }

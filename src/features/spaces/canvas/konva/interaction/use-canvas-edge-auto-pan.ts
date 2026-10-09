@@ -24,10 +24,10 @@ export function useCanvasEdgeAutoPan(options: EdgeAutoPanOptions) {
     frame = undefined;
     if (!pointer) return;
     const velocity = edgeAutoPanVelocity(pointer, options.size);
-    const elapsed = Math.min(32, previousTime === undefined ? 16 : time - previousTime) / 1000;
+    const elapsedSeconds = Math.min(32, previousTime === undefined ? 16 : time - previousTime) / 1000;
     previousTime = time;
     if (velocity.x === 0 && velocity.y === 0) return;
-    const screenDelta = { x: velocity.x * elapsed, y: velocity.y * elapsed };
+    const screenDelta = { x: velocity.x * elapsedSeconds, y: velocity.y * elapsedSeconds };
     const viewport = options.viewport.value;
     options.setViewport({ ...viewport, x: viewport.x - screenDelta.x, y: viewport.y - screenDelta.y });
     options.onPan({

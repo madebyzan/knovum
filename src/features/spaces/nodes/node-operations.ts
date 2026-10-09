@@ -28,14 +28,14 @@ interface CreateNodesInput {
   spaceId: string;
   nodes: readonly SpaceCanvasNode[];
   edit: NodeCreationMutation;
-  sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> | undefined;
+  sourceChunksByNodeId?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> | undefined;
 }
 
 export async function createNodes({
   spaceId,
   nodes,
   edit,
-  sourceChunks = new Map(),
+  sourceChunksByNodeId = new Map(),
 }: CreateNodesInput): Promise<number> {
   return invokeConfirmedMutation<number>(
     "plugin:spaces|create_nodes",
@@ -50,7 +50,7 @@ export async function createNodes({
           initialX: node.initialPosition.x,
           initialY: node.initialPosition.y,
           data: node.data,
-          sourceChunks: sourceChunks.get(node.id) ?? [],
+          sourceChunks: sourceChunksByNodeId.get(node.id) ?? [],
         })),
       },
     },

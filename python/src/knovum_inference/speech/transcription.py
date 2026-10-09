@@ -271,11 +271,13 @@ def _mlx_segment(segment: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _artifact(language: str, duration: float, speech_duration: float, segments: list[dict[str, Any]]) -> dict[str, Any]:
+def _artifact(
+    language: str, duration_seconds: float, speech_duration_seconds: float, segments: list[dict[str, Any]]
+) -> dict[str, Any]:
     return {
         "language": language,
-        "durationMs": milliseconds(duration),
-        "speechDurationMs": milliseconds(speech_duration),
+        "durationMs": milliseconds(duration_seconds),
+        "speechDurationMs": milliseconds(speech_duration_seconds),
         "segments": segments,
     }
 

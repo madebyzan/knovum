@@ -18,12 +18,12 @@ export function createPlacementActions(
   activeSpaceId: SpaceState["activeSpaceId"],
 ) {
   async function addContent(
-    data: SpaceNodePayload,
+    payload: SpaceNodePayload,
     position?: { x: number; y: number },
     options: AddSpaceContentOptions = {},
   ) {
     const spaceId = activeSpaceId.value;
-    const contentNodes = await mutations.addContent(data, position, options.sourceChunks);
+    const contentNodes = await mutations.addContent(payload, position, options.sourceChunks);
     const ids = contentNodes.map((node) => node.id);
     if (activeSpaceId.value === spaceId) {
       if (options.reveal !== false) placement.requestReveal(ids);
@@ -32,10 +32,10 @@ export function createPlacementActions(
   }
   async function addContents(
     contentNodes: SpaceCanvasNode[],
-    sourceChunks = new Map<string, readonly KnowledgeChunkSeed[]>(),
+    sourceChunksByNodeId = new Map<string, readonly KnowledgeChunkSeed[]>(),
   ) {
     const spaceId = activeSpaceId.value;
-    const addedNodes = await mutations.addContents(contentNodes, sourceChunks);
+    const addedNodes = await mutations.addContents(contentNodes, sourceChunksByNodeId);
     const ids = addedNodes.map((node) => node.id);
     if (activeSpaceId.value === spaceId) {
       placement.requestReveal(ids);

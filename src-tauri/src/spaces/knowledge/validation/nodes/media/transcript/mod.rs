@@ -15,9 +15,9 @@ const MAX_SPEAKER_TURNS: usize = 100_000;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
 
 pub(super) struct TranscriptContract {
-    pub(super) duration: i64,
-    pub(super) starts: HashSet<i64>,
-    pub(super) first_start: Option<i64>,
+    pub(super) duration_ms: i64,
+    pub(super) segment_starts_ms: HashSet<i64>,
+    pub(super) first_segment_start_ms: Option<i64>,
 }
 
 pub(super) fn validate(object: &Map<String, Value>) -> Result<TranscriptContract, String> {
@@ -31,24 +31,24 @@ pub(super) fn validate(object: &Map<String, Value>) -> Result<TranscriptContract
         .and_then(Value::as_str)
         .ok_or("mediaKnowledge sourceRevision is required")?;
     validate_transcript(&transcript, source_revision)?;
-    let duration = i64::try_from(transcript.duration_ms)
+    let duration_ms = i64::try_from(transcript.duration_ms)
         .map_err(|_| "Transcript duration exceeds its supported range")?;
-    let starts = transcript
+    let segment_starts_ms = transcript
         .segments
         .iter()
         .map(|segment| i64::try_from(segment.start_ms))
         .collect::<Result<HashSet<_>, _>>()
         .map_err(|_| "Transcript segment timing exceeds its supported range")?;
-    let first_start = transcript
+    let first_segment_start_ms = transcript
         .segments
         .first()
         .map(|segment| i64::try_from(segment.start_ms))
         .transpose()
         .map_err(|_| "Transcript segment timing exceeds its supported range")?;
     Ok(TranscriptContract {
-        duration,
-        starts,
-        first_start,
+        duration_ms,
+        segment_starts_ms,
+        first_segment_start_ms,
     })
 }
 
@@ -233,7 +233,7 @@ fn validate_unit_timing(
     Ok(())
 }
 
-fn validate_cues(cues: &[SubtitleCue], duration: u64) -> Result<(), String> {
+fn validate_cues(cues: &[SubtitleCue], duration_ms: u64) -> Result<(), String> {
     if cues.len() > MAX_CUES {
         return Err("Transcript subtitleCues count is invalid".into());
     }
@@ -243,7 +243,7 @@ fn validate_cues(cues: &[SubtitleCue], duration: u64) -> Result<(), String> {
         require_safe_timestamp(cue.start_ms, "Subtitle cue start")?;
         require_safe_timestamp(cue.end_ms, "Subtitle cue end")?;
         if cue.end_ms <= cue.start_ms
-            || cue.end_ms > duration
+            || cue.end_ms > duration_ms
             || previous_start.is_some_and(|previous| cue.start_ms < previous)
         {
             return Err("Subtitle cues must be ordered and bounded".into());
