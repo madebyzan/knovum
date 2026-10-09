@@ -30,25 +30,25 @@ function createContentMutations(context: SpaceMutationContext) {
   const { nodes, history } = context;
 
   async function addContent(
-    data: SpaceNodePayload,
+    payload: SpaceNodePayload,
     position = context.nextInsertionPoint(),
     sourceChunks: readonly KnowledgeChunkSeed[] = [],
   ) {
     assertSpacePosition(position);
-    const node = createSpaceNode(data, position);
+    const node = createSpaceNode(payload, position);
     return addContents([node], new Map([[node.id, sourceChunks]]));
   }
 
   async function addContents(
     contentNodes: SpaceCanvasNode[],
-    sourceChunks = new Map<string, readonly KnowledgeChunkSeed[]>(),
+    sourceChunksByNodeId = new Map<string, readonly KnowledgeChunkSeed[]>(),
   ) {
     const spaceId = requireActiveSpaceId(context.activeSpaceId);
     const targetParentId = currentTargetParentId();
     const releaseMutation = beginSpaceMutation(history);
     try {
       await context.ensureActiveSpacePersisted();
-      await persistPendingContent(spaceId, contentNodes, targetParentId, sourceChunks);
+      await persistPendingContent(spaceId, contentNodes, targetParentId, sourceChunksByNodeId);
       commitPendingContent(spaceId, contentNodes);
       return contentNodes;
     } finally {
@@ -58,13 +58,13 @@ function createContentMutations(context: SpaceMutationContext) {
 
   async function createPendingContentForSpace(
     spaceId: string,
-    data: SpaceNodePayload,
+    payload: SpaceNodePayload,
     position = context.nextInsertionPoint(),
   ) {
     const targetParentId = context.activeSpaceId.value === spaceId ? currentTargetParentId() : null;
     await ensureSpacePersisted(spaceId);
     assertSpacePosition(position);
-    const node = createSpaceNode(data, position);
+    const node = createSpaceNode(payload, position);
     await persistPendingContent(spaceId, [node], targetParentId);
     return [node];
   }
@@ -78,7 +78,7 @@ function createContentMutations(context: SpaceMutationContext) {
     spaceId: string,
     contentNodes: SpaceCanvasNode[],
     targetParentId: string | null,
-    sourceChunks = new Map<string, readonly KnowledgeChunkSeed[]>(),
+    sourceChunksByNodeId = new Map<string, readonly KnowledgeChunkSeed[]>(),
   ) {
     for (const node of contentNodes) {
       assertSpacePosition(node.initialPosition);
@@ -97,7 +97,7 @@ function createContentMutations(context: SpaceMutationContext) {
           expectedEditRevision: snapshot.editRevision,
           targetParentId,
         },
-        sourceChunks,
+        sourceChunksByNodeId,
       });
       persisted = true;
       await synchronizeCreatedContent(spaceId, contentNodes);

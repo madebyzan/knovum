@@ -38,12 +38,12 @@ export class NodeGestureController {
     });
     if (!captured) return;
     this.drag = captured.state;
-    this.dragNodes = captured.nodeRefs;
+    this.dragNodeByNodeId = captured.nodeRefs;
   };
 
   readonly moveDrag = (primaryId: string) => {
     if (!this.drag || this.drag.primaryId !== primaryId) return;
-    const primary = this.dragNodes.get(primaryId);
+    const primary = this.dragNodeByNodeId.get(primaryId);
     if (!primary) return;
     const proposed = { x: primary.x() - this.drag.origin.x, y: primary.y() - this.drag.origin.y };
     const snapped = snapCanvasTranslation(
@@ -60,7 +60,7 @@ export class NodeGestureController {
     }));
     for (const [nodeId, frame] of this.drag.frameByNodeId) {
       if (nodeId === primaryId) continue;
-      this.dragNodes.get(nodeId)?.position({ x: frame.x + offset.x, y: frame.y + offset.y });
+      this.dragNodeByNodeId.get(nodeId)?.position({ x: frame.x + offset.x, y: frame.y + offset.y });
     }
     this.options.previewFrames(updates);
     this.options.updateFeedback({ guides: snapped.guides });
@@ -71,8 +71,8 @@ export class NodeGestureController {
     const current = this.drag;
     this.drag = undefined;
     this.options.updateFeedback(undefined);
-    const primary = this.dragNodes.get(primaryId);
-    this.dragNodes.clear();
+    const primary = this.dragNodeByNodeId.get(primaryId);
+    this.dragNodeByNodeId.clear();
     if (!primary) return [];
     const offset = { x: primary.x() - current.origin.x, y: primary.y() - current.origin.y };
     const updates = [...current.frameByNodeId].map(([nodeId, frame]) => ({
@@ -122,7 +122,7 @@ export class NodeGestureController {
 
   panDrag(offset: { x: number; y: number }) {
     if (!this.drag) return;
-    const primary = this.dragNodes.get(this.drag.primaryId);
+    const primary = this.dragNodeByNodeId.get(this.drag.primaryId);
     if (!primary) return;
     primary.position({ x: primary.x() + offset.x, y: primary.y() + offset.y });
     this.moveDrag(this.drag.primaryId);
@@ -141,7 +141,7 @@ export class NodeGestureController {
           .filter(({ nodeId }) => this.options.selectedNodeIds().has(nodeId))
           .map(({ nodeId, frame }) => ({ nodeId, frame }));
     const gestureNodeById = new Map([
-      ...this.dragNodes,
+      ...this.dragNodeByNodeId,
       ...this.transformTargets.map(({ content, node }) => [content.id, node] as const),
     ]);
     this.drag = undefined;
@@ -149,7 +149,7 @@ export class NodeGestureController {
     this.proportionalAnchor = undefined;
     this.resizeGuides = [];
     this.restoreFrames(frameUpdates, gestureNodeById);
-    this.dragNodes.clear();
+    this.dragNodeByNodeId.clear();
     this.transformTargets = [];
     this.options.previewFrames([]);
     this.options.updateFeedback(undefined);
@@ -173,7 +173,7 @@ export class NodeGestureController {
     });
   }
 
-  private dragNodes = new Map<string, Konva.Node>();
+  private dragNodeByNodeId = new Map<string, Konva.Node>();
   private resizeGuides: readonly CanvasSnapGuide[] = [];
   private transforming = false;
   private proportionalAnchor: string | undefined;

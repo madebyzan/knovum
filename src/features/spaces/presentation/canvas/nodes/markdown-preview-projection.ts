@@ -10,7 +10,7 @@ const parsedMarkdownBySource = new WeakMap<
     truncated: boolean;
     lines: string[];
     blocks: [number, number][];
-    previews: Map<number, MarkdownPreviewProjection>;
+    previewByBlockLimit: Map<number, MarkdownPreviewProjection>;
   }
 >();
 
@@ -32,11 +32,11 @@ export function projectMarkdownPreview(
       truncated: source.length < payload.text.length,
       lines: source.split("\n"),
       blocks: rootBlockRanges(markdown.parse(source, {})),
-      previews: new Map(),
+      previewByBlockLimit: new Map(),
     };
     parsedMarkdownBySource.set(payload, document);
   }
-  const cached = document.previews.get(blockLimit);
+  const cached = document.previewByBlockLimit.get(blockLimit);
   if (cached) return cached;
   const visible = document.blocks.slice(0, blockLimit);
   const source = visible.length ? document.lines.slice(visible[0]![0], visible.at(-1)![1]).join("\n") : "";
@@ -47,7 +47,7 @@ export function projectMarkdownPreview(
     visibleBlockCount: visible.length,
     truncated: document.truncated || source.length > characterLimit,
   };
-  document.previews.set(blockLimit, preview);
+  document.previewByBlockLimit.set(blockLimit, preview);
   return preview;
 }
 

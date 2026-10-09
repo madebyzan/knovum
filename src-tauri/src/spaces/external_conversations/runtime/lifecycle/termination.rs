@@ -10,10 +10,10 @@ pub(in crate::spaces::external_conversations::runtime) fn observe(
     conversation_id: String,
     run_id: String,
     completion: oneshot::Receiver<AppResult<()>>,
-    deadline: i64,
+    deadline_at: i64,
 ) {
     tauri::async_runtime::spawn(async move {
-        if let Err(error) = settle(&app, &conversation_id, &run_id, completion, deadline).await {
+        if let Err(error) = settle(&app, &conversation_id, &run_id, completion, deadline_at).await {
             log::error!("External Agent session settlement failed: {error}");
         }
     });
@@ -24,10 +24,10 @@ async fn settle(
     conversation_id: &str,
     run_id: &str,
     mut completion: oneshot::Receiver<AppResult<()>>,
-    deadline: i64,
+    deadline_at: i64,
 ) -> Result<(), String> {
     let remaining = Duration::from_millis(
-        deadline
+        deadline_at
             .saturating_sub(crate::clock::unix_time_millis()?)
             .max(0) as u64,
     );

@@ -8,9 +8,9 @@ interface CanvasNodeContentPersistence {
 }
 
 export function createCanvasNodeContentPersistence(store: CanvasNodeContentPersistence) {
-  return async (id: string, after: SpaceNodePayload) => {
-    const before = store.nodes.find((node) => node.id === id)?.data;
-    if (!before) throw new Error(`Cannot persist missing canvas node ${id}`);
-    await store.updateNodeContents([{ id, before, after }]);
+  return async (nodeId: string, after: SpaceNodePayload) => {
+    const before = store.nodes.find((node) => node.id === nodeId)?.data;
+    if (!before) throw new Error(`Cannot persist missing canvas node ${nodeId}`);
+    await store.updateNodeContents([{ id: nodeId, before, after }]);
   };
 }
