@@ -1,27 +1,30 @@
 <script setup lang="ts">
-import { Focus, Info } from "@lucide/vue";
-import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, toRef, useTemplateRef } from "vue";
+import { ToolbarRoot } from "reka-ui";
+import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
-import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
-import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
+import SpaceNodeTranscriptionAction from "../media/SpaceNodeTranscriptionAction.vue";
+import { nodeSpeechOperationIds, type NodeSpeechOperation } from "../speech/node-speech-operations";
+import SpaceNodeSpeechActions from "../speech/SpaceNodeSpeechActions.vue";
+import SpaceNodeSpeechBar from "../speech/SpaceNodeSpeechBar.vue";
+import SpaceSeparatedTracksBar from "../speech/SpaceSeparatedTracksBar.vue";
+import { useNodeSeparation } from "../speech/use-node-separation";
+import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import { canvasBarPlacement } from "./canvas-bar-density-policy";
-import { nodeOpenIcons, nodeOpenLabels } from "./canvas-node-open-actions";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import SpaceCanvasActionTrigger from "./SpaceCanvasActionTrigger.vue";
+import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
 import SpaceCanvasVideoActions from "./SpaceCanvasVideoActions.vue";
-import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "./use-node-action-bar-density";
+import { useNodePrimaryAction } from "./use-node-primary-action";
 
 const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
@@ -31,48 +34,57 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t, locale } = useI18n();
+const speechOperation = defineModel<NodeSpeechOperation | undefined>("speechOperation");
+watch(speechOperation, async (operation, previous) => {
+  if (operation || !previous) return;
+  await nextTick();
+  bar.value?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+});
+const { separation, invoke: separate } = useNodeSeparation(toRef(props, "node"));
+const reviewedSeparation = shallowRef<string>();
+const showTracks = computed(
+  () =>
+    separation.candidate.value &&
+    separation.candidate.value.reviewStatus !== "rejected" &&
+    separation.candidate.value.separationId !== reviewedSeparation.value,
+);
+const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
   () =>
-    `${locale.value}:${props.node?.data.kind}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
+    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
   toRef(props, "availableWidth"),
   densityIdentity,
 );
-const primaryLabel = computed(() => {
-  if (props.actions.state.value.section && props.actions.state.value.content.length)
-    return t("spaces.scenes.focus.selection");
-  const kind = props.node?.data.kind;
-  return t(kind && props.actions.state.value.canOpen ? nodeOpenLabels[kind] : "spaces.inspector.title");
-});
-const primaryIcon = computed(() => {
-  if (props.actions.state.value.section && props.actions.state.value.content.length) return Focus;
-  const kind = props.node?.data.kind;
-  return kind && props.actions.state.value.canOpen ? nodeOpenIcons[kind] : Info;
-});
-const showPrimary = computed(() => {
-  if (props.actions.state.value.section && props.actions.state.value.content.length) return true;
-  const kind = props.node?.data.kind;
-  return Boolean(
-    kind && props.actions.state.value.canOpen && nodeOpenLabels[kind] !== "spaces.inspector.title",
-  );
-});
+const { primaryLabel, primaryIcon, showPrimary, runPrimaryAction } = useNodePrimaryAction(
+  toRef(props, "node"),
+  props.actions,
+);
+const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
 const textKind = computed(() => {
   const kind = props.node?.data.kind;
   return kind === "note" || kind === "text" ? kind : undefined;
 });
-
-function runPrimaryAction() {
-  if (props.actions.state.value.section && props.actions.state.value.content.length) props.actions.focus();
-  else if (props.actions.state.value.canOpen) props.actions.open();
-  else props.actions.inspect();
-}
 </script>
 
 <template>
+  <SpaceNodeSpeechBar
+    v-if="speechOperation"
+    v-model:operation="speechOperation"
+    :node="node"
+    :available-width="availableWidth"
+  />
+  <SpaceSeparatedTracksBar
+    :compact="availableWidth < 520"
+    v-else-if="showTracks"
+    :separation="separation"
+    @close="reviewedSeparation = separation.candidate.value?.separationId"
+  />
   <div
+    v-else
     ref="bar"
     class="w-max"
     :class="ready ? 'visible' : 'invisible'"
@@ -84,24 +96,14 @@ function runPrimaryAction() {
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
-      <UiTooltip
+      <SpaceCanvasActionTrigger
         v-if="showPrimary && canvasBarPlacement('node-primary', minimal) === 'bar'"
-        :text="primaryLabel"
-        :disabled="!compact"
-        side="top"
-      >
-        <ToolbarButton as-child>
-          <button
-            type="button"
-            :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-fg-primary']"
-            :aria-label="primaryLabel"
-            @click="runPrimaryAction"
-          >
-            <component :is="primaryIcon" class="size-3.5" :stroke-width="1.6" />
-            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ primaryLabel }}</span>
-          </button>
-        </ToolbarButton>
-      </UiTooltip>
+        :label="primaryLabel"
+        :icon="primaryIcon"
+        :compact="compact"
+        class="font-medium text-fg-primary"
+        @invoke="runPrimaryAction"
+      />
       <SpaceCanvasTextFormatBar
         v-if="textKind"
         :kind="textKind"
@@ -116,14 +118,19 @@ function runPrimaryAction() {
         @edit="actions.editVideo"
         @add-subtitles="emit('invokeDerivation', 'add-video-subtitles')"
       />
-      <UiSeparator
-        v-if="
-          (showPrimary && canvasBarPlacement('node-primary', minimal) === 'bar') ||
-          textKind ||
-          (actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'bar')
-        "
-        orientation="vertical"
-        class="mx-0.5 h-4"
+      <SpaceNodeSpeechActions
+        v-if="node && speechOperations.length && canvasBarPlacement('node-speech', minimal) === 'bar'"
+        :node="node"
+        :compact="compact"
+        :separating="Boolean(separation.activeRunId.value)"
+        :separation-busy="separation.busy.value"
+        @separate="separate"
+        @begin="speechOperation = $event"
+      />
+      <SpaceNodeTranscriptionAction
+        v-if="node && isMedia && canvasBarPlacement('node-transcription', minimal) === 'bar'"
+        :node="node"
+        :compact="compact"
       />
       <SpaceCanvasSelectionMenu
         :actions="actions"
@@ -131,21 +138,21 @@ function runPrimaryAction() {
         node-bar
         :node-tools-visible="
           canvasBarPlacement('node-primary', minimal) === 'menu' &&
-          ((showPrimary && !actions.state.value.section) || Boolean(actions.selectedVideoNode.value))
+          (showPrimary ||
+            Boolean(speechOperations.length) ||
+            isMedia ||
+            Boolean(actions.selectedVideoNode.value))
         "
         @invoke-derivation="emit('invokeDerivation', $event)"
       >
         <template #node-tools>
-          <UiDropdownMenuItem
-            v-if="
-              showPrimary &&
-              !actions.state.value.section &&
-              canvasBarPlacement('node-primary', minimal) === 'menu'
-            "
-            @select="runPrimaryAction"
-          >
-            <component :is="primaryIcon" class="size-3.5" />{{ primaryLabel }}
-          </UiDropdownMenuItem>
+          <SpaceCanvasActionTrigger
+            v-if="showPrimary && canvasBarPlacement('node-primary', minimal) === 'menu'"
+            :label="primaryLabel"
+            :icon="primaryIcon"
+            menu-item
+            @invoke="runPrimaryAction"
+          />
           <SpaceCanvasVideoActions
             v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'menu'"
             menu-item
@@ -153,9 +160,24 @@ function runPrimaryAction() {
             @edit="actions.editVideo"
             @add-subtitles="emit('invokeDerivation', 'add-video-subtitles')"
           />
+          <SpaceNodeSpeechActions
+            v-if="node && speechOperations.length && canvasBarPlacement('node-speech', minimal) === 'menu'"
+            :node="node"
+            menu-item
+            :separating="Boolean(separation.activeRunId.value)"
+            :separation-busy="separation.busy.value"
+            @separate="separate"
+            @begin="speechOperation = $event"
+          />
+          <SpaceNodeTranscriptionAction
+            v-if="node && isMedia && canvasBarPlacement('node-transcription', minimal) === 'menu'"
+            :node="node"
+            menu-item
+          />
         </template>
       </SpaceCanvasSelectionMenu>
-      <SpaceNodeBarCommonActions :node="node" @inspect="actions.inspect" @export="actions.exportSelection" />
+      <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
+      <SpaceCanvasNodeAccessActions @inspect="actions.inspect" @export="actions.exportSelection" />
     </ToolbarRoot>
   </div>
 </template>

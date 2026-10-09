@@ -2,6 +2,7 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
+import type * as vueI18n from "vue-i18n";
 
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type * as observation from "../../runs/resource-run-observation";
@@ -21,8 +22,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../voice-candidate-ipc", () => mocks);
 vi.mock("../ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
-vi.mock("../../../../foundation/i18n/i18n", () => ({
-  i18n: { global: { t: (key: string) => key } },
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof vueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
 }));
 
 const running: RunObservation = {

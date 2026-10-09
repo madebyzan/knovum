@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effectScope } from "vue";
+import type * as vueI18n from "vue-i18n";
 
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type { SpeechSourceSeparationCandidate } from "../../contracts/generated/SpeechSourceSeparationCandidate";
@@ -17,7 +18,10 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../source-separation-ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
-vi.mock("../../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof vueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 const source = { assetPath: "/media.wav", sourceRevision: "sha256:source", durationMs: 1_000 };
 const candidate: SpeechSourceSeparationCandidate = {
   separationId: "run",

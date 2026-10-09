@@ -40,6 +40,7 @@ const { t } = useI18n();
 const editorSession = getCanvasEditorSession();
 const {
   angleNodeId,
+  speechOperation,
   selectionKey,
   kind: selectionSurfaceKind,
   showActions: showSelectionActions,
@@ -126,6 +127,7 @@ const selectionBarGap = computed(() =>
         "
         :derivations="derivations.decisions.value"
         :available-width="availableWidth"
+        v-model:speech-operation="speechOperation"
         :angle-node-id="angleNodeId"
         @update:angle-node-id="angleNodeId = $event"
         @invoke-derivation="derivations.run"

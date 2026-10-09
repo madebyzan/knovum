@@ -9,6 +9,8 @@ export const IMAGE_EDIT_TOOL_ORDER = [
 export type CanvasBarAction =
   | "node-primary"
   | "video-edit"
+  | "node-speech"
+  | "node-transcription"
   | "image-edit"
   | "image-remove-background"
   | "image-remove-object";
@@ -17,6 +19,8 @@ export type CanvasBarAction =
 const MINIMAL_MENU_ACTIONS: ReadonlySet<CanvasBarAction> = new Set([
   "node-primary",
   "video-edit",
+  "node-speech",
+  "node-transcription",
   "image-edit",
   "image-remove-background",
   "image-remove-object",

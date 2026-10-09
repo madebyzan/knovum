@@ -21,7 +21,8 @@
     "auditionRequired": "Play the candidate through once before saving this voice.",
     "save": "Save voice",
     "discard": "Discard sample",
-    "sample": "Welcome. Today is October 3, 2026, and the project number is 108. Listen for clear pronunciation, steady pacing, and natural sentence endings."
+    "sample": "Welcome. Today is October 3, 2026, and the project number is 108. Listen for clear pronunciation, steady pacing, and natural sentence endings.",
+    "auditions": "Audition results"
   },
   "gender": {
     "female": "Female",
@@ -31,5 +32,7 @@
     "preset": "Preset voice",
     "reference": "Reference voice",
     "designed": "Designed voice"
-  }
+  },
+  "options": "Voice settings",
+  "cloneShort": "Clone voice"
 }

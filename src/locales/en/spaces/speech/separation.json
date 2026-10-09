@@ -22,5 +22,7 @@
     "vocals": "Vocals",
     "background": "Accompaniment"
   },
-  "addToSpace": "Add as audio node"
+  "addToSpace": "Add as audio node",
+  "running": "Separating tracks. Follow progress in Task Center.",
+  "tracksReady": "Tracks ready"
 }

@@ -17,13 +17,13 @@ import SpaceCanvasImageEditing from "./SpaceCanvasImageEditing.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
 import SpaceCanvasImageRemoveBackgroundTrigger from "./SpaceCanvasImageRemoveBackgroundTrigger.vue";
 import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
+import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
 import SpaceCanvasObjectRemoval from "./SpaceCanvasObjectRemoval.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageAngleInspector from "./SpaceImageAngleInspector.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageLayerGeneration from "./SpaceImageLayerGeneration.vue";
 import SpaceImageUpscalePopover from "./SpaceImageUpscalePopover.vue";
-import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 import { useImageNodeBarState } from "./use-image-node-bar-state";
 import { useNodeActionBarDensity } from "./use-node-action-bar-density";
@@ -164,7 +164,7 @@ watch(
           />
         </template>
       </SpaceCanvasSelectionMenu>
-      <SpaceNodeBarCommonActions @inspect="actions.inspect" @export="actions.exportSelection" />
+      <SpaceCanvasNodeAccessActions @inspect="actions.inspect" @export="actions.exportSelection" />
     </ToolbarRoot>
   </div>
 </template>

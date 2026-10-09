@@ -38,5 +38,6 @@
   "previewText": "Enter up to 500 characters to audition this voice",
   "generateFromNode": "Generate speech",
   "nodeProjects": "Speech projects for this node",
-  "readManuscript": "Load this node as manuscript"
+  "readManuscript": "Load this node as manuscript",
+  "edit": "Edit project"
 }

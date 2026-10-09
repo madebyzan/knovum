@@ -8,6 +8,5 @@
   "discardDescription": "Unsaved voice settings will be lost.",
   "presets": "Preset voices",
   "add": "Upload reference audio or design a voice",
-  "addTitle": "Add voice",
-  "firstVoice": "Choose a preset voice to get started. It will be saved to the voice library."
+  "addTitle": "Add voice"
 }
