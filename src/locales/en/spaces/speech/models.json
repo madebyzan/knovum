@@ -5,5 +5,6 @@
     "mossNano": "Compact Chinese and English preset voices and reference cloning. CPU only; normal speed.",
     "voxCpm2": "Full precision · Voice cloning and design. Requires at least 32 GiB memory.",
     "voxCpm2Q8": "Quantized · Smaller download and disk use. Still requires at least 32 GiB memory."
-  }
+  },
+  "details": "Model details"
 }

@@ -15,7 +15,7 @@ watch(name, (value) => emit("dirty", Boolean(value.trim())));
 </script>
 
 <template>
-  <section class="grid gap-2 py-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,0.7fr)] md:items-center">
+  <section class="space-y-3 py-3">
     <SpeechMediaPlayer kind="audio" :source="candidate.source" @ended="emit('audition')" />
     <div class="space-y-2">
       <p v-if="candidate.auditionedAt === null" class="text-caption text-fg-tertiary">

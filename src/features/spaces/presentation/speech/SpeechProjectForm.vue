@@ -68,32 +68,46 @@ function submit() {
     projectType: projectType.value,
     outputConfig,
   });
-  title.value = "";
 }
 </script>
 
 <template>
-  <form class="space-y-2" @submit.prevent="submit">
-    <UiInput
-      v-model="title"
-      size="sm"
-      :placeholder="t('spaces.speech.project.name')"
-      :aria-label="t('spaces.speech.project.name')"
-      :disabled="disabled"
-    />
-    <template v-if="projectType === 'video_dubbing'">
-      <p class="text-caption text-fg-secondary">{{ node.data.title }}</p>
-      <UiSelect
-        v-model="backgroundId"
+  <form class="space-y-3" @submit.prevent="submit">
+    <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+      <span>{{ t("spaces.speech.project.name") }}</span>
+      <UiInput
+        v-model="title"
         size="sm"
-        :label="t('spaces.speech.videoDubbing.backgroundAudio')"
-        :options="backgroundOptions"
+        :placeholder="t('spaces.speech.project.name')"
+        :aria-label="t('spaces.speech.project.name')"
         :disabled="disabled"
       />
-      <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoDubbing.sourcesHint") }}</p>
+    </label>
+    <template v-if="projectType === 'video_dubbing'">
+      <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+        <span>{{ t("spaces.speech.videoDubbing.backgroundAudio") }}</span>
+        <UiSelect
+          v-model="backgroundId"
+          size="sm"
+          :label="t('spaces.speech.videoDubbing.backgroundAudio')"
+          :options="backgroundOptions"
+          :disabled="disabled"
+        />
+      </label>
+      <p class="text-caption leading-relaxed text-fg-tertiary">
+        {{ t("spaces.speech.videoDubbing.sourcesHint") }}
+      </p>
     </template>
-    <UiButton class="w-full" size="sm" variant="primary" type="submit" :disabled="disabled || !canSubmit">
-      {{ t("common.create") }}
-    </UiButton>
+    <div class="flex justify-end border-t border-stroke-divider pt-3">
+      <UiButton
+        size="sm"
+        variant="primary"
+        type="submit"
+        class="bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
+        :disabled="disabled || !canSubmit"
+      >
+        {{ t("common.create") }}
+      </UiButton>
+    </div>
   </form>
 </template>

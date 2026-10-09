@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { Crop, RotateCw, SlidersHorizontal } from "@lucide/vue";
-import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
-import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type { ImageEditTool } from "../../image-editing/image-edit-session-store";
-import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import SpaceCanvasActionTrigger from "./SpaceCanvasActionTrigger.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -29,23 +25,12 @@ const icons = { adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
 </script>
 
 <template>
-  <UiDropdownMenuItem v-if="menuItem" :disabled="disabled" @select="emit('begin', props.mode)">
-    <component :is="icons[props.mode]" class="size-3.5" />{{ t(labels[props.mode]) }}
-  </UiDropdownMenuItem>
-  <UiTooltip v-else :text="t(labels[props.mode])" :disabled="!compact" side="top">
-    <ToolbarButton as-child>
-      <button
-        type="button"
-        :class="CANVAS_ACTION_BUTTON_CLASSES"
-        :aria-label="t(labels[props.mode])"
-        :disabled="disabled"
-        @click="emit('begin', props.mode)"
-      >
-        <component :is="icons[props.mode]" class="size-4.5" :stroke-width="1.6" />
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-          t(labels[props.mode])
-        }}</span>
-      </button>
-    </ToolbarButton>
-  </UiTooltip>
+  <SpaceCanvasActionTrigger
+    :label="t(labels[mode])"
+    :icon="icons[mode]"
+    :compact="compact"
+    :menu-item="menuItem"
+    :disabled="disabled"
+    @invoke="emit('begin', props.mode)"
+  />
 </template>

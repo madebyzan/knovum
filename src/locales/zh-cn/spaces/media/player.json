@@ -6,6 +6,5 @@
   "timeline": "媒体时间轴",
   "transcribe": "转录",
   "transcribed": "已转录",
-  "transcribing": "正在处理转录",
-  "transcriptionFirstUse": "首次转录会自动下载所选模型和所需资源，可在任务中心查看进度或取消。"
+  "transcribing": "正在处理转录"
 }

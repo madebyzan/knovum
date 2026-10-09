@@ -22,5 +22,7 @@
     "vocals": "人声",
     "background": "伴奏"
   },
-  "addToSpace": "添加为音频节点"
+  "addToSpace": "添加为音频节点",
+  "running": "分离进行中，可在任务中心查看进度。",
+  "tracksReady": "分离完成"
 }

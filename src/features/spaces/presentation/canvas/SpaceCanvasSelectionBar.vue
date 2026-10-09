@@ -11,6 +11,7 @@ import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
+import type { NodeSpeechOperation } from "../speech/node-speech-operations";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasImageActionBar from "./SpaceCanvasImageActionBar.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
@@ -27,6 +28,7 @@ const emit = defineEmits<{
   invokeDerivation: [actionId: CreationIntentId];
   "update:angleNodeId": [nodeId: string | undefined];
 }>();
+const speechOperation = defineModel<NodeSpeechOperation | undefined>("speechOperation");
 const actions = useCanvasSelectionActions();
 const { t } = useI18n();
 const singleNode = computed(() => {
@@ -53,6 +55,7 @@ const singleSection = computed(
     v-else-if="singleNode || singleSection"
     :actions="actions"
     :derivations="derivations"
+    v-model:speech-operation="speechOperation"
     :node="singleNode"
     :available-width="availableWidth"
     @invoke-derivation="emit('invokeDerivation', $event)"

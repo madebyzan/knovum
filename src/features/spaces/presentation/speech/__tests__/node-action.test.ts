@@ -1,14 +1,39 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { afterEach, expect, it, vi } from "vitest";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, shallowRef, type PropType } from "vue";
 import { createI18n } from "vue-i18n";
 
 import { localeMessages } from "../../../../../locales/locale-registry";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import SpaceNodeSpeechAction from "../SpaceNodeSpeechAction.vue";
+import type { NodeSpeechOperation } from "../node-speech-operations";
+import SpaceNodeSpeechActions from "../SpaceNodeSpeechActions.vue";
+import SpaceNodeSpeechBar from "../SpaceNodeSpeechBar.vue";
 
-vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));
+vi.mock("../../../session/space-store", () => ({
+  useSpaceStore: () => ({ activeSpaceId: "space", nodes: [] }),
+}));
+const SpeechOperation = defineComponent({
+  props: { node: { type: Object as PropType<SpaceCanvasNode>, required: true } },
+  setup(props) {
+    const operation = shallowRef<NodeSpeechOperation>();
+    return () => [
+      h(SpaceNodeSpeechActions, {
+        node: props.node,
+        onBegin: (selected: NodeSpeechOperation) => {
+          operation.value = selected;
+        },
+      }),
+      h(SpaceNodeSpeechBar, {
+        node: props.node,
+        operation: operation.value,
+        "onUpdate:operation": (selected: NodeSpeechOperation | undefined) => {
+          operation.value = selected;
+        },
+      }),
+    ];
+  },
+});
 
 const i18n = createI18n({
   legacy: false,
@@ -19,14 +44,13 @@ const global = {
   plugins: [i18n],
   stubs: {
     ToolbarButton: { template: "<slot />" },
-    SpaceNodeBackgroundAction: true,
     SpaceNodeSpeechEditor: {
       props: ["node", "projectType"],
       template: '<div data-testid="editor" :data-project-type="projectType">{{ node.id }}</div>',
     },
-    VoiceCandidateForm: {
-      props: ["sourceNode"],
-      template: '<div data-testid="clone">{{ sourceNode.id }}</div>',
+    SpaceVoiceCloneBar: {
+      props: ["node"],
+      template: '<div data-testid="clone">{{ node.id }}</div>',
     },
   },
 };
@@ -43,16 +67,18 @@ afterEach(() => {
 });
 
 it("opens the selected node editor and closes it when the selected node changes", async () => {
-  wrapper = mount(SpaceNodeSpeechAction, { props: { node: note }, global, attachTo: document.body });
+  wrapper = mount(SpeechOperation, { props: { node: note }, global, attachTo: document.body });
   await wrapper.get('[data-testid="node-speech-action"]').trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
+  expect(document.querySelector('[aria-modal="true"]')).toBeNull();
+  expect(document.querySelector('[data-testid="node-speech-bar"] [role="toolbar"]')).not.toBeNull();
   await wrapper.setProps({ node: { ...note, data: { ...note.data, title: "Renamed" } } });
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
   await wrapper.setProps({ node: { ...note, id: "second" } });
   await flushPromises();
-  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.querySelector('[data-testid="node-speech-bar"]')).toBeNull();
   await wrapper.get('[data-testid="node-speech-action"]').trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("second");
@@ -65,7 +91,7 @@ it("uses the selected audio as the cloning source", async () => {
     initialPosition: { x: 0, y: 0 },
     data: { kind: "audio", title: "Recording", assetPath: "/recording.wav", fileName: "recording.wav" },
   };
-  wrapper = mount(SpaceNodeSpeechAction, { props: { node: audio }, global, attachTo: document.body });
+  wrapper = mount(SpeechOperation, { props: { node: audio }, global, attachTo: document.body });
   expect(wrapper.get("button").attributes("aria-label")).toBe("Clone from reference");
   await wrapper.get("button").trigger("click");
   await flushPromises();
@@ -73,7 +99,7 @@ it("uses the selected audio as the cloning source", async () => {
   expect(document.querySelector('[data-testid="editor"]')).toBeNull();
   await wrapper.setProps({ node: { ...audio, data: { ...audio.data, sourceRevision: "updated-source" } } });
   await flushPromises();
-  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.querySelector('[data-testid="node-speech-bar"]')).toBeNull();
 });
 
 it("provides separate dubbing and reference-voice operations on a video node", async () => {
@@ -83,12 +109,12 @@ it("provides separate dubbing and reference-voice operations on a video node", a
     initialPosition: { x: 0, y: 0 },
     data: { kind: "video", title: "Interview", assetPath: "/interview.mp4", fileName: "interview.mp4" },
   };
-  wrapper = mount(SpaceNodeSpeechAction, { props: { node: video }, global, attachTo: document.body });
+  wrapper = mount(SpeechOperation, { props: { node: video }, global, attachTo: document.body });
   expect(
     wrapper
       .findAll('[data-testid="node-speech-action"]')
       .map((action) => action.attributes("data-operation")),
-  ).toEqual(["video_dubbing", "clone"]);
+  ).toEqual(["video_dubbing", "clone", "separate"]);
   await wrapper.get('[data-operation="clone"]').trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="clone"]')?.textContent).toBe("video");
@@ -103,7 +129,7 @@ it("participates in the node toolbar keyboard navigation", async () => {
         {},
         {
           default: () => [
-            h(SpaceNodeSpeechAction, { node: note }),
+            h(SpeechOperation, { node: note }),
             h(ToolbarButton, { "data-testid": "next" }, () => "Next"),
           ],
         },
@@ -125,7 +151,7 @@ it("participates in the node toolbar keyboard navigation", async () => {
 });
 
 it("provides separate text operations with one project type per editor", async () => {
-  wrapper = mount(SpaceNodeSpeechAction, { props: { node: note }, global, attachTo: document.body });
+  wrapper = mount(SpeechOperation, { props: { node: note }, global, attachTo: document.body });
   const actions = wrapper.findAll('[data-testid="node-speech-action"]');
   expect(actions).toHaveLength(2);
   await actions[1]!.trigger("click");

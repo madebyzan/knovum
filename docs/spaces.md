@@ -277,6 +277,12 @@ request and are also available in the Settings model list. No account token or f
 
 ## Speech projects
 
+Speech actions begin on the selected canvas node and follow the image tools’ contextual bar system.
+Reference intervals, voice settings and auditions use button-anchored controls. Source separation
+starts with one click; its completed stems are auditioned and explicitly accepted/rejected from a
+compact result bar. Dubbing edits retain the current project draft when their parameter popover is
+closed; ending the operation uses the existing save/discard leave contract.
+
 Speech projects publish audiobook audio, short dubbing audio or video dubbing from durable Runs.
 WAV, MP3 and M4B are supported audio outputs. Chapter boundaries and mix placement use integer sample
 positions. Audiobook Runs checkpoint each chapter's PCM and its verified input digest, measure

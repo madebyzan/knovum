@@ -15,6 +15,7 @@ import { nodeSpeechText } from "../../speech/node-speech";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
+import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 import SpeechOutputReview from "./SpeechOutputReview.vue";
 import VideoDeliveryExport from "./VideoDeliveryExport.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
@@ -80,15 +81,6 @@ function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   return t("spaces.speech.project.stages.done");
 }
 
-function forwardPreview(
-  text: string,
-  voiceRevisionId: string,
-  pronunciationLexicon: Record<string, string>,
-  deliveryInstruction?: string,
-) {
-  emit("preview", text, voiceRevisionId, pronunciationLexicon, deliveryInstruction);
-}
-
 function updateDraft(
   value: boolean,
   input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
@@ -99,7 +91,7 @@ function updateDraft(
 </script>
 
 <template>
-  <section class="space-y-3 rounded-md border border-stroke-default p-2.5">
+  <section class="space-y-3">
     <div>
       <h2 class="truncate text-label font-medium text-fg-primary">{{ project.project.title }}</h2>
       <p class="text-caption-sm text-fg-tertiary">v{{ project.project.activeRevision }}</p>
@@ -112,7 +104,7 @@ function updateDraft(
       :disabled="editorDisabled"
       @draft-state="updateDraft"
       @save="emit('save', $event)"
-      @preview="forwardPreview"
+      @preview="(...args) => emit('preview', ...args)"
     />
     <AudiobookScriptEditor
       v-else-if="project.project.projectType === 'audiobook'"
@@ -122,7 +114,7 @@ function updateDraft(
       :disabled="editorDisabled"
       @draft-state="updateDraft"
       @save="emit('save', $event)"
-      @preview="forwardPreview"
+      @preview="(...args) => emit('preview', ...args)"
     />
     <VideoDubbingEditor
       v-else-if="project.project.projectType === 'video_dubbing'"
@@ -131,11 +123,17 @@ function updateDraft(
       :disabled="editorDisabled"
       @draft-state="updateDraft"
       @save="emit('save', $event)"
-      @preview="forwardPreview"
+      @preview="(...args) => emit('preview', ...args)"
       @busy="operationBusy = $event"
     />
     <div class="flex items-center gap-2 border-t border-stroke-divider pt-2">
-      <UiButton size="sm" variant="primary" :disabled="!canGenerate" @click="emit('generate')">
+      <UiButton
+        size="sm"
+        variant="primary"
+        class="bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
+        :disabled="!canGenerate"
+        @click="emit('generate')"
+      >
         <WandSparkles class="size-3.5" />{{ t("spaces.speech.project.generate") }}
       </UiButton>
       <UiButton
@@ -158,11 +156,10 @@ function updateDraft(
     <p v-if="progress && running" class="text-caption-sm text-fg-tertiary">
       {{ stageLabel(progress.stage) }} · {{ progress.completed }}/{{ progress.total }}
     </p>
-    <audio
+    <SpeechMediaPlayer
       v-if="preview && !dirty"
-      class="h-8 w-full"
-      controls
-      :src="preview.source"
+      kind="audio"
+      :source="preview.source"
       @play="emit('stopListening')"
     />
     <VideoDeliveryExport

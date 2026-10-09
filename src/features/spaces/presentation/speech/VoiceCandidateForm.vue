@@ -4,12 +4,11 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
-import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useVoiceCandidateForm, type VoiceCandidateSourceKind } from "../../speech/use-voice-candidate-form";
-import VoiceCandidateModelSelect from "./VoiceCandidateModelSelect.vue";
+import VoiceCandidateOptions from "./VoiceCandidateOptions.vue";
 import VoiceCandidateReviews from "./VoiceCandidateReviews.vue";
 import VoiceReferenceEditor from "./VoiceReferenceEditor.vue";
 
@@ -60,33 +59,19 @@ async function saveCandidate(candidateId: string, name: string) {
 
 <template>
   <section class="space-y-4">
-    <div class="flex gap-2">
-      <UiSelect
-        v-if="!sourceNode && !sourceKind"
-        v-model="mode"
-        class="min-w-0 flex-1"
-        size="sm"
-        :label="t('spaces.speech.voice.mode')"
-        :options="modes"
-        :disabled="busy || preparingReference"
-      />
-      <UiSelect
-        v-model="language"
-        class="w-40 shrink-0"
-        size="sm"
-        :label="t('spaces.speech.project.language')"
-        :options="languages"
-        :disabled="busy || preparingReference"
-      />
-    </div>
-    <VoiceCandidateModelSelect
-      v-model="model"
+    <VoiceCandidateOptions
+      v-model:mode="mode"
+      v-model:model="model"
       v-model:available="modelAvailable"
       v-model:reference-transcript="referenceTranscript"
-      :source-kind="mode"
+      v-model:language="language"
+      :fixed-source="Boolean(sourceNode || sourceKind)"
       :disabled="busy || preparingReference"
+      :modes="modes"
+      :languages="languages"
     />
-    <template v-if="mode === 'reference'">
+    <section v-if="mode === 'reference'" class="space-y-3 border-t border-stroke-divider pt-3">
+      <h3 class="text-caption font-medium text-fg-primary">{{ t("spaces.speech.reference.title") }}</h3>
       <VoiceReferenceEditor
         v-model="reference"
         :language="language"
@@ -95,7 +80,9 @@ async function saveCandidate(candidateId: string, name: string) {
         @busy="preparingReference = $event"
         @dirty="referenceEditorDirty = $event"
       />
-      <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.reference.requirements") }}</p>
+      <p class="text-caption-sm leading-relaxed text-fg-tertiary">
+        {{ t("spaces.speech.reference.requirements") }}
+      </p>
       <UiTextarea
         v-if="referenceTranscript === 'optionalConfirmed'"
         v-model="transcript"
@@ -116,7 +103,7 @@ async function saveCandidate(candidateId: string, name: string) {
         />
         {{ t("spaces.speech.reference.transcriptConfirmed") }}
       </label>
-    </template>
+    </section>
     <UiTextarea
       v-else
       v-model="description"
@@ -129,22 +116,25 @@ async function saveCandidate(candidateId: string, name: string) {
       <UiCheckbox v-model="authorized" :disabled="busy" :label="t('spaces.speech.reference.authorization')" />
       {{ t("spaces.speech.reference.authorization") }}
     </label>
-    <div class="space-y-2 border-t border-stroke-divider pt-4">
-      <UiTextarea
-        v-model="text"
-        :rows="3"
-        :disabled="busy"
-        :placeholder="t('spaces.speech.voice.candidate.text')"
-        :aria-label="t('spaces.speech.voice.candidate.text')"
-      />
-      <div class="flex gap-2">
+    <div class="space-y-3 border-t border-stroke-divider pt-3">
+      <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+        <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
+        <UiTextarea
+          v-model="text"
+          :rows="2"
+          :disabled="busy"
+          :placeholder="t('spaces.speech.voice.candidate.text')"
+          :aria-label="t('spaces.speech.voice.candidate.text')"
+        />
+      </label>
+      <div class="flex items-center justify-end gap-2">
         <UiButton
           size="sm"
           variant="primary"
           :disabled="busy || !ready || candidates.length >= 16"
           @click="generate"
         >
-          {{ t("spaces.speech.voice.candidate.generate") }}
+          {{ t(busy ? "spaces.speech.project.starting" : "spaces.speech.voice.candidate.generate") }}
         </UiButton>
         <UiButton v-if="activeRunId || pendingRequestId" size="sm" variant="dangerSubtle" @click="cancel">
           {{ t("common.cancel") }}

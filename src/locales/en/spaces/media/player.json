@@ -6,6 +6,5 @@
   "timeline": "Media timeline",
   "transcribe": "Transcribe",
   "transcribed": "Transcribed",
-  "transcribing": "Processing transcription",
-  "transcriptionFirstUse": "The selected model and required resources download automatically on first use. Track or cancel the task in Task Center."
+  "transcribing": "Processing transcription"
 }

@@ -10,5 +10,8 @@
   "end": "选区结束（秒）",
   "prepare": "识别所选音频",
   "play": "试听选区",
-  "sourceChanged": "音频节点的源文件已变化，请更新节点后重新准备参考音频。"
+  "sourceChanged": "音频节点的源文件已变化，请更新节点后重新准备参考音频。",
+  "selection": "已选择 {seconds} 秒 · 拖动两端调整",
+  "prepared": "选区已识别",
+  "playbackFailed": "无法播放源音频，请检查媒体文件是否可读取。"
 }

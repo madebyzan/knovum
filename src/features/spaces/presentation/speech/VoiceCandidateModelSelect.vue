@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ChevronDown } from "@lucide/vue";
+import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -76,12 +78,17 @@ watchEffect(() => {
     <UiButton v-if="catalog.error.value" size="sm" variant="ghost" @click="catalog.refetch()">{{
       t("common.retry")
     }}</UiButton>
-    <p v-if="selected" class="text-caption text-fg-secondary">
-      {{ t(`spaces.speech.models.descriptions.${model}`) }}
-    </p>
-    <p v-if="selected && !selected.verified" class="text-caption text-fg-tertiary">
-      {{ t("spaces.speech.models.firstUse") }}
-    </p>
+    <CollapsibleRoot v-if="selected" class="text-caption-sm text-fg-tertiary">
+      <CollapsibleTrigger
+        class="inline-flex items-center gap-1 py-1 text-left hover:text-fg-primary focus-visible:outline-stroke-focus"
+      >
+        {{ t("spaces.speech.models.details") }}<ChevronDown class="size-3" />
+      </CollapsibleTrigger>
+      <CollapsibleContent class="space-y-1 pb-1 leading-relaxed">
+        <p>{{ t(`spaces.speech.models.descriptions.${model}`) }}</p>
+        <p v-if="!selected.verified">{{ t("spaces.speech.models.firstUse") }}</p>
+      </CollapsibleContent>
+    </CollapsibleRoot>
     <p v-if="selected?.unavailableReason" class="text-caption text-fg-secondary">
       {{ t(`settings.ai.localModels.unavailable.${selected.unavailableReason}`) }}
     </p>

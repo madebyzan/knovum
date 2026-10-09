@@ -38,5 +38,6 @@
   "previewText": "输入不超过 500 字的试听文本",
   "generateFromNode": "生成语音",
   "nodeProjects": "此节点的语音项目",
-  "readManuscript": "读取当前节点文稿"
+  "readManuscript": "读取当前节点文稿",
+  "edit": "编辑配音"
 }
