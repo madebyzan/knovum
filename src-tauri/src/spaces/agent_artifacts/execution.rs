@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tauri::{ipc::Channel, AppHandle};
 
-use crate::ai::{capabilities, executions};
+use crate::ai::executions;
 use crate::app_error::{AppError, AppResult};
 use crate::external_agents;
 
@@ -14,7 +14,7 @@ pub(super) async fn run(
     on_event: Channel<contracts::AgentCreationEvent>,
     workspace: &std::path::Path,
 ) -> AppResult<Vec<crate::ai::contracts::AgentArtifact>> {
-    capabilities::agent_artifacts::prepare(workspace)?;
+    crate::external_agents::artifacts::prepare(workspace)?;
     let (cancellation, _lease) =
         executions::acquire(request.session_id.clone()).map_err(AppError::from)?;
     let event_app = app.clone();
@@ -70,7 +70,7 @@ pub(super) async fn run(
             "An Agent child Action failed; inspect its Run for details",
         ));
     }
-    capabilities::agent_artifacts::collect(workspace)
+    crate::external_agents::artifacts::collect(workspace)
 }
 
 fn durable_update(

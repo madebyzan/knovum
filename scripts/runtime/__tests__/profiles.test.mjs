@@ -105,6 +105,18 @@ test("Agent Runtime requirements select their independent project and exclude in
   assert.throws(() => requirementsArguments(repository, "unknown"), /Unsupported/);
 });
 
+test("requirements exclusions follow the configured profile group", (context) => {
+  const root = mkdtempSync(join(tmpdir(), "knovum-runtime-groups-"));
+  context.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, "python"));
+  const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
+  configuration.condaSupplier.profiles.resources = "tensor";
+  writeFileSync(join(root, "python/runtime-source.json"), JSON.stringify(configuration));
+  const args = requirementsArguments(root, "resources");
+  const exclusions = args.flatMap((value, index) => (value === "--no-emit-package" ? [args[index + 1]] : []));
+  assert.deepEqual(exclusions, configuration.condaSupplier.pythonDistributions.tensor);
+});
+
 test("only supported desktop release triples can select a runtime", () => {
   assert.equal(runtimeTargetFromTriple("aarch64-apple-darwin"), "macos-arm64");
   assert.equal(runtimeTargetFromTriple("x86_64-pc-windows-msvc"), "windows-x64");

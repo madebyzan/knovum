@@ -68,7 +68,7 @@ pub(super) async fn publish(
 }
 
 fn discard_committed_workspace(workspace: &Path) {
-    if let Err(error) = crate::ai::capabilities::agent_artifacts::discard(workspace) {
+    if let Err(error) = crate::external_agents::artifacts::discard(workspace) {
         log::warn!("Could not remove committed Agent workspace: {error}");
     }
 }

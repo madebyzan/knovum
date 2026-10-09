@@ -1,7 +1,6 @@
 {
   "new": "新建语音项目",
   "language": "语言",
-  "targetSpace": "目标空间",
   "name": "项目名称",
   "scriptPlaceholder": "输入此版本的配音稿",
   "saveRevision": "保存版本",

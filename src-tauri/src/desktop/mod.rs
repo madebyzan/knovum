@@ -7,7 +7,7 @@ pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
 mod startup;
-mod tasks;
+pub(crate) mod tasks;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod tray;
 mod window_close;

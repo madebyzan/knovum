@@ -13,7 +13,7 @@ pub(crate) fn acquire(
 }
 
 pub(crate) fn cancel(job_id: &str) -> Result<(), String> {
-    searches().cancel(job_id)
+    searches().cancel(job_id).map(|_| ())
 }
 
 #[cfg(test)]

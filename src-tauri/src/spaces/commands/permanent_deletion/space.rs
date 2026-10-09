@@ -41,8 +41,8 @@ pub async fn delete<R: Runtime>(
     }
     tx.commit().await.map_err(db::sql_error)?;
     let agent_cleanup =
-        crate::ai::capabilities::agent_artifacts::space_workspace(app, &request.space_id)
-            .and_then(|workspace| crate::ai::capabilities::agent_artifacts::discard(&workspace))
+        crate::spaces::agent_artifacts::workspace::space_directory(app, &request.space_id)
+            .and_then(|workspace| crate::external_agents::artifacts::discard(&workspace))
             .map_err(|error| error.to_string());
     if let Err(error) = agent_cleanup {
         log::warn!("failed to clean up Agent workspace for deleted space: {error}");

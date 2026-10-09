@@ -1,30 +1,19 @@
 import { defineStore } from "pinia";
 import { readonly, shallowRef } from "vue";
 
-export type NodeDraftKind =
-  | "title"
-  | "portal"
-  | "outline-title"
-  | "knowledge-object"
-  | "media-summary"
-  | "media-chapter"
-  | "transcript"
-  | "credential";
-
 interface NodeDraftLease {
   id: number;
   nodeId: string;
-  kind: NodeDraftKind;
 }
 
 export const useNodeOperationDrafts = defineStore("spaces-node-operation-drafts", () => {
   const active = shallowRef<NodeDraftLease>();
   let nextId = 0;
 
-  function begin(nodeId: string, kind: NodeDraftKind) {
+  function begin(nodeId: string) {
     if (active.value) return undefined;
     const id = ++nextId;
-    active.value = { id, nodeId, kind };
+    active.value = { id, nodeId };
     return id;
   }
 

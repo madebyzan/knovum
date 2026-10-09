@@ -23,6 +23,6 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
         : undefined,
     ),
     toolbar: defineAsyncComponent(() => import("./presentation/workspace/SpaceWorkspaceTabs.vue")),
-    commands: useSpaceCommands(),
+    useCommands: useSpaceCommands,
   };
 }

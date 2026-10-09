@@ -30,7 +30,8 @@ fn rejects_missing_or_foreign_row_ownership_before_restoring() {
         }
         value["relations"] = json!([relation]);
         let error = prepare(&value.to_string(), &[], "new").unwrap_err();
-        assert_eq!(error, "Package row belongs to another Space");
+        assert_eq!(error.code, "operation_failed");
+        assert_eq!(error.message, "Package row belongs to another Space");
     }
 }
 
@@ -38,9 +39,9 @@ fn rejects_missing_or_foreign_row_ownership_before_restoring() {
 fn rejects_duplicate_identities() {
     let mut value = manifest();
     value["nodes"] = json!([{"id":"duplicate"}, {"id":"duplicate"}]);
-    assert!(prepare(&value.to_string(), &[], "new")
-        .unwrap_err()
-        .contains("Duplicate package nodes"));
+    let error = prepare(&value.to_string(), &[], "new").unwrap_err();
+    assert_eq!(error.code, "operation_failed");
+    assert_eq!(error.message, "Duplicate package nodes identity");
 }
 
 #[test]
@@ -92,14 +93,12 @@ fn restores_markdown_image_tokens_to_imported_asset_paths() {
 fn rejects_space_owned_voices_and_application_candidate_history() {
     let mut value = manifest();
     value["voiceProfiles"] = json!([{ "id":"voice", "spaceId":"original" }]);
-    assert_eq!(
-        prepare(&value.to_string(), &[], "new").unwrap_err(),
-        "Voice profiles must not have a Space owner"
-    );
+    let error = prepare(&value.to_string(), &[], "new").unwrap_err();
+    assert_eq!(error.code, "operation_failed");
+    assert_eq!(error.message, "Voice profiles must not have a Space owner");
     let mut value = manifest();
     value["voiceCandidates"] = json!([]);
-    assert_eq!(
-        prepare(&value.to_string(), &[], "new").unwrap_err(),
-        "Unsupported Space package manifest"
-    );
+    let error = prepare(&value.to_string(), &[], "new").unwrap_err();
+    assert_eq!(error.code, "operation_failed");
+    assert_eq!(error.message, "Unsupported Space package manifest");
 }

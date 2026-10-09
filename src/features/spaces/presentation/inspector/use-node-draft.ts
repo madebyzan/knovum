@@ -1,9 +1,9 @@
 import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { useNodeOperationDrafts, type NodeDraftKind } from "../../session/node-operation-drafts";
+import { useNodeOperationDrafts } from "../../session/node-operation-drafts";
 
-export function useNodeDraft(nodeId: Readonly<Ref<string>>, kind: NodeDraftKind) {
+export function useNodeDraft(nodeId: Readonly<Ref<string>>) {
   const gate = useNodeOperationGate();
   const drafts = useNodeOperationDrafts();
   const lease = shallowRef<number>();
@@ -13,7 +13,7 @@ export function useNodeDraft(nodeId: Readonly<Ref<string>>, kind: NodeDraftKind)
   function begin() {
     if (lease.value) return true;
     if (!available.value) return false;
-    lease.value = drafts.begin(nodeId.value, kind);
+    lease.value = drafts.begin(nodeId.value);
     return lease.value !== undefined;
   }
 

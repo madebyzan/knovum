@@ -100,7 +100,6 @@ async function retrySnapshot(
     target: snapshot.target,
     jobId: snapshot.jobId,
     title: snapshot.title,
-    onProgress: (progress) => updateTaskProgress(tasks, snapshot.jobId, progress),
   });
 }
 

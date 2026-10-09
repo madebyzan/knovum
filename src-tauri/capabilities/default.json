@@ -9,6 +9,7 @@
     "log:default",
     "store:default",
     "os:default",
+    "notification:allow-is-permission-granted",
     "core:window:allow-set-title",
     "core:window:allow-start-dragging",
     "core:window:allow-request-user-attention",

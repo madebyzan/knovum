@@ -1,4 +1,3 @@
-import { uniq } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
@@ -10,7 +9,13 @@ import {
   restoreRelations,
   updateRelation,
 } from "../../knowledge/relations/relation-operations";
-import { canonicalRelationEndpoints } from "../../model/relations/relation";
+import {
+  createRelation,
+  reviseRelation,
+  selectRelationsForSpace,
+  type CreateRelationInput as OwnedCreateRelationInput,
+  type RelationPatch,
+} from "../../knowledge/relations/relation-policy";
 import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
 
 export interface RelationContext {
@@ -19,36 +24,25 @@ export interface RelationContext {
   history: SpaceHistoryState;
 }
 
-interface CreateRelationInput {
-  sourceId: string;
-  targetId: string;
-  kind: SpaceRelationKind;
-  rationale?: string;
+interface CreateRelationInput extends Omit<OwnedCreateRelationInput, "spaceId"> {
   spaceId?: string;
 }
 
 export async function createSpaceRelation(context: RelationContext, input: CreateRelationInput) {
   const spaceId = input.spaceId ?? context.activeSpaceId.value;
-  if (!spaceId || input.sourceId === input.targetId) return;
-  const [sourceId, targetId] = canonicalRelationEndpoints(input.sourceId, input.targetId, input.kind);
-  const duplicate =
-    context.activeSpaceId.value === spaceId
-      ? findDuplicate(context.relations.value, sourceId, targetId, input.kind)
-      : undefined;
-  if (duplicate) return duplicate;
-  const now = Date.now();
-  const relation: SpaceRelation = {
-    id: crypto.randomUUID(),
-    spaceId,
-    sourceId,
-    targetId,
-    kind: input.kind,
-    rationale: input.rationale ?? "",
-    status: "active",
-    actorKind: "human",
-    createdAt: now,
-    updatedAt: now,
-  };
+  if (!spaceId) return;
+  const decision = createRelation(
+    {
+      spaceId,
+      sourceId: input.sourceId,
+      targetId: input.targetId,
+      kind: input.kind,
+      ...(input.rationale === undefined ? {} : { rationale: input.rationale }),
+    },
+    context.activeSpaceId.value === spaceId ? context.relations.value : [],
+  );
+  if (!decision || decision.kind === "duplicate") return decision?.relation;
+  const relation = decision.relation;
   await persistRelation(relation);
   if (context.activeSpaceId.value === spaceId) {
     addRelation(context, relation);
@@ -60,28 +54,18 @@ export async function createSpaceRelation(context: RelationContext, input: Creat
 export async function changeSpaceRelationKind(context: RelationContext, id: string, kind: SpaceRelationKind) {
   const current = context.relations.value.find((relation) => relation.id === id);
   if (!current || current.kind === kind) return;
-  const duplicate = findDuplicate(
-    context.relations.value.filter((relation) => relation.id !== id),
-    current.sourceId,
-    current.targetId,
-    kind,
-  );
-  if (duplicate) {
-    await removeSpaceRelation(context, id);
-    return duplicate;
-  }
   return updateSpaceRelation(context, id, { kind });
 }
 
-export async function updateSpaceRelation(
-  context: RelationContext,
-  id: string,
-  patch: Partial<Pick<SpaceRelation, "kind" | "rationale" | "status" | "confidence">>,
-) {
+export async function updateSpaceRelation(context: RelationContext, id: string, patch: RelationPatch) {
   const current = context.relations.value.find((relation) => relation.id === id);
   if (!current) return;
-  const next: SpaceRelation = { ...current, ...patch, updatedAt: Date.now() };
-  [next.sourceId, next.targetId] = canonicalRelationEndpoints(next.sourceId, next.targetId, next.kind);
+  const decision = reviseRelation(current, patch, context.relations.value);
+  if (decision.kind === "duplicate") {
+    await removeSpaceRelation(context, id);
+    return decision.relation;
+  }
+  const next = decision.relation;
   await updateRelation(next);
   if (context.activeSpaceId.value === current.spaceId) {
     replaceRelation(context, next);
@@ -98,45 +82,19 @@ export async function removeSpaceRelation(context: RelationContext, id: string) 
 }
 
 export async function removeSpaceRelations(context: RelationContext, ids: readonly string[]) {
-  const uniqueIds = uniq(ids);
-  const selected = uniqueIds.flatMap((id) => {
-    const relation = context.relations.value.find((candidate) => candidate.id === id);
-    return relation ? [relation] : [];
-  });
-  if (!selected.length) return;
-  if (selected.length !== uniqueIds.length) throw new Error("Selected Space Relation no longer exists");
-  const activeSpaceId = context.activeSpaceId.value;
-  if (!activeSpaceId || selected.some(({ spaceId }) => spaceId !== activeSpaceId))
-    throw new Error("Selected Space Relations must belong to the active Space");
-  await revokeRelations(uniqueIds);
-  removeRelationsFromState(context, uniqueIds);
+  const selection = selectRelationsForSpace(context.relations.value, ids, context.activeSpaceId.value);
+  if (!selection) return;
+  await revokeRelations(selection.ids);
+  removeRelationsFromState(context, selection.ids);
   recordSpaceHistory(context.history, {
     undo: async () => {
-      await restoreRelations(uniqueIds);
-      for (const relation of selected) addRelation(context, relation);
+      await restoreRelations(selection.ids);
+      for (const relation of selection.relations) addRelation(context, relation);
     },
     redo: async () => {
-      await revokeRelations(uniqueIds);
-      removeRelationsFromState(context, uniqueIds);
+      await revokeRelations(selection.ids);
+      removeRelationsFromState(context, selection.ids);
     },
-  });
-}
-
-function findDuplicate(
-  relations: readonly SpaceRelation[],
-  source: string,
-  target: string,
-  kind: SpaceRelationKind,
-) {
-  const [left, right] = canonicalRelationEndpoints(source, target, kind);
-  return relations.find((relation) => {
-    if (relation.kind !== kind || relation.status === "invalidated") return false;
-    const [existingLeft, existingRight] = canonicalRelationEndpoints(
-      relation.sourceId,
-      relation.targetId,
-      kind,
-    );
-    return existingLeft === left && existingRight === right;
   });
 }
 

@@ -24,8 +24,6 @@ pub(crate) async fn await_runtime(app: &AppHandle) -> Result<(), String> {
         .0
         .get_or_init(|| async {
             crate::backup::ready(app).await?;
-            crate::external_agents::task::discard_interrupted(app)
-                .map_err(|error| error.to_string())?;
             usage::initialize(app).await
         })
         .await

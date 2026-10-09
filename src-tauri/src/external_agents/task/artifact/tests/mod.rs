@@ -1,7 +1,7 @@
 use super::*;
 fn workspace() -> super::super::TaskWorkspace {
     let root = std::env::temp_dir().join(format!("knovum-task-result-{}", uuid::Uuid::new_v4()));
-    agent_artifacts::prepare(&root).unwrap();
+    artifacts::prepare(&root).unwrap();
     super::super::TaskWorkspace(root)
 }
 #[test]

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { provide, shallowRef } from "vue";
-import { RouterView } from "vue-router";
+import { provide, shallowRef, toRef } from "vue";
+import { RouterView, useRoute } from "vue-router";
 
 import { overlayScopeVisibleKey } from "../shared/contracts/overlay-scope-visibility";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
@@ -11,9 +11,11 @@ import WorkspaceToolbar from "./components/WorkspaceToolbar.vue";
 import FeatureErrorBoundary from "./FeatureErrorBoundary.vue";
 import { useShellController } from "./use-shell-controller";
 
-const props = defineProps<{ workspace: WorkspaceDefinition }>();
+const props = defineProps<{ workspace: WorkspaceDefinition; workspaceActive: boolean }>();
+const emit = defineEmits<{ openSettings: [] }>();
+const route = useRoute();
+const workspaceActive = toRef(props, "workspaceActive");
 const {
-  route,
   commandOpen,
   shortcutsOpen,
   sidebarPinned,
@@ -23,7 +25,6 @@ const {
   rightSidebarWidth,
   panelMotion,
   cancelPanelMotion,
-  workspaceActive,
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
@@ -35,7 +36,7 @@ const {
   armSidebarPreview,
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
-} = useShellController(props.workspace);
+} = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
 provide(overlayScopeVisibleKey, workspaceActive);
 const rightSidebarLayoutWidth = shallowRef(0);
 
@@ -51,14 +52,14 @@ function updatePanelLayout(sizes: number[]) {
   >
     <RouterView v-slot="{ Component }">
       <FeatureErrorBoundary :reset-key="route.fullPath">
-        <component :is="Component" key="settings" />
+        <component :is="Component" />
       </FeatureErrorBoundary>
     </RouterView>
   </div>
-  <!-- Keep the mounted canvas sized while Settings is open; opacity hides explicit-visible descendants. -->
+  <!-- Preserve workspace geometry while an application destination covers it. -->
   <div
-    data-testid="spaces-workspace"
-    class="spaces-workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
+    data-testid="workspace"
+    class="workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
     :class="{ 'opacity-0': !workspaceActive, 'is-panel-motion': panelMotion }"
     :aria-hidden="!workspaceActive"
     :inert="!workspaceActive"

@@ -56,13 +56,12 @@ pub async fn inspect_speech_audio(
     job_id: String,
     on_progress: Channel<u64>,
 ) -> Result<SpeechSignalReport, AppError> {
-    let lease = cancellation::acquire(&job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&job_id)?;
     let (source, sha256): (String, String) = sqlx::query_as("SELECT r.output_asset_path,r.output_sha256 FROM spaces_speech_project_revisions r JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.id=? AND r.id=? AND r.output_asset_path IS NOT NULL")
         .bind(project_id).bind(revision_id).fetch_optional(db::pool(&app).await?).await.map_err(db::sql_error)?
         .ok_or("Generate a complete project output before checking its audio")?;
     let source = assets::authorize_spaces_asset(&app, Path::new(&source))?;
     let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
-    let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         if hash_file(&source)? != sha256 {
             return Err("Speech output changed before signal inspection".into());

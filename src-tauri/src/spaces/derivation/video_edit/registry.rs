@@ -14,5 +14,5 @@ pub fn acquire(id: String) -> Result<(CancellationToken, JobLease<CancellationTo
 }
 
 pub fn cancel(id: &str) -> Result<(), String> {
-    registry().cancel(id)
+    registry().cancel(id).map(|_| ())
 }

@@ -6,10 +6,12 @@ import os
 import platform
 import wave
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from threading import Event
 from typing import Any
 
+from knovum_inference.contracts.generated.control import RuntimeDeviceProfile
 from knovum_inference.contracts.generated.transcription import (
     AsrEngine,
     SpeechTranscribeParams,
@@ -20,17 +22,33 @@ from knovum_inference.speech.request import attempt_directory, check_deadline, m
 
 Progress = Callable[[str, int, str | None, dict[str, Any] | None], None]
 MAX_TRANSCRIPT_BYTES = 64 * 1024 * 1024
+_ASR_MODEL_VARIANTS = frozenset({"small", "tiny", "large-v3"})
+
+
+@dataclass(frozen=True, slots=True)
+class TranscriptionExecutionProfile:
+    engine: AsrEngine
+    device: str
+    compute_type: str
+    execution_profile_id: str
 
 
 class TranscriptionEngine:
-    def __init__(self, model_directory: Path, work_directory: Path, cpu_threads: int) -> None:
+    def __init__(
+        self,
+        model_directory: Path,
+        work_directory: Path,
+        device_profile: RuntimeDeviceProfile,
+    ) -> None:
         self._model_directory = model_directory
         self._work_directory = work_directory
-        self._cpu_threads = cpu_threads
+        self._cpu_threads = device_profile.cpu_threads
+        self._profile = _execution_profile(device_profile)
         self._engine: tuple[AsrEngine, Any] | None = None
         self._vad: Any = None
 
     def transcribe(self, params: SpeechTranscribeParams, progress: Progress, cancelled: Event) -> dict[str, Any]:
+        self._validate_profile(params)
         audio_path = verify_audio(params.audio_ref)
         check_deadline(params.deadline_ms)
         progress("loading", 0, None, None)
@@ -38,9 +56,10 @@ class TranscriptionEngine:
             raise invalid_params("ASR beam size must be positive")
         if params.profile.language_policy.value == "fixed" and not params.profile.language:
             raise invalid_params("Fixed language policy requires a language")
-        if params.profile.engine is AsrEngine.faster_whisper:
+        engine = self._profile.engine
+        if engine is AsrEngine.faster_whisper:
             artifact = self._faster(audio_path, params, progress, cancelled)
-        elif params.profile.engine is AsrEngine.mlx_whisper:
+        elif engine is AsrEngine.mlx_whisper:
             artifact = self._mlx(audio_path, params, progress, cancelled)
         else:
             raise server_error("unsupported_device", "ASR engine is not supported")
@@ -49,6 +68,15 @@ class TranscriptionEngine:
             raise server_error("cancelled", "Transcription was cancelled")
         progress("publishing", 100, artifact["language"], None)
         return self._publish(params, artifact)
+
+    def _validate_profile(self, params: SpeechTranscribeParams) -> None:
+        if (
+            params.model_spec_id != self._profile.execution_profile_id
+            or params.profile.engine is not self._profile.engine
+            or params.profile.device != self._profile.device
+            or params.profile.compute_type != self._profile.compute_type
+        ):
+            raise server_error("runtime_mismatch", "ASR request differs from its frozen execution profile")
 
     def _publish(self, params: SpeechTranscribeParams, artifact: dict[str, Any]) -> dict[str, Any]:
         validated = SpeechTranscriptArtifact.model_validate(artifact).model_dump(by_alias=True)
@@ -254,3 +282,18 @@ def _artifact(language: str, duration: float, speech_duration: float, segments: 
 
 def _overlaps_speech(segment: dict[str, Any], intervals: list[tuple[int, int]]) -> bool:
     return any(segment["startMs"] < end and segment["endMs"] > start for start, end in intervals)
+
+
+def _execution_profile(profile: RuntimeDeviceProfile) -> TranscriptionExecutionProfile:
+    profile_id = profile.execution_profile_id
+    if profile.device == "mps" and profile_id in {f"mlx-whisper-{model}-mps-v1" for model in _ASR_MODEL_VARIANTS}:
+        return TranscriptionExecutionProfile(AsrEngine.mlx_whisper, "mps", "float16", profile_id)
+    if profile.device == "cpu" and profile_id in {
+        f"faster-whisper-{model}-cpu-int8-v1" for model in _ASR_MODEL_VARIANTS
+    }:
+        return TranscriptionExecutionProfile(AsrEngine.faster_whisper, "cpu", "int8", profile_id)
+    if profile.device == "cuda" and profile_id in {
+        f"faster-whisper-{model}-cuda-f16-v1" for model in _ASR_MODEL_VARIANTS
+    }:
+        return TranscriptionExecutionProfile(AsrEngine.faster_whisper, "cuda", "float16", profile_id)
+    raise server_error("runtime_mismatch", "ASR execution profile is unsupported")

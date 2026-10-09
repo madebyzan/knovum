@@ -34,6 +34,7 @@ pub(crate) async fn ready(app: &AppHandle) -> Result<(), String> {
 async fn recover(app: &AppHandle) -> Result<(), String> {
     crate::backup::ready(app).await?;
     crate::ai::await_runtime(app).await?;
+    crate::extensions::recovery::ready(app).await?;
     super::derivation::image_operations::discard_interrupted(app)?;
     let pool = super::db::pool(app).await?;
     super::knowledge::retrieval::invalidation_outbox::drain(app, pool).await?;
@@ -46,6 +47,6 @@ async fn recover(app: &AppHandle) -> Result<(), String> {
     super::conversations::tool_operations::recover(pool).await?;
     let retained: Vec<String> = sqlx::query_scalar("SELECT json_extract(input_snapshot,'$.extensions.id') FROM spaces_runs WHERE completed_at IS NULL AND json_extract(input_snapshot,'$.extensions.id') IS NOT NULL")
         .fetch_all(pool).await.map_err(super::db::sql_error)?;
-    crate::extensions::recover(app, &retained).await?;
+    crate::extensions::recovery::reconcile_snapshots(app, &retained).await?;
     Ok(())
 }

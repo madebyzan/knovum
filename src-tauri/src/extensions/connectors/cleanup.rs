@@ -13,7 +13,9 @@ pub(crate) async fn collect(app: &AppHandle) -> Result<(), String> {
     for account in super::accounts::list(&pool)
         .await?
         .into_iter()
-        .filter(|account| account.cleanup_pending || !retained.contains(&account.connector_id))
+        .filter(|account| {
+            account.cleanup_pending || !account.enabled || !retained.contains(&account.connector_id)
+        })
     {
         let cleanup = async {
             super::commands::disconnect_connector_account(app.clone(), account.id.clone()).await?;

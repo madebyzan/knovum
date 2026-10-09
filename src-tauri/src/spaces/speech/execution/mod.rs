@@ -31,7 +31,7 @@ pub async fn preview_voice(
     on_progress: Channel<SpeechGenerationProgress>,
     on_audio_chunk: Channel<SpeechPreviewAudioChunk>,
 ) -> Result<SpeechAudioOutput, AppError> {
-    let lease = cancellation::acquire(&request.job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
     let pool = db::pool(&app).await?;
     let voice = match &request.source {
         VoicePreviewSource::Revision { revision_id } => load_voice(pool, revision_id).await?,
@@ -83,11 +83,11 @@ pub async fn preview_voice(
         &voice.model_spec_id,
         &request.job_id,
         "Preparing voice preview",
-        lease.token(),
+        &cancellation,
         &mut |resources| send(&on_progress, "preparing", 0, 1, Some(resources)),
     )
     .await
-    .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
+    .map_err(|error| command_error(error, cancellation.is_cancelled()))?;
     let params = synthesis_params(
         &app,
         &voice,
@@ -129,14 +129,14 @@ pub async fn preview_voice(
             &app,
             params,
             speech::SynthesisExecution {
-                cancellation: lease.token(),
+                cancellation: &cancellation,
                 priority: Priority::Interactive,
                 on_chunk: Some(&mut send_chunk),
             },
         )
         .await
-        .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
-    if lease.token().is_cancelled() {
+        .map_err(|error| command_error(error, cancellation.is_cancelled()))?;
+    if cancellation.is_cancelled() {
         return Err(AppError::cancelled("Speech preview cancelled"));
     }
     if audio.sample_rate != parse_config(&voice.synthesis_config)?.sample_rate {
@@ -145,7 +145,7 @@ pub async fn preview_voice(
         );
     }
     let output = publication::write_preview(&app, &request.job_id, audio)?;
-    if lease.token().is_cancelled() {
+    if cancellation.is_cancelled() {
         publication::discard_preview(&app, &output.path)?;
         return Err(AppError::cancelled("Speech preview cancelled"));
     }
@@ -159,21 +159,21 @@ pub async fn generate_speech_project(
     request: GenerateSpeechProjectRequest,
 ) -> Result<RunObservation, AppError> {
     let pool = db::pool(&app).await?;
-    let lease = cancellation::acquire(&request.request_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&request.request_id)?;
     let digests = super::runtime_identity::resolve(
         &app,
         pool,
         &request.project_id,
         &request.request_id,
-        lease.token(),
+        &cancellation,
     )
     .await
-    .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
-    if lease.token().is_cancelled() {
+    .map_err(|error| command_error(error, cancellation.is_cancelled()))?;
+    if cancellation.is_cancelled() {
         return Err(AppError::cancelled("Speech preparation cancelled"));
     }
     let run = run_start::start(pool, request, &digests).await?;
-    if lease.token().is_cancelled() {
+    if cancellation.is_cancelled() {
         cancellation::cancel_project_run(pool, &run.id).await?;
     }
     Ok(run)

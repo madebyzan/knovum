@@ -1,4 +1,5 @@
 import { queryClient } from "../../../foundation/query/query-client";
+import type { KnowledgePeekTarget } from "./model/knowledge-peek-target";
 import type { SpaceProvenanceTargetKind } from "./model/provenance";
 import {
   createProvenance,
@@ -13,7 +14,15 @@ interface ProvenanceTarget {
   targetId: string;
 }
 
-export async function attachProvenance(provenance: CreateProvenanceInput) {
+export async function attachProvenanceFromPeek(target: ProvenanceTarget, peek: KnowledgePeekTarget) {
+  const provenance: CreateProvenanceInput = {
+    id: crypto.randomUUID(),
+    ...target,
+    sourceNodeId: peek.nodeId,
+    locator: peek.locator,
+    sourceRevision: peek.locator.sourceRevision,
+    quote: peek.locator.quote?.exact ?? peek.text ?? "",
+  };
   await createProvenance(provenance);
   await refreshProvenance(provenance);
 }

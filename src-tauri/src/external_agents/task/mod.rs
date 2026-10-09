@@ -4,9 +4,8 @@ use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::{
-    capabilities::agent_artifacts, contracts::ExternalAgentKind, tasks::completion::TaskInput,
-};
+use super::artifacts as agent_artifacts;
+use crate::ai::{contracts::ExternalAgentKind, tasks::completion::TaskInput};
 use crate::app_error::{AppError, AppResult};
 
 const TEXT_OUTPUT_FILE: &str = "response.txt";
@@ -89,6 +88,7 @@ async fn delegate(
     limit: u64,
     cancellation: CancellationToken,
 ) -> AppResult<Vec<u8>> {
+    super::ready(app).await?;
     let workspace = TaskWorkspace(task_directory(app)?.join(uuid::Uuid::new_v4().to_string()));
     agent_artifacts::prepare(&workspace.0)?;
     let revisions = sources

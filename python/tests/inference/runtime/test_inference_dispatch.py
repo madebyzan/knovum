@@ -4,10 +4,11 @@ import asyncio
 import threading
 import time
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
-from knovum_inference.contracts.generated.control import RuntimeCapability
+from knovum_inference.contracts.generated.control import RuntimeCapability, RuntimeDeviceProfile
 from knovum_inference.errors import RpcError
 from knovum_inference.runtime.session import Session
 from knovum_inference.runtime.worker import Worker
@@ -34,6 +35,12 @@ def embedding_request() -> Request:
     )
 
 
+def device_profile() -> RuntimeDeviceProfile:
+    return RuntimeDeviceProfile.model_validate(
+        {"device": "cpu", "executionProfileId": "cpu-f32-threads4-v1", "cpuThreads": 4}
+    )
+
+
 @pytest.mark.parametrize("outcome", ["success", "failure", "invalid_output", "cancelled", "deadline_exceeded"])
 def test_inference_always_settles_its_active_request(
     outcome: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -51,7 +58,9 @@ def test_inference_always_settles_its_active_request(
                     raise MemoryError("compiled dependency allocation failed")
                 return [[float("nan") if outcome == "invalid_output" else 0.25]], 1
 
-        server._session = Session("session", RuntimeCapability.embedding, "embedding-spec", Engine(), tmp_path)
+        server._session = Session(
+            "session", RuntimeCapability.embedding, "embedding-spec", device_profile(), cast(Any, Engine()), tmp_path
+        )
         request = embedding_request()
         task = asyncio.create_task(server._dispatch(request))
         try:
@@ -97,7 +106,9 @@ def test_inference_always_settles_its_active_request(
 def test_invalid_embedding_input_never_reserves_the_worker(tmp_path: Path) -> None:
     async def scenario() -> None:
         server = Worker()
-        server._session = Session("session", RuntimeCapability.embedding, "embedding-spec", object(), tmp_path)
+        server._session = Session(
+            "session", RuntimeCapability.embedding, "embedding-spec", device_profile(), cast(Any, object()), tmp_path
+        )
         request = embedding_request()
         request.params["texts"] = [""]
         with pytest.raises(RpcError) as captured:

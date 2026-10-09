@@ -31,6 +31,7 @@ from knovum_inference.transport.protocol import MAX_MESSAGE_BYTES, ProtocolWrite
 from knovum_inference.transport.validation import report_request_error, validate_params, validate_response
 
 U64_MAX = (1 << 64) - 1
+MAX_HANDLER_TASKS = 64
 
 
 class Worker:
@@ -67,10 +68,25 @@ class Worker:
                 except RpcError as error:
                     await self._writer.error(None, error)
                     continue
+                if len(self._tasks) >= MAX_HANDLER_TASKS:
+                    if request.request_id is None and request.method in {"runtime.cancel", "runtime.ackChunk"}:
+                        await self._handle(request)
+                    elif request.request_id is not None:
+                        await self._writer.error(
+                            request.request_id,
+                            server_error("resource_exhausted", "Worker request limit reached"),
+                        )
+                    else:
+                        report_request_failure(
+                            request,
+                            server_error("resource_exhausted", "Worker notification limit reached"),
+                        )
+                    continue
                 task = asyncio.create_task(self._handle(request))
                 self._tasks.add(task)
                 task.add_done_callback(self._tasks.discard)
         finally:
+            input_stream.close()
             await self._settle_requests()
 
     async def _settle_requests(self) -> None:
@@ -148,7 +164,7 @@ class Worker:
                 "sessionId": params.session_id,
                 "capability": params.capability.value,
                 "capabilitySpecId": params.capability_spec_id,
-                "deviceProfile": params.device_profile.model_dump(by_alias=True),
+                "deviceProfile": session.device_profile.model_dump(by_alias=True),
                 "capabilities": [capability_method(params.capability)],
                 "limits": {
                     "maxMessageBytes": MAX_MESSAGE_BYTES,

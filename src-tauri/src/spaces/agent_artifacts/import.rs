@@ -1,8 +1,6 @@
 use crate::app_error::AppError;
 use tauri::AppHandle;
 
-use crate::ai::capabilities;
-
 #[tauri::command]
 pub async fn stage_generated_artifact_import(
     app: AppHandle,
@@ -14,9 +12,10 @@ pub async fn stage_generated_artifact_import(
     if completed.is_none() {
         return Err(("Agent artifact session is not ready for import".to_owned()).into());
     }
-    let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &session_id)
-        .map_err(|error| error.to_string())?;
-    let artifact = capabilities::agent_artifacts::resolve(&workspace, &relative_path)
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)
+            .map_err(|error| error.to_string())?;
+    let artifact = crate::external_agents::artifacts::resolve(&workspace, &relative_path)
         .map_err(|error| error.to_string())?;
     Ok((crate::blocking::run(move || {
         crate::spaces::assets::import::prepare::prepare_owned_asset(

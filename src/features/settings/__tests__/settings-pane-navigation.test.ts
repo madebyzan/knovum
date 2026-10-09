@@ -8,6 +8,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import { defaultCreationLibrary } from "../../../foundation/ai/schema/creation-library";
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import { i18n } from "../../../foundation/i18n/i18n";
+import SettingsSidebar from "../components/SettingsSidebar.vue";
 import SettingsView from "../SettingsView.vue";
 
 vi.mock("../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore: () => aiStore }));
@@ -45,6 +46,7 @@ beforeEach(() => {
 it.each(["loading", "ready", "failed"])(
   "keeps other settings reachable after leaving models in the %s state",
   async (state) => {
+    const returnToWorkspace = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     ready.value = state === "ready";
     if (state === "failed") loadError.value = new Error("Unable to load model settings");
     const router = createRouter({
@@ -57,17 +59,20 @@ it.each(["loading", "ready", "failed"])(
             loadGenerationActions: async () => [],
             extensionsComponent: extensions,
             voiceLibraryComponent: extensions,
+            returnToWorkspace,
           },
         },
       ],
     });
     await router.push("/settings?pane=appearance");
+    const warnings = vi.fn<(message: string) => void>();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = mount(defineComponent({ template: "<router-view />" }), {
       global: {
+        config: { warnHandler: warnings },
         plugins: [createPinia(), i18n, router, [VueQueryPlugin, { queryClient }]],
         stubs: {
-          Transition: { template: "<div><slot /></div>" },
+          Transition: false,
           UiScrollArea: { template: "<div><slot /></div>" },
           AiConnectionsSettings: { template: '<section data-testid="model-connections" />' },
           AiRoutingSettings: true,
@@ -108,5 +113,8 @@ it.each(["loading", "ready", "failed"])(
       }
     }
     /* oxlint-enable no-await-in-loop */
+    wrapper.getComponent(SettingsSidebar).vm.$emit("back");
+    expect(returnToWorkspace).toHaveBeenCalledExactlyOnceWith();
+    expect(warnings.mock.calls.filter(([message]) => message.includes("non-element root node"))).toEqual([]);
   },
 );

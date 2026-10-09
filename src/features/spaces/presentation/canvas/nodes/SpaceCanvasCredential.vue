@@ -32,10 +32,7 @@ const {
   toggleReveal,
   save,
 } = useCredentialEditor(props);
-const nodeDraft = useNodeDraft(
-  computed(() => props.id),
-  "credential",
-);
+const nodeDraft = useNodeDraft(computed(() => props.id));
 watch(open, (value) => {
   if (!value) nodeDraft.end();
 });

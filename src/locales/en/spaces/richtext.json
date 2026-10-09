@@ -29,20 +29,6 @@
       "objective": "Objective",
       "persuasive": "Persuasive"
     },
-    "languages": {
-      "zhCn": "Simplified Chinese",
-      "zhTw": "Traditional Chinese",
-      "en": "English",
-      "ja": "Japanese",
-      "ko": "Korean",
-      "fr": "French",
-      "de": "German",
-      "es": "Spanish",
-      "pt": "Portuguese",
-      "it": "Italian",
-      "ru": "Russian",
-      "ar": "Arabic"
-    },
     "needContext": "Place cursor after existing text or select text as context."
   },
   "find": {

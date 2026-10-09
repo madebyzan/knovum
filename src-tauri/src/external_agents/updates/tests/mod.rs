@@ -8,7 +8,7 @@ fn linked_file(path: &Path) -> ToolCallContent {
 }
 
 fn collected_names(workspace: &Path) -> Vec<String> {
-    crate::ai::capabilities::agent_artifacts::collect(workspace)
+    crate::external_agents::artifacts::collect(workspace)
         .unwrap()
         .into_iter()
         .map(|artifact| artifact.name)
@@ -75,7 +75,7 @@ async fn repeated_media_chunks_are_distinct_occurrences_within_one_message() {
         .await
         .unwrap();
     }
-    let artifacts = crate::ai::capabilities::agent_artifacts::collect(&workspace).unwrap();
+    let artifacts = crate::external_agents::artifacts::collect(&workspace).unwrap();
     assert_eq!(artifacts.len(), 2);
     assert!(artifacts
         .iter()
@@ -148,13 +148,12 @@ async fn tool_outputs_replace_the_same_slot_and_distinct_slots_remain_distinct()
     persist_tool_content(&workspace, "tool-1", &changed)
         .await
         .unwrap();
-    let artifacts = crate::ai::capabilities::agent_artifacts::collect(&workspace).unwrap();
+    let artifacts = crate::external_agents::artifacts::collect(&workspace).unwrap();
     assert_eq!(artifacts.len(), 2);
     let mut values = Vec::new();
     for artifact in artifacts {
         let path =
-            crate::ai::capabilities::agent_artifacts::resolve_collected(&workspace, &artifact)
-                .unwrap();
+            crate::external_agents::artifacts::resolve_collected(&workspace, &artifact).unwrap();
         values.push(tokio::fs::read(path).await.unwrap());
     }
     assert!(values.contains(&b"first".to_vec()));

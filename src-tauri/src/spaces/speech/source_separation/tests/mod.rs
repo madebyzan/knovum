@@ -1,4 +1,6 @@
-use std::{fs, io::Write, path::Path};
+mod wav_fixture;
+
+use std::{fs, path::Path};
 
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
@@ -73,11 +75,11 @@ fn wav_metadata_accepts_exact_limit_and_rejects_one_extra_frame() {
     let root = std::env::temp_dir().join(format!("knovum-separation-{}", uuid::Uuid::new_v4()));
     fs::create_dir(&root).unwrap();
     let exact = root.join("exact.wav");
-    write_sparse_wav(&exact, MAX_SAMPLE_COUNT);
+    wav_fixture::write_sparse_wav(&exact, MAX_SAMPLE_COUNT);
     assert_eq!(pcm_wav_metadata(&exact).unwrap().1, MAX_SAMPLE_COUNT);
 
     let over = root.join("over.wav");
-    write_sparse_wav(&over, MAX_SAMPLE_COUNT + 1);
+    wav_fixture::write_sparse_wav(&over, MAX_SAMPLE_COUNT + 1);
     assert!(pcm_wav_metadata(&over)
         .unwrap_err()
         .contains("no more than ten minutes"));
@@ -222,7 +224,13 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
     .await
     .unwrap();
     let candidate = load_candidate(&pool, &run_id).await.unwrap();
-    assert!(candidate_matches_claim(&claim, &source(), &candidate));
+    let space_id = claim.scope.require_space_id().unwrap().to_owned();
+    assert!(candidate_matches_claim(
+        &claim,
+        &space_id,
+        &source(),
+        &candidate
+    ));
     assert_eq!(candidate.vocals.asset_path, vocals.to_string_lossy());
     assert_eq!(
         candidate.vocals.source_revision,
@@ -254,6 +262,7 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
         .is_empty());
     assert!(!candidate_matches_claim(
         &claim,
+        &space_id,
         &changed_source,
         &candidate
     ));
@@ -283,6 +292,7 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
     changed_claim.configuration = json!({"source":source(), "model":"spleeter2StemsFull"});
     assert!(!candidate_matches_claim(
         &changed_claim,
+        &space_id,
         &source(),
         &candidate
     ));
@@ -294,36 +304,17 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
             .into();
     assert!(candidate_matches_claim(
         &changed_claim,
+        &space_id,
         &source(),
         &full_candidate
     ));
     changed_claim.configuration = json!({"source":source()});
     assert!(!candidate_matches_claim(
         &changed_claim,
+        &space_id,
         &source(),
         &full_candidate
     ));
-}
-
-fn write_sparse_wav(path: &Path, sample_count: u64) {
-    let data_bytes = sample_count * 4;
-    let mut header = [0_u8; 44];
-    header[0..4].copy_from_slice(b"RIFF");
-    header[4..8].copy_from_slice(&u32::try_from(data_bytes + 36).unwrap().to_le_bytes());
-    header[8..12].copy_from_slice(b"WAVE");
-    header[12..16].copy_from_slice(b"fmt ");
-    header[16..20].copy_from_slice(&16_u32.to_le_bytes());
-    header[20..22].copy_from_slice(&1_u16.to_le_bytes());
-    header[22..24].copy_from_slice(&2_u16.to_le_bytes());
-    header[24..28].copy_from_slice(&SAMPLE_RATE.to_le_bytes());
-    header[28..32].copy_from_slice(&(SAMPLE_RATE * 4).to_le_bytes());
-    header[32..34].copy_from_slice(&4_u16.to_le_bytes());
-    header[34..36].copy_from_slice(&16_u16.to_le_bytes());
-    header[36..40].copy_from_slice(b"data");
-    header[40..44].copy_from_slice(&u32::try_from(data_bytes).unwrap().to_le_bytes());
-    let mut file = fs::File::create(path).unwrap();
-    file.write_all(&header).unwrap();
-    file.set_len(data_bytes + 44).unwrap();
 }
 
 #[tokio::test]

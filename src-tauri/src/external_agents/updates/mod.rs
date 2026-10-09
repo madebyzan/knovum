@@ -76,7 +76,7 @@ pub async fn receive(
                         .map(|message_id| message_id.0.as_ref()),
                 );
                 if let Some(output) = persist_content(workspace, content, Some(&identity)).await? {
-                    crate::ai::capabilities::agent_artifacts::record_message(
+                    crate::external_agents::artifacts::record_message(
                         workspace,
                         &identity,
                         &output.path,

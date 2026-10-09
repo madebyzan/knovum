@@ -1,4 +1,3 @@
-mod observers;
 mod presentation;
 
 use crate::{app_error::AppError, desktop_task::DesktopTask};
@@ -18,7 +17,6 @@ pub(crate) struct TaskHub {
 
 pub(crate) fn install(app: &AppHandle) {
     app.manage(TaskHub::default());
-    observers::install(app);
 }
 
 pub(crate) fn set_locale<R: Runtime>(app: &AppHandle<R>, locale: &str) {

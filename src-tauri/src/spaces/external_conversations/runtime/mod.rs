@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tauri::AppHandle;
 
 use super::{repository, StartExternalConversationRequest};
-use crate::{ai::capabilities, spaces::db};
+use crate::spaces::db;
 
 pub(super) mod lifecycle;
 
@@ -23,9 +23,10 @@ pub async fn start(
             .map_err(db::json_error)?;
     let id = uuid::Uuid::new_v4().to_string();
     let run_id = uuid::Uuid::new_v4().to_string();
-    let workspace = capabilities::agent_artifacts::workspace(&app, &request.space_id, &id)
-        .map_err(|error| error.to_string())?;
-    capabilities::agent_artifacts::prepare(&workspace).map_err(|error| error.to_string())?;
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &request.space_id, &id)
+            .map_err(|error| error.to_string())?;
+    crate::external_agents::artifacts::prepare(&workspace).map_err(|error| error.to_string())?;
     if let Err(error) = lifecycle::create::create_records(
         &app,
         &request,
@@ -37,7 +38,8 @@ pub async fn start(
     )
     .await
     {
-        capabilities::agent_artifacts::discard(&workspace).map_err(|reason| reason.to_string())?;
+        crate::external_agents::artifacts::discard(&workspace)
+            .map_err(|reason| reason.to_string())?;
         return Err(error);
     }
     let binding = match crate::spaces::mcp::agent_server::start(
@@ -52,7 +54,7 @@ pub async fn start(
         Ok(binding) => Arc::new(binding),
         Err(error) => {
             mark_disconnected(db::pool(&app).await?, &id, &run_id, &error).await?;
-            capabilities::agent_artifacts::discard(&workspace)
+            crate::external_agents::artifacts::discard(&workspace)
                 .map_err(|reason| reason.to_string())?;
             return Err(error);
         }
@@ -62,7 +64,7 @@ pub async fn start(
         Ok(callback) => callback,
         Err(error) => {
             mark_disconnected(db::pool(&app).await?, &id, &run_id, &error).await?;
-            capabilities::agent_artifacts::discard(&workspace)
+            crate::external_agents::artifacts::discard(&workspace)
                 .map_err(|reason| reason.to_string())?;
             return Err(error);
         }
@@ -93,7 +95,7 @@ pub async fn start(
             {
                 let _ = crate::external_agents::conversation::close(&id).await;
                 mark_disconnected(db::pool(&app).await?, &id, &run_id, &error).await?;
-                capabilities::agent_artifacts::discard(&workspace)
+                crate::external_agents::artifacts::discard(&workspace)
                     .map_err(|reason| reason.to_string())?;
                 return Err(error);
             }
@@ -109,7 +111,7 @@ pub async fn start(
         Err(error) => {
             super::updates::release(&id);
             mark_disconnected(db::pool(&app).await?, &id, &run_id, &error).await?;
-            capabilities::agent_artifacts::discard(&workspace)
+            crate::external_agents::artifacts::discard(&workspace)
                 .map_err(|reason| reason.to_string())?;
             Err(error)
         }
@@ -148,10 +150,13 @@ pub async fn send_prepared(
                 .fetch_one(pool)
                 .await
                 .map_err(db::sql_error)?;
-                let workspace =
-                    capabilities::agent_artifacts::workspace(&app, &space_id, conversation_id)
-                        .map_err(|error| error.to_string())?;
-                if capabilities::agent_artifacts::collect(&workspace)
+                let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+                    &app,
+                    &space_id,
+                    conversation_id,
+                )
+                .map_err(|error| error.to_string())?;
+                if crate::external_agents::artifacts::collect(&workspace)
                     .map_err(|error| error.to_string())?
                     .is_empty()
                 {

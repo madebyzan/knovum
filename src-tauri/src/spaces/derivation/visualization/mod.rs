@@ -53,13 +53,13 @@ pub(super) async fn generate_for_action(
     app: AppHandle,
     request: GenerateVisualizationRequest,
     stages: Channel<String>,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VisualizationOutput, AppError> {
     let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::ImageGeneration,
     )?;
-    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
@@ -73,10 +73,10 @@ pub(super) async fn generate_for_action(
         .await;
         return Err(super::failure::with_settlement(error, settlement));
     }
-    let generated_visualization = execute(&app, &request, &target, &stages, &cancellation).await;
+    let generated_visualization = execute(&app, &request, &target, &stages, cancellation).await;
     match generated_visualization {
         Ok(image) => {
-            Ok(persistence::complete(&app, &request, image, &authority, &cancellation).await?)
+            Ok(persistence::complete(&app, &request, image, &authority, cancellation).await?)
         }
         Err(error) => {
             let settlement = persistence::fail(&app, &request.id, &error.message).await;

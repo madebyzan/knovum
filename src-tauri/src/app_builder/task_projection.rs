@@ -6,7 +6,9 @@ pub(super) fn install(app: &AppHandle) {
         let mut changes = crate::local_resources::preparation::requests::subscribe();
         loop {
             let projection = crate::local_resources::preparation::requests::desktop_tasks();
-            match projection.and_then(|tasks| super::publish(&resources_app, "resources", tasks)) {
+            match projection.and_then(|tasks| {
+                crate::desktop::tasks::publish(&resources_app, "resources", tasks)
+            }) {
                 Ok(()) => {}
                 Err(error) => log::error!("resource desktop task projection failed: {error}"),
             }
@@ -27,7 +29,7 @@ pub(super) fn install(app: &AppHandle) {
                 let pool = crate::spaces::db::pool(&app).await?;
                 let mut tasks = crate::spaces::runs::desktop_tasks(pool).await?;
                 tasks.extend(crate::spaces::assets::enrichment::jobs::desktop_tasks(pool).await?);
-                super::publish(&app, "spaces", tasks)
+                crate::desktop::tasks::publish(&app, "spaces", tasks)
             }
             .await;
             if let Err(error) = projection {

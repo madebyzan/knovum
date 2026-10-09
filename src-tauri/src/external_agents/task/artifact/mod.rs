@@ -2,12 +2,12 @@ use std::{fs, io::Read, path::Path};
 
 use sha2::{Digest, Sha256};
 
-use crate::ai::capabilities::agent_artifacts;
 use crate::app_error::{AppError, AppResult};
+use crate::external_agents::artifacts;
 
 pub(super) fn read(root: &Path, name: &str, limit: u64) -> AppResult<Vec<u8>> {
     let invalid = |message| AppError::new("invalid_response", message);
-    let path = agent_artifacts::resolve(root, name).map_err(|e| {
+    let path = artifacts::resolve(root, name).map_err(|e| {
         invalid(format!(
             "Desktop Agent did not submit a valid task result: {e}"
         ))

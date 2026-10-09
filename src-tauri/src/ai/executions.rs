@@ -16,5 +16,5 @@ pub fn acquire(
 }
 
 pub fn cancel(execution_id: &str) -> Result<(), String> {
-    registry().cancel(execution_id)
+    registry().cancel(execution_id).map(|_| ())
 }

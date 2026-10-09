@@ -4,11 +4,12 @@ import asyncio
 import json
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
 from knovum_inference import PROTOCOL_VERSION
+from knovum_inference.contracts.generated.control import RuntimeInitializeParams
 from knovum_inference.errors import RpcError
 from knovum_inference.runtime import session, worker
 from knovum_inference.runtime.session import Session
@@ -53,7 +54,12 @@ def blocked_preparation(monkeypatch: pytest.MonkeyPatch) -> tuple[threading.Even
         entered.set()
         assert release.wait(5), "test did not release initialization"
         return Session(
-            params.session_id, params.capability, params.capability_spec_id, object(), Path(params.work_directory)
+            params.session_id,
+            params.capability,
+            params.capability_spec_id,
+            params.device_profile,
+            cast(Any, object()),
+            Path(params.work_directory),
         )
 
     monkeypatch.setattr(worker, "prepare_session", prepare)
@@ -105,6 +111,9 @@ def test_transport_close_cannot_activate_a_pending_session(monkeypatch: pytest.M
             def start(self) -> None:
                 pass
 
+            def close(self) -> None:
+                pass
+
             async def receive(self) -> bytes | None:
                 if self.first:
                     self.first = False
@@ -153,7 +162,7 @@ def test_failed_preparation_never_exposes_a_ready_session(monkeypatch: pytest.Mo
 
 @pytest.mark.parametrize("threads", [0, 5, 255])
 def test_initialization_rejects_thread_budgets_outside_the_runtime_policy(tmp_path: Path, threads: int) -> None:
-    params = validate_params(worker.RuntimeInitializeParams, initialization(tmp_path, threads).params)
+    params = validate_params(RuntimeInitializeParams, initialization(tmp_path, threads).params)
     with pytest.raises(RpcError) as captured:
         session.prepare_session(params)
     assert captured.value.stable_code == "unsupported_device"

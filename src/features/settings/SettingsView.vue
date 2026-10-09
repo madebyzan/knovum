@@ -3,7 +3,6 @@ import { computed, nextTick, toRaw, watch, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
-import { readLastNonSettingsRoute } from "../../foundation/navigation/workspace-session";
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
 import AboutSettingsPane from "./components/panes/AboutSettingsPane.vue";
 import AiModelsSettingsPane from "./components/panes/AiModelsSettingsPane.vue";
@@ -25,6 +24,7 @@ const props = defineProps<{
   loadGenerationActions: () => Promise<GenerationActionOption[]>;
   extensionsComponent: Component;
   voiceLibraryComponent: Component;
+  returnToWorkspace: () => Promise<void>;
 }>();
 const { t } = useI18n();
 const router = useRouter();
@@ -94,11 +94,6 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
   else delete query.setting;
   void router.replace({ path: route.path, query });
 }
-
-function backToApp() {
-  const target = readLastNonSettingsRoute();
-  void router.push(target && router.resolve(target).matched.length ? target : "/spaces");
-}
 </script>
 
 <template>
@@ -106,7 +101,7 @@ function backToApp() {
     <SettingsSidebar
       :active-pane="activePane"
       :active-setting="activeSetting"
-      @back="backToApp"
+      @back="props.returnToWorkspace"
       @select="selectPane"
     />
     <div class="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -127,11 +122,13 @@ function backToApp() {
               enter-active-class="animate-in fade-in-0 slide-in-from-right-1 duration-150 ease-standard motion-reduce:animate-none"
               leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
             >
-              <CreationSettingsPane
-                v-if="activePane === 'creation'"
-                :load-generation-actions="props.loadGenerationActions"
-              />
-              <component :is="paneComponent" v-else :key="activePane" />
+              <div :key="activePane">
+                <CreationSettingsPane
+                  v-if="activePane === 'creation'"
+                  :load-generation-actions="props.loadGenerationActions"
+                />
+                <component :is="paneComponent" v-else />
+              </div>
             </Transition>
           </div>
         </UiScrollArea>

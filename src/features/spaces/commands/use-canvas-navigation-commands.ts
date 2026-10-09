@@ -3,10 +3,11 @@ import { useI18n } from "vue-i18n";
 
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
+import type { WorkspaceRightSidebarController } from "../../../shared/contracts/workspace-right-sidebar";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
-import { useContextDock } from "../canvas/use-context-dock";
+import { createContextDock } from "../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
 import { ancestorsOf, createStructureIndex } from "../model/structure/structure-index";
 import { useSceneNavigation } from "../scenes/use-scene-navigation";
@@ -14,10 +15,10 @@ import { useSpaceStore } from "../session/space-store";
 import { CANVAS_TOOL_COMMANDS } from "./canvas-tool-commands";
 import { SPACE_COMMAND_KEYBINDINGS, SPACE_COMMAND_SHORTCUTS } from "./space-command-shortcuts";
 
-export function useCanvasNavigationCommands() {
+export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarController) {
   const { t } = useI18n();
   const store = useSpaceStore();
-  const dock = useContextDock();
+  const dock = createContextDock(rightSidebar);
   const session = getCanvasEditorSession();
   const tools = useCanvasToolStore();
   const scenes = useSceneNavigation();

@@ -131,6 +131,8 @@ export function producerBytes(repository, profile) {
 }
 
 export function requirementsArguments(repository, profile) {
+  const { condaSupplier } = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
+  const condaGroup = condaSupplier.profiles[profile];
   return [
     "export",
     "--project",
@@ -140,12 +142,7 @@ export function requirementsArguments(repository, profile) {
     "--no-default-groups",
     "--no-header",
     "--no-annotate",
-    ...JSON.parse(
-      readFileSync(join(repository, "python/runtime-source.json"), "utf8"),
-    ).condaSupplier.pythonDistributions[profile === "torch-inference" ? "tensor" : "base"].flatMap((name) => [
-      "--no-emit-package",
-      name,
-    ]),
+    ...condaSupplier.pythonDistributions[condaGroup].flatMap((name) => ["--no-emit-package", name]),
   ];
 }
 

@@ -31,7 +31,7 @@ pub async fn read_audiobook_source(
     job_id: String,
     source_node_id: String,
 ) -> Result<AudiobookSource, AppError> {
-    let lease = cancellation::acquire(&job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&job_id)?;
     let data: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=? AND kind='file' AND deleted_at IS NULL",
     )
@@ -50,7 +50,6 @@ pub async fn read_audiobook_source(
         .ok_or("Audiobook document has no source revision")?
         .to_owned();
     let source = assets::authorize_spaces_asset(&app, Path::new(source_path))?;
-    let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         let metadata = fs::metadata(&source).map_err(|error| error.to_string())?;
         if !metadata.is_file() || metadata.len() > MAX_SOURCE_BYTES { return Err("Audiobook source exceeds 128 MiB".into()); }

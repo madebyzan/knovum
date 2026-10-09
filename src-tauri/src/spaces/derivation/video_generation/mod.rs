@@ -3,7 +3,6 @@ mod completion;
 pub(crate) mod metadata;
 mod preparation;
 mod prompt;
-pub(crate) mod registry;
 #[cfg(test)]
 mod tests;
 mod validation;
@@ -52,8 +51,8 @@ pub(super) async fn generate_for_action(
     app: AppHandle,
     request: GenerateVideoRequest,
     stages: Channel<String>,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VideoOutput, AppError> {
-    let (cancellation, _lease) = registry::acquire(&request.id)?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
@@ -62,7 +61,7 @@ pub(super) async fn generate_for_action(
         request.target.clone(),
         ExecutionCapability::VideoGeneration,
     ) {
-        Ok(target) => execute(&app, &request, &target, stages, &cancellation, &authority).await,
+        Ok(target) => execute(&app, &request, &target, stages, cancellation, &authority).await,
         Err(error) => Err(error),
     }
 }

@@ -22,7 +22,7 @@ async function invoke(command: string): Promise<string | null> {
 
 describe("in-process plugin IPC surface", () => {
   it("waits for the bootstrap to reveal the shell", async () => {
-    await expect($("[data-testid='spaces-workspace']")).toBeDisplayed();
+    await expect($("[data-testid='workspace']")).toBeDisplayed();
   });
 
   it("denies an undeclared command inside the plugin namespace", async () => {

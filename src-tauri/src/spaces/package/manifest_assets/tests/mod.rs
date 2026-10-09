@@ -8,7 +8,7 @@ fn digest(fill: char) -> String {
     format!("sha256:{}", fill.to_string().repeat(64))
 }
 
-fn parse_node(data: Value) -> Result<ManifestAssets, String> {
+fn parse_node(data: Value) -> Result<ManifestAssets, crate::app_error::AppError> {
     parse(
         &json!({
             "nodes": [{ "data": data }],

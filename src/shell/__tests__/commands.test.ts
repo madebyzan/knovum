@@ -14,12 +14,13 @@ function workspace(rightSidebarAvailable = true): WorkspaceDefinition {
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },
     rightSidebarAvailable: computed(() => rightSidebarAvailable),
     openDefaultRightSidebar: vi.fn<() => void>(),
-    commands: computed(() => []),
+    useCommands: () => computed(() => []),
   };
 }
 
 function commands(workspaceActive: boolean) {
   return createShellCommands(workspace(), workspaceActive, {
+    workspaceCommands: [],
     actions: {
       openCommandPalette: vi.fn<() => void>(),
       openSettings: vi.fn<() => void>(),
@@ -74,6 +75,7 @@ describe("shell commands", () => {
 
   it("omits the right sidebar command when the current workspace view cannot show it", () => {
     const ids = createShellCommands(workspace(false), true, {
+      workspaceCommands: [],
       actions: {
         openCommandPalette: vi.fn<() => void>(),
         openSettings: vi.fn<() => void>(),

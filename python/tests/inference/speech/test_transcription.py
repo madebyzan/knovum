@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import platform
 import sys
 import types
 from pathlib import Path
@@ -11,9 +12,22 @@ from uuid import uuid4
 
 import pytest
 
+from knovum_inference.contracts.generated.control import RuntimeDeviceProfile
 from knovum_inference.contracts.generated.transcription import AsrEngine, LanguagePolicy, SpeechTranscribeParams
 from knovum_inference.errors import RpcError
 from knovum_inference.speech.transcription import TranscriptionEngine
+
+PROFILE_ID = "faster-whisper-small-cpu-int8-v1"
+
+
+def _device_profile(threads: int = 2) -> RuntimeDeviceProfile:
+    return RuntimeDeviceProfile.model_validate(
+        {"device": "cpu", "executionProfileId": PROFILE_ID, "cpuThreads": threads}
+    )
+
+
+def _engine(model_directory: Path, work_directory: Path, threads: int = 2) -> TranscriptionEngine:
+    return TranscriptionEngine(model_directory, work_directory, _device_profile(threads))
 
 
 def _params(request_id: str, audio_ref: dict[str, object] | None = None) -> SpeechTranscribeParams:
@@ -34,7 +48,7 @@ def _params(request_id: str, audio_ref: dict[str, object] | None = None) -> Spee
             },
             "deadlineMs": 2**63,
             "inputRevision": "source-revision",
-            "modelSpecId": "asr-model-v1",
+            "modelSpecId": PROFILE_ID,
             "ownerId": "media-node",
             "ownerKind": "media_transcript",
             "profile": {
@@ -76,7 +90,7 @@ def _artifact() -> dict[str, object]:
 def test_publish_validates_generated_artifact_and_preserves_response_identity(tmp_path: Path) -> None:
     request_id = str(uuid4())
     params = _params(request_id)
-    publication = TranscriptionEngine(tmp_path / "model", tmp_path, 2)._publish(params, _artifact())
+    publication = _engine(tmp_path / "model", tmp_path)._publish(params, _artifact())
 
     transcript_ref = publication["transcriptRef"]
     artifact_path = tmp_path / transcript_ref["fileName"]
@@ -84,7 +98,7 @@ def test_publish_validates_generated_artifact_and_preserves_response_identity(tm
     assert json.loads(payload)["speechDurationMs"] == 900
     assert publication["requestId"] == request_id
     assert publication["attemptEpoch"] == 7
-    assert publication["modelSpecId"] == "asr-model-v1"
+    assert publication["modelSpecId"] == PROFILE_ID
     assert transcript_ref["byteLength"] == len(payload)
     assert transcript_ref["sha256"] == hashlib.sha256(payload).hexdigest()
     assert list(artifact_path.parent.iterdir()) == [artifact_path]
@@ -100,13 +114,13 @@ def test_publish_validates_generated_artifact_and_preserves_response_identity(tm
 def test_publish_rejects_artifacts_outside_generated_contract(tmp_path: Path, change: dict[str, object]) -> None:
     artifact = _artifact() | change
     with pytest.raises(ValueError):
-        TranscriptionEngine(tmp_path / "model", tmp_path, 2)._publish(_params(str(uuid4())), artifact)
+        _engine(tmp_path / "model", tmp_path)._publish(_params(str(uuid4())), artifact)
     assert list(tmp_path.iterdir()) == []
 
 
 def test_publish_rejects_unsafe_attempt_identity_before_writing(tmp_path: Path) -> None:
     with pytest.raises(RpcError) as caught:
-        TranscriptionEngine(tmp_path / "model", tmp_path, 2)._publish(_params("../outside"), _artifact())
+        _engine(tmp_path / "model", tmp_path)._publish(_params("../outside"), _artifact())
     assert caught.value.stable_code == "invalid_output"
     assert list(tmp_path.iterdir()) == []
 
@@ -123,7 +137,7 @@ def test_cancelled_transcription_never_publishes_completed_artifact(tmp_path: Pa
         "channels": 1,
         "sampleFormat": "pcm_s16le",
     }
-    engine = TranscriptionEngine(tmp_path / "model", tmp_path, 2)
+    engine = _engine(tmp_path / "model", tmp_path)
     engine._faster = lambda *_: _artifact()  # type: ignore[method-assign]
     cancelled = Event()
     cancelled.set()
@@ -138,12 +152,52 @@ def test_cancelled_transcription_never_publishes_completed_artifact(tmp_path: Pa
     assert not any(path.name.startswith("attempt-") for path in tmp_path.iterdir())
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("model_spec_id", "faster-whisper-small-cuda-f16-v1"),
+        ("engine", AsrEngine.mlx_whisper),
+        ("device", "cuda"),
+        ("compute_type", "float16"),
+    ],
+)
+def test_transcription_rejects_request_execution_identity_before_reading_audio(
+    tmp_path: Path, field: str, value: object
+) -> None:
+    params = _params(str(uuid4()))
+    if field == "model_spec_id":
+        params.model_spec_id = str(value)
+    else:
+        setattr(params.profile, field, value)
+
+    with pytest.raises(RpcError) as caught:
+        _engine(tmp_path / "model", tmp_path).transcribe(params, lambda *_: None, Event())
+
+    assert caught.value.stable_code == "runtime_mismatch"
+
+
+@pytest.mark.parametrize(
+    ("device", "profile_id"),
+    [
+        ("cpu", "faster-whisper-small-cpu-f16-v1"),
+        ("cpu", "faster-whisper-arbitrary-cpu-int8-v1"),
+        ("cuda", "faster-whisper-small-cuda-int8-v1"),
+        ("mps", "faster-whisper-small-mps-f16-v1"),
+    ],
+)
+def test_transcription_rejects_unknown_admitted_execution_profiles(
+    tmp_path: Path, device: str, profile_id: str
+) -> None:
+    profile = RuntimeDeviceProfile.model_validate({"device": device, "executionProfileId": profile_id, "cpuThreads": 2})
+    with pytest.raises(RpcError) as caught:
+        TranscriptionEngine(tmp_path / "model", tmp_path, profile)
+    assert caught.value.stable_code == "runtime_mismatch"
+
+
 @pytest.mark.parametrize(("system", "machine"), [("Darwin", "x86_64"), ("Windows", "AMD64")])
 def test_cpu_transcription_uses_compiled_faster_whisper(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, system: str, machine: str
 ) -> None:
-    from knovum_inference.speech import transcription
-
     calls: dict[str, object] = {}
 
     class WhisperModel:
@@ -154,10 +208,10 @@ def test_cpu_transcription_uses_compiled_faster_whisper(
             return [], types.SimpleNamespace(language="en", duration=1.0, duration_after_vad=0.8)
 
     monkeypatch.setitem(sys.modules, "faster_whisper", types.SimpleNamespace(WhisperModel=WhisperModel))
-    monkeypatch.setattr(transcription.platform, "system", lambda: system)
-    monkeypatch.setattr(transcription.platform, "machine", lambda: machine)
+    monkeypatch.setattr(platform, "system", lambda: system)
+    monkeypatch.setattr(platform, "machine", lambda: machine)
     monkeypatch.setenv("OMP_NUM_THREADS", "session-owned")
-    artifact = TranscriptionEngine(tmp_path, tmp_path, 2)._faster(
+    artifact = _engine(tmp_path, tmp_path)._faster(
         tmp_path / "source.wav", _params(str(uuid4())), lambda *_: None, Event()
     )
     assert calls == {
@@ -172,11 +226,9 @@ def test_cpu_transcription_uses_compiled_faster_whisper(
 
 
 def test_intel_transcription_rejects_gpu_profile(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    from knovum_inference.speech import transcription
-
-    monkeypatch.setattr(transcription.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(transcription.platform, "machine", lambda: "x86_64")
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(platform, "machine", lambda: "x86_64")
     params = _params(str(uuid4()))
     params.profile.device = "cuda"
     with pytest.raises(RpcError, match="Intel macOS ASR requires the CPU profile"):
-        TranscriptionEngine(tmp_path, tmp_path, 2)._faster(tmp_path / "source.wav", params, lambda *_: None, Event())
+        _engine(tmp_path, tmp_path)._faster(tmp_path / "source.wav", params, lambda *_: None, Event())

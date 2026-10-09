@@ -39,45 +39,6 @@ pub async fn cancel_run(
             error,
         );
     }
-    let action_runs = sqlx::query_scalar::<_, String>(
-        "WITH RECURSIVE run_tree(id) AS (
-         SELECT id FROM spaces_runs WHERE id=$1
-         UNION ALL SELECT child.id FROM spaces_runs child JOIN run_tree parent ON child.parent_run_id=parent.id)
-         SELECT id FROM spaces_runs WHERE id IN (SELECT id FROM run_tree) AND kind='action' AND completed_at IS NULL",
-    ).bind(&run_id).fetch_all(pool).await;
-    match action_runs {
-        Ok(action_runs) => {
-            for action_run in action_runs {
-                match crate::spaces::runs::durable_action_id(pool, &action_run).await {
-                    Ok(Some(action_id)) => {
-                        if let Err(error) = crate::spaces::derivation::action_execution::cancel(
-                            &action_id,
-                            &action_run,
-                        )
-                        .await
-                        {
-                            receipt.interrupted(
-                                "run_control_action_interrupt_failed",
-                                &format!("Action {action_run}"),
-                                error,
-                            );
-                        }
-                    }
-                    Ok(None) => {}
-                    Err(error) => receipt.interrupted(
-                        "run_control_action_discovery_failed",
-                        &format!("Action {action_run}"),
-                        error,
-                    ),
-                }
-            }
-        }
-        Err(error) => receipt.interrupted(
-            "run_control_action_discovery_failed",
-            "Action Run discovery",
-            crate::spaces::db::sql_error(error),
-        ),
-    }
     if run.kind == RunKind::ExternalAgent {
         match crate::spaces::external_conversations::cancel_by_run(&app, &run_id).await {
             Ok(true) => {}

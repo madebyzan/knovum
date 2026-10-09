@@ -9,5 +9,19 @@
   "openSettings": "Configure models",
   "settingsUnavailable": "AI settings could not be loaded",
   "executedWithModel": "Executed with {provider} · {model}",
-  "executedWithAgent": "Executed by {name} · desktop Agent"
+  "executedWithAgent": "Executed by {name} · desktop Agent",
+  "languages": {
+    "zhCn": "Simplified Chinese",
+    "zhTw": "Traditional Chinese",
+    "en": "English",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "it": "Italian",
+    "ru": "Russian",
+    "ar": "Arabic"
+  }
 }
