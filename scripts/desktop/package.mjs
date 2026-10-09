@@ -21,6 +21,7 @@ import {
 } from "../release/policy.mjs";
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
+import { validateMediaLicenseReview } from "../runtime/media-license-policy.mjs";
 import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
@@ -136,7 +137,10 @@ function requireRuntime(runtimeTarget) {
     throw new Error("Bundled resources must exclude the on-demand Python runtime");
   const directory = join(runtimeRoot, runtimeTarget);
   const manifest = validateMediaRuntime(repository, directory, runtimeTarget);
-  if (release) verifyCompiledResourceSignatures(directory, runtimeTarget, repository, manifest.producer);
+  if (release) {
+    validateMediaLicenseReview(repository, runtimeTarget);
+    verifyCompiledResourceSignatures(directory, runtimeTarget, repository, manifest.producer);
+  }
 }
 
 function runtimeResources(runtimeTarget) {

@@ -27,16 +27,7 @@ def dependency_digest(project: Path, profile: str, target: str) -> str:
 
 
 def install_conda_packages(project: Path, profile: str, target: str, scratch: Path) -> tuple[Path, dict[str, Any]]:
-    runtime, inventory = install_locked_conda_packages(
-        project, conda_lock_path(project, profile, target), target, scratch
-    )
-    materialize_aliases(runtime)
-    return runtime, inventory
-
-
-def install_locked_conda_packages(
-    project: Path, lock_path: Path, target: str, scratch: Path
-) -> tuple[Path, dict[str, Any]]:
+    lock_path = conda_lock_path(project, profile, target)
     configuration = json.loads((project / "runtime-source.json").read_text())
     supplier = configuration["condaSupplier"]
     version = run("micromamba", "--version", capture=True)
@@ -86,7 +77,6 @@ def install_locked_conda_packages(
             shutil.copytree(licenses, notices / package["name"])
         records.append({**package, "files": actual["files"]})
     shutil.rmtree(metadata)
-    # Files are independent copies; each exporter owns which internal aliases it materializes.
     # The retained inventory/notices own the evidence, so the package cache is no longer needed.
     # Release the producer's package cache before installing large inference dependencies.
     shutil.rmtree(root)
@@ -96,4 +86,5 @@ def install_locked_conda_packages(
         "lockSha256": digest(lock_path),
         "packages": records,
     }
+    materialize_aliases(runtime)
     return runtime, inventory

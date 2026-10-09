@@ -1,10 +1,10 @@
 # Bundled media resources
 
-Only target-specific FFmpeg and its required notices/dynamic libraries belong here. yt-dlp,
+Only target-specific FFmpeg and its required notices/build evidence belong here. yt-dlp,
 Deno, CPython and third-party Python packages are installed on demand outside the application.
 `pnpm runtime:provision` verifies build inputs; Python publication/evidence are staged in
-`runtime-artifacts/<profile>/<target>/`, never in this bundle tree. Core FFmpeg preserves its
-supplier prefix (`bin/ffmpeg` on macOS; `Library/bin/ffmpeg.exe` on Windows), license notices,
+`runtime-artifacts/<profile>/<target>/`, never in this bundle tree. Core FFmpeg contains one static executable
+(`bin/ffmpeg` on macOS; `bin/ffmpeg.exe` on Windows), license notices,
 compiled dependency evidence and `media-manifest.json`.
 
 The package command copies the current application Worker to `resources/python-worker/` and

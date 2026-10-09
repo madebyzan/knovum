@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
-import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { readRuntimeDescriptor, validateRuntimeDescriptor } from "../distribution.mjs";
-import { sha256File } from "../files.mjs";
-import { writeMediaManifest } from "../media-manifest.mjs";
+import { validateMediaLicenseReview } from "../media-license-policy.mjs";
+import { mediaSource, writeMediaManifest } from "../media-manifest.mjs";
 import { validatePackagedResources, workerDigest } from "../packaged-resources.mjs";
 import { runtimeProfiles } from "../profiles.mjs";
 
@@ -19,30 +19,29 @@ function fixture(context) {
   const worker = join(resources, "python-worker/knovum_inference");
   const publication = join(repository, "runtime-artifacts/resources/windows-x64");
   const checkout = fileURLToPath(new URL("../../../", import.meta.url));
-  for (const name of ["python/conda-locks/media", "scripts/runtime"])
-    mkdirSync(join(repository, name), { recursive: true });
+  for (const name of ["python", "scripts/runtime"]) mkdirSync(join(repository, name), { recursive: true });
   copyFileSync(join(checkout, "python/runtime-source.json"), join(repository, "python/runtime-source.json"));
   cpSync(join(checkout, "scripts/runtime"), join(repository, "scripts/runtime"), { recursive: true });
-  const mediaLock = join(repository, "python/conda-locks/media/windows-x64.json");
-  copyFileSync(join(checkout, "python/conda-locks/media/windows-x64.json"), mediaLock);
-  const condaInventory = JSON.parse(readFileSync(mediaLock, "utf8"));
   const media = join(resources, "bundled-runtime/windows-x64");
-  mkdirSync(join(media, "Library/bin"), { recursive: true });
-  writeFileSync(join(media, "Library/bin/ffmpeg.exe"), "controlled FFmpeg executable");
+  mkdirSync(join(media, "bin"), { recursive: true });
+  mkdirSync(join(media, "build-evidence"));
+  writeFileSync(join(media, "bin/ffmpeg.exe"), "controlled FFmpeg executable");
+  copyFileSync(
+    join(repository, "scripts/runtime/media-license-review.json"),
+    join(media, "build-evidence/media-license-review.json"),
+  );
   writeMediaManifest(repository, media, "windows-x64", {
     schemaVersion: 1,
     appCommit: "a".repeat(40),
-    compiledDependencyFiles: ["Library/bin/ffmpeg.exe"],
+    compiledBinaryFiles: ["bin/ffmpeg.exe"],
     target: "windows-x64",
-    version: "9.0.1",
+    version: "9.0.2",
     relocationVerified: true,
     signing: { mode: "unsigned", compiledBinaryCount: 1 },
-    condaSupplier: {
-      supplier: "conda-forge",
-      micromambaVersion: "2.9.0",
-      lockSha256: sha256File(mediaLock),
-      packages: condaInventory.packages.map((p) => Object.assign({}, p, { files: [] })),
-    },
+    source: mediaSource(repository, "windows-x64").source,
+    licenseReview: validateMediaLicenseReview(repository, "windows-x64", {
+      requireApproved: false,
+    }),
   });
   for (const path of [source, worker, publication]) mkdirSync(path, { recursive: true });
   writeFileSync(join(source, "server.py"), "application Worker\n");
@@ -89,10 +88,7 @@ test("desktop payload contains only owned Worker and trusted runtime descriptor"
 
 test("desktop payload verifies its bundled core media executable", (context) => {
   const sample = fixture(context);
-  writeFileSync(
-    join(sample.resources, "bundled-runtime/windows-x64/Library/bin/ffmpeg.exe"),
-    "altered FFmpeg",
-  );
+  writeFileSync(join(sample.resources, "bundled-runtime/windows-x64/bin/ffmpeg.exe"), "altered FFmpeg");
   assert.throws(sample.verify, /Media runtime file differs/u);
 });
 

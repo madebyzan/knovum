@@ -4,7 +4,7 @@ import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
 import type { WorldBounds } from "../../../model/structure/world-bounds";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
-import type { StructureScene } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT, type StructureScene } from "../../document/structure-scene";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
@@ -65,7 +65,8 @@ export function projectCanvasScene({
           x: bounds.left,
           y: bounds.top,
           width: bounds.right - bounds.left,
-          height: layout.collapsed && !temporarilyExpanded ? 40 : bounds.bottom - bounds.top,
+          height:
+            layout.collapsed && !temporarilyExpanded ? SECTION_HEADER_HEIGHT : bounds.bottom - bounds.top,
         },
       })) ?? [],
     relations: projectedRelations.flatMap(({ relation, sourceStructureNodeId, targetStructureNodeId }) =>
@@ -144,7 +145,9 @@ function structureRelationEndpoints(scene: StructureScene) {
   for (const { bounds, section, layout, temporarilyExpanded } of scene.sections)
     endpoints.set(section.id, {
       frame: boundsFrame(
-        layout.collapsed && !temporarilyExpanded ? { ...bounds, bottom: bounds.top + 40 } : bounds,
+        layout.collapsed && !temporarilyExpanded
+          ? { ...bounds, bottom: bounds.top + SECTION_HEADER_HEIGHT }
+          : bounds,
       ),
       previewId: `structure:${section.id}`,
     });

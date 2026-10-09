@@ -164,7 +164,16 @@ fn valid_sha256(value: &str) -> bool {
 }
 
 pub(super) fn checked_metadata(path: &Path) -> Result<fs::Metadata, String> {
-    let metadata = fs::symlink_metadata(path).map_err(|error| error.to_string())?;
+    let metadata = fs::symlink_metadata(path).map_err(|error| {
+        if error.kind() == std::io::ErrorKind::NotFound {
+            format!(
+                "python-runtime-invalid: required runtime file is missing: {}",
+                path.display()
+            )
+        } else {
+            error.to_string()
+        }
+    })?;
     if metadata.file_type().is_symlink() || is_windows_reparse_point(&metadata) {
         return Err(format!(
             "python-runtime-invalid: link is not allowed: {}",

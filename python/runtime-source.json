@@ -105,7 +105,6 @@
       "binaries.py",
       "commands.py",
       "host.py",
-      "conda_packages.py",
       "signing.py",
       "producer.mjs",
       "toolchain.mjs",
@@ -121,13 +120,16 @@
       "manifest.mjs",
       "profiles.mjs",
       "provenance.mjs",
-      "development.mjs"
+      "development.mjs",
+      "conda_packages.py"
     ],
     "media": [
       "build_media.py",
-      "media_files.py",
+      "media_binary.py",
+      "media-license-policy.mjs",
       "write-media-manifest.mjs",
       "media-manifest.mjs",
+      "media-runtime-content.mjs",
       "files.mjs",
       "profiles.mjs",
       "provenance.mjs",

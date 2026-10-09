@@ -40,15 +40,14 @@ export function useKonvaCanvasRuntime(
   const preview = useLayoutPreview();
   const temporarilyExpandedSectionId = shallowRef<string>();
   const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
-  const { scene: canonicalScene, lockedNodeIds, relationBounds } = projections;
-  const previewIndex = computed(() => createCanvasScenePreviewIndex(canonicalScene.value));
+  const previewIndex = computed(() => createCanvasScenePreviewIndex(projections.scene.value));
   const scenePreview = useCanvasScenePreview(previewIndex, preview.layouts);
   const selection = useCanvasSelection({
     availableStructureNodeIds: computed(
       () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
     ),
-    layouts: computed(() => canonicalScene.value.nodes.map(({ layout }) => layout)),
-    relationBounds,
+    layouts: computed(() => projections.scene.value.nodes.map(({ layout }) => layout)),
+    relationBounds: projections.relationBounds,
     structureBounds: projections.structureBounds,
     changed: props.events.onSelectionChange,
     structureSelectionForNode: projections.structureSelectionForNode,
@@ -65,22 +64,23 @@ export function useKonvaCanvasRuntime(
   const palette = useCanvasPalette();
   const visibility = useSceneVisibility({
     nodeIds: selection.nodeIds,
+    sectionIds: selection.structureNodeIds,
+    sections: computed(() => projections.structureScene.value.sections),
     relationIds: selection.relationIds,
-    scene: canonicalScene,
+    scene: projections.scene,
     size: viewport.size,
     viewport: viewport.viewport,
   });
   const transformPolicy = computed(() =>
-    projectSelectionTransformPolicy(canonicalScene.value.nodes, selection.nodeIds.value),
+    projectSelectionTransformPolicy(projections.scene.value.nodes, selection.nodeIds.value),
   );
-  const previewFrames = structureInteractions.withContentDropPreview(preview.update);
   const gestures = createCanvasGestureSession({
     document: model,
     events: props.events,
     layouts: () => layouts.value,
-    lockedNodeIds: () => lockedNodeIds.value,
+    lockedNodeIds: () => projections.lockedNodeIds.value,
     nodes: () => props.sceneInput.nodes,
-    previewFrames,
+    previewFrames: structureInteractions.withContentDropPreview(preview.update),
     selectedNodeIds: () => selection.nodeIds.value,
     snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId: () => temporarilyExpandedSectionId.value,
@@ -93,7 +93,7 @@ export function useKonvaCanvasRuntime(
       create: props.events.onCreateTextNode,
       tool: () => props.tool,
       reportError: props.events.onError,
-      scene: canonicalScene,
+      scene: projections.scene,
       selection,
     });
   const pointer = usePointerInteractions({
@@ -111,7 +111,7 @@ export function useKonvaCanvasRuntime(
     createRelation: props.events.onCreateRelation,
     reportError: props.events.onError,
     pointer,
-    scene: canonicalScene,
+    scene: projections.scene,
     viewport,
   });
   const { cancelInteraction } = useCanvasInteractionCancellation({
@@ -148,7 +148,7 @@ export function useKonvaCanvasRuntime(
     pointer,
     projections,
     props,
-    scene: canonicalScene,
+    scene: projections.scene,
     selection,
     stage,
     stageComponent,
@@ -167,7 +167,7 @@ export function useKonvaCanvasRuntime(
     palette,
     pointer,
     preview,
-    scene: canonicalScene,
+    scene: projections.scene,
     structure: projections,
     structureInteractions,
     scenePreview,

@@ -19,6 +19,7 @@ pub(crate) fn embed_descriptors() {
         "agent",
     ] {
         embed_producer_sources(&root, &source, profile);
+        embed_recipe(&root, target, profile);
         let group = source["condaSupplier"]["profiles"][profile]
             .as_str()
             .expect("Conda runtime profile group");
@@ -59,6 +60,43 @@ pub(crate) fn embed_descriptors() {
         );
         std::fs::write(destination, bytes).expect("embed trusted Python runtime descriptor");
     }
+}
+
+fn embed_recipe(root: &std::path::Path, target: &str, profile: &str) {
+    let repository = root
+        .parent()
+        .expect("Python project belongs to the repository");
+    if profile == "light-inference" {
+        println!(
+            "cargo:rerun-if-changed={}",
+            root.join("compiled-source-evidence.json").display()
+        );
+    }
+    if profile == "voice-generation" && target.starts_with("macos-") {
+        println!(
+            "cargo:rerun-if-changed={}",
+            repository.join("src-tauri/tauri.conf.json").display()
+        );
+    }
+    println!(
+        "cargo:rerun-if-changed={}",
+        repository.join("scripts/runtime/profiles.mjs").display()
+    );
+    let output = std::process::Command::new("node")
+        .arg(repository.join("scripts/runtime/profiles.mjs"))
+        .arg("--repository")
+        .arg(repository)
+        .args(["--target", target, "--profile", profile])
+        .output()
+        .expect("Node is required by the desktop runtime producer");
+    assert!(
+        output.status.success(),
+        "Runtime recipe failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let destination = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap())
+        .join(format!("python-{profile}-recipe.json"));
+    std::fs::write(destination, output.stdout).expect("embed selected runtime recipe");
 }
 
 fn embed_producer_sources(root: &std::path::Path, source: &serde_json::Value, profile: &str) {

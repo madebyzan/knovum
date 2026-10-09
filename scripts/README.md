@@ -47,7 +47,7 @@ desktop packaging. They share one owner and call each other where the workflow r
 | `runtime/producer.mjs`                        | Bootstrap pinned build tools and invoke the platform producer; `runtime:build`.                   |
 | `runtime/development.mjs`                     | Prepare the selected recipe-bound Python environment; on-demand debug host and `runtime:prepare`. |
 | `runtime/build_python.py`                     | Build the controlled interpreter/dependency resource and qualify relocation.                      |
-| `runtime/media.mjs`, `runtime/build_media.py` | Prepare or publish the core FFmpeg dependency closure.                                            |
+| `runtime/media.mjs`, `runtime/build_media.py` | Prepare or publish the single static core FFmpeg executable.                                      |
 | `runtime/verify_signatures.py`                | Isolated OS signature verification entry; `runtime/signatures.mjs`.                               |
 | `runtime/artifacts.py`                        | Interpreter download/hash/size, safe extraction and runtime archive rules.                        |
 | `runtime/binaries.py`                         | Enumerate compiled binaries for inventory/signing.                                                |
@@ -63,14 +63,7 @@ desktop packaging. They share one owner and call each other where the workflow r
 | `runtime/signatures.mjs`                      | Bind runtime signing identity to desktop production identity before isolated verification.        |
 | `runtime/windows-package-verification.mjs`    | Extract final Windows installers and verify the exact contained runtime.                          |
 
-Supplier-specific modules `moss_runtime.py` and `voxcpm.py` install the selected engine’s pinned
-resource. `voice_bridge.cpp` / `.cmake` provide the bounded voice streaming ABI. `conda_packages.py`,
-`media_files.py` and `windows_process.py` own Conda dependency closure installation, FFmpeg dependency
-export and Windows UTF-8 process configuration. `toolchain.mjs` / `transfer.mjs` bootstrap and
-verify pinned tools; `publication.mjs` assembles the complete target/profile publication.
-`media-manifest.mjs` owns the core-media inventory; `write-media-manifest.mjs` is its Python-to-Node
-producer entry. Recipe input lists have one owner in `python/runtime-source.json`; unrelated tooling
-is excluded from resource cache identities. `profiles.mjs` binds profile and target identities.
+Supplier-specific modules `moss_runtime.py` and `voxcpm.py` install the selected engine’s pinned resource. `voice_bridge.cpp` / `.cmake` provide the bounded voice streaming ABI. `conda_packages.py` owns Python dependency closure installation; `media_binary.py` installs the selected static FFmpeg executable and rejects non-system dynamic dependencies; `windows_process.py` owns Windows UTF-8 producer process configuration. `toolchain.mjs` / `transfer.mjs` bootstrap and verify pinned tools; `publication.mjs` assembles the complete target/profile publication. `media-source.json` owns the pinned FFmpeg supplier inputs; `media-manifest.mjs` owns the core-media inventory, and `write-media-manifest.mjs` is its Python-to-Node producer entry. Producer source closures have one owner in `python/runtime-source.json`; `profiles.mjs` binds canonical selected profile and target identities. Unrelated inputs do not invalidate an unchanged resource.
 
 These are publication/verification rules. They are not everyday commands. Library or OS
 verification does not establish Knovum's exact target, source, lock, inventory or approval policy.

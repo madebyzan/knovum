@@ -1,5 +1,6 @@
-import { existsSync, rmSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -12,33 +13,59 @@ export async function prepareDevelopment(repository, profiles, scratchParent) {
   for (const profile of profiles) runtimeProject(repository, profile);
   for (const profile of profiles) {
     const output = developmentDirectory(repository, target, profile);
-    const validate = () =>
+    const validate = (directory) =>
       validatePythonRuntime(
-        join(output, "runtime"),
+        join(directory, "runtime"),
         target,
         join(runtimeProject(repository, profile), "uv.lock"),
       );
-    if (existsSync(output)) {
-      validate();
-      continue;
-    }
-    console.log(`Preparing ${profile} development runtime for ${target}`);
     // Profiles share producer tooling and Conda caches; sequential builds bound disk and memory.
     // oxlint-disable-next-line no-await-in-loop
-    await runProducer(repository, [
-      "--profile",
-      profile,
-      "--output",
+    await prepareDevelopmentRuntime({
       output,
-      "--development",
-      ...(scratchParent ? ["--scratch-parent", scratchParent] : []),
-    ]);
+      validate,
+      stagingParent: scratchParent,
+      produce: async (staging) => {
+        console.log(`Preparing ${profile} development runtime for ${target}`);
+        await runProducer(repository, [
+          "--profile",
+          profile,
+          "--output",
+          staging,
+          "--development",
+          ...(scratchParent ? ["--scratch-parent", scratchParent] : []),
+        ]);
+      },
+    });
+  }
+}
+
+export async function prepareDevelopmentRuntime({
+  output,
+  validate,
+  produce,
+  stagingParent,
+  stagingId = randomUUID,
+}) {
+  if (existsSync(output)) {
+    validate(output);
+    return;
+  }
+
+  const parent = dirname(output);
+  mkdirSync(parent, { recursive: true });
+  const staging = join(stagingParent ?? parent, `.${basename(output)}.${stagingId()}.installing`);
+  try {
+    await produce(staging);
+    validate(staging);
     try {
-      validate();
+      renameSync(staging, output);
     } catch (error) {
-      rmSync(output, { recursive: true, force: true });
-      throw error;
+      if (!existsSync(output)) throw error;
+      validate(output);
     }
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
   }
 }
 

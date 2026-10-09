@@ -10,7 +10,10 @@ export async function runProducer(repository, args, entry = "build_python.py") {
   const target = hostRuntimeTarget();
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
   const uv = await ensureUv(repository, target, configuration.uv.targets[target]);
-  const micromamba = await ensureMicromamba(repository, target, configuration.micromamba.targets[target]);
+  const micromamba =
+    entry === "build_python.py"
+      ? await ensureMicromamba(repository, target, configuration.micromamba.targets[target])
+      : undefined;
   execFileSync(
     uv,
     [
@@ -32,7 +35,9 @@ export async function runProducer(repository, args, entry = "build_python.py") {
       cwd: repository,
       env: {
         ...process.env,
-        PATH: [dirname(uv), dirname(micromamba), process.env.PATH ?? ""].join(delimiter),
+        PATH: [dirname(uv), ...(micromamba ? [dirname(micromamba)] : []), process.env.PATH ?? ""].join(
+          delimiter,
+        ),
       },
       stdio: "inherit",
     },

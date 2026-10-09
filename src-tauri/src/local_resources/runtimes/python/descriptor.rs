@@ -1,8 +1,10 @@
+#[cfg(not(debug_assertions))]
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
 use super::RuntimeProfile;
+#[cfg(not(debug_assertions))]
 use tauri::{AppHandle, Manager, Runtime};
 
 #[derive(Clone, Deserialize)]
@@ -16,6 +18,10 @@ pub(super) struct Descriptor {
         )
     )]
     pub(super) schema_version: u8,
+    #[cfg_attr(
+        debug_assertions,
+        expect(dead_code, reason = "Only released runtimes use this")
+    )]
     pub(super) target: String,
     pub(super) version: String,
     pub(super) dependency_requirements_sha256: String,
@@ -30,6 +36,10 @@ pub(super) struct Descriptor {
     )]
     pub(super) archive_url: String,
     pub(super) size: u64,
+    #[cfg_attr(
+        debug_assertions,
+        expect(dead_code, reason = "Only released runtimes use this")
+    )]
     pub(super) sha256: String,
     pub(super) manifest_sha256: String,
 }
@@ -80,6 +90,7 @@ pub(super) fn required(profile: RuntimeProfile) -> Result<Descriptor, String> {
         .ok_or_else(|| "runtime_missing: Python runtime publication is not configured".into())
 }
 
+#[cfg(not(debug_assertions))]
 pub(super) fn destination<R: Runtime>(
     app: &AppHandle<R>,
     value: &Descriptor,

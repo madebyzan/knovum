@@ -24,6 +24,50 @@ pub(super) async fn install<R: Runtime>(
         guard = PRODUCER.get_or_init(|| tokio::sync::Mutex::new(())).lock() => guard,
     };
     let repository = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
+    let manifest = profile.development_manifest();
+    let identity = super::identity_directory(&manifest)?;
+    let installation_lease = loop {
+        if identity.exists() {
+            let Some(lease) = super::retention::try_acquire(&identity)? else {
+                tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
+                    () = tokio::time::sleep(std::time::Duration::from_millis(10)) => {}
+                }
+                continue;
+            };
+            if !identity.exists() {
+                drop(lease);
+                continue;
+            }
+            match verify_identity_async(&manifest, profile, cancellation).await {
+                Ok(()) => return retain_prepared_runtime(app, profile, manifest, lease).await,
+                Err(error) if error.starts_with("python-runtime-invalid:") => {
+                    drop(lease);
+                    if let Some(installation) = super::retention::try_acquire_exclusive(&identity)?
+                    {
+                        break installation;
+                    }
+                    return Err(format!(
+                        "python-runtime-invalid: development runtime is active and cannot be replaced: {error}"
+                    ));
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        if let Some(installation) = super::retention::try_acquire_exclusive(&identity)? {
+            break installation;
+        }
+        tokio::select! {
+            biased;
+            _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
+            () = tokio::time::sleep(std::time::Duration::from_millis(10)) => {}
+        }
+    };
+    if prepare_identity_async(&identity, &manifest, profile, cancellation).await? {
+        let lease = share_installation(installation_lease).await?;
+        return retain_prepared_runtime(app, profile, manifest, lease).await;
+    }
     let staging = Staging::create(repository.join(".runtime-development/staging"))?;
     let mut command = Command::new("node");
     command
@@ -72,12 +116,96 @@ pub(super) async fn install<R: Runtime>(
         ));
     }
     super::archive::require_active(cancellation)?;
+    let lease = share_installation(installation_lease).await?;
+    retain_prepared_runtime(app, profile, manifest, lease).await
+}
+
+async fn retain_prepared_runtime<R: Runtime>(
+    app: &AppHandle<R>,
+    profile: RuntimeProfile,
+    manifest: PathBuf,
+    lease: std::sync::Arc<super::RuntimeLease>,
+) -> Result<(), String> {
     let handle = app.clone();
     crate::blocking::run(move || {
-        super::resolve(&handle, profile)?.ok_or("Prepared local runtime is missing")?;
+        super::resolve_with_lease(&handle, profile, manifest, lease)?;
+        super::retire_unused(&handle, profile)?;
         Ok(())
     })
     .await
+}
+
+async fn share_installation(
+    installation: super::retention::InstallationLease,
+) -> Result<std::sync::Arc<super::RuntimeLease>, String> {
+    crate::blocking::run(move || installation.into_shared()).await
+}
+
+fn prepare_identity(
+    identity: &std::path::Path,
+    manifest: &std::path::Path,
+    profile: RuntimeProfile,
+    cancellation: &CancellationToken,
+) -> Result<bool, String> {
+    if !identity.exists() {
+        return Ok(false);
+    }
+    let verification = if manifest.is_file() {
+        verify_identity(manifest, profile, cancellation)
+    } else {
+        Err("python-runtime-invalid: development publication is incomplete".into())
+    };
+    match verification {
+        Ok(()) => Ok(true),
+        Err(error) if error.starts_with("python-runtime-invalid:") => {
+            log::warn!("Resetting owned development runtime: {error}");
+            crate::local_resources::filesystem::remove_directory(identity)?;
+            Ok(false)
+        }
+        Err(error) => Err(error),
+    }
+}
+
+async fn prepare_identity_async(
+    identity: &std::path::Path,
+    manifest: &std::path::Path,
+    profile: RuntimeProfile,
+    cancellation: &CancellationToken,
+) -> Result<bool, String> {
+    let identity = identity.to_path_buf();
+    let manifest = manifest.to_path_buf();
+    let cancellation = cancellation.clone();
+    crate::blocking::run(move || prepare_identity(&identity, &manifest, profile, &cancellation))
+        .await
+}
+
+fn verify_identity(
+    manifest: &std::path::Path,
+    profile: RuntimeProfile,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    super::verification::read_manifest(manifest)
+        .and_then(|bytes| {
+            super::verification::verify_runtime(
+                manifest,
+                &bytes,
+                super::verification::digest(&bytes),
+                cancellation,
+                None,
+                profile,
+            )
+        })
+        .map(|_| ())
+}
+
+async fn verify_identity_async(
+    manifest: &std::path::Path,
+    profile: RuntimeProfile,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let manifest = manifest.to_path_buf();
+    let cancellation = cancellation.clone();
+    crate::blocking::run(move || verify_identity(&manifest, profile, &cancellation)).await
 }
 
 // Declare before the process tree: the tree terminates before its owned files are reclaimed.

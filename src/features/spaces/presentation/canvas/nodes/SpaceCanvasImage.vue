@@ -48,7 +48,8 @@ const { image, naturalSize, loadState } = useCanvasImageSource(source, {
     if (context && canvas.value) context.clearRect(0, 0, canvas.value.width, canvas.value.height);
   },
 });
-const edit = computed(() => session.previewFor(props.id) ?? imageEditOf(props.data));
+const persistedEdit = computed(() => imageEditOf(props.data));
+const edit = computed(() => session.previewFor(props.id) ?? persistedEdit.value);
 const removing = computed(
   () =>
     props.interactive && removalSession.active?.nodeId === props.id && removalSession.active.mode === "mask",
@@ -108,7 +109,7 @@ function draw() {
   }
 }
 
-watch(() => removalSession.active?.strokes, draw);
+watch(() => (removalSession.active?.nodeId === props.id ? removalSession.active.strokes : undefined), draw);
 </script>
 
 <template>

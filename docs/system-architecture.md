@@ -161,7 +161,7 @@ Document export uses the current application executable in one private worker mo
 
 ## Compiled resources and local inference
 
-FFmpeg is a bundled, verified core media resource. Python environments, models, and optional media
+FFmpeg is a bundled, verified core media resource. It contains one statically linked executable plus notices and build evidence; supplier/download contracts belong to `packaging.md`. Python environments, models, and optional media
 tools are application-managed resources prepared on capability use. All resolve through signed or
 hash-verified manifests in application-owned locations. Installed runtime leases prevent retirement
 while a worker or Agent still uses a generation; explicit lease release makes retired generations
@@ -234,6 +234,12 @@ Web capture decodes a recognized BOM or declared HTTP charset through `encoding_
   its atomic result and reports that result; cancellation cannot leave an ambiguous half-commit.
 
 Agent graph identity contains the exact locked DeepAgents and LangGraph versions. Contract generation synchronizes that identity with Python, while profile/lock/installed-SDK regression checks detect a stale source identity. Changed identities retire incompatible execution segments through the existing strict boundary; no compatibility reader is introduced.
+
+### Provider and Agent output network policy
+
+`public_network` owns the shared public-resource transport policy for provider image/video output and ACP resource links: credential-free HTTPS, all resolved addresses public, DNS-pinned connections, no ambient proxy, bounded manually validated redirects, and credentials scoped to the initial origin. Callers own their content-size limits and cancellation. AI API requests retain configured endpoint authority and reject redirects to another origin; Gemini operation names are relative resource names and resumable upload URLs must retain the configured origin. Provider output is untrusted input and never grants authority to access loopback/private networks or send API credentials to a new origin. Images are limited to 64 MiB and videos to 512 MiB including decoded inline payloads; cancellation also interrupts video submission, polling and download I/O.
+
+IPv6 resource addresses must belong to ordinary public unicast space (`2000::/3`), excluding the special protocol range `2001::/23`, documentation ranges `2001:db8::/32` and `3fff::/20`, and 6to4 `2002::/16`. Knovum does not make exceptions for special protocol assignments inside these ranges. IPv4-mapped addresses use the same IPv4 public-address policy. These exclusions follow the [IANA IPv6 Special-Purpose Address Registry](https://www.iana.org/assignments/iana-ipv6-special-registry).
 
 ## Distribution gate
 

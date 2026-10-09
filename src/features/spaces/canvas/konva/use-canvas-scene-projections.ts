@@ -4,6 +4,7 @@ import { ancestorsOf, createStructureIndex } from "../../model/structure/structu
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import type { WorldBounds } from "../../model/structure/world-bounds";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
+import { SECTION_HEADER_HEIGHT } from "../document/structure-scene";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { projectCanvasScene } from "./scene/scene-projection";
@@ -65,7 +66,7 @@ export function useCanvasSceneProjections(
               section.id,
               canvasBounds(
                 layout.collapsed && temporarilyExpandedSectionId.value !== section.id
-                  ? { ...bounds, bottom: bounds.top + 40 }
+                  ? { ...bounds, bottom: bounds.top + SECTION_HEADER_HEIGHT }
                   : bounds,
               ),
             ] as const,

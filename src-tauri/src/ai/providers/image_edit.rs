@@ -125,17 +125,11 @@ pub(crate) async fn edit_image(
         return response::decode_image(&encoded).map_err(|error| error.to_string());
     }
     let url = image.url.ok_or("Image edit returned no image")?;
-    let download = http_client().get(url).send();
-    let edited_image = tokio::select! {
-        _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
-        response = download => response.map_err(|error| error.to_string())?,
-    };
-    let edited_image = edited_image
-        .error_for_status()
-        .map_err(|error| error.to_string())?;
-    response::read_bytes(edited_image, response::MAX_IMAGE_BYTES)
-        .await
-        .map_err(|error| error.to_string())
+    tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => Err("Image operation was cancelled".into()),
+        bytes = response::download_image(&url) => bytes.map_err(|error| error.to_string()),
+    }
 }
 
 fn data_uri(image: &[u8]) -> String {

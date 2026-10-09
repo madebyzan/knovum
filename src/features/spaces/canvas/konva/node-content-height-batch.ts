@@ -45,7 +45,7 @@ export function createNodeContentHeightBatch(
       if (fittedMeasurement) fitted.set(id, fittedMeasurement);
     }
     measurements.clear();
-    commit(fitted);
+    if (fitted.size) commit(fitted);
     return true;
   }
 
@@ -62,18 +62,19 @@ export function createNodeContentHeightBatch(
       layout.frame.width === measurement.width,
       (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
     ].every(Boolean);
-    return matchesSource
-      ? {
-          contentRevision: measurement.contentRevision,
-          height: Math.max(
-            spaceNodeMinimumContentHeight(node.data, measurement.typographyScale),
-            measurement.height,
-          ),
-          measuredWidth: measurement.width,
-          sizingMode: measurement.sizingMode,
-          typographyScale: measurement.typographyScale,
-        }
-      : undefined;
+    if (!matchesSource) return undefined;
+    const height = Math.max(
+      spaceNodeMinimumContentHeight(node.data, measurement.typographyScale),
+      measurement.height,
+    );
+    if (layout.sizingMode === "frame" && layout.frame.height === height) return undefined;
+    return {
+      contentRevision: measurement.contentRevision,
+      height,
+      measuredWidth: measurement.width,
+      sizingMode: measurement.sizingMode,
+      typographyScale: measurement.typographyScale,
+    };
   }
 
   return { fit, flush, setPaused };

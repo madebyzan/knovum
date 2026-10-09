@@ -57,7 +57,7 @@ function validateProducerIdentity(record, manifest, configuration) {
   validateSigningRecord(record.signing, manifest.target);
 }
 
-export function validateCondaSupplier(supplier, configuration, condaPath, ErrorType = Error) {
+function validateCondaSupplier(supplier, configuration, condaPath) {
   const packages = JSON.parse(readFileSync(condaPath, "utf8"));
   if (
     supplier?.supplier !== configuration.name ||
@@ -66,7 +66,7 @@ export function validateCondaSupplier(supplier, configuration, condaPath, ErrorT
     JSON.stringify(supplier?.packages.map(({ files: _files, ...identity }) => identity)) !==
       JSON.stringify(packages.packages)
   )
-    throw new ErrorType("Runtime producer identity differs from the controlled build");
+    throw new Error("Runtime producer identity differs from the controlled build");
 }
 
 export function validateSigningRecord(signing, target, ErrorType = Error) {

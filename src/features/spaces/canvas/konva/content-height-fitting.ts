@@ -1,5 +1,6 @@
 import type { StructureLayout } from "../../model/structure/schema/structure";
 import { createStructureIndex } from "../../model/structure/structure-index";
+import { worldTransformFor } from "../../model/structure/world-transform";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createNodeContentHeightBatch, type FittedContentHeight } from "./node-content-height-batch";
 
@@ -43,12 +44,18 @@ export function createCanvasContentHeightFitting(options: FittingOptions) {
     const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
     const layout = structureNodeId ? layouts.get(structureNodeId) : undefined;
     if (!node || !structureNodeId || layout?.kind !== "content") return [];
-    const matchesSource = [
+    const worldScale = worldTransformFor(structureNodeId, index, layouts).scale;
+    const height = measurement.height / worldScale;
+    const shouldSubmit = [
       (node.data.knowledgeRevision ?? null) === measurement.contentRevision,
       layout.sizingMode === measurement.sizingMode,
-      layout.size.width === measurement.measuredWidth,
+      options.scene().nodesById.has(nodeId),
+      layout.size.width * worldScale === measurement.measuredWidth,
       (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
+      [layout.sizingMode === "content", layout.size.height !== height].some(Boolean),
     ].every(Boolean);
-    return matchesSource ? [{ structureNodeId, ...measurement }] : [];
+    return shouldSubmit
+      ? [{ structureNodeId, ...measurement, height, measuredWidth: layout.size.width }]
+      : [];
   }
 }

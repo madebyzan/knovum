@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { sha256File } from "../files.mjs";
-import { mediaCondaLockPath } from "../media-manifest.mjs";
+import { mediaSource } from "../media-manifest.mjs";
 import { runtimeProfiles, runtimeTargets } from "../profiles.mjs";
 import { publicationSources, writePublication } from "../publication.mjs";
 
@@ -44,14 +44,14 @@ test("publication binds every target and profile to its actual archive", (contex
         schemaVersion: 1,
         runtimeId: "ffmpeg",
         target,
-        version: "9.0.1",
+        version: "9.0.2",
         archiveUrl: `${baseUrl}/${mediaPrefix}.tar.gz`,
         size: Buffer.byteLength(`media/${target}`),
         sha256: sha256File(join(directory, `${mediaPrefix}.tar.gz`)),
         manifestSha256: "a".repeat(64),
-        condaLockSha256: sha256File(
-          mediaCondaLockPath(fileURLToPath(new URL("../../../", import.meta.url)), target),
-        ),
+        sourceSha256: mediaSource(fileURLToPath(new URL("../../../", import.meta.url)), target).source.sha256,
+        licenseReviewSha256: mediaSource(fileURLToPath(new URL("../../../", import.meta.url)), target)
+          .licenseReviewSha256,
       }),
     );
     for (const profile of runtimeProfiles) {

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from runtime.inventory import runtime_installation_inventory, write_inventory
 
 
@@ -87,13 +88,8 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
         'name = "demo-package"\n'
         'version = "1.2.3"\n'
         'source = { registry = "https://pypi.org/simple" }\n'
-        'sdist = { url = "https://example.test/demo.tar.gz", hash = "sha256:'
-        + "c"
-        * 64
-        + '", size = 10 }\n'
-        'wheels = [{ url = "https://example.test/demo.whl", hash = "sha256:'
-        + "d" * 64
-        + '", size = 20 }]\n'
+        'sdist = { url = "https://example.test/demo.tar.gz", hash = "sha256:' + "c" * 64 + '", size = 10 }\n'
+        'wheels = [{ url = "https://example.test/demo.whl", hash = "sha256:' + "d" * 64 + '", size = 20 }]\n'
     )
     output = tmp_path / "evidence"
 
@@ -116,9 +112,7 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     from cyclonedx.schema import SchemaVersion
     from cyclonedx.validation.json import JsonStrictValidator
 
-    assert (
-        JsonStrictValidator(SchemaVersion.V1_6).validate_str(json.dumps(sbom)) is None
-    )
+    assert JsonStrictValidator(SchemaVersion.V1_6).validate_str(json.dumps(sbom)) is None
     components = {item["name"]: item for item in sbom["components"]}
     assert components.keys() == {"CPython", "Demo_Package", "standalone-tts"}
     assert components["CPython"]["version"] == "3.11.17"
@@ -128,8 +122,7 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     assert components["Demo_Package"]["purl"] == "pkg:pypi/demo-package@1.2.3"
     assert components["Demo_Package"]["licenses"] == [{"expression": "MIT"}]
     assert (
-        evidence["dependencyLockSha256"]
-        == hashlib.sha256(lock.read_bytes() + configuration.read_bytes()).hexdigest()
+        evidence["dependencyLockSha256"] == hashlib.sha256(lock.read_bytes() + configuration.read_bytes()).hexdigest()
     )
     assert evidence["cpython"]["version"] == "3.11.17"
     assert evidence["cpython"]["source"]["url"] == "https://example.test/cpython.tar.gz"
@@ -138,10 +131,9 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
         "compiled-libraries/voice.dll",
     ]
     assert evidence["runtimeInstallation"]["notices"][0]["path"] == "LICENSE.python.txt"
-    assert {
-        notice["path"]: notice["sha256"]
-        for notice in evidence["runtimeInstallation"]["notices"]
-    }["source-notices/audio-cpp/LICENSE"] == sha256(source_license)
+    assert {notice["path"]: notice["sha256"] for notice in evidence["runtimeInstallation"]["notices"]}[
+        "source-notices/audio-cpp/LICENSE"
+    ] == sha256(source_license)
     assert "interpreter" not in evidence
     assert evidence["sourceComponents"] == [supplier]
     assert components["standalone-tts"]["licenses"] == [{"expression": "Apache-2.0"}]
@@ -149,10 +141,7 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     assert distribution["compiledBinaries"] == ["packages/demo_native.pyd"]
     assert distribution["notices"][0]["path"].endswith("LICENSE.txt")
     assert distribution["source"]["origin"] == {"registry": "https://pypi.org/simple"}
-    assert (
-        distribution["source"]["installedDirectUrl"]["vcs_info"]["commit_id"]
-        == "b" * 40
-    )
+    assert distribution["source"]["installedDirectUrl"]["vcs_info"]["commit_id"] == "b" * 40
 
 
 def test_inventory_rejects_installed_distribution_absent_from_lock(

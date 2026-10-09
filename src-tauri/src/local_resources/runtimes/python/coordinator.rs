@@ -20,7 +20,15 @@ pub(crate) async fn prepare<R: Runtime>(
     }
     let handle = app.clone();
     if crate::blocking::run(move || {
-        let runtime = super::resolve(&handle, profile)?;
+        let runtime = match super::resolve(&handle, profile) {
+            Ok(runtime) => runtime,
+            #[cfg(debug_assertions)]
+            Err(error) if error.starts_with("python-runtime-invalid:") => {
+                log::warn!("Development runtime will be reset before preparation: {error}");
+                None
+            }
+            Err(error) => return Err(error),
+        };
         if runtime.is_some() {
             super::retire_unused(&handle, profile)?;
         }

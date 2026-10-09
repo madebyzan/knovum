@@ -55,14 +55,7 @@ pub(super) async fn poll(
                     .ok_or_else(|| {
                         AppError::new("invalid_response", "Kling returned no image URL")
                     })?;
-                let download = client
-                    .get(image_url)
-                    .send()
-                    .await
-                    .map_err(provider_error)?
-                    .error_for_status()
-                    .map_err(provider_error)?;
-                return response::read_bytes(download, response::MAX_IMAGE_BYTES).await;
+                return response::download_image(image_url).await;
             }
             Some("failed") => {
                 return Err(AppError::new(

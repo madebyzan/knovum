@@ -6,7 +6,7 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus,
     },
-    transport::{http_client, SecurityContext},
+    transport::SecurityContext,
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -18,7 +18,11 @@ pub async fn materialize(
     stage: VideoGenerationStageCallback<'_>,
 ) -> AppResult<GeneratedVideo> {
     stage("submittingVideo").map_err(AppError::invalid)?;
-    let submission = adapter.submit(ctx, req).await?;
+    let submission = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err(AppError::cancelled("Video generation cancelled by user")),
+        submission = adapter.submit(ctx, req) => submission?,
+    };
     let operation_id = submission.operation_id;
     stage("videoGenerationSubmitted").map_err(AppError::invalid)?;
 
@@ -51,31 +55,15 @@ pub async fn materialize(
 
         stage("generatingVideo").map_err(AppError::invalid)?;
 
-        let generation_status = adapter.status(ctx, &operation_id).await?;
+        let generation_status = tokio::select! {
+            biased;
+            _ = cancellation.cancelled() => return Err(AppError::cancelled("Video generation cancelled by user")),
+            status = adapter.status(ctx, &operation_id) => status?,
+        };
         match generation_status {
             VideoGenerationStatus::Succeeded { video_url } => {
                 stage("downloadingVideo").map_err(AppError::invalid)?;
-                let video_bytes =
-                    if let Some(b64) = video_url.strip_prefix("data:video/mp4;base64,") {
-                        use base64::Engine;
-                        base64::engine::general_purpose::STANDARD
-                            .decode(b64)
-                            .map_err(|e| AppError::new("invalid_response", e.to_string()))?
-                    } else {
-                        let download_response = http_client()
-                            .get(&video_url)
-                            .send()
-                            .await
-                            .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
-                            .error_for_status()
-                            .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
-
-                        download_response
-                            .bytes()
-                            .await
-                            .map_err(|e| AppError::new("invalid_response", e.to_string()))?
-                            .to_vec()
-                    };
+                let video_bytes = super::output::materialize(ctx, &video_url, cancellation).await?;
 
                 return Ok(GeneratedVideo {
                     bytes: video_bytes,

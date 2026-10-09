@@ -74,7 +74,7 @@ pub(super) fn extract(
             _ => {
                 return Err(
                     "python-runtime-invalid: archive links and special files are forbidden".into(),
-                )
+                );
             }
         }
     }

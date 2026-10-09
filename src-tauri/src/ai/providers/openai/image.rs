@@ -128,14 +128,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
             let bytes = if let Some(b64) = item.b64_json {
                 response::decode_image(&b64)?
             } else if let Some(image_url) = item.url {
-                let download_response = http_client()
-                    .get(image_url)
-                    .send()
-                    .await
-                    .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
-                    .error_for_status()
-                    .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
-                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?
+                response::download_image(&image_url).await?
             } else {
                 return Err(AppError::new(
                     "invalid_response",

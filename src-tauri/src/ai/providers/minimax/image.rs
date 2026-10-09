@@ -98,16 +98,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                     AppError::new("invalid_response", "MiniMax returned no image URL")
                 })?;
 
-            let download_response = client
-                .get(&image_url)
-                .send()
-                .await
-                .map_err(provider_err)?
-                .error_for_status()
-                .map_err(provider_err)?;
-
-            let image_bytes =
-                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?;
+            let image_bytes = response::download_image(&image_url).await?;
 
             Ok(GeneratedImage {
                 bytes: image_bytes,

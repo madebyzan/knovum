@@ -73,22 +73,23 @@ pub(crate) fn resolve<R: Runtime>(
         Some(value) => descriptor::destination(app, &value)?.join(MANIFEST_NAME),
         None => return Ok(None),
     };
-    let lease = if cfg!(debug_assertions) {
-        None
-    } else {
-        if !manifest_path.is_file() {
-            return Ok(None);
-        }
-        Some(retention::acquire(
-            manifest_path
-                .parent()
-                .ok_or("Runtime manifest has no parent")?,
-        )?)
-    };
+    if !manifest_path.is_file() {
+        return Ok(None);
+    }
+    let lease = retention::acquire(&identity_directory(&manifest_path)?)?;
     if !manifest_path.is_file() {
         return Ok(None);
     }
 
+    resolve_with_lease(app, profile, manifest_path, lease).map(Some)
+}
+
+fn resolve_with_lease<R: Runtime>(
+    app: &AppHandle<R>,
+    profile: RuntimeProfile,
+    manifest_path: PathBuf,
+    lease: std::sync::Arc<RuntimeLease>,
+) -> Result<PythonRuntimePaths, String> {
     let cache = VERIFIED_RUNTIMES.get_or_init(|| Mutex::new(HashMap::new()));
     let mut cached = cache
         .lock()
@@ -98,7 +99,7 @@ pub(crate) fn resolve<R: Runtime>(
         .get(&profile)
         .filter(|runtime| runtime.manifest_path == manifest_path)
     {
-        return Ok(Some(runtime.clone()));
+        return Ok(runtime.clone());
     }
     #[cfg(not(debug_assertions))]
     cached.remove(&profile);
@@ -110,7 +111,7 @@ pub(crate) fn resolve<R: Runtime>(
         .get(&profile)
         .filter(|runtime| runtime.manifest_path == manifest_path && runtime.digest == digest)
     {
-        return Ok(Some(runtime.clone()));
+        return Ok(runtime.clone());
     }
     #[cfg(debug_assertions)]
     cached.remove(&profile);
@@ -130,10 +131,10 @@ pub(crate) fn resolve<R: Runtime>(
         package_root,
         digest,
         worker_root: worker_root(app, profile)?,
-        lease,
+        lease: Some(lease),
     };
     cached.insert(profile, paths.clone());
-    Ok(Some(paths))
+    Ok(paths)
 }
 
 pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) -> RuntimeStatus {
@@ -232,8 +233,23 @@ pub(super) fn retire_unused<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    {
+        let _ = app;
+        retention::retire_unused(&identity_directory(&profile.development_manifest())?)?;
+    }
+    #[cfg(not(debug_assertions))]
     if let Some(value) = verification_descriptor(profile)? {
         retention::retire_unused(&descriptor::destination(app, &value)?)?;
     }
     Ok(())
+}
+
+fn identity_directory(manifest: &std::path::Path) -> Result<PathBuf, String> {
+    let runtime = manifest.parent().ok_or("Runtime manifest has no parent")?;
+    #[cfg(debug_assertions)]
+    let runtime = runtime
+        .parent()
+        .ok_or("Development runtime has no identity directory")?;
+    Ok(runtime.to_path_buf())
 }

@@ -61,7 +61,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       />
       <CanvasStructureSectionsLayer
         :palette="runtime.palette.value"
-        :sections="runtime.structure.structureScene.value.sections"
+        :sections="runtime.visibility.visibleSections.value"
       />
       <CanvasSceneLayers
         :interactive="
@@ -117,7 +117,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
           interactionEnabled && canvasGesturesEnabled && tool === 'select' && !runtime.viewport.panning.value
         "
         :palette="runtime.palette.value"
-        :sections="runtime.structure.structureScene.value.sections"
+        :sections="runtime.visibility.visibleSections.value"
         :selected-ids="runtime.selection.structureNodeIds.value"
         :drop-target-id="runtime.structureInteractions.dropTargetId.value"
         :zoom="runtime.viewport.viewport.value.zoom"

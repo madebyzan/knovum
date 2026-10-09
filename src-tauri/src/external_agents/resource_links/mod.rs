@@ -1,14 +1,11 @@
-use std::{
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::path::{Path, PathBuf};
 
 use agent_client_protocol::{schema::v1::ResourceLink, Error};
 use futures::FutureExt;
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
-use crate::public_network::public_address;
+use crate::public_network::resource_response;
 
 const MAX_REMOTE_RESOURCE_BYTES: usize = 64 * 1024 * 1024;
 const MAX_REMOTE_IMAGE_BYTES: usize = 64 * 1024 * 1024;
@@ -50,7 +47,9 @@ async fn acquire(
     }
     require_https(&url)?;
     // Keep the HTTP transport's concrete future out of the ACP session state machine.
-    let response = remote_response(url.clone()).boxed().await?;
+    let response = resource_response(url.clone(), reqwest::header::HeaderMap::new())
+        .boxed()
+        .await?;
     let response_content_type = response
         .headers()
         .get(reqwest::header::CONTENT_TYPE)
@@ -175,50 +174,6 @@ fn remote_extension(
                 .and_then(|values| values.first().map(|value| (*value).into()))
         })
         .ok_or_else(|| "Agent resource link has no file type".into())
-}
-
-async fn remote_response(mut url: tauri::Url) -> Result<reqwest::Response, String> {
-    for _ in 0..=5 {
-        require_https(&url)?;
-        let host = url.host_str().ok_or("Agent resource has no host")?;
-        let addresses: Vec<_> =
-            tokio::net::lookup_host((host, url.port_or_known_default().unwrap_or(443)))
-                .await
-                .map_err(|error| error.to_string())?
-                .collect();
-        if addresses.is_empty()
-            || addresses
-                .iter()
-                .any(|address| !public_address(address.ip()))
-        {
-            return Err("Agent remote output must resolve only to public addresses".into());
-        }
-        let client = reqwest::Client::builder()
-            .no_proxy()
-            .timeout(Duration::from_secs(120))
-            .redirect(reqwest::redirect::Policy::none())
-            .resolve_to_addrs(host, &addresses)
-            .build()
-            .map_err(|error| error.to_string())?;
-        let response = client
-            .get(url.clone())
-            .send()
-            .await
-            .map_err(|error| error.without_url().to_string())?;
-        if response.status().is_redirection() {
-            let location = response
-                .headers()
-                .get(reqwest::header::LOCATION)
-                .and_then(|value| value.to_str().ok())
-                .ok_or("Agent output redirect has no location")?;
-            url = url.join(location).map_err(|error| error.to_string())?;
-        } else {
-            return response
-                .error_for_status()
-                .map_err(|error| error.without_url().to_string());
-        }
-    }
-    Err("Agent output exceeded redirect limit".into())
 }
 
 fn require_https(url: &tauri::Url) -> Result<(), String> {
