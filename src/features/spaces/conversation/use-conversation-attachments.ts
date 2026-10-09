@@ -19,7 +19,7 @@ import { chooseConversationUploads, inspectConversationUploads } from "./convers
 import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isConversationImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
 
-function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t"]) {
+function attachmentErrorLabelKey(error: unknown) {
   const code = decodeAppError(error)?.code;
   const known: Readonly<Record<string, string>> = {
     conversation_context_limit: "spaces.conversation.attachments.limit",
@@ -28,8 +28,7 @@ function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t
     conversation_upload_invalid: "spaces.conversation.uploads.invalidError",
     conversation_upload_unauthorized: "spaces.conversation.uploads.permissionError",
   };
-  const key = code ? known[code] : undefined;
-  return key ? t(key) : getErrorMessage(error);
+  return code ? known[code] : undefined;
 }
 
 export function useConversationAttachments() {
@@ -148,7 +147,8 @@ export function useConversationAttachments() {
       attachments.value = [...next.values()];
     } catch (error) {
       if (!isCurrent()) return;
-      attachmentError.value = attachmentErrorMessage(error, t);
+      const labelKey = attachmentErrorLabelKey(error);
+      attachmentError.value = labelKey ? t(labelKey) : getErrorMessage(error);
     } finally {
       pickingFiles.value = false;
     }

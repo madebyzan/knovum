@@ -6,7 +6,7 @@ import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
-import type { useSpaceStore } from "../../session/space-store";
+import { useSpaceStore } from "../../session/space-store";
 import { structureParentTargets } from "../../structure/structure-capabilities";
 import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu";
 
@@ -14,11 +14,10 @@ interface StructureOutlineMenuOptions {
   index: ComputedRef<StructureIndex>;
   rename(structureNodeId: string): void;
   reveal(structureNodeId: string): void;
-  snapshot(): SpaceEditSnapshot;
-  store: ReturnType<typeof useSpaceStore>;
 }
 
 export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
+  const store = useSpaceStore();
   const { t } = useI18n();
   const editor = getCanvasEditorSession();
   const operations = useNodeOperationGate();
@@ -37,9 +36,9 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
         enabled: !effectivelyLocked,
       }),
     ];
-    const layout = options
-      .snapshot()
-      .layouts.find((candidate) => candidate.structureNodeId === structureNodeId);
+    const layout = store.editSnapshot.layouts.find(
+      (candidate) => candidate.structureNodeId === structureNodeId,
+    );
     const containerActions = containerMenuEntries(
       structureNodeId,
       structureNode.kind,
@@ -47,7 +46,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
       effectivelyLocked,
     );
     const parentTargets = structureParentTargets(
-      options.snapshot(),
+      store.editSnapshot,
       [structureNodeId],
       t("spaces.canvas.spaceRoot"),
     );
@@ -121,9 +120,9 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     return [];
   }
 
-  async function execute(command: Parameters<typeof options.store.executeSpaceEdit>[0]) {
+  async function execute(command: Parameters<typeof store.executeSpaceEdit>[0]) {
     if (!operations.allows("structure")) return;
-    await options.store.executeSpaceEdit(command);
+    await store.executeSpaceEdit(command);
   }
 
   return { show };

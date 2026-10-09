@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ComposerTranslation } from "vue-i18n";
 
 import type { MaintenanceReceipt } from "../../contracts/generated/MaintenanceReceipt";
 import { showBackupMaintenanceNotice } from "../maintenance-notice";
@@ -14,7 +13,9 @@ const calls = vi.hoisted(() => ({
 vi.mock("../../../../foundation/ipc/invoke-command", () => ({ invokeCommand: calls.invoke }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: calls.log }));
 vi.mock("vue-sonner", () => ({ toast: calls }));
-const t = ((key: string) => key) as ComposerTranslation;
+vi.mock("../../../../foundation/i18n/i18n", () => ({
+  i18n: { global: { t: (key: string) => key } },
+}));
 
 describe("backup maintenance notice", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -28,7 +29,7 @@ describe("backup maintenance notice", () => {
       credentialsReconfigurationRequired: true,
     };
     calls.invoke.mockResolvedValue(receipt);
-    await showBackupMaintenanceNotice(t);
+    await showBackupMaintenanceNotice();
     expect(calls.warning).toHaveBeenCalledWith(
       "settings.data.receipt.restore.success",
       expect.objectContaining({
@@ -48,7 +49,7 @@ describe("backup maintenance notice", () => {
       cleanupWarning: null,
       credentialsReconfigurationRequired: false,
     });
-    await showBackupMaintenanceNotice(t);
+    await showBackupMaintenanceNotice();
     expect(calls.error).toHaveBeenCalledWith(
       "settings.data.receipt.readFailed",
       expect.objectContaining({ duration: Infinity }),
@@ -66,7 +67,7 @@ describe("backup maintenance notice", () => {
       cleanupWarning: null,
       credentialsReconfigurationRequired: false,
     } satisfies MaintenanceReceipt);
-    await showBackupMaintenanceNotice(t);
+    await showBackupMaintenanceNotice();
     expect(calls.error).toHaveBeenCalledWith(
       "settings.data.receipt.backup.failed",
       expect.objectContaining({

@@ -2,7 +2,6 @@
 import { Plus } from "@lucide/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef } from "vue";
-import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { connectorQuery, connectionQuery } from "../../../foundation/extensions/extension-query";
@@ -16,7 +15,6 @@ import ConnectorConnections from "./ConnectorConnections.vue";
 import ConnectorEditor from "./ConnectorEditor.vue";
 import { useConnectorEditing } from "./use-connector-editing";
 
-const { t } = useI18n();
 const search = shallowRef("");
 const connectors = useQuery(connectorQuery);
 const visible = computed(() =>
@@ -25,7 +23,7 @@ const visible = computed(() =>
   ),
 );
 const connections = useQuery(connectionQuery);
-const { changes, editing, draft, edit, closeEditor, save, remove } = useConnectorEditing(t);
+const { changes, editing, draft, edit, closeEditor, save, remove } = useConnectorEditing();
 </script>
 <template>
   <section class="min-w-0 space-y-4">

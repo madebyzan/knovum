@@ -81,7 +81,6 @@ const removal = useImageRemovalStrokes({
   rect: imageRect,
   enabled: removing,
   frameRotation: toRef(props, "frameRotation"),
-  session: removalSession,
   redraw: draw,
 });
 const brushCursor = removal.cursor;

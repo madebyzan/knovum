@@ -11,7 +11,7 @@ import { useBackupOperations } from "../../backup/use-backup-operations";
 import PreferenceField from "../PreferenceField.vue";
 
 const { t } = useI18n();
-const operations = useBackupOperations(t);
+const operations = useBackupOperations();
 
 async function perform(operation: "backup" | "restore") {
   try {

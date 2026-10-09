@@ -1,13 +1,12 @@
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 
-import type { getCanvasEditorSession } from "../../canvas/editor-session";
-import type { useSpaceStore } from "../../session/space-store";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
+import { useSpaceStore } from "../../session/space-store";
 
-type CanvasEditorSession = ReturnType<typeof getCanvasEditorSession>;
-type SpaceStore = ReturnType<typeof useSpaceStore>;
-
-export function useCanvasNavigationRequests(store: SpaceStore, editorSession: CanvasEditorSession) {
+export function useCanvasNavigationRequests() {
+  const store = useSpaceStore();
+  const editorSession = getCanvasEditorSession();
   const { revealRequest, selectionClearNonce, viewportRequest, zoomRequest } = storeToRefs(store);
   function consumeRevealRequest() {
     const request = revealRequest.value;

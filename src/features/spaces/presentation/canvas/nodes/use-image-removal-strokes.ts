@@ -3,7 +3,7 @@ import { shallowRef, watch, type Ref } from "vue";
 import { viewportToLocalPoint } from "../../../canvas/viewport-to-local-point";
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
 import type { ImagePixelRect } from "../../../image-editing/image-edit";
-import type { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
+import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
 
 interface ImageRemovalStrokeInput {
   canvas: Readonly<Ref<HTMLCanvasElement | null>>;
@@ -11,11 +11,11 @@ interface ImageRemovalStrokeInput {
   rect: Readonly<Ref<ImagePixelRect | undefined>>;
   enabled: Readonly<Ref<boolean>>;
   frameRotation: Readonly<Ref<number>>;
-  session: ReturnType<typeof useImageRemovalSessionStore>;
   redraw: () => void;
 }
 
 export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
+  const session = useImageRemovalSessionStore();
   const draftStroke = shallowRef<number[]>();
   const cursor = shallowRef<{ x: number; y: number }>();
   const pointerId = shallowRef<number>();
@@ -33,7 +33,7 @@ export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
   }
 
   function begin(event: PointerEvent) {
-    if (!input.enabled.value || !input.session.canDraw || pointerId.value !== undefined) return;
+    if (!input.enabled.value || !session.canDraw || pointerId.value !== undefined) return;
     const hit = position(event);
     if (!hit) return;
     event.preventDefault();
@@ -48,7 +48,7 @@ export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
     const hit = position(event);
     cursor.value = hit ? { x: hit.x, y: hit.y } : undefined;
     const draft = draftStroke.value;
-    if (!draft || !hit || draft.length / 2 >= input.session.remainingPoints) return;
+    if (!draft || !hit || draft.length / 2 >= session.remainingPoints) return;
     event.preventDefault();
     const last = draft.length - 2;
     if (Math.hypot(hit.point[0]! - draft[last]!, hit.point[1]! - draft[last + 1]!) < 0.002) return;
@@ -63,7 +63,7 @@ export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
     const points = draftStroke.value;
     draftStroke.value = undefined;
     if (!points) return;
-    input.session.addStroke(points.length === 2 ? [...points, ...points] : points);
+    session.addStroke(points.length === 2 ? [...points, ...points] : points);
   }
 
   function cancel(event: PointerEvent) {

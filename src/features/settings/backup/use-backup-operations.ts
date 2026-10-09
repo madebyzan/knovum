@@ -1,6 +1,6 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { computed, shallowRef } from "vue";
-import type { ComposerTranslation } from "vue-i18n";
+import { useI18n } from "vue-i18n";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { runApplicationTransition } from "../../../foundation/lifecycle/application-transition";
@@ -10,7 +10,8 @@ import { confirmAction } from "../../../shared/ui/confirm-action";
 
 const FILTER = [{ name: "Knovum backup", extensions: ["knovum-backup"] }];
 
-export function useBackupOperations(t: ComposerTranslation) {
+export function useBackupOperations() {
+  const { t } = useI18n();
   const busy = shallowRef<"backup" | "restore">();
   const tasks = useTaskStore();
   const blockedByTasks = computed(() => tasks.running.length > 0);

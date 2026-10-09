@@ -50,7 +50,7 @@ const sceneInput = computed<CanvasSceneInput>(() => ({
   nodes: store.nodes,
   relations: visibleRelations.value,
 }));
-const navigationRequests = useCanvasNavigationRequests(store, editorSession);
+const navigationRequests = useCanvasNavigationRequests();
 const contentLayout = createCanvasContentLayoutCoordinator({
   directManipulation: () => editorSession.directManipulation.value,
   editor: currentCanvasEditor,
@@ -71,8 +71,6 @@ const lifecycle = useSpaceCanvasLifecycle({
   contentLayout,
   navigation: navigationRequests,
   spaceId,
-  store,
-  tools,
 });
 watch(
   () => tools.tool,
@@ -81,10 +79,7 @@ watch(
   },
 );
 const imports = useSpaceCanvasImports({
-  store,
-  editorSession,
   dropTarget: () => canvasRoot.value,
-  newNoteTitle: t("spaces.editor.note.new"),
   reportError: lifecycle.reportError,
 });
 

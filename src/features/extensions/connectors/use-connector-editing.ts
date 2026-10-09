@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from "es-toolkit";
 import { computed, onScopeDispose, ref, shallowRef } from "vue";
-import type { ComposerTranslation } from "vue-i18n";
+import { useI18n } from "vue-i18n";
 
 import {
   createConnectorDefinition,
@@ -14,7 +14,8 @@ import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 import { connectorDraft } from "./connector-draft";
 
-export function useConnectorEditing(t: ComposerTranslation) {
+export function useConnectorEditing() {
+  const { t } = useI18n();
   const changes = useExtensionChanges();
   const editing = shallowRef(false);
   const draft = ref(connectorDraft());
@@ -35,7 +36,7 @@ export function useConnectorEditing(t: ComposerTranslation) {
       if (!succeeded) return false;
       if (!editing.value) return true;
     }
-    if (dirty.value && !(await confirmDiscard(t))) return false;
+    if (dirty.value && !(await confirmDiscard())) return false;
     editing.value = false;
     return true;
   }
@@ -43,7 +44,7 @@ export function useConnectorEditing(t: ComposerTranslation) {
   const unregister = useSettingsLeaveContext().register({
     async prepare() {
       if (admittedMutation && !(await admittedMutation)) return false;
-      return !dirty.value || confirmDiscard(t);
+      return !dirty.value || confirmDiscard();
     },
     finalize() {
       editing.value = false;
@@ -86,14 +87,13 @@ export function useConnectorEditing(t: ComposerTranslation) {
     return admitted;
   }
 
+  function confirmDiscard() {
+    return confirmAction({
+      title: t("extensions.connectors.discard.title"),
+      description: t("extensions.connectors.discard.description"),
+      confirmLabel: t("common.discardChanges"),
+      danger: true,
+    });
+  }
   return { changes, editing, draft, edit, closeEditor, save, remove };
-}
-
-function confirmDiscard(t: ComposerTranslation) {
-  return confirmAction({
-    title: t("extensions.connectors.discard.title"),
-    description: t("extensions.connectors.discard.description"),
-    confirmLabel: t("common.discardChanges"),
-    danger: true,
-  });
 }

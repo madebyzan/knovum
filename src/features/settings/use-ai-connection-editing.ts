@@ -1,5 +1,5 @@
 import { computed, shallowRef } from "vue";
-import type { ComposerTranslation } from "vue-i18n";
+import { useI18n } from "vue-i18n";
 
 import { removeAiConnection, saveAiConnection } from "../../foundation/ai/connection-settings";
 import { getErrorMessage } from "../../foundation/errors/error-format";
@@ -12,10 +12,10 @@ interface ConnectionEditingOptions {
   connections: () => readonly AiConnectionSettings[];
   protectedConnectionIds: () => readonly string[];
   providersAvailable: () => boolean;
-  t: ComposerTranslation;
 }
 
 export function useAiConnectionEditing(options: ConnectionEditingOptions) {
+  const { t } = useI18n();
   const selectedId = shallowRef<string | null>();
   const dirty = shallowRef(false);
   const busy = shallowRef(false);
@@ -43,14 +43,14 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
       if (!succeeded) return false;
       if (selectedId.value === undefined) return true;
     }
-    if (dirty.value && !(await confirmDiscard(options.t))) return false;
+    if (dirty.value && !(await confirmDiscard())) return false;
     closeEditor();
     return true;
   }
   useSettingsLeaveDecision({
     async prepare() {
       if (admittedMutation && !(await admittedMutation)) return false;
-      return !dirty.value || confirmDiscard(options.t);
+      return !dirty.value || confirmDiscard();
     },
     finalize: closeEditor,
   });
@@ -60,7 +60,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     admittedMutation = runMutation(async () => {
       const receipt = await saveAiConnection(submission.connection, submission.secret);
       if (receipt.status === "credential-failed") {
-        error.value = `${options.t("settings.ai.secretSaveFailed")}: ${getErrorMessage(receipt.cause)}`;
+        error.value = `${t("settings.ai.secretSaveFailed")}: ${getErrorMessage(receipt.cause)}`;
         return false;
       }
       expandedId.value = submission.connection.id;
@@ -74,9 +74,9 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     if (busy.value || options.protectedConnectionIds().includes(connection.id)) return;
     if (
       !(await confirmAction({
-        title: options.t("common.delete"),
-        description: options.t("settings.ai.deleteConnectionConfirm", { name: connection.name }),
-        confirmLabel: options.t("common.delete"),
+        title: t("common.delete"),
+        description: t("settings.ai.deleteConnectionConfirm", { name: connection.name }),
+        confirmLabel: t("common.delete"),
         danger: true,
       }))
     )
@@ -94,7 +94,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     error.value = "";
     const admitted: Promise<boolean> = mutation()
       .catch((cause) => {
-        error.value = `${options.t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
+        error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
         return false;
       })
       .finally(() => {
@@ -104,6 +104,14 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     return admitted;
   }
 
+  function confirmDiscard() {
+    return confirmAction({
+      title: t("settings.ai.discardChangesTitle"),
+      description: t("settings.ai.discardChanges"),
+      confirmLabel: t("common.discardChanges"),
+      danger: true,
+    });
+  }
   return {
     selectedId,
     dirty,
@@ -116,13 +124,4 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     saveConnection,
     removeConnection,
   };
-}
-
-function confirmDiscard(t: ComposerTranslation) {
-  return confirmAction({
-    title: t("settings.ai.discardChangesTitle"),
-    description: t("settings.ai.discardChanges"),
-    confirmLabel: t("common.discardChanges"),
-    danger: true,
-  });
 }

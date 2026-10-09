@@ -34,7 +34,6 @@ const {
 } = useAiModelEditing({
   connection: () => props.connection,
   protectedModelTargets: () => props.protectedModelTargets,
-  t,
 });
 const dialogOpen = computed({
   get: () => selected.value !== undefined,

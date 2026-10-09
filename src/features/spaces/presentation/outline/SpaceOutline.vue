@@ -122,8 +122,6 @@ const outlineMenu = useStructureOutlineMenu({
   index,
   rename,
   reveal: select,
-  snapshot: () => store.editSnapshot,
-  store,
 });
 
 watch(
