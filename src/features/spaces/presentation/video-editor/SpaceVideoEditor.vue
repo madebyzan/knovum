@@ -47,13 +47,18 @@ const {
   selectClip: onSelectClip,
   close: closeInspector,
 } = useVideoEditorInspector({ project, video, editorRoot, selection, playback });
-const editorError = computed(() => prepareError.value ?? metadataError.value ?? playback.audioError.value);
-const { previewPath, onMetadataError } = useVideoEditPreviewSource({
+const {
+  previewPath,
+  error: previewError,
+  onMetadataError,
+} = useVideoEditPreviewSource({
   data,
   proxyPath,
   playing: playback.playing,
-  metadataError,
 });
+const editorError = computed(
+  () => prepareError.value ?? metadataError.value ?? previewError.value ?? playback.audioError.value,
+);
 const history = useVideoEditHistory(project);
 const actions = useVideoEditActions({ node, data, project, video, history, selection, playback });
 const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
