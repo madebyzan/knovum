@@ -1,4 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
+import type * as VueI18n from "vue-i18n";
 
 import type { DraftVoiceCandidateRequest } from "../../contracts/generated/DraftVoiceCandidateRequest";
 import type { RunObservation } from "../../contracts/generated/RunObservation";
@@ -17,7 +18,7 @@ vi.mock("../voice-candidate-ipc", () => mocks);
 vi.mock("../ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
 vi.mock("vue-i18n", async (original) => ({
-  ...(await original<typeof import("vue-i18n")>()),
+  ...(await original<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
 

@@ -1,6 +1,7 @@
 import { flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, shallowRef, type EffectScope } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import { useVideoEditProxy } from "../video-editing/use-video-edit-proxy";
 
@@ -11,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
 vi.mock("vue-i18n", async (original) => ({
-  ...(await original<typeof import("vue-i18n")>()),
+  ...(await original<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
 

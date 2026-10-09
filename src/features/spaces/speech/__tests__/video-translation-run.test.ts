@@ -1,5 +1,6 @@
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { effectScope } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type { TranslateVideoDubbingRequest } from "../../contracts/generated/TranslateVideoDubbingRequest";
@@ -21,7 +22,7 @@ vi.mock("../../runs/resource-run-observation", () => ({
   observeResourceRun: mocks.observeResourceRun,
 }));
 vi.mock("vue-i18n", async (original) => ({
-  ...(await original<typeof import("vue-i18n")>()),
+  ...(await original<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
