@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useQueryClient } from "@tanstack/vue-query";
-import { computed, onBeforeUnmount, reactive, shallowRef } from "vue";
+import { computed, onBeforeUnmount, onScopeDispose, reactive, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import {
@@ -10,10 +11,13 @@ import {
 } from "../../../foundation/extensions/connector-operations";
 import { extensionQueryKey } from "../../../foundation/extensions/extension-query";
 import type { ConnectorAccount } from "../../../shared/contracts/generated/ConnectorAccount";
+import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 const props = defineProps<{ account: ConnectorAccount }>();
 const client = useQueryClient();
+const { t } = useI18n();
 const fields = reactive<Record<string, string>>({});
 const busy = shallowRef(false);
 const error = shallowRef("");
@@ -24,11 +28,29 @@ const names = computed(() =>
       ? props.account.authorization.names
       : [],
 );
+const canAuthorize = computed(
+  () => !busy.value && names.value.every((name) => Boolean(fields[name]?.trim())),
+);
+const unregister = useSettingsLeaveContext().register({
+  async prepare() {
+    if (busy.value) return false;
+    if (!Object.values(fields).some(Boolean)) return true;
+    return confirmAction({
+      title: t("extensions.accounts.discard.title"),
+      description: t("extensions.accounts.discard.description"),
+      confirmLabel: t("common.discardChanges"),
+      danger: true,
+    });
+  },
+  finalize: clear,
+});
+onScopeDispose(unregister);
 function clear() {
   for (const name of Object.keys(fields)) delete fields[name];
 }
 onBeforeUnmount(clear);
 async function authorize() {
+  if (!canAuthorize.value) return;
   busy.value = true;
   error.value = "";
   const values = Object.fromEntries(names.value.map((name) => [name, fields[name] ?? ""]));
@@ -44,6 +66,8 @@ async function authorize() {
   }
 }
 async function disconnect() {
+  if (busy.value) return;
+  clear();
   busy.value = true;
   error.value = "";
   try {
@@ -66,7 +90,7 @@ async function cancel() {
 
 <template>
   <form
-    class="space-y-3 rounded-lg bg-surface-muted p-3"
+    class="space-y-3 border-b border-stroke-divider py-4"
     data-testid="connector-authorization"
     @submit.prevent="authorize"
   >
@@ -95,9 +119,12 @@ async function cancel() {
         autocomplete="off"
         :disabled="busy"
     /></label>
+    <p v-if="busy" role="status" class="text-caption text-fg-secondary">
+      {{ $t("extensions.accounts.pending") }}
+    </p>
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
     <div class="flex gap-2">
-      <UiButton type="submit" size="sm" :disabled="busy" data-testid="authorize-connector">{{
+      <UiButton type="submit" size="sm" :disabled="!canAuthorize" data-testid="authorize-connector">{{
         $t(
           account.authorization.type === "oauth"
             ? "extensions.accounts.authorizeInBrowser"

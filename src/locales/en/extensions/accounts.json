@@ -14,5 +14,10 @@
   "disconnect": "Disconnect and delete local credentials",
   "name": "Account display name",
   "add": "Add account",
-  "billingHint": "External services may charge separately; these charges are not included in application token usage."
+  "billingHint": "External services may charge separately; these charges are not included in application token usage.",
+  "pending": "Authorization is in progress. Complete or cancel it before leaving this page.",
+  "discard": {
+    "title": "Discard unsaved account information?",
+    "description": "The unsubmitted account name or authorization fields will be cleared."
+  }
 }

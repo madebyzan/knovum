@@ -92,6 +92,10 @@ const activeSetting = computed(() => {
 function selectPane(pane: SettingsPaneId, setting?: string) {
   if (activePane.value === pane && route.query.pane === pane && route.query.setting === setting) return;
   const query: LocationQueryRaw = { ...route.query, pane };
+  if (pane !== "extensions") {
+    delete query.extensionTab;
+    delete query.extensionId;
+  }
   if (setting) query.setting = setting;
   else delete query.setting;
   void router.replace({ path: route.path, query });

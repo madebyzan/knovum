@@ -6,23 +6,14 @@ import type { ConnectorDefinition } from "../../../shared/contracts/generated/Co
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import UiSwitch from "../../../shared/ui/UiSwitch.vue";
+import ExtensionAvailability from "../components/ExtensionAvailability.vue";
+import McpConnectionEnablement from "../connections/McpConnectionEnablement.vue";
 import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
 import { useConnectorInstances } from "./use-connector-instances";
 
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
-const {
-  adding,
-  changes,
-  name,
-  selectedId,
-  selected,
-  create,
-  toggleAdding,
-  toggleSelected,
-  toggleEnabled,
-  remove,
-} = useConnectorInstances({ connector: () => props.connector, connections: () => props.connections });
+const { adding, changes, name, selectedId, selected, create, toggleAdding, toggleSelected, remove } =
+  useConnectorInstances({ connector: () => props.connector, connections: () => props.connections });
 </script>
 <template>
   <div class="space-y-4">
@@ -61,25 +52,28 @@ const {
           >
         </div>
       </form>
-      <p v-if="!connections.length" class="rounded-md bg-surface-muted p-3 text-caption text-fg-secondary">
+      <p v-if="!connections.length" class="py-3 text-caption text-fg-secondary">
         {{ $t("extensions.connections.empty") }}
       </p>
       <div
         v-for="connection in connections"
         :key="connection.id"
-        class="flex flex-wrap items-center gap-2 rounded-md bg-surface-muted px-3 py-2.5"
+        class="flex flex-wrap items-center gap-2 border-b border-stroke-divider py-3"
         :data-testid="`mcp-connection-${connection.id}`"
       >
-        <span class="min-w-0 flex-1 truncate text-body font-medium">{{ connection.name }}</span>
-        <UiSwitch
-          :model-value="connection.enabled"
+        <div class="min-w-0 flex-1">
+          <span class="block truncate text-body font-medium">{{ connection.name }}</span
+          ><ExtensionAvailability
+            kind="connections"
+            :extension-id="connection.id"
+            :enabled="connection.enabled"
+            :plugin-id="connector.pluginId"
+          />
+        </div>
+        <McpConnectionEnablement
+          :connection="connection"
+          :configured="Boolean(connector.endpoint)"
           :disabled="busy || changes.isPending.value"
-          :label="
-            $t(connection.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', {
-              name: connection.name,
-            })
-          "
-          @update:model-value="toggleEnabled(connection)"
         />
         <UiButton
           size="sm"
@@ -102,7 +96,7 @@ const {
     <p v-if="changes.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(changes.error.value) }}
     </p>
-    <section v-if="selected" class="space-y-3 rounded-lg bg-surface-muted p-3">
+    <section v-if="selected" class="space-y-3 border-t border-stroke-divider pt-4">
       <h4 class="text-body font-medium">
         {{ selected.name }} · {{ $t("extensions.connections.accountsAndTools") }}
       </h4>

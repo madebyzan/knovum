@@ -661,3 +661,30 @@ for reading, and title-sm for compact headings. Do not add size slots to make a 
 `UiInput` emits composition-safe `commit`/`cancel` events with the original keyboard event.
 Consumers that own Enter/Escape actions use explicit `.prevent` modifiers; an ordinary input keeps
 native form submission and dialog behavior.
+
+### Agent extensions
+
+Extensions use four searchable, counted categories: Plugins, Apps, MCP, and Skills.
+Plugins are installed capability packages; Skills are reusable instructions. Apps present
+`ConnectorDefinition` services and their accounts; MCP presents `McpConnection` instances.
+These are projections of the existing extension model, not independent registries.
+
+Use flat identity rows with a quiet icon, name, one-line description, and explicit actions.
+Open contents and configuration in a dedicated inspection view with a return action, rather
+than embedding several levels of expanded cards in a list. Plugin contents link to their
+Skills, Apps, and MCP connections; those views link back to their owner. Read-only Skill
+instructions render as Markdown; editing is an explicit operation, and plugin Skills must
+be copied to personal ownership before editing.
+
+Enablement is user intent, not a connection-health claim. “Available in conversations”
+means the backend admits the current extension revision, parent plugin, and account;
+it does not claim that a remote server is online. Service authorization and individual
+connection tool permissions remain separate steps. A connection starts disabled and its
+tools default to deny. Do not add mock integrations, inert trial buttons, or pretend
+that an installed package is an executable desktop application.
+
+The extension tab and selected entity live in the settings route query (`extensionTab`
+and `extensionId`). All internal navigation, browser history, and leaving settings must
+respect the existing settings leave coordinator. Search is local view state; installed
+content and availability use TanStack Query. These views reuse Knovum semantic tokens,
+Reka behavior, and native installation/export dialogs.

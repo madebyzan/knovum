@@ -81,6 +81,7 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             skills::commands::delete_skill,
             mcp::browsing::read_mcp_resource,
             mcp::browsing::get_mcp_prompt,
+            connectors::server_creation::create_mcp_server,
             mcp::commands::create_mcp_connection,
             mcp::commands::update_mcp_connection,
             mcp::commands::list_mcp_connections,

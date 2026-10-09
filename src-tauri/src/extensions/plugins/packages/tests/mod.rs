@@ -137,3 +137,27 @@ fn invalid_http_secret_fields_are_diagnosed_before_installation() {
         }));
     }
 }
+
+#[test]
+fn bundled_knowledge_skills_are_valid_independent_standard_components() {
+    let directory = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("resources/agent-plugins/knowledge-work");
+    let files = crate::extensions::plugins::sources::directory_files(
+        &directory,
+        &tokio_util::sync::CancellationToken::new(),
+    )
+    .unwrap();
+    let reviewed = super::inspect(&files, "builtin".into()).unwrap();
+    assert_eq!(reviewed.inspection.manifest.name, "knowledge-work");
+    assert_eq!(reviewed.skills.len(), 4);
+    assert!(reviewed
+        .inspection
+        .components
+        .iter()
+        .all(|component| component.supported));
+    assert!(reviewed
+        .skills
+        .iter()
+        .all(|skill| skill.requirements.is_empty() && skill.unsupported_requirements.is_empty()));
+    assert!(reviewed.inspection.connectors.is_empty());
+}

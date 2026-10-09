@@ -1,53 +1,13 @@
 <script setup lang="ts">
-import { useQuery } from "@tanstack/vue-query";
-import { open } from "@tauri-apps/plugin-dialog";
-import { computed, shallowRef, watch } from "vue";
-
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { configurePluginConnector } from "../../../foundation/extensions/connector-operations";
-import { pluginQuery } from "../../../foundation/extensions/extension-query";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
-import type { PluginConnectorConfiguration } from "../../../shared/contracts/generated/PluginConnectorConfiguration";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
-import { useExtensionChanges } from "../use-extension-changes";
-
+import { usePluginConnectorConfiguration } from "./use-plugin-connector-configuration";
 const props = defineProps<{ connector: ConnectorDefinition }>();
-const plugins = useQuery(pluginQuery);
-const changes = useExtensionChanges();
-const localNetwork = shallowRef(false);
-const declaration = computed(() =>
-  plugins.data.value
-    ?.find((plugin) => plugin.id === props.connector.pluginId)
-    ?.revision.connectors.find((component) => component.componentName === props.connector.componentName),
-);
-const configuration = computed(
-  () =>
-    declaration.value?.configuration as
-      | { type: string; command?: string; args?: string[]; url?: string }
-      | undefined,
-);
-watch(
-  () => props.connector.revision,
-  () => {
-    localNetwork.value =
-      props.connector.endpoint?.type === "streamable_http" && props.connector.endpoint.allowLocalNetwork;
-  },
-  { immediate: true },
-);
-function save(selection: PluginConnectorConfiguration) {
-  return changes.mutateAsync(() => configurePluginConnector(props.connector, selection));
-}
-async function chooseExecutable() {
-  await changes
-    .mutateAsync(async () => {
-      const path = await open({ directory: false, multiple: false });
-      if (typeof path === "string")
-        return configurePluginConnector(props.connector, { type: "stdio", executable: path });
-    })
-    .catch(() => {});
-}
+const { plugins, changes, configuration, localNetwork, hasConflict, save, chooseExecutable } =
+  usePluginConnectorConfiguration(() => props.connector);
 </script>
 
 <template>
@@ -72,7 +32,7 @@ async function chooseExecutable() {
       <p class="text-caption text-fg-warning">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
       <UiButton
         size="sm"
-        :disabled="changes.isPending.value"
+        :disabled="changes.isPending.value || hasConflict"
         data-testid="bind-plugin-executable"
         @click="chooseExecutable"
       >
@@ -82,18 +42,23 @@ async function chooseExecutable() {
     <form
       v-else-if="configuration?.type === 'streamable-http'"
       class="space-y-2"
-      @submit.prevent="save({ type: 'streamable_http', allowLocalNetwork: localNetwork }).catch(() => {})"
+      @submit.prevent="save({ type: 'streamable_http', allowLocalNetwork: localNetwork })"
     >
       <p class="text-caption break-all text-fg-secondary">{{ configuration.url }}</p>
       <label class="flex items-center gap-2 text-caption"
         ><UiCheckbox
           v-model="localNetwork"
-          :disabled="changes.isPending.value"
+          :disabled="changes.isPending.value || hasConflict"
           :label="$t('extensions.connections.allowLocalNetwork')"
         />{{ $t("extensions.connections.allowLocalNetwork") }}</label
       >
-      <UiButton type="submit" size="sm" :disabled="changes.isPending.value">{{ $t("common.save") }}</UiButton>
+      <UiButton type="submit" size="sm" :disabled="changes.isPending.value || hasConflict">{{
+        $t("common.save")
+      }}</UiButton>
     </form>
+    <p v-if="hasConflict" role="alert" class="text-caption text-fg-warning">
+      {{ $t("extensions.connections.conflict") }}
+    </p>
     <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
   </section>
 </template>

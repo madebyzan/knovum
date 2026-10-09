@@ -1,7 +1,34 @@
 {
   "title": "扩展",
-  "description": "管理插件、Skill 和外部服务。",
+  "description": "管理插件、应用连接、MCP 和技能。",
   "plugins": "插件",
-  "skills": "Skills",
-  "connectors": "连接器"
+  "skills": "技能",
+  "applications": "应用",
+  "mcp": "MCP",
+  "back": "返回列表",
+  "information": "信息",
+  "author": "开发者",
+  "version": "版本",
+  "sourcePlugin": "查看所属插件",
+  "pluginPaused": "插件已停用，其技能和连接暂不可用。",
+  "notFound": "此扩展已不可用",
+  "notFoundHint": "它可能已被删除或随插件更新发生变化，请返回列表查看当前内容。",
+  "usage": "在空间对话中，通过扩展选择器为当前任务选择技能和 MCP 连接。启用表示允许选择，不会自动访问外部服务。",
+  "search": {
+    "plugins": "搜索插件…",
+    "applications": "搜索应用…",
+    "mcp": "搜索 MCP 服务…",
+    "skills": "搜索技能…"
+  },
+  "status": {
+    "checking": "正在检查可用性…",
+    "failed": "无法读取可用状态",
+    "pluginPaused": "所属插件已停用",
+    "disabled": "已停用",
+    "available": "可在对话中使用",
+    "unavailable": "配置或授权不完整"
+  },
+  "homepage": "网站",
+  "repository": "源代码",
+  "license": "许可证"
 }

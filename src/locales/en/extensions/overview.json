@@ -1,7 +1,34 @@
 {
   "title": "Extensions",
-  "description": "Manage plugins, Skills, and external services.",
+  "description": "Manage plugins, application connections, MCP, and skills.",
   "plugins": "Plugins",
   "skills": "Skills",
-  "connectors": "Connectors"
+  "applications": "Apps",
+  "mcp": "MCP",
+  "back": "Back to list",
+  "information": "Information",
+  "author": "Developer",
+  "version": "Version",
+  "sourcePlugin": "View source plugin",
+  "pluginPaused": "This plugin is disabled. Its skills and connections are unavailable.",
+  "notFound": "This extension is unavailable",
+  "notFoundHint": "It may have been removed or changed by a plugin update. Return to the list to view the current content.",
+  "usage": "Select skills and MCP connections for each task using the extension picker in a Space conversation. Enabling makes them selectable; it does not automatically access external services.",
+  "search": {
+    "plugins": "Search plugins…",
+    "applications": "Search apps…",
+    "mcp": "Search MCP servers…",
+    "skills": "Search skills…"
+  },
+  "status": {
+    "checking": "Checking availability…",
+    "failed": "Cannot read availability",
+    "pluginPaused": "Source plugin disabled",
+    "disabled": "Disabled",
+    "available": "Available in conversations",
+    "unavailable": "Configuration or authorization incomplete"
+  },
+  "homepage": "Website",
+  "repository": "Repository",
+  "license": "License"
 }

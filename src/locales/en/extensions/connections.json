@@ -4,7 +4,8 @@
     "headers": "Public request headers (JSON)",
     "environment": "Public environment variables (JSON)",
     "secretsHint": "Add API tokens, sensitive headers, and secret environment variables under Authorization.",
-    "invalid": "Enter a JSON object with string values."
+    "invalid": "Enter a JSON object with string values.",
+    "advanced": "Advanced configuration"
   },
   "transport": "Transport",
   "allowLocalNetwork": "Allow access to the configured localhost or LAN address",
@@ -36,5 +37,15 @@
   },
   "accounts": "Accounts",
   "title": "Connections",
-  "manage": "Manage"
+  "manage": "Manage",
+  "addServer": "Add MCP server",
+  "description": "MCP connections access specific services. Configure an account, inspect the catalog, and review tool permissions before enabling a connection for conversations.",
+  "standalone": "Standalone servers",
+  "packaged": "From plugins",
+  "emptyServers": "No MCP servers",
+  "emptyHint": "Add your MCP server, or create a connection for a plugin service under Apps.",
+  "serviceAndAccounts": "Manage service and accounts",
+  "configureServiceFirst": "Complete the service configuration under Apps first.",
+  "conflict": "This connection changed elsewhere. Your edits are retained. Discard them and reopen the connection before saving.",
+  "saveBeforeCheck": "Save your changes before changing accounts or checking the catalog again."
 }

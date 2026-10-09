@@ -9,17 +9,15 @@ import { marketplaceQuery } from "../../../foundation/extensions/extension-query
 import type { PluginPublication } from "../../../shared/contracts/generated/PluginPublication";
 import type { PluginSource } from "../../../shared/contracts/generated/PluginSource";
 import UiButton from "../../../shared/ui/UiButton.vue";
-import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
+import ExtensionEmptyState from "../components/ExtensionEmptyState.vue";
 import MarketplaceSources from "./MarketplaceSources.vue";
-defineProps<{ busy: boolean }>();
+const props = defineProps<{ busy: boolean; search: string }>();
 const emit = defineEmits<{ inspect: [source: PluginSource, publication: PluginPublication] }>();
 const { t } = useI18n();
 const sourcesOpen = shallowRef(false);
 const query = useQuery(marketplaceQuery);
-const search = shallowRef("");
 const sourceId = shallowRef("all");
 const sourceOptions = computed(() => [
   { value: "all", label: t("extensions.plugins.catalogs.all") },
@@ -34,7 +32,7 @@ const releases = computed(() =>
     .filter(({ release }) =>
       `${release.name} ${release.publisherId} ${release.description}`
         .toLowerCase()
-        .includes(search.value.trim().toLowerCase()),
+        .includes(props.search.trim().toLowerCase()),
     ),
 );
 </script>
@@ -42,13 +40,6 @@ const releases = computed(() =>
 <template>
   <section class="min-w-0 space-y-4">
     <div class="flex flex-wrap items-center gap-2">
-      <UiSearchInput
-        v-model="search"
-        class="min-w-40 flex-1"
-        :label="$t('extensions.plugins.search.placeholder')"
-        :placeholder="$t('extensions.plugins.search.placeholder')"
-        data-testid="plugin-search"
-      />
       <UiSelect
         v-model="sourceId"
         class="w-40"
@@ -69,37 +60,33 @@ const releases = computed(() =>
     >
       <UiSpinner class="size-4" />{{ $t("common.loading") }}
     </div>
-    <UiSettingsSection v-else-if="!query.error.value && !releases.length">
-      <div class="px-5 py-6">
-        <h3 class="text-body-lg font-medium text-fg-primary">
-          {{
-            $t(
-              search || sourceId !== "all"
-                ? "extensions.plugins.search.empty"
-                : "extensions.plugins.catalogs.empty.title",
-            )
-          }}
-        </h3>
-        <p class="mt-1 text-caption text-fg-secondary">
-          {{
-            $t(
-              query.data.value?.length
-                ? "extensions.plugins.search.hint"
-                : "extensions.plugins.catalogs.empty.description",
-            )
-          }}
-        </p>
-        <UiButton
-          v-if="!query.data.value?.length"
-          class="mt-4"
-          size="sm"
-          data-testid="add-first-marketplace"
-          @click="sourcesOpen = true"
-          >{{ $t("extensions.plugins.catalogs.add") }}</UiButton
-        >
-      </div>
-    </UiSettingsSection>
-    <UiSettingsSection v-else-if="releases.length">
+    <ExtensionEmptyState
+      v-else-if="!query.error.value && !releases.length"
+      :title="
+        $t(
+          search || sourceId !== 'all'
+            ? 'extensions.plugins.search.empty'
+            : 'extensions.plugins.catalogs.empty.title',
+        )
+      "
+      :description="
+        $t(
+          query.data.value?.length
+            ? 'extensions.plugins.search.hint'
+            : 'extensions.plugins.catalogs.empty.description',
+        )
+      "
+    >
+      <UiButton
+        v-if="!query.data.value?.length"
+        class="mt-4"
+        size="sm"
+        data-testid="add-first-marketplace"
+        @click="sourcesOpen = true"
+        >{{ $t("extensions.plugins.catalogs.add") }}</UiButton
+      >
+    </ExtensionEmptyState>
+    <div v-else-if="releases.length">
       <div class="divide-y divide-stroke-divider">
         <div
           v-for="item in releases"
@@ -131,7 +118,7 @@ const releases = computed(() =>
           >
         </div>
       </div>
-    </UiSettingsSection>
+    </div>
     <MarketplaceSources v-model:open="sourcesOpen" @removed="sourceId === $event && (sourceId = 'all')" />
   </section>
 </template>

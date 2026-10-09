@@ -29,7 +29,7 @@ Do not use `Card`, `Box`, `Widget`, `Manager`, `Details`, `List`, `Row`, `Entry`
 interaction or information: `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
 `ExternalAgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
 to pass review. Collections, table rows and enumeration verbs remain valid inside their actual scope.
-Name components for their concrete responsibility, such as `ConnectorConnections`,
+Name components for their concrete responsibility, such as `ConnectorInspection`,
 `AiConnectionConfiguration` or `VoiceCandidateReview`, rather than the container's visual shape.
 Use `Summary` only for actual summarized content, not an arbitrary reduced DTO; name read models
 after their purpose (`RunObservation`, `Conversation`, `UsageMetrics`).

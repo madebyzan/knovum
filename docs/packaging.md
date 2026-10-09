@@ -242,7 +242,7 @@ Normal QA packages remain updater-disabled even when updater environment variabl
 
 ## Bundled Agent plugin content
 
-`src-tauri/resources/agent-plugins/knowledge-workflows` is the single bundled standard package;
+`src-tauri/resources/agent-plugins/knowledge-work` is the single bundled standard package;
 Tauri and `scripts/desktop/package.mjs` include this same directory. Debug reads the source
 resource; release resolves the packaged Tauri resource. The common installer publishes its
 immutable content into application data and preserves the user's enabled state. Application

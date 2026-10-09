@@ -6,7 +6,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 const permissions = defineModel<McpToolPermission[]>({ required: true });
-const props = defineProps<{ catalog: McpConnectionCatalog; busy: boolean }>();
+const props = defineProps<{ catalog: McpConnectionCatalog; busy: boolean; canSave: boolean }>();
 const emit = defineEmits<{ save: [] }>();
 function permission(name: string) {
   return permissions.value.find((candidate) => candidate.name === name);
@@ -62,7 +62,7 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
         })
       }}
     </p>
-    <UiButton :disabled="busy" data-testid="save-mcp-tool-permissions" @click="emit('save')">{{
+    <UiButton :disabled="busy || !canSave" data-testid="save-mcp-tool-permissions" @click="emit('save')">{{
       $t("extensions.connections.tools.savePermissions")
     }}</UiButton>
   </section>

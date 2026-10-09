@@ -10,7 +10,7 @@ import type { McpConnection } from "../../../shared/contracts/generated/McpConne
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 
-const props = defineProps<{ connection: McpConnection }>();
+const props = defineProps<{ connection: McpConnection; disabled?: boolean }>();
 const { t } = useI18n();
 const query = useQuery(accountQuery);
 const changes = useExtensionChanges();
@@ -43,7 +43,7 @@ const options = computed(() => [
         v-model="selected"
         :label="$t('extensions.connections.account.label')"
         :options="options"
-        :disabled="query.isPending.value || changes.isPending.value"
+        :disabled="disabled || query.isPending.value || changes.isPending.value"
         data-testid="select-connector-account"
       />
     </div>

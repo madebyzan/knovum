@@ -48,6 +48,12 @@ export function useSkillManagement() {
   const editing = shallowRef(false);
   const initialMarkdown = shallowRef("");
   const initialName = shallowRef("");
+  const dirty = computed(
+    () =>
+      editing.value &&
+      !selected.value?.skill.pluginId &&
+      (markdown.value !== initialMarkdown.value || name.value !== initialName.value),
+  );
   let admittedMutation: Promise<boolean> | undefined;
   function create() {
     selected.value = undefined;
@@ -76,35 +82,14 @@ export function useSkillManagement() {
       if (!succeeded) return false;
       if (!editing.value) return true;
     }
-    const dirty =
-      !selected.value?.skill.pluginId &&
-      (markdown.value !== initialMarkdown.value || name.value !== initialName.value);
-    if (
-      dirty &&
-      !(await confirmAction({
-        title: t("extensions.skills.discard.title"),
-        description: t("extensions.skills.discard.description"),
-        confirmLabel: t("common.discardChanges"),
-        danger: true,
-      }))
-    )
-      return false;
+    if (dirty.value && !(await confirmDiscard())) return false;
     editing.value = false;
     return true;
   }
   const unregister = useSettingsLeaveContext().register({
     async prepare() {
       if (admittedMutation && !(await admittedMutation)) return false;
-      const dirty =
-        !selected.value?.skill.pluginId &&
-        (markdown.value !== initialMarkdown.value || name.value !== initialName.value);
-      if (!dirty) return true;
-      return confirmAction({
-        title: t("extensions.skills.discard.title"),
-        description: t("extensions.skills.discard.description"),
-        confirmLabel: t("common.discardChanges"),
-        danger: true,
-      });
+      return !dirty.value || confirmDiscard();
     },
     finalize() {
       editing.value = false;
@@ -121,6 +106,14 @@ export function useSkillManagement() {
       })
     )
       mutate(() => deleteSkill(skillId));
+  }
+  function confirmDiscard() {
+    return confirmAction({
+      title: t("extensions.skills.discard.title"),
+      description: t("extensions.skills.discard.description"),
+      confirmLabel: t("common.discardChanges"),
+      danger: true,
+    });
   }
   const busy = computed(() => changes.isPending.value || reading.isPending.value);
 

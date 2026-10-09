@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue";
+import { computed, shallowRef } from "vue";
+import { z } from "zod";
 
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
@@ -11,47 +12,32 @@ import ConnectorRequirements from "./ConnectorRequirements.vue";
 const connector = defineModel<ConnectorDefinition & { endpoint: McpEndpoint }>({ required: true });
 defineProps<{ busy: boolean }>();
 const emit = defineEmits<{ save: []; close: [] }>();
-const publicFields = shallowRef("{}");
+const publicFields = defineModel<string>("publicFields", { required: true });
 const fieldError = shallowRef("");
-watch(
-  () => connector.value.endpoint,
-  (endpoint) => {
-    publicFields.value = JSON.stringify(
-      endpoint.type === "streamable_http" ? endpoint.headers : endpoint.environment,
-      null,
-      2,
-    );
-  },
-  { immediate: true },
-);
 const fieldsLabel = computed(() =>
   connector.value.endpoint.type === "streamable_http"
     ? "extensions.connections.configuration.headers"
     : "extensions.connections.configuration.environment",
 );
+const publicFieldsSchema = z.record(z.string(), z.string());
 function save() {
+  let fields: Record<string, string>;
   try {
-    const fields: unknown = JSON.parse(publicFields.value);
-    if (
-      !fields ||
-      typeof fields !== "object" ||
-      Array.isArray(fields) ||
-      Object.values(fields).some((value) => typeof value !== "string")
-    )
-      throw new Error("String values are required");
-    const endpoint = connector.value.endpoint;
-    connector.value = {
-      ...connector.value,
-      endpoint:
-        endpoint.type === "streamable_http"
-          ? { ...endpoint, headers: fields as Record<string, string> }
-          : { ...endpoint, environment: fields as Record<string, string> },
-    };
-    fieldError.value = "";
-    emit("save");
+    fields = publicFieldsSchema.parse(JSON.parse(publicFields.value));
   } catch {
     fieldError.value = "extensions.connections.configuration.invalid";
+    return;
   }
+  const endpoint = connector.value.endpoint;
+  connector.value = {
+    ...connector.value,
+    endpoint:
+      endpoint.type === "streamable_http"
+        ? { ...endpoint, headers: fields }
+        : { ...endpoint, environment: fields },
+  };
+  fieldError.value = "";
+  emit("save");
 }
 </script>
 
@@ -66,11 +52,20 @@ function save() {
       <UiTextarea :disabled="busy" v-model="connector.description" data-testid="connector-description" />
     </label>
     <McpEndpointFields :disabled="busy" v-model="connector.endpoint" />
-    <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t(fieldsLabel)
-      }}<UiTextarea :disabled="busy" v-model="publicFields" class="font-mono text-caption"
-    /></label>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.configuration.secretsHint") }}</p>
+    <details class="space-y-2 text-caption text-fg-secondary" :open="Boolean(fieldError)">
+      <summary
+        class="w-fit cursor-default rounded-sm py-1 outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      >
+        {{ $t("extensions.connections.configuration.advanced") }}
+      </summary>
+      <label class="block space-y-1.5 text-caption text-fg-secondary"
+        >{{ $t(fieldsLabel)
+        }}<UiTextarea :disabled="busy" v-model="publicFields" class="font-mono text-caption"
+      /></label>
+      <p class="text-caption text-fg-secondary">
+        {{ $t("extensions.connections.configuration.secretsHint") }}
+      </p>
+    </details>
     <ConnectorRequirements
       :disabled="busy"
       v-model="connector.authorization"

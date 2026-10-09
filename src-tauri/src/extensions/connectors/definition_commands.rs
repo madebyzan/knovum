@@ -12,7 +12,7 @@ pub async fn list_connector_definitions(
     super::definitions::list(&database::pool(&app).await?).await
 }
 
-fn validate(definition: &ConnectorDefinition) -> Result<(), String> {
+pub(super) fn validate(definition: &ConnectorDefinition) -> Result<(), String> {
     if definition.name.trim().is_empty() || definition.description.trim().is_empty() {
         return Err("connector-name-and-description-required".into());
     }
@@ -30,10 +30,7 @@ pub async fn create_connector_definition(
     validate(&definition)?;
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
-    definition.id = uuid::Uuid::new_v4().to_string();
-    definition.revision = uuid::Uuid::new_v4().to_string();
-    definition.plugin_id = None;
-    definition.component_name = None;
+    initialize(&mut definition);
     let pool = database::pool(&app).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::definitions::replace_on(&mut tx, &definition, None).await?;
@@ -94,4 +91,11 @@ pub async fn delete_connector_definition(
         (),
         [super::cleanup::collect(&app).await],
     ))
+}
+
+pub(super) fn initialize(definition: &mut ConnectorDefinition) {
+    definition.id = uuid::Uuid::new_v4().to_string();
+    definition.revision = uuid::Uuid::new_v4().to_string();
+    definition.plugin_id = None;
+    definition.component_name = None;
 }

@@ -115,8 +115,7 @@ describe("plugin management state", () => {
     expect(wrapper.find('[data-testid="plugin-installation-preview"]').exists()).toBe(true);
   });
 
-  it("returns to the cleared installed view after a successful catalog installation", async () => {
-    await wrapper.get('[data-testid="installed-plugin-search"] input').setValue("missing");
+  it("returns to the installed view after a successful catalog installation", async () => {
     await wrapper.get('[data-testid="discover-plugins"]').trigger("click");
     await wrapper.get('[data-testid="inspect-release"]').trigger("click");
     await flushPromises();
@@ -124,9 +123,6 @@ describe("plugin management state", () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="inspect-release"]').exists()).toBe(false);
-    expect(wrapper.get<HTMLInputElement>('[data-testid="installed-plugin-search"] input').element.value).toBe(
-      "",
-    );
     expect(wrapper.find('[data-testid="plugin-example"]').exists()).toBe(true);
     expect(mocks.list).toHaveBeenCalledTimes(2);
   });

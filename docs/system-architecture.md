@@ -242,6 +242,31 @@ Actions finish. Shutdown failure remains visible and retains those resources. Ap
 pending reads and authorization flows, revokes sessions, terminates owned process trees, and clears
 ephemeral credential caches.
 
+The extension settings projections distinguish packages (Plugins), reusable instructions
+(Skills), service definitions and identities (Apps), and protocol instances (MCP).
+`create_mcp_server` validates a custom service and creates its definition and first disabled
+connection in one SQLite transaction. Adding another connection uses the existing reusable
+service definition; creating a service definition alone remains a separate operation.
+Connection configuration saves name and tool permission drafts together against the admitted
+revision. A concurrent revision change retains the draft and requires explicit discard and
+reload; it never silently overwrites unsaved permissions.
+
+The bundled `knowledge-work` package provides the general knowledge-work skill, evidence
+briefs, meeting/media notes from existing timed transcripts, and document delivery through
+existing draft/export/render Space Actions. Skills are progressively loaded by the existing
+DeepAgents skill middleware. They grant no additional authority and are not published
+Workflow definitions. Updates pass through the same package inspection and revision path
+as installed content while retaining the bundled installation identity.
+
+Runtime skill files retain their `/skills/` paths and are uploaded through the SDK's
+`CompositeBackend`, which routes them into the skills store. Skill discovery and `read_file`
+use that same mounted backend; direct writes to the child store would bypass its path routing.
+
+Service-editor drafts include the raw public header/environment input, so malformed or partial
+JSON remains a protected draft until explicitly saved or discarded. Account-name and secret-field
+drafts also participate in the settings leave coordinator. Authorization in progress must complete
+or be cancelled before the owning view leaves; secrets are cleared before IPC and on disposal.
+
 ## Captured external documents
 
 Web capture decodes a recognized BOM or declared HTTP charset through `encoding_rs` without replacement characters. With neither declaration, bytes must be valid UTF-8. HTML metadata encoding sniffing is outside the supported capture contract; a legacy page without an HTTP charset fails explicitly rather than publishing damaged text. Unknown encodings and malformed bytes are errors.

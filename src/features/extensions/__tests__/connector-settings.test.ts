@@ -26,6 +26,16 @@ beforeEach(() => {
   mocks.invoke.mockReset();
   mocks.invoke.mockImplementation(async (command: string, input?: Record<string, unknown>) => {
     switch (command) {
+      case "plugin:extensions|list_plugin_installations":
+        return [];
+      case "plugin:extensions|get_agent_extension_availability":
+        return {
+          skills: [],
+          connections: [],
+          connectors: services,
+          diagnostics: [],
+          defaultSelection: { skillIds: [], connections: [] },
+        };
       case "plugin:extensions|list_connector_definitions":
         return structuredClone(services);
       case "plugin:extensions|list_mcp_connections":
@@ -79,17 +89,20 @@ describe("service connector management", () => {
     expect(connector.text()).toContain("Read issues and repositories");
     expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(0);
     await connector.get('[data-testid="manage-connector-github"]').trigger("click");
-    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
-    await connector.get('[data-testid="add-connection-instance"]').trigger("click");
-    await connector.get('[data-testid="connection-instance-name"]').setValue("Research");
-    await connector.get("form").trigger("submit");
+    expect(wrapper.emitted("navigate")).toEqual([[{ tab: "applications", id: "github" }]]);
+    await wrapper.setProps({ selectedId: "github" });
+    const inspection = wrapper.get('[data-testid="connector-github"]');
+    expect(inspection.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
+    await inspection.get('[data-testid="add-connection-instance"]').trigger("click");
+    await inspection.get('[data-testid="connection-instance-name"]').setValue("Research");
+    await inspection.get("form").trigger("submit");
     await flushPromises();
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|create_mcp_connection", {
       connectorId: "github",
       name: "Research",
     });
     expect(services).toHaveLength(1);
-    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(3);
+    expect(inspection.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(3);
   });
 
   it("creates a service definition through the service editor without an implicit instance", async () => {
@@ -114,7 +127,7 @@ describe("service connector management", () => {
 
   it("deleting one instance keeps the service and other instances available", async () => {
     const wrapper = await open();
-    await wrapper.get('[data-testid="manage-connector-github"]').trigger("click");
+    await wrapper.setProps({ selectedId: "github" });
     await wrapper.get('[data-testid="delete-connection-Work"]').trigger("click");
     expect(mocks.invoke).not.toHaveBeenCalledWith(
       "plugin:extensions|delete_mcp_connection",
@@ -145,7 +158,7 @@ describe("service connector management", () => {
       return original(command, input);
     });
     const wrapper = await open();
-    await wrapper.get('[data-testid="manage-connector-github"]').trigger("click");
+    await wrapper.setProps({ selectedId: "github" });
     await wrapper.get('[data-testid="edit-connector"]').trigger("click");
     const editor = wrapper.get('[data-testid="connector-editor"]');
     await editor.get('[data-testid="connector-description"]').setValue("Updated purpose");

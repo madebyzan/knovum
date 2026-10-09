@@ -123,6 +123,7 @@
   "extensions": {
     "label": "Conversation extensions",
     "unavailable": "A selected extension is unavailable. Review the selection.",
+    "clearSelection": "Clear extension selection",
     "manage": "Manage extensions",
     "empty": "No extensions available. Add them in settings."
   },

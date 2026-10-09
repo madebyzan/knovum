@@ -5,7 +5,7 @@ import { invokeCommand } from "../ipc/invoke-command";
 import { listMcpConnections } from "./connection-operations";
 import { listConnectorDefinitions, listConnectorAccounts } from "./connector-operations";
 import { listPluginInstallations, searchPlugins } from "./plugin-operations";
-import { listSkills } from "./skill-operations";
+import { readSkill, listSkills } from "./skill-operations";
 
 export const extensionQueryKey = ["agent-extensions"] as const;
 export const pluginQuery = queryOptions({
@@ -34,3 +34,10 @@ export const extensionAvailabilityQuery = queryOptions({
   queryFn: () =>
     invokeCommand<AgentExtensionAvailability>("plugin:extensions|get_agent_extension_availability"),
 });
+
+export function skillContentQuery(skillId: string, digest: string) {
+  return queryOptions({
+    queryKey: [...extensionQueryKey, "skill-content", skillId, digest],
+    queryFn: () => readSkill(skillId),
+  });
+}
