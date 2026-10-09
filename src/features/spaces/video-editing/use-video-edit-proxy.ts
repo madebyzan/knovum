@@ -1,9 +1,9 @@
 import * as log from "@tauri-apps/plugin-log";
 import { shallowRef, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { PrepareVideoEditProxyRequest } from "../contracts/generated/PrepareVideoEditProxyRequest";
 
@@ -14,6 +14,7 @@ export function useVideoEditProxy(
   sourceRevision: Ref<string | undefined>,
   spaceId: Ref<string | undefined>,
 ) {
+  const { t } = useI18n();
   const path = shallowRef<string>();
   const error = shallowRef<string>();
   const attempt = shallowRef(0);
@@ -24,7 +25,7 @@ export function useVideoEditProxy(
       path.value = undefined;
       error.value = undefined;
       if (!sourceNodeId || !revision || !currentSpaceId) {
-        error.value = i18n.global.t("spaces.media.videoEditor.preview.sourceUnavailable");
+        error.value = t("spaces.media.videoEditor.preview.sourceUnavailable");
         return;
       }
       const jobId = crypto.randomUUID();
@@ -51,7 +52,7 @@ export function useVideoEditProxy(
         if (active) path.value = proxyPath;
       } catch (caught) {
         if (active)
-          error.value = `${i18n.global.t("spaces.media.videoEditor.preview.proxyFailed")}: ${getErrorMessage(caught)}`;
+          error.value = `${t("spaces.media.videoEditor.preview.proxyFailed")}: ${getErrorMessage(caught)}`;
       } finally {
         pending = false;
       }

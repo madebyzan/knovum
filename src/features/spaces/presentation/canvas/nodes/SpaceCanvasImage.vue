@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { error as logError } from "@tauri-apps/plugin-log";
 import { useResizeObserver } from "@vueuse/core";
 import { computed, inject, shallowRef, toRef, useTemplateRef, watch } from "vue";
 
@@ -30,7 +29,6 @@ const props = defineProps<{
   frameRotation: number;
 }>();
 const zoom = inject(canvasPreviewZoomKey)!;
-const renderFailed = shallowRef(false);
 const session = useImageEditSessionStore();
 const dimensions = useImageSourceDimensionsStore();
 const removalSession = useImageRemovalSessionStore();
@@ -45,7 +43,6 @@ const { image, naturalSize, loadState } = useCanvasImageSource(source, {
   onReady: (loaded) => {
     if (props.data.sourceRevision)
       dimensions.set(props.id, props.data.sourceRevision, loaded.naturalWidth, loaded.naturalHeight);
-    renderFailed.value = false;
     raster.update();
   },
   onReset: () => {
@@ -98,10 +95,6 @@ const raster = useCanvasImageRaster({
   ready: () => loadState.value === "ready",
   active: () => session.active?.nodeId === props.id,
   paint: draw,
-  error: (error) => {
-    renderFailed.value = true;
-    void logError(`Image preview failed: ${String(error)}`);
-  },
 });
 watch(source, () => raster.clear());
 watch(
@@ -151,7 +144,7 @@ watch(() => (removalSession.active?.nodeId === props.id ? removalSession.active.
     <SpaceCanvasImageWorkOverlay
       :id="id"
       :data="data"
-      :load-state="renderFailed ? 'failed' : loadState"
+      :load-state="raster.error.value ? 'failed' : loadState"
       :image-rect="imageRect"
     />
     <SpaceCanvasImageRemovalCursor

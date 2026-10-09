@@ -78,10 +78,13 @@ watch(
     if (tool === "section") store.groupScopePath = [];
   },
 );
-const imports = useSpaceCanvasImports({
-  dropTarget: () => canvasRoot.value,
-  reportError: lifecycle.reportError,
-});
+const imports = useSpaceCanvasImports(canvasRoot);
+const canvasError = computed(() => lifecycle.error.value ?? imports.error.value);
+
+function dismissError() {
+  lifecycle.error.value = undefined;
+  imports.error.value = undefined;
+}
 
 async function activateNode(nodeId: string) {
   const node = store.nodes.find((candidate) => candidate.id === nodeId);
@@ -122,7 +125,7 @@ const canvasEvents = createSpaceCanvasEvents({
       :events="canvasEvents"
       :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
       :ensure-persisted="store.ensureActiveSpacePersisted"
-      :import-json-canvas="imports.importJsonCanvas"
+      :import-json-canvas="store.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
       :group-scope-path="store.groupScopePath"
       :interaction-enabled="!editorSession.transitioning.value"
@@ -152,10 +155,10 @@ const canvasEvents = createSpaceCanvasEvents({
       :file-hover="imports.fileHover.value"
       :space-id="spaceId"
       v-bind="{
-        ...(lifecycle.error.value ? { error: lifecycle.error.value } : {}),
+        ...(canvasError ? { error: canvasError } : {}),
         ...(imports.fileHoverPosition.value ? { fileHoverPosition: imports.fileHoverPosition.value } : {}),
       }"
-      @dismiss-error="lifecycle.error.value = undefined"
+      @dismiss-error="dismissError"
       @dismiss-capture="store.finishUrlCapture"
       @retry-capture="imports.retryCapture"
     />

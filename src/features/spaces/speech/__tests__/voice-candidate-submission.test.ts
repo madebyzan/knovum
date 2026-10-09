@@ -16,7 +16,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../voice-candidate-ipc", () => mocks);
 vi.mock("../ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
-vi.mock("../../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("vue-i18n", async (original) => ({
+  ...(await original<typeof import("vue-i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 const input: Omit<DraftVoiceCandidateRequest, "requestId"> = {
   model: "voxCpm2",

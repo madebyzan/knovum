@@ -1,22 +1,26 @@
+import { error as logError } from "@tauri-apps/plugin-log";
 import { useDebounceFn, useThrottleFn } from "@vueuse/core";
-import { onScopeDispose, shallowRef } from "vue";
+import { onScopeDispose, readonly, shallowRef } from "vue";
 
+import { formatErrorDiagnostic, getErrorMessage } from "../../../../../foundation/errors/error-format";
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
 import type { ImageEdit } from "../../../image-editing/image-edit";
 import { useImageRenderWorker } from "../../../image-editing/use-image-render-worker";
 
-export function useCanvasImageRaster(options: {
+interface CanvasImageRasterOptions {
   image: HTMLImageElement;
   size: () => ImageCanvasSize;
   edit: () => ImageEdit;
   ready: () => boolean;
   active: () => boolean;
   paint: () => void;
-  error: (error: unknown) => void;
-}) {
+}
+
+export function useCanvasImageRaster(options: CanvasImageRasterOptions) {
   const worker = useImageRenderWorker();
   const owner = {};
   const bitmap = shallowRef<ImageBitmap>();
+  const error = shallowRef<string>();
   let disposed = false;
   let revision = 0;
   const settle = useDebounceFn(() => request(false), 180);
@@ -67,11 +71,14 @@ export function useCanvasImageRaster(options: {
         }
         bitmap.value?.close();
         bitmap.value = next;
+        error.value = undefined;
         options.paint();
         return undefined;
       })
-      .catch((error) => {
-        if (!disposed && current === revision) options.error(error);
+      .catch((cause) => {
+        if (disposed || current !== revision) return;
+        error.value = getErrorMessage(cause);
+        void logError(`Image raster failed: ${formatErrorDiagnostic(cause)}`);
       });
   }
   function clear() {
@@ -80,10 +87,11 @@ export function useCanvasImageRaster(options: {
     worker.cancel(owner);
     bitmap.value?.close();
     bitmap.value = undefined;
+    error.value = undefined;
   }
   onScopeDispose(() => {
     disposed = true;
     clear();
   });
-  return { bitmap, clear, update };
+  return { bitmap, error: readonly(error), clear, update };
 }

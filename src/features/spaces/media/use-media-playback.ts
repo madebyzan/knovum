@@ -2,14 +2,12 @@ import { useMediaControls } from "@vueuse/core";
 import { clamp } from "es-toolkit";
 import { computed, nextTick, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { waitForMediaMetadata } from "./media-element-source";
 import type { SpaceMediaPlaybackState } from "./playback";
 
 interface UseMediaPlaybackOptions {
   sourceRevision?: MaybeRefOrGetter<string | number | undefined> | undefined;
   onPlayback?: ((state: SpaceMediaPlaybackState) => void) | undefined;
-  onPlaybackError?: ((message: string) => void) | undefined;
   onUnload?: (() => void) | undefined;
 }
 
@@ -53,12 +51,8 @@ export function useMediaPlayback(
   }
 
   async function togglePlayback() {
-    try {
-      await ensureReady();
-      playing.value = !playing.value;
-    } catch (error) {
-      options.onPlaybackError?.(getErrorMessage(error));
-    }
+    await ensureReady();
+    playing.value = !playing.value;
   }
 
   async function seekTo(positionMs: number) {

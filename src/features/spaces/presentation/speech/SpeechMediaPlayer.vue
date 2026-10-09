@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { shallowRef, useTemplateRef, watch } from "vue";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { useMediaPlayback } from "../../media/use-media-playback";
 
 const props = defineProps<{ source: string; kind: "audio" | "video" }>();
@@ -10,9 +11,6 @@ const error = shallowRef<string>();
 const stopAt = shallowRef<number>();
 const playback = useMediaPlayback(element, {
   sourceRevision: () => props.source,
-  onPlaybackError: (message) => {
-    error.value = message;
-  },
   onUnload: () => {
     stopAt.value = undefined;
   },
@@ -29,7 +27,7 @@ async function seekTo(startMs: number, endMs?: number) {
     stopAt.value = endMs;
     await playback.seekTo(startMs);
   } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : String(cause);
+    error.value = getErrorMessage(cause);
   }
 }
 function loaded(event: Event) {

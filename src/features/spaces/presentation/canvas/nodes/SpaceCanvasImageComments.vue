@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Trash2 } from "@lucide/vue";
+import { useI18n } from "vue-i18n";
 
 import UiPopover from "../../../../../shared/ui/UiPopover.vue";
 import { useImageComments, type ImageCommentCanvas } from "../../../comments/use-image-comments";
 import SpaceImageCommentShape from "./SpaceImageCommentShape.vue";
 
 const props = defineProps<ImageCommentCanvas>();
+const { t } = useI18n();
 const {
-  t,
   adding,
   hintLabel,
   mode,

@@ -3,6 +3,7 @@ import { Pause, Play, X } from "@lucide/vue";
 import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { formatDurationMs } from "../../media/format-duration";
 import { versionedMediaSource } from "../../media/media-element-source";
@@ -34,7 +35,6 @@ const { loaded, playing, currentMs, togglePlayback, seekTo, seekFromControl, unl
   {
     sourceRevision: () => props.data.sourceRevision,
     onPlayback: (state) => emit("playback", state),
-    onPlaybackError: (msg) => emit("playbackError", msg),
     onUnload: () => emit("unload"),
   },
 );
@@ -43,6 +43,10 @@ const durationLabel = computed(() => (analysis.value ? formatDurationMs(analysis
 const playedRatio = computed(() =>
   analysis.value ? Math.min(currentMs.value / analysis.value.durationMs, 1) : 0,
 );
+
+function requestPlayback() {
+  void togglePlayback().catch((error) => emit("playbackError", getErrorMessage(error)));
+}
 
 function seekFromSlider(event: Event) {
   seekFromControl(Number((event.target as HTMLInputElement).value));
@@ -72,7 +76,7 @@ defineExpose({ seekTo, togglePlayback });
       class="nodrag pointer-events-auto row-span-2 size-9 self-center rounded-full border border-stroke-strong bg-surface-raised text-fg-primary shadow-control hover:bg-surface-control-hover"
       :label="playing ? t('common.pause') : t('spaces.media.player.play')"
       size="sm"
-      @click.stop="togglePlayback"
+      @click.stop="requestPlayback"
     >
       <Pause v-if="playing" class="size-3.5" fill="currentColor" />
       <Play v-else class="ml-px size-3.5" fill="currentColor" />

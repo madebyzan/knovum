@@ -84,7 +84,6 @@ export function useAddMenu() {
     websiteOpen.value = false;
   }
   return {
-    store,
     websiteOpen,
     customObjectOpen,
     typeEditorOpen,

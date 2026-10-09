@@ -98,11 +98,8 @@ export function useSourcePeek() {
     }
   }
   return {
-    store,
     sourcePeek,
     sourceContext,
-    node,
-    location,
     preciseExternal,
     editableSource,
     hasAsset,

@@ -101,7 +101,6 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   }
 
   return {
-    t,
     mode,
     model,
     modelAvailable,

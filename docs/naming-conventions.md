@@ -104,8 +104,8 @@ Scope-owned external subscriptions and async work must detach or invalidate when
 
 Components and component-scoped composables resolve Vue Router, Pinia, Vue I18n and TanStack Query
 context directly where it is used. Do not relay router/route, store, composer/translation functions or
-query-client instances through composable parameters, options or intermediary composables. Acquire
-setup-context dependencies synchronously before starting async work. Keep genuine view/session inputs
+query-client instances through composable parameters, options, return values or intermediary composables.
+Acquire setup-context dependencies synchronously before starting async work. Keep genuine view/session inputs
 and business operations explicit. Pure functions and IO boundaries may receive concrete inputs or
 operations, and application bootstrap may pass explicitly owned plugin instances; these are separate
 lifetimes, not reasons to add context wrappers or fallback parameters.

@@ -1,6 +1,6 @@
 import { shallowRef, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 
 interface VideoEditPreviewSourceOptions {
@@ -11,6 +11,7 @@ interface VideoEditPreviewSourceOptions {
 }
 
 export function useVideoEditPreviewSource(options: VideoEditPreviewSourceOptions) {
+  const { t } = useI18n();
   const { data, proxyPath, playing, metadataError } = options;
   const previewPath = shallowRef<string>();
 
@@ -32,7 +33,7 @@ export function useVideoEditPreviewSource(options: VideoEditPreviewSourceOptions
       previewPath.value = proxyPath.value;
       return;
     }
-    metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.unavailable");
+    metadataError.value = t("spaces.media.videoEditor.preview.unavailable");
   }
 
   return { previewPath, onMetadataError };

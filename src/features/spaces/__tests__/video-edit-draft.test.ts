@@ -5,7 +5,10 @@ import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { useVideoEditProject } from "../presentation/video-editor/use-video-edit-project";
 import { createVideoEditProject } from "../video-editing/project";
 
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("vue-i18n", async (original) => ({
+  ...(await original<typeof import("vue-i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 it("opens a saved reactive video project as an independent draft", () => {
   const data = ref<SpaceVideoPayload>({
