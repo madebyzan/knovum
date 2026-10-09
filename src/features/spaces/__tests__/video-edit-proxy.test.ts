@@ -10,7 +10,10 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("vue-i18n", async (original) => ({
+  ...(await original<typeof import("vue-i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 let scope: EffectScope;
 beforeEach(() => {

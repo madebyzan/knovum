@@ -1,7 +1,7 @@
 import { computed, onScopeDispose, readonly, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
@@ -17,6 +17,7 @@ import {
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
 
 export function useSourceSeparationCandidate() {
+  const { t } = useI18n();
   const candidate = shallowRef<SpeechSourceSeparationCandidate>();
   const activeRunId = shallowRef<string>();
   const preparing = shallowRef(false);
@@ -82,19 +83,16 @@ export function useSourceSeparationCandidate() {
     if (TERMINAL_STATES.has(run.state)) {
       activeRunId.value = undefined;
       if (run.state === "succeeded") await load(run.id, current);
-      else
-        error.value = run.state === "cancelled" ? undefined : i18n.global.t(workflowStateLabelKey(run.state));
+      else error.value = run.state === "cancelled" ? undefined : t(workflowStateLabelKey(run.state));
       return;
     }
-    stopObservation = observeResourceRun(run, i18n.global.t("spaces.speech.separation.task"), (next) => {
+    stopObservation = observeResourceRun(run, t("spaces.speech.separation.task"), (next) => {
       if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
       stopObservation?.();
       stopObservation = undefined;
       activeRunId.value = undefined;
       if (next.state === "succeeded") void load(run.id, current);
-      else
-        error.value =
-          next.state === "cancelled" ? undefined : i18n.global.t(workflowStateLabelKey(next.state));
+      else error.value = next.state === "cancelled" ? undefined : t(workflowStateLabelKey(next.state));
     });
   }
 

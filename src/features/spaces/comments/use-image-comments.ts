@@ -118,7 +118,6 @@ export function useImageComments(props: ImageCommentCanvas) {
     selectedId.value = undefined;
   }
   return {
-    t,
     adding,
     hintLabel,
     mode: computed(() => session.mode),

@@ -1,6 +1,7 @@
-import { onBeforeUnmount, onMounted, shallowRef } from "vue";
+import { onBeforeUnmount, onMounted, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { SpaceImportSourceAccess } from "../../assets/asset-operations";
@@ -21,19 +22,23 @@ import { classifySpaceUrl } from "../../sources/classify-url";
 import { urlCaptureContext } from "../../sources/url-capture-context";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 
-interface SpaceCanvasImportOptions {
-  dropTarget(): HTMLElement | null;
-  reportError(error: unknown): void;
-}
-
-export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
+export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | null>>) {
   const store = useSpaceStore();
   const editorSession = getCanvasEditorSession();
   const { t } = useI18n();
   const operations = useNodeOperationGate();
   const fileDropListener = createAsyncDisposer();
+  const error = shallowRef<string>();
   const fileHover = shallowRef(false);
   const fileHoverPosition = shallowRef<{ x: number; y: number }>();
+  watch(
+    () => store.activeSpaceId,
+    () => (error.value = undefined),
+  );
+
+  function reportError(cause: unknown) {
+    error.value = getErrorMessage(cause);
+  }
 
   async function insertText(text: string, point: { x: number; y: number }) {
     if (!operations.allows("create")) return;
@@ -44,7 +49,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
 
   async function insertUrl(url: string, point: { x: number; y: number }) {
     if (!operations.allows("create")) return;
-    void captureSpaceUrl(urlCaptureContext(store), url, point).catch(options.reportError);
+    void captureSpaceUrl(urlCaptureContext(store), url, point).catch(reportError);
   }
 
   function retryCapture(capture: SpaceUrlCaptureProjection) {
@@ -139,32 +144,32 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
       .attach(
         listenForFileDrops({
           hover(active, position) {
-            fileHover.value = active && isFileDropInside(options.dropTarget(), position);
+            fileHover.value = active && isFileDropInside(dropTarget.value, position);
             fileHoverPosition.value = fileHover.value ? position : undefined;
           },
           async drop(payload) {
             if (!operations.allows("create")) return;
-            if (!isFileDropInside(options.dropTarget(), payload.position)) return;
+            if (!isFileDropInside(dropTarget.value, payload.position)) return;
             const editor = editorSession.activeEditor.value;
             if (!editor) return;
             await importDroppedFiles(payload, store, editor.screenToCanvasPoint(payload.position)).catch(
-              options.reportError,
+              reportError,
             );
           },
         }),
       )
-      .catch(options.reportError);
+      .catch(reportError);
   });
   onBeforeUnmount(() => fileDropListener.dispose());
 
   return {
+    error,
     fileHover,
     fileHoverPosition,
     insertText,
     insertUrl,
     retryCapture,
     importFiles,
-    importJsonCanvas: store.importJsonCanvas,
     pasteNodes: pasteClipboard,
   };
 }

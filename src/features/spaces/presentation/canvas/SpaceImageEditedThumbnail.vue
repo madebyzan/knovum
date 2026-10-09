@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { error as logError } from "@tauri-apps/plugin-log";
 import { useEventListener, useResizeObserver } from "@vueuse/core";
 import { onMounted, useTemplateRef, watch } from "vue";
 
@@ -23,9 +22,6 @@ const raster = useCanvasImageRaster({
     !!canvas.value?.clientWidth && !!canvas.value.clientHeight && image.complete && !!image.naturalWidth,
   active: () => false,
   paint: draw,
-  error: (error) => {
-    void logError(`Image thumbnail failed: ${String(error)}`);
-  },
 });
 image.crossOrigin = "anonymous";
 

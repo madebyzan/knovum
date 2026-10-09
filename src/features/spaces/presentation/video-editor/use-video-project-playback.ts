@@ -1,13 +1,14 @@
 import { computed, onBeforeUnmount, type Ref, shallowRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { i18n } from "../../../../foundation/i18n/i18n";
 import { locateTimelineTime, projectDurationMs, type VideoEditProject } from "../../video-editing/project";
 
 export function useVideoProjectPlayback(
   video: Ref<HTMLVideoElement | null>,
   project: Ref<VideoEditProject | undefined>,
 ) {
+  const { t } = useI18n();
   const timelineMs = shallowRef(0);
   const playing = shallowRef(false);
   const audioError = shallowRef<string>();
@@ -98,7 +99,7 @@ export function useVideoProjectPlayback(
         audioError.value = undefined;
       } catch (error) {
         disconnectAudio();
-        audioError.value = `${i18n.global.t("spaces.media.videoEditor.preview.audioUnavailable")}: ${getErrorMessage(error)}`;
+        audioError.value = `${t("spaces.media.videoEditor.preview.audioUnavailable")}: ${getErrorMessage(error)}`;
       }
       element.addEventListener("seeked", onSeeked);
       element.addEventListener("ended", onEnded);

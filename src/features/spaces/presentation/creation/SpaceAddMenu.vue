@@ -12,6 +12,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
+import { useSpaceStore } from "../../session/space-store";
 import AgentCreationDialog from "../agent-creation/AgentCreationDialog.vue";
 import SpacePortalDialog from "../inspector/SpacePortalDialog.vue";
 import SpaceCustomKnowledgeObjectDialog from "../knowledge/SpaceCustomKnowledgeObjectDialog.vue";
@@ -21,9 +22,9 @@ import { useAddMenu } from "./use-add-menu";
 
 const { t } = useI18n();
 const tools = useCanvasToolStore();
+const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
 const {
-  store,
   websiteOpen,
   customObjectOpen,
   typeEditorOpen,

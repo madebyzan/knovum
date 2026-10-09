@@ -12,7 +12,6 @@ import {
   type TranslationTarget,
 } from "../../../foundation/ai/translation";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
 import { clearReasoningTrace } from "./tiptap-reasoning-trace";
 import { actionSource, applyGeneratedText, markReasoning } from "./tiptap-writing-text";
@@ -28,8 +27,29 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
   const { t } = useI18n();
   const runningAction = shallowRef<RunningAction>();
   let activeJob: EditorWritingJob | undefined;
-  const tones = computed(() => toneOptions());
-  const translations = computed(() => translationOptions());
+  const tones = computed(
+    () =>
+      [
+        ["tone_academic", t("spaces.richtext.ai.tones.academic")],
+        ["tone_business", t("spaces.richtext.ai.tones.business")],
+        ["tone_casual", t("spaces.richtext.ai.tones.casual")],
+        ["tone_confident", t("spaces.richtext.ai.tones.confident")],
+        ["tone_creative", t("spaces.richtext.ai.tones.creative")],
+        ["tone_friendly", t("spaces.richtext.ai.tones.friendly")],
+        ["tone_humorous", t("spaces.richtext.ai.tones.humorous")],
+        ["tone_informative", t("spaces.richtext.ai.tones.informative")],
+        ["tone_inspirational", t("spaces.richtext.ai.tones.inspirational")],
+        ["tone_objective", t("spaces.richtext.ai.tones.objective")],
+        ["tone_persuasive", t("spaces.richtext.ai.tones.persuasive")],
+      ] as const satisfies readonly (readonly [EditorTransformAction, string])[],
+  );
+  const translations = computed(() =>
+    translationTargets.map((target) => [target, t(translationTargetLabelKey[target])] as const),
+  );
+
+  function notifyMissingSource(action: EditorTransformAction) {
+    toast.info(t(action === "complete" ? "spaces.richtext.ai.needContext" : "spaces.richtext.ai.selectText"));
+  }
 
   function releaseJob() {
     const job = activeJob;
@@ -94,34 +114,6 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
   }
 
   return { runningAction: readonly(runningAction), cancel, tones, translations, run, runTranslation };
-}
-
-function notifyMissingSource(action: EditorTransformAction) {
-  toast.info(
-    i18n.global.t(action === "complete" ? "spaces.richtext.ai.needContext" : "spaces.richtext.ai.selectText"),
-  );
-}
-
-function toneOptions() {
-  const t = i18n.global.t;
-  return [
-    ["tone_academic", t("spaces.richtext.ai.tones.academic")],
-    ["tone_business", t("spaces.richtext.ai.tones.business")],
-    ["tone_casual", t("spaces.richtext.ai.tones.casual")],
-    ["tone_confident", t("spaces.richtext.ai.tones.confident")],
-    ["tone_creative", t("spaces.richtext.ai.tones.creative")],
-    ["tone_friendly", t("spaces.richtext.ai.tones.friendly")],
-    ["tone_humorous", t("spaces.richtext.ai.tones.humorous")],
-    ["tone_informative", t("spaces.richtext.ai.tones.informative")],
-    ["tone_inspirational", t("spaces.richtext.ai.tones.inspirational")],
-    ["tone_objective", t("spaces.richtext.ai.tones.objective")],
-    ["tone_persuasive", t("spaces.richtext.ai.tones.persuasive")],
-  ] as const satisfies readonly (readonly [EditorTransformAction, string])[];
-}
-
-function translationOptions() {
-  const t = i18n.global.t;
-  return translationTargets.map((target) => [target, t(translationTargetLabelKey[target])] as const);
 }
 
 export type SpaceTiptapWritingTools = ReturnType<typeof useSpaceTiptapWritingTools>;

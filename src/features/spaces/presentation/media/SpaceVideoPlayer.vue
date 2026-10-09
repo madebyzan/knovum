@@ -3,6 +3,7 @@ import { Film, Play } from "@lucide/vue";
 import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { formatDurationMs } from "../../media/format-duration";
 import { versionedMediaSource } from "../../media/media-element-source";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
@@ -28,9 +29,12 @@ const { loaded, playing, currentMs, durationMs, togglePlayback, seekTo, seekFrom
   useMediaPlayback(mediaElement, {
     sourceRevision: () => props.data.sourceRevision,
     onPlayback: (state) => emit("playback", state),
-    onPlaybackError: (msg) => emit("playbackError", msg),
     onUnload: () => emit("unload"),
   });
+
+function requestPlayback() {
+  void togglePlayback().catch((error) => emit("playbackError", getErrorMessage(error)));
+}
 
 defineExpose({ seekTo, togglePlayback });
 </script>
@@ -61,7 +65,7 @@ defineExpose({ seekTo, togglePlayback });
         type="button"
         class="nodrag pointer-events-auto absolute top-1/2 left-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-surface-overlay/94 text-fg-primary shadow-control ring-1 ring-stroke-default"
         :aria-label="t('spaces.media.player.load', { title: data.title })"
-        @click.stop="togglePlayback"
+        @click.stop="requestPlayback"
       >
         <Play class="ml-px size-4" fill="currentColor" :stroke-width="1.4" />
       </button>
@@ -82,7 +86,7 @@ defineExpose({ seekTo, togglePlayback });
       :playing="playing"
       :current-ms="currentMs"
       :duration-ms="durationMs"
-      @toggle="togglePlayback"
+      @toggle="requestPlayback"
       @seek="seekFromControl"
       @close="unload"
     />

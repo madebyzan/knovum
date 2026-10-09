@@ -1,7 +1,7 @@
 import { cloneDeep } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { createVideoEditProject, type VideoEditProject } from "../../video-editing/project";
 
@@ -10,6 +10,7 @@ export function useVideoEditProject(
   data: Ref<SpaceVideoPayload | undefined>,
   proxyPath: Ref<string | undefined>,
 ) {
+  const { t } = useI18n();
   const project = shallowRef<VideoEditProject>();
   const metadataError = shallowRef<string>();
 
@@ -27,12 +28,11 @@ export function useVideoEditProject(
     if (project.value || !data.value) return;
     const element = event.currentTarget as HTMLVideoElement;
     if (!Number.isFinite(element.duration) || element.duration <= 0) {
-      if (proxyPath.value)
-        metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.durationUnavailable");
+      if (proxyPath.value) metadataError.value = t("spaces.media.videoEditor.preview.durationUnavailable");
       return;
     }
     if (!validVideoDimensions(element)) {
-      metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.metadataUnavailable");
+      metadataError.value = t("spaces.media.videoEditor.preview.metadataUnavailable");
       return;
     }
     project.value = createVideoEditProject({

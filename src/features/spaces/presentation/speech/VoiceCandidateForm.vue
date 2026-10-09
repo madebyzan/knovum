@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
@@ -17,8 +18,8 @@ const props = defineProps<{
   sourceNode?: SpaceCanvasNode | undefined;
   sourceKind?: VoiceCandidateSourceKind | undefined;
 }>();
+const { t } = useI18n();
 const {
-  t,
   mode,
   model,
   modelAvailable,

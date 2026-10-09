@@ -1,7 +1,7 @@
 import { onScopeDispose, readonly, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { TranslateVideoDubbingRequest } from "../contracts/generated/TranslateVideoDubbingRequest";
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
@@ -12,6 +12,7 @@ import { getVideoTranslation, getVideoTranslationRun, translateVideoDubbing } fr
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
 
 export function useVideoTranslationRun(translated: (translation: VideoTranslation) => void) {
+  const { t } = useI18n();
   const activeRunId = shallowRef<string>();
   const submitting = shallowRef(false);
   const cancelling = shallowRef(false);
@@ -67,26 +68,22 @@ export function useVideoTranslationRun(translated: (translation: VideoTranslatio
         activeRunId.value = undefined;
       } else {
         activeRunId.value = undefined;
-        error.value = i18n.global.t(workflowStateLabelKey(run.state));
+        error.value = t(workflowStateLabelKey(run.state));
       }
       return;
     }
-    stopObservation = observeResourceRun(
-      run,
-      i18n.global.t("spaces.speech.translation.translate"),
-      (next) => {
-        if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
-        stopObservation?.();
-        stopObservation = undefined;
-        if (next.state === "succeeded") void load(next.id, current);
-        else if (next.state === "cancelled") {
-          activeRunId.value = undefined;
-        } else {
-          activeRunId.value = undefined;
-          error.value = i18n.global.t(workflowStateLabelKey(next.state));
-        }
-      },
-    );
+    stopObservation = observeResourceRun(run, t("spaces.speech.translation.translate"), (next) => {
+      if (current !== epoch || !TERMINAL_STATES.has(next.state)) return;
+      stopObservation?.();
+      stopObservation = undefined;
+      if (next.state === "succeeded") void load(next.id, current);
+      else if (next.state === "cancelled") {
+        activeRunId.value = undefined;
+      } else {
+        activeRunId.value = undefined;
+        error.value = t(workflowStateLabelKey(next.state));
+      }
+    });
   }
 
   async function load(runId: string, current: number) {
