@@ -11,7 +11,7 @@ async fn preparation_cancellation_transfers_to_the_committed_speech_run() {
     assert!(!cancellation::cancel_project_run(&pool, &job_id)
         .await
         .unwrap());
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','user','user','workflow','queued','{}',?,'{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','space','user','user','workflow','queued','{}',?,'{}',1,1)")
         .bind(&job_id).bind(serde_json::json!({"workflow": run_start::WORKFLOW}).to_string())
         .execute(&pool).await.unwrap();
     assert!(cancellation::cancel_project_run(&pool, &job_id)
@@ -35,7 +35,7 @@ async fn preparation_cancellation_transfers_to_the_committed_speech_run() {
 async fn preview_cancellation_does_not_control_an_unrelated_workflow() {
     let pool = database().await;
     let job_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','user','user','workflow','queued','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','space','user','user','workflow','queued','{}','{}','{}',1,1)")
         .bind(&job_id).execute(&pool).await.unwrap();
     assert!(!cancellation::cancel_project_run(&pool, &job_id)
         .await

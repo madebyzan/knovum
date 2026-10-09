@@ -28,6 +28,7 @@ pub(super) async fn execute(
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
+    let run_space_id = claim.scope.require_space_id()?;
     let config: AssemblyConfiguration =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let revision: Option<(String, String, i64, String, String)> = sqlx::query_as(
@@ -41,7 +42,7 @@ pub(super) async fn execute(
     if active_revision != config.revision_id
         || revision_number != config.revision
         || project_type != config.project_type
-        || space_id != claim.home_space_id
+        || space_id.as_str() != run_space_id
     {
         return Err("stale_revision: speech project changed before assembly".into());
     }

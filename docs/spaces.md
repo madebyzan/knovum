@@ -289,25 +289,39 @@ Space packages preserve the completed Run identity, candidate review state, froz
 and both referenced source/background assets so an accepted background remains verifiable after
 export and restore.
 
-A voice design or clone is a durable single-step Run. Rust decodes only the selected 5–30 seconds
+The voice library is application-wide: profiles and immutable revisions have no Space owner, and
+each Space speech project pins a global revision. Settings owns library presentation through app
+composition; the speech capability owns its data, generation and asset lifecycle.
+
+A voice design or clone is a durable single-step Application Run with no Space permissions.
+Rust decodes only the selected 5–30 seconds
 from an authorized audio or video reference into a hash-bound, 16 kHz mono PCM16 input before scheduling. The original
 source revision and selected interval remain in the request; the managed snapshot records its own
-digest, byte length and duration. Retries copy this exact clip rather than reopening the original media.
+digest, byte length and duration. Recovered attempts use this exact clip rather than reopening the
+original media. Generic workflow retry is limited to Space workflows; generating another voice
+candidate creates a new request rather than cloning an identity-bound candidate Run.
 Preparation reserves an asset journal entry before creating files and seals it with the clip digest
 before the Run transaction takes ownership. Rust recovers interrupted attempts through the shared Run
 lease policy, and publishes the normalized reference plus 48 kHz audition as one candidate record.
-Audition completion, rejection, and the selected profile/revision identity are persisted. Creating a
+Audition completion and the selected profile/revision identity are persisted. Discarding an unused
+ready candidate removes its terminal Application Run, candidate receipt, unshared grant and
+unreferenced audio; selected candidates remain until their archived, unreferenced profile is
+permanently deleted. Creating a
 reusable voice requires an explicit authorization record and a completed audition; it copies the
-candidate's verified 5–30 second 16 kHz mono reference into an immutable voice revision. Space
-voice profiles may be archived without losing candidate history. Physical deletion is allowed only
-after no selected candidate, speech segment, or audiobook role still references any profile revision;
-candidate provenance is retained as a real Space-local reference rather than rewritten as a tombstone.
-Space packages preserve candidate decisions, selected model, original source identity, clip identity,
-Run identity, and both candidate assets. Request, result and selected voice revision must agree on
-the model; MOSS audio-only references retain their own controls. Operational paths are redacted.
+candidate's verified 5–30 second 16 kHz mono reference into an immutable voice revision. Global
+voice profiles may be archived without losing candidate history or breaking existing project pins.
+Permanent deletion requires an archived profile with no speech-segment or audiobook-role references
+in any Space project revision. Its succeeded, selected creation Runs and candidate receipts are
+removed in the same transaction, along with Application grants no surviving Run references;
+malformed or nonterminal receipts block deletion. Managed assets
+are reclaimed only when the global reference graph confirms that nothing else uses them.
+Space packages include only voices referenced by exported projects, their pinned and active
+revisions, and their managed reference assets. They exclude application candidate jobs and audition
+history, unrelated revisions and the rest of the global library. Request, result and selected voice
+revision must agree on the model; MOSS audio-only references retain their own controls.
 Cancellation during creation belongs to the preparation request. If creation commits concurrently,
 the initiating view carries the cancellation intent to the durable Run, which remains in Task Center
-even after the view closes or changes Space.
+even after the view closes.
 
 Cloning references must contain at least 60% VAD-detected speech. If a confirmed reference transcript
 is supplied, its normalized character edit distance from recognition must not exceed 20%; comparison

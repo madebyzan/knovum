@@ -4,7 +4,6 @@ fn request() -> DraftVoiceCandidateRequest {
     DraftVoiceCandidateRequest {
         model: super::super::VoiceModel::MossNano,
         request_id: uuid::Uuid::new_v4().to_string(),
-        space_id: "space".into(),
         language: "zh-CN".into(),
         text: "你好世界".into(),
         seed: 0,

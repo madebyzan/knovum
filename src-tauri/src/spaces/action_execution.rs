@@ -98,10 +98,11 @@ pub(crate) async fn execute_durable(
     parameters: &Value,
     inputs: &Value,
 ) -> Result<Value, AppError> {
+    let space_id = claim.scope.require_space_id()?;
     crate::spaces::derivation::execute_action(
         app,
         action_id,
-        &claim.home_space_id,
+        space_id,
         parameters,
         inputs,
         crate::spaces::derivation::ExecutionAuthority {

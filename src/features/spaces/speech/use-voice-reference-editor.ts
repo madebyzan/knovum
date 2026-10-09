@@ -11,7 +11,6 @@ import { authorizeVoiceReferenceSource, prepareVoiceReference } from "./voice-re
 
 export interface VoiceReferenceEditorProps {
   readonly language: string;
-  readonly spaceId: string;
   readonly disabled: boolean;
   readonly sourceNode?: SpaceCanvasNode | undefined;
 }
@@ -43,7 +42,7 @@ export function useVoiceReferenceEditor(
       Math.round(Number(end.value) * 1000) <= duration.value,
   );
   const canPrepare = computed(() =>
-    Boolean(path.value && selectionValid.value && !jobId.value && props.spaceId && !props.disabled),
+    Boolean(path.value && selectionValid.value && !jobId.value && !props.disabled),
   );
   let epoch = 0;
   let jobEpoch = 0;
@@ -64,7 +63,7 @@ export function useVoiceReferenceEditor(
     model.value = undefined;
     void cancel();
   }
-  watch([start, end, () => props.language, () => props.spaceId], invalidate);
+  watch([start, end, () => props.language], invalidate);
   function replaceSource(source: string) {
     invalidate();
     duration.value = undefined;
@@ -102,7 +101,6 @@ export function useVoiceReferenceEditor(
     }
   }
   async function prepare() {
-    const spaceId = props.spaceId;
     if (!canPrepare.value) return;
     const version = ++epoch;
     jobEpoch = version;
@@ -113,7 +111,6 @@ export function useVoiceReferenceEditor(
     try {
       const prepared = await prepareVoiceReference({
         jobId: job,
-        spaceId,
         sourcePath: path.value,
         language: props.language,
         startMs: Math.round(Number(start.value) * 1000),

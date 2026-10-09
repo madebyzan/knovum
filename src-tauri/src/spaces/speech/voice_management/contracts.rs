@@ -43,16 +43,6 @@ pub struct DeleteVoiceProfileRequest {
     pub expected_updated_at: i64,
 }
 
-#[derive(Debug, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct CopyVoiceProfileRequest {
-    pub profile_id: String,
-    pub expected_active_revision_id: String,
-    pub target_space_id: String,
-    pub name: String,
-}
-
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
@@ -74,12 +64,11 @@ pub struct VoiceRevision {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VoiceProfileHistory {
     pub id: String,
-    pub space_id: String,
     pub name: String,
     pub source_kind: String,
     pub active_revision_id: String,
     pub archived_at: Option<i64>,
     pub updated_at: i64,
-    pub referenced_segment_count: i64,
+    pub referenced_binding_count: i64,
     pub revisions: Vec<VoiceRevision>,
 }

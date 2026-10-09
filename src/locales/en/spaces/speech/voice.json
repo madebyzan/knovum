@@ -1,9 +1,11 @@
 {
   "name": "Voice name",
   "add": "Add",
-  "usage": "Used in {count} segment | Used in {count} segments",
+  "usage": "Referenced {count} time | Referenced {count} times",
   "revise": "New revision",
   "history": "Revision history",
+  "speed": "Speed",
+  "archived": "Archived",
   "delete": {
     "title": "Delete voice permanently",
     "description": "Delete this archived voice and all of its revisions. A voice used by a project cannot be deleted."

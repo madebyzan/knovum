@@ -12,8 +12,8 @@ async fn turn_links_external_session_to_shared_conversation_history() {
         VALUES('space','space','Space',1,1);
         INSERT INTO spaces_conversations(id,space_id,title,active_branch_id,created_at,updated_at)
         VALUES('history','space','Conversation','branch',1,1);
-        INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-        VALUES('run','space','external_agent','session','external_agent','running','{}','{}','{}',1,1);
+        INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
+        VALUES('run','space','space','external_agent','session','external_agent','running','{}','{}','{}',1,1);
         INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
         VALUES('session','run','space','history','branch','codex','Agent','connected',1,1);")
         .execute(&pool).await.unwrap();

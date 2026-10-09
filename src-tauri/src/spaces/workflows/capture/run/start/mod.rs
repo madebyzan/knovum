@@ -6,7 +6,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use super::{bindings::bind_inputs, validation, StartCapturedWorkflowRequest};
 use crate::spaces::{
-    authorization::{create_grant, local_user_grant},
+    authorization::{create_grant, local_user_grant, RunScope},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     workflows::capture::{contracts::CandidateSource, library::SavedCapturedWorkflow},
@@ -20,16 +20,22 @@ pub(crate) async fn start(
     uuid::Uuid::parse_str(&request.request_id)
         .map_err(|_| "workflow-run-invalid: request ID must be a UUID")?;
     let mut tx = db::begin_write(pool).await?;
-    let existing = sqlx::query("SELECT home_space_id,policy_snapshot FROM spaces_runs WHERE id=$1")
-        .bind(&request.request_id)
-        .fetch_optional(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+    let existing =
+        sqlx::query("SELECT scope_kind,home_space_id,policy_snapshot FROM spaces_runs WHERE id=$1")
+            .bind(&request.request_id)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(db::sql_error)?;
     if let Some(existing) = existing {
-        let home_space_id: String = existing.try_get("home_space_id").map_err(db::sql_error)?;
+        let scope = crate::spaces::authorization::RunScope::from_db(
+            &existing
+                .try_get::<String, _>("scope_kind")
+                .map_err(db::sql_error)?,
+            existing.try_get("home_space_id").map_err(db::sql_error)?,
+        )?;
         let policy: String = existing.try_get("policy_snapshot").map_err(db::sql_error)?;
         let policy: serde_json::Value = serde_json::from_str(&policy).map_err(db::json_error)?;
-        if home_space_id != request.space_id
+        if scope.require_space_id()? != request.space_id
             || policy
                 .get("requestWorkflowId")
                 .and_then(serde_json::Value::as_str)
@@ -77,9 +83,12 @@ async fn create(
     .await?;
     let now = crate::clock::unix_time_millis()?;
     let run_id = request.request_id.clone();
+    let scope = RunScope::Space {
+        space_id: request.space_id.clone(),
+    };
     let grant = local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        request.space_id.clone(),
+        scope.clone(),
         saved
             .candidate
             .steps
@@ -87,7 +96,7 @@ async fn create(
             .map(|step| step.action_id.clone())
             .collect(),
         now,
-    );
+    )?;
     create_grant(tx, &grant, now).await?;
     let definition = serde_json::to_value(&saved.candidate).map_err(db::json_error)?;
     let digest = hex::encode(Sha256::digest(
@@ -112,7 +121,7 @@ async fn create(
         tx,
         &NewRun {
             id: &run_id,
-            home_space_id: &request.space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &grant.principal,
             kind: RunKind::Workflow,

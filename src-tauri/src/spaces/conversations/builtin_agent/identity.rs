@@ -1,7 +1,7 @@
 use sqlx::SqlitePool;
 
 use crate::spaces::{
-    authorization::{AuthorizationContext, Principal, PrincipalKind},
+    authorization::{AuthorizationContext, Principal, PrincipalKind, RunScope},
     conversations::{tools::ToolCatalog, StartBuiltinAgentTaskRequest},
     db,
 };
@@ -49,7 +49,9 @@ pub(in crate::spaces::conversations) fn grant(
             id: ids.task_id.clone(),
         },
         grant_id: ids.grant_id.clone(),
-        home_space_id: request.space_id.clone(),
+        scope: RunScope::Space {
+            space_id: request.space_id.clone(),
+        },
         read_space_ids: vec![request.space_id.clone()],
         write_space_ids: vec![request.space_id.clone()],
         action_ids: catalog

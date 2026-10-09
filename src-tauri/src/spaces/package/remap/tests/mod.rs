@@ -87,3 +87,19 @@ fn restores_markdown_image_tokens_to_imported_asset_paths() {
         "![photo](</imported/photo.png>)"
     );
 }
+
+#[test]
+fn rejects_space_owned_voices_and_application_candidate_history() {
+    let mut value = manifest();
+    value["voiceProfiles"] = json!([{ "id":"voice", "spaceId":"original" }]);
+    assert_eq!(
+        prepare(&value.to_string(), &[], "new").unwrap_err(),
+        "Voice profiles must not have a Space owner"
+    );
+    let mut value = manifest();
+    value["voiceCandidates"] = json!([]);
+    assert_eq!(
+        prepare(&value.to_string(), &[], "new").unwrap_err(),
+        "Unsupported Space package manifest"
+    );
+}

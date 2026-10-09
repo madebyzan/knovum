@@ -33,7 +33,7 @@ const candidate: SpeechSourceSeparationCandidate = {
 function run(state: RunObservation["state"]): RunObservation {
   return {
     id: "run",
-    homeSpaceId: "space",
+    scope: { kind: "space", spaceId: "space" },
     parentRunId: null,
     retryOfRunId: null,
     forkOfRunId: null,

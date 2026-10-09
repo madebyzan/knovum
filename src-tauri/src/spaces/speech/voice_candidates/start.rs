@@ -7,7 +7,7 @@ use super::{
     VoiceCandidateStepConfiguration, WORKFLOW,
 };
 use crate::spaces::{
-    authorization::{create_grant, local_user_grant},
+    authorization::{create_grant, local_user_grant, RunScope},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
 };
@@ -29,16 +29,18 @@ pub(super) async fn start(
         )?;
     }
     let pool = db::pool(app).await?;
-    if let Some((space_id, kind, input)) = sqlx::query_as::<_, (String, String, String)>(
-        "SELECT home_space_id,kind,input_snapshot FROM spaces_runs WHERE id=?",
-    )
-    .bind(&request.request_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?
+    if let Some((scope_kind, home_space_id, kind, input)) =
+        sqlx::query_as::<_, (String, Option<String>, String, String)>(
+            "SELECT scope_kind,home_space_id,kind,input_snapshot FROM spaces_runs WHERE id=?",
+        )
+        .bind(&request.request_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(db::sql_error)?
     {
+        let scope = RunScope::from_db(&scope_kind, home_space_id)?;
         let matches = kind == "workflow"
-            && space_id == request.space_id
+            && scope.require_application().is_ok()
             && serde_json::from_str::<VoiceCandidateRunInput>(&input).is_ok_and(|stored| {
                 stored.workflow == WORKFLOW
                     && stored.request_digest == incoming_digest
@@ -91,33 +93,22 @@ async fn create(
     if raced {
         return Err("request_conflict: voice candidate request was created concurrently".into());
     }
-    let space_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=?)")
-        .bind(&request.space_id)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
-    if !space_exists {
-        return Err("A persisted Space is required".into());
-    }
     let active: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE home_space_id=? AND completed_at IS NULL \
+        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE scope_kind='application' AND completed_at IS NULL \
          AND json_extract(input_snapshot,'$.workflow')=?)",
     )
-    .bind(&request.space_id)
     .bind(WORKFLOW)
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
     if active {
-        return Err("This Space already has an active voice candidate Run".into());
+        return Err("A voice candidate Run is already active".into());
     }
-    let ready_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM spaces_voice_candidates WHERE space_id=? AND status='ready'",
-    )
-    .bind(&request.space_id)
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
+    let ready_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_voice_candidates WHERE status='ready'")
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(db::sql_error)?;
     if ready_count >= 16 {
         return Err("Reject an existing candidate before creating another".into());
     }
@@ -144,12 +135,13 @@ async fn create_run(
     request_digest: &str,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
+    let scope = RunScope::Application;
     let grant = local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        request.space_id.clone(),
+        scope.clone(),
         Vec::new(),
         now,
-    );
+    )?;
     let principal = grant.principal.clone();
     create_grant(tx, &grant, now).await?;
     let input = json!({
@@ -161,7 +153,7 @@ async fn create_run(
         tx,
         &NewRun {
             id: &request.request_id,
-            home_space_id: &request.space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: RunKind::Workflow,

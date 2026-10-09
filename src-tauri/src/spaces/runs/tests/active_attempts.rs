@@ -4,7 +4,7 @@ async fn claim(pool: &sqlx::SqlitePool, parent: Option<&str>) -> AttemptClaim {
     let run_id = uuid::Uuid::new_v4().to_string();
     let step_instance_id = uuid::Uuid::new_v4().to_string();
     let attempt_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space',?,'user','user','workflow','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','space',?,'user','user','workflow','running','{}','{}','{}',1,1)")
         .bind(&run_id).bind(parent).execute(pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,resolved_input,created_at,updated_at) VALUES(?,?,'segment','segment','speech_segment','running','{}',1,1)")
         .bind(&step_instance_id).bind(&run_id).execute(pool).await.unwrap();
@@ -18,7 +18,9 @@ async fn claim(pool: &sqlx::SqlitePool, parent: Option<&str>) -> AttemptClaim {
         step_instance_id,
         execution_epoch: 0,
         attempt_number: 1,
-        home_space_id: "space".into(),
+        scope: crate::spaces::authorization::RunScope::Space {
+            space_id: "space".into(),
+        },
         node_kind: "speech_segment".into(),
         configuration: serde_json::json!({}),
         resolved_input: serde_json::json!({}),

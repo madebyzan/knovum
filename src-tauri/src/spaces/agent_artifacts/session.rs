@@ -17,11 +17,14 @@ pub(super) async fn start(
         kind: crate::spaces::authorization::PrincipalKind::ExternalAgent,
         id: session_id.to_owned(),
     };
+    let scope = crate::spaces::authorization::RunScope::Space {
+        space_id: space_id.to_owned(),
+    };
     crate::spaces::runs::create_run_in_transaction(
         &mut tx,
         &crate::spaces::runs::NewRun {
             id: session_id,
-            home_space_id: space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: crate::spaces::runs::RunKind::ExternalAgent,

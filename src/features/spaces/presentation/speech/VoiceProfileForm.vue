@@ -8,13 +8,17 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { CreatePresetVoiceRequest } from "../../contracts/generated/CreatePresetVoiceRequest";
 import { listPresetVoices } from "../../speech/ipc";
+import { voiceQueryKeys } from "../../speech/voice-query-keys";
 import VoiceAudition from "./VoiceAudition.vue";
 
-const emit = defineEmits<{ create: [input: Omit<CreatePresetVoiceRequest, "spaceId">] }>();
-defineProps<{ disabled?: boolean; spaceId: string }>();
+const emit = defineEmits<{
+  create: [input: CreatePresetVoiceRequest];
+  dirty: [value: boolean];
+}>();
+defineProps<{ disabled?: boolean }>();
 const { t } = useI18n();
 const { data: presets, error } = useQuery({
-  queryKey: ["speech-preset-voices"],
+  queryKey: voiceQueryKeys.presetCatalog,
   queryFn: listPresetVoices,
   staleTime: Infinity,
 });
@@ -29,6 +33,7 @@ const presetOptions = computed(() =>
 const name = shallowRef("");
 const speakerId = shallowRef("0");
 const language = shallowRef("zh-CN");
+const identityDirty = shallowRef(false);
 watch([language, presets], ([value]) => {
   const preferred = presets.value?.find((voice) => voice.primaryLanguage === value);
   if (preferred) speakerId.value = preferred.speakerId;
@@ -49,7 +54,15 @@ function submit() {
     language: language.value,
     synthesisConfig: { speed: 1, sampleRate: 48_000, seed: 0 },
   });
-  name.value = "";
+}
+
+function markIdentityDirty() {
+  identityDirty.value = true;
+  emit("dirty", true);
+}
+
+function markAuditionDirty(value: boolean) {
+  emit("dirty", identityDirty.value || value);
 }
 </script>
 
@@ -61,6 +74,7 @@ function submit() {
       :placeholder="t('spaces.speech.voice.name')"
       :aria-label="t('spaces.speech.voice.name')"
       :disabled="disabled"
+      @update:model-value="markIdentityDirty"
     />
     <p v-if="error" class="text-caption text-fg-danger">{{ error.message }}</p>
     <div class="flex gap-2">
@@ -71,6 +85,7 @@ function submit() {
         :label="t('spaces.speech.voice.label')"
         :options="presetOptions"
         :disabled="disabled || !presets"
+        @update:model-value="markIdentityDirty"
       />
       <UiSelect
         v-model="language"
@@ -79,15 +94,16 @@ function submit() {
         :label="t('spaces.speech.project.language')"
         :options="languageOptions"
         :disabled="disabled"
+        @update:model-value="markIdentityDirty"
       />
       <UiButton size="sm" variant="primary" type="submit" :disabled="disabled || !presets">{{
         t("spaces.speech.voice.add")
       }}</UiButton>
     </div>
     <VoiceAudition
-      :space-id="spaceId"
       :source="{ kind: 'preset', speakerId, language }"
       :disabled="Boolean(disabled) || !presets"
+      @dirty="markAuditionDirty"
     />
   </form>
 </template>

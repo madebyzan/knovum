@@ -8,7 +8,7 @@ use super::{
 use crate::ai::tasks::TaskTargetRef;
 use crate::app_error::AppError;
 use crate::spaces::{
-    authorization::{create_grant, local_user_grant, PrincipalKind},
+    authorization::{create_grant, local_user_grant, PrincipalKind, RunScope},
     db,
     runs::{load_run, RunObservation},
 };
@@ -98,7 +98,13 @@ async fn accept(
             .map_err(db::sql_error)?;
     if exists != 0 {
         let grant = crate::spaces::authorization::load_grant(&mut tx, &request.request_id).await?;
-        if grant.principal.kind != PrincipalKind::User || grant.principal.id != "local-user" {
+        let expected_scope = RunScope::Space {
+            space_id: request.space_id.clone(),
+        };
+        if grant.principal.kind != PrincipalKind::User
+            || grant.principal.id != "local-user"
+            || grant.scope != expected_scope
+        {
             return Err(
                 "permission-denied: canvas authorization belongs to another principal".into(),
             );
@@ -107,10 +113,12 @@ async fn accept(
         let now = crate::clock::unix_time_millis()?;
         let grant = local_user_grant(
             request.request_id.clone(),
-            request.space_id.clone(),
+            RunScope::Space {
+                space_id: request.space_id.clone(),
+            },
             vec![request.action_id.clone()],
             now,
-        );
+        )?;
         create_grant(&mut tx, &grant, now).await?;
     }
     let ActionInvocationOutcome::AcceptedRun { run_id } =

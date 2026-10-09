@@ -8,10 +8,17 @@ import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRe
 import type { VoiceModel } from "../contracts/generated/VoiceModel";
 import { useVoiceCandidates } from "./use-voice-candidates";
 
-export function useVoiceCandidateForm(spaceId: () => string, created: (voice: VoiceLibraryRevision) => void) {
+export type VoiceCandidateSourceKind = "reference" | "designed";
+const DEFAULT_MODEL: VoiceModel = "mossNano";
+
+export function useVoiceCandidateForm(
+  created: (voice: VoiceLibraryRevision) => void,
+  requestedSourceKind?: () => VoiceCandidateSourceKind | undefined,
+) {
   const { t } = useI18n();
-  const mode = shallowRef<"reference" | "designed">("reference");
-  const model = shallowRef<VoiceModel>("mossNano");
+  const initialMode = requestedSourceKind?.() ?? "reference";
+  const mode = shallowRef<VoiceCandidateSourceKind>(initialMode);
+  const model = shallowRef<VoiceModel>(DEFAULT_MODEL);
   const modelAvailable = shallowRef(false);
   const referenceTranscript = shallowRef<LocalModelReferenceTranscript>("unused");
   const language = shallowRef("zh-CN");
@@ -21,7 +28,8 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
   const transcript = shallowRef("");
   const transcriptConfirmed = shallowRef(false);
   const authorized = shallowRef(false);
-  const text = shallowRef(t("spaces.speech.voice.candidate.sample"));
+  const initialText = t("spaces.speech.voice.candidate.sample");
+  const text = shallowRef(initialText);
   watch(
     reference,
     (prepared) => {
@@ -31,7 +39,11 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
     { flush: "sync" },
   );
   const { candidates, activeRunId, pendingRequestId, busy, error, draft, save, cancel, discard, audition } =
-    useVoiceCandidates(spaceId, created);
+    useVoiceCandidates(created);
+  if (requestedSourceKind)
+    watch(requestedSourceKind, (sourceKind) => {
+      if (sourceKind) mode.value = sourceKind;
+    });
   const modes = computed(() => [
     { value: "reference", label: t("spaces.speech.voice.clone") },
     { value: "designed", label: t("spaces.speech.voice.design") },
@@ -49,6 +61,15 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
   );
   const ready = computed(
     () => authorized.value && modelAvailable.value && text.value.trim() && sourceReady.value,
+  );
+  const dirty = computed(
+    () =>
+      mode.value !== initialMode ||
+      model.value !== DEFAULT_MODEL ||
+      language.value !== "zh-CN" ||
+      Boolean(description.value.trim() || reference.value || transcript.value.trim()) ||
+      authorized.value ||
+      text.value !== initialText,
   );
 
   function buildSource(): VoiceCandidateSource | undefined {
@@ -105,6 +126,7 @@ export function useVoiceCandidateForm(spaceId: () => string, created: (voice: Vo
     modes,
     languages,
     ready,
+    dirty,
     generate,
     save,
     cancel,

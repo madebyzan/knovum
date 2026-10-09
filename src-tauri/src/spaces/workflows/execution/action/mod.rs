@@ -16,13 +16,14 @@ pub(super) async fn execute_invocation(
     parameters: Value,
     input_snapshot: Value,
 ) -> Result<StepOutcome, AppError> {
+    let space_id = claim.scope.require_space_id()?.to_owned();
     let outcome = actions::invoke(
         pool,
         ActionInvocationRequest {
             invocation_id: claim.step_instance_id.clone(),
             idempotency_key: claim.step_instance_id.clone(),
             grant_id: required_str(&claim.policy_snapshot, "grantId")?.to_owned(),
-            space_id: claim.home_space_id.clone(),
+            space_id,
             action_id,
             action_version,
             parameters,

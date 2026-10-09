@@ -91,7 +91,7 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
     let step_id = uuid::Uuid::new_v4().to_string();
     let attempt_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis().unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','user','local-user','workflow','running',2,'{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','space','user','local-user','workflow','running',2,'{}','{}','{}',1,1)")
         .bind(&run_id).execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,resolved_input,created_at,updated_at) VALUES(? ,?,'separate','separate','speech_source_separation','running','{}',1,1)")
         .bind(&step_id).bind(&run_id).execute(&pool).await.unwrap();
@@ -104,7 +104,9 @@ async fn candidate_commit_requires_a_live_attempt_and_review_is_compare_and_swap
         step_instance_id: step_id.clone(),
         execution_epoch: 2,
         attempt_number: 1,
-        home_space_id: "space".into(),
+        scope: crate::spaces::authorization::RunScope::Space {
+            space_id: "space".into(),
+        },
         node_kind: "speech_source_separation".into(),
         configuration: json!({"source":source(),"model":"spleeter2Stems"}),
         resolved_input: json!({}),

@@ -38,12 +38,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
       project.project.projectType === projectType()
     );
   }
-  const voiceLibrary = useSpeechVoices({
-    activeSpaceId: () => store.activeSpaceId,
-    contextEpoch: () => refreshEpoch,
-    isCurrent: isCurrentSpace,
-    setError,
-  });
+  const voiceLibrary = useSpeechVoices(setError);
   const projectCreation = useSpeechProjectCreation({
     activeSpaceId: () => store.activeSpaceId,
     sourceNodeId,
@@ -75,7 +70,6 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     selectionEpoch += 1;
     generation.reset();
     selectedProject.value = undefined;
-    voiceLibrary.replace([]);
     projects.value = [];
     if (!spaceId) {
       loading.value = false;
@@ -84,12 +78,8 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     loading.value = true;
     error.value = undefined;
     try {
-      const [nextVoices, nextProjects] = await Promise.all([
-        voiceLibrary.load(spaceId),
-        listSpeechProjects(spaceId, sourceNodeId()),
-      ]);
+      const nextProjects = await listSpeechProjects(spaceId, sourceNodeId());
       if (epoch !== refreshEpoch) return;
-      voiceLibrary.replace(nextVoices);
       projects.value = nextProjects.filter((project) => project.projectType === projectType());
     } catch (cause) {
       if (epoch === refreshEpoch) error.value = getErrorMessage(cause);
@@ -164,7 +154,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     creatingVoice: voiceLibrary.creating,
     addPresetVoice: voiceLibrary.addPreset,
     projects: readonly(projects),
-    loading: readonly(loading),
+    loading: computed(() => loading.value || voiceLibrary.loading.value),
     error: readonly(error),
     selectedProject: readonly(selectedProject),
     creatingProject: projectCreation.creating,
@@ -177,7 +167,6 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     generationSubmitting: generation.submitting,
     generationCancelling: generation.cancelling,
     addProject: projectCreation.add,
-    refreshVoices: voiceLibrary.refresh,
     openProject,
     saveRevision,
     settleRevisionSave,

@@ -1,16 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type * as ipc from "../ipc";
+
 const mocks = vi.hoisted(() => ({
-  activeSpaceId: "space-1" as string | undefined,
   cancelSpeechGeneration: vi.fn<(jobId: string) => Promise<boolean>>(),
   discardSpeechPreview: vi.fn<(path: string) => Promise<void>>(),
-  previewVoice: vi.fn<() => Promise<never>>(),
+  previewVoice: vi.fn<typeof ipc.previewVoice>(),
 }));
 
 vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (path: string) => `asset:${path}` }));
-vi.mock("../../session/space-store", () => ({
-  useSpaceStore: () => mocks,
-}));
 vi.mock("../ipc", () => ({
   cancelSpeechGeneration: mocks.cancelSpeechGeneration,
   discardSpeechPreview: mocks.discardSpeechPreview,
@@ -44,7 +42,6 @@ function deferredPreview() {
 }
 
 beforeEach(() => {
-  mocks.activeSpaceId = "space-1";
   mocks.cancelSpeechGeneration.mockReset();
   mocks.cancelSpeechGeneration.mockResolvedValue(true);
   mocks.discardSpeechPreview.mockReset();
@@ -59,10 +56,7 @@ describe("speech preview playback controls", () => {
   it("stops listening without cancelling generation", async () => {
     const pending = deferredPreview();
     mocks.previewVoice.mockReturnValue(pending.promise);
-    const preview = useSpeechPreview(
-      () => undefined,
-      () => mocks.activeSpaceId,
-    );
+    const preview = useSpeechPreview(() => undefined);
     const task = preview.previewSelection("hello", "voice-1", {});
     await Promise.resolve();
 
@@ -76,10 +70,7 @@ describe("speech preview playback controls", () => {
   it("cancels generation with the active preview identity", async () => {
     const pending = deferredPreview();
     mocks.previewVoice.mockReturnValue(pending.promise);
-    const preview = useSpeechPreview(
-      () => undefined,
-      () => mocks.activeSpaceId,
-    );
+    const preview = useSpeechPreview(() => undefined);
     const task = preview.previewSelection("hello", "voice-1", {});
     await Promise.resolve();
     const activeJobId = preview.jobId.value;
@@ -95,10 +86,7 @@ describe("speech preview playback controls", () => {
   it("sends a trimmed delivery instruction with the preview request", async () => {
     const pending = deferredPreview();
     mocks.previewVoice.mockReturnValue(pending.promise);
-    const preview = useSpeechPreview(
-      () => undefined,
-      () => mocks.activeSpaceId,
-    );
+    const preview = useSpeechPreview(() => undefined);
     const task = preview.previewSelection("hello", "voice-1", {}, "  Calm narration  ");
     await vi.waitFor(() =>
       expect(mocks.previewVoice).toHaveBeenCalledWith(
@@ -107,6 +95,7 @@ describe("speech preview playback controls", () => {
         expect.any(Function),
       ),
     );
+    expect(mocks.previewVoice.mock.calls[0]?.[0]).not.toHaveProperty("spaceId");
 
     pending.reject(new Error("cancelled", { cause: { code: "cancelled" } }));
     await task;
@@ -117,7 +106,7 @@ describe("speech preview playback controls", () => {
     mocks.previewVoice.mockReturnValue(pending.promise);
     mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Cancellation rejected"));
     const report = vi.fn<(message?: string) => void>();
-    const preview = useSpeechPreview(report, () => mocks.activeSpaceId);
+    const preview = useSpeechPreview(report);
     const task = preview.previewSelection("hello", "voice-1", {});
     await Promise.resolve();
     const job = preview.jobId.value;
@@ -133,7 +122,7 @@ describe("speech preview playback controls", () => {
     mocks.previewVoice.mockReturnValue(pending.promise);
     mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Old cancellation failure"));
     const report = vi.fn<(message?: string) => void>();
-    const preview = useSpeechPreview(report, () => mocks.activeSpaceId);
+    const preview = useSpeechPreview(report);
     const task = preview.previewSelection("hello", "voice-1", {});
     await vi.waitFor(() => expect(mocks.previewVoice).toHaveBeenCalledOnce());
     preview.reset();

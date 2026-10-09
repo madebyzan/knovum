@@ -1,59 +1,125 @@
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
-import { expect, it, onTestFinished, vi } from "vitest";
-import { reactive } from "vue";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { defineComponent, nextTick } from "vue";
 import type * as VueI18n from "vue-i18n";
 
-import SpaceVoiceLibrarySettings from "../SpaceVoiceLibrarySettings.vue";
+import {
+  settingsLeaveCoordinatorKey,
+  type SettingsLeaveParticipant,
+} from "../../../../../shared/contracts/settings-leave";
+import type * as ipc from "../../../speech/ipc";
+import VoiceLibrarySettings from "../VoiceLibrarySettings.vue";
 
-vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => store }));
+const mocks = vi.hoisted(() => ({
+  confirm: vi.fn<() => Promise<boolean>>(),
+  createPresetVoice: vi.fn<typeof ipc.createPresetVoice>(),
+  listVoiceRevisions: vi.fn<typeof ipc.listVoiceRevisions>(),
+}));
+vi.mock("../../../../../shared/ui/confirm-action", () => ({ confirmAction: mocks.confirm }));
 vi.mock("../../../speech/ipc", () => ({
-  createPresetVoice: vi.fn<() => Promise<void>>(),
-  listVoiceRevisions: vi.fn<() => Promise<[]>>(),
+  createPresetVoice: mocks.createPresetVoice,
+  listVoiceRevisions: mocks.listVoiceRevisions,
 }));
 vi.mock("vue-i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
-const store = reactive({
-  activeSpaceId: "first",
-  spaces: [
-    { id: "first", title: "First", archivedAt: null },
-    { id: "second", title: "Second", archivedAt: null },
-    { id: "archived", title: "Archived", archivedAt: 1 },
-  ],
+
+const VoiceManagement = defineComponent({
+  props: { creating: Boolean, expandedId: String },
+  emits: ["dirty", "toggle"],
+  template: '<div data-testid="management"><slot v-if="creating" name="create" /></div>',
+});
+const VoiceProfileForm = defineComponent({
+  emits: ["create", "dirty"],
+  template:
+    '<button data-testid="dirty-preset" @click="$emit(\'dirty\', true)" /><button data-testid="submit-preset" @click="$emit(\'create\', { name: \'Narrator\' })" />',
+});
+const VoiceCandidateForm = defineComponent({ template: '<div data-testid="candidate-form" />' });
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  mocks.listVoiceRevisions.mockResolvedValue([]);
 });
 
-it("manages a chosen Space without switching the canvas session or mixing reference owners", async () => {
-  const wrapper = mount(SpaceVoiceLibrarySettings, {
+function render() {
+  let participant: SettingsLeaveParticipant | undefined;
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = mount(VoiceLibrarySettings, {
     global: {
-      stubs: {
-        UiSelect: {
-          props: ["modelValue", "options"],
-          emits: ["update:modelValue"],
-          template:
-            '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option></select>',
-        },
-        VoiceCandidateForm: {
-          props: ["spaceId"],
-          template: '<div data-testid="references" :data-space-id="spaceId" />',
-        },
-        VoiceProfileForm: {
-          props: ["spaceId"],
-          template: '<div data-testid="presets" :data-space-id="spaceId" />',
-        },
-        VoiceManagement: {
-          props: ["spaceId"],
-          template: '<div data-testid="management" :data-space-id="spaceId" />',
+      plugins: [[VueQueryPlugin, { queryClient }]],
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: {
+          register(value: SettingsLeaveParticipant) {
+            participant = value;
+            return vi.fn<() => void>();
+          },
+          requestLeave: vi.fn<() => Promise<void>>(),
         },
       },
+      stubs: { VoiceManagement, VoiceProfileForm, VoiceCandidateForm },
     },
   });
-  onTestFinished(() => wrapper.unmount());
-  expect(wrapper.findAll("option")).toHaveLength(2);
-  await wrapper.get("select").setValue("second");
+  onTestFinished(() => {
+    wrapper.unmount();
+    queryClient.clear();
+  });
+  return { wrapper, participant: () => participant! };
+}
+
+async function openCreation(wrapper: ReturnType<typeof render>["wrapper"]) {
+  const add = wrapper.findAll("button").find((button) => button.text().includes("spaces.speech.voice.add"));
+  await add!.trigger("click");
+}
+
+it("loads one application voice library without a Space selector", async () => {
+  const { wrapper } = render();
   await flushPromises();
-  for (const testId of ["references", "presets", "management"]) {
-    expect(wrapper.get(`[data-testid="${testId}"]`).attributes("data-space-id")).toBe("second");
-  }
-  expect(store.activeSpaceId).toBe("first");
+  expect(mocks.listVoiceRevisions).toHaveBeenCalledOnce();
+  await openCreation(wrapper);
+  const source = wrapper.getComponent({ name: "UiSelect" });
+  expect(source.props("options")).toHaveLength(3);
+  expect(wrapper.find("[data-space-id]").exists()).toBe(false);
+});
+
+it("uses the settings leave decision before discarding a voice draft", async () => {
+  mocks.confirm.mockResolvedValue(false);
+  const { wrapper, participant } = render();
+  await openCreation(wrapper);
+  await wrapper.get('[data-testid="dirty-preset"]').trigger("click");
+  await expect(participant().prepare()).resolves.toBe(false);
+  expect(mocks.confirm).toHaveBeenCalledOnce();
+  expect(wrapper.findComponent(VoiceProfileForm).exists()).toBe(true);
+  mocks.confirm.mockResolvedValue(true);
+  await expect(participant().prepare()).resolves.toBe(true);
+  participant().finalize?.();
+  await nextTick();
+  expect(wrapper.findComponent(VoiceProfileForm).exists()).toBe(false);
+});
+
+it("waits for a submitted preset before closing the creation row", async () => {
+  let finish!: (voice: Awaited<ReturnType<typeof ipc.createPresetVoice>>) => void;
+  mocks.createPresetVoice.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+  const { wrapper } = render();
+  await openCreation(wrapper);
+  await wrapper.get('[data-testid="submit-preset"]').trigger("click");
+  await wrapper.get('button[aria-label="common.close"]').trigger("click");
+  await nextTick();
+  expect(wrapper.findComponent(VoiceProfileForm).exists()).toBe(true);
+  finish({
+    profileId: "voice",
+    revisionId: "revision",
+    revision: 1,
+    name: "Narrator",
+    sourceKind: "preset",
+    engineId: "moss_nano",
+    modelSpecId: "moss-tts-nano-onnx-v1",
+    language: "zh-CN",
+    supportsDeliveryInstruction: false,
+    isActive: true,
+    updatedAt: 1,
+  });
+  await flushPromises();
+  expect(wrapper.findComponent(VoiceProfileForm).exists()).toBe(false);
 });

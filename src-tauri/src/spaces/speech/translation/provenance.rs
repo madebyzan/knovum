@@ -4,7 +4,7 @@ use super::{
     contracts::{TranslationRunInput, TranslationStepConfiguration, VideoTranslationSegmentOutput},
     NODE_KIND, WORKFLOW,
 };
-use crate::spaces::{db, speech::contracts::SpeechSegmentInput};
+use crate::spaces::{authorization::RunScope, db, speech::contracts::SpeechSegmentInput};
 
 pub(crate) struct SaveContext<'a> {
     pub space_id: &'a str,
@@ -23,18 +23,23 @@ pub(crate) async fn validate_saved_provenance(
     let Some(provenance) = &context.requested_output_config.translation else {
         return Ok(());
     };
-    let row: Option<(String, String, String)> =
-        sqlx::query_as("SELECT state,home_space_id,input_snapshot FROM spaces_runs WHERE id=?")
-            .bind(&provenance.run_id)
-            .fetch_optional(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    let Some((state, home_space_id, encoded)) = row else {
+    let row: Option<(String, String, Option<String>, String)> = sqlx::query_as(
+        "SELECT state,scope_kind,home_space_id,input_snapshot FROM spaces_runs WHERE id=?",
+    )
+    .bind(&provenance.run_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    let Some((state, scope_kind, home_space_id, encoded)) = row else {
         return Err("Video translation provenance Run is unavailable".into());
     };
+    let scope = RunScope::from_db(&scope_kind, home_space_id)?;
     let input: TranslationRunInput = serde_json::from_str(&encoded).map_err(db::json_error)?;
     if state != "succeeded"
-        || home_space_id != context.space_id
+        || scope
+            != (RunScope::Space {
+                space_id: context.space_id.to_owned(),
+            })
         || input.workflow != WORKFLOW
         || input.project_id != context.project_id
         || input.expected_revision > context.active_revision

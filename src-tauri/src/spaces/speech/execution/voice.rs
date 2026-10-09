@@ -8,12 +8,11 @@ use sha2::{Digest, Sha256};
 pub(in crate::spaces::speech) async fn load_voice(
     pool: &sqlx::SqlitePool,
     revision_id: &str,
-    space_id: &str,
 ) -> Result<VoiceExecution, String> {
     let voice: VoiceExecution = sqlx::query_as(
-        "SELECT r.id AS revision_id,p.source_kind,r.engine_id,r.model_spec_id,r.language,          r.preset_voice_id,r.reference_asset_id,r.reference_source_revision,r.reference_text,          r.design_description,r.synthesis_config FROM spaces_voice_revisions r          JOIN spaces_voice_profiles p ON p.id=r.profile_id WHERE r.id=? AND p.space_id=?",
+        "SELECT r.id AS revision_id,p.source_kind,r.engine_id,r.model_spec_id,r.language,          r.preset_voice_id,r.reference_asset_id,r.reference_source_revision,r.reference_text,          r.design_description,r.synthesis_config FROM spaces_voice_revisions r          JOIN spaces_voice_profiles p ON p.id=r.profile_id WHERE r.id=?",
     )
-    .bind(revision_id).bind(space_id).fetch_optional(pool).await.map_err(db::sql_error)?
+    .bind(revision_id).fetch_optional(pool).await.map_err(db::sql_error)?
     .ok_or("Voice revision is unavailable")?;
     match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
         ("moss_nano", "preset") if voice.model_spec_id == MOSS_NANO_MODEL_SPEC_ID => {

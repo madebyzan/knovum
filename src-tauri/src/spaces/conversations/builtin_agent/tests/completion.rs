@@ -5,8 +5,8 @@ use crate::spaces::conversations::{
 #[tokio::test]
 async fn an_unsettled_child_prevents_success_and_failed_children_remain_visible() {
     let pool = fixture::database().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-        VALUES('child','space','run','builtin_agent','task','action','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
+        VALUES('child','space','space','run','builtin_agent','task','action','running','{}','{}','{}',1,1)")
         .execute(&pool).await.unwrap();
     assert!(completion::complete(&pool, &fixture::ids()).await.is_err());
     assert_eq!(

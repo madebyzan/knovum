@@ -34,38 +34,6 @@ pub struct PackageVoiceRevision {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageVoiceCandidate {
-    pub id: String,
-    pub run_id: String,
-    pub source_kind: String,
-    pub language: String,
-    pub sample_text: String,
-    pub design_description: Option<String>,
-    pub reference_text: Option<String>,
-    pub input_source_revision: Option<String>,
-    pub input_byte_length: Option<i64>,
-    pub reference_asset_path: String,
-    pub reference_sha256: String,
-    pub reference_byte_length: i64,
-    pub preview_asset_path: String,
-    pub preview_sha256: String,
-    pub preview_sample_rate: i64,
-    pub preview_sample_count: i64,
-    pub model_spec_id: String,
-    pub seed: i64,
-    pub synthesis_config: Value,
-    pub authorization: Value,
-    pub status: String,
-    pub auditioned_at: Option<i64>,
-    pub selected_voice_profile_id: Option<String>,
-    pub selected_voice_revision_id: Option<String>,
-    pub selected_at: Option<i64>,
-    pub rejected_at: Option<i64>,
-    pub created_at: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageSpeechSourceSeparation {
     pub id: String,
     pub run_id: String,

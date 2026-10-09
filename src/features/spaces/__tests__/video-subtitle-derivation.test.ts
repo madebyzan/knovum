@@ -32,7 +32,7 @@ it("starts one local video Action, with no Workflow, transcript resource or mode
   mockIPC((command, args) => {
     calls.push([command, args]);
     store.activeSpaceId = "other-space";
-    return { id: "run", homeSpaceId: "space" };
+    return { id: "run", scope: { kind: "space", spaceId: "space" } };
   });
   await addVideoSubtitles(store as ReturnType<typeof useSpaceStore>, source);
   expect(calls).toHaveLength(1);
@@ -48,7 +48,7 @@ it("starts one local video Action, with no Workflow, transcript resource or mode
   });
   expect(source.data).toEqual(data);
   expect(context.observe).toHaveBeenCalledWith(
-    { id: "run", homeSpaceId: "space" },
+    { id: "run", scope: { kind: "space", spaceId: "space" } },
     "spaces.creation.video.subtitles.task",
   );
 });

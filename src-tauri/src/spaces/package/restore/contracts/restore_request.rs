@@ -5,8 +5,8 @@ use super::{
     PackageExternalAgentConversation, PackageExternalAgentTurn, PackageNode, PackageObjectType,
     PackageProvenance, PackageRelation, PackageRun, PackageRunAttempt, PackageRunEvent,
     PackageRunStep, PackageScene, PackageSpace, PackageSpeechProject, PackageSpeechProjectRevision,
-    PackageSpeechRender, PackageSpeechSegment, PackageSpeechSourceSeparation,
-    PackageVoiceCandidate, PackageVoiceProfile, PackageVoiceRevision,
+    PackageSpeechRender, PackageSpeechSegment, PackageSpeechSourceSeparation, PackageVoiceProfile,
+    PackageVoiceRevision,
 };
 
 #[derive(Debug, Deserialize)]
@@ -31,7 +31,6 @@ pub struct RestorePackageRequest {
     pub conversation_messages: Vec<PackageConversationMessage>,
     pub voice_profiles: Vec<PackageVoiceProfile>,
     pub voice_revisions: Vec<PackageVoiceRevision>,
-    pub voice_candidates: Vec<PackageVoiceCandidate>,
     pub speech_projects: Vec<PackageSpeechProject>,
     pub speech_project_revisions: Vec<PackageSpeechProjectRevision>,
     pub speech_segments: Vec<PackageSpeechSegment>,

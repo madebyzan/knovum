@@ -15,7 +15,7 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         .await
         .unwrap();
     for statement in [
-        "CREATE TABLE spaces_runs(id TEXT PRIMARY KEY,state TEXT,home_space_id TEXT,input_snapshot TEXT)",
+        "CREATE TABLE spaces_runs(id TEXT PRIMARY KEY,state TEXT,scope_kind TEXT,home_space_id TEXT,input_snapshot TEXT)",
         "CREATE TABLE spaces_speech_project_revisions(id TEXT PRIMARY KEY,project_id TEXT,revision INTEGER,output_config TEXT)",
         "CREATE TABLE spaces_speech_segments(id TEXT,project_revision_id TEXT,ordinal INTEGER,text TEXT,source_segment_id TEXT,source_segment_revision INTEGER,source_text TEXT)",
         "CREATE TABLE spaces_run_steps(id TEXT,run_id TEXT,node_kind TEXT,state TEXT,configuration TEXT,output TEXT)",
@@ -42,7 +42,7 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         "stepId":"step","sourceSegmentId":"source","sourceSegmentRevision":1,
         "sourceText":"Original","translatedText":"Model translation"
     });
-    sqlx::query("INSERT INTO spaces_runs VALUES(?, 'succeeded', 'space', ?)")
+    sqlx::query("INSERT INTO spaces_runs VALUES(?, 'succeeded', 'space', 'space', ?)")
         .bind(run_id)
         .bind(input.to_string())
         .execute(&pool)

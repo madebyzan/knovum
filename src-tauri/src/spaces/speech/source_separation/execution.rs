@@ -32,15 +32,16 @@ pub(crate) async fn execute(
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
     super::super::run_execution::require_authority(pool, claim).await?;
+    let space_id = claim.scope.require_space_id()?;
     let config = SeparationConfiguration::from_claim(claim)?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
-    super::media::require_owned_source(&mut tx, &claim.home_space_id, &config.source).await?;
+    super::media::require_owned_source(&mut tx, space_id, &config.source).await?;
     tx.rollback().await.map_err(db::sql_error)?;
     let source =
         crate::spaces::assets::authorize_spaces_asset(app, Path::new(&config.source.asset_path))?;
     crate::file_inspection::verify_content_revision(&source, &config.source.source_revision)?;
     if let Some(candidate) = load_candidate_optional(pool, &claim.run_id).await? {
-        return resume_completed(app, claim, &config.source, candidate);
+        return resume_completed(app, claim, space_id, &config.source, candidate);
     }
     let output_directory = crate::spaces::assets::asset_directory(app)?
         .join("speech")
@@ -135,10 +136,11 @@ pub(crate) async fn execute(
 fn resume_completed(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
+    space_id: &str,
     source: &SpeechMediaSource,
     candidate: SpeechSourceSeparationCandidate,
 ) -> Result<StepOutcome, AppError> {
-    if !candidate_matches_claim(claim, source, &candidate) {
+    if !candidate_matches_claim(claim, space_id, source, &candidate) {
         return Err("stale_revision: persisted source separation differs from its run".into());
     }
     for stem in [&candidate.background, &candidate.vocals] {
@@ -156,10 +158,11 @@ fn resume_completed(
 
 pub(super) fn candidate_matches_claim(
     claim: &AttemptClaim,
+    space_id: &str,
     source: &SpeechMediaSource,
     candidate: &SpeechSourceSeparationCandidate,
 ) -> bool {
-    candidate.space_id == claim.home_space_id
+    candidate.space_id == space_id
         && candidate.run_id == claim.run_id
         && candidate.separation_id == claim.run_id
         && SeparationConfiguration::from_claim(claim).is_ok_and(|config| {

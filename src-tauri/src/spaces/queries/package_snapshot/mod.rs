@@ -89,7 +89,6 @@ pub(crate) async fn collect<R: Runtime>(
         "conversationMessages": conversation_messages,
         "voiceProfiles": speech.voice_profiles,
         "voiceRevisions": speech.voice_revisions,
-        "voiceCandidates": speech.voice_candidates,
         "speechProjects": speech.speech_projects,
         "speechProjectRevisions": speech.project_revisions,
         "speechSegments": speech.segments,

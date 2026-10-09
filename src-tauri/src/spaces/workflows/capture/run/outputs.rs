@@ -19,14 +19,20 @@ pub(crate) async fn list(
     run_id: &str,
 ) -> Result<Vec<CapturedRunOutput>, String> {
     let row = sqlx::query(
-        "SELECT home_space_id,policy_snapshot FROM spaces_runs WHERE id=$1 AND kind='workflow'",
+        "SELECT scope_kind,home_space_id,policy_snapshot FROM spaces_runs
+         WHERE id=$1 AND kind='workflow'",
     )
     .bind(run_id)
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?
     .ok_or("workflow-run-unavailable: Run is unavailable")?;
-    let space_id: String = row.try_get("home_space_id").map_err(db::sql_error)?;
+    let scope_kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+    let scope = crate::spaces::authorization::RunScope::from_db(
+        &scope_kind,
+        row.try_get("home_space_id").map_err(db::sql_error)?,
+    )?;
+    let space_id = scope.require_space_id()?;
     let policy: String = row.try_get("policy_snapshot").map_err(db::sql_error)?;
     let policy: Value = serde_json::from_str(&policy).map_err(db::json_error)?;
     if policy.get("captureSchemaVersion").and_then(Value::as_u64) != Some(1) {
@@ -63,7 +69,7 @@ pub(crate) async fn list(
              WHERE d.id=$1 AND d.space_id=$2 AND d.status='completed' AND n.deleted_at IS NULL",
         )
         .bind(child_run_id)
-        .bind(&space_id)
+        .bind(space_id)
         .fetch_optional(pool)
         .await
         .map_err(db::sql_error)?

@@ -15,7 +15,7 @@ pub(super) fn claim(
         step_instance_id,
         execution_epoch: row.try_get("execution_epoch").map_err(db::sql_error)?,
         attempt_number: row.try_get("attempt_number").map_err(db::sql_error)?,
-        home_space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
+        scope: super::super::super::run_rows::parse_scope(row)?,
         node_kind: row.try_get("node_kind").map_err(db::sql_error)?,
         configuration: json(row, "configuration")?,
         resolved_input: json(row, "resolved_input")?,

@@ -17,7 +17,7 @@ async fn fixture() -> sqlx::SqlitePool {
     tx.commit().await.unwrap();
     sqlx::query("INSERT INTO spaces_conversations(id,space_id,title,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent',1,1,'conversation')")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','external_agent','session','external_agent','running','{}','{\"attachments\":[]}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','space','external_agent','session','external_agent','running','{}','{\"attachments\":[]}','{}',1,1)")
             .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,runtime_kind,title,state,created_at,updated_at,conversation_id,branch_id) VALUES('session','run','space','codex','Agent','connected',1,1,'conversation','conversation')")
             .execute(&pool).await.unwrap();
@@ -285,7 +285,7 @@ async fn publication_failure_is_retryable_and_receipts_are_released_atomically()
 #[tokio::test]
 async fn unfinished_children_block_publication_and_failed_children_are_visible() {
     let pool = fixture().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('child','space','run','external_agent','session','action','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('child','space','space','run','external_agent','session','action','running','{}','{}','{}',1,1)")
             .execute(&pool).await.unwrap();
     assert!(commit(
         &pool,
@@ -322,7 +322,7 @@ async fn unfinished_children_block_publication_and_failed_children_are_visible()
 async fn cancelling_run_immediately_cancels_all_descendants() {
     let pool = fixture().await;
     for (id, parent) in [("child", "run"), ("grandchild", "child")] {
-        sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space',$2,'external_agent','session','action','running','{}','{}','{}',1,1)")
+        sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','space',$2,'external_agent','session','action','running','{}','{}','{}',1,1)")
                 .bind(id).bind(parent).execute(&pool).await.unwrap();
     }
     crate::spaces::runs::request_cancellation(&pool, "run")

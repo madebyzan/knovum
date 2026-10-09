@@ -10,7 +10,7 @@ import { useSpeechRunObservation, type SpeechRunOwner } from "./use-speech-run-o
 
 export function useSpeechGeneration(owner: SpeechRunOwner) {
   const store = useSpaceStore();
-  const preview = useSpeechPreview(owner.setError, () => owner.project()?.project.spaceId);
+  const preview = useSpeechPreview(owner.setError);
   const submitting = shallowRef(false);
   const preparingJobId = shallowRef<string>();
   const cancelling = shallowRef(false);

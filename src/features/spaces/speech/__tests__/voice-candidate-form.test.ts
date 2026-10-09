@@ -17,7 +17,7 @@ const scopes: ReturnType<typeof effectScope>[] = [];
 function setup() {
   const scope = effectScope();
   scopes.push(scope);
-  return scope.run(() => useVoiceCandidateForm(() => "space", vi.fn()))!;
+  return scope.run(() => useVoiceCandidateForm(vi.fn()))!;
 }
 afterEach(() => {
   scopes.splice(0).forEach((scope) => scope.stop());
@@ -40,6 +40,7 @@ it("generates distinct voice proposals while preserving each submitted seed", ()
   expect(draft).toHaveBeenCalledTimes(2);
   expect(draft.mock.calls[0]?.[0].seed).toBe(42);
   expect(draft.mock.calls[1]?.[0].seed).toBe(43);
+  expect(draft.mock.calls[0]?.[0]).not.toHaveProperty("spaceId");
 });
 
 it("submits confirmed reference text according to the selected model contract", () => {

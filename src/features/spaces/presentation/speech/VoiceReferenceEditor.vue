@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -14,7 +14,7 @@ import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 
 const props = defineProps<VoiceReferenceEditorProps>();
 const model = defineModel<PreparedVoiceReference | undefined>();
-const emit = defineEmits<{ busy: [value: boolean] }>();
+const emit = defineEmits<{ busy: [value: boolean]; dirty: [value: boolean] }>();
 const { t } = useI18n();
 const player = useTemplateRef("player");
 const {
@@ -32,6 +32,8 @@ const {
   prepare,
   selectionLoaded,
 } = useVoiceReferenceEditor(props, model, (value) => emit("busy", value));
+const dirty = computed(() => !props.sourceNode && Boolean(path.value));
+watch(dirty, (value) => emit("dirty", value));
 </script>
 
 <template>

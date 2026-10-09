@@ -2,4 +2,4 @@
 import type { JsonValue } from "../../../../shared/contracts/generated/serde_json/JsonValue";
 import type { VoicePreviewSource } from "./VoicePreviewSource";
 
-export type PreviewVoiceRequest = { jobId: string, spaceId: string, source: VoicePreviewSource, text: string, deliveryInstruction?: string, pronunciationLexicon: JsonValue, };
+export type PreviewVoiceRequest = { jobId: string, source: VoicePreviewSource, text: string, deliveryInstruction?: string, pronunciationLexicon: JsonValue, };

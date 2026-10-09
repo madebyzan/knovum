@@ -1,6 +1,8 @@
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
 
+use crate::spaces::authorization::RunScope;
+
 #[derive(Clone, Debug)]
 pub struct AttemptClaim {
     pub attempt_id: String,
@@ -8,7 +10,7 @@ pub struct AttemptClaim {
     pub step_instance_id: String,
     pub execution_epoch: i64,
     pub attempt_number: i64,
-    pub home_space_id: String,
+    pub scope: RunScope,
     pub node_kind: String,
     pub configuration: Value,
     pub resolved_input: Value,

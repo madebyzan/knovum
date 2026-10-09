@@ -8,17 +8,16 @@ import type { VoicePreviewSource } from "../../contracts/generated/VoicePreviewS
 import { useSpeechPreview } from "../../speech/use-speech-preview";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 
-const props = defineProps<{ source: VoicePreviewSource; disabled: boolean; spaceId: string }>();
+const props = defineProps<{ source: VoicePreviewSource; disabled: boolean }>();
+const emit = defineEmits<{ dirty: [value: boolean] }>();
 const { t } = useI18n();
 const text = shallowRef("");
 const error = shallowRef<string>();
-const preview = useSpeechPreview(
-  (message) => {
-    error.value = message;
-  },
-  () => props.spaceId,
-);
+const preview = useSpeechPreview((message) => {
+  error.value = message;
+});
 watch(() => props.source, preview.reset, { deep: true });
+watch(text, (value) => emit("dirty", Boolean(value.trim())));
 onScopeDispose(preview.reset);
 </script>
 

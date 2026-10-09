@@ -1,9 +1,9 @@
 use sqlx::{Row, SqlitePool};
 
-use crate::spaces::db;
+use crate::spaces::{authorization::RunScope, db};
 
 pub(super) struct SourceRun {
-    pub space_id: String,
+    pub scope: RunScope,
     pub principal_kind: String,
     pub principal_id: String,
     pub kind: String,
@@ -14,7 +14,7 @@ pub(super) struct SourceRun {
 
 pub(super) async fn load_source(pool: &SqlitePool, run_id: &str) -> Result<SourceRun, String> {
     let row = sqlx::query(
-        "SELECT home_space_id,principal_kind,principal_id,kind,policy_snapshot,input_snapshot,budget,
+        "SELECT scope_kind,home_space_id,principal_kind,principal_id,kind,policy_snapshot,input_snapshot,budget,
          completed_at FROM spaces_runs WHERE id=$1",
     ).bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?
         .ok_or("run-unavailable: source Run is unavailable")?;
@@ -32,8 +32,13 @@ pub(super) async fn load_source(pool: &SqlitePool, run_id: &str) -> Result<Sourc
                 .into(),
         );
     }
+    let scope_kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+    let scope = RunScope::from_db(
+        &scope_kind,
+        row.try_get("home_space_id").map_err(db::sql_error)?,
+    )?;
     Ok(SourceRun {
-        space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
+        scope,
         principal_kind: row.try_get("principal_kind").map_err(db::sql_error)?,
         principal_id: row.try_get("principal_id").map_err(db::sql_error)?,
         kind,

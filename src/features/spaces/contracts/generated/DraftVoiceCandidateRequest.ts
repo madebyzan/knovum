@@ -2,4 +2,4 @@
 import type { VoiceCandidateSource } from "./VoiceCandidateSource";
 import type { VoiceModel } from "./VoiceModel";
 
-export type DraftVoiceCandidateRequest = { model: VoiceModel, requestId: string, spaceId: string, language: string, text: string, seed: number, source: VoiceCandidateSource, authorized: boolean, };
+export type DraftVoiceCandidateRequest = { model: VoiceModel, requestId: string, language: string, text: string, seed: number, source: VoiceCandidateSource, authorized: boolean, };

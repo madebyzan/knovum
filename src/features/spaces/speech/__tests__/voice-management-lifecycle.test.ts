@@ -1,6 +1,7 @@
-import { flushPromises } from "@vue/test-utils";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { effectScope, shallowRef } from "vue";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, mount } from "@vue/test-utils";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { defineComponent } from "vue";
 
 import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfileHistory";
 import type * as ipc from "../ipc";
@@ -9,98 +10,106 @@ import { useVoiceManagement } from "../use-voice-management";
 const mocks = vi.hoisted(() => ({
   listVoiceProfiles: vi.fn<typeof ipc.listVoiceProfiles>(),
   renameVoiceProfile: vi.fn<typeof ipc.renameVoiceProfile>(),
+  deleteVoiceProfile: vi.fn<typeof ipc.deleteVoiceProfile>(),
 }));
 vi.mock("../ipc", () => mocks);
 const profile: VoiceProfileHistory = {
   id: "voice",
-  spaceId: "first",
   name: "Original",
   sourceKind: "reference",
   activeRevisionId: "revision",
   archivedAt: null,
   updatedAt: 1,
-  referencedSegmentCount: 0,
-  revisions: [],
+  referencedBindingCount: 0,
+  revisions: [
+    {
+      id: "revision",
+      revision: 1,
+      engineId: "moss_nano",
+      modelSpecId: "moss-tts-nano-onnx-v1",
+      language: "en",
+      speed: 1,
+      sampleRate: 48_000,
+      referenceSourceRevision: "sha256:reference",
+      designDescription: null,
+      createdAt: 1,
+    },
+  ],
 };
-const scopes: ReturnType<typeof effectScope>[] = [];
-async function setup() {
-  const owner = shallowRef("first");
-  const changed = vi.fn<() => void>();
-  const scope = effectScope();
-  scopes.push(scope);
-  const management = scope.run(() => useVoiceManagement(() => owner.value, changed))!;
-  await flushPromises();
-  return { management, owner, changed, scope };
+
+function setup() {
+  let management!: ReturnType<typeof useVoiceManagement>;
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Harness = defineComponent({
+    setup() {
+      management = useVoiceManagement();
+      return () => null;
+    },
+  });
+  const wrapper = mount(Harness, { global: { plugins: [[VueQueryPlugin, { queryClient }]] } });
+  onTestFinished(() => {
+    wrapper.unmount();
+    queryClient.clear();
+  });
+  return { management, queryClient };
 }
+
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.listVoiceProfiles.mockResolvedValue([profile]);
 });
-afterEach(() => scopes.splice(0).forEach((scope) => scope.stop()));
 
-it("clears the previous Space's voices while the next Space is loading", async () => {
-  const { management, owner } = await setup();
-  mocks.listVoiceProfiles.mockReturnValue(new Promise(() => {}));
-  owner.value = "second";
+it("loads one global profile collection", async () => {
+  const { management } = setup();
   await flushPromises();
+  expect(mocks.listVoiceProfiles).toHaveBeenCalledExactlyOnceWith();
+  expect(management.profiles.value).toEqual([profile]);
+});
+
+it("rejects a profile response whose active revision is missing", async () => {
+  mocks.listVoiceProfiles.mockResolvedValue([{ ...profile, revisions: [] }]);
+  const { management } = setup();
+  await vi.waitFor(() => expect(management.error.value).toBe("Voice profile has no active revision"));
   expect(management.profiles.value).toEqual([]);
 });
 
-it.each(["space-change", "dispose"] as const)("ignores a late mutation failure after %s", async (action) => {
-  const { management, owner, changed, scope } = await setup();
-  let failRename!: (cause: unknown) => void;
-  mocks.renameVoiceProfile.mockReturnValue(
-    new Promise((_resolve, reject) => {
-      failRename = reject;
-    }),
-  );
-  const pending = management.rename(profile, "Renamed");
-  if (action === "dispose") scope.stop();
-  else {
-    mocks.listVoiceProfiles.mockResolvedValue([]);
-    owner.value = "second";
-  }
+it("invalidates the global profiles after a successful rename", async () => {
+  mocks.renameVoiceProfile.mockResolvedValue();
+  mocks.listVoiceProfiles
+    .mockResolvedValueOnce([profile])
+    .mockResolvedValue([{ ...profile, name: "Renamed", updatedAt: 2 }]);
+  const { management } = setup();
   await flushPromises();
-  failRename(new Error("Old rename failed"));
-  await pending;
-  expect(management.error.value).toBeUndefined();
-  expect(changed).not.toHaveBeenCalled();
-});
-
-it("does not reload a new Space after an old mutation succeeds", async () => {
-  const { management, owner, changed } = await setup();
-  let finishRename!: () => void;
-  mocks.renameVoiceProfile.mockReturnValue(
-    new Promise((resolve) => {
-      finishRename = () => resolve();
-    }),
-  );
-  const pending = management.rename(profile, "Renamed");
-  mocks.listVoiceProfiles.mockResolvedValue([]);
-  owner.value = "second";
-  await flushPromises();
-  finishRename();
-  await pending;
-  expect(mocks.listVoiceProfiles).toHaveBeenCalledTimes(2);
-  expect(management.profiles.value).toEqual([]);
-  expect(changed).not.toHaveBeenCalled();
-});
-
-it("reloads and emits a change when the current voice is renamed", async () => {
-  const { management, changed } = await setup();
-  mocks.renameVoiceProfile.mockResolvedValue(undefined);
-  mocks.listVoiceProfiles.mockResolvedValue([{ ...profile, name: "Renamed" }]);
-  await management.rename(profile, "Renamed");
-  expect(management.profiles.value[0]?.name).toBe("Renamed");
+  management.rename(profile, "Renamed");
+  await vi.waitFor(() => expect(management.profiles.value[0]?.name).toBe("Renamed"));
+  expect(mocks.renameVoiceProfile).toHaveBeenCalledWith({
+    profileId: profile.id,
+    expectedUpdatedAt: profile.updatedAt,
+    name: "Renamed",
+  });
   expect(management.busyProfileId.value).toBeUndefined();
-  expect(changed).toHaveBeenCalledOnce();
 });
 
-it("preserves a current mutation failure and releases its busy state", async () => {
-  const { management, changed } = await setup();
+it("preserves a mutation failure and releases the profile busy state", async () => {
   mocks.renameVoiceProfile.mockRejectedValue(new Error("Rename denied"));
-  await management.rename(profile, "Renamed");
-  expect(management.error.value).toBe("Rename denied");
+  const { management } = setup();
+  await flushPromises();
+  management.rename(profile, "Renamed");
+  await vi.waitFor(() => expect(management.error.value).toBe("Rename denied"));
   expect(management.busyProfileId.value).toBeUndefined();
-  expect(changed).not.toHaveBeenCalled();
+});
+
+it("refreshes committed deletion while preserving a subsequent cleanup error", async () => {
+  const archived = { ...profile, archivedAt: 2, updatedAt: 2 };
+  mocks.listVoiceProfiles.mockResolvedValueOnce([archived]).mockResolvedValue([]);
+  mocks.deleteVoiceProfile.mockRejectedValue(
+    new Error("Voice profile was deleted, but asset cleanup failed"),
+  );
+  const { management } = setup();
+  await flushPromises();
+  management.remove(archived);
+  await vi.waitFor(() => {
+    expect(management.error.value).toBe("Voice profile was deleted, but asset cleanup failed");
+    expect(management.profiles.value).toEqual([]);
+  });
 });

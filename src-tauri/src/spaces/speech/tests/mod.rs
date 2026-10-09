@@ -23,7 +23,7 @@ pub(super) async fn database() -> sqlx::SqlitePool {
 #[tokio::test]
 async fn voice_revision_cannot_change_under_existing_consumers() {
     let pool = database().await;
-    sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES('voice','space','Voice','preset',1,1)")
+    sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES('voice','Voice','preset',1,1)")
         .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES('revision','voice',1,'moss_nano','moss_nano-v1','en','6','{}','{}',1)")
         .execute(&pool).await.unwrap();
@@ -50,7 +50,7 @@ async fn failed_business_commit_keeps_durable_asset_cleanup_record() {
     let pool = database().await;
     let id = asset_publication::stage_unowned(
         &pool,
-        "space",
+        &crate::spaces::authorization::RunScope::Application,
         PendingAsset {
             owner_kind: PublicationOwnerKind::VoiceReference,
             owner_id: "voice",
@@ -105,15 +105,13 @@ fn long_sentence_split_preserves_decimal_numbers_and_word_boundaries() {
 #[tokio::test]
 async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
     let pool = database().await;
-    sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES('profile','space','Voice','preset',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES('profile','Voice','preset',1,1)").execute(&pool).await.unwrap();
     for (id, revision, seed) in [("first", 1, 17), ("second", 2, 29)] {
         sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES(?,'profile',?,'moss_nano','moss-tts-nano-onnx-v1','en','6',?,'{}',1)")
             .bind(id).bind(revision).bind(serde_json::json!({"speed":1,"sampleRate":48000,"seed":seed}).to_string()).execute(&pool).await.unwrap();
     }
     sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id='second',archived_at=2 WHERE id='profile'").execute(&pool).await.unwrap();
-    let catalog = super::repository::list_voices(&pool, "space")
-        .await
-        .unwrap();
+    let catalog = super::repository::list_voices(&pool).await.unwrap();
     assert_eq!(catalog.len(), 2);
     assert!(catalog
         .iter()
@@ -121,9 +119,7 @@ async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
     assert!(catalog
         .iter()
         .any(|voice| voice.revision_id == "first" && !voice.is_active));
-    let old = super::execution::load_voice(&pool, "first", "space")
-        .await
-        .unwrap();
+    let old = super::execution::load_voice(&pool, "first").await.unwrap();
     assert_eq!(
         super::execution::parse_config(&old.synthesis_config)
             .unwrap()

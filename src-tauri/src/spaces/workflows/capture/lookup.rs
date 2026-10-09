@@ -43,7 +43,8 @@ pub(super) async fn completed_action_spec(
     output_kind: &str,
 ) -> Result<Option<VerifiedActionSpec>, String> {
     let stored: Option<String> = sqlx::query_scalar(
-        "SELECT input_snapshot FROM spaces_runs WHERE id=$1 AND home_space_id=$2
+        "SELECT input_snapshot FROM spaces_runs WHERE id=$1 AND scope_kind='space'
+         AND home_space_id=$2
          AND kind='action' AND state='succeeded'",
     )
     .bind(run_id)

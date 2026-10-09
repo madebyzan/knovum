@@ -205,6 +205,7 @@ async fn require_audiobook_revision(
     revision_id: &str,
     revision: i64,
 ) -> Result<serde_json::Value, String> {
+    let run_space_id = claim.scope.require_space_id()?;
     let row: Option<(String, i64, String, String)> = sqlx::query_as(
         "SELECT p.active_revision_id,r.revision,r.output_config,p.space_id \
          FROM spaces_speech_projects p JOIN spaces_speech_project_revisions r \
@@ -220,7 +221,7 @@ async fn require_audiobook_revision(
     };
     if active_revision != revision_id
         || actual_revision != revision
-        || space_id != claim.home_space_id
+        || space_id.as_str() != run_space_id
     {
         return Err("stale_revision: audiobook project changed before execution".into());
     }

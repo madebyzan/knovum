@@ -94,7 +94,7 @@ async fn publish_snapshot(
     }
     let publication_id = super::super::asset_publication::stage_unowned(
         pool,
-        &request.space_id,
+        &crate::spaces::authorization::RunScope::Application,
         super::super::asset_publication::PendingAsset {
             owner_kind: PublicationOwnerKind::VoiceCandidateInput,
             owner_id: &request.request_id,

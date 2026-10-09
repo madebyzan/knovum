@@ -32,6 +32,7 @@ pub(super) async fn execute(
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
+    let run_space_id = claim.scope.require_space_id()?;
     let config: SegmentConfiguration =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let input: Option<String> =
@@ -81,10 +82,10 @@ pub(super) async fn execute(
         start_ms: row.try_get("target_start_ms").map_err(db::sql_error)?,
         end_ms: row.try_get("target_end_ms").map_err(db::sql_error)?,
     };
-    if space_id != claim.home_space_id {
+    if space_id.as_str() != run_space_id {
         return Err("permission-denied: Speech project belongs to another Space".into());
     }
-    let voice = load_voice(pool, &segment.voice_revision_id, &space_id).await?;
+    let voice = load_voice(pool, &segment.voice_revision_id).await?;
     let profile = super::super::runtime_identity::profile_for_engine(&voice.engine_id)?;
     let runtime_digest = crate::local_resources::runtimes::python::required_digest(app, profile)?;
     if frozen_runtimes.get(&profile) != Some(&runtime_digest) {

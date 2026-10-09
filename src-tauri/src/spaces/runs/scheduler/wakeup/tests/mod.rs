@@ -15,8 +15,8 @@ async fn fixture() -> SqlitePool {
 }
 
 async fn run(pool: &SqlitePool, id: &str, budget: &str, completed: Option<i64>) {
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at)
-        VALUES($1,'space','user','user','workflow','running','{}','{}',$2,1000,1000,$3)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at)
+        VALUES($1,'space','space','user','user','workflow','running','{}','{}',$2,1000,1000,$3)")
         .bind(id).bind(budget).bind(completed).execute(pool).await.unwrap();
 }
 

@@ -40,7 +40,7 @@ pub(crate) async fn claim_ready_step(
     let mut tx = db::begin_write(pool).await?;
     let rows = sqlx::query(
         "SELECT s.id,s.run_id,s.node_kind,s.configuration,s.resolved_input,
-         r.home_space_id,r.policy_snapshot,r.budget,r.execution_epoch,
+         r.scope_kind,r.home_space_id,r.policy_snapshot,r.budget,r.execution_epoch,
          COALESCE((SELECT MAX(attempt_number) FROM spaces_run_attempts WHERE step_instance_id=s.id),0)+1 attempt_number
          FROM spaces_run_steps s JOIN spaces_runs r ON r.id=s.run_id
          WHERE s.state='ready' AND r.state IN ('queued','running')

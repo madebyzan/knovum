@@ -14,7 +14,6 @@ fn parse_node(data: Value) -> Result<ManifestAssets, String> {
             "nodes": [{ "data": data }],
             "layouts": [],
             "voiceRevisions": [],
-            "voiceCandidates": [],
             "speechProjectRevisions": [],
             "speechRenders": [],
             "speechSourceSeparations": []
@@ -66,7 +65,7 @@ fn only_the_managed_asset_must_match_the_node_digest() {
 fn audiobook_cover_tokens_carry_exact_digests_and_reject_external_paths() {
     let revision = digest('a');
     let mut manifest = json!({
-        "nodes":[], "layouts":[], "voiceRevisions":[], "voiceCandidates":[],
+        "nodes":[], "layouts":[], "voiceRevisions":[],
         "speechRenders":[], "speechSourceSeparations":[],
         "speechProjectRevisions":[{"outputConfig":{"metadata":{"cover":{
             "assetPath":"knovum-package-asset:cover", "sourceRevision":revision
@@ -87,7 +86,7 @@ fn audiobook_cover_tokens_carry_exact_digests_and_reject_external_paths() {
 
 #[test]
 fn separation_packages_both_stems_with_independent_digest_validation() {
-    let mut manifest = json!({ "nodes":[], "layouts":[], "voiceRevisions":[], "voiceCandidates":[], "speechRenders":[], "speechProjectRevisions":[],
+    let mut manifest = json!({ "nodes":[], "layouts":[], "voiceRevisions":[],  "speechRenders":[], "speechProjectRevisions":[],
         "speechSourceSeparations":[{
             "sourceAssetPath":"knovum-package-asset:source", "sourceRevision":digest('a'),
             "backgroundAssetPath":"knovum-package-asset:background", "backgroundSha256":"b".repeat(64),

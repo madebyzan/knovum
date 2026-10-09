@@ -1,4 +1,3 @@
-mod candidates;
 mod projects;
 mod renders;
 mod segments;
@@ -10,7 +9,6 @@ use std::collections::{HashMap, HashSet};
 pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
     validate_runtime_snapshots(request)?;
     let index = SpeechIndex::new(request)?;
-    candidates::validate(request, &index)?;
     separation::validate(request, &index)?;
     voices::validate(request, &index)?;
     let lexicons = request
@@ -132,10 +130,6 @@ impl<'a> SpeechIndex<'a> {
             .iter()
             .map(|row| row.id.as_str())
             .collect::<HashSet<_>>();
-        ids(
-            request.voice_candidates.iter().map(|row| row.id.as_str()),
-            "voice candidate",
-        )?;
         Ok(Self {
             profiles,
             revisions,

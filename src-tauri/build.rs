@@ -174,7 +174,6 @@ fn main() {
                         "archive_voice_profile",
                         "unarchive_voice_profile",
                         "delete_voice_profile",
-                        "copy_voice_profile",
                         "get_voice_candidate",
                         "list_voice_candidates",
                         "get_active_voice_candidate_run",

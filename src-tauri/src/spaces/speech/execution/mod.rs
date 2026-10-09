@@ -34,21 +34,11 @@ pub async fn preview_voice(
     let lease = cancellation::acquire(&request.job_id)?;
     let pool = db::pool(&app).await?;
     let voice = match &request.source {
-        VoicePreviewSource::Revision { revision_id } => {
-            load_voice(pool, revision_id, &request.space_id).await?
-        }
+        VoicePreviewSource::Revision { revision_id } => load_voice(pool, revision_id).await?,
         VoicePreviewSource::Preset {
             speaker_id,
             language,
         } => {
-            let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=?)")
-                .bind(&request.space_id)
-                .fetch_one(pool)
-                .await
-                .map_err(db::sql_error)?;
-            if !exists {
-                return Err("Voice preview Space is unavailable".into());
-            }
             super::preset_voices::require(speaker_id, language)?;
             VoiceExecution {
                 revision_id: format!("moss_nano-preset:{speaker_id}"),

@@ -2,11 +2,14 @@ use sqlx::{types::Json, Sqlite, SqlitePool, Transaction};
 
 use super::run_rows::{enum_text, optional_enum_text, parse_summary};
 use super::{RunKind, RunObservation, RunState, WaitReason};
-use crate::spaces::{authorization::Principal, db};
+use crate::spaces::{
+    authorization::{Principal, RunScope},
+    db,
+};
 
 pub(crate) struct NewRun<'a> {
     pub id: &'a str,
-    pub home_space_id: &'a str,
+    pub scope: &'a RunScope,
     pub parent_run_id: Option<&'a str>,
     pub principal: &'a Principal,
     pub kind: RunKind,
@@ -20,14 +23,18 @@ pub(crate) async fn create_run_in_transaction(
     run: &NewRun<'_>,
     now: i64,
 ) -> Result<(), String> {
-    sqlx::query(
+    let run_write = sqlx::query(
         "INSERT INTO spaces_runs(
-          id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,state_version,
+          id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,state_version,
           execution_epoch,wait_reason,policy_snapshot,input_snapshot,budget,created_at,updated_at
-        ) VALUES($1,$2,$3,$4,$5,$6,'queued',0,0,NULL,$7,$8,$9,$10,$10)",
+        ) SELECT $1,$2,$3,$4,$5,$6,$7,'queued',0,0,NULL,$8,$9,$10,$11,$11
+          WHERE $4 IS NULL OR EXISTS(
+            SELECT 1 FROM spaces_runs parent WHERE parent.id=$4
+              AND parent.scope_kind=$2 AND parent.home_space_id IS $3)",
     )
     .bind(run.id)
-    .bind(run.home_space_id)
+    .bind(run.scope.db_values().0)
+    .bind(run.scope.db_values().1)
     .bind(run.parent_run_id)
     .bind(run.principal.kind.as_str())
     .bind(&run.principal.id)
@@ -39,6 +46,10 @@ pub(crate) async fn create_run_in_transaction(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
+    db::require_one(
+        run_write,
+        "run-scope-invalid: parent Run has a different scope",
+    )?;
     super::append_event(
         tx,
         run.id,
@@ -67,7 +78,8 @@ pub(crate) async fn list_runs(
     space_id: &str,
 ) -> Result<Vec<RunObservation>, String> {
     let rows = sqlx::query(
-        "SELECT * FROM spaces_runs WHERE home_space_id=$1 ORDER BY created_at DESC LIMIT 500",
+        "SELECT * FROM spaces_runs WHERE scope_kind='space' AND home_space_id=$1
+         ORDER BY created_at DESC LIMIT 500",
     )
     .bind(space_id)
     .fetch_all(pool)

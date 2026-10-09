@@ -13,7 +13,7 @@ const INTERRUPTED_ASSETS: &str =
        AND json_extract(n.data, '$.processingState') IN ('importing','processing') \
        AND NOT EXISTS ( \
          SELECT 1 FROM spaces_runs r \
-         WHERE n.id = r.id || '-output' AND n.space_id = r.home_space_id \
+         WHERE r.scope_kind='space' AND n.id = r.id || '-output' AND n.space_id = r.home_space_id \
            AND r.state IN ('queued','running','waiting','paused') \
            AND NOT EXISTS (SELECT 1 FROM spaces_knowledge_derivations d WHERE d.output_node_id=n.id) \
            AND NOT EXISTS (SELECT 1 FROM spaces_run_attempts a WHERE a.run_id=r.id AND a.state IN ('claimed','executing','waiting_external')) \

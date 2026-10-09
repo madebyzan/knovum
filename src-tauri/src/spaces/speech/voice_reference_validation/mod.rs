@@ -24,7 +24,6 @@ const MAX_MATCH_CHARACTERS: usize = 3_000;
 pub(super) async fn validate<R: Runtime>(
     app: &tauri::AppHandle<R>,
     job_id: &str,
-    space_id: &str,
     language: &str,
     reference: AudioFileReference,
     confirmed_text: Option<&str>,
@@ -54,7 +53,7 @@ pub(super) async fn validate<R: Runtime>(
             identity: InferenceRequestIdentity {
                 request_id: request_id.clone(),
                 owner_kind: "voice_reference_validation".into(),
-                owner_id: space_id.into(),
+                owner_id: job_id.into(),
                 attempt_id: job_id.into(),
                 attempt_epoch: 1,
                 input_revision: format!("sha256:{}", reference.sha256),

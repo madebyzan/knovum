@@ -33,7 +33,6 @@ pub(crate) fn parse_synthesis_config(
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreatePresetVoiceRequest {
-    pub space_id: String,
     pub name: String,
     pub preset_voice_id: String,
     pub engine_id: String,
@@ -250,7 +249,6 @@ pub struct SpeechPreviewAudioChunk {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct PreviewVoiceRequest {
     pub job_id: String,
-    pub space_id: String,
     pub source: VoicePreviewSource,
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -4,7 +4,6 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { safeExportFileName } from "../assets/export";
 import type { ArchiveVoiceProfileRequest } from "../contracts/generated/ArchiveVoiceProfileRequest";
-import type { CopyVoiceProfileRequest } from "../contracts/generated/CopyVoiceProfileRequest";
 import type { CreatePresetVoiceRequest } from "../contracts/generated/CreatePresetVoiceRequest";
 import type { CreateSpeechProjectRequest } from "../contracts/generated/CreateSpeechProjectRequest";
 import type { DeleteVoiceProfileRequest } from "../contracts/generated/DeleteVoiceProfileRequest";
@@ -26,12 +25,12 @@ import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { VoiceProfileHistory } from "../contracts/generated/VoiceProfileHistory";
 
-export function listVoiceRevisions(spaceId: string) {
-  return invokeCommand<VoiceLibraryRevision[]>("plugin:spaces|list_voice_revisions", { spaceId });
+export function listVoiceRevisions() {
+  return invokeCommand<VoiceLibraryRevision[]>("plugin:spaces|list_voice_revisions");
 }
 
-export function listVoiceProfiles(spaceId: string) {
-  return invokeCommand<VoiceProfileHistory[]>("plugin:spaces|list_voice_profiles", { spaceId });
+export function listVoiceProfiles() {
+  return invokeCommand<VoiceProfileHistory[]>("plugin:spaces|list_voice_profiles");
 }
 
 export function renameVoiceProfile(request: RenameVoiceProfileRequest) {
@@ -52,10 +51,6 @@ export function unarchiveVoiceProfile(request: UnarchiveVoiceProfileRequest) {
 
 export function deleteVoiceProfile(request: DeleteVoiceProfileRequest) {
   return invokeCommand<void>("plugin:spaces|delete_voice_profile", { request });
-}
-
-export function copyVoiceProfile(request: CopyVoiceProfileRequest) {
-  return invokeCommand<string>("plugin:spaces|copy_voice_profile", { request });
 }
 
 function progressChannel(progress: (value: SpeechGenerationProgress) => void) {

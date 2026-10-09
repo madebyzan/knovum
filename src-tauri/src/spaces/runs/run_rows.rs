@@ -2,12 +2,12 @@ use serde::de::IntoDeserializer;
 use sqlx::Row;
 
 use super::RunObservation;
-use crate::spaces::db;
+use crate::spaces::{authorization::RunScope, db};
 
 pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservation, String> {
     Ok(RunObservation {
         id: row.try_get("id").map_err(db::sql_error)?,
-        home_space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
+        scope: parse_scope(row)?,
         parent_run_id: row.try_get("parent_run_id").map_err(db::sql_error)?,
         retry_of_run_id: row.try_get("retry_of_run_id").map_err(db::sql_error)?,
         fork_of_run_id: row.try_get("fork_of_run_id").map_err(db::sql_error)?,
@@ -25,6 +25,12 @@ pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservat
         updated_at: row.try_get("updated_at").map_err(db::sql_error)?,
         completed_at: row.try_get("completed_at").map_err(db::sql_error)?,
     })
+}
+
+pub(super) fn parse_scope(row: &sqlx::sqlite::SqliteRow) -> Result<RunScope, String> {
+    let kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+    let space_id = row.try_get("home_space_id").map_err(db::sql_error)?;
+    RunScope::from_db(&kind, space_id)
 }
 
 pub(super) fn enum_text(value: impl serde::Serialize) -> Result<String, String> {

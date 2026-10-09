@@ -33,6 +33,7 @@ pub(super) async fn require_authority(
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<(), String> {
+    let space_id = claim.scope.require_space_id()?;
     let grant_id = claim
         .policy_snapshot
         .get("grantId")
@@ -40,12 +41,12 @@ pub(super) async fn require_authority(
         .ok_or("permission-denied: Speech Run authorization grant is missing")?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
-    grant.require_read(&claim.home_space_id, crate::clock::unix_time_millis()?)?;
-    if grant.home_space_id != claim.home_space_id
+    grant.require_read(space_id, crate::clock::unix_time_millis()?)?;
+    if grant.scope != claim.scope
         || !grant
             .write_space_ids
             .iter()
-            .any(|space_id| space_id == &claim.home_space_id)
+            .any(|candidate| candidate == space_id)
     {
         return Err("permission-denied: Speech Run requires Space write scope".into());
     }

@@ -33,7 +33,7 @@ const request: TranslateVideoDubbingRequest = {
 };
 const completed: RunObservation = {
   id: "run",
-  homeSpaceId: "space",
+  scope: { kind: "space", spaceId: "space" },
   parentRunId: null,
   retryOfRunId: null,
   forkOfRunId: null,

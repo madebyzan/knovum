@@ -33,7 +33,7 @@ pub(in crate::spaces::conversations) struct RecoverableTask {
 }
 
 const RECOVERY_SELECT: &str = "SELECT t.id task_id,t.run_id,t.conversation_id,t.branch_id,t.grant_id,t.model_binding,t.catalog_digest,t.input_id,t.control_epoch,
-    r.home_space_id,r.policy_snapshot,r.input_snapshot,r.budget,s.id segment_id,s.execution_revision,s.graph_version,s.frozen_target,s.model_profile,s.projection_checkpoint_id
+    r.scope_kind,r.home_space_id,r.policy_snapshot,r.input_snapshot,r.budget,s.id segment_id,s.execution_revision,s.graph_version,s.frozen_target,s.model_profile,s.projection_checkpoint_id
     FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id JOIN spaces_builtin_agent_execution_segments s ON s.id=t.segment_id";
 
 pub(in crate::spaces::conversations) async fn recoverable_tasks(
@@ -72,13 +72,18 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
     {
         return Err("builtin-agent-graph-version-changed: start a new execution segment".into());
     }
+    let scope_kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+    let scope = crate::spaces::authorization::RunScope::from_db(
+        &scope_kind,
+        row.try_get("home_space_id").map_err(db::sql_error)?,
+    )?;
     Ok(RecoverableTask {
         task_id: row.try_get("task_id").map_err(db::sql_error)?,
         run_id: row.try_get("run_id").map_err(db::sql_error)?,
         conversation_id: row.try_get("conversation_id").map_err(db::sql_error)?,
         branch_id: row.try_get("branch_id").map_err(db::sql_error)?,
         grant_id: row.try_get("grant_id").map_err(db::sql_error)?,
-        space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
+        space_id: scope.require_space_id()?.to_owned(),
         profile_version: u16::try_from(number(&policy, "builtinAgentProfileVersion")?)
             .map_err(|_| "builtin-agent-profile-invalid")?,
         prompt: input["prompt"]

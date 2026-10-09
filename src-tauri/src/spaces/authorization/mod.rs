@@ -1,9 +1,10 @@
 mod grant;
 mod scope;
 
-pub(crate) use grant::{create_grant, load_grant};
+pub(crate) use grant::{create_grant, delete_unreferenced_application_grants, load_grant};
 pub(crate) use scope::{
     external_agent_grant, local_user_grant, AuthorizationContext, Principal, PrincipalKind,
+    RunScope,
 };
 
 pub(crate) async fn require_read(
@@ -27,17 +28,19 @@ pub(crate) async fn require_run_control(
     let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
     let grant = load_grant(&mut tx, grant_id).await?;
     grant.require_read(space_id, crate::clock::unix_time_millis()?)?;
-    let owner: Option<(String, String, String)> = sqlx::query_as(
-        "SELECT home_space_id,principal_kind,principal_id FROM spaces_runs WHERE id=$1",
+    let owner: Option<(String, Option<String>, String, String)> = sqlx::query_as(
+        "SELECT scope_kind,home_space_id,principal_kind,principal_id FROM spaces_runs WHERE id=$1",
     )
     .bind(run_id)
     .fetch_optional(&mut *tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;
-    let Some((home_space_id, principal_kind, principal_id)) = owner else {
+    let Some((scope_kind, home_space_id, principal_kind, principal_id)) = owner else {
         return Err("run-unavailable: Run is unavailable".into());
     };
-    if home_space_id != space_id
+    let run_scope = RunScope::from_db(&scope_kind, home_space_id)?;
+    if run_scope.require_space_id()? != space_id
+        || grant.scope != run_scope
         || principal_kind != grant.principal.kind.as_str()
         || principal_id != grant.principal.id
     {

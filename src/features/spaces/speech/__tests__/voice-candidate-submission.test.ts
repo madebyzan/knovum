@@ -19,7 +19,6 @@ vi.mock("../../runs/resource-run-observation", () => mocks);
 vi.mock("../../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
 const input: Omit<DraftVoiceCandidateRequest, "requestId"> = {
-  spaceId: "space",
   model: "voxCpm2",
   language: "en",
   text: "Example",
@@ -29,7 +28,7 @@ const input: Omit<DraftVoiceCandidateRequest, "requestId"> = {
 };
 const run: RunObservation = {
   id: "created-run",
-  homeSpaceId: "space",
+  scope: { kind: "application" },
   kind: "workflow",
   state: "running",
   stateVersion: 1,
@@ -106,7 +105,7 @@ it("does not clear a newer submission when a detached creation settles", async (
   const submission = useVoiceCandidateSubmission();
   const old = submission.start(input, vi.fn<(run: RunObservation) => void>());
   submission.reset();
-  void submission.start({ ...input, spaceId: "second-space" }, vi.fn<(run: RunObservation) => void>());
+  void submission.start({ ...input, text: "Second example" }, vi.fn<(run: RunObservation) => void>());
   const newId = submission.jobId.value;
   oldCreated(run);
   await old;

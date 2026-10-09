@@ -5,8 +5,6 @@ mod speech;
 #[cfg(test)]
 mod tests;
 mod translation;
-mod voice_candidate_selection;
-mod voice_candidates;
 
 use super::{restore::contracts::RestorePackageRequest, ImportedPackageAsset};
 use serde_json::{json, Value};
@@ -65,7 +63,6 @@ const COLLECTIONS: &[&str] = &[
     "knowledgeEvents",
     "voiceProfiles",
     "voiceRevisions",
-    "voiceCandidates",
     "speechProjects",
     "speechProjectRevisions",
     "speechSegments",
@@ -131,6 +128,9 @@ pub(super) fn prepare_cancellable(
         for row in rows {
             super::control::check(cancellation)?;
             let owner = row.get("spaceId");
+            if collection == "voiceProfiles" && owner.is_some() {
+                return Err("Voice profiles must not have a Space owner".into());
+            }
             let owned = [
                 "scenes",
                 "relations",
@@ -138,8 +138,6 @@ pub(super) fn prepare_cancellable(
                 "chunks",
                 "provenance",
                 "knowledgeEvents",
-                "voiceProfiles",
-                "voiceCandidates",
                 "speechProjects",
                 "speechSourceSeparations",
             ]
@@ -169,8 +167,6 @@ pub(super) fn prepare_cancellable(
     content::remap(&mut value, &mut maps, &original_types)?;
     super::control::check(cancellation)?;
     execution::remap(&mut value, &maps)?;
-    super::control::check(cancellation)?;
-    voice_candidates::remap(&mut value, &maps)?;
     super::control::check(cancellation)?;
     speech::remap(&mut value, &maps)?;
     super::control::check(cancellation)?;

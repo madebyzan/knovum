@@ -21,7 +21,7 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
         .unwrap();
     db::migrate(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','user','local-user','action','running',0,'{}','{}','{}',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','space','user','local-user','action','running',0,'{}','{}','{}',1,1)").execute(&pool).await.unwrap();
     let mut source = json!({"kind":"video","title":"Interview","assetPath":"/owned/source.mp4","fileName":"source.mp4","sourceRevision":"asset:1"});
     if with_transcript {
         source["mediaKnowledge"] = crate::media::transcript::tests::knowledge_fixture(

@@ -10,7 +10,6 @@ const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed",
 
 export function observeVoiceCandidateRun(
   run: RunObservation,
-  spaceId: string,
   succeeded: (candidate: VoiceCandidate) => void,
   settled: (error?: string) => void,
 ) {
@@ -23,7 +22,7 @@ export function observeVoiceCandidateRun(
       );
       return;
     }
-    void getVoiceCandidate(observation.id, spaceId)
+    void getVoiceCandidate(observation.id)
       .then(succeeded)
       .catch((cause: unknown) => {
         settled(getErrorMessage(cause));

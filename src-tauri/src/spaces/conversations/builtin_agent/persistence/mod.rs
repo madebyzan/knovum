@@ -100,7 +100,7 @@ pub(super) async fn persist_task(
         &mut tx,
         &NewRun {
             id: &ids.run_id,
-            home_space_id: &request.space_id,
+            scope: &grant.scope,
             parent_run_id: None,
             principal: &grant.principal,
             kind: RunKind::BuiltinAgent,

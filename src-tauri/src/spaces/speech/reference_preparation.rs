@@ -16,7 +16,6 @@ use crate::{
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct PrepareVoiceReferenceRequest {
     pub job_id: String,
-    pub space_id: String,
     pub source_path: String,
     pub language: String,
     pub start_ms: u64,
@@ -39,6 +38,11 @@ pub async fn prepare_voice_reference(
     app: AppHandle,
     request: PrepareVoiceReferenceRequest,
 ) -> Result<PreparedVoiceReference, AppError> {
+    let job_id = uuid::Uuid::parse_str(&request.job_id)
+        .map_err(|_| "Voice reference preparation identity must be a UUID")?;
+    if job_id.to_string() != request.job_id {
+        return Err("Voice reference preparation identity must use canonical UUID form".into());
+    }
     if request.end_ms <= request.start_ms
         || !(5000..=30000).contains(&(request.end_ms - request.start_ms))
         || request.end_ms > 43_200_000
@@ -58,14 +62,6 @@ pub async fn prepare_voice_reference(
         return Err("Voice reference source is empty".into());
     }
     let pool = db::pool(&app).await?;
-    let space_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=?)")
-        .bind(&request.space_id)
-        .fetch_one(pool)
-        .await
-        .map_err(db::sql_error)?;
-    if !space_exists {
-        return Err("A persisted Space is required".into());
-    }
     let directory = assets::asset_directory(&app)?
         .join("speech")
         .join("reference-preparation");
@@ -77,7 +73,7 @@ pub async fn prepare_voice_reference(
     }
     let publication_id = asset_publication::stage_unowned(
         pool,
-        &request.space_id,
+        &crate::spaces::authorization::RunScope::Application,
         asset_publication::PendingAsset {
             owner_kind: PublicationOwnerKind::VoiceReference,
             owner_id: &request.job_id,
@@ -106,7 +102,6 @@ pub async fn prepare_voice_reference(
         let transcript = voice_reference_validation::validate(
             &app,
             &request.job_id,
-            &request.space_id,
             &request.language,
             audio,
             None,

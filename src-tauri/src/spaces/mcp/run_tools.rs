@@ -92,7 +92,7 @@ impl SpaceMcpServer {
         let run = runs::get_run(self.app.clone(), args.run_id.clone())
             .await
             .map_err(mcp_error)?;
-        if run.home_space_id != args.space_id {
+        if run.scope.require_space_id().map_err(mcp_error)? != args.space_id {
             return Err(McpError::invalid_params(
                 "Run belongs to another Space",
                 None,
