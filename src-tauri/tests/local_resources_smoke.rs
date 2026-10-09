@@ -17,7 +17,7 @@ fn provisioned_local_resources_starts() {
     );
 
     let ffmpeg = root.join(if cfg!(target_os = "windows") {
-        "Library/bin/ffmpeg.exe"
+        "bin/ffmpeg.exe"
     } else {
         "bin/ffmpeg"
     });

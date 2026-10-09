@@ -99,10 +99,32 @@ impl RuntimeProfile {
     }
 
     #[cfg(debug_assertions)]
+    fn recipe_bytes(self) -> &'static [u8] {
+        match self {
+            Self::Resources => {
+                include_bytes!(concat!(env!("OUT_DIR"), "/python-resources-recipe.json"))
+            }
+            Self::LightInference => include_bytes!(concat!(
+                env!("OUT_DIR"),
+                "/python-light-inference-recipe.json"
+            )),
+            Self::TorchInference => include_bytes!(concat!(
+                env!("OUT_DIR"),
+                "/python-torch-inference-recipe.json"
+            )),
+            Self::VoiceGeneration => include_bytes!(concat!(
+                env!("OUT_DIR"),
+                "/python-voice-generation-recipe.json"
+            )),
+            Self::Agent => include_bytes!(concat!(env!("OUT_DIR"), "/python-agent-recipe.json")),
+        }
+    }
+
+    #[cfg(debug_assertions)]
     pub(super) fn development_manifest(self) -> std::path::PathBuf {
         use sha2::{Digest, Sha256};
         let identity = Sha256::new()
-            .chain_update(include_bytes!("../../../../../python/runtime-source.json"))
+            .chain_update(self.recipe_bytes())
             .chain_update(self.producer_bytes())
             .chain_update(self.lock_bytes())
             .finalize();

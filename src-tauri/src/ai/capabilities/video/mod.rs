@@ -10,6 +10,7 @@ use crate::ai::{
 use crate::app_error::{AppError, AppResult};
 
 pub mod materialize;
+mod output;
 pub use materialize::materialize;
 
 const MAX_INLINE_REFERENCES_BYTES: usize = 64 * 1024 * 1024;

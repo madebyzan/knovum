@@ -100,16 +100,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                 )
             })?;
 
-            let download_response = client
-                .get(&url)
-                .send()
-                .await
-                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
-                .error_for_status()
-                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
-
-            let image_bytes =
-                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?;
+            let image_bytes = response::download_image(&url).await?;
 
             Ok(GeneratedImage {
                 bytes: image_bytes,

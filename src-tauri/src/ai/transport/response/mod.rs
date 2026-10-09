@@ -33,7 +33,7 @@ pub async fn read_json<T: DeserializeOwned>(
 }
 
 fn provider_error(error: reqwest::Error) -> AppError {
-    AppError::new("provider_request_failed", error.to_string())
+    AppError::new("provider_request_failed", error.without_url().to_string())
 }
 fn limit_error() -> AppError {
     AppError::new(
@@ -51,15 +51,28 @@ pub async fn read_text(response: reqwest::Response) -> AppResult<String> {
 }
 
 pub fn decode_image(encoded: &str) -> AppResult<Vec<u8>> {
+    decode_base64(encoded, MAX_IMAGE_BYTES)
+}
+
+pub(crate) fn decode_base64(encoded: &str, limit: usize) -> AppResult<Vec<u8>> {
     use base64::Engine;
-    if encoded.len() > MAX_IMAGE_BYTES.div_ceil(3) * 4 {
+    if encoded.len() > limit.div_ceil(3).saturating_mul(4) {
         return Err(limit_error());
     }
     let bytes = base64::engine::general_purpose::STANDARD
         .decode(encoded)
         .map_err(|error| AppError::new("invalid_response", error.to_string()))?;
-    if bytes.len() > MAX_IMAGE_BYTES {
+    if bytes.len() > limit {
         return Err(limit_error());
     }
     Ok(bytes)
+}
+
+pub(crate) async fn download_image(url: &str) -> AppResult<Vec<u8>> {
+    let url = reqwest::Url::parse(url)
+        .map_err(|error| AppError::new("invalid_response", error.to_string()))?;
+    let response = crate::public_network::resource_response(url, reqwest::header::HeaderMap::new())
+        .await
+        .map_err(|error| AppError::new("provider_request_failed", error))?;
+    read_bytes(response, MAX_IMAGE_BYTES).await
 }

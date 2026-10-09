@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "pending",
+  "version": "9.0.2",
+  "targets": {
+    "macos-arm64": null,
+    "macos-x64": null,
+    "windows-x64": null
+  }
+}

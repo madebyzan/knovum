@@ -108,11 +108,7 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   full nonlinear editor, but its compiled runtime and project model are excessive for Knovum's bounded
   timeline. Web timeline packages that embed Pixi/WebCodecs engines were rejected because they would
   introduce a competing media model.
-- The runtime is produced from pinned Conda-forge FFmpeg closures rather than a system dependency,
-  downloader library or handwritten platform URL set. The
-  [Conda-forge FFmpeg recipe](https://github.com/conda-forge/ffmpeg-feedstock/blob/main/recipe/meta.yaml)
-  is the maintained upstream source. Knovum retains the required runtime files, notices and compiled
-  dependency closure; SDK/build-only files are excluded only after compiled dependency traversal.
+- Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The producer downloads exact immutable archives by size/hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
 - yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
   executable with ambient config, plugins, cookies, playlists, self-update and remote components
   disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.

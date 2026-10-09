@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Layer as KonvaLayer, Rect as KonvaRect } from "vue-konva/core";
 
-import type { ProjectedSection } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
@@ -29,7 +29,7 @@ function fill(section: ProjectedSection) {
         width: section.bounds.right - section.bounds.left,
         height:
           section.layout.collapsed && !section.temporarilyExpanded
-            ? 40
+            ? SECTION_HEADER_HEIGHT
             : section.bounds.bottom - section.bounds.top,
         fill: fill(section),
         opacity: 0.26,

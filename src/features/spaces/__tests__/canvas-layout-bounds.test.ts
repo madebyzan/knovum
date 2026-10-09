@@ -13,6 +13,17 @@ describe("canvas layout bounds", () => {
     });
   });
 
+  it("uses the rotated footprint for viewport navigation", () => {
+    const rotated = layout("rotated", [900, 100, 100, 800]);
+    rotated.frame.rotation = 90;
+    expect(canvasLayoutBounds([rotated])).toEqual({
+      x: 100,
+      y: 100,
+      width: 800,
+      height: expect.closeTo(100, 10),
+    });
+  });
+
   it("has no bounds for an empty layout projection", () => {
     expect(canvasLayoutBounds([])).toBeUndefined();
   });

@@ -6,10 +6,10 @@ import hashlib
 import importlib.metadata
 import json
 import re
+import tomllib
 from pathlib import Path
 from typing import Any
 
-import tomllib
 from cyclonedx.model import ExternalReference, ExternalReferenceType, XsUri
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
@@ -37,17 +37,10 @@ def write_inventory(
 ) -> None:
     root = root.resolve(strict=True)
     lock = tomllib.loads(lock_path.read_text())
-    locked = {
-        (canonical(package["name"]), package["version"]): package
-        for package in lock["package"]
-    }
+    locked = {(canonical(package["name"]), package["version"]): package for package in lock["package"]}
     runtime_installation = runtime_installation_inventory(root, conda_lock, target)
     conda_inventory = json.loads(conda_lock.read_text())
-    cpython_source = next(
-        package
-        for package in conda_inventory["packages"]
-        if package["name"] == "python"
-    )
+    cpython_source = next(package for package in conda_inventory["packages"] if package["name"] == "python")
     cpython = {"version": cpython_source["version"], "source": cpython_source}
     bom = Bom()
     bom.components.add(
@@ -99,9 +92,7 @@ def write_inventory(
                 version=supplier["version"],
                 licenses=[LicenseExpression(supplier["license"])],
                 external_references=[
-                    ExternalReference(
-                        type=ExternalReferenceType.DISTRIBUTION, url=XsUri(file["url"])
-                    )
+                    ExternalReference(type=ExternalReferenceType.DISTRIBUTION, url=XsUri(file["url"]))
                     for file in supplier["files"]
                 ],
             )
@@ -114,28 +105,20 @@ def write_inventory(
         name, version = distribution.metadata["Name"], distribution.version
         package = locked.get((canonical(name), version))
         if package is None:
-            raise ValueError(
-                f"Installed distribution is absent from uv.lock: {name}=={version}"
-            )
+            raise ValueError(f"Installed distribution is absent from uv.lock: {name}=={version}")
         binaries = []
         notices = []
         files = distribution.files
         if files is None:
-            raise ValueError(
-                f"Installed distribution has no file record: {name}=={version}"
-            )
+            raise ValueError(f"Installed distribution has no file record: {name}=={version}")
         for file in files:
             path = Path(str(distribution.locate_file(file))).resolve(strict=True)
             if not path.is_relative_to(root.resolve()) or not path.is_file():
-                raise ValueError(
-                    f"Installed distribution declares an external/nonregular file: {name}/{file}"
-                )
+                raise ValueError(f"Installed distribution declares an external/nonregular file: {name}/{file}")
             relative = path.relative_to(root).as_posix()
             if path.suffix.lower() in {".so", ".dylib", ".dll", ".pyd", ".exe"}:
                 binaries.append(relative)
-            if any(
-                token in path.name.lower() for token in ("license", "copying", "notice")
-            ):
+            if any(token in path.name.lower() for token in ("license", "copying", "notice")):
                 notices.append({"path": relative, "sha256": digest(path)})
         source: dict[str, Any] = {"origin": package["source"]}
         if "sdist" in package:
@@ -145,14 +128,10 @@ def write_inventory(
         direct = distribution.read_text("direct_url.json")
         if direct:
             source["installedDirectUrl"] = json.loads(direct)
-        expression = next(
-            iter(distribution.metadata.get_all("License-Expression", [])), None
-        )
+        expression = next(iter(distribution.metadata.get_all("License-Expression", [])), None)
         license_text = next(iter(distribution.metadata.get_all("License", [])), None)
         classifiers = [
-            value
-            for value in distribution.metadata.get_all("Classifier", [])
-            if value.startswith("License ::")
+            value for value in distribution.metadata.get_all("Classifier", []) if value.startswith("License ::")
         ]
         licenses.append(
             {
@@ -188,9 +167,7 @@ def write_inventory(
     (output / "dependency-evidence.json").write_text(
         json.dumps(
             {
-                "dependencyLockSha256": hashlib.sha256(
-                    lock_path.read_bytes() + conda_lock.read_bytes()
-                ).hexdigest(),
+                "dependencyLockSha256": hashlib.sha256(lock_path.read_bytes() + conda_lock.read_bytes()).hexdigest(),
                 "condaPackages": conda_inventory,
                 "reviewStatus": "required",
                 "cpython": cpython,
@@ -204,9 +181,7 @@ def write_inventory(
     )
 
 
-def runtime_installation_inventory(
-    root: Path, configuration_path: Path, target: str
-) -> dict[str, Any]:
+def runtime_installation_inventory(root: Path, configuration_path: Path, target: str) -> dict[str, Any]:
     conda_inventory = json.loads(configuration_path.read_text())
     if conda_inventory["target"] != target:
         raise ValueError("Runtime installation inventory belongs to another target")
@@ -214,12 +189,8 @@ def runtime_installation_inventory(
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.is_relative_to(root / "packages"):
             continue
-        if any(
-            token in path.name.lower() for token in ("license", "copying", "notice")
-        ):
-            notices.append(
-                {"path": path.relative_to(root).as_posix(), "sha256": digest(path)}
-            )
+        if any(token in path.name.lower() for token in ("license", "copying", "notice")):
+            notices.append({"path": path.relative_to(root).as_posix(), "sha256": digest(path)})
     binaries = [
         path.relative_to(root).as_posix()
         for path in compiled_binaries(root, target)

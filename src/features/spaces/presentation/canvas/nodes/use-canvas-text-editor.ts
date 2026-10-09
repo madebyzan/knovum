@@ -74,7 +74,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       return;
     }
     instance.setEditable(false);
-    savePromise = persist(instance, true);
+    savePromise = persist(instance);
     try {
       await savePromise;
     } finally {
@@ -86,10 +86,10 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     await save().catch(() => undefined);
   }
 
-  async function persist(instance: Editor, close: boolean) {
-    const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
-    const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
+  async function persist(instance: Editor) {
     try {
+      const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
+      const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
       const data: SpaceCanvasTextPayload = {
         ...options.data.value,
         title: truncateUtf16(plainText.trim().split(/\r?\n/u, 1)[0] ?? "", 80) || options.defaultTitle,
@@ -98,9 +98,9 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       };
       await options.persist(options.id, data);
       dirty.value = false;
-      if (close) finishEditing();
+      finishEditing();
     } catch (error) {
-      if (close && editor.value === instance) instance.setEditable(true);
+      if (editor.value === instance) instance.setEditable(true);
       toast.error(getErrorMessage(error));
       throw error;
     }

@@ -65,7 +65,7 @@ pub(crate) fn resolve_deno<R: Runtime>(app: &AppHandle<R>) -> Result<Option<Path
 }
 
 pub const fn ffmpeg_name() -> &'static str {
-    executable("bin/ffmpeg", "Library/bin/ffmpeg.exe")
+    executable("bin/ffmpeg", "bin/ffmpeg.exe")
 }
 
 pub const fn yt_dlp_name() -> &'static str {

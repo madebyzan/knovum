@@ -97,7 +97,7 @@ No exception constitutes platform, distribution or legal approval.
 
 ## Compiled and Python supply chain
 
-The application-managed CPython runtimes, compiled media closure and compiled inference components are
+The application-managed CPython runtimes, static core media binary and compiled inference components are
 producer outputs, not development-environment copies. Their manifests and per-target locks own the
 interpreter, packages, shared compiled libraries, source archives, hashes and supplier identities. End-user
 machines never resolve or install production dependencies.

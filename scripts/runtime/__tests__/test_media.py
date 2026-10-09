@@ -24,15 +24,15 @@ def test_core_media_qualification_rejects_an_incomplete_target_build(
     message: str,
 ) -> None:
     outputs = {
-        "-version": "ffmpeg version 9.0.1 Copyright",
+        "-version": "ffmpeg version 9.0.2 Copyright",
         "-buildconf": "--enable-gpl --enable-libass",
-        "-filters": " subtitles ",
+        "-filters": " subtitles  astats  loudnorm  concat ",
         "-encoders": " h264_mf ",
     }
     outputs[capability] = response
 
     def run(*args: str, **_kwargs: object) -> str:
-        assert args[0] == str(tmp_path / "Library/bin/ffmpeg.exe")
+        assert args[0] == str(tmp_path / "bin/ffmpeg.exe")
         return outputs[args[-1]]
 
     monkeypatch.setattr(build_media, "run", run)

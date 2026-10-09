@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 export const runtimeProfiles = [
   "resources",
@@ -35,12 +37,69 @@ export function dependencyIdentity(repository, target, profile) {
 
 export function developmentDirectory(repository, target, profile) {
   const identity = createHash("sha256")
-    .update(readFileSync(join(repository, "python/runtime-source.json")))
+    .update(runtimeRecipeBytes(repository, target, profile))
     .update(producerBytes(repository, profile))
     .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
     .update(readFileSync(condaLockPath(repository, target, profile)))
     .digest("hex");
   return join(repository, ".runtime-development", profile, target, identity);
+}
+
+export function runtimeRecipeBytes(repository, target, profile) {
+  runtimeProject(repository, profile);
+  const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
+  const condaGroup = configuration.condaSupplier.profiles[profile];
+  const recipe = {
+    profile,
+    target,
+    version: configuration.version,
+    uvVersion: configuration.uvVersion,
+    uv: configuration.uv.targets[target],
+    condaSupplier: {
+      name: configuration.condaSupplier.name,
+      micromambaVersion: configuration.condaSupplier.micromambaVersion,
+      group: condaGroup,
+      pythonDistributions: configuration.condaSupplier.pythonDistributions[condaGroup],
+    },
+    micromamba: configuration.micromamba.targets[target],
+    ...(profile === "light-inference"
+      ? {
+          mossNano: configuration.mossNano,
+          compiledSourceEvidence: JSON.parse(
+            readFileSync(join(repository, "python/compiled-source-evidence.json"), "utf8"),
+          ),
+        }
+      : {}),
+    ...(profile === "voice-generation"
+      ? {
+          voiceLibrary: Object.fromEntries(
+            Object.entries(configuration.voiceLibrary).filter(
+              ([key]) => key !== "vulkanSdk" || target === "windows-x64",
+            ),
+          ),
+          ...(target.startsWith("macos-")
+            ? {
+                macosMinimumSystemVersion: JSON.parse(
+                  readFileSync(join(repository, "src-tauri/tauri.conf.json"), "utf8"),
+                ).bundle.macOS.minimumSystemVersion,
+              }
+            : {}),
+        }
+      : {}),
+  };
+  return recipeBytes(recipe);
+}
+
+export function recipeBytes(recipe) {
+  return Buffer.from(
+    JSON.stringify(recipe, (_key, value) =>
+      value !== null && typeof value === "object" && !Array.isArray(value)
+        ? Object.fromEntries(
+            Object.entries(value).toSorted(([left], [right]) => left.localeCompare(right, "en")),
+          )
+        : value,
+    ),
+  );
 }
 
 export function producerBytes(repository, profile) {
@@ -93,4 +152,17 @@ export function runtimeTargetFromTriple(triple) {
   const target = runtimeTargets[triple];
   if (!target) throw new Error(`Unsupported runtime target: ${triple}`);
   return target;
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const { values } = parseArgs({
+    options: {
+      repository: { type: "string" },
+      target: { type: "string" },
+      profile: { type: "string" },
+    },
+  });
+  if (!values.repository || !values.target || !values.profile)
+    throw new Error("Runtime recipe requires --repository, --target, and --profile");
+  process.stdout.write(runtimeRecipeBytes(values.repository, values.target, values.profile));
 }

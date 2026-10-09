@@ -3,33 +3,49 @@ import { lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { listRuntimeFiles, safeRelativePath, sha256File } from "./files.mjs";
+import { validateMediaLicenseEvidence, validateMediaLicenseReview } from "./media-license-policy.mjs";
 import {
   MediaRuntimeContentError,
   parseMediaManifest,
   runtimeFileMetadata,
-  validateCompiledDependencyInventory,
+  validateCompiledBinaryInventory,
   validateMediaProducer,
 } from "./media-runtime-content.mjs";
-import { producerBytes, runtimeTargets } from "./profiles.mjs";
-import { validateCondaSupplier, validateSigningRecord } from "./provenance.mjs";
+import { producerBytes, recipeBytes, runtimeTargets } from "./profiles.mjs";
+import { validateSigningRecord } from "./provenance.mjs";
 
-const mediaVersion = "9.0.1";
 export const mediaManifestName = "media-manifest.json";
 
 export function mediaExecutable(target) {
   if (!Object.values(runtimeTargets).includes(target)) throw new Error(`Unsupported media target: ${target}`);
-  return target === "windows-x64" ? "Library/bin/ffmpeg.exe" : "bin/ffmpeg";
+  return target === "windows-x64" ? "bin/ffmpeg.exe" : "bin/ffmpeg";
 }
 
-export function mediaCondaLockPath(repository, target) {
-  return join(repository, "python/conda-locks/media", `${target}.json`);
+export function mediaSource(repository, target) {
+  const configuration = JSON.parse(
+    readFileSync(join(repository, "scripts/runtime/media-source.json"), "utf8"),
+  );
+  const source = configuration.targets[target];
+  if (!source) throw new Error(`Unsupported media target: ${target}`);
+  const runtime = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
+  const licenseReview = validateMediaLicenseReview(repository, target, { requireApproved: false });
+  return {
+    schemaVersion: configuration.schemaVersion,
+    version: configuration.version,
+    license: configuration.license,
+    licenseSource: configuration.licenseSource,
+    sourceOffer: configuration.sourceOffer,
+    source,
+    licenseReviewSha256: licenseReview.sha256,
+    uvVersion: runtime.uvVersion,
+    uv: runtime.uv.targets[target],
+  };
 }
 
 function mediaRecipeIdentity(repository, target) {
   return createHash("sha256")
-    .update(readFileSync(join(repository, "python/runtime-source.json")))
+    .update(recipeBytes(mediaSource(repository, target)))
     .update(producerBytes(repository, "media"))
-    .update(readFileSync(mediaCondaLockPath(repository, target)))
     .digest("hex");
 }
 
@@ -45,9 +61,10 @@ export function writeMediaManifest(repository, directory, target, producer) {
     schemaVersion: 1,
     runtimeId: "ffmpeg",
     target,
-    version: mediaVersion,
+    version: mediaSource(repository, target).version,
     executable: mediaExecutable(target),
     recipeSha256: mediaRecipeIdentity(repository, target),
+    licenseReviewSha256: mediaSource(repository, target).licenseReviewSha256,
     producer,
     files,
   };
@@ -61,35 +78,37 @@ export function validateMediaRuntime(repository, directory, target) {
   if (!metadata.isFile() || metadata.size > 16 * 1024 ** 2)
     throw new MediaRuntimeContentError("Invalid media manifest");
   const manifest = parseMediaManifest(path);
+  const source = mediaSource(repository, target);
   const expected = {
     schemaVersion: 1,
     runtimeId: "ffmpeg",
     target,
-    version: mediaVersion,
+    version: source.version,
     executable: mediaExecutable(target),
     recipeSha256: mediaRecipeIdentity(repository, target),
+    licenseReviewSha256: source.licenseReviewSha256,
   };
   if (
     !exactKeys(manifest, [...Object.keys(expected), "producer", "files"]) ||
     Object.entries(expected).some(([key, value]) => manifest[key] !== value)
   )
     throw new MediaRuntimeContentError("Media runtime identity differs from the controlled build");
-  validateMediaProducer(manifest.producer, target, mediaVersion);
-  const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
-  validateCondaSupplier(
-    manifest.producer.condaSupplier,
-    configuration.condaSupplier,
-    mediaCondaLockPath(repository, target),
-    MediaRuntimeContentError,
-  );
+  validateMediaProducer(manifest.producer, target, source.version, source.source);
+  const licenseReview = validateMediaLicenseReview(repository, target, { requireApproved: false });
   validateSigningRecord(manifest.producer.signing, target, MediaRuntimeContentError);
   validateFiles(directory, manifest, target);
-  validateCompiledDependencyInventory(manifest);
+  validateCompiledBinaryInventory(manifest);
+  validateMediaLicenseEvidence(
+    manifest.producer.licenseReview,
+    manifest.files,
+    licenseReview,
+    MediaRuntimeContentError,
+  );
   return manifest;
 }
 
 function validateFiles(directory, manifest, target) {
-  if (!Array.isArray(manifest.files) || manifest.files.length > 100_000)
+  if (!Array.isArray(manifest.files) || manifest.files.length > 64)
     throw new MediaRuntimeContentError("Invalid media file inventory");
   const declared = new Set();
   let total = 0;
@@ -117,9 +136,7 @@ function exactKeys(value, keys) {
   );
 }
 
-function validSize(size) {
-  return Number.isSafeInteger(size) && size >= 0 && size <= 4 * 1024 ** 3;
-}
+const validSize = (size) => Number.isSafeInteger(size) && size >= 0 && size <= 4 * 1024 ** 3;
 
 function validateFileEntry(file, declared) {
   if (
@@ -158,8 +175,9 @@ export function validateMediaDescriptor(repository, descriptor, target) {
     schemaVersion: 1,
     runtimeId: "ffmpeg",
     target,
-    version: mediaVersion,
-    condaLockSha256: sha256File(mediaCondaLockPath(repository, target)),
+    version: mediaSource(repository, target).version,
+    sourceSha256: mediaSource(repository, target).source.sha256,
+    licenseReviewSha256: mediaSource(repository, target).licenseReviewSha256,
   };
   if (
     !exactKeys(descriptor, [...Object.keys(expected), "archiveUrl", "size", "sha256", "manifestSha256"]) ||

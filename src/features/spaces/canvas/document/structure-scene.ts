@@ -48,3 +48,5 @@ export interface StructureScene {
   sections: readonly ProjectedSection[];
   relations: readonly ProjectedRelation[];
 }
+
+export const SECTION_HEADER_HEIGHT = 40;

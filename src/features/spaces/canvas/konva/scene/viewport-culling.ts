@@ -1,9 +1,11 @@
 import RBush, { type BBox } from "rbush";
 
+import { canvasFrameBounds } from "../../canvas-snap-geometry";
 import type { CanvasRect, CanvasViewport } from "../../contracts/canvas-editor-port";
+import type { CanvasNodeFrame } from "../../schema/document";
 
 interface CullableNode {
-  layout: { frame: CanvasRect; nodeId: string };
+  layout: { frame: CanvasNodeFrame; nodeId: string };
 }
 
 interface CullableRelation {
@@ -23,10 +25,23 @@ interface IndexedSceneBounds extends BBox {
 export function createSceneVisibilityIndex(
   nodes: readonly CullableNode[],
   relations: readonly CullableRelation[],
+  sections: readonly CullableRelation[],
 ) {
   return {
     nodes: new RBush<IndexedSceneBounds>().load(
-      nodes.map(({ layout }) => ({ ...bounds(layout.frame), id: layout.nodeId })),
+      nodes.map(({ layout }) => {
+        const frame = canvasFrameBounds(layout.frame);
+        return {
+          minX: frame.left,
+          minY: frame.top,
+          maxX: frame.right,
+          maxY: frame.bottom,
+          id: layout.nodeId,
+        };
+      }),
+    ),
+    sections: new RBush<IndexedSceneBounds>().load(
+      sections.map(({ bounds: frame, key }) => ({ ...bounds(frame), id: key })),
     ),
     relations: new RBush<IndexedSceneBounds>().load(
       relations.map(({ bounds: frame, key }) => ({ ...bounds(frame), id: key })),
@@ -49,6 +64,7 @@ export function visibleSceneIds(
   });
   return {
     nodes: new Set(index.nodes.search(visible).map(({ id }) => id)),
+    sections: new Set(index.sections.search(visible).map(({ id }) => id)),
     relations: new Set(index.relations.search(visible).map(({ id }) => id)),
   };
 }

@@ -3,6 +3,10 @@ mod image_edit;
 mod upload;
 mod video;
 
+#[cfg(test)]
+#[path = "tests/video.rs"]
+mod video_tests;
+
 pub use image::GeminiImageAdapter;
 pub use image_edit::edit_image;
 pub use upload::GeminiFileUploadAdapter;
@@ -47,3 +51,7 @@ impl AiProvider for GeminiProvider {
         Some(&self.upload)
     }
 }
+
+#[cfg(test)]
+#[path = "tests/upload.rs"]
+mod upload_tests;

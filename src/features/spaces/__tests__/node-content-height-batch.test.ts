@@ -83,6 +83,23 @@ describe("node content height batch", () => {
       width: 200,
     });
     await Promise.resolve();
-    expect(commit.mock.calls[0]?.[0].size).toBe(0);
+    expect(commit).not.toHaveBeenCalled();
+  });
+  it("does not commit a repeated measurement with unchanged source and height", async () => {
+    const commit = vi.fn<(heights: ReadonlyMap<string, FittedContentHeight>) => void>();
+    const batch = createNodeContentHeightBatch(
+      () => node,
+      () => layout,
+      commit,
+    );
+    batch.fit("text", {
+      contentRevision: null,
+      height: 220,
+      sizingMode: "frame",
+      typographyScale: 1,
+      width: 240,
+    });
+    await Promise.resolve();
+    expect(commit).not.toHaveBeenCalled();
   });
 });

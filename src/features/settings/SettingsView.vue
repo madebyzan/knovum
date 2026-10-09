@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, watch, type Component } from "vue";
+import { computed, nextTick, toRaw, watch, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
@@ -59,9 +59,9 @@ watch(
 
 const paneComponentMap = {
   aiModels: AiModelsSettingsPane,
-  voices: props.voiceLibraryComponent,
+  voices: toRaw(props.voiceLibraryComponent),
   desktopAgents: DesktopAgentsSettingsPane,
-  extensions: props.extensionsComponent,
+  extensions: toRaw(props.extensionsComponent),
   usage: UsageSettingsPane,
   creation: CreationSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,

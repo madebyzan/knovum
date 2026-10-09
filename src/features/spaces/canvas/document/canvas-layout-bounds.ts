@@ -1,10 +1,23 @@
+import { canvasFrameBounds } from "../canvas-snap-geometry";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 
 export function canvasLayoutBounds(layouts: readonly CanvasNodeLayoutV1[]) {
-  if (!layouts.length) return undefined;
-  const left = Math.min(...layouts.map(({ frame }) => frame.x));
-  const top = Math.min(...layouts.map(({ frame }) => frame.y));
-  const right = Math.max(...layouts.map(({ frame }) => frame.x + frame.width));
-  const bottom = Math.max(...layouts.map(({ frame }) => frame.y + frame.height));
-  return { x: left, y: top, width: right - left, height: bottom - top };
+  let combined: Pick<CanvasNodeLayoutV1["frame"], "x" | "y" | "width" | "height"> | undefined;
+  for (const { frame } of layouts) {
+    const { left, top, width, height } = canvasFrameBounds(frame);
+    const current = { x: left, y: top, width, height };
+    if (!combined) {
+      combined = current;
+      continue;
+    }
+    const x = Math.min(combined.x, current.x);
+    const y = Math.min(combined.y, current.y);
+    combined = {
+      x,
+      y,
+      width: Math.max(combined.x + combined.width, current.x + current.width) - x,
+      height: Math.max(combined.y + combined.height, current.y + current.height) - y,
+    };
+  }
+  return combined;
 }

@@ -1,6 +1,6 @@
 import { lstatSync, readFileSync } from "node:fs";
 
-import { safeRelativePath } from "./files.mjs";
+import { recipeBytes } from "./profiles.mjs";
 
 export class MediaRuntimeContentError extends Error {}
 
@@ -22,26 +22,30 @@ export function runtimeFileMetadata(path, message) {
   }
 }
 
-export function validateMediaProducer(producer, target, version) {
+export function validateMediaProducer(producer, target, version, source) {
   const expected = { schemaVersion: 1, target, version, relocationVerified: true };
   if (
     Object.entries(expected).some(([key, value]) => producer?.[key] !== value) ||
     !/^[a-f0-9]{40}$/u.test(producer.appCommit ?? "") ||
-    !Array.isArray(producer.condaSupplier?.packages) ||
-    producer.condaSupplier.packages.some((item) => item === null || typeof item !== "object")
+    !producer.source ||
+    !recipeBytes(producer.source).equals(recipeBytes(source))
   )
     throw new MediaRuntimeContentError("Media runtime producer identity differs from the controlled build");
 }
 
-export function validateCompiledDependencyInventory(manifest) {
-  const dependencies = manifest.producer.compiledDependencyFiles;
-  const declared = new Set(manifest.files.map((file) => file.path));
+export function validateCompiledBinaryInventory(manifest) {
+  const binaries = manifest.producer.compiledBinaryFiles;
   if (
-    !Array.isArray(dependencies) ||
-    dependencies.length !== manifest.producer.signing.compiledBinaryCount ||
-    new Set(dependencies).size !== dependencies.length ||
-    !dependencies.includes(manifest.executable) ||
-    dependencies.some((path) => !safeRelativePath(path) || !declared.has(path))
+    !Array.isArray(binaries) ||
+    binaries.length !== 1 ||
+    binaries[0] !== manifest.executable ||
+    manifest.producer.signing.compiledBinaryCount !== 1 ||
+    manifest.files.some(
+      ({ path }) =>
+        path !== manifest.executable &&
+        ((!path.startsWith("notices/") && !path.startsWith("build-evidence/")) ||
+          /\.(?:exe|dll|dylib|so)(?:\.|$)/u.test(path)),
+    )
   )
-    throw new MediaRuntimeContentError("Media compiled dependency inventory differs from its manifest");
+    throw new MediaRuntimeContentError("Media compiled binary inventory must contain only FFmpeg");
 }

@@ -25,37 +25,168 @@ pub(super) async fn install<R: Runtime>(
         .parent()
         .ok_or("Runtime installation directory is unavailable")?;
     fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-    let _lease = super::retention::acquire(&destination)?;
-    let staging = parent.join(format!(".{}.installing", descriptor.sha256));
-    filesystem::remove_directory(&staging)?;
-    fs::create_dir(&staging).map_err(|error| error.to_string())?;
-    let prepared = prepare_staging(
+    let installation_lease = loop {
+        if destination.exists() {
+            let Some(lease) = super::retention::try_acquire(&destination)? else {
+                tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => return Err(crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED.into()),
+                    () = tokio::time::sleep(std::time::Duration::from_millis(10)) => {}
+                }
+                continue;
+            };
+            if !destination.exists() {
+                drop(lease);
+                continue;
+            }
+            match verify_installed_async(&destination, descriptor, cancellation).await {
+                Ok(()) => {
+                    retain_installed(app, descriptor, &destination, lease).await?;
+                    progress(update(
+                        ResourcePreparationStage::Ready,
+                        descriptor.size,
+                        descriptor.size,
+                    ));
+                    return Ok(());
+                }
+                Err(error) if error.starts_with("python-runtime-invalid:") => {
+                    drop(lease);
+                    if let Some(installation) =
+                        super::retention::try_acquire_exclusive(&destination)?
+                    {
+                        break installation;
+                    }
+                    return Err(format!(
+                        "python-runtime-invalid: installed runtime is active and cannot be replaced: {error}"
+                    ));
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        if let Some(installation) = super::retention::try_acquire_exclusive(&destination)? {
+            break installation;
+        }
+        tokio::select! {
+            biased;
+            _ = cancellation.cancelled() => return Err(crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED.into()),
+            () = tokio::time::sleep(std::time::Duration::from_millis(10)) => {}
+        }
+    };
+    if destination.exists() {
+        match verify_installed_async(&destination, descriptor, cancellation).await {
+            Ok(()) => {
+                let lease = share_installation(installation_lease).await?;
+                retain_installed(app, descriptor, &destination, lease).await?;
+                progress(update(
+                    ResourcePreparationStage::Ready,
+                    descriptor.size,
+                    descriptor.size,
+                ));
+                return Ok(());
+            }
+            Err(error) if error.starts_with("python-runtime-invalid:") => {
+                let invalid = destination.clone();
+                crate::blocking::run(move || filesystem::remove_directory(&invalid)).await?;
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    let staging = Staging::create(parent, &descriptor.sha256)?;
+    prepare_staging(
         descriptor,
         &descriptor.archive_url,
-        &staging,
+        &staging.0,
         cancellation,
         progress,
     )
-    .await;
-    if let Err(error) = prepared {
-        filesystem::remove_directory(&staging)?;
-        return Err(error);
-    }
-    if let Err(error) = archive::require_active(cancellation) {
-        filesystem::remove_directory(&staging)?;
-        return Err(error);
-    }
-    // A corrupt installation never becomes a usable runtime. Its identity directory is replaced only after verification.
-    filesystem::remove_directory(&destination)?;
-    fs::rename(staging.join("runtime"), &destination).map_err(|error| error.to_string())?;
-    filesystem::remove_directory(&staging)?;
-    super::retention::retire_unused(&destination)?;
+    .await?;
+    archive::require_active(cancellation)?;
+    let prepared_runtime = staging.0.join("runtime");
+    let published_destination = destination.clone();
+    let lease = crate::blocking::run(move || {
+        installation_lease.publish_directory(&prepared_runtime, &published_destination)
+    })
+    .await?;
+    retain_installed(app, descriptor, &destination, lease).await?;
     progress(update(
         ResourcePreparationStage::Ready,
         descriptor.size,
         descriptor.size,
     ));
     Ok(())
+}
+
+fn verify_installed(
+    destination: &std::path::Path,
+    descriptor: &Descriptor,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let manifest_path = destination.join(MANIFEST_NAME);
+    let bytes = verification::read_manifest(&manifest_path)?;
+    let digest = verification::digest(&bytes);
+    if digest != descriptor.manifest_sha256 {
+        return Err("python-runtime-invalid: installed manifest digest differs".into());
+    }
+    verification::verify_runtime(
+        &manifest_path,
+        &bytes,
+        digest,
+        cancellation,
+        Some(descriptor),
+        descriptor.profile,
+    )
+    .map(|_| ())
+}
+
+async fn verify_installed_async(
+    destination: &std::path::Path,
+    descriptor: &Descriptor,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let destination = destination.to_path_buf();
+    let descriptor = descriptor.clone();
+    let cancellation = cancellation.clone();
+    crate::blocking::run(move || verify_installed(&destination, &descriptor, &cancellation)).await
+}
+
+async fn retain_installed<R: Runtime>(
+    app: &AppHandle<R>,
+    descriptor: &Descriptor,
+    destination: &std::path::Path,
+    lease: std::sync::Arc<super::RuntimeLease>,
+) -> Result<(), String> {
+    let handle = app.clone();
+    let profile = descriptor.profile;
+    let manifest = destination.join(MANIFEST_NAME);
+    crate::blocking::run(move || {
+        super::resolve_with_lease(&handle, profile, manifest, lease)?;
+        super::retire_unused(&handle, profile)
+    })
+    .await
+}
+
+async fn share_installation(
+    installation: super::retention::InstallationLease,
+) -> Result<std::sync::Arc<super::RuntimeLease>, String> {
+    crate::blocking::run(move || installation.into_shared()).await
+}
+
+struct Staging(std::path::PathBuf);
+
+impl Staging {
+    fn create(parent: &std::path::Path, identity: &str) -> Result<Self, String> {
+        let path = parent.join(format!(".{identity}.{}.installing", uuid::Uuid::new_v4()));
+        fs::create_dir(&path).map_err(|error| error.to_string())?;
+        Ok(Self(path))
+    }
+}
+
+impl Drop for Staging {
+    fn drop(&mut self) {
+        if let Err(error) = filesystem::remove_directory(&self.0) {
+            log::error!("Python runtime installation staging cleanup failed: {error}");
+        }
+    }
 }
 
 async fn prepare_staging(

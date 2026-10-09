@@ -1,7 +1,15 @@
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 
-use super::{read_bytes, read_json};
+use super::{decode_base64, read_bytes, read_json};
+
+#[test]
+fn inline_media_enforces_encoded_and_decoded_size_limits() {
+    assert_eq!(decode_base64("MTIzNDU=", 5).unwrap(), b"12345");
+    assert!(decode_base64("MTIzNDU=", 4).is_err());
+    assert!(decode_base64("MTIzNDU2Nw==", 4).is_err());
+    assert!(decode_base64("invalid", 4).is_err());
+}
 
 async fn response(wire: &'static str) -> reqwest::Response {
     let server = TcpListener::bind("127.0.0.1:0").expect("local server");

@@ -107,6 +107,51 @@ describe("canvas content height fitting", () => {
     expect(value.execute).not.toHaveBeenCalled();
   });
 
+  it.each([0.3, 2])(
+    "commits scale %s measurements in local units and skips unchanged heights",
+    async (scale) => {
+      const value = fixture(1);
+      const layout = value.snapshot.layouts[0]!;
+      if (layout.kind !== "content") throw new Error("Expected content fixture");
+      layout.transform.scale = scale;
+      const frame = value.nodes.get("0")!.layout.frame;
+      frame.width = 240 * scale;
+      frame.height = 100 * scale;
+      const measurement = { ...value.measurement, width: 240 * scale, height: 220 * scale };
+      value.fitting.fit("0", measurement);
+      await vi.waitFor(() => expect(value.execute).toHaveBeenCalledOnce());
+      expect(value.execute).toHaveBeenCalledWith({
+        kind: "content.update-heights",
+        updates: [
+          {
+            contentRevision: null,
+            sizingMode: "frame",
+            typographyScale: 1,
+            structureNodeId: "s0",
+            height: 220,
+            measuredWidth: 240,
+          },
+        ],
+      });
+      layout.size.height = 220;
+      frame.height = 220 * scale;
+      value.fitting.fit("0", measurement);
+      value.fitting.flush();
+      await Promise.resolve();
+      expect(value.execute).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("discards a world measurement after its local transform changes", async () => {
+    const value = fixture(1);
+    value.fitting.fit("0", value.measurement);
+    await Promise.resolve();
+    const layout = value.snapshot.layouts[0]!;
+    if (layout.kind === "content") layout.transform.scale = 2;
+    await Promise.resolve();
+    expect(value.execute).not.toHaveBeenCalled();
+  });
+
   it("drops a node removed between measurement and submission", async () => {
     const value = fixture(1);
     value.fitting.fit("0", value.measurement);

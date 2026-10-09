@@ -77,6 +77,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 .as_str()
                 .ok_or_else(|| AppError::new("invalid_response", "Missing operation name"))?
                 .to_string();
+            operation_url(&ctx.endpoint, &operation_name)?;
 
             Ok(VideoGenerationSubmission {
                 operation_id: operation_name,
@@ -93,19 +94,11 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let endpoint = ctx.endpoint.trim_end_matches('/');
-            let clean_id = task_id.trim_start_matches('/');
-            let poll_url = if clean_id.starts_with("http://") || clean_id.starts_with("https://") {
-                clean_id.to_string()
-            } else if let Some(stripped) = clean_id.strip_prefix("v1beta/") {
-                format!("{endpoint}/{stripped}")
-            } else {
-                format!("{endpoint}/{clean_id}")
-            };
+            let poll_url = operation_url(&ctx.endpoint, task_id)?;
             let client = http_client();
 
             let poll_response = client
-                .get(&poll_url)
+                .get(poll_url)
                 .header("x-goog-api-key", api_key)
                 .send()
                 .await
@@ -156,4 +149,31 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
     }
+}
+
+pub(super) fn operation_url(endpoint: &str, name: &str) -> AppResult<reqwest::Url> {
+    if name.is_empty()
+        || name.len() > 4096
+        || name.starts_with("v1beta/")
+        || name.split('/').any(|segment| {
+            segment.is_empty()
+                || matches!(segment, "." | "..")
+                || !segment
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.'))
+        })
+    {
+        return Err(AppError::new(
+            "invalid_response",
+            "Gemini returned an invalid operation resource name",
+        ));
+    }
+    let base = crate::ai::transport::validate_endpoint(endpoint)?;
+    if base.query().is_some() || base.fragment().is_some() {
+        return Err(AppError::invalid(
+            "Gemini API endpoint cannot contain a query or fragment",
+        ));
+    }
+    reqwest::Url::parse(&format!("{}/{name}", base.as_str().trim_end_matches('/')))
+        .map_err(|error| AppError::new("invalid_response", error.to_string()))
 }

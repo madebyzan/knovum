@@ -44,7 +44,9 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .json(&metadata_payload)
                 .send()
                 .await
-                .map_err(|err| AppError::new("provider_request_failed", err.to_string()))?;
+                .map_err(|err| {
+                    AppError::new("provider_request_failed", err.without_url().to_string())
+                })?;
 
             if !init_response.status().is_success() {
                 let error_text = response::read_text(init_response).await?;
@@ -63,15 +65,29 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 })?
                 .to_string();
 
+            let upload_url =
+                crate::ai::transport::validate_endpoint(&upload_url).map_err(|_| {
+                    AppError::new("invalid_response", "Gemini returned an invalid upload URL")
+                })?;
+            let authority = crate::ai::transport::validate_endpoint(endpoint)?;
+            if !crate::public_network::same_origin(&authority, &upload_url) {
+                return Err(AppError::new(
+                    "invalid_response",
+                    "Gemini upload URL changed the configured API origin",
+                ));
+            }
+
             let upload_response = client
-                .post(&upload_url)
+                .post(upload_url)
                 .header("X-Goog-Upload-Offset", "0")
                 .header("X-Goog-Upload-Command", "upload, finalize")
                 .header("Content-Type", mime_type)
                 .body(bytes)
                 .send()
                 .await
-                .map_err(|err| AppError::new("provider_request_failed", err.to_string()))?;
+                .map_err(|err| {
+                    AppError::new("provider_request_failed", err.without_url().to_string())
+                })?;
 
             if !upload_response.status().is_success() {
                 let error_text = response::read_text(upload_response).await?;

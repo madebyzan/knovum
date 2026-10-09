@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "version": "9.0.2",
+  "license": "GPL-3.0-or-later",
+  "licenseSource": {
+    "fileName": "COPYING.GPLv3",
+    "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/n9.0.2/COPYING.GPLv3",
+    "size": 35147,
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+  },
+  "sourceOffer": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz",
+  "targets": {
+    "macos-x64": {
+      "supplier": "martin-riedl",
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1789931006_9.0.2/ffmpeg.zip",
+      "size": 33816391,
+      "sha256": "7c6b4125b191cbf773832dc51f424cf2b6bb7da43007d1e066f95909e47cacd4",
+      "entry": "ffmpeg",
+      "noticeSources": [
+        {
+          "fileName": "supplier-build.txt",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1789931006_9.0.2/versions.txt",
+          "size": 1948,
+          "sha256": "64347e66bb487d52c6a8a43180028dc2a4d1dc0519ec81233d55e2bd59ebd98e"
+        }
+      ],
+      "buildSource": "https://git.martin-riedl.de/ffmpeg/build-script"
+    },
+    "macos-arm64": {
+      "supplier": "martin-riedl",
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffmpeg.zip",
+      "size": 28395699,
+      "sha256": "c8ed4c4e6978a03c485edbfe4e0a5dc2380f8a30bba5150531b31b094492d924",
+      "entry": "ffmpeg",
+      "noticeSources": [
+        {
+          "fileName": "supplier-build.txt",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/versions.txt",
+          "size": 1948,
+          "sha256": "fc92572e752e09b20e7ff28d64fb7096f7bc1a0d589b2e40f17ac91b7fd0ca61"
+        }
+      ],
+      "buildSource": "https://git.martin-riedl.de/ffmpeg/build-script"
+    },
+    "windows-x64": {
+      "supplier": "gyan",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+      "size": 114768076,
+      "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+      "entry": "ffmpeg-9.0.2-essentials_build/bin/ffmpeg.exe",
+      "archiveNotices": {
+        "LICENSE": "ffmpeg-9.0.2-essentials_build/LICENSE",
+        "supplier-build.txt": "ffmpeg-9.0.2-essentials_build/README.txt"
+      },
+      "buildSource": "https://github.com/GyanD/codexffmpeg/releases/tag/9.0.2"
+    }
+  }
+}

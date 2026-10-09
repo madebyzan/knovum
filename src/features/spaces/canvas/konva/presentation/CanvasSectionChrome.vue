@@ -3,7 +3,7 @@ import type Konva from "konva";
 import { shallowRef } from "vue";
 import { Group as KonvaGroup, Rect as KonvaRect, Text as KonvaText } from "vue-konva/core";
 
-import type { ProjectedSection } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
 import CanvasSectionResizeHandles from "./CanvasSectionResizeHandles.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 
@@ -67,7 +67,7 @@ function rename() {
     <KonvaRect
       :config="{
         width: width(),
-        height: displayCollapsed() ? 40 : height(),
+        height: displayCollapsed() ? SECTION_HEADER_HEIGHT : height(),
         stroke: selected || dropTarget ? palette.accent : hovered ? palette.borderStrong : palette.border,
         strokeWidth: (selected || dropTarget ? 2 : 1) / zoom,
         dash:
@@ -83,7 +83,7 @@ function rename() {
     <KonvaRect
       :config="{
         width: width(),
-        height: 40,
+        height: SECTION_HEADER_HEIGHT,
         fill: palette.panel,
         opacity: 0.94,
         cornerRadius: displayCollapsed() ? 8 : [8, 8, 0, 0],
