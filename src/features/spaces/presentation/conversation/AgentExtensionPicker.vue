@@ -19,8 +19,8 @@ const count = computed(() => selection.value.skillIds.length + selection.value.c
 const selectedConnections = computed(() =>
   props.availability?.connections.filter((connection) => isConnectionSelected(connection.id)),
 );
-function isConnectionSelected(id: string) {
-  return selection.value.connections.some((connection) => connection.connectionId === id);
+function isConnectionSelected(connectionId: string) {
+  return selection.value.connections.some((connection) => connection.connectionId === connectionId);
 }
 const unavailable = computed(
   () =>
@@ -50,11 +50,13 @@ function toggleConnection(connection: McpConnection) {
         ],
   };
 }
-function toggleSkill(id: string) {
+function toggleSkill(skillId: string) {
   const previous = selection.value.skillIds;
   selection.value = {
     ...selection.value,
-    skillIds: previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id],
+    skillIds: previous.includes(skillId)
+      ? previous.filter((value) => value !== skillId)
+      : [...previous, skillId],
   };
 }
 </script>

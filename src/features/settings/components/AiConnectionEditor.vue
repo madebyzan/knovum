@@ -62,11 +62,11 @@ const changed = computed(
 );
 watch(changed, (value) => emit("dirty", value), { immediate: true });
 
-function selectProvider(id: ProviderKind) {
+function selectProvider(providerKind: ProviderKind) {
   const previous = provider.value;
-  const next = requireProvider(props.providers, id);
+  const next = requireProvider(props.providers, providerKind);
   if (draft.name === previous.displayName) draft.name = next.displayName;
-  draft.provider = id;
+  draft.provider = providerKind;
   draft.baseUrl = next.defaultBaseUrl;
 }
 

@@ -17,14 +17,14 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
 const { t } = useI18n();
-const draggingId = ref("");
+const draggingNodeId = ref("");
 const selected = computed(() => new Set(props.modelValue));
 const selectedOptions = computed(() =>
   compact(props.modelValue.map((id) => props.options.find((option) => option.value === id))),
 );
 
-function toggle(id: string, enabled: boolean) {
-  const next = enabled ? [...props.modelValue, id] : without(props.modelValue, id);
+function toggle(nodeId: string, enabled: boolean) {
+  const next = enabled ? [...props.modelValue, nodeId] : without(props.modelValue, nodeId);
   emit("update:modelValue", next);
 }
 
@@ -36,19 +36,19 @@ function move(index: number, offset: number) {
   emit("update:modelValue", next);
 }
 
-function dropOn(targetId: string) {
-  const source = props.modelValue.indexOf(draggingId.value);
-  const target = props.modelValue.indexOf(targetId);
-  draggingId.value = "";
+function dropOn(targetNodeId: string) {
+  const source = props.modelValue.indexOf(draggingNodeId.value);
+  const target = props.modelValue.indexOf(targetNodeId);
+  draggingNodeId.value = "";
   if (source < 0 || target < 0 || source === target) return;
   const next = [...props.modelValue];
   next.splice(target, 0, next.splice(source, 1)[0]!);
   emit("update:modelValue", next);
 }
 
-function beginDrag(event: DragEvent, id: string) {
-  draggingId.value = id;
-  event.dataTransfer?.setData("text/plain", id);
+function beginDrag(event: DragEvent, nodeId: string) {
+  draggingNodeId.value = nodeId;
+  event.dataTransfer?.setData("text/plain", nodeId);
   if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
 }
 </script>
@@ -89,11 +89,11 @@ function beginDrag(event: DragEvent, id: string) {
           :key="option.value"
           draggable="true"
           class="flex items-center gap-1 rounded-md"
-          :class="draggingId === option.value ? 'opacity-50' : ''"
+          :class="draggingNodeId === option.value ? 'opacity-50' : ''"
           @dragstart="beginDrag($event, option.value)"
           @dragover.prevent
           @drop.prevent="dropOn(option.value)"
-          @dragend="draggingId = ''"
+          @dragend="draggingNodeId = ''"
         >
           <span class="w-5 text-right text-caption-sm text-fg-tertiary tabular-nums">{{ index + 1 }}</span>
           <span class="min-w-0 flex-1 truncate">{{ option.label }}</span>

@@ -13,13 +13,13 @@ import {
 export type ConversationComposerDraft = Omit<ConversationDraft, "spaceId" | "conversationId">;
 
 export const useConversationDraftStore = defineStore("spaces-conversation-drafts", () => {
-  const drafts = shallowRef<Record<string, ConversationComposerDraft>>({});
-  const saveGenerations = new Map<string, number>();
+  const draftByConversationKey = shallowRef<Record<string, ConversationComposerDraft>>({});
+  const saveGenerationByConversationKey = new Map<string, number>();
   let persistenceTail = Promise.resolve<unknown>(undefined);
 
   function advanceSaveGeneration(key: string) {
-    const generation = (saveGenerations.get(key) ?? 0) + 1;
-    saveGenerations.set(key, generation);
+    const generation = (saveGenerationByConversationKey.get(key) ?? 0) + 1;
+    saveGenerationByConversationKey.set(key, generation);
     return generation;
   }
 
@@ -30,7 +30,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
   }
 
   function read(spaceId: string, conversationId: string): ConversationComposerDraft | undefined {
-    const draft = drafts.value[`${spaceId}:${conversationId}`];
+    const draft = draftByConversationKey.value[`${spaceId}:${conversationId}`];
     return (
       draft && {
         prompt: draft.prompt,
@@ -55,8 +55,8 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
   }
 
   function saveCached(spaceId: string, conversationId: string, draft: ConversationComposerDraft) {
-    drafts.value = {
-      ...drafts.value,
+    draftByConversationKey.value = {
+      ...draftByConversationKey.value,
       [`${spaceId}:${conversationId}`]: {
         prompt: draft.prompt,
         attachments: [...draft.attachments],
@@ -79,7 +79,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
         ...snapshot,
       }),
     );
-    if (saveGenerations.get(key) !== generation) return;
+    if (saveGenerationByConversationKey.get(key) !== generation) return;
     const current = read(spaceId, conversationId);
     if (current)
       saveCached(spaceId, conversationId, {
@@ -88,25 +88,25 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
       });
   }
 
-  async function move(spaceId: string, fromId: string, toId: string) {
-    if (!drafts.value[`${spaceId}:${fromId}`]) return;
-    advanceSaveGeneration(`${spaceId}:${fromId}`);
-    advanceSaveGeneration(`${spaceId}:${toId}`);
-    await persist(() => moveConversationDraft(spaceId, fromId, toId));
-    const next = { ...drafts.value };
-    const draft = next[`${spaceId}:${fromId}`];
+  async function move(spaceId: string, fromConversationId: string, toConversationId: string) {
+    if (!draftByConversationKey.value[`${spaceId}:${fromConversationId}`]) return;
+    advanceSaveGeneration(`${spaceId}:${fromConversationId}`);
+    advanceSaveGeneration(`${spaceId}:${toConversationId}`);
+    await persist(() => moveConversationDraft(spaceId, fromConversationId, toConversationId));
+    const next = { ...draftByConversationKey.value };
+    const draft = next[`${spaceId}:${fromConversationId}`];
     if (!draft) return;
-    delete next[`${spaceId}:${fromId}`];
-    next[`${spaceId}:${toId}`] = draft;
-    drafts.value = next;
+    delete next[`${spaceId}:${fromConversationId}`];
+    next[`${spaceId}:${toConversationId}`] = draft;
+    draftByConversationKey.value = next;
   }
 
   async function remove(spaceId: string, conversationId: string) {
     advanceSaveGeneration(`${spaceId}:${conversationId}`);
     await persist(() => removeConversationDraft(spaceId, conversationId));
-    const next = { ...drafts.value };
+    const next = { ...draftByConversationKey.value };
     delete next[`${spaceId}:${conversationId}`];
-    drafts.value = next;
+    draftByConversationKey.value = next;
   }
 
   return { read, load, save, move, remove };

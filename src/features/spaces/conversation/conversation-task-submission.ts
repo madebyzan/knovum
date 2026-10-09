@@ -123,9 +123,9 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     else if (update.type === "content_boundary") state.streamedText.value = "";
   }
 
-  function clearPending(id: string) {
-    if (input.messages.value.some((message) => message.id === id))
-      input.messages.value = input.messages.value.filter((message) => message.id !== id);
+  function clearPending(messageId: string) {
+    if (input.messages.value.some((message) => message.id === messageId))
+      input.messages.value = input.messages.value.filter((message) => message.id !== messageId);
   }
 
   async function send() {
@@ -142,11 +142,11 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     const submitted = ++generation;
     let accepted = false;
     const selection = { spaceId: request.spaceId, conversationId: input.selectedConversationId.value };
-    const pendingId = `pending:${crypto.randomUUID()}`;
+    const pendingMessageId = `pending:${crypto.randomUUID()}`;
     const pendingMessage = pendingConversationMessage(
       request,
       {
-        id: pendingId,
+        id: pendingMessageId,
         conversationId: selection.conversationId,
         branchId: input.conversation.value?.branchId ?? "",
       },
@@ -175,7 +175,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
         state.error.value = getErrorMessage(failure);
       }
     } finally {
-      clearPending(pendingId);
+      clearPending(pendingMessageId);
       await finish(submitted);
     }
   }

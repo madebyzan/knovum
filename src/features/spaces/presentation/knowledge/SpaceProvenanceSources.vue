@@ -73,11 +73,11 @@ async function attachCurrent() {
     ),
   );
 }
-async function remove(id: string) {
+async function remove(provenanceId: string) {
   const spaceId = activeSpaceId.value;
   if (!spaceId) return;
   await mutate(() =>
-    detachProvenance(id, {
+    detachProvenance(provenanceId, {
       spaceId,
       targetKind: props.targetKind,
       targetId: props.targetId,

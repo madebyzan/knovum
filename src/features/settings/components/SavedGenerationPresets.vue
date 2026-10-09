@@ -18,31 +18,31 @@ const props = defineProps<{
   savePreset: (preset: GenerationPreset) => Promise<void>;
 }>();
 const emit = defineEmits<{
-  remove: [id: string];
-  duplicate: [id: string, name: string];
-  rename: [id: string, name: string];
+  remove: [presetId: string];
+  duplicate: [presetId: string, name: string];
+  rename: [presetId: string, name: string];
 }>();
 const { t } = useI18n();
 const editingId = shallowRef<string>();
 const editingPreset = computed(() => props.presets.find((preset) => preset.id === editingId.value));
 const editorOpen = shallowRef(false);
 
-async function removePreset(id: string) {
+async function removePreset(presetId: string) {
   const confirmed = await confirmAction({
     title: t("common.delete"),
     description: t("settings.creation.presets.deleteConfirm"),
     confirmLabel: t("common.delete"),
     danger: true,
   });
-  if (confirmed) emit("remove", id);
+  if (confirmed) emit("remove", presetId);
 }
 
 function duplicatePreset(source: GenerationPreset) {
   emit("duplicate", source.id, t("settings.creation.copyName", { name: source.name }));
 }
 
-function editPreset(id: string) {
-  editingId.value = id;
+function editPreset(presetId: string) {
+  editingId.value = presetId;
   editorOpen.value = true;
 }
 </script>

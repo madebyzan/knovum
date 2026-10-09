@@ -90,12 +90,12 @@ async function duplicateScene(context: SceneNavigationContext, scene: SpaceScene
   await revealScene(context, duplicate.id);
 }
 
-async function revealScene(context: SceneNavigationContext, id: string) {
-  context.recentSceneId.value = id;
+async function revealScene(context: SceneNavigationContext, sceneId: string) {
+  context.recentSceneId.value = sceneId;
   context.stopRecentTimer();
   await nextTick();
   context.root.value
-    ?.querySelector<HTMLElement>(`[data-scene-id="${CSS.escape(id)}"]`)
+    ?.querySelector<HTMLElement>(`[data-scene-id="${CSS.escape(sceneId)}"]`)
     ?.scrollIntoView({ block: "nearest" });
   context.triggerRecentTimer();
 }

@@ -24,55 +24,55 @@ export async function createSpace(context: SpaceSessionContext, title: string) {
   await createDraftSpace(context, title);
 }
 
-export async function openSpace(context: SpaceSessionContext, id: string) {
-  await activateSpace(context, id, true);
+export async function openSpace(context: SpaceSessionContext, spaceId: string) {
+  await activateSpace(context, spaceId, true);
 }
 
-async function activateSpace(context: SpaceSessionContext, id: string, recordNavigation: boolean) {
-  if (context.runtime.pendingSpaceId === id) return false;
-  if (context.activeSpaceId.value === id) {
+async function activateSpace(context: SpaceSessionContext, spaceId: string, recordNavigation: boolean) {
+  if (context.runtime.pendingSpaceId === spaceId) return false;
+  if (context.activeSpaceId.value === spaceId) {
     if (context.runtime.pendingSpaceId) cancelPendingSpaceOpen(context);
     return true;
   }
-  if (context.draftSpace.value?.id === id)
+  if (context.draftSpace.value?.id === spaceId)
     return activateDraftSpace(context, context.draftSpace.value, recordNavigation);
   const space = context.spaces.value.find(
-    (candidate) => candidate.id === id && candidate.archivedAt === null,
+    (candidate) => candidate.id === spaceId && candidate.archivedAt === null,
   );
-  if (!space) throw new Error(`Cannot open unavailable space: ${id}`);
-  const activated = await loadSpace(context, id, { markOpened: true, resetHistory: true });
+  if (!space) throw new Error(`Cannot open unavailable space: ${spaceId}`);
+  const activated = await loadSpace(context, spaceId, { markOpened: true, resetHistory: true });
   if (!activated) return false;
-  if (!context.openSpaceIds.value.includes(id)) context.openSpaceIds.value.push(id);
-  if (recordNavigation) recordWorkspaceNavigation(context, id);
+  if (!context.openSpaceIds.value.includes(spaceId)) context.openSpaceIds.value.push(spaceId);
+  if (recordNavigation) recordWorkspaceNavigation(context, spaceId);
   return true;
 }
 
-export async function closeSpaceTab(context: SpaceSessionContext, id: string) {
-  const index = context.openSpaceIds.value.indexOf(id);
+export async function closeSpaceTab(context: SpaceSessionContext, spaceId: string) {
+  const index = context.openSpaceIds.value.indexOf(spaceId);
   if (index < 0 || context.openSpaceIds.value.length === 1) return;
-  if (context.activeSpaceId.value === id) {
+  if (context.activeSpaceId.value === spaceId) {
     const nextId = context.openSpaceIds.value[index + 1] ?? context.openSpaceIds.value[index - 1];
     if (nextId && !(await activateSpace(context, nextId, false))) return;
   }
   context.openSpaceIds.value.splice(index, 1);
-  if (context.draftSpace.value?.id === id) context.draftSpace.value = undefined;
-  else context.closedSpaceIds.value = [id, ...without(context.closedSpaceIds.value, id)];
-  leaveSpaceSession(context, [id]);
+  if (context.draftSpace.value?.id === spaceId) context.draftSpace.value = undefined;
+  else context.closedSpaceIds.value = [spaceId, ...without(context.closedSpaceIds.value, spaceId)];
+  leaveSpaceSession(context, [spaceId]);
 }
 
-export async function closeOtherSpaceTabs(context: SpaceSessionContext, id: string) {
-  if (!context.openSpaceIds.value.includes(id)) return;
-  const closed = without(context.openSpaceIds.value, id);
-  if (!(await activateSpace(context, id, false))) return;
-  context.openSpaceIds.value = [id];
+export async function closeOtherSpaceTabs(context: SpaceSessionContext, spaceId: string) {
+  if (!context.openSpaceIds.value.includes(spaceId)) return;
+  const closed = without(context.openSpaceIds.value, spaceId);
+  if (!(await activateSpace(context, spaceId, false))) return;
+  context.openSpaceIds.value = [spaceId];
   retireClosedSpaceTabs(context, closed);
 }
 
-export async function closeSpaceTabsToRight(context: SpaceSessionContext, id: string) {
-  const index = context.openSpaceIds.value.indexOf(id);
+export async function closeSpaceTabsToRight(context: SpaceSessionContext, spaceId: string) {
+  const index = context.openSpaceIds.value.indexOf(spaceId);
   if (index < 0) return;
   const closed = context.openSpaceIds.value.slice(index + 1);
-  if (closed.includes(context.activeSpaceId.value ?? "") && !(await activateSpace(context, id, false)))
+  if (closed.includes(context.activeSpaceId.value ?? "") && !(await activateSpace(context, spaceId, false)))
     return;
   context.openSpaceIds.value = context.openSpaceIds.value.slice(0, index + 1);
   retireClosedSpaceTabs(context, closed);
@@ -85,11 +85,11 @@ export async function reopenClosedSpaceTab(context: SpaceSessionContext) {
   context.closedSpaceIds.value.shift();
 }
 
-export function discardSpaceTab(context: SpaceSessionContext, id: string) {
-  context.openSpaceIds.value = without(context.openSpaceIds.value, id);
-  context.closedSpaceIds.value = without(context.closedSpaceIds.value, id);
-  if (context.draftSpace.value?.id === id) context.draftSpace.value = undefined;
-  leaveSpaceSession(context, [id]);
+export function discardSpaceTab(context: SpaceSessionContext, spaceId: string) {
+  context.openSpaceIds.value = without(context.openSpaceIds.value, spaceId);
+  context.closedSpaceIds.value = without(context.closedSpaceIds.value, spaceId);
+  if (context.draftSpace.value?.id === spaceId) context.draftSpace.value = undefined;
+  leaveSpaceSession(context, [spaceId]);
 }
 
 function retireClosedSpaceTabs(context: SpaceSessionContext, closed: readonly string[]) {
@@ -102,8 +102,8 @@ function retireClosedSpaceTabs(context: SpaceSessionContext, closed: readonly st
   leaveSpaceSession(context, closed);
 }
 
-function leaveSpaceSession(context: SpaceSessionContext, ids: readonly string[]) {
-  for (const id of ids) {
+function leaveSpaceSession(context: SpaceSessionContext, spaceIds: readonly string[]) {
+  for (const id of spaceIds) {
     context.runtime.historyBySpace.delete(id);
     removeWorkspaceNavigation(context, id);
     releaseKnowledgeIndex(id);
@@ -124,28 +124,28 @@ export async function refreshSpace(context: SpaceSessionContext) {
   await loadSpace(context, id, { markOpened: false, resetHistory: false });
 }
 
-async function loadSpace(context: SpaceSessionContext, id: string, options: LoadSpaceOptions) {
+async function loadSpace(context: SpaceSessionContext, spaceId: string, options: LoadSpaceOptions) {
   const generation = ++context.runtime.openGeneration;
-  context.runtime.pendingSpaceId = id;
+  context.runtime.pendingSpaceId = spaceId;
   context.loading.value = true;
   try {
     return await transitionActiveSpaceSession(context, async () => {
-      const { nodes, scenes, relations, editSnapshot } = await loadSpaceSessionProjection(id);
+      const { nodes, scenes, relations, editSnapshot } = await loadSpaceSessionProjection(spaceId);
       if (generation !== context.runtime.openGeneration) return false;
-      if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
+      if (options.markOpened) await markSpaceOpenedAndTrack(context, spaceId);
       if (generation !== context.runtime.openGeneration) return false;
-      if (options.resetHistory) switchSpaceHistory(context, id);
+      if (options.resetHistory) switchSpaceHistory(context, spaceId);
       if (context.focusedEditorId.value) {
         context.focusedEditorId.value = undefined;
         await nextTick();
       }
-      context.activeSpaceId.value = id;
+      context.activeSpaceId.value = spaceId;
       context.nodes.value = nodes;
       context.scenes.value = scenes;
       context.relations.value = relations;
       context.editSnapshot.value = editSnapshot;
       context.groupScopePath.value = [];
-      scheduleSpaceKnowledgeIndex(id);
+      scheduleSpaceKnowledgeIndex(spaceId);
       return true;
     });
   } finally {

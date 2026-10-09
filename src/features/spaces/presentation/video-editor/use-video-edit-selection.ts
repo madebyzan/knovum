@@ -6,13 +6,13 @@ export function useVideoEditSelection(project: Ref<VideoEditProject | undefined>
   const selectedClipId = shallowRef<string>();
   const selectedTextId = shallowRef<string>();
 
-  function selectClip(id: string) {
-    selectedClipId.value = id;
+  function selectClip(clipId: string) {
+    selectedClipId.value = clipId;
     selectedTextId.value = undefined;
   }
 
-  function selectText(id: string) {
-    selectedTextId.value = id;
+  function selectText(textId: string) {
+    selectedTextId.value = textId;
     selectedClipId.value = undefined;
   }
 

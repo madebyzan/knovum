@@ -83,23 +83,23 @@ export function createConversationDraftSession(input: ConversationDraftSessionIn
     await drafts.save(current.spaceId, current.conversationId, snapshot);
   }
 
-  async function restore(id: string, requestedSpaceId = input.spaceId.value) {
+  async function restore(conversationId: string, requestedSpaceId = input.spaceId.value) {
     const generation = ++restoreGeneration;
     owner = undefined;
     restoring.value = true;
     try {
-      const draft = requestedSpaceId ? await drafts.load(requestedSpaceId, id) : undefined;
-      if (!isCurrentRestore(generation, requestedSpaceId, id)) return false;
-      applyRestoredDraft(requestedSpaceId, id, draft);
+      const draft = requestedSpaceId ? await drafts.load(requestedSpaceId, conversationId) : undefined;
+      if (!isCurrentRestore(generation, requestedSpaceId, conversationId)) return false;
+      applyRestoredDraft(requestedSpaceId, conversationId, draft);
       return Boolean(draft);
     } finally {
       if (generation === restoreGeneration) restoring.value = false;
     }
   }
 
-  async function move(fromId: string, toId: string) {
+  async function move(fromConversationId: string, toConversationId: string) {
     if (!input.spaceId.value) return;
-    await drafts.move(input.spaceId.value, fromId, toId);
+    await drafts.move(input.spaceId.value, fromConversationId, toConversationId);
   }
 
   async function clearSubmitted(request: SubmitConversationTaskRequest) {

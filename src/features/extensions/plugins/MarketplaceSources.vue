@@ -16,7 +16,7 @@ import UiDialog from "../../../shared/ui/UiDialog.vue";
 import { useExtensionChanges } from "../use-extension-changes";
 import MarketplaceSourceForm from "./MarketplaceSourceForm.vue";
 const open = defineModel<boolean>("open", { required: true });
-const emit = defineEmits<{ removed: [id: string] }>();
+const emit = defineEmits<{ removed: [marketplaceId: string] }>();
 const { t } = useI18n();
 const query = useQuery(marketplaceQuery);
 const changes = useExtensionChanges();
@@ -30,7 +30,7 @@ function mutate(operation: () => Promise<unknown>) {
 function add(source: MarketplaceSource) {
   mutate(() => addPluginMarketplace(source));
 }
-async function remove(id: string) {
+async function remove(marketplaceId: string) {
   if (
     await confirmAction({
       title: t("extensions.plugins.catalogs.remove.title"),
@@ -39,8 +39,8 @@ async function remove(id: string) {
       danger: true,
     })
   ) {
-    emit("removed", id);
-    mutate(() => removePluginMarketplace(id));
+    emit("removed", marketplaceId);
+    mutate(() => removePluginMarketplace(marketplaceId));
   }
 }
 </script>

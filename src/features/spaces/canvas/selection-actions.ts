@@ -87,8 +87,8 @@ export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {
   return OPEN_HANDLERS[node.data.kind] !== undefined || isSpaceManagedAssetPayload(node.data);
 }
 
-export function selectAndRevealSpaceNode(id: string, mode: "focus" | "ensure-visible" = "focus") {
-  getCanvasEditorSession().reveal([id], mode);
+export function selectAndRevealSpaceNode(nodeId: string, mode: "focus" | "ensure-visible" = "focus") {
+  getCanvasEditorSession().reveal([nodeId], mode);
 }
 
 async function openPortalNode(

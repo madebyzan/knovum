@@ -170,7 +170,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectBranch: branchSession.selectBranch,
     conversationQuery,
     showingArchived,
-    scrollPositions: pages.scrollPositions,
+    scrollTopByConversationId: pages.scrollTopByConversationId,
     rememberScroll: pages.rememberScroll,
     refreshConversations,
     loadOlder: pages.loadOlder,

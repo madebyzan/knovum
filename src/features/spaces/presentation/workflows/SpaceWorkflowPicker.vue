@@ -105,9 +105,9 @@ function setBinding(slotId: string, nodeIds: string[]) {
   run.error.value = "";
 }
 
-function deletedWorkflow(id: string) {
-  deleted(id);
-  if (workflowId.value === id) workflowId.value = "";
+function deletedWorkflow(deletedWorkflowId: string) {
+  deleted(deletedWorkflowId);
+  if (workflowId.value === deletedWorkflowId) workflowId.value = "";
 }
 </script>
 

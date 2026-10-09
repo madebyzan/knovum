@@ -14,9 +14,9 @@ interface ConversationSelectionInput {
   messages: Ref<ConversationMessage[]>;
   hasOlder: Ref<boolean>;
   rememberDraft: () => Promise<void>;
-  restoreDraft: (id: string) => Promise<boolean>;
+  restoreDraft: (conversationId: string) => Promise<boolean>;
   clearBranches: () => void;
-  loadBranches: (id: string) => Promise<void>;
+  loadBranches: (conversationId: string) => Promise<void>;
 }
 
 export function createConversationSelection(input: ConversationSelectionInput) {
@@ -38,32 +38,32 @@ export function createConversationSelection(input: ConversationSelectionInput) {
       : undefined;
   }
 
-  async function loadSelection(id: string, branchId: string) {
+  async function loadSelection(conversationId: string, branchId: string) {
     const requestedSpaceId = input.spaceId.value;
-    const page = await listConversationMessages(id, branchId);
-    if (input.selectedId.value !== id || input.spaceId.value !== requestedSpaceId) return;
+    const page = await listConversationMessages(conversationId, branchId);
+    if (input.selectedId.value !== conversationId || input.spaceId.value !== requestedSpaceId) return;
     input.messages.value = page;
-    await input.loadBranches(id);
-    if (input.selectedId.value !== id || input.spaceId.value !== requestedSpaceId) return;
+    await input.loadBranches(conversationId);
+    if (input.selectedId.value !== conversationId || input.spaceId.value !== requestedSpaceId) return;
     input.hasOlder.value = page.length === 100;
   }
 
-  async function selectConversation(id: string, skipRemember = false, acceptedBranchId?: string) {
+  async function selectConversation(conversationId: string, skipRemember = false, acceptedBranchId?: string) {
     if (!skipRemember) await input.rememberDraft();
     const conversation =
-      input.conversations.value.find((item) => item.id === id) ??
-      (input.selectedId.value === id ? input.selectedSnapshot.value : undefined);
-    input.selectedId.value = id;
+      input.conversations.value.find((item) => item.id === conversationId) ??
+      (input.selectedId.value === conversationId ? input.selectedSnapshot.value : undefined);
+    input.selectedId.value = conversationId;
     input.selectedSnapshot.value = conversation;
-    await input.restoreDraft(id);
-    if (!id) {
+    await input.restoreDraft(conversationId);
+    if (!conversationId) {
       input.messages.value = [];
       input.clearBranches();
       input.hasOlder.value = false;
       return;
     }
     const branchId = conversation?.branchId ?? acceptedBranchId;
-    if (branchId) await loadSelection(id, branchId);
+    if (branchId) await loadSelection(conversationId, branchId);
   }
 
   return { refreshConversations, selectConversation };

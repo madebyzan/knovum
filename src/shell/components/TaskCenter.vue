@@ -30,9 +30,9 @@ const visibleTasks = computed(() => {
   return tasks.value.filter((task) => task.scope?.kind === scope.kind && task.scope?.id === scope.id);
 });
 
-async function openTask(id: string) {
+async function openTask(taskId: string) {
   try {
-    await store.open(id);
+    await store.open(taskId);
     open.value = false;
   } catch (cause) {
     toast.error(getErrorMessage(cause));

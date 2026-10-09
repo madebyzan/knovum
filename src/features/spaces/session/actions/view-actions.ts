@@ -11,15 +11,15 @@ import { contentNodeIdsWithin } from "../../model/structure/structure-queries";
 import type { SpaceState } from "../session-state";
 
 export function createSpaceViewActions(state: SpaceState, placement: SpacePlacement) {
-  function focusSection(id: string) {
+  function focusSection(sectionId: string) {
     state.canvasFocusIds.value = contentNodeIdsWithin(
-      [id],
+      [sectionId],
       createStructureIndex(state.editSnapshot.value.structure),
     );
   }
 
-  function focusNeighborhood(id: string, depth = 1) {
-    const ids = relationNeighborhood(state.relations.value, [id], depth);
+  function focusNeighborhood(nodeId: string, depth = 1) {
+    const ids = relationNeighborhood(state.relations.value, [nodeId], depth);
     state.canvasFocusIds.value = [...ids];
   }
 
@@ -31,8 +31,8 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     return true;
   }
 
-  async function openSceneView(id: string) {
-    const scene = state.scenes.value.find((candidate) => candidate.id === id);
+  async function openSceneView(sceneId: string) {
+    const scene = state.scenes.value.find((candidate) => candidate.id === sceneId);
     if (!scene) return;
     const viewport = { x: scene.viewportX, y: scene.viewportY, zoom: scene.viewportZoom };
     state.relationKindFilter.value = [...scene.relationKinds];

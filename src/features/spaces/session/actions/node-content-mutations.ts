@@ -59,10 +59,10 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
       context.editSnapshot.value = committed.editSnapshot;
   }
 
-  function applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload) {
-    const validated = validateSpaceNodePayload(data);
-    const previous = context.nodes.value.find((node) => node.id === id)?.data;
-    patchActiveNodeContent(spaceId, id, validated);
+  function applyNodeContentForSpace(spaceId: string, nodeId: string, payload: SpaceNodePayload) {
+    const validated = validateSpaceNodePayload(payload);
+    const previous = context.nodes.value.find((node) => node.id === nodeId)?.data;
+    patchActiveNodeContent(spaceId, nodeId, validated);
     if (
       context.activeSpaceId.value === spaceId &&
       previous &&
@@ -74,17 +74,17 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
         const tasks = useTaskStore();
         tasks.fail(tasks.start(validated.title), getErrorMessage(error));
       });
-    scheduleKnowledgeIndex(spaceId, [id]);
+    scheduleKnowledgeIndex(spaceId, [nodeId]);
   }
 
-  async function discardPendingContent(spaceId: string, id: string) {
+  async function discardPendingContent(spaceId: string, nodeId: string) {
     const snapshot =
       context.activeSpaceId.value === spaceId
         ? context.editSnapshot.value
         : await spaceEditOperations.load(spaceId);
     const discardReceipt = await persistPendingContentDiscard({
       spaceId,
-      nodeId: id,
+      nodeId,
       expectedEditRevision: snapshot.editRevision,
       mutationId: crypto.randomUUID(),
     });
@@ -100,10 +100,10 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
     }
   }
 
-  function patchActiveNodeContent(spaceId: string, id: string, data: SpaceNodePayload) {
+  function patchActiveNodeContent(spaceId: string, nodeId: string, payload: SpaceNodePayload) {
     if (context.activeSpaceId.value !== spaceId) return;
     context.nodes.value = context.nodes.value.map((node) =>
-      node.id === id ? applySpaceNodeContent(node, data) : node,
+      node.id === nodeId ? applySpaceNodeContent(node, payload) : node,
     );
   }
 
@@ -116,7 +116,7 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
   };
 }
 
-function afterSaved(spaceId: string, id: string) {
-  scheduleKnowledgeIndex(spaceId, [id]);
+function afterSaved(spaceId: string, nodeId: string) {
+  scheduleKnowledgeIndex(spaceId, [nodeId]);
   void refreshEnrichmentJobs();
 }

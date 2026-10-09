@@ -41,10 +41,10 @@ export function useLibraryViewport(options: {
       };
     }),
   );
-  async function reveal(id: string) {
-    const index = options.spaces.value.findIndex((space) => space.id === id);
+  async function reveal(spaceId: string) {
+    const index = options.spaces.value.findIndex((space) => space.id === spaceId);
     if (index < 0) return;
-    focused.value = id;
+    focused.value = spaceId;
     virtualizer.value.scrollToIndex(Math.floor(index / columns.value), { align: "auto" });
     await nextTick();
   }
@@ -88,8 +88,8 @@ export function useLibraryViewport(options: {
     measure: (element: HTMLElement | null) => {
       if (element) virtualizer.value.measureElement(element);
     },
-    focus: (id: string) => {
-      focused.value = id;
+    focus: (spaceId: string) => {
+      focused.value = spaceId;
     },
     reset: () => virtualizer.value.scrollToOffset(0),
     columns,

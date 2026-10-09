@@ -42,12 +42,12 @@ export function useCapturedWorkflowRun() {
     error.value = "";
   }
 
-  async function refreshOutputs(id: string) {
+  async function refreshOutputs(requestedRunId: string) {
     try {
-      const outputs = await listCapturedRunOutputs(id);
-      if (runId.value === id && !disposed) outputNodes.value = outputs;
+      const outputs = await listCapturedRunOutputs(requestedRunId);
+      if (runId.value === requestedRunId && !disposed) outputNodes.value = outputs;
     } catch (cause) {
-      if (runId.value === id && !disposed) error.value = getErrorMessage(cause);
+      if (runId.value === requestedRunId && !disposed) error.value = getErrorMessage(cause);
     }
   }
 

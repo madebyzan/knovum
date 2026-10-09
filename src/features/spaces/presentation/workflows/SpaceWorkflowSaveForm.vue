@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const save = useWorkflowCaptureSave();
-const outputNames = ref<Record<string, string>>(
+const outputNameBySlotId = ref<Record<string, string>>(
   Object.fromEntries(
     props.candidate.outputSlots.map((slot, index) => [
       slot.id,
@@ -26,12 +26,12 @@ const outputNames = ref<Record<string, string>>(
   ),
 );
 const outputsNamed = computed(() => {
-  const names = props.candidate.outputSlots.map((slot) => outputNames.value[slot.id]?.trim() ?? "");
+  const names = props.candidate.outputSlots.map((slot) => outputNameBySlotId.value[slot.id]?.trim() ?? "");
   return workflowOutputNamesValid(names);
 });
 
-function setOutputName(id: string, value: string) {
-  outputNames.value = { ...outputNames.value, [id]: value };
+function setOutputName(outputSlotId: string, value: string) {
+  outputNameBySlotId.value = { ...outputNameBySlotId.value, [outputSlotId]: value };
 }
 
 function submit() {
@@ -39,7 +39,7 @@ function submit() {
     spaceId: props.spaceId,
     selectedNodeIds: props.selectedNodeIds,
     preview: props.preview,
-    outputNames: outputNames.value,
+    outputNames: outputNameBySlotId.value,
   });
 }
 </script>
@@ -64,7 +64,7 @@ function submit() {
       </label>
       <UiInput
         :id="`capture-output-${output.id}`"
-        :model-value="outputNames[output.id] ?? ''"
+        :model-value="outputNameBySlotId[output.id] ?? ''"
         @update:model-value="setOutputName(output.id, $event)"
       />
     </div>

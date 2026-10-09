@@ -27,8 +27,8 @@ export async function attachProvenanceFromPeek(target: ProvenanceTarget, peek: K
   await refreshProvenance(provenance);
 }
 
-export async function detachProvenance(id: string, target: ProvenanceTarget) {
-  await revokeProvenance(id);
+export async function detachProvenance(provenanceId: string, target: ProvenanceTarget) {
+  await revokeProvenance(provenanceId);
   await refreshProvenance(target);
 }
 

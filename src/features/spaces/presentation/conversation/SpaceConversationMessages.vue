@@ -13,7 +13,7 @@ import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
   messages: readonly ConversationMessage[];
-  eventsByRun: Readonly<Record<string, RunEvent[]>>;
+  eventsByRunId: Readonly<Record<string, RunEvent[]>>;
   activeRunId?: string | undefined;
   busy: boolean;
   hasDraft: boolean;
@@ -78,7 +78,7 @@ const hasActiveTurn = computed(() =>
   ),
 );
 watch(
-  () => props.eventsByRun,
+  () => props.eventsByRunId,
   async () => {
     if (!atTail.value) return;
     await nextTick();
@@ -128,7 +128,7 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
           <SpaceConversationActivity
             v-if="visibleMessages[row.index]!.role === 'user' && visibleMessages[row.index]!.content.runId"
             :run-id="visibleMessages[row.index]!.content.runId!"
-            :events="eventsByRun[visibleMessages[row.index]!.content.runId!] ?? []"
+            :events="eventsByRunId[visibleMessages[row.index]!.content.runId!] ?? []"
             :messages="messages"
             :active="busy && activeRunId === visibleMessages[row.index]!.content.runId"
             @inspect="emit('inspectActivity', $event)"

@@ -5,20 +5,20 @@ interface WorkspaceNavigationState {
   navigationIndex: Ref<number>;
 }
 
-export function recordWorkspaceNavigation(state: WorkspaceNavigationState, id: string) {
+export function recordWorkspaceNavigation(state: WorkspaceNavigationState, spaceId: string) {
   const history = state.navigationHistory.value.slice(0, state.navigationIndex.value + 1);
-  if (history.at(-1) === id) return;
-  history.push(id);
+  if (history.at(-1) === spaceId) return;
+  history.push(spaceId);
   state.navigationHistory.value = history;
   state.navigationIndex.value = history.length - 1;
 }
 
-export function removeWorkspaceNavigation(state: WorkspaceNavigationState, id: string) {
+export function removeWorkspaceNavigation(state: WorkspaceNavigationState, spaceId: string) {
   const currentIndex = state.navigationIndex.value;
   const current = state.navigationHistory.value[state.navigationIndex.value];
-  state.navigationHistory.value = state.navigationHistory.value.filter((candidate) => candidate !== id);
+  state.navigationHistory.value = state.navigationHistory.value.filter((candidate) => candidate !== spaceId);
   state.navigationIndex.value =
-    current && current !== id
+    current && current !== spaceId
       ? state.navigationHistory.value.lastIndexOf(current)
       : Math.min(currentIndex, state.navigationHistory.value.length - 1);
 }

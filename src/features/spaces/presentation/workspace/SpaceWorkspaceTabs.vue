@@ -59,21 +59,21 @@ function createSpace() {
   void store.createSpace(t("spaces.space.untitled")).catch(reportTabFailure);
 }
 
-function activateTab(id: unknown) {
-  if (!isString(id)) throw new TypeError("Workspace tab identifiers must be strings");
-  void store.openSpace(id).catch(reportTabFailure);
+function activateTab(spaceId: unknown) {
+  if (!isString(spaceId)) throw new TypeError("Workspace tab identifiers must be strings");
+  void store.openSpace(spaceId).catch(reportTabFailure);
 }
 
-function closeTab(id: string) {
-  void closeTabs(() => store.closeSpaceTab(id));
+function closeTab(spaceId: string) {
+  void closeTabs(() => store.closeSpaceTab(spaceId));
 }
 
-function closeOtherTabs(id: string) {
-  void closeTabs(() => store.closeOtherSpaceTabs(id));
+function closeOtherTabs(spaceId: string) {
+  void closeTabs(() => store.closeOtherSpaceTabs(spaceId));
 }
 
-function closeTabsToRight(id: string) {
-  void closeTabs(() => store.closeSpaceTabsToRight(id));
+function closeTabsToRight(spaceId: string) {
+  void closeTabs(() => store.closeSpaceTabsToRight(spaceId));
 }
 
 async function closeTabs(operation: () => Promise<void>) {

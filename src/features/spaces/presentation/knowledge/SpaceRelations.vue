@@ -50,21 +50,21 @@ function groupedRelations(direction: "symmetric" | "incoming" | "outgoing") {
   });
 }
 
-function reveal(id: string) {
-  selectAndRevealSpaceNode(id);
+function reveal(nodeId: string) {
+  selectAndRevealSpaceNode(nodeId);
 }
 
-function editRelation(id: string) {
+function editRelation(relationId: string) {
   const neighbor = [...symmetric.value, ...incoming.value, ...outgoing.value].find(
-    (candidate) => candidate.relation.id === id,
+    (candidate) => candidate.relation.id === relationId,
   );
   if (!neighbor) return;
   void showSpaceRelationKindMenu(neighbor.relation.kind, async (kind) => {
-    await store.updateRelationKind(id, kind);
+    await store.updateRelationKind(relationId, kind);
   });
 }
 
-async function removeRelation(id: string, neighborTitle: string) {
+async function removeRelation(relationId: string, neighborTitle: string) {
   const confirmed = await confirmAction({
     title: t("spaces.knowledge.relations.remove"),
     description: t("spaces.knowledge.relations.removeConfirm", { title: neighborTitle }),
@@ -73,7 +73,7 @@ async function removeRelation(id: string, neighborTitle: string) {
   });
   if (!confirmed) return;
   try {
-    await store.revokeRelation(id);
+    await store.revokeRelation(relationId);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }
