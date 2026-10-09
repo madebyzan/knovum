@@ -16,15 +16,15 @@ pub(super) async fn validate_provenance_target(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     kind: &str,
-    id: &str,
+    target_id: &str,
 ) -> Result<(), String> {
     match kind {
-        "node" => semantic_nodes::require(tx, space_id, id, "Provenance target").await,
+        "node" => semantic_nodes::require(tx, space_id, target_id, "Provenance target").await,
         "relation" => {
             let count = sqlx::query_scalar::<_, i64>(
                 "SELECT COUNT(*) FROM spaces_relations WHERE id=$1 AND space_id=$2",
             )
-            .bind(id)
+            .bind(target_id)
             .bind(space_id)
             .fetch_one(&mut **tx)
             .await
@@ -41,7 +41,7 @@ pub(super) async fn validate_event_entity(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     kind: &str,
-    id: &str,
+    entity_id: &str,
 ) -> Result<(), String> {
     let sql = match kind {
         "node" => {
@@ -55,7 +55,7 @@ pub(super) async fn validate_event_entity(
         _ => return Err("Unsupported knowledge event entity kind".into()),
     };
     let count = sqlx::query_scalar::<_, i64>(sql)
-        .bind(id)
+        .bind(entity_id)
         .bind(space_id)
         .fetch_one(&mut **tx)
         .await

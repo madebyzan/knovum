@@ -3,8 +3,8 @@ use serde_json::{Map, Value};
 const REVISION_PREFIX: &str = "node1:";
 const LOCAL_TIPTAP_ATTRS: &[&str] = &["assetPath", "previewPath", "src"];
 
-pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
-    let Some(kind) = data.get("kind").and_then(Value::as_str) else {
+pub(crate) fn authoritative(node_payload: &Value) -> Result<Option<String>, String> {
+    let Some(kind) = node_payload.get("kind").and_then(Value::as_str) else {
         return Err(
             "Space node data.kind is required before computing its Knowledge revision".into(),
         );
@@ -12,7 +12,7 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
     if matches!(kind, "credential" | "portal" | "text") {
         return Ok(None);
     }
-    let object = data
+    let object = node_payload
         .as_object()
         .ok_or_else(|| "Space node data must be an object".to_string())?;
     let mut projection = Map::new();
@@ -49,7 +49,7 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
             if kind == "file" && object.contains_key("documentCoverage") {
                 projection.insert(
                     "documentKnowledge".into(),
-                    super::document_coverage::projection::semantic_content(data),
+                    super::document_coverage::projection::semantic_content(node_payload),
                 );
             }
             if matches!(kind, "video" | "audio") {
@@ -80,11 +80,11 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
     )))
 }
 
-pub(crate) fn validate_declared(data: &Value) -> Result<(), String> {
-    let Some(expected) = authoritative(data)? else {
+pub(crate) fn validate_declared(payload: &Value) -> Result<(), String> {
+    let Some(expected) = authoritative(payload)? else {
         return Ok(());
     };
-    let declared = data
+    let declared = payload
         .get("knowledgeRevision")
         .and_then(Value::as_str)
         .ok_or_else(|| {
@@ -98,9 +98,9 @@ pub(crate) fn validate_declared(data: &Value) -> Result<(), String> {
     Ok(())
 }
 
-pub(crate) fn apply(data: &mut Value) -> Result<Option<String>, String> {
-    let revision = authoritative(data)?;
-    let Some(object) = data.as_object_mut() else {
+pub(crate) fn apply(payload: &mut Value) -> Result<Option<String>, String> {
+    let revision = authoritative(payload)?;
+    let Some(object) = payload.as_object_mut() else {
         return Err("Space node data must be an object".into());
     };
     match &revision {

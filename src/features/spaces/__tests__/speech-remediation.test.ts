@@ -13,12 +13,17 @@ import {
 import { isLocalTranslationTarget, persistedTranslationTarget } from "../speech/video-translation-targets";
 import { voiceRevisionOptions } from "../speech/voice-options";
 
-function voice(id: string, revision: number, isActive: boolean, archivedAt?: number): VoiceLibraryRevision {
+function voice(
+  profileId: string,
+  revision: number,
+  isActive: boolean,
+  archivedAt?: number,
+): VoiceLibraryRevision {
   const voiceRevision: VoiceLibraryRevision = {
-    profileId: `profile-${id}`,
-    name: `Voice ${id}`,
+    profileId: `profile-${profileId}`,
+    name: `Voice ${profileId}`,
     sourceKind: "preset",
-    revisionId: id,
+    revisionId: profileId,
     revision,
     isActive,
     engineId: "mossNano",

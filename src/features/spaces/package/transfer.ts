@@ -9,7 +9,7 @@ import { truncateUtf16 } from "../model/text";
 
 interface SpacePackageImportContext {
   spaces: Space[];
-  openSpace(id: string): Promise<void>;
+  openSpace(spaceId: string): Promise<void>;
 }
 
 interface SpacePackageExportContext {

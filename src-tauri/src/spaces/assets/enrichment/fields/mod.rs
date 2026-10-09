@@ -5,8 +5,8 @@ use super::{
     node_payload::set_optional,
 };
 
-pub(crate) fn apply_asset_fields(data: &mut Value, asset: &PreparedAsset) -> Result<(), String> {
-    let object = data
+pub(crate) fn apply_asset_fields(payload: &mut Value, asset: &PreparedAsset) -> Result<(), String> {
+    let object = payload
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;
     set_optional(object, "previewPath", asset.preview_path.as_ref());

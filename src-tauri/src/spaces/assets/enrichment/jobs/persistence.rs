@@ -14,11 +14,11 @@ enum ArchivedSpaces {
 
 pub(crate) async fn freeze_target(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    job_id: &str,
     target: &crate::ai::tasks::TaskTargetSelection,
 ) -> Result<crate::ai::tasks::TaskTargetSelection, String> {
     let frozen: Option<sqlx::types::Json<crate::ai::tasks::TaskTargetSelection>> = sqlx::query_scalar("UPDATE spaces_enrichment_jobs SET execution_target=COALESCE(execution_target,$1) WHERE id=$2 AND status IN ('pending','awaiting_configuration') RETURNING execution_target")
-        .bind(sqlx::types::Json(target)).bind(id).fetch_optional(pool).await.map_err(db::sql_error)?;
+        .bind(sqlx::types::Json(target)).bind(job_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     Ok(frozen
         .ok_or("Enrichment intent no longer permits execution preparation")?
         .0)
@@ -26,7 +26,7 @@ pub(crate) async fn freeze_target(
 
 pub(crate) async fn claim_job(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    job_id: &str,
     request: &EnqueueEnrichmentJobRequest,
     now: i64,
 ) -> Result<bool, String> {
@@ -37,7 +37,7 @@ pub(crate) async fn claim_job(
     )
     .bind(STATUS_RUNNING)
     .bind(now)
-    .bind(id)
+    .bind(job_id)
     .bind(&request.space_id)
     .bind(&request.node_id)
     .bind(request.job_type.as_str())
@@ -51,7 +51,7 @@ pub(crate) async fn claim_job(
 
 pub(crate) async fn defer_for_configuration(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    job_id: &str,
     error: String,
     now: i64,
 ) -> Result<bool, String> {
@@ -63,7 +63,7 @@ pub(crate) async fn defer_for_configuration(
     .bind("awaiting_configuration")
     .bind(error)
     .bind(now)
-    .bind(id)
+    .bind(job_id)
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
@@ -73,7 +73,7 @@ pub(crate) async fn defer_for_configuration(
 
 pub(crate) async fn set_status(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    job_id: &str,
     from: &'static str,
     status: &str,
     error: Option<String>,
@@ -92,7 +92,7 @@ pub(crate) async fn set_status(
         .bind(error)
         .bind(now)
         .bind(increment_attempts)
-        .bind(id)
+        .bind(job_id)
         .execute(pool)
         .await
         .map_err(db::sql_error)?;

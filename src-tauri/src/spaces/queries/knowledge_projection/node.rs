@@ -52,11 +52,11 @@ pub(crate) async fn get_node(
     }))
 }
 
-fn asset_revision(data: &Value) -> Result<Option<String>, String> {
-    if data.get("assetPath").is_none() || data.get("sourceRevision").is_none() {
+fn asset_revision(payload: &Value) -> Result<Option<String>, String> {
+    if payload.get("assetPath").is_none() || payload.get("sourceRevision").is_none() {
         return Ok(None);
     }
-    let kind = data["kind"]
+    let kind = payload["kind"]
         .as_str()
         .ok_or("Resource kind is unavailable")?;
     use crate::spaces::derivation::input_revision::{resolve, RevisionBasis};
@@ -65,7 +65,7 @@ fn asset_revision(data: &Value) -> Result<Option<String>, String> {
     } else {
         RevisionBasis::Asset
     };
-    resolve(kind, data, basis).map(|(revision, _)| Some(revision))
+    resolve(kind, payload, basis).map(|(revision, _)| Some(revision))
 }
 
 fn parse_json(raw: String) -> Result<Value, String> {

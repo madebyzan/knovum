@@ -13,7 +13,7 @@ const props = defineProps<{
   scene: CanvasScene;
   interactionEnabled: boolean;
   renderingEnabled: boolean;
-  layoutPreviews: ReadonlyMap<string, CanvasNodeLayoutV1>;
+  layoutPreviewByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
   interactiveNodeId: string | undefined;
   viewport: CanvasViewport;
   visibleNodeIds: ReadonlySet<string>;
@@ -51,7 +51,7 @@ const worldStyle = computed(() => ({
         :preview-policy="previewPolicy"
         :interactive="interactiveNodeId === sceneNode.node.id"
         :scene-node="sceneNode"
-        :layout-previews="layoutPreviews"
+        :layout-preview-by-node-id="layoutPreviewByNodeId"
         :selected="selectedNodeIds.has(sceneNode.node.id)"
       >
         <template #default="content">

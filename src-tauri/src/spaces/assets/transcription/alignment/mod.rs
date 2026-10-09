@@ -30,14 +30,14 @@ pub(crate) async fn align_media(
     job_id: &str,
     source: &str,
     source_revision: &str,
-    data: &mut serde_json::Value,
+    payload: &mut serde_json::Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     profile::qualified_platform()?;
     let request = request::load(app, job_id).await?;
     let mut transcript: MediaTranscript =
-        serde_json::from_value(data["mediaKnowledge"]["transcript"].clone())
+        serde_json::from_value(payload["mediaKnowledge"]["transcript"].clone())
             .map_err(|error| format!("Media transcript is invalid: {error}"))?;
     if transcript.revision != request.expected_revision
         || transcript.source_revision != source_revision
@@ -136,9 +136,9 @@ pub(crate) async fn align_media(
     .await?;
     super::send_progress(progress, "aligning", 92);
 
-    let mut by_segment = HashMap::<String, Vec<_>>::new();
+    let mut words_by_segment_id = HashMap::<String, Vec<_>>::new();
     for unit in alignment.units {
-        by_segment
+        words_by_segment_id
             .entry(unit.segment_id.clone())
             .or_default()
             .push(unit);
@@ -152,7 +152,7 @@ pub(crate) async fn align_media(
             &segment.text,
             segment.start_ms,
             segment.end_ms,
-            by_segment.remove(&segment.id).unwrap_or_default(),
+            words_by_segment_id.remove(&segment.id).unwrap_or_default(),
         )?;
     }
     transcript.revision = transcript
@@ -166,7 +166,7 @@ pub(crate) async fn align_media(
         aligned_at: u64::try_from(crate::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });
-    data["mediaKnowledge"]["transcript"] =
+    payload["mediaKnowledge"]["transcript"] =
         serde_json::to_value(transcript).map_err(|error| error.to_string())?;
     super::send_progress(progress, "done", 100);
     Ok(())

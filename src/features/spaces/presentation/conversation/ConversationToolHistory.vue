@@ -28,16 +28,16 @@ const progressSchema = z.object({
   total: z.number().optional(),
   message: z.string().optional(),
 });
-const progressByOperation = computed(() => {
-  const progress = new Map<string, z.infer<typeof progressSchema>>();
+const progressByOperationId = computed(() => {
+  const progressByToken = new Map<string, z.infer<typeof progressSchema>>();
   for (const event of props.events) {
     if (event.kind !== "mcp_progress") continue;
     const parsed = progressSchema.safeParse(event.payload);
-    if (parsed.success) progress.set(parsed.data.progressToken, parsed.data);
+    if (parsed.success) progressByToken.set(parsed.data.progressToken, parsed.data);
   }
-  return progress;
+  return progressByToken;
 });
-const latestProgress = computed(() => [...progressByOperation.value.values()].at(-1));
+const latestProgress = computed(() => [...progressByOperationId.value.values()].at(-1));
 </script>
 
 <template>
@@ -68,13 +68,13 @@ const latestProgress = computed(() => [...progressByOperation.value.values()].at
         {{ operation.name }} · {{ $t("spaces.conversation.toolOperations.attempt") }}
         {{ operation.attempt }} · {{ operation.state }}
       </p>
-      <p v-if="progressByOperation.has(operation.id)">
+      <p v-if="progressByOperationId.has(operation.id)">
         {{ $t("spaces.conversation.toolOperations.progress") }}:
-        {{ progressByOperation.get(operation.id)?.progress
-        }}<template v-if="progressByOperation.get(operation.id)?.total !== undefined">
-          / {{ progressByOperation.get(operation.id)?.total }}</template
+        {{ progressByOperationId.get(operation.id)?.progress
+        }}<template v-if="progressByOperationId.get(operation.id)?.total !== undefined">
+          / {{ progressByOperationId.get(operation.id)?.total }}</template
         >
-        {{ progressByOperation.get(operation.id)?.message }}
+        {{ progressByOperationId.get(operation.id)?.message }}
       </p>
       <pre class="max-h-64 overflow-auto break-all whitespace-pre-wrap">{{
         JSON.stringify(

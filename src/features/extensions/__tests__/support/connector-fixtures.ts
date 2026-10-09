@@ -17,9 +17,9 @@ export const connectorFixture: ConnectorDefinition = {
   },
 };
 
-export function mcpConnectionFixture(id: string, name = id): McpConnection {
+export function mcpConnectionFixture(connectionId: string, name = connectionId): McpConnection {
   return {
-    id,
+    id: connectionId,
     connectorId: connectorFixture.id,
     name,
     revision: "instance-one",

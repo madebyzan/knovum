@@ -3,49 +3,49 @@ use std::collections::{HashMap, HashSet};
 use crate::spaces::structure::{StructureLayout, StructureNode};
 
 pub(in crate::spaces::structure) struct Index {
-    pub positions: HashMap<String, usize>,
-    pub children: HashMap<Option<String>, Vec<String>>,
-    pub layout: HashMap<String, usize>,
+    pub position_by_structure_node_id: HashMap<String, usize>,
+    pub children_by_parent_id: HashMap<Option<String>, Vec<String>>,
+    pub layout_index_by_structure_node_id: HashMap<String, usize>,
 }
 
 impl Index {
     pub fn new(structure: &[StructureNode], layouts: &[StructureLayout]) -> Self {
-        let positions: HashMap<String, usize> = structure
+        let position_by_structure_node_id: HashMap<String, usize> = structure
             .iter()
             .enumerate()
             .map(|(index, value)| (value.id().to_owned(), index))
             .collect();
-        let mut children: HashMap<Option<String>, Vec<String>> = HashMap::new();
+        let mut children_by_parent_id: HashMap<Option<String>, Vec<String>> = HashMap::new();
         for value in structure {
-            children
+            children_by_parent_id
                 .entry(value.parent_id().map(str::to_owned))
                 .or_default()
                 .push(value.id().to_owned());
         }
-        for ids in children.values_mut() {
-            ids.sort_by_key(|id| structure[positions[id]].order());
+        for ids in children_by_parent_id.values_mut() {
+            ids.sort_by_key(|id| structure[position_by_structure_node_id[id]].order());
         }
-        let layout = layouts
+        let layout_index_by_structure_node_id = layouts
             .iter()
             .enumerate()
             .map(|(index, value)| (value.structure_node_id().to_owned(), index))
             .collect();
         Self {
-            positions,
-            children,
-            layout,
+            position_by_structure_node_id,
+            children_by_parent_id,
+            layout_index_by_structure_node_id,
         }
     }
 
     pub fn node<'a>(
         &self,
         structure: &'a [StructureNode],
-        id: &str,
+        structure_node_id: &str,
     ) -> Result<&'a StructureNode, String> {
-        self.positions
-            .get(id)
+        self.position_by_structure_node_id
+            .get(structure_node_id)
             .map(|index| &structure[*index])
-            .ok_or_else(|| format!("Structure node not found: {id}"))
+            .ok_or_else(|| format!("Structure node not found: {structure_node_id}"))
     }
 }
 
@@ -74,10 +74,10 @@ pub(in crate::spaces::structure) fn effective_roots(
 pub(in crate::spaces::structure) fn ancestors(
     structure: &[StructureNode],
     index: &Index,
-    id: &str,
+    structure_node_id: &str,
 ) -> Result<Vec<String>, String> {
     let mut ancestors = Vec::new();
-    let mut parent = index.node(structure, id)?.parent_id();
+    let mut parent = index.node(structure, structure_node_id)?.parent_id();
     while let Some(parent_id) = parent {
         ancestors.push(parent_id.to_owned());
         parent = index.node(structure, parent_id)?.parent_id();
@@ -89,14 +89,14 @@ pub(in crate::spaces::structure) fn ancestors(
 pub(in crate::spaces::structure) fn require_editable(
     structure: &[StructureNode],
     index: &Index,
-    id: &str,
+    structure_node_id: &str,
 ) -> Result<(), String> {
-    for ancestor in ancestors(structure, index, id)?
+    for ancestor in ancestors(structure, index, structure_node_id)?
         .into_iter()
-        .chain([id.to_owned()])
+        .chain([structure_node_id.to_owned()])
     {
         if index.node(structure, &ancestor)?.locked() {
-            return Err(format!("Locked structure node: {id}"));
+            return Err(format!("Locked structure node: {structure_node_id}"));
         }
     }
     Ok(())
@@ -131,7 +131,7 @@ pub(in crate::spaces::structure) fn apply_sequences(
     structure: &mut [StructureNode],
     sequences: &HashMap<Option<String>, Vec<String>>,
 ) -> Result<(), String> {
-    let positions: HashMap<&str, (&Option<String>, usize)> = sequences
+    let position_by_structure_node_id: HashMap<&str, (&Option<String>, usize)> = sequences
         .iter()
         .flat_map(|(parent, ids)| {
             ids.iter()
@@ -140,7 +140,7 @@ pub(in crate::spaces::structure) fn apply_sequences(
         })
         .collect();
     for structure_node in structure {
-        if let Some((parent, order)) = positions.get(structure_node.id()) {
+        if let Some((parent, order)) = position_by_structure_node_id.get(structure_node.id()) {
             set_parent(structure_node, (*parent).clone());
             set_order(
                 structure_node,
@@ -185,6 +185,8 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
         }
     }
     structure.retain(|node| !removed.contains(node.id()));
-    layouts.retain(|layout| !removed.contains(layout.structure_node_id()));
+    layouts.retain(|layout_index_by_structure_node_id| {
+        !removed.contains(layout_index_by_structure_node_id.structure_node_id())
+    });
     removed
 }

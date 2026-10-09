@@ -37,15 +37,15 @@ pub(crate) async fn restore_relations<R: Runtime>(
     Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
-fn validate_relation_ids(ids: &[String]) -> Result<(), String> {
-    if ids.is_empty() {
+fn validate_relation_ids(relation_ids: &[String]) -> Result<(), String> {
+    if relation_ids.is_empty() {
         return Err("Relation selection must not be empty".into());
     }
-    if ids.len() > 100_000 {
+    if relation_ids.len() > 100_000 {
         return Err("Relation selection exceeds the supported limit".into());
     }
-    let mut unique = HashSet::with_capacity(ids.len());
-    for id in ids {
+    let mut unique = HashSet::with_capacity(relation_ids.len());
+    for id in relation_ids {
         if id.is_empty() || id.encode_utf16().count() > 128 {
             return Err("Relation ID must contain 1 to 128 characters".into());
         }

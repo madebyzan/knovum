@@ -23,9 +23,9 @@ export async function loadProviderDescriptors(): Promise<ProviderDescriptor[]> {
 
 export function requireProvider(
   providers: readonly ProviderDescriptor[],
-  id: ProviderDescriptor["id"],
+  providerKind: ProviderDescriptor["id"],
 ): ProviderDescriptor {
-  const provider = providers.find((candidate) => candidate.id === id);
-  if (!provider) throw new Error(`Provider is not registered: ${id}`);
+  const provider = providers.find((candidate) => candidate.id === providerKind);
+  if (!provider) throw new Error(`Provider is not registered: ${providerKind}`);
   return provider;
 }

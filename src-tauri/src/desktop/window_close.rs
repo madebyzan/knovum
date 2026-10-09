@@ -135,13 +135,13 @@ fn state_unavailable() -> AppError {
     )
 }
 
-fn show_unresponsive<R: Runtime>(app: &AppHandle<R>, id: u64) {
+fn show_unresponsive<R: Runtime>(app: &AppHandle<R>, request_id: u64) {
     app.dialog()
         .message("Window close could not finish. The window has been kept open.")
         .title("Knovum — Unable to close window")
         .kind(MessageDialogKind::Error)
         .buttons(MessageDialogButtons::Ok)
-        .show(move |_| clear_request(id));
+        .show(move |_| clear_request(request_id));
 }
 
 fn show_state_error<R: Runtime>(app: &AppHandle<R>) {
@@ -153,11 +153,14 @@ fn show_state_error<R: Runtime>(app: &AppHandle<R>) {
         .show(|_| {});
 }
 
-fn clear_request(id: u64) {
+fn clear_request(request_id: u64) {
     let Ok(mut pending) = PENDING.lock() else {
         return;
     };
-    if pending.as_ref().is_some_and(|request| request.id == id) {
+    if pending
+        .as_ref()
+        .is_some_and(|request| request.id == request_id)
+    {
         *pending = None;
     }
 }

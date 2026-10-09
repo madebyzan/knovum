@@ -57,17 +57,17 @@ pub async fn complete(
     })
 }
 
-fn apply_document(data: &mut Value, text: &str) -> Result<(), AppError> {
+fn apply_document(payload: &mut Value, text: &str) -> Result<(), AppError> {
     let text = text.trim();
     if text.is_empty() {
         return Err("Generated Markdown is empty".into());
     }
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or("Pending Markdown data is invalid")?;
     object.insert("text".into(), text.into());
     object.remove("derivationState");
-    revision::apply(data).map(|_| ()).map_err(AppError::from)
+    revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }
 
 async fn create_relations(
@@ -92,11 +92,11 @@ async fn create_relations(
 
 async fn persist_generation(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    id: &str,
+    derivation_id: &str,
     generated: &GeneratedDocument,
 ) -> Result<(), AppError> {
     sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES($1,$2,$3)")
-        .bind(id).bind(sqlx::types::Json(&generated.citations)).bind(sqlx::types::Json(&generated.execution_source))
+        .bind(derivation_id).bind(sqlx::types::Json(&generated.citations)).bind(sqlx::types::Json(&generated.execution_source))
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

@@ -12,7 +12,7 @@ const drafts = vi.hoisted(() => ({
   read: vi.fn<(spaceId: string, conversationId: string) => ComposerDraft | undefined>(),
   load: vi.fn<(spaceId: string, conversationId: string) => Promise<ComposerDraft | undefined>>(),
   save: vi.fn<(spaceId: string, conversationId: string, draft: ComposerDraft) => Promise<void>>(),
-  move: vi.fn<(spaceId: string, fromId: string, toId: string) => Promise<void>>(),
+  move: vi.fn<(spaceId: string, fromConversationId: string, toConversationId: string) => Promise<void>>(),
   remove: vi.fn<(spaceId: string, conversationId: string) => Promise<void>>(),
 }));
 

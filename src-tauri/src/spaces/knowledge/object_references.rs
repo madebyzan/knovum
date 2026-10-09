@@ -2,7 +2,7 @@ use serde_json::Value;
 
 pub(in crate::spaces) fn collect_node_ids(
     fields_raw: Option<&str>,
-    data: &Value,
+    payload: &Value,
 ) -> Result<Vec<String>, String> {
     let Some(fields_raw) = fields_raw else {
         return Ok(Vec::new());
@@ -11,7 +11,7 @@ pub(in crate::spaces) fn collect_node_ids(
     let fields = fields
         .as_array()
         .ok_or_else(|| "Knowledge Type fields are invalid".to_string())?;
-    let properties = data
+    let properties = payload
         .get("properties")
         .and_then(Value::as_object)
         .ok_or_else(|| "Knowledge object properties are invalid".to_string())?;

@@ -35,28 +35,28 @@ describe("Konva scene preview", () => {
         ],
       ]),
     );
-    expect(preview.layouts.get("left")).toMatchObject({
+    expect(preview.layoutByNodeId.get("left")).toMatchObject({
       frame: { width: 480 },
       appearance: { typographyScale: 2 },
     });
-    expect(preview.layouts.has("right")).toBe(false);
-    expect(preview.relations.has(adjacent.id)).toBe(true);
-    expect(preview.relations.has(detached.id)).toBe(false);
+    expect(preview.layoutByNodeId.has("right")).toBe(false);
+    expect(preview.relationById.has(adjacent.id)).toBe(true);
+    expect(preview.relationById.has(detached.id)).toBe(false);
   });
 });
 
-function sceneNode(id: string, x: number) {
+function sceneNode(nodeId: string, x: number) {
   const node: SpaceCanvasNode = {
-    id,
+    id: nodeId,
     type: "text",
-    data: createSpaceTextPayload(id),
+    data: createSpaceTextPayload(nodeId),
     initialPosition: { x, y: 0 },
   };
   return {
     node,
     interaction: canvasNodeInteraction(node),
     layout: {
-      nodeId: id,
+      nodeId: nodeId,
       frame: { x, y: 0, width: 240, height: 40, rotation: 0 },
       sizingMode: "frame" as const,
       zIndex: 0,
@@ -65,17 +65,17 @@ function sceneNode(id: string, x: number) {
   };
 }
 
-function relation(id: string, sourceNodeId: string, targetNodeId: string): CanvasSceneRelation {
+function relation(relationId: string, sourceNodeId: string, targetNodeId: string): CanvasSceneRelation {
   const sourceFrame = { x: 0, y: 0, width: 240, height: 40, rotation: 0 };
   const targetFrame = { x: 320, y: 0, width: 240, height: 40, rotation: 0 };
   return {
-    id,
-    key: `relation:${id}`,
+    id: relationId,
+    key: `relation:${relationId}`,
     kind: "relation",
     label: "related",
     color: "neutral",
     relation: {
-      id,
+      id: relationId,
       spaceId: "space",
       sourceId: sourceNodeId,
       targetId: targetNodeId,

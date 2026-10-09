@@ -41,19 +41,19 @@ export function findSemanticRelationPath(
   maxDepth = 6,
 ): string[] {
   if (sourceId === targetId) return [sourceId];
-  const previous = new Map<string, string>();
-  const depth = new Map([[sourceId, 0]]);
+  const previousNodeIdByNodeId = new Map<string, string>();
+  const depthByNodeId = new Map([[sourceId, 0]]);
   const queue = [sourceId];
   while (queue.length) {
     const current = queue.shift();
     if (!current) break;
-    const currentDepth = depth.get(current) ?? 0;
+    const currentDepth = depthByNodeId.get(current) ?? 0;
     if (currentDepth >= maxDepth) continue;
     for (const neighbor of connectedIds(relations, current)) {
-      if (depth.has(neighbor)) continue;
-      previous.set(neighbor, current);
-      depth.set(neighbor, currentDepth + 1);
-      if (neighbor === targetId) return unwindPath(previous, sourceId, targetId);
+      if (depthByNodeId.has(neighbor)) continue;
+      previousNodeIdByNodeId.set(neighbor, current);
+      depthByNodeId.set(neighbor, currentDepth + 1);
+      if (neighbor === targetId) return unwindPath(previousNodeIdByNodeId, sourceId, targetId);
       queue.push(neighbor);
     }
   }
@@ -63,12 +63,12 @@ export function findSemanticRelationPath(
 export type SpaceRelationIndex = ReadonlyMap<string, readonly SpaceRelation[]>;
 
 function createSpaceRelationIndex(relations: readonly SpaceRelation[]): SpaceRelationIndex {
-  const index = new Map<string, SpaceRelation[]>();
+  const relationsByNodeId = new Map<string, SpaceRelation[]>();
   for (const relation of relations) {
-    appendIndexedRelation(index, relation.sourceId, relation);
-    appendIndexedRelation(index, relation.targetId, relation);
+    appendIndexedRelation(relationsByNodeId, relation.sourceId, relation);
+    appendIndexedRelation(relationsByNodeId, relation.targetId, relation);
   }
-  return index;
+  return relationsByNodeId;
 }
 
 interface MatchingNodesQuery {
@@ -87,26 +87,31 @@ export function queryMatchingNodes({
   return nodes.filter((node) => matchesNode(node, index, filter));
 }
 
-function appendIndexedRelation(index: Map<string, SpaceRelation[]>, id: string, relation: SpaceRelation) {
-  const bucket = index.get(id);
+function appendIndexedRelation(
+  relationsByNodeId: Map<string, SpaceRelation[]>,
+  nodeId: string,
+  relation: SpaceRelation,
+) {
+  const bucket = relationsByNodeId.get(nodeId);
   if (bucket) bucket.push(relation);
-  else index.set(id, [relation]);
+  else relationsByNodeId.set(nodeId, [relation]);
 }
 
-function connectedIds(relations: readonly SpaceRelation[], id: string) {
+function connectedIds(relations: readonly SpaceRelation[], nodeId: string) {
   const ids: string[] = [];
   for (const relation of relations) {
     if (relation.status === "invalidated") continue;
-    if (relation.sourceId === id) ids.push(relation.targetId);
-    else if (isSymmetricRelationKind(relation.kind) && relation.targetId === id) ids.push(relation.sourceId);
+    if (relation.sourceId === nodeId) ids.push(relation.targetId);
+    else if (isSymmetricRelationKind(relation.kind) && relation.targetId === nodeId)
+      ids.push(relation.sourceId);
   }
   return ids;
 }
 
-function unwindPath(previous: ReadonlyMap<string, string>, sourceId: string, targetId: string) {
+function unwindPath(previousNodeIdByNodeId: ReadonlyMap<string, string>, sourceId: string, targetId: string) {
   const path = [targetId];
   while (path[0] !== sourceId) {
-    const prior = previous.get(path[0] ?? "");
+    const prior = previousNodeIdByNodeId.get(path[0] ?? "");
     if (!prior) return [];
     path.unshift(prior);
   }

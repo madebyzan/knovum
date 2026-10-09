@@ -20,7 +20,7 @@ async function start(): Promise<void> {
     await import("@wdio/tauri-plugin");
     const { emit } = await import("@tauri-apps/api/event");
     Object.defineProperty(globalThis, "__knovumE2eBridge", {
-      value: Object.freeze({ runCommand: (id: string) => emit("knovum-run-command", id) }),
+      value: Object.freeze({ runCommand: (commandId: string) => emit("knovum-run-command", commandId) }),
       configurable: false,
       enumerable: false,
       writable: false,

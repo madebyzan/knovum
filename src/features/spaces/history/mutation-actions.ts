@@ -89,13 +89,13 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
   }
 
   return {
-    renameNode: async (id: string, title: string) => {
-      const node = nodes.value.find((candidate) => candidate.id === id);
+    renameNode: async (nodeId: string, title: string) => {
+      const node = nodes.value.find((candidate) => candidate.id === nodeId);
       if (!node) throw new Error("Cannot rename an unavailable Space node");
       const name = title.trim();
       if (!name) throw new Error("Node title cannot be empty");
       if (name === node.data.title) return;
-      await updateNodeContents([{ id, before: node.data, after: { ...node.data, title: name } }]);
+      await updateNodeContents([{ id: nodeId, before: node.data, after: { ...node.data, title: name } }]);
     },
     updateNodeContents,
     recordHistoryMutation,

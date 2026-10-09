@@ -60,9 +60,9 @@ test("web layout checks its own files without requiring Rust or Python source tr
   const run = () => spawnSync(process.execPath, [script, "web"], { cwd: root, encoding: "utf8" });
   assert.equal(run().status, 0);
   writeFileSync(join(root, "src/View.vue"), "<template>\n" + "<div />\n".repeat(180) + "</template>");
-  const result = run();
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /exceeds the 180-line/);
+  const execution = run();
+  assert.equal(execution.status, 1);
+  assert.match(execution.stderr, /exceeds the 180-line/);
 });
 
 test("embedded tests are rejected in Rust, Python and frontend business sources", (t) => {

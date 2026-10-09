@@ -1,7 +1,7 @@
 declare global {
   interface Window {
     __knovumE2eBridge?: {
-      runCommand(id: string): Promise<void>;
+      runCommand(commandId: string): Promise<void>;
     };
   }
 }

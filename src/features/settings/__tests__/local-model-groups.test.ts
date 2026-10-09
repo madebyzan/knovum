@@ -4,15 +4,15 @@ import type { LocalModelAvailability } from "../../../shared/contracts/generated
 import { localModelGroups } from "../local-model-groups";
 
 function model(
-  id: LocalModelAvailability["id"],
+  modelId: LocalModelAvailability["id"],
   capability: string,
   group: LocalModelAvailability["group"] = "audio",
 ): LocalModelAvailability {
   return {
-    id,
+    id: modelId,
     capability,
     group,
-    name: id,
+    name: modelId,
     operations: [],
     referenceTranscript: "unused",
     essential: false,

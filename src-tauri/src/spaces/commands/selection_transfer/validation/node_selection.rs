@@ -66,7 +66,7 @@ fn validate_row(row: sqlx::sqlite::SqliteRow, selected: &HashSet<&str>) -> Resul
 
 fn validate_object(
     row: &sqlx::sqlite::SqliteRow,
-    data: &Value,
+    payload: &Value,
     is_selected: bool,
     selected: &HashSet<&str>,
 ) -> Result<(), String> {
@@ -81,7 +81,7 @@ fn validate_object(
         );
     }
     let fields_raw: Option<String> = row.try_get("fields").map_err(db::sql_error)?;
-    for target in collect_node_ids(fields_raw.as_deref(), data)? {
+    for target in collect_node_ids(fields_raw.as_deref(), payload)? {
         if is_selected != selected.contains(target.as_str()) {
             return Err(
                 "Knowledge object node-ref dependencies must move together between Spaces".into(),

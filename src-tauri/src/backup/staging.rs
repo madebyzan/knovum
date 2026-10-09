@@ -32,9 +32,12 @@ pub(super) fn cleanup_backup(path: &Path) -> Result<(), String> {
     remove_owned(path, ".backup-stage-", "")
 }
 
-pub(super) fn cleanup_restore(config: &Path, data: &Path) -> Result<(), String> {
+pub(super) fn cleanup_restore(
+    config_directory: &Path,
+    data_directory: &Path,
+) -> Result<(), String> {
     let mut failures = Vec::new();
-    for (path, suffix) in [(config, "-config"), (data, "-data")] {
+    for (path, suffix) in [(config_directory, "-config"), (data_directory, "-data")] {
         if let Err(error) = remove_owned(path, ".restore-stage-", suffix) {
             failures.push(error);
         }

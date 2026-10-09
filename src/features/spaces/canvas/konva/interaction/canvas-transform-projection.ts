@@ -25,11 +25,11 @@ export function captureCanvasTransformTargets({
   selectedNodeIds,
   stage,
 }: CanvasTransformCaptureInput) {
-  const contentById = new Map(nodes.map((node) => [node.id, node]));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const sceneNodes = captureCanvasNodeRefs(stage, selectedNodeIds);
   return layouts.flatMap<CanvasTransformTarget>((layout) => {
     if (!selectedNodeIds.has(layout.nodeId)) return [];
-    const content = contentById.get(layout.nodeId);
+    const content = nodeById.get(layout.nodeId);
     const node = sceneNodes.get(layout.nodeId);
     return content && node ? [{ content, layout, node }] : [];
   });

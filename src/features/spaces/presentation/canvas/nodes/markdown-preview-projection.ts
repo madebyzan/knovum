@@ -4,7 +4,7 @@ import { createMarkdownRenderer } from "../../../../../shared/ui/markdown-render
 import { CANVAS_PREVIEW_CHARACTERS_PER_ITEM } from "../../../canvas/preview/policy";
 
 const markdown = createMarkdownRenderer();
-const parsed = new WeakMap<
+const parsedMarkdownBySource = new WeakMap<
   { text: string },
   {
     truncated: boolean;
@@ -25,7 +25,7 @@ export function projectMarkdownPreview(
   payload: { text: string },
   blockLimit: number,
 ): MarkdownPreviewProjection {
-  let document = parsed.get(payload);
+  let document = parsedMarkdownBySource.get(payload);
   if (!document) {
     const source = payload.text.slice(0, 10 * CANVAS_PREVIEW_CHARACTERS_PER_ITEM);
     document = {
@@ -34,7 +34,7 @@ export function projectMarkdownPreview(
       blocks: rootBlockRanges(markdown.parse(source, {})),
       previews: new Map(),
     };
-    parsed.set(payload, document);
+    parsedMarkdownBySource.set(payload, document);
   }
   const cached = document.previews.get(blockLimit);
   if (cached) return cached;

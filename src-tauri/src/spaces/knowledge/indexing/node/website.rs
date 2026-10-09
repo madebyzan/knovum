@@ -3,11 +3,11 @@ use serde_json::Value;
 use crate::spaces::knowledge::indexing::{self, KnowledgeChunkSeed};
 
 pub(super) fn website_chunks(
-    data: &Value,
+    payload: &Value,
     revision: &str,
 ) -> Result<Vec<KnowledgeChunkSeed>, String> {
     let mut seeds = Vec::new();
-    let sections = data
+    let sections = payload
         .get("websiteSections")
         .and_then(Value::as_array)
         .cloned()
@@ -48,7 +48,7 @@ pub(super) fn website_chunks(
     if !seeds.is_empty() {
         return Ok(seeds);
     }
-    let preview = data
+    let preview = payload
         .get("contentPreview")
         .and_then(Value::as_str)
         .unwrap_or("")

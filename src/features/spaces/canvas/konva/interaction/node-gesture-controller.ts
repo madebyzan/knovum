@@ -47,18 +47,18 @@ export class NodeGestureController {
     if (!primary) return;
     const proposed = { x: primary.x() - this.drag.origin.x, y: primary.y() - this.drag.origin.y };
     const snapped = snapCanvasTranslation(
-      [...this.drag.frames.values()],
+      [...this.drag.frameByNodeId.values()],
       this.drag.snapIndex,
       proposed,
       6 / this.options.zoom(),
     );
     const offset = { x: snapped.x, y: snapped.y };
     primary.position({ x: this.drag.origin.x + offset.x, y: this.drag.origin.y + offset.y });
-    const updates = [...this.drag.frames].map(([nodeId, frame]) => ({
+    const updates = [...this.drag.frameByNodeId].map(([nodeId, frame]) => ({
       nodeId,
       frame: { ...frame, x: frame.x + offset.x, y: frame.y + offset.y },
     }));
-    for (const [nodeId, frame] of this.drag.frames) {
+    for (const [nodeId, frame] of this.drag.frameByNodeId) {
       if (nodeId === primaryId) continue;
       this.dragNodes.get(nodeId)?.position({ x: frame.x + offset.x, y: frame.y + offset.y });
     }
@@ -75,7 +75,7 @@ export class NodeGestureController {
     this.dragNodes.clear();
     if (!primary) return [];
     const offset = { x: primary.x() - current.origin.x, y: primary.y() - current.origin.y };
-    const updates = [...current.frames].map(([nodeId, frame]) => ({
+    const updates = [...current.frameByNodeId].map(([nodeId, frame]) => ({
       nodeId,
       frame: { ...frame, x: frame.x + offset.x, y: frame.y + offset.y },
     }));
@@ -134,13 +134,13 @@ export class NodeGestureController {
 
   cancelActiveGesture() {
     if (!this.drag && !this.transforming) return false;
-    const frames = this.drag
-      ? [...this.drag.frames].map(([nodeId, frame]) => ({ nodeId, frame }))
+    const frameUpdates = this.drag
+      ? [...this.drag.frameByNodeId].map(([nodeId, frame]) => ({ nodeId, frame }))
       : this.options
           .layouts()
           .filter(({ nodeId }) => this.options.selectedNodeIds().has(nodeId))
           .map(({ nodeId, frame }) => ({ nodeId, frame }));
-    const gestureNodes = new Map([
+    const gestureNodeById = new Map([
       ...this.dragNodes,
       ...this.transformTargets.map(({ content, node }) => [content.id, node] as const),
     ]);
@@ -148,7 +148,7 @@ export class NodeGestureController {
     this.transforming = false;
     this.proportionalAnchor = undefined;
     this.resizeGuides = [];
-    this.restoreFrames(frames, gestureNodes);
+    this.restoreFrames(frameUpdates, gestureNodeById);
     this.dragNodes.clear();
     this.transformTargets = [];
     this.options.previewFrames([]);

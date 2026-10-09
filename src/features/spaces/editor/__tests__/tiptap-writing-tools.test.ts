@@ -12,7 +12,7 @@ import { useSpaceTiptapWritingTools } from "../use-space-tiptap-writing-tools";
 
 const ai = vi.hoisted(() => ({
   transform: vi.fn<(...args: unknown[]) => Promise<string>>(),
-  cancel: vi.fn<(id: string) => Promise<void>>(),
+  cancel: vi.fn<(jobId: string) => Promise<void>>(),
   error: vi.fn<(...args: unknown[]) => void>(),
 }));
 vi.mock("../../../../foundation/ai/editor-transform", () => ({ transformEditorTextStream: ai.transform }));

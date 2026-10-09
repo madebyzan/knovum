@@ -11,10 +11,10 @@ pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<ConnectorAccount>, Str
         .collect()
 }
 
-pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<ConnectorAccount, String> {
+pub(crate) async fn load(pool: &SqlitePool, account_id: &str) -> Result<ConnectorAccount, String> {
     let document: String =
         sqlx::query_scalar("SELECT document FROM connector_accounts WHERE id=$1")
-            .bind(id)
+            .bind(account_id)
             .fetch_optional(pool)
             .await
             .map_err(|error| error.to_string())?
@@ -30,11 +30,11 @@ pub(super) async fn save(pool: &SqlitePool, account: &ConnectorAccount) -> Resul
 
 pub(super) async fn set_status(
     pool: &SqlitePool,
-    id: &str,
+    account_id: &str,
     enabled: bool,
     cleanup_pending: bool,
 ) -> Result<(), String> {
-    let updated=sqlx::query("UPDATE connector_accounts SET document=json_set(document,'$.enabled',json($1),'$.cleanupPending',json($2)) WHERE id=$3").bind(enabled.to_string()).bind(cleanup_pending.to_string()).bind(id).execute(pool).await.map_err(|error|error.to_string())?;
+    let updated=sqlx::query("UPDATE connector_accounts SET document=json_set(document,'$.enabled',json($1),'$.cleanupPending',json($2)) WHERE id=$3").bind(enabled.to_string()).bind(cleanup_pending.to_string()).bind(account_id).execute(pool).await.map_err(|error|error.to_string())?;
     if updated.rows_affected() != 1 {
         return Err("connector-account-not-found".into());
     }

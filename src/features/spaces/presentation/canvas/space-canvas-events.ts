@@ -55,8 +55,8 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
       return true;
     },
     onCopyNodes: options.selection.copyNodes,
-    onDeleteRelations: (ids) =>
-      operations.allowsGestureCommit() ? store.revokeRelations(ids) : Promise.resolve(),
+    onDeleteRelations: (relationIds) =>
+      operations.allowsGestureCommit() ? store.revokeRelations(relationIds) : Promise.resolve(),
     onCreateRelation: async (sourceNodeId, targetNodeId) => {
       if (!operations.allowsGestureCommit()) return;
       await store.createRelation(sourceNodeId, targetNodeId, "related");

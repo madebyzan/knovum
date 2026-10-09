@@ -13,12 +13,12 @@ use std::{sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
-pub(super) async fn account_lock(app: &AppHandle, id: &str) -> Arc<tokio::sync::Mutex<()>> {
+pub(super) async fn account_lock(app: &AppHandle, account_id: &str) -> Arc<tokio::sync::Mutex<()>> {
     app.state::<ExtensionState>()
         .account_locks
         .lock()
         .await
-        .entry(id.to_owned())
+        .entry(account_id.to_owned())
         .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
         .clone()
 }

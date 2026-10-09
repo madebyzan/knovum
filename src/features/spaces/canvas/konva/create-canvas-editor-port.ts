@@ -57,7 +57,8 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     zoomIn: () => zoomCanvasViewport(animatedNavigation, 1.2),
     zoomOut: () => zoomCanvasViewport(animatedNavigation, 1 / 1.2),
     setZoom: (zoom) => setCanvasZoom(animatedNavigation, zoom),
-    reveal: (ids, mode) => revealCanvasTargets(animatedNavigation, ids, mode, options.structureBounds()),
+    reveal: (targetIds, mode) =>
+      revealCanvasTargets(animatedNavigation, targetIds, mode, options.structureBoundsById()),
     navigateViewport: options.animateViewport,
     setViewport: options.setViewport,
     setRelationColor: (relationId, color) =>
@@ -123,7 +124,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   function updateAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>) {
     const snapshot = options.snapshot();
     const index = createStructureIndex(snapshot.structure);
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
     const layout = structureNodeId
       ? snapshot.layouts.find((candidate) => candidate.structureNodeId === structureNodeId)
       : undefined;

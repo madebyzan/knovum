@@ -15,7 +15,7 @@ import { conversationRunStatusKey, conversationRunTask } from "./conversation-ta
 
 type RunIdentity = Pick<RunObservation, "id" | "createdAt">;
 type Listener = (run: RunObservation) => void;
-const observed = new Map<string, Set<Listener>>();
+const listenersByRunId = new Map<string, Set<Listener>>();
 let openConversation: ((spaceId: string, conversationId: string) => Promise<void>) | undefined;
 
 export function registerConversationRunNavigation(
@@ -44,7 +44,7 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
       await openConversation(location.spaceId, location.conversationId);
     });
   }
-  const existing = observed.get(run.id);
+  const existing = listenersByRunId.get(run.id);
   if (existing) {
     attachNavigation();
     if (onUpdate) existing.add(onUpdate);
@@ -54,7 +54,7 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
   }
   const listeners = new Set<Listener>();
   if (onUpdate) listeners.add(onUpdate);
-  observed.set(run.id, listeners);
+  listenersByRunId.set(run.id, listeners);
   attachNavigation();
   observeRun(run.id, {
     update: (next) => {
@@ -91,7 +91,7 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
     },
     error: (cause) => toast.error(getErrorMessage(cause)),
     finished: () => {
-      observed.delete(run.id);
+      listenersByRunId.delete(run.id);
     },
   });
   return () => {

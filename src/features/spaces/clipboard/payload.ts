@@ -18,7 +18,9 @@ interface SpaceClipboardPayloadInput {
 
 export function createSpaceClipboardPayload(input: SpaceClipboardPayloadInput): SpaceClipboardPayload {
   const index = validateStructureSnapshot(input.snapshot.structure, input.snapshot.layouts);
-  const layouts = new Map(input.snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layoutByStructureNodeId = new Map(
+    input.snapshot.layouts.map((layout) => [layout.structureNodeId, layout]),
+  );
   const roots = effectiveOperationRoots(input.selectedStructureNodeIds, index);
   const included = collectSubtrees(roots, index);
   const structure = input.snapshot.structure
@@ -26,7 +28,7 @@ export function createSpaceClipboardPayload(input: SpaceClipboardPayloadInput): 
     .map((structureNode) => detachRoot(structureNode, roots));
   const structureLayouts = input.snapshot.layouts
     .filter(({ structureNodeId }) => included.has(structureNodeId))
-    .map((layout) => detachRootLayout(layout, roots, index, layouts));
+    .map((layout) => detachRootLayout(layout, roots, index, layoutByStructureNodeId));
   validateStructureSnapshot(structure, structureLayouts);
   const nodeIds = new Set(
     structure.flatMap((structureNode) => (structureNode.kind === "content" ? [structureNode.nodeId] : [])),
@@ -62,8 +64,8 @@ function detachRootLayout(
   layout: StructureLayout,
   roots: readonly StructureNode[],
   index: ReturnType<typeof createStructureIndex>,
-  layouts: ReadonlyMap<string, StructureLayout>,
+  layoutByStructureNodeId: ReadonlyMap<string, StructureLayout>,
 ): StructureLayout {
   if (!roots.some(({ id }) => id === layout.structureNodeId) || layout.kind === "section") return layout;
-  return { ...layout, transform: worldTransformFor(layout.structureNodeId, index, layouts) };
+  return { ...layout, transform: worldTransformFor(layout.structureNodeId, index, layoutByStructureNodeId) };
 }

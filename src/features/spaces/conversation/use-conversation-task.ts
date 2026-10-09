@@ -12,8 +12,8 @@ import { useConversationRunRestoration } from "./use-conversation-run-restoratio
 
 interface ConversationTaskInput extends ConversationSubmissionInput {
   refresh: () => Promise<void>;
-  select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
-  moveDraft: (fromId: string, toId: string) => Promise<void>;
+  select: (conversationId: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
+  moveDraft: (fromConversationId: string, toConversationId: string) => Promise<void>;
 }
 
 export function useConversationTask(input: ConversationTaskInput) {

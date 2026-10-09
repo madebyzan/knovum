@@ -156,14 +156,14 @@ where
 
 pub(crate) fn inspect<R: Runtime, F>(
     app: &AppHandle<R>,
-    id: LocalModelId,
+    model_id: LocalModelId,
     voice_eligible: &F,
 ) -> Result<LocalModelAvailability, String>
 where
     F: Fn(LocalModelId) -> Result<bool, String>,
 {
-    let (name, capability, operations, reference_transcript) = model_metadata::metadata(id);
-    let snapshot = id
+    let (name, capability, operations, reference_transcript) = model_metadata::metadata(model_id);
+    let snapshot = model_id
         .snapshot()
         .ok_or("Local model is unavailable on this platform")?;
     let parts = snapshot
@@ -171,19 +171,19 @@ where
         .iter()
         .map(|kind| models::status(app, catalog::descriptor(*kind)))
         .collect::<Result<Vec<_>, _>>()?;
-    let unavailable_reason = availability_reason(id, voice_eligible)?;
+    let unavailable_reason = availability_reason(model_id, voice_eligible)?;
     let transcription = super::model_selection::transcription(app)?;
     Ok(LocalModelAvailability {
-        id,
+        id: model_id,
         name,
         capability,
         operations,
         reference_transcript,
-        group: id.group(),
-        selected: super::model_selection::is_selected(app, id)?,
-        selectable: super::model_selection::is_selectable(id),
-        essential: id.is_essential(transcription),
-        fixed: id == LocalModelId::Qwen3Embedding,
+        group: model_id.group(),
+        selected: super::model_selection::is_selected(app, model_id)?,
+        selectable: super::model_selection::is_selectable(model_id),
+        essential: model_id.is_essential(transcription),
+        fixed: model_id == LocalModelId::Qwen3Embedding,
         total_bytes: snapshot.total_bytes(),
         installed_bytes: parts.iter().filter_map(|part| part.size).sum(),
         installed: parts.iter().any(|part| part.installed),
@@ -194,13 +194,15 @@ where
 }
 
 fn availability_reason<F>(
-    id: LocalModelId,
+    model_id: LocalModelId,
     voice_eligible: F,
 ) -> Result<Option<&'static str>, String>
 where
     F: Fn(LocalModelId) -> Result<bool, String>,
 {
-    if matches!(id, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8) && !voice_eligible(id)? {
+    if matches!(model_id, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8)
+        && !voice_eligible(model_id)?
+    {
         return Ok(Some("memory"));
     }
     Ok(None)

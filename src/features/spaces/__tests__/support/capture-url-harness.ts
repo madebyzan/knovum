@@ -30,8 +30,8 @@ export function captureHarness() {
   const begin = vi.fn<(input: Omit<SpaceUrlCaptureProjection, "id">) => SpaceUrlCaptureProjection>(
     () => projection,
   );
-  const finish = vi.fn<(id: string) => void>();
-  const update = vi.fn<(id: string, patch: object) => void>();
+  const finish = vi.fn<(captureId: string) => void>();
+  const update = vi.fn<(captureId: string, patch: object) => void>();
   const addContent = vi.fn<AddContent>(async (data, position = POSITION) => [mediaNode(data, position)]);
   return {
     context: {

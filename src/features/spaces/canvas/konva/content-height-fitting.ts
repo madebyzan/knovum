@@ -17,14 +17,16 @@ export function createCanvasContentHeightFitting(options: FittingOptions) {
     commit,
   );
 
-  function commit(heights: ReadonlyMap<string, FittedContentHeight>) {
-    if (!heights.size) return;
+  function commit(heightByNodeId: ReadonlyMap<string, FittedContentHeight>) {
+    if (!heightByNodeId.size) return;
     const submission = commitTail.then(() => {
       const snapshot = options.snapshot();
       const index = createStructureIndex(snapshot.structure);
-      const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
-      const updates = [...heights].flatMap(([nodeId, measurement]) =>
-        update(nodeId, measurement, index, layouts),
+      const layoutByStructureNodeId = new Map(
+        snapshot.layouts.map((layout) => [layout.structureNodeId, layout]),
+      );
+      const updates = [...heightByNodeId].flatMap(([nodeId, measurement]) =>
+        update(nodeId, measurement, index, layoutByStructureNodeId),
       );
       return updates.length
         ? options.onExecuteSpaceEdit({ kind: "content.update-heights", updates })
@@ -38,13 +40,13 @@ export function createCanvasContentHeightFitting(options: FittingOptions) {
     nodeId: string,
     measurement: FittedContentHeight,
     index: ReturnType<typeof createStructureIndex>,
-    layouts: ReadonlyMap<string, StructureLayout>,
+    layoutByStructureNodeId: ReadonlyMap<string, StructureLayout>,
   ) {
     const node = options.nodeById(nodeId);
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-    const layout = structureNodeId ? layouts.get(structureNodeId) : undefined;
+    const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
+    const layout = structureNodeId ? layoutByStructureNodeId.get(structureNodeId) : undefined;
     if (!node || !structureNodeId || layout?.kind !== "content") return [];
-    const worldScale = worldTransformFor(structureNodeId, index, layouts).scale;
+    const worldScale = worldTransformFor(structureNodeId, index, layoutByStructureNodeId).scale;
     const height = measurement.height / worldScale;
     const shouldSubmit = [
       (node.data.knowledgeRevision ?? null) === measurement.contentRevision,

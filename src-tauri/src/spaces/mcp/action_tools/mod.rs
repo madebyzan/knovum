@@ -84,8 +84,10 @@ impl SpaceMcpServer {
     }
 }
 
-fn require_platform_action(id: &str) -> Result<&'static actions::SpaceActionDefinition, String> {
-    let definition = actions::require(id)?;
+fn require_platform_action(
+    action_id: &str,
+) -> Result<&'static actions::SpaceActionDefinition, String> {
+    let definition = actions::require(action_id)?;
     if !is_external_agent_action(definition) {
         return Err("agent-inference-reentry: use your own runtime and publish the result; Knovum inference Actions are unavailable in desktop Agent sessions".into());
     }

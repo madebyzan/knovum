@@ -13,7 +13,7 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
 
   function placements() {
     const structurePlacements = roots().flatMap(({ id }) => {
-      const frame = options.structureBounds().get(id);
+      const frame = options.structureBoundsById().get(id);
       return frame ? [{ id, x: frame.x, y: frame.y }] : [];
     });
     return structurePlacements.length
@@ -26,12 +26,12 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
       layouts: options.layouts(),
       nodeIds: options.selectedNodeIds(),
       relationIds: options.relationIds(),
-      relationBounds: options.relationBounds(),
+      relationBoundsById: options.relationBoundsById(),
     });
   }
 
   function bounds() {
-    const frames = compact(roots().map(({ id }) => options.structureBounds().get(id)));
+    const frames = compact(roots().map(({ id }) => options.structureBoundsById().get(id)));
     if (!frames.length) return contentSnapshot().bounds;
     const left = Math.min(...frames.map(({ x }) => x));
     const top = Math.min(...frames.map(({ y }) => y));
@@ -43,7 +43,7 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
   function snapshot() {
     const selectionBounds = bounds();
     const content = contentSnapshot();
-    const structureMembers = compact(roots().map(({ id }) => options.structureBounds().get(id)));
+    const structureMembers = compact(roots().map(({ id }) => options.structureBoundsById().get(id)));
     return {
       ...content,
       structureNodeIds: [...options.selectedStructureNodeIds()],

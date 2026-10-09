@@ -28,10 +28,10 @@ export function createSpacePlacement(options: SpacePlacementOptions) {
     const offset = (insertOffset++ % 6) * 20;
     return { x: insertionPoint.value.x + offset, y: insertionPoint.value.y + offset };
   }
-  function requestReveal(ids: readonly string[], mode: RevealRequest["mode"] = "ensure-visible") {
+  function requestReveal(targetIds: readonly string[], mode: RevealRequest["mode"] = "ensure-visible") {
     const pending =
       mode === "ensure-visible" && revealRequest.value?.mode === mode ? revealRequest.value.ids : [];
-    const uniqueIds = union(pending, [...ids]);
+    const uniqueIds = union(pending, [...targetIds]);
     if (uniqueIds.length) revealRequest.value = { ids: uniqueIds, nonce: ++navigationNonce, mode };
   }
   function requestViewport(viewport: ViewportRequest["viewport"]) {

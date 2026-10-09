@@ -42,7 +42,7 @@ pub(super) fn enrich_content(
     source: &Path,
     revision: &str,
     mut asset: PreparedAsset,
-    mut data: Value,
+    mut payload: Value,
     cancellation: &CancellationToken,
 ) -> Result<ContentOutput, String> {
     let extracted_content =
@@ -50,8 +50,11 @@ pub(super) fn enrich_content(
     ensure_active(cancellation)?;
     extracted_content?;
     let chunks = take_chunks(&mut asset);
-    apply_asset_fields(&mut data, &asset)?;
-    Ok(ContentOutput { data, chunks })
+    apply_asset_fields(&mut payload, &asset)?;
+    Ok(ContentOutput {
+        data: payload,
+        chunks,
+    })
 }
 
 fn build_prepared_asset(
@@ -59,7 +62,7 @@ fn build_prepared_asset(
     file_name: &str,
     kind: &str,
     revision: &str,
-    data: &Value,
+    payload: &Value,
 ) -> Result<PreparedAsset, String> {
     let kind = crate::spaces::assets::kind::AssetKind::from_node_kind(kind)?;
     if kind == crate::spaces::assets::kind::AssetKind::Markdown {
@@ -70,19 +73,19 @@ fn build_prepared_asset(
         path: Some(source.to_string_lossy().into_owned()),
         kind,
         text: None,
-        preview_text: optional_string(data, "previewText"),
-        preview_language: optional_string(data, "previewLanguage"),
-        preview_path: optional_string(data, "previewPath"),
-        extracted_text: optional_string(data, "extractedText"),
-        size: data.get("size").and_then(Value::as_u64),
-        modified_at: data.get("modifiedAt").and_then(Value::as_u64),
+        preview_text: optional_string(payload, "previewText"),
+        preview_language: optional_string(payload, "previewLanguage"),
+        preview_path: optional_string(payload, "previewPath"),
+        extracted_text: optional_string(payload, "extractedText"),
+        size: payload.get("size").and_then(Value::as_u64),
+        modified_at: payload.get("modifiedAt").and_then(Value::as_u64),
         source_revision: Some(revision.to_owned()),
         processing_state: Some(crate::spaces::assets::kind::PreparedAssetState::Processing),
-        intrinsic_width: optional_u32(data, "intrinsicWidth"),
-        intrinsic_height: optional_u32(data, "intrinsicHeight"),
+        intrinsic_width: optional_u32(payload, "intrinsicWidth"),
+        intrinsic_height: optional_u32(payload, "intrinsicHeight"),
         knowledge_chunks: None,
-        document_coverage: data.get("documentCoverage").cloned(),
-        entries: data
+        document_coverage: payload.get("documentCoverage").cloned(),
+        entries: payload
             .get("entries")
             .map(|value| serde_json::from_value(value.clone()).map_err(|error| error.to_string()))
             .transpose()?,

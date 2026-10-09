@@ -26,7 +26,7 @@ impl DocumentImages {
 
     pub(super) fn add(
         &mut self,
-        id: String,
+        image_id: String,
         location: Value,
         context: &str,
         alt_text: Option<&str>,
@@ -37,7 +37,7 @@ impl DocumentImages {
         }
         self.reserve(bytes)?;
         self.entries.push(DocumentImage {
-            id,
+            id: image_id,
             location,
             context: context.into(),
             alt_text: alt_text.map(str::to_owned),

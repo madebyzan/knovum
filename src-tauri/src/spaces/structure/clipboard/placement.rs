@@ -65,12 +65,12 @@ pub(super) fn attach_roots(
 
 fn localize_root(
     layouts: &mut [StructureLayout],
-    id: &str,
+    structure_node_id: &str,
     parent_world: &LocalTransform,
 ) -> Result<(), String> {
     let layout = layouts
         .iter_mut()
-        .find(|layout| layout.structure_node_id() == id)
+        .find(|layout| layout.structure_node_id() == structure_node_id)
         .ok_or("Clipboard root layout missing")?;
     match layout {
         StructureLayout::Content { transform, .. } | StructureLayout::Group { transform, .. } => {

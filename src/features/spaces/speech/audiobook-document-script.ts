@@ -45,17 +45,18 @@ export function audiobookDocumentScript(
     const markup = new MarkdownIt({ html: false, breaks: false }).render(source.text);
     return scriptFromMarkup([{ title, markup }], role);
   }
-  const entries = new Map(source.entries.map((entry) => [entry.path, entry.text]));
-  if (entries.size !== source.entries.length) throw new Error("EPUB contains duplicate document paths");
-  const container = entries.get("META-INF/container.xml");
+  const textByArchivePath = new Map(source.entries.map((entry) => [entry.path, entry.text]));
+  if (textByArchivePath.size !== source.entries.length)
+    throw new Error("EPUB contains duplicate document paths");
+  const container = textByArchivePath.get("META-INF/container.xml");
   if (!container) throw new Error("EPUB container is missing");
   const packagePath = parseXml(container)
     .getElementsByTagNameNS("urn:oasis:names:tc:opendocument:xmlns:container", "rootfile")[0]
     ?.getAttribute("full-path");
-  const packageText = packagePath ? entries.get(packagePath) : undefined;
+  const packageText = packagePath ? textByArchivePath.get(packagePath) : undefined;
   if (!packagePath || !packageText) throw new Error("EPUB package is missing");
   const document = parseXml(packageText);
-  const manifest = new Map(
+  const itemByManifestId = new Map(
     [...document.getElementsByTagNameNS("http://www.idpf.org/2007/opf", "item")].map((item) => [
       item.getAttribute("id"),
       item,
@@ -64,14 +65,14 @@ export function audiobookDocumentScript(
   const parts = [...document.getElementsByTagNameNS("http://www.idpf.org/2007/opf", "itemref")]
     .filter((item) => item.getAttribute("linear") !== "no")
     .map((item, index) => {
-      const entry = manifest.get(item.getAttribute("idref"));
+      const entry = itemByManifestId.get(item.getAttribute("idref"));
       const href = entry?.getAttribute("href");
       if (!href || !["application/xhtml+xml", "text/html"].includes(entry?.getAttribute("media-type") ?? ""))
         throw new Error("EPUB spine contains an unsupported document");
       const url = new URL(href, `https://book.invalid/${packagePath}`);
       if (url.origin !== "https://book.invalid")
         throw new Error("EPUB spine references an external resource");
-      const markup = entries.get(decodeURIComponent(url.pathname.slice(1)));
+      const markup = textByArchivePath.get(decodeURIComponent(url.pathname.slice(1)));
       if (!markup) throw new Error("EPUB spine document is missing");
       return { title: `${title} ${index + 1}`, markup };
     });

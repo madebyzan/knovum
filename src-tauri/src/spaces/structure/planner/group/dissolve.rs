@@ -30,7 +30,7 @@ pub(in crate::spaces::structure) fn dissolve(
     for group_id in &groups {
         let parent = index.node(&original_structure, group_id)?.parent_id();
         for child in index
-            .children
+            .children_by_parent_id
             .get(&Some(group_id.clone()))
             .cloned()
             .unwrap_or_default()
@@ -61,14 +61,18 @@ pub(in crate::spaces::structure) fn dissolve(
         .collect::<HashSet<_>>()
     {
         let ids = index
-            .children
+            .children_by_parent_id
             .get(&parent)
             .cloned()
             .unwrap_or_default()
             .into_iter()
             .flat_map(|id| {
                 if removed.contains(id.as_str()) {
-                    index.children.get(&Some(id)).cloned().unwrap_or_default()
+                    index
+                        .children_by_parent_id
+                        .get(&Some(id))
+                        .cloned()
+                        .unwrap_or_default()
                 } else {
                     vec![id]
                 }

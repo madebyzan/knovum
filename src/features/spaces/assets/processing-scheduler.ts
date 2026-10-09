@@ -9,7 +9,7 @@ import { cancelSpaceAssetProcessing, deriveSpaceAssetContent } from "./asset-ope
 import { runSpaceAssetProcessing } from "./concurrency-budget";
 
 export interface SpaceAssetProcessingContext {
-  applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
+  applyNodeContentForSpace(spaceId: string, nodeId: string, payload: SpaceNodePayload): void;
 }
 
 interface SpaceAssetProcessingInput {

@@ -141,12 +141,12 @@ pub(super) async fn publish(
 async fn persist(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &DocumentPublication,
-    data: &mut Value,
+    payload: &mut Value,
     action_id: &str,
     engine: &str,
 ) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or("Document node data is invalid")?;
     object.insert(
@@ -156,10 +156,10 @@ async fn persist(
     object.insert("size".into(), (request.bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
-    revision::apply(data)?;
-    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "file", data)
+    revision::apply(payload)?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "file", payload)
         .await?;
-    super::persist_output_node(tx, &request.output_node_id, data, now).await?;
+    super::persist_output_node(tx, &request.output_node_id, payload, now).await?;
     let changed = sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',updated_at=$1,completed_at=$1 WHERE id=$2 AND status='running' AND action_kind=$3 AND engine=$4")
         .bind(now).bind(&request.id).bind(action_id).bind(engine).execute(&mut **tx).await.map_err(db::sql_error)?;
     if changed.rows_affected() != 1 {

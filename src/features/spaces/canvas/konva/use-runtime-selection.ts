@@ -14,8 +14,8 @@ export function useRuntimeSelection(
       () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
     ),
     layouts: computed(() => projections.scene.value.nodes.map(({ layout }) => layout)),
-    relationBounds: projections.relationBounds,
-    structureBounds: projections.structureBounds,
+    relationBoundsById: projections.relationBoundsById,
+    structureBoundsById: projections.structureBoundsById,
     changed: props.events.onSelectionChange,
     structureSelectionForNode: projections.structureSelectionForNode,
   });

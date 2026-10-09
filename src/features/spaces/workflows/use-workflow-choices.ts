@@ -9,17 +9,19 @@ export function useWorkflowChoices(items: Readonly<Ref<SavedCapturedWorkflow[]>>
   const { t } = useI18n();
   return computed(() => {
     const selectedIds = new Set(store.workflowCaptureSelection);
-    const available = new Map<string, number>();
+    const availableCountByKind = new Map<string, number>();
     for (const node of store.nodes) {
       if (!selectedIds.has(node.id)) continue;
-      available.set(node.data.kind, (available.get(node.data.kind) ?? 0) + 1);
+      availableCountByKind.set(node.data.kind, (availableCountByKind.get(node.data.kind) ?? 0) + 1);
     }
     return items.value.map((item) => {
-      const required = new Map<string, number>();
+      const requiredCountByKind = new Map<string, number>();
       for (const slot of item.candidate.inputSlots) {
-        required.set(slot.kind, (required.get(slot.kind) ?? 0) + slot.minItems);
+        requiredCountByKind.set(slot.kind, (requiredCountByKind.get(slot.kind) ?? 0) + slot.minItems);
       }
-      const compatible = [...required].every(([kind, count]) => (available.get(kind) ?? 0) >= count);
+      const compatible = [...requiredCountByKind].every(
+        ([kind, count]) => (availableCountByKind.get(kind) ?? 0) >= count,
+      );
       return {
         value: item.workflowId,
         label: item.name,

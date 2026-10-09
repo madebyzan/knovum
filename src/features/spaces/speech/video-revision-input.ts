@@ -12,7 +12,7 @@ export function videoRevisionInput(input: {
 }) {
   const currentConfig = input.config;
   if (!currentConfig) throw new Error("Video dubbing output configuration is unavailable");
-  const voices = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
+  const voiceByRevisionId = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
   return {
     sourceRevision: crypto.randomUUID(),
     pronunciationLexicon: input.lexicon,
@@ -22,7 +22,7 @@ export function videoRevisionInput(input: {
       backgroundGainDb: Number(input.backgroundGain),
     },
     segments: input.lines.map((line) => {
-      const voice = voices.get(line.voiceRevisionId);
+      const voice = voiceByRevisionId.get(line.voiceRevisionId);
       if (!voice) throw new Error("A valid voice is required for every timed line");
       const speakerKey = line.speakerKey.trim();
       const deliveryInstruction = line.deliveryInstruction.trim();

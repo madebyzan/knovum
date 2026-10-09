@@ -14,7 +14,7 @@ fn main_agent_can_plan_and_write_while_research_cannot_expand_authorization() {
     for name in ["read_file", "glob", "grep", "compact_conversation"] {
         assert!(require_tool(&catalog, name, "task:research|tools").is_ok());
     }
-    for (name, binding) in &catalog.by_wire_name {
+    for (name, binding) in &catalog.binding_by_wire_name {
         assert!(require_tool(&catalog, name, "").is_ok());
         assert_eq!(
             require_tool(&catalog, name, "task:research|tools").is_ok(),

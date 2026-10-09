@@ -18,7 +18,7 @@ interface ConversationRunRestorationState {
   error: ShallowRef<string | undefined>;
   activityRevision: ShallowRef<number>;
   refresh: () => Promise<void>;
-  select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
+  select: (conversationId: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   onDetach: () => void;
 }
 

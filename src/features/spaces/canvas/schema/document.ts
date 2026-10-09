@@ -90,16 +90,16 @@ export function parseCanvasDocument(source: unknown): CanvasDocumentV1 {
 }
 
 function validateCanvasReferences(document: CanvasDocumentV1, context: z.RefinementCtx) {
-  const nodes = new Map<string, CanvasNodeLayoutV1>();
+  const layoutByNodeId = new Map<string, CanvasNodeLayoutV1>();
   for (const [index, node] of document.nodes.entries()) {
-    if (nodes.has(node.nodeId)) {
+    if (layoutByNodeId.has(node.nodeId)) {
       context.addIssue({
         code: "custom",
         path: ["nodes", index, "nodeId"],
         message: "nodeId must be unique",
       });
     }
-    nodes.set(node.nodeId, node);
+    layoutByNodeId.set(node.nodeId, node);
   }
   const relationIds = new Set<string>();
   for (const [index, relation] of (document.relationStyles ?? []).entries()) {

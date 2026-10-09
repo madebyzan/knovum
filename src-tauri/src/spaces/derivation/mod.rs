@@ -46,17 +46,17 @@ pub(crate) fn stage(channel: &tauri::ipc::Channel<String>, value: &str) -> Resul
 pub(crate) async fn persist_output_node(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     node_id: &str,
-    data: &serde_json::Value,
+    payload: &serde_json::Value,
     now: i64,
 ) -> Result<(), AppError> {
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3")
-        .bind(sqlx::types::Json(data))
+        .bind(sqlx::types::Json(payload))
         .bind(now)
         .bind(node_id)
         .execute(&mut **tx)
         .await
         .map_err(crate::spaces::db::sql_error)?;
-    if !matches!(data["kind"].as_str(), Some("image" | "video" | "file")) {
+    if !matches!(payload["kind"].as_str(), Some("image" | "video" | "file")) {
         return Ok(());
     }
     let space_id: String = sqlx::query_scalar("SELECT space_id FROM spaces_nodes WHERE id=$1")

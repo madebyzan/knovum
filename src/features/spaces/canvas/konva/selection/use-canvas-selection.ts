@@ -9,8 +9,10 @@ import { useCanvasMarqueeSelection } from "./use-canvas-marquee-selection";
 interface CanvasSelectionOptions {
   availableStructureNodeIds: Readonly<Ref<ReadonlySet<string>>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
-  relationBounds: Readonly<Ref<ReadonlyMap<string, { x: number; y: number; width: number; height: number }>>>;
-  structureBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
+  relationBoundsById: Readonly<
+    Ref<ReadonlyMap<string, { x: number; y: number; width: number; height: number }>>
+  >;
+  structureBoundsById: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   changed(selection: CanvasSelectionSnapshot): void;
   structureSelectionForNode(nodeId: string): string | undefined;
 }
@@ -45,12 +47,12 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = new Set();
     notify();
   }
-  function selectRelation(id: string, event: PointerEvent) {
+  function selectRelation(relationId: string, event: PointerEvent) {
     if (event.button !== 0) return;
     const additive = isAdditiveSelection(event);
     const next = new Set(additive ? relationIds.value : []);
-    if (next.has(id) && additive) next.delete(id);
-    else next.add(id);
+    if (next.has(relationId) && additive) next.delete(relationId);
+    else next.add(relationId);
     nodeIds.value = new Set();
     structureNodeIds.value = new Set();
     relationIds.value = next;
@@ -65,21 +67,21 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     if (nodeIds.value.has(nodeId)) return;
     setNodeIds([nodeId]);
   }
-  function selectRelationForContextMenu(id: string) {
-    if (relationIds.value.has(id)) return;
+  function selectRelationForContextMenu(relationId: string) {
+    if (relationIds.value.has(relationId)) return;
     nodeIds.value = new Set();
     structureNodeIds.value = new Set();
-    relationIds.value = new Set([id]);
+    relationIds.value = new Set([relationId]);
     notify();
   }
-  function setNodeIds(ids: readonly string[]) {
-    nodeIds.value = new Set(ids);
+  function setNodeIds(selectedNodeIds: readonly string[]) {
+    nodeIds.value = new Set(selectedNodeIds);
     structureNodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
-  function setStructureNodeIds(ids: readonly string[]) {
-    structureNodeIds.value = new Set(ids);
+  function setStructureNodeIds(selectedStructureNodeIds: readonly string[]) {
+    structureNodeIds.value = new Set(selectedStructureNodeIds);
     nodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
@@ -95,9 +97,9 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
       layouts: options.layouts.value,
       nodeIds: nodeIds.value,
       relationIds: relationIds.value,
-      relationBounds: options.relationBounds.value,
+      relationBoundsById: options.relationBoundsById.value,
     });
-    const bounds = selectedStructureBounds(structureNodeIds.value, options.structureBounds.value);
+    const bounds = selectedStructureBounds(structureNodeIds.value, options.structureBoundsById.value);
     options.changed({
       ...snapshot,
       structureNodeIds: [...structureNodeIds.value],
@@ -129,7 +131,7 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     if (retained.size !== nodeIds.value.size) nodeIds.value = retained;
     notify();
   });
-  watch(options.relationBounds, (currentBounds) => {
+  watch(options.relationBoundsById, (currentBounds) => {
     if (!relationIds.value.size) return;
     const retained = new Set([...relationIds.value].filter((id) => currentBounds.has(id)));
     if (retained.size === relationIds.value.size) return;
@@ -143,7 +145,7 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     structureNodeIds.value = retained;
     notify();
   });
-  watch(options.structureBounds, () => {
+  watch(options.structureBoundsById, () => {
     if (structureNodeIds.value.size) notify();
   });
 
@@ -168,8 +170,11 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   };
 }
 
-function selectedStructureBounds(ids: ReadonlySet<string>, available: ReadonlyMap<string, CanvasRect>) {
-  const frames = compact([...ids].map((id) => available.get(id)));
+function selectedStructureBounds(
+  structureNodeIds: ReadonlySet<string>,
+  boundsByStructureNodeId: ReadonlyMap<string, CanvasRect>,
+) {
+  const frames = compact([...structureNodeIds].map((id) => boundsByStructureNodeId.get(id)));
   if (!frames.length) return undefined;
   const left = Math.min(...frames.map(({ x }) => x));
   const top = Math.min(...frames.map(({ y }) => y));

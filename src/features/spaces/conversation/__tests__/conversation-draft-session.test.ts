@@ -33,7 +33,7 @@ describe("conversation draft session", () => {
         .mockReturnValueOnce(secondA.promise),
       save,
       move: vi
-        .fn<(spaceId: string, fromId: string, toId: string) => Promise<void>>()
+        .fn<(spaceId: string, fromConversationId: string, toConversationId: string) => Promise<void>>()
         .mockResolvedValue(undefined),
       remove: vi
         .fn<(spaceId: string, conversationId: string) => Promise<void>>()

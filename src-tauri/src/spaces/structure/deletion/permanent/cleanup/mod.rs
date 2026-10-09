@@ -151,9 +151,9 @@ async fn update_batch(
 async fn delete_events(
     tx: &mut Transaction<'_, Sqlite>,
     kind: &str,
-    ids: &HashSet<String>,
+    entity_ids: &HashSet<String>,
 ) -> Result<(), String> {
-    for id in ids {
+    for id in entity_ids {
         sqlx::query("DELETE FROM spaces_knowledge_events WHERE entity_kind=$1 AND entity_id=$2")
             .bind(kind)
             .bind(id)
@@ -167,14 +167,14 @@ async fn delete_events(
 async fn delete_ids(
     tx: &mut Transaction<'_, Sqlite>,
     table: &str,
-    ids: &HashSet<String>,
+    entity_ids: &HashSet<String>,
 ) -> Result<(), String> {
     let sql = match table {
         "spaces_provenance" => "DELETE FROM spaces_provenance WHERE id=$1",
         "spaces_relations" => "DELETE FROM spaces_relations WHERE id=$1",
         _ => return Err("Unsupported permanent-delete table".into()),
     };
-    for id in ids {
+    for id in entity_ids {
         sqlx::query(sql)
             .bind(id)
             .execute(&mut **tx)

@@ -16,9 +16,9 @@ pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<SkillRevision>, String
         .collect()
 }
 
-pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<SkillRevision, String> {
+pub(crate) async fn load(pool: &SqlitePool, skill_id: &str) -> Result<SkillRevision, String> {
     let document: String = sqlx::query_scalar("SELECT document FROM skills WHERE id=$1")
-        .bind(id)
+        .bind(skill_id)
         .fetch_optional(pool)
         .await
         .map_err(|error| error.to_string())?

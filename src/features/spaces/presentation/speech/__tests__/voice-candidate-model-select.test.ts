@@ -13,14 +13,14 @@ vi.mock("../../../../../foundation/runtime/use-resource-queries", () => ({
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
-function entry(id: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelAvailability {
-  const vox = id !== "mossNano";
+function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelAvailability {
+  const vox = modelId !== "mossNano";
   return {
-    id,
+    id: modelId,
     selected,
     selectable: true,
     group: "audio",
-    name: id,
+    name: modelId,
     capability: "speechSynthesis",
     operations: vox ? ["voiceCloning", "voiceDesign"] : ["voiceCloning"],
     referenceTranscript: vox ? "optionalConfirmed" : "unused",
@@ -28,7 +28,7 @@ function entry(id: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): Loc
     fixed: false,
     installed: true,
     verified: true,
-    totalBytes: id === "voxCpm2" ? 500 : id === "voxCpm2Q8" ? 300 : 100,
+    totalBytes: modelId === "voxCpm2" ? 500 : modelId === "voxCpm2Q8" ? 300 : 100,
     installedBytes: 100,
     downloadAvailable: true,
     unavailableReason: null,

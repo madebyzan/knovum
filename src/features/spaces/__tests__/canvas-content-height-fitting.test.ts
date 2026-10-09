@@ -53,7 +53,7 @@ function fixture(count: number) {
   const fitting = createCanvasContentHeightFitting({
     scene: () => scene,
     snapshot: capture,
-    nodeById: (id) => nodes.get(id)?.node,
+    nodeById: (nodeId) => nodes.get(nodeId)?.node,
     onExecuteSpaceEdit: execute,
     onError,
   });

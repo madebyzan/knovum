@@ -42,9 +42,13 @@ fn file_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Submenu<R>> {
         .ok_or_else(|| std::io::Error::other("Knovum File menu is not installed").into())
 }
 
-fn set_enabled<R: Runtime>(menu: &Submenu<R>, id: &str, enabled: bool) -> tauri::Result<()> {
-    menu.get(id)
+fn set_enabled<R: Runtime>(
+    menu: &Submenu<R>,
+    menu_item_id: &str,
+    enabled: bool,
+) -> tauri::Result<()> {
+    menu.get(menu_item_id)
         .and_then(|item| item.as_menuitem().cloned())
-        .ok_or_else(|| std::io::Error::other(format!("File menu item is missing: {id}")))?
+        .ok_or_else(|| std::io::Error::other(format!("File menu item is missing: {menu_item_id}")))?
         .set_enabled(enabled)
 }

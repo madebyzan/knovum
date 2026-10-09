@@ -34,13 +34,13 @@ describe("canvas gesture handoff", () => {
       const finished = value.gestures.finish({ kind: "drag", nodeId: id });
       await value.started.promise;
       await nextTick();
-      expect(value.preview.layouts.has(id)).toBe(true);
+      expect(value.preview.layoutByNodeId.has(id)).toBe(true);
       expect(value.points.value).toEqual(droppedPoints);
 
       value.commit.resolve(undefined);
       await finished;
       await nextTick();
-      expect(value.preview.layouts.size).toBe(0);
+      expect(value.preview.layoutByNodeId.size).toBe(0);
       expect(value.points.value).toEqual(droppedPoints);
       expect(value.rendered.length).toBeGreaterThan(0);
       for (const points of value.rendered) expect(points).toEqual(droppedPoints);
@@ -63,7 +63,7 @@ describe("canvas gesture handoff", () => {
     await expect(finished).rejects.toThrow(error);
     await nextTick();
 
-    expect(value.preview.layouts.size).toBe(0);
+    expect(value.preview.layoutByNodeId.size).toBe(0);
     expect(value.node.position()).toEqual({ x: 0, y: 0 });
     expect(value.points.value).toEqual(originalPoints);
   });
@@ -108,7 +108,7 @@ function fixture(primaryId: string) {
       computed(() => createCanvasScenePreviewIndex(scene.value)),
       layouts,
     );
-    const points = computed(() => (preview.relations.get("link") ?? scene.value.relations[0]!).points);
+    const points = computed(() => (preview.relationById.get("link") ?? scene.value.relations[0]!).points);
     const rendered: (typeof points.value)[] = [];
     watch(points, (value) => rendered.push(value), { flush: "post" });
     const started = deferred<void>();

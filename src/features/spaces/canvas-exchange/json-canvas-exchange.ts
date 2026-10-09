@@ -54,7 +54,7 @@ async function exportDocument(
   const scene = projectStructureScene({ snapshot, nodes, relations });
   assertSectionMembershipIsGeometric(scene.content, scene.sections);
   const resources: CanvasExchangeResource[] = [];
-  const sections = new Map(
+  const sectionByStructureNodeId = new Map(
     scene.sections.map(({ section, layout, bounds }) => [
       section.id,
       {
@@ -65,7 +65,7 @@ async function exportDocument(
       },
     ]),
   );
-  const contents = new Map(
+  const contentByStructureNodeId = new Map(
     scene.content.map(({ structureNode, bounds, layout, node }) => [
       structureNode.id,
       {
@@ -77,7 +77,7 @@ async function exportDocument(
       },
     ]),
   );
-  const exportNodes = orderedExportNodes(snapshot, sections, contents);
+  const exportNodes = orderedExportNodes(snapshot, sectionByStructureNodeId, contentByStructureNodeId);
   return {
     document: exportJsonCanvasDocument(exportNodes, relations),
     resources,
@@ -86,20 +86,23 @@ async function exportDocument(
 
 function orderedExportNodes(
   snapshot: SpaceEditSnapshot,
-  sections: ReadonlyMap<string, JsonCanvasExportNodeV1>,
-  contents: ReadonlyMap<string, JsonCanvasExportNodeV1>,
+  sectionByStructureNodeId: ReadonlyMap<string, JsonCanvasExportNodeV1>,
+  contentByStructureNodeId: ReadonlyMap<string, JsonCanvasExportNodeV1>,
 ) {
-  const children = new Map<string | null, SpaceEditSnapshot["structure"][number][]>();
+  const childrenByParentId = new Map<string | null, SpaceEditSnapshot["structure"][number][]>();
   for (const structureNode of snapshot.structure) {
-    const siblings = children.get(structureNode.parentId) ?? [];
-    children.set(structureNode.parentId, [...siblings, structureNode]);
+    const siblings = childrenByParentId.get(structureNode.parentId) ?? [];
+    childrenByParentId.set(structureNode.parentId, [...siblings, structureNode]);
   }
-  for (const siblings of children.values()) siblings.sort((left, right) => left.order - right.order);
+  for (const siblings of childrenByParentId.values())
+    siblings.sort((left, right) => left.order - right.order);
   const ordered: JsonCanvasExportNodeV1[] = [];
   function append(parentId: string | null) {
-    for (const structureNode of children.get(parentId) ?? []) {
+    for (const structureNode of childrenByParentId.get(parentId) ?? []) {
       const node =
-        structureNode.kind === "section" ? sections.get(structureNode.id) : contents.get(structureNode.id);
+        structureNode.kind === "section"
+          ? sectionByStructureNodeId.get(structureNode.id)
+          : contentByStructureNodeId.get(structureNode.id);
       if (!node) throw new Error(`JSON Canvas export node is unavailable: ${structureNode.id}`);
       ordered.push(node);
       append(structureNode.id);

@@ -58,9 +58,9 @@ pub(super) async fn active_unique_ids(
 pub(super) async fn reject_live_dependents(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
 ) -> Result<(), String> {
-    let selected: HashSet<&str> = ids.iter().map(String::as_str).collect();
+    let selected: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
     let rows = sqlx::query(
         "SELECT n.id,n.kind,n.data,t.fields FROM spaces_nodes n \
              LEFT JOIN spaces_object_types t ON t.id=n.object_type_id \

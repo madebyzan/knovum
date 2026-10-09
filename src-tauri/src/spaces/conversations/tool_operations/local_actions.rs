@@ -113,12 +113,12 @@ pub(in crate::spaces) async fn start_tool_call(
 
 pub async fn complete_tool_call(
     pool: &SqlitePool,
-    id: &str,
+    operation_id: &str,
     tool_output: &Value,
 ) -> Result<(), String> {
     super::receipts::complete(
         pool,
-        id,
+        operation_id,
         if tool_output["isError"] == true {
             "failed"
         } else {

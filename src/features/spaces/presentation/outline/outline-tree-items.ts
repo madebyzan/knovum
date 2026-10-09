@@ -11,16 +11,16 @@ export type OutlineTreeItem = {
 };
 
 interface OutlineTreeContext {
-  contentTitles: ReadonlyMap<string, string>;
+  titleByNodeId: ReadonlyMap<string, string>;
   index: StructureIndex;
 }
 
 /** Omitting `children` on a leaf is what stops TreeItem from treating it as expandable. */
 export function buildOutlineTreeItems(
   index: StructureIndex,
-  contentTitles: ReadonlyMap<string, string>,
+  titleByNodeId: ReadonlyMap<string, string>,
 ): OutlineTreeItem[] {
-  return outlineLevel(null, { contentTitles, index }, false);
+  return outlineLevel(null, { titleByNodeId, index }, false);
 }
 
 function outlineLevel(
@@ -31,7 +31,7 @@ function outlineLevel(
   return (context.index.childrenByParent.get(parentId) ?? []).map((structureNode) => {
     const title =
       structureNode.kind === "content"
-        ? context.contentTitles.get(structureNode.nodeId)
+        ? context.titleByNodeId.get(structureNode.nodeId)
         : structureNode.title;
     if (title === undefined) throw new Error(`Content title missing for ${structureNode.id}`);
     const locked = inheritedLocked || structureNode.locked;

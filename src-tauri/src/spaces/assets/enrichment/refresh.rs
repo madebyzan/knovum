@@ -43,13 +43,13 @@ async fn refresh_and_publish(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,
-    data: &Value,
+    payload: &Value,
 ) -> Result<Option<Value>, AppError> {
-    let source = required_string(data, "assetPath")?;
-    let file_name = required_string(data, "fileName")?;
-    let known_revision = optional_string(data, "sourceRevision");
-    let known_size = data.get("size").and_then(Value::as_u64);
-    let known_modified_at = data.get("modifiedAt").and_then(Value::as_u64);
+    let source = required_string(payload, "assetPath")?;
+    let file_name = required_string(payload, "fileName")?;
+    let known_revision = optional_string(payload, "sourceRevision");
+    let known_size = payload.get("size").and_then(Value::as_u64);
+    let known_modified_at = payload.get("modifiedAt").and_then(Value::as_u64);
     let app_handle = app.clone();
     let refreshed = crate::blocking::run(move || {
         files::refresh_asset(
@@ -74,7 +74,7 @@ async fn refresh_and_publish(
         return Ok(None);
     };
     let created = asset.preview_path.clone().into_iter().collect();
-    let refreshed_content = publish_refresh(app, space_id, node_id, data, &mut asset).await;
+    let refreshed_content = publish_refresh(app, space_id, node_id, payload, &mut asset).await;
     if refreshed_content.is_err() {
         if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, created).await {
             log::warn!("unpublished resource preview reclamation failed for {node_id}: {error}");
@@ -87,7 +87,7 @@ async fn publish_refresh(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,
-    data: &Value,
+    payload: &Value,
     asset: &mut PreparedAsset,
 ) -> Result<Option<Value>, AppError> {
     let mut current = load_node_content(app, space_id, node_id).await?;
@@ -95,7 +95,7 @@ async fn publish_refresh(
     revision::apply(&mut current)?;
     let chunks = take_chunks(asset);
     let guard = super::persistence::PublicationGuard {
-        source_revision: data.get("sourceRevision").and_then(Value::as_str),
+        source_revision: payload.get("sourceRevision").and_then(Value::as_str),
         job_id: None,
     };
     persist_processing_state(
@@ -112,11 +112,11 @@ async fn publish_refresh(
 }
 
 fn apply_metadata_fields(
-    data: &mut Value,
+    payload: &mut Value,
     size: Option<u64>,
     modified_at: Option<u64>,
 ) -> Result<bool, AppError> {
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;
     let mut changed = false;
@@ -131,9 +131,9 @@ fn apply_metadata_fields(
     Ok(changed)
 }
 
-fn apply_refresh_fields(data: &mut Value, asset: &PreparedAsset) -> Result<(), AppError> {
-    apply_asset_fields(data, asset)?;
-    let object = data
+fn apply_refresh_fields(payload: &mut Value, asset: &PreparedAsset) -> Result<(), AppError> {
+    apply_asset_fields(payload, asset)?;
+    let object = payload
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;
     set_optional(object, "sourceRevision", asset.source_revision.as_ref());

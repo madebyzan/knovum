@@ -14,7 +14,7 @@ pub async fn start(
     request: &RenderSubtitledVideoRequest,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<SubtitleVideoSource, String> {
-    validate_job_id(&request.id)?;
+    validate_derivation_id(&request.id)?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
     crate::spaces::knowledge::validation::validate_same_space_node(
@@ -65,11 +65,11 @@ pub async fn start(
 async fn load_node_content(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    id: &str,
+    node_id: &str,
     kind: &str,
 ) -> Result<Value, String> {
     let encoded: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind=$3 AND deleted_at IS NULL")
-        .bind(id).bind(space_id).bind(kind).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
+        .bind(node_id).bind(space_id).bind(kind).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
         .ok_or_else(|| format!("{kind} source is unavailable"))?;
     serde_json::from_str(&encoded).map_err(db::json_error)
 }
@@ -103,10 +103,10 @@ pub(super) fn automatic_subtitles(
     }
 }
 
-fn validate_job_id(id: &str) -> Result<(), String> {
-    if id.is_empty()
-        || id.len() > 64
-        || !id
+fn validate_derivation_id(derivation_id: &str) -> Result<(), String> {
+    if derivation_id.is_empty()
+        || derivation_id.len() > 64
+        || !derivation_id
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
     {

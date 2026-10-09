@@ -6,7 +6,7 @@ use std::{
 
 use super::{
     database,
-    journal::{self, Journal, JournalEntry, JournalPhase, ReconcileOutcome},
+    journal::{self, Journal, JournalPhase, PublicationTarget, ReconcileOutcome},
     paths::AppPaths,
     settings, staging,
 };
@@ -92,7 +92,7 @@ fn invalid_journal_target_is_rejected_without_touching_live_data() {
     fs::write(&outside, b"keep").expect("outside data");
     let journal = Journal {
         phase: JournalPhase::Prepared,
-        entries: vec![JournalEntry {
+        entries: vec![PublicationTarget {
             live: outside.clone(),
             staged: None,
             rollback: rollback(&outside, uuid::Uuid::new_v4()),
@@ -222,7 +222,7 @@ fn journal_with(
         phase,
         entries: live
             .into_iter()
-            .map(|path| JournalEntry {
+            .map(|path| PublicationTarget {
                 had_original: path == changed,
                 rollback: rollback(&path, token),
                 live: path,

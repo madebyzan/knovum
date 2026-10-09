@@ -12,7 +12,7 @@ export function projectStructureCanvasDocument(
   viewport: CanvasViewport = DEFAULT_VIEWPORT,
 ): CanvasDocumentV1 {
   const index = createStructureIndex(snapshot.structure);
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layoutByStructureNodeId = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const orderedContentIds: string[] = [];
 
   function walk(parentId: string | null) {
@@ -31,10 +31,10 @@ export function projectStructureCanvasDocument(
     viewport: { ...viewport },
     nodes: orderedContentIds.map((structureNodeId, zIndex) => {
       const structureNode = index.structureById.get(structureNodeId);
-      const layout = layouts.get(structureNodeId);
+      const layout = layoutByStructureNodeId.get(structureNodeId);
       if (structureNode?.kind !== "content" || layout?.kind !== "content")
         throw new Error(`Content structure is incomplete: ${structureNodeId}`);
-      const world = worldTransformFor(structureNodeId, index, layouts);
+      const world = worldTransformFor(structureNodeId, index, layoutByStructureNodeId);
       return Object.assign(
         {},
         {

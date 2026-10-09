@@ -12,7 +12,7 @@ import {
   validateMediaProducer,
 } from "./media-runtime-content.mjs";
 import { producerBytes, recipeBytes, runtimeTargets } from "./profiles.mjs";
-import { validateSigningRecord } from "./provenance.mjs";
+import { validateRuntimeSigning } from "./provenance.mjs";
 
 export const mediaManifestName = "media-manifest.json";
 
@@ -95,7 +95,7 @@ export function validateMediaRuntime(repository, directory, target) {
     throw new MediaRuntimeContentError("Media runtime identity differs from the controlled build");
   validateMediaProducer(manifest.producer, target, source.version, source.source);
   const licenseReview = validateMediaLicenseReview(repository, target, { requireApproved: false });
-  validateSigningRecord(manifest.producer.signing, target, MediaRuntimeContentError);
+  validateRuntimeSigning(manifest.producer.signing, target, MediaRuntimeContentError);
   validateFiles(directory, manifest, target);
   validateCompiledBinaryInventory(manifest);
   validateMediaLicenseEvidence(
@@ -113,7 +113,7 @@ function validateFiles(directory, manifest, target) {
   const declared = new Set();
   let total = 0;
   for (const file of manifest.files) {
-    validateFileEntry(file, declared);
+    validateManifestFile(file, declared);
     declared.add(file.path);
     total += file.size;
     if (total > 4 * 1024 ** 3) throw new MediaRuntimeContentError("Media runtime exceeds its size limit");
@@ -138,7 +138,7 @@ function exactKeys(value, keys) {
 
 const validSize = (size) => Number.isSafeInteger(size) && size >= 0 && size <= 4 * 1024 ** 3;
 
-function validateFileEntry(file, declared) {
+function validateManifestFile(file, declared) {
   if (
     !exactKeys(file, ["path", "size", "sha256"]) ||
     !safeRelativePath(file.path) ||

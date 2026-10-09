@@ -58,7 +58,7 @@ function validateProducerIdentity(record, manifest, configuration) {
     !/^[a-f0-9]{40}$/u.test(record.appCommit ?? "")
   )
     throw new Error("Runtime producer identity differs from the controlled build");
-  validateSigningRecord(record.signing, manifest.target);
+  validateRuntimeSigning(record.signing, manifest.target);
 }
 
 function validateCondaSupplier(supplier, configuration, condaPath) {
@@ -73,7 +73,7 @@ function validateCondaSupplier(supplier, configuration, condaPath) {
     throw new Error("Runtime producer identity differs from the controlled build");
 }
 
-export function validateSigningRecord(signing, target, ErrorType = Error) {
+export function validateRuntimeSigning(signing, target, ErrorType = Error) {
   const modes = target.startsWith("macos-") ? ["adhoc", "production"] : ["unsigned", "production"];
   if (
     !modes.includes(signing?.mode) ||

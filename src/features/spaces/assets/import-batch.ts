@@ -76,10 +76,10 @@ function batchPositions<Key>(sources: readonly PreparedBatchSource<Key>[], origi
 function batchSourcePosition<Key>(
   source: PreparedBatchSuccess<Key>,
   index: number,
-  positions: ReadonlyMap<number, { x: number; y: number }>,
+  positionBySourceIndex: ReadonlyMap<number, { x: number; y: number }>,
 ) {
   if (source.request.position) return source.request.position;
-  const position = positions.get(index);
+  const position = positionBySourceIndex.get(index);
   if (!position) throw new Error("Prepared import has no automatic canvas position");
   return position;
 }

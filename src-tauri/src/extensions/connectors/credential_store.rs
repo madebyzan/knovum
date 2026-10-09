@@ -45,20 +45,20 @@ impl AccountCredentialStore {
     }
 }
 
-pub(super) async fn lock(app: &AppHandle, id: &str) -> Arc<tokio::sync::Mutex<()>> {
+pub(super) async fn lock(app: &AppHandle, account_id: &str) -> Arc<tokio::sync::Mutex<()>> {
     app.state::<ExtensionState>()
         .credential_locks
         .lock()
         .await
-        .entry(id.into())
+        .entry(account_id.into())
         .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
         .clone()
 }
 
-pub(super) async fn remove(app: &AppHandle, id: &str) -> Result<(), String> {
-    let lock = lock(app, id).await;
+pub(super) async fn remove(app: &AppHandle, account_id: &str) -> Result<(), String> {
+    let lock = lock(app, account_id).await;
     let _guard = lock.lock().await;
-    crate::secrets::remove_secret(&key(id)).await
+    crate::secrets::remove_secret(&key(account_id)).await
 }
 
 pub(super) fn key(account_id: &str) -> String {
@@ -67,19 +67,19 @@ pub(super) fn key(account_id: &str) -> String {
 
 pub(crate) async fn credentials(
     app: &AppHandle,
-    id: &str,
+    account_id: &str,
     resource: &str,
 ) -> Result<BTreeMap<String, String>, String> {
-    let lock = super::authorization::account_lock(app, id).await;
+    let lock = super::authorization::account_lock(app, account_id).await;
     let _guard = lock.lock().await;
-    let account = accounts::load(&database::pool(app).await?, id).await?;
+    let account = accounts::load(&database::pool(app).await?, account_id).await?;
     if !account.enabled || account.cleanup_pending || account.resource != resource {
         return Err("connector-account-revoked-or-resource-changed".into());
     }
     match &account.authorization {
         ConnectorAuthorization::None => Ok(BTreeMap::new()),
         ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
-            let document = crate::secrets::read_secret(&key(id))
+            let document = crate::secrets::read_secret(&key(account_id))
                 .await?
                 .ok_or("connector-authorization-required")?;
             serde_json::from_str(&document).map_err(|_| "connector-secret-fields-invalid".into())

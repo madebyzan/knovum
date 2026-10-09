@@ -171,6 +171,6 @@ export const settingsGroupTitleKeys: Record<SettingsGroupId, string> = {
   information: "settings.general.groups.information",
 };
 
-export function settingsDefinition(id: SettingsPaneId) {
-  return settingsRegistry.find((definition) => definition.id === id)!;
+export function settingsDefinition(paneId: SettingsPaneId) {
+  return settingsRegistry.find((definition) => definition.id === paneId)!;
 }

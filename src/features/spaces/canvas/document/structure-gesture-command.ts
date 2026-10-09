@@ -19,26 +19,26 @@ export function commandForCanvasGesture(
   before: CanvasDocumentV1,
   after: CanvasDocumentV1,
 ): SpaceEditCommand | undefined {
-  const previousByNode = new Map(before.nodes.map((layout) => [layout.nodeId, layout]));
+  const previousFrameByNodeId = new Map(before.nodes.map((layout) => [layout.nodeId, layout]));
   const changed = after.nodes.filter((layout) => {
-    const previous = previousByNode.get(layout.nodeId);
+    const previous = previousFrameByNodeId.get(layout.nodeId);
     return previous && !sameLayout(previous, layout);
   });
   if (!changed.length) return undefined;
 
   const index = createStructureIndex(snapshot.structure);
   const structureNodeIds = changed.map(({ nodeId }) => {
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
     if (!structureNodeId) throw new Error(`Content structure not found: ${nodeId}`);
     return structureNodeId;
   });
   const roots = effectiveOperationRoots(structureNodeIds, index).map((structureNode) => structureNode.id);
   const first = changed[0]!;
-  const firstBefore = previousByNode.get(first.nodeId)!;
+  const firstBefore = previousFrameByNodeId.get(first.nodeId)!;
   const delta = { x: first.frame.x - firstBefore.frame.x, y: first.frame.y - firstBefore.frame.y };
   if (
     changed.every((layout) => {
-      const previous = previousByNode.get(layout.nodeId)!;
+      const previous = previousFrameByNodeId.get(layout.nodeId)!;
       return (
         nearly(layout.frame.x - previous.frame.x, delta.x) &&
         nearly(layout.frame.y - previous.frame.y, delta.y) &&
@@ -62,21 +62,21 @@ function contentLayoutCommand(
   next: CanvasNodeLayoutV1,
 ): SpaceEditCommand {
   const index = createStructureIndex(snapshot.structure);
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layoutByStructureNodeId = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const structureNode = index.structureById.get(structureNodeId);
-  const current = layouts.get(structureNodeId);
+  const current = layoutByStructureNodeId.get(structureNodeId);
   if (structureNode?.kind !== "content" || current?.kind !== "content")
     throw new Error(`Content layout not found: ${structureNodeId}`);
   const parentWorld: LocalTransform =
     structureNode.parentId === null
       ? { x: 0, y: 0, rotation: 0, scale: 1 }
-      : worldTransformFor(structureNode.parentId, index, layouts);
+      : worldTransformFor(structureNode.parentId, index, layoutByStructureNodeId);
   const transform = localFromWorld(
     {
       x: next.frame.x,
       y: next.frame.y,
       rotation: next.frame.rotation,
-      scale: worldTransformFor(structureNodeId, index, layouts).scale,
+      scale: worldTransformFor(structureNodeId, index, layoutByStructureNodeId).scale,
     },
     parentWorld,
   );

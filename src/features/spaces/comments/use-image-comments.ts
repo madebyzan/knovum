@@ -109,9 +109,9 @@ export function useImageComments(props: ImageCommentCanvas) {
     session.cancel();
     dock.openAsk("selection", { nodeIds: [props.id] });
   }
-  function close(open: boolean, id: string) {
-    selectedId.value = open ? id : undefined;
-    if (!open && id === "draft") draft.value = undefined;
+  function close(open: boolean, commentId: string) {
+    selectedId.value = open ? commentId : undefined;
+    if (!open && commentId === "draft") draft.value = undefined;
   }
   function cancelDraft() {
     draft.value = undefined;

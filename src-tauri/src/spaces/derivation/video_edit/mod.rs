@@ -62,8 +62,8 @@ pub async fn render(
     }
 }
 
-pub fn cancel(id: &str) -> Result<(), String> {
-    registry::cancel(id)
+pub fn cancel(derivation_id: &str) -> Result<(), String> {
+    registry::cancel(derivation_id)
 }
 
 pub async fn prepare_proxy(
@@ -73,8 +73,8 @@ pub async fn prepare_proxy(
     proxy::prepare(app, request).await
 }
 
-pub fn cancel_proxy(id: &str) -> Result<(), String> {
-    proxy_registry::cancel(id)
+pub fn cancel_proxy(job_id: &str) -> Result<(), String> {
+    proxy_registry::cancel(job_id)
 }
 
 fn report(

@@ -14,7 +14,7 @@ pub struct VideoSubtitleSource {
 
 pub async fn complete(
     pool: &SqlitePool,
-    id: &str,
+    derivation_id: &str,
     output: RenderedVideo,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &CancellationToken,
@@ -28,9 +28,9 @@ pub async fn complete(
         "SELECT d.space_id,i.node_id,d.output_node_id,n.data FROM spaces_knowledge_derivations d \
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \
          JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
-    ).bind(id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
+    ).bind(derivation_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Subtitle derivation is no longer running")?;
-    super::super::inputs::validate_current(&mut tx, id).await?;
+    super::super::inputs::validate_current(&mut tx, derivation_id).await?;
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&data)?;
@@ -46,7 +46,7 @@ pub async fn complete(
     crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
     relations::insert(&mut tx, &relation).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
-        .bind(now).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     if cancellation.is_cancelled() {
         return Err(super::CANCELLED.into());
     }
@@ -58,8 +58,8 @@ pub async fn complete(
     })
 }
 
-fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), AppError> {
-    let object = data
+fn apply_output(payload: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), AppError> {
+    let object = payload
         .as_object_mut()
         .ok_or("Derived video data is invalid")?;
     object.insert("assetPath".into(), output.path.clone().into());
@@ -74,5 +74,5 @@ fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<()
     {
         knowledge.insert("sourceRevision".into(), output.revision.clone().into());
     }
-    revision::apply(data).map(|_| ()).map_err(AppError::from)
+    revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }

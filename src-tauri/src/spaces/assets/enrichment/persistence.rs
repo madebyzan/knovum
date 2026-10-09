@@ -14,12 +14,12 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,
-    data: &mut Value,
+    payload: &mut Value,
     state: &str,
     chunks: Option<Vec<KnowledgeChunkInput>>,
     guard: Option<&PublicationGuard<'_>>,
 ) -> Result<(), AppError> {
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;
     if state == "done" {
@@ -27,7 +27,7 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
     } else {
         object.insert("processingState".into(), Value::String(state.to_owned()));
     }
-    let revision = data
+    let revision = payload
         .get("sourceRevision")
         .and_then(Value::as_str)
         .map(str::to_owned);
@@ -50,11 +50,11 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
     .map(|key| {
         (
             key.to_owned(),
-            data.get(key).cloned().unwrap_or(Value::Null),
+            payload.get(key).cloned().unwrap_or(Value::Null),
         )
     })
     .collect();
-    *data = super::commit::publish(
+    *payload = super::commit::publish(
         app,
         space_id,
         node_id,

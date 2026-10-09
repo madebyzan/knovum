@@ -72,7 +72,7 @@ function validateManifestFiles(files, directory, target, executable) {
   const declared = new Set();
   let totalSize = 0;
   for (const file of files) {
-    validateManifestEntry(file, declared, target);
+    validateManifestFile(file, declared, target);
     totalSize += file.size;
     if (!Number.isSafeInteger(totalSize) || totalSize > maxRuntimeBytes) {
       throw new Error(`Python runtime size exceeds limit for ${target}`);
@@ -83,13 +83,13 @@ function validateManifestFiles(files, directory, target, executable) {
   return declared;
 }
 
-function validateManifestEntry(file, declared, target) {
-  if (!validManifestEntry(file) || declared.has(file.path)) {
+function validateManifestFile(file, declared, target) {
+  if (!validManifestFile(file) || declared.has(file.path)) {
     throw new Error(`Python runtime manifest contains an invalid file entry for ${target}`);
   }
 }
 
-function validManifestEntry(file) {
+function validManifestFile(file) {
   if (!file || !exactKeys(file, ["path", "size", "sha256"])) return false;
   if (!safeRelativePath(file.path) || file.path === "runtime-manifest.json") return false;
   if (!Number.isSafeInteger(file.size) || file.size < 0 || file.size > maxRuntimeFileBytes) return false;

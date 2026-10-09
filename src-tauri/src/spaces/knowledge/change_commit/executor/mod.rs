@@ -54,5 +54,5 @@ pub(super) async fn execute(
         structure::history::record(tx, space_id, &before, &after, None, None, edit_revision)
             .await?;
     }
-    Ok(serde_json::json!({"resolvedIds": state.resolved_ids}))
+    Ok(serde_json::json!({"resolvedIds": state.resolved_id_by_temp_id}))
 }

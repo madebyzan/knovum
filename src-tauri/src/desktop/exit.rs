@@ -135,23 +135,25 @@ pub(crate) fn request<R: Runtime>(app: &AppHandle<R>) {
     });
 }
 
-fn emit_request<R: Runtime>(app: &AppHandle<R>, id: u64) {
+fn emit_request<R: Runtime>(app: &AppHandle<R>, request_id: u64) {
     if let Err(error) = app.emit(
         "knovum://app-exit-requested",
-        AppExitRequest { request_id: id },
+        AppExitRequest {
+            request_id: request_id,
+        },
     ) {
         log::error!("failed to deliver exit request: {error}");
-        show_unresponsive(app, id);
+        show_unresponsive(app, request_id);
     }
 }
 
-fn show_unresponsive<R: Runtime>(app: &AppHandle<R>, id: u64) {
+fn show_unresponsive<R: Runtime>(app: &AppHandle<R>, request_id: u64) {
     {
         let Ok(mut pending) = PENDING.lock() else {
             show_state_error(app);
             return;
         };
-        let Some(request) = pending.as_mut().filter(|request| request.id == id) else {
+        let Some(request) = pending.as_mut().filter(|request| request.id == request_id) else {
             return;
         };
         if request.showing_error {
@@ -166,7 +168,7 @@ fn show_unresponsive<R: Runtime>(app: &AppHandle<R>, id: u64) {
         .buttons(MessageDialogButtons::OkCancelCustom("Quit anyway".into(), "Keep open".into()))
         .show(move |quit| {
             let Ok(mut pending) = PENDING.lock() else { return; };
-            if pending.as_ref().is_none_or(|request| request.id != id) { return; }
+            if pending.as_ref().is_none_or(|request| request.id != request_id) { return; }
             *pending = None;
             drop(pending);
             if quit { approve(&handle); }

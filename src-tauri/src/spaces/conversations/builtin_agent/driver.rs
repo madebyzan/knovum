@@ -79,7 +79,7 @@ pub(super) async fn drive(
         system_prompt: format!("You are Knovum's built-in knowledge agent. {} Publish only through Knovum Actions and never claim success without a completed Action receipt.", crate::spaces::conversations::prompt_policy::SPACE_READING),
         tools: host.catalog.tools.iter().map(|tool| AgentToolDefinition {
             name: tool.name.clone(), description: tool.description.clone(), parameters: tool.input_schema.clone(),
-            read_only: host.catalog.by_wire_name[&tool.name].read_only,
+            read_only: host.catalog.binding_by_wire_name[&tool.name].read_only,
         }).collect(), messages, input_id: host.session.input_id.clone(), after_checkpoint_id: host.session.projection_checkpoint_id.clone(), resume,
         skills: host.extensions.files.clone(),
         skill_tool_bindings: host.extensions.skill_tool_bindings.clone(),

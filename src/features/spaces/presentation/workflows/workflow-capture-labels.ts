@@ -14,7 +14,7 @@ export const captureIssueLabels: Record<CaptureIssueReason, string> = {
 };
 
 // Action ids arrive from the capture IPC as open strings, so a Map keeps lookups off the prototype chain.
-const captureActionLabelKeys = new Map([
+const labelKeyByActionId = new Map([
   ["draft-document", "draftDocument"],
   ["draft-script", "draftScript"],
   ["summarize-meeting", "summarizeMeeting"],
@@ -30,6 +30,6 @@ const captureActionLabelKeys = new Map([
 ]);
 
 export function captureActionLabel(actionId: string, translate: (key: string) => string) {
-  const labelKey = captureActionLabelKeys.get(actionId);
+  const labelKey = labelKeyByActionId.get(actionId);
   return labelKey ? translate(`spaces.creation.workflow.captureActions.${labelKey}`) : actionId;
 }

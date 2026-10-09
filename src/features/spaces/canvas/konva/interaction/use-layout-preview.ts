@@ -3,7 +3,7 @@ import { onBeforeUnmount, shallowRef } from "vue";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 
 export function useLayoutPreview(process: (updates: readonly CanvasGestureUpdate[]) => void) {
-  const layouts = shallowRef(new Map<string, CanvasGestureUpdate>());
+  const gestureUpdateByNodeId = shallowRef(new Map<string, CanvasGestureUpdate>());
   let request: number | undefined;
   let queued: readonly CanvasGestureUpdate[] = [];
 
@@ -12,7 +12,7 @@ export function useLayoutPreview(process: (updates: readonly CanvasGestureUpdate
       if (request !== undefined) cancelAnimationFrame(request);
       request = undefined;
       queued = [];
-      layouts.value = new Map();
+      gestureUpdateByNodeId.value = new Map();
       process([]);
       return;
     }
@@ -20,7 +20,7 @@ export function useLayoutPreview(process: (updates: readonly CanvasGestureUpdate
     if (request !== undefined) return;
     request = requestAnimationFrame(() => {
       request = undefined;
-      layouts.value = new Map(queued.map((layout) => [layout.nodeId, layout]));
+      gestureUpdateByNodeId.value = new Map(queued.map((layout) => [layout.nodeId, layout]));
       process(queued);
     });
   }
@@ -28,5 +28,5 @@ export function useLayoutPreview(process: (updates: readonly CanvasGestureUpdate
   onBeforeUnmount(() => {
     if (request !== undefined) cancelAnimationFrame(request);
   });
-  return { layouts, update };
+  return { gestureUpdateByNodeId, update };
 }

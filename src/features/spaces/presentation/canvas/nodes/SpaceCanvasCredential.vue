@@ -15,7 +15,7 @@ const props = defineProps<{
   id: string;
   data: SpaceCredentialPayload;
   interactive: boolean;
-  persist: (id: string, data: SpaceCredentialPayload) => Promise<void>;
+  persist: (nodeId: string, payload: SpaceCredentialPayload) => Promise<void>;
 }>();
 const { t } = useI18n();
 const {

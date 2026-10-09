@@ -10,7 +10,7 @@ const layoutNodeId = (item: CanvasNodeLayoutV1 | string) => (typeof item === "st
 interface CanvasNavigationContext {
   layouts(): readonly CanvasNodeLayoutV1[];
   selectedNodeIds(): ReadonlySet<string>;
-  setSelection(ids: readonly string[]): void;
+  setSelection(nodeIds: readonly string[]): void;
   setViewport(viewport: CanvasViewport): void;
   size(): { width: number; height: number };
   viewport(): CanvasViewport;
@@ -27,12 +27,12 @@ export function setCanvasZoom(context: CanvasNavigationContext, zoom: number) {
 
 export function revealCanvasLayouts(
   context: CanvasNavigationContext,
-  ids: readonly string[],
+  nodeIds: readonly string[],
   mode: "ensure-visible" | "focus",
 ) {
-  const layouts = intersectionBy(context.layouts(), ids, layoutNodeId);
+  const layouts = intersectionBy(context.layouts(), nodeIds, layoutNodeId);
   if (!layouts.length) return;
-  context.setSelection(ids);
+  context.setSelection(nodeIds);
   const bounds = layoutBounds(layouts);
   if (mode === "focus") {
     fitCanvasLayouts(context, layouts);
@@ -42,16 +42,16 @@ export function revealCanvasLayouts(
 }
 
 export function revealCanvasTargets(
-  context: CanvasNavigationContext & { setStructureSelection(ids: readonly string[]): void },
-  ids: readonly string[],
+  context: CanvasNavigationContext & { setStructureSelection(structureNodeIds: readonly string[]): void },
+  targetIds: readonly string[],
   mode: "ensure-visible" | "focus",
-  structureBounds: ReadonlyMap<string, { x: number; y: number; width: number; height: number }>,
+  structureBoundsById: ReadonlyMap<string, { x: number; y: number; width: number; height: number }>,
 ) {
-  const layouts = intersectionBy(context.layouts(), ids, layoutNodeId);
-  if (layouts.length) return revealCanvasLayouts(context, ids, mode);
-  const bounds = mergeBounds(compact(ids.map((id) => structureBounds.get(id))));
+  const layouts = intersectionBy(context.layouts(), targetIds, layoutNodeId);
+  if (layouts.length) return revealCanvasLayouts(context, targetIds, mode);
+  const bounds = mergeBounds(compact(targetIds.map((id) => structureBoundsById.get(id))));
   if (!bounds) return;
-  context.setStructureSelection(ids);
+  context.setStructureSelection(targetIds);
   if (mode === "focus") fitCanvasBounds(context, bounds);
   else if (!isVisible(bounds, context.viewport(), context.size()))
     context.setViewport(ensureBoundsVisible(bounds, context.viewport(), context.size()));

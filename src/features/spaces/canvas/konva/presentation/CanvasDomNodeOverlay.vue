@@ -9,11 +9,11 @@ const props = defineProps<{
   previewPolicy: CanvasPreviewPolicy;
   interactive: boolean;
   sceneNode: CanvasSceneNode;
-  layoutPreviews: ReadonlyMap<string, CanvasNodeLayoutV1>;
+  layoutPreviewByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
   selected: boolean;
 }>();
 const effectiveLayout = computed(
-  () => props.layoutPreviews.get(props.sceneNode.node.id) ?? props.sceneNode.layout,
+  () => props.layoutPreviewByNodeId.get(props.sceneNode.node.id) ?? props.sceneNode.layout,
 );
 const effectiveFrame = computed(() => effectiveLayout.value.frame);
 const style = computed(() => ({

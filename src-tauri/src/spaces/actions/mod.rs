@@ -104,11 +104,11 @@ pub fn list_space_actions() -> Vec<SpaceActionDefinition> {
     definitions().to_vec()
 }
 
-pub fn require(id: &str) -> Result<&'static SpaceActionDefinition, String> {
+pub fn require(action_id: &str) -> Result<&'static SpaceActionDefinition, String> {
     catalog::ACTIONS
         .iter()
-        .find(|definition| definition.id == id)
-        .ok_or_else(|| format!("SpaceAction is not registered: {id}"))
+        .find(|definition| definition.id == action_id)
+        .ok_or_else(|| format!("SpaceAction is not registered: {action_id}"))
 }
 
 pub fn validate_parameters(

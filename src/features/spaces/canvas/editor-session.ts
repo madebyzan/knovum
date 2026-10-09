@@ -125,6 +125,6 @@ export function selectedCanvasNodesInOrder(
   nodes: readonly SpaceCanvasNode[],
   selectedNodeIds: readonly string[],
 ) {
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  return compact(selectedNodeIds.map((id) => byId.get(id)));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  return compact(selectedNodeIds.map((id) => nodeById.get(id)));
 }

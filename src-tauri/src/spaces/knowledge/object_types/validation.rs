@@ -15,17 +15,17 @@ pub(super) fn validate_input(input: &ObjectTypeInput) -> Result<(), String> {
 }
 
 pub(crate) fn validate_custom_type_definition(
-    id: &str,
+    object_type_id: &str,
     name: &str,
     icon: &str,
     description: &str,
     fields: &Value,
 ) -> Result<(), String> {
-    validate_required_text(id, 128, "Knowledge Type id")?;
+    validate_required_text(object_type_id, 128, "Knowledge Type id")?;
     validate_required_text(name, 128, "Knowledge Type name")?;
     validate_required_text(icon, 128, "Knowledge Type icon")?;
     validate_text(description, 4_096, "Knowledge Type description")?;
-    if id.starts_with("system:") {
+    if object_type_id.starts_with("system:") {
         return Err("Custom Knowledge Type ids cannot use the reserved system: prefix".into());
     }
     validate_fields(fields)

@@ -29,7 +29,7 @@ export interface PopupContextMenuOptions {
   scope?: string | undefined;
 }
 
-const ACCELERATOR_MAP: Readonly<Record<string, string>> = {
+const ACCELERATOR_BY_TOKEN: Readonly<Record<string, string>> = {
   $mod: "CmdOrCtrl",
   mod: "CmdOrCtrl",
   cmd: "CmdOrCtrl",
@@ -52,16 +52,16 @@ export function normalizeAccelerator(shortcut?: string | undefined): string | un
     .split("+")
     .map(
       (p) =>
-        ACCELERATOR_MAP[p.trim().toLowerCase()] ??
+        ACCELERATOR_BY_TOKEN[p.trim().toLowerCase()] ??
         (p.trim().length === 1 ? p.trim().toUpperCase() : p.trim()),
     )
     .join("+");
 }
 
-function wrapAction(scope: string, action: (id: string) => void | Promise<void>) {
-  return (id: string) => {
+function wrapAction(scope: string, action: (menuItemId: string) => void | Promise<void>) {
+  return (menuItemId: string) => {
     void Promise.resolve()
-      .then(() => action(id))
+      .then(() => action(menuItemId))
       .catch((err) => logError(`[${scope}] application menu action failed: ${formatErrorDiagnostic(err)}`));
   };
 }

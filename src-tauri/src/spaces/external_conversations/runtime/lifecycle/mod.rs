@@ -6,7 +6,7 @@ use crate::spaces::db;
 
 pub(super) async fn mark_connected(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    binding_id: &str,
     run_id: &str,
     session: &crate::external_agents::conversation::ConversationSession,
 ) -> Result<(), String> {
@@ -20,7 +20,7 @@ pub(super) async fn mark_connected(
     .bind(&session.runtime_session_id)
     .bind(sqlx::types::Json(&session.capabilities))
     .bind(now)
-    .bind(id)
+    .bind(binding_id)
     .bind(run_id)
     .execute(&mut *tx)
     .await
@@ -39,7 +39,7 @@ pub(super) async fn mark_connected(
 
 pub(crate) async fn mark_disconnected(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    binding_id: &str,
     run_id: &str,
     error: &str,
 ) -> Result<bool, String> {
@@ -54,7 +54,7 @@ pub(crate) async fn mark_disconnected(
             THEN $1 ELSE output_publication_error END
         WHERE id=$3 AND run_id=$4 AND output_publication_state<>'committed' AND state IN ('connecting','connected')
         AND EXISTS(SELECT 1 FROM spaces_runs WHERE id=$4 AND cancel_requested_at IS NULL)")
-        .bind(error).bind(now).bind(id).bind(run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(error).bind(now).bind(binding_id).bind(run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     if disconnected.rows_affected() == 0 {
         tx.commit().await.map_err(db::sql_error)?;
         return Ok(false);
@@ -65,7 +65,7 @@ pub(crate) async fn mark_disconnected(
     )
     .bind(error)
     .bind(now)
-    .bind(id)
+    .bind(binding_id)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -79,20 +79,20 @@ pub(crate) async fn mark_disconnected(
     .await
     .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
-    super::super::updates::release(id);
+    super::super::updates::release(binding_id);
     crate::spaces::runs::announce_change();
     Ok(true)
 }
 
 pub(super) async fn load(
     pool: &sqlx::SqlitePool,
-    id: &str,
+    binding_id: &str,
 ) -> Result<super::super::ExternalAgentSessionBinding, String> {
     let row: (String, String, String, String) = sqlx::query_as(
         "SELECT id,run_id,conversation_id,branch_id
          FROM spaces_external_agent_conversations WHERE id=$1",
     )
-    .bind(id)
+    .bind(binding_id)
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;

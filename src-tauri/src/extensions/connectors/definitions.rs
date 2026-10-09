@@ -11,9 +11,12 @@ pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<ConnectorDefinition>, 
         .collect()
 }
 
-pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<ConnectorDefinition, String> {
+pub(crate) async fn load(
+    pool: &SqlitePool,
+    connector_id: &str,
+) -> Result<ConnectorDefinition, String> {
     let document: String = sqlx::query_scalar("SELECT document FROM connectors WHERE id=$1")
-        .bind(id)
+        .bind(connector_id)
         .fetch_optional(pool)
         .await
         .map_err(|error| error.to_string())?
@@ -85,15 +88,15 @@ pub(in crate::extensions) async fn replace_on(
 
 pub(in crate::extensions) async fn delete_on(
     tx: &mut SqliteConnection,
-    id: &str,
+    connector_id: &str,
 ) -> Result<(), String> {
     sqlx::query("DELETE FROM connections WHERE json_extract(document,'$.connectorId')=$1")
-        .bind(id)
+        .bind(connector_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM connectors WHERE id=$1")
-        .bind(id)
+        .bind(connector_id)
         .execute(tx)
         .await
         .map_err(|error| error.to_string())?;

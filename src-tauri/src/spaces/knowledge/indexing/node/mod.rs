@@ -12,28 +12,28 @@ use self::{
 
 use super::KnowledgeChunkSeed;
 
-pub(crate) fn derived_chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
-    let kind = data.get("kind").and_then(Value::as_str);
+pub(crate) fn derived_chunks(payload: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
+    let kind = payload.get("kind").and_then(Value::as_str);
     if kind == Some("file") {
-        return document::chunks(data);
+        return document::chunks(payload);
     }
     if matches!(kind, Some("image" | "video")) {
-        return visual_chunks(data);
+        return visual_chunks(payload);
     }
     if !matches!(kind, Some("note" | "markdown" | "website")) {
         return Ok(Vec::new());
     }
-    let revision = data
+    let revision = payload
         .get("knowledgeRevision")
         .and_then(Value::as_str)
         .ok_or_else(|| "Semantic Space node is missing knowledgeRevision".to_string())?;
     match kind {
-        Some("note") => note_chunks(data, revision),
+        Some("note") => note_chunks(payload, revision),
         Some("markdown") => Ok(markdown_chunks(
-            data.get("text").and_then(Value::as_str).unwrap_or(""),
+            payload.get("text").and_then(Value::as_str).unwrap_or(""),
             revision,
         )),
-        Some("website") => website_chunks(data, revision),
+        Some("website") => website_chunks(payload, revision),
         _ => Ok(Vec::new()),
     }
 }

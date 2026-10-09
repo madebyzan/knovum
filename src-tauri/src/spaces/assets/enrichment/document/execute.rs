@@ -18,14 +18,14 @@ use crate::{
 pub(in crate::spaces) async fn analyze(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
-    data: Value,
+    payload: Value,
     target: TaskExecutionTarget,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Value, AppError> {
-    let mut report = DocumentCoverage::from_node_content(&data)?;
+    let mut report = DocumentCoverage::from_node_content(&payload)?;
     super::checkpoint::restore(app, request, &mut report).await?;
-    let source = data
+    let source = payload
         .get("assetPath")
         .and_then(Value::as_str)
         .ok_or("Document source is missing")?;
@@ -83,7 +83,7 @@ pub(in crate::spaces) async fn analyze(
                         request,
                         &mut report,
                         (index, &error.to_string()),
-                        (&data["documentCoverage"], cancellation),
+                        (&payload["documentCoverage"], cancellation),
                     )
                     .await?;
                     return Err(error.into());
@@ -99,7 +99,7 @@ pub(in crate::spaces) async fn analyze(
                     request,
                     &mut report,
                     (index, &error.to_string()),
-                    (&data["documentCoverage"], cancellation),
+                    (&payload["documentCoverage"], cancellation),
                 )
                 .await?;
                 return Err(error);
@@ -112,16 +112,16 @@ pub(in crate::spaces) async fn analyze(
         ));
     }
     report.validate()?;
-    let data = publish(
+    let payload = publish(
         app,
         request,
         &report,
-        &data["documentCoverage"],
+        &payload["documentCoverage"],
         cancellation,
     )
     .await?;
     super::checkpoint::clear(app, &request.job_id).await?;
-    Ok(data)
+    Ok(payload)
 }
 
 async fn fail_occurrence(

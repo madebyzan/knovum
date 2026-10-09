@@ -22,29 +22,29 @@ impl Protocol {
 
     pub(super) async fn request<P: Serialize, R: DeserializeOwned>(
         &mut self,
-        id: &str,
+        request_id: &str,
         method: &str,
         params: &P,
     ) -> Result<R, String> {
-        self.send_request(id, method, params).await?;
-        self.read_response(id).await
+        self.send_request(request_id, method, params).await?;
+        self.read_response(request_id).await
     }
 
     pub(super) async fn send_request<P: Serialize>(
         &mut self,
-        id: &str,
+        request_id: &str,
         method: &str,
         params: &P,
     ) -> Result<(), String> {
-        self.send(&json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}))
+        self.send(&json!({"jsonrpc":"2.0","id":request_id,"method":method,"params":params}))
             .await
     }
 
     pub(super) async fn read_response<R: DeserializeOwned>(
         &mut self,
-        id: &str,
+        request_id: &str,
     ) -> Result<R, String> {
-        self.read_response_with_events(id, |_, _| {
+        self.read_response_with_events(request_id, |_, _| {
             Err("invalid_output: unexpected worker notification".into())
         })
         .await
@@ -52,7 +52,7 @@ impl Protocol {
 
     pub(super) async fn read_response_with_events<R: DeserializeOwned>(
         &mut self,
-        id: &str,
+        request_id: &str,
         mut on_event: impl FnMut(&str, Value) -> Result<(), String>,
     ) -> Result<R, String> {
         loop {
@@ -70,21 +70,21 @@ impl Protocol {
                 on_event(method, params)?;
                 continue;
             }
-            return Self::decode_response(response, id);
+            return Self::decode_response(response, request_id);
         }
     }
 
     pub(super) fn decode_response<R: DeserializeOwned>(
         response: Value,
-        id: &str,
+        request_id: &str,
     ) -> Result<R, String> {
         if response.get("jsonrpc").and_then(Value::as_str) != Some("2.0")
-            || response.get("id").and_then(Value::as_str) != Some(id)
+            || response.get("id").and_then(Value::as_str) != Some(request_id)
         {
             return Err("invalid_output: worker returned a mismatched JSON-RPC response".into());
         }
         match (response.get("result"), response.get("error")) {
-            (Some(result), None) => serde_json::from_value(result.clone())
+            (Some(response_payload), None) => serde_json::from_value(response_payload.clone())
                 .map_err(|error| format!("invalid_output: {error}")),
             (None, Some(error)) => {
                 let code = error

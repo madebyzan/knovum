@@ -41,16 +41,22 @@ pub(in crate::spaces::structure) async fn clone_in_transaction(
     }
 
     let moved_ids = mapping::subtree_ids(&index, &roots);
-    let mut structure_node_ids = HashMap::new();
-    let mut node_ids = HashMap::new();
+    let mut structure_node_id_by_source_id = HashMap::new();
+    let mut node_id_by_source_id = HashMap::new();
     for id in &moved_ids {
-        structure_node_ids.insert(id.clone(), Uuid::new_v4().to_string());
+        structure_node_id_by_source_id.insert(id.clone(), Uuid::new_v4().to_string());
         if let StructureNode::Content { node_id, .. } = index.node(&original_structure, id)? {
-            node_ids.insert(node_id.clone(), Uuid::new_v4().to_string());
+            node_id_by_source_id.insert(node_id.clone(), Uuid::new_v4().to_string());
         }
     }
-    persistence::clone_nodes(tx, space_id, &node_ids, &structure_node_ids).await?;
-    persistence::clone_relations(tx, space_id, &node_ids, snapshot).await?;
+    persistence::clone_nodes(
+        tx,
+        space_id,
+        &node_id_by_source_id,
+        &structure_node_id_by_source_id,
+    )
+    .await?;
+    persistence::clone_relations(tx, space_id, &node_id_by_source_id, snapshot).await?;
 
     let root_set: HashSet<&str> = roots.iter().map(String::as_str).collect();
     let target_key = target_parent_id.map(str::to_owned);
@@ -74,14 +80,14 @@ pub(in crate::spaces::structure) async fn clone_in_transaction(
     let mut cloned_layouts = Vec::with_capacity(moved_ids.len());
     for old_id in &moved_ids {
         let source_node = index.node(&original_structure, old_id)?;
-        let new_id = structure_node_ids[old_id].clone();
+        let new_id = structure_node_id_by_source_id[old_id].clone();
         let is_root = root_set.contains(old_id.as_str());
         let parent_id = if is_root {
             target_key.clone()
         } else {
             source_node
                 .parent_id()
-                .map(|parent| structure_node_ids[parent].clone())
+                .map(|parent| structure_node_id_by_source_id[parent].clone())
         };
         let order = if is_root {
             let value = next_order;
@@ -95,9 +101,9 @@ pub(in crate::spaces::structure) async fn clone_in_transaction(
             new_id.clone(),
             parent_id,
             order,
-            &node_ids,
+            &node_id_by_source_id,
         ));
-        let old_layout = original_layouts[index.layout[old_id]].clone();
+        let old_layout = original_layouts[index.layout_index_by_structure_node_id[old_id]].clone();
         cloned_layouts.push(mapping::clone_layout(
             &mapping::LayoutContext {
                 structure: &original_structure,
@@ -116,6 +122,6 @@ pub(in crate::spaces::structure) async fn clone_in_transaction(
     snapshot.layouts.extend(cloned_layouts);
     Ok(roots
         .into_iter()
-        .map(|id| structure_node_ids[&id].clone())
+        .map(|id| structure_node_id_by_source_id[&id].clone())
         .collect())
 }

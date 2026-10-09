@@ -36,7 +36,7 @@ export async function revealStructureNode(store: SpaceStore, editor: EditorSessi
 
 export async function revealContentNode(store: SpaceStore, editor: EditorSession, nodeId: string) {
   const index = createStructureIndex(store.editSnapshot.structure);
-  const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+  const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
   if (!structureNodeId) throw new Error("Search result is unavailable in the Space structure");
   await revealStructureNode(store, editor, structureNodeId);
 }

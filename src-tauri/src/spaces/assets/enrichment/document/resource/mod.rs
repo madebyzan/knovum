@@ -88,7 +88,7 @@ fn resource_path(directory: &Path, source: &Path, digest: &str) -> std::path::Pa
 
 fn store_at(
     path: &Path,
-    id: String,
+    resource_id: String,
     bytes: &[u8],
     width: u32,
     height: u32,
@@ -97,7 +97,7 @@ fn store_at(
     claim_managed_path(path)?;
     if path.exists() {
         let existing = read_bounded(path)?;
-        if hex::encode(Sha256::digest(&existing)) != id {
+        if hex::encode(Sha256::digest(&existing)) != resource_id {
             return Err("Document resource digest does not match its stored bytes".into());
         }
     } else {
@@ -118,7 +118,7 @@ fn store_at(
         }
     }
     Ok(DocumentResource {
-        id,
+        id: resource_id,
         path: path.to_string_lossy().into_owned(),
         media_type: "image/png".into(),
         width,

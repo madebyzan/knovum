@@ -8,17 +8,18 @@ interface CanvasSelectionInput {
   layouts: readonly CanvasNodeLayoutV1[];
   nodeIds: ReadonlySet<string>;
   relationIds: ReadonlySet<string>;
-  relationBounds: ReadonlyMap<string, CanvasRect>;
+  relationBoundsById: ReadonlyMap<string, CanvasRect>;
 }
 
 export function createCanvasSelectionSnapshot({
   layouts,
   nodeIds,
   relationIds,
-  relationBounds,
+  relationBoundsById,
 }: CanvasSelectionInput): CanvasSelectionSnapshot {
   const selectedLayouts = layouts.filter(({ nodeId }) => nodeIds.has(nodeId));
-  const bounds = canvasLayoutBounds(selectedLayouts) ?? selectedRelationBounds(relationIds, relationBounds);
+  const bounds =
+    canvasLayoutBounds(selectedLayouts) ?? selectedRelationBounds(relationIds, relationBoundsById);
   return {
     nodeIds: [...nodeIds],
     structureNodeIds: [],
@@ -32,8 +33,11 @@ export function createCanvasSelectionSnapshot({
   };
 }
 
-function selectedRelationBounds(ids: ReadonlySet<string>, bounds: ReadonlyMap<string, CanvasRect>) {
-  const selected = compact([...ids].map((id) => bounds.get(id)));
+function selectedRelationBounds(
+  relationIds: ReadonlySet<string>,
+  boundsByRelationId: ReadonlyMap<string, CanvasRect>,
+) {
+  const selected = compact([...relationIds].map((id) => boundsByRelationId.get(id)));
   if (!selected.length) return undefined;
   const left = Math.min(...selected.map(({ x }) => x));
   const top = Math.min(...selected.map(({ y }) => y));

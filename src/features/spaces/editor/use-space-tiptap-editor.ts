@@ -153,8 +153,8 @@ export function useSpaceTiptapEditor() {
   };
 }
 
-function findEditorNode(nodes: readonly SpaceCanvasNode[], id?: string) {
-  return nodes.find((node): node is SpaceEditorNode => node.id === id && isSpaceEditorNode(node));
+function findEditorNode(nodes: readonly SpaceCanvasNode[], nodeId?: string) {
+  return nodes.find((node): node is SpaceEditorNode => node.id === nodeId && isSpaceEditorNode(node));
 }
 
 function initializeEditingState(state: EditingState, node: SpaceEditorNode | undefined) {

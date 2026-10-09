@@ -40,12 +40,16 @@ impl RevisionBasis {
     }
 }
 
-pub fn resolve(kind: &str, data: &Value, basis: RevisionBasis) -> Result<(String, Value), String> {
+pub fn resolve(
+    kind: &str,
+    payload: &Value,
+    basis: RevisionBasis,
+) -> Result<(String, Value), String> {
     let field = match basis {
         RevisionBasis::Asset | RevisionBasis::Rendered => "sourceRevision",
         RevisionBasis::Knowledge => "knowledgeRevision",
     };
-    let base = data
+    let base = payload
         .get(field)
         .and_then(Value::as_str)
         .filter(|value| !value.is_empty())
@@ -53,9 +57,9 @@ pub fn resolve(kind: &str, data: &Value, basis: RevisionBasis) -> Result<(String
     let snapshot = match basis {
         RevisionBasis::Asset | RevisionBasis::Knowledge => Value::Null,
         RevisionBasis::Rendered => match kind {
-            "image" => json!({ "imageEdit": data.get("imageEdit").unwrap_or(&Value::Null) }),
+            "image" => json!({ "imageEdit": payload.get("imageEdit").unwrap_or(&Value::Null) }),
             "video" => {
-                json!({ "videoEditProject": data.get("videoEditProject").ok_or("Video edit project is unavailable")? })
+                json!({ "videoEditProject": payload.get("videoEditProject").ok_or("Video edit project is unavailable")? })
             }
             _ => return Err("Rendered revision requires an image or video".into()),
         },

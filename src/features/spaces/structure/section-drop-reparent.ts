@@ -7,13 +7,13 @@ import { createStructureIndex, effectiveOperationRoots } from "../model/structur
 import { boundsForOperationRoots, type WorldBounds } from "../model/structure/world-bounds";
 
 const CONTAINMENT_TOLERANCE = 0.5;
-const indexes = new WeakMap<SpaceEditSnapshot, ReturnType<typeof buildSectionDropIndex>>();
+const indexBySnapshot = new WeakMap<SpaceEditSnapshot, ReturnType<typeof buildSectionDropIndex>>();
 
 export function sectionDropIndex(snapshot: SpaceEditSnapshot) {
-  let index = indexes.get(snapshot);
+  let index = indexBySnapshot.get(snapshot);
   if (!index) {
     index = buildSectionDropIndex(snapshot);
-    indexes.set(snapshot, index);
+    indexBySnapshot.set(snapshot, index);
   }
   return index;
 }

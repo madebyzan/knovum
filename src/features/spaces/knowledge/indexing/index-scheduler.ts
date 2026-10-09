@@ -15,9 +15,9 @@ interface SpaceIndexState {
   timer: ReturnType<typeof setTimeout> | undefined;
 }
 
-const states = new Map<string, SpaceIndexState>();
-const statuses = new Map<string, KnowledgeIndexStatus>();
-const listeners = new Map<string, Set<StatusListener>>();
+const stateBySpaceId = new Map<string, SpaceIndexState>();
+const statusBySpaceId = new Map<string, KnowledgeIndexStatus>();
+const listenersBySpaceId = new Map<string, Set<StatusListener>>();
 const DEBOUNCE_MS = 5_000;
 
 export function scheduleKnowledgeIndex(spaceId: string, nodeIds: readonly string[]) {
@@ -37,29 +37,29 @@ export function scheduleSpaceKnowledgeIndex(spaceId: string) {
 }
 
 export function releaseKnowledgeIndex(spaceId: string) {
-  const state = states.get(spaceId);
+  const state = stateBySpaceId.get(spaceId);
   if (state?.timer) clearTimeout(state.timer);
-  states.delete(spaceId);
-  statuses.delete(spaceId);
+  stateBySpaceId.delete(spaceId);
+  statusBySpaceId.delete(spaceId);
 }
 
 export function knowledgeIndexStatus(spaceId: string) {
-  return statuses.get(spaceId) ?? "idle";
+  return statusBySpaceId.get(spaceId) ?? "idle";
 }
 
 export function subscribeKnowledgeIndexStatus(spaceId: string, listener: StatusListener) {
-  const spaceListeners = listeners.get(spaceId) ?? new Set<StatusListener>();
+  const spaceListeners = listenersBySpaceId.get(spaceId) ?? new Set<StatusListener>();
   spaceListeners.add(listener);
-  listeners.set(spaceId, spaceListeners);
+  listenersBySpaceId.set(spaceId, spaceListeners);
   listener(knowledgeIndexStatus(spaceId));
   return () => {
     spaceListeners.delete(listener);
-    if (!spaceListeners.size) listeners.delete(spaceId);
+    if (!spaceListeners.size) listenersBySpaceId.delete(spaceId);
   };
 }
 
 function stateFor(spaceId: string) {
-  const existing = states.get(spaceId);
+  const existing = stateBySpaceId.get(spaceId);
   if (existing) return existing;
   const state: SpaceIndexState = {
     generation: 0,
@@ -68,7 +68,7 @@ function stateFor(spaceId: string) {
     running: false,
     timer: undefined,
   };
-  states.set(spaceId, state);
+  stateBySpaceId.set(spaceId, state);
   return state;
 }
 
@@ -103,7 +103,7 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
   const hasNewerWork = state.generation !== generation || state.full || state.nodeIds.size > 0;
   // The space can be released while its run is in flight; a released state must not reschedule or
   // write a status, or it would resurrect the entry and clobber a later session for the same space.
-  if (states.get(spaceId) !== state) return;
+  if (stateBySpaceId.get(spaceId) !== state) return;
   if (hasNewerWork) {
     schedulePending(spaceId, state, 0);
     return;
@@ -117,13 +117,13 @@ async function indexIfReady(
   nodeIds: string[] | undefined,
 ): Promise<KnowledgeIndexStatus> {
   const resources = await getLocalResourcesStatus();
-  if (states.get(spaceId) !== state || !textEmbeddingReady(resources)) return "unprepared";
+  if (stateBySpaceId.get(spaceId) !== state || !textEmbeddingReady(resources)) return "unprepared";
   setStatus(spaceId, "indexing");
   await indexKnowledgeRetrieval(spaceId, nodeIds);
   return "ready";
 }
 
 function setStatus(spaceId: string, status: KnowledgeIndexStatus) {
-  statuses.set(spaceId, status);
-  for (const listener of listeners.get(spaceId) ?? []) listener(status);
+  statusBySpaceId.set(spaceId, status);
+  for (const listener of listenersBySpaceId.get(spaceId) ?? []) listener(status);
 }

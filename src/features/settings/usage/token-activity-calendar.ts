@@ -29,7 +29,7 @@ export function buildTokenActivityWeeks({
   toDate,
   locale,
 }: TokenActivityCalendarInput): TokenActivityWeek[] {
-  const totals = new Map(activity.map((day) => [day.date, day]));
+  const activityByDate = new Map(activity.map((day) => [day.date, day]));
   const from = parseDate(fromDate);
   const to = parseDate(toDate);
   const start = from.subtract({ days: getDayOfWeek(from, "en-US") });
@@ -42,7 +42,7 @@ export function buildTokenActivityWeeks({
     const cells: TokenActivityCell[] = [];
     for (let index = 0; index < 7; index += 1) {
       const date = cursor.toString();
-      const day = totals.get(date);
+      const day = activityByDate.get(date);
       cells.push({
         date,
         tokens: day?.totalTokens ?? 0,

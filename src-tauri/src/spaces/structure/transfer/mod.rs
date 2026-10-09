@@ -111,7 +111,7 @@ pub(crate) fn plan(
             parent_id,
             order,
         ));
-        let layout = source_layouts[source_index.layout[old_id]].clone();
+        let layout = source_layouts[source_index.layout_index_by_structure_node_id[old_id]].clone();
         let root_transform = if root && structure_node.kind_name() != "section" {
             Some(local_from_world(
                 &world_transform(&source_structure, &source_layouts, &source_index, old_id)?,

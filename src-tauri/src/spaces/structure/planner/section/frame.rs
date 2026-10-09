@@ -13,30 +13,30 @@ use std::collections::{HashMap, HashSet};
 
 pub(in crate::spaces::structure) fn resize(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
     frame: &SpaceRect,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let structure_node = index.node(&snapshot.structure, id)?;
+    let structure_node = index.node(&snapshot.structure, structure_node_id)?;
     if structure_node.kind_name() != "section" {
-        return Err(format!("Section not found: {id}"));
+        return Err(format!("Section not found: {structure_node_id}"));
     }
-    require_editable(&snapshot.structure, &index, id)?;
-    let layout_index = index.layout[id];
+    require_editable(&snapshot.structure, &index, structure_node_id)?;
+    let layout_index = index.layout_index_by_structure_node_id[structure_node_id];
     let StructureLayout::Section { position, .. } = &snapshot.layouts[layout_index] else {
-        return Err(format!("Section layout missing: {id}"));
+        return Err(format!("Section layout missing: {structure_node_id}"));
     };
     let dx = frame.x - position.x;
     let dy = frame.y - position.y;
     let children: HashSet<String> = index
-        .children
-        .get(&Some(id.to_owned()))
+        .children_by_parent_id
+        .get(&Some(structure_node_id.to_owned()))
         .cloned()
         .unwrap_or_default()
         .into_iter()
         .collect();
     for layout in &mut snapshot.layouts {
-        if layout.structure_node_id() == id {
+        if layout.structure_node_id() == structure_node_id {
             if let StructureLayout::Section { position, size, .. } = layout {
                 *position = Point {
                     x: frame.x,
@@ -51,26 +51,30 @@ pub(in crate::spaces::structure) fn resize(
             shift_local(layout, -dx, -dy)?;
         }
     }
-    Ok(vec![id.to_owned()])
+    Ok(vec![structure_node_id.to_owned()])
 }
 
 pub(in crate::spaces::structure) fn fit(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    if index.node(&snapshot.structure, id)?.kind_name() != "section" {
-        return Err(format!("Section not found: {id}"));
+    if index
+        .node(&snapshot.structure, structure_node_id)?
+        .kind_name()
+        != "section"
+    {
+        return Err(format!("Section not found: {structure_node_id}"));
     }
-    require_editable(&snapshot.structure, &index, id)?;
+    require_editable(&snapshot.structure, &index, structure_node_id)?;
     let children = index
-        .children
-        .get(&Some(id.to_owned()))
+        .children_by_parent_id
+        .get(&Some(structure_node_id.to_owned()))
         .cloned()
         .unwrap_or_default();
     let bounds = bounds_for_roots(&snapshot.structure, &snapshot.layouts, &index, &children)?
         .ok_or("Cannot fit an empty Section")?;
-    resize(snapshot, id, &frame_for_bounds(bounds))
+    resize(snapshot, structure_node_id, &frame_for_bounds(bounds))
 }
 
 pub(in crate::spaces::structure) fn dissolve(
@@ -96,7 +100,7 @@ pub(in crate::spaces::structure) fn dissolve(
     let mut updates = HashMap::new();
     for id in &sections {
         for child in index
-            .children
+            .children_by_parent_id
             .get(&Some(id.clone()))
             .cloned()
             .unwrap_or_default()
@@ -109,14 +113,18 @@ pub(in crate::spaces::structure) fn dissolve(
         }
     }
     let roots = index
-        .children
+        .children_by_parent_id
         .get(&None)
         .cloned()
         .unwrap_or_default()
         .into_iter()
         .flat_map(|id| {
             if removed.contains(id.as_str()) {
-                index.children.get(&Some(id)).cloned().unwrap_or_default()
+                index
+                    .children_by_parent_id
+                    .get(&Some(id))
+                    .cloned()
+                    .unwrap_or_default()
             } else {
                 vec![id]
             }

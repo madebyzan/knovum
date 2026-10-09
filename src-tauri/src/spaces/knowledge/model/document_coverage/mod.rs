@@ -78,12 +78,13 @@ pub(crate) struct DocumentAnalysis {
 }
 
 impl DocumentCoverage {
-    pub(crate) fn from_node_content(data: &Value) -> Result<Self, String> {
+    pub(crate) fn from_node_content(payload: &Value) -> Result<Self, String> {
         let report = Self::decode(
-            data.get("documentCoverage")
+            payload
+                .get("documentCoverage")
                 .ok_or("Document coverage is missing")?,
         )?;
-        if data.get("sourceRevision").and_then(Value::as_str)
+        if payload.get("sourceRevision").and_then(Value::as_str)
             != Some(report.source_revision.as_str())
         {
             return Err("Document coverage belongs to an obsolete source revision".into());

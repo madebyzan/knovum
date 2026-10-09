@@ -5,24 +5,25 @@ use crate::spaces::{conversations::repository, db};
 
 pub(super) async fn complete(
     pool: &sqlx::SqlitePool,
-    ids: &identity::TaskIds,
+    task_ids: &identity::TaskIds,
 ) -> Result<super::super::ConversationTaskFinishedState, String> {
-    identity::ensure_active(pool, &ids.run_id).await?;
-    let run = crate::spaces::runs::load_run(pool, &ids.run_id).await?;
-    crate::spaces::conversations::execution::ledger::require_reconciled(pool, &ids.task_id).await?;
+    identity::ensure_active(pool, &task_ids.run_id).await?;
+    let run = crate::spaces::runs::load_run(pool, &task_ids.run_id).await?;
+    crate::spaces::conversations::execution::ledger::require_reconciled(pool, &task_ids.task_id)
+        .await?;
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let within_budget: bool = sqlx::query_scalar(
         "SELECT total_tokens<=json_extract(budget,'$.maxTotalTokens') FROM spaces_runs WHERE id=$1",
     )
-    .bind(&ids.run_id)
+    .bind(&task_ids.run_id)
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
     if !within_budget {
         return Err("budget-exhausted: Builtin Agent model token budget was exceeded".into());
     }
-    let children = crate::spaces::runs::child_settlement(&mut tx, &ids.run_id)
+    let children = crate::spaces::runs::child_settlement(&mut tx, &task_ids.run_id)
         .await?
         .ok_or("builtin-agent-child-runs-unsettled")?;
     let (run_state, finished_state) = if children == crate::spaces::runs::RunState::Succeeded {
@@ -42,7 +43,7 @@ pub(super) async fn complete(
          AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND completed_at IS NULL",
     )
     .bind(now)
-    .bind(&ids.run_id)
+    .bind(&task_ids.run_id)
     .bind(run.state_version)
     .bind(run_state)
     .execute(&mut *tx)
@@ -54,7 +55,7 @@ pub(super) async fn complete(
     )?;
     let principal = crate::spaces::authorization::Principal {
         kind: crate::spaces::authorization::PrincipalKind::BuiltinAgent,
-        id: ids.task_id.clone(),
+        id: task_ids.task_id.clone(),
     };
     let outputs = crate::spaces::conversations::outputs::collect(
         &mut tx,
@@ -64,7 +65,7 @@ pub(super) async fn complete(
     .await?;
     let last: Option<(String, String)> = sqlx::query_as("SELECT id,content FROM spaces_conversation_messages WHERE conversation_id=$1 AND branch_id=$2 AND role='assistant'
         AND json_extract(content,'$.runId')=$3 ORDER BY created_at DESC,rowid DESC LIMIT 1")
-        .bind(&ids.conversation_id).bind(&ids.branch_id).bind(&ids.run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(&task_ids.conversation_id).bind(&task_ids.branch_id).bind(&task_ids.run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
     if let Some((id, content)) = last {
         let mut content: serde_json::Value =
             serde_json::from_str(&content).map_err(db::json_error)?;
@@ -78,10 +79,10 @@ pub(super) async fn complete(
     } else if !outputs.is_empty() {
         repository::append_message_in_transaction(
             &mut tx,
-            &ids.conversation_id,
-            &ids.branch_id,
+            &task_ids.conversation_id,
+            &task_ids.branch_id,
             repository::ConversationMessageRole::Assistant,
-            &json!({"parts":[],"runId":ids.run_id,"outputs":outputs}),
+            &json!({"parts":[],"runId":task_ids.run_id,"outputs":outputs}),
             now,
         )
         .await?;

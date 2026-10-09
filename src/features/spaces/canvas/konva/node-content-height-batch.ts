@@ -12,16 +12,16 @@ export interface FittedContentHeight {
 }
 
 export function createNodeContentHeightBatch(
-  nodeById: (id: string) => SpaceCanvasNode | undefined,
-  layoutByNodeId: (id: string) => CanvasNodeLayoutV1 | undefined,
+  nodeById: (nodeId: string) => SpaceCanvasNode | undefined,
+  layoutByNodeId: (nodeId: string) => CanvasNodeLayoutV1 | undefined,
   commit: (heights: ReadonlyMap<string, FittedContentHeight>) => void,
 ) {
-  const measurements = new Map<string, CanvasContentHeightMeasurement>();
+  const measurementByNodeId = new Map<string, CanvasContentHeightMeasurement>();
   let paused = false;
   let queued = false;
 
   function fit(nodeId: string, measurement: CanvasContentHeightMeasurement) {
-    measurements.set(nodeId, measurement);
+    measurementByNodeId.set(nodeId, measurement);
     schedule();
   }
 
@@ -31,7 +31,7 @@ export function createNodeContentHeightBatch(
   }
 
   function schedule() {
-    if (paused || queued || measurements.size === 0) return;
+    if (paused || queued || measurementByNodeId.size === 0) return;
     queued = true;
     queueMicrotask(flush);
   }
@@ -39,22 +39,22 @@ export function createNodeContentHeightBatch(
   function flush() {
     queued = false;
     if (paused) return false;
-    const fitted = new Map<string, FittedContentHeight>();
-    for (const [id, measurement] of measurements) {
+    const fittedHeightByNodeId = new Map<string, FittedContentHeight>();
+    for (const [id, measurement] of measurementByNodeId) {
       const fittedMeasurement = fittedHeight(id, measurement);
-      if (fittedMeasurement) fitted.set(id, fittedMeasurement);
+      if (fittedMeasurement) fittedHeightByNodeId.set(id, fittedMeasurement);
     }
-    measurements.clear();
-    if (fitted.size) commit(fitted);
+    measurementByNodeId.clear();
+    if (fittedHeightByNodeId.size) commit(fittedHeightByNodeId);
     return true;
   }
 
   function fittedHeight(
-    id: string,
+    nodeId: string,
     measurement: CanvasContentHeightMeasurement,
   ): FittedContentHeight | undefined {
-    const node = nodeById(id);
-    const layout = layoutByNodeId(id);
+    const node = nodeById(nodeId);
+    const layout = layoutByNodeId(nodeId);
     if (!node || !layout || !spaceNodeUsesContentFitHeight(node.data)) return undefined;
     const matchesSource = [
       (node.data.knowledgeRevision ?? null) === measurement.contentRevision,

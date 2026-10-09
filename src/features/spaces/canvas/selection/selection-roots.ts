@@ -8,7 +8,7 @@ export function currentSelectionRoots(
 ) {
   const structureIds = [...selectedStructureNodeIds].filter((id) => index.structureById.has(id));
   for (const nodeId of selectedNodeIds) {
-    const structureId = index.nodeIdToStructureNodeId.get(nodeId);
+    const structureId = index.structureNodeIdByNodeId.get(nodeId);
     if (structureId) structureIds.push(structureId);
   }
   return effectiveOperationRoots(structureIds, index);

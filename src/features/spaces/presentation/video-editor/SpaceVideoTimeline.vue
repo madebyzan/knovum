@@ -33,7 +33,7 @@ const {
 } = useVideoTimelineInteraction(props, {
   seek: (milliseconds) => emit("seek", milliseconds),
   trim: (project) => emit("edit", project),
-  selectClip: (id) => emit("selectClip", id),
+  selectClip: (clipId) => emit("selectClip", clipId),
 });
 const thumbnailSource = computed(() => props.thumbnailSource);
 const sourceDuration = computed(() => props.sourceDurationMs);

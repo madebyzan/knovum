@@ -11,19 +11,19 @@ use crate::{
 
 pub(in crate::spaces::conversations) async fn commit(
     pool: &SqlitePool,
-    ids: &TaskIds,
+    task_ids: &TaskIds,
     projection: AgentProjection,
 ) -> Result<Value, String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let state: (String, Option<i64>) = sqlx::query_as("SELECT segment_id,r.cancel_requested_at FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE t.id=$1")
-        .bind(&ids.task_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(&task_ids.task_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
     if state.0 != projection.thread_id {
         return Err("builtin-agent-projection-thread-mismatch".into());
     }
     let plan = json!({"items":projection.plan});
     let previous_plan: Option<String> = sqlx::query_scalar("SELECT payload FROM spaces_run_events WHERE run_id=$1 AND kind='builtin_agent_plan_updated' ORDER BY sequence DESC LIMIT 1")
-        .bind(&ids.run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(&task_ids.run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
     let changed = previous_plan
         .as_deref()
         .map(serde_json::from_str::<Value>)
@@ -34,7 +34,7 @@ pub(in crate::spaces::conversations) async fn commit(
     if changed && (!projection.plan.is_empty() || previous_plan.is_some()) {
         crate::spaces::runs::append_event(
             &mut tx,
-            &ids.run_id,
+            &task_ids.run_id,
             None,
             None,
             crate::spaces::runs::RunEventKind::BuiltinAgentPlanUpdated,
@@ -49,8 +49,8 @@ pub(in crate::spaces::conversations) async fn commit(
         if previous.is_some() {
             continue;
         }
-        let id = repository::append_message_in_transaction(&mut tx, &ids.conversation_id, &ids.branch_id, repository::ConversationMessageRole::Assistant,
-            &json!({"parts":[{"type":"text","text":message.text}],"runId":ids.run_id,"status":state.1.is_some().then_some("stopped")}), now).await?;
+        let id = repository::append_message_in_transaction(&mut tx, &task_ids.conversation_id, &task_ids.branch_id, repository::ConversationMessageRole::Assistant,
+            &json!({"parts":[{"type":"text","text":message.text}],"runId":task_ids.run_id,"status":state.1.is_some().then_some("stopped")}), now).await?;
         sqlx::query("INSERT INTO spaces_conversation_message_projections(segment_id,provider_message_id,message_id) VALUES($1,$2,$3)")
             .bind(&projection.thread_id).bind(message.message_id).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     }

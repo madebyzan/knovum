@@ -44,13 +44,13 @@ pub(crate) async fn diarize_media(
     job_id: &str,
     source: &str,
     source_revision: &str,
-    data: &mut serde_json::Value,
+    payload: &mut serde_json::Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let request = load_request(app, job_id).await?;
     let transcript: MediaTranscript =
-        serde_json::from_value(data["mediaKnowledge"]["transcript"].clone())
+        serde_json::from_value(payload["mediaKnowledge"]["transcript"].clone())
             .map_err(|error| format!("Media transcript is invalid: {error}"))?;
     if transcript.revision != request.expected_revision
         || transcript.source_revision != source_revision
@@ -135,7 +135,7 @@ pub(crate) async fn diarize_media(
     {
         return Err("invalid_output: diarization turn exceeds media duration".into());
     }
-    publish(transcript, diarization.turns, variant, data)?;
+    publish(transcript, diarization.turns, variant, payload)?;
     super::send_progress(progress, "done", 100);
     Ok(())
 }
@@ -144,7 +144,7 @@ fn publish(
     mut transcript: MediaTranscript,
     turns: Vec<SpeakerTurn>,
     variant: crate::local_resources::models::catalog::DiarizationVariant,
-    data: &mut serde_json::Value,
+    payload: &mut serde_json::Value,
 ) -> Result<(), String> {
     let mut tracks = BTreeMap::<String, Vec<&SpeakerTurn>>::new();
     for turn in &turns {
@@ -204,7 +204,7 @@ fn publish(
         diarized_at: u64::try_from(crate::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });
-    data["mediaKnowledge"]["transcript"] =
+    payload["mediaKnowledge"]["transcript"] =
         serde_json::to_value(transcript).map_err(|error| error.to_string())?;
     Ok(())
 }

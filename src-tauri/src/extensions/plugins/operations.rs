@@ -33,11 +33,11 @@ pub(super) struct PluginOperation {
 
 impl PluginOperation {
     pub(super) fn begin(
-        id: &str,
+        job_id: &str,
         progress: Channel<PluginOperationStage>,
         parent: &CancellationToken,
     ) -> AppResult<Self> {
-        if id.trim().is_empty() {
+        if job_id.trim().is_empty() {
             return Err(AppError::invalid(
                 "Plugin operation requires a job identifier",
             ));
@@ -46,7 +46,7 @@ impl PluginOperation {
             cancellation: parent.child_token(),
             committing: Mutex::new(false),
         });
-        let lease = registry().acquire(id, control.clone())?;
+        let lease = registry().acquire(job_id, control.clone())?;
         Ok(Self {
             control,
             progress,

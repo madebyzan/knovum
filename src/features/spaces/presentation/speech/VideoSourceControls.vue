@@ -28,15 +28,15 @@ const player = useTemplateRef("player");
 const error = shallowRef<string>();
 const importing = shallowRef(false);
 const speakers = computed(() => {
-  const bindings = new Map<string, Set<string>>();
+  const voiceRevisionIdsBySpeakerKey = new Map<string, Set<string>>();
   for (const line of props.lines) {
     const key = line.speakerKey.trim();
     if (!key) continue;
-    const revisions = bindings.get(key) ?? new Set<string>();
+    const revisions = voiceRevisionIdsBySpeakerKey.get(key) ?? new Set<string>();
     revisions.add(line.voiceRevisionId);
-    bindings.set(key, revisions);
+    voiceRevisionIdsBySpeakerKey.set(key, revisions);
   }
-  return [...bindings].map(([key, revisions]) => ({
+  return [...voiceRevisionIdsBySpeakerKey].map(([key, revisions]) => ({
     key,
     revisionId: revisions.size === 1 ? [...revisions][0]! : "",
   }));

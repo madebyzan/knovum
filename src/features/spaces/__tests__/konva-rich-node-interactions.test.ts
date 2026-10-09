@@ -20,7 +20,7 @@ describe("Konva rich node interactions", () => {
   beforeEach(() => setActivePinia(createPinia()));
 
   it("persists direct note editing", async () => {
-    const persist = vi.fn<(id: string, data: SpaceCanvasTextPayload) => Promise<void>>(async () => {});
+    const persist = vi.fn<(nodeId: string, data: SpaceCanvasTextPayload) => Promise<void>>(async () => {});
     const wrapper = mount(SpaceCanvasNote, {
       props: {
         id: "note",

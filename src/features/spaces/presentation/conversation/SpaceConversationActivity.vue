@@ -31,7 +31,7 @@ const items = computed(() =>
     messages: props.messages,
     runId: props.runId,
     labels: {
-      action: (id) => captureActionLabel(id, t),
+      action: (actionId) => captureActionLabel(actionId, t),
       default: t("spaces.conversation.activity.tool"),
     },
   }),

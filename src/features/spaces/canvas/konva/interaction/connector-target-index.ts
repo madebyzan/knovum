@@ -17,7 +17,7 @@ interface IndexedConnectorTarget {
 }
 
 export interface ConnectorTargetIndex {
-  byId: ReadonlyMap<string, IndexedConnectorTarget>;
+  targetByNodeId: ReadonlyMap<string, IndexedConnectorTarget>;
   tree: RBush<IndexedConnectorTarget>;
 }
 
@@ -35,7 +35,7 @@ export function createConnectorTargetIndex(layouts: readonly CanvasNodeLayoutV1[
     } satisfies IndexedConnectorTarget;
   });
   return {
-    byId: new Map(targets.map((target) => [target.nodeId, target])),
+    targetByNodeId: new Map(targets.map((target) => [target.nodeId, target])),
     tree: new RBush<IndexedConnectorTarget>().load(targets),
   };
 }

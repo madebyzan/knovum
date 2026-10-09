@@ -10,7 +10,7 @@ import { loadSpaceCredential } from "./credential-storage";
 interface CredentialEditorOptions {
   id: string;
   data: SpaceCredentialPayload;
-  persist: (id: string, data: SpaceCredentialPayload) => Promise<void>;
+  persist: (nodeId: string, payload: SpaceCredentialPayload) => Promise<void>;
 }
 
 export function useCredentialEditor(options: CredentialEditorOptions) {

@@ -7,7 +7,7 @@
     "subdirectory": "Package subdirectory",
     "install": "Install from source",
     "description": "Choose a local package or remote URL, then review it before installing.",
-    "details": "Source and version details",
+    "provenance": "Source and version details",
     "revision": "Source revision"
   },
   "installation": {

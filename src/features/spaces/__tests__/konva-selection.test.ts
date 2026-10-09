@@ -27,8 +27,8 @@ describe("Konva canvas selection", () => {
       availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: shallowRef(layouts),
-      relationBounds: shallowRef(new Map()),
-      structureBounds: shallowRef(new Map()),
+      relationBoundsById: shallowRef(new Map()),
+      structureBoundsById: shallowRef(new Map()),
       structureSelectionForNode: () => undefined,
     });
 
@@ -46,8 +46,8 @@ describe("Konva canvas selection", () => {
       availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: currentLayouts,
-      relationBounds: shallowRef(new Map()),
-      structureBounds: shallowRef(new Map()),
+      relationBoundsById: shallowRef(new Map()),
+      structureBoundsById: shallowRef(new Map()),
       structureSelectionForNode: () => undefined,
     });
     selection.setNodeIds(["a", "b"]);

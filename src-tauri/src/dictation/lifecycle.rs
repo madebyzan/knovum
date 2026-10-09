@@ -131,7 +131,7 @@ pub(super) async fn stop<R: Runtime>(
 fn spawn_transcription<R: Runtime>(
     app: AppHandle<R>,
     sender: UnboundedSender<DictationAction>,
-    id: String,
+    session_id: String,
     target: insertion::InsertionTarget,
     wav: std::path::PathBuf,
     recording: RecordedAudio,
@@ -140,13 +140,13 @@ fn spawn_transcription<R: Runtime>(
     tauri::async_runtime::spawn(async move {
         let capture = transcription::transcribe(
             &app,
-            &id,
+            &session_id,
             wav.clone(),
             recording,
             &cancellation,
             &mut |progress| {
                 let _ = sender.send(DictationAction::PreparationProgress {
-                    session_id: id.clone(),
+                    session_id: session_id.clone(),
                     progress,
                 });
             },
@@ -158,7 +158,7 @@ fn spawn_transcription<R: Runtime>(
             }
         }
         let _ = sender.send(DictationAction::Finished {
-            session_id: id,
+            session_id: session_id,
             target,
             transcription: capture,
         });

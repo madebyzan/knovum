@@ -20,7 +20,7 @@ export interface SpaceEnrichmentObserverContext {
   activeSpaceId: Ref<string | undefined>;
   analysisIds: Ref<string[]>;
   analysisPreviews: Ref<SpaceMediaAnalysisPreviews>;
-  applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
+  applyNodeContentForSpace(spaceId: string, nodeId: string, payload: SpaceNodePayload): void;
 }
 
 export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverContext) {

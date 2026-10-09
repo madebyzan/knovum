@@ -12,7 +12,7 @@ pub(in crate::spaces::structure) use content::{
 
 pub(in crate::spaces::structure) fn create_empty(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
     title: &str,
     frame: &SpaceRect,
     order: u32,
@@ -20,9 +20,11 @@ pub(in crate::spaces::structure) fn create_empty(
     if snapshot
         .structure
         .iter()
-        .any(|structure_node| structure_node.id() == id)
+        .any(|structure_node| structure_node.id() == structure_node_id)
     {
-        return Err(format!("Structure node already exists: {id}"));
+        return Err(format!(
+            "Structure node already exists: {structure_node_id}"
+        ));
     }
     let root_count = snapshot
         .structure
@@ -39,14 +41,14 @@ pub(in crate::spaces::structure) fn create_empty(
         }
     }
     snapshot.structure.push(StructureNode::Section {
-        id: id.to_owned(),
+        id: structure_node_id.to_owned(),
         parent_id: None,
         order,
         locked: false,
         title: title.to_owned(),
     });
     snapshot.layouts.push(StructureLayout::Section {
-        structure_node_id: id.to_owned(),
+        structure_node_id: structure_node_id.to_owned(),
         position: Point {
             x: frame.x,
             y: frame.y,
@@ -58,41 +60,39 @@ pub(in crate::spaces::structure) fn create_empty(
         collapsed: false,
         appearance: None,
     });
-    Ok(vec![id.to_owned()])
+    Ok(vec![structure_node_id.to_owned()])
 }
 
 pub(in crate::spaces::structure) fn collapse(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
     collapsed: bool,
 ) -> Result<Vec<String>, String> {
-    if !snapshot
-        .structure
-        .iter()
-        .any(|structure_node| structure_node.id() == id && structure_node.kind_name() == "section")
-    {
-        return Err(format!("Section not found: {id}"));
+    if !snapshot.structure.iter().any(|structure_node| {
+        structure_node.id() == structure_node_id && structure_node.kind_name() == "section"
+    }) {
+        return Err(format!("Section not found: {structure_node_id}"));
     }
     match snapshot
         .layouts
         .iter_mut()
-        .find(|layout| layout.structure_node_id() == id)
+        .find(|layout| layout.structure_node_id() == structure_node_id)
     {
         Some(StructureLayout::Section {
             collapsed: value, ..
         }) => *value = collapsed,
-        _ => return Err(format!("Section layout not found: {id}")),
+        _ => return Err(format!("Section layout not found: {structure_node_id}")),
     };
-    Ok(vec![id.to_owned()])
+    Ok(vec![structure_node_id.to_owned()])
 }
 
 pub(in crate::spaces::structure) fn set_lock(
     snapshot: &mut SpaceStructureSnapshot,
-    ids: &[String],
+    structure_node_ids: &[String],
     locked: bool,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let roots = effective_roots(&snapshot.structure, &index, ids)?;
+    let roots = effective_roots(&snapshot.structure, &index, structure_node_ids)?;
     if roots.is_empty() {
         return Err("Locking requires selected structure nodes".into());
     }
@@ -118,14 +118,14 @@ pub(in crate::spaces::structure) fn set_lock(
 
 pub(in crate::spaces::structure) fn rename(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    container_id: &str,
     title: &str,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    if index.node(&snapshot.structure, id)?.kind_name() == "content" {
-        return Err(format!("Container not found: {id}"));
+    if index.node(&snapshot.structure, container_id)?.kind_name() == "content" {
+        return Err(format!("Container not found: {container_id}"));
     }
-    require_editable(&snapshot.structure, &index, id)?;
+    require_editable(&snapshot.structure, &index, container_id)?;
     for structure_node in &mut snapshot.structure {
         match structure_node {
             StructureNode::Group {
@@ -137,11 +137,11 @@ pub(in crate::spaces::structure) fn rename(
                 id: structure_node_id,
                 title: value,
                 ..
-            } if structure_node_id == id => *value = title.to_owned(),
+            } if structure_node_id == container_id => *value = title.to_owned(),
             _ => {}
         }
     }
-    Ok(vec![id.to_owned()])
+    Ok(vec![container_id.to_owned()])
 }
 
 fn set_order(structure_node: &mut StructureNode, order: u32) {

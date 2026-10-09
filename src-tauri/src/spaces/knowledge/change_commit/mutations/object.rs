@@ -68,12 +68,12 @@ pub(in crate::spaces::knowledge::change_commit) async fn update_object(
 async fn load_object_content(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    id: &str,
+    node_id: &str,
 ) -> Result<String, String> {
     sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='object' AND deleted_at IS NULL",
     )
-    .bind(id)
+    .bind(node_id)
     .bind(space_id)
     .fetch_optional(&mut **tx)
     .await
@@ -81,8 +81,8 @@ async fn load_object_content(
     .ok_or_else(|| "Knowledge Change Set update target is not an active object".to_string())
 }
 
-fn apply_object_changes(data: &mut Value, input: &ObjectUpdate<'_>) -> Result<(), String> {
-    let object = data
+fn apply_object_changes(payload: &mut Value, input: &ObjectUpdate<'_>) -> Result<(), String> {
+    let object = payload
         .as_object_mut()
         .ok_or_else(|| "Knowledge object data is invalid".to_string())?;
     if let Some(value) = input.title {
@@ -104,13 +104,13 @@ async fn persist_object_update(
     tx: &mut Transaction<'_, Sqlite>,
     input: &ObjectUpdate<'_>,
     object_type_id: &str,
-    data: &Value,
+    payload: &Value,
 ) -> Result<(), String> {
     sqlx::query(
         "UPDATE spaces_nodes SET object_type_id=$1,data=$2,updated_at=$3 WHERE id=$4 AND space_id=$5",
     )
     .bind(object_type_id)
-    .bind(sqlx::types::Json(data))
+    .bind(sqlx::types::Json(payload))
     .bind(input.now)
     .bind(input.id)
     .bind(input.space_id)
@@ -124,7 +124,7 @@ async fn emit_object_updated(
     tx: &mut Transaction<'_, Sqlite>,
     input: &ObjectUpdate<'_>,
     before: &Value,
-    data: &Value,
+    node_payload: &Value,
 ) -> Result<(), String> {
     let payload = serde_json::json!({"changeSet": true});
     events::append(
@@ -144,7 +144,7 @@ async fn emit_object_updated(
         input.space_id,
         input.id,
         before,
-        data,
+        node_payload,
         input.actor,
         input.now,
     )

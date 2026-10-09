@@ -21,9 +21,9 @@ struct FieldDefinition {
 pub(super) async fn validate_object(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    data: &Value,
+    payload: &Value,
 ) -> Result<String, String> {
-    let object = data
+    let object = payload
         .as_object()
         .ok_or_else(|| "Knowledge object data must be an object".to_string())?;
     let object_type_id = required_string(object, "objectTypeId", 128)?;
@@ -42,7 +42,7 @@ pub(super) async fn validate_object(
     .ok_or_else(|| "Knowledge object type does not exist in this Space".to_string())?;
     let fields_raw: String = row.try_get("fields").map_err(db::sql_error)?;
     let fields: Vec<FieldDefinition> = serde_json::from_str(&fields_raw).map_err(db::json_error)?;
-    validate_properties(tx, space_id, data, &fields).await?;
+    validate_properties(tx, space_id, payload, &fields).await?;
     Ok(object_type_id.to_owned())
 }
 
@@ -65,10 +65,10 @@ fn validate_system_object_status(object_type_id: &str, status: &str) -> Result<(
 async fn validate_properties(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    data: &Value,
+    payload: &Value,
     fields: &[FieldDefinition],
 ) -> Result<(), String> {
-    let properties = data
+    let properties = payload
         .get("properties")
         .and_then(Value::as_object)
         .ok_or_else(|| "Knowledge object properties must be an object".to_string())?;

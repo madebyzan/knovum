@@ -7,7 +7,7 @@ use crate::spaces::{db, knowledge::invalidation};
 pub(super) async fn invalidate_relations_for_nodes(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
     let selected: HashSet<String> = sqlx::query_scalar(
@@ -15,7 +15,7 @@ pub(super) async fn invalidate_relations_for_nodes(
          AND node_id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(sqlx::types::Json(ids))
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?
@@ -37,10 +37,10 @@ pub(super) async fn invalidate_relations_for_nodes(
 pub(super) async fn cancel_enrichment_jobs_for_nodes(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    for id in ids {
+    for id in node_ids {
         sqlx::query(
             "UPDATE spaces_enrichment_jobs SET status='cancelled', updated_at=$1 \
              WHERE space_id=$2 AND node_id=$3 AND status IN ('pending','running','awaiting_configuration')",
@@ -58,10 +58,10 @@ pub(super) async fn cancel_enrichment_jobs_for_nodes(
 pub(super) async fn remove_nodes_from_scene_focus(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    let selected: HashSet<&str> = ids.iter().map(String::as_str).collect();
+    let selected: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
     let rows =
         sqlx::query("SELECT id,focus_structure_node_ids FROM spaces_scenes WHERE space_id=$1")
             .bind(space_id)
@@ -95,16 +95,17 @@ pub(super) async fn remove_nodes_from_scene_focus(
 pub(super) async fn mark_nodes_deleted(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    super::validation::reject_live_dependents(tx, space_id, ids).await?;
-    crate::spaces::knowledge::grounding::references::detach_nodes(tx, space_id, ids).await?;
-    invalidate_relations_for_nodes(tx, space_id, ids, now).await?;
-    invalidation::invalidate_provenance_for_nodes(tx, space_id, ids, "human", None, now).await?;
-    remove_nodes_from_scene_focus(tx, space_id, ids, now).await?;
-    cancel_enrichment_jobs_for_nodes(tx, space_id, ids, now).await?;
-    for id in ids {
+    super::validation::reject_live_dependents(tx, space_id, node_ids).await?;
+    crate::spaces::knowledge::grounding::references::detach_nodes(tx, space_id, node_ids).await?;
+    invalidate_relations_for_nodes(tx, space_id, node_ids, now).await?;
+    invalidation::invalidate_provenance_for_nodes(tx, space_id, node_ids, "human", None, now)
+        .await?;
+    remove_nodes_from_scene_focus(tx, space_id, node_ids, now).await?;
+    cancel_enrichment_jobs_for_nodes(tx, space_id, node_ids, now).await?;
+    for id in node_ids {
         sqlx::query(
             "UPDATE spaces_nodes SET deleted_at=$1,updated_at=$1 WHERE id=$2 AND space_id=$3",
         )
@@ -133,10 +134,10 @@ pub(super) async fn mark_nodes_deleted(
 pub(super) async fn restore_nodes(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    ids: &[String],
+    node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    for id in ids {
+    for id in node_ids {
         sqlx::query(
             "UPDATE spaces_nodes SET deleted_at=NULL,updated_at=$1 WHERE id=$2 AND space_id=$3",
         )
@@ -147,7 +148,7 @@ pub(super) async fn restore_nodes(
         .await
         .map_err(db::sql_error)?;
     }
-    for id in ids {
+    for id in node_ids {
         let row = sqlx::query(
             "SELECT kind,data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
         )

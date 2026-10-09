@@ -215,18 +215,22 @@ fn file_entry(path: &str, source: PathBuf) -> Result<(ArchiveFile, PathBuf), Str
     ))
 }
 
-fn staged_path(config: &Path, data: &Path, archive_path: &str) -> Result<PathBuf, String> {
+fn staged_path(
+    config_directory: &Path,
+    data_directory: &Path,
+    archive_path: &str,
+) -> Result<PathBuf, String> {
     if let Some(value) = archive_path.strip_prefix("data/config/") {
-        return Ok(config.join(value));
+        return Ok(config_directory.join(value));
     }
     if archive_path == "data/store/settings.json" {
-        return Ok(data.join("settings.json"));
+        return Ok(data_directory.join("settings.json"));
     }
     if let Some(value) = archive_path.strip_prefix("data/assets/spaces/") {
-        return Ok(data.join("spaces/assets").join(value));
+        return Ok(data_directory.join("spaces/assets").join(value));
     }
     if let Some(value) = archive_path.strip_prefix("data/assets/extensions/") {
-        return Ok(data.join("agent-extensions").join(value));
+        return Ok(data_directory.join("agent-extensions").join(value));
     }
     Err(format!(
         "Backup entry is outside managed roots: {archive_path}"

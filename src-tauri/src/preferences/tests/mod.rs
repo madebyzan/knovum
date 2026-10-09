@@ -57,11 +57,11 @@ fn invalid_preferences_remain_errors() {
         raw.as_object_mut()
             .unwrap()
             .extend(invalid.as_object().unwrap().clone());
-        let result = serde_json::from_value::<Preferences>(raw)
+        let validation = serde_json::from_value::<Preferences>(raw)
             .map_err(|error| error.to_string())
             .and_then(|preferences| preferences.validate());
         assert!(
-            result.is_err(),
+            validation.is_err(),
             "Invalid preferences were accepted: {invalid}"
         );
     }

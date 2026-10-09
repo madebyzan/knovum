@@ -159,7 +159,12 @@ impl From<GeneratedVideo> for VideoContent {
     }
 }
 
-async fn fail_output(app: &AppHandle, id: &str, path: &str, mut primary: AppError) -> AppError {
+async fn fail_output(
+    app: &AppHandle,
+    derivation_id: &str,
+    path: &str,
+    mut primary: AppError,
+) -> AppError {
     if let Err(cleanup) = tokio::fs::remove_file(path).await {
         if cleanup.kind() != std::io::ErrorKind::NotFound {
             primary.message = format!(
@@ -168,6 +173,6 @@ async fn fail_output(app: &AppHandle, id: &str, path: &str, mut primary: AppErro
             );
         }
     }
-    let settlement = super::failure::fail_message(app, id, &primary.message).await;
+    let settlement = super::failure::fail_message(app, derivation_id, &primary.message).await;
     super::failure::with_settlement(primary, settlement)
 }

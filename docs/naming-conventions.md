@@ -320,7 +320,7 @@ wrapper still represents a collection. Preserve idiomatic mass nouns (`list_prov
 its resource API rules are guidance rather than a mandatory REST model for all local commands.
 
 Custom in-process plugins currently registered in `src-tauri/build.rs` are `spaces`, `ai`,
-`secrets`, `desktop`, `local-resources` and `extensions`. Official plugins such as Store remain vendor-owned;
+`secrets`, `desktop`, `backup`, `dictation`, `local-resources` and `extensions`. Official plugins such as Store remain vendor-owned;
 there are no custom `preferences` or `database` namespaces. A business capability does not
 automatically require a separate plugin.
 
@@ -328,7 +328,7 @@ App commands registered through the application `invoke_handler` share one flat 
 owner has to be part of the name:
 
 ```text
-<verb>_<entity>             get_update_configuration, check_for_update, install_update
+<verb>_<entity>             get_update_state, check_for_update, install_update
 ```
 
 The flat namespace uses explicit entities to prevent collisions. The updater wrappers remain app

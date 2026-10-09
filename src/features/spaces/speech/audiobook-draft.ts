@@ -50,14 +50,17 @@ export function readAudiobookRevision(snapshot: DeepReadonly<SpeechProjectSnapsh
   ) {
     throw new Error("Audiobook chapter order is invalid");
   }
-  const roleVoices = new Map(config.roles.map((role) => [role.key, role.voiceRevisionId]));
+  const voiceRevisionIdByRoleKey = new Map(config.roles.map((role) => [role.key, role.voiceRevisionId]));
   const chapters = config.chapters.map((chapter) => ({
     key: chapter.key,
     title: chapter.title,
     paragraphs: snapshot.segments
       .filter((segment) => segment.chapterKey === chapter.key)
       .map((segment) => {
-        if (!segment.speakerKey || roleVoices.get(segment.speakerKey) !== segment.voiceRevisionId) {
+        if (
+          !segment.speakerKey ||
+          voiceRevisionIdByRoleKey.get(segment.speakerKey) !== segment.voiceRevisionId
+        ) {
           throw new Error("Audiobook paragraph voice differs from its role binding");
         }
         return {
@@ -84,7 +87,9 @@ export function importedAudiobookDraft(
   currentRoles: readonly AudiobookRoleDraft[],
   defaultVoiceRevisionId: string,
 ) {
-  const existing = new Map(currentRoles.map((role) => [role.key, role.voiceRevisionId]));
+  const existingVoiceRevisionIdByRoleKey = new Map(
+    currentRoles.map((role) => [role.key, role.voiceRevisionId]),
+  );
   const roleKeys = [
     ...new Set(script.chapters.flatMap((chapter) => chapter.paragraphs.map((paragraph) => paragraph.role))),
   ];
@@ -92,7 +97,7 @@ export function importedAudiobookDraft(
     roles: roleKeys.map((key) => ({
       id: crypto.randomUUID(),
       key,
-      voiceRevisionId: existing.get(key) ?? defaultVoiceRevisionId,
+      voiceRevisionId: existingVoiceRevisionIdByRoleKey.get(key) ?? defaultVoiceRevisionId,
     })),
     chapters: script.chapters.map((chapter) => ({
       key: crypto.randomUUID(),
@@ -112,7 +117,7 @@ export function audiobookDraftIsValid(input: {
   chapters: readonly ChapterDraft[];
   voices: readonly VoiceLibraryRevision[];
 }) {
-  const voices = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
+  const voiceByRevisionId = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
   const roleKeys = input.roles.map((role) => role.key.trim());
   const paragraphs = input.chapters.flatMap((chapter) => chapter.paragraphs);
   const characters = sumBy(paragraphs, (paragraph) => [...paragraph.text].length);
@@ -125,7 +130,7 @@ export function audiobookDraftIsValid(input: {
         role.key === roleKeys[index] &&
         role.key.length > 0 &&
         [...role.key].length <= 120 &&
-        voices.has(role.voiceRevisionId),
+        voiceByRevisionId.has(role.voiceRevisionId),
     ) &&
     input.chapters.length > 0 &&
     input.chapters.length <= 10_000 &&
@@ -155,12 +160,12 @@ export function audiobookSegments(
   roles: readonly AudiobookRoleDraft[],
   voices: readonly VoiceLibraryRevision[],
 ) {
-  const voiceByRevision = new Map(voices.map((voice) => [voice.revisionId, voice]));
-  const roleVoices = new Map(roles.map((role) => [role.key, role.voiceRevisionId]));
+  const voiceByRevisionId = new Map(voices.map((voice) => [voice.revisionId, voice]));
+  const voiceRevisionIdByRoleKey = new Map(roles.map((role) => [role.key, role.voiceRevisionId]));
   return chapters.flatMap((chapter) =>
     chapter.paragraphs.map((paragraph) => {
-      const voiceRevisionId = roleVoices.get(paragraph.speakerKey);
-      const voice = voiceRevisionId ? voiceByRevision.get(voiceRevisionId) : undefined;
+      const voiceRevisionId = voiceRevisionIdByRoleKey.get(paragraph.speakerKey);
+      const voice = voiceRevisionId ? voiceByRevisionId.get(voiceRevisionId) : undefined;
       if (!voiceRevisionId || !voice) throw new Error("A valid role voice is required for every paragraph");
       const deliveryInstruction = paragraph.deliveryInstruction.trim();
       return {

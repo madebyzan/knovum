@@ -15,12 +15,12 @@ pub struct CatalogToolBinding {
 
 pub struct ToolCatalog {
     pub tools: Vec<ModelToolDefinition>,
-    pub by_wire_name: HashMap<String, CatalogToolBinding>,
+    pub binding_by_wire_name: HashMap<String, CatalogToolBinding>,
     pub digest: String,
 }
 
 pub fn project() -> Result<ToolCatalog, String> {
-    let mut by_wire_name = HashMap::new();
+    let mut binding_by_wire_name = HashMap::new();
     let mut names = BTreeSet::new();
     let mut tools = Vec::new();
     for definition in actions::definitions() {
@@ -33,7 +33,7 @@ pub fn project() -> Result<ToolCatalog, String> {
             description: description(definition),
             input_schema: schema(definition),
         });
-        by_wire_name.insert(
+        binding_by_wire_name.insert(
             wire_name,
             CatalogToolBinding {
                 source: crate::extensions::contracts::AgentToolBinding::SpaceAction {
@@ -47,7 +47,7 @@ pub fn project() -> Result<ToolCatalog, String> {
     let encoded = serde_json::to_vec(&tools).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
         tools,
-        by_wire_name,
+        binding_by_wire_name,
         digest: hex::encode(Sha256::digest(encoded)),
     })
 }
@@ -58,7 +58,7 @@ impl ToolCatalog {
         snapshot: &crate::extensions::contracts::AgentExtensionSnapshot,
     ) -> Result<(), String> {
         for tool in &snapshot.tools {
-            if self.by_wire_name.contains_key(&tool.name) {
+            if self.binding_by_wire_name.contains_key(&tool.name) {
                 return Err("agent-tool-wire-name-collision".into());
             }
             self.tools.push(ModelToolDefinition {
@@ -66,7 +66,7 @@ impl ToolCatalog {
                 description: tool.description.clone(),
                 input_schema: tool.input_schema.clone(),
             });
-            self.by_wire_name.insert(
+            self.binding_by_wire_name.insert(
                 tool.name.clone(),
                 CatalogToolBinding {
                     source: tool.binding.clone(),
@@ -82,7 +82,7 @@ impl ToolCatalog {
     }
     pub fn action(&self, name: &str) -> Result<&'static SpaceActionDefinition, String> {
         match &self
-            .by_wire_name
+            .binding_by_wire_name
             .get(name)
             .ok_or("agent-tool-not-selected")?
             .source

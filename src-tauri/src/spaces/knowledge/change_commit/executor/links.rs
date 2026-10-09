@@ -27,8 +27,8 @@ pub(super) async fn create_relations(
         else {
             continue;
         };
-        let source = resolve_node(tx, space_id, &state.node_ids, source_id).await?;
-        let target = resolve_node(tx, space_id, &state.node_ids, target_id).await?;
+        let source = resolve_node(tx, space_id, &state.node_id_by_temp_id, source_id).await?;
+        let target = resolve_node(tx, space_id, &state.node_id_by_temp_id, target_id).await?;
         let (source, target) =
             crate::spaces::knowledge::relations::canonical_endpoints(kind, &source, &target);
         crate::spaces::knowledge::relations::validate_endpoints(tx, space_id, &source, &target)
@@ -52,8 +52,10 @@ pub(super) async fn create_relations(
         .await
         .map_err(db::sql_error)?;
         emit_relation_created(tx, space_id, actor, &id, kind, now).await?;
-        state.relation_ids.insert(temp_id.clone(), id.clone());
-        state.resolved_ids.insert(temp_id.clone(), id);
+        state
+            .relation_id_by_temp_id
+            .insert(temp_id.clone(), id.clone());
+        state.resolved_id_by_temp_id.insert(temp_id.clone(), id);
     }
     Ok(())
 }
@@ -62,7 +64,7 @@ async fn emit_relation_created(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     actor: events::EventActor<'_>,
-    id: &str,
+    relation_id: &str,
     kind: &str,
     now: i64,
 ) -> Result<(), String> {
@@ -71,7 +73,7 @@ async fn emit_relation_created(
         tx,
         events::KnowledgeEvent::new(
             space_id,
-            events::EventEntity::new("relation", id),
+            events::EventEntity::new("relation", relation_id),
             "created",
             actor,
             &payload,
@@ -101,11 +103,11 @@ pub(super) async fn add_provenance(
         else {
             continue;
         };
-        let source = resolve_node(tx, space_id, &state.node_ids, source_node_id).await?;
+        let source = resolve_node(tx, space_id, &state.node_id_by_temp_id, source_node_id).await?;
         let target = if target_kind == "relation" {
-            resolve_relation(tx, space_id, &state.relation_ids, target_id).await?
+            resolve_relation(tx, space_id, &state.relation_id_by_temp_id, target_id).await?
         } else {
-            resolve_node(tx, space_id, &state.node_ids, target_id).await?
+            resolve_node(tx, space_id, &state.node_id_by_temp_id, target_id).await?
         };
         mutations::insert_provenance(
             tx,

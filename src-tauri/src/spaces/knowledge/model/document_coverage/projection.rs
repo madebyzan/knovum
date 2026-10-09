@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
 
-pub(crate) fn semantic_content(data: &Value) -> Value {
-    let occurrences = data
+pub(crate) fn semantic_content(payload: &Value) -> Value {
+    let occurrences = payload
         .get("documentCoverage")
         .and_then(|value| value.get("occurrences"))
         .and_then(Value::as_array)

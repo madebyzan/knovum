@@ -14,7 +14,7 @@ pub(super) struct RelatedContentItem {
 }
 
 pub(super) fn collect_match(
-    by_node: &mut HashMap<String, RelatedContentItem>,
+    content_by_node_id: &mut HashMap<String, RelatedContentItem>,
     value: &Value,
     source_node_id: &str,
 ) -> Result<(), String> {
@@ -32,11 +32,11 @@ pub(super) fn collect_match(
         .get("score")
         .and_then(Value::as_f64)
         .ok_or_else(|| "Related content result is missing score".to_owned())?;
-    let current = by_node.get(node_id);
+    let current = content_by_node_id.get(node_id);
     if current.is_some_and(|item| item.score >= score) {
         return Ok(());
     }
-    by_node.insert(
+    content_by_node_id.insert(
         node_id.to_owned(),
         RelatedContentItem {
             node_id: node_id.to_owned(),

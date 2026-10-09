@@ -169,6 +169,6 @@ fn normalize_orders(
     let index = super::super::planner::tree_policy::Index::new(structure, layouts);
     Ok(super::super::planner::tree_policy::apply_sequences(
         structure,
-        &index.children,
+        &index.children_by_parent_id,
     )?)
 }

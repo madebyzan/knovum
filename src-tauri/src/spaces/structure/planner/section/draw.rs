@@ -19,7 +19,11 @@ pub(in crate::spaces::structure) fn draw(
     let original_layouts = snapshot.layouts.clone();
     let index = Index::new(&original_structure, &original_layouts);
     require_new(&index, section_id)?;
-    let roots = index.children.get(&None).cloned().unwrap_or_default();
+    let roots = index
+        .children_by_parent_id
+        .get(&None)
+        .cloned()
+        .unwrap_or_default();
     let mut candidates = Vec::new();
     for id in &roots {
         if index.node(&original_structure, id)?.kind_name() == "section" {

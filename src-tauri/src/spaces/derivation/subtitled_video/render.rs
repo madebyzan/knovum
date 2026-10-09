@@ -25,7 +25,7 @@ use crate::{
 
 pub fn render(
     app: &tauri::AppHandle,
-    id: &str,
+    derivation_id: &str,
     source: VideoSubtitleSource,
     channel: &Channel<SubtitledVideoProgress>,
     cancellation: &CancellationToken,
@@ -35,7 +35,7 @@ pub fn render(
     let output = ScratchFile::new(directory.join(format!("derived-{}.mp4", Uuid::new_v4())));
     burn_in_subtitles(
         app,
-        id,
+        derivation_id,
         &directory,
         &source,
         output.path(),
@@ -50,14 +50,14 @@ pub fn render(
 
 fn burn_in_subtitles(
     app: &tauri::AppHandle,
-    id: &str,
+    derivation_id: &str,
     directory: &Path,
     source: &VideoSubtitleSource,
     output: &Path,
     channel: &Channel<SubtitledVideoProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let subtitle = ScratchFile::new(directory.join(format!("subtitle-{id}.srt")));
+    let subtitle = ScratchFile::new(directory.join(format!("subtitle-{derivation_id}.srt")));
     fs::write(subtitle.path(), &source.srt).map_err(|error| error.to_string())?;
     run_ffmpeg(
         app,

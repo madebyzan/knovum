@@ -8,12 +8,12 @@ import { useSceneVisibility } from "../canvas/konva/scene/use-scene-visibility";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceTextPayload } from "../editor/tiptap-content";
 
-function section(id: string, top: number, collapsed = false): ProjectedSection {
+function section(sectionId: string, top: number, collapsed = false): ProjectedSection {
   return {
-    section: { kind: "section", id, title: id, parentId: null, order: 0, locked: false },
+    section: { kind: "section", id: sectionId, title: sectionId, parentId: null, order: 0, locked: false },
     layout: {
       kind: "section",
-      structureNodeId: id,
+      structureNodeId: sectionId,
       position: { x: 0, y: top },
       size: { width: 200, height: 1000 },
       collapsed,

@@ -8,12 +8,12 @@ use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
 pub(in crate::spaces::structure) fn arrange(
     snapshot: &mut SpaceStructureSnapshot,
-    ids: &[String],
+    structure_node_ids: &[String],
     align: Option<&AlignmentEdge>,
     axis: Option<&DistributionAxis>,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let roots = effective_roots(&snapshot.structure, &index, ids)?;
+    let roots = effective_roots(&snapshot.structure, &index, structure_node_ids)?;
     let minimum = if align.is_some() { 2 } else { 3 };
     if roots.len() < minimum {
         return Err("Insufficient operation roots for arrangement".into());

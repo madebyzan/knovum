@@ -21,13 +21,13 @@ const emit = defineEmits<{
   remove: [index: number];
 }>();
 const { t } = useI18n();
-const identities = new WeakMap<SpaceObjectFieldDefinition, string>();
+const identityByField = new WeakMap<SpaceObjectFieldDefinition, string>();
 
 function identity(field: SpaceObjectFieldDefinition) {
-  let id = identities.get(field);
+  let id = identityByField.get(field);
   if (!id) {
     id = crypto.randomUUID();
-    identities.set(field, id);
+    identityByField.set(field, id);
   }
   return id;
 }

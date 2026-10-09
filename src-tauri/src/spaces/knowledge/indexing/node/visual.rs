@@ -12,18 +12,18 @@ struct VisualKnowledge {
     tags: Vec<String>,
 }
 
-pub(super) fn visual_chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
-    let Some(value) = data.get("visualKnowledge") else {
+pub(super) fn visual_chunks(payload: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
+    let Some(value) = payload.get("visualKnowledge") else {
         return Ok(Vec::new());
     };
     let knowledge: VisualKnowledge = serde_json::from_value(value.clone())
         .map_err(|error| format!("Validated visualKnowledge could not be decoded: {error}"))?;
-    let node_revision = data
+    let node_revision = payload
         .get("knowledgeRevision")
         .and_then(Value::as_str)
         .ok_or_else(|| "Visual knowledge chunks require node knowledgeRevision".to_owned())?;
     let text = visual_text(&knowledge);
-    let kind = match data.get("kind").and_then(Value::as_str) {
+    let kind = match payload.get("kind").and_then(Value::as_str) {
         Some("image") => "image_description",
         Some("video") => "video_cover",
         _ => return Ok(Vec::new()),

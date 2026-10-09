@@ -39,23 +39,23 @@ impl TaskIds {
 
 pub(in crate::spaces::conversations) fn grant(
     request: &StartBuiltinAgentTaskRequest,
-    ids: &TaskIds,
+    task_ids: &TaskIds,
     catalog: &ToolCatalog,
     now: i64,
 ) -> AuthorizationContext {
     AuthorizationContext {
         principal: Principal {
             kind: PrincipalKind::BuiltinAgent,
-            id: ids.task_id.clone(),
+            id: task_ids.task_id.clone(),
         },
-        grant_id: ids.grant_id.clone(),
+        grant_id: task_ids.grant_id.clone(),
         scope: RunScope::Space {
             space_id: request.space_id.clone(),
         },
         read_space_ids: vec![request.space_id.clone()],
         write_space_ids: vec![request.space_id.clone()],
         action_ids: catalog
-            .by_wire_name
+            .binding_by_wire_name
             .values()
             .filter_map(|binding| match &binding.source {
                 crate::extensions::contracts::AgentToolBinding::SpaceAction {

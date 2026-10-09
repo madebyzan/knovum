@@ -81,11 +81,11 @@ fn validate_operation(
     Ok(())
 }
 
-fn validate_temp_id(ids: &mut HashSet<String>, id: &str) -> Result<(), String> {
-    if id.trim().is_empty() {
+fn validate_temp_id(temp_ids: &mut HashSet<String>, temp_id: &str) -> Result<(), String> {
+    if temp_id.trim().is_empty() {
         return Err("Knowledge Change Set operation temp ID is required".into());
     }
-    if !ids.insert(id.to_owned()) {
+    if !temp_ids.insert(temp_id.to_owned()) {
         return Err("Knowledge Change Set operation temp ID must be unique".into());
     }
     Ok(())

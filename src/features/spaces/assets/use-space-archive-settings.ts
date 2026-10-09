@@ -16,8 +16,8 @@ export function useSpaceArchiveSettings(): ArchiveSettingsContract {
   return {
     spaces: archivedSpaces,
     initialize: (inboxTitle) => store.initialize(inboxTitle),
-    restore: (id) => store.unarchiveSpace(id),
-    permanentlyDelete: (id) => store.permanentlyDeleteSpace(id),
+    restore: (spaceId) => store.unarchiveSpace(spaceId),
+    permanentlyDelete: (spaceId) => store.permanentlyDeleteSpace(spaceId),
     permanentlyDeleteAll: async () => {
       const ids = archivedSpaces.value.map(({ id }) => id);
       await Promise.all(ids.map((id) => permanentDeletions(() => store.permanentlyDeleteSpace(id))));

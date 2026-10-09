@@ -7,7 +7,7 @@
     "subdirectory": "包所在子目录",
     "install": "从来源安装",
     "description": "选择本地包或远程 URL，确认内容后再安装。",
-    "details": "来源与版本详情",
+    "provenance": "来源与版本详情",
     "revision": "来源版本"
   },
   "installation": {
