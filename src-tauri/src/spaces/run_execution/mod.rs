@@ -69,7 +69,14 @@ async fn execute_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
-    match route(&claim.node_kind, &claim.configuration) {
+    let route = route(&claim.node_kind, &claim.configuration);
+    match route {
+        Route::VoiceCandidate => claim.scope.require_application()?,
+        _ => {
+            claim.scope.require_space_id()?;
+        }
+    }
+    match route {
         Route::Speech => crate::spaces::speech::run_execution::execute(app, pool, claim).await,
         Route::VoiceCandidate => {
             crate::spaces::speech::voice_candidates::execute(app, pool, claim).await

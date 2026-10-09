@@ -40,7 +40,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         .await
         .unwrap();
     for (ordinal, engine) in [(0, "moss_nano"), (1, "voxcpm2")] {
-        sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES(?,'space',?,'reference',1,1)")
+        sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES(?,?,'reference',1,1)")
             .bind(engine).bind(engine).execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,reference_asset_id,reference_source_revision,synthesis_config,authorization,created_at) VALUES(?,?,1,?,'model','en','reference','sha256:reference','{}','{}',1)")
             .bind(engine).bind(engine).bind(engine).execute(&pool).await.unwrap();

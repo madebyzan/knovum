@@ -83,14 +83,9 @@ watch([() => props.node?.id, () => props.node?.data.sourceRevision, () => store.
     :description="node.data.title"
     size="wide"
   >
-    <VoiceCandidateForm
-      v-if="selectedOperation === 'clone' && store.activeSpaceId"
-      :key="node.id"
-      :source-node="node"
-      :space-id="store.activeSpaceId"
-    />
+    <VoiceCandidateForm v-if="selectedOperation === 'clone'" :key="node.id" :source-node="node" />
     <SpaceNodeSpeechEditor
-      v-else-if="selectedOperation !== 'clone'"
+      v-else
       :key="`${node.id}:${selectedOperation}`"
       :node="node"
       :project-type="selectedOperation"

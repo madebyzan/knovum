@@ -69,7 +69,6 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::speech::voice_management::archive_voice_profile,
         crate::spaces::speech::voice_management::unarchive_voice_profile,
         crate::spaces::speech::voice_management::delete_voice_profile,
-        crate::spaces::speech::voice_management::copy_voice_profile,
         crate::spaces::speech::commands::create_preset_voice,
         crate::spaces::speech::voice_candidates::commands::draft_voice_candidate,
         crate::spaces::speech::reference_preparation::prepare_voice_reference,

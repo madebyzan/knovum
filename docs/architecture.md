@@ -100,8 +100,9 @@ The Rust boundary is divided by business responsibility:
 
 - `actions/` owns the versioned action contract and catalog; the domain owner validates and commits
   each action.
-- `authorization/` owns principals, scopes, grants, and effect-specific approval.
-- `runs/` owns durable runs, steps, attempts, scheduling, recovery, and events.
+- `authorization/` owns principals, explicit Space/Application Run scopes, grants, and effect-specific approval.
+- `runs/` owns durable runs, steps, attempts, scheduling, recovery, and events. Application voice
+  generation shares this engine with Space work and has no implicit Space or Space permissions.
 - `workflows/` owns capture and replay of verified action chains.
 - `conversations/` owns shared conversation history and execution admission; built-in and external
   executors remain separate implementations.
@@ -111,6 +112,8 @@ The Rust boundary is divided by business responsibility:
 - `nodes/` owns content mutation and node lifecycle. `structure/` owns layout, membership, edit
   history, clipboard, deletion, and structural integrity. Disposable camera state is separate.
 - `assets/` owns asset authorization, import, enrichment, references, and lifecycle.
+- `speech/` owns the global voice library and Application voice-generation Runs; Space speech
+  projects own their content and pin global immutable voice revisions.
 - `queries/` owns read-only projections. `commands/` owns Space mutations without a more specific
   capability owner.
 - `package/` owns package validation, snapshots, restore, and failed-import cleanup.

@@ -21,43 +21,38 @@ const Player = defineComponent({
   template: "<div />",
 });
 
-it.each(["current", "new-space"] as const)(
-  "scopes a reference cancellation failure to the %s operation",
-  async (context) => {
-    prepare.mockReturnValue(new Promise(() => {}));
-    cancel.mockRejectedValue(new Error("Old cancellation failed"));
-    const wrapper = mount(VoiceReferenceEditor, {
-      props: {
-        spaceId: "first",
-        language: "en",
-        disabled: false,
-        sourceNode: {
-          id: "audio",
-          type: "audio",
-          initialPosition: { x: 0, y: 0 },
-          data: {
-            kind: "audio",
-            title: "Reference",
-            assetPath: "/voice.wav",
-            fileName: "voice.wav",
-            sourceRevision: "sha256:source",
-          },
+it("keeps a reference cancellation failure with the active operation", async () => {
+  prepare.mockReturnValue(new Promise(() => {}));
+  cancel.mockRejectedValue(new Error("Cancellation failed"));
+  const wrapper = mount(VoiceReferenceEditor, {
+    props: {
+      language: "en",
+      disabled: false,
+      sourceNode: {
+        id: "audio",
+        type: "audio",
+        initialPosition: { x: 0, y: 0 },
+        data: {
+          kind: "audio",
+          title: "Reference",
+          assetPath: "/voice.wav",
+          fileName: "voice.wav",
+          sourceRevision: "sha256:source",
         },
       },
-      global: { plugins: [i18n], stubs: { SpeechMediaPlayer: Player } },
-    });
-    onTestFinished(() => wrapper.unmount());
-    wrapper.getComponent(Player).vm.$emit("loaded", 10_000);
-    await flushPromises();
-    await wrapper.get('[data-testid="reference-prepare"]').trigger("click");
-    await flushPromises();
-    if (context === "current") await wrapper.get('[data-testid="reference-cancel"]').trigger("click");
-    else await wrapper.setProps({ spaceId: "second" });
-    await flushPromises();
-    expect(cancel).toHaveBeenCalled();
-    expect(wrapper.find('[role="alert"]').exists()).toBe(context === "current");
-  },
-);
+    },
+    global: { plugins: [i18n], stubs: { SpeechMediaPlayer: Player } },
+  });
+  onTestFinished(() => wrapper.unmount());
+  wrapper.getComponent(Player).vm.$emit("loaded", 10_000);
+  await flushPromises();
+  await wrapper.get('[data-testid="reference-prepare"]').trigger("click");
+  await flushPromises();
+  await wrapper.get('[data-testid="reference-cancel"]').trigger("click");
+  await flushPromises();
+  expect(cancel).toHaveBeenCalled();
+  expect(wrapper.find('[role="alert"]').exists()).toBe(true);
+});
 
 it.each(["audio", "video"] as const)(
   "uses the selected %s source and freezes its reference interval",
@@ -77,7 +72,7 @@ it.each(["audio", "video"] as const)(
       transcript: "Interview",
     });
     const wrapper = mount(VoiceReferenceEditor, {
-      props: { sourceNode: node, spaceId: "space", language: "en", disabled: false },
+      props: { sourceNode: node, language: "en", disabled: false },
       global: { plugins: [i18n], stubs: { SpeechMediaPlayer: Player } },
     });
     onTestFinished(() => wrapper.unmount());
@@ -90,8 +85,9 @@ it.each(["audio", "video"] as const)(
     await wrapper.get('[data-testid="reference-prepare"]').trigger("click");
     await flushPromises();
     expect(prepare).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sourcePath: assetPath, startMs: 5_000, endMs: 15_000, spaceId: "space" }),
+      expect.objectContaining({ sourcePath: assetPath, startMs: 5_000, endMs: 15_000 }),
     );
+    expect(prepare.mock.calls.at(-1)?.[0]).not.toHaveProperty("spaceId");
     expect(wrapper.emitted("update:modelValue")?.at(-1)?.[0]).toMatchObject({
       sourceRevision: "sha256:source",
     });

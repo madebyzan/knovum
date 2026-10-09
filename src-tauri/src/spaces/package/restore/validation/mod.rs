@@ -4,7 +4,6 @@ use tokio_util::sync::CancellationToken;
 mod references;
 mod speech;
 mod translation;
-mod voice_candidates;
 
 pub(super) fn validate_request_shape_cancellable(
     request: &RestorePackageRequest,
@@ -17,6 +16,19 @@ pub(super) fn validate_request_shape_cancellable(
         || space.title.encode_utf16().count() > 512
     {
         return Err("Package Space metadata is invalid".into());
+    }
+    if request
+        .run_steps
+        .iter()
+        .any(|step| step.node_kind == "speech_voice_candidate")
+        || request.runs.iter().any(|run| {
+            run.input_snapshot
+                .get("workflow")
+                .and_then(serde_json::Value::as_str)
+                == Some("speech_voice_candidate_v1")
+        })
+    {
+        return Err("Application voice generation does not belong in a Space package".into());
     }
     let limits = [
         (request.nodes.len(), 100_000usize, "nodes"),
@@ -56,7 +68,6 @@ pub(super) fn validate_request_shape_cancellable(
         ),
         (request.voice_profiles.len(), 100_000, "voice profiles"),
         (request.voice_revisions.len(), 1_000_000, "voice revisions"),
-        (request.voice_candidates.len(), 100_000, "voice candidates"),
         (request.speech_projects.len(), 100_000, "speech projects"),
         (
             request.speech_project_revisions.len(),
@@ -77,8 +88,6 @@ pub(super) fn validate_request_shape_cancellable(
     references::validate(request)?;
     super::super::control::check(cancellation)?;
     speech::validate(request)?;
-    super::super::control::check(cancellation)?;
-    voice_candidates::validate(request)?;
     super::super::control::check(cancellation)?;
     Ok(translation::validate(request)?)
 }

@@ -5,38 +5,46 @@ use sqlx::Row;
 use super::contracts::{VoiceProfileHistory, VoiceRevision};
 use crate::spaces::{db, speech::contracts::parse_synthesis_config};
 
-pub(super) async fn list(
-    pool: &sqlx::SqlitePool,
-    space_id: &str,
-) -> Result<Vec<VoiceProfileHistory>, String> {
+pub(super) async fn list(pool: &sqlx::SqlitePool) -> Result<Vec<VoiceProfileHistory>, String> {
     let rows = sqlx::query(
-        "SELECT p.id,p.space_id,p.name,p.source_kind,p.active_revision_id,p.archived_at,p.updated_at, \
+        "SELECT p.id,p.name,p.source_kind,p.active_revision_id,p.archived_at,p.updated_at, \
          (SELECT COUNT(*) FROM spaces_speech_segments s JOIN spaces_voice_revisions sr \
-           ON sr.id=s.voice_revision_id WHERE sr.profile_id=p.id) AS referenced_segment_count \
-         FROM spaces_voice_profiles p WHERE p.space_id=? ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,p.id",
+           ON sr.id=s.voice_revision_id WHERE sr.profile_id=p.id) + \
+         (SELECT COUNT(*) FROM spaces_voice_revisions rr, \
+           spaces_speech_project_revisions revision, json_each(revision.output_config,'$.roles') role \
+           WHERE rr.profile_id=p.id AND json_extract(role.value,'$.voiceRevisionId')=rr.id) \
+         AS referenced_binding_count \
+         FROM spaces_voice_profiles p ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,p.id",
     )
-    .bind(space_id)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    let mut revisions = revisions_by_profile(pool, space_id).await?;
+    let mut revisions = revisions_by_profile(pool).await?;
     let mut profiles = Vec::with_capacity(rows.len());
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
+        let active_revision_id: String = row
+            .try_get::<Option<String>, _>("active_revision_id")
+            .map_err(db::sql_error)?
+            .ok_or("Voice profile has no active revision")?;
+        let profile_revisions = revisions
+            .remove(&id)
+            .filter(|items| {
+                items
+                    .iter()
+                    .any(|revision| revision.id == active_revision_id)
+            })
+            .ok_or("Voice profile active revision is unavailable")?;
         profiles.push(VoiceProfileHistory {
-            revisions: revisions.remove(&id).unwrap_or_default(),
+            revisions: profile_revisions,
             id,
-            space_id: row.try_get("space_id").map_err(db::sql_error)?,
             name: row.try_get("name").map_err(db::sql_error)?,
             source_kind: row.try_get("source_kind").map_err(db::sql_error)?,
-            active_revision_id: row
-                .try_get::<Option<String>, _>("active_revision_id")
-                .map_err(db::sql_error)?
-                .ok_or("Voice profile has no active revision")?,
+            active_revision_id,
             archived_at: row.try_get("archived_at").map_err(db::sql_error)?,
             updated_at: row.try_get("updated_at").map_err(db::sql_error)?,
-            referenced_segment_count: row
-                .try_get("referenced_segment_count")
+            referenced_binding_count: row
+                .try_get("referenced_binding_count")
                 .map_err(db::sql_error)?,
         });
     }
@@ -45,15 +53,12 @@ pub(super) async fn list(
 
 async fn revisions_by_profile(
     pool: &sqlx::SqlitePool,
-    space_id: &str,
 ) -> Result<HashMap<String, Vec<VoiceRevision>>, String> {
     let rows = sqlx::query(
         "SELECT r.profile_id,r.id,r.revision,r.engine_id,r.model_spec_id,r.language,r.synthesis_config, \
          r.reference_source_revision,r.design_description,r.created_at FROM spaces_voice_revisions r \
-         JOIN spaces_voice_profiles p ON p.id=r.profile_id WHERE p.space_id=? \
          ORDER BY r.profile_id,r.revision DESC",
     )
-    .bind(space_id)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;

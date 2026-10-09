@@ -6,18 +6,14 @@ use super::contracts::{
 };
 use crate::spaces::db;
 
-pub async fn list_voices(
-    pool: &sqlx::SqlitePool,
-    space_id: &str,
-) -> Result<Vec<VoiceLibraryRevision>, String> {
+pub async fn list_voices(pool: &sqlx::SqlitePool) -> Result<Vec<VoiceLibraryRevision>, String> {
     sqlx::query_as(
         "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision, \
          r.id=p.active_revision_id AS is_active,r.engine_id,r.model_spec_id,r.language,r.preset_voice_id, \
          (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.profile_id=p.id \
-         WHERE p.space_id=? ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
+         ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
     )
-    .bind(space_id)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)
@@ -31,7 +27,8 @@ pub async fn list_projects(
     sqlx::query_as(
         "SELECT p.id, p.space_id, p.source_node_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
-           WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
+           WHERE r0.scope_kind='space' AND r0.home_space_id=p.space_id \
+             AND r0.kind='workflow' AND r0.completed_at IS NULL \
              AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \
              AND json_extract(r0.input_snapshot,'$.projectId')=p.id \
            ORDER BY r0.created_at DESC LIMIT 1) AS active_run_id,p.updated_at \
@@ -54,7 +51,8 @@ pub async fn load_project(
     let project: SpeechProjectOverview = sqlx::query_as(
         "SELECT p.id, p.space_id, p.source_node_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
          COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
-           WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
+           WHERE r0.scope_kind='space' AND r0.home_space_id=p.space_id \
+             AND r0.kind='workflow' AND r0.completed_at IS NULL \
              AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \
              AND json_extract(r0.input_snapshot,'$.projectId')=p.id \
            ORDER BY r0.created_at DESC LIMIT 1) AS active_run_id,p.updated_at \
@@ -87,17 +85,15 @@ pub async fn load_project(
     })
 }
 
-pub async fn require_voice_in_space(
+pub async fn require_voice(
     tx: &mut Transaction<'_, Sqlite>,
     voice_revision_id: &str,
-    project_id: &str,
     delivery_instruction: Option<&str>,
 ) -> Result<String, String> {
     let voice: Option<(String, String, String, Option<String>)> = sqlx::query_as(
         "SELECT r.language,r.engine_id,v.source_kind,r.reference_text FROM spaces_voice_revisions r \
          JOIN spaces_voice_profiles v ON v.id=r.profile_id \
-         JOIN spaces_speech_projects p ON p.space_id=v.space_id \
-         WHERE r.id=? AND p.id=? AND ( \
+         WHERE r.id=? AND ( \
            (v.source_kind IN ('preset','reference') AND r.engine_id='moss_nano' AND r.model_spec_id=?) OR \
            (v.source_kind IN ('reference','designed') AND r.engine_id='voxcpm2' \
              AND r.model_spec_id IN (?,?) \
@@ -106,7 +102,6 @@ pub async fn require_voice_in_space(
                (r.reference_text IS NOT NULL AND length(trim(r.reference_text)) > 0))))",
     )
     .bind(voice_revision_id)
-    .bind(project_id)
     .bind(super::execution::MOSS_NANO_MODEL_SPEC_ID)
     .bind(super::voice_candidates::MODEL_SPEC_ID)
     .bind(super::voice_candidates::Q8_MODEL_SPEC_ID)
@@ -114,7 +109,7 @@ pub async fn require_voice_in_space(
     .await
     .map_err(db::sql_error)?;
     let (language, engine, source, transcript) =
-        voice.ok_or("A compatible voice revision is required in this Space")?;
+        voice.ok_or("A compatible voice revision is required")?;
     super::delivery_instruction::validate(
         delivery_instruction,
         super::delivery_instruction::supports(&engine, &source, transcript.as_deref()),

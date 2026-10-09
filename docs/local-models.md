@@ -194,7 +194,8 @@ public sources need no account or import. The supported clustering controls foll
 [Sherpa diarization API](https://k2-fsa.github.io/sherpa/onnx/speaker-diarization/index.html).
 Full precision is not a promise of better automatic speaker counts on every recording.
 
-Reusable voices are Space-owned immutable assets, exposed by Settings through application composition.
+Reusable voices are application-wide immutable assets, exposed by Settings through application composition.
+Every Space can pin their revisions without copying or assigning them to a Space.
 Audio/video nodes own transcription, alignment, speaker recognition, separation and reference-voice
 creation; text nodes own speech/audiobooks, and video nodes own dubbing. Operation/project and
 asset-review contracts belong to [spaces.md](spaces.md). Download presentation belongs to

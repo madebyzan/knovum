@@ -15,6 +15,9 @@ use crate::{
 };
 
 mod conversion;
+mod reclamation;
+
+pub(in crate::spaces::speech) use reclamation::reclaim_unreferenced;
 
 pub(super) fn prepare_reference(
     app: &AppHandle,
@@ -203,7 +206,6 @@ pub(super) async fn persist_reference(
     app: &AppHandle,
     reference: &AudioFileReference,
     profile_id: &str,
-    space_id: &str,
 ) -> Result<PersistedReference, String> {
     let path = Path::new(&reference.path);
     let source = assets::authorize_spaces_asset(app, path)?;
@@ -227,7 +229,7 @@ pub(super) async fn persist_reference(
     let pool = crate::spaces::db::pool(app).await?;
     let publication_id = super::asset_publication::stage_unowned(
         pool,
-        space_id,
+        &crate::spaces::authorization::RunScope::Application,
         super::asset_publication::PendingAsset {
             owner_kind: PublicationOwnerKind::VoiceReference,
             owner_id: profile_id,

@@ -147,21 +147,20 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
     .execute(&pool)
     .await
     .unwrap();
-    for run_id in ["moss-reference", "moss-designed", "full-separation"] {
-        sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','user','local-user','workflow','running','{}','{}','{}',1,1)")
-            .bind(run_id)
-            .execute(&pool)
-            .await
-            .unwrap();
+    for run_id in ["moss-reference", "moss-designed"] {
+        sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) VALUES(?,'application',NULL,'user','local-user','workflow','succeeded','{}','{\"workflow\":\"speech_voice_candidate_v1\"}','{}',1,1,1)")
+            .bind(run_id).execute(&pool).await.unwrap();
     }
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('full-separation','space','space','user','local-user','workflow','running','{}','{}','{}',1,1)")
+        .execute(&pool).await.unwrap();
 
     sqlx::query(
         "INSERT INTO spaces_voice_candidates( \
-         id,space_id,run_id,source_kind,language,sample_text,design_description,reference_text, \
+         id,run_id,source_kind,language,sample_text,design_description,reference_text, \
          input_source_revision,input_byte_length,reference_asset_path,reference_sha256,reference_byte_length, \
          preview_asset_path,preview_sha256,preview_sample_rate,preview_sample_count,model_spec_id,seed, \
          synthesis_config,authorization,status,created_at) \
-         VALUES('moss-reference','space','moss-reference','reference','en','Sample',NULL,NULL,?,32044, \
+         VALUES('moss-reference','moss-reference','reference','en','Sample',NULL,NULL,?,32044, \
          '/moss-reference.wav',?,32044,'/moss-preview.wav',?,48000,48000, \
          'moss-tts-nano-onnx-v1',0,?,?,'ready',1)",
     )
@@ -176,10 +175,10 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
 
     let designed_moss = sqlx::query(
         "INSERT INTO spaces_voice_candidates( \
-         id,space_id,run_id,source_kind,language,sample_text,design_description,reference_text, \
+         id,run_id,source_kind,language,sample_text,design_description,reference_text, \
          reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
          preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization,status,created_at) \
-         VALUES('moss-designed','space','moss-designed','designed','en','Sample','Warm','Sample', \
+         VALUES('moss-designed','moss-designed','designed','en','Sample','Warm','Sample', \
          '/moss-designed.wav',?,32044,'/moss-designed-preview.wav',?,48000,48000, \
          'moss-tts-nano-onnx-v1',0,?,?,'ready',1)",
     )

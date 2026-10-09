@@ -12,7 +12,7 @@ async fn fixture() -> sqlx::SqlitePool {
             .execute(&pool)
             .await
             .unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','external_agent','session','external_agent','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','space','external_agent','session','external_agent','running','{}','{}','{}',1,1)")
             .execute(&pool)
             .await
             .unwrap();
@@ -43,7 +43,7 @@ async fn records_each_owned_path_once_and_releases_in_publication_transaction() 
 #[tokio::test]
 async fn run_deletion_cascades_its_manifest_only() {
     let pool = fixture().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('other','space','external_agent','other','external_agent','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('other','space','space','external_agent','other','external_agent','running','{}','{}','{}',1,1)")
             .execute(&pool)
             .await
             .unwrap();
@@ -85,7 +85,7 @@ async fn cancelled_run_cannot_claim_new_managed_paths() {
 #[tokio::test]
 async fn reclamation_preserves_shared_claims_and_committed_references() {
     let pool = fixture().await;
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('other','space','external_agent','other','external_agent','running','{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('other','space','space','external_agent','other','external_agent','running','{}','{}','{}',1,1)")
             .execute(&pool).await.unwrap();
     record_path(&pool, "other", "/managed/shared", PathRole::Embedded)
         .await

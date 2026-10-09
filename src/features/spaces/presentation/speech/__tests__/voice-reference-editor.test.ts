@@ -28,7 +28,7 @@ function render() {
   mocks.authorize.mockImplementation(async (path) => path);
   mocks.cancel.mockResolvedValue();
   const wrapper = mount(VoiceReferenceEditor, {
-    props: { spaceId: "space", language: "en", disabled: false },
+    props: { language: "en", disabled: false },
     global: { plugins: [i18n], stubs: { SpeechMediaPlayer: Player } },
   });
   onTestFinished(() => wrapper.unmount());
@@ -122,20 +122,22 @@ it.each([
   expect(wrapper.get('[data-testid="reference-prepare"]').attributes("disabled")).toBeUndefined();
 });
 
-it("does not publish an old reference authorization error into a different Space", async () => {
+it("ignores an old authorization failure after a replacement source is selected", async () => {
   const wrapper = render();
-  mocks.open.mockResolvedValue("/reference.wav");
+  mocks.open.mockResolvedValueOnce("/old.wav").mockResolvedValueOnce("/current.wav");
   let failAuthorization!: (error: Error) => void;
-  mocks.authorize.mockReturnValue(
-    new Promise((_resolve, reject) => {
-      failAuthorization = reject;
-    }),
-  );
+  mocks.authorize
+    .mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        failAuthorization = reject;
+      }),
+    )
+    .mockResolvedValueOnce("/current.wav");
+  await wrapper.get('[data-testid="reference-choose"]').trigger("click");
   await wrapper.get('[data-testid="reference-choose"]').trigger("click");
   await flushPromises();
-  await wrapper.setProps({ spaceId: "different-space" });
   failAuthorization(new Error("Old authorization failed"));
   await flushPromises();
   expect(wrapper.find('[role="alert"]').exists()).toBe(false);
-  expect(wrapper.findComponent(Player).exists()).toBe(false);
+  expect(wrapper.findComponent(Player).exists()).toBe(true);
 });

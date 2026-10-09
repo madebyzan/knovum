@@ -14,7 +14,6 @@ it("starts with a named preset when no custom library name is entered", async ()
   ]);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = mount(VoiceProfileForm, {
-    props: { spaceId: "space" },
     global: { plugins: [[VueQueryPlugin, { queryClient }]], stubs: { VoiceAudition: true } },
   });
   onTestFinished(() => {
@@ -26,6 +25,7 @@ it("starts with a named preset when no custom library name is entered", async ()
   expect(wrapper.emitted("create")?.[0]?.[0]).toEqual(
     expect.objectContaining({ name: "Default speaker", presetVoiceId: "0", engineId: "moss_nano" }),
   );
+  expect(wrapper.emitted("create")?.[0]?.[0]).not.toHaveProperty("spaceId");
   await wrapper.get("input").setValue("Narrator");
   await wrapper.get("form").trigger("submit");
   expect(wrapper.emitted("create")?.[1]?.[0]).toEqual(expect.objectContaining({ name: "Narrator" }));

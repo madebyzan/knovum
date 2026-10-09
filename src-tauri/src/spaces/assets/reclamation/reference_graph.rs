@@ -174,15 +174,6 @@ pub(crate) async fn for_space(
          WHERE space_id=$1 \
          UNION ALL SELECT source_asset_path FROM spaces_speech_source_separations \
          WHERE space_id=$1 \
-         UNION ALL SELECT preview_asset_path FROM spaces_voice_candidates WHERE space_id=$1 \
-         UNION ALL SELECT reference_asset_path FROM spaces_voice_candidates WHERE space_id=$1 \
-         UNION ALL SELECT json_extract(input_snapshot,'$.referenceSource.assetPath') FROM spaces_runs \
-         WHERE home_space_id=$1 AND completed_at IS NULL \
-           AND json_extract(input_snapshot,'$.workflow')='speech_voice_candidate_v1' \
-           AND json_type(input_snapshot,'$.referenceSource.assetPath')='text' \
-         UNION ALL SELECT r.reference_asset_id FROM spaces_voice_revisions r \
-         JOIN spaces_voice_profiles p ON p.id=r.profile_id \
-         WHERE p.space_id=$1 AND r.reference_asset_id IS NOT NULL \
          UNION ALL SELECT json_extract(r.output_config,'$.video.assetPath') FROM spaces_speech_project_revisions r \
          JOIN spaces_speech_projects p ON p.id=r.project_id \
          WHERE p.space_id=$1 AND json_type(r.output_config,'$.video.assetPath')='text' \

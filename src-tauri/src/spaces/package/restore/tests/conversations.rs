@@ -29,7 +29,6 @@ async fn restores_mode_free_history_with_branch_and_parent_identity() {
         "externalAgentTurns",
         "voiceProfiles",
         "voiceRevisions",
-        "voiceCandidates",
         "speechProjects",
         "speechProjectRevisions",
         "speechSegments",

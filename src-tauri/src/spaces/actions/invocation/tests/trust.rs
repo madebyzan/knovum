@@ -3,7 +3,7 @@ use sqlx::sqlite::SqlitePoolOptions;
 
 use super::super::{invoke, ActionInvocationOutcome, ActionInvocationRequest};
 use crate::spaces::{
-    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
+    authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind, RunScope},
     db,
 };
 
@@ -34,7 +34,9 @@ async fn both_agent_principals_create_canvas_resources_without_approval_and_keep
                     id: grant_id.into(),
                 },
                 grant_id: grant_id.into(),
-                home_space_id: "space".into(),
+                scope: RunScope::Space {
+                    space_id: "space".into(),
+                },
                 read_space_ids: vec!["space".into()],
                 write_space_ids: vec!["space".into()],
                 action_ids: vec!["create-note".into()],

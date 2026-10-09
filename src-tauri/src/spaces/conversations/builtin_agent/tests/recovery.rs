@@ -12,8 +12,8 @@ async fn resume_requires_a_durable_pause_and_cannot_queue_over_another_active_ru
         .is_err());
     sqlx::query("INSERT INTO spaces_run_events(run_id,sequence,kind,payload,created_at) VALUES('run',1,'builtin_agent_paused_checkpoint','{}',3)")
         .execute(&pool).await.unwrap();
-    sqlx::raw_sql("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-        VALUES('other','space','builtin_agent','other','builtin_agent','running','{}','{}','{}',1,1);
+    sqlx::raw_sql("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
+        VALUES('other','space','space','builtin_agent','other','builtin_agent','running','{}','{}','{}',1,1);
         INSERT INTO spaces_builtin_agent_tasks(id,run_id,conversation_id,branch_id,grant_id,model_binding,catalog_digest,segment_id,input_id,created_at,updated_at)
         VALUES('other','other','conversation','branch','grant','{}','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','thread','input:other',1,1);")
         .execute(&pool).await.unwrap();

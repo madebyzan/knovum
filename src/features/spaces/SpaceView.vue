@@ -33,7 +33,6 @@ import SpaceImageEditLeaveDialog from "./presentation/canvas/SpaceImageEditLeave
 import SpaceEditorLoading from "./presentation/editor/SpaceEditorLoading.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
-import { restoreResourceRuns } from "./runs/resource-run-observation";
 import { useSpaceStore } from "./session/space-store";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
@@ -95,9 +94,6 @@ async function initialize() {
   initializationError.value = undefined;
   try {
     await store.initialize(t("spaces.space.inbox"));
-    void restoreResourceRuns(t("spaces.creation.shared.resourceTask")).catch((caught: unknown) => {
-      toast.error(getErrorMessage(caught));
-    });
     void restoreConversationRuns().catch((caught: unknown) => {
       toast.error(getErrorMessage(caught));
     });

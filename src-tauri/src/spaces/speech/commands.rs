@@ -15,9 +15,8 @@ fn required(value: &str, field: &str, max: usize) -> Result<(), String> {
 #[tauri::command]
 pub async fn list_voice_revisions(
     app: tauri::AppHandle,
-    space_id: String,
 ) -> Result<Vec<VoiceLibraryRevision>, AppError> {
-    Ok(repository::list_voices(db::pool(&app).await?, &space_id).await?)
+    Ok(repository::list_voices(db::pool(&app).await?).await?)
 }
 
 #[tauri::command]
@@ -47,11 +46,10 @@ pub async fn create_preset_voice(
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
-        "INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,active_revision_id,created_at,updated_at) \
-         VALUES(?,?,?,'preset',NULL,?,?)",
+        "INSERT INTO spaces_voice_profiles(id,name,source_kind,active_revision_id,created_at,updated_at) \
+         VALUES(?,?,'preset',NULL,?,?)",
     )
     .bind(&profile_id)
-    .bind(&request.space_id)
     .bind(request.name.trim())
     .bind(now)
     .bind(now)
@@ -80,7 +78,7 @@ pub async fn create_preset_voice(
         .await
         .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(repository::list_voices(pool, &request.space_id)
+    Ok(repository::list_voices(pool)
         .await?
         .into_iter()
         .find(|profile| profile.profile_id == profile_id)

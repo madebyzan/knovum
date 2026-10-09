@@ -13,9 +13,9 @@ async fn explicit_cancellation_wins_over_duration_expiry_in_the_same_tick() {
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
             .execute(&pool).await.unwrap();
     sqlx::query(
-        "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,
              execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-             VALUES('run','space','builtin_agent','principal','action','running',3,'{}','{}',
+             VALUES('run','space','space','builtin_agent','principal','action','running',3,'{}','{}',
              '{\"maxDurationSeconds\":0}',1,1)",
     )
     .execute(&pool)
@@ -77,9 +77,9 @@ async fn expired_lease_recovery_transitions_each_run_once_even_when_pause_is_pen
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
             .execute(&pool).await.unwrap();
     sqlx::query(
-        "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,
              state_version,execution_epoch,policy_snapshot,input_snapshot,budget,pause_requested_at,
-             created_at,updated_at) VALUES('run','space','builtin_agent','principal','action','running',
+             created_at,updated_at) VALUES('run','space','space','builtin_agent','principal','action','running',
              0,3,'{}','{}','{}',2,1,1)",
     )
     .execute(&pool)
@@ -256,9 +256,9 @@ async fn duration_expiry_fences_the_entire_unfinished_run_tree() {
     crate::spaces::db::migrate(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('parent','space','builtin_agent','principal','workflow','running',2,'{}','{}','{\"maxDurationSeconds\":0}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('parent','space','space','builtin_agent','principal','workflow','running',2,'{}','{}','{\"maxDurationSeconds\":0}',1,1)")
             .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('child','space','parent','builtin_agent','principal','action','running',7,'{}','{}','{}',1,1)")
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('child','space','space','parent','builtin_agent','principal','action','running',7,'{}','{}','{}',1,1)")
             .execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,resolved_input,created_at,updated_at) VALUES('child-step','child','node','node','action','running','{}',1,1)")
             .execute(&pool).await.unwrap();
@@ -333,9 +333,9 @@ async fn insert_run(
     completed_at: Option<i64>,
 ) {
     sqlx::query(
-            "INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,
+            "INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,
              kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,cancel_requested_at,
-             created_at,updated_at,completed_at) VALUES($1,'space',$2,'builtin_agent','principal','action',
+             created_at,updated_at,completed_at) VALUES($1,'space','space',$2,'builtin_agent','principal','action',
              $3,$4,'{}','{}','{}',$5,1,1,$6)",
         )
         .bind(id)

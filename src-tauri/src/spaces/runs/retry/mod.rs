@@ -4,7 +4,7 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use super::RunObservation;
-use crate::spaces::db;
+use crate::spaces::{authorization::RunScope, db};
 
 mod source;
 
@@ -16,8 +16,13 @@ pub(super) async fn create_retry(
     selected_step_ids: &[String],
 ) -> Result<RunObservation, String> {
     let source = load_source(pool, source_run_id).await?;
-    if source.kind != "workflow" || source.principal_kind != "user" {
-        return Err("run-retry-unsupported: only user-started workflows can be retried".into());
+    if source.kind != "workflow"
+        || source.principal_kind != "user"
+        || matches!(&source.scope, RunScope::Application)
+    {
+        return Err(
+            "run-retry-unsupported: only user-started Space workflows can be retried".into(),
+        );
     }
     let steps = load_steps(pool, source_run_id).await?;
     let selected = selected_nodes(&steps, selected_step_ids)?;
@@ -31,26 +36,26 @@ pub(super) async fn create_retry(
         .and_then(Value::as_str)
         .ok_or("run-retry-invalid: source grant is missing")?;
     let source_grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
-    if source_grant.home_space_id != source.space_id
+    if source_grant.scope != source.scope
         || source_grant.principal.kind != crate::spaces::authorization::PrincipalKind::User
         || source_grant.principal.id != "local-user"
     {
-        return Err("run-retry-invalid: source grant belongs to another Space".into());
+        return Err("run-retry-invalid: source grant belongs to another scope".into());
     }
     let grant = crate::spaces::authorization::local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        source.space_id.clone(),
+        source.scope.clone(),
         source_grant.action_ids,
         now,
-    );
+    )?;
     crate::spaces::authorization::create_grant(&mut tx, &grant, now).await?;
     let retry_policy = retry_policy(&source.policy, source_run_id, &grant.grant_id)?;
     sqlx::query(
-        "INSERT INTO spaces_runs(id,home_space_id,parent_run_id,retry_of_run_id,principal_kind,
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,retry_of_run_id,principal_kind,
          principal_id,kind,state,state_version,execution_epoch,policy_snapshot,input_snapshot,budget,
-         created_at,updated_at) VALUES($1,$2,NULL,$3,$4,$5,$6,'queued',0,0,$7,$8,$9,$10,$10)",
+         created_at,updated_at) VALUES($1,$2,$3,NULL,$4,$5,$6,$7,'queued',0,0,$8,$9,$10,$11,$11)",
     )
-    .bind(&run_id).bind(&source.space_id).bind(source_run_id)
+    .bind(&run_id).bind(source.scope.db_values().0).bind(source.scope.db_values().1).bind(source_run_id)
     .bind(&source.principal_kind).bind(&source.principal_id).bind(&source.kind)
     .bind(sqlx::types::Json(&retry_policy)).bind(&source.input).bind(&source.budget).bind(now)
     .execute(&mut *tx).await.map_err(db::sql_error)?;

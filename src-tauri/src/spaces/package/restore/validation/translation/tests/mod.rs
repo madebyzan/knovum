@@ -12,7 +12,7 @@ fn request() -> super::RestorePackageRequest {
         "structureNodes":[],"layouts":[],"relationStyles":[],"objectTypes":[],"nodes":[],
         "scenes":[],"relations":[],"derivations":[],"runEvents":[],
         "externalAgentConversations":[],"externalAgentTurns":[],"conversations":[],
-        "conversationMessages":[],"voiceProfiles":[],"voiceRevisions":[],"voiceCandidates":[],
+        "conversationMessages":[],"voiceProfiles":[],"voiceRevisions":[],
         "speechProjects":[],"speechRenders":[],"speechSourceSeparations":[],"provenance":[],
         "knowledgeEvents":[],"chunks":[],"runs":[],"runSteps":[],"runAttempts":[],
         "speechProjectRevisions":[],"speechSegments":[]

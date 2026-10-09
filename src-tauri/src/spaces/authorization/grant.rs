@@ -1,6 +1,6 @@
 use sqlx::{types::Json, Row, Sqlite, Transaction};
 
-use super::{AuthorizationContext, Principal};
+use super::{AuthorizationContext, Principal, RunScope};
 use crate::spaces::db;
 
 pub(crate) async fn create_grant(
@@ -8,16 +8,18 @@ pub(crate) async fn create_grant(
     context: &AuthorizationContext,
     now: i64,
 ) -> Result<(), String> {
+    let (scope_kind, home_space_id) = context.scope.db_values();
     sqlx::query(
         "INSERT INTO spaces_authorization_grants(
-          id,principal_kind,principal_id,home_space_id,read_space_ids,write_space_ids,
+          id,principal_kind,principal_id,scope_kind,home_space_id,read_space_ids,write_space_ids,
           action_ids,valid_until,revoked_at,created_at
-        ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,NULL,$9)",
+        ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,NULL,$10)",
     )
     .bind(&context.grant_id)
     .bind(context.principal.kind.as_str())
     .bind(&context.principal.id)
-    .bind(&context.home_space_id)
+    .bind(scope_kind)
+    .bind(home_space_id)
     .bind(Json(&context.read_space_ids))
     .bind(Json(&context.write_space_ids))
     .bind(Json(&context.action_ids))
@@ -34,7 +36,7 @@ pub(crate) async fn load_grant(
     grant_id: &str,
 ) -> Result<AuthorizationContext, String> {
     let row = sqlx::query(
-        "SELECT principal_kind,principal_id,home_space_id,read_space_ids,write_space_ids,
+        "SELECT principal_kind,principal_id,scope_kind,home_space_id,read_space_ids,write_space_ids,
          action_ids,valid_until,revoked_at
          FROM spaces_authorization_grants WHERE id=$1",
     )
@@ -54,13 +56,15 @@ pub(crate) async fn load_grant(
         row.try_get("principal_kind").map_err(db::sql_error)?,
     ))
     .map_err(db::json_error)?;
+    let scope_kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+    let home_space_id = row.try_get("home_space_id").map_err(db::sql_error)?;
     Ok(AuthorizationContext {
         principal: Principal {
             kind,
             id: row.try_get("principal_id").map_err(db::sql_error)?,
         },
         grant_id: grant_id.to_owned(),
-        home_space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
+        scope: RunScope::from_db(&scope_kind, home_space_id)?,
         read_space_ids: parse_array(&row, "read_space_ids")?,
         write_space_ids: parse_array(&row, "write_space_ids")?,
         action_ids: parse_array(&row, "action_ids")?,
@@ -72,4 +76,21 @@ fn parse_array(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<Vec<String>
     row.try_get::<Json<Vec<String>>, _>(field)
         .map(Json::into_inner)
         .map_err(db::sql_error)
+}
+
+pub(crate) async fn delete_unreferenced_application_grants(
+    tx: &mut Transaction<'_, Sqlite>,
+    grant_ids: &[String],
+) -> Result<(), String> {
+    sqlx::query(
+        "DELETE FROM spaces_authorization_grants WHERE scope_kind='application' \
+         AND id IN (SELECT value FROM json_each(?)) \
+         AND NOT EXISTS (SELECT 1 FROM spaces_runs run \
+           WHERE json_extract(run.policy_snapshot,'$.grantId')=spaces_authorization_grants.id)",
+    )
+    .bind(Json(grant_ids))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    Ok(())
 }

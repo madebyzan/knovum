@@ -105,13 +105,7 @@ pub async fn save_speech_project_revision(
         )?;
         super::project_config::validate_role_bindings(config, &request.segments)?;
         for role in &config.roles {
-            repository::require_voice_in_space(
-                &mut tx,
-                &role.voice_revision_id,
-                &request.project_id,
-                None,
-            )
-            .await?;
+            repository::require_voice(&mut tx, &role.voice_revision_id, None).await?;
         }
         if request
             .segments
@@ -180,10 +174,9 @@ pub async fn save_speech_project_revision(
     .map_err(db::sql_error)?;
     let mut ordinal = 0_i64;
     for segment in &request.segments {
-        let voice_language = repository::require_voice_in_space(
+        let voice_language = repository::require_voice(
             &mut tx,
             &segment.voice_revision_id,
-            &request.project_id,
             segment.delivery_instruction.as_deref(),
         )
         .await?;

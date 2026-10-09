@@ -36,7 +36,6 @@ const {
   loading,
   error,
   addProject,
-  refreshVoices,
   openProject,
   saveRevision,
   settleRevisionSave,
@@ -100,11 +99,7 @@ const projectOptions = computed(() =>
         {{ $t("spaces.speech.library.add") }}
       </UiButton>
       <UiDialog v-if="addingVoice" v-model:open="addingVoice" :title="$t('spaces.speech.library.add')">
-        <VoiceCandidateForm
-          v-if="store.activeSpaceId"
-          :space-id="store.activeSpaceId"
-          @created="refreshVoices"
-        />
+        <VoiceCandidateForm />
       </UiDialog>
       <section
         v-if="
@@ -115,11 +110,7 @@ const projectOptions = computed(() =>
         class="space-y-2"
       >
         <p class="text-caption text-fg-secondary">{{ $t("spaces.speech.library.firstVoice") }}</p>
-        <VoiceProfileForm
-          :space-id="store.activeSpaceId"
-          :disabled="creatingVoice"
-          @create="addPresetVoice"
-        />
+        <VoiceProfileForm :disabled="creatingVoice" @create="addPresetVoice" />
       </section>
       <section class="space-y-2 border-t border-stroke-divider pt-4">
         <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.project.new") }}</h2>

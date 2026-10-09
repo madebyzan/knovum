@@ -8,28 +8,8 @@ pub(super) async fn insert(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     insert_voices(tx, request).await?;
-    insert_voice_candidates(tx, request).await?;
     insert_source_separations(tx, request).await?;
     insert_projects(tx, request).await
-}
-
-async fn insert_voice_candidates(
-    tx: &mut Transaction<'_, Sqlite>,
-    request: &RestorePackageRequest,
-) -> Result<(), String> {
-    for row in &request.voice_candidates {
-        sqlx::query("INSERT INTO spaces_voice_candidates(id,space_id,run_id,source_kind,language,sample_text,design_description,reference_text,input_source_revision,input_byte_length,reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256,preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization,status,auditioned_at,selected_voice_profile_id,selected_voice_revision_id,selected_at,rejected_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(&row.id).bind(&request.space.id).bind(&row.run_id).bind(&row.source_kind)
-            .bind(&row.language).bind(&row.sample_text).bind(&row.design_description).bind(&row.reference_text)
-            .bind(&row.input_source_revision).bind(row.input_byte_length)
-            .bind(&row.reference_asset_path).bind(&row.reference_sha256).bind(row.reference_byte_length)
-            .bind(&row.preview_asset_path).bind(&row.preview_sha256).bind(row.preview_sample_rate)
-            .bind(row.preview_sample_count).bind(&row.model_spec_id).bind(row.seed)
-            .bind(Json(&row.synthesis_config)).bind(Json(&row.authorization)).bind(&row.status)
-            .bind(row.auditioned_at).bind(&row.selected_voice_profile_id).bind(&row.selected_voice_revision_id)
-            .bind(row.selected_at).bind(row.rejected_at).bind(row.created_at).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
-    Ok(())
 }
 
 async fn insert_source_separations(
@@ -53,8 +33,8 @@ async fn insert_voices(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.voice_profiles {
-        sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,active_revision_id,archived_at,created_at,updated_at) VALUES(?,?,?,?,NULL,?,?,?)")
-            .bind(&row.id).bind(&request.space.id).bind(&row.name).bind(&row.source_kind)
+        sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,active_revision_id,archived_at,created_at,updated_at) VALUES(?,?,?,NULL,?,?,?)")
+            .bind(&row.id).bind(&row.name).bind(&row.source_kind)
             .bind(row.archived_at).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for row in &request.voice_revisions {

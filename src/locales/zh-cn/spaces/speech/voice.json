@@ -1,9 +1,11 @@
 {
   "name": "音色名称",
   "add": "添加",
-  "usage": "已用于 {count} 个片段",
+  "usage": "被引用 {count} 次",
   "revise": "新建版本",
   "history": "版本历史",
+  "speed": "语速",
+  "archived": "已归档",
   "delete": {
     "title": "永久删除音色",
     "description": "删除已归档音色及其全部版本。被项目引用的音色无法删除。"

@@ -59,7 +59,11 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
   observeRun(run.id, {
     update: (next) => {
       for (const listener of listeners) listener(next);
-      if (next.completedAt !== null && space.activeSpaceId === next.homeSpaceId)
+      if (
+        next.completedAt !== null &&
+        next.scope.kind === "space" &&
+        space.activeSpaceId === next.scope.spaceId
+      )
         void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
       tasks.reconcileObserved(`conversation:${next.id}`, [
         {
@@ -97,10 +101,11 @@ export function observeConversationRun({ run, title, onUpdate, location }: Conve
 
 export async function restoreConversationRuns() {
   for (const active of await listActiveConversationRuns()) {
+    if (active.run.scope.kind !== "space") throw new Error("Conversation Run requires a Space");
     observeConversationRun({
       run: active.run,
       title: active.title,
-      location: { spaceId: active.run.homeSpaceId, conversationId: active.conversationId },
+      location: { spaceId: active.run.scope.spaceId, conversationId: active.conversationId },
     });
   }
 }

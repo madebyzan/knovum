@@ -453,14 +453,19 @@ CREATE TABLE spaces_authorization_grants (
   id TEXT PRIMARY KEY NOT NULL,
   principal_kind TEXT NOT NULL CHECK (principal_kind IN ('user','builtin_agent','external_agent','automation')),
   principal_id TEXT NOT NULL,
-  home_space_id TEXT NOT NULL,
+  scope_kind TEXT NOT NULL CHECK (scope_kind IN ('space','application')),
+  home_space_id TEXT,
   read_space_ids TEXT NOT NULL CHECK (json_valid(read_space_ids) AND json_type(read_space_ids) = 'array'),
   write_space_ids TEXT NOT NULL CHECK (json_valid(write_space_ids) AND json_type(write_space_ids) = 'array'),
   action_ids TEXT NOT NULL CHECK (json_valid(action_ids) AND json_type(action_ids) = 'array'),
   valid_until INTEGER NOT NULL,
   revoked_at INTEGER,
   created_at INTEGER NOT NULL,
-  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE
+  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  CHECK ((scope_kind='space' AND home_space_id IS NOT NULL AND length(trim(home_space_id))>0)
+    OR (scope_kind='application' AND home_space_id IS NULL AND principal_kind='user'
+      AND json_array_length(read_space_ids)=0 AND json_array_length(write_space_ids)=0
+      AND json_array_length(action_ids)=0))
 );
 
 CREATE TABLE spaces_action_invocations (
@@ -481,7 +486,8 @@ CREATE TABLE spaces_action_invocations (
 
 CREATE TABLE spaces_runs (
   id TEXT PRIMARY KEY NOT NULL,
-  home_space_id TEXT NOT NULL,
+  scope_kind TEXT NOT NULL CHECK (scope_kind IN ('space','application')),
+  home_space_id TEXT,
   parent_run_id TEXT,
   retry_of_run_id TEXT,
   fork_of_run_id TEXT,
@@ -509,7 +515,11 @@ CREATE TABLE spaces_runs (
   FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE,
   FOREIGN KEY (parent_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
   FOREIGN KEY (retry_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
-  FOREIGN KEY (fork_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL
+  FOREIGN KEY (fork_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
+  CHECK ((scope_kind='space' AND home_space_id IS NOT NULL AND length(trim(home_space_id))>0)
+    OR (scope_kind='application' AND home_space_id IS NULL AND principal_kind='user'
+      AND kind='workflow' AND parent_run_id IS NULL
+      AND json_extract(input_snapshot,'$.workflow') IS 'speech_voice_candidate_v1'))
 );
 
 CREATE TABLE spaces_run_steps (
@@ -1164,6 +1174,11 @@ CREATE INDEX spaces_run_steps_ready_availability
 
 CREATE INDEX spaces_runs_space_created ON spaces_runs(home_space_id, created_at DESC);
 
+CREATE UNIQUE INDEX spaces_runs_active_voice_candidate
+  ON spaces_runs(scope_kind)
+  WHERE scope_kind='application' AND completed_at IS NULL
+    AND json_extract(input_snapshot,'$.workflow')='speech_voice_candidate_v1';
+
 CREATE UNIQUE INDEX spaces_runs_active_speech_project
   ON spaces_runs(json_extract(input_snapshot,'$.projectId'))
   WHERE kind='workflow' AND completed_at IS NULL
@@ -1203,14 +1218,12 @@ CREATE INDEX spaces_conversation_messages_branch
 
 CREATE TABLE spaces_voice_profiles (
   id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
   name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 120),
   source_kind TEXT NOT NULL CHECK (source_kind IN ('preset','reference','designed')),
   active_revision_id TEXT,
   archived_at INTEGER,
   created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+  updated_at INTEGER NOT NULL
 );
 
 CREATE TABLE spaces_voice_revisions (
@@ -1244,7 +1257,6 @@ END;
 
 CREATE TABLE spaces_voice_candidates (
   id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
   run_id TEXT NOT NULL UNIQUE,
   source_kind TEXT NOT NULL CHECK (source_kind IN ('reference','designed')),
   language TEXT NOT NULL CHECK (language IN ('zh-CN','en')),
@@ -1267,28 +1279,24 @@ CREATE TABLE spaces_voice_candidates (
   seed INTEGER NOT NULL,
   synthesis_config TEXT NOT NULL CHECK (json_valid(synthesis_config) AND json_type(synthesis_config)='object'),
   authorization TEXT NOT NULL CHECK (json_valid(authorization) AND json_type(authorization)='object'),
-  status TEXT NOT NULL CHECK (status IN ('ready','selected','rejected')),
+  status TEXT NOT NULL CHECK (status IN ('ready','selected')),
   auditioned_at INTEGER,
   selected_voice_profile_id TEXT,
   selected_voice_revision_id TEXT,
   selected_at INTEGER,
-  rejected_at INTEGER,
   created_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
   CHECK (id=run_id),
   CHECK (auditioned_at IS NULL OR auditioned_at>=created_at),
   CHECK (selected_at IS NULL OR selected_at>=created_at),
-  CHECK (rejected_at IS NULL OR rejected_at>=created_at),
   CHECK ((source_kind='designed' AND design_description IS NOT NULL AND reference_text IS NOT NULL
           AND input_source_revision IS NULL AND input_byte_length IS NULL)
       OR (source_kind='reference' AND design_description IS NULL
           AND input_source_revision IS NOT NULL AND input_byte_length IS NOT NULL)),
-  CHECK ((status='ready' AND selected_voice_profile_id IS NULL AND selected_voice_revision_id IS NULL AND selected_at IS NULL AND rejected_at IS NULL)
+  CHECK ((status='ready' AND selected_voice_profile_id IS NULL AND selected_voice_revision_id IS NULL AND selected_at IS NULL)
       OR (status='selected' AND auditioned_at IS NOT NULL AND selected_voice_profile_id IS NOT NULL
-          AND selected_voice_revision_id IS NOT NULL AND selected_at IS NOT NULL AND rejected_at IS NULL)
-      OR (status='rejected' AND selected_voice_profile_id IS NULL AND selected_voice_revision_id IS NULL
-          AND selected_at IS NULL AND rejected_at IS NOT NULL))
+          AND selected_voice_revision_id IS NOT NULL AND selected_at IS NOT NULL)
+)
 );
 
 CREATE TABLE spaces_speech_projects (
@@ -1427,7 +1435,8 @@ CREATE TABLE spaces_speech_renders (
 
 CREATE TABLE spaces_speech_asset_publications (
   id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
+  scope_kind TEXT NOT NULL CHECK (scope_kind IN ('space','application')),
+  space_id TEXT,
   owner_kind TEXT NOT NULL CHECK (owner_kind IN ('segment_render','chapter_checkpoint','project_output','voice_reference','voice_candidate','voice_candidate_input','source_separation')),
   owner_id TEXT NOT NULL CHECK (length(trim(owner_id)) > 0),
   asset_path TEXT NOT NULL UNIQUE,
@@ -1438,6 +1447,10 @@ CREATE TABLE spaces_speech_asset_publications (
   run_attempt_id TEXT,
   run_execution_epoch INTEGER CHECK (run_execution_epoch IS NULL OR run_execution_epoch >= 0),
   created_at INTEGER NOT NULL,
+  CHECK ((scope_kind='application' AND space_id IS NULL
+      AND owner_kind IN ('voice_reference','voice_candidate','voice_candidate_input'))
+    OR (scope_kind='space' AND space_id IS NOT NULL AND length(trim(space_id))>0
+      AND owner_kind NOT IN ('voice_reference','voice_candidate','voice_candidate_input'))),
   CHECK (
     (run_id IS NULL AND run_step_id IS NULL AND run_attempt_id IS NULL AND run_execution_epoch IS NULL)
     OR
@@ -1499,9 +1512,9 @@ CREATE TABLE spaces_speech_source_separations (
   )
 );
 
-CREATE INDEX spaces_voice_profiles_space ON spaces_voice_profiles(space_id, archived_at, updated_at DESC);
+CREATE INDEX spaces_voice_profiles_library ON spaces_voice_profiles(archived_at, updated_at DESC);
 CREATE INDEX spaces_voice_revisions_profile ON spaces_voice_revisions(profile_id, revision DESC);
-CREATE INDEX spaces_voice_candidates_space ON spaces_voice_candidates(space_id, status, created_at DESC);
+CREATE INDEX spaces_voice_candidates_library ON spaces_voice_candidates(status, created_at DESC);
 CREATE INDEX spaces_speech_projects_space ON spaces_speech_projects(space_id, updated_at DESC);
 CREATE INDEX spaces_speech_asset_publications_space ON spaces_speech_asset_publications(space_id, created_at);
 CREATE INDEX spaces_speech_segments_revision ON spaces_speech_segments(project_revision_id, ordinal);

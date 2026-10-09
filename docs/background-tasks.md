@@ -53,4 +53,6 @@ reconciles interrupted attempts and resumes only durable work. Audio normalizati
 and assembly artifacts remain attempt-owned until final publication; Task Center observes these
 phases but does not decide retry or success.
 
-Task Center titles open the owning Space/conversation. Approval and external-Agent permission decisions stay at that owner; Task Center shows their global summary. Run IDs, revision guards and recovery remain Rust-owned. See [system-architecture.md](system-architecture.md) for runtime flow and [architecture.md](architecture.md) for dependency rules.
+Application composition restores resource Runs when bootstrap becomes ready, including global
+voice generation when the user starts in Settings. Task Center titles open the owning Space or
+conversation; Application voice Runs open the Settings voice library. Approval and external-Agent permission decisions stay at that owner; Task Center shows their global summary. Run IDs, revision guards and recovery remain Rust-owned. See [system-architecture.md](system-architecture.md) for runtime flow and [architecture.md](architecture.md) for dependency rules.

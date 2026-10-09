@@ -18,8 +18,7 @@ pub async fn create_candidate_voice(
         return Err("Voice name must contain between 1 and 120 characters".into());
     }
     let pool = db::pool(&app).await?;
-    let record =
-        voice_candidates::load_record(pool, &request.candidate_id, &request.space_id).await?;
+    let record = voice_candidates::load_record(pool, &request.candidate_id).await?;
     if record.candidate.status == VoiceCandidateStatus::Selected {
         return load_selected(pool, &request).await.map_err(Into::into);
     }
@@ -46,14 +45,13 @@ pub async fn create_candidate_voice(
         sample_format: "pcm_s16le".into(),
     };
     let persisted =
-        voice_assets::persist_reference(&app, &reference, &request.candidate_id, &request.space_id)
-            .await?;
+        voice_assets::persist_reference(&app, &reference, &request.candidate_id).await?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let creation = async {
         let mut tx = db::begin_write(pool).await?;
-        sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,active_revision_id,created_at,updated_at) VALUES(?,?,?,?,NULL,?,?)")
-            .bind(&request.candidate_id).bind(&request.space_id).bind(request.name.trim())
+        sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,active_revision_id,created_at,updated_at) VALUES(?,?,?,NULL,?,?)")
+            .bind(&request.candidate_id).bind(request.name.trim())
             .bind(&record.candidate.source_kind).bind(now).bind(now)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
         let authorization = serde_json::json!({
@@ -76,7 +74,6 @@ pub async fn create_candidate_voice(
         voice_candidates::select_candidate(
             &mut tx,
             &request.candidate_id,
-            &request.space_id,
             &request.candidate_id,
             &revision_id,
             now,
@@ -86,10 +83,9 @@ pub async fn create_candidate_voice(
     }.await;
     if let Err(error) = creation {
         let selected: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND space_id=? AND status='selected')",
+            "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND status='selected')",
         )
         .bind(&request.candidate_id)
-        .bind(&request.space_id)
         .fetch_one(pool)
         .await
         .map_err(db::sql_error)?;
@@ -108,16 +104,15 @@ async fn load_selected(
     request: &CreateCandidateVoiceRequest,
 ) -> Result<VoiceLibraryRevision, String> {
     sqlx::query_as::<_, VoiceLibraryRevision>(
-        "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision,1 AS is_active,r.engine_id,r.model_spec_id, \
+        "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision,(r.id=p.active_revision_id) AS is_active,r.engine_id,r.model_spec_id, \
          r.language,r.preset_voice_id, \
          (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p \
-         JOIN spaces_voice_revisions r ON r.id=p.active_revision_id \
-         JOIN spaces_voice_candidates c ON c.selected_voice_profile_id=p.id AND c.selected_voice_revision_id=r.id \
-         WHERE c.id=? AND c.space_id=? AND c.status='selected'",
+         JOIN spaces_voice_candidates c ON c.selected_voice_profile_id=p.id \
+         JOIN spaces_voice_revisions r ON r.id=c.selected_voice_revision_id AND r.profile_id=p.id \
+         WHERE c.id=? AND c.status='selected'",
     )
     .bind(&request.candidate_id)
-    .bind(&request.space_id)
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?

@@ -140,7 +140,6 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::speech::voice_management::ArchiveVoiceProfileRequest::export_all,
         crate::spaces::speech::voice_management::UnarchiveVoiceProfileRequest::export_all,
         crate::spaces::speech::voice_management::DeleteVoiceProfileRequest::export_all,
-        crate::spaces::speech::voice_management::CopyVoiceProfileRequest::export_all,
         crate::spaces::speech::voice_management::VoiceRevision::export_all,
         crate::spaces::speech::voice_management::VoiceProfileHistory::export_all,
         crate::spaces::speech::contracts::SpeechProjectSnapshot::export_all,

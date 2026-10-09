@@ -8,23 +8,20 @@ import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRe
 export function draftVoiceCandidate(request: DraftVoiceCandidateRequest) {
   return invokeCommand<RunObservation>("plugin:spaces|draft_voice_candidate", { request });
 }
-export function getVoiceCandidate(candidateId: string, spaceId: string) {
-  return invokeCommand<VoiceCandidate>("plugin:spaces|get_voice_candidate", { candidateId, spaceId });
+export function getVoiceCandidate(candidateId: string) {
+  return invokeCommand<VoiceCandidate>("plugin:spaces|get_voice_candidate", { candidateId });
 }
-export function listVoiceCandidates(spaceId: string) {
-  return invokeCommand<VoiceCandidate[]>("plugin:spaces|list_voice_candidates", { spaceId });
+export function listVoiceCandidates() {
+  return invokeCommand<VoiceCandidate[]>("plugin:spaces|list_voice_candidates");
 }
-export function getActiveVoiceCandidateRun(spaceId: string) {
-  return invokeCommand<RunObservation | null>("plugin:spaces|get_active_voice_candidate_run", { spaceId });
+export function getActiveVoiceCandidateRun() {
+  return invokeCommand<RunObservation | null>("plugin:spaces|get_active_voice_candidate_run");
 }
-export function markVoiceCandidateAuditioned(candidateId: string, spaceId: string) {
-  return invokeCommand<VoiceCandidate>("plugin:spaces|mark_voice_candidate_auditioned", {
-    candidateId,
-    spaceId,
-  });
+export function markVoiceCandidateAuditioned(candidateId: string) {
+  return invokeCommand<VoiceCandidate>("plugin:spaces|mark_voice_candidate_auditioned", { candidateId });
 }
-export function discardVoiceCandidate(candidateId: string, spaceId: string) {
-  return invokeCommand<void>("plugin:spaces|discard_voice_candidate", { candidateId, spaceId });
+export function discardVoiceCandidate(candidateId: string) {
+  return invokeCommand<void>("plugin:spaces|discard_voice_candidate", { candidateId });
 }
 export function createCandidateVoice(request: CreateCandidateVoiceRequest) {
   return invokeCommand<VoiceLibraryRevision>("plugin:spaces|create_candidate_voice", { request });

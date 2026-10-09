@@ -1,13 +1,11 @@
 mod archive;
 mod contracts;
-mod copy;
 mod delete;
 mod repository;
 
 pub use contracts::{
-    ArchiveVoiceProfileRequest, CopyVoiceProfileRequest, DeleteVoiceProfileRequest,
-    RenameVoiceProfileRequest, ReviseVoiceProfileRequest, UnarchiveVoiceProfileRequest,
-    VoiceProfileHistory, VoiceRevision,
+    ArchiveVoiceProfileRequest, DeleteVoiceProfileRequest, RenameVoiceProfileRequest,
+    ReviseVoiceProfileRequest, UnarchiveVoiceProfileRequest, VoiceProfileHistory, VoiceRevision,
 };
 
 use crate::{app_error::AppError, spaces::db};
@@ -22,9 +20,8 @@ pub(super) fn validate_name(name: &str) -> Result<(), String> {
 #[tauri::command]
 pub async fn list_voice_profiles(
     app: tauri::AppHandle,
-    space_id: String,
 ) -> Result<Vec<VoiceProfileHistory>, AppError> {
-    Ok(repository::list(db::pool(&app).await?, &space_id).await?)
+    Ok(repository::list(db::pool(&app).await?).await?)
 }
 
 #[tauri::command]
@@ -132,14 +129,6 @@ pub async fn delete_voice_profile(
 ) -> Result<(), AppError> {
     delete::execute(&app, &request).await?;
     Ok(())
-}
-
-#[tauri::command]
-pub async fn copy_voice_profile(
-    app: tauri::AppHandle,
-    request: CopyVoiceProfileRequest,
-) -> Result<String, AppError> {
-    Ok(copy::execute(&app, &request).await?)
 }
 
 #[derive(sqlx::FromRow)]

@@ -9,7 +9,7 @@ use super::{
     },
     WORKFLOW,
 };
-use crate::spaces::db;
+use crate::spaces::{authorization::RunScope, db};
 
 pub(super) struct ActiveProject {
     pub space_id: String,
@@ -175,18 +175,26 @@ async fn current_segments_match(
 pub(super) async fn existing_request(
     tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,
+    expected_space_id: &str,
 ) -> Result<Option<TranslationRunInput>, String> {
-    let encoded: Option<String> =
-        sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=?")
-            .bind(run_id)
-            .fetch_optional(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    let Some(encoded) = encoded else {
+    let row: Option<(String, Option<String>, String)> = sqlx::query_as(
+        "SELECT scope_kind,home_space_id,input_snapshot FROM spaces_runs WHERE id=?",
+    )
+    .bind(run_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    let Some((scope_kind, home_space_id, encoded)) = row else {
         return Ok(None);
     };
+    let scope = RunScope::from_db(&scope_kind, home_space_id)?;
     let value: serde_json::Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    if value.get("workflow").and_then(serde_json::Value::as_str) != Some(WORKFLOW) {
+    if scope
+        != (RunScope::Space {
+            space_id: expected_space_id.to_owned(),
+        })
+        || value.get("workflow").and_then(serde_json::Value::as_str) != Some(WORKFLOW)
+    {
         return Err("request_conflict: translation request identity belongs to another Run".into());
     }
     Ok(Some(serde_json::from_value(value).map_err(db::json_error)?))
@@ -194,15 +202,18 @@ pub(super) async fn existing_request(
 
 pub(super) async fn active_for_revision(
     tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
     project_id: &str,
     expected_revision: i64,
 ) -> Result<Option<(String, TranslationRunInput)>, String> {
     let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT id,input_snapshot FROM spaces_runs WHERE completed_at IS NULL \
+        "SELECT id,input_snapshot FROM spaces_runs WHERE scope_kind='space' \
+         AND home_space_id=? AND completed_at IS NULL \
          AND json_extract(input_snapshot,'$.workflow')=? \
          AND json_extract(input_snapshot,'$.projectId')=? \
          AND json_extract(input_snapshot,'$.expectedRevision')=? ORDER BY created_at DESC LIMIT 1",
     )
+    .bind(space_id)
     .bind(WORKFLOW)
     .bind(project_id)
     .bind(expected_revision)
@@ -223,13 +234,15 @@ pub(super) async fn latest_recoverable_run(
     expected_revision: i64,
 ) -> Result<Option<String>, String> {
     sqlx::query_scalar(
-        "SELECT id FROM spaces_runs WHERE \
-         json_extract(input_snapshot,'$.workflow')=? \
-         AND json_extract(input_snapshot,'$.projectId')=? \
-         AND json_extract(input_snapshot,'$.expectedRevision')=? \
-         AND (completed_at IS NULL OR state='succeeded') \
-         ORDER BY CASE WHEN completed_at IS NULL THEN 0 ELSE 1 END,created_at DESC LIMIT 1",
+        "SELECT r.id FROM spaces_runs r JOIN spaces_speech_projects p ON p.id=? \
+         WHERE r.scope_kind='space' AND r.home_space_id=p.space_id AND \
+         json_extract(r.input_snapshot,'$.workflow')=? \
+         AND json_extract(r.input_snapshot,'$.projectId')=? \
+         AND json_extract(r.input_snapshot,'$.expectedRevision')=? \
+         AND (r.completed_at IS NULL OR r.state='succeeded') \
+         ORDER BY CASE WHEN r.completed_at IS NULL THEN 0 ELSE 1 END,r.created_at DESC LIMIT 1",
     )
+    .bind(project_id)
     .bind(WORKFLOW)
     .bind(project_id)
     .bind(expected_revision)
@@ -242,12 +255,16 @@ pub(super) async fn load_translation(
     pool: &SqlitePool,
     run_id: &str,
 ) -> Result<VideoTranslation, String> {
-    let row: Option<(String, String)> =
-        sqlx::query_as("SELECT state,input_snapshot FROM spaces_runs WHERE id=?")
-            .bind(run_id)
-            .fetch_optional(pool)
-            .await
-            .map_err(db::sql_error)?;
+    let row: Option<(String, String)> = sqlx::query_as(
+        "SELECT r.state,r.input_snapshot FROM spaces_runs r \
+         JOIN spaces_speech_projects p \
+         ON p.id=json_extract(r.input_snapshot,'$.projectId') \
+         WHERE r.id=? AND r.scope_kind='space' AND r.home_space_id=p.space_id",
+    )
+    .bind(run_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(db::sql_error)?;
     let (state, encoded) = row.ok_or("Video translation Run is unavailable")?;
     if state != "succeeded" {
         return Err("resource_busy: video translation has not completed".into());

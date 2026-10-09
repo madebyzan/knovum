@@ -3,7 +3,7 @@ use sqlx::{sqlite::SqliteRow, Row, Sqlite, SqlitePool, Transaction};
 
 use super::contracts::GenerateSpeechProjectRequest;
 use crate::spaces::{
-    authorization::{create_grant, local_user_grant},
+    authorization::{create_grant, local_user_grant, RunScope},
     db,
     runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
 };
@@ -21,15 +21,31 @@ pub(super) async fn start(
         .map_err(|_| "Speech project identity must be a UUID")?;
     super::runtime_identity::validate(runtime_digests)?;
     let mut tx = db::begin_write(pool).await?;
-    if let Some(row) = sqlx::query("SELECT input_snapshot FROM spaces_runs WHERE id=?")
-        .bind(&request.request_id)
-        .fetch_optional(&mut *tx)
-        .await
-        .map_err(db::sql_error)?
+    if let Some(row) =
+        sqlx::query("SELECT scope_kind,home_space_id,input_snapshot FROM spaces_runs WHERE id=?")
+            .bind(&request.request_id)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(db::sql_error)?
     {
+        let scope_kind: String = row.try_get("scope_kind").map_err(db::sql_error)?;
+        let scope = RunScope::from_db(
+            &scope_kind,
+            row.try_get("home_space_id").map_err(db::sql_error)?,
+        )?;
+        let project_space_id: Option<String> =
+            sqlx::query_scalar("SELECT space_id FROM spaces_speech_projects WHERE id=?")
+                .bind(&request.project_id)
+                .fetch_optional(&mut *tx)
+                .await
+                .map_err(db::sql_error)?;
+        let expected_scope = RunScope::Space {
+            space_id: project_space_id.ok_or("Speech project no longer exists")?,
+        };
         let input: String = row.try_get("input_snapshot").map_err(db::sql_error)?;
         let input: serde_json::Value = serde_json::from_str(&input).map_err(db::json_error)?;
-        if input.get("workflow").and_then(serde_json::Value::as_str) != Some(WORKFLOW)
+        if scope != expected_scope
+            || input.get("workflow").and_then(serde_json::Value::as_str) != Some(WORKFLOW)
             || input.get("projectId").and_then(serde_json::Value::as_str)
                 != Some(request.project_id.as_str())
             || input
@@ -65,10 +81,12 @@ pub(super) async fn start(
         return Err("stale_revision: speech project changed before generation".into());
     }
     let active_run: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL \
+        "SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE scope_kind='space' \
+         AND home_space_id=? AND completed_at IS NULL \
          AND json_extract(input_snapshot,'$.workflow')=? \
          AND json_extract(input_snapshot,'$.projectId')=?)",
     )
+    .bind(&space_id)
     .bind(WORKFLOW)
     .bind(&request.project_id)
     .fetch_one(&mut *tx)
@@ -157,12 +175,15 @@ async fn create(
     runtime_digests: &super::runtime_identity::RuntimeDigests,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
+    let scope = RunScope::Space {
+        space_id: space_id.to_owned(),
+    };
     let grant = local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        space_id.into(),
+        scope.clone(),
         Vec::new(),
         now,
-    );
+    )?;
     let principal = grant.principal.clone();
     create_grant(tx, &grant, now).await?;
     let input = json!({
@@ -211,7 +232,7 @@ async fn create(
         tx,
         &NewRun {
             id: &request.request_id,
-            home_space_id: space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: RunKind::Workflow,

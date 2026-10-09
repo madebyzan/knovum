@@ -25,11 +25,12 @@ async fn cleanup<R: tauri::Runtime>(
     let snapshots: Vec<(String, String)> = sqlx::query_as(
         "SELECT terminal.id,json_extract(terminal.input_snapshot,'$.referenceSource.assetPath') \
          FROM spaces_runs terminal \
-         WHERE terminal.completed_at IS NOT NULL AND (? IS NULL OR terminal.id=?) \
+         WHERE terminal.scope_kind='application' AND terminal.completed_at IS NOT NULL \
+           AND (? IS NULL OR terminal.id=?) \
            AND json_extract(terminal.input_snapshot,'$.workflow')=? \
            AND json_type(terminal.input_snapshot,'$.referenceSource.assetPath')='text' \
            AND NOT EXISTS(SELECT 1 FROM spaces_runs active \
-             WHERE active.completed_at IS NULL \
+             WHERE active.scope_kind='application' AND active.completed_at IS NULL \
                AND json_extract(active.input_snapshot,'$.workflow')=? \
                AND json_extract(active.input_snapshot,'$.referenceSource.assetPath')= \
                    json_extract(terminal.input_snapshot,'$.referenceSource.assetPath')) \

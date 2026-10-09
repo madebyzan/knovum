@@ -91,7 +91,8 @@ async fn validate_review_revision(
     let data: String = sqlx::query_scalar(
         "SELECT n.data FROM spaces_nodes n
              JOIN spaces_run_steps s ON s.id=$2
-             JOIN spaces_runs r ON r.id=s.run_id AND r.home_space_id=n.space_id
+             JOIN spaces_runs r ON r.id=s.run_id AND r.scope_kind='space'
+               AND r.home_space_id=n.space_id
              WHERE n.id=$1 AND n.deleted_at IS NULL",
     )
     .bind(node_id)

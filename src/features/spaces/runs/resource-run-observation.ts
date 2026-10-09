@@ -13,23 +13,46 @@ import { observeRun } from "./run-observation";
 
 type Listener = (run: RunObservation) => void;
 const observations = new Map<string, Set<Listener>>();
+let openVoiceLibrary: (() => Promise<void>) | undefined;
+
+export function registerVoiceLibraryRunNavigation(handler: () => Promise<void>) {
+  openVoiceLibrary = handler;
+  return () => {
+    if (openVoiceLibrary === handler) openVoiceLibrary = undefined;
+  };
+}
+
+async function openResourceRun(run: RunObservation) {
+  if (run.scope.kind === "space") {
+    await useSpaceStore().openSpace(run.scope.spaceId);
+    return;
+  }
+  if (!openVoiceLibrary) throw new Error("Voice library navigation is unavailable");
+  await openVoiceLibrary();
+}
+
+function refreshRunSpace(run: RunObservation) {
+  if (run.scope.kind !== "space") return;
+  const space = useSpaceStore();
+  if (space.activeSpaceId !== run.scope.spaceId) return;
+  void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
+}
+
 export function observeResourceRun(run: RunObservation, title: string, onUpdate?: Listener) {
   const existing = observations.get(run.id);
   if (existing) {
     if (onUpdate) existing.add(onUpdate);
-    return () => onUpdate && existing.delete(onUpdate);
+    return () => {
+      if (onUpdate) existing.delete(onUpdate);
+    };
   }
   const listeners = new Set<Listener>();
   if (onUpdate) listeners.add(onUpdate);
   observations.set(run.id, listeners);
   const tasks = useTaskStore();
-  const space = useSpaceStore();
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelResourceRun(run.id));
-  tasks.setOpen(run.id, () => space.openSpace(run.homeSpaceId));
-  const refreshCanvas = debounce(() => {
-    if (space.activeSpaceId !== run.homeSpaceId) return;
-    void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
-  }, 400);
+  tasks.setOpen(run.id, () => openResourceRun(run));
+  const refreshCanvas = debounce(() => refreshRunSpace(run), 400);
   observeRun(run.id, {
     update: (next) => {
       for (const listener of listeners) listener(next);
@@ -44,17 +67,24 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
     finished: () => {
       observations.delete(run.id);
       refreshCanvas.cancel();
-      if (space.activeSpaceId === run.homeSpaceId) {
-        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
-      }
+      refreshRunSpace(run);
     },
   });
-  return () => onUpdate && listeners.delete(onUpdate);
+  return () => {
+    if (onUpdate) listeners.delete(onUpdate);
+  };
 }
 
-export async function restoreResourceRuns(title: string) {
+export async function restoreResourceRuns() {
   const runs = await invokeCommand<RunObservation[]>("plugin:spaces|list_active_resource_runs");
-  for (const run of runs) observeResourceRun(run, title);
+  for (const run of runs) {
+    const title = i18n.global.t(
+      run.scope.kind === "application"
+        ? "spaces.speech.voice.candidate.generate"
+        : "spaces.creation.shared.resourceTask",
+    );
+    observeResourceRun(run, title);
+  }
 }
 
 export function cancelResourceRun(runId: string): Promise<void> {

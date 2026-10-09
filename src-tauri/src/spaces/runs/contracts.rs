@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use crate::spaces::authorization::RunScope;
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
@@ -62,7 +64,7 @@ pub enum WaitReason {
 #[serde(rename_all = "camelCase")]
 pub struct RunObservation {
     pub id: String,
-    pub home_space_id: String,
+    pub scope: RunScope,
     pub parent_run_id: Option<String>,
     pub retry_of_run_id: Option<String>,
     pub fork_of_run_id: Option<String>,

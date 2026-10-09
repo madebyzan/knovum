@@ -103,6 +103,7 @@ pub(super) async fn persist_candidate(
     metadata: &separation::SeparatedAudio,
     duration_ms: u64,
 ) -> Result<(), String> {
+    let space_id = claim.scope.require_space_id()?;
     let config = SeparationConfiguration::from_claim(claim)?;
     if config.source != *source {
         return Err(
@@ -115,13 +116,15 @@ pub(super) async fn persist_candidate(
         "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs r ON r.id=a.run_id \
          WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing' \
            AND a.execution_epoch=? AND a.lease_until>? AND r.execution_epoch=a.execution_epoch \
-           AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL)",
+           AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL \
+           AND r.scope_kind='space' AND r.home_space_id=?)",
     )
     .bind(&claim.attempt_id)
     .bind(&claim.run_id)
     .bind(&claim.step_instance_id)
     .bind(claim.execution_epoch)
     .bind(now)
+    .bind(space_id)
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -136,7 +139,7 @@ pub(super) async fn persist_candidate(
          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending',?,?)",
     )
     .bind(&claim.run_id)
-    .bind(&claim.home_space_id)
+    .bind(space_id)
     .bind(&claim.run_id)
     .bind(&source.asset_path)
     .bind(&source.source_revision)

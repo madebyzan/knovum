@@ -13,7 +13,7 @@ use super::{
 use crate::{
     app_error::AppError,
     spaces::{
-        authorization::{create_grant, local_user_grant},
+        authorization::{create_grant, local_user_grant, RunScope},
         db,
         runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     },
@@ -38,15 +38,19 @@ pub async fn start_speech_source_separation(
     }
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    if let Some((space_id, kind, input_json)) = sqlx::query_as::<_, (String, String, String)>(
-        "SELECT home_space_id,kind,input_snapshot FROM spaces_runs WHERE id=?",
-    )
-    .bind(&request.request_id)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(db::sql_error)?
+    if let Some((scope_kind, home_space_id, kind, input_json)) =
+        sqlx::query_as::<_, (String, Option<String>, String, String)>(
+            "SELECT scope_kind,home_space_id,kind,input_snapshot FROM spaces_runs WHERE id=?",
+        )
+        .bind(&request.request_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db::sql_error)?
     {
-        let is_same_request = matches_existing_request(&space_id, &kind, &input_json, &request);
+        let scope = RunScope::from_db(&scope_kind, home_space_id)?;
+        let is_same_request = scope
+            .require_space_id()
+            .is_ok_and(|space_id| matches_existing_request(space_id, &kind, &input_json, &request));
         tx.rollback().await.map_err(db::sql_error)?;
         if !is_same_request {
             return Err(
@@ -60,12 +64,15 @@ pub async fn start_speech_source_separation(
     let model = crate::local_resources::model_selection::speech_separation(&app)?;
     crate::ai::local_runtime::device_profiles::speech_separation(model)?;
     let now = crate::clock::unix_time_millis()?;
+    let scope = RunScope::Space {
+        space_id: request.space_id.clone(),
+    };
     let grant = local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        request.space_id.clone(),
+        scope.clone(),
         Vec::new(),
         now,
-    );
+    )?;
     let principal = grant.principal.clone();
     create_grant(&mut tx, &grant, now).await?;
     let input = json!({"workflow":WORKFLOW,"source":request.source.clone(),"model":model});
@@ -75,7 +82,7 @@ pub async fn start_speech_source_separation(
         &mut tx,
         &NewRun {
             id: &request.request_id,
-            home_space_id: &request.space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: RunKind::Workflow,
@@ -135,7 +142,7 @@ pub async fn get_latest_source_separation_run(
 ) -> Result<Option<RunObservation>, AppError> {
     crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&source.asset_path))?;
     let pool = db::pool(&app).await?;
-    let run_id: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_runs WHERE home_space_id=? AND json_extract(input_snapshot,'$.workflow')=? AND json_extract(input_snapshot,'$.source.assetPath')=? AND json_extract(input_snapshot,'$.source.sourceRevision')=? ORDER BY created_at DESC,id DESC LIMIT 1")
+    let run_id: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_runs WHERE scope_kind='space' AND home_space_id=? AND json_extract(input_snapshot,'$.workflow')=? AND json_extract(input_snapshot,'$.source.assetPath')=? AND json_extract(input_snapshot,'$.source.sourceRevision')=? ORDER BY created_at DESC,id DESC LIMIT 1")
         .bind(&space_id).bind(WORKFLOW).bind(&source.asset_path).bind(&source.source_revision)
         .fetch_optional(pool).await.map_err(db::sql_error)?;
     match run_id {

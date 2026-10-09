@@ -107,6 +107,8 @@ Settings and extension lists share `UiSettingsSection` for their raised surface,
 Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
 use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
 an operation. Empty results retain the settings panel treatment and concise, left-aligned guidance.
+The global voice library uses these settings surfaces and compact rows, with one inline creation
+or profile inspector open at a time. Voices have no Space selector or copy-to-Space action.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
 workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the built-in radius scale.
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.

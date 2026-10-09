@@ -70,7 +70,6 @@ pub enum VoiceCandidateSource {
 pub struct DraftVoiceCandidateRequest {
     pub model: VoiceModel,
     pub request_id: String,
-    pub space_id: String,
     pub language: String,
     pub text: String,
     pub seed: u32,
@@ -84,7 +83,6 @@ pub struct DraftVoiceCandidateRequest {
 pub enum VoiceCandidateStatus {
     Ready,
     Selected,
-    Rejected,
 }
 
 #[derive(Debug, Serialize, ts_rs::TS)]
@@ -94,7 +92,6 @@ pub struct VoiceCandidate {
     pub model: VoiceModel,
     pub candidate_id: String,
     pub run_id: String,
-    pub space_id: String,
     pub source_kind: String,
     pub language: String,
     pub sample_text: String,
@@ -107,7 +104,6 @@ pub struct VoiceCandidate {
     pub selected_voice_profile_id: Option<String>,
     pub selected_voice_revision_id: Option<String>,
     pub selected_at: Option<i64>,
-    pub rejected_at: Option<i64>,
     pub created_at: i64,
 }
 
@@ -116,7 +112,6 @@ pub struct VoiceCandidate {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreateCandidateVoiceRequest {
     pub candidate_id: String,
-    pub space_id: String,
     pub name: String,
     pub authorized: bool,
 }

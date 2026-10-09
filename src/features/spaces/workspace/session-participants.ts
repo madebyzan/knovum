@@ -10,7 +10,9 @@ const activeParticipants = new Set<SpaceSessionParticipant>();
 
 export function registerSpaceSessionParticipant(participant: SpaceSessionParticipant) {
   activeParticipants.add(participant);
-  return () => activeParticipants.delete(participant);
+  return () => {
+    activeParticipants.delete(participant);
+  };
 }
 
 export function snapshotSpaceSessionParticipants(): readonly SpaceSessionParticipant[] {
@@ -19,14 +21,6 @@ export function snapshotSpaceSessionParticipants(): readonly SpaceSessionPartici
 
 export function flushSpaceSessionContent() {
   return commitParticipants(participantsInPhase(snapshotSpaceSessionParticipants(), "content"));
-}
-
-export function flushSpaceSessionPersistence() {
-  return commitParticipants(participantsInPhase(snapshotSpaceSessionParticipants(), "persistence"));
-}
-
-export function flushSpaceSessionLayout() {
-  return commitParticipants(participantsInPhase(snapshotSpaceSessionParticipants(), "layout"));
 }
 
 export async function flushSpaceSessionCommits(afterContent?: () => Promise<void>) {

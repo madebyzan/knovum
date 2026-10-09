@@ -6,7 +6,7 @@ use std::{
 use sqlx::{Sqlite, SqlitePool, Transaction};
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::{assets, db, runs::AttemptClaim};
+use crate::spaces::{assets, authorization::RunScope, db, runs::AttemptClaim};
 
 #[derive(Clone, Copy)]
 pub(crate) enum PublicationOwnerKind {
@@ -74,18 +74,21 @@ async fn stage_in_transaction(
     }
     let now = crate::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
+    let (scope_kind, space_id) = claim.scope.db_values();
     let inserted = sqlx::query(
         "INSERT INTO spaces_speech_asset_publications( \
-           id,space_id,owner_kind,owner_id,asset_path,part_path,sha256,run_id,run_step_id, \
+           id,scope_kind,space_id,owner_kind,owner_id,asset_path,part_path,sha256,run_id,run_step_id, \
            run_attempt_id,run_execution_epoch,created_at) \
-         SELECT ?,?,?,?,?,?,?,?,?,?,?,? WHERE EXISTS( \
+         SELECT ?,?,?,?,?,?,?,?,?,?,?,?,? WHERE EXISTS( \
            SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs r ON r.id=a.run_id \
            WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing' \
              AND a.execution_epoch=? AND a.lease_until>? AND r.execution_epoch=a.execution_epoch \
-             AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL)",
+             AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL \
+             AND r.scope_kind=? AND r.home_space_id IS ?)",
     )
     .bind(&id)
-    .bind(&claim.home_space_id)
+    .bind(scope_kind)
+    .bind(space_id)
     .bind(asset.owner_kind.as_str())
     .bind(asset.owner_id)
     .bind(asset.asset_path.to_string_lossy().as_ref())
@@ -105,6 +108,8 @@ async fn stage_in_transaction(
     .bind(&claim.step_instance_id)
     .bind(claim.execution_epoch)
     .bind(now)
+    .bind(scope_kind)
+    .bind(space_id)
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -117,15 +122,17 @@ async fn stage_in_transaction(
 
 pub(crate) async fn stage_unowned(
     pool: &SqlitePool,
-    space_id: &str,
+    scope: &RunScope,
     asset: PendingAsset<'_>,
 ) -> Result<String, String> {
     let id = uuid::Uuid::new_v4().to_string();
+    let (scope_kind, space_id) = scope.db_values();
     sqlx::query(
         "INSERT INTO spaces_speech_asset_publications( \
-           id,space_id,owner_kind,owner_id,asset_path,part_path,sha256,created_at) VALUES(?,?,?,?,?,?,?,?)",
+           id,scope_kind,space_id,owner_kind,owner_id,asset_path,part_path,sha256,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
     )
     .bind(&id)
+    .bind(scope_kind)
     .bind(space_id)
     .bind(asset.owner_kind.as_str())
     .bind(asset.owner_id)

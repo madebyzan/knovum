@@ -2,9 +2,10 @@
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { storeToRefs } from "pinia";
 import { TooltipProvider } from "reka-ui";
-import { nextTick, provide, watch } from "vue";
+import { nextTick, onScopeDispose, provide, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Toaster } from "vue-sonner";
+import { useRouter } from "vue-router";
+import { toast, Toaster } from "vue-sonner";
 
 // oxlint-disable-next-line import/no-unassigned-import
 import "vue-sonner/style.css";
@@ -13,8 +14,13 @@ import ApplicationUpdates from "./app/ApplicationUpdates.vue";
 import DictationOverlay from "./features/dictation/DictationOverlay.vue";
 import { showBackupMaintenanceNotice } from "./features/settings/backup/maintenance-notice";
 import { useSpaceArchiveSettings } from "./features/spaces/assets/use-space-archive-settings";
+import {
+  registerVoiceLibraryRunNavigation,
+  restoreResourceRuns,
+} from "./features/spaces/runs/resource-run-observation";
 import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
+import { getErrorMessage } from "./foundation/errors/error-format";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";
 import { archiveSettingsKey } from "./shared/contracts/archive-settings";
 import UiConfirmAction from "./shared/ui/UiConfirmAction.vue";
@@ -27,16 +33,23 @@ const preferences = usePreferencesStore();
 const { status, failure } = storeToRefs(bootstrap);
 const { theme } = storeToRefs(preferences);
 const workspace = useSpacesWorkspace();
+const router = useRouter();
+onScopeDispose(
+  registerVoiceLibraryRunNavigation(async () => {
+    await router.push({ path: "/settings", query: { pane: "voices" } });
+  }),
+);
 const dictationSupported =
   (platform() === "macos" && arch() === "aarch64") || (platform() === "windows" && arch() === "x86_64");
 provide(archiveSettingsKey, useSpaceArchiveSettings());
-let hasCheckedMaintenanceNotice = false;
+let hasInitializedReadyServices = false;
 watch(
   status,
   async (currentStatus) => {
-    if (currentStatus !== "ready" || hasCheckedMaintenanceNotice) return;
-    hasCheckedMaintenanceNotice = true;
+    if (currentStatus !== "ready" || hasInitializedReadyServices) return;
+    hasInitializedReadyServices = true;
     await nextTick();
+    void restoreResourceRuns().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
     await showBackupMaintenanceNotice(t);
   },
   { immediate: true },

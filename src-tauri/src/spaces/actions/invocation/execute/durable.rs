@@ -26,7 +26,7 @@ pub(super) async fn create(
         tx,
         &NewRun {
             id: &run_id,
-            home_space_id: &request.space_id,
+            scope: &authorization.scope,
             parent_run_id: request.parent_run_id.as_deref(),
             principal: &authorization.principal,
             kind: RunKind::Action,

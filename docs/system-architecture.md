@@ -127,8 +127,12 @@ never a persisted Run state. The Renderer settles its submission from that updat
 error without issuing another database read to recover the same cause. A failed cleanup cannot
 rewrite an already committed result.
 
-Durable knowledge work, Actions, Workflows, speech production, and Agent turns use the Space-owned Run
-scheduler. A Run freezes its principal, grant, definition or binding revision, input snapshot,
+Durable knowledge work, Actions, Workflows, speech production, and Agent turns use the Run
+scheduler owned by the Spaces capability. `RunScope` is explicit: Space work carries its Space ID,
+while global voice generation uses Application scope. Application grants require a local user and
+empty Space/action permissions; they cannot execute Space routes. Children inherit their parent’s
+exact scope, and workflow retries preserve the original Space scope and authorized action set. A Run freezes its principal, grant,
+definition or binding revision, input snapshot,
 resource choice, and budgets. Step instances and attempts own resolved inputs, outputs, leases,
 checkpoints, retry state, and external reconciliation state.
 

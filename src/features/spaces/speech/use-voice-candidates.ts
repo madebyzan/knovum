@@ -1,9 +1,11 @@
-import { computed, onScopeDispose, readonly, shallowRef, watch } from "vue";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, onScopeDispose, shallowRef, watch } from "vue";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { cancelResourceRun } from "../runs/resource-run-observation";
 import { useVoiceCandidateSubmission } from "./use-voice-candidate-submission";
@@ -11,148 +13,150 @@ import { getActiveVoiceCandidateRun, listVoiceCandidates } from "./voice-candida
 import { observeVoiceCandidateRun } from "./voice-candidate-run";
 import {
   auditionVoiceCandidate,
-  type PlayableVoiceCandidate,
   presentVoiceCandidate,
   rejectVoiceCandidate,
   selectVoiceCandidate,
 } from "./voice-candidate-selection";
+import { voiceQueryKeys } from "./voice-query-keys";
 
-export function useVoiceCandidates(
-  ownerSpaceId: () => string | undefined,
-  created: (voice: VoiceLibraryRevision) => void,
-) {
-  const candidates = shallowRef<PlayableVoiceCandidate[]>([]);
+interface CandidateOperation {
+  execute: () => Promise<void>;
+}
+
+export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => void) {
+  const client = useQueryClient();
+  const candidatesQuery = useQuery({
+    queryKey: voiceQueryKeys.candidates,
+    queryFn: listVoiceCandidates,
+  });
+  const runQuery = useQuery({
+    queryKey: voiceQueryKeys.activeCandidateRun,
+    queryFn: getActiveVoiceCandidateRun,
+  });
   const activeRunId = shallowRef<string>();
-  const submitting = shallowRef(false);
-  const error = shallowRef<string>();
-  const busy = computed(() => Boolean(activeRunId.value) || submitting.value);
+  const localError = shallowRef<string>();
   const submission = useVoiceCandidateSubmission();
-  let epoch = 0;
   let stopObservation: (() => unknown) | undefined;
+  let disposed = false;
+  const mutation = useMutation({
+    mutationFn: ({ execute }: CandidateOperation) => execute(),
+    onSettled: () => client.invalidateQueries({ queryKey: voiceQueryKeys.candidates }),
+    onError: (cause) => {
+      if (decodeAppError(cause)?.code !== "cancelled") localError.value = getErrorMessage(cause);
+    },
+  });
+  const candidates = computed(() => (candidatesQuery.data.value ?? []).map(presentVoiceCandidate));
+  const busy = computed(() =>
+    Boolean(activeRunId.value || submission.jobId.value || mutation.isPending.value),
+  );
+  const error = computed(() => {
+    const cause = candidatesQuery.error.value ?? runQuery.error.value;
+    return localError.value ?? (cause ? getErrorMessage(cause) : undefined);
+  });
 
-  function reset() {
-    epoch += 1;
-    stopObservation?.();
-    stopObservation = undefined;
-    candidates.value = [];
-    activeRunId.value = undefined;
-    submission.reset();
-    submitting.value = false;
-    error.value = undefined;
+  function editCandidates(update: (current: VoiceCandidate[]) => VoiceCandidate[]) {
+    client.setQueryData<VoiceCandidate[]>(voiceQueryKeys.candidates, (current) => update(current ?? []));
   }
-  function current(spaceId: string, version: number) {
-    return ownerSpaceId() === spaceId && epoch === version;
-  }
-  async function reload(spaceId: string, version: number) {
-    const loaded = await listVoiceCandidates(spaceId);
-    if (current(spaceId, version)) candidates.value = loaded.map(presentVoiceCandidate);
-  }
-  function observe(run: RunObservation, spaceId: string, version: number) {
+
+  function observe(run: RunObservation) {
+    if (activeRunId.value === run.id) return;
     stopObservation?.();
     activeRunId.value = run.id;
+    client.setQueryData(voiceQueryKeys.activeCandidateRun, run);
     const settle = () => {
-      if (!current(spaceId, version)) return;
       stopObservation?.();
       stopObservation = undefined;
       activeRunId.value = undefined;
+      client.setQueryData(voiceQueryKeys.activeCandidateRun, null);
     };
     stopObservation = observeVoiceCandidateRun(
       run,
-      spaceId,
-      (loaded) => {
-        if (!current(spaceId, version)) return;
+      (candidate) => {
         settle();
-        candidates.value = [presentVoiceCandidate(loaded), ...candidates.value];
+        editCandidates((current) => [
+          candidate,
+          ...current.filter(({ candidateId }) => candidateId !== candidate.candidateId),
+        ]);
       },
       (message) => {
         settle();
-        if (current(spaceId, version)) error.value = message;
+        if (message) localError.value = message;
       },
     );
   }
-  async function operation(action: (spaceId: string, version: number) => Promise<void>) {
-    const spaceId = ownerSpaceId();
-    const version = epoch;
-    if (!spaceId || busy.value) return;
-    submitting.value = true;
-    error.value = undefined;
-    try {
-      await action(spaceId, version);
-    } catch (cause) {
-      if (current(spaceId, version) && decodeAppError(cause)?.code !== "cancelled")
-        error.value = getErrorMessage(cause);
-    } finally {
-      if (current(spaceId, version)) submitting.value = false;
-    }
+
+  function operate(execute: () => Promise<void>) {
+    if (busy.value) return;
+    localError.value = undefined;
+    mutation.mutate({ execute });
   }
+
   function selected(id: string) {
-    const candidate = candidates.value.find((item) => item.candidateId === id);
+    const candidate = candidatesQuery.data.value?.find(({ candidateId }) => candidateId === id);
     if (!candidate) throw new Error("Voice candidate is no longer available");
     return candidate;
   }
-  const draft = (input: Omit<DraftVoiceCandidateRequest, "requestId" | "spaceId">) =>
-    operation(async (spaceId, version) => {
-      await submission.start({ ...input, spaceId }, (run) => {
-        if (current(spaceId, version)) observe(run, spaceId, version);
+
+  function draft(input: Omit<DraftVoiceCandidateRequest, "requestId">) {
+    if (busy.value) return;
+    localError.value = undefined;
+    void submission
+      .start(input, (run) => !disposed && observe(run))
+      .catch((cause: unknown) => {
+        if (!disposed && decodeAppError(cause)?.code !== "cancelled")
+          localError.value = getErrorMessage(cause);
       });
-    });
-  async function audition(id: string) {
-    const spaceId = ownerSpaceId();
-    const version = epoch;
-    if (!spaceId) return;
-    try {
-      const updated = await auditionVoiceCandidate(selected(id));
-      if (current(spaceId, version))
-        candidates.value = candidates.value.map((item) => (item.candidateId === id ? updated : item));
-    } catch (cause) {
-      if (current(spaceId, version)) error.value = getErrorMessage(cause);
-    }
   }
-  const save = (id: string, name: string, authorized: boolean) =>
-    operation(async (spaceId, version) => {
+
+  function audition(id: string) {
+    operate(async () => {
+      const updated = await auditionVoiceCandidate(selected(id));
+      editCandidates((current) => current.map((item) => (item.candidateId === id ? updated : item)));
+    });
+  }
+
+  function save(id: string, name: string, authorized: boolean) {
+    operate(async () => {
       const voice = await selectVoiceCandidate(selected(id), name, authorized);
-      if (!current(spaceId, version)) return;
-      candidates.value = candidates.value.filter((item) => item.candidateId !== id);
+      editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
+      await Promise.all([
+        client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
+        client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
+      ]);
       created(voice);
     });
-  const discard = (id: string) =>
-    operation(async (spaceId, version) => {
+  }
+
+  function discard(id: string) {
+    operate(async () => {
       await rejectVoiceCandidate(selected(id));
-      if (current(spaceId, version))
-        candidates.value = candidates.value.filter((item) => item.candidateId !== id);
+      editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
     });
+  }
+
   async function cancel() {
-    const spaceId = ownerSpaceId();
-    const version = epoch;
     const runId = activeRunId.value ?? submission.jobId.value;
-    if (!spaceId || !runId) return;
+    if (!runId) return;
     try {
       if (activeRunId.value) await cancelResourceRun(runId);
       else await submission.cancel();
     } catch (cause) {
-      if (current(spaceId, version) && (activeRunId.value === runId || submission.jobId.value === runId))
-        error.value = getErrorMessage(cause);
+      if (activeRunId.value === runId || submission.jobId.value === runId)
+        localError.value = getErrorMessage(cause);
     }
   }
-  watch(
-    () => ownerSpaceId(),
-    (spaceId) => {
-      reset();
-      if (!spaceId) return;
-      void operation(async (owner, version) => {
-        const [run] = await Promise.all([getActiveVoiceCandidateRun(owner), reload(owner, version)]);
-        if (run && current(owner, version)) observe(run, owner, version);
-      });
-    },
-    { immediate: true },
-  );
-  onScopeDispose(reset);
+
+  watch(runQuery.data, (run) => run && observe(run), { immediate: true });
+  onScopeDispose(() => {
+    disposed = true;
+    stopObservation?.();
+  });
   return {
-    candidates: readonly(candidates),
-    activeRunId: readonly(activeRunId),
+    candidates,
+    activeRunId,
     pendingRequestId: submission.jobId,
     busy,
-    error: readonly(error),
+    error,
     draft,
     save,
     cancel,

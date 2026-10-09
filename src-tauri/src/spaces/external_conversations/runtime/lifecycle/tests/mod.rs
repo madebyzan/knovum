@@ -10,7 +10,7 @@ async fn fixture() -> sqlx::SqlitePool {
     for statement in [
         "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)",
         "INSERT INTO spaces_conversations(id,space_id,title,created_at,updated_at,active_branch_id) VALUES('conversation','space','Agent',1,1,'conversation')",
-        "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','external_agent','session','external_agent','queued','{}','{}','{}',1,1)",
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','space','external_agent','session','external_agent','queued','{}','{}','{}',1,1)",
         "INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,runtime_kind,title,state,created_at,updated_at,conversation_id,branch_id) VALUES('session','run','space','geminiCli','Agent','connecting',1,1,'conversation','conversation')",
         "INSERT INTO spaces_conversation_messages(id,conversation_id,branch_id,role,content,created_at) VALUES('reply','conversation','conversation','assistant','{}',1)",
         "INSERT INTO spaces_external_agent_turns(id,conversation_id,state,created_at,message_id) VALUES('turn','session','running',1,'reply')",

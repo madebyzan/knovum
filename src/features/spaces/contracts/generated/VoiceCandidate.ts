@@ -3,4 +3,4 @@ import type { SpeechAudioOutput } from "./SpeechAudioOutput";
 import type { VoiceCandidateStatus } from "./VoiceCandidateStatus";
 import type { VoiceModel } from "./VoiceModel";
 
-export type VoiceCandidate = { model: VoiceModel, candidateId: string, runId: string, spaceId: string, sourceKind: string, language: string, sampleText: string, seed: number, designDescription: string | null, referenceText: string | null, audio: SpeechAudioOutput, status: VoiceCandidateStatus, auditionedAt: number | null, selectedVoiceProfileId: string | null, selectedVoiceRevisionId: string | null, selectedAt: number | null, rejectedAt: number | null, createdAt: number, };
+export type VoiceCandidate = { model: VoiceModel, candidateId: string, runId: string, sourceKind: string, language: string, sampleText: string, seed: number, designDescription: string | null, referenceText: string | null, audio: SpeechAudioOutput, status: VoiceCandidateStatus, auditionedAt: number | null, selectedVoiceProfileId: string | null, selectedVoiceRevisionId: string | null, selectedAt: number | null, createdAt: number, };

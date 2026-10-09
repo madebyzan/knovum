@@ -43,7 +43,7 @@ async fn voice_catalog_exposes_delivery_support_from_the_frozen_source() {
         ("exact", "reference", Some("Selected sample")),
         ("design", "designed", Some("Selected sample")),
     ] {
-        sqlx::query("INSERT INTO spaces_voice_profiles(id,space_id,name,source_kind,created_at,updated_at) VALUES(?,'space',?,?,1,1)")
+        sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES(?,?,?,1,1)")
             .bind(id).bind(id).bind(source).execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,1,'voxcpm2','voxcpm2-2b-gguf-orig-v1','en','/managed/sample.wav',?,?,?,'{}','{}',1)")
             .bind(id).bind(id).bind(format!("sha256:{}", "a".repeat(64))).bind(transcript)
@@ -56,7 +56,7 @@ async fn voice_catalog_exposes_delivery_support_from_the_frozen_source() {
             .await
             .unwrap();
     }
-    let catalog = crate::spaces::speech::repository::list_voices(&pool, "space")
+    let catalog = crate::spaces::speech::repository::list_voices(&pool)
         .await
         .unwrap();
     assert_eq!(catalog.len(), 3);

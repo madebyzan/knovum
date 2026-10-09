@@ -56,9 +56,12 @@ pub(super) async fn complete(
         kind: crate::spaces::authorization::PrincipalKind::BuiltinAgent,
         id: ids.task_id.clone(),
     };
-    let outputs =
-        crate::spaces::conversations::outputs::collect(&mut tx, &run.home_space_id, &principal)
-            .await?;
+    let outputs = crate::spaces::conversations::outputs::collect(
+        &mut tx,
+        run.scope.require_space_id()?,
+        &principal,
+    )
+    .await?;
     let last: Option<(String, String)> = sqlx::query_as("SELECT id,content FROM spaces_conversation_messages WHERE conversation_id=$1 AND branch_id=$2 AND role='assistant'
         AND json_extract(content,'$.runId')=$3 ORDER BY created_at DESC,rowid DESC LIMIT 1")
         .bind(&ids.conversation_id).bind(&ids.branch_id).bind(&ids.run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;

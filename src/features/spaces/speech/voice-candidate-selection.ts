@@ -15,7 +15,7 @@ export function presentVoiceCandidate(candidate: VoiceCandidate): PlayableVoiceC
 }
 
 export async function auditionVoiceCandidate(candidate: VoiceCandidate) {
-  return presentVoiceCandidate(await markVoiceCandidateAuditioned(candidate.candidateId, candidate.spaceId));
+  return presentVoiceCandidate(await markVoiceCandidateAuditioned(candidate.candidateId));
 }
 
 export function selectVoiceCandidate(
@@ -25,12 +25,11 @@ export function selectVoiceCandidate(
 ): Promise<VoiceLibraryRevision> {
   return createCandidateVoice({
     candidateId: candidate.candidateId,
-    spaceId: candidate.spaceId,
     name,
     authorized,
   });
 }
 
 export function rejectVoiceCandidate(candidate: VoiceCandidate) {
-  return discardVoiceCandidate(candidate.candidateId, candidate.spaceId);
+  return discardVoiceCandidate(candidate.candidateId);
 }

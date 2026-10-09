@@ -2,7 +2,7 @@ use tauri::AppHandle;
 
 use super::super::StartExternalConversationRequest;
 use crate::spaces::{
-    authorization::{Principal, PrincipalKind},
+    authorization::{Principal, PrincipalKind, RunScope},
     db,
     runs::{NewRun, RunKind},
 };
@@ -18,6 +18,9 @@ pub(crate) async fn create_records(
     let principal = Principal {
         kind: PrincipalKind::ExternalAgent,
         id: id.to_owned(),
+    };
+    let scope = RunScope::Space {
+        space_id: request.space_id.clone(),
     };
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -49,7 +52,7 @@ pub(crate) async fn create_records(
         &mut tx,
         &NewRun {
             id: run_id,
-            home_space_id: &request.space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: RunKind::ExternalAgent,

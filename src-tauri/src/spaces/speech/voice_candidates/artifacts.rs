@@ -82,7 +82,7 @@ pub(super) fn validate_persisted(
     claim: &AttemptClaim,
     record: &repository::StoredVoiceCandidate,
 ) -> Result<(), String> {
-    if record.candidate.run_id != claim.run_id || record.candidate.space_id != claim.home_space_id {
+    if record.candidate.run_id != claim.run_id {
         return Err("stale_revision: persisted voice candidate differs from its Run".into());
     }
     for (path, expected) in [

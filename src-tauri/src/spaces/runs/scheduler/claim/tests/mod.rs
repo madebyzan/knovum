@@ -172,9 +172,9 @@ async fn insert_run(
     pause_requested_at: Option<i64>,
 ) {
     sqlx::query(
-        "INSERT INTO spaces_runs(id,home_space_id,parent_run_id,principal_kind,principal_id,kind,
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,parent_run_id,principal_kind,principal_id,kind,
          state,policy_snapshot,input_snapshot,budget,pause_requested_at,created_at,updated_at)
-         VALUES($1,'space',$2,'builtin_agent','principal',$3,$4,'{}','{}',$5,$6,1,1)",
+         VALUES($1,'space','space',$2,'builtin_agent','principal',$3,$4,'{}','{}',$5,$6,1,1)",
     )
     .bind(id)
     .bind(parent)

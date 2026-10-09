@@ -9,7 +9,7 @@ use crate::{
     ai::{contracts::ExecutionCapability, settings},
     app_error::AppError,
     spaces::{
-        authorization::{create_grant, local_user_grant},
+        authorization::{create_grant, local_user_grant, RunScope},
         db,
         runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     },
@@ -64,7 +64,9 @@ pub async fn translate_video_dubbing(
         execution_target: request.execution_target.clone(),
         segments: request.segments.clone(),
     };
-    if let Some(existing) = repository::existing_request(&mut tx, &request.job_id).await? {
+    if let Some(existing) =
+        repository::existing_request(&mut tx, &request.job_id, &project.space_id).await?
+    {
         let same = existing == input;
         tx.rollback().await.map_err(db::sql_error)?;
         if !same {
@@ -74,9 +76,13 @@ pub async fn translate_video_dubbing(
         }
         return Ok(crate::spaces::runs::load_run(pool, &request.job_id).await?);
     }
-    if let Some((run_id, existing)) =
-        repository::active_for_revision(&mut tx, &request.project_id, request.expected_revision)
-            .await?
+    if let Some((run_id, existing)) = repository::active_for_revision(
+        &mut tx,
+        &project.space_id,
+        &request.project_id,
+        request.expected_revision,
+    )
+    .await?
     {
         let same = existing == input;
         tx.rollback().await.map_err(db::sql_error)?;
@@ -142,12 +148,15 @@ async fn create_run(
     input: &TranslationRunInput,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
+    let scope = RunScope::Space {
+        space_id: space_id.to_owned(),
+    };
     let grant = local_user_grant(
         uuid::Uuid::new_v4().to_string(),
-        space_id.into(),
+        scope.clone(),
         Vec::new(),
         now,
-    );
+    )?;
     let principal = grant.principal.clone();
     create_grant(tx, &grant, now).await?;
     let input_json = serde_json::to_value(input).map_err(db::json_error)?;
@@ -168,7 +177,7 @@ async fn create_run(
         tx,
         &NewRun {
             id: run_id,
-            home_space_id: space_id,
+            scope: &scope,
             parent_run_id: None,
             principal: &principal,
             kind: RunKind::Workflow,

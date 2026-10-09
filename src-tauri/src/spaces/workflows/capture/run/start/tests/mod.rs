@@ -124,7 +124,9 @@ async fn claim(pool: &SqlitePool, run_id: &str, step: &str) -> AttemptClaim {
         step_instance_id: step_id,
         execution_epoch: 0,
         attempt_number: 1,
-        home_space_id: "space".into(),
+        scope: crate::spaces::authorization::RunScope::Space {
+            space_id: "space".into(),
+        },
         node_kind: "captured_action".into(),
         configuration: serde_json::from_str(&configuration).unwrap(),
         resolved_input: json!({}),

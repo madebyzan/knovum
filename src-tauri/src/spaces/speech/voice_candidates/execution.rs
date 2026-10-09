@@ -28,16 +28,14 @@ pub(crate) async fn execute(
     pool: &SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
-    super::super::run_execution::require_authority(pool, claim).await?;
+    require_application_authority(pool, claim).await?;
     let configuration: VoiceCandidateStepConfiguration =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let request = &configuration.request;
-    if request.request_id != claim.run_id || request.space_id != claim.home_space_id {
+    if request.request_id != claim.run_id {
         return Err("stale_revision: voice candidate request differs from its Run".into());
     }
-    if let Some(record) =
-        repository::load_record_optional(pool, &claim.run_id, &claim.home_space_id).await?
-    {
+    if let Some(record) = repository::load_record_optional(pool, &claim.run_id).await? {
         artifacts::validate_persisted(app, claim, &record)?;
         artifacts::cleanup_source_snapshot(app, &configuration)?;
         return completed(record.candidate);
@@ -48,20 +46,50 @@ pub(crate) async fn execute(
     let generation = execute_inner(app, pool, claim, &configuration, &paths).await;
     paths.cleanup_working();
     if generation.is_err() {
-        let persisted: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=? AND space_id=?)",
-        )
-        .bind(&claim.run_id)
-        .bind(&claim.home_space_id)
-        .fetch_one(pool)
-        .await
-        .map_err(db::sql_error)?;
+        let persisted: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces_voice_candidates WHERE id=?)")
+                .bind(&claim.run_id)
+                .fetch_one(pool)
+                .await
+                .map_err(db::sql_error)?;
         if !persisted {
             super::super::asset_publication::abandon_attempt(app, pool, claim).await?;
             paths.cleanup_published();
         }
     }
     generation
+}
+
+async fn require_application_authority(
+    pool: &SqlitePool,
+    claim: &AttemptClaim,
+) -> Result<(), String> {
+    claim.scope.require_application()?;
+    let grant_id = claim
+        .policy_snapshot
+        .get("grantId")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("permission-denied: Voice candidate Run authorization grant is missing")?;
+    let mut tx = pool.begin().await.map_err(db::sql_error)?;
+    let grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
+    grant.require_application(crate::clock::unix_time_millis()?)?;
+    let principal: Option<(String, String)> = sqlx::query_as(
+        "SELECT principal_kind,principal_id FROM spaces_runs \
+         WHERE id=? AND scope_kind='application'",
+    )
+    .bind(&claim.run_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    let Some((principal_kind, principal_id)) = principal else {
+        return Err("permission-denied: Voice candidate Run scope is unavailable".into());
+    };
+    if principal_kind != grant.principal.kind.as_str() || principal_id != grant.principal.id {
+        return Err(
+            "permission-denied: Voice candidate Run grant belongs to another principal".into(),
+        );
+    }
+    Ok(())
 }
 
 async fn execute_inner(
@@ -102,7 +130,7 @@ async fn execute_inner(
                 identity: InferenceRequestIdentity {
                     request_id: claim.run_id.clone(),
                     owner_kind: "voice_candidate".into(),
-                    owner_id: claim.home_space_id.clone(),
+                    owner_id: claim.run_id.clone(),
                     attempt_id: claim.attempt_id.clone(),
                     attempt_epoch: u64::try_from(claim.execution_epoch)
                         .map_err(|_| "Voice candidate execution epoch is invalid")?,
@@ -195,7 +223,7 @@ async fn execute_inner(
     )
     .await?;
     artifacts::cleanup_source_snapshot(app, configuration)?;
-    completed(repository::load_candidate(pool, &claim.run_id, &claim.home_space_id).await?)
+    completed(repository::load_candidate(pool, &claim.run_id).await?)
 }
 
 async fn prepare_source(
@@ -239,7 +267,6 @@ async fn prepare_source(
             if let Err(error) = super::super::voice_reference_validation::validate(
                 app,
                 &claim.run_id,
-                &claim.home_space_id,
                 &request.language,
                 audio.clone(),
                 text,

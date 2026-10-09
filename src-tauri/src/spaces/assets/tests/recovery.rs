@@ -30,7 +30,7 @@ async fn recovery_preserves_unstarted_run_outputs_and_catches_interrupted_work()
         ("started", "running"),
         ("finished", "failed"),
     ] {
-        sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','user','user','action',$2,'{}','{}','{}',1,1)")
+        sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','space','user','user','action',$2,'{}','{}','{}',1,1)")
             .bind(id)
             .bind(state)
             .execute(&pool)

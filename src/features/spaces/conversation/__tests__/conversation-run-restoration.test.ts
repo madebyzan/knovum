@@ -25,7 +25,7 @@ vi.mock("../conversation-run-observation", () => ({
 
 const run: RunObservation = {
   id: "run",
-  homeSpaceId: "space",
+  scope: { kind: "space", spaceId: "space" },
   parentRunId: null,
   retryOfRunId: null,
   forkOfRunId: null,

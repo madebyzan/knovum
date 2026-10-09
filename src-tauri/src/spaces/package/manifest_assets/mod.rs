@@ -86,33 +86,6 @@ fn collect_speech_assets(
     source_revisions: &mut HashMap<String, String>,
     cancellation: &CancellationToken,
 ) -> Result<(), crate::app_error::AppError> {
-    for candidate in value
-        .get("voiceCandidates")
-        .and_then(Value::as_array)
-        .ok_or("Space package voiceCandidates must be an array")?
-    {
-        super::control::check(cancellation)?;
-        for (path, digest) in [
-            ("referenceAssetPath", "referenceSha256"),
-            ("previewAssetPath", "previewSha256"),
-        ] {
-            let reference = candidate
-                .get(path)
-                .and_then(Value::as_str)
-                .ok_or("Package voice candidate asset is unavailable")?;
-            let token = package_token(reference)?
-                .ok_or("Package voice candidate must use a managed asset token")?;
-            let digest = candidate
-                .get(digest)
-                .and_then(Value::as_str)
-                .filter(|value| {
-                    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-                })
-                .map(|value| format!("sha256:{value}"))
-                .ok_or("Package voice candidate digest is invalid")?;
-            record_digest(used_tokens, source_revisions, token, &digest)?;
-        }
-    }
     for separation in value
         .get("speechSourceSeparations")
         .and_then(Value::as_array)

@@ -5,7 +5,7 @@ async fn seals_only_an_active_unowned_preparation_reservation() {
     let pool = database().await;
     let id = asset_publication::stage_unowned(
         &pool,
-        "space",
+        &crate::spaces::authorization::RunScope::Application,
         PendingAsset {
             owner_kind: PublicationOwnerKind::VoiceCandidateInput,
             owner_id: "candidate",

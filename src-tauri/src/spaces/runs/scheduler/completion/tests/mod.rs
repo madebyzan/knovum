@@ -19,9 +19,9 @@ async fn executing_fixture() -> Fixture {
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
         .execute(&pool).await.unwrap();
     sqlx::query(
-        "INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,
          execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at)
-         VALUES('run','space','builtin_agent','principal','action','running',7,$1,'{}',$2,1,1)",
+         VALUES('run','space','space','builtin_agent','principal','action','running',7,$1,'{}',$2,1,1)",
     )
     .bind(r#"{"definition":{"failurePolicy":"stop_run"}}"#)
     .bind(r#"{"maxOutputBytes":1024}"#)
@@ -52,7 +52,9 @@ async fn executing_fixture() -> Fixture {
             step_instance_id: "step".into(),
             execution_epoch: 7,
             attempt_number: 1,
-            home_space_id: "space".into(),
+            scope: crate::spaces::authorization::RunScope::Space {
+                space_id: "space".into(),
+            },
             node_kind: "action".into(),
             configuration: json!({}),
             resolved_input: json!({}),

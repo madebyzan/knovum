@@ -1,6 +1,7 @@
-import { flushPromises } from "@vue/test-utils";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { effectScope, shallowRef } from "vue";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, mount } from "@vue/test-utils";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { defineComponent } from "vue";
 
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type * as observation from "../../runs/resource-run-observation";
@@ -20,11 +21,13 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../voice-candidate-ipc", () => mocks);
 vi.mock("../ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
-vi.mock("../../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../../foundation/i18n/i18n", () => ({
+  i18n: { global: { t: (key: string) => key } },
+}));
 
 const running: RunObservation = {
   id: "voice-run",
-  homeSpaceId: "first",
+  scope: { kind: "application" },
   kind: "workflow",
   state: "running",
   stateVersion: 1,
@@ -42,25 +45,42 @@ const running: RunObservation = {
   updatedAt: 1,
   completedAt: null,
 };
-const scopes: ReturnType<typeof effectScope>[] = [];
-async function setup() {
-  const owner = shallowRef("first");
-  const scope = effectScope();
-  scopes.push(scope);
-  const candidates = scope.run(() => useVoiceCandidates(() => owner.value, vi.fn()))!;
-  await flushPromises();
-  return { candidates, owner, scope };
+
+function setup() {
+  let candidates!: ReturnType<typeof useVoiceCandidates>;
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Harness = defineComponent({
+    setup() {
+      candidates = useVoiceCandidates(vi.fn());
+      return () => null;
+    },
+  });
+  const wrapper = mount(Harness, { global: { plugins: [[VueQueryPlugin, { queryClient }]] } });
+  onTestFinished(() => {
+    wrapper.unmount();
+    queryClient.clear();
+  });
+  return { candidates, wrapper };
 }
+
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.getActiveVoiceCandidateRun.mockResolvedValueOnce(running).mockResolvedValue(null);
+  mocks.getActiveVoiceCandidateRun.mockResolvedValue(running);
   mocks.listVoiceCandidates.mockResolvedValue([]);
-  mocks.observeResourceRun.mockReturnValue(vi.fn<() => undefined>(() => undefined));
+  mocks.observeResourceRun.mockReturnValue(vi.fn());
 });
-afterEach(() => scopes.splice(0).forEach((scope) => scope.stop()));
+
+it("restores the application candidate run independently of a Space", async () => {
+  const { candidates } = setup();
+  await flushPromises();
+  expect(mocks.getActiveVoiceCandidateRun).toHaveBeenCalledOnce();
+  expect(mocks.listVoiceCandidates).toHaveBeenCalledOnce();
+  expect(candidates.activeRunId.value).toBe(running.id);
+});
 
 it("settles normal cancellation without presenting a failed voice proposal", async () => {
-  const { candidates } = await setup();
+  const { candidates } = setup();
+  await flushPromises();
   mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state: "cancelled" });
   expect(candidates.activeRunId.value).toBeUndefined();
   expect(candidates.busy.value).toBe(false);
@@ -69,38 +89,28 @@ it("settles normal cancellation without presenting a failed voice proposal", asy
 });
 
 it.each(["failed", "completed_with_errors"] as const)("retains %s as a visible failure", async (state) => {
-  const { candidates } = await setup();
+  const { candidates } = setup();
+  await flushPromises();
   mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state });
   expect(candidates.busy.value).toBe(false);
   expect(candidates.error.value).toBeTruthy();
 });
 
-it("keeps a real cancellation command failure attached to its active operation", async () => {
-  const { candidates } = await setup();
+it("keeps a cancellation failure attached to the active operation", async () => {
+  const { candidates } = setup();
+  await flushPromises();
   mocks.cancelResourceRun.mockRejectedValue(new Error("Cancellation denied"));
   await candidates.cancel();
   expect(candidates.error.value).toBe("Cancellation denied");
   expect(candidates.activeRunId.value).toBe(running.id);
 });
 
-it.each(["space-change", "dispose"] as const)(
-  "ignores a late cancellation failure after %s",
-  async (action) => {
-    const { candidates, owner, scope } = await setup();
-    let failCancellation!: (cause: unknown) => void;
-    mocks.cancelResourceRun.mockReturnValue(
-      new Promise((_resolve, reject) => {
-        failCancellation = reject;
-      }),
-    );
-    const pending = candidates.cancel();
-    expect(mocks.cancelResourceRun).toHaveBeenCalledExactlyOnceWith(running.id);
-    if (action === "dispose") scope.stop();
-    else owner.value = "second";
-    await flushPromises();
-    failCancellation(new Error("Old task failure"));
-    await pending;
-    expect(candidates.error.value).toBeUndefined();
-    expect(candidates.activeRunId.value).toBeUndefined();
-  },
-);
+it("detaches its view observer without cancelling the durable run", async () => {
+  const stop = vi.fn<() => void>();
+  mocks.observeResourceRun.mockReturnValue(stop);
+  const { wrapper } = setup();
+  await flushPromises();
+  wrapper.unmount();
+  expect(stop).toHaveBeenCalledOnce();
+  expect(mocks.cancelResourceRun).not.toHaveBeenCalled();
+});

@@ -23,12 +23,13 @@ pub(crate) async fn execute(
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
     super::super::run_execution::require_authority(pool, claim).await?;
+    let space_id = claim.scope.require_space_id()?;
     let config: TranslationStepConfiguration =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let project = repository::active_project(&mut tx, &config.project_id).await?;
     repository::require_expected_revision(&project, config.expected_revision)?;
-    if project.space_id != claim.home_space_id || project.revision_id != config.revision_id {
+    if project.space_id != space_id || project.revision_id != config.revision_id {
         return Err("stale_revision: video translation project identity changed".into());
     }
     tx.rollback().await.map_err(db::sql_error)?;

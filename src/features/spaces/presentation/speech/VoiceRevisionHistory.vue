@@ -8,6 +8,7 @@ import { voiceEngineLabels } from "../../speech/voice-options";
 import VoiceAudition from "./VoiceAudition.vue";
 
 const props = defineProps<{ profile: DeepReadonly<VoiceProfileHistory>; disabled: boolean }>();
+const emit = defineEmits<{ dirty: [value: boolean] }>();
 const { t } = useI18n();
 const selected = shallowRef(props.profile.activeRevisionId);
 watch(
@@ -25,23 +26,15 @@ const options = computed(() =>
 </script>
 
 <template>
-  <details>
-    <summary class="cursor-pointer text-caption text-fg-secondary">
+  <section class="space-y-2">
+    <h3 class="text-caption font-medium text-fg-secondary">
       {{ t("spaces.speech.voice.history") }} ({{ profile.revisions.length }})
-    </summary>
-    <div class="mt-2 space-y-2">
-      <UiSelect
-        v-model="selected"
-        size="sm"
-        :label="t('spaces.speech.voice.history')"
-        :options="options"
-        :disabled
-      />
-      <VoiceAudition
-        :space-id="profile.spaceId"
-        :source="{ kind: 'revision', revisionId: selected }"
-        :disabled
-      />
-    </div>
-  </details>
+    </h3>
+    <UiSelect v-model="selected" size="sm" :label="t('spaces.speech.voice.history')" :options :disabled />
+    <VoiceAudition
+      :source="{ kind: 'revision', revisionId: selected }"
+      :disabled
+      @dirty="emit('dirty', $event)"
+    />
+  </section>
 </template>

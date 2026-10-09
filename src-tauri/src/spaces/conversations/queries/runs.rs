@@ -20,12 +20,14 @@ pub async fn list_active_conversation_runs(
         "SELECT r.id,t.conversation_id,t.branch_id,c.title FROM spaces_runs r
          JOIN spaces_builtin_agent_tasks t ON t.run_id=r.id
          JOIN spaces_conversations c ON c.id=t.conversation_id
-         WHERE ($1 IS NULL OR r.home_space_id=$1) AND r.completed_at IS NULL
+         WHERE r.scope_kind='space' AND ($1 IS NULL OR r.home_space_id=$1)
+           AND r.completed_at IS NULL
          UNION ALL
          SELECT r.id,e.conversation_id,e.branch_id,c.title FROM spaces_runs r
          JOIN spaces_external_agent_conversations e ON e.run_id=r.id
          JOIN spaces_conversations c ON c.id=e.conversation_id
-         WHERE ($1 IS NULL OR r.home_space_id=$1) AND r.completed_at IS NULL",
+         WHERE r.scope_kind='space' AND ($1 IS NULL OR r.home_space_id=$1)
+           AND r.completed_at IS NULL",
     )
     .bind(space_id.as_deref())
     .fetch_all(pool)

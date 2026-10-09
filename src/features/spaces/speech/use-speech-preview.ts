@@ -17,11 +17,10 @@ interface PreviewInput {
   deliveryInstruction: string;
 }
 
-function buildPreviewRequest(job: { id: string; spaceId: string }, input: PreviewInput) {
+function buildPreviewRequest(jobId: string, input: PreviewInput) {
   const instruction = input.deliveryInstruction.trim();
   return {
-    jobId: job.id,
-    spaceId: job.spaceId,
+    jobId,
     source: input.source,
     text: input.text,
     pronunciationLexicon: input.pronunciationLexicon,
@@ -29,10 +28,7 @@ function buildPreviewRequest(job: { id: string; spaceId: string }, input: Previe
   };
 }
 
-export function useSpeechPreview(
-  setError: (message?: string) => void,
-  ownerSpaceId: () => string | undefined,
-) {
+export function useSpeechPreview(setError: (message?: string) => void) {
   const preview = shallowRef<SpeechAudioOutput & { source: string }>();
   const progress = shallowRef<SpeechGenerationProgress>();
   const jobId = shallowRef<string>();
@@ -62,16 +58,12 @@ export function useSpeechPreview(
     clearPreview(false);
   }
 
-  function isCurrent(job: string, spaceId: string) {
-    return jobId.value === job && ownerSpaceId() === spaceId;
-  }
-
   function clearJob(job: string) {
     if (jobId.value === job) jobId.value = undefined;
   }
 
-  function handleChunk(chunk: SpeechPreviewAudioChunk, job: string, spaceId: string) {
-    if (!isCurrent(job, spaceId)) return;
+  function handleChunk(chunk: SpeechPreviewAudioChunk, job: string) {
+    if (jobId.value !== job) return;
     try {
       audioQueue.enqueue(chunk);
     } catch (cause) {
@@ -86,13 +78,8 @@ export function useSpeechPreview(
     if (jobId.value === job) progress.value = value;
   }
 
-  function commitPreviewOutput(
-    output: SpeechAudioOutput,
-    expectedJobId: string,
-    spaceId: string,
-    previousPath?: string,
-  ) {
-    if (!isCurrent(expectedJobId, spaceId)) {
+  function commitPreviewOutput(output: SpeechAudioOutput, expectedJobId: string, previousPath?: string) {
+    if (jobId.value !== expectedJobId) {
       discard(output.path);
       return;
     }
@@ -107,24 +94,20 @@ export function useSpeechPreview(
     pronunciationLexicon: Record<string, string>,
     deliveryInstruction = "",
   ) {
-    const spaceId = ownerSpaceId();
-    if (!spaceId || jobId.value) return;
+    if (jobId.value) return;
     const nextJobId = crypto.randomUUID();
     const previousPath = preview.value?.path;
     jobId.value = nextJobId;
     progress.value = undefined;
     try {
       const started = await audioQueue.start(nextJobId);
-      if (!started || jobId.value !== nextJobId || ownerSpaceId() !== spaceId) return;
+      if (!started || jobId.value !== nextJobId) return;
       const output = await previewVoice(
-        buildPreviewRequest(
-          { id: nextJobId, spaceId },
-          { text, source, pronunciationLexicon, deliveryInstruction },
-        ),
+        buildPreviewRequest(nextJobId, { text, source, pronunciationLexicon, deliveryInstruction }),
         (value) => updateProgress(value, nextJobId),
-        (chunk) => handleChunk(chunk, nextJobId, spaceId),
+        (chunk) => handleChunk(chunk, nextJobId),
       );
-      commitPreviewOutput(output, nextJobId, spaceId, previousPath);
+      commitPreviewOutput(output, nextJobId, previousPath);
     } catch (cause) {
       audioQueue.stop(nextJobId);
       reportPreviewFailure(cause, nextJobId);

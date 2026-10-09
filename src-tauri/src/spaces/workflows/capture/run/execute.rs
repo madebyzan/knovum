@@ -16,6 +16,7 @@ pub(crate) async fn execute_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
+    let space_id = claim.scope.require_space_id()?;
     let step: CandidateStep =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let bindings: HashMap<String, Vec<BoundResource>> = serde_json::from_value(
@@ -51,7 +52,7 @@ pub(crate) async fn execute_step(
             }
         };
         for resource in resources {
-            verify_bound(pool, &claim.home_space_id, &resource).await?;
+            verify_bound(pool, space_id, &resource).await?;
             sources.push(json!({"nodeId": resource.node_id, "role": binding.role, "revisionBasis": binding.revision_basis, "dataDigest": resource.data_digest}));
         }
     }
@@ -121,7 +122,7 @@ async fn prior_output(
          WHERE d.id=$1 AND d.space_id=$2 AND d.status='completed' AND n.deleted_at IS NULL",
     )
     .bind(child_run_id)
-    .bind(&claim.home_space_id)
+    .bind(claim.scope.require_space_id()?)
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?

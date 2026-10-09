@@ -8,11 +8,11 @@ mod source_separation;
 #[cfg(test)]
 mod tests;
 mod translation;
+mod voices;
 
 pub(super) struct SpeechSnapshot {
     pub voice_profiles: Vec<Value>,
     pub voice_revisions: Vec<Value>,
-    pub voice_candidates: Vec<Value>,
     pub speech_projects: Vec<Value>,
     pub project_revisions: Vec<Value>,
     pub segments: Vec<Value>,
@@ -28,21 +28,7 @@ pub(super) async fn load(
     reject_active_work(tx, space_id).await?;
     runtime::validate_completed_runs(tx, space_id).await?;
     translation::validate_completed_runs(tx, space_id).await?;
-    let profiles =
-        sqlx::query("SELECT * FROM spaces_voice_profiles WHERE space_id=? ORDER BY created_at,id")
-            .bind(space_id)
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    let voice_revisions = sqlx::query("SELECT r.* FROM spaces_voice_revisions r JOIN spaces_voice_profiles p ON p.id=r.profile_id WHERE p.space_id=? ORDER BY p.created_at,r.revision")
-        .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    let voice_candidates = sqlx::query(
-        "SELECT * FROM spaces_voice_candidates WHERE space_id=? ORDER BY created_at,id",
-    )
-    .bind(space_id)
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
+    let (voice_profiles, voice_revisions) = voices::load(tx, space_id, assets).await?;
     let projects =
         sqlx::query("SELECT p.* FROM spaces_speech_projects p JOIN spaces_nodes n ON n.id=p.source_node_id AND n.deleted_at IS NULL WHERE p.space_id=? ORDER BY p.created_at,p.id")
             .bind(space_id)
@@ -57,15 +43,8 @@ pub(super) async fn load(
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
 
     Ok(SpeechSnapshot {
-        voice_profiles: profiles.iter().map(profile).collect::<Result<_, _>>()?,
-        voice_revisions: voice_revisions
-            .iter()
-            .map(|row| voice_revision(row, assets))
-            .collect::<Result<_, _>>()?,
-        voice_candidates: voice_candidates
-            .iter()
-            .map(|row| voice_candidate(row, assets))
-            .collect::<Result<_, _>>()?,
+        voice_profiles,
+        voice_revisions,
         speech_projects: projects.iter().map(project).collect::<Result<_, _>>()?,
         project_revisions: project_revisions
             .iter()
@@ -80,36 +59,6 @@ pub(super) async fn load(
     })
 }
 
-fn voice_candidate(
-    row: &sqlx::sqlite::SqliteRow,
-    assets: &mut PackageAssets,
-) -> Result<Value, String> {
-    Ok(json!({
-        "id":decode_text(row,"id")?, "runId":decode_text(row,"run_id")?,
-        "spaceId":decode_text(row,"space_id")?, "sourceKind":decode_text(row,"source_kind")?,
-        "language":decode_text(row,"language")?, "sampleText":decode_text(row,"sample_text")?,
-        "designDescription":decode_optional_text(row,"design_description")?,
-        "referenceText":decode_optional_text(row,"reference_text")?,
-        "inputSourceRevision":decode_optional_text(row,"input_source_revision")?,
-        "inputByteLength":decode_optional_integer(row,"input_byte_length")?,
-        "referenceAssetPath":assets.reference(&decode_text(row,"reference_asset_path")?),
-        "referenceSha256":decode_text(row,"reference_sha256")?,
-        "referenceByteLength":decode_integer(row,"reference_byte_length")?,
-        "previewAssetPath":assets.reference(&decode_text(row,"preview_asset_path")?),
-        "previewSha256":decode_text(row,"preview_sha256")?,
-        "previewSampleRate":decode_integer(row,"preview_sample_rate")?,
-        "previewSampleCount":decode_integer(row,"preview_sample_count")?,
-        "modelSpecId":decode_text(row,"model_spec_id")?, "seed":decode_integer(row,"seed")?,
-        "synthesisConfig":decode_json(row,"synthesis_config")?,
-        "authorization":decode_json(row,"authorization")?, "status":decode_text(row,"status")?,
-        "auditionedAt":decode_optional_integer(row,"auditioned_at")?,
-        "selectedVoiceProfileId":decode_optional_text(row,"selected_voice_profile_id")?,
-        "selectedVoiceRevisionId":decode_optional_text(row,"selected_voice_revision_id")?,
-        "selectedAt":decode_optional_integer(row,"selected_at")?,
-        "rejectedAt":decode_optional_integer(row,"rejected_at")?, "createdAt":decode_integer(row,"created_at")?,
-    }))
-}
-
 async fn reject_active_work(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -117,7 +66,7 @@ async fn reject_active_work(
     let active_projects: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM spaces_runs WHERE home_space_id=? AND completed_at IS NULL \
          AND json_extract(input_snapshot,'$.workflow') IN \
-           ('speech_project_generation_v1','speech_source_separation_v1','speech_voice_candidate_v1')",
+           ('speech_project_generation_v1','speech_source_separation_v1')",
     )
     .bind(space_id)
     .fetch_one(&mut **tx)
@@ -138,31 +87,6 @@ async fn reject_active_work(
         return Err("Active speech rendering must finish or be cancelled before export".into());
     }
     Ok(())
-}
-
-fn profile(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
-    Ok(json!({
-        "id":decode_text(row,"id")?, "spaceId":decode_text(row,"space_id")?, "name":decode_text(row,"name")?,
-        "sourceKind":decode_text(row,"source_kind")?, "activeRevisionId":decode_optional_text(row,"active_revision_id")?,
-        "archivedAt":decode_optional_integer(row,"archived_at")?,
-        "createdAt":decode_integer(row,"created_at")?, "updatedAt":decode_integer(row,"updated_at")?,
-    }))
-}
-
-fn voice_revision(
-    row: &sqlx::sqlite::SqliteRow,
-    assets: &mut PackageAssets,
-) -> Result<Value, String> {
-    let reference =
-        decode_optional_text(row, "reference_asset_id")?.map(|path| assets.reference(&path));
-    Ok(json!({
-        "id":decode_text(row,"id")?, "profileId":decode_text(row,"profile_id")?, "revision":decode_integer(row,"revision")?,
-        "engineId":decode_text(row,"engine_id")?, "modelSpecId":decode_text(row,"model_spec_id")?, "language":decode_text(row,"language")?,
-        "presetVoiceId":decode_optional_text(row,"preset_voice_id")?, "referenceAssetId":reference,
-        "referenceSourceRevision":decode_optional_text(row,"reference_source_revision")?, "referenceText":decode_optional_text(row,"reference_text")?,
-        "designDescription":decode_optional_text(row,"design_description")?, "synthesisConfig":decode_json(row,"synthesis_config")?,
-        "authorization":decode_json(row,"authorization")?, "createdAt":decode_integer(row,"created_at")?,
-    }))
 }
 
 fn project(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
