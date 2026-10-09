@@ -82,7 +82,7 @@ tokio = { version = "1.53.2", features = ["process", "io-util", "fs", "sync", "t
 uuid = { version = "1.27.0", features = ["v4"] }
 fnv = "1.0.7"
 lancedb = "=0.37.1"
-arrow-array = "58.4.0"
+arrow-array = "60.0.0"
 arrow-schema = "58.4.0"
 
 # Spaces knowledge server
