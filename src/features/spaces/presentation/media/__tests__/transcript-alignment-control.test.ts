@@ -11,7 +11,7 @@ type ModelState = {
   error: ShallowRef<Error | null>;
 };
 const models = vi.hoisted(() => ({ useLocalModelsQuery: vi.fn<() => ModelState>() }));
-vi.mock("../../../../../foundation/runtime/resource-query", () => models);
+vi.mock("../../../../../foundation/runtime/use-resource-queries", () => models);
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const selected: LocalModelAvailability = {
   id: "qwen3AlignerQ8",

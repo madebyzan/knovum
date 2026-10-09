@@ -1,5 +1,5 @@
 import { compact } from "es-toolkit";
-import { computed, readonly, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
+import { readonly, shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type {
@@ -155,14 +155,6 @@ export function runCanvasSessionTransition<T>(transition: () => Promise<T>) {
       suspendedEditor = undefined;
     }
   });
-}
-
-export function useCanvasSelectionProjection(nodes: MaybeRefOrGetter<readonly SpaceCanvasNode[]>) {
-  const session = getCanvasEditorSession();
-  const selectedNodes = computed(() =>
-    selectedCanvasNodesInOrder(toValue(nodes), session.selection.value.nodeIds),
-  );
-  return { selection: session.selection, selectedNodes };
 }
 
 export function selectedCanvasNodesInOrder(

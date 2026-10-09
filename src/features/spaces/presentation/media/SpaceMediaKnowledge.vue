@@ -5,10 +5,10 @@ import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { formatBytes } from "../../../../foundation/format/bytes";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/resource-query";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
 import { useMediaKnowledge } from "../../media/use-media-knowledge";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import SpaceNodeEnrichmentStatus from "../SpaceNodeEnrichmentStatus.vue";
+import SpaceNodeEnrichmentStatus from "../enrichment/SpaceNodeEnrichmentStatus.vue";
 import SpaceDiarizationControl from "./SpaceDiarizationControl.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";

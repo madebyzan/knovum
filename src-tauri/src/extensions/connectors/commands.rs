@@ -44,20 +44,20 @@ pub async fn create_connector_account(
 #[tauri::command]
 pub async fn authorize_connector_account(
     app: AppHandle,
-    id: String,
+    account_id: String,
     secret_fields: BTreeMap<String, String>,
 ) -> Result<ConnectorAccount, String> {
-    let lock = authorization::account_lock(&app, &id).await;
+    let lock = authorization::account_lock(&app, &account_id).await;
     let _guard = lock.lock().await;
     let pool = database::pool(&app).await?;
-    let mut account = accounts::load(&pool, &id).await?;
+    let mut account = accounts::load(&pool, &account_id).await?;
     if account.cleanup_pending {
         return Err("connector-account-disconnect-in-progress".into());
     }
     let connector = super::definitions::load(&pool, &account.connector_id).await?;
     let fields =
         super::authorization_admission::admit(&pool, &account, &connector, secret_fields).await?;
-    super::super::mcp::sessions::revoke_account(&app, &id).await;
+    super::super::mcp::sessions::revoke_account(&app, &account_id).await;
     let authorization = async {
         match &account.authorization {
             ConnectorAuthorization::OAuth { .. } => {
@@ -71,7 +71,8 @@ pub async fn authorize_connector_account(
                 authorization::authorize(&app, &mut account, allow_local).await?;
             }
             ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
-                crate::secrets::write_secret(&key(&id), &database::encode(&fields)?).await?;
+                crate::secrets::write_secret(&key(&account_id), &database::encode(&fields)?)
+                    .await?;
             }
             ConnectorAuthorization::None => {}
         }
@@ -79,37 +80,40 @@ pub async fn authorize_connector_account(
     }
     .await;
     if let Err(error) = authorization {
-        accounts::set_status(&pool, &id, false, true).await?;
-        super::credential_store::remove(&app, &id).await?;
-        accounts::set_status(&pool, &id, false, false).await?;
+        accounts::set_status(&pool, &account_id, false, true).await?;
+        super::credential_store::remove(&app, &account_id).await?;
+        accounts::set_status(&pool, &account_id, false, false).await?;
         return Err(error);
     }
-    let current = accounts::load(&pool, &id).await?;
+    let current = accounts::load(&pool, &account_id).await?;
     if current.cleanup_pending
         || current.resource != account.resource
         || current.authorization != account.authorization
     {
-        super::credential_store::remove(&app, &id).await?;
+        super::credential_store::remove(&app, &account_id).await?;
         return Err("connector-account-disconnected-during-authorization".into());
     }
     account.enabled = true;
     account.cleanup_pending = false;
     account.revision = uuid::Uuid::new_v4().to_string();
     if let Err(error) = accounts::commit_authorization(&pool, &account, &current).await {
-        super::credential_store::remove(&app, &id).await?;
+        super::credential_store::remove(&app, &account_id).await?;
         return Err(error);
     }
     Ok(account)
 }
 
 #[tauri::command]
-pub async fn cancel_connector_authorization(app: AppHandle, id: String) -> Result<(), String> {
+pub async fn cancel_connector_authorization(
+    app: AppHandle,
+    account_id: String,
+) -> Result<(), String> {
     if let Some(cancellation) = app
         .state::<ExtensionState>()
         .authorizations
         .lock()
         .await
-        .get(&id)
+        .get(&account_id)
     {
         cancellation.cancel();
     }
@@ -117,15 +121,18 @@ pub async fn cancel_connector_authorization(app: AppHandle, id: String) -> Resul
 }
 
 #[tauri::command]
-pub async fn disconnect_connector_account(app: AppHandle, id: String) -> Result<(), String> {
-    cancel_connector_authorization(app.clone(), id.clone()).await?;
+pub async fn disconnect_connector_account(
+    app: AppHandle,
+    account_id: String,
+) -> Result<(), String> {
+    cancel_connector_authorization(app.clone(), account_id.clone()).await?;
     let pool = database::pool(&app).await?;
-    accounts::set_status(&pool, &id, false, true).await?;
-    super::super::mcp::sessions::revoke_account(&app, &id).await;
-    let lock = authorization::account_lock(&app, &id).await;
+    accounts::set_status(&pool, &account_id, false, true).await?;
+    super::super::mcp::sessions::revoke_account(&app, &account_id).await;
+    let lock = authorization::account_lock(&app, &account_id).await;
     let _guard = lock.lock().await;
-    super::credential_store::remove(&app, &id).await?;
-    accounts::set_status(&pool, &id, false, false).await
+    super::credential_store::remove(&app, &account_id).await?;
+    accounts::set_status(&pool, &account_id, false, false).await
 }
 
 pub(in crate::extensions) async fn recover_cleanup(app: &AppHandle) -> Result<(), String> {

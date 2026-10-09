@@ -13,7 +13,7 @@ import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts"
 import type { SpaceScene } from "../../scenes/scene";
 import { useSceneNavigation } from "../../scenes/use-scene-navigation";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceCanvasScenePanel from "./SpaceCanvasScenePanel.vue";
+import SpaceCanvasSceneBookmarks from "./SpaceCanvasSceneBookmarks.vue";
 
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -118,7 +118,7 @@ async function duplicateScene(scene: SpaceScene) {
           </UiIconButton>
         </ToolbarButton>
       </template>
-      <SpaceCanvasScenePanel
+      <SpaceCanvasSceneBookmarks
         :scenes="scenes"
         :available-structure-node-ids="availableStructureNodeIds"
         :active-scene-id="activeSceneId"

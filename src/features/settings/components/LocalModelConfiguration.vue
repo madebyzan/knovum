@@ -11,7 +11,7 @@ import {
   type ResourcePreparationHandle,
 } from "../../../foundation/runtime/resource-preparation";
 import { resourceProgressMessage } from "../../../foundation/runtime/resource-progress";
-import { invalidateLocalResources } from "../../../foundation/runtime/resource-query";
+import { invalidateLocalResources } from "../../../foundation/runtime/use-resource-queries";
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import type { ResourcePreparationProgress } from "../../../shared/contracts/generated/ResourcePreparationProgress";
 import { confirmAction } from "../../../shared/ui/confirm-action";

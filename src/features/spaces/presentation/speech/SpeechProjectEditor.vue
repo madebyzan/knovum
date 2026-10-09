@@ -15,8 +15,8 @@ import { nodeSpeechText } from "../../speech/node-speech";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
-import SpeechOutputPanel from "./SpeechOutputPanel.vue";
-import VideoDeliveryPanel from "./VideoDeliveryPanel.vue";
+import SpeechOutputReview from "./SpeechOutputReview.vue";
+import VideoDeliveryExport from "./VideoDeliveryExport.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
 
 const props = defineProps<{
@@ -153,7 +153,7 @@ function forwardPreview(
       :src="preview.source"
       @play="emit('stopListening')"
     />
-    <VideoDeliveryPanel
+    <VideoDeliveryExport
       v-if="project.project.projectType === 'video_dubbing' && !dirty"
       :project-id="project.project.id"
       :revision-id="project.revision.id"
@@ -161,7 +161,7 @@ function forwardPreview(
       :generated="Boolean(output)"
       :has-background="videoHasBackground"
     />
-    <SpeechOutputPanel
+    <SpeechOutputReview
       v-if="output && !dirty"
       :project="project"
       :output="output"

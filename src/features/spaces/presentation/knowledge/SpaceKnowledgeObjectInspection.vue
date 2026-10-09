@@ -3,7 +3,7 @@ import { computed, shallowRef, watch } from "vue";
 
 import { SYSTEM_OBJECT_TYPE_IDS } from "../../knowledge/model/object-types";
 import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
-import { useNodeDraft } from "../use-node-draft";
+import { useNodeDraft } from "../inspector/use-node-draft";
 import SpaceKnowledgeObjectEditor from "./SpaceKnowledgeObjectEditor.vue";
 import SpaceKnowledgeObjectOverview from "./SpaceKnowledgeObjectOverview.vue";
 import SpaceProvenanceSources from "./SpaceProvenanceSources.vue";

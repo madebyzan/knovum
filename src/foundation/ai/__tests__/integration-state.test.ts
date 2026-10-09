@@ -1,14 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { effectScope } from "vue";
 
-import { createIntegrationState } from "../integration-state";
+import { useIntegrationSettingsState } from "../use-integration-settings-state";
+
+const scopes: ReturnType<typeof effectScope>[] = [];
+function integrationState(options: Parameters<typeof useIntegrationSettingsState<{ count: number }>>[0]) {
+  const scope = effectScope();
+  scopes.push(scope);
+  return scope.run(() => useIntegrationSettingsState(options))!;
+}
 
 describe("integration state persistence", () => {
   beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    for (const scope of scopes.splice(0)) scope.stop();
+    vi.useRealTimers();
+  });
 
   it("does not save a revision again after an explicit flush", async () => {
     const save = vi.fn<(_value: { count: number }) => Promise<void>>().mockResolvedValue(undefined);
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => ({ count: 0 }),
       save,
@@ -26,7 +37,7 @@ describe("integration state persistence", () => {
 
   it("reports a failed explicit flush to its caller", async () => {
     const failure = new Error("save failed");
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => ({ count: 0 }),
       save: vi.fn<() => Promise<void>>().mockRejectedValue(failure),
@@ -49,7 +60,7 @@ describe("integration state persistence", () => {
         }),
     );
     const reset = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => ({ count: 0 }),
       save,
@@ -71,7 +82,7 @@ describe("integration state persistence", () => {
   });
 
   it("clears failed load state after a successful reset", async () => {
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => {
         throw new Error("invalid settings");
@@ -92,7 +103,7 @@ describe("integration state persistence", () => {
       .fn<(_value: { count: number }) => Promise<void>>()
       .mockRejectedValueOnce(new Error("write failed"))
       .mockResolvedValue(undefined);
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => ({ count: 0 }),
       save,
@@ -110,7 +121,7 @@ describe("integration state persistence", () => {
 
   it("retains a usable value and exposes reset failures", async () => {
     const failure = new Error("reset failed");
-    const state = createIntegrationState({
+    const state = integrationState({
       initial: { count: 0 },
       load: async () => ({ count: 1 }),
       save: async () => {},
@@ -132,7 +143,7 @@ describe("integration state persistence", () => {
       .mockResolvedValueOnce({ count: 0 })
       .mockRejectedValueOnce(failure);
     const save = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-    const state = createIntegrationState({ initial: { count: 0 }, load, save, reset: async () => {} });
+    const state = integrationState({ initial: { count: 0 }, load, save, reset: async () => {} });
     await state.ensureLoaded();
     state.value.value.count = 1;
     await state.reload();

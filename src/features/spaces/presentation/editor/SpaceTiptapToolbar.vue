@@ -5,12 +5,13 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
+import type { SpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
 import SpaceTiptapBlockControls from "./SpaceTiptapBlockControls.vue";
 import SpaceTiptapInsertControls from "./SpaceTiptapInsertControls.vue";
 import SpaceTiptapMarkControls from "./SpaceTiptapMarkControls.vue";
 import SpaceTiptapWritingMenu from "./SpaceTiptapWritingMenu.vue";
 
-defineProps<{ editor: Editor }>();
+defineProps<{ editor: Editor; writing: SpaceTiptapWritingTools }>();
 const { t } = useI18n();
 const alignments = [
   { value: "left", icon: AlignLeft },
@@ -61,7 +62,7 @@ const alignments = [
     </div>
     <UiSeparator orientation="vertical" class="mx-1 !h-5" />
     <div class="shrink-0 bg-surface-chrome whitespace-nowrap">
-      <SpaceTiptapWritingMenu :editor="editor" />
+      <SpaceTiptapWritingMenu :writing="writing" />
     </div>
   </div>
 </template>

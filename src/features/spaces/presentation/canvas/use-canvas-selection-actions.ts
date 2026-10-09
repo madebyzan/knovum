@@ -7,15 +7,16 @@ import type {
   CanvasDistributeMode,
   CanvasLayerMove,
 } from "../../canvas/contracts/canvas-editor-port";
-import { getCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { openSpaceNode } from "../../canvas/selection-actions";
+import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
 import { useContextDock } from "../../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
-import { useCanvasNodeDownload } from "./canvas-node-download";
 import { createCanvasStructureSelectionActions } from "./canvas-structure-selection-actions";
 import { canvasSelectionProductState } from "./selection-product-state";
+import { useCanvasNodeDownload } from "./use-canvas-node-download";
 import { useCanvasOperationRunner } from "./use-canvas-operation-runner";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
 import { useCanvasSelectedMedia } from "./use-canvas-selected-media";

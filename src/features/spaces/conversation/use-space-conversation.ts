@@ -4,12 +4,13 @@ import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTarg
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import { useSpaceStore } from "../session/space-store";
+import { createConversationActions } from "./conversation-actions";
+import { createConversationDraftSession } from "./conversation-draft-session";
+import { useConversationDraftStore } from "./conversation-draft-store";
 import { createConversationSelection } from "./conversation-selection";
-import { useConversationActions } from "./use-conversation-actions";
 import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationAttachments } from "./use-conversation-attachments";
 import { useConversationBranches } from "./use-conversation-branches";
-import { useConversationDraftSession } from "./use-conversation-draft-session";
 import { useConversationExtensions } from "./use-conversation-extensions";
 import { useConversationMessagePages } from "./use-conversation-message-pages";
 import { useConversationTask } from "./use-conversation-task";
@@ -44,7 +45,8 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedConversation,
     messages,
   });
-  const draftSession = useConversationDraftSession({
+  const draftSession = createConversationDraftSession({
+    drafts: useConversationDraftStore(),
     spaceId,
     selectedConversationId,
     prompt,
@@ -126,7 +128,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     },
     { immediate: true },
   );
-  const conversationActions = useConversationActions({
+  const conversationActions = createConversationActions({
     selected: selectedConversation,
     selectedId: selectedConversationId,
     messages,

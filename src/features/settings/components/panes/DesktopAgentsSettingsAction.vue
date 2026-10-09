@@ -3,7 +3,7 @@ import { RefreshCw } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
+import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 

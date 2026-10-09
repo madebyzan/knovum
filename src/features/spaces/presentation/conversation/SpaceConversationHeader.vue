@@ -11,8 +11,8 @@ import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
-import SpaceContextHeader from "../SpaceContextHeader.vue";
-import SpaceRightSidebarViewPicker from "../SpaceRightSidebarViewPicker.vue";
+import SpaceContextHeader from "../workspace/SpaceContextHeader.vue";
+import SpaceRightSidebarViewPicker from "../workspace/SpaceRightSidebarViewPicker.vue";
 import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
 const { t } = useI18n();

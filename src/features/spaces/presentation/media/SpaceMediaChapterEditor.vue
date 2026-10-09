@@ -10,7 +10,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceMediaChapter } from "../../media/schema/knowledge";
-import { useNodeDraft } from "../use-node-draft";
+import { useNodeDraft } from "../inspector/use-node-draft";
 
 const props = defineProps<{
   nodeId: string;

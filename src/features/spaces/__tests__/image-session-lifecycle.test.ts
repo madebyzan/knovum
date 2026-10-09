@@ -29,8 +29,8 @@ import { defaultImageEdit } from "../image-editing/image-edit";
 import { useImageEditSession } from "../image-editing/image-edit-session";
 import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
 import { useImageSourceDimensions } from "../presentation/canvas/image-source-dimensions";
-import SpaceCanvasImageActivePanel from "../presentation/canvas/SpaceCanvasImageActivePanel.vue";
-import SpaceImageTransformPanel from "../presentation/canvas/SpaceImageTransformPanel.vue";
+import SpaceCanvasImageEditing from "../presentation/canvas/SpaceCanvasImageEditing.vue";
+import SpaceImageTransformControls from "../presentation/canvas/SpaceImageTransformControls.vue";
 
 beforeEach(() => {
   deriveImage.mockClear();
@@ -116,10 +116,10 @@ describe("image session ownership", () => {
     context.space!.nodes = [node];
     const edits = useImageEditSession();
     edits.begin("same-id", "transform");
-    const wrapper = shallowMount(SpaceCanvasImageActivePanel, {
+    const wrapper = shallowMount(SpaceCanvasImageEditing, {
       props: { node },
     });
-    const transform = wrapper.findComponent(SpaceImageTransformPanel);
+    const transform = wrapper.findComponent(SpaceImageTransformControls);
     expect(transform.props("edit").rotation).toBe(0);
     transform.vm.$emit("update", { rotation: 90 });
     await nextTick();

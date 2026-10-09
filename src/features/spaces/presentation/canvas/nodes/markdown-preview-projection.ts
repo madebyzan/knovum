@@ -41,14 +41,14 @@ export function projectMarkdownPreview(
   const visible = document.blocks.slice(0, blockLimit);
   const source = visible.length ? document.lines.slice(visible[0]![0], visible.at(-1)![1]).join("\n") : "";
   const characterLimit = blockLimit * CANVAS_PREVIEW_CHARACTERS_PER_ITEM;
-  const result = {
+  const preview = {
     projectedSource: source.slice(0, characterLimit),
     remainingBlockCount: document.truncated ? 0 : Math.max(0, document.blocks.length - visible.length),
     visibleBlockCount: visible.length,
     truncated: document.truncated || source.length > characterLimit,
   };
-  document.previews.set(blockLimit, result);
-  return result;
+  document.previews.set(blockLimit, preview);
+  return preview;
 }
 
 function rootBlockRanges(tokens: readonly Token[]): [number, number][] {

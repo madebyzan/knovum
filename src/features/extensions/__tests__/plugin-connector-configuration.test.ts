@@ -56,7 +56,7 @@ it("binds a user-selected installed executable without modifying the publisher d
     await flushPromises();
     expect(mocks.open).toHaveBeenCalledWith({ directory: false, multiple: false });
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|configure_plugin_connector", {
-      id: "service",
+      connectorId: "service",
       revision: "one",
       configuration: { type: "stdio", executable: "/installed/node" },
     });

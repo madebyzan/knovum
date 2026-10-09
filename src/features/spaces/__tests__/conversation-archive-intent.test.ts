@@ -3,7 +3,7 @@ import { computed, shallowRef } from "vue";
 
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
-import { useConversationActions } from "../conversation/use-conversation-actions";
+import { createConversationActions } from "../conversation/conversation-actions";
 
 const ipc = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<void>>() }));
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: ipc.invoke }));
@@ -27,7 +27,7 @@ function session() {
     select: vi.fn<() => Promise<void>>(),
     send: vi.fn<() => Promise<void>>(),
   };
-  return { state, actions: useConversationActions(state) };
+  return { state, actions: createConversationActions(state) };
 }
 
 beforeEach(() => {

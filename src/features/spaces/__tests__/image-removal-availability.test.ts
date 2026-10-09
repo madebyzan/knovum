@@ -20,18 +20,18 @@ const context = vi.hoisted(() => ({
   derive: vi.fn<(...args: unknown[]) => Promise<void>>(),
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
-vi.mock("../canvas/node-operation-gate", () => ({
+vi.mock("../canvas/use-node-operation-gate", () => ({
   useNodeOperationGate: () => ({ allows: () => context.allowed }),
 }));
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage: context.derive }));
-vi.mock("../knowledge-derivations/image-capabilities", () => ({
+vi.mock("../knowledge-derivations/use-image-capabilities", () => ({
   useImageOperationCapabilities: () => context.capabilities!,
 }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn<() => Promise<void>>() }) }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
-import SpaceCanvasImageRemovalPanel from "../presentation/canvas/SpaceCanvasImageRemovalPanel.vue";
-import SpaceImageRemoveObjectPanel from "../presentation/canvas/SpaceImageRemoveObjectPanel.vue";
+import SpaceCanvasObjectRemoval from "../presentation/canvas/SpaceCanvasObjectRemoval.vue";
+import SpaceImageObjectRemovalControls from "../presentation/canvas/SpaceImageObjectRemovalControls.vue";
 import { useImageNodeBarState } from "../presentation/canvas/use-image-node-bar-state";
 
 let node: SpaceCanvasNode<SpaceImagePayload>;
@@ -94,8 +94,8 @@ function setCapabilities(patch: Partial<ImageOperationCapabilities>) {
 function openPanel() {
   const removal = useImageRemovalSession();
   removal.begin(node.id);
-  const wrapper = shallowMount(SpaceCanvasImageRemovalPanel, { props: { node } });
-  return { removal, wrapper, panel: wrapper.findComponent(SpaceImageRemoveObjectPanel) };
+  const wrapper = shallowMount(SpaceCanvasObjectRemoval, { props: { node } });
+  return { removal, wrapper, panel: wrapper.findComponent(SpaceImageObjectRemovalControls) };
 }
 
 describe("local eraser preparation and remote generation", () => {

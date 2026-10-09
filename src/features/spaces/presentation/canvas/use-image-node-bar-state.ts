@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useImageCommentSession } from "../../comments/image-comment-session";
 import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";

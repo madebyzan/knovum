@@ -11,14 +11,20 @@ export interface CanvasBounds {
   width: number;
 }
 
-export const boundsPoints = (bounds: CanvasBounds, axis: "x" | "y") =>
-  axis === "x" ? [bounds.left, bounds.centerX, bounds.right] : [bounds.top, bounds.centerY, bounds.bottom];
-export const boundsStart = (bounds: CanvasBounds, axis: "x" | "y") =>
-  axis === "x" ? bounds.left : bounds.top;
-export const boundsEnd = (bounds: CanvasBounds, axis: "x" | "y") =>
-  axis === "x" ? bounds.right : bounds.bottom;
-export const boundsSize = (bounds: CanvasBounds, axis: "x" | "y") =>
-  axis === "x" ? bounds.width : bounds.height;
+export function boundsPoints(bounds: CanvasBounds, axis: "x" | "y") {
+  return axis === "x"
+    ? [bounds.left, bounds.centerX, bounds.right]
+    : [bounds.top, bounds.centerY, bounds.bottom];
+}
+export function boundsStart(bounds: CanvasBounds, axis: "x" | "y") {
+  return axis === "x" ? bounds.left : bounds.top;
+}
+export function boundsEnd(bounds: CanvasBounds, axis: "x" | "y") {
+  return axis === "x" ? bounds.right : bounds.bottom;
+}
+export function boundsSize(bounds: CanvasBounds, axis: "x" | "y") {
+  return axis === "x" ? bounds.width : bounds.height;
+}
 
 export function crossAxisOverlaps(moving: CanvasBounds, target: CanvasBounds, axis: "x" | "y") {
   return axis === "x"

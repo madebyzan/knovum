@@ -5,7 +5,7 @@ import { defineComponent } from "vue";
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import AiRoutingSettings from "../components/AiRoutingSettings.vue";
 
-vi.mock("../../../foundation/ai/execution-catalog-query", () => ({
+vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
   useExecutionCatalogQuery: () => ({ data: { value: { agents: [] } } }),
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

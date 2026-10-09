@@ -1,7 +1,7 @@
 import { computed, shallowRef, watch } from "vue";
 
 import { getCanvasEditorSession } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
 import { useSpaceStore } from "../../session/space-store";

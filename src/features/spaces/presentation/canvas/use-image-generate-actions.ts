@@ -5,11 +5,11 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { ImageOperation } from "../../contracts/generated/ImageOperation";
 import { imageEditOf, rotatedImageSize } from "../../image-editing/image-edit";
-import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
 import { deriveImage } from "../../knowledge-derivations/image-operation";
+import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";

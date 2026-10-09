@@ -3,7 +3,7 @@ import { Compass, FolderInput, ArrowLeft } from "@lucide/vue";
 import { computed, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { setPluginEnabled } from "../../../foundation/extensions/plugin-operations";
+import { enablePlugin, disablePlugin } from "../../../foundation/extensions/plugin-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
@@ -120,7 +120,7 @@ const plugins = computed(() =>
             :key="plugin.id"
             :plugin="plugin"
             :busy="busy"
-            @toggle="mutate(() => setPluginEnabled(plugin.id, !plugin.enabled))"
+            @toggle="mutate(() => (plugin.enabled ? disablePlugin(plugin.id) : enablePlugin(plugin.id)))"
             @update="inspect(plugin.source, plugin)"
             @uninstall="remove(plugin)"
           />

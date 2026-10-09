@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/use-node-operation-gate";
 import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
-import SpaceAddMenu from "../SpaceAddMenu.vue";
+import SpaceAddMenu from "../creation/SpaceAddMenu.vue";
 
 const tools = useCanvasToolStore();
 const nodeOperations = useNodeOperationGate();

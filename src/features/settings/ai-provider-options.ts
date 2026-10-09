@@ -6,5 +6,6 @@ export interface AiProviderOption {
   readonly label: string;
 }
 
-export const providerOptions = (providers: readonly ProviderDescriptor[]): readonly AiProviderOption[] =>
-  providers.map(({ id, displayName }) => ({ value: id, label: displayName }));
+export function providerOptions(providers: readonly ProviderDescriptor[]): readonly AiProviderOption[] {
+  return providers.map(({ id, displayName }) => ({ value: id, label: displayName }));
+}

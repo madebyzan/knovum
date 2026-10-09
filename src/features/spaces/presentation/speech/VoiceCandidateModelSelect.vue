@@ -3,7 +3,7 @@ import { computed, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { formatBytes } from "../../../../foundation/format/bytes";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/resource-query";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
 import type { LocalModelOperation } from "../../../../shared/contracts/generated/LocalModelOperation";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiButton from "../../../../shared/ui/UiButton.vue";

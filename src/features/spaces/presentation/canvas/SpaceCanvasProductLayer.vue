@@ -5,13 +5,14 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import { getCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
+import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import SpaceDerivationDialogs from "../derivations/SpaceDerivationDialogs.vue";
-import SpaceFind from "../SpaceFind.vue";
-import SpaceGlobalFind from "../SpaceGlobalFind.vue";
+import SpaceFind from "../search/SpaceFind.vue";
+import SpaceGlobalFind from "../search/SpaceGlobalFind.vue";
 import { canvasSelectionGap } from "./canvas-selection-gap";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
@@ -21,7 +22,7 @@ import SpaceCanvasSelectionAnchor from "./SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./SpaceCanvasSelectionBar.vue";
 import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
 import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
-import SpaceCanvasWorkflowPanel from "./SpaceCanvasWorkflowPanel.vue";
+import SpaceCanvasWorkflowSelection from "./SpaceCanvasWorkflowSelection.vue";
 import { useCanvasChromeRects } from "./use-canvas-chrome-rects";
 import { useSelectionSurfaceState } from "./use-selection-surface-state";
 defineProps<{
@@ -130,7 +131,7 @@ const selectionBarGap = computed(() =>
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>
-    <SpaceCanvasWorkflowPanel
+    <SpaceCanvasWorkflowSelection
       v-if="store.workflowMode"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"

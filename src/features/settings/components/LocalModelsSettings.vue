@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { useLocalModelsQuery } from "../../../foundation/runtime/resource-query";
+import { useLocalModelsQuery } from "../../../foundation/runtime/use-resource-queries";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import { localModelGroups } from "../local-model-groups";

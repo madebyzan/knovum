@@ -10,9 +10,9 @@ import {
   getCanvasEditorSession,
 } from "../../canvas/editor-session";
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { isSpaceNodeOpenable, openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { createCanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";

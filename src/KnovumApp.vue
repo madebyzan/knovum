@@ -10,7 +10,7 @@ import "vue-sonner/style.css";
 
 import ApplicationUpdates from "./app/ApplicationUpdates.vue";
 import DictationOverlay from "./features/dictation/DictationOverlay.vue";
-import { createSpaceArchiveSettings } from "./features/spaces/assets/archive-settings";
+import { useSpaceArchiveSettings } from "./features/spaces/assets/use-space-archive-settings";
 import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";
@@ -26,7 +26,7 @@ const { theme } = storeToRefs(preferences);
 const workspace = useSpacesWorkspace();
 const dictationSupported =
   (platform() === "macos" && arch() === "aarch64") || (platform() === "windows" && arch() === "x86_64");
-provide(archiveSettingsKey, createSpaceArchiveSettings());
+provide(archiveSettingsKey, useSpaceArchiveSettings());
 </script>
 
 <template>

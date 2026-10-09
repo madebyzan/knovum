@@ -4,26 +4,40 @@ import type { SkillContent } from "../../shared/contracts/generated/SkillContent
 import type { SkillRevision } from "../../shared/contracts/generated/SkillRevision";
 import { invokeCommand } from "../ipc/invoke-command";
 
-export const listSkills = () => invokeCommand<SkillRevision[]>("plugin:extensions|list_skills");
-export const readSkillFile = (skillId: string, path: string) =>
-  invokeCommand<AgentSkillFile>("plugin:extensions|read_skill_file", { id: skillId, path });
-export const readSkill = (skillId: string) =>
-  invokeCommand<SkillContent>("plugin:extensions|read_skill", { id: skillId });
-export const createSkill = (name: string, markdown: string) =>
-  invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|create_skill", { name, markdown });
-export const saveSkillRevision = (skillId: string, expectedDigest: string, markdown: string) =>
-  invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|save_skill_revision", {
-    id: skillId,
+export function listSkills() {
+  return invokeCommand<SkillRevision[]>("plugin:extensions|list_skills");
+}
+export function readSkillFile(skillId: string, path: string) {
+  return invokeCommand<AgentSkillFile>("plugin:extensions|read_skill_file", { skillId, path });
+}
+export function readSkill(skillId: string) {
+  return invokeCommand<SkillContent>("plugin:extensions|read_skill", { skillId });
+}
+export function createSkill(name: string, markdown: string) {
+  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|create_skill", { name, markdown });
+}
+export function saveSkillRevision(skillId: string, expectedDigest: string, markdown: string) {
+  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|save_skill_revision", {
+    skillId,
     expectedDigest,
     markdown,
   });
-export const importSkill = (path: string) =>
-  invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|import_skill", { path });
-export const copySkill = (skillId: string) =>
-  invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|copy_skill", { id: skillId });
-export const exportSkill = (skillId: string, path: string) =>
-  invokeCommand<void>("plugin:extensions|export_skill", { id: skillId, path });
-export const setSkillEnabled = (skillId: string, enabled: boolean) =>
-  invokeCommand<void>("plugin:extensions|set_skill_enabled", { id: skillId, enabled });
-export const deleteSkill = (skillId: string) =>
-  invokeCommand<ExtensionChange<null>>("plugin:extensions|delete_skill", { id: skillId });
+}
+export function importSkill(path: string) {
+  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|import_skill", { path });
+}
+export function copySkill(skillId: string) {
+  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|copy_skill", { skillId });
+}
+export function exportSkill(skillId: string, path: string) {
+  return invokeCommand<void>("plugin:extensions|export_skill", { skillId, path });
+}
+export function enableSkill(skillId: string) {
+  return invokeCommand<void>("plugin:extensions|enable_skill", { skillId });
+}
+export function disableSkill(skillId: string) {
+  return invokeCommand<void>("plugin:extensions|disable_skill", { skillId });
+}
+export function deleteSkill(skillId: string) {
+  return invokeCommand<ExtensionChange<null>>("plugin:extensions|delete_skill", { skillId });
+}

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import { nodeIcon } from "../node-icon";
+import { nodeIcon } from "../canvas/node-icon";
 import SpaceRelationEvidenceEditor from "./SpaceRelationEvidenceEditor.vue";
 
 interface SpaceRelationNeighbor {

@@ -3,9 +3,9 @@ import { defineStore } from "pinia";
 
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import { loadCreationLibrary, resetCreationLibrary, saveCreationLibrary } from "./integration-settings";
-import { createIntegrationState } from "./integration-state";
 import { defaultCreationLibrary, type CreationLibrary } from "./schema/creation-library";
 import type { GenerationPreset } from "./schema/models";
+import { useIntegrationSettingsState } from "./use-integration-settings-state";
 
 function admit(operation: () => Promise<void>): Promise<void> {
   if (isApplicationTransitioning()) return Promise.reject(new Error("Creation presets are transitioning"));
@@ -13,7 +13,7 @@ function admit(operation: () => Promise<void>): Promise<void> {
 }
 
 export const useCreationLibraryStore = defineStore("creation-library", () => {
-  const { value: library, ...state } = createIntegrationState<CreationLibrary>({
+  const { value: library, ...state } = useIntegrationSettingsState<CreationLibrary>({
     initial: defaultCreationLibrary,
     load: loadCreationLibrary,
     save: saveCreationLibrary,

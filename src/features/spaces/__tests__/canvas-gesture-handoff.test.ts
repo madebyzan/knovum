@@ -8,8 +8,9 @@ import { projectStructureScene } from "../canvas/document/structure-scene-projec
 import { CanvasDocumentModel } from "../canvas/konva/document/canvas-document-model";
 import { createCanvasGestureSession } from "../canvas/konva/interaction/canvas-gesture-session";
 import type { CanvasGestureUpdate } from "../canvas/konva/interaction/canvas-gesture-update";
-import { createCanvasScenePreviewIndex, useCanvasScenePreview } from "../canvas/konva/scene/scene-preview";
+import { createCanvasScenePreviewIndex } from "../canvas/konva/scene/scene-preview";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
+import { useCanvasScenePreview } from "../canvas/konva/scene/use-canvas-scene-preview";
 import { createSpaceNode } from "../canvas/node";
 import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
 import { createSpaceNotePayload } from "../editor/tiptap-content";

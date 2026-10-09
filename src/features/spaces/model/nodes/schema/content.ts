@@ -76,17 +76,17 @@ function tiptapNodeSchemaAt(depth: number): z.ZodType<unknown> {
   );
 }
 
-function isTiptapRecord(value: unknown): value is { content?: unknown } {
+function isTiptapObject(value: unknown): value is { content?: unknown } {
   return isPlainObject(value);
 }
 
 function countTiptapNodes(value: unknown): number {
-  if (!isTiptapRecord(value)) return 0;
+  if (!isTiptapObject(value)) return 0;
   let count = 0;
   const stack: unknown[] = [value];
   while (stack.length) {
     const node = stack.pop();
-    if (!isTiptapRecord(node)) continue;
+    if (!isTiptapObject(node)) continue;
     count += 1;
     if (count > MAX_TIPTAP_NODES) return count;
     if (Array.isArray(node.content)) stack.push(...node.content);

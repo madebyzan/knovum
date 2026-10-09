@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import { useNodeDraft } from "../use-node-draft";
+import { useNodeDraft } from "../inspector/use-node-draft";
 
 const props = defineProps<{ nodeId: string; summary: string; disabled?: boolean }>();
 const emit = defineEmits<{ save: [summary: string] }>();

@@ -56,6 +56,26 @@ it("keeps the editor closed until requested and distinguishes empty search resul
   expect(wrapper.find('[data-testid="skill-personal"]').exists()).toBe(true);
 });
 
+it("disables and re-enables the selected skill through explicit IPC intents", async () => {
+  let isEnabled = true;
+  mocks.invoke.mockImplementation(async (command) => {
+    if (command === "plugin:extensions|list_skills") return [{ ...skill, enabled: isEnabled }];
+    if (command === "plugin:extensions|disable_skill") isEnabled = false;
+    else if (command === "plugin:extensions|enable_skill") isEnabled = true;
+    else throw new Error(`Unexpected command: ${command}`);
+  });
+
+  await wrapper.get('[data-testid="toggle-skill-personal"]').trigger("click");
+  await flushPromises();
+  expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|disable_skill", { skillId: "personal" });
+  expect(wrapper.get('[data-testid="toggle-skill-personal"]').attributes("aria-checked")).toBe("false");
+
+  await wrapper.get('[data-testid="toggle-skill-personal"]').trigger("click");
+  await flushPromises();
+  expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|enable_skill", { skillId: "personal" });
+  expect(wrapper.get('[data-testid="toggle-skill-personal"]').attributes("aria-checked")).toBe("true");
+});
+
 it("preserves edits when discard is cancelled and closes only after confirming discard", async () => {
   await wrapper.get('[data-testid="edit-skill-personal"]').trigger("click");
   await flushPromises();

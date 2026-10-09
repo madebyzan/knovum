@@ -10,7 +10,7 @@ import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
 import { restoreRunningPreparation } from "./resource-preparation-observation";
 import { resourcePreparationTask, updateTaskProgress } from "./resource-progress";
-import { invalidateLocalResources } from "./resource-query";
+import { invalidateLocalResources } from "./use-resource-queries";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
 

@@ -73,13 +73,13 @@ pub async fn update_connector_definition(
 #[tauri::command]
 pub async fn delete_connector_definition(
     app: AppHandle,
-    id: String,
+    connector_id: String,
     revision: String,
 ) -> Result<ExtensionChange<()>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let definition = super::definitions::load(&pool, &id).await?;
+    let definition = super::definitions::load(&pool, &connector_id).await?;
     if definition.plugin_id.is_some() {
         return Err("plugin-connector-definition-owned-by-plugin".into());
     }
@@ -87,9 +87,9 @@ pub async fn delete_connector_definition(
         return Err("connector-definition-changed-refresh-before-saving".into());
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
-    super::definitions::delete_on(&mut tx, &id).await?;
+    super::definitions::delete_on(&mut tx, &connector_id).await?;
     tx.commit().await.map_err(|error| error.to_string())?;
-    super::super::mcp::sessions::revoke_connector(&app, &id).await;
+    super::super::mcp::sessions::revoke_connector(&app, &connector_id).await;
     Ok(ExtensionChange::committed(
         (),
         [super::cleanup::collect(&app).await],

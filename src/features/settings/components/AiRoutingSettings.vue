@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
-import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
+import { useExecutionCatalogQuery } from "../../../foundation/ai/use-execution-catalog-query";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";

@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   error: vi.fn<(message: string) => void>(),
 }));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => testStore() }));
-vi.mock("../../canvas/node-operation-gate", () => ({
+vi.mock("../../canvas/use-node-operation-gate", () => ({
   useNodeOperationGate: () => ({ allows: () => allowed.value }),
 }));
 vi.mock("../../enrichment/use-node-enrichment-status", () => ({

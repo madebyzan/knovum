@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { truncateUtf16 } from "../../model/text";
-import SpaceThumbnailPreview from "../SpaceThumbnailPreview.vue";
+import SpaceThumbnailPreview from "../preview/SpaceThumbnailPreview.vue";
 
 const props = defineProps<{
   title: string;

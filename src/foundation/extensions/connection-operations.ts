@@ -4,40 +4,47 @@ import type { McpResourceContent } from "../../shared/contracts/generated/McpRes
 import type { McpResourceSelection } from "../../shared/contracts/generated/McpResourceSelection";
 import { invokeCommand } from "../ipc/invoke-command";
 
-export const readMcpResource = (
+export function readMcpResource(
   connection: McpConnection,
   catalogDigest: string,
   selection: McpResourceSelection,
-) =>
-  invokeCommand<McpResourceContent>("plugin:extensions|read_mcp_resource", {
-    id: connection.id,
+) {
+  return invokeCommand<McpResourceContent>("plugin:extensions|read_mcp_resource", {
+    connectionId: connection.id,
     revision: connection.revision,
     catalogDigest,
     selection,
   });
-export const getMcpPrompt = (
+}
+export function getMcpPrompt(
   connection: McpConnection,
   catalogDigest: string,
   name: string,
-  arguments_: Record<string, string>,
-) =>
-  invokeCommand<unknown>("plugin:extensions|get_mcp_prompt", {
-    id: connection.id,
+  promptArguments: Record<string, string>,
+) {
+  return invokeCommand<unknown>("plugin:extensions|get_mcp_prompt", {
+    connectionId: connection.id,
     revision: connection.revision,
     catalogDigest,
     name,
-    arguments: arguments_,
+    arguments: promptArguments,
   });
-export const listMcpConnections = () =>
-  invokeCommand<McpConnection[]>("plugin:extensions|list_mcp_connections");
-export const createMcpConnection = (connectorId: string, name: string) =>
-  invokeCommand<McpConnection>("plugin:extensions|create_mcp_connection", { connectorId, name });
-export const updateMcpConnection = (connection: McpConnection) =>
-  invokeCommand<McpConnection>("plugin:extensions|update_mcp_connection", { connection });
-export const checkMcpConnection = (connectionId: string) =>
-  invokeCommand<McpConnectionCatalog>("plugin:extensions|check_mcp_connection", { id: connectionId });
-export const deleteMcpConnection = (connection: McpConnection) =>
-  invokeCommand<void>("plugin:extensions|delete_mcp_connection", {
-    id: connection.id,
+}
+export function listMcpConnections() {
+  return invokeCommand<McpConnection[]>("plugin:extensions|list_mcp_connections");
+}
+export function createMcpConnection(connectorId: string, name: string) {
+  return invokeCommand<McpConnection>("plugin:extensions|create_mcp_connection", { connectorId, name });
+}
+export function updateMcpConnection(connection: McpConnection) {
+  return invokeCommand<McpConnection>("plugin:extensions|update_mcp_connection", { connection });
+}
+export function checkMcpConnection(connectionId: string) {
+  return invokeCommand<McpConnectionCatalog>("plugin:extensions|check_mcp_connection", { connectionId });
+}
+export function deleteMcpConnection(connection: McpConnection) {
+  return invokeCommand<void>("plugin:extensions|delete_mcp_connection", {
+    connectionId: connection.id,
     revision: connection.revision,
   });
+}

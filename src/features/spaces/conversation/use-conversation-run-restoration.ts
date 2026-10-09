@@ -1,12 +1,10 @@
-import { type Ref, type ShallowRef } from "vue";
+import { onScopeDispose, type Ref, type ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { getConversationTaskError, listActiveConversationRuns } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
-
-const stopNoObservation = () => {};
 
 interface ConversationRunRestorationState {
   spaceId: Ref<string | undefined>;
@@ -26,12 +24,42 @@ interface ConversationRunRestorationState {
 
 export function useConversationRunRestoration(state: ConversationRunRestorationState) {
   let observingRunId = "";
-  let stopObserving = stopNoObservation;
+  let stopObserving: (() => void) | undefined;
+  let revision = 0;
+  let disposed = false;
+
+  function detach() {
+    revision += 1;
+    observingRunId = "";
+    stopObserving?.();
+    stopObserving = undefined;
+    state.onDetach();
+  }
+  onScopeDispose(() => {
+    disposed = true;
+    detach();
+  });
+
+  function isCurrent(currentRevision: number) {
+    return !disposed && revision === currentRevision;
+  }
+
+  function isCurrentRun(currentRevision: number, runId: string) {
+    return (
+      isCurrent(currentRevision) &&
+      state.activeRun.value?.id === runId &&
+      (!state.activeRunId.value || state.activeRunId.value === runId)
+    );
+  }
+
+  function canRestore(spaceId: string) {
+    return state.spaceId.value === spaceId && !state.loading.value && !state.activeRunId.value;
+  }
+
   async function restoreForSpace(spaceId: string) {
+    if (disposed) return;
     if (state.activeSpaceId.value && state.activeSpaceId.value !== spaceId) {
-      state.onDetach();
-      stopObserving();
-      observingRunId = "";
+      detach();
       state.activeRun.value = undefined;
       state.activeRunId.value = undefined;
       state.activeConversationId.value = "";
@@ -40,9 +68,11 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
       state.loading.value = false;
       state.error.value = undefined;
     }
-    if (state.loading.value || state.activeRunId.value) return;
+    if (!canRestore(spaceId)) return;
+    const currentRevision = ++revision;
     const [active] = await listActiveConversationRuns(spaceId);
-    if (!active || state.spaceId.value !== spaceId || state.loading.value || state.activeRunId.value) return;
+    if (!isCurrent(currentRevision)) return;
+    if (!active || !canRestore(spaceId)) return;
     state.activeRunId.value = active.run.id;
     state.activeConversationId.value = active.conversationId;
     state.activeSpaceId.value = spaceId;
@@ -51,7 +81,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
     observingRunId = active.run.id;
 
     const onRun = (run: RunObservation) => {
-      if (observingRunId !== run.id) return;
+      if (!isCurrent(currentRevision) || observingRunId !== run.id) return;
       state.activeRun.value = run;
       state.taskState.value = run.state;
       state.activityRevision.value += 1;
@@ -59,26 +89,29 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
         state.activeRunId.value = undefined;
         state.loading.value = false;
         observingRunId = "";
-        stopObserving();
+        stopObserving?.();
+        stopObserving = undefined;
         if (run.state === "failed" || run.state === "completed_with_errors") {
           void getConversationTaskError(run.id)
             .then((reason) => {
+              if (!isCurrentRun(currentRevision, run.id)) return;
               state.error.value = reason ?? `Conversation task ended as ${run.state}`;
               return undefined;
             })
             .catch((cause: unknown) => {
-              state.error.value = getErrorMessage(cause);
+              if (isCurrentRun(currentRevision, run.id)) state.error.value = getErrorMessage(cause);
             });
         }
         void state
           .refresh()
           .then(() => {
+            if (!isCurrentRun(currentRevision, run.id)) return;
             if (state.selectedConversationId.value === active.conversationId)
               return state.select(active.conversationId, false, active.branchId);
             return undefined;
           })
           .catch((cause: unknown) => {
-            state.error.value = getErrorMessage(cause);
+            if (isCurrentRun(currentRevision, run.id)) state.error.value = getErrorMessage(cause);
           });
       }
     };
@@ -92,18 +125,23 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
   }
 
   async function resume() {
-    if (!state.activeRunId.value || state.taskState.value !== "paused") return;
+    if (disposed) return;
+    const runId = state.activeRunId.value;
+    if (!runId || state.taskState.value !== "paused") return;
+    const currentRevision = revision;
     state.error.value = undefined;
     try {
-      await invokeCommand("plugin:spaces|resume_run", { runId: state.activeRunId.value });
+      await invokeCommand("plugin:spaces|resume_run", { runId });
     } catch (cause) {
-      state.error.value = getErrorMessage(cause);
+      if (isCurrentRun(currentRevision, runId)) state.error.value = getErrorMessage(cause);
     }
   }
 
   async function retryModel() {
+    if (disposed) return;
     const run = state.activeRun.value;
     if (!run || run.state !== "waiting") return;
+    const currentRevision = revision;
     state.error.value = undefined;
     try {
       await invokeCommand("plugin:spaces|retry_builtin_agent_model", {
@@ -111,7 +149,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
         expectedVersion: run.stateVersion,
       });
     } catch (cause) {
-      state.error.value = getErrorMessage(cause);
+      if (isCurrentRun(currentRevision, run.id)) state.error.value = getErrorMessage(cause);
     }
   }
 

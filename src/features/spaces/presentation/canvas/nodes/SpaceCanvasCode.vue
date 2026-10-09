@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import type { SpaceCodePayload } from "../../../model/nodes/node-payload";
-import SpaceHtmlPreview from "../../SpaceHtmlPreview.vue";
+import SpaceHtmlPreview from "../../preview/SpaceHtmlPreview.vue";
 import { projectPreviewItems } from "./canvas-preview-budget";
 
 const props = defineProps<{

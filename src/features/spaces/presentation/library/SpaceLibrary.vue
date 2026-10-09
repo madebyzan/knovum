@@ -12,7 +12,7 @@ import type { Space, SpaceLibraryScope } from "../../model/space";
 import { useSpaceStore } from "../../session/space-store";
 import { popupSpaceContextMenu, spaceCheckItem, spaceMenuItem } from "../../workspace/space-menu";
 import { useSpaceManagementMenu } from "../../workspace/use-space-management-menu";
-import SpaceLibraryCard from "./SpaceLibraryCard.vue";
+import SpaceLibrarySpace from "./SpaceLibrarySpace.vue";
 import { useLibraryViewport } from "./use-library-viewport";
 
 const store = useSpaceStore();
@@ -121,7 +121,7 @@ function showSpaceMenu(space: Space) {
                 : undefined,
           }"
         >
-          <SpaceLibraryCard
+          <SpaceLibrarySpace
             v-for="space in visibleSpaces.slice(
               row.index * viewport.columns.value,
               (row.index + 1) * viewport.columns.value,

@@ -2,7 +2,7 @@ import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getCanvasEditorSession } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";

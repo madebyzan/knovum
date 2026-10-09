@@ -13,7 +13,7 @@ import type { SpaceProvenanceTargetKind } from "../../knowledge/model/provenance
 import { attachProvenance, detachProvenance } from "../../knowledge/provenance-actions";
 import { useSpaceProvenanceQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
-import { nodeIcon } from "../node-icon";
+import { nodeIcon } from "../canvas/node-icon";
 import { knowledgeLocationLabel } from "./knowledge-location-label";
 
 const props = defineProps<{

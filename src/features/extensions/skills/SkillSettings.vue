@@ -3,7 +3,7 @@ import { Plus, FolderInput } from "@lucide/vue";
 import { computed, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { copySkill, setSkillEnabled } from "../../../foundation/extensions/skill-operations";
+import { copySkill, enableSkill, disableSkill } from "../../../foundation/extensions/skill-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
@@ -96,7 +96,7 @@ const skills = computed(() =>
           :skill="skill"
           :busy="busy"
           @edit="reading.mutate(skill.id)"
-          @toggle="mutate(() => setSkillEnabled(skill.id, !skill.enabled))"
+          @toggle="mutate(() => (skill.enabled ? disableSkill(skill.id) : enableSkill(skill.id)))"
           @copy="mutate(() => copySkill(skill.id))"
           @export="mutate(() => exportDirectory(skill.id))"
           @delete="remove(skill.id, skill.name)"

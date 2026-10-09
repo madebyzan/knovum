@@ -1,7 +1,7 @@
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/use-node-operation-gate";
 
 export function useCanvasOperationRunner() {
   const gate = useNodeOperationGate();

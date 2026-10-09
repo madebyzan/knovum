@@ -47,8 +47,8 @@ async fn prepare_inference_root(work_directory: &std::path::Path) -> Result<(), 
         })
         .clone();
     loop {
-        if let Some(result) = receiver.borrow_and_update().clone() {
-            return result;
+        if let Some(cleanup_outcome) = receiver.borrow_and_update().clone() {
+            return cleanup_outcome;
         }
         receiver
             .changed()

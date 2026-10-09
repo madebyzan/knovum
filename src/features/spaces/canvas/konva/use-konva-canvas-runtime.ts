@@ -14,7 +14,7 @@ import { useNodeContentActivation } from "./interaction/use-node-content-activat
 import { useNodeDragAutoPan } from "./interaction/use-node-drag-auto-pan";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
-import { useCanvasScenePreview } from "./scene/scene-preview";
+import { useCanvasScenePreview } from "./scene/use-canvas-scene-preview";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
 import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
 import { useCanvasSelection } from "./selection/use-canvas-selection";

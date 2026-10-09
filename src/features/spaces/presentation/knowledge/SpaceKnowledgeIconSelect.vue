@@ -55,7 +55,7 @@ const ICON_MAP = {
 
 type IconName = keyof typeof ICON_MAP;
 
-const activeEntry = computed(() => {
+const selectedIcon = computed(() => {
   const name = Object.hasOwn(ICON_MAP, model.value) ? (model.value as IconName) : "Shapes";
   return ICON_MAP[name];
 });
@@ -71,8 +71,8 @@ const activeEntry = computed(() => {
       ]"
     >
       <div class="flex min-w-0 flex-1 items-center gap-2 text-left">
-        <component :is="activeEntry.icon" class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
-        <span class="truncate">{{ t(activeEntry.labelKey) }}</span>
+        <component :is="selectedIcon.icon" class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
+        <span class="truncate">{{ t(selectedIcon.labelKey) }}</span>
       </div>
       <ChevronDown class="size-3 shrink-0 text-fg-tertiary" />
     </SelectTrigger>

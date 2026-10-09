@@ -8,7 +8,7 @@ import type { McpConnection } from "../../../../shared/contracts/generated/McpCo
 import type { McpResourceSelection } from "../../../../shared/contracts/generated/McpResourceSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { importMcpResource } from "../../assets/mcp-resource-import";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useSpaceStore } from "../../session/space-store";
 const props = defineProps<{
   connection: McpConnection;

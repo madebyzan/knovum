@@ -14,13 +14,10 @@ pub async fn inspect_plugin_source(
     app: AppHandle,
     source: PluginSource,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<PluginInspection> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let (files, revision) = operation
         .read(sources::read(&source, operation.cancellation()))
         .await?;
@@ -34,13 +31,10 @@ pub async fn install_plugin(
     expected_digest: String,
     publication: Option<PluginPublication>,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<super::super::contracts::ExtensionChange<PluginInstallation>> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let (files, revision) = operation
         .read(sources::read(&source, operation.cancellation()))
         .await?;
@@ -72,17 +66,14 @@ pub async fn install_plugin(
 #[tauri::command]
 pub async fn update_plugin(
     app: AppHandle,
-    id: String,
+    plugin_id: String,
     expected_digest: String,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<super::super::contracts::ExtensionChange<PluginInstallation>> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
-    let old = super::load(&database::pool(&app).await?, &id).await?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
+    let old = super::load(&database::pool(&app).await?, &plugin_id).await?;
     if old.builtin {
         return Err("builtin-plugin-updated-with-application".into());
     }
@@ -99,7 +90,7 @@ pub async fn update_plugin(
     }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
-    let current = super::load(&database::pool(&app).await?, &id).await?;
+    let current = super::load(&database::pool(&app).await?, &plugin_id).await?;
     if current.revision.digest != old.revision.digest {
         return Err("plugin-updated-concurrently-review-again".into());
     }
@@ -107,7 +98,16 @@ pub async fn update_plugin(
         super::marketplaces::require_publication(&app, publication, &source).await?;
     }
     operation.commit()?;
-    Ok(installation::commit(&app, &id, source, reviewed, files, false, old.publication).await?)
+    Ok(installation::commit(
+        &app,
+        &plugin_id,
+        source,
+        reviewed,
+        files,
+        false,
+        old.publication,
+    )
+    .await?)
 }
 
 #[tauri::command]
@@ -117,20 +117,29 @@ pub async fn list_plugin_installations(app: AppHandle) -> Result<Vec<PluginInsta
 }
 
 #[tauri::command]
-pub async fn set_plugin_enabled(app: AppHandle, id: String, enabled: bool) -> Result<(), String> {
+pub async fn enable_plugin(app: AppHandle, plugin_id: String) -> Result<(), String> {
+    set_enabled(app, plugin_id, true).await
+}
+
+#[tauri::command]
+pub async fn disable_plugin(app: AppHandle, plugin_id: String) -> Result<(), String> {
+    set_enabled(app, plugin_id, false).await
+}
+
+async fn set_enabled(app: AppHandle, plugin_id: String, is_enabled: bool) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let mut plugin = super::load(&pool, &id).await?;
-    plugin.enabled = enabled;
+    let mut plugin = super::load(&pool, &plugin_id).await?;
+    plugin.enabled = is_enabled;
     sqlx::query("UPDATE plugins SET document=$1 WHERE id=$2")
         .bind(sqlx::types::Json(&plugin))
-        .bind(&id)
+        .bind(&plugin_id)
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;
-    if !enabled {
-        super::super::mcp::sessions::revoke_plugin(&app, &id).await;
+    if !is_enabled {
+        super::super::mcp::sessions::revoke_plugin(&app, &plugin_id).await;
     }
     Ok(())
 }
@@ -138,37 +147,37 @@ pub async fn set_plugin_enabled(app: AppHandle, id: String, enabled: bool) -> Re
 #[tauri::command]
 pub async fn uninstall_plugin(
     app: AppHandle,
-    id: String,
+    plugin_id: String,
 ) -> Result<super::super::contracts::ExtensionChange<()>, String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    if super::load(&pool, &id).await?.builtin {
+    if super::load(&pool, &plugin_id).await?.builtin {
         return Err("builtin-plugin-can-be-disabled".into());
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM plugins WHERE id=$1")
-        .bind(&id)
+        .bind(&plugin_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM skills WHERE json_extract(document,'$.pluginId')=$1")
-        .bind(&id)
+        .bind(&plugin_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM connections WHERE json_extract(document,'$.connectorId') IN (SELECT id FROM connectors WHERE json_extract(document,'$.pluginId')=$1)")
-        .bind(&id)
+        .bind(&plugin_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM connectors WHERE json_extract(document,'$.pluginId')=$1")
-        .bind(&id)
+        .bind(&plugin_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     tx.commit().await.map_err(|error| error.to_string())?;
-    super::super::mcp::sessions::revoke_plugin(&app, &id).await;
+    super::super::mcp::sessions::revoke_plugin(&app, &plugin_id).await;
     Ok(super::super::contracts::ExtensionChange::committed(
         (),
         [
@@ -181,16 +190,13 @@ pub async fn uninstall_plugin(
 #[tauri::command]
 pub async fn inspect_plugin_update(
     app: AppHandle,
-    id: String,
+    plugin_id: String,
     job_id: String,
-    on_progress: Channel<PluginOperationStage>,
+    on_stage: Channel<PluginOperationStage>,
 ) -> AppResult<PluginUpdatePreview> {
-    let operation = PluginOperation::begin(
-        &job_id,
-        on_progress,
-        &app.state::<ExtensionState>().shutdown,
-    )?;
-    let plugin = super::load(&database::pool(&app).await?, &id).await?;
+    let operation =
+        PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
+    let plugin = super::load(&database::pool(&app).await?, &plugin_id).await?;
     if plugin.builtin {
         return Err("builtin-plugin-updated-with-application".into());
     }

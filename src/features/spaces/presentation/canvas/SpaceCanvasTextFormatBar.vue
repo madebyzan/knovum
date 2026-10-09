@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import SpaceCanvasColorPicker from "./SpaceCanvasColorPicker.vue";
-import SpaceCanvasTypographyPanel from "./SpaceCanvasTypographyPanel.vue";
+import SpaceCanvasTypographyControls from "./SpaceCanvasTypographyControls.vue";
 
 defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
@@ -14,7 +14,7 @@ const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
     v-bind="appearance ? { appearance } : {}"
     @update="emit('update', $event)"
   />
-  <SpaceCanvasTypographyPanel
+  <SpaceCanvasTypographyControls
     :kind="kind"
     :compact="compact"
     v-bind="appearance ? { appearance } : {}"

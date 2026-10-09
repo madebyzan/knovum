@@ -13,7 +13,7 @@ import { useRouter } from "vue-router";
 
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
-import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
+import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../../../shared/ui/UiButton.vue";

@@ -41,7 +41,7 @@ const connections = computed(() =>
         size="sm"
         variant="ghost"
         :aria-expanded="expanded"
-        :aria-controls="`connector-details-${connector.id}`"
+        :aria-controls="`connector-connections-${connector.id}`"
         :data-testid="`manage-connector-${connector.id}`"
         @click="expanded = !expanded"
         >{{ $t(expanded ? "common.collapse" : "extensions.connections.manage")
@@ -52,7 +52,7 @@ const connections = computed(() =>
     </header>
     <div
       v-if="expanded"
-      :id="`connector-details-${connector.id}`"
+      :id="`connector-connections-${connector.id}`"
       class="mt-4 space-y-4 border-t border-stroke-divider pt-4"
     >
       <div v-if="!connector.pluginId" class="flex flex-wrap gap-2">

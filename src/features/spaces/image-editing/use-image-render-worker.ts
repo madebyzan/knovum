@@ -7,7 +7,7 @@ interface RenderJob {
   owner: object;
   priority: boolean;
   prepare: () => Promise<ImageRenderRequest>;
-  resolve: (result: ImageBitmap | undefined) => void;
+  resolve: (bitmap: ImageBitmap | undefined) => void;
   reject: (error: unknown) => void;
   cancelled: boolean;
 }

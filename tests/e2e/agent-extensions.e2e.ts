@@ -110,8 +110,8 @@ describe("Agent extension installation lifecycle", () => {
       );
       installation = undefined;
     } finally {
-      if (installation) await extensionCommand("uninstall_plugin", { id: installation.id });
-      if (marketplace) await extensionCommand("remove_plugin_marketplace", { id: marketplace.id });
+      if (installation) await extensionCommand("uninstall_plugin", { pluginId: installation.id });
+      if (marketplace) await extensionCommand("remove_plugin_marketplace", { marketplaceId: marketplace.id });
       await rm(root, { recursive: true, force: true });
     }
   });
