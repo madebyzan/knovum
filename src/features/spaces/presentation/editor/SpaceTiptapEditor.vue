@@ -20,9 +20,22 @@ import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
 const { t } = useI18n();
 const store = useSpaceStore();
 const dock = useContextDock();
-const state = useSpaceTiptapEditor();
-const { activeHeadingId, characterCount, close, editorLabel, editorNode, editor, headings } = state;
-const { persist, revealHeading, saveStatus, scrollRoot, syncActiveHeading, title, wordCount } = state;
+const {
+  activeHeadingId,
+  characterCount,
+  close,
+  editorLabel,
+  editorNode,
+  editor,
+  headings,
+  persist,
+  revealHeading,
+  saveStatus,
+  scrollRoot,
+  syncActiveHeading,
+  title,
+  wordCount,
+} = useSpaceTiptapEditor();
 const writing = useSpaceTiptapWritingTools(editor);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () =>
   t("spaces.richtext.image.uploadFailed"),

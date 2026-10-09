@@ -25,8 +25,7 @@ export function useCanvasSelectionActions() {
   const store = useSpaceStore();
   const dock = useContextDock();
   const editorSession = getCanvasEditorSession();
-  const nodeOperations = useCanvasOperationRunner();
-  const runNodeOperation = nodeOperations.run;
+  const { allows, run: runNodeOperation } = useCanvasOperationRunner();
   const runSelectionMutation = (operation: () => Promise<unknown>) =>
     runNodeOperation("structure", operation);
   const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
@@ -62,14 +61,14 @@ export function useCanvasSelectionActions() {
   });
 
   function setAppearance(patch: Partial<CanvasNodeAppearance>) {
-    if (!nodeOperations.allows("edit")) return;
+    if (!allows("edit")) return;
     const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
     if (!nodeId) return;
     editorSession.activeEditor.value?.setNodeAppearance(nodeId, patch);
   }
 
   function editVideo() {
-    if (!nodeOperations.allows("edit")) return;
+    if (!allows("edit")) return;
     const node = selectedVideoNode.value;
     if (node) store.openVideoEditor(node.id);
   }
@@ -132,7 +131,7 @@ export function useCanvasSelectionActions() {
   }
 
   function moveLayer(mode: CanvasLayerMove) {
-    if (!nodeOperations.allows("structure")) return;
+    if (!allows("structure")) return;
     editorSession.activeEditor.value?.moveSelectionLayer(mode);
   }
 

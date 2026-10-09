@@ -26,7 +26,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const extensionSession = useConversationExtensions(spaceId, selectedConversationId);
   const prompt = shallowRef("");
   const target = shallowRef<TaskTargetRef>();
-  const restorationError = shallowRef<string>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
   const selectedConversation = computed(() =>
@@ -38,19 +37,21 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedConversation,
     messages,
   });
-  const draftPersistence = useConversationDraftPersistence({
+  const {
+    session: draft,
+    error: draftError,
+    reacquireFileNames,
+  } = useConversationDraftPersistence({
     spaceId,
     conversationId: selectedConversationId,
     prompt,
     attachments: attachmentSession.attachments,
     extensions: extensionSession.extensionSelection,
   });
-  const { session: draftSession, error: draftError, reacquireFileNames } = draftPersistence;
-  const hasUnresolvedFileReferences = computed(() => reacquireFileNames.value.length > 0);
   const chooseFiles = createConversationFilePicker({
     spaceId,
     conversationId: selectedConversationId,
-    ownerEpoch: draftSession.ownerEpoch,
+    ownerEpoch: draft.ownerEpoch,
     attachments: attachmentSession.attachments,
     reacquireFileNames,
     choose: attachmentSession.chooseFiles,
@@ -64,8 +65,8 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     selectedSnapshot,
     messages,
     hasOlder: pages.hasOlder,
-    rememberDraft: () => draftSession.remember(),
-    restoreDraft: draftSession.restore,
+    rememberDraft: draft.remember,
+    restoreDraft: draft.restore,
     clearBranches: () => {
       branchSession.branches.value = [];
     },
@@ -89,27 +90,24 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     target,
     attachments: attachmentSession.attachments,
     extensions: extensionSession.extensionSelection,
-    hasUnresolvedFileReferences,
+    hasUnresolvedFileReferences: computed(() => reacquireFileNames.value.length > 0),
     visibleAttachments: attachmentSession.visibleAttachments,
     messages,
     refresh: refreshConversations,
     select: selectConversation,
-    moveDraft: draftSession.move,
-    clearDraft: draftSession.clearSubmitted,
-    restoreDraft: draftSession.restoreSubmitted,
+    moveDraft: draft.move,
+    clearDraft: draft.clearSubmitted,
+    restoreDraft: draft.restoreSubmitted,
   });
-  const { activeRunId, activityRevision } = task;
-  const activitySession = useConversationActivities(selectedConversationId, activeRunId, activityRevision);
-  useConversationSpaceRestoration({
+  const { error: restorationError } = useConversationSpaceRestoration({
     spaceId,
-    error: restorationError,
     reset: () => {
       selectedConversationId.value = "";
       selectedSnapshot.value = undefined;
       messages.value = [];
       branchSession.branches.value = [];
     },
-    restoreDraft: (requestedSpace) => draftSession.restore("", requestedSpace),
+    restoreDraft: (requestedSpace) => draft.restore("", requestedSpace),
     refresh: refreshConversations,
     restoreTask: task.restoreForSpace,
   });
@@ -140,17 +138,17 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     conversations,
     messages,
     branches: branchSession.branches,
-    ...activitySession,
+    ...useConversationActivities(selectedConversationId, task.activeRunId, task.activityRevision),
     selectedConversationId,
     selectedConversation,
     prompt,
     draftError,
     restorationError,
-    restoringDraft: draftSession.restoring,
+    restoringDraft: draft.restoring,
     reacquireFileNames,
     target,
-    activityRevision,
-    activeRunId,
+    activityRevision: task.activityRevision,
+    activeRunId: task.activeRunId,
     activeConversationId: task.activeConversationId,
     visibleTaskState: task.visibleTaskState,
     visibleWaitReason: task.visibleWaitReason,
@@ -162,7 +160,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     visibleStreamedText: task.visibleStreamedText,
     ...attachmentSession,
     chooseFiles,
-    discardFileReference: draftSession.discardFileReference,
+    discardFileReference: draft.discardFileReference,
     send: task.send,
     cancel: task.cancel,
     pause: task.pause,

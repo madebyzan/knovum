@@ -18,18 +18,11 @@ export function useMediaPlayback(
   options: UseMediaPlaybackOptions = {},
 ) {
   const loaded = shallowRef(false);
-  const controls = useMediaControls(mediaElement);
+  const { playing, currentTime, duration } = useMediaControls(mediaElement);
 
-  const playing = computed({
-    get: () => controls.playing.value,
-    set: (v) => {
-      controls.playing.value = v;
-    },
-  });
-
-  const currentMs = computed(() => Math.round(controls.currentTime.value * 1000));
+  const currentMs = computed(() => Math.round(currentTime.value * 1000));
   const durationMs = computed(() =>
-    Number.isFinite(controls.duration.value) ? Math.round(controls.duration.value * 1000) : 0,
+    Number.isFinite(duration.value) ? Math.round(duration.value * 1000) : 0,
   );
 
   function emitPlayback() {
@@ -75,13 +68,13 @@ export function useMediaPlayback(
   }
 
   function seekFromControl(positionMs: number) {
-    controls.currentTime.value = positionMs / 1000;
+    currentTime.value = positionMs / 1000;
   }
 
   function unload() {
     playing.value = false;
     loaded.value = false;
-    controls.currentTime.value = 0;
+    currentTime.value = 0;
     options.onUnload?.();
   }
 

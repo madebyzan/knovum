@@ -228,6 +228,19 @@ are state owners rather than jobs and do not use that primitive.
 - A feature-owned Rust implementation owns long work and projects progress through Tauri Channels
   and the shared Task Center bridge.
 
+Composable APIs expose their owned state as refs and computed refs, with explicit operations.
+Consumers directly destructure plain composable returns or consistently use a coherent aggregate
+object, including when passing it as an input contract; do not retain parallel member aliases. Pinia and reactive objects require `storeToRefs`
+or `toRefs` when destructuring state. Forward existing refs directly rather than wrapping them in
+identity computed getters. Writable model refs are explicit input/output contracts, not copies of
+a second state.
+
+Use callbacks for reactive input getters, injected operations or policies, and real event or lifecycle
+contracts. Operation results return through their promises; presentation owns the resulting visual
+changes. Do not inject callbacks or writable error refs merely to mirror composable state into a
+caller, and do not replace that coupling with watcher-based state copies. The operation owner exposes
+its error; a composition owner derives combined errors when several operations feed one view.
+
 Do not mirror one state across stores without an explicit synchronization design. Presentation emits
 intents; the owning capability validates, commits, and projects results.
 

@@ -17,7 +17,7 @@ const scopes: ReturnType<typeof effectScope>[] = [];
 function setup() {
   const scope = effectScope();
   scopes.push(scope);
-  return scope.run(() => useVoiceCandidateForm(vi.fn()))!;
+  return scope.run(() => useVoiceCandidateForm())!;
 }
 afterEach(() => {
   scopes.splice(0).forEach((scope) => scope.stop());

@@ -20,7 +20,7 @@ const { t } = useI18n();
 const editingTarget = shallowRef<string>();
 const creationKind = shallowRef<CreationKind>("preset");
 const draftDirty = shallowRef(false);
-const library = useSpeechVoices();
+const { creating, errors, addPresetAsync } = useSpeechVoices();
 let admittedPreset: Promise<boolean> | undefined;
 const creationOptions = computed(() => [
   { value: "preset" as const, label: t("spaces.speech.library.presets") },
@@ -72,7 +72,7 @@ function createPreset(input: CreatePresetVoiceRequest) {
 
 async function persistPreset(input: CreatePresetVoiceRequest) {
   try {
-    await library.addPresetAsync(input);
+    await addPresetAsync(input);
     finalizeEditing();
     return true;
   } catch {
@@ -103,7 +103,7 @@ onScopeDispose(unregisterLeaveParticipant);
           </h2>
           <p class="mt-1 text-caption text-fg-secondary">{{ t("spaces.speech.library.manage") }}</p>
         </div>
-        <UiButton variant="secondary" :disabled="library.creating.value" @click="toggleCreation">
+        <UiButton variant="secondary" :disabled="creating" @click="toggleCreation">
           <Plus class="size-4" />{{ t("spaces.speech.voice.add") }}
         </UiButton>
       </header>
@@ -131,12 +131,14 @@ onScopeDispose(unregisterLeaveParticipant);
                 <X class="size-3.5" />
               </UiIconButton>
             </div>
-            <p v-if="library.error.value" class="text-caption text-fg-danger" role="alert">
-              {{ library.error.value }}
-            </p>
+            <div v-if="errors.length" class="space-y-1" role="alert">
+              <p v-for="(message, index) in errors" :key="index" class="text-caption text-fg-danger">
+                {{ message }}
+              </p>
+            </div>
             <VoiceProfileForm
               v-if="creationKind === 'preset'"
-              :disabled="library.creating.value"
+              :disabled="creating"
               @create="createPreset"
               @dirty="draftDirty = $event"
             />

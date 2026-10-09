@@ -14,10 +14,20 @@ const ipc = vi.hoisted(() => ({
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));
 vi.mock("../ipc", () => ipc);
 vi.mock("../use-speech-voices", () => ({
-  useSpeechVoices: () => ({ load: async () => [], replace: vi.fn<() => void>() }),
+  useSpeechVoices: () => ({
+    voices: shallowRef([]),
+    loading: shallowRef(false),
+    creating: shallowRef(false),
+    errors: shallowRef([]),
+    addPreset: vi.fn<() => void>(),
+  }),
 }));
 vi.mock("../use-speech-generation", () => ({
-  useSpeechGeneration: () => ({ reset: vi.fn<() => void>(), clearPreview: vi.fn<() => void>() }),
+  useSpeechGeneration: () => ({
+    errors: shallowRef([]),
+    reset: vi.fn<() => void>(),
+    clearPreview: vi.fn<() => void>(),
+  }),
 }));
 afterEach(() => vi.clearAllMocks());
 
@@ -94,7 +104,7 @@ it.each([true, false])("shares an admitted revision write with the leave barrier
   expect(settled).toHaveBeenCalledOnce();
   expect(workspace.savingRevision.value).toBe(false);
   expect(workspace.selectedProject.value?.project.activeRevision).toBe(succeeded ? 2 : 1);
-  expect(workspace.error.value).toBe(succeeded ? undefined : "revision write failed");
+  expect(workspace.errors.value).toEqual(succeeded ? [] : ["revision write failed"]);
   scope.stop();
 });
 

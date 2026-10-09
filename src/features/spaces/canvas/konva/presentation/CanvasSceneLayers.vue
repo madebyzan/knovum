@@ -54,7 +54,6 @@ const emit = defineEmits<{
 }>();
 const transformingSelection = shallowRef(false);
 const interactionLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("interactionLayer");
-const projection = useCanvasSceneLayerProjection(props);
 const {
   connectorNode,
   connectorTargetNode,
@@ -62,7 +61,7 @@ const {
   selectedFrames,
   visibleContentNodes,
   visibleRelations,
-} = projection;
+} = useCanvasSceneLayerProjection(props);
 
 function beginSelectionTransform() {
   transformingSelection.value = true;

@@ -9,7 +9,6 @@ import { useSpaceStore } from "../session/space-store";
 export interface SpeechRunOwner {
   project: () => SpeechProjectSnapshot | undefined;
   reloadProject: (projectId: string) => Promise<void>;
-  setError: (message?: string) => void;
 }
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
@@ -17,6 +16,7 @@ const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed",
 export function useSpeechRunObservation(owner: SpeechRunOwner) {
   const store = useSpaceStore();
   const runState = shallowRef<RunObservation["state"]>();
+  const error = shallowRef<string>();
   let stopObservation: (() => unknown) | undefined;
   let observationEpoch = 0;
   function stopRunObservation() {
@@ -24,6 +24,7 @@ export function useSpeechRunObservation(owner: SpeechRunOwner) {
     stopObservation?.();
     stopObservation = undefined;
     runState.value = undefined;
+    error.value = undefined;
   }
 
   function attachRun(run: RunObservation, projectId: string, spaceId: string) {
@@ -39,10 +40,23 @@ export function useSpeechRunObservation(owner: SpeechRunOwner) {
         return;
       runState.value = next.state;
       if (TERMINAL_STATES.has(next.state)) {
-        void owner.reloadProject(projectId).catch((cause) => owner.setError(getErrorMessage(cause)));
-        void store.refreshActiveSpace().catch((cause) => owner.setError(getErrorMessage(cause)));
+        void owner.reloadProject(projectId).catch((cause) => {
+          reportObservationError(cause, epoch, projectId, spaceId);
+        });
+        void store.refreshActiveSpace().catch((cause) => {
+          reportObservationError(cause, epoch, projectId, spaceId);
+        });
       }
     });
+  }
+
+  function reportObservationError(cause: unknown, epoch: number, projectId: string, spaceId: string) {
+    if (
+      epoch === observationEpoch &&
+      store.activeSpaceId === spaceId &&
+      owner.project()?.project.id === projectId
+    )
+      error.value = getErrorMessage(cause);
   }
 
   function isCurrentObservation(epoch: number, runId: string, spaceId: string) {
@@ -66,7 +80,7 @@ export function useSpeechRunObservation(owner: SpeechRunOwner) {
         if (isCurrentObservation(epoch, runId, spaceId)) attachRun(run, projectId, spaceId);
       } catch (cause) {
         if (isCurrentObservation(epoch, runId, spaceId)) {
-          owner.setError(getErrorMessage(cause));
+          error.value = getErrorMessage(cause);
         }
       }
     },
@@ -74,5 +88,5 @@ export function useSpeechRunObservation(owner: SpeechRunOwner) {
   );
 
   onScopeDispose(stopRunObservation);
-  return { runState: readonly(runState), attachRun, reset: stopRunObservation };
+  return { runState: readonly(runState), error: readonly(error), attachRun, reset: stopRunObservation };
 }

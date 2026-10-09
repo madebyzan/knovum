@@ -51,7 +51,7 @@ function setup() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const Harness = defineComponent({
     setup() {
-      candidates = useVoiceCandidates(vi.fn());
+      candidates = useVoiceCandidates();
       return () => null;
     },
   });
@@ -84,7 +84,7 @@ it("settles normal cancellation without presenting a failed voice proposal", asy
   mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state: "cancelled" });
   expect(candidates.activeRunId.value).toBeUndefined();
   expect(candidates.busy.value).toBe(false);
-  expect(candidates.error.value).toBeUndefined();
+  expect(candidates.errors.value).toEqual([]);
   expect(mocks.getVoiceCandidate).not.toHaveBeenCalled();
 });
 
@@ -93,7 +93,7 @@ it.each(["failed", "completed_with_errors"] as const)("retains %s as a visible f
   await flushPromises();
   mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state });
   expect(candidates.busy.value).toBe(false);
-  expect(candidates.error.value).toBeTruthy();
+  expect(candidates.errors.value).not.toEqual([]);
 });
 
 it("keeps a cancellation failure attached to the active operation", async () => {
@@ -101,7 +101,7 @@ it("keeps a cancellation failure attached to the active operation", async () => 
   await flushPromises();
   mocks.cancelResourceRun.mockRejectedValue(new Error("Cancellation denied"));
   await candidates.cancel();
-  expect(candidates.error.value).toBe("Cancellation denied");
+  expect(candidates.errors.value).toContain("Cancellation denied");
   expect(candidates.activeRunId.value).toBe(running.id);
 });
 

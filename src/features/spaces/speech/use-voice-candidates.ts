@@ -20,10 +20,10 @@ import {
 import { voiceQueryKeys } from "./voice-query-keys";
 
 interface CandidateOperation {
-  execute: () => Promise<void>;
+  execute: () => Promise<void | VoiceLibraryRevision>;
 }
 
-export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => void) {
+export function useVoiceCandidates() {
   const client = useQueryClient();
   const candidatesQuery = useQuery({
     queryKey: voiceQueryKeys.candidates,
@@ -49,10 +49,13 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
   const busy = computed(() =>
     Boolean(activeRunId.value || submission.jobId.value || mutation.isPending.value),
   );
-  const error = computed(() => {
-    const cause = candidatesQuery.error.value ?? runQuery.error.value;
-    return localError.value ?? (cause ? getErrorMessage(cause) : undefined);
-  });
+  const errors = computed(() => [
+    ...new Set(
+      [localError.value, candidatesQuery.error.value, runQuery.error.value]
+        .filter((cause): cause is Error | string => Boolean(cause))
+        .map((cause) => (typeof cause === "string" ? cause : getErrorMessage(cause))),
+    ),
+  ]);
 
   function editCandidates(update: (current: VoiceCandidate[]) => VoiceCandidate[]) {
     client.setQueryData<VoiceCandidate[]>(voiceQueryKeys.candidates, (current) => update(current ?? []));
@@ -101,7 +104,8 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     if (busy.value) return;
     localError.value = undefined;
     void submission
-      .start(input, (run) => !disposed && observe(run))
+      .start(input)
+      .then((run) => !disposed && observe(run))
       .catch((cause: unknown) => {
         if (!disposed && decodeAppError(cause)?.code !== "cancelled")
           localError.value = getErrorMessage(cause);
@@ -115,16 +119,24 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     });
   }
 
-  function save(id: string, name: string, authorized: boolean) {
-    operate(async () => {
-      const voice = await selectVoiceCandidate(selected(id), name, authorized);
-      editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
-      await Promise.all([
-        client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
-        client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
-      ]);
-      created(voice);
-    });
+  async function save(id: string, name: string, authorized: boolean) {
+    if (busy.value) return;
+    localError.value = undefined;
+    try {
+      return await mutation.mutateAsync({
+        execute: async () => {
+          const voice = await selectVoiceCandidate(selected(id), name, authorized);
+          editCandidates((current) => current.filter(({ candidateId }) => candidateId !== id));
+          await Promise.all([
+            client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
+            client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
+          ]);
+          return voice;
+        },
+      });
+    } catch {
+      return undefined;
+    }
   }
 
   function discard(id: string) {
@@ -156,7 +168,7 @@ export function useVoiceCandidates(created: (voice: VoiceLibraryRevision) => voi
     activeRunId,
     pendingRequestId: submission.jobId,
     busy,
-    error,
+    errors,
     draft,
     save,
     cancel,

@@ -14,7 +14,11 @@ import { captureActionLabel, captureIssueLabels } from "./workflow-capture-label
 const store = useSpaceStore();
 const { t } = useI18n();
 // The preview is derived from live canvas state, so it must never be served from cache.
-const capturePreviewQuery = useQuery(
+const {
+  data: preview,
+  isFetching: loading,
+  error: previewError,
+} = useQuery(
   computed(() => {
     const spaceId = store.activeSpaceId ?? "";
     const selection = [...store.workflowCaptureSelection];
@@ -27,10 +31,8 @@ const capturePreviewQuery = useQuery(
     };
   }),
 );
-const preview = computed(() => capturePreviewQuery.data.value);
-const loading = computed(() => capturePreviewQuery.isFetching.value);
 const error = computed(() => {
-  const cause = capturePreviewQuery.error.value;
+  const cause = previewError.value;
   return cause ? getErrorMessage(cause) : "";
 });
 

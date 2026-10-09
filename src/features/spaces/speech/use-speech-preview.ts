@@ -1,8 +1,9 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { error as logError } from "@tauri-apps/plugin-log";
 import { readonly, shallowRef } from "vue";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SpeechAudioOutput } from "../contracts/generated/SpeechAudioOutput";
 import type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";
 import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPreviewAudioChunk";
@@ -28,18 +29,24 @@ function buildPreviewRequest(jobId: string, input: PreviewInput) {
   };
 }
 
-export function useSpeechPreview(setError: (message?: string) => void) {
+export function useSpeechPreview() {
   const preview = shallowRef<SpeechAudioOutput & { source: string }>();
   const progress = shallowRef<SpeechGenerationProgress>();
   const jobId = shallowRef<string>();
   const listening = shallowRef(false);
+  const error = shallowRef<string>();
+  let errorEpoch = 0;
   const audioQueue = new PreviewAudioQueue((playing) => {
     listening.value = playing;
   });
 
-  function discard(path: string, reportFailure = true) {
+  function discard(path: string, reportFailure = true, expectedEpoch = errorEpoch) {
     void discardSpeechPreview(path).catch((cause) => {
-      if (reportFailure) setError(getErrorMessage(cause));
+      if (reportFailure && expectedEpoch === errorEpoch && !error.value) {
+        error.value = getErrorMessage(cause);
+      } else {
+        void logError(`Speech preview cleanup failed: ${formatErrorDiagnostic(cause)}`);
+      }
     });
   }
 
@@ -52,9 +59,14 @@ export function useSpeechPreview(setError: (message?: string) => void) {
   }
 
   function reset() {
+    errorEpoch += 1;
     const active = jobId.value;
-    if (active) void cancelSpeechGeneration(active).catch(() => undefined);
+    if (active)
+      void cancelSpeechGeneration(active).catch((cause) => {
+        void logError(`Speech preview reset cancellation failed: ${formatErrorDiagnostic(cause)}`);
+      });
     jobId.value = undefined;
+    error.value = undefined;
     clearPreview(false);
   }
 
@@ -67,10 +79,15 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     try {
       audioQueue.enqueue(chunk);
     } catch (cause) {
+      const expectedEpoch = errorEpoch;
       jobId.value = undefined;
       audioQueue.stop(job);
-      void cancelSpeechGeneration(job).catch((cancelCause) => setError(getErrorMessage(cancelCause)));
-      setError(getErrorMessage(cause));
+      error.value = getErrorMessage(cause);
+      void cancelSpeechGeneration(job).catch((cancelCause) => {
+        if (expectedEpoch === errorEpoch && !error.value) error.value = getErrorMessage(cancelCause);
+        else
+          void logError(`Speech preview failure cancellation failed: ${formatErrorDiagnostic(cancelCause)}`);
+      });
     }
   }
 
@@ -80,12 +97,12 @@ export function useSpeechPreview(setError: (message?: string) => void) {
 
   function commitPreviewOutput(output: SpeechAudioOutput, expectedJobId: string, previousPath?: string) {
     if (jobId.value !== expectedJobId) {
-      discard(output.path);
+      discard(output.path, false);
       return;
     }
     preview.value = { ...output, source: convertFileSrc(output.path) };
     if (previousPath) discard(previousPath);
-    setError();
+    error.value = undefined;
   }
 
   async function previewSource(
@@ -95,10 +112,12 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     deliveryInstruction = "",
   ) {
     if (jobId.value) return;
+    errorEpoch += 1;
     const nextJobId = crypto.randomUUID();
     const previousPath = preview.value?.path;
     jobId.value = nextJobId;
     progress.value = undefined;
+    error.value = undefined;
     try {
       const started = await audioQueue.start(nextJobId);
       if (!started || jobId.value !== nextJobId) return;
@@ -118,14 +137,22 @@ export function useSpeechPreview(setError: (message?: string) => void) {
 
   function reportPreviewFailure(cause: unknown, expectedJobId: string) {
     if (jobId.value === expectedJobId && decodeAppError(cause)?.code !== "cancelled") {
-      setError(getErrorMessage(cause));
+      error.value = getErrorMessage(cause);
     }
   }
 
   async function cancel() {
     audioQueue.stop();
     const active = jobId.value;
-    if (active) await cancelSpeechGeneration(active).catch((cause) => reportPreviewFailure(cause, active));
+    const expectedEpoch = errorEpoch;
+    if (active)
+      await cancelSpeechGeneration(active).catch((cause) => {
+        if (jobId.value === active && expectedEpoch === errorEpoch && !error.value) {
+          error.value = getErrorMessage(cause);
+        } else {
+          void logError(`Speech preview cancellation failed: ${formatErrorDiagnostic(cause)}`);
+        }
+      });
   }
 
   function stopListening() {
@@ -137,6 +164,7 @@ export function useSpeechPreview(setError: (message?: string) => void) {
     progress: readonly(progress),
     jobId: readonly(jobId),
     listening: readonly(listening),
+    error: readonly(error),
     previewSource,
     previewSelection: (
       text: string,

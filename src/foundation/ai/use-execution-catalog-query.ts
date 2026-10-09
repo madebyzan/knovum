@@ -38,12 +38,8 @@ export function useExecutionCatalogQuery(options: { detectInstallations?: boolea
     isError: descriptors.isError,
     isPending: descriptors.isPending,
     isFetching: computed(() => descriptors.isFetching.value || installations.isFetching.value),
-    async refetchDescriptors() {
-      return descriptors.refetch();
-    },
-    async refreshInstallations() {
-      return installations.refetch();
-    },
+    refetchDescriptors: descriptors.refetch,
+    refreshInstallations: installations.refetch,
     async refetch() {
       const descriptorRefresh = await descriptors.refetch();
       return {

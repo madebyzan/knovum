@@ -18,7 +18,7 @@ import type { PluginSource } from "../../../shared/contracts/generated/PluginSou
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 
-export function usePluginManagement(onInspected: () => void, onInstalled: () => void) {
+export function usePluginManagement() {
   const { t } = useI18n();
   const query = useQuery(pluginQuery);
   const changes = useExtensionChanges();
@@ -42,32 +42,35 @@ export function usePluginManagement(onInspected: () => void, onInstalled: () => 
         ? await inspectPluginUpdate(previous.id)
         : { source, inspection: await inspectPluginSource(source) };
       preview.value = { ...inspected, ...(previous ? { previous } : {}), publication };
-      onInspected();
     },
   });
-  function inspect(
+  async function inspect(
     source: PluginSource,
     previous?: PluginInstallation,
     publication: PluginPublication | null = null,
   ) {
-    inspecting.mutate({ source, ...(previous ? { previous } : {}), publication });
+    return inspecting
+      .mutateAsync({ source, ...(previous ? { previous } : {}), publication })
+      .then(() => true)
+      .catch(() => false);
   }
   function inspectRelease(source: PluginSource, publication: PluginPublication) {
-    inspect(source, undefined, publication);
+    return inspect(source, undefined, publication);
   }
   async function commit() {
     const reviewed = preview.value;
-    if (!reviewed) return;
-    await changes
-      .mutateAsync(async () => {
-        const change = reviewed.previous
-          ? await updatePlugin(reviewed.previous.id, reviewed.inspection.digest)
-          : await installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication);
+    if (!reviewed) return false;
+    return changes
+      .mutateAsync(() =>
+        reviewed.previous
+          ? updatePlugin(reviewed.previous.id, reviewed.inspection.digest)
+          : installPlugin(reviewed.source, reviewed.inspection.digest, reviewed.publication),
+      )
+      .then(() => {
         preview.value = undefined;
-        onInstalled();
-        return change;
+        return true;
       })
-      .catch(() => {});
+      .catch(() => false);
   }
   function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
     void changes.mutateAsync(operation).catch(() => {});

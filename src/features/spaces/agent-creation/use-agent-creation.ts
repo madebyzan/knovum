@@ -19,7 +19,7 @@ export function useAgentCreation(open: Ref<boolean>) {
   const store = useSpaceStore();
   const tasks = useTaskStore();
   const aiStore = useAiSettingsStore();
-  const catalog = useAgentCreationCatalog();
+  const { agents, agentOptions, isError, refetch } = useAgentCreationCatalog();
   const artifactState = useAgentArtifacts(open);
   const selectedAgent = ref<ExternalAgentKind | "">("");
   const prompt = ref("");
@@ -27,7 +27,6 @@ export function useAgentCreation(open: Ref<boolean>) {
   const status = ref("");
   let abandonRequested = false;
 
-  const { agents, agentOptions } = catalog;
   const recoveryOptions = computed(() =>
     artifactState.recoveries.value.map((recovery, index) => ({
       value: recovery.sessionId,
@@ -56,7 +55,7 @@ export function useAgentCreation(open: Ref<boolean>) {
     }
     try {
       await aiStore.ensureLoaded();
-      if (catalog.isError.value) await catalog.refetch();
+      if (isError.value) await refetch();
       await restoreArtifacts();
       const selectionAvailable = agentOptions.value.some(
         ({ value: kind, disabled }) => kind === selectedAgent.value && !disabled,

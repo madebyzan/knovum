@@ -32,9 +32,7 @@ const {
   defaultNodes,
   select,
   retry,
-} = useFind(open, () => {
-  open.value = false;
-});
+} = useFind(open);
 </script>
 
 <template>

@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effectScope, ref } from "vue";
 
+import type { PersistedAudioSpaceAsset } from "../media/audio-recording";
 import { useSpaceAudioRecorderController } from "../media/use-audio-recorder-controller";
 
 const calls = vi.hoisted(() => ({
   cancel: vi.fn<() => Promise<void>>(),
-  finish: vi.fn<() => Promise<unknown>>(),
+  finish: vi.fn<() => Promise<PersistedAudioSpaceAsset>>(),
   stop: vi.fn<() => void>(),
   log: vi.fn<() => Promise<void>>(),
   settle: vi.fn<() => Promise<void>>(),
@@ -62,17 +63,19 @@ afterEach(() => {
 });
 
 function createController() {
+  const open = ref(true);
+  const spaceId = ref<string | undefined>("space");
+  const save = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   const failed = vi.fn<() => void>();
   const controller = scope.run(() =>
     useSpaceAudioRecorderController({
-      open: ref(true),
-      spaceId: ref("space"),
-      save: vi.fn<() => Promise<void>>(),
+      open,
+      spaceId,
+      save,
       failed,
-      close: vi.fn<() => void>(),
     }),
   )!;
-  return { controller, failed };
+  return { controller, failed, open, spaceId, save };
 }
 
 it("releases capture and the backend session when stopping fails", async () => {
@@ -148,4 +151,41 @@ it("releases media even when invalidation cannot stop capture or cancel its sess
   expect(calls.stop).toHaveBeenCalledOnce();
   expect(controller.isSaving.value).toBe(false);
   expect(controller.isRecording.value).toBe(false);
+});
+
+const asset: PersistedAudioSpaceAsset = {
+  name: "Recording",
+  path: "/recording.webm",
+  kind: "audio",
+  size: 100,
+  modifiedAt: 1,
+  sourceRevision: `sha256:${"a".repeat(64)}`,
+};
+
+it("closes its model only after the recording is saved", async () => {
+  calls.finish.mockResolvedValueOnce(asset);
+  const { controller, open, save } = createController();
+  await controller.start();
+  await controller.stop();
+  expect(save).toHaveBeenCalledWith(asset, "space");
+  expect(open.value).toBe(false);
+});
+
+it("does not close a new context when an earlier save finishes", async () => {
+  calls.finish.mockResolvedValueOnce(asset);
+  const { controller, open, spaceId, save } = createController();
+  let finishSave!: () => void;
+  save.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      finishSave = resolve;
+    }),
+  );
+  await controller.start();
+  const stopping = controller.stop();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(save).toHaveBeenCalledOnce();
+  spaceId.value = "other-space";
+  finishSave();
+  await stopping;
+  expect(open.value).toBe(true);
 });

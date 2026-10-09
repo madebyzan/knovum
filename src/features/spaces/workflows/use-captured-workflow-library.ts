@@ -34,8 +34,8 @@ export function useCapturedWorkflowLibrary(spaceId: MaybeRefOrGetter<string | nu
     queryClient.setQueryData<SavedCapturedWorkflow[]>(LIBRARY_KEY, (current) => update(current ?? []));
   }
 
-  function addRun(run: CapturedWorkflowRun) {
-    queryClient.setQueryData<CapturedWorkflowRun[]>(runsKey(toValue(spaceId)), (current) =>
+  function addRun(originSpaceId: string, run: CapturedWorkflowRun) {
+    queryClient.setQueryData<CapturedWorkflowRun[]>(runsKey(originSpaceId), (current) =>
       [run, ...(current ?? [])].slice(0, RUN_HISTORY_LIMIT),
     );
   }
