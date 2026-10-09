@@ -354,11 +354,11 @@ Every imported visual asset, and every plain document the system renderer could 
 
 Canvas zoom changes information density, not node geometry. The viewport resolves one shared detail profile:
 
-| Profile | Preview item budget | Meaning                                       |
-| ------- | ------------------- | --------------------------------------------- |
-| compact | 2                   | recognition and primary identity              |
-| summary | 4                   | recognition plus a short structured preview   |
-| full    | 10                  | the normal non-interactive reading projection |
+| Profile  | Preview item budget | Meaning                                       |
+| -------- | ------------------- | --------------------------------------------- |
+| compact  | 2                   | recognition and primary identity              |
+| standard | 4                   | recognition plus a short structured preview   |
+| full     | 10                  | the normal non-interactive reading projection |
 
 The item budget is semantic: Tiptap and Markdown count root blocks, subtitles count cues, code counts lines,
 archives count entries, and structured objects count fields. A preview also allows 1024 characters per item;

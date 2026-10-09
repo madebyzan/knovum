@@ -1,6 +1,6 @@
 export const CANVAS_PREVIEW_CHARACTERS_PER_ITEM = 1024;
 
-type CanvasPreviewLevel = "compact" | "summary" | "full";
+type CanvasPreviewLevel = "compact" | "standard" | "full";
 
 export interface CanvasPreviewPolicy {
   level: CanvasPreviewLevel;
@@ -14,14 +14,14 @@ export interface CanvasNodePresentationContext {
 
 const POLICIES: Readonly<Record<CanvasPreviewLevel, CanvasPreviewPolicy>> = {
   compact: { level: "compact", previewItemLimit: 2 },
-  summary: { level: "summary", previewItemLimit: 4 },
+  standard: { level: "standard", previewItemLimit: 4 },
   full: { level: "full", previewItemLimit: 10 },
 };
 
 export function canvasPreviewPolicy(zoomPercent: number, nodeCount: number): CanvasPreviewPolicy {
   const full = richPreviewZoomThreshold(nodeCount);
   if (zoomPercent >= full) return POLICIES.full;
-  if (zoomPercent >= Math.max(38, full - 28)) return POLICIES.summary;
+  if (zoomPercent >= Math.max(38, full - 28)) return POLICIES.standard;
   return POLICIES.compact;
 }
 
