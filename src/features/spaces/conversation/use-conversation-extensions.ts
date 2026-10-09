@@ -8,6 +8,7 @@ import type { AgentExtensionSelection } from "../../../shared/contracts/generate
 import { useConversationDraftStore } from "./conversation-draft-store";
 
 export function useConversationExtensions(spaceId: Ref<string | undefined>, conversationId: Ref<string>) {
+  const drafts = useConversationDraftStore();
   const availability = useQuery(extensionAvailabilityQuery);
   const selection = shallowRef<AgentExtensionSelection>({ skillIds: [], connections: [] });
   const key = computed(() => `${spaceId.value ?? ""}:${conversationId.value}`);
@@ -16,7 +17,7 @@ export function useConversationExtensions(spaceId: Ref<string | undefined>, conv
     [key, () => availability.data.value],
     ([selected, available]) => {
       if (!available || initialized === selected) return;
-      if (!useConversationDraftStore().read(spaceId.value ?? "", conversationId.value))
+      if (!drafts.read(spaceId.value ?? "", conversationId.value))
         selection.value = cloneDeep(available.defaultSelection);
       initialized = selected;
     },

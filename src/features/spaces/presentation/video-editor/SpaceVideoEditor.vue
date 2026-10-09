@@ -2,7 +2,6 @@
 import { computed, nextTick, shallowRef, watch } from "vue";
 
 import { useSpaceStore } from "../../session/space-store";
-import { renderVideoEdit } from "../../video-editing/render";
 import { useVideoEditProxy } from "../../video-editing/use-video-edit-proxy";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
 import SpaceVideoEditorState from "./SpaceVideoEditorState.vue";
@@ -56,12 +55,7 @@ const { previewPath, onMetadataError } = useVideoEditPreviewSource({
   metadataError,
 });
 const history = useVideoEditHistory(project);
-// oxfmt-ignore
-const actions = useVideoEditActions({
-  updateNodeContents: store.updateNodeContents, close: store.closeVideoEditor,
-  renderProject: (source, editProject) => renderVideoEdit(store, source, editProject),
-  node, data, project, video, history, selection, playback,
-});
+const actions = useVideoEditActions({ node, data, project, video, history, selection, playback });
 const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
   nodeId: computed(() => node.value?.id),
   data,

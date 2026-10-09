@@ -1,5 +1,6 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 import { computed, onScopeDispose, readonly, shallowRef, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -7,12 +8,8 @@ import type { ImportedAudiobookScript } from "./audiobook-script";
 import { readNodeAudiobookScript } from "./audiobook-script-import";
 import { cancelSpeechGeneration } from "./ipc";
 
-interface AudiobookScriptImportContext {
-  node: Readonly<Ref<SpaceCanvasNode>>;
-  role: () => string;
-}
-
-export function useAudiobookScriptImport(context: AudiobookScriptImportContext) {
+export function useAudiobookScriptImport(node: Readonly<Ref<SpaceCanvasNode>>) {
+  const { t } = useI18n();
   const error = shallowRef<string>();
   const jobId = shallowRef<string>();
   const script = shallowRef<ImportedAudiobookScript>();
@@ -49,7 +46,7 @@ export function useAudiobookScriptImport(context: AudiobookScriptImportContext) 
     error.value = undefined;
     script.value = undefined;
     try {
-      const imported = await readNodeAudiobookScript(context.node.value, context.role(), job);
+      const imported = await readNodeAudiobookScript(node.value, t("spaces.speech.project.defaultRole"), job);
       if (version !== epoch) return undefined;
       script.value = imported;
       return imported;
@@ -62,11 +59,7 @@ export function useAudiobookScriptImport(context: AudiobookScriptImportContext) 
   }
 
   watch(
-    [
-      () => context.node.value.id,
-      () => context.node.value.data.sourceRevision,
-      () => context.node.value.data.knowledgeRevision,
-    ],
+    [() => node.value.id, () => node.value.data.sourceRevision, () => node.value.data.knowledgeRevision],
     reset,
     { flush: "sync" },
   );

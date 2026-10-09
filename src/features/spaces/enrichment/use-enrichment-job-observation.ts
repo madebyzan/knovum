@@ -24,9 +24,9 @@ export interface SpaceEnrichmentObserverContext {
 }
 
 export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverContext) {
+  const tasks = useTaskStore();
   let disposed = false;
   const subscription = listen<EnrichmentJobUpdate>("space-enrichment-update", ({ payload }) => {
-    const tasks = useTaskStore();
     const current = tasks.tasks.find(
       (task) => task.id === payload.jobId && task.producer === ENRICHMENT_TASK_PRODUCER,
     );
@@ -44,7 +44,6 @@ export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverCont
       void refreshEnrichmentJobs().catch(reportSubscriptionFailure);
   });
   const failure = listen<string>("space-enrichment-error", ({ payload }) => {
-    const tasks = useTaskStore();
     tasks.start(
       i18n.global.t("spaces.processing.queue.title"),
       undefined,
@@ -65,17 +64,16 @@ export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverCont
     for (const registration of [subscription, failure])
       void registration.then((unlisten) => unlisten()).catch(reportSubscriptionFailure);
   });
-}
 
-function reportSubscriptionFailure(error: unknown) {
-  const tasks = useTaskStore();
-  tasks.start(
-    i18n.global.t("spaces.processing.queue.title"),
-    undefined,
-    undefined,
-    "space-enrichment-observation",
-  );
-  tasks.fail("space-enrichment-observation", getErrorMessage(error));
+  function reportSubscriptionFailure(error: unknown) {
+    tasks.start(
+      i18n.global.t("spaces.processing.queue.title"),
+      undefined,
+      undefined,
+      "space-enrichment-observation",
+    );
+    tasks.fail("space-enrichment-observation", getErrorMessage(error));
+  }
 }
 
 function projectMediaProgress(context: SpaceEnrichmentObserverContext, payload: EnrichmentJobUpdate) {
