@@ -88,7 +88,7 @@ async function beginAudioRecording() {
     :title="t('spaces.importExport.website.add')"
     :description="t('spaces.importExport.website.description')"
   >
-    <UiInput v-model="website" type="url" placeholder="example.com/article" @keydown.enter="addWebsite" />
+    <UiInput v-model="website" type="url" placeholder="example.com/article" @commit.prevent="addWebsite" />
     <template #footer>
       <UiButton variant="ghost" @click="websiteOpen = false">{{ t("common.cancel") }}</UiButton>
       <UiButton

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useMutation } from "@tanstack/vue-query";
-import { shallowRef, watch } from "vue";
+import { isEqual } from "es-toolkit";
+import { computed, onScopeDispose, shallowRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import {
@@ -11,6 +13,8 @@ import type { ConnectorDefinition } from "../../../shared/contracts/generated/Co
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import type { McpConnectionCatalog } from "../../../shared/contracts/generated/McpConnectionCatalog";
 import type { McpToolPermission } from "../../../shared/contracts/generated/McpToolPermission";
+import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import { useExtensionChanges } from "../use-extension-changes";
@@ -19,35 +23,73 @@ import McpCatalogBrowser from "./McpCatalogBrowser.vue";
 import McpToolSelection from "./McpToolSelection.vue";
 
 const props = defineProps<{ connection: McpConnection; connector: ConnectorDefinition }>();
+const { t } = useI18n();
 const changes = useExtensionChanges();
 const name = shallowRef("");
+const savedName = shallowRef("");
 const catalog = shallowRef<McpConnectionCatalog>();
 const permissions = shallowRef<McpToolPermission[]>([]);
+const savedPermissions = shallowRef<McpToolPermission[]>([]);
+const dirty = computed(
+  () => name.value !== savedName.value || !isEqual(permissions.value, savedPermissions.value),
+);
+let admittedSave: Promise<boolean> | undefined;
 const checking = useMutation({
   mutationFn: (connection: McpConnection) => checkMcpConnection(connection.id),
   onSuccess: (value, connection) => {
     if (connection.id !== props.connection.id || connection.revision !== props.connection.revision) return;
     catalog.value = value;
     permissions.value = props.connection.tools.map((permission) => ({ ...permission }));
+    savedPermissions.value = props.connection.tools.map((permission) => ({ ...permission }));
   },
 });
 watch(
   () => props.connection.revision,
   () => {
     name.value = props.connection.name;
+    savedName.value = props.connection.name;
     catalog.value = undefined;
     permissions.value = [];
+    savedPermissions.value = [];
     checking.reset();
   },
   { immediate: true },
 );
 function save(update: Partial<Pick<McpConnection, "name" | "tools">>) {
-  void changes
+  const admitted: Promise<boolean> = changes
     .mutateAsync(async () => {
       await updateMcpConnection({ ...props.connection, ...update });
+      if (update.name !== undefined) savedName.value = update.name;
+      if (update.tools !== undefined) savedPermissions.value = structuredClone(update.tools);
     })
-    .catch(() => {});
+    .then(
+      () => true,
+      () => false,
+    )
+    .finally(() => {
+      if (admittedSave === admitted) admittedSave = undefined;
+    });
+  admittedSave = admitted;
 }
+
+async function prepareLeave() {
+  if (admittedSave && !(await admittedSave)) return false;
+  if (!dirty.value) return true;
+  return confirmAction({
+    title: t("extensions.connectors.discard.title"),
+    description: t("extensions.connectors.discard.description"),
+    confirmLabel: t("common.discardChanges"),
+    danger: true,
+  });
+}
+const unregister = useSettingsLeaveContext().register({
+  prepare: prepareLeave,
+  finalize() {
+    name.value = savedName.value;
+    permissions.value = structuredClone(savedPermissions.value);
+  },
+});
+onScopeDispose(unregister);
 </script>
 
 <template>

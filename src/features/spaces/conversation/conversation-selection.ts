@@ -13,8 +13,8 @@ interface ConversationSelectionInput {
   selectedSnapshot: Ref<Conversation | undefined>;
   messages: Ref<ConversationMessage[]>;
   hasOlder: Ref<boolean>;
-  rememberDraft: () => void;
-  restoreDraft: (id: string) => void;
+  rememberDraft: () => Promise<void>;
+  restoreDraft: (id: string) => Promise<boolean>;
   clearBranches: () => void;
   loadBranches: (id: string) => Promise<void>;
 }
@@ -49,13 +49,13 @@ export function createConversationSelection(input: ConversationSelectionInput) {
   }
 
   async function selectConversation(id: string, skipRemember = false, acceptedBranchId?: string) {
-    if (!skipRemember) input.rememberDraft();
+    if (!skipRemember) await input.rememberDraft();
     const conversation =
       input.conversations.value.find((item) => item.id === id) ??
       (input.selectedId.value === id ? input.selectedSnapshot.value : undefined);
     input.selectedId.value = id;
     input.selectedSnapshot.value = conversation;
-    input.restoreDraft(id);
+    await input.restoreDraft(id);
     if (!id) {
       input.messages.value = [];
       input.clearBranches();

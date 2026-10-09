@@ -1,0 +1,68 @@
+use tauri::{AppHandle, Runtime};
+
+use crate::app_error::AppError;
+
+#[derive(Clone, Copy, serde::Deserialize, ts_rs::TS)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum EditingCommand {
+    Cut,
+    Copy,
+    Paste,
+}
+
+#[tauri::command]
+pub(crate) async fn perform_editing<R: Runtime>(
+    app: AppHandle<R>,
+    command: EditingCommand,
+) -> Result<bool, AppError> {
+    #[cfg(target_os = "macos")]
+    {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        app.run_on_main_thread(move || {
+            let _ = sender.send(perform_macos(command));
+        })
+        .map_err(|error| {
+            AppError::new(
+                "editing_dispatch_failed",
+                format!("Editing command could not reach the main thread: {error}"),
+            )
+        })?;
+        receiver.await.map_err(|_| {
+            AppError::new(
+                "editing_dispatch_cancelled",
+                "Editing command did not finish on the main thread",
+            )
+        })?
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app, command);
+        Err(AppError::new(
+            "editing_unavailable",
+            "Application-menu text editing is unavailable on this platform",
+        ))
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn perform_macos(command: EditingCommand) -> Result<bool, AppError> {
+    use objc2::{sel, MainThreadMarker};
+    use objc2_app_kit::NSApplication;
+
+    let marker = MainThreadMarker::new().ok_or_else(|| {
+        AppError::new(
+            "editing_main_thread_unavailable",
+            "Editing command is not running on the AppKit main thread",
+        )
+    })?;
+    let selector = match command {
+        EditingCommand::Cut => sel!(cut:),
+        EditingCommand::Copy => sel!(copy:),
+        EditingCommand::Paste => sel!(paste:),
+    };
+    let application = NSApplication::sharedApplication(marker);
+    // SAFETY: the selector is chosen only from AppKit's fixed Cut/Copy/Paste responder actions.
+    // Nil target and sender ask NSApplication to resolve the current first responder.
+    Ok(unsafe { application.sendAction_to_from(selector, None, None) })
+}

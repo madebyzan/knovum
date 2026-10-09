@@ -15,11 +15,12 @@ import type {
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SelectOption } from "../../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
+import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import PreferenceField from "../PreferenceField.vue";
 
 const { t } = useI18n();
 const preferences = usePreferencesStore();
-const { theme, density, textSize, locale } = storeToRefs(preferences);
+const { theme, density, textSize, locale, backgroundTaskNotifications } = storeToRefs(preferences);
 
 async function updatePreference(operation: () => Promise<void>) {
   try {
@@ -102,6 +103,20 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :label="t('settings.appearance.language.label')"
         :options="languages"
         @update:model-value="updatePreference(() => preferences.setLocale($event))"
+      />
+    </PreferenceField>
+  </UiSettingsSection>
+  <UiSettingsSection :title="t('settings.appearance.notifications.title')">
+    <PreferenceField
+      id="settings-background-task-notifications"
+      tabindex="-1"
+      :label="t('settings.appearance.notifications.backgroundTasks.label')"
+      :description="t('settings.appearance.notifications.backgroundTasks.description')"
+    >
+      <UiSwitch
+        :model-value="backgroundTaskNotifications"
+        :label="t('settings.appearance.notifications.backgroundTasks.label')"
+        @update:model-value="updatePreference(() => preferences.setBackgroundTaskNotifications($event))"
       />
     </PreferenceField>
   </UiSettingsSection>

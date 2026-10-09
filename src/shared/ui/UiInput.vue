@@ -5,7 +5,8 @@ import { type HTMLAttributes, useTemplateRef } from "vue";
 import { cn } from "./cn";
 import { INPUT_BASE_CLASSES } from "./ui-classes";
 
-const model = defineModel<string>({ default: "" });
+const model = defineModel<string>({ default: "", set: (value) => String(value) });
+const emit = defineEmits<{ cancel: [event: KeyboardEvent]; commit: [event: KeyboardEvent] }>();
 
 const props = withDefaults(
   defineProps<{
@@ -32,14 +33,19 @@ function focus() {
   inputRef.value?.focus();
 }
 
+function handleCommandKey(event: KeyboardEvent) {
+  if (event.isComposing) return;
+  if (event.key === "Enter") emit("commit", event);
+  else if (event.key === "Escape") emit("cancel", event);
+}
+
 defineExpose({ focus });
 </script>
 
 <template>
   <input
     ref="input"
-    :value="model"
-    @input="model = ($event.target as HTMLInputElement).value"
+    v-model="model"
     :id="fieldId"
     :type="type"
     :placeholder="placeholder"
@@ -54,5 +60,6 @@ defineExpose({ focus });
         props.class,
       )
     "
+    @keydown="handleCommandKey"
   />
 </template>

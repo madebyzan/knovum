@@ -15,6 +15,7 @@
   },
   "toggleRightSidebar": "显示或隐藏右侧栏",
   "toggleSidebar": "切换侧边栏",
+  "layoutSaveFailed": "无法保存工作台布局",
   "shortcuts": {
     "title": "快捷键",
     "search": "搜索快捷键",

@@ -18,6 +18,13 @@
     "label": "语言",
     "description": "选择界面语言或跟随系统。"
   },
+  "notifications": {
+    "title": "通知",
+    "backgroundTasks": {
+      "label": "后台任务通知",
+      "description": "知生知隐藏时，长时间运行的后台任务完成或失败后发送通知。"
+    }
+  },
   "options": {
     "followSystem": "跟随系统",
     "theme": {

@@ -54,6 +54,7 @@ function rename() {
   <KonvaGroup
     :config="{
       id: `canvas-section-chrome-${section.section.id}`,
+      structureNodeId: section.section.id,
       x: section.bounds.left,
       y: section.bounds.top,
       draggable: interactive && !section.locked,

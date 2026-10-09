@@ -20,6 +20,10 @@
   "plugin": "Provided by plugin",
   "custom": "Custom service",
   "search": "Search connectors…",
+  "discard": {
+    "title": "Discard connector changes?",
+    "description": "Unsaved changes to this connector will be lost."
+  },
   "delete": {
     "title": "Delete {name}?",
     "description": "This also deletes all connections to the service and its local account credentials."

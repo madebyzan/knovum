@@ -7,7 +7,9 @@
     "empty": "尚未保存生成预设。",
     "deleteConfirm": "删除此预设？",
     "name": "预设名称",
-    "edit": "编辑生成预设"
+    "edit": "编辑生成预设",
+    "discardTitle": "放弃预设更改？",
+    "discardDescription": "对此生成预设的未保存更改将会丢失。"
   },
   "parameters": "参数",
   "copyName": "{name} 副本",

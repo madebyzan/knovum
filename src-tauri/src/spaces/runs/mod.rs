@@ -4,6 +4,8 @@ mod attempt;
 mod budget;
 mod children;
 mod contracts;
+mod desktop_tasks;
+pub(crate) use desktop_tasks::snapshot as desktop_tasks;
 mod events;
 mod intervention;
 pub(crate) mod observation;

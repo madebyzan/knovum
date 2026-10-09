@@ -115,6 +115,7 @@ chrono = { version = "=0.4.45", default-features = false, features = ["clock", "
 schemars = "=1.2.2"
 ts-rs = { version = "=12.0.1", features = ["no-serde-warnings", "serde-compat", "serde-json-impl"] }
 jsonschema = { version = "=0.58.6", default-features = false }
+tauri-plugin-notification = "=2.5.1"
 
 # Quick Look: document thumbnails for imported files, and the system preview panel. The objc2
 # framework crates default to every class they bind, which would pull UIKit and AppKit image
@@ -176,6 +177,7 @@ windows = { version = "0.62.2", features = [
   "Win32_Foundation",
   "Win32_Graphics_Gdi",
   "Win32_Security",
+  "Win32_Storage_FileSystem",
   "Win32_System_Com",
   "Win32_System_JobObjects",
   "Win32_System_LibraryLoader",
@@ -192,6 +194,8 @@ windows = { version = "0.62.2", features = [
 core-graphics = "0.25.0"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = [
   "libc",
+  "NSApplication",
+  "NSResponder",
   "NSRunningApplication",
   "NSWorkspace",
 ] }

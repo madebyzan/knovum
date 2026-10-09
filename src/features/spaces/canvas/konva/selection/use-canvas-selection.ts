@@ -29,12 +29,13 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   });
 
   function selectNode(nodeId: string, event: PointerEvent) {
+    if (event.button !== 0) return;
     const structureNodeId = options.structureSelectionForNode(nodeId);
     if (structureNodeId) {
       selectStructureNode(structureNodeId, event);
       return;
     }
-    const additive = event.metaKey || event.ctrlKey || event.shiftKey;
+    const additive = isAdditiveSelection(event);
     if (!additive && nodeIds.value.has(nodeId)) return;
     const next = new Set(additive ? nodeIds.value : []);
     if (next.has(nodeId) && additive) next.delete(nodeId);
@@ -44,9 +45,9 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = new Set();
     notify();
   }
-
   function selectRelation(id: string, event: PointerEvent) {
-    const additive = event.metaKey || event.ctrlKey || event.shiftKey;
+    if (event.button !== 0) return;
+    const additive = isAdditiveSelection(event);
     const next = new Set(additive ? relationIds.value : []);
     if (next.has(id) && additive) next.delete(id);
     else next.add(id);
@@ -55,28 +56,40 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = next;
     notify();
   }
-
+  function selectNodeForContextMenu(nodeId: string) {
+    const structureNodeId = options.structureSelectionForNode(nodeId);
+    if (structureNodeId) {
+      selectStructureNodeForContextMenu(structureNodeId);
+      return;
+    }
+    if (nodeIds.value.has(nodeId)) return;
+    setNodeIds([nodeId]);
+  }
+  function selectRelationForContextMenu(id: string) {
+    if (relationIds.value.has(id)) return;
+    nodeIds.value = new Set();
+    structureNodeIds.value = new Set();
+    relationIds.value = new Set([id]);
+    notify();
+  }
   function setNodeIds(ids: readonly string[]) {
     nodeIds.value = new Set(ids);
     structureNodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
-
   function setStructureNodeIds(ids: readonly string[]) {
     structureNodeIds.value = new Set(ids);
     nodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
-
   function clear() {
     nodeIds.value = new Set();
     structureNodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
-
   function notify() {
     const snapshot = createCanvasSelectionSnapshot({
       layouts: options.layouts.value,
@@ -93,7 +106,8 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   }
 
   function selectStructureNode(structureNodeId: string, event: PointerEvent) {
-    const additive = event.metaKey || event.ctrlKey || event.shiftKey;
+    if (event.button !== 0) return;
+    const additive = isAdditiveSelection(event);
     const next = new Set(additive ? structureNodeIds.value : []);
     if (next.has(structureNodeId) && additive) next.delete(structureNodeId);
     else next.add(structureNodeId);
@@ -101,6 +115,11 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     if (!additive) nodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
+  }
+
+  function selectStructureNodeForContextMenu(structureNodeId: string) {
+    if (structureNodeIds.value.has(structureNodeId)) return;
+    setStructureNodeIds([structureNodeId]);
   }
 
   watch(options.layouts, (currentLayouts) => {
@@ -138,8 +157,11 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     nodeIds,
     relationIds,
     selectNode,
+    selectNodeForContextMenu,
     selectRelation,
+    selectRelationForContextMenu,
     selectStructureNode,
+    selectStructureNodeForContextMenu,
     setNodeIds,
     setStructureNodeIds,
     structureNodeIds,
@@ -154,4 +176,8 @@ function selectedStructureBounds(ids: ReadonlySet<string>, available: ReadonlyMa
   const right = Math.max(...frames.map(({ x, width }) => x + width));
   const bottom = Math.max(...frames.map(({ y, height }) => y + height));
   return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+function isAdditiveSelection(event: PointerEvent) {
+  return event.metaKey || event.ctrlKey || event.shiftKey;
 }

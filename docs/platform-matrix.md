@@ -19,7 +19,7 @@ Artifact construction and promotion belong to [packaging.md](packaging.md) and
 | Background lifecycle | Close hides to Dock/menu-bar status item                    | Close hides to system Tray                                       | Explicit Quit terminates through the Rust lifecycle                      |
 | Reopen               | Dock or status item focuses main                            | Tray focuses main                                                | Single-instance host owns focus and restore                              |
 | Application commands | Native Application Menu and `Command` shortcuts             | No classic menu bar; `Ctrl` shortcuts                            | One `AppCommand` registry and palette                                    |
-| Progress             | Dock progress                                               | Taskbar progress                                                 | Mirrors Task Center projection                                           |
+| Progress             | Rust-owned Dock progress                                    | Rust-owned Taskbar progress                                      | Rust producer state remains observable without the renderer              |
 | Dialogs              | Native macOS dialogs                                        | Native Windows dialogs                                           | Official Tauri dialog boundary                                           |
 | Clipboard images     | Native read, validated managed PNG                          | Native read, validated managed PNG                               | Rust-owned persistence; no broad WebView write scope                     |
 | File drop            | Finder paths                                                | Explorer paths                                                   | Session authorization followed by Rust validation                        |
@@ -67,19 +67,20 @@ authority by itself.
 CI compilation is a required source gate, not platform acceptance. A release candidate must be tested
 as the actual signed or signing-equivalent installed artifact on all three targets.
 
-| Area            | Required evidence on each target                                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Installation    | Clean non-developer install, launch, resource location, uninstall/upgrade path, and no dependency on checkout tools or `PATH`                                      |
-| Lifecycle       | Hidden bootstrap, ready/error reveal, close-to-background, reopen, explicit Quit, single instance, and saved window state                                          |
-| Native UI       | Correct caption/traffic lights, menu or Tray/status item, shortcuts, dialogs, notifications, system preview, and Dock/taskbar progress                             |
-| Permissions     | Microphone, Accessibility or Windows input restrictions, clipboard protection, selected-path scope, and clear denial recovery                                      |
-| Core media      | Bundled FFmpeg verification and representative decode/probe without external installation                                                                          |
-| Local resources | First-use download, progress, cancellation, restart recovery, offline reuse, integrity rejection, and safe retirement while leased                                 |
-| CPU inference   | Required baseline features complete within declared memory and timeout limits and publish valid output                                                             |
-| GPU inference   | Every advertised Metal, CUDA, or Vulkan path proves device admission, execution, cancellation, and output validity; unavailable hardware does not expose that path |
-| Durable work    | Pause/cancel/restart, lease expiry, stale-result fencing, atomic publication, cleanup, and no duplicate output                                                     |
-| Quality         | Representative ASR, alignment, diarization, generation, and media outputs receive human review where the feature claims quality                                    |
-| Release trust   | System signature, notarization or Windows trust, updater signature, architecture identity, licenses/notices, and rollback/promotion controls                       |
+| Area            | Required evidence on each target                                                                                                                                                                                      |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Installation    | Clean non-developer install, launch, resource location, uninstall/upgrade path, and no dependency on checkout tools or `PATH`                                                                                         |
+| Lifecycle       | Hidden bootstrap including entry/mount failure, native Retry/Quit, close/quit ACK loss, long save decisions, background hide, reopen, single instance, and saved window/panel state                                   |
+| Data recovery   | Native backup/restore dialogs, exclusive maintenance progress, active-work rejection, interrupted publication recovery, credential reauthorization and malformed/obsolete archive rejection                           |
+| Native UI       | Correct caption/traffic lights, focused Edit menu, native canvas context menu and keyboard invocation, IME input, modal command scope, dialogs, background notifications, preview, and progress after renderer reload |
+| Permissions     | Microphone, Accessibility or Windows input restrictions, clipboard protection, selected-path scope, and clear denial recovery                                                                                         |
+| Core media      | Bundled FFmpeg verification and representative decode/probe without external installation                                                                                                                             |
+| Local resources | First-use download, progress, cancellation, restart recovery, offline reuse, integrity rejection, and safe retirement while leased                                                                                    |
+| CPU inference   | Required baseline features complete within declared memory and timeout limits and publish valid output                                                                                                                |
+| GPU inference   | Every advertised Metal, CUDA, or Vulkan path proves device admission, execution, cancellation, and output validity; unavailable hardware does not expose that path                                                    |
+| Durable work    | Pause/cancel/restart, lease expiry, stale-result fencing, atomic publication, cleanup, and no duplicate output                                                                                                        |
+| Quality         | Representative ASR, alignment, diarization, generation, and media outputs receive human review where the feature claims quality                                                                                       |
+| Release trust   | System signature, notarization or Windows trust, updater signature, architecture identity, licenses/notices, and rollback/promotion controls                                                                          |
 
 Evidence is target- and release-candidate-specific. It must record the application artifact, runtime and
 model identities, device/backend, inputs, cancellation or recovery scenario, outputs, and reviewer.

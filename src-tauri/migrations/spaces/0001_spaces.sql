@@ -626,6 +626,19 @@ CREATE TABLE spaces_conversations (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
+CREATE TABLE spaces_conversation_drafts (
+  space_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL CHECK (length(conversation_id) <= 64),
+  prompt TEXT NOT NULL CHECK (length(prompt) <= 1000000),
+  attachments TEXT NOT NULL CHECK (json_valid(attachments) AND json_type(attachments) = 'array'),
+  extensions TEXT NOT NULL CHECK (json_valid(extensions) AND json_type(extensions) = 'object'),
+  reacquire_file_names TEXT NOT NULL
+    CHECK (json_valid(reacquire_file_names) AND json_type(reacquire_file_names) = 'array'),
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (space_id, conversation_id),
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
 CREATE TABLE spaces_conversation_messages (
   id TEXT PRIMARY KEY NOT NULL,
   conversation_id TEXT NOT NULL,

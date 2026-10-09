@@ -4,6 +4,7 @@
   "description": "Main-window access to the Rust AI runtime and its persistent workbench state.",
   "windows": ["main"],
   "permissions": [
+    "ai:allow-await-ai-runtime",
     "ai:allow-cancel-job",
     "ai:allow-detect-external-agent-installations",
     "ai:allow-list-external-agent-descriptors",

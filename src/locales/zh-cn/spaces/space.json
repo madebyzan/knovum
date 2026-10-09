@@ -12,6 +12,7 @@
     "close": "关闭标签页",
     "closeOthers": "关闭其他标签页",
     "closeToRight": "关闭右侧标签页",
+    "actionFailed": "工作区标签页操作失败",
     "reopen": "重新打开关闭的标签页",
     "switchTo": "切换到标签页 {number}"
   },

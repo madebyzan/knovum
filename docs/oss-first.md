@@ -66,6 +66,12 @@ Exact version inventories belong to lockfiles and manifests. Dependency lifecycl
 - Tauri 2 and its official plugins own supported desktop integrations; native framework bindings
   are used only where Tauri has no suitable API. Vue 3, Reka UI, Pinia, TanStack Vue Query, VueUse,
   Zod and the Oxc toolchain retain their focused responsibilities.
+- Native task notifications use the [official Tauri notification plugin](https://v2.tauri.app/plugin/notification/)
+  and its maintained [plugins-workspace source](https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/notification).
+  Direct `notify-rust` would duplicate Tauri's application identity/Windows adapter integration;
+  custom AppKit/WinRT bindings would duplicate supported official behavior. Rust retains only
+  task identity, privacy, background-delivery and user-preference policy. No WebView notify authority
+  or browser-notification replacement is introduced.
 - SQLx owns Rust-side SQLite access. The WebView does not receive SQL authority, and Knovum does not
   add a generic database service.
 - Native application discovery uses Apple's
@@ -233,3 +239,13 @@ Upstream references: [Rust MCP SDK](https://github.com/modelcontextprotocol/rust
 Protocol and authority boundaries are defined in [system-architecture.md](system-architecture.md)
 and [secrets.md](secrets.md). Exact package versions and license gates remain lockfile- and
 [dependency-policy.md](dependency-policy.md)-owned.
+
+## Local recovery archives
+
+Backup reuses maintained [SQLx](https://github.com/launchbadge/sqlx) and SQLite's
+[`VACUUM INTO`](https://www.sqlite.org/lang_vacuum.html) for consistent snapshots before feature
+pools open, and the existing [zip crate](https://github.com/zip-rs/zip2) for the bounded archive.
+Adding rusqlite as a second SQLite access stack or a second archive engine would duplicate existing
+responsibilities without meeting an additional requirement. Knovum owns the explicit storage
+whitelist, baseline/hash validation, credential exclusion and restore publication journal because
+those are product authority and lifecycle decisions.

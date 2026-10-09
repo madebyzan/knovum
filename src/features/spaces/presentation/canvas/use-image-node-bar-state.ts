@@ -95,13 +95,11 @@ export function useImageNodeBarState(
     () => node.value.id,
     (_next, previous) => {
       openPopover.value = undefined;
-      if (session.active?.nodeId === previous) session.cancel();
       if (removal.active?.nodeId === previous) removal.cancel();
       if (comments.activeNodeId === previous) comments.cancel();
     },
   );
   onBeforeUnmount(() => {
-    if (session.active?.nodeId === node.value.id) session.cancel();
     if (removal.active?.nodeId === node.value.id) removal.cancel();
     if (comments.activeNodeId === node.value.id) comments.cancel();
   });

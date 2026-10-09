@@ -1,29 +1,20 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
 import { useQuery } from "@tanstack/vue-query";
-import { cloneDeep } from "es-toolkit";
-import { computed, ref, shallowRef } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import {
-  createConnectorDefinition,
-  updateConnectorDefinition,
-  deleteConnectorDefinition,
-} from "../../../foundation/extensions/connector-operations";
 import { connectorQuery, connectionQuery } from "../../../foundation/extensions/extension-query";
-import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
-import { useExtensionChanges } from "../use-extension-changes";
-import { connectorDraft } from "./connector-draft";
 import ConnectorConnections from "./ConnectorConnections.vue";
 import ConnectorEditor from "./ConnectorEditor.vue";
+import { useConnectorEditing } from "./use-connector-editing";
 
 const { t } = useI18n();
 const search = shallowRef("");
@@ -34,38 +25,8 @@ const visible = computed(() =>
   ),
 );
 const connections = useQuery(connectionQuery);
-const changes = useExtensionChanges();
-const editing = shallowRef(false);
-const draft = ref(connectorDraft());
-function edit(connector?: ConnectorDefinition) {
-  const editable = connector ? cloneDeep(connector) : connectorDraft();
-  draft.value = { ...editable, endpoint: editable.endpoint! };
-  editing.value = true;
-}
-function save() {
-  void changes
-    .mutateAsync(async () => {
-      const change = draft.value.id
-        ? await updateConnectorDefinition(draft.value)
-        : await createConnectorDefinition(draft.value);
-      editing.value = false;
-      return change;
-    })
-    .catch(() => {});
-}
-async function remove(connector: ConnectorDefinition) {
-  if (
-    await confirmAction({
-      title: t("extensions.connectors.delete.title", { name: connector.name }),
-      description: t("extensions.connectors.delete.description"),
-      confirmLabel: t("common.delete"),
-      danger: true,
-    })
-  )
-    void changes.mutateAsync(() => deleteConnectorDefinition(connector)).catch(() => {});
-}
+const { changes, editing, draft, edit, closeEditor, save, remove } = useConnectorEditing(t);
 </script>
-
 <template>
   <section class="min-w-0 space-y-4">
     <header class="flex flex-wrap items-end justify-between gap-3 px-0.5">
@@ -77,9 +38,9 @@ async function remove(connector: ConnectorDefinition) {
           {{ $t("extensions.connectors.description") }}
         </p>
       </div>
-      <UiButton :disabled="changes.isPending.value" data-testid="create-connector" @click="edit()"
-        ><Plus class="size-4" />{{ $t("extensions.connectors.add") }}</UiButton
-      >
+      <UiButton :disabled="changes.isPending.value" data-testid="create-connector" @click="edit()">
+        <Plus class="size-4" />{{ $t("extensions.connectors.add") }}
+      </UiButton>
     </header>
     <p
       v-if="connectors.error.value || connections.error.value || changes.error.value"
@@ -132,14 +93,14 @@ async function remove(connector: ConnectorDefinition) {
       :title="$t(draft.id ? 'extensions.connections.configure' : 'extensions.connectors.add')"
       size="wide"
       :closable="!changes.isPending.value"
-      @update:open="!changes.isPending.value && (editing = $event)"
+      @update:open="!$event && closeEditor()"
     >
       <ConnectorEditor
         v-if="editing"
         v-model="draft"
         :busy="changes.isPending.value"
         @save="save"
-        @close="editing = false"
+        @close="closeEditor"
       />
       <p v-if="changes.error.value" role="alert" class="mt-3 text-body text-fg-danger">
         {{ getErrorMessage(changes.error.value) }}

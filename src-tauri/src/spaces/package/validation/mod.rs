@@ -1,8 +1,9 @@
 use std::path::{Component, Path};
 
+use tokio_util::sync::CancellationToken;
 use zip::{CompressionMethod, ZipArchive};
 
-use super::PACKAGE_VERSION;
+use super::{control, PACKAGE_VERSION};
 
 pub const MAX_ENTRIES: usize = 50_000;
 pub const MAX_MANIFEST: u64 = 32 * 1024 * 1024;
@@ -85,7 +86,10 @@ pub fn validate_manifest_version(manifest: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn validate_archive(archive: &mut ZipArchive<std::fs::File>) -> Result<u64, String> {
+pub fn validate_archive(
+    archive: &mut ZipArchive<std::fs::File>,
+    cancellation: &CancellationToken,
+) -> Result<u64, crate::app_error::AppError> {
     use std::collections::HashSet;
     if archive.len() > MAX_ENTRIES {
         return Err("Space package contains too many entries".into());
@@ -93,6 +97,7 @@ pub fn validate_archive(archive: &mut ZipArchive<std::fs::File>) -> Result<u64, 
     let mut names = HashSet::new();
     let mut total = 0_u64;
     for index in 0..archive.len() {
+        control::check(cancellation)?;
         let file = archive
             .by_index_raw(index)
             .map_err(|error| error.to_string())?;

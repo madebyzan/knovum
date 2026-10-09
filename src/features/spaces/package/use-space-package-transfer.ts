@@ -1,13 +1,21 @@
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import type { Space } from "../model/space";
 import { useSpaceStore } from "../session/space-store";
-import { exportSpacePackage, importSpacePackage } from "./transfer";
+import {
+  cancelSpacePackageTransfer,
+  chooseSpacePackageExportDestination,
+  chooseSpacePackageImportSource,
+  exportSpacePackage,
+  importSpacePackage,
+  type SpacePackageTransfer,
+} from "./transfer";
 
 export function useSpacePackageTransfer() {
   const store = useSpaceStore();
@@ -16,52 +24,63 @@ export function useSpacePackageTransfer() {
 
   async function run(
     title: string,
-    operation: (progress: (value: SpacePackageProgress) => void) => Promise<boolean>,
+    operation: (operationId: string, progress: (value: SpacePackageProgress) => void) => SpacePackageTransfer,
     success: string,
   ) {
-    // The picker is part of this intent; cancellation is not a successful transfer.
-    const taskId = tasks.start(title);
+    const operationId = crypto.randomUUID();
+    const taskId = operationId;
+    const transfer = operation(operationId, ({ percent, processed, total }) => {
+      tasks.progress(taskId, percent, `${formatBytes(processed)} / ${formatBytes(total)}`);
+    });
+    tasks.start(
+      title,
+      undefined,
+      async () => {
+        await transfer.admitted;
+        await cancelSpacePackageTransfer(operationId);
+        await transfer.completion.catch(() => undefined);
+      },
+      taskId,
+    );
     try {
-      const completed = await operation(({ percent, processed, total }) => {
-        tasks.progress(taskId, percent, `${formatBytes(processed)} / ${formatBytes(total)}`);
-      });
-      if (completed) {
-        tasks.succeed(taskId);
-        toast.success(success);
-      } else {
-        tasks.dismiss(taskId);
-      }
+      await transfer.completion;
+      tasks.succeed(taskId);
+      toast.success(success);
     } catch (error) {
+      if (decodeAppError(error)?.code === "cancelled") {
+        tasks.cancelled(taskId);
+        return;
+      }
       tasks.fail(taskId, getErrorMessage(error));
       toast.error(getErrorMessage(error));
     }
   }
 
-  function exportPackage(space: Pick<Space, "id" | "title">) {
+  async function exportPackage(space: Pick<Space, "id" | "title">) {
     const target = { id: space.id, title: space.title };
-    return run(
+    const destination = await chooseSpacePackageExportDestination(target.title);
+    if (!destination) return;
+    await store.commitActiveSession();
+    await run(
       t("spaces.importExport.space.export"),
-      (progress) =>
-        exportSpacePackage(
-          {
-            space: target,
-            commitActiveSession: store.commitActiveSession,
-          },
-          progress,
-        ),
+      (operationId, progress) => exportSpacePackage({ space: target }, destination, operationId, progress),
       t("spaces.importExport.space.exported"),
     );
   }
 
-  function importPackage() {
-    return run(
+  async function importPackage() {
+    const source = await chooseSpacePackageImportSource();
+    if (!source) return;
+    await run(
       t("spaces.importExport.space.import"),
-      (progress) =>
+      (operationId, progress) =>
         importSpacePackage(
           {
             spaces: store.spaces,
             openSpace: store.openSpace,
           },
+          source,
+          operationId,
           progress,
         ),
       t("spaces.importExport.space.imported"),

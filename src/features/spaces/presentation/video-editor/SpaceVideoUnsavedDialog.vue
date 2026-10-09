@@ -3,18 +3,20 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 
 defineProps<{ saving: boolean }>();
-defineEmits<{ save: []; discard: [] }>();
+const emit = defineEmits<{ save: []; discard: []; cancel: [] }>();
 const open = defineModel<boolean>("open", { required: true });
 </script>
 
 <template>
   <UiDialog
-    v-model:open="open"
+    :open="open"
+    :allowed-command-ids="['video-edit.close']"
+    @update:open="!$event && emit('cancel')"
     :title="$t('spaces.media.videoEditor.unsaved.title')"
     :description="$t('spaces.media.videoEditor.unsaved.description')"
   >
     <template #footer>
-      <UiButton size="sm" :disabled="saving" @click="open = false">{{ $t("common.cancel") }}</UiButton>
+      <UiButton size="sm" :disabled="saving" @click="emit('cancel')">{{ $t("common.cancel") }}</UiButton>
       <UiButton size="sm" :disabled="saving" @click="$emit('discard')">
         {{ $t("common.discardChanges") }}
       </UiButton>

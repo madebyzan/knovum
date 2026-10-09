@@ -482,8 +482,9 @@ coverage and do not attempt to infer business behavior. What remains:
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment script lines, complexity 10 and four
   parameters;
 - Knip reports dead code and unused dependencies;
-- `scripts/checks/source-layout.mjs` rejects `native` path prefixes and `index.ts`, and checks sibling
+- `scripts/checks/source-layout.mjs` rejects `index.ts` and checks sibling
   stems, test placement and the Rust/Python/Vue size limits specified in `architecture.md`.
+  Descriptive naming, including the `native` convention, remains a code-review responsibility.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
 catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging

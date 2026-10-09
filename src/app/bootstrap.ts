@@ -13,26 +13,21 @@ import {
 } from "../foundation/navigation/workspace-session";
 import { usePreferencesStore } from "../foundation/preferences/preferences-store";
 import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
-import { installTaskbarProgress } from "../foundation/tasks/taskbar-progress";
+import { installSessionTaskProjection } from "../foundation/tasks/session-task-projection";
 import { installWindowActivityState } from "../foundation/window/window-activity";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 import { installSettingsPersistence } from "./settings-persistence";
 
-const WATCHDOG_TIMEOUT_MS = 25000;
-
 export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
   const state = useBootstrapStore(pinia);
 
-  const watchdog = setTimeout(() => {
-    state.fail(new Error("Application startup watchdog timed out after 25s"));
-    void invokeCommand("plugin:desktop|reveal_main_window");
-  }, WATCHDOG_TIMEOUT_MS);
-
   try {
+    await invokeCommand("plugin:backup|await_data_maintenance");
+    await invokeCommand("plugin:ai|await_ai_runtime");
     installSettingsPersistence(pinia);
     await initializeExitCoordination();
     installRuntimeDiagnostics();
-    installTaskbarProgress(pinia);
+    installSessionTaskProjection(pinia);
     void restoreResourcePreparationTasks(pinia).catch((reason) =>
       logError(`Failed to restore resource preparation tasks: ${formatErrorDiagnostic(reason)}`),
     );
@@ -47,7 +42,6 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     state.fail(reason);
     await logError(formatErrorDiagnostic(reason));
   } finally {
-    clearTimeout(watchdog);
     try {
       await invokeCommand("plugin:desktop|reveal_main_window");
     } catch (reason) {

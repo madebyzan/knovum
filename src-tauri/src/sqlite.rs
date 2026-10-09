@@ -12,6 +12,7 @@ pub async fn connect_feature_database<R: Runtime>(
     app: &AppHandle<R>,
     filename: &str,
 ) -> Result<SqlitePool, String> {
+    crate::backup::ready(app).await?;
     let directory = app
         .path()
         .app_config_dir()

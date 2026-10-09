@@ -6,26 +6,32 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
 import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
-import { runAppCommand } from "../foundation/commands/run-app-command";
+import { registerAppCommands, runAppCommandById } from "../foundation/commands/run-app-command";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands";
-import { workspaceSidebarGeometry } from "./sidebar-geometry";
+import { useWorkbenchLayoutPreferences } from "./use-workbench-layout-preferences";
 
 export function useShellController(workspace: WorkspaceDefinition) {
   const route = useRoute();
   const router = useRouter();
   const { t } = useI18n();
   const commandOpen = shallowRef(false);
-  const sidebarPinned = shallowRef(true);
-  const sidebarWidth = shallowRef<number>(workspaceSidebarGeometry.defaultSize);
+  const {
+    sidebarPinned,
+    sidebarWidth,
+    rightSidebarOpen: rightSidebarRequested,
+    rightSidebarWidth,
+    persist,
+  } = useWorkbenchLayoutPreferences();
+  const rightSidebarOpen = computed(
+    () => rightSidebarRequested.value && workspace.rightSidebarAvailable.value,
+  );
   const sidebarPreview = shallowRef(false);
   const sidebarPreviewArmed = shallowRef(true);
-  const rightSidebarOpen = shallowRef(false);
-  const rightSidebarWidth = shallowRef(workspace.rightSidebarLayout.defaultSize);
   const panelMotion = shallowRef(false);
   const { start: endPanelMotion, stop: cancelPanelMotionTimer } = useTimeoutFn(
     () => (panelMotion.value = false),
@@ -47,7 +53,6 @@ export function useShellController(workspace: WorkspaceDefinition) {
     160,
     { immediate: false },
   );
-
   function toggleSidebarPanel() {
     beginPanelMotion();
     setSidebarPinned(!sidebarPinned.value);
@@ -61,9 +66,11 @@ export function useShellController(workspace: WorkspaceDefinition) {
     sidebarPreview.value = false;
     if (value) sidebarPreviewArmed.value = true;
     cancelSidebarPreviewClose();
+    persist();
   }
   function setSidebarWidth(value: number) {
     sidebarWidth.value = Math.round(value);
+    persist();
   }
   function openSidebarPreview() {
     if (sidebarPinned.value || !sidebarPreviewArmed.value) return;
@@ -87,28 +94,29 @@ export function useShellController(workspace: WorkspaceDefinition) {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
     beginPanelMotion();
     if (rightSidebarOpen.value) {
-      rightSidebarOpen.value = false;
+      rightSidebarRequested.value = false;
     } else {
       workspace.openDefaultRightSidebar();
-      rightSidebarOpen.value = true;
+      rightSidebarRequested.value = true;
     }
+    persist();
   }
   function openRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
     if (!rightSidebarOpen.value) beginPanelMotion();
-    rightSidebarOpen.value = true;
+    rightSidebarRequested.value = true;
+    persist();
   }
   function setRightSidebarWidth(value: number) {
     rightSidebarWidth.value = Math.round(value);
+    persist();
   }
   function closeRightSidebar() {
-    rightSidebarOpen.value = false;
+    rightSidebarRequested.value = false;
+    persist();
     document.getElementById("workspace-right-sidebar-toggle")?.focus();
   }
   provide(workspaceRightSidebarKey, { open: openRightSidebar, close: closeRightSidebar });
-  watchEffect(() => {
-    if (!workspace.rightSidebarAvailable.value) rightSidebarOpen.value = false;
-  });
   provide(workspaceSidebarKey, { reveal: () => setSidebarPinned(true) });
   const shortcutsOpen = shallowRef(false);
   const commands = computed(() =>
@@ -121,6 +129,9 @@ export function useShellController(workspace: WorkspaceDefinition) {
         toggleRightSidebar,
       },
       labels: {
+        copy: t("common.copy"),
+        cut: t("common.cut"),
+        paste: t("common.paste"),
         settings: t("common.settings"),
         commandPalette: t("shell.commands.title"),
         shortcuts: t("shell.shortcuts.title"),
@@ -129,15 +140,14 @@ export function useShellController(workspace: WorkspaceDefinition) {
       },
     }),
   );
-  function runCommand(id: string) {
-    const command = commands.value.find((candidate) => candidate.id === id);
-    if (command) runAppCommand(command);
-  }
   const menuCommandListener = createAsyncDisposer();
-  watchEffect((cleanup) => cleanup(bindCommandShortcuts(commands.value)));
+  watchEffect((cleanup) => {
+    cleanup(registerAppCommands(commands.value));
+    cleanup(bindCommandShortcuts(commands.value));
+  });
   onMounted(() => {
     void menuCommandListener
-      .attach(listen<string>("knovum-run-command", ({ payload }) => runCommand(payload)))
+      .attach(listen<string>("knovum-run-command", ({ payload }) => runAppCommandById(payload)))
       .catch(
         (error) => void logError(`Failed to register menu command listener: ${formatErrorDiagnostic(error)}`),
       );

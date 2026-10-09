@@ -102,7 +102,7 @@ async function visit() {
           type="url"
           :placeholder="t('spaces.richtext.link.placeholder')"
           @input="touched = true"
-          @keydown.enter.prevent="apply"
+          @commit.prevent="apply"
         />
       </label>
       <p v-if="invalid" class="mt-1.5 text-caption text-fg-danger">

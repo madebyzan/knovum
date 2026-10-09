@@ -9,6 +9,7 @@ pub use archive::archive_entries;
 pub use classification::is_sensitive_file;
 pub use classification::{classify_file, ResourceClassification};
 pub use inspect::inspect_file;
+pub(crate) use revision::content_revision_cancellable;
 pub use revision::{content_revision, verify_content_revision};
 use serde::{Deserialize, Serialize};
 pub use text_preview::{modified_millis, read_html_preview, read_text_preview};

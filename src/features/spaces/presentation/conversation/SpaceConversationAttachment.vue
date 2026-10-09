@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { File, FileImage, FileText, Link2, X } from "@lucide/vue";
 
-import type { VisibleConversationAttachment } from "../../conversation/conversation-pending-message";
+import type { ConversationAttachmentPresentation } from "../../conversation/conversation-attachment-presentation";
 
 defineProps<{
-  attachment: VisibleConversationAttachment & { key: string; kind: "node" | "file" };
+  attachment: ConversationAttachmentPresentation;
+  unresolved?: boolean;
 }>();
 const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
 </script>
@@ -20,7 +21,12 @@ const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
       type="button"
       class="flex min-h-0 flex-1 flex-col text-left focus-visible:outline-2 focus-visible:outline-stroke-focus"
       :title="attachment.title"
-      :aria-label="$t('spaces.conversation.attachments.preview', { name: attachment.title })"
+      :aria-label="
+        unresolved
+          ? attachment.title
+          : $t('spaces.conversation.attachments.preview', { name: attachment.title })
+      "
+      :disabled="unresolved"
       @click="emit('preview', attachment.key)"
     >
       <span class="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-surface-muted">

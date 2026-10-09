@@ -38,7 +38,10 @@ Space management is available through native context menus on Space cards, tabs 
 Space package import accepts only the current package version. Rust owns all identity/reference
 remapping, validates original ownership and canonical citation revisions before remapping, and
 removes the import's asset namespace after a failed restore. Interrupted package namespaces are
-reconciled against committed Space identities at startup. Old development database checksums and
+reconciled against committed Space identities at startup and before backup admission. Cleanup failures
+preserve the original error code and report the remaining staging work. Package transfers emit an
+admission acknowledgement on their existing progress Channel after acquiring the engine lease;
+cancellation waits for this boundary before invoking the owner. Old development database checksums and
 package versions fail explicitly; they are not read through compatibility paths.
 
 JSON Canvas import submits the selected file path and expected edit revision to Rust. Rust validates
@@ -319,6 +322,10 @@ environmental sound because no legally distributable, qualified dialogue-separat
 Video translation owns restore, submission, observation and result loading. Editing and synthesis
 remain disabled until the matching result is applied or the job settles; revision changes invalidate
 late results. Audiobook output drafts validate loudness, peaks, pauses and metadata before submission.
+Dirty speech revisions use the same Space/application leave participant boundary as document and
+video editors. Project switching, Space navigation, route changes, update install and quit offer
+Save, Discard and Cancel; failed revision saves keep the editor draft available. Leaving also waits
+for an already admitted revision save before evaluating the current draft.
 
 ## Sensitive information
 
@@ -367,6 +374,10 @@ for other long node controls as well. The persisted `imageEdit` v1 contract keep
 source asset immutable; the canvas renderer projects crop, transform and filter edits. Earlier
 pre-release image edit recipes are rejected explicitly; the old transparency eraser is not a
 same-node edit. Object removal publishes a new image with `derives-from` lineage. With Qwen or a
+Changing canvas selection does not discard an image edit draft. The draft remains owned by its
+`(spaceId, nodeId)` session until the user returns to it, applies it or discards it. Leaving the Space,
+route or application with a dirty image draft offers Apply, Discard and Cancel through the shared
+leave boundary; a failed Apply retains the draft.
 GPT Image model, brush selections stay transient and Rust sends the rendered source with a
 provider-specific mask. With a Gemini, Grok Imagine, Doubao Seedream, SiliconFlow Qwen edit,
 Kling Omni or supported OpenRouter image model (including FLUX.2), the user describes the object
@@ -412,7 +423,8 @@ values. A font missing from the current computer blocks export explicitly. The A
 frame aspect ratio after output rotation, including portrait video. Every timed-text item stores its complete
 style; projects missing it fail validation. A local edit history owns undo and redo until Save commits one
 project snapshot through Space history. The workbench shows unsaved state and requires an explicit
-Save or Discard choice on close. Application commands provide the editor's keyboard shortcuts;
+Save, Discard or Cancel choice on close, Space navigation, application route changes, update install
+and application quit. A failed save leaves the draft and leave decision open. Application commands provide the editor's keyboard shortcuts;
 there are no feature-level global key listeners. The preview places timed text within the visible
 video frame and uses the same relative vertical placement as final rendering.
 
@@ -471,6 +483,11 @@ silently discarded or converted to an unrelated preset.
 The mounted canvas editor is the sole owner of transient camera interaction and selection. Outline, Find and Saved View actions publish typed workbench intents consumed through `CanvasEditorPort`; product components never acquire or retain a vendor editor instance.
 
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
+
+Each still-open Space tab retains its own Renderer Undo/Redo stacks. Switching tabs saves the current
+stacks and restores the destination tab's stacks only after the Space leave boundary completes;
+closing a tab retires its stacks. History never crosses Space identity and is not persisted across an
+application restart.
 
 On macOS one selected managed resource can open in the system Quick Look panel — the same non-modal preview Finder shows for a file. Content without private file bytes has nothing to hand to the platform and therefore does not expose the command. Space remains the focused canvas pan modifier; preview never delays or intercepts it.
 
@@ -560,11 +577,13 @@ The single `space-store` composes existing owners rather than maintaining parall
 | ------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
 | Committed nodes, scenes, relations, edit snapshot | Rust SQLite, loaded as one typed session projection | Active Space; replaced after successful load/commit                   |
 | Navigation history, cross-view workbench requests | Existing session/workspace owners in Pinia          | Desktop session; reset by Space lifecycle                             |
-| Image edit/comment draft and dimensions           | Image editor/comment sessions                       | `(spaceId, nodeId)`; cleared on Space switch or node deletion         |
+| Structural Undo/Redo stacks                       | Space session history owner                         | Per still-open Space tab; discarded when that tab closes              |
+| Image edit/comment draft and dimensions           | Image editor/comment sessions                       | `(spaceId, nodeId)`; explicit Apply/Discard/Cancel before Space leave |
 | Component focus, hover and primitive interaction  | Owning component or editor session                  | Component/editor lifetime                                             |
 | Async query results                               | Existing Vue Query keys                             | Space and actual request parameters                                   |
 | Run transport                                     | `runs/run-observation`                              | One Channel/invoke per run ID; removed on terminal completion/failure |
 | Conversation/workflow task mapping                | Owning capability                                   | Attached run; released when shared observation finishes               |
+| Unsent conversation composer draft                | Spaces SQLite `spaces_conversation_drafts`          | `(spaceId, conversationId)`; restored after restart                   |
 
 Navigation flush failure preserves the current Space and reports the failure. Successful website binding publication is independent of best-effort old-file cleanup. Asset refresh generates a new preview, publishes with a revision guard, then reclaims only explicitly owned candidates. The reference graph is read in one SQLite snapshot and retains soft-deleted references for undo. Filesystem deletion is not a database transaction; it is never reported as an atomic commit of both systems.
 

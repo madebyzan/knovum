@@ -13,23 +13,51 @@ pub mod tasks;
 pub mod transport;
 pub mod usage;
 
-use tauri::{plugin::TauriPlugin, Wry};
+use tauri::{plugin::TauriPlugin, AppHandle, Manager, Wry};
+
+#[derive(Default)]
+struct AiInitialization(tokio::sync::OnceCell<Result<(), String>>);
+
+pub(crate) async fn await_runtime(app: &AppHandle) -> Result<(), String> {
+    let state = app.state::<AiInitialization>();
+    state
+        .0
+        .get_or_init(|| async {
+            crate::backup::ready(app).await?;
+            crate::external_agents::task::discard_interrupted(app)
+                .map_err(|error| error.to_string())?;
+            usage::initialize(app).await
+        })
+        .await
+        .clone()
+}
+
+#[tauri::command]
+async fn await_ai_runtime(app: AppHandle) -> Result<(), crate::app_error::AppError> {
+    Ok(await_runtime(&app).await?)
+}
 
 pub fn plugin() -> TauriPlugin<Wry> {
     tauri::plugin::Builder::new("ai")
         .setup(|app, _api| {
-            crate::external_agents::task::discard_interrupted(app)
-                .map_err(std::io::Error::other)?;
-            tauri::async_runtime::block_on(usage::initialize(app))
-                .map_err(std::io::Error::other)?;
+            app.manage(AiInitialization::default());
             Ok(())
         })
-        .on_event(|_, event| {
+        .on_event(|app, event| {
+            if matches!(event, tauri::RunEvent::Ready) {
+                let app = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(error) = await_runtime(&app).await {
+                        log::error!("AI runtime initialization failed: {error}");
+                    }
+                });
+            }
             if matches!(event, tauri::RunEvent::Exit) {
                 tauri::async_runtime::block_on(local_runtime::shutdown());
             }
         })
         .invoke_handler(tauri::generate_handler![
+            await_ai_runtime,
             crate::ai::commands::text::cancel_job,
             crate::ai::queries::catalog::detect_external_agent_installations,
             crate::ai::queries::catalog::list_external_agent_descriptors,

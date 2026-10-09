@@ -106,6 +106,10 @@
     "region": "框选区域评论"
   },
   "applyNow": "立即使用",
+  "unsaved": {
+    "title": "要应用图片更改吗？",
+    "description": "离开前应用此图片编辑，或放弃草稿。"
+  },
   "errors": {
     "modelUnavailable": "请检查图片模型与凭据配置",
     "providerUnsupported": "当前图片模型不支持此操作",

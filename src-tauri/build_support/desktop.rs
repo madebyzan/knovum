@@ -1,0 +1,15 @@
+pub(crate) const COMMANDS: &[&str] = &[
+    "set_locale",
+    "set_workspace_menu_state",
+    "reveal_main_window",
+    "mark_exit_coordinator_ready",
+    "acknowledge_app_exit_request",
+    "report_startup_failure",
+    "project_session_tasks",
+    "set_task_notifications",
+    "perform_editing",
+    "begin_window_close",
+    "acknowledge_window_close",
+    "complete_window_close",
+    "decide_app_exit_request",
+];

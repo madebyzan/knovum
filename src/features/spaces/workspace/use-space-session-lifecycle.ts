@@ -5,6 +5,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { registerWindowCloseCommit } from "../../../foundation/lifecycle/window-close-coordinator";
+import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 
 export function useSpaceSessionLifecycle(commit: () => Promise<void>) {
   onBeforeRouteLeave(async () => {
@@ -12,6 +13,7 @@ export function useSpaceSessionLifecycle(commit: () => Promise<void>) {
       await commit();
       return true;
     } catch (error) {
+      if (isApplicationLeaveCancelled(error)) return false;
       const message = getErrorMessage(error);
       void logError(`Space commit prevented navigation: ${message}`);
       toast.error(message);

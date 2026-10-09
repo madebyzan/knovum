@@ -32,7 +32,8 @@ const emit = defineEmits<{
 const inputRef = useTemplateRef<HTMLInputElement>("input");
 const { focused } = useFocus(inputRef, { initialValue: props.autofocus });
 
-function handleEscape() {
+function handleEscape(event: KeyboardEvent) {
+  if (event.isComposing) return;
   if (model.value) {
     model.value = "";
   } else {

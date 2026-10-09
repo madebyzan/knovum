@@ -3,6 +3,7 @@ import { expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
 import type { GenerationPreset } from "../../../foundation/ai/schema/models";
+import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import SavedGenerationPresets from "../components/SavedGenerationPresets.vue";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
@@ -19,8 +20,11 @@ it("emits a rename intent without mutating the authoritative preset", () => {
     },
   ];
   const wrapper = mount(SavedGenerationPresets, {
-    props: { presets, loadGenerationActions: async () => [] },
+    props: { presets, loadGenerationActions: async () => [], savePreset: async () => {} },
     global: {
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
+      },
       stubs: { UiInput: Input, UiIconButton: true, UiSettingsSection: { template: "<div><slot /></div>" } },
     },
   });

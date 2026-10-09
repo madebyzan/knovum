@@ -1,5 +1,6 @@
 use sqlx::{Sqlite, Transaction};
 use tauri::{AppHandle, Runtime};
+use tokio_util::sync::CancellationToken;
 
 pub(super) mod contracts;
 
@@ -8,19 +9,24 @@ use crate::{
     spaces::{db, knowledge::object_types},
 };
 use contracts::RestorePackageRequest;
-use validation::validate_request_shape;
+use validation::validate_request_shape_cancellable;
 
 pub async fn restore<R: Runtime>(
     app: &AppHandle<R>,
     mut request: RestorePackageRequest,
+    cancellation: &CancellationToken,
 ) -> Result<(), AppError> {
-    validate_request_shape(&request)?;
+    super::control::check(cancellation)?;
+    validate_request_shape_cancellable(&request, cancellation)?;
+    super::control::check(cancellation)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     insert_space(&mut tx, &request).await?;
     insert_object_types(&mut tx, &request).await?;
+    super::control::check(cancellation)?;
     insert_nodes(&mut tx, &request).await?;
     knowledge::insert_relations(&mut tx, &request).await?;
+    super::control::check(cancellation)?;
     let structure = crate::spaces::structure::repository::SpaceStructureSnapshot {
         structure: std::mem::take(&mut request.structure_nodes),
         layouts: std::mem::take(&mut request.layouts),
@@ -29,14 +35,17 @@ pub async fn restore<R: Runtime>(
     insert_structure(&mut tx, &request, &structure).await?;
     insert_scenes(&mut tx, &request).await?;
     validate_nodes(&mut tx, &request).await?;
+    super::control::check(cancellation)?;
     derivations::insert(&mut tx, &request).await?;
     runs::insert(&mut tx, &request).await?;
     conversations::insert(&mut tx, &request).await?;
     external_conversations::insert(&mut tx, &request).await?;
+    super::control::check(cancellation)?;
     speech::insert(&mut tx, &request).await?;
     knowledge::insert_provenance(&mut tx, &request).await?;
     content::insert_chunks(&mut tx, &request).await?;
     for message in &request.conversation_messages {
+        super::control::check(cancellation)?;
         let citations = serde_json::Value::Array(message.content.citations.clone());
         crate::spaces::knowledge::grounding::validate_conversation_citations(
             &mut tx,
@@ -46,6 +55,7 @@ pub async fn restore<R: Runtime>(
         .await?;
     }
     for derivation in &request.derivations {
+        super::control::check(cancellation)?;
         if let Some(document) = &derivation.grounded_document {
             crate::spaces::knowledge::grounding::validate_conversation_citations(
                 &mut tx,
@@ -56,6 +66,7 @@ pub async fn restore<R: Runtime>(
         }
     }
     knowledge::insert_events(&mut tx, &request).await?;
+    super::control::check(cancellation)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(())
 }

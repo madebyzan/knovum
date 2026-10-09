@@ -75,7 +75,8 @@
     "sizeError": "Files cannot be empty. Images must be at most 10 MiB; other files at most 20 MiB.",
     "typeError": "This file type is unsupported. Choose an image, text, PDF, or Office document.",
     "invalidError": "This file could not be read. Check its contents and format.",
-    "permissionError": "This file is not available. Select it again in the system file dialog."
+    "permissionError": "This file is not available. Select it again in the system file dialog.",
+    "reacquire": "Select these external files again to reattach them: {names}"
   },
   "tasks": {
     "waitingForResult": "Waiting for the operation to finish…",

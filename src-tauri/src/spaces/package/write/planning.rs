@@ -8,6 +8,7 @@ use super::super::{
     validation::{self, MAX_ASSETS, MAX_ENTRIES, MAX_MANIFEST, MAX_UNPACKED},
     AssetIndex, PackageAsset,
 };
+use tokio_util::sync::CancellationToken;
 
 pub(super) struct AssetPlan {
     pub(super) token: String,
@@ -21,7 +22,8 @@ pub(super) fn plan_assets(
     manifest: &str,
     assets: &[PackageAsset],
     manifest_assets: &super::super::manifest_assets::ManifestAssets,
-) -> Result<Vec<AssetPlan>, String> {
+    cancellation: &CancellationToken,
+) -> Result<Vec<AssetPlan>, crate::app_error::AppError> {
     if manifest.len() as u64 > MAX_MANIFEST || assets.len() > MAX_ASSETS {
         return Err("Space package exceeds export limits".into());
     }
@@ -30,6 +32,7 @@ pub(super) fn plan_assets(
     let mut entries = 2_usize;
     let mut unpacked = manifest.len() as u64;
     for asset in assets {
+        super::super::control::check(cancellation)?;
         validation::validate_token(&asset.token)?;
         if !tokens.insert(asset.token.clone()) {
             return Err("Duplicate package asset token".into());
@@ -41,7 +44,7 @@ pub(super) fn plan_assets(
             .ok_or("Package asset has no usable name")?
             .to_owned();
         validation::validate_basename(&name)?;
-        let (asset_entries, bytes) = inspect_asset(&source)?;
+        let (asset_entries, bytes) = inspect_asset(&source, cancellation)?;
         entries = entries
             .checked_add(asset_entries)
             .ok_or("Space package entry count overflow")?;
@@ -51,7 +54,10 @@ pub(super) fn plan_assets(
         if entries > MAX_ENTRIES || unpacked > MAX_UNPACKED {
             return Err("Space package exceeds export limits".into());
         }
-        let source_revision = crate::file_inspection::content_revision(&source)?;
+        let source_revision =
+            crate::file_inspection::content_revision_cancellable(&source, || {
+                super::super::control::check(cancellation)
+            })?;
         validate_source_revision(manifest_assets, &asset.token, &source_revision)?;
         let index = AssetIndex {
             token: asset.token.clone(),
@@ -88,7 +94,11 @@ fn validate_source_revision(
     Ok(())
 }
 
-fn inspect_asset(source: &Path) -> Result<(usize, u64), String> {
+fn inspect_asset(
+    source: &Path,
+    cancellation: &CancellationToken,
+) -> Result<(usize, u64), crate::app_error::AppError> {
+    super::super::control::check(cancellation)?;
     if source.is_file() {
         return Ok((
             1,
@@ -100,8 +110,10 @@ fn inspect_asset(source: &Path) -> Result<(usize, u64), String> {
     let mut stack = vec![source.to_path_buf()];
     let (mut entries, mut bytes) = (0_usize, 0_u64);
     while let Some(directory) = stack.pop() {
+        super::super::control::check(cancellation)?;
         let mut empty = true;
         for entry in fs::read_dir(&directory).map_err(|error| error.to_string())? {
+            super::super::control::check(cancellation)?;
             empty = false;
             let entry = entry.map_err(|error| error.to_string())?;
             let meta = fs::symlink_metadata(entry.path()).map_err(|error| error.to_string())?;
@@ -126,14 +138,21 @@ fn inspect_asset(source: &Path) -> Result<(usize, u64), String> {
     Ok((entries, bytes))
 }
 
-pub(super) fn verify_unchanged(plans: &[AssetPlan]) -> Result<(), String> {
+pub(super) fn verify_unchanged(
+    plans: &[AssetPlan],
+    cancellation: &CancellationToken,
+) -> Result<(), crate::app_error::AppError> {
     for plan in plans {
+        super::super::control::check(cancellation)?;
         let expected = plan
             .index
             .source_revision
             .as_deref()
             .ok_or("Space package asset digest is missing")?;
-        if crate::file_inspection::content_revision(&plan.source)? != expected {
+        if crate::file_inspection::content_revision_cancellable(&plan.source, || {
+            super::super::control::check(cancellation)
+        })? != expected
+        {
             return Err("A Space asset changed while the Space package was being written; retry after refreshing it".into());
         }
     }

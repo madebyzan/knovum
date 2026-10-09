@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use schemars::schema_for;
+use schemars::{schema_for, Schema};
 use ts_rs::Config;
 
 // The fields exist only to collect one closed schema graph for Python generation.
@@ -46,6 +46,21 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let config = Config::new().with_out_dir(&output).with_large_int("number");
     bindings::export(&config)?;
     export_runtime_values(&output)?;
+    let settings_values = enum_values_source(&[
+        (
+            "maintenanceOperations",
+            schema_for!(crate::backup::contracts::MaintenanceOperation),
+        ),
+        (
+            "maintenanceStatuses",
+            schema_for!(crate::backup::contracts::MaintenanceStatus),
+        ),
+    ])?;
+    std::fs::write(
+        project_root.join("src/features/settings/contracts/generated/contract-values.ts"),
+        settings_values,
+    )
+    .map_err(io_error)?;
     let wire_schema = project_root.join("python/schemas/inference.schema.json");
     std::fs::create_dir_all(
         wire_schema
@@ -154,17 +169,24 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
             "externalAgentKinds",
             schema_for!(crate::ai::contracts::ExternalAgentKind),
         ),
+        (
+            "preferenceThemes",
+            schema_for!(crate::preferences::ThemePreference),
+        ),
+        (
+            "preferenceDensities",
+            schema_for!(crate::preferences::DensityPreference),
+        ),
+        (
+            "preferenceTextSizes",
+            schema_for!(crate::preferences::TextSizePreference),
+        ),
+        (
+            "preferenceLocales",
+            schema_for!(crate::preferences::LocalePreference),
+        ),
     ];
-    let mut source = String::from("// Generated from Rust contracts. Do not edit.\n");
-    for (name, schema) in enums {
-        let values = schema
-            .get("enum")
-            .ok_or("Expected an enum schema for runtime values")?;
-        source.push_str(&format!(
-            "export const {name} = {} as const;\n",
-            serde_json::to_string(values).map_err(|error| error.to_string())?
-        ));
-    }
+    let mut source = enum_values_source(&enums)?;
     let purposes = schema_for!(crate::ai::contracts::RoutingPurpose);
     let mut policies = serde_json::Map::new();
     for value in purposes
@@ -186,5 +208,33 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
         "export const routingCapabilities = {} as const;\n",
         serde_json::to_string(&policies).map_err(|e| e.to_string())?
     ));
+    source.push_str(&format!(
+        concat!(
+            "export const preferencesSchemaVersion = {} as const;\n",
+            "export const workbenchWidthLimits = {} as const;\n",
+            "export const preferenceDefaults = {} as const;\n",
+        ),
+        crate::preferences::SCHEMA_VERSION,
+        serde_json::json!({
+            "sidebar": [crate::preferences::SIDEBAR_WIDTH_MIN, crate::preferences::SIDEBAR_WIDTH_MAX],
+            "rightSidebar": [crate::preferences::RIGHT_SIDEBAR_WIDTH_MIN, crate::preferences::RIGHT_SIDEBAR_WIDTH_MAX],
+        }),
+        serde_json::to_string(&crate::preferences::Preferences::default())
+            .map_err(|error| error.to_string())?,
+    ));
     std::fs::write(output.join("contract-values.ts"), source).map_err(io_error)
+}
+
+fn enum_values_source(enums: &[(&str, Schema)]) -> Result<String, String> {
+    let mut source = String::from("// Generated from Rust contracts. Do not edit.\n");
+    for (name, schema) in enums {
+        let values = schema
+            .get("enum")
+            .ok_or("Expected an enum schema for runtime values")?;
+        source.push_str(&format!(
+            "export const {name} = {} as const;\n",
+            serde_json::to_string(values).map_err(|error| error.to_string())?
+        ));
+    }
+    Ok(source)
 }

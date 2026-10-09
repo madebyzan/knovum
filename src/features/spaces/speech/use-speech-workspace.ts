@@ -1,4 +1,4 @@
-import { readonly, shallowRef, watch } from "vue";
+import { computed, readonly, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
@@ -10,19 +10,21 @@ import { useSpeechGeneration } from "./use-speech-generation";
 import { useSpeechProjectCreation } from "./use-speech-project-creation";
 import { useSpeechVoices } from "./use-speech-voices";
 
+type SpeechRevisionInput = Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">;
+
 export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () => NodeSpeechProjectType) {
   const store = useSpaceStore();
   const projects = shallowRef<Awaited<ReturnType<typeof listSpeechProjects>>>([]);
   const loading = shallowRef(false);
   const error = shallowRef<string>();
   const selectedProject = shallowRef<SpeechProjectSnapshot>();
-  const savingRevision = shallowRef(false);
+  const revisionSave = shallowRef<Promise<boolean>>();
+  const savingRevision = computed(() => Boolean(revisionSave.value));
   let refreshEpoch = 0;
   let selectionEpoch = 0;
   function isCurrentSpace(spaceId: string | undefined, epoch: number) {
     return store.activeSpaceId === spaceId && refreshEpoch === epoch;
   }
-
   function isCurrentProject(spaceId: string, epoch: number, projectId: string) {
     return isCurrentSpace(spaceId, epoch) && selectedProject.value?.project.id === projectId;
   }
@@ -36,7 +38,6 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
       project.project.projectType === projectType()
     );
   }
-
   const voiceLibrary = useSpeechVoices({
     activeSpaceId: () => store.activeSpaceId,
     contextEpoch: () => refreshEpoch,
@@ -116,33 +117,41 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     }
   }
 
-  async function saveRevision(
-    input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
-  ) {
+  function saveRevision(input: SpeechRevisionInput) {
+    revisionSave.value ??= persistRevision(input).finally(() => {
+      revisionSave.value = undefined;
+    });
+    return revisionSave.value;
+  }
+
+  async function settleRevisionSave() {
+    await revisionSave.value;
+  }
+
+  async function persistRevision(input: SpeechRevisionInput) {
     const current = selectedProject.value;
-    if (!current || savingRevision.value) return;
+    if (!current) return false;
     const spaceId = store.activeSpaceId;
     const epoch = refreshEpoch;
-    savingRevision.value = true;
     try {
-      if (!spaceId || current.project.spaceId !== spaceId) return;
+      if (!spaceId || current.project.spaceId !== spaceId) return false;
       const snapshot = await saveSpeechProjectRevision({
         ...input,
         projectId: current.project.id,
         expectedRevision: current.project.activeRevision,
       });
       if (!isCurrentProject(spaceId, epoch, current.project.id) || snapshot.project.spaceId !== spaceId)
-        return;
+        return false;
       generation.clearPreview();
       selectedProject.value = snapshot;
       const updated = snapshot.project;
       projects.value = projects.value.map((project) => (project.id === updated.id ? updated : project));
       error.value = undefined;
+      return true;
     } catch (cause) {
       if (spaceId && isCurrentProject(spaceId, epoch, current.project.id))
         error.value = getErrorMessage(cause);
-    } finally {
-      savingRevision.value = false;
+      return false;
     }
   }
 
@@ -159,7 +168,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     error: readonly(error),
     selectedProject: readonly(selectedProject),
     creatingProject: projectCreation.creating,
-    savingRevision: readonly(savingRevision),
+    savingRevision,
     preview: generation.preview,
     previewListening: generation.listening,
     runState: generation.runState,
@@ -171,6 +180,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     refreshVoices: voiceLibrary.refresh,
     openProject,
     saveRevision,
+    settleRevisionSave,
     previewSelection: generation.previewSelection,
     generateProject: generation.generateProject,
     cancelGeneration: generation.cancelGeneration,

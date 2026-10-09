@@ -93,6 +93,7 @@ function finishTransform(kind: "rotate" | "scale", event: Konva.KonvaEventObject
   <KonvaGroup
     :config="{
       id: `canvas-group-chrome-${group.group.id}`,
+      structureNodeId: group.group.id,
       x: group.bounds.left,
       y: group.bounds.top,
       draggable: interactive && !group.locked,

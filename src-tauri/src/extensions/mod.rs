@@ -91,6 +91,11 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
         .build()
 }
 
+pub(crate) fn reserve_plugin_operations_for_maintenance(
+) -> Result<crate::job_registry::JobAdmissionReservation, String> {
+    plugins::operations::reserve_maintenance()
+}
+
 async fn shutdown(app: &tauri::AppHandle) {
     let state = app.state::<ExtensionState>();
     state.shutdown.cancel();

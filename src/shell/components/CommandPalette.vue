@@ -13,7 +13,7 @@ import {
   ListboxItem,
   ListboxRoot,
 } from "reka-ui";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { runAppCommand } from "../../foundation/commands/run-app-command";
@@ -36,7 +36,9 @@ whenever(
 );
 
 const filteredCommands = computed(() => {
-  const visible = props.commands.filter((command) => command.availability?.().state !== "hidden");
+  const visible = props.commands.filter(
+    (command) => command.palette !== false && command.availability?.().state !== "hidden",
+  );
   const needle = query.value.trim();
   if (!needle) return visible;
   return search(needle, visible, {
@@ -45,11 +47,12 @@ const filteredCommands = computed(() => {
   });
 });
 
-function handleSelect(value: unknown) {
+async function handleSelect(value: unknown) {
   const command = value as AppCommand | undefined;
   if (!command) return;
   if (!commandReady(command)) return;
   open.value = false;
+  await nextTick();
   runAppCommand(command);
 }
 
@@ -72,6 +75,7 @@ function commandReason(command: AppCommand) {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim" />
       <DialogContent
+        data-app-command-scope=""
         class="fixed top-[16%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-156 -translate-x-1/2 overflow-hidden rounded-xl border border-stroke-default material-overlay shadow-dialog outline-none"
       >
         <DialogTitle class="sr-only">{{ t("shell.commands.title") }}</DialogTitle>

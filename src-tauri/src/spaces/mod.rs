@@ -3,6 +3,7 @@ pub(crate) mod actions;
 pub(crate) mod agent_artifacts;
 pub(crate) mod assets;
 pub(crate) mod authorization;
+pub(crate) mod backup;
 pub(crate) mod canvas_exchange;
 mod canvas_view_state;
 mod clipboard_content;
@@ -26,6 +27,7 @@ pub(crate) mod speech;
 pub(crate) mod structure;
 pub(crate) mod workflows;
 
+pub(crate) use recovery::ready as await_runtime;
 pub(crate) use run_control::RunControlReceipt;
 
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
@@ -35,7 +37,6 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             app.manage(
                 conversations::tool_operations::concurrency::ToolInvocationConcurrency::default(),
             );
-            derivation::image_operations::discard_interrupted(app)?;
             recovery::start(app.clone());
             Ok(())
         })

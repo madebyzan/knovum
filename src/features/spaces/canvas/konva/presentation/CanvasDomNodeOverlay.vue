@@ -28,7 +28,11 @@ const style = computed(() => ({
 </script>
 
 <template>
-  <div class="pointer-events-none absolute overflow-visible" :style="style">
+  <div
+    class="pointer-events-none absolute overflow-visible"
+    :data-canvas-node-id="sceneNode.node.id"
+    :style="style"
+  >
     <slot
       :layout="effectiveLayout"
       :node="sceneNode.node"

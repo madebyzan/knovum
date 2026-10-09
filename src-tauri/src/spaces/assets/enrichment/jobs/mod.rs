@@ -1,4 +1,6 @@
+mod desktop_tasks;
 mod execution;
+pub(crate) use desktop_tasks::snapshot as desktop_tasks;
 pub(crate) mod intent;
 pub(crate) mod job;
 mod persistence;

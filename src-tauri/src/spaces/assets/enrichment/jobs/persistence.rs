@@ -45,6 +45,7 @@ pub(crate) async fn claim_job(
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(executed.rows_affected() == 1)
 }
 
@@ -66,6 +67,7 @@ pub(crate) async fn defer_for_configuration(
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(executed.rows_affected() == 1)
 }
 
@@ -94,6 +96,7 @@ pub(crate) async fn set_status(
         .execute(pool)
         .await
         .map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(executed.rows_affected() == 1)
 }
 

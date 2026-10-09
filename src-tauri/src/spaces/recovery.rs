@@ -26,12 +26,15 @@ pub async fn await_space_runtime(app: AppHandle) -> Result<(), AppError> {
     Ok(ready(&app).await?)
 }
 
-async fn ready(app: &AppHandle) -> Result<(), String> {
+pub(crate) async fn ready(app: &AppHandle) -> Result<(), String> {
     let state = app.state::<SpaceRuntimeInitialization>();
     state.0.get_or_init(|| recover(app)).await.clone()
 }
 
 async fn recover(app: &AppHandle) -> Result<(), String> {
+    crate::backup::ready(app).await?;
+    crate::ai::await_runtime(app).await?;
+    super::derivation::image_operations::discard_interrupted(app)?;
     let pool = super::db::pool(app).await?;
     super::knowledge::retrieval::invalidation_outbox::drain(app, pool).await?;
     super::assets::reconcile_interrupted_work(app).await?;

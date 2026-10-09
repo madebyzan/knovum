@@ -1,4 +1,4 @@
-use tauri::{Builder, Wry};
+use tauri::{Builder, Manager, Wry};
 
 use crate::{ai, app_resources, app_window, desktop, extensions, secrets, spaces, updater};
 
@@ -18,15 +18,24 @@ fn base_builder() -> Builder<Wry> {
             updater::install_update,
         ])
         .on_webview_event(desktop::file_drop::authorize_drop)
+        .on_page_load(|webview, payload| {
+            if webview.label() == "main"
+                && payload.event() == tauri::webview::PageLoadEvent::Started
+            {
+                desktop::renderer_loading(webview.app_handle());
+            }
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Err(error) = app_window::focus_main(app) {
                 log::error!("failed to focus existing instance: {error}");
             }
         }))
         .plugin(log_plugin())
-        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(crate::backup::plugin())
+        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_clipboard::init())
         .plugin(tauri_plugin_opener::init())
@@ -99,6 +108,7 @@ fn finish(builder: Builder<Wry>) -> tauri::App<Wry> {
     e2e_builder(builder)
         .on_window_event(desktop::handle_window_event)
         .setup(|app| {
+            desktop::install(app.handle());
             secrets::install(app.handle()).map_err(std::io::Error::other)?;
             updater::setup(app.handle())?;
             Ok(())

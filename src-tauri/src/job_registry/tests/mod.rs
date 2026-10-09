@@ -1,4 +1,6 @@
-use super::JobRegistry;
+use std::sync::{mpsc, Arc, Barrier};
+
+use super::{JobAdmissionReservation, JobRegistry};
 
 fn registry() -> &'static JobRegistry<&'static str> {
     Box::leak(Box::new(JobRegistry::new("Test")))
@@ -34,4 +36,90 @@ fn release_rejects_a_missing_job() {
     let registry = registry();
 
     assert!(registry.release("missing").is_err());
+}
+
+#[test]
+fn maintenance_reservation_rejects_active_jobs() {
+    let registry = registry();
+    let _lease = registry
+        .acquire("job-1", "running")
+        .expect("job registered");
+
+    assert!(registry.reserve_maintenance().is_err());
+}
+
+#[test]
+fn maintenance_reservation_closes_and_reopens_admission() {
+    let registry = registry();
+    let reservation = registry
+        .reserve_maintenance()
+        .expect("maintenance reserved");
+
+    assert!(registry.insert("inserted", "job").is_err());
+    assert!(registry.acquire("acquired", "job").is_err());
+    assert!(registry.reserve_maintenance().is_err());
+
+    drop(reservation);
+    let _lease = registry
+        .acquire("after-maintenance", "running")
+        .expect("admission reopened");
+}
+
+#[test]
+fn concurrent_reservation_and_acquire_admit_exactly_one() {
+    let registry = registry();
+    let start = Arc::new(Barrier::new(3));
+    let finish = Arc::new(Barrier::new(3));
+    let (results, received) = mpsc::channel();
+
+    let reservation_thread = {
+        let start = start.clone();
+        let finish = finish.clone();
+        let results = results.clone();
+        std::thread::spawn(move || {
+            start.wait();
+            let reservation = registry.reserve_maintenance();
+            results
+                .send(reservation.is_ok())
+                .expect("report reservation result");
+            finish.wait();
+            drop(reservation);
+        })
+    };
+    let acquire_thread = {
+        let start = start.clone();
+        let finish = finish.clone();
+        std::thread::spawn(move || {
+            start.wait();
+            let lease = registry.acquire("concurrent", "running");
+            results.send(lease.is_ok()).expect("report acquire result");
+            finish.wait();
+            drop(lease);
+        })
+    };
+
+    start.wait();
+    let first = received.recv().expect("first result");
+    let second = received.recv().expect("second result");
+    finish.wait();
+    reservation_thread.join().expect("reservation thread");
+    acquire_thread.join().expect("acquire thread");
+    assert_ne!(first, second);
+}
+
+#[test]
+fn partial_multi_registry_reservation_releases_prior_guards() {
+    let first = registry();
+    let second = registry();
+    let _busy = second.acquire("busy", "running").expect("active job");
+
+    let reservations: Result<[JobAdmissionReservation; 2], String> = (|| {
+        let first = first.reserve_maintenance()?;
+        let second = second.reserve_maintenance()?;
+        Ok([first, second])
+    })();
+    assert!(reservations.is_err());
+    let _lease = first
+        .acquire("after-rollback", "running")
+        .expect("prior reservation released");
 }

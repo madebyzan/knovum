@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import { Pencil, Plus, Trash2 } from "@lucide/vue";
-import { computed, shallowRef, watch } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { removeAiConnectionModel, saveAiConnectionModel } from "../../../foundation/ai/connection-settings";
 import { requireProvider } from "../../../foundation/ai/providers";
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
-import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import { useAiModelEditing } from "../use-ai-model-editing";
 import AiModelEditor from "./AiModelEditor.vue";
 
 const props = defineProps<{
@@ -23,11 +20,22 @@ const props = defineProps<{
   createRequest?: { purpose: RoutingPurpose } | undefined;
 }>();
 const { t } = useI18n();
-const selected = shallowRef<string | null>();
-const dirty = shallowRef(false);
-const busy = shallowRef(false);
-const error = shallowRef("");
-const editingModel = computed(() => props.connection.models.find(({ id }) => id === selected.value));
+const {
+  selected,
+  dirty,
+  busy,
+  error,
+  editingModel,
+  modelInUse,
+  openModel,
+  requestClose,
+  saveModel,
+  removeModel,
+} = useAiModelEditing({
+  connection: () => props.connection,
+  protectedModelTargets: () => props.protectedModelTargets,
+  t,
+});
 const dialogOpen = computed({
   get: () => selected.value !== undefined,
   set: (value: boolean) => {
@@ -42,85 +50,12 @@ const capabilityKey: Record<ExecutionCapability, string> = {
   embedding: "embedding",
 };
 
-function modelInUse(modelId: string) {
-  return props.protectedModelTargets.includes(
-    JSON.stringify({ type: "model", connectionId: props.connection.id, modelId }),
-  );
-}
-
-function openModel(modelId?: string) {
-  if (busy.value) return;
-  selected.value = modelId ?? null;
-  dirty.value = false;
-  error.value = "";
-}
 watch(
   () => props.createRequest,
   (request) => {
     if (request) openModel();
   },
 );
-
-function closeEditor() {
-  selected.value = undefined;
-  dirty.value = false;
-  error.value = "";
-}
-
-async function requestClose() {
-  if (busy.value) return;
-  if (
-    dirty.value &&
-    !(await confirmAction({
-      title: t("settings.ai.discardChangesTitle"),
-      description: t("settings.ai.discardChanges"),
-      confirmLabel: t("common.discardChanges"),
-      danger: true,
-    }))
-  )
-    return;
-  closeEditor();
-}
-
-async function saveModel(model: AiModelDefinition) {
-  const connection = props.connection;
-  busy.value = true;
-  error.value = "";
-  if (connection.models.some(({ id, model: identifier }) => id !== model.id && identifier === model.model)) {
-    error.value = t("settings.ai.duplicateModelIdentifier");
-    busy.value = false;
-    return;
-  }
-  try {
-    await saveAiConnectionModel(connection.id, model);
-    closeEditor();
-  } catch (cause) {
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
-  } finally {
-    busy.value = false;
-  }
-}
-
-async function removeModel(model: AiModelDefinition) {
-  const connection = props.connection;
-  if (busy.value || modelInUse(model.id)) return;
-  const confirmed = await confirmAction({
-    title: t("common.delete"),
-    description: t("settings.ai.deleteModelConfirm", { name: model.name }),
-    confirmLabel: t("common.delete"),
-    danger: true,
-  });
-  if (!confirmed) return;
-  busy.value = true;
-  error.value = "";
-  try {
-    await removeAiConnectionModel(connection.id, model.id);
-  } catch (cause) {
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
-  } finally {
-    busy.value = false;
-  }
-}
 </script>
 
 <template>

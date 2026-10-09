@@ -49,16 +49,21 @@ Local inference runs in verified, application-owned CPython environments over JS
 The application selects and prepares the required environment and model when a capability is used;
 users do not select internal runtimes. Compiled tools and workers are resolved from fixed development
 or installed application locations, never from `PATH` or project environment overrides. Required
-resources fail explicitly when unavailable or invalid.
+resources fail explicitly when unavailable or invalid. Local IPC queries and mutations use TanStack
+`networkMode: always`. Only Renderer-owned network requests use browser connectivity admission.
+Mixed local/remote extension and MCP IPC always reaches Rust, whose transport reports actual network
+failures without blocking local directory, ZIP or stdio operations.
 
 ## Startup and recovery
 
 ```text
 OS launches Knovum
       |
-create hidden main window
+create hidden main window; arm Rust startup deadline
       |
 mount bootstrap/error shell
+      |
+finish explicit backup/restore maintenance before opening product stores
       |
 load strict preferences and embedded database baselines
 recover interrupted durable work and resource state
@@ -71,7 +76,10 @@ reveal usable application or recoverable bootstrap error
 There is no splash WebView. Dock or taskbar feedback covers startup until the main window can show a
 usable or recoverable state. Rust starts Space recovery once; every consumer awaits that same result.
 Schedulers cannot dispatch before recovery succeeds, and a recovery failure cannot be reported as
-ready.
+ready. Explicit backup/restore maintenance runs at the next process start before SQLite pools,
+Tauri Store reads or interrupted-job recovery. Every storage consumer awaits one retained maintenance
+result. Unreconciled restore publication blocks initialization; ordinary operation failure is reported
+with the original data preserved. The native launch progress remains active during maintenance.
 
 Pre-release storage uses strict current baselines. Obsolete formats are rejected or explicitly reset;
 the application does not silently reinterpret them through compatibility readers. Recovery may resume
@@ -97,12 +105,13 @@ and guarded insertion. Recognition uses the same private speech capability as me
 
 ```text
 Feature engine / Run scheduler
+      +-- committed Rust task projections --> Dock/taskbar + native notifications
       |
 Tauri Channel<TaskUpdate>
       |
-foundation task bridge
+foundation task bridge --> Task Center
       |
-Task Center + Dock/taskbar + notification
+bounded session-only desktop projection
 ```
 
 Task Center is a presentation projection, not the authority for work. The feature or Run engine owns

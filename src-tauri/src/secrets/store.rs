@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager};
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations/secrets");
 
 pub(super) async fn open(app: &AppHandle) -> Result<SqlitePool, String> {
+    crate::backup::ready(app).await?;
     let path = app
         .path()
         .app_config_dir()

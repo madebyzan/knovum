@@ -1,4 +1,5 @@
 use crate::app_error::AppError;
+pub(crate) mod control;
 mod import;
 mod manifest_assets;
 mod remap;
@@ -79,23 +80,50 @@ pub async fn export_space_package(
     app: tauri::AppHandle,
     space_id: String,
     destination_path: String,
+    operation_id: String,
     on_progress: Channel<SpacePackageProgress>,
 ) -> Result<(), AppError> {
+    let (cancellation, _lease) = control::begin(&operation_id)?;
+    send_progress(&on_progress, "admitted", 0, 0)?;
+    control::check(&cancellation)?;
     let snapshot = crate::spaces::queries::package_snapshot::collect(&app, space_id).await?;
+    control::check(&cancellation)?;
     let manifest = serde_json::to_string(&snapshot.manifest).map_err(|e| e.to_string())?;
-    Ok(crate::blocking::run(move || {
+    crate::blocking::run(move || {
         let target = PathBuf::from(destination_path);
         crate::spaces::assets::authorize_destination(&app, &target)?;
-        write::write_package(&app, &target, &manifest, &snapshot.assets, &on_progress)
+        write::write_package(
+            &app,
+            &target,
+            &manifest,
+            &snapshot.assets,
+            &on_progress,
+            &cancellation,
+        )
     })
-    .await?)
+    .await
 }
 
 #[tauri::command]
 pub async fn import_space_package(
     app: tauri::AppHandle,
     source_path: String,
+    operation_id: String,
     on_progress: Channel<SpacePackageProgress>,
 ) -> Result<serde_json::Value, AppError> {
-    import::execute(app, PathBuf::from(source_path), on_progress).await
+    let (cancellation, lease) = control::begin(&operation_id)?;
+    send_progress(&on_progress, "admitted", 0, 0)?;
+    import::execute(
+        app,
+        PathBuf::from(source_path),
+        on_progress,
+        cancellation,
+        lease,
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn cancel_space_package_transfer(operation_id: String) -> Result<(), AppError> {
+    control::cancel(&operation_id)
 }

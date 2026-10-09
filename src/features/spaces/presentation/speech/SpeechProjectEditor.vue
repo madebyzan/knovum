@@ -45,6 +45,10 @@ const emit = defineEmits<{
   cancel: [];
   stopListening: [];
   export: [path: string];
+  draftState: [
+    value: boolean,
+    input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
+  ];
 }>();
 const { t } = useI18n();
 const dirty = shallowRef(false);
@@ -84,6 +88,14 @@ function forwardPreview(
 ) {
   emit("preview", text, voiceRevisionId, pronunciationLexicon, deliveryInstruction);
 }
+
+function updateDraft(
+  value: boolean,
+  input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
+) {
+  dirty.value = value;
+  emit("draftState", value, input);
+}
 </script>
 
 <template>
@@ -98,7 +110,7 @@ function forwardPreview(
       :source-text="nodeSpeechText(sourceNode)"
       :voices="voices"
       :disabled="editorDisabled"
-      @dirty="dirty = $event"
+      @draft-state="updateDraft"
       @save="emit('save', $event)"
       @preview="forwardPreview"
     />
@@ -108,7 +120,7 @@ function forwardPreview(
       :source-node="sourceNode"
       :voices="voices"
       :disabled="editorDisabled"
-      @dirty="dirty = $event"
+      @draft-state="updateDraft"
       @save="emit('save', $event)"
       @preview="forwardPreview"
     />
@@ -117,7 +129,7 @@ function forwardPreview(
       :project="project"
       :voices="voices"
       :disabled="editorDisabled"
-      @dirty="dirty = $event"
+      @draft-state="updateDraft"
       @save="emit('save', $event)"
       @preview="forwardPreview"
       @busy="operationBusy = $event"

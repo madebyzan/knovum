@@ -5,47 +5,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
+import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
 import ConnectorSettings from "../connectors/ConnectorSettings.vue";
+import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, input?: Record<string, unknown>) => Promise<unknown>>(),
 }));
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
-const service: ConnectorDefinition = {
-  id: "github",
-  revision: "service-one",
-  name: "GitHub",
-  description: "Read issues and repositories",
-  pluginId: null,
-  componentName: null,
-  authorization: { type: "none" },
-  endpoint: {
-    type: "streamable_http",
-    url: "https://example.com/mcp",
-    headers: {},
-    allowLocalNetwork: false,
-  },
-};
-function instanceFixture(id: string): McpConnection {
-  return {
-    id,
-    connectorId: service.id,
-    name: id,
-    revision: "instance-one",
-    accountId: null,
-    enabled: false,
-    tools: [],
-  };
-}
 let services: ConnectorDefinition[];
 let connections: McpConnection[];
 let mounted: ReturnType<typeof mount> | undefined;
 let queryClient: QueryClient;
 
 beforeEach(() => {
-  services = [structuredClone(service)];
-  connections = [instanceFixture("Work"), instanceFixture("Personal")];
+  services = [structuredClone(connectorFixture)];
+  connections = [mcpConnectionFixture("Work"), mcpConnectionFixture("Personal")];
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   mocks.invoke.mockReset();
   mocks.invoke.mockImplementation(async (command: string, input?: Record<string, unknown>) => {
@@ -55,7 +31,7 @@ beforeEach(() => {
       case "plugin:extensions|list_mcp_connections":
         return structuredClone(connections);
       case "plugin:extensions|create_mcp_connection": {
-        const created = { ...instanceFixture("new"), name: input!.name as string };
+        const created = mcpConnectionFixture("new", input!.name as string);
         connections.push(created);
         return created;
       }
@@ -85,6 +61,9 @@ async function open() {
   mounted = mount(ConnectorSettings, {
     global: {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
+      },
       mocks: { $t: (key: string) => key },
       stubs: { UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' } },
     },

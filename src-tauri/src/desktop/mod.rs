@@ -1,23 +1,22 @@
 use crate::app_error::AppError;
+mod exit;
 pub(crate) mod file_drop;
+pub(crate) use exit::AppExitRequest;
+mod editing;
+pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
+mod startup;
+mod tasks;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod tray;
-
-use std::sync::atomic::{AtomicBool, Ordering};
+mod window_close;
 
 #[cfg(target_os = "macos")]
 use tauri::menu::{Menu, MenuEvent};
-use tauri::Emitter;
 use tauri::{plugin::TauriPlugin, AppHandle, Manager, RunEvent, Runtime, Window, WindowEvent, Wry};
 
 const MAIN_WINDOW_LABEL: &str = "main";
-const APP_EXIT_REQUESTED_EVENT: &str = "knovum://app-exit-requested";
-static APP_EXIT_APPROVED: AtomicBool = AtomicBool::new(false);
-static APP_EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
-static EXIT_COORDINATOR_READY: AtomicBool = AtomicBool::new(false);
-
 #[cfg(target_os = "macos")]
 pub fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     menu::build(app, "en")
@@ -36,6 +35,7 @@ pub fn set_locale<R: Runtime>(app: AppHandle<R>, locale: String) -> Result<(), A
         _ => return Err("unsupported system locale".into()),
     };
 
+    tasks::set_locale(&app, locale);
     #[cfg(target_os = "macos")]
     menu::rebuild(&app, locale).map_err(|error| error.to_string())?;
 
@@ -67,25 +67,23 @@ pub fn set_workspace_menu_state<R: Runtime>(
 
 #[tauri::command]
 pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
-    tray::ensure_installed(&app, "en").map_err(|error| error.to_string())?;
-    Ok((crate::app_window::focus_main(&app))?)
-}
-
-#[tauri::command]
-pub fn decide_app_exit_request<R: Runtime>(app: AppHandle<R>, approved: bool) {
-    APP_EXIT_REQUESTED.store(false, Ordering::SeqCst);
-    if approved {
-        APP_EXIT_APPROVED.store(true, Ordering::SeqCst);
-        app.exit(0);
-    }
-}
-
-#[tauri::command]
-pub fn mark_exit_coordinator_ready<R: Runtime>(app: AppHandle<R>) {
-    EXIT_COORDINATOR_READY.store(true, Ordering::SeqCst);
-    if APP_EXIT_REQUESTED.load(Ordering::SeqCst) {
-        emit_app_exit_request(&app);
+    let reveal = || -> Result<(), String> {
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        tray::ensure_installed(&app, "en").map_err(|error| error.to_string())?;
+        crate::app_window::focus_main(&app)
+    };
+    match reveal() {
+        Ok(()) => {
+            startup::settle();
+            Ok(())
+        }
+        Err(error) => {
+            startup::fail(
+                &app,
+                &format!("The main window could not be revealed: {error}"),
+            );
+            Err(AppError::new("main_window_reveal_failed", error))
+        }
     }
 }
 
@@ -95,8 +93,16 @@ pub fn plugin() -> TauriPlugin<Wry> {
             set_locale,
             set_workspace_menu_state,
             reveal_main_window,
-            mark_exit_coordinator_ready,
-            decide_app_exit_request
+            exit::mark_exit_coordinator_ready,
+            exit::acknowledge_app_exit_request,
+            exit::decide_app_exit_request,
+            startup::report_startup_failure,
+            tasks::project_session_tasks,
+            tasks::set_task_notifications,
+            editing::perform_editing,
+            window_close::begin_window_close,
+            window_close::acknowledge_window_close,
+            window_close::complete_window_close
         ])
         .build()
 }
@@ -109,6 +115,7 @@ pub fn handle_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     if let WindowEvent::CloseRequested { api, .. } = event {
         api.prevent_close();
+        window_close::request(window.app_handle());
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -123,13 +130,13 @@ pub fn handle_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
             .try_state::<crate::updater::UpdateService>()
             .is_some_and(|service| service.blocks_exit())
         {
-            APP_EXIT_APPROVED.store(false, Ordering::SeqCst);
+            exit::revoke_approval();
             if *code != Some(tauri::RESTART_EXIT_CODE) {
                 api.prevent_exit();
             }
             return;
         }
-        if APP_EXIT_APPROVED.swap(false, Ordering::SeqCst) {
+        if exit::take_approval() {
             return;
         }
         api.prevent_exit();
@@ -155,17 +162,33 @@ pub fn handle_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
 }
 
 pub(crate) fn request_app_exit<R: Runtime>(app: &AppHandle<R>) {
-    if APP_EXIT_REQUESTED.swap(true, Ordering::SeqCst) {
-        return;
-    }
-    if EXIT_COORDINATOR_READY.load(Ordering::SeqCst) {
-        emit_app_exit_request(app);
-    }
+    exit::request(app);
 }
 
-fn emit_app_exit_request<R: Runtime>(app: &AppHandle<R>) {
-    if let Err(error) = app.emit(APP_EXIT_REQUESTED_EVENT, ()) {
-        APP_EXIT_REQUESTED.store(false, Ordering::SeqCst);
-        log::error!("failed to request coordinated application exit: {error}");
-    }
+pub(crate) fn install(app: &AppHandle) {
+    tasks::install(app);
+    startup::begin(app);
+}
+
+pub(crate) fn renderer_loading<R: Runtime>(app: &AppHandle<R>) {
+    exit::renderer_loading();
+    startup::begin(app);
+}
+
+pub(crate) fn restart_for_maintenance<R: Runtime>(app: &AppHandle<R>) -> ! {
+    exit::restart(app)
+}
+
+pub(crate) fn set_maintenance_progress<R: Runtime>(
+    app: &AppHandle<R>,
+    progress: Option<u8>,
+) -> Result<(), String> {
+    tasks::maintenance(app, progress, None)
+}
+
+pub(crate) fn finish_maintenance_progress<R: Runtime>(
+    app: &AppHandle<R>,
+    succeeded: bool,
+) -> Result<(), String> {
+    tasks::maintenance(app, Some(100), Some(succeeded))
 }

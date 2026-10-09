@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, Save } from "@lucide/vue";
-import { computed, shallowRef, useTemplateRef, watch, type DeepReadonly } from "vue";
+import { computed, shallowRef, useTemplateRef, watch, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -30,7 +30,10 @@ const emit = defineEmits<{
     pronunciationLexicon: Record<string, string>,
     deliveryInstruction?: string,
   ];
-  dirty: [value: boolean];
+  draftState: [
+    value: boolean,
+    input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
+  ];
   busy: [value: boolean];
 }>();
 const { t } = useI18n();
@@ -63,7 +66,13 @@ const deliveryInstructionVoiceIds = computed(
       props.voices.filter((voice) => voice.supportsDeliveryInstruction).map((voice) => voice.revisionId),
     ),
 );
-watch(draft.dirty, (value) => emit("dirty", value), { immediate: true });
+watchEffect(() =>
+  emit(
+    "draftState",
+    draft.dirty.value,
+    draft.dirty.value && draft.valid.value ? draft.revisionInput() : undefined,
+  ),
+);
 </script>
 
 <template>

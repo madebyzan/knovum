@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { currentCanvasEditor } from "../canvas/editor-session";
 import { isSpaceEditorNode, type SpaceEditorNode } from "../canvas/node-capabilities";
 import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
@@ -49,11 +50,9 @@ export function useSpaceTiptapEditor() {
       throw error;
     }
   };
-
   const persistInBackground = () => {
     void persist().catch((error) => toast.error(getErrorMessage(error)));
   };
-
   const autoSave = useDebounceFn(persistInBackground, 1000);
 
   const scheduleAutoSave = () => {
@@ -84,7 +83,10 @@ export function useSpaceTiptapEditor() {
     content: initialContent.content,
     ...(initialContent.contentType === undefined ? {} : { contentType: initialContent.contentType }),
     editorProps: { attributes: { class: "space-tiptap-prose", spellcheck: "true" } },
-    onCreate: () => void derive(),
+    onCreate: ({ editor: instance }) => {
+      instance.commands.focus("start");
+      void derive();
+    },
     onUpdate: () => {
       state.revision.value += 1;
       void derive();
@@ -92,7 +94,6 @@ export function useSpaceTiptapEditor() {
     },
     onSelectionUpdate: ({ editor: instance }) => (state.selection.value = instance.state.selection.from),
   });
-
   watch(
     [editorLocateRequest, editorNode, editor],
     ([request, node, instance]) => {
@@ -117,6 +118,7 @@ export function useSpaceTiptapEditor() {
         state.loadedId = undefined;
         focusedEditorId.value = undefined;
       });
+      await nextTick().then(() => currentCanvasEditor()?.focus());
     } catch (error) {
       toast.error(getErrorMessage(error));
     }

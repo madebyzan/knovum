@@ -1,6 +1,6 @@
 import { onBeforeUnmount, provide } from "vue";
 
-import { registerSpaceSessionParticipant } from "../../canvas/editor-session";
+import { registerSpaceSessionParticipant } from "../../workspace/session-participants";
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import { canvasContentMeasurementKey } from "./canvas-content-measurement";
 

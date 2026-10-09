@@ -7,9 +7,11 @@ import { TabsList, TabsRoot } from "reka-ui";
 import { computed, nextTick, useTemplateRef, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
+import { toast } from "vue-sonner";
 
 import { syncWorkspaceMenuState } from "../../../../foundation/desktop/workspace-menu";
-import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
+import { formatErrorDiagnostic, getErrorMessage } from "../../../../foundation/errors/error-format";
+import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { Space } from "../../model/space";
 import { useSpaceStore } from "../../session/space-store";
@@ -24,6 +26,7 @@ const route = useRoute();
 const { spaces, draftSpace, activeSpaceId, openSpaceIds, closedSpaceIds, workspaceMode } = storeToRefs(store);
 const { locale, t } = useI18n();
 const tabsViewport = useTemplateRef<HTMLDivElement>("tabsViewport");
+const newSpaceButtonHost = useTemplateRef<HTMLElement>("newSpaceButtonHost");
 const openSpaces = computed(() =>
   openSpaceIds.value.flatMap((id) => {
     const space =
@@ -62,15 +65,32 @@ function activateTab(id: unknown) {
 }
 
 function closeTab(id: string) {
-  void store.closeSpaceTab(id).catch(reportTabFailure);
+  void closeTabs(() => store.closeSpaceTab(id));
 }
 
 function closeOtherTabs(id: string) {
-  void store.closeOtherSpaceTabs(id).catch(reportTabFailure);
+  void closeTabs(() => store.closeOtherSpaceTabs(id));
 }
 
 function closeTabsToRight(id: string) {
-  void store.closeSpaceTabsToRight(id).catch(reportTabFailure);
+  void closeTabs(() => store.closeSpaceTabsToRight(id));
+}
+
+async function closeTabs(operation: () => Promise<void>) {
+  try {
+    await operation();
+    await nextTick();
+    const activeId = store.activeSpaceId;
+    if (activeId) {
+      tabsViewport.value
+        ?.querySelector<HTMLElement>(`[data-space-id="${CSS.escape(activeId)}"] [role="tab"]`)
+        ?.focus();
+    } else {
+      newSpaceButtonHost.value?.querySelector<HTMLElement>("button")?.focus();
+    }
+  } catch (error) {
+    reportTabFailure(error);
+  }
 }
 
 function showTabMenu(space: Space) {
@@ -90,16 +110,18 @@ function showTabMenu(space: Space) {
   ]);
 }
 
-// Template handlers drop the promise a tab action returns, and a rejected action leaves the tab bar
-// visibly unchanged, so the reason belongs in the application log rather than in an unhandled warning.
 function reportTabFailure(error: unknown) {
+  if (isApplicationLeaveCancelled(error)) return;
+  toast.error(`${t("spaces.space.tabs.actionFailed")}: ${getErrorMessage(error)}`);
   void logError(`Workspace tab action failed: ${formatErrorDiagnostic(error)}`);
 }
 </script>
 
 <template>
   <div class="flex min-w-0 flex-1 items-center gap-1">
-    <SpaceLibraryToolbar v-if="workspaceMode === 'library'" @create="createSpace" />
+    <div v-if="workspaceMode === 'library'" ref="newSpaceButtonHost" class="contents">
+      <SpaceLibraryToolbar @create="createSpace" />
+    </div>
     <TabsRoot
       v-else
       :model-value="activeSpaceId ?? ''"
@@ -125,15 +147,11 @@ function reportTabFailure(error: unknown) {
             @context-menu="showTabMenu(space)"
           />
         </TabsList>
-        <UiIconButton
-          class="shrink-0"
-          :label="t('spaces.space.new')"
-          shortcut="$mod+T"
-          size="sm"
-          @click="createSpace"
-        >
-          <Plus class="size-3.5" :stroke-width="1.6" />
-        </UiIconButton>
+        <span ref="newSpaceButtonHost" class="shrink-0">
+          <UiIconButton :label="t('spaces.space.new')" shortcut="$mod+T" size="sm" @click="createSpace">
+            <Plus class="size-3.5" :stroke-width="1.6" />
+          </UiIconButton>
+        </span>
       </div>
     </TabsRoot>
   </div>

@@ -15,6 +15,9 @@ vi.mock("../../../foundation/ai/creation-library-store", () => ({
   useCreationLibraryStore: () => creationStore,
 }));
 vi.mock("../../../foundation/ai/providers", () => ({ loadProviderDescriptors: async () => [] }));
+vi.mock("../../../foundation/lifecycle/window-close-coordinator", () => ({
+  registerWindowCloseCommit: () => () => {},
+}));
 vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => ({ label: "main" }) }));
 
 const ready = shallowRef(false);
@@ -30,6 +33,7 @@ const creationStore = reactive({
   ready,
   loadError: shallowRef<Error>(),
   ensureLoaded: async () => {},
+  flush: async () => {},
 });
 const extensions = defineComponent({ render: () => h("section", { "data-testid": "extensions-pane" }) });
 
@@ -45,20 +49,25 @@ it.each(["loading", "ready", "failed"])(
     if (state === "failed") loadError.value = new Error("Unable to load model settings");
     const router = createRouter({
       history: createMemoryHistory(),
-      routes: [{ path: "/settings", component: SettingsView }],
+      routes: [
+        {
+          path: "/settings",
+          component: SettingsView,
+          props: {
+            loadGenerationActions: async () => [],
+            extensionsComponent: extensions,
+            voiceLibraryComponent: extensions,
+          },
+        },
+      ],
     });
     await router.push("/settings?pane=appearance");
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const wrapper = mount(SettingsView, {
-      props: {
-        loadGenerationActions: async () => [],
-        extensionsComponent: extensions,
-        voiceLibraryComponent: extensions,
-      },
+    const wrapper = mount(defineComponent({ template: "<router-view />" }), {
       global: {
         plugins: [createPinia(), i18n, router, [VueQueryPlugin, { queryClient }]],
         stubs: {
-          Transition: false,
+          Transition: { template: "<div><slot /></div>" },
           UiScrollArea: { template: "<div><slot /></div>" },
           AiConnectionsSettings: { template: '<section data-testid="model-connections" />' },
           AiRoutingSettings: true,
@@ -77,7 +86,8 @@ it.each(["loading", "ready", "failed"])(
     expect(wrapper.find("#settings-appearance-theme").exists()).toBe(true);
     /* oxlint-disable no-await-in-loop -- Each navigation must finish before the next settings switch. */
     for (let cycle = 0; cycle < 2; cycle++) {
-      await wrapper.get('[data-testid="settings-pane-aiModels"]').trigger("click");
+      await router.replace({ path: "/settings", query: { pane: "aiModels" } });
+      expect(router.currentRoute.value.query.pane).toBe("aiModels");
       await flushPromises();
       await vi.waitFor(() =>
         expect(wrapper.find('[data-testid="ai-models-settings-pane"]').exists()).toBe(true),
@@ -92,7 +102,7 @@ it.each(["loading", "ready", "failed"])(
         ["creation", '[data-testid="creation-pane"]'],
         ["usage", '[data-testid="usage-pane"]'],
       ] as const) {
-        await wrapper.get(`[data-testid="settings-pane-${pane}"]`).trigger("click");
+        await router.replace({ path: "/settings", query: { pane } });
         await flushPromises();
         await vi.waitFor(() => expect(wrapper.find(selector).exists()).toBe(true));
       }

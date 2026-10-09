@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const generatedContractOutputs = [
   "src/shared/contracts/generated",
   "src/features/spaces/contracts/generated",
+  "src/features/settings/contracts/generated",
   "src/features/dictation/contracts/generated",
   "python/schemas",
   "python/src/knovum_inference/contracts/generated",

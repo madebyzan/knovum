@@ -2,7 +2,7 @@ import type { Editor } from "@tiptap/vue-3";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { registerSpaceSessionParticipant } from "../canvas/editor-session";
+import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 
 interface TiptapSessionParticipantOptions {
   cancelAutoSave(): void;

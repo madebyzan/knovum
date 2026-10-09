@@ -18,6 +18,7 @@ import {
   type Preferences,
   type TextSizePreference,
   type ThemePreference,
+  type WorkbenchPreferences,
 } from "./schema/preferences";
 
 const SETTINGS_FILE = "settings.json";
@@ -28,7 +29,10 @@ let osLocale: AppLocale = "en";
 let stopThemeListener: (() => void) | undefined;
 
 function snapshot(state: Preferences): Preferences {
-  return pick(state, ["theme", "density", "textSize", "locale"]);
+  return {
+    ...pick(state, ["theme", "density", "textSize", "locale", "backgroundTaskNotifications"]),
+    workbench: { ...state.workbench },
+  };
 }
 
 function activeTheme(theme: ThemePreference): Theme {
@@ -60,7 +64,7 @@ function applyPreferences(state: Preferences): void {
 }
 
 export const usePreferencesStore = defineStore("preferences", () => {
-  const preferences = reactive({ ...defaultPreferences });
+  const preferences = reactive(snapshot(defaultPreferences));
   const serialize = pLimit(1);
   let loaded = false;
   let dirty = false;
@@ -84,6 +88,9 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
       await currentWindow.setTheme(preferences.theme === "system" ? null : preferences.theme);
       await syncSystemLocale(preferences.locale);
+      await invokeCommand("plugin:desktop|set_task_notifications", {
+        enabled: preferences.backgroundTaskNotifications,
+      });
       applyPreferences(snapshot(preferences));
 
       if (!stopThemeListener) {
@@ -143,6 +150,19 @@ export const usePreferencesStore = defineStore("preferences", () => {
     });
   }
 
+  function setWorkbenchLayout(layout: WorkbenchPreferences) {
+    return mutate(() => {
+      Object.assign(preferences.workbench, layout);
+    });
+  }
+
+  function setBackgroundTaskNotifications(enabled: boolean) {
+    return mutate(async () => {
+      await invokeCommand("plugin:desktop|set_task_notifications", { enabled });
+      preferences.backgroundTaskNotifications = enabled;
+    });
+  }
+
   return {
     ...toRefs(preferences),
     load: loadPreferences,
@@ -151,6 +171,8 @@ export const usePreferencesStore = defineStore("preferences", () => {
     setDensity,
     setTextSize,
     setLocale,
+    setWorkbenchLayout,
+    setBackgroundTaskNotifications,
   };
 });
 

@@ -555,6 +555,8 @@ Interactive WebView controls remain ordinary controls, not drag regions. Feature
 - all scrolling surfaces read the single `--knovum-scrollbar-size` token and use the shared thin overlay-scrollbar profile: transparent track, rounded thumb, quiet resting contrast and stronger hover contrast. `UiScrollArea` is preferred for normal product regions; unavoidable overflow surfaces inherit the same global profile;
 - command palette is the global command discovery surface;
 - application shortcuts do not steal OS text-editing keys from inputs, textareas, selects or editable content unless a command explicitly declares itself safe in editable contexts;
+- single-line input commit/cancel events ignore Enter and Escape while IME composition is active; feature forms consume the shared semantic events instead of attaching raw commit key handlers;
+- closing a tab or full-surface editor explicitly returns focus to the newly active tab, the new-Space control, or the underlying canvas so keyboard work can continue without a pointer click;
 - frequent macOS commands also exist in the macOS application menu;
 - `UiKbd` renders platform-correct modifiers;
 - icon-only actions require an accessible label and tooltip when the icon is not self-evident;
@@ -568,7 +570,7 @@ Interactive WebView controls remain ordinary controls, not drag regions. Feature
 
 Reka UI owns behavior: focus, keyboard navigation, ARIA, portals, collision and primitive state. `shared/ui` owns only durable Knovum visual compositions.
 
-Do not wrap Reka merely to rename props/events. For richer WebView-owned structures such as Tree, Dropdown Menu, Combobox and Toolbar, compose Reka directly until a repeated Knovum visual composition is proven. Right-click desktop context menus are platform-owned through Tauri Menu and are not a Reka surface.
+Do not wrap Reka merely to rename props/events. For richer WebView-owned structures such as Tree, Dropdown Menu, Combobox and Toolbar, compose Reka directly until a repeated Knovum visual composition is proven. Right-click desktop context menus are platform-owned through Tauri Menu and are not a Reka surface. Reka dialog content declares the active application-command scope: background commands are suppressed while a modal is open, with explicit per-dialog command allowances only when the modal owns that action.
 
 Choose component ownership by interaction contract, not markup similarity:
 
@@ -637,3 +639,7 @@ outside Spaces. Built-in Tailwind palette variables are available to token defin
 Typography roles remain caption, label, body, title and display, with only existing meaningful size
 variants. Keep caption-sm for keyboard hints/debug metadata; use label for operation text, body/body-lg
 for reading, and title-sm for compact headings. Do not add size slots to make a symmetrical matrix.
+
+`UiInput` emits composition-safe `commit`/`cancel` events with the original keyboard event.
+Consumers that own Enter/Escape actions use explicit `.prevent` modifiers; an ordinary input keeps
+native form submission and dialog behavior.

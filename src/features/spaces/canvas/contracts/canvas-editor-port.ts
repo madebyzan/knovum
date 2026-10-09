@@ -48,6 +48,7 @@ export interface CanvasContentHeightMeasurement {
 
 export interface CanvasEditorPort {
   cancelInteraction(): void;
+  focus(): void;
   copySelection(): Promise<void>;
   cutSelection(): Promise<void>;
   pasteSelection(): Promise<boolean>;

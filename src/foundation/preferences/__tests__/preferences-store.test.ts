@@ -98,3 +98,38 @@ it("does not overwrite unloaded preferences", async () => {
   await usePreferencesStore().flush();
   expect(calls.set).not.toHaveBeenCalled();
 });
+
+it("loads absent optional preferences without rewriting disk and saves a complete value on edit", async () => {
+  calls.load.mockResolvedValue({
+    ...disk,
+    get: async () => ({
+      schemaVersion: 1,
+      value: { theme: "dark", density: "comfortable", textSize: "large", locale: "zh-CN" },
+    }),
+  });
+  const store = usePreferencesStore();
+  await store.load();
+  await store.flush();
+  expect(store.theme).toBe("dark");
+  expect(store.locale).toBe("zh-CN");
+  expect(calls.set).not.toHaveBeenCalled();
+  expect(calls.save).not.toHaveBeenCalled();
+
+  await store.setDensity("compact");
+  expect(calls.stored).toEqual({
+    schemaVersion: 1,
+    value: {
+      theme: "dark",
+      density: "compact",
+      textSize: "large",
+      locale: "zh-CN",
+      backgroundTaskNotifications: true,
+      workbench: {
+        sidebarVisible: true,
+        sidebarWidth: 224,
+        rightSidebarVisible: false,
+        rightSidebarWidth: 380,
+      },
+    },
+  });
+});

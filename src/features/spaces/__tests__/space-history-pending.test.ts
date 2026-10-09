@@ -7,6 +7,8 @@ import {
   waitForSpaceMutations,
 } from "../history/mutation-barrier";
 import { recordSpaceHistory, redoSpaceHistory, undoSpaceHistory } from "../history/stack";
+import { switchSpaceHistory } from "../workspace/session-history";
+import type { SpaceSessionContext } from "../workspace/space-session-context";
 
 describe("space history pending mutations", () => {
   it("does not start undo while a canvas mutation is pending", async () => {
@@ -54,5 +56,32 @@ describe("space history pending mutations", () => {
     expect(undo).not.toHaveBeenCalled();
     expect(redo).not.toHaveBeenCalled();
     reopen();
+  });
+
+  it("restores each open Space's undo stack after tab switches", async () => {
+    const { history } = createSpaceHistoryState();
+    const undoA = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const undoB = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const context = {
+      activeSpaceId: { value: "space-a" },
+      history,
+      runtime: { openGeneration: 0, historyBySpace: new Map() },
+    } as unknown as SpaceSessionContext;
+
+    recordSpaceHistory(history, { undo: undoA, redo: async () => {} });
+    switchSpaceHistory(context, "space-b");
+    context.activeSpaceId.value = "space-b";
+    recordSpaceHistory(history, { undo: undoB, redo: async () => {} });
+    switchSpaceHistory(context, "space-a");
+    context.activeSpaceId.value = "space-a";
+
+    await undoSpaceHistory(history);
+    expect(undoA).toHaveBeenCalledOnce();
+    expect(undoB).not.toHaveBeenCalled();
+
+    switchSpaceHistory(context, "space-b");
+    expect(history.undoStack).toHaveLength(1);
+    await undoSpaceHistory(history);
+    expect(undoB).toHaveBeenCalledOnce();
   });
 });

@@ -27,6 +27,7 @@ export interface AppCommand {
   shortcutListing?: CommandShortcutListing;
   category?: CommandCategory;
   appMenuShortcut?: true;
+  palette?: false;
   allowInEditable?: true;
   availability?: () => ActionAvailability<CommandUnavailableReason>;
   run: () => void | Promise<void>;

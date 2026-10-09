@@ -8,6 +8,7 @@ import { toast } from "vue-sonner";
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import { updateFailureKeys, updateStatusKeys } from "../../../../foundation/updates/update-presentation";
 import { useUpdateStore } from "../../../../foundation/updates/update-store";
+import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "../PreferenceField.vue";
@@ -43,6 +44,7 @@ async function perform(action: () => Promise<unknown>) {
   try {
     await action();
   } catch (error) {
+    if (isApplicationLeaveCancelled(error)) return;
     toast.error(t("settings.updates.action.failed"));
     void logError(`Application update action failed: ${formatErrorDiagnostic(error)}`);
   }

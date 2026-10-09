@@ -1,27 +1,23 @@
 import { nextTick } from "vue";
 
-import {
-  flushSpaceSessionContent,
-  flushSpaceSessionLayout,
-  flushSpaceSessionPersistence,
-  runCanvasSessionTransition,
-} from "../canvas/editor-session";
+import { runCanvasSessionTransition } from "../canvas/editor-session";
 import { closeSpaceMutationAdmission, waitForSpaceMutations } from "../history/mutation-barrier";
+import { flushSpaceSessionCommits } from "./session-participants";
 import type { SpaceSessionContext } from "./space-session-context";
 
 export function transitionActiveSpaceSession<T>(context: SpaceSessionContext, transition: () => Promise<T>) {
   return runCanvasSessionTransition(async () => {
-    await flushSpaceSessionContent();
-    const reopenMutations = closeSpaceMutationAdmission(context.history);
+    let reopenMutations: (() => void) | undefined;
     try {
-      await waitForSpaceMutations(context.history);
-      await flushSpaceSessionLayout();
-      await flushSpaceSessionPersistence();
+      await flushSpaceSessionCommits(async () => {
+        reopenMutations = closeSpaceMutationAdmission(context.history);
+        await waitForSpaceMutations(context.history);
+      });
       await nextTick();
       context.captureOverview();
       return await transition();
     } finally {
-      reopenMutations();
+      reopenMutations?.();
     }
   });
 }

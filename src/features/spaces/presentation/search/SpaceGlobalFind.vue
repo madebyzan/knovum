@@ -44,6 +44,7 @@ function matchText(match: GlobalSearchMatch) {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim/60" />
       <DialogContent
+        data-app-command-scope=""
         :aria-describedby="undefined"
         class="fixed top-[12%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-156 -translate-x-1/2 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-dialog outline-none"
       >

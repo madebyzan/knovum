@@ -12,6 +12,7 @@
     "close": "Close tab",
     "closeOthers": "Close other tabs",
     "closeToRight": "Close tabs to the right",
+    "actionFailed": "Workspace tab action failed",
     "reopen": "Reopen closed tab",
     "switchTo": "Switch to tab {number}"
   },

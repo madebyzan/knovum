@@ -106,6 +106,10 @@
     "region": "Region comment"
   },
   "applyNow": "Use now",
+  "unsaved": {
+    "title": "Apply image changes?",
+    "description": "Apply this image edit before leaving, or discard the draft."
+  },
   "errors": {
     "modelUnavailable": "Check the image model and credential settings",
     "providerUnsupported": "The selected image model does not support this operation",

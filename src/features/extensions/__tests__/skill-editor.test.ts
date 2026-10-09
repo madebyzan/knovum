@@ -3,6 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import { activeConfirmation, resolveConfirmation } from "../../../shared/ui/confirm-action";
 import SkillSettings from "../skills/SkillSettings.vue";
 
@@ -35,6 +36,9 @@ beforeEach(async () => {
   wrapper = mount(SkillSettings, {
     global: {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
+      },
       mocks: { $t: (key: string) => key },
       stubs: { UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' } },
     },

@@ -4,7 +4,6 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import {
-  registerSpaceSessionParticipant,
   updateCanvasTextEditorProjection,
   updateCanvasTextSelectionProjection,
 } from "../../../canvas/editor-session";
@@ -12,6 +11,7 @@ import { createCanvasTextExtensions } from "../../../editor/tiptap-extensions";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
 import { truncateUtf16 } from "../../../model/text";
+import { registerSpaceSessionParticipant } from "../../../workspace/session-participants";
 
 interface CanvasTextEditorOptions {
   id: string;

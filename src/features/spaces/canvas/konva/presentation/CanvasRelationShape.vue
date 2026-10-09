@@ -33,6 +33,7 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
   <KonvaArrow
     :config="{
       points: relation.points,
+      relationId: relation.id,
       bezier: true,
       stroke: palette.relation[relation.color],
       fill: palette.relation[relation.color],

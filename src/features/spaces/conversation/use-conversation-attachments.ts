@@ -11,6 +11,10 @@ import type { ConversationAttachment } from "../contracts/generated/Conversation
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
+import type {
+  ConversationAttachmentCandidatePresentation,
+  ConversationAttachmentPresentation,
+} from "./conversation-attachment-presentation";
 import { chooseConversationUploads, inspectConversationUploads } from "./conversation-uploads";
 import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isConversationImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
@@ -52,7 +56,7 @@ export function useConversationAttachments() {
       ),
     );
   });
-  const visibleAttachments = computed(() =>
+  const visibleAttachments = computed<ConversationAttachmentPresentation[]>(() =>
     attachments.value.map((attachment) => {
       if (attachment.kind === "file")
         return {
@@ -72,7 +76,7 @@ export function useConversationAttachments() {
       };
     }),
   );
-  const attachmentCandidates = computed(() => {
+  const attachmentCandidates = computed<ConversationAttachmentCandidatePresentation[]>(() => {
     const attachedIds = new Set(
       attachments.value.flatMap((item) => (item.kind === "node" ? [item.nodeId] : [])),
     );

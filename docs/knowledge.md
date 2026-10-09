@@ -147,6 +147,16 @@ Every import receives an isolated UUID asset namespace so the same backup can be
 
 Manual export writes a same-directory staging archive and replaces the selected destination only after ZIP completion. Replacement keeps a rollback copy if the final rename fails. Export and automatic backup validate the generated v1 manifest before ZIP creation.
 
+Manual package transfers are Task Center jobs with package-owned cooperative cancellation. The
+operation ID identifies the Rust cancellation token while Tauri Channels continue to carry byte
+progress. Export checks cancellation while validating references, walking assets, hashing and
+writing archive chunks; cancellation removes its staging archive. Import checks cancellation while
+validating and reading archive chunks, traversing and hashing extracted assets, remapping, and
+immediately before the database commit; cancellation removes the uncommitted asset namespace and
+the database transaction rolls back. The commit is the publication boundary: once it succeeds, a
+late cancellation cannot change the completed import into a cancelled result. Cancelling a native
+file picker creates no transfer task and is not reported as a transfer failure.
+
 ## Search and passage work
 
 The renderer passage splitter uses linear UTF-8 width accounting and the same preferred whitespace window as the Rust splitter. Rust remains the durable authority for derived passage generation and all persisted passage size/revision validation. Passages are capped at 1,900 UTF-8 bytes so the fixed 2,048-token embedding limit cannot silently truncate indexed source text. SQLite owns current Knowledge chunks, embedding generation state and publication markers; LanceDB stores vectors. Every vector and marker carries `embeddingSpecId` and `generationId`. The spec is the SHA-256 of the immutable model files and encoding rules recorded in `src-tauri/src/ai/contracts/embedding-spec-v1.txt`; it is independent of the selected execution device. Semantic search requires an active generation with the current spec and validates LanceDB matches against current SQLite chunk identities and revisions before hybrid ranking. All-Spaces Ask executes one globally distance-ranked semantic query over the active Space generations and combines it with global lexical search. It shares the same LanceDB query executor and current-chunk validation as per-Space search; it does not introduce a second global Knowledge store. Both paths project result metadata without fetching embedding arrays.

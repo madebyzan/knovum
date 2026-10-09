@@ -2,6 +2,7 @@ import { compact } from "es-toolkit";
 import { readonly, shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { snapshotSpaceSessionParticipants } from "../workspace/session-participants";
 import type {
   CanvasEditorPort,
   CanvasSelectionSnapshot,
@@ -22,18 +23,10 @@ const directManipulation = shallowRef(false);
 const transitioning = shallowRef(false);
 const activeTextSelectionNodeId = shallowRef<string>();
 const activeTextEditorNodeId = shallowRef<string>();
-export interface SpaceSessionParticipant {
-  commit(): Promise<void>;
-  phase?: "content" | "layout" | "persistence";
-  resume?(): void;
-  suspend?(): void;
-}
-
-const activeSessionParticipants = new Set<SpaceSessionParticipant>();
 let transitionTail = Promise.resolve();
 let pendingTransitions = 0;
 let suspendedEditor: CanvasEditorPort | undefined;
-let suspendedParticipants: readonly SpaceSessionParticipant[] = [];
+let suspendedParticipants = snapshotSpaceSessionParticipants();
 
 const editorSession = {
   activeEditor,
@@ -101,41 +94,12 @@ export function updateCanvasTextEditorProjection(nodeId: string, active: boolean
   else if (activeTextEditorNodeId.value === nodeId) activeTextEditorNodeId.value = undefined;
 }
 
-export function registerSpaceSessionParticipant(participant: SpaceSessionParticipant) {
-  activeSessionParticipants.add(participant);
-  return () => activeSessionParticipants.delete(participant);
-}
-
-export function flushSpaceSessionContent() {
-  return commitParticipants(
-    [...activeSessionParticipants].filter(({ phase }) => !phase || phase === "content"),
-  );
-}
-
-export function flushSpaceSessionPersistence() {
-  return commitParticipants([...activeSessionParticipants].filter(({ phase }) => phase === "persistence"));
-}
-
-export function flushSpaceSessionLayout() {
-  return commitParticipants([...activeSessionParticipants].filter(({ phase }) => phase === "layout"));
-}
-
-export async function flushSpaceSessionCommits() {
-  await flushSpaceSessionContent();
-  await flushSpaceSessionLayout();
-  await flushSpaceSessionPersistence();
-}
-
-function commitParticipants(participants: readonly SpaceSessionParticipant[]) {
-  return Promise.all(participants.map(({ commit }) => commit())).then(() => undefined);
-}
-
 export function runCanvasSessionTransition<T>(transition: () => Promise<T>) {
   if (pendingTransitions === 0) {
     suspendedEditor = activeEditor.value;
     suspendedEditor?.cancelInteraction();
     if (activeEditor.value === suspendedEditor) activeEditor.value = undefined;
-    suspendedParticipants = [...activeSessionParticipants];
+    suspendedParticipants = snapshotSpaceSessionParticipants();
     for (const participant of suspendedParticipants) participant.suspend?.();
   }
   pendingTransitions += 1;

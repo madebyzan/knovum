@@ -5,6 +5,8 @@
   "name": "项目名称",
   "scriptPlaceholder": "输入此版本的配音稿",
   "saveRevision": "保存版本",
+  "unsavedTitle": "要保存语音项目更改吗？",
+  "unsavedDescription": "离开前保存此版本，或放弃未保存的更改。",
   "preview": "试听",
   "generate": "生成",
   "stopListening": "停止试听",

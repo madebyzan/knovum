@@ -15,12 +15,12 @@ import GenerationPresetEditor from "./GenerationPresetEditor.vue";
 const props = defineProps<{
   presets: GenerationPreset[];
   loadGenerationActions: () => Promise<GenerationActionOption[]>;
+  savePreset: (preset: GenerationPreset) => Promise<void>;
 }>();
 const emit = defineEmits<{
   remove: [id: string];
   duplicate: [id: string, name: string];
   rename: [id: string, name: string];
-  save: [preset: GenerationPreset];
 }>();
 const { t } = useI18n();
 const editingId = shallowRef<string>();
@@ -85,7 +85,7 @@ function editPreset(id: string) {
       v-model:open="editorOpen"
       :preset="editingPreset"
       :load-generation-actions="props.loadGenerationActions"
-      @save="emit('save', $event)"
+      :save-preset="props.savePreset"
     />
   </UiSettingsSection>
 </template>

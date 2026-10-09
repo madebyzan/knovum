@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { registerSpaceSessionParticipant } from "../canvas/editor-session";
 import { createSpaceHistoryState } from "../history/history-state";
 import { beginSpaceMutation } from "../history/mutation-barrier";
+import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 import type { SpaceSessionContext } from "../workspace/space-session-context";
 import { transitionActiveSpaceSession } from "../workspace/space-transition";
 

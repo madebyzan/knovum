@@ -75,7 +75,8 @@
     "sizeError": "文件不能为空；图片不能超过 10 MiB，其他文件不能超过 20 MiB。",
     "typeError": "此文件类型暂不支持。请选择图片、文本、PDF 或 Office 文档。",
     "invalidError": "无法读取此文件，请确认文件内容和格式。",
-    "permissionError": "无法读取此文件，请重新从系统文件窗口选择。"
+    "permissionError": "无法读取此文件，请重新从系统文件窗口选择。",
+    "reacquire": "请重新选择这些外部文件以再次附加：{names}"
   },
   "tasks": {
     "waitingForResult": "正在等待操作完成…",

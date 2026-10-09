@@ -1,56 +1,30 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
-import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import {
-  createMcpConnection,
-  updateMcpConnection,
-  deleteMcpConnection,
-} from "../../../foundation/extensions/connection-operations";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSwitch from "../../../shared/ui/UiSwitch.vue";
 import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
-import { useExtensionChanges } from "../use-extension-changes";
+import { useConnectorInstances } from "./use-connector-instances";
 
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
 const { t } = useI18n();
-const adding = shallowRef(false);
-const changes = useExtensionChanges();
-const name = shallowRef("");
-const selectedId = shallowRef("");
-const selected = computed(() => props.connections.find((connection) => connection.id === selectedId.value));
-function mutate(operation: () => Promise<unknown>) {
-  void changes
-    .mutateAsync(async () => {
-      await operation();
-    })
-    .catch(() => {});
-}
-function create() {
-  mutate(async () => {
-    const connection = await createMcpConnection(props.connector.id, name.value);
-    selectedId.value = connection.id;
-    name.value = "";
-    adding.value = false;
-  });
-}
-async function remove(connection: McpConnection) {
-  if (
-    await confirmAction({
-      title: t("extensions.connections.delete.title", { name: connection.name }),
-      description: t("extensions.connections.delete.description"),
-      confirmLabel: t("common.delete"),
-      danger: true,
-    })
-  )
-    mutate(() => deleteMcpConnection(connection));
-}
+const {
+  adding,
+  changes,
+  name,
+  selectedId,
+  selected,
+  create,
+  toggleAdding,
+  toggleSelected,
+  toggleEnabled,
+  remove,
+} = useConnectorInstances({ connector: () => props.connector, connections: () => props.connections, t });
 </script>
 <template>
   <div class="space-y-4">
@@ -63,7 +37,7 @@ async function remove(connection: McpConnection) {
           :disabled="busy || changes.isPending.value || !connector.endpoint"
           :aria-expanded="adding"
           data-testid="add-connection-instance"
-          @click="adding = !adding"
+          @click="toggleAdding"
           ><Plus class="size-3.5" />{{ $t("extensions.connections.add") }}</UiButton
         >
       </header>
@@ -76,7 +50,7 @@ async function remove(connection: McpConnection) {
             data-testid="connection-instance-name"
         /></label>
         <div class="flex justify-end gap-2">
-          <UiButton size="sm" variant="ghost" :disabled="changes.isPending.value" @click="adding = false">{{
+          <UiButton size="sm" variant="ghost" :disabled="changes.isPending.value" @click="toggleAdding">{{
             $t("common.cancel")
           }}</UiButton
           ><UiButton
@@ -107,15 +81,13 @@ async function remove(connection: McpConnection) {
               name: connection.name,
             })
           "
-          @update:model-value="
-            mutate(() => updateMcpConnection({ ...connection, enabled: !connection.enabled }))
-          "
+          @update:model-value="toggleEnabled(connection)"
         />
         <UiButton
           size="sm"
           variant="ghost"
           :aria-expanded="selectedId === connection.id"
-          @click="selectedId = selectedId === connection.id ? '' : connection.id"
+          @click="toggleSelected(connection.id)"
           >{{ $t("extensions.connections.accountsAndTools") }}</UiButton
         >
         <UiButton

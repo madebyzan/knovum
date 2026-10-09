@@ -23,6 +23,8 @@ fn accepted_request_can_be_cancelled_before_runner_starts() {
     )
     .unwrap();
 
+    assert!(reserve_maintenance().is_err());
+
     cancel(&job_id).unwrap();
 
     assert!(request.cancellation().is_cancelled());

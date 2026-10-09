@@ -24,6 +24,7 @@
     "src/shared/contracts/generated/**",
     "python/schemas/*.schema.json",
     "src/features/dictation/contracts/generated/**",
-    "src/features/spaces/contracts/generated/**"
+    "src/features/spaces/contracts/generated/**",
+    "src/features/settings/contracts/generated/**"
   ]
 }

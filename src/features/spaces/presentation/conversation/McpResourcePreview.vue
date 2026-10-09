@@ -20,6 +20,7 @@ const gate = useNodeOperationGate();
 const { t } = useI18n();
 const reading = useMutation({
   mutationFn: () => readMcpResource(props.connection, props.catalogDigest, props.selection),
+  networkMode: "online",
 });
 const importing = useMutation({
   mutationFn: (index: number) => {

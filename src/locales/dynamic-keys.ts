@@ -54,6 +54,16 @@ export const dynamicLocaleKeyPrefixes = [
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
 export const dynamicLocaleKeys = [
+  "settings.data.backup.confirmTitle",
+  "settings.data.backup.confirmDescription",
+  "settings.data.backup.failed",
+  "settings.data.restore.confirmTitle",
+  "settings.data.restore.confirmDescription",
+  "settings.data.restore.failed",
+  "settings.data.receipt.backup.success",
+  "settings.data.receipt.backup.failed",
+  "settings.data.receipt.restore.success",
+  "settings.data.receipt.restore.failed",
   "spaces.richtext.heading1",
   "spaces.richtext.heading2",
   "spaces.richtext.heading3",

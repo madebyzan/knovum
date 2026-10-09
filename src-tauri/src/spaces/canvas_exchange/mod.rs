@@ -11,6 +11,11 @@ mod import_control;
 
 use crate::app_error::AppError;
 
+pub(crate) fn reserve_maintenance() -> Result<crate::job_registry::JobAdmissionReservation, String>
+{
+    import_control::reserve_maintenance()
+}
+
 #[tauri::command]
 pub(crate) fn cancel_json_canvas_import(mutation_id: String) -> Result<(), AppError> {
     Ok(import_control::cancel(&mutation_id)?)

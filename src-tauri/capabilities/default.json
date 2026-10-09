@@ -5,7 +5,6 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "core:window:allow-set-progress-bar",
     "core:window:allow-set-theme",
     "log:default",
     "store:default",
@@ -22,6 +21,14 @@
     "desktop:allow-set-workspace-menu-state",
     "desktop:allow-reveal-main-window",
     "desktop:allow-mark-exit-coordinator-ready",
+    "desktop:allow-acknowledge-app-exit-request",
+    "desktop:allow-report-startup-failure",
+    "desktop:allow-project-session-tasks",
+    "desktop:allow-set-task-notifications",
+    "desktop:allow-perform-editing",
+    "desktop:allow-begin-window-close",
+    "desktop:allow-acknowledge-window-close",
+    "desktop:allow-complete-window-close",
     "desktop:allow-decide-app-exit-request"
   ]
 }
