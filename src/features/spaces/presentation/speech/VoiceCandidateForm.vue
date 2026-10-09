@@ -72,6 +72,7 @@ async function saveCandidate(candidateId: string, name: string) {
       />
       <UiSelect
         v-model="language"
+        class="w-40 shrink-0"
         size="sm"
         :label="t('spaces.speech.project.language')"
         :options="languages"

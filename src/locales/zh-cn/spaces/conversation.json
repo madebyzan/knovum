@@ -123,7 +123,8 @@
   "extensions": {
     "label": "对话扩展",
     "unavailable": "所选扩展已不可用，请重新选择。",
-    "manage": "管理扩展"
+    "manage": "管理扩展",
+    "empty": "暂无可用扩展，可前往设置添加。"
   },
   "toolOperations": {
     "approval": {

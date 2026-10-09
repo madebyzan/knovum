@@ -17,7 +17,7 @@ const { reload, profiles, loading, busyProfileId, errors, rename, revise, archiv
 
 <template>
   <UiSettingsSection>
-    <div v-if="creating" class="border-b border-stroke-divider bg-surface-muted px-4 py-4">
+    <div v-if="creating" class="px-4 py-4" :class="profiles.length > 0 && 'border-b border-stroke-divider'">
       <slot name="create" />
     </div>
     <div
@@ -53,9 +53,9 @@ const { reload, profiles, loading, busyProfileId, errors, rename, revise, archiv
         @remove="remove(profile)"
       />
     </div>
-    <div v-else class="px-4 py-6">
+    <div v-else-if="!creating" class="flex items-center gap-3 px-4 py-6">
       <AudioLines class="size-4 text-fg-tertiary" :stroke-width="1.5" />
-      <p class="mt-2 text-label text-fg-secondary">{{ t("spaces.speech.library.empty") }}</p>
+      <p class="text-label text-fg-secondary">{{ t("spaces.speech.library.empty") }}</p>
     </div>
     <p
       v-if="errors.length && profiles.length"

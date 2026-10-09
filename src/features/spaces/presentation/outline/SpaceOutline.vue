@@ -9,7 +9,7 @@ import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-side
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { createStructureIndex } from "../../model/structure/structure-index";
+import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import { useNodeOperationDraftsStore } from "../../session/node-operation-drafts-store";
 import { useSpaceStore } from "../../session/space-store";
@@ -96,7 +96,7 @@ async function rename(structureNodeId: string) {
   if (!renameLease) return;
   const lease = renameLease;
   sidebar.reveal();
-  expand(groupScopePathFor(structureNodeId, index.value));
+  expand(ancestorsOf(structureNodeId, index.value).map((ancestor) => ancestor.id));
   await nextTick();
   if (renameLease !== lease) return;
   const row = outlineRows.value.findIndex(({ value }) => value.id === structureNodeId);
@@ -146,10 +146,13 @@ onBeforeUnmount(finishRename);
 <template>
   <TreeRoot as-child :items="items" :get-key="outlineKey" v-model:expanded="expandedIds">
     <template #default="{ flattenItems }">
-      <section class="relative h-full overflow-auto" :aria-label="t('spaces.sidebar.outline.title')">
+      <section
+        class="relative h-full min-w-0 overflow-x-hidden overflow-y-auto"
+        :aria-label="t('spaces.sidebar.outline.title')"
+      >
         <TreeVirtualizer
           v-if="flattenItems.length"
-          :estimate-size="30"
+          :estimate-size="32"
           :text-content="(item) => item.title"
           v-slot="{ item: { level, value }, virtualizer: itemVirtualizer, virtualItem }"
         >

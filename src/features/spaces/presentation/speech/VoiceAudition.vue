@@ -20,15 +20,18 @@ onScopeDispose(reset);
 
 <template>
   <section class="space-y-2">
-    <UiTextarea
-      v-model="text"
-      :rows="2"
-      :maxlength="500"
-      :disabled="disabled || Boolean(jobId)"
-      :placeholder="t('spaces.speech.project.previewText')"
-      :aria-label="t('spaces.speech.project.previewText')"
-    />
-    <div class="flex gap-2">
+    <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+      <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
+      <UiTextarea
+        v-model="text"
+        :rows="2"
+        :maxlength="500"
+        :disabled="disabled || Boolean(jobId)"
+        :placeholder="t('spaces.speech.project.previewText')"
+        :aria-label="t('spaces.speech.project.previewText')"
+      />
+    </label>
+    <div class="flex items-center gap-2">
       <UiButton
         size="sm"
         :disabled="disabled || Boolean(jobId) || !text.trim()"
@@ -39,6 +42,7 @@ onScopeDispose(reset);
       <UiButton v-if="listening" size="sm" @click="stopListening">{{
         t("spaces.speech.project.stopListening")
       }}</UiButton>
+      <slot name="actions" />
     </div>
     <SpeechMediaPlayer v-if="preview" kind="audio" :source="preview.source" />
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>

@@ -7,6 +7,7 @@ import { cn } from "./cn";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];
+  viewportClass?: HTMLAttributes["class"];
 }>();
 const emit = defineEmits<{ scroll: [] }>();
 const viewport = useTemplateRef<{ viewportElement: HTMLElement }>("viewport");
@@ -21,7 +22,7 @@ defineExpose({
   <ScrollAreaRoot :class="cn('relative overflow-hidden', props.class)">
     <ScrollAreaViewport
       ref="viewport"
-      class="relative size-full overscroll-contain"
+      :class="cn('relative size-full overscroll-contain', props.viewportClass)"
       @scroll.passive="emit('scroll')"
       ><slot
     /></ScrollAreaViewport>

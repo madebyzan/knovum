@@ -15,35 +15,34 @@ const groups = computed(() => localModelGroups(models.data.value ?? []));
 </script>
 
 <template>
-  <UiSettingsSection
-    class="mt-5"
-    :title="t('settings.ai.localModels.title')"
-    :description="t('settings.ai.localModels.description')"
-  >
-    <div v-if="models.error.value" class="space-y-2 p-4" role="alert">
-      <p class="text-caption text-fg-danger">{{ getErrorMessage(models.error.value) }}</p>
-      <UiButton size="sm" variant="ghost" @click="models.refetch()">{{ t("common.retry") }}</UiButton>
-    </div>
-    <p v-else-if="models.isPending.value" class="p-4 text-caption text-fg-secondary" role="status">
-      {{ t("common.loading") }}
-    </p>
-    <div v-else class="space-y-4 p-4">
-      <section v-for="group in groups" :key="group.id" :data-model-group="group.id" class="space-y-3">
-        <h2 class="text-label font-semibold text-fg-primary">
-          {{ t(`settings.ai.localModels.groups.${group.id}`) }}
-        </h2>
-        <section
-          v-for="capability in group.capabilities"
-          :key="capability.id"
-          class="overflow-hidden rounded-panel border border-stroke-divider"
-          :data-model-capability="capability.id"
-        >
-          <h3 class="bg-surface-muted px-4 py-2 text-caption font-medium text-fg-secondary">
-            {{ t(`settings.ai.localModels.capabilities.${capability.id}`) }}
-          </h3>
-          <LocalModelConfiguration v-for="model in capability.models" :key="model.id" :model="model" />
-        </section>
-      </section>
-    </div>
-  </UiSettingsSection>
+  <section class="mt-6 space-y-5" aria-labelledby="local-models-title">
+    <header class="px-0.5">
+      <h2 id="local-models-title" class="text-title-sm font-semibold tracking-title text-fg-primary">
+        {{ t("settings.ai.localModels.title") }}
+      </h2>
+      <p class="mt-1 max-w-2xl text-caption text-fg-secondary">
+        {{ t("settings.ai.localModels.description") }}
+      </p>
+    </header>
+    <UiSettingsSection v-if="models.error.value || models.isPending.value">
+      <div v-if="models.error.value" class="flex items-center justify-between gap-4 p-4" role="alert">
+        <p class="text-caption text-fg-danger">{{ getErrorMessage(models.error.value) }}</p>
+        <UiButton size="sm" @click="models.refetch()">{{ t("common.retry") }}</UiButton>
+      </div>
+      <p v-else class="p-4 text-caption text-fg-secondary" role="status">{{ t("common.loading") }}</p>
+    </UiSettingsSection>
+    <section v-for="group in groups" v-else :key="group.id" :data-model-group="group.id" class="space-y-3">
+      <h3 class="px-0.5 text-caption font-medium text-fg-tertiary">
+        {{ t(`settings.ai.localModels.groups.${group.id}`) }}
+      </h3>
+      <UiSettingsSection
+        v-for="capability in group.capabilities"
+        :key="capability.id"
+        :data-model-capability="capability.id"
+        :title="t(`settings.ai.localModels.capabilities.${capability.id}`)"
+      >
+        <LocalModelConfiguration v-for="model in capability.models" :key="model.id" :model="model" />
+      </UiSettingsSection>
+    </section>
+  </section>
 </template>

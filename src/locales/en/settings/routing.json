@@ -33,5 +33,6 @@
       "description": "Used by features without an individual execution choice."
     }
   },
-  "unselected": "No execution method selected"
+  "unselected": "No execution method selected",
+  "capabilitiesTitle": "By capability"
 }

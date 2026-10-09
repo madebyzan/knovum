@@ -1,0 +1,9 @@
+{
+  "title": "Notifications",
+  "backgroundTasks": {
+    "label": "Background task notifications",
+    "description": "Notify when a long-running background task finishes or fails while Knovum is hidden."
+  },
+  "description": "Choose when Knovum sends desktop notifications.",
+  "saveFailed": "Notification settings could not be saved"
+}

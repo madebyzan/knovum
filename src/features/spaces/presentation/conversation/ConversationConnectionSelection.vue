@@ -9,6 +9,7 @@ import type { AgentExtensionSelection } from "../../../../shared/contracts/gener
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import type { McpResourceTemplateSelection as TemplateSelection } from "../../../../shared/contracts/generated/McpResourceTemplateSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import McpResourcePreview from "./McpResourcePreview.vue";
 import McpResourceTemplateSelection from "./McpResourceTemplateSelection.vue";
 const selection = defineModel<AgentExtensionSelection>({ required: true });
@@ -64,10 +65,10 @@ function removeTemplate(index: number) {
   <section class="space-y-2 border-t border-stroke-divider pt-2 text-caption">
     <h4 class="font-medium">{{ connection.name }}</h4>
     <label v-for="tool in availableTools" :key="tool.name" class="flex items-center gap-2"
-      ><input
-        type="checkbox"
-        :checked="choices.toolNames.includes(tool.name)"
-        @change="toggle('toolNames', tool.name)"
+      ><UiCheckbox
+        :label="tool.name"
+        :model-value="choices.toolNames.includes(tool.name)"
+        @update:model-value="toggle('toolNames', tool.name)"
       />{{ tool.name }}</label
     >
     <UiButton size="sm" variant="ghost" :disabled="catalog.isPending.value" @click="catalog.mutate()">{{
@@ -77,10 +78,10 @@ function removeTemplate(index: number) {
       {{ getErrorMessage(catalog.error.value) }}
     </p>
     <label v-for="resource in resources" :key="resource.uri" class="flex items-center gap-2"
-      ><input
-        type="checkbox"
-        :checked="choices.resourceUris.includes(resource.uri)"
-        @change="toggle('resourceUris', resource.uri)"
+      ><UiCheckbox
+        :label="resource.name"
+        :model-value="choices.resourceUris.includes(resource.uri)"
+        @update:model-value="toggle('resourceUris', resource.uri)"
       />{{ resource.name }}</label
     >
     <template v-if="catalog.data.value">
@@ -110,10 +111,10 @@ function removeTemplate(index: number) {
       </section>
     </template>
     <label v-for="name in prompts" :key="name" class="flex items-center gap-2"
-      ><input
-        type="checkbox"
-        :checked="choices.promptNames.includes(name)"
-        @change="toggle('promptNames', name)"
+      ><UiCheckbox
+        :label="name"
+        :model-value="choices.promptNames.includes(name)"
+        @update:model-value="toggle('promptNames', name)"
       />{{ name }}</label
     >
   </section>

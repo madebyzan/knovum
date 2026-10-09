@@ -118,7 +118,7 @@ function setDirty(value: boolean) {
           </UiIconButton>
         </CollapsibleTrigger>
       </div>
-      <CollapsibleContent class="border-t border-stroke-divider bg-surface-muted px-4 py-4">
+      <CollapsibleContent class="border-t border-stroke-divider px-4 py-4">
         <VoiceProfileEditor
           :profile
           :disabled

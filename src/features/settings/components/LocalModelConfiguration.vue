@@ -6,20 +6,19 @@ import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
 import { removeLocalModel, selectLocalModel } from "../../../foundation/runtime/local-resources";
-import {
-  startResourcePreparation,
-  type ResourcePreparationHandle,
-} from "../../../foundation/runtime/resource-preparation";
+import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { resourceProgressMessage } from "../../../foundation/runtime/resource-progress";
 import { invalidateLocalResources } from "../../../foundation/runtime/use-resource-queries";
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import type { ResourcePreparationProgress } from "../../../shared/contracts/generated/ResourcePreparationProgress";
 import { confirmAction } from "../../../shared/ui/confirm-action";
+import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiProgress from "../../../shared/ui/UiProgress.vue";
 
 const props = defineProps<{ model: LocalModelAvailability }>();
 const { t } = useI18n();
-const preparation = shallowRef<ResourcePreparationHandle>();
+const preparation = shallowRef<ReturnType<typeof startResourcePreparation>>();
 const progress = shallowRef<ResourcePreparationProgress>();
 const selecting = shallowRef(false);
 const removing = shallowRef(false);
@@ -93,45 +92,59 @@ async function remove() {
 </script>
 
 <template>
-  <div :data-model-id="model.id" class="space-y-2 border-t border-stroke-divider p-4 first:border-t-0">
-    <div class="flex items-start justify-between gap-4">
-      <div class="min-w-0 space-y-1">
-        <p class="text-body font-medium text-fg-primary">{{ model.name }}</p>
-        <p class="text-caption text-fg-tertiary">
-          {{ t(`settings.ai.localModels.${statusKey}`) }} ·
-          {{ t("settings.ai.localModels.modelSize", { size: formatBytes(model.totalBytes) }) }}
-          <span v-if="model.essential"> · {{ t("settings.ai.localModels.essential") }}</span>
-        </p>
-        <p v-if="model.selected" class="text-caption text-fg-accent">
-          {{
-            t(
-              `settings.ai.localModels.${model.capability === "speechSynthesis" ? "selectedVoiceModel" : "selected"}`,
-            )
-          }}
-        </p>
-        <p class="text-caption text-fg-secondary">
+  <article
+    :data-model-id="model.id"
+    class="space-y-2 border-b border-stroke-divider px-4 py-3 last:border-b-0"
+  >
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="min-w-48 flex-1 space-y-1.5">
+        <div class="flex flex-wrap items-center gap-2">
+          <h4 class="text-body-lg font-medium text-fg-primary">{{ model.name }}</h4>
+          <UiBadge
+            v-if="model.selected"
+            size="sm"
+            variant="accent"
+            :title="
+              t(
+                `settings.ai.localModels.${model.capability === 'speechSynthesis' ? 'selectedVoiceModel' : 'selected'}`,
+              )
+            "
+            >{{ t("settings.ai.localModels.defaultModel") }}</UiBadge
+          >
+          <UiBadge v-if="model.essential" size="sm" class="bg-surface-muted">{{
+            t("settings.ai.localModels.essential")
+          }}</UiBadge>
+        </div>
+        <p class="max-w-xl text-caption text-fg-secondary">
           {{ t(`settings.ai.localModels.modelDescriptions.${model.id}`) }}
+        </p>
+        <p class="text-caption text-fg-tertiary">
+          <span :class="statusKey === 'invalid' && 'text-fg-warning'">{{
+            t(`settings.ai.localModels.${statusKey}`)
+          }}</span>
+          · {{ t("settings.ai.localModels.modelSize", { size: formatBytes(model.totalBytes) }) }}
+          <template v-if="model.installed">
+            ·
+            {{
+              t("settings.ai.localModels.installedSize", { size: formatBytes(model.installedBytes) })
+            }}</template
+          >
         </p>
         <p v-if="model.fixed" class="text-caption text-fg-tertiary">
           {{ t("settings.ai.localModels.fixedEmbedding") }}
         </p>
-        <p v-if="model.installed" class="text-caption text-fg-tertiary">
-          {{ t("settings.ai.localModels.installedSize", { size: formatBytes(model.installedBytes) }) }}
-        </p>
       </div>
-      <div class="flex shrink-0 gap-2">
+      <div class="flex shrink-0 items-center gap-2">
         <UiButton
           v-if="
             model.selectable && model.verified && model.downloadAvailable && !model.selected && !preparation
           "
           data-testid="model-select"
           size="sm"
-          variant="ghost"
           :disabled="selecting || removing"
           @click="select"
+          >{{ t("settings.ai.localModels.select") }}</UiButton
         >
-          {{ t("settings.ai.localModels.select") }}
-        </UiButton>
         <UiButton v-if="preparation" size="sm" variant="ghost" @click="cancel">{{
           t("common.cancel")
         }}</UiButton>
@@ -157,9 +170,16 @@ async function remove() {
     <p v-if="model.unavailableReason" class="text-caption text-fg-secondary">
       {{ t(`settings.ai.localModels.unavailable.${model.unavailableReason}`) }}
     </p>
-    <p v-if="preparation" class="text-caption text-fg-secondary" role="status" aria-live="polite">
-      {{ progress ? resourceProgressMessage(progress) : t("settings.ai.localModels.preparing") }}
-    </p>
+    <div v-if="preparation" class="space-y-2 pt-1" role="status" aria-live="polite">
+      <UiProgress
+        v-if="progress?.percent !== null && progress?.percent !== undefined"
+        :value="progress.percent"
+        :label="t('settings.ai.localModels.downloading', { name: model.name })"
+      />
+      <p class="text-caption text-fg-secondary">
+        {{ progress ? resourceProgressMessage(progress) : t("settings.ai.localModels.preparing") }}
+      </p>
+    </div>
     <p v-if="error" class="text-caption text-fg-danger" role="alert">{{ error }}</p>
-  </div>
+  </article>
 </template>

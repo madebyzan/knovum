@@ -33,5 +33,6 @@
       "description": "未单独设置执行方式的功能使用此选择。"
     }
   },
-  "unselected": "未选择执行方式"
+  "unselected": "未选择执行方式",
+  "capabilitiesTitle": "按能力设置"
 }

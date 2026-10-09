@@ -107,8 +107,16 @@ Settings and extension lists share `UiSettingsSection` for their raised surface,
 Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
 use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
 an operation. Empty results retain the settings panel treatment and concise, left-aligned guidance.
+Settings panes keep 24px between peer sections. Appearance owns theme, text size, density and language;
+Notifications is a separate General destination. AI routing separates the application default from
+capability overrides. Local models use one settings surface per capability, with compact name/status,
+download size, installed size and trailing actions; avoid nested panel frames and shaded table headings.
 The global voice library uses these settings surfaces and compact rows, with one inline creation
 or profile inspector open at a time. Voices have no Space selector or copy-to-Space action.
+Voice creation uses labelled fields: the preset choice expands within its grid column, language keeps a
+compact column, and preview/save actions share the form footer. Conversation extension selection lives
+in the composer toolbar; its anchored popover uses shared checkboxes, bounded scrolling and a separate
+management footer. Empty extension categories are omitted.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
 workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the built-in radius scale.
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
@@ -392,7 +400,10 @@ bitmap stays visible while the next render runs, and the last consumer releases 
 materialization and export retain their full-resolution policy.
 
 Outline uses Reka tree virtualization while keeping button TreeItems, hierarchy, type-ahead and rename
-leases. Rows report their measured height to the virtualizer, including inline rename errors. The Space
+leases. Virtual rows occupy the viewport width, retain 2px peer spacing and scroll only vertically;
+long titles stay truncated and preserve their one-way hover animation. Reka's TreeVirtualizer reads
+its immediate scrolling parent, so this region uses the global scrollbar profile rather than nesting
+another scroll viewport. Rows report their border-box height, including inline rename errors. The Space
 library uses TanStack virtual rows; focused and renamed rows remain mounted, and arrow
 keys/Home/End reveal the destination before transferring focus. Search input updates immediately and
 filters after a 150 ms pause. Full text/video editors and recovery surfaces load on demand. Long-document

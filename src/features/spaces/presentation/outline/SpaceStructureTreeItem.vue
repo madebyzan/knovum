@@ -8,6 +8,7 @@ import { nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
+import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { OutlineTreeItem } from "./outline-tree-items";
 import SpaceOutlineTitle from "./SpaceOutlineTitle.vue";
 
@@ -29,10 +30,10 @@ const emit = defineEmits<{
   toggle: [];
 }>();
 const { t } = useI18n();
-const input = useTemplateRef<HTMLInputElement>("input");
+const input = useTemplateRef<InstanceType<typeof UiInput>>("input");
 const root = useTemplateRef<HTMLElement>("root");
 useResizeObserver(root, ([entry]) => {
-  if (entry) emit("height", entry.contentRect.height);
+  if (entry) emit("height", entry.borderBoxSize[0]!.blockSize);
 });
 const draft = shallowRef("");
 const saving = shallowRef(false);
@@ -82,28 +83,20 @@ async function save() {
     saving.value = false;
   }
 }
-
-function keydown(event: KeyboardEvent) {
-  event.stopPropagation();
-  if (event.isComposing) return;
-  if (event.key === "Enter") {
-    event.preventDefault();
-    void save();
-  } else if (event.key === "Escape") {
-    event.preventDefault();
-    emit("finish");
-  }
-}
 </script>
 
 <template>
   <div
     ref="root"
+    class="w-full min-w-0 pb-0.5"
     v-bind="omit($attrs, ['data-index'])"
     :data-active="selected"
     :style="{ paddingLeft: `${(level - 1) * 16}px` }"
   >
-    <div class="flex h-interaction items-center rounded-md hover:bg-surface-control-hover">
+    <div
+      :data-active="selected"
+      class="flex h-interaction min-w-0 items-center rounded-md hover:bg-(--knovum-sidebar-item-bg-hover) data-[active=true]:bg-(--knovum-sidebar-item-bg-selected)"
+    >
       <button
         v-if="item.children"
         type="button"
@@ -130,7 +123,7 @@ function keydown(event: KeyboardEvent) {
           type="button"
           :aria-selected="selected"
           :data-active="selected"
-          class="flex min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption text-fg-secondary data-[active=true]:text-fg-primary"
+          class="flex h-full min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption text-fg-secondary data-[active=true]:text-fg-primary"
           @dblclick="emit('open')"
           @contextmenu.prevent="emit('menu')"
         >
@@ -144,15 +137,19 @@ function keydown(event: KeyboardEvent) {
           }}</span>
         </button>
       </TreeItem>
-      <input
+      <UiInput
         v-else
         ref="input"
         v-model="draft"
+        size="sm"
+        :aria-label="t('common.rename')"
         maxlength="512"
         :readonly="saving"
-        class="h-6 min-w-0 flex-1 rounded-md bg-surface-control px-1 text-caption ring-1 ring-stroke-focus outline-none"
-        @keydown="keydown"
-        @blur="emit('finish')"
+        class="h-6 min-w-0 flex-1 px-1 text-caption"
+        @keydown.stop
+        @commit.prevent="save"
+        @cancel.prevent="!saving && emit('finish')"
+        @blur="!saving && emit('finish')"
       />
     </div>
     <p v-if="editing && error" role="alert" class="pb-1 pl-6 text-caption-sm text-fg-danger">

@@ -67,43 +67,58 @@ function markAuditionDirty(value: boolean) {
 </script>
 
 <template>
-  <form class="space-y-2" @submit.prevent="submit">
-    <UiInput
-      v-model="name"
-      size="sm"
-      :placeholder="t('spaces.speech.voice.name')"
-      :aria-label="t('spaces.speech.voice.name')"
-      :disabled="disabled"
-      @update:model-value="markIdentityDirty"
-    />
-    <p v-if="error" class="text-caption text-fg-danger">{{ error.message }}</p>
-    <div class="flex gap-2">
-      <UiSelect
-        v-model="speakerId"
-        class="min-w-0 flex-1"
+  <form class="space-y-4" @submit.prevent="submit">
+    <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+      <span>{{ t("spaces.speech.voice.name") }}</span>
+      <UiInput
+        v-model="name"
         size="sm"
-        :label="t('spaces.speech.voice.label')"
-        :options="presetOptions"
-        :disabled="disabled || !presets"
-        @update:model-value="markIdentityDirty"
-      />
-      <UiSelect
-        v-model="language"
-        class="min-w-28"
-        size="sm"
-        :label="t('spaces.speech.project.language')"
-        :options="languageOptions"
+        :placeholder="t('spaces.speech.voice.name')"
+        :aria-label="t('spaces.speech.voice.name')"
         :disabled="disabled"
         @update:model-value="markIdentityDirty"
       />
-      <UiButton size="sm" variant="primary" type="submit" :disabled="disabled || !presets">{{
-        t("spaces.speech.voice.add")
-      }}</UiButton>
+    </label>
+    <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error.message }}</p>
+    <div class="grid grid-cols-[minmax(0,1fr)_8rem] items-end gap-3">
+      <label class="block min-w-0 space-y-1.5 text-caption font-medium text-fg-secondary">
+        <span>{{ t("spaces.speech.voice.label") }}</span>
+        <UiSelect
+          v-model="speakerId"
+          size="sm"
+          :label="t('spaces.speech.voice.label')"
+          :options="presetOptions"
+          :disabled="disabled || !presets"
+          @update:model-value="markIdentityDirty"
+        />
+      </label>
+      <label class="block min-w-0 space-y-1.5 text-caption font-medium text-fg-secondary">
+        <span>{{ t("spaces.speech.project.language") }}</span>
+        <UiSelect
+          v-model="language"
+          size="sm"
+          :label="t('spaces.speech.project.language')"
+          :options="languageOptions"
+          :disabled="disabled"
+          @update:model-value="markIdentityDirty"
+        />
+      </label>
     </div>
     <VoiceAudition
       :source="{ kind: 'preset', speakerId, language }"
       :disabled="Boolean(disabled) || !presets"
       @dirty="markAuditionDirty"
-    />
+    >
+      <template #actions>
+        <UiButton
+          class="ml-auto"
+          size="sm"
+          variant="primary"
+          type="submit"
+          :disabled="disabled || !presets"
+          >{{ t("spaces.speech.voice.add") }}</UiButton
+        >
+      </template>
+    </VoiceAudition>
   </form>
 </template>

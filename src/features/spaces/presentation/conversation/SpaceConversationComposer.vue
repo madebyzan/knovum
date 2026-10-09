@@ -129,6 +129,7 @@ onBeforeUnmount(fileDropListener.dispose);
           v-model:available="targetAvailable"
           class="min-w-0 flex-1"
         />
+        <slot name="extensions" />
         <UiIconButton v-if="busy" :label="$t('spaces.conversation.stop')" size="sm" @click="emit('cancel')">
           <CircleStop class="size-3.5" />
         </UiIconButton>

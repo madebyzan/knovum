@@ -89,6 +89,7 @@ it.each(["loading", "ready", "failed"])(
     });
     await flushPromises();
     expect(wrapper.find("#settings-appearance-theme").exists()).toBe(true);
+    expect(wrapper.find("#settings-background-task-notifications").exists()).toBe(false);
     /* oxlint-disable no-await-in-loop -- Each navigation must finish before the next settings switch. */
     for (let cycle = 0; cycle < 2; cycle++) {
       await router.replace({ path: "/settings", query: { pane: "aiModels" } });
@@ -103,6 +104,7 @@ it.each(["loading", "ready", "failed"])(
       expect(wrapper.text().includes("Unable to load model settings")).toBe(state === "failed");
       for (const [pane, selector] of [
         ["appearance", "#settings-appearance-theme"],
+        ["notifications", "#settings-background-task-notifications"],
         ["extensions", '[data-testid="extensions-pane"]'],
         ["creation", '[data-testid="creation-pane"]'],
         ["usage", '[data-testid="usage-pane"]'],

@@ -65,12 +65,9 @@ onBeforeUnmount(leave);
 </script>
 
 <template>
-  <span
-    ref="viewport"
-    class="min-w-0 flex-1 overflow-hidden whitespace-nowrap"
-    :class="{ 'text-ellipsis': !scrolling }"
-    :title="title"
-  >
-    <span ref="text" class="inline-block whitespace-nowrap">{{ title }}</span>
+  <span ref="viewport" class="min-w-0 flex-1 overflow-hidden whitespace-nowrap" :title="title">
+    <span ref="text" class="block whitespace-nowrap" :class="scrolling ? 'w-max' : 'truncate'">{{
+      title
+    }}</span>
   </span>
 </template>

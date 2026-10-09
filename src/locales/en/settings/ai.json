@@ -99,6 +99,7 @@
       "spleeter2StemsFull": "FP32 vocals/accompaniment separation on CPU. About twice the compact model’s download size; up to ten minutes per source."
     },
     "selectedVoiceModel": "Default for new reference voices; saved voices keep their model.",
-    "modelSize": "Model files {size}"
+    "modelSize": "Model files {size}",
+    "defaultModel": "Default"
   }
 }

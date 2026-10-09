@@ -123,7 +123,8 @@
   "extensions": {
     "label": "Conversation extensions",
     "unavailable": "A selected extension is unavailable. Review the selection.",
-    "manage": "Manage extensions"
+    "manage": "Manage extensions",
+    "empty": "No extensions available. Add them in settings."
   },
   "toolOperations": {
     "approval": {

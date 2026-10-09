@@ -109,14 +109,6 @@ async function previewAttachment(key: string) {
       :run-id="activeRunId"
       :revision="conversationSession.activityRevision"
     />
-    <AgentExtensionPicker
-      v-model="extensionSelection"
-      :availability="extensionAvailability"
-      :disabled="
-        restoringDraft || Boolean(restorationError) || loading || Boolean(activeRunId) || extensionsLoading
-      "
-      :error="extensionsError"
-    />
     <SpaceConversationRunStatus
       :can-pause="canPause"
       @pause="conversationSession.pause"
@@ -151,6 +143,21 @@ async function previewAttachment(key: string) {
       @preview-attachment="previewAttachment"
       @send="conversationSession.send"
       @cancel="conversationSession.cancel"
-    />
+    >
+      <template #extensions>
+        <AgentExtensionPicker
+          v-model="extensionSelection"
+          :availability="extensionAvailability"
+          :disabled="
+            restoringDraft ||
+            Boolean(restorationError) ||
+            loading ||
+            Boolean(activeRunId) ||
+            extensionsLoading
+          "
+          :error="extensionsError"
+        />
+      </template>
+    </SpaceConversationComposer>
   </section>
 </template>

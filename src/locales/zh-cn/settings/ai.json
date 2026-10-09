@@ -99,6 +99,7 @@
       "spleeter2StemsFull": "在 CPU 上分离人声与伴奏的 FP32 模型。下载约为轻量版两倍；每个音源最多十分钟。"
     },
     "selectedVoiceModel": "新建参考音色的默认模型；已保存音色保留原模型。",
-    "modelSize": "模型文件 {size}"
+    "modelSize": "模型文件 {size}",
+    "defaultModel": "默认"
   }
 }
