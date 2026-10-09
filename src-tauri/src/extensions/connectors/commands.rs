@@ -134,14 +134,3 @@ pub async fn disconnect_connector_account(
     super::credential_store::remove(&app, &account_id).await?;
     accounts::set_status(&pool, &account_id, false, false).await
 }
-
-pub(in crate::extensions) async fn recover_cleanup(app: &AppHandle) -> Result<(), String> {
-    for account in accounts::list(&database::pool(app).await?)
-        .await?
-        .into_iter()
-        .filter(|account| account.cleanup_pending || !account.enabled)
-    {
-        disconnect_connector_account(app.clone(), account.id).await?;
-    }
-    Ok(())
-}

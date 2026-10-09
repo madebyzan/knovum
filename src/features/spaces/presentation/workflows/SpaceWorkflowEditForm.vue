@@ -9,6 +9,7 @@ import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCaptu
 import type { SpaceActionDefinition } from "../../contracts/generated/SpaceActionDefinition";
 import { listSpaceActions } from "../../workflows/action-catalog";
 import { reviseCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
+import { workflowOutputNamesValid } from "../../workflows/output-name-policy";
 import SpaceWorkflowOutputEditor from "./SpaceWorkflowOutputEditor.vue";
 import SpaceWorkflowParameterFields from "./SpaceWorkflowParameterFields.vue";
 import SpaceWorkflowStepSelection from "./SpaceWorkflowStepSelection.vue";
@@ -63,9 +64,7 @@ const valid = computed(() => {
   return (
     catalog.value.length > 0 &&
     steps.value.length > 0 &&
-    names.length > 0 &&
-    names.every((name) => name.length > 0 && Array.from(name).length <= 120) &&
-    new Set(names).size === names.length &&
+    workflowOutputNamesValid(names) &&
     fields.value.every(
       (field) =>
         field.type !== "number" ||

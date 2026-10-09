@@ -11,7 +11,7 @@ async function openCommandPalette(palette: ReturnType<typeof $>, attempts = 10):
 
 describe("desktop shell", () => {
   it("opens the command palette through the application menu command channel", async () => {
-    await expect($("[data-testid='spaces-workspace']")).toBeDisplayed();
+    await expect($("[data-testid='workspace']")).toBeDisplayed();
     const palette = $("[data-testid='command-palette-input']");
 
     await openCommandPalette(palette);
@@ -29,6 +29,6 @@ describe("desktop shell", () => {
     await expect($("[data-testid='usage-settings-pane']")).toBeDisplayed();
     await expect($("[data-testid='token-activity-calendar']")).toBeDisplayed();
     await $("[data-testid='settings-back']").click();
-    await expect($("[data-testid='spaces-workspace']")).toBeDisplayed();
+    await expect($("[data-testid='workspace']")).toBeDisplayed();
   });
 });

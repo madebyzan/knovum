@@ -10,7 +10,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use super::{archive, planning::AssetPlan};
-use crate::spaces::package::{control, AssetIndex};
+use crate::spaces::package::AssetIndex;
 
 #[test]
 fn cancellation_between_asset_chunks_retains_cancelled_outcome() {

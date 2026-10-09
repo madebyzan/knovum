@@ -1,8 +1,8 @@
-import { computed, inject } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { AppCommand } from "../../../shared/contracts/app-command";
-import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
+import type { WorkspaceCommandContext } from "../../../shared/contracts/workspace-definition";
 import { activeCanvasExchangePort as activeExchange } from "../canvas-exchange/canvas-exchange-session";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
@@ -25,15 +25,14 @@ import { createSpaceStructureCommands } from "./space-structure-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
 import { videoEditCommands } from "./video-edit-commands";
 
-export function useSpaceCommands() {
+export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandContext) {
   const { t } = useI18n();
   const store = useSpaceStore();
-  const sidebar = inject(workspaceSidebarKey)!;
   const { activeEditor, selection } = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
   const workspaceTabCommands = useWorkspaceTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
-  const canvasNavigationCommands = useCanvasNavigationCommands();
+  const canvasNavigationCommands = useCanvasNavigationCommands(rightSidebar);
   const selectedIds = () => selection.value.nodeIds;
   return computed<readonly AppCommand[]>(() => {
     const selectedStructureNodeIds = () => {

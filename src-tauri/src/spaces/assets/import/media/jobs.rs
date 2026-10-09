@@ -17,5 +17,5 @@ pub(super) fn acquire(
     registry().acquire_cancellable(job_id)
 }
 pub(super) fn cancel(job_id: &str) -> Result<(), String> {
-    registry().cancel(job_id)
+    registry().cancel(job_id).map(|_| ())
 }

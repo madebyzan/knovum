@@ -55,10 +55,20 @@ All other dependency rules remain in force, including the prohibition on product
 - `shared/ui/` owns durable Knovum visual compositions. Reka remains the primitive behavior owner.
 - `src-tauri/src/desktop/` owns desktop lifecycle that must remain correct while the WebView is hidden
   or unavailable.
+- `src-tauri/src/app_builder/` composes producer task observation. Desktop task presentation consumes
+  neutral snapshots and does not open feature databases or enumerate their work.
 - `src-tauri/src/job_registry/` owns job leases and atomic maintenance admission. Engines expose
   reservations for their own registries; `backup/admission.rs` holds them while composing
   reconciliation, durable checks and restart scheduling. Resource preparation retains its own
   registry because it also owns completed task snapshots.
+
+Application routes and the remembered workspace destination belong to `app/`. The shell receives
+workspace visibility and emits navigation intent; feature views receive explicit navigation
+operations from application composition. Neither shell nor foundation chooses product route names.
+Shared AI language labels belong to the AI locale namespace rather than a Space editor namespace.
+Workspace command composables receive explicit shell presentation operations during shell setup;
+they do not resolve descendant providers from the application root. The application router commits
+the resident workspace before leaving its destination; the resident view owns window-close commits.
 
 Directories express stable ownership, not temporary implementation stages. Start a capability flat
 and split it only when distinct responsibilities exist. Once split, move its implementation under
@@ -120,6 +130,11 @@ The Rust boundary is divided by business responsibility:
 - `agent_artifacts/` owns agent workspaces, previews, import, recovery, and consumption.
 - `run_execution.rs` composes finite Action, captured Workflow and speech step routing and capability-owned terminal maintenance. `run_control.rs` composes durable Run control with capability interruption. The scheduler receives three concrete hooks at startup; it never selects capabilities itself.
 - `recovery.rs` owns ordered reconciliation of interrupted Space workflows during bootstrap.
+
+Space agent workspace roots and session paths are defined in `spaces/agent_artifacts/workspace`.
+`external_agents/artifacts` owns safe artifact collection, output projection and resolution shared by
+agent execution consumers. External Agent task workspace initialization belongs to that executor's
+lifecycle, rather than AI settings or usage initialization.
 
 `queries/` never mutates durable state or controls execution. `knowledge/` does not depend on
 `derivation/`, `assets/`, or `queries/`; governance must remain independent from the operations that
@@ -192,6 +207,9 @@ executors behind that contract.
 Rust `extensions/{plugins,skills,connectors,mcp,snapshots}` owns installed extension content,
 metadata, authorization, and outbound protocol access and has no dependency on Spaces. Spaces
 composes immutable execution snapshots; extension reclamation never queries a Space database.
+Extension startup independently retries account credential cleanup after backup readiness. Space
+recovery supplies retained snapshot IDs to extension-owned lease reconciliation; the two operations
+share the extension content lock without making account cleanup depend on Space recovery.
 `features/extensions` owns management UI, while foundation exposes neutral IPC/query contracts.
 Settings and Spaces do not import extension business UI. Connector definitions, connection
 instances, accounts, and protocol execution retain distinct identities and owners; MCP operation
@@ -216,6 +234,8 @@ or inferring categories from persisted node-kind strings.
 Each in-memory Rust job family uses a typed registry over the crate-private `job_registry`
 lifecycle primitive. Long-lived sessions, singleton engines, credentials, and serialization locks
 are state owners rather than jobs and do not use that primitive.
+Durable Action handlers receive the Run Attempt's cancellation token through execution and
+publication. They do not register another job identity or dispatch cancellation by Action kind.
 
 ## State and persistence ownership
 

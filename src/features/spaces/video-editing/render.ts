@@ -1,11 +1,12 @@
 import { Channel } from "@tauri-apps/api/core";
+import { error as logError } from "@tauri-apps/plugin-log";
 import { omit } from "es-toolkit";
 import { parse } from "pathe";
 import { toast } from "vue-sonner";
 import { z } from "zod";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
@@ -25,7 +26,9 @@ const videoEditProgressSchema: z.ZodType<VideoEditProgress> = z
 type VideoEditStore = Pick<
   ReturnType<typeof useSpaceStore>,
   | "activeSpaceId"
-  | "addContent"
+  | "videoEditorNodeId"
+  | "createPendingContentForSpace"
+  | "finalizePendingContent"
   | "applyNodeContentForSpace"
   | "refreshActiveSpace"
   | "closeVideoEditor"
@@ -59,8 +62,9 @@ export async function renderVideoEdit(
     assetPath,
     processingState: "processing",
   };
-  const [pending] = await store.addContent(pendingContent, undefined, { reveal: false });
+  const [pending] = await store.createPendingContentForSpace(spaceId, pendingContent);
   if (!pending) throw new Error("Could not create the edited video output");
+  store.finalizePendingContent(spaceId, [pending], false);
   const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
   const cancel = () => invokeCommand<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
@@ -85,24 +89,38 @@ export async function renderVideoEdit(
       } satisfies RenderVideoEditRequest,
       onProgress: progress,
     });
-    if (completed.nodeId !== pending.id) throw new Error("Video render returned a different output node");
-    const data = validateSpaceNodePayload(completed.data);
-    if (data.kind !== "video") throw new Error("Video render returned non-video content");
+    const data = completedVideoData(completed, pending.id);
+    pending.data = data;
     store.applyNodeContentForSpace(spaceId, completed.nodeId, data);
-    await store.refreshActiveSpace();
     tasks.succeed(taskId);
-    store.closeVideoEditor();
-    store.requestReveal([completed.nodeId], "ensure-visible");
-  } catch (error) {
-    try {
-      await store.refreshActiveSpace();
-    } finally {
-      if (decodeAppError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
-      else {
-        tasks.fail(taskId, getErrorMessage(error));
-        toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
-      }
+    await refreshOriginSpace(store, spaceId);
+    if (store.activeSpaceId === spaceId && store.videoEditorNodeId === source.id) {
+      store.closeVideoEditor();
+      store.requestReveal([completed.nodeId], "ensure-visible");
     }
+  } catch (error) {
+    if (decodeAppError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
+    else {
+      tasks.fail(taskId, getErrorMessage(error));
+      toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
+    }
+    await refreshOriginSpace(store, spaceId);
+  }
+}
+
+function completedVideoData(completed: CompletedDerivationOutput, pendingNodeId: string) {
+  if (completed.nodeId !== pendingNodeId) throw new Error("Video render returned a different output node");
+  const data = validateSpaceNodePayload(completed.data);
+  if (data.kind !== "video") throw new Error("Video render returned non-video content");
+  return data;
+}
+
+async function refreshOriginSpace(store: VideoEditStore, spaceId: string) {
+  if (store.activeSpaceId !== spaceId) return;
+  try {
+    await store.refreshActiveSpace();
+  } catch (error) {
+    void logError(`Video edit Space refresh failed: ${formatErrorDiagnostic(error)}`);
   }
 }
 

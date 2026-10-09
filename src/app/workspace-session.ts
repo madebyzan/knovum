@@ -19,8 +19,9 @@ function readRoute(key: string): string | undefined {
   return undefined;
 }
 
-export function readLastNonSettingsRoute(): string | undefined {
-  return readRoute(LAST_NON_SETTINGS_ROUTE_KEY);
+export async function returnToWorkspace(router: Router): Promise<void> {
+  const path = readRoute(LAST_NON_SETTINGS_ROUTE_KEY);
+  await router.push(path && router.resolve(path).name === "spaces" ? path : "/spaces");
 }
 
 export async function restoreWorkspaceSession(router: Router): Promise<void> {
@@ -32,7 +33,7 @@ export async function restoreWorkspaceSession(router: Router): Promise<void> {
 export function installWorkspaceSessionPersistence(router: Router): void {
   router.afterEach((to) => {
     globalThis.localStorage.setItem(LAST_ROUTE_KEY, to.fullPath);
-    if (to.path !== "/settings") {
+    if (to.name === "spaces") {
       globalThis.localStorage.setItem(LAST_NON_SETTINGS_ROUTE_KEY, to.fullPath);
     }
   });

@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use tauri::{AppHandle, Manager, Runtime};
 use walkdir::WalkDir;
 
 use crate::ai::contracts::AgentArtifact;
@@ -13,29 +12,6 @@ mod classification;
 mod output_projection;
 
 pub(crate) use output_projection::{obsolete_tool_artifacts, record_message, record_tool};
-
-pub fn space_workspace<R: Runtime>(app: &AppHandle<R>, space_id: &str) -> AppResult<PathBuf> {
-    let space = uuid::Uuid::parse_str(space_id)
-        .map_err(|_| AppError::invalid("Agent session requires a valid Space identifier"))?;
-    app.path()
-        .app_data_dir()
-        .map(|root| {
-            root.join("agent-workspaces")
-                .join("spaces")
-                .join(space.to_string())
-        })
-        .map_err(|error| AppError::internal(error.to_string()))
-}
-
-pub fn workspace<R: Runtime>(
-    app: &AppHandle<R>,
-    space_id: &str,
-    session_id: &str,
-) -> AppResult<PathBuf> {
-    let session = uuid::Uuid::parse_str(session_id)
-        .map_err(|_| AppError::invalid("Agent session requires a valid session identifier"))?;
-    Ok(space_workspace(app, space_id)?.join(session.to_string()))
-}
 
 pub fn prepare(path: &Path) -> AppResult<()> {
     if path.exists() {

@@ -22,28 +22,13 @@ function document(extension: string): SpaceCanvasNode {
   };
 }
 
-it("extracts the owning node and discards completion after the editor closes", async () => {
-  let complete!: (value: unknown) => void;
-  invoke.mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        complete = resolve;
-      }),
-  );
-  let current = true;
-  const pending = readNodeAudiobookScript(document("docx"), "Narrator", "job", () => current);
+it("turns node document text into owned chapters and paragraphs", async () => {
+  invoke.mockResolvedValue({ kind: "text", text: "# Chapter one\n\nFirst paragraph.\n\nSecond paragraph." });
+  const script = await readNodeAudiobookScript(document("pdf"), "Narrator", "job");
   expect(invoke).toHaveBeenCalledWith("plugin:spaces|read_audiobook_source", {
     sourceNodeId: "document",
     jobId: "job",
   });
-  current = false;
-  complete({ kind: "text", text: "Late response" });
-  expect(await pending).toBeUndefined();
-});
-
-it("turns node document text into owned chapters and paragraphs", async () => {
-  invoke.mockResolvedValue({ kind: "text", text: "# Chapter one\n\nFirst paragraph.\n\nSecond paragraph." });
-  const script = await readNodeAudiobookScript(document("pdf"), "Narrator", "job", () => true);
   expect(script?.chapters).toEqual([
     {
       title: "Chapter one",
@@ -62,7 +47,7 @@ it("reads current text-node content without a file picker or Rust extraction", a
     initialPosition: { x: 0, y: 0 },
     data: { kind: "markdown", title: "Current draft", text: "## Chapter\n\nCurrent words." },
   };
-  const script = await readNodeAudiobookScript(node, "Narrator", "job", () => true);
+  const script = await readNodeAudiobookScript(node, "Narrator", "job");
   expect(script?.chapters[0]?.paragraphs[0]?.text).toBe("Current words.");
   expect(invoke).not.toHaveBeenCalled();
 });
@@ -76,7 +61,7 @@ it("rejects structured node manuscripts with obsolete fields", async () => {
       legacy: true,
     }),
   });
-  await expect(readNodeAudiobookScript(document("json"), "Narrator", "job", () => true)).rejects.toThrow(
+  await expect(readNodeAudiobookScript(document("json"), "Narrator", "job")).rejects.toThrow(
     /Unrecognized key/u,
   );
 });

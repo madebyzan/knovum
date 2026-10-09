@@ -7,16 +7,13 @@ import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { invokeCommand } from "../foundation/ipc/invoke-command";
 import { initializeExitCoordination } from "../foundation/lifecycle/window-close-coordinator";
-import {
-  installWorkspaceSessionPersistence,
-  restoreWorkspaceSession,
-} from "../foundation/navigation/workspace-session";
 import { usePreferencesStore } from "../foundation/preferences/preferences-store";
 import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
 import { installSessionTaskProjection } from "../foundation/tasks/session-task-projection";
 import { installWindowActivityState } from "../foundation/window/window-activity";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 import { installSettingsPersistence } from "./settings-persistence";
+import { installWorkspaceSessionPersistence, restoreWorkspaceSession } from "./workspace-session";
 
 export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
   const state = useBootstrapStore(pinia);

@@ -5,9 +5,9 @@ use crate::spaces::speech::{cancellation, run_start};
 async fn preparation_cancellation_transfers_to_the_committed_speech_run() {
     let pool = database().await;
     let job_id = uuid::Uuid::new_v4().to_string();
-    let lease = cancellation::acquire(&job_id).unwrap();
+    let (token, lease) = cancellation::acquire(&job_id).unwrap();
     assert!(cancellation::cancel(&job_id).unwrap());
-    assert!(lease.token().is_cancelled());
+    assert!(token.is_cancelled());
     assert!(!cancellation::cancel_project_run(&pool, &job_id)
         .await
         .unwrap());

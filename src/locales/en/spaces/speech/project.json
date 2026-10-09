@@ -1,7 +1,6 @@
 {
   "new": "New speech project",
   "language": "Language",
-  "targetSpace": "Target Space",
   "name": "Project name",
   "scriptPlaceholder": "Enter the script for this revision",
   "saveRevision": "Save revision",

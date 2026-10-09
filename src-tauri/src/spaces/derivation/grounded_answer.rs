@@ -39,6 +39,7 @@ pub(super) async fn answer(
     app: &AppHandle,
     request: GroundedAnswerRequest,
     authority: &super::action_execution::ExecutionAuthority,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Value, AppError> {
     if request.question.trim().is_empty() || request.inputs.is_empty() {
         return Err(AppError::new(
@@ -74,7 +75,6 @@ pub(super) async fn answer(
         request.target,
         crate::ai::contracts::ExecutionCapability::TextGeneration,
     )?;
-    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(pool).await?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
@@ -87,7 +87,7 @@ pub(super) async fn answer(
                 .collect(),
         ),
         &request.id,
-        &cancellation,
+        cancellation,
     )
     .await?;
     let retrieval = hybrid::search(
@@ -104,7 +104,7 @@ pub(super) async fn answer(
                     .collect(),
             ),
         },
-        &cancellation,
+        cancellation,
     )
     .await?;
     let sources = prompt::select_sources(retrieval.matches)?;
@@ -125,7 +125,7 @@ pub(super) async fn answer(
             max_tokens: None,
             image: None,
         },
-        cancellation,
+        cancellation.clone(),
     )
     .await?;
     if let Some(usage) = completion.usage.as_ref() {

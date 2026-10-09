@@ -59,13 +59,13 @@ pub(super) async fn generate_for_action(
     app: AppHandle,
     request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<GroundedDocumentOutput, AppError> {
     let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::TextGeneration,
     )?;
-    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(db::pool(&app).await?).await?;
     if let Err(error) = persistence::start(&app, &request, &authority).await {
         let settlement = super::failure::fail_pending(
@@ -90,7 +90,7 @@ pub(super) async fn generate_for_action(
                 )
                 .await?;
             }
-            Ok(completion::complete(&app, &request, generated, &authority, &cancellation).await?)
+            Ok(completion::complete(&app, &request, generated, &authority, cancellation).await?)
         }
         Err(error) => {
             let settlement = persistence::fail(&app, &request.id, &error.message).await;

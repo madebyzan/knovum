@@ -10,10 +10,7 @@ import SpaceProvenanceSources from "./SpaceProvenanceSources.vue";
 
 const props = defineProps<{ nodeId: string; data: SpaceKnowledgeObjectPayload }>();
 const editing = shallowRef(false);
-const draft = useNodeDraft(
-  computed(() => props.nodeId),
-  "knowledge-object",
-);
+const draft = useNodeDraft(computed(() => props.nodeId));
 const isEvidence = computed(() => props.data.objectTypeId === SYSTEM_OBJECT_TYPE_IDS.evidence);
 
 watch(

@@ -10,7 +10,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useContextDock } from "../../canvas/use-context-dock";
 import type { SpaceProvenanceTargetKind } from "../../knowledge/model/provenance";
-import { attachProvenance, detachProvenance } from "../../knowledge/provenance-actions";
+import { attachProvenanceFromPeek, detachProvenance } from "../../knowledge/provenance-actions";
 import { useSpaceProvenanceQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
 import { nodeIcon } from "../canvas/node-icon";
@@ -63,16 +63,14 @@ async function attachCurrent() {
   const spaceId = activeSpaceId.value;
   if (!peek || !spaceId) return;
   await mutate(() =>
-    attachProvenance({
-      id: crypto.randomUUID(),
-      spaceId,
-      targetKind: props.targetKind,
-      targetId: props.targetId,
-      sourceNodeId: peek.nodeId,
-      locator: peek.locator,
-      sourceRevision: peek.locator.sourceRevision,
-      quote: peek.locator.quote?.exact ?? peek.text ?? "",
-    }),
+    attachProvenanceFromPeek(
+      {
+        spaceId,
+        targetKind: props.targetKind,
+        targetId: props.targetId,
+      },
+      peek,
+    ),
   );
 }
 async function remove(id: string) {

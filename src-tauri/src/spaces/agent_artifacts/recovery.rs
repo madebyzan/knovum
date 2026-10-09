@@ -1,9 +1,8 @@
 use std::collections::HashSet;
 
 use sqlx::Row;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
-use crate::ai::capabilities;
 use crate::app_error::{AppError, AppResult};
 
 use super::contracts;
@@ -13,7 +12,7 @@ pub async fn list_recoverable_artifact_workspaces(
     app: AppHandle,
     space_id: String,
 ) -> AppResult<Vec<contracts::RecoverableAgentCreation>> {
-    let root = capabilities::agent_artifacts::space_workspace(&app, &space_id)?;
+    let root = crate::spaces::agent_artifacts::workspace::space_directory(&app, &space_id)?;
     if !root.is_dir() {
         return Ok(Vec::new());
     }
@@ -38,11 +37,15 @@ pub async fn list_recoverable_artifact_workspaces(
         let Some(completed_at) = completed_at else {
             continue;
         };
-        let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &session_id)?;
+        let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+            &app,
+            &space_id,
+            &session_id,
+        )?;
         if !workspace.is_dir() {
             continue;
         }
-        let artifacts = capabilities::agent_artifacts::collect(&workspace)?;
+        let artifacts = crate::external_agents::artifacts::collect(&workspace)?;
         if artifacts.is_empty() {
             continue;
         }
@@ -63,16 +66,16 @@ pub async fn list_recoverable_artifact_workspaces(
 
 pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> {
     for (session_id, space_id) in super::session::fail_interrupted(app).await? {
-        let workspace = capabilities::agent_artifacts::workspace(app, &space_id, &session_id)
+        let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+            app,
+            &space_id,
+            &session_id,
+        )
+        .map_err(|error| error.to_string())?;
+        crate::external_agents::artifacts::discard(&workspace)
             .map_err(|error| error.to_string())?;
-        capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
     }
-    let root = app
-        .path()
-        .app_data_dir()
-        .map_err(|error| error.to_string())?
-        .join("agent-workspaces")
-        .join("spaces");
+    let root = super::workspace::root(app).map_err(|error| error.to_string())?;
     if !tokio::fs::try_exists(&root)
         .await
         .map_err(|error| error.to_string())?
@@ -109,7 +112,7 @@ pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> 
         uuid::Uuid::parse_str(&id)
             .map_err(|_| "Agent workspace has an invalid Space identifier".to_owned())?;
         if !spaces.contains(&id) {
-            capabilities::agent_artifacts::discard(&entry.path())
+            crate::external_agents::artifacts::discard(&entry.path())
                 .map_err(|error| error.to_string())?;
         }
     }

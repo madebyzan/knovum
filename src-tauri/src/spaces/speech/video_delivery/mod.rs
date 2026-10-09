@@ -29,7 +29,7 @@ pub async fn export_video_dubbing_asset(
     app: AppHandle,
     request: ExportVideoDubbingAssetRequest,
 ) -> Result<(), AppError> {
-    let lease = cancellation::acquire(&request.job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
     let destination = Path::new(&request.destination_path).to_owned();
     let extension = match request.asset {
         VideoDeliveryAsset::Srt => "srt",
@@ -67,7 +67,6 @@ pub async fn export_video_dubbing_asset(
         &request.revision_id,
         &request.job_id,
     )?;
-    let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         let delivery = (|| {
             let output = if let Some(subtitle) = subtitle {

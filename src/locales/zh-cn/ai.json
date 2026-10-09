@@ -9,5 +9,19 @@
   "openSettings": "配置模型",
   "settingsUnavailable": "AI 设置加载失败",
   "executedWithModel": "由 {provider} · {model} 执行",
-  "executedWithAgent": "由 {name} · 桌面 Agent 执行"
+  "executedWithAgent": "由 {name} · 桌面 Agent 执行",
+  "languages": {
+    "zhCn": "简体中文",
+    "zhTw": "繁體中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português",
+    "it": "Italiano",
+    "ru": "Русский",
+    "ar": "العربية"
+  }
 }

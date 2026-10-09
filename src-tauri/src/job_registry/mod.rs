@@ -129,11 +129,12 @@ impl JobRegistry<CancellationToken> {
         Ok((token, lease))
     }
 
-    pub fn cancel(&self, id: &str) -> Result<(), String> {
+    pub fn cancel(&self, id: &str) -> Result<bool, String> {
         if let Some(token) = self.lock()?.get(id) {
             token.cancel();
+            return Ok(true);
         }
-        Ok(())
+        Ok(false)
     }
 }
 

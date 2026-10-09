@@ -5,7 +5,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::publication::dimensions;
 use crate::{
-    ai::capabilities::agent_artifacts,
+    external_agents::artifacts as agent_artifacts,
     spaces::{assets, db, nodes::contracts::InsertNode, structure},
 };
 

@@ -6,6 +6,7 @@ mod database;
 pub(crate) mod mcp;
 mod plugins;
 pub(crate) mod reclamation;
+pub(crate) mod recovery;
 mod skills;
 pub(crate) mod snapshots;
 
@@ -18,6 +19,7 @@ use tokio::sync::{Mutex, OnceCell};
 pub(crate) struct ExtensionState {
     shutdown: tokio_util::sync::CancellationToken,
     database: OnceCell<SqlitePool>,
+    recovery: OnceCell<Result<(), String>>,
     content_lock: Mutex<()>,
     sessions: Mutex<mcp::sessions::Sessions>,
     credential_locks: Mutex<HashMap<String, Arc<Mutex<()>>>>,
@@ -40,6 +42,14 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             Ok(())
         })
         .on_event(|app, event| {
+            if matches!(event, tauri::RunEvent::Ready) {
+                let app = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(error) = recovery::ready(&app).await {
+                        log::error!("Extension runtime initialization failed: {error}");
+                    }
+                });
+            }
             if matches!(event, tauri::RunEvent::Exit) {
                 tauri::async_runtime::block_on(shutdown(app));
             }
@@ -101,30 +111,6 @@ async fn shutdown(app: &tauri::AppHandle) {
     state.shutdown.cancel();
     mcp::sessions::shutdown(app).await;
     state.oauth_clients.lock().await.clear();
-}
-
-pub(crate) async fn recover(
-    app: &tauri::AppHandle,
-    retained_snapshots: &[String],
-) -> Result<(), String> {
-    let pool = database::pool(app).await?;
-    connectors::commands::recover_cleanup(app).await?;
-    connectors::cleanup::collect(app).await?;
-    let leases: Vec<String> = sqlx::query_scalar("SELECT snapshot_id FROM content_leases")
-        .fetch_all(&pool)
-        .await
-        .map_err(|error| error.to_string())?;
-    for id in leases
-        .into_iter()
-        .filter(|id| !retained_snapshots.contains(id))
-    {
-        sqlx::query("DELETE FROM content_leases WHERE snapshot_id=$1")
-            .bind(id)
-            .execute(&pool)
-            .await
-            .map_err(|error| error.to_string())?;
-    }
-    reclamation::collect(app).await
 }
 
 #[cfg(test)]

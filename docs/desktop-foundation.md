@@ -111,6 +111,8 @@ The official Tauri notification plugin delivers background task completion/failu
 at least ten seconds of work, only when the main window is hidden or unfocused. Historical terminal
 snapshots and cancelled tasks do not notify. Notifications contain no prompts, output or producer
 errors. The strict preference controls delivery; OS notification settings remain authoritative.
+The main WebView grants only the notification plugin's initialization-time permission query
+(`notification:allow-is-permission-granted`); Rust remains the notification delivery owner.
 The official desktop plugin does not expose delivery acknowledgement or the real OS authorization
 state, so enabling the preference does not claim that the OS delivered a notification. Feature engines retain cancellation and terminal authority.
 

@@ -17,7 +17,7 @@ pub(super) fn begin(id: &str) -> Result<(CancellationToken, JobLease<Cancellatio
 }
 
 pub(super) fn cancel(id: &str) -> Result<(), String> {
-    jobs().cancel(id)
+    jobs().cancel(id).map(|_| ())
 }
 
 pub(super) fn check(token: &CancellationToken) -> Result<(), AppError> {

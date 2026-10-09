@@ -7,21 +7,22 @@ import { systemSansFamily } from "../../../../foundation/typography/system-font"
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
-import type { useSpaceStore } from "../../session/space-store";
 import {
   addTextOverlay,
   locateTimelineTime,
   splitClip,
   type VideoEditProject,
 } from "../../video-editing/project";
-import { renderVideoEdit } from "../../video-editing/render";
+import { saveVideoEditProject, type UpdateNodeContents } from "../../video-editing/save";
 import type { useVideoEditHistory } from "./use-video-edit-history";
 import { useVideoEditLeave } from "./use-video-edit-leave";
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
 interface Options {
-  store: ReturnType<typeof useSpaceStore>;
+  updateNodeContents: UpdateNodeContents;
+  close: () => void;
+  renderProject: (source: SpaceCanvasNode<SpaceVideoPayload>, project: VideoEditProject) => Promise<void>;
   node: Ref<SpaceCanvasNode | undefined>;
   data: Ref<SpaceVideoPayload | undefined>;
   project: Ref<VideoEditProject | undefined>;
@@ -32,7 +33,18 @@ interface Options {
 }
 
 export function useVideoEditActions(options: Options) {
-  const { store, node, data, project, video, history, selection, playback } = options;
+  const {
+    updateNodeContents,
+    close,
+    renderProject,
+    node,
+    data,
+    project,
+    video,
+    history,
+    selection,
+    playback,
+  } = options;
   const { t } = useI18n();
   const saving = shallowRef(false);
   const rendering = shallowRef(false);
@@ -51,10 +63,8 @@ export function useVideoEditActions(options: Options) {
     if (!currentNode || !currentPayload || !currentProject) return Promise.resolve(false);
     // Captured before the await so edits landing mid-save stay dirty.
     const snapshot = currentProject;
-    const after: SpaceVideoPayload = { ...currentPayload, videoEditProject: currentProject };
     saving.value = true;
-    savePromise = store
-      .updateNodeContents([{ id: currentNode.id, before: currentPayload, after }])
+    savePromise = saveVideoEditProject(updateNodeContents, currentNode, currentPayload, currentProject)
       .then(() => {
         history.markSaved(snapshot);
         toast.success(t("spaces.media.videoEditor.project.saved"));
@@ -75,8 +85,8 @@ export function useVideoEditActions(options: Options) {
     dirty: history.dirty,
     saving,
     save,
-    discard: store.closeVideoEditor,
-    close: store.closeVideoEditor,
+    discard: close,
+    close,
   });
   function closeOrDismiss() {
     if (saving.value) return;
@@ -121,7 +131,7 @@ export function useVideoEditActions(options: Options) {
     rendering.value = true;
     try {
       if (history.dirty.value && !(await save())) return;
-      await renderVideoEdit(store, sourceNode, project.value);
+      await renderProject(sourceNode, project.value);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {

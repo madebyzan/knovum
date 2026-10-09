@@ -24,10 +24,7 @@ const draft = shallowRef(props.node.data.title);
 const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
 const editing = shallowRef(false);
 const saving = shallowRef(false);
-const nodeDraft = useNodeDraft(
-  computed(() => props.node.id),
-  "title",
-);
+const nodeDraft = useNodeDraft(computed(() => props.node.id));
 const typeLabel = computed(() => t(`spaces.nodeTypes.${camelCase(props.node.data.kind)}`));
 const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 const modifiedAt = computed(() => {

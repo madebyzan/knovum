@@ -24,18 +24,18 @@ export const translationTargets = [
 export type TranslationTarget = (typeof translationTargets)[number];
 
 export const translationTargetLabelKey: Record<TranslationTarget, string> = {
-  "zh-CN": "spaces.richtext.ai.languages.zhCn",
-  "zh-TW": "spaces.richtext.ai.languages.zhTw",
-  en: "spaces.richtext.ai.languages.en",
-  ja: "spaces.richtext.ai.languages.ja",
-  ko: "spaces.richtext.ai.languages.ko",
-  fr: "spaces.richtext.ai.languages.fr",
-  de: "spaces.richtext.ai.languages.de",
-  es: "spaces.richtext.ai.languages.es",
-  pt: "spaces.richtext.ai.languages.pt",
-  it: "spaces.richtext.ai.languages.it",
-  ru: "spaces.richtext.ai.languages.ru",
-  ar: "spaces.richtext.ai.languages.ar",
+  "zh-CN": "ai.languages.zhCn",
+  "zh-TW": "ai.languages.zhTw",
+  en: "ai.languages.en",
+  ja: "ai.languages.ja",
+  ko: "ai.languages.ko",
+  fr: "ai.languages.fr",
+  de: "ai.languages.de",
+  es: "ai.languages.es",
+  pt: "ai.languages.pt",
+  it: "ai.languages.it",
+  ru: "ai.languages.ru",
+  ar: "ai.languages.ar",
 };
 
 export interface TranslationInput {

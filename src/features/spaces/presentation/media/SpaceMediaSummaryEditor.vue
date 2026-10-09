@@ -12,10 +12,7 @@ const emit = defineEmits<{ save: [summary: string] }>();
 const { t } = useI18n();
 const editing = ref(false);
 const draft = ref(props.summary);
-const nodeDraft = useNodeDraft(
-  computed(() => props.nodeId),
-  "media-summary",
-);
+const nodeDraft = useNodeDraft(computed(() => props.nodeId));
 watch(
   () => props.nodeId,
   () => (editing.value = false),

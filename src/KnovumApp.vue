@@ -2,9 +2,9 @@
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { storeToRefs } from "pinia";
 import { TooltipProvider } from "reka-ui";
-import { nextTick, onScopeDispose, provide, watch } from "vue";
+import { computed, nextTick, onScopeDispose, provide, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { toast, Toaster } from "vue-sonner";
 
 // oxlint-disable-next-line import/no-unassigned-import
@@ -34,6 +34,8 @@ const { status, failure } = storeToRefs(bootstrap);
 const { theme } = storeToRefs(preferences);
 const workspace = useSpacesWorkspace();
 const router = useRouter();
+const route = useRoute();
+const workspaceActive = computed(() => route.name === "spaces");
 onScopeDispose(
   registerVoiceLibraryRunNavigation(async () => {
     await router.push({ path: "/settings", query: { pane: "voices" } });
@@ -65,7 +67,11 @@ watch(
       :ignore-non-keyboard-focus="true"
       :disable-hoverable-content="true"
     >
-      <AppShell :workspace="workspace" />
+      <AppShell
+        :workspace="workspace"
+        :workspace-active="workspaceActive"
+        @open-settings="router.push('/settings')"
+      />
       <ApplicationUpdates />
       <DictationOverlay v-if="dictationSupported" />
       <UiConfirmAction />

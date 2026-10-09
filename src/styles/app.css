@@ -139,15 +139,15 @@
   backdrop-filter: blur(var(--blur-overlay)) saturate(1.18);
 }
 
-.spaces-workspace.is-panel-motion .workspace-splitter-group > [data-panel] {
+.workspace.is-panel-motion .workspace-splitter-group > [data-panel] {
   transition: flex-grow 180ms var(--ease-standard);
 }
 
-.spaces-workspace.is-panel-motion .workspace-toolbar-content {
+.workspace.is-panel-motion .workspace-toolbar-content {
   transition: grid-template-columns 180ms var(--ease-standard);
 }
 
-.spaces-workspace.is-panel-motion .workspace-right-sidebar-content {
+.workspace.is-panel-motion .workspace-right-sidebar-content {
   min-width: calc(var(--workspace-right-sidebar-width) - 0.625rem);
 }
 
@@ -183,8 +183,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spaces-workspace.is-panel-motion .workspace-splitter-group > [data-panel],
-  .spaces-workspace.is-panel-motion .workspace-toolbar-content {
+  .workspace.is-panel-motion .workspace-splitter-group > [data-panel],
+  .workspace.is-panel-motion .workspace-toolbar-content {
     transition-duration: 0ms;
   }
   *,

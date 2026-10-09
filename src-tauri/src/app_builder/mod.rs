@@ -1,3 +1,5 @@
+mod task_projection;
+
 use tauri::{Builder, Manager, Wry};
 
 use crate::{ai, app_resources, app_window, desktop, extensions, secrets, spaces, updater};
@@ -109,8 +111,10 @@ fn finish(builder: Builder<Wry>) -> tauri::App<Wry> {
         .on_window_event(desktop::handle_window_event)
         .setup(|app| {
             desktop::install(app.handle());
+            task_projection::install(app.handle());
             secrets::install(app.handle()).map_err(std::io::Error::other)?;
             updater::setup(app.handle())?;
+            crate::external_agents::install(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())

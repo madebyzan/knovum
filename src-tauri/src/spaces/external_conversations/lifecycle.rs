@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use crate::{ai::capabilities, app_error::AppError, spaces::db};
+use crate::{app_error::AppError, spaces::db};
 
 pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError> {
     crate::external_agents::conversation::finish(conversation_id).await?;
@@ -13,8 +13,9 @@ pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
-    let workspace = capabilities::agent_artifacts::workspace(&app, &row.1, conversation_id)
-        .map_err(|error| error.to_string())?;
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &row.1, conversation_id)
+            .map_err(|error| error.to_string())?;
     if let Err(error) =
         super::publication::publish(&app, conversation_id, &row.0, &row.1, &workspace).await
     {
@@ -84,9 +85,13 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     super::staging::cleanup(app, pool, run_id).await?;
-    let workspace = capabilities::agent_artifacts::workspace(app, &space_id, &conversation_id)
-        .map_err(|error| error.to_string())?;
-    capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
+    let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+        app,
+        &space_id,
+        &conversation_id,
+    )
+    .map_err(|error| error.to_string())?;
+    crate::external_agents::artifacts::discard(&workspace).map_err(|error| error.to_string())?;
     crate::spaces::conversations::extensions::release_run(app, pool, run_id).await?;
     Ok(true)
 }
@@ -129,9 +134,13 @@ pub async fn delete(app: &AppHandle, conversation_id: &str) -> Result<(), String
     sqlx::query("DELETE FROM spaces_authorization_grants WHERE principal_kind='external_agent' AND principal_id=$1")
         .bind(conversation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
-    let workspace = capabilities::agent_artifacts::workspace(app, &space_id, conversation_id)
-        .map_err(|error| error.to_string())?;
-    capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())
+    let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+        app,
+        &space_id,
+        conversation_id,
+    )
+    .map_err(|error| error.to_string())?;
+    crate::external_agents::artifacts::discard(&workspace).map_err(|error| error.to_string())
 }
 
 pub async fn recover(app: AppHandle) -> Result<(), String> {
@@ -159,8 +168,9 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
     .await
     .map_err(db::sql_error)?;
     for (id, run_id, space_id) in finished {
-        let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &id)
-            .map_err(|error| error.to_string())?;
+        let workspace =
+            crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &id)
+                .map_err(|error| error.to_string())?;
         if let Err(error) =
             super::publication::publish(&app, &id, &run_id, &space_id, &workspace).await
         {
@@ -176,9 +186,10 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
     .map_err(db::sql_error)?;
     for (id, space_id, run_id) in committed {
         let _ownership = super::publication_ownership::acquire(&run_id).await?;
-        let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &id)
-            .map_err(|error| error.to_string())?;
-        if let Err(error) = capabilities::agent_artifacts::discard(&workspace) {
+        let workspace =
+            crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &id)
+                .map_err(|error| error.to_string())?;
+        if let Err(error) = crate::external_agents::artifacts::discard(&workspace) {
             log::warn!("Could not remove committed Agent workspace {id}: {error}");
         }
     }

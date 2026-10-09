@@ -81,6 +81,11 @@ Tauri Store reads or interrupted-job recovery. Every storage consumer awaits one
 result. Unreconciled restore publication blocks initialization; ordinary operation failure is reported
 with the original data preserved. The native launch progress remains active during maintenance.
 
+Extension account cleanup and External Agent task workspace cleanup start independently after the
+retained backup-maintenance result. Space recovery awaits extension account readiness and then passes
+its retained extension snapshot IDs for lease reconciliation before dispatch. Desktop task producer
+observation is wired by application composition; the desktop hub only merges neutral task snapshots.
+
 Pre-release storage uses strict current baselines. Obsolete formats are rejected or explicitly reset;
 the application does not silently reinterpret them through compatibility readers. Recovery may resume
 only durable work whose identity, source revision, authority, resources, and execution epoch still
@@ -155,6 +160,10 @@ Feature-specific work may split preparation, inference, assembly, and publicatio
 attempts. Each attempt must compare the frozen source revision and Run epoch before writing output.
 Recovery can continue accepted remaining work, but cancelled, superseded, or stale attempts cannot
 publish.
+
+Every durable Action handler uses that Attempt's cancellation token. Explicit cancellation, budget
+expiry and lease loss therefore interrupt the same execution, whose settlement precedes releasing
+scheduler capacity.
 
 ## Publication and storage ownership
 

@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias
 
 from knovum_inference import PROTOCOL_VERSION
-from knovum_inference.contracts.generated.control import RuntimeCapability, RuntimeInitializeParams
+from knovum_inference.contracts.generated.control import (
+    RuntimeCapability,
+    RuntimeDeviceProfile,
+    RuntimeInitializeParams,
+)
 from knovum_inference.errors import invalid_params, server_error
 from knovum_inference.runtime.identity import verify_runtime_digest
 
@@ -43,6 +47,7 @@ class Session:
     session_id: str
     capability: RuntimeCapability
     capability_spec_id: str
+    device_profile: RuntimeDeviceProfile
     engine: InferenceEngine
     work_directory: Path
 
@@ -60,11 +65,13 @@ def prepare_session(params: RuntimeInitializeParams) -> Session:
     verify_runtime_digest(params.runtime_digest, Path(params.runtime_manifest_path))
     model_path = _selected_model_path(params)
     _configure_engine_threads(params)
-    engine = _create_engine(params, model_path, work_directory)
+    device_profile = params.device_profile.model_copy(deep=True)
+    engine = _create_engine(params, model_path, work_directory, device_profile)
     return Session(
         params.session_id,
         params.capability,
         params.capability_spec_id,
+        device_profile,
         engine,
         work_directory.resolve(strict=True),
     )
@@ -120,7 +127,12 @@ def _selected_model_path(params: RuntimeInitializeParams) -> Path:
     return model_path.resolve(strict=True)
 
 
-def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_directory: Path) -> InferenceEngine:
+def _create_engine(
+    params: RuntimeInitializeParams,
+    model_path: Path,
+    work_directory: Path,
+    device_profile: RuntimeDeviceProfile,
+) -> InferenceEngine:
     capability = params.capability
     device = params.device_profile.device
     threads = params.device_profile.cpu_threads
@@ -135,7 +147,9 @@ def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_direc
 
         if not model_path.is_dir():
             raise server_error("model_missing", "ASR model directory is missing")
-        return TranscriptionEngine(model_path, work_directory, threads)
+        if device_profile.execution_profile_id != params.capability_spec_id:
+            raise server_error("runtime_mismatch", "ASR model and execution profile differ")
+        return TranscriptionEngine(model_path, work_directory, device_profile)
     if capability is RuntimeCapability.speech_alignment:
         from knovum_inference.speech.alignment import AlignmentEngine
 

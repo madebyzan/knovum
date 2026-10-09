@@ -6,6 +6,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { CaptureCandidate } from "../../contracts/generated/CaptureCandidate";
 import type { CapturePreview } from "../../contracts/generated/CapturePreview";
+import { workflowOutputNamesValid } from "../../workflows/output-name-policy";
 import { useWorkflowCaptureSave } from "../../workflows/use-workflow-capture-save";
 
 const props = defineProps<{
@@ -26,10 +27,7 @@ const outputNames = ref<Record<string, string>>(
 );
 const outputsNamed = computed(() => {
   const names = props.candidate.outputSlots.map((slot) => outputNames.value[slot.id]?.trim() ?? "");
-  return (
-    names.every((name) => name.length > 0 && Array.from(name).length <= 120) &&
-    new Set(names).size === names.length
-  );
+  return workflowOutputNamesValid(names);
 });
 
 function setOutputName(id: string, value: string) {

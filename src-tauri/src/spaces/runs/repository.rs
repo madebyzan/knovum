@@ -136,25 +136,3 @@ pub(crate) async fn request_control(
     super::signals::announce();
     Ok(())
 }
-
-pub(crate) async fn durable_action_id(
-    pool: &SqlitePool,
-    run_id: &str,
-) -> Result<Option<String>, String> {
-    let encoded: Option<String> =
-        sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=$1 AND kind='action'")
-            .bind(run_id)
-            .fetch_optional(pool)
-            .await
-            .map_err(db::sql_error)?;
-    encoded
-        .map(|value| {
-            serde_json::from_str::<serde_json::Value>(&value)
-                .map_err(db::json_error)?
-                .get("actionId")
-                .and_then(serde_json::Value::as_str)
-                .map(str::to_owned)
-                .ok_or_else(|| "action-run-invalid: actionId is missing".into())
-        })
-        .transpose()
-}

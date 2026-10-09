@@ -1,6 +1,5 @@
 mod persistence;
 mod preparation;
-mod registry;
 mod render;
 pub(super) mod srt;
 mod start;
@@ -40,8 +39,8 @@ pub(super) async fn render_for_action(
     app: AppHandle,
     request: RenderSubtitledVideoRequest,
     on_progress: Channel<SubtitledVideoProgress>,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, AppError> {
-    let (cancellation, _lease) = registry::acquire(request.id.clone())?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
@@ -63,7 +62,7 @@ pub(super) async fn render_for_action(
     let execution_id = request.id.clone();
     let rendered = async {
         let source =
-            preparation::prepare(&app, &request, source, &on_progress, &cancellation).await?;
+            preparation::prepare(&app, &request, source, &on_progress, cancellation).await?;
         let render_cancellation = cancellation.clone();
         let expected = request.source_revision.clone();
         blocking::run(move || {
@@ -97,7 +96,7 @@ pub(super) async fn render_for_action(
                 &request.id,
                 output,
                 &authority,
-                &cancellation,
+                cancellation,
             )
             .await
             {
@@ -126,10 +125,6 @@ pub(super) async fn render_for_action(
             Err(failure::with_settlement(error, settlement))
         }
     }
-}
-
-pub(super) async fn cancel(id: String) -> Result<(), String> {
-    registry::cancel(&id)
 }
 
 pub(super) fn progress(

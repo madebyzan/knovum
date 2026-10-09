@@ -1,6 +1,6 @@
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { SYSTEM_OBJECT_TYPE_IDS } from "../knowledge/model/object-types";
-import { createProvenance } from "../knowledge/persistence/knowledge-operations";
+import { attachProvenanceFromPeek } from "../knowledge/provenance-actions";
 import type { useSpaceStore } from "../session/space-store";
 
 type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpace" | "addContent" | "createRelation">;
@@ -26,16 +26,14 @@ export async function createSourceEvidence(input: SourceEvidenceInput) {
     properties: { observation: quote },
   });
   if (!evidence) return;
-  await createProvenance({
-    id: crypto.randomUUID(),
-    spaceId,
-    targetKind: "node",
-    targetId: evidence.id,
-    sourceNodeId: target.nodeId,
-    locator: target.locator,
-    sourceRevision: target.locator.sourceRevision,
-    quote,
-  });
+  await attachProvenanceFromPeek(
+    {
+      spaceId,
+      targetKind: "node",
+      targetId: evidence.id,
+    },
+    target,
+  );
   await store.createRelation(evidence.id, target.nodeId, "derives-from", { rationale, spaceId });
   return evidence;
 }

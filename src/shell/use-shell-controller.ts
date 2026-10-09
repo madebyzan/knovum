@@ -1,9 +1,8 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { useEventListener, useTimeoutFn } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
 
 import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
 import { registerAppCommands, runAppCommandById } from "../foundation/commands/run-app-command";
@@ -15,9 +14,11 @@ import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands";
 import { useWorkbenchLayoutPreferences } from "./use-workbench-layout-preferences";
 
-export function useShellController(workspace: WorkspaceDefinition) {
-  const route = useRoute();
-  const router = useRouter();
+export function useShellController(
+  workspace: WorkspaceDefinition,
+  workspaceActive: Readonly<Ref<boolean>>,
+  openSettings: () => void,
+) {
   const { t } = useI18n();
   const commandOpen = shallowRef(false);
   const {
@@ -47,7 +48,6 @@ export function useShellController(workspace: WorkspaceDefinition) {
     panelMotion.value = false;
   }
   useEventListener(globalThis, "resize", cancelPanelMotion);
-  const workspaceActive = computed(() => route.name === "spaces");
   const { start: startSidebarPreviewClose, stop: cancelSidebarPreviewClose } = useTimeoutFn(
     () => (sidebarPreview.value = false),
     160,
@@ -116,14 +116,18 @@ export function useShellController(workspace: WorkspaceDefinition) {
     persist();
     document.getElementById("workspace-right-sidebar-toggle")?.focus();
   }
-  provide(workspaceRightSidebarKey, { open: openRightSidebar, close: closeRightSidebar });
-  provide(workspaceSidebarKey, { reveal: () => setSidebarPinned(true) });
+  const rightSidebar = { open: openRightSidebar, close: closeRightSidebar };
+  const sidebar = { reveal: () => setSidebarPinned(true) };
+  provide(workspaceRightSidebarKey, rightSidebar);
+  provide(workspaceSidebarKey, sidebar);
+  const workspaceCommands = workspace.useCommands({ sidebar, rightSidebar });
   const shortcutsOpen = shallowRef(false);
   const commands = computed(() =>
     createShellCommands(workspace, workspaceActive.value, {
+      workspaceCommands: workspaceCommands.value,
       actions: {
         openCommandPalette: () => (commandOpen.value = true),
-        openSettings: () => void router.push("/settings"),
+        openSettings,
         openShortcuts: () => (shortcutsOpen.value = true),
         toggleSidebar: toggleSidebarPanel,
         toggleRightSidebar,
@@ -154,7 +158,6 @@ export function useShellController(workspace: WorkspaceDefinition) {
   });
   onUnmounted(menuCommandListener.dispose);
   return {
-    route,
     commandOpen,
     shortcutsOpen,
     sidebarPinned,
@@ -164,9 +167,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
     rightSidebarWidth,
     panelMotion,
     cancelPanelMotion,
-    workspaceActive,
     commands,
-    toggleSidebarPanel,
     toggleSidebarFromControl,
     setSidebarPinned,
     setSidebarWidth,

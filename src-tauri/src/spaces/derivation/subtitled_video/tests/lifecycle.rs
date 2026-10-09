@@ -164,13 +164,3 @@ async fn source_change_and_cancellation_prevent_publication() {
         assert_eq!(relations, 0);
     }
 }
-
-#[tokio::test]
-async fn subtitle_action_cancellation_reaches_the_shared_engine_token() {
-    let id = uuid::Uuid::new_v4().to_string();
-    let (token, _lease) = super::super::registry::acquire(id.clone()).unwrap();
-    crate::spaces::derivation::action_execution::cancel("add-video-subtitles", &id)
-        .await
-        .unwrap();
-    assert!(token.is_cancelled());
-}

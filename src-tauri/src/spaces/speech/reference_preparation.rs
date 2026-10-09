@@ -52,7 +52,7 @@ pub async fn prepare_voice_reference(
                 .into(),
         );
     }
-    let lease = cancellation::acquire(&request.job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
     let source = Path::new(&request.source_path).to_owned();
     assets::authorize_source(&app, &source)?;
     let length = fs::metadata(&source)
@@ -87,7 +87,7 @@ pub async fn prepare_voice_reference(
         let original = source.to_owned();
         let snapshot = input.clone();
         let reference = output.clone();
-        let cancel = lease.token().clone();
+        let cancel = cancellation.clone();
         let handle = app.clone();
         let interval = (request.start_ms, request.end_ms);
         let (revision, audio) = crate::blocking::run(move || -> Result<_, String> {
@@ -105,10 +105,10 @@ pub async fn prepare_voice_reference(
             &request.language,
             audio,
             None,
-            lease.token(),
+            &cancellation,
         )
         .await?;
-        if lease.token().is_cancelled() {
+        if cancellation.is_cancelled() {
             return Err("cancelled".into());
         }
         Ok(PreparedVoiceReference {

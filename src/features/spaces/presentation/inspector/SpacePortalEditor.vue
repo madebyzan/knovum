@@ -16,10 +16,7 @@ import { useNodeDraft } from "./use-node-draft";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
-const nodeDraft = useNodeDraft(
-  computed(() => props.node.id),
-  "portal",
-);
+const nodeDraft = useNodeDraft(computed(() => props.node.id));
 const { t } = useI18n();
 const draft = ref<SpacePortalPayload>();
 const options = computed(() => spaceTargetOptions(store.spaces, t("spaces.space.inbox")));

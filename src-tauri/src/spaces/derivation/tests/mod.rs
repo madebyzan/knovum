@@ -62,42 +62,6 @@ async fn pending_pause_keeps_the_claimed_action_authority_active() {
 }
 
 #[tokio::test]
-async fn answer_with_sources_routes_cancellation_to_its_execution_token() {
-    let run_id = uuid::Uuid::new_v4().to_string();
-    let (cancellation, _lease) = crate::ai::executions::acquire(run_id.clone()).unwrap();
-
-    super::action_execution::cancel("answer-with-sources", &run_id)
-        .await
-        .unwrap();
-
-    assert!(cancellation.is_cancelled());
-}
-
-#[tokio::test]
-async fn cancellation_before_registry_acquire_still_blocks_generation() {
-    let pool = action_pool().await;
-    let run_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','space','builtin_agent','task','action','running',4,'{}','{}','{}',1,1)")
-        .bind(&run_id)
-        .execute(&pool)
-        .await
-        .unwrap();
-    let authority = super::action_execution::ExecutionAuthority {
-        run_id: run_id.clone(),
-        execution_epoch: 4,
-    };
-    crate::spaces::runs::request_cancellation(&pool, &run_id)
-        .await
-        .unwrap();
-    crate::ai::executions::cancel(&run_id).unwrap();
-
-    let (cancellation, _lease) = crate::ai::executions::acquire(run_id).unwrap();
-
-    assert!(!cancellation.is_cancelled());
-    assert!(authority.require_active(&pool).await.is_err());
-}
-
-#[tokio::test]
 async fn cancelled_authority_cannot_reserve_or_publish() {
     let pool = action_pool().await;
     sqlx::query("CREATE TABLE guarded_writes(phase TEXT NOT NULL)")

@@ -34,7 +34,7 @@ pub(crate) fn begin_test_job(id: &str) -> Result<JobLease<CancellationToken>, St
 
 pub(super) fn cancel(id: &str) -> Result<(), AppError> {
     validate_operation_id(id)?;
-    jobs().cancel(id).map_err(AppError::from)
+    jobs().cancel(id).map(|_| ()).map_err(AppError::from)
 }
 
 fn validate_operation_id(id: &str) -> Result<(), AppError> {

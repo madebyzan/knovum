@@ -18,7 +18,7 @@ pub(super) async fn start(
 ) -> Result<RunObservation, String> {
     super::require_uuid(&request.request_id, "Voice candidate request identity")?;
     validate_request(&request)?;
-    let preparation = super::super::cancellation::acquire(&request.request_id)?;
+    let (cancellation, _lease) = super::super::cancellation::acquire(&request.request_id)?;
     let incoming_digest = request_digest(&request)?;
     if matches!(
         request.model,
@@ -54,15 +54,10 @@ pub(super) async fn start(
         }
         return crate::spaces::runs::load_run(pool, &request.request_id).await;
     }
-    let frozen = super::source_snapshot::freeze(
-        app,
-        pool,
-        request.clone(),
-        incoming_digest,
-        preparation.token(),
-    )
-    .await?;
-    let creation = create(pool, &request, &frozen, preparation.token()).await;
+    let frozen =
+        super::source_snapshot::freeze(app, pool, request.clone(), incoming_digest, &cancellation)
+            .await?;
+    let creation = create(pool, &request, &frozen, &cancellation).await;
     if let Err(error) = creation {
         if let Some(publication_id) = frozen.publication_id {
             super::super::asset_publication::abandon(app, pool, &publication_id)

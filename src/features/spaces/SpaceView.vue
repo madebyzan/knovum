@@ -16,6 +16,7 @@ import { toast } from "vue-sonner";
 
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
+import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-close-coordinator";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
@@ -34,7 +35,6 @@ import SpaceEditorLoading from "./presentation/editor/SpaceEditorLoading.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import { useSpaceStore } from "./session/space-store";
-import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
 const SpaceTiptapEditor = defineAsyncComponent({
   loader: () => import("./presentation/editor/SpaceTiptapEditor.vue"),
@@ -62,7 +62,7 @@ const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
 const mountedEditorId = useDeferredEditorMount(focusedEditorId);
-useSpaceSessionLifecycle(store.commitActiveSession);
+onBeforeUnmount(registerWindowCloseCommit(store.commitActiveSession));
 const dock = useContextDock();
 const enrichmentJobs = useEnrichmentTaskProjection({
   ready,

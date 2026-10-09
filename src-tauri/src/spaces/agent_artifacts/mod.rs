@@ -1,12 +1,12 @@
 use tauri::{ipc::Channel, AppHandle};
 
-use crate::ai::capabilities;
 use crate::app_error::{AppError, AppResult};
 pub(crate) mod contracts;
 mod execution;
 pub(crate) mod import;
 pub(crate) mod recovery;
 mod session;
+pub(crate) mod workspace;
 
 #[tauri::command]
 pub async fn create_agent_artifacts(
@@ -18,8 +18,11 @@ pub async fn create_agent_artifacts(
         return Err(AppError::invalid("Agent creation prompt cannot be empty"));
     }
     crate::ai::settings::ensure_agent_enabled(&app, request.kind)?;
-    let workspace =
-        capabilities::agent_artifacts::workspace(&app, &request.space_id, &request.session_id)?;
+    let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+        &app,
+        &request.space_id,
+        &request.session_id,
+    )?;
     session::start(
         &app,
         &request.session_id,
@@ -33,11 +36,11 @@ pub async fn create_agent_artifacts(
     match execution::run(&app, request, on_event, &workspace).await {
         Ok(artifacts) => {
             if let Err(error) = session::succeed(&app, &session_id).await {
-                capabilities::agent_artifacts::discard(&workspace)?;
+                crate::external_agents::artifacts::discard(&workspace)?;
                 return Err(AppError::internal(error));
             }
             if artifacts.is_empty() {
-                capabilities::agent_artifacts::discard(&workspace)?;
+                crate::external_agents::artifacts::discard(&workspace)?;
             }
             Ok(artifacts)
         }
@@ -47,7 +50,7 @@ pub async fn create_agent_artifacts(
             } else {
                 session::fail(&app, &session_id, &error.to_string()).await
             };
-            let cleaned = capabilities::agent_artifacts::discard(&workspace);
+            let cleaned = crate::external_agents::artifacts::discard(&workspace);
             persisted.map_err(AppError::internal)?;
             cleaned?;
             Err(error)
@@ -62,8 +65,9 @@ pub async fn preview_generated_artifact(
     session_id: String,
     relative_path: String,
 ) -> AppResult<()> {
-    let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &session_id)?;
-    let artifact = capabilities::agent_artifacts::resolve(&workspace, &relative_path)?;
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)?;
+    let artifact = crate::external_agents::artifacts::resolve(&workspace, &relative_path)?;
     crate::system_preview::open(app, artifact)
         .await
         .map_err(AppError::internal)
@@ -75,8 +79,9 @@ pub fn discard_artifact_workspace(
     space_id: String,
     session_id: String,
 ) -> AppResult<()> {
-    let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &session_id)?;
-    capabilities::agent_artifacts::discard(&workspace)
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)?;
+    crate::external_agents::artifacts::discard(&workspace)
 }
 
 #[tauri::command]
@@ -86,6 +91,7 @@ pub fn consume_agent_artifact(
     session_id: String,
     relative_path: String,
 ) -> AppResult<()> {
-    let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, &session_id)?;
-    capabilities::agent_artifacts::consume(&workspace, &relative_path)
+    let workspace =
+        crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)?;
+    crate::external_agents::artifacts::consume(&workspace, &relative_path)
 }

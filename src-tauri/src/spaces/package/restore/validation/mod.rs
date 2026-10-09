@@ -91,10 +91,3 @@ pub(super) fn validate_request_shape_cancellable(
     super::super::control::check(cancellation)?;
     Ok(translation::validate(request)?)
 }
-
-#[cfg(test)]
-pub(super) fn validate_request_shape(
-    request: &RestorePackageRequest,
-) -> Result<(), crate::app_error::AppError> {
-    validate_request_shape_cancellable(request, &CancellationToken::new())
-}

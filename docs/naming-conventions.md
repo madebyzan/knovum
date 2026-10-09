@@ -338,7 +338,7 @@ identify their owning module. In-process plugin registration cannot claim that v
 An app command has four touch points, and missing any one of them makes it unreachable or ungranted:
 
 1. the `#[tauri::command]` function itself;
-2. the `tauri::generate_handler![...]` list in `src-tauri/src/app_builder.rs`;
+2. the `tauri::generate_handler![...]` list in `src-tauri/src/app_builder/mod.rs`;
 3. a manual `commands.allow` entry in `src-tauri/permissions/<feature>.toml` and a capability grant
    naming that permission;
 4. a Renderer `invoke("<verb>_<entity>")` literal.

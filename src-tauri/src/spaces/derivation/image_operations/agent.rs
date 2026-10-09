@@ -67,5 +67,5 @@ pub(crate) fn discard_interrupted(app: &AppHandle) -> Result<(), String> {
         .app_cache_dir()
         .map_err(|error| error.to_string())?
         .join("image-operation-inputs");
-    crate::ai::capabilities::agent_artifacts::discard(&directory).map_err(|error| error.to_string())
+    crate::external_agents::artifacts::discard(&directory).map_err(|error| error.to_string())
 }

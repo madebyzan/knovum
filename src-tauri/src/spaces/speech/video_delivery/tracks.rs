@@ -25,7 +25,7 @@ pub async fn export_video_audio_tracks(
     app: AppHandle,
     request: ExportVideoAudioTracksRequest,
 ) -> Result<(), AppError> {
-    let lease = cancellation::acquire(&request.job_id)?;
+    let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
     if request.revision_ids.is_empty()
         || request.revision_ids.len() > 8
         || request.revision_ids.iter().collect::<HashSet<_>>().len() != request.revision_ids.len()
@@ -65,7 +65,6 @@ pub async fn export_video_audio_tracks(
         &request.revision_ids[0],
         &request.job_id,
     )?;
-    let cancellation = lease.token().clone();
     Ok(crate::blocking::run(move || -> Result<_, String> {
         let encoding = (|| {
             for track in &tracks {

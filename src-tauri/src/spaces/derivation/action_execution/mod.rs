@@ -51,7 +51,7 @@ pub(crate) async fn execute(
     let request = request_value(&authority.run_id, space_id, parameters, &prepared)?;
     match handler(action_id) {
         Some(Handler::Answer) => {
-            super::grounded_answer::answer(app, decode(request)?, &authority).await
+            super::grounded_answer::answer(app, decode(request)?, &authority, cancellation).await
         }
         Some(Handler::Text) => Ok(serialize(
             grounded_document::generate_for_action(
@@ -59,6 +59,7 @@ pub(crate) async fn execute(
                 app.clone(),
                 decode(text_request(action_id, request)?)?,
                 quiet_channel(),
+                cancellation,
             )
             .await?,
         )?),
@@ -68,6 +69,7 @@ pub(crate) async fn execute(
                 app.clone(),
                 decode(image_request(request)?)?,
                 quiet_channel(),
+                cancellation,
             )
             .await?,
         )?),
@@ -77,6 +79,7 @@ pub(crate) async fn execute(
                 app.clone(),
                 decode(request)?,
                 quiet_channel(),
+                cancellation,
             )
             .await?,
         )?),
@@ -86,6 +89,7 @@ pub(crate) async fn execute(
                 app.clone(),
                 decode(request)?,
                 quiet_channel(),
+                cancellation,
             )
             .await?,
         )?),
@@ -96,17 +100,6 @@ pub(crate) async fn execute(
             "action_executor_unavailable",
             format!("Durable Action {action_id} has no registered handler"),
         )),
-    }
-}
-
-pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {
-    match handler(action_id) {
-        Some(Handler::Answer | Handler::Text | Handler::Image) => {
-            crate::ai::executions::cancel(run_id)
-        }
-        Some(Handler::Video) => video_generation::registry::cancel(run_id),
-        Some(Handler::Subtitles) => subtitled_video::cancel(run_id.to_owned()).await,
-        Some(Handler::Document) | None => Ok(()),
     }
 }
 

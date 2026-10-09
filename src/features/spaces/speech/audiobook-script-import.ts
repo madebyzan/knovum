@@ -9,8 +9,7 @@ export async function readNodeAudiobookScript(
   node: SpaceCanvasNode,
   role: string,
   jobId: string,
-  isCurrent: () => boolean,
-): Promise<ImportedAudiobookScript | undefined> {
+): Promise<ImportedAudiobookScript> {
   const source: AudiobookSource =
     node.data.kind === "file"
       ? await invokeCommand<AudiobookSource>("plugin:spaces|read_audiobook_source", {
@@ -18,7 +17,6 @@ export async function readNodeAudiobookScript(
           sourceNodeId: node.id,
         })
       : { kind: "text", text: nodeSpeechText(node) };
-  if (!isCurrent()) return undefined;
   if (node.data.kind === "file" && node.data.assetPath?.toLowerCase().endsWith(".json")) {
     if (source.kind !== "text") throw new Error("Structured audiobook source must be text");
     return audiobookScript.parse(JSON.parse(source.text));

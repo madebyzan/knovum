@@ -27,10 +27,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const dialogOpen = ref(false);
-const nodeDraft = useNodeDraft(
-  computed(() => props.nodeId),
-  "media-chapter",
-);
+const nodeDraft = useNodeDraft(computed(() => props.nodeId));
 watch(dialogOpen, (open) => {
   if (!open) nodeDraft.end();
 });

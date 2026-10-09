@@ -27,7 +27,7 @@ pub(super) async fn persist_tool_content(
             }
         }
     }
-    let obsolete = crate::ai::capabilities::agent_artifacts::obsolete_tool_artifacts(
+    let obsolete = crate::external_agents::artifacts::obsolete_tool_artifacts(
         workspace,
         tool_id,
         &active_paths,
@@ -38,13 +38,8 @@ pub(super) async fn persist_tool_content(
             .await
             .map_err(|error| Error::internal_error().data(error.to_string()))?;
     }
-    crate::ai::capabilities::agent_artifacts::record_tool(
-        workspace,
-        tool_id,
-        &active_paths,
-        &local_paths,
-    )
-    .map_err(projection_error)?;
+    crate::external_agents::artifacts::record_tool(workspace, tool_id, &active_paths, &local_paths)
+        .map_err(projection_error)?;
     Ok(())
 }
 

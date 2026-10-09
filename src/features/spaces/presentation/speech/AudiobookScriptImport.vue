@@ -1,54 +1,29 @@
 <script setup lang="ts">
 import { FileUp } from "@lucide/vue";
-import { onScopeDispose, shallowRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { ImportedAudiobookScript } from "../../speech/audiobook-script";
-import { readNodeAudiobookScript } from "../../speech/audiobook-script-import";
-import { cancelSpeechGeneration } from "../../speech/ipc";
+import { useAudiobookScriptImport } from "../../speech/use-audiobook-script-import";
 
 const props = defineProps<{ node: SpaceCanvasNode; disabled: boolean }>();
 const emit = defineEmits<{ imported: [script: ImportedAudiobookScript] }>();
 const { t } = useI18n();
-const importing = shallowRef(false);
-const error = shallowRef<string>();
-const jobId = shallowRef<string>();
-let disposed = false;
-async function cancel() {
-  const job = jobId.value;
-  jobId.value = undefined;
-  if (job) await cancelSpeechGeneration(job);
-}
-onScopeDispose(() => {
-  disposed = true;
-  void cancel().catch((cause) => {
-    error.value = getErrorMessage(cause);
-  });
+const {
+  cancel,
+  error,
+  importing,
+  importScript: runImport,
+} = useAudiobookScriptImport({
+  node: computed(() => props.node),
+  role: () => t("spaces.speech.project.defaultRole"),
 });
 
 async function importScript() {
-  if (importing.value) return;
-  importing.value = true;
-  try {
-    const job = crypto.randomUUID();
-    jobId.value = job;
-    const script = await readNodeAudiobookScript(
-      props.node,
-      t("spaces.speech.project.defaultRole"),
-      job,
-      () => !disposed && jobId.value === job,
-    );
-    if (script && !disposed && jobId.value === job) emit("imported", script);
-    error.value = undefined;
-  } catch (cause) {
-    error.value = getErrorMessage(cause);
-  } finally {
-    importing.value = false;
-    jobId.value = undefined;
-  }
+  const script = await runImport();
+  if (script) emit("imported", script);
 }
 </script>
 

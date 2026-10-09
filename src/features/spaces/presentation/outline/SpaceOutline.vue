@@ -92,7 +92,7 @@ async function open(id: string) {
 async function rename(id: string) {
   if (!operations.allows("edit")) return;
   finishRename();
-  renameLease = drafts.begin(id, "outline-title");
+  renameLease = drafts.begin(id);
   if (!renameLease) return;
   const lease = renameLease;
   sidebar.reveal();

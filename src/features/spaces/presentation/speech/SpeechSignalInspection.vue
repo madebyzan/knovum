@@ -1,55 +1,17 @@
 <script setup lang="ts">
-import { onScopeDispose, shallowRef, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { SpeechSignalReport } from "../../contracts/generated/SpeechSignalReport";
-import { cancelSpeechGeneration } from "../../speech/ipc";
-import { inspectSpeechSignal } from "../../speech/signal-inspection-ipc";
+import { useSpeechSignalInspection } from "../../speech/use-speech-signal-inspection";
 
 const props = defineProps<{ projectId: string; revisionId: string }>();
 const emit = defineEmits<{ seek: [positionMs: number] }>();
 const { t } = useI18n();
-const report = shallowRef<SpeechSignalReport>();
-const error = shallowRef<string>();
-const jobId = shallowRef<string>();
-const scannedMs = shallowRef(0);
-let epoch = 0;
-async function cancel() {
-  if (jobId.value) await cancelSpeechGeneration(jobId.value);
-}
-function reset() {
-  epoch += 1;
-  report.value = undefined;
-  void cancel().catch((cause) => {
-    error.value = getErrorMessage(cause);
-  });
-}
-watch(() => props.revisionId, reset);
-onScopeDispose(reset);
-async function inspect() {
-  if (jobId.value) return;
-  const version = ++epoch;
-  const job = crypto.randomUUID();
-  jobId.value = job;
-  error.value = undefined;
-  report.value = undefined;
-  scannedMs.value = 0;
-  try {
-    const inspection = await inspectSpeechSignal(
-      { projectId: props.projectId, revisionId: props.revisionId, jobId: job },
-      (value) => {
-        if (version === epoch) scannedMs.value = value;
-      },
-    );
-    if (version === epoch) report.value = inspection;
-  } catch (cause) {
-    if (version === epoch) error.value = getErrorMessage(cause);
-  } finally {
-    if (jobId.value === job) jobId.value = undefined;
-  }
-}
+const { cancel, error, inspect, jobId, report, scannedMs } = useSpeechSignalInspection({
+  projectId: computed(() => props.projectId),
+  revisionId: computed(() => props.revisionId),
+});
 const timestamp = (ms: number) =>
   `${Math.floor(ms / 60_000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}.${String(ms % 1000).padStart(3, "0")}`;
 </script>

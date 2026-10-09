@@ -24,6 +24,7 @@ interface ShellCommandLabels {
 interface ShellCommandContext {
   actions: ShellCommandActions;
   labels: ShellCommandLabels;
+  workspaceCommands: readonly AppCommand[];
 }
 
 export function createShellCommands(
@@ -31,7 +32,7 @@ export function createShellCommands(
   workspaceActive: boolean,
   context: ShellCommandContext,
 ): readonly AppCommand[] {
-  const { actions, labels } = context;
+  const { actions, labels, workspaceCommands } = context;
   const viewCommands: AppCommand[] = [];
   if (workspaceActive) {
     viewCommands.push({
@@ -104,5 +105,5 @@ export function createShellCommands(
     });
   }
 
-  return [...baseCommands, ...(workspaceActive ? workspace.commands.value : []), ...viewCommands];
+  return [...baseCommands, ...(workspaceActive ? workspaceCommands : []), ...viewCommands];
 }

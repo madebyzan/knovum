@@ -1,4 +1,3 @@
-pub mod agent_artifacts;
 pub mod chat;
 pub mod editor;
 pub mod embedding;

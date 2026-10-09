@@ -32,6 +32,19 @@ fn acquire_rejects_duplicate_identifiers() {
 }
 
 #[test]
+fn cancellation_reports_active_ownership_without_cancelling_another_job() {
+    let registry = Box::leak(Box::new(JobRegistry::new("Cancellation")));
+    let (first, first_lease) = registry.acquire_cancellable("first").unwrap();
+    let (second, _second_lease) = registry.acquire_cancellable("second").unwrap();
+    assert!(!registry.cancel("missing").unwrap());
+    assert!(registry.cancel("first").unwrap());
+    assert!(first.is_cancelled());
+    assert!(!second.is_cancelled());
+    drop(first_lease);
+    assert!(!registry.cancel("first").unwrap());
+}
+
+#[test]
 fn release_rejects_a_missing_job() {
     let registry = registry();
 
