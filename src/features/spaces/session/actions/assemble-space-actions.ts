@@ -1,4 +1,3 @@
-import { commitActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
 import type { createSpaceMediaActions } from "../../media/actions";
 import type { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import {
@@ -76,7 +75,6 @@ export function assembleSpaceActions(input: Input) {
   };
   const initialize = (title: string) => initializeSpaces(spaceContext, title);
   const openSpace = async (id: string) => {
-    await commitActiveCanvasThumbnail(state);
     state.workspaceMode.value = "space";
     await navigateToSpace(spaceContext, id);
   };
@@ -108,7 +106,6 @@ export function assembleSpaceActions(input: Input) {
     initialize,
     commitActiveSession: () => commitActiveSpaceSession(spaceContext),
     createSpace: async (title: string) => {
-      await commitActiveCanvasThumbnail(state);
       await createSpace(spaceContext, title);
       state.workspaceMode.value = "space";
     },

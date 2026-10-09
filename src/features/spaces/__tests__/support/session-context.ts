@@ -21,6 +21,7 @@ export function createTestSpace(overrides: Partial<Space> = {}): Space {
 
 function defaultSessionContext(): SpaceSessionContext {
   return {
+    captureOverview: () => undefined,
     spaces: ref([createTestSpace()]),
     draftSpace: ref(),
     activeSpaceId: ref("inbox"),

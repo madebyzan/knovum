@@ -1,17 +1,8 @@
-import RBush from "rbush";
-
 import { canvasFrameBounds, type CanvasBounds } from "../../canvas-snap-geometry";
 import type { CanvasNodeFrame } from "../../schema/document";
 
-export interface IndexedCanvasBounds extends CanvasBounds {
-  maxX: number;
-  maxY: number;
-  minX: number;
-  minY: number;
-}
-
 export interface CanvasTranslationSnapIndex {
-  tree: RBush<IndexedCanvasBounds>;
+  neighbors: Readonly<Record<"x" | "y", { before: readonly CanvasBounds[]; after: readonly CanvasBounds[] }>>;
   x: readonly number[];
   xExtents: ReadonlyMap<number, readonly [number, number]>;
   y: readonly number[];
@@ -21,15 +12,16 @@ export interface CanvasTranslationSnapIndex {
 export function createCanvasTranslationSnapIndex(frames: readonly CanvasNodeFrame[]) {
   const bounds = frames.map(canvasFrameBounds);
   return {
-    tree: new RBush<IndexedCanvasBounds>().load(
-      bounds.map((box) => ({
-        ...box,
-        minX: box.left,
-        minY: box.top,
-        maxX: box.right,
-        maxY: box.bottom,
-      })),
-    ),
+    neighbors: {
+      x: {
+        before: bounds.toSorted((a, b) => a.right - b.right),
+        after: bounds.toSorted((a, b) => a.left - b.left),
+      },
+      y: {
+        before: bounds.toSorted((a, b) => a.bottom - b.bottom),
+        after: bounds.toSorted((a, b) => a.top - b.top),
+      },
+    },
     x: bounds.flatMap(({ left, centerX, right }) => [left, centerX, right]).toSorted(ascending),
     xExtents: alignmentExtents(bounds, "x"),
     y: bounds.flatMap(({ top, centerY, bottom }) => [top, centerY, bottom]).toSorted(ascending),

@@ -40,7 +40,12 @@ async function renderCanvasThumbnail(
   palette: CanvasPalette,
   viewport: { x: number; y: number; scale: number },
 ): Promise<Blob> {
-  const images = await loadCanvasOverviewImages(scene, viewport.scale);
+  const images = await loadCanvasOverviewImages(scene, viewport.scale, {
+    left: -viewport.x / viewport.scale,
+    top: -viewport.y / viewport.scale,
+    right: (WIDTH - viewport.x) / viewport.scale,
+    bottom: (HEIGHT - viewport.y) / viewport.scale,
+  });
   const host = document.createElement("div");
   host.style.position = "fixed";
   host.style.left = "-10000px";

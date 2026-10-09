@@ -7,6 +7,7 @@ import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import { SECTION_HEADER_HEIGHT } from "../document/structure-scene";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
+import { createCanvasScenePreviewIndex } from "./scene/scene-preview";
 import { projectCanvasScene } from "./scene/scene-projection";
 
 export function useCanvasSceneProjections(
@@ -14,11 +15,13 @@ export function useCanvasSceneProjections(
   document: Readonly<Ref<CanvasDocumentV1>>,
   temporarilyExpandedSectionId: Readonly<Ref<string | undefined>>,
 ) {
-  const structureIndex = computed(() => createStructureIndex(props.sceneInput.editSnapshot.structure));
+  const structure = computed(() => props.sceneInput.editSnapshot.structure);
+  const nodes = computed(() => props.sceneInput.nodes);
+  const structureIndex = computed(() => createStructureIndex(structure.value));
   const lockedNodeIds = computed(() => {
     const index = structureIndex.value;
     return new Set(
-      props.sceneInput.nodes.flatMap(({ id }) => {
+      nodes.value.flatMap(({ id }) => {
         const structureNodeId = index.nodeIdToStructureNodeId.get(id);
         if (!structureNodeId) return [];
         return isStructureNodeEffectivelyLocked(structureNodeId, index) ? [id] : [];
@@ -91,6 +94,7 @@ export function useCanvasSceneProjections(
     return ancestors.slice(scopeIndex + 1).find(({ kind }) => kind === "group")?.id;
   }
   return {
+    previewIndex: computed(() => createCanvasScenePreviewIndex(scene.value)),
     groupScopeTitles,
     lockedNodeIds,
     relationBounds,

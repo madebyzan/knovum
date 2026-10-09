@@ -8,9 +8,7 @@ interface ImageGlowInput {
 export function applyImageGlow(source: Uint8ClampedArray, input: ImageGlowInput): Uint8ClampedArray {
   const { width, height, amount, visibleSize } = input;
   if (amount === 0) return source;
-  const mask = document.createElement("canvas");
-  mask.width = width;
-  mask.height = height;
+  const mask = new OffscreenCanvas(width, height);
   const maskContext = mask.getContext("2d", { willReadFrequently: true })!;
   const highlights = new Uint8ClampedArray(source.length);
   for (let offset = 0; offset < source.length; offset += 4) {
@@ -22,9 +20,7 @@ export function applyImageGlow(source: Uint8ClampedArray, input: ImageGlowInput)
     highlights[offset + 3] = 255;
   }
   maskContext.putImageData(new ImageData(highlights, width, height), 0, 0);
-  const blurred = document.createElement("canvas");
-  blurred.width = width;
-  blurred.height = height;
+  const blurred = new OffscreenCanvas(width, height);
   const blurContext = blurred.getContext("2d", { willReadFrequently: true })!;
   blurContext.filter = `blur(${Math.max(1, Math.max(visibleSize.width, visibleSize.height) / 300)}px)`;
   blurContext.drawImage(mask, 0, 0);

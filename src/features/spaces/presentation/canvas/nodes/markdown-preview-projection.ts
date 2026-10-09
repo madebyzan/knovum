@@ -1,27 +1,54 @@
 import type { Token } from "markdown-it";
 
 import { createMarkdownRenderer } from "../../../../../shared/ui/markdown-renderer";
+import { CANVAS_PREVIEW_CHARACTERS_PER_ITEM } from "../../../canvas/preview/policy";
 
 const markdown = createMarkdownRenderer();
+const parsed = new WeakMap<
+  { text: string },
+  {
+    truncated: boolean;
+    lines: string[];
+    blocks: [number, number][];
+    previews: Map<number, MarkdownPreviewProjection>;
+  }
+>();
 
 export interface MarkdownPreviewProjection {
   projectedSource: string;
   remainingBlockCount: number;
   visibleBlockCount: number;
+  truncated: boolean;
 }
 
-export function projectMarkdownPreview(source: string, blockLimit: number): MarkdownPreviewProjection {
-  const lines = source.split("\n");
-  const blocks = rootBlockRanges(markdown.parse(source, {}));
-  const visible = blocks.slice(0, blockLimit);
-  if (visible.length === 0) return { projectedSource: "", remainingBlockCount: 0, visibleBlockCount: 0 };
-  const start = visible[0]![0];
-  const end = visible.at(-1)![1];
-  return {
-    projectedSource: lines.slice(start, end).join("\n"),
-    remainingBlockCount: Math.max(0, blocks.length - visible.length),
+export function projectMarkdownPreview(
+  payload: { text: string },
+  blockLimit: number,
+): MarkdownPreviewProjection {
+  let document = parsed.get(payload);
+  if (!document) {
+    const source = payload.text.slice(0, 10 * CANVAS_PREVIEW_CHARACTERS_PER_ITEM);
+    document = {
+      truncated: source.length < payload.text.length,
+      lines: source.split("\n"),
+      blocks: rootBlockRanges(markdown.parse(source, {})),
+      previews: new Map(),
+    };
+    parsed.set(payload, document);
+  }
+  const cached = document.previews.get(blockLimit);
+  if (cached) return cached;
+  const visible = document.blocks.slice(0, blockLimit);
+  const source = visible.length ? document.lines.slice(visible[0]![0], visible.at(-1)![1]).join("\n") : "";
+  const characterLimit = blockLimit * CANVAS_PREVIEW_CHARACTERS_PER_ITEM;
+  const result = {
+    projectedSource: source.slice(0, characterLimit),
+    remainingBlockCount: document.truncated ? 0 : Math.max(0, document.blocks.length - visible.length),
     visibleBlockCount: visible.length,
+    truncated: document.truncated || source.length > characterLimit,
   };
+  document.previews.set(blockLimit, result);
+  return result;
 }
 
 function rootBlockRanges(tokens: readonly Token[]): [number, number][] {

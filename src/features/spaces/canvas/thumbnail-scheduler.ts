@@ -1,19 +1,23 @@
-import { error as logError, warn as logWarning } from "@tauri-apps/plugin-log";
+import { error as logError } from "@tauri-apps/plugin-log";
+import pLimit from "p-limit";
 
-import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { cleanupDeletedSpaceAssets, removeSpaceAsset } from "../assets/asset-operations";
 import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
+import type { Space } from "../model/space";
 import type { SpaceState } from "../session/session-state";
 import { updateSpaceThumbnail } from "../workspace/space-operations";
-import { getCanvasEditorSession } from "./editor-session";
+import { currentCanvasEditor } from "./editor-session";
 
 const SETTLE_DELAY_MS = 800;
+const publications = pLimit(1);
+const captures = new Map<string, symbol>();
 let pendingCapture: ReturnType<typeof globalThis.setTimeout> | undefined;
 
 export function scheduleCanvasThumbnail(state: SpaceState) {
   cancelCanvasThumbnail();
   const space = state.activeSpace.value;
-  if (!space || (!state.thumbnailDirty.value && space.thumbnailPath)) return;
+  if (!space || !needsCapture(state, space)) return;
   pendingCapture = globalThis.setTimeout(() => {
     pendingCapture = undefined;
     void persistActiveCanvasThumbnail(state).catch((error) =>
@@ -22,47 +26,60 @@ export function scheduleCanvasThumbnail(state: SpaceState) {
   }, SETTLE_DELAY_MS);
 }
 
+function needsCapture(state: SpaceState, space: Space) {
+  return state.thumbnailDirty.value || (!space.thumbnailPath && !captures.has(space.id));
+}
+
 function cancelCanvasThumbnail() {
   if (pendingCapture === undefined) return;
   globalThis.clearTimeout(pendingCapture);
   pendingCapture = undefined;
 }
 
-export async function commitActiveCanvasThumbnail(state: SpaceState) {
+export function captureActiveCanvasThumbnail(state: SpaceState) {
   cancelCanvasThumbnail();
-  try {
-    await persistActiveCanvasThumbnail(state);
-  } catch (error) {
-    await logWarning(
-      `Space navigation continued without refreshing its derived thumbnail: ${getErrorMessage(error)}`,
-    );
-  }
+  void persistActiveCanvasThumbnail(state).catch((error) =>
+    logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
+  );
 }
 
 async function persistActiveCanvasThumbnail(state: SpaceState) {
   const space = state.activeSpace.value;
-  if (!space || (!state.thumbnailDirty.value && space.thumbnailPath)) return;
+  if (!space || !needsCapture(state, space)) return;
   if (!state.spaces.value.some((candidate) => candidate.id === space.id)) return;
-  const editor = getCanvasEditorSession().activeEditor.value;
+  const editor = currentCanvasEditor();
   if (!editor) throw new Error("Space canvas is not mounted");
+  const capture = Symbol(space.id);
+  captures.set(space.id, capture);
+  const snapshot = state.editSnapshot.value;
+  const nodes = state.nodes.value;
+  const updatedAt = space.updatedAt;
   state.thumbnailDirty.value = false;
   let stagedPath: string | undefined;
   try {
     stagedPath = await saveCanvasThumbnailBlob(await editor.captureCanvasOverview());
-    if (state.activeSpace.value?.id !== space.id) {
-      const abandonedPath = stagedPath;
+    await publications(async () => {
+      const current = state.spaces.value.find((candidate) => candidate.id === space.id);
+      const changed =
+        state.activeSpace.value?.id === space.id &&
+        (state.editSnapshot.value !== snapshot || state.nodes.value !== nodes);
+      if (changed) state.thumbnailDirty.value = true;
+      if (!current || changed || current.updatedAt !== updatedAt || captures.get(space.id) !== capture) {
+        await removeSpaceAsset(stagedPath!);
+        stagedPath = undefined;
+        return;
+      }
+      const obsoletePaths = await updateSpaceThumbnail(space.id, stagedPath!);
+      current.thumbnailPath = stagedPath!;
       stagedPath = undefined;
-      await removeSpaceAsset(abandonedPath);
-      return;
-    }
-    const obsoletePaths = await updateSpaceThumbnail(space.id, stagedPath);
-    space.thumbnailPath = stagedPath;
-    stagedPath = undefined;
-    await cleanupDeletedSpaceAssets(obsoletePaths);
+      await cleanupDeletedSpaceAssets(obsoletePaths);
+    });
   } catch (error) {
-    state.thumbnailDirty.value = true;
+    if (state.activeSpace.value?.id === space.id) state.thumbnailDirty.value = true;
     await removeFailedThumbnail(stagedPath, error);
     throw error;
+  } finally {
+    if (captures.get(space.id) === capture) captures.delete(space.id);
   }
 }
 

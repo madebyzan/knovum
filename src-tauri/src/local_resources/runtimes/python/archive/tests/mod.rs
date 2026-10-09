@@ -94,9 +94,9 @@ fn cancelled_extraction_never_writes_runtime_files() {
     let cancellation = CancellationToken::new();
     cancellation.cancel();
     let destination = fixture.0.join("unpacked");
-    assert_eq!(
-        extract(&archive, &destination, &cancellation).unwrap_err(),
-        RESOURCE_PREPARATION_CANCELLED
-    );
+    assert!(matches!(
+        extract(&archive, &destination, &cancellation),
+        Err(RuntimeError::Cancelled)
+    ));
     assert!(!destination.exists());
 }

@@ -25,8 +25,8 @@ export function displayedImageRect(
 }
 
 export function renderEditedImage(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  image: HTMLImageElement | ImageBitmap,
   size: ImageCanvasSize,
   edit: ImageEdit,
 ) {
@@ -35,8 +35,10 @@ export function renderEditedImage(
   context.clearRect(0, 0, width, height);
   context.save();
   const crop = edit.crop;
-  const sourceWidth = image.naturalWidth * crop.width;
-  const sourceHeight = image.naturalHeight * crop.height;
+  const naturalWidth = "naturalWidth" in image ? image.naturalWidth : image.width;
+  const naturalHeight = "naturalHeight" in image ? image.naturalHeight : image.height;
+  const sourceWidth = naturalWidth * crop.width;
+  const sourceHeight = naturalHeight * crop.height;
   const { width: rotatedWidth, height: rotatedHeight } = rotatedImageSize(
     sourceWidth,
     sourceHeight,
@@ -48,8 +50,8 @@ export function renderEditedImage(
   context.rotate((edit.rotation * Math.PI) / 180);
   context.drawImage(
     image,
-    image.naturalWidth * crop.x,
-    image.naturalHeight * crop.y,
+    naturalWidth * crop.x,
+    naturalHeight * crop.y,
     sourceWidth,
     sourceHeight,
     -sourceWidth / 2,
@@ -67,7 +69,7 @@ export function renderEditedImage(
 }
 
 function renderToneAdjustments(
-  context: CanvasRenderingContext2D,
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   edit: ImageEdit,
   imageRect: ImagePixelRect,
 ) {
@@ -76,4 +78,12 @@ function renderToneAdjustments(
   const frame = context.getImageData(0, 0, width, height);
   const pixels = applyImageTone(frame.data, edit.adjustments, { width, height, imageRect });
   context.putImageData(new ImageData(new Uint8ClampedArray(pixels), width, height), 0, 0);
+}
+
+export function paintImageBitmap(context: CanvasRenderingContext2D, bitmap: ImageBitmap) {
+  const canvas = context.canvas;
+  if (canvas.width !== bitmap.width) canvas.width = bitmap.width;
+  if (canvas.height !== bitmap.height) canvas.height = bitmap.height;
+  context.clearRect(0, 0, bitmap.width, bitmap.height);
+  context.drawImage(bitmap, 0, 0);
 }

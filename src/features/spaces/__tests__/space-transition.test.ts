@@ -23,7 +23,7 @@ describe("space transition", () => {
       phase: "layout",
     });
     const transition = transitionActiveSpaceSession(
-      { history } as SpaceSessionContext,
+      { history, captureOverview: () => void calls.push("capture") } as SpaceSessionContext,
       async () => void calls.push("transition"),
     );
 
@@ -33,7 +33,7 @@ describe("space transition", () => {
     releaseMutation();
     await transition;
 
-    expect(calls).toEqual(["content", "layout", "persistence", "transition"]);
+    expect(calls).toEqual(["content", "layout", "persistence", "capture", "transition"]);
     detachContent();
     detachPersistence();
     detachLayout();

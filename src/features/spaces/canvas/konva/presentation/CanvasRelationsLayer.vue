@@ -22,7 +22,10 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
 </script>
 
 <template>
-  <KonvaLayer :config="{ perfectDrawEnabled: false, listening: interactive }">
+  <KonvaLayer
+    v-if="relations.length || connectorDraft"
+    :config="{ perfectDrawEnabled: false, listening: interactive }"
+  >
     <CanvasRelationShape
       v-for="relation in relations"
       :key="relation.key"

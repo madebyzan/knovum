@@ -4,7 +4,7 @@ use tauri::{AppHandle, Runtime};
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 
-use super::RuntimeProfile;
+use super::{RuntimeError, RuntimeProfile};
 use crate::{
     local_resources::preparation::RESOURCE_PREPARATION_CANCELLED,
     subprocess::process_tree::ProcessTree,
@@ -42,17 +42,17 @@ pub(super) async fn install<R: Runtime>(
             }
             match verify_identity_async(&manifest, profile, cancellation).await {
                 Ok(()) => return retain_prepared_runtime(app, profile, manifest, lease).await,
-                Err(error) if error.starts_with("python-runtime-invalid:") => {
+                Err(error @ RuntimeError::InvalidPublication(_)) => {
                     drop(lease);
                     if let Some(installation) = super::retention::try_acquire_exclusive(&identity)?
                     {
                         break installation;
                     }
                     return Err(format!(
-                        "python-runtime-invalid: development runtime is active and cannot be replaced: {error}"
+                        "Development runtime is active and cannot be replaced: {error}"
                     ));
                 }
-                Err(error) => return Err(error),
+                Err(error) => return Err(error.into()),
             }
         }
         if let Some(installation) = super::retention::try_acquire_exclusive(&identity)? {
@@ -146,18 +146,13 @@ fn prepare_identity(
     manifest: &std::path::Path,
     profile: RuntimeProfile,
     cancellation: &CancellationToken,
-) -> Result<bool, String> {
+) -> Result<bool, RuntimeError> {
     if !identity.exists() {
         return Ok(false);
     }
-    let verification = if manifest.is_file() {
-        verify_identity(manifest, profile, cancellation)
-    } else {
-        Err("python-runtime-invalid: development publication is incomplete".into())
-    };
-    match verification {
+    match verify_identity(manifest, profile, cancellation) {
         Ok(()) => Ok(true),
-        Err(error) if error.starts_with("python-runtime-invalid:") => {
+        Err(error @ RuntimeError::InvalidPublication(_)) => {
             log::warn!("Resetting owned development runtime: {error}");
             crate::local_resources::filesystem::remove_directory(identity)?;
             Ok(false)
@@ -171,7 +166,7 @@ async fn prepare_identity_async(
     manifest: &std::path::Path,
     profile: RuntimeProfile,
     cancellation: &CancellationToken,
-) -> Result<bool, String> {
+) -> Result<bool, RuntimeError> {
     let identity = identity.to_path_buf();
     let manifest = manifest.to_path_buf();
     let cancellation = cancellation.clone();
@@ -183,7 +178,7 @@ fn verify_identity(
     manifest: &std::path::Path,
     profile: RuntimeProfile,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), RuntimeError> {
     super::verification::read_manifest(manifest)
         .and_then(|bytes| {
             super::verification::verify_runtime(
@@ -202,7 +197,7 @@ async fn verify_identity_async(
     manifest: &std::path::Path,
     profile: RuntimeProfile,
     cancellation: &CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), RuntimeError> {
     let manifest = manifest.to_path_buf();
     let cancellation = cancellation.clone();
     crate::blocking::run(move || verify_identity(&manifest, profile, &cancellation)).await

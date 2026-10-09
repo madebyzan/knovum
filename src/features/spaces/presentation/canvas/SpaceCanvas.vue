@@ -27,6 +27,7 @@ import { useSpaceCanvasImports } from "./use-space-canvas-imports";
 import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 
+defineProps<{ renderingEnabled: boolean }>();
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
@@ -122,6 +123,7 @@ const canvasEvents = createSpaceCanvasEvents({
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
+      :rendering-enabled="renderingEnabled"
       :events="canvasEvents"
       :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
       :ensure-persisted="store.ensureActiveSpacePersisted"

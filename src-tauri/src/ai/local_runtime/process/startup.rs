@@ -233,11 +233,11 @@ pub(in crate::ai::local_runtime) async fn verify_runtime_for_spawn(
             crate::local_resources::runtimes::python::verify_before_spawn(&runtime)
         })
         .await
-        .map_err(|error| format!("python-runtime-invalid: verification task failed: {error}"))
-        .and_then(std::convert::identity);
+        .map_err(|error| format!("Python runtime verification task failed: {error}"))
+        .and_then(|outcome| outcome.map_err(String::from));
         let _ = sender.send(startup);
     });
     receiver
         .await
-        .map_err(|_| "python-runtime-invalid: verification stopped".to_string())?
+        .map_err(|_| "Python runtime verification stopped".to_string())?
 }

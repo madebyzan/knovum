@@ -1,4 +1,5 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
+import { captureActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
 import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
 import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
@@ -104,6 +105,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
 
 function createSpaceContext(state: SpaceState): SpaceSessionContext {
   return {
+    captureOverview: () => captureActiveCanvasThumbnail(state),
     spaces: state.spaces,
     draftSpace: state.draftSpace,
     activeSpaceId: state.activeSpaceId,

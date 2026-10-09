@@ -3,6 +3,8 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(not(debug_assertions))]
+use super::RuntimeError;
 use super::RuntimeProfile;
 #[cfg(not(debug_assertions))]
 use tauri::{AppHandle, Manager, Runtime};
@@ -45,22 +47,25 @@ pub(super) struct Descriptor {
 }
 
 #[cfg(not(debug_assertions))]
-fn validate_archive_url(value: &str) -> Result<(), String> {
-    let url = reqwest::Url::parse(value).map_err(|error| error.to_string())?;
+fn validate_archive_url(value: &str) -> Result<(), RuntimeError> {
+    let url = reqwest::Url::parse(value)
+        .map_err(|error| RuntimeError::InvalidPublication(error.to_string()))?;
     if url.scheme() != "https"
         || !url.username().is_empty()
         || url.password().is_some()
         || url.fragment().is_some()
     {
-        return Err("python-runtime-invalid: archive URL is invalid".into());
+        return Err(RuntimeError::InvalidPublication(
+            "archive URL is invalid".into(),
+        ));
     }
     Ok(())
 }
 
 #[cfg(not(debug_assertions))]
-pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, String> {
+pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, RuntimeError> {
     let descriptor: Option<Descriptor> = serde_json::from_slice(profile.descriptor_bytes())
-        .map_err(|error| format!("python-runtime-invalid: descriptor: {error}"))?;
+        .map_err(|error| RuntimeError::InvalidPublication(format!("descriptor: {error}")))?;
     if let Some(value) = &descriptor {
         validate_archive_url(&value.archive_url)?;
         if value.schema_version != 1
@@ -78,7 +83,9 @@ pub(super) fn embedded(profile: RuntimeProfile) -> Result<Option<Descriptor>, St
             .iter()
             .any(|hash| !valid_hash(hash, 64))
         {
-            return Err("python-runtime-invalid: invalid platform descriptor".into());
+            return Err(RuntimeError::InvalidPublication(
+                "invalid platform descriptor".into(),
+            ));
         }
     }
     Ok(descriptor)

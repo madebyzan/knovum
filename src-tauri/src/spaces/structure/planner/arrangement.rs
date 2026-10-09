@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use crate::spaces::structure::edit_contract::{AutoLayoutDirection, ReorderDirection, SpacePoint};
+use crate::spaces::structure::edit_contract::{AutoLayoutDirection, ReorderDirection};
 use crate::spaces::structure::planner::bounds::{merge, root_bounds};
-use crate::spaces::structure::planner::movement::move_structure;
+use crate::spaces::structure::planner::movement::{moved_layout, replace_layouts};
 use crate::spaces::structure::planner::tree_policy::{
     apply_sequences, effective_roots, require_editable, Index,
 };
@@ -135,8 +135,10 @@ pub(in crate::spaces::structure) fn auto_layout(
         };
         deltas.push((id.clone(), dx, dy));
     }
+    let mut updates = HashMap::with_capacity(deltas.len());
     for (id, dx, dy) in deltas {
-        move_structure(snapshot, &[id], &SpacePoint { x: dx, y: dy })?;
+        updates.insert(id.clone(), moved_layout(snapshot, &index, &id, dx, dy)?);
     }
+    replace_layouts(&mut snapshot.layouts, updates);
     Ok(roots)
 }

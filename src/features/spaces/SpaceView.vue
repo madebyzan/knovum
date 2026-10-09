@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { nextTick, onBeforeUnmount, onMounted, provide, shallowRef } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  shallowRef,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
+import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
 import { useContextDock } from "./canvas/use-context-dock";
@@ -19,17 +29,34 @@ import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
-import SpaceRecentlyDeleted from "./presentation/deletion/SpaceRecentlyDeleted.vue";
-import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
-import SpaceVideoEditor from "./presentation/video-editor/SpaceVideoEditor.vue";
 import { restoreResourceRuns } from "./runs/resource-run-observation";
 import { useSpaceStore } from "./session/space-store";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
+const SpaceTiptapEditor = defineAsyncComponent({
+  loader: () => import("./presentation/editor/SpaceTiptapEditor.vue"),
+  loadingComponent: SpaceEditorLoading,
+  delay: 0,
+});
+const SpaceVideoEditor = defineAsyncComponent(
+  () => import("./presentation/video-editor/SpaceVideoEditor.vue"),
+);
+const SpaceRecentlyDeleted = defineAsyncComponent(
+  () => import("./presentation/deletion/SpaceRecentlyDeleted.vue"),
+);
 const store = useSpaceStore();
+const workspaceVisible = inject(overlayScopeVisibleKey)!;
+const canvasVisible = computed(
+  () =>
+    workspaceVisible.value &&
+    store.workspaceMode === "space" &&
+    !store.focusedEditorId &&
+    !store.videoEditorNodeId &&
+    store.recentlyDeletedSpaceId === undefined,
+);
 const { focusedEditorId, ready } = storeToRefs(store);
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
@@ -97,7 +124,7 @@ onMounted(() => void initialize());
       </div>
     </div>
     <template v-else-if="store.ready">
-      <SpaceCanvas />
+      <SpaceCanvas :rendering-enabled="canvasVisible" />
       <SpaceAudioRecordingDock class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2" />
       <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
         <SpaceLibrary />

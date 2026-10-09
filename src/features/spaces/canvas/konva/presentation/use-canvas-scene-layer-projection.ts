@@ -47,7 +47,7 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
   };
 }
 
-function sceneNodesInPaintOrder(scene: CanvasScene, ids: ReadonlySet<string>): CanvasSceneNode[] {
+export function sceneNodesInPaintOrder(scene: CanvasScene, ids: ReadonlySet<string>): CanvasSceneNode[] {
   return [...ids]
     .flatMap((id) => {
       const node = scene.nodesById.get(id);

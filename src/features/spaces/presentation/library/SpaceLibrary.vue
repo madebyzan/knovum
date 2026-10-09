@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { Star } from "@lucide/vue";
+import { refDebounced } from "@vueuse/core";
 import { orderBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, shallowRef, useTemplateRef } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import { spaceAssetSource } from "../../assets/node-preview-source";
 import type { Space, SpaceLibraryScope } from "../../model/space";
 import { useSpaceStore } from "../../session/space-store";
 import { popupSpaceContextMenu, spaceCheckItem, spaceMenuItem } from "../../workspace/space-menu";
 import { useSpaceManagementMenu } from "../../workspace/use-space-management-menu";
+import SpaceLibraryCard from "./SpaceLibraryCard.vue";
+import { useLibraryViewport } from "./use-library-viewport";
 
 const store = useSpaceStore();
 const management = useSpaceManagementMenu();
 const { spaces, libraryScope, libraryLayout, libraryQuery } = storeToRefs(store);
-const { d, t } = useI18n();
+const { t } = useI18n();
 const editingId = shallowRef<string>();
 const draftTitle = shallowRef("");
 const libraryRoot = useTemplateRef<HTMLElement>("libraryRoot");
@@ -29,21 +28,38 @@ const titleKeys: Record<SpaceLibraryScope, string> = {
   favorites: "spaces.space.sections.favorites",
 };
 const title = computed(() => t(titleKeys[libraryScope.value]));
-const visibleSpaces = computed(() => {
-  const needle = libraryQuery.value.trim();
+const query = refDebounced(libraryQuery, 150);
+const scrollArea = useTemplateRef<InstanceType<typeof UiScrollArea>>("scrollArea");
+const rowsHost = useTemplateRef<HTMLElement>("rowsHost");
+const orderedSpaces = computed(() => {
   const available = spaces.value.filter((space) => space.kind === "space" && space.archivedAt === null);
   const scoped = libraryScope.value === "favorites" ? available.filter((space) => space.favorite) : available;
-  const matched = needle ? search(needle, scoped, { keySelector: (space) => space.title }) : scoped;
-  return orderBy(matched, [libraryScope.value === "all" ? "createdAt" : "lastOpenedAt"], ["desc"]);
+  return orderBy(scoped, [libraryScope.value === "all" ? "createdAt" : "lastOpenedAt"], ["desc"]);
+});
+const visibleSpaces = computed(() => {
+  const needle = query.value.trim();
+  if (!needle) return orderedSpaces.value;
+  const matched = new Set(
+    search(needle, orderedSpaces.value, { keySelector: (space) => space.title }).map(({ id }) => id),
+  );
+  return orderedSpaces.value.filter(({ id }) => matched.has(id));
 });
 
-function formatUpdatedAt(timestamp: number) {
-  return d(timestamp, "medium");
-}
+const viewport = useLibraryViewport({
+  spaces: visibleSpaces,
+  layout: libraryLayout,
+  root: libraryRoot,
+  host: rowsHost,
+  scroll: () => scrollArea.value?.viewportElement,
+  editingId,
+});
+
+watch([query, libraryScope], () => viewport.reset());
 
 async function beginRenaming(space: Space) {
   editingId.value = space.id;
   draftTitle.value = space.title;
+  await viewport.reveal(space.id);
   await nextTick();
   libraryRoot.value?.querySelector<HTMLInputElement>("[data-library-title-editor]")?.select();
 }
@@ -79,81 +95,51 @@ function showSpaceMenu(space: Space) {
 </script>
 
 <template>
-  <UiScrollArea class="h-full bg-surface-canvas">
+  <UiScrollArea ref="scrollArea" class="h-full bg-surface-canvas">
     <section ref="libraryRoot" class="px-6 py-5">
       <h1 class="text-display font-semibold text-fg-accent">{{ title }}</h1>
 
       <div
+        ref="rowsHost"
         v-if="visibleSpaces.length"
-        :class="
-          libraryLayout === 'grid'
-            ? 'mt-5 grid grid-cols-[repeat(auto-fill,minmax(210px,240px))] gap-5'
-            : 'mt-4 divide-y divide-stroke-divider border-y border-stroke-divider'
-        "
+        class="relative mt-5"
+        :style="{ height: `${viewport.height.value}px` }"
+        @keydown="viewport.keydown"
       >
-        <article
-          v-for="space in visibleSpaces"
-          :key="space.id"
-          class="group relative overflow-hidden bg-surface-muted"
-          :class="
-            libraryLayout === 'grid' ? 'rounded-panel border border-stroke-default' : 'flex items-center py-2'
-          "
-          @contextmenu.prevent="showSpaceMenu(space)"
-        >
-          <button
-            type="button"
-            class="absolute inset-0 z-10 rounded-panel outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
-            @click="store.openSpace(space.id)"
-          />
-          <div
-            class="shrink-0 overflow-hidden bg-surface-canvas"
-            :class="
+        <div
+          v-for="row in viewport.rows.value"
+          :key="row.index"
+          :data-index="row.index"
+          :ref="(element) => viewport.measure(element as HTMLElement | null)"
+          class="absolute top-0 left-0 w-full"
+          :class="libraryLayout === 'grid' ? 'grid gap-5 pb-5' : 'border-b border-stroke-divider'"
+          :style="{
+            transform: `translateY(${row.start - viewport.margin.value}px)`,
+            gridTemplateColumns:
               libraryLayout === 'grid'
-                ? 'aspect-video w-full'
-                : 'h-16 w-28 rounded-md border border-stroke-default'
-            "
-          >
-            <img
-              v-if="space.thumbnailPath"
-              :src="spaceAssetSource(space.thumbnailPath)"
-              alt=""
-              class="size-full object-cover"
-            />
-          </div>
-          <div
-            class="relative min-w-0 flex-1 px-3 py-2.5"
-            :class="libraryLayout === 'grid' ? 'border-t border-stroke-divider' : ''"
-          >
-            <UiIconButton
-              v-if="space.kind === 'space'"
-              class="absolute top-1.5 right-1.5 z-20 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
-              size="sm"
-              :active="space.favorite"
-              :label="t(space.favorite ? 'spaces.space.unfavorite' : 'spaces.space.favorite')"
-              @click="store.setSpaceFavorite(space.id, !space.favorite)"
-            >
-              <Star class="size-3.5" :fill="space.favorite ? 'currentColor' : 'none'" />
-            </UiIconButton>
-            <UiInput
-              v-if="editingId === space.id"
-              v-model="draftTitle"
-              data-library-title-editor
-              size="sm"
-              class="relative z-20 w-full"
-              @click.stop
-              @blur="finishRenaming"
-              @keydown.enter.prevent="finishRenaming"
-              @keydown.escape.prevent="editingId = undefined"
-            />
-            <h2 v-else class="truncate pr-7 text-label font-semibold text-fg-primary">
-              {{ space.title }}
-            </h2>
-            <p class="mt-0.5 text-caption text-fg-tertiary">
-              {{ t("spaces.space.nodeCount", { count: space.nodeCount }) }} ·
-              {{ formatUpdatedAt(space.updatedAt) }}
-            </p>
-          </div>
-        </article>
+                ? `repeat(${viewport.columns.value}, minmax(210px, 240px))`
+                : undefined,
+          }"
+        >
+          <SpaceLibraryCard
+            v-for="space in visibleSpaces.slice(
+              row.index * viewport.columns.value,
+              (row.index + 1) * viewport.columns.value,
+            )"
+            :key="space.id"
+            :space="space"
+            :layout="libraryLayout"
+            :editing="editingId === space.id"
+            :tab-index="viewport.focusedId.value === space.id ? 0 : -1"
+            v-model:draft-title="draftTitle"
+            @focusin="viewport.focus(space.id)"
+            @open="store.openSpace(space.id)"
+            @menu="showSpaceMenu(space)"
+            @favorite="store.setSpaceFavorite(space.id, !space.favorite)"
+            @finish="finishRenaming"
+            @cancel="editingId = undefined"
+          />
+        </div>
       </div>
       <div v-else class="grid min-h-64 place-items-center text-body text-fg-tertiary">
         {{ t("spaces.space.search.noResults") }}

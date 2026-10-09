@@ -13,12 +13,14 @@ mod coordinator;
 mod descriptor;
 #[cfg(debug_assertions)]
 mod development;
+mod error;
 #[cfg(not(debug_assertions))]
 mod installation;
 mod profile;
 mod retention;
 pub(crate) use coordinator::prepare;
 pub(crate) use descriptor::RuntimeStatus;
+pub(crate) use error::RuntimeError;
 pub(crate) use profile::RuntimeProfile;
 pub(crate) use retention::RuntimeLease;
 
@@ -39,11 +41,13 @@ pub(crate) struct PythonRuntimePaths {
     pub(crate) lease: Option<std::sync::Arc<RuntimeLease>>,
 }
 
-pub(crate) fn verify_before_spawn(runtime: &PythonRuntimePaths) -> Result<(), String> {
+pub(crate) fn verify_before_spawn(runtime: &PythonRuntimePaths) -> Result<(), RuntimeError> {
     let bytes = verification::read_manifest(&runtime.manifest_path)?;
     let digest = verification::digest(&bytes);
     if digest != runtime.digest {
-        return Err("python-runtime-invalid: runtime manifest changed after resolution".into());
+        return Err(RuntimeError::InvalidPublication(
+            "runtime manifest changed after resolution".into(),
+        ));
     }
     let current = verification::verify_runtime(
         &runtime.manifest_path,
@@ -54,7 +58,9 @@ pub(crate) fn verify_before_spawn(runtime: &PythonRuntimePaths) -> Result<(), St
         runtime.profile,
     )?;
     if current.0 != runtime.executable || current.1 != runtime.package_root {
-        return Err("python-runtime-invalid: runtime paths changed after resolution".into());
+        return Err(RuntimeError::InvalidPublication(
+            "runtime paths changed after resolution".into(),
+        ));
     }
     Ok(())
 }
@@ -65,7 +71,7 @@ static VERIFIED_RUNTIMES: OnceLock<Mutex<HashMap<RuntimeProfile, PythonRuntimePa
 pub(crate) fn resolve<R: Runtime>(
     app: &AppHandle<R>,
     profile: RuntimeProfile,
-) -> Result<Option<PythonRuntimePaths>, String> {
+) -> Result<Option<PythonRuntimePaths>, RuntimeError> {
     #[cfg(debug_assertions)]
     let manifest_path = profile.development_manifest();
     #[cfg(not(debug_assertions))]
@@ -73,11 +79,11 @@ pub(crate) fn resolve<R: Runtime>(
         Some(value) => descriptor::destination(app, &value)?.join(MANIFEST_NAME),
         None => return Ok(None),
     };
-    if !manifest_path.is_file() {
+    if !verification::manifest_exists(&manifest_path)? {
         return Ok(None);
     }
     let lease = retention::acquire(&identity_directory(&manifest_path)?)?;
-    if !manifest_path.is_file() {
+    if !verification::manifest_exists(&manifest_path)? {
         return Ok(None);
     }
 
@@ -89,11 +95,11 @@ fn resolve_with_lease<R: Runtime>(
     profile: RuntimeProfile,
     manifest_path: PathBuf,
     lease: std::sync::Arc<RuntimeLease>,
-) -> Result<PythonRuntimePaths, String> {
+) -> Result<PythonRuntimePaths, RuntimeError> {
     let cache = VERIFIED_RUNTIMES.get_or_init(|| Mutex::new(HashMap::new()));
-    let mut cached = cache
-        .lock()
-        .map_err(|_| "python-runtime-invalid: verification cache is poisoned".to_string())?;
+    let mut cached = cache.lock().map_err(|_| {
+        RuntimeError::Infrastructure("Runtime verification cache is poisoned".into())
+    })?;
     #[cfg(not(debug_assertions))]
     if let Some(runtime) = cached
         .get(&profile)
@@ -175,7 +181,7 @@ pub(crate) fn download_size<R: Runtime>(
 
 fn verification_descriptor(
     profile: RuntimeProfile,
-) -> Result<Option<descriptor::Descriptor>, String> {
+) -> Result<Option<descriptor::Descriptor>, RuntimeError> {
     #[cfg(debug_assertions)]
     {
         let _ = profile;

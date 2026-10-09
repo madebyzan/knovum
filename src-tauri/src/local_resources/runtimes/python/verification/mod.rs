@@ -7,7 +7,7 @@ use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
-use super::MANIFEST_NAME;
+use super::{RuntimeError, MANIFEST_NAME};
 
 mod filesystem;
 
@@ -36,15 +36,27 @@ struct RuntimeFile {
     pub(super) sha256: String,
 }
 
-pub(super) fn read_manifest(path: &Path) -> Result<Vec<u8>, String> {
+pub(super) fn manifest_exists(path: &Path) -> Result<bool, RuntimeError> {
+    match fs::symlink_metadata(path) {
+        Ok(_) => Ok(true),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(error.into()),
+    }
+}
+
+pub(super) fn read_manifest(path: &Path) -> Result<Vec<u8>, RuntimeError> {
     if path.file_name().and_then(|name| name.to_str()) != Some(MANIFEST_NAME) {
-        return Err("python-runtime-invalid: unexpected manifest file name".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "unexpected manifest file name".into(),
+        ));
     }
     let metadata = filesystem::checked_metadata(path)?;
     if !metadata.is_file() || metadata.len() > MAX_MANIFEST_BYTES {
-        return Err("python-runtime-invalid: manifest is not a bounded regular file".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "manifest is not a bounded regular file".into(),
+        ));
     }
-    fs::read(path).map_err(|error| error.to_string())
+    fs::read(path).map_err(RuntimeError::from)
 }
 
 pub(super) fn digest(bytes: &[u8]) -> String {
@@ -58,22 +70,23 @@ pub(super) fn verify_runtime(
     cancellation: &CancellationToken,
     descriptor: Option<&super::descriptor::Descriptor>,
     profile: super::RuntimeProfile,
-) -> Result<(PathBuf, PathBuf), String> {
-    let root = manifest_path
-        .parent()
-        .ok_or_else(|| "python-runtime-invalid: manifest has no parent directory".to_string())?;
+) -> Result<(PathBuf, PathBuf), RuntimeError> {
+    let root = manifest_path.parent().ok_or_else(|| {
+        RuntimeError::InvalidPublication("manifest has no parent directory".into())
+    })?;
     let root_metadata = filesystem::checked_metadata(root)?;
     if !root_metadata.is_dir() {
-        return Err("python-runtime-invalid: runtime root is not a directory".to_string());
+        return Err(RuntimeError::InvalidPublication(
+            "runtime root is not a directory".into(),
+        ));
     }
     let manifest: RuntimeManifest = serde_json::from_slice(manifest_bytes)
-        .map_err(|error| format!("python-runtime-invalid: {error}"))?;
+        .map_err(|error| RuntimeError::InvalidPublication(error.to_string()))?;
     validate_identity(&manifest)?;
     if manifest.profile != profile {
-        return Err(
-            "python-runtime-invalid: runtime profile does not match the requested capability"
-                .into(),
-        );
+        return Err(RuntimeError::InvalidPublication(
+            "runtime profile does not match the requested capability".into(),
+        ));
     }
     if let Some(descriptor) = descriptor {
         if manifest_digest != descriptor.manifest_sha256
@@ -82,24 +95,24 @@ pub(super) fn verify_runtime(
             || manifest.dependency_lock_sha256 != descriptor.dependency_lock_sha256
             || manifest.version != descriptor.version
         {
-            return Err(
-                "python-runtime-invalid: runtime differs from the trusted descriptor".into(),
-            );
+            return Err(RuntimeError::InvalidPublication(
+                "runtime differs from the trusted descriptor".into(),
+            ));
         }
     }
     #[cfg(debug_assertions)]
     if descriptor.is_none() && manifest.dependency_lock_sha256 != digest(profile.lock_bytes()) {
-        return Err(
-            "python-runtime-invalid: development dependency lock differs from this checkout".into(),
-        );
+        return Err(RuntimeError::InvalidPublication(
+            "development dependency lock differs from this checkout".into(),
+        ));
     }
     if !manifest.files.iter().any(|file| {
         file.path == "runtime-requirements.txt"
             && file.sha256 == manifest.dependency_requirements_sha256
     }) {
-        return Err(
-            "python-runtime-invalid: requirements identity differs from declared files".into(),
-        );
+        return Err(RuntimeError::InvalidPublication(
+            "requirements identity differs from declared files".into(),
+        ));
     }
     let (executable, package_root) = filesystem::verify(
         root,
@@ -111,7 +124,7 @@ pub(super) fn verify_runtime(
     Ok((executable, package_root))
 }
 
-fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
+fn validate_identity(manifest: &RuntimeManifest) -> Result<(), RuntimeError> {
     let executable = if cfg!(target_os = "windows") {
         "python.exe"
     } else {
@@ -126,12 +139,12 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
         || manifest.executable != executable
         || manifest.package_root != "packages"
     {
-        return Err(
-            "python-runtime-invalid: manifest identity does not match this build".to_string(),
-        );
+        return Err(RuntimeError::InvalidPublication(
+            "manifest identity does not match this build".into(),
+        ));
     }
     Ok(())
 }
 
 #[cfg(test)]
-mod tests;
+pub(super) mod tests;

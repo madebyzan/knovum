@@ -7,6 +7,24 @@ import { createStructureIndex, effectiveOperationRoots } from "../model/structur
 import { boundsForOperationRoots, type WorldBounds } from "../model/structure/world-bounds";
 
 const CONTAINMENT_TOLERANCE = 0.5;
+const indexes = new WeakMap<SpaceEditSnapshot, ReturnType<typeof buildSectionDropIndex>>();
+
+export function sectionDropIndex(snapshot: SpaceEditSnapshot) {
+  let index = indexes.get(snapshot);
+  if (!index) {
+    index = buildSectionDropIndex(snapshot);
+    indexes.set(snapshot, index);
+  }
+  return index;
+}
+
+function buildSectionDropIndex(snapshot: SpaceEditSnapshot) {
+  return {
+    structure: createStructureIndex(snapshot.structure),
+    layouts: new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout])),
+    sections: snapshot.layouts.filter((layout) => layout.kind === "section"),
+  };
+}
 
 interface SectionDropContext {
   snapshot: SpaceEditSnapshot;
@@ -42,11 +60,12 @@ export function sectionDropReparentCommand(
   { snapshot, rootIds, delta }: SectionDropContext,
   options: SectionDropReparentOptions = {},
 ): Extract<SpaceEditCommand, { kind: "structure.reparent" }> | undefined {
-  const index = createStructureIndex(snapshot.structure);
+  const cached = sectionDropIndex(snapshot);
+  const index = cached.structure;
   const roots = effectiveOperationRoots(rootIds, index);
   const currentParentId = reparentableParentId(roots, index.structureById);
   if (currentParentId === undefined) return undefined;
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layouts = cached.layouts;
   const bounds = boundsForOperationRoots(
     roots.map(({ id }) => id),
     index,
@@ -60,7 +79,7 @@ export function sectionDropReparentCommand(
     bottom: bounds.bottom + delta.y,
   };
   const selected = new Set(roots.map(({ id }) => id));
-  const targets = snapshot.layouts.flatMap((layout) =>
+  const targets = cached.sections.flatMap((layout) =>
     sectionDropTarget(layout, { structureById: index.structureById, selected, moved, options }),
   );
   const target = maxBy(targets, (candidate) => candidate.paintOrder);
@@ -112,10 +131,12 @@ export function sectionDropCandidateId(
   { snapshot, rootIds, delta }: SectionDropContext,
   inspectCollapsed = false,
 ) {
+  if (!sectionDropIndex(snapshot).sections.length) return undefined;
   const command = sectionDropReparentCommand({ snapshot, rootIds, delta }, { inspectCollapsed });
   if (!command) return undefined;
   if (command.parentId) return command.parentId;
-  const index = createStructureIndex(snapshot.structure);
+  const cached = sectionDropIndex(snapshot);
+  const index = cached.structure;
   const roots = effectiveOperationRoots(rootIds, index);
   const parentId = roots[0]?.parentId;
   return parentId && index.structureById.get(parentId)?.kind === "section" ? parentId : undefined;

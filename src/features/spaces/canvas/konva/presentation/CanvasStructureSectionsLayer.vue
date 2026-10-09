@@ -18,7 +18,7 @@ function fill(section: ProjectedSection) {
 </script>
 
 <template>
-  <KonvaLayer :config="{ id: 'canvas-section-background-layer', listening: false }">
+  <KonvaLayer v-if="sections.length" :config="{ id: 'canvas-section-background-layer', listening: false }">
     <KonvaRect
       v-for="section in sections"
       :key="section.section.id"

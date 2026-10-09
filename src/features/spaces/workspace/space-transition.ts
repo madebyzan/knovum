@@ -1,3 +1,5 @@
+import { nextTick } from "vue";
+
 import {
   flushSpaceSessionContent,
   flushSpaceSessionLayout,
@@ -15,6 +17,8 @@ export function transitionActiveSpaceSession<T>(context: SpaceSessionContext, tr
       await waitForSpaceMutations(context.history);
       await flushSpaceSessionLayout();
       await flushSpaceSessionPersistence();
+      await nextTick();
+      context.captureOverview();
       return await transition();
     } finally {
       reopenMutations();

@@ -1,3 +1,5 @@
+export const CANVAS_PREVIEW_CHARACTERS_PER_ITEM = 1024;
+
 type CanvasPreviewLevel = "compact" | "summary" | "full";
 
 export interface CanvasPreviewPolicy {
