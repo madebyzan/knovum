@@ -3,7 +3,7 @@ import { shallowRef } from "vue";
 
 import { viewportToLocalPoint } from "../canvas/viewport-to-local-point";
 import type { SpaceImageComment } from "../model/nodes/node-payload";
-import { useImageCommentSession } from "./image-comment-session";
+import { useImageCommentSessionStore } from "./image-comment-session-store";
 
 export type CommentMark = Pick<SpaceImageComment, "x" | "y" | "shape">;
 interface Gesture {
@@ -28,7 +28,7 @@ function completeMark(mark: CommentMark | undefined): mark is CommentMark {
 }
 
 export function useImageCommentGesture(complete: (mark: CommentMark) => void, rotation: () => number) {
-  const session = useImageCommentSession();
+  const session = useImageCommentSessionStore();
   const gesture = shallowRef<Gesture>();
   const preview = shallowRef<CommentMark>();
 

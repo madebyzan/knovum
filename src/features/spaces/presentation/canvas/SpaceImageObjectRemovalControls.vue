@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import type { ImageRemovalMode } from "../../knowledge-derivations/image-removal-session";
+import type { ImageRemovalMode } from "../../knowledge-derivations/image-removal-session-store";
 import type { ImageActionHelp } from "./image-action-help";
 import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 

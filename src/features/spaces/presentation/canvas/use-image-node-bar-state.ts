@@ -3,10 +3,10 @@ import { useI18n } from "vue-i18n";
 
 import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { useImageCommentSession } from "../../comments/image-comment-session";
-import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
+import { useImageCommentSessionStore } from "../../comments/image-comment-session-store";
+import { useImageEditSessionStore, type ImageEditTool } from "../../image-editing/image-edit-session-store";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
-import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
+import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { imageToolAvailability } from "./image-action-availability";
@@ -21,11 +21,11 @@ export function useImageNodeBarState(
   invokeBackgroundRemoval: () => void,
 ) {
   const { t } = useI18n();
-  const session = useImageEditSession();
+  const session = useImageEditSessionStore();
   const imageDimensions = useImageSourceDimensionsStore();
-  const removal = useImageRemovalSession();
+  const removal = useImageRemovalSessionStore();
   const nodeOperations = useNodeOperationGate();
-  const comments = useImageCommentSession();
+  const comments = useImageCommentSessionStore();
   const openPopover = shallowRef<ImagePopover>();
   const activeTool = computed(() =>
     session.active?.nodeId === node.value.id ? session.active.tool : undefined,

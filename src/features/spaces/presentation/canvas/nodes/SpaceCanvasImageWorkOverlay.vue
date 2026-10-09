@@ -2,7 +2,7 @@
 import { computed, type CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useImageEditSession } from "../../../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../../../image-editing/image-edit-session-store";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { nodePayloadWork, type CanvasNodeWork } from "./canvas-node-work";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
@@ -15,7 +15,7 @@ const props = defineProps<{
   imageRect: { left: number; top: number; width: number; height: number } | undefined;
 }>();
 const { t } = useI18n();
-const session = useImageEditSession();
+const session = useImageEditSessionStore();
 const work = computed(() => nodePayloadWork(props.data));
 const unavailableWork = computed<Pick<CanvasNodeWork, "phase" | "labelKey"> | undefined>(() => {
   if (props.loadState === "failed")

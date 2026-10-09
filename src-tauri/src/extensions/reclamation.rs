@@ -5,11 +5,11 @@ use tauri::{AppHandle, Manager};
 pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
     let pool = database::pool(app).await?;
     let root = content::root(app)?;
-    let mut retained = BTreeSet::new();
-    let mut plugin_data = BTreeSet::new();
+    let mut retained_revision_paths = BTreeSet::new();
+    let mut retained_plugin_ids = BTreeSet::new();
     for plugin in super::plugins::list(&pool).await? {
-        plugin_data.insert(plugin.id.clone());
-        retained.insert(format!(
+        retained_plugin_ids.insert(plugin.id.clone());
+        retained_revision_paths.insert(format!(
             "plugins/{}/revisions/{}",
             plugin.id, plugin.revision.digest
         ));
@@ -19,22 +19,25 @@ pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
         .into_iter()
         .filter(|skill| skill.plugin_id.is_none())
     {
-        retained.insert(format!("skills/{}/revisions/{}", skill.id, skill.digest));
+        retained_revision_paths.insert(format!("skills/{}/revisions/{}", skill.id, skill.digest));
     }
     let leases: Vec<String> = sqlx::query_scalar("SELECT document FROM content_leases")
         .fetch_all(&pool)
         .await
         .map_err(|error| error.to_string())?;
     for lease in leases {
-        retained.extend(database::decode::<Vec<String>>(&lease)?);
+        retained_revision_paths.extend(database::decode::<Vec<String>>(&lease)?);
     }
-    crate::blocking::run(move || collect_content(&root, &retained, plugin_data)).await
+    crate::blocking::run(move || {
+        collect_content(&root, &retained_revision_paths, retained_plugin_ids)
+    })
+    .await
 }
 
 fn collect_content(
     root: &Path,
-    retained: &BTreeSet<String>,
-    mut plugin_data: BTreeSet<String>,
+    retained_revision_paths: &BTreeSet<String>,
+    mut retained_plugin_ids: BTreeSet<String>,
 ) -> Result<(), String> {
     for kind in ["plugins", "skills"] {
         let directory = root.join(kind);
@@ -68,10 +71,10 @@ fn collect_content(
                     entity.file_name().to_string_lossy(),
                     revision.file_name().to_string_lossy()
                 );
-                if !retained.contains(&relative) {
+                if !retained_revision_paths.contains(&relative) {
                     std::fs::remove_dir_all(revision.path()).map_err(|error| error.to_string())?;
                 } else if kind == "plugins" {
-                    plugin_data.insert(entity.file_name().to_string_lossy().into_owned());
+                    retained_plugin_ids.insert(entity.file_name().to_string_lossy().into_owned());
                 }
             }
             if std::fs::read_dir(&revisions)
@@ -83,9 +86,11 @@ fn collect_content(
             }
         }
     }
-    let data = root.join("plugin-data");
-    if data.exists() {
-        for directory in std::fs::read_dir(&data).map_err(|error| error.to_string())? {
+    let plugin_data_directory = root.join("plugin-data");
+    if plugin_data_directory.exists() {
+        for directory in
+            std::fs::read_dir(&plugin_data_directory).map_err(|error| error.to_string())?
+        {
             let directory = directory.map_err(|error| error.to_string())?;
             if !directory
                 .file_type()
@@ -94,7 +99,7 @@ fn collect_content(
             {
                 continue;
             }
-            if !plugin_data.contains(directory.file_name().to_string_lossy().as_ref()) {
+            if !retained_plugin_ids.contains(directory.file_name().to_string_lossy().as_ref()) {
                 std::fs::remove_dir_all(directory.path()).map_err(|error| error.to_string())?;
             }
         }

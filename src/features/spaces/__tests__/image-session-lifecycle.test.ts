@@ -24,10 +24,10 @@ const deriveImage = vi.hoisted(() =>
 );
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage }));
-import { useImageCommentSession } from "../comments/image-comment-session";
+import { useImageCommentSessionStore } from "../comments/image-comment-session-store";
 import { defaultImageEdit } from "../image-editing/image-edit";
-import { useImageEditSession } from "../image-editing/image-edit-session";
-import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
+import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
+import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
 import { useImageSourceDimensionsStore } from "../presentation/canvas/image-source-dimensions-store";
 import SpaceCanvasImageEditing from "../presentation/canvas/SpaceCanvasImageEditing.vue";
 import SpaceImageTransformControls from "../presentation/canvas/SpaceImageTransformControls.vue";
@@ -62,8 +62,8 @@ describe("image session ownership", () => {
   });
 
   it("sends object removal to derivation without changing the source edit", async () => {
-    const edits = useImageEditSession();
-    const removal = useImageRemovalSession();
+    const edits = useImageEditSessionStore();
+    const removal = useImageRemovalSessionStore();
     const source = context.space!.nodes[0]!;
     if (source.data.kind !== "image") throw new Error("Expected an image fixture");
     removal.begin(source.id);
@@ -85,7 +85,7 @@ describe("image session ownership", () => {
   });
 
   it("keeps the selection when derivation preparation fails", async () => {
-    const removal = useImageRemovalSession();
+    const removal = useImageRemovalSessionStore();
     removal.begin("same-id");
     removal.addStroke([0.5, 0.5, 0.6, 0.6]);
     deriveImage.mockRejectedValueOnce(new Error("Output path unavailable"));
@@ -95,7 +95,7 @@ describe("image session ownership", () => {
   });
 
   it("bounds object-removal strokes before the derivation request", () => {
-    const removal = useImageRemovalSession();
+    const removal = useImageRemovalSessionStore();
     removal.begin("same-id");
     for (let index = 0; index < 100; index++) removal.addStroke([0.5, 0.5, 0.6, 0.6]);
     expect(removal.canDraw).toBe(false);
@@ -114,7 +114,7 @@ describe("image session ownership", () => {
     if (data.kind !== "image") throw new Error("Expected an image fixture");
     const node = { ...createSpaceNode(data, { x: 0, y: 0 }, "same-id"), data };
     context.space!.nodes = [node];
-    const edits = useImageEditSession();
+    const edits = useImageEditSessionStore();
     edits.begin("same-id", "transform");
     const wrapper = shallowMount(SpaceCanvasImageEditing, {
       props: { node },
@@ -130,10 +130,10 @@ describe("image session ownership", () => {
   });
 
   it("clears edits, comments, drafts and dimensions before another Space reuses the same node ID", async () => {
-    const edits = useImageEditSession();
-    const removal = useImageRemovalSession();
+    const edits = useImageEditSessionStore();
+    const removal = useImageRemovalSessionStore();
     const dimensions = useImageSourceDimensionsStore();
-    const comments = useImageCommentSession();
+    const comments = useImageCommentSessionStore();
     dimensions.set("same-id", "revision-1", 100, 100);
     edits.begin("same-id", "crop");
     removal.begin("same-id");
@@ -155,10 +155,10 @@ describe("image session ownership", () => {
   });
 
   it("releases image state when its node is deleted", () => {
-    const edits = useImageEditSession();
-    const removal = useImageRemovalSession();
+    const edits = useImageEditSessionStore();
+    const removal = useImageRemovalSessionStore();
     const dimensions = useImageSourceDimensionsStore();
-    const comments = useImageCommentSession();
+    const comments = useImageCommentSessionStore();
     dimensions.set("same-id", "revision-1", 100, 100);
     edits.begin("same-id", "adjust");
     removal.begin("same-id");

@@ -41,22 +41,24 @@ export const useCreationLibraryStore = defineStore("creation-library", () => {
     });
   }
 
-  function renamePreset(id: string, name: string): Promise<void> {
+  function renamePreset(presetId: string, name: string): Promise<void> {
     return mutate(() => {
-      library.value.generationPresets.find((preset) => preset.id === id)!.name = name;
+      library.value.generationPresets.find((preset) => preset.id === presetId)!.name = name;
     });
   }
 
-  function removePreset(id: string): Promise<void> {
+  function removePreset(presetId: string): Promise<void> {
     return mutate(() => {
-      library.value.generationPresets = library.value.generationPresets.filter((preset) => preset.id !== id);
+      library.value.generationPresets = library.value.generationPresets.filter(
+        (preset) => preset.id !== presetId,
+      );
     });
   }
 
-  function duplicatePreset(id: string, name: string): Promise<void> {
+  function duplicatePreset(presetId: string, name: string): Promise<void> {
     return mutate(() => {
       const presets = library.value.generationPresets;
-      const index = presets.findIndex((preset) => preset.id === id);
+      const index = presets.findIndex((preset) => preset.id === presetId);
       presets.splice(index + 1, 0, { ...cloneDeep(presets[index]!), id: crypto.randomUUID(), name });
     });
   }

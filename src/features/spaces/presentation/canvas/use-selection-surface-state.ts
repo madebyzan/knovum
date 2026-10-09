@@ -2,8 +2,8 @@ import { computed, shallowRef, watch } from "vue";
 
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
-import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
+import { useImageEditSessionStore } from "../../image-editing/image-edit-session-store";
+import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import { useSpaceStore } from "../../session/space-store";
 
 /** Keeps selection controls attached to the owning image interaction. */
@@ -11,8 +11,8 @@ export function useSelectionSurfaceState() {
   const store = useSpaceStore();
   const editorSession = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
-  const imageEdit = useImageEditSession();
-  const imageRemoval = useImageRemovalSession();
+  const imageEdit = useImageEditSessionStore();
+  const imageRemoval = useImageRemovalSessionStore();
   const angleNodeId = shallowRef<string>();
 
   const selectionKey = computed(() => {

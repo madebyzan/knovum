@@ -10,9 +10,9 @@ import {
   type ImageCanvasSize,
 } from "../../../image-editing/canvas-image-renderer";
 import { imageEditOf, type ImageEdit } from "../../../image-editing/image-edit";
-import { useImageEditSession } from "../../../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../../../image-editing/image-edit-session-store";
 import { drawRemovalMask } from "../../../knowledge-derivations/image-removal-preview";
-import { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
+import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
 import { versionedMediaSource } from "../../../media/media-element-source";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { useImageSourceDimensionsStore } from "../image-source-dimensions-store";
@@ -31,9 +31,9 @@ const props = defineProps<{
 }>();
 const zoom = inject(canvasPreviewZoomKey)!;
 const renderFailed = shallowRef(false);
-const session = useImageEditSession();
+const session = useImageEditSessionStore();
 const dimensions = useImageSourceDimensionsStore();
-const removalSession = useImageRemovalSession();
+const removalSession = useImageRemovalSessionStore();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const size = shallowRef<ImageCanvasSize>({ width: 1, height: 1, pixelRatio: 1 });
 const source = computed(() =>

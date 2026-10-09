@@ -6,19 +6,19 @@ interface NodeDraftLease {
   nodeId: string;
 }
 
-export const useNodeOperationDrafts = defineStore("spaces-node-operation-drafts", () => {
+export const useNodeOperationDraftsStore = defineStore("spaces-node-operation-drafts", () => {
   const active = shallowRef<NodeDraftLease>();
-  let nextId = 0;
+  let nextLeaseId = 0;
 
   function begin(nodeId: string) {
     if (active.value) return undefined;
-    const id = ++nextId;
-    active.value = { id, nodeId };
-    return id;
+    const leaseId = ++nextLeaseId;
+    active.value = { id: leaseId, nodeId };
+    return leaseId;
   }
 
-  function end(id: number) {
-    if (active.value?.id === id) active.value = undefined;
+  function end(leaseId: number) {
+    if (active.value?.id === leaseId) active.value = undefined;
   }
 
   return { active: readonly(active), begin, end };

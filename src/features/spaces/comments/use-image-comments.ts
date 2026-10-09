@@ -6,7 +6,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useContextDock } from "../canvas/use-context-dock";
 import type { SpaceImageComment, SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
-import { useImageCommentSession } from "./image-comment-session";
+import { useImageCommentSessionStore } from "./image-comment-session-store";
 import { useImageCommentGesture, type CommentMark } from "./use-image-comment-gesture";
 
 export interface ImageCommentCanvas {
@@ -25,7 +25,7 @@ export function useImageComments(props: ImageCommentCanvas) {
   const { t } = useI18n();
   const store = useSpaceStore();
   const dock = useContextDock();
-  const session = useImageCommentSession();
+  const session = useImageCommentSessionStore();
   const adding = computed(() => props.interactive && session.activeNodeId === props.id);
   const hintLabel = computed(() =>
     t(

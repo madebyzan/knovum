@@ -29,7 +29,7 @@ vi.mock("../knowledge-derivations/use-image-capabilities", () => ({
 }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn<() => Promise<void>>() }) }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
+import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
 import SpaceCanvasObjectRemoval from "../presentation/canvas/SpaceCanvasObjectRemoval.vue";
 import SpaceImageObjectRemovalControls from "../presentation/canvas/SpaceImageObjectRemovalControls.vue";
 import { useImageNodeBarState } from "../presentation/canvas/use-image-node-bar-state";
@@ -92,7 +92,7 @@ function setCapabilities(patch: Partial<ImageOperationCapabilities>) {
   context.capabilities!.data.value = { ...context.capabilities!.data.value!, ...patch };
 }
 function openPanel() {
-  const removal = useImageRemovalSession();
+  const removal = useImageRemovalSessionStore();
   removal.begin(node.id);
   const wrapper = shallowMount(SpaceCanvasObjectRemoval, { props: { node } });
   return { removal, wrapper, panel: wrapper.findComponent(SpaceImageObjectRemovalControls) };
@@ -101,7 +101,7 @@ function openPanel() {
 describe("local eraser preparation and remote generation", () => {
   it("admits the tool without a model and permits painting without submitting", () => {
     const { wrapper } = openTool();
-    const removal = useImageRemovalSession();
+    const removal = useImageRemovalSessionStore();
     removal.addStroke([0.2, 0.3, 0.4, 0.5]);
     expect(context.derive).not.toHaveBeenCalled();
     wrapper.unmount();
@@ -110,7 +110,7 @@ describe("local eraser preparation and remote generation", () => {
   it("still rejects tool entry while another operation owns the node", () => {
     context.allowed = false;
     const { wrapper } = openTool();
-    expect(useImageRemovalSession().active).toBeUndefined();
+    expect(useImageRemovalSessionStore().active).toBeUndefined();
     wrapper.unmount();
   });
 

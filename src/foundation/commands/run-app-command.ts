@@ -17,12 +17,12 @@ export function registerAppCommands(commands: readonly AppCommand[]): () => void
   };
 }
 
-export function getAppCommand(id: string): AppCommand | undefined {
-  return registeredCommands.find((command) => command.id === id);
+export function getAppCommand(commandId: string): AppCommand | undefined {
+  return registeredCommands.find((command) => command.id === commandId);
 }
 
-export function runAppCommandById(id: string): void {
-  const command = getAppCommand(id);
+export function runAppCommandById(commandId: string): void {
+  const command = getAppCommand(commandId);
   if (command) runAppCommand(command);
 }
 

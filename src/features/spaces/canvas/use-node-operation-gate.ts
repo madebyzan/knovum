@@ -1,9 +1,9 @@
 import { computed } from "vue";
 
-import { useImageCommentSession } from "../comments/image-comment-session";
-import { useImageEditSession } from "../image-editing/image-edit-session";
-import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
-import { useNodeOperationDrafts } from "../session/node-operation-drafts";
+import { useImageCommentSessionStore } from "../comments/image-comment-session-store";
+import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
+import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
+import { useNodeOperationDraftsStore } from "../session/node-operation-drafts-store";
 import { useSpaceStore } from "../session/space-store";
 import { getCanvasEditorSession } from "./editor-session";
 
@@ -20,12 +20,12 @@ export type ActiveNodeOperation =
 
 /** Projects existing feature sessions into one admission rule; it owns no second session state. */
 export function useNodeOperationGate() {
-  const imageEdit = useImageEditSession();
-  const imageRemoval = useImageRemovalSession();
-  const imageComment = useImageCommentSession();
+  const imageEdit = useImageEditSessionStore();
+  const imageRemoval = useImageRemovalSessionStore();
+  const imageComment = useImageCommentSessionStore();
   const canvas = getCanvasEditorSession();
   const space = useSpaceStore();
-  const drafts = useNodeOperationDrafts();
+  const drafts = useNodeOperationDraftsStore();
   const active = computed<ActiveNodeOperation | undefined>(() => {
     if (imageEdit.active) return { kind: "image-edit", nodeId: imageEdit.active.nodeId };
     if (imageRemoval.active) return { kind: "image-removal", nodeId: imageRemoval.active.nodeId };

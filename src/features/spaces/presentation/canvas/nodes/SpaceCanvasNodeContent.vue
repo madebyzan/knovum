@@ -5,9 +5,9 @@ import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/c
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
 import { canvasNodePresentationContext, type CanvasPreviewPolicy } from "../../../canvas/preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
-import { useImageCommentSession } from "../../../comments/image-comment-session";
-import { useImageEditSession } from "../../../image-editing/image-edit-session";
-import { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
+import { useImageCommentSessionStore } from "../../../comments/image-comment-session-store";
+import { useImageEditSessionStore } from "../../../image-editing/image-edit-session-store";
+import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { canvasTextPresentation } from "./canvas-text-appearance";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
@@ -30,9 +30,9 @@ const props = defineProps<{
   persist: (id: string, data: SpaceCanvasNode["data"]) => Promise<void>;
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
-const imageEditSession = useImageEditSession();
-const imageRemovalSession = useImageRemovalSession();
-const imageComments = useImageCommentSession();
+const imageEditSession = useImageEditSessionStore();
+const imageRemovalSession = useImageRemovalSessionStore();
+const imageComments = useImageCommentSessionStore();
 const contentInteractive = computed(() => {
   const active = imageEditSession.active;
   return (

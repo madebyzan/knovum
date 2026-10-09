@@ -7,7 +7,7 @@ import { useSpaceStore } from "../session/space-store";
 export type ImageCommentMode = "point" | "draw" | "region";
 export type ImageCommentContext = Pick<SpaceImageComment, "x" | "y" | "shape" | "text">;
 
-export const useImageCommentSession = defineStore("spaces-image-comments", () => {
+export const useImageCommentSessionStore = defineStore("spaces-image-comments", () => {
   const space = useSpaceStore();
   const activeNodeId = shallowRef<string>();
   const mode = shallowRef<ImageCommentMode>("point");

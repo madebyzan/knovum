@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { reactive } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
-import { useImageEditSession } from "../image-editing/image-edit-session";
+import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import SpaceImageEditLeaveDialog from "../presentation/canvas/SpaceImageEditLeaveDialog.vue";
@@ -52,7 +52,7 @@ describe("image edit leave protection", () => {
       rejectApply = reject;
     });
     context.space!.updateNodeContents = vi.fn<(...args: unknown[]) => Promise<void>>(() => update);
-    const edits = useImageEditSession();
+    const edits = useImageEditSessionStore();
     edits.begin("image", "transform");
     edits.update({ rotation: 90 });
     const wrapper = shallowMount(SpaceImageEditLeaveDialog, {
@@ -73,7 +73,7 @@ describe("image edit leave protection", () => {
   });
 
   it("keeps the image draft after accepting discard when later layout preparation fails", async () => {
-    const edits = useImageEditSession();
+    const edits = useImageEditSessionStore();
     edits.begin("image", "transform");
     edits.update({ rotation: 90 });
     const wrapper = shallowMount(SpaceImageEditLeaveDialog, {

@@ -111,7 +111,7 @@ export function useSkillManagement() {
     },
   });
   onScopeDispose(unregister);
-  async function remove(id: string, skillName: string) {
+  async function remove(skillId: string, skillName: string) {
     if (
       await confirmAction({
         title: t("extensions.skills.delete.title", { name: skillName }),
@@ -120,7 +120,7 @@ export function useSkillManagement() {
         danger: true,
       })
     )
-      mutate(() => deleteSkill(id));
+      mutate(() => deleteSkill(skillId));
   }
   const busy = computed(() => changes.isPending.value || reading.isPending.value);
 

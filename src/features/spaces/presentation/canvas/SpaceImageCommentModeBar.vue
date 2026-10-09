@@ -3,10 +3,10 @@ import { MessageCircle, Pencil, ScanLine, X } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from "reka-ui";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { useImageCommentSession } from "../../comments/image-comment-session";
+import { useImageCommentSessionStore } from "../../comments/image-comment-session-store";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 
-const session = useImageCommentSession();
+const session = useImageCommentSessionStore();
 const modes = [
   { id: "point", icon: MessageCircle, label: "spaces.media.imageEditor.comments.point" },
   { id: "draw", icon: Pencil, label: "spaces.media.imageEditor.comments.draw" },

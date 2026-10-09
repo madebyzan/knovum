@@ -1,7 +1,10 @@
 import { watch, type DeepReadonly, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useImageCommentSession, type ImageCommentContext } from "../comments/image-comment-session";
+import {
+  useImageCommentSessionStore,
+  type ImageCommentContext,
+} from "../comments/image-comment-session-store";
 import { useSpaceStore } from "../session/space-store";
 
 const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
@@ -24,7 +27,7 @@ function coordinates(comment: DeepReadonly<ImageCommentContext>) {
 export function useImageCommentDraft(spaceId: Ref<string | undefined>, prompt: Ref<string>) {
   const { t } = useI18n();
   const store = useSpaceStore();
-  const comments = useImageCommentSession();
+  const comments = useImageCommentSessionStore();
   watch(
     () => comments.conversationDraft,
     (draft) => {
