@@ -21,7 +21,7 @@ import SpaceLibraryToolbar from "../library/SpaceLibraryToolbar.vue";
 import SpaceWorkspaceTab from "./SpaceWorkspaceTab.vue";
 
 const store = useSpaceStore();
-const management = useSpaceManagementMenu();
+const { show: showSpaceMenu } = useSpaceManagementMenu();
 const route = useRoute();
 const { spaces, draftSpace, activeSpaceId, openSpaceIds, closedSpaceIds, workspaceMode } = storeToRefs(store);
 const { locale, t } = useI18n();
@@ -94,7 +94,7 @@ async function closeTabs(operation: () => Promise<void>) {
 }
 
 function showTabMenu(space: Space) {
-  void management.show(space, [
+  void showSpaceMenu(space, [
     [
       spaceMenuItem(t("spaces.space.new"), createSpace),
       spaceMenuItem(t("spaces.space.tabs.close"), () => closeTab(space.id), {

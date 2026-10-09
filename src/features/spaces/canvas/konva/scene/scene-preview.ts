@@ -53,9 +53,9 @@ function appendRelation(
   nodeId: string,
   relation: CanvasSceneRelation,
 ) {
-  const relationById = relationsByNodeId.get(nodeId) ?? [];
-  relationById.push(relation);
-  relationsByNodeId.set(nodeId, relationById);
+  const relations = relationsByNodeId.get(nodeId) ?? [];
+  relations.push(relation);
+  relationsByNodeId.set(nodeId, relations);
 }
 
 function previewLayout(layout: CanvasNodeLayoutV1, update: CanvasGestureUpdate): CanvasNodeLayoutV1 {

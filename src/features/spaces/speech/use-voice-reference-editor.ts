@@ -27,7 +27,7 @@ export function useVoiceReferenceEditor(
   const path = shallowRef(sourcePath.value ?? "");
   const start = shallowRef("0");
   const end = shallowRef("0");
-  const duration = shallowRef<number>();
+  const durationMs = shallowRef<number>();
   const sourceVersion = shallowRef(0);
   const jobId = shallowRef<string>();
   const error = shallowRef<string>();
@@ -37,8 +37,8 @@ export function useVoiceReferenceEditor(
       Number(end.value) - Number(start.value) >= 5 &&
       Number(end.value) - Number(start.value) <= 30 &&
       Number(start.value) >= 0 &&
-      duration.value !== undefined &&
-      Math.round(Number(end.value) * 1000) <= duration.value,
+      durationMs.value !== undefined &&
+      Math.round(Number(end.value) * 1000) <= durationMs.value,
   );
   const canPrepare = computed(() =>
     Boolean(path.value && selectionValid.value && !jobId.value && !props.disabled),
@@ -65,7 +65,7 @@ export function useVoiceReferenceEditor(
   watch([start, end, () => props.language], invalidate);
   function replaceSource(source: string) {
     invalidate();
-    duration.value = undefined;
+    durationMs.value = undefined;
     start.value = "0";
     end.value = "0";
     path.value = source;
@@ -126,15 +126,15 @@ export function useVoiceReferenceEditor(
       if (jobId.value === job) jobId.value = undefined;
     }
   }
-  function selectionLoaded(durationMs: number) {
-    duration.value = durationMs;
-    end.value = String(Math.min(durationMs / 1000, 30));
+  function selectionLoaded(sourceDurationMs: number) {
+    durationMs.value = sourceDurationMs;
+    end.value = String(Math.min(sourceDurationMs / 1000, 30));
   }
   return {
     path,
     start,
     end,
-    duration,
+    durationMs,
     sourceVersion,
     jobId,
     error,

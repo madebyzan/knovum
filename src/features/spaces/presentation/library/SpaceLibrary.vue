@@ -16,7 +16,7 @@ import SpaceLibrarySpace from "./SpaceLibrarySpace.vue";
 import { useLibraryViewport } from "./use-library-viewport";
 
 const store = useSpaceStore();
-const management = useSpaceManagementMenu();
+const { groups: spaceMenuGroups } = useSpaceManagementMenu();
 const { spaces, libraryScope, libraryLayout, libraryQuery } = storeToRefs(store);
 const { t } = useI18n();
 const editingId = shallowRef<string>();
@@ -88,7 +88,7 @@ function showSpaceMenu(space: Space) {
         store.setSpaceFavorite(space.id, !space.favorite),
       ),
     ],
-    ...management.groups(space),
+    ...spaceMenuGroups(space),
     [spaceMenuItem(t("spaces.space.archive"), () => archiveSpace(space))],
   ]);
 }

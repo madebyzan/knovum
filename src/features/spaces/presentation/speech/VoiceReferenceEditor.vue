@@ -21,7 +21,7 @@ const {
   path,
   start,
   end,
-  duration,
+  durationMs,
   sourceVersion,
   jobId,
   error,
@@ -64,7 +64,7 @@ async function prepareReference() {
         @loaded="selectionLoaded"
       />
       <p
-        v-if="duration !== undefined && duration < 5000"
+        v-if="durationMs !== undefined && durationMs < 5000"
         class="text-caption text-fg-secondary"
         role="status"
       >

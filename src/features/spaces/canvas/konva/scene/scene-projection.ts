@@ -92,18 +92,11 @@ interface CanvasRelationProjectionOptions {
 }
 
 function projectRelation(options: CanvasRelationProjectionOptions): CanvasSceneRelation[] {
-  const {
-    relation,
-    endpointByStructureNodeId,
-    sourceStructureNodeId,
-    targetStructureNodeId,
-    color,
-    parallelOffset,
-  } = options;
-  const source = endpointByStructureNodeId.get(sourceStructureNodeId);
-  const target = endpointByStructureNodeId.get(targetStructureNodeId);
+  const { relation, sourceStructureNodeId, targetStructureNodeId } = options;
+  const source = options.endpointByStructureNodeId.get(sourceStructureNodeId);
+  const target = options.endpointByStructureNodeId.get(targetStructureNodeId);
   if (!source || !target || sourceStructureNodeId === targetStructureNodeId) return [];
-  const geometry = relationGeometry(source.frame, target.frame, parallelOffset);
+  const geometry = relationGeometry(source.frame, target.frame, options.parallelOffset);
   return [
     {
       id: relation.id,
@@ -111,7 +104,7 @@ function projectRelation(options: CanvasRelationProjectionOptions): CanvasSceneR
       kind: "relation",
       label: relation.kind,
       relation,
-      color,
+      color: options.color,
       bounds: geometry.bounds,
       midpoint: geometry.midpoint,
       points: geometry.points,
@@ -119,7 +112,7 @@ function projectRelation(options: CanvasRelationProjectionOptions): CanvasSceneR
       sourceFrame: source.frame,
       targetNodeId: target.previewId,
       targetFrame: target.frame,
-      parallelOffset,
+      parallelOffset: options.parallelOffset,
     },
   ];
 }

@@ -4,7 +4,7 @@ import {
   addTextOverlay,
   createVideoEditProject,
   locateTimelineTime,
-  projectDuration,
+  projectDurationMs,
   removeClip,
   splitClip,
 } from "../video-editing/project";
@@ -22,7 +22,7 @@ describe("video edit project", () => {
       [0, 4_000],
       [4_000, 10_000],
     ]);
-    expect(projectDuration(split)).toBe(10_000);
+    expect(projectDurationMs(split)).toBe(10_000);
   });
 
   it("maps a timeline position back to its source clip", () => {

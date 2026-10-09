@@ -5,7 +5,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import {
-  projectDuration,
+  projectDurationMs,
   type VideoEditProject,
   type VideoTextOverlay,
   type VideoTextStyle,
@@ -16,7 +16,7 @@ import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";
 
 const props = defineProps<{ project: VideoEditProject; item: VideoTextOverlay }>();
 const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] }>();
-const duration = computed(() => projectDuration(props.project));
+const durationMs = computed(() => projectDurationMs(props.project));
 const style = computed(() => props.item.style);
 const textDraft = shallowRef(props.item.text);
 const presets = ["plain", "outline", "shadow", "badge"] as const;
@@ -33,7 +33,7 @@ function patch(change: Partial<VideoTextOverlay>, mergeKey?: string) {
     !next.text.trim() ||
     next.text.length > 500 ||
     next.endMs - next.startMs < 100 ||
-    next.endMs > duration.value
+    next.endMs > durationMs.value
   )
     return;
   emit(
@@ -139,6 +139,6 @@ function changeSize(event: Event) {
         >
       </div>
     </section>
-    <SpaceVideoTextTiming :item="item" :duration-ms="duration" @change="patch" />
+    <SpaceVideoTextTiming :item="item" :duration-ms="durationMs" @change="patch" />
   </div>
 </template>
