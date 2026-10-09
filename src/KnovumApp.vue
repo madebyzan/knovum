@@ -3,7 +3,6 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { storeToRefs } from "pinia";
 import { TooltipProvider } from "reka-ui";
 import { computed, nextTick, onScopeDispose, provide, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { toast, Toaster } from "vue-sonner";
 
@@ -28,7 +27,6 @@ import AppShell from "./shell/AppShell.vue";
 import BootstrapScreen from "./shell/BootstrapScreen.vue";
 
 const bootstrap = useBootstrapStore();
-const { t } = useI18n();
 const preferences = usePreferencesStore();
 const { status, failure } = storeToRefs(bootstrap);
 const { theme } = storeToRefs(preferences);
@@ -52,7 +50,7 @@ watch(
     hasInitializedReadyServices = true;
     await nextTick();
     void restoreResourceRuns().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
-    await showBackupMaintenanceNotice(t);
+    await showBackupMaintenanceNotice();
   },
   { immediate: true },
 );

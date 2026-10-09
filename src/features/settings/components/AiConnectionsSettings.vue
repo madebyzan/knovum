@@ -36,7 +36,6 @@ const {
   connections: () => props.connections,
   protectedConnectionIds: () => props.protectedConnectionIds,
   providersAvailable: () => Boolean(props.providers.length),
-  t,
 });
 const requestedConnectionId = computed(() => {
   const purpose = props.createModelRequest?.purpose;

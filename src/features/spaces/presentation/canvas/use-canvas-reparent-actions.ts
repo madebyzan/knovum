@@ -1,20 +1,25 @@
 import { computed, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { createStructureIndex } from "../../model/structure/structure-index";
-import type { useSpaceStore } from "../../session/space-store";
+import { useSpaceStore } from "../../session/space-store";
 import { structureParentTargets } from "../../structure/structure-capabilities";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
 interface CanvasReparentActionsInput {
-  store: ReturnType<typeof useSpaceStore>;
   state: Readonly<Ref<CanvasSelectionProductState>>;
-  spaceRootTitle: string;
   run: (operation: () => Promise<unknown>) => void;
 }
 
-export function useCanvasReparentActions({ store, state, spaceRootTitle, run }: CanvasReparentActionsInput) {
+export function useCanvasReparentActions({ state, run }: CanvasReparentActionsInput) {
+  const store = useSpaceStore();
+  const { t } = useI18n();
   const targets = computed(() => {
-    return structureParentTargets(store.editSnapshot, state.value.structureNodeIds, spaceRootTitle);
+    return structureParentTargets(
+      store.editSnapshot,
+      state.value.structureNodeIds,
+      t("spaces.canvas.spaceRoot"),
+    );
   });
 
   function reparent(parentId: string | null) {

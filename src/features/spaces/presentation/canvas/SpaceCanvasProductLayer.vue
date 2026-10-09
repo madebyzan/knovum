@@ -46,7 +46,7 @@ const {
 } = useSelectionSurfaceState();
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const derivations = useSelectionDerivations({ store, selection: computed(() => selectedNodes.value) });
+const derivations = useSelectionDerivations(selectedNodes);
 const emit = defineEmits<{
   dismissError: [];
   dismissCapture: [id: string];

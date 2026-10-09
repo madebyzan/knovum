@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
-import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
@@ -12,7 +11,6 @@ import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
 import { useConnectorInstances } from "./use-connector-instances";
 
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
-const { t } = useI18n();
 const {
   adding,
   changes,
@@ -24,7 +22,7 @@ const {
   toggleSelected,
   toggleEnabled,
   remove,
-} = useConnectorInstances({ connector: () => props.connector, connections: () => props.connections, t });
+} = useConnectorInstances({ connector: () => props.connector, connections: () => props.connections });
 </script>
 <template>
   <div class="space-y-4">

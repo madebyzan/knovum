@@ -1,5 +1,5 @@
 import { computed, onScopeDispose, provide, shallowRef } from "vue";
-import type { ComposerTranslation } from "vue-i18n";
+import { useI18n } from "vue-i18n";
 
 import {
   createMcpConnection,
@@ -20,10 +20,10 @@ import { useExtensionChanges } from "../use-extension-changes";
 interface ConnectorInstanceOptions {
   connector: () => ConnectorDefinition;
   connections: () => McpConnection[];
-  t: ComposerTranslation;
 }
 
 export function useConnectorInstances(options: ConnectorInstanceOptions) {
+  const { t } = useI18n();
   const adding = shallowRef(false);
   const changes = useExtensionChanges();
   const name = shallowRef("");
@@ -124,9 +124,9 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
   async function remove(connection: McpConnection) {
     if (
       !(await confirmAction({
-        title: options.t("extensions.connections.delete.title", { name: connection.name }),
-        description: options.t("extensions.connections.delete.description"),
-        confirmLabel: options.t("common.delete"),
+        title: t("extensions.connections.delete.title", { name: connection.name }),
+        description: t("extensions.connections.delete.description"),
+        confirmLabel: t("common.delete"),
         danger: true,
       }))
     )
@@ -136,9 +136,9 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
 
   function confirmDiscard() {
     return confirmAction({
-      title: options.t("extensions.connectors.discard.title"),
-      description: options.t("extensions.connectors.discard.description"),
-      confirmLabel: options.t("common.discardChanges"),
+      title: t("extensions.connectors.discard.title"),
+      description: t("extensions.connectors.discard.description"),
+      confirmLabel: t("common.discardChanges"),
       danger: true,
     });
   }

@@ -1,5 +1,5 @@
 import { computed, shallowRef } from "vue";
-import type { ComposerTranslation } from "vue-i18n";
+import { useI18n } from "vue-i18n";
 
 import { removeAiConnectionModel, saveAiConnectionModel } from "../../foundation/ai/connection-settings";
 import { getErrorMessage } from "../../foundation/errors/error-format";
@@ -11,10 +11,10 @@ import { useSettingsLeaveDecision } from "./use-settings-leave-decision";
 interface ModelEditingOptions {
   connection: () => AiConnectionSettings;
   protectedModelTargets: () => readonly string[];
-  t: ComposerTranslation;
 }
 
 export function useAiModelEditing(options: ModelEditingOptions) {
+  const { t } = useI18n();
   const selected = shallowRef<string | null>();
   const dirty = shallowRef(false);
   const busy = shallowRef(false);
@@ -51,14 +51,14 @@ export function useAiModelEditing(options: ModelEditingOptions) {
       if (!succeeded) return false;
       if (selected.value === undefined) return true;
     }
-    if (dirty.value && !(await confirmDiscard(options.t))) return false;
+    if (dirty.value && !(await confirmDiscard())) return false;
     closeEditor();
     return true;
   }
   useSettingsLeaveDecision({
     async prepare() {
       if (admittedMutation && !(await admittedMutation)) return false;
-      return !dirty.value || confirmDiscard(options.t);
+      return !dirty.value || confirmDiscard();
     },
     finalize: closeEditor,
   });
@@ -69,7 +69,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     if (
       connection.models.some(({ id, model: identifier }) => id !== model.id && identifier === model.model)
     ) {
-      error.value = options.t("settings.ai.duplicateModelIdentifier");
+      error.value = t("settings.ai.duplicateModelIdentifier");
       return;
     }
     admittedMutation = runMutation(async () => {
@@ -85,9 +85,9 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     if (busy.value || modelInUse(model.id)) return;
     if (
       !(await confirmAction({
-        title: options.t("common.delete"),
-        description: options.t("settings.ai.deleteModelConfirm", { name: model.name }),
-        confirmLabel: options.t("common.delete"),
+        title: t("common.delete"),
+        description: t("settings.ai.deleteModelConfirm", { name: model.name }),
+        confirmLabel: t("common.delete"),
         danger: true,
       }))
     )
@@ -104,7 +104,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     error.value = "";
     const admitted: Promise<boolean> = mutation()
       .catch((cause) => {
-        error.value = `${options.t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
+        error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
         return false;
       })
       .finally(() => {
@@ -114,6 +114,14 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     return admitted;
   }
 
+  function confirmDiscard() {
+    return confirmAction({
+      title: t("settings.ai.discardChangesTitle"),
+      description: t("settings.ai.discardChanges"),
+      confirmLabel: t("common.discardChanges"),
+      danger: true,
+    });
+  }
   return {
     selected,
     dirty,
@@ -126,13 +134,4 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     saveModel,
     removeModel,
   };
-}
-
-function confirmDiscard(t: ComposerTranslation) {
-  return confirmAction({
-    title: t("settings.ai.discardChangesTitle"),
-    description: t("settings.ai.discardChanges"),
-    confirmLabel: t("common.discardChanges"),
-    danger: true,
-  });
 }

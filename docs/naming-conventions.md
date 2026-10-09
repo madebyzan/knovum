@@ -102,6 +102,14 @@ Pinia store accessors retain `useCapabilityStore`. Each reactive instance belong
 or view owner; multiple controls for one session consume that instance instead of creating copies.
 Scope-owned external subscriptions and async work must detach or invalidate when the owner stops.
 
+Components and component-scoped composables resolve Vue Router, Pinia, Vue I18n and TanStack Query
+context directly where it is used. Do not relay router/route, store, composer/translation functions or
+query-client instances through composable parameters, options or intermediary composables. Acquire
+setup-context dependencies synchronously before starting async work. Keep genuine view/session inputs
+and business operations explicit. Pure functions and IO boundaries may receive concrete inputs or
+operations, and application bootstrap may pass explicitly owned plugin instances; these are separate
+lifetimes, not reasons to add context wrappers or fallback parameters.
+
 ## Model and contract ownership
 
 `model/` is an optional owner for pure data models, invariants and projections shared by several
@@ -434,9 +442,6 @@ See [Tauri commands](https://v2.tauri.app/develop/calling-rust/) and
   count gate.
 - Complex object-shaped parameters receive a named interface/type near the owning API. Inline object
   types are limited to small, obvious local values such as a two-axis point or a single optional flag.
-- Vue components and composables obtain locale context with `useI18n()`. Translation callbacks cross
-  into pure policy, command-catalog or IO functions only when keeping those functions independent of
-  Vue setup context is intentional; components do not relay `t` through intermediate composables.
 
 ## Boolean APIs
 

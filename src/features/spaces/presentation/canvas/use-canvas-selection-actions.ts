@@ -38,7 +38,7 @@ export function useCanvasSelectionActions() {
     }),
   );
   const { t } = useI18n();
-  const exportSelected = useCanvasNodeExport(store, state, selectedNodes);
+  const exportSelected = useCanvasNodeExport(state, selectedNodes);
   const visible = computed(
     () =>
       Boolean(selection.value.nodeIds.length) ||
@@ -48,9 +48,7 @@ export function useCanvasSelectionActions() {
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
   const { selectedImageNode, selectedVideoNode } = useCanvasSelectedMedia(selectedNodes);
   const reparentActions = useCanvasReparentActions({
-    store,
     state,
-    spaceRootTitle: t("spaces.canvas.spaceRoot"),
     run: runSelectionMutation,
   });
   const structureActions = createCanvasStructureSelectionActions({
