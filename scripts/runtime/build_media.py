@@ -188,7 +188,14 @@ def build(output: Path, signing: str, archive_url: str | None) -> None:
             shutil.copy2(REPOSITORY / "scripts/runtime" / name, evidence / name)
         producer = scratch / "producer.json"
         producer.write_text(json.dumps(record, indent=2) + "\n")
-        run("node", str(REPOSITORY / "scripts/runtime/write-media-manifest.mjs"), str(relocated), target, str(producer))
+        run(
+            "node",
+            str(REPOSITORY / "scripts/runtime/media.mjs"),
+            "--write-manifest",
+            str(relocated),
+            target,
+            str(producer),
+        )
         publication = scratch / "publication"
         publication.mkdir()
         if archive_url is None:

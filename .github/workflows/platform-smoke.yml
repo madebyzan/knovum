@@ -51,7 +51,5 @@ jobs:
           test -f src-tauri/Cargo.lock
       - name: Install web dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run web gates
-        run: pnpm check:web
       - name: Build desktop binary (compile smoke only)
         run: pnpm exec tauri build --no-bundle --debug

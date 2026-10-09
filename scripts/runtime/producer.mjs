@@ -14,15 +14,15 @@ export async function runProducer(repository, args, entry = "build_python.py") {
     entry === "build_python.py"
       ? await ensureMicromamba(repository, target, configuration.micromamba.targets[target])
       : undefined;
+  const environment =
+    entry === "build_python.py"
+      ? ["--project", join(repository, "python"), "--only-group", "publication", "--frozen"]
+      : ["--no-project", "--python", configuration.version];
   execFileSync(
     uv,
     [
       "run",
-      "--project",
-      join(repository, "python"),
-      "--only-group",
-      "publication",
-      "--frozen",
+      ...environment,
       "python",
       "-I",
       "-B",

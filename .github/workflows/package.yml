@@ -2,20 +2,17 @@ name: QA packages
 
 on:
   workflow_dispatch:
+    inputs:
+      runtime_publication_tag:
+        description: Existing controlled runtime release tag
+        required: true
+        type: string
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
+  contents: read
 
 jobs:
-  runtimes:
-    uses: ./.github/workflows/python-runtime.yml
-    with:
-      production: false
-    secrets: inherit
   package:
-    needs: runtimes
     name: ${{ matrix.name }}
     strategy:
       fail-fast: false
@@ -65,10 +62,14 @@ jobs:
           test -f src-tauri/Cargo.lock
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@v7
-        with:
-          name: runtime-publication
-          path: runtime-publication
+      - name: Download selected controlled runtime publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNTIME_TAG: ${{ inputs.runtime_publication_tag }}
+        shell: bash
+        run: |
+          case "$RUNTIME_TAG" in runtime-*) ;; *) echo 'Expected a controlled runtime-* release tag' >&2; exit 1 ;; esac
+          gh release download "$RUNTIME_TAG" --repo "$GITHUB_REPOSITORY" --pattern runtime-publication.json --dir runtime-publication
       - name: Provision published native resources
         run: |
           pnpm runtime:provision --profile resources --publication runtime-publication/runtime-publication.json

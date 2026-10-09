@@ -127,7 +127,6 @@
       "build_media.py",
       "media_binary.py",
       "media-license-policy.mjs",
-      "write-media-manifest.mjs",
       "media-manifest.mjs",
       "media-runtime-content.mjs",
       "files.mjs",

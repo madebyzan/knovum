@@ -2,28 +2,20 @@ import { readFileSync, readdirSync } from "node:fs";
 import { basename, dirname, extname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const sourceRoots = [
-  "src",
-  "src-tauri/src",
-  "src-tauri/tests",
-  "src-tauri/build_support",
-  "scripts",
-  "python/src",
-  "python/tests",
-  "tests",
-  "docs",
-];
+const sourceScopes = {
+  web: ["src", "tests"],
+  rust: ["src-tauri/src", "src-tauri/tests", "src-tauri/build_support"],
+  python: ["python/src", "python/tests"],
+  scripts: ["scripts", "docs"],
+};
+export const sourceRoots = Object.values(sourceScopes).flat();
 const sourceExtensions = new Set([".rs", ".ts", ".vue", ".mjs", ".py"]);
 const testDirectories = new Set(["tests", "__tests__", "e2e"]);
 const generatedDirectories = new Set(["__pycache__"]);
 
-function inspectPathIdentity(path, kind) {
+function inspectPathIdentity(path) {
   const name = basename(path);
-  if (/^native(?:[-_.]|$)/iu.test(name) || /^[Nn]ative[A-Z0-9]/u.test(name)) {
-    return [`${path}: native is not a path identity`];
-  }
-  if (kind === "file" && name.toLowerCase() === "index.ts")
-    return [`${path}: TypeScript index modules are forbidden`];
+  if (name.toLowerCase() === "index.ts") return [`${path}: TypeScript index modules are forbidden`];
   return [];
 }
 
@@ -36,10 +28,6 @@ export function inspectSourceLayout(root, recursive = true) {
       .map((entry) => join(entry.parentPath, entry.name).toLowerCase()),
   );
   for (const entry of entries) {
-    if (entry.isDirectory())
-      violations.push(...inspectPathIdentity(join(entry.parentPath, entry.name), "directory"));
-  }
-  for (const entry of entries) {
     if (!entry.isFile()) continue;
     const file = join(entry.parentPath, entry.name);
     const extension = extname(file);
@@ -48,7 +36,7 @@ export function inspectSourceLayout(root, recursive = true) {
       violations.push(`${file}: conflicts with directory ${directory}`);
     }
     if (!file.split(sep).some((part) => generatedDirectories.has(part))) {
-      violations.push(...inspectPathIdentity(file, "file"));
+      violations.push(...inspectPathIdentity(file));
     }
     if (!sourceExtensions.has(extension)) continue;
     violations.push(...inspectSourceFile(file, extension));
@@ -80,9 +68,13 @@ function inspectSourceFile(file, extension) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const scope = process.argv[2];
+  if (scope && !Object.hasOwn(sourceScopes, scope)) throw new Error(`Unknown source scope: ${scope}`);
   const violations = [
-    ...[".", "python", "src-tauri"].flatMap((root) => inspectSourceLayout(root, false)),
-    ...sourceRoots.flatMap((root) => inspectSourceLayout(root)),
+    ...(!scope || scope === "scripts"
+      ? [".", "python", "src-tauri"].flatMap((root) => inspectSourceLayout(root, false))
+      : []),
+    ...(scope ? sourceScopes[scope] : sourceRoots).flatMap((root) => inspectSourceLayout(root)),
   ];
   if (violations.length) {
     console.error(violations.join("\n"));

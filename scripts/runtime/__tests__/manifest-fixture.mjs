@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { listRuntimeFiles } from "../files.mjs";
 import { validatePythonRuntime } from "../manifest.mjs";
+import { runtimeRecipeIdentity } from "../profiles.mjs";
 
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 export const commit = "a".repeat(40);
@@ -18,6 +20,14 @@ function write(base, path, bytes) {
 export function fixture(context, profile = "voice-generation") {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-validation-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
+  cpSync(fileURLToPath(new URL("../", import.meta.url)), join(root, "scripts/runtime"), { recursive: true });
+  write(root, "scripts/runtime/voice_bridge.cpp", "bridge");
+  write(root, "scripts/runtime/voice_bridge.cmake", "recipe");
+  write(
+    root,
+    "src-tauri/tauri.conf.json",
+    JSON.stringify({ bundle: { macOS: { minimumSystemVersion: "14.0" } } }),
+  );
   const shared = join(root, "python");
   const python = join(shared, "runtimes", profile);
   const runtime = join(root, "runtime");
@@ -29,6 +39,12 @@ export function fixture(context, profile = "voice-generation") {
     shared,
     "runtime-source.json",
     JSON.stringify({
+      version: "3.11.17",
+      uv: { targets: { [target]: source } },
+      micromamba: { targets: { [target]: source } },
+      producerSources: JSON.parse(
+        readFileSync(new URL("../../../python/runtime-source.json", import.meta.url), "utf8"),
+      ).producerSources,
       uvVersion: "0.12.23",
       voiceLibrary: {
         revision: commit,
@@ -36,7 +52,12 @@ export function fixture(context, profile = "voice-generation") {
         cmakeVersion: "4.3.4",
         source: { sha256: hash("source") },
       },
-      condaSupplier: { name: "conda-forge", micromambaVersion: "2.9.0", profiles: { [profile]: "base" } },
+      condaSupplier: {
+        name: "conda-forge",
+        micromambaVersion: "2.9.0",
+        profiles: { [profile]: "base" },
+        pythonDistributions: { base: ["python"] },
+      },
     }),
   );
   const condaLock = JSON.stringify({ packages: [{ name: "python", ...source }] });
@@ -45,7 +66,7 @@ export function fixture(context, profile = "voice-generation") {
     sources: [{ fileName: "compiled.zip", name: "compiled", sha256: hash("source"), size: 6 }],
   };
   write(shared, "compiled-source-evidence.json", JSON.stringify(compiledSources));
-  write(python, "src/knovum_inference/__main__.py", "pass\n");
+  write(shared, "src/knovum_inference/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
   write(runtime, "packages/dependency.py", "pass\n");
@@ -58,6 +79,7 @@ export function fixture(context, profile = "voice-generation") {
     version: "3.11.17",
     uvVersion: "0.12.23",
     dependencyLockSha256: hash(lock + condaLock),
+    recipeSha256: runtimeRecipeIdentity(root, target, profile),
     appCommit: commit,
     condaSupplier: {
       supplier: "conda-forge",
@@ -100,8 +122,6 @@ export function fixture(context, profile = "voice-generation") {
     ["compiled-sources/compiled.zip", "source"],
   ])
     write(evidence, name, bytes);
-  write(root, "scripts/runtime/voice_bridge.cpp", "bridge");
-  write(root, "scripts/runtime/voice_bridge.cmake", "recipe");
   function manifest() {
     const files = listRuntimeFiles(runtime, { excludeManifest: true }).map((path) => {
       const bytes = readFileSync(join(runtime, path));

@@ -2,7 +2,7 @@ import { lstatSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 import { sha256File } from "./files.mjs";
-import { condaLockPath, dependencyIdentity } from "./profiles.mjs";
+import { condaLockPath, dependencyIdentity, runtimeRecipeIdentity } from "./profiles.mjs";
 
 export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
   const configuration = JSON.parse(
@@ -23,6 +23,10 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
     manifest.dependencyLockSha256 !== producer.dependencyLockSha256
   )
     throw new Error("Runtime dependency lock differs from the application");
+  if (producer.recipeSha256 !== runtimeRecipeIdentity(repository, manifest.target, manifest.profile))
+    throw new Error(
+      "Runtime producer recipe differs from the application; rebuild the controlled publication",
+    );
   if (manifest.dependencyRequirementsSha256 !== sha256File(join(evidence, "requirements.txt")))
     throw new Error("Runtime requirements differ from the producer evidence");
   validateEvidenceFiles(evidence, manifest.profile);

@@ -11,6 +11,13 @@ export function scriptUnitTests(root) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const layout = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("./source-layout.mjs", import.meta.url)), "scripts"],
+    { stdio: "inherit" },
+  );
+  if (layout.error) throw layout.error;
+  if (layout.status !== 0) process.exit(layout.status ?? 1);
   const tests = scriptUnitTests(fileURLToPath(new URL("../", import.meta.url)));
   if (!tests.length) throw new Error("No script unit tests found");
   const testExecution = spawnSync(process.execPath, ["--test", ...tests], { stdio: "inherit" });

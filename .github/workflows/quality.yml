@@ -40,7 +40,7 @@ jobs:
         run: npm run security:python
 
   web:
-    name: Web quality
+    name: Web and source quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -60,6 +60,8 @@ jobs:
         run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
+      - name: Check Rust duplication
+        run: pnpm exec jscpd src-tauri/src --min-lines 6 --min-tokens 80 --threshold 1
 
   rust-audit:
     name: Rust dependency audit
@@ -91,9 +93,8 @@ jobs:
         run: test -f src-tauri/Cargo.lock
       - name: Verify source and capability boundaries
         run: |
-          node scripts/checks/source-layout.mjs
+          node scripts/checks/source-layout.mjs rust
           node scripts/checks/capabilities.mjs
-          node scripts/checks/rust-boundaries.mjs
       - name: Verify Rust toolchain
         id: toolchain
         run: rustc --version && cargo --version

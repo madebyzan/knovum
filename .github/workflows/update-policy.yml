@@ -22,5 +22,4 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y minisign
       - name: Exercise publishing policy and actual signature rejection
         run: |
-          node --test scripts/*/__tests__/*.test.mjs
           node --test scripts/release/__tests__/*.integration.mjs

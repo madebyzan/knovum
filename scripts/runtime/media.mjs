@@ -1,10 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { activateDirectory } from "./files.mjs";
-import { mediaExecutable, mediaManifestName, validateMediaRuntime } from "./media-manifest.mjs";
+import {
+  mediaExecutable,
+  mediaManifestName,
+  validateMediaRuntime,
+  writeMediaManifest,
+} from "./media-manifest.mjs";
 import { MediaRuntimeContentError } from "./media-runtime-content.mjs";
 import { runProducer } from "./producer.mjs";
 import { hostRuntimeTarget } from "./profiles.mjs";
@@ -39,5 +44,12 @@ export async function prepareCoreMedia(repository) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-  await runProducer(repository, process.argv.slice(2), "build_media.py");
+  const args = process.argv.slice(2);
+  if (args[0] === "--write-manifest") {
+    if (args.length !== 4)
+      throw new Error("Usage: media.mjs --write-manifest <directory> <target> <producer-json>");
+    writeMediaManifest(repository, args[1], args[2], JSON.parse(readFileSync(args[3], "utf8")));
+  } else {
+    await runProducer(repository, args, "build_media.py");
+  }
 }

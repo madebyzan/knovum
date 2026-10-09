@@ -36,13 +36,22 @@ export function dependencyIdentity(repository, target, profile) {
 }
 
 export function developmentDirectory(repository, target, profile) {
-  const identity = createHash("sha256")
+  return join(
+    repository,
+    ".runtime-development",
+    profile,
+    target,
+    runtimeRecipeIdentity(repository, target, profile),
+  );
+}
+
+export function runtimeRecipeIdentity(repository, target, profile) {
+  return createHash("sha256")
     .update(runtimeRecipeBytes(repository, target, profile))
     .update(producerBytes(repository, profile))
     .update(readFileSync(join(runtimeProject(repository, profile), "uv.lock")))
     .update(readFileSync(condaLockPath(repository, target, profile)))
     .digest("hex");
-  return join(repository, ".runtime-development", profile, target, identity);
 }
 
 export function runtimeRecipeBytes(repository, target, profile) {
@@ -160,9 +169,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       repository: { type: "string" },
       target: { type: "string" },
       profile: { type: "string" },
+      identity: { type: "boolean" },
     },
   });
   if (!values.repository || !values.target || !values.profile)
     throw new Error("Runtime recipe requires --repository, --target, and --profile");
-  process.stdout.write(runtimeRecipeBytes(values.repository, values.target, values.profile));
+  process.stdout.write(
+    values.identity
+      ? runtimeRecipeIdentity(values.repository, values.target, values.profile)
+      : runtimeRecipeBytes(values.repository, values.target, values.profile),
+  );
 }

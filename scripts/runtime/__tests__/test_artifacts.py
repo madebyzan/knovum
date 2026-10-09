@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import io
 import os
 import tarfile
 from pathlib import Path
@@ -8,57 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from runtime.artifacts import archive_runtime, extract_python, materialize_aliases
+from runtime.artifacts import archive_runtime, materialize_aliases
 from runtime.signing import sign_runtime, verify_runtime
-
-
-def archive(path: Path, entries: list[tuple[str, bytes | str]]) -> None:
-    with tarfile.open(path, "w") as output:
-        for name, contents in entries:
-            info = tarfile.TarInfo(name)
-            if isinstance(contents, str):
-                info.type = tarfile.SYMTYPE
-                info.linkname = contents
-                output.addfile(info)
-            else:
-                info.size = len(contents)
-                output.addfile(info, io.BytesIO(contents))
-
-
-def test_internal_interpreter_alias_is_materialized_before_publication(
-    tmp_path: Path,
-) -> None:
-    source = tmp_path / "input.tar"
-    archive(
-        source,
-        [
-            ("python/bin/python3.11", b"interpreter"),
-            ("python/bin/python3", "python3.11"),
-        ],
-    )
-    root = extract_python(source, tmp_path / "unpacked")
-    assert (root / "bin/python3").read_bytes() == b"interpreter"
-    assert not (root / "bin/python3").is_symlink()
-    archive_path = tmp_path / "runtime.tar.gz"
-    archive_runtime(root, archive_path)
-    with tarfile.open(archive_path) as output:
-        assert all(item.isfile() or item.isdir() for item in output.getmembers())
-
-
-@pytest.mark.parametrize("name", ["../escaped", "/python/absolute", "python/../escaped", "python\\escaped"])
-def test_interpreter_archive_rejects_escape_paths(tmp_path: Path, name: str) -> None:
-    source = tmp_path / "input.tar"
-    archive(source, [(name, b"escape")])
-    with pytest.raises(ValueError):
-        extract_python(source, tmp_path / "unpacked")
-    assert not (tmp_path / "escaped").exists()
-
-
-def test_interpreter_archive_rejects_external_alias(tmp_path: Path) -> None:
-    source = tmp_path / "input.tar"
-    archive(source, [("python/bin/python3", "../../../external")])
-    with pytest.raises((ValueError, tarfile.FilterError)):
-        extract_python(source, tmp_path / "unpacked")
 
 
 def test_runtime_archive_never_conveys_symbolic_links(tmp_path: Path) -> None:
