@@ -121,7 +121,6 @@ async function saveName(structureNodeId: string, title: string) {
 const outlineMenu = useStructureOutlineMenu({
   index,
   rename,
-  reveal: select,
 });
 
 watch(
