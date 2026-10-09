@@ -71,7 +71,11 @@ Rust writes them to managed storage. Operating-system file-list paste is not emu
 objects or broad filesystem permission.
 
 Imported and generated files are exposed to the WebView only through their feature's narrow asset
-protocol scope. Popup menu and other OS resources are closed after use. Editable WebView text keeps
+protocol scope. A popup menu owns explicit native item resources, including submenu children, so their
+action channels survive construction. `Menu.popup()` resolves on display, before selection; the shared
+owner retains one popup resource tree until the next popup replaces it. Replacement and failed display
+release its resources; WebView destruction releases the final tree. Other OS resources are closed after
+use. Editable WebView text keeps
 native keyboard editing behavior rather than being intercepted by feature context menus. The macOS
 Edit menu dispatches palette-hidden AppCommands without installing competing accelerators. For a
 focused WebView input or rich-text editor, one narrow desktop command maps a strict Cut/Copy/Paste

@@ -1,16 +1,17 @@
 import { LogicalPosition, PhysicalPosition, Position } from "@tauri-apps/api/dpi";
-import {
+import type {
   Menu,
-  type CheckMenuItemOptions,
-  type IconMenuItemOptions,
-  type MenuItemOptions,
-  type PredefinedMenuItemOptions,
-  type SubmenuOptions,
+  CheckMenuItemOptions,
+  IconMenuItemOptions,
+  MenuItemOptions,
+  PredefinedMenuItemOptions,
+  SubmenuOptions,
 } from "@tauri-apps/api/menu";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 
 import { formatErrorDiagnostic } from "../errors/error-format";
+import { createNativeContextMenu } from "./native-context-menu";
 
 export type ContextMenuItem =
   | MenuItemOptions
@@ -28,6 +29,8 @@ export interface PopupContextMenuOptions {
   window?: Parameters<typeof Menu.prototype.popup>[1] | undefined;
   scope?: string | undefined;
 }
+
+let activePopup: Awaited<ReturnType<typeof createNativeContextMenu>> | undefined;
 
 const ACCELERATOR_BY_TOKEN: Readonly<Record<string, string>> = {
   $mod: "CmdOrCtrl",
@@ -118,16 +121,23 @@ export async function popupContextMenu(
   if (!processed.length) return;
 
   const popupPos = toMenuPosition(options.position);
+  let popup: typeof activePopup;
   try {
-    const menu = await Menu.new({ items: processed });
-    try {
-      await menu.popup(popupPos, options.window ?? getCurrentWindow());
-    } finally {
-      await menu
-        .close()
-        .catch((err) => logError(`[${scope}] menu close failed: ${formatErrorDiagnostic(err)}`));
-    }
+    popup = await createNativeContextMenu(processed);
+    const previous = activePopup;
+    activePopup = popup;
+    await previous
+      ?.close()
+      .catch((err) => logError(`[${scope}] menu close failed: ${formatErrorDiagnostic(err)}`));
+    // popup resolves on display; keep resources until the next popup replaces them.
+    await popup.menu.popup(popupPos, options.window ?? getCurrentWindow());
   } catch (err) {
+    if (popup) {
+      if (activePopup === popup) activePopup = undefined;
+      await popup
+        .close()
+        .catch((cause) => logError(`[${scope}] menu close failed: ${formatErrorDiagnostic(cause)}`));
+    }
     void logError(`[${scope}] menu popup failed: ${formatErrorDiagnostic(err)}`);
   }
 }

@@ -2,6 +2,7 @@ import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getCanvasEditorSession } from "../../canvas/editor-session";
+import { revealStructureNode } from "../../canvas/structure-navigation";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
@@ -13,7 +14,6 @@ import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu
 interface StructureOutlineMenuOptions {
   index: ComputedRef<StructureIndex>;
   rename(structureNodeId: string): void;
-  reveal(structureNodeId: string): void;
 }
 
 export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
@@ -31,7 +31,9 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     else editor.selectStructureNodes([structureNodeId]);
     const effectivelyLocked = isStructureNodeEffectivelyLocked(structureNodeId, index);
     const primary = [
-      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => options.reveal(structureNodeId)),
+      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () =>
+        revealStructureNode(store, editor, structureNodeId),
+      ),
       spaceMenuItem(t("common.rename"), () => options.rename(structureNodeId), {
         enabled: !effectivelyLocked,
       }),
