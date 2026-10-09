@@ -28,7 +28,7 @@ import { useImageCommentSession } from "../comments/image-comment-session";
 import { defaultImageEdit } from "../image-editing/image-edit";
 import { useImageEditSession } from "../image-editing/image-edit-session";
 import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
-import { useImageSourceDimensions } from "../presentation/canvas/image-source-dimensions";
+import { useImageSourceDimensionsStore } from "../presentation/canvas/image-source-dimensions-store";
 import SpaceCanvasImageEditing from "../presentation/canvas/SpaceCanvasImageEditing.vue";
 import SpaceImageTransformControls from "../presentation/canvas/SpaceImageTransformControls.vue";
 
@@ -55,7 +55,7 @@ beforeEach(() => {
 
 describe("image session ownership", () => {
   it("does not reuse dimensions from an older source revision", () => {
-    const dimensions = useImageSourceDimensions();
+    const dimensions = useImageSourceDimensionsStore();
     dimensions.set("same-id", "revision-1", 100, 200);
     expect(dimensions.forNode("same-id", "revision-1")).toMatchObject({ width: 100, height: 200 });
     expect(dimensions.forNode("same-id", "revision-2")).toBeUndefined();
@@ -132,7 +132,7 @@ describe("image session ownership", () => {
   it("clears edits, comments, drafts and dimensions before another Space reuses the same node ID", async () => {
     const edits = useImageEditSession();
     const removal = useImageRemovalSession();
-    const dimensions = useImageSourceDimensions();
+    const dimensions = useImageSourceDimensionsStore();
     const comments = useImageCommentSession();
     dimensions.set("same-id", "revision-1", 100, 100);
     edits.begin("same-id", "crop");
@@ -157,7 +157,7 @@ describe("image session ownership", () => {
   it("releases image state when its node is deleted", () => {
     const edits = useImageEditSession();
     const removal = useImageRemovalSession();
-    const dimensions = useImageSourceDimensions();
+    const dimensions = useImageSourceDimensionsStore();
     const comments = useImageCommentSession();
     dimensions.set("same-id", "revision-1", 100, 100);
     edits.begin("same-id", "adjust");

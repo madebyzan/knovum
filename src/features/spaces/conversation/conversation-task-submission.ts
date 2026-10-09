@@ -17,7 +17,7 @@ import {
 } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
-import { settleConversationTaskResult } from "./conversation-task-settlement";
+import { settleConversationTask } from "./conversation-task-settlement";
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
 interface ConversationSubmissionState {
@@ -91,7 +91,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.taskState.value = outcome.state;
     state.streamedText.value = "";
     state.error.value = undefined;
-    await settleConversationTaskResult({
+    await settleConversationTask({
       accepted: task.accepted,
       outcome,
       spaceId: selection.spaceId,

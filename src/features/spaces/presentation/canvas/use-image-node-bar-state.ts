@@ -11,7 +11,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { imageToolAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
-import { useImageSourceDimensions } from "./image-source-dimensions";
+import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
 
 type ImagePopover = "upscale" | "layers";
 
@@ -22,7 +22,7 @@ export function useImageNodeBarState(
 ) {
   const { t } = useI18n();
   const session = useImageEditSession();
-  const imageDimensions = useImageSourceDimensions();
+  const imageDimensions = useImageSourceDimensionsStore();
   const removal = useImageRemovalSession();
   const nodeOperations = useNodeOperationGate();
   const comments = useImageCommentSession();

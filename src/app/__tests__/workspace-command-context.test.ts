@@ -4,7 +4,7 @@ import { expect, it, vi } from "vitest";
 import { defineComponent, h, reactive, shallowRef } from "vue";
 
 import { useContextDock } from "../../features/spaces/canvas/use-context-dock";
-import { useSpacesWorkspace } from "../../features/spaces/workspace-definition";
+import { useSpacesWorkspace } from "../../features/spaces/use-spaces-workspace";
 import { i18n } from "../../foundation/i18n/i18n";
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import { useShellController } from "../../shell/use-shell-controller";

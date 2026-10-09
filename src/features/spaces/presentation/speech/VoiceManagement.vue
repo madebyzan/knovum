@@ -6,7 +6,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useVoiceManagement } from "../../speech/use-voice-management";
-import VoiceProfileRow from "./VoiceProfileRow.vue";
+import VoiceProfileConfiguration from "./VoiceProfileConfiguration.vue";
 
 const props = defineProps<{ expandedId?: string | undefined; creating?: boolean | undefined }>();
 const emit = defineEmits<{ dirty: [value: boolean]; toggle: [profileId: string] }>();
@@ -38,7 +38,7 @@ const { reload, profiles, loading, busyProfileId, errors, rename, revise, archiv
       <UiButton size="sm" @click="reload()">{{ t("common.retry") }}</UiButton>
     </div>
     <div v-else-if="profiles.length" class="divide-y divide-stroke-divider">
-      <VoiceProfileRow
+      <VoiceProfileConfiguration
         v-for="profile in profiles"
         :key="profile.id"
         :profile

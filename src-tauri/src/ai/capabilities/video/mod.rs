@@ -56,7 +56,7 @@ async fn prepare_reference_images(
     target: &ModelExecutionTarget,
     images: Vec<String>,
 ) -> AppResult<Vec<String>> {
-    let mut prepared_list = Vec::with_capacity(images.len());
+    let mut prepared_images = Vec::with_capacity(images.len());
     let mut inline_bytes = 0;
     let provider = resolve_provider(target.model_provider_kind()?);
     let can_upload = provider.as_file_upload().is_some();
@@ -65,13 +65,13 @@ async fn prepare_reference_images(
             || item.starts_with("https://")
             || item.starts_with("dashscope://")
         {
-            prepared_list.push(item);
-        } else if let Some(stripped_data) = item.strip_prefix("data:") {
-            let (mime_part, base64_payload) = stripped_data
+            prepared_images.push(item);
+        } else if let Some(encoded_reference) = item.strip_prefix("data:") {
+            let (mime_part, base64_payload) = encoded_reference
                 .split_once(";base64,")
                 .ok_or_else(|| AppError::invalid("Reference image data URI is invalid"))?;
             let decoded_bytes =
-                decode_reference_data(base64_payload, super::files::MAX_UPLOAD_BYTES)?;
+                decode_reference_image(base64_payload, super::files::MAX_UPLOAD_BYTES)?;
             if can_upload {
                 let upload_ref = super::files::upload_file_bytes(
                     target,
@@ -80,9 +80,9 @@ async fn prepare_reference_images(
                     "reference_image.png",
                 )
                 .await?;
-                prepared_list.push(upload_ref.access_url.unwrap_or(upload_ref.file_id));
+                prepared_images.push(upload_ref.access_url.unwrap_or(upload_ref.file_id));
             } else {
-                push_inline_reference(&mut prepared_list, &mut inline_bytes, item)?;
+                push_inline_reference(&mut prepared_images, &mut inline_bytes, item)?;
             }
         } else {
             let path = std::path::Path::new(&item);
@@ -90,7 +90,7 @@ async fn prepare_reference_images(
                 if can_upload {
                     let upload_ref = super::files::upload_file_path(target, path).await?;
                     let effective_reference = upload_ref.access_url.unwrap_or(upload_ref.file_id);
-                    prepared_list.push(effective_reference);
+                    prepared_images.push(effective_reference);
                 } else {
                     let bytes =
                         super::files::read_file_bounded(path, super::files::MAX_UPLOAD_BYTES)
@@ -101,7 +101,7 @@ async fn prepare_reference_images(
                     use base64::Engine;
                     let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
                     push_inline_reference(
-                        &mut prepared_list,
+                        &mut prepared_images,
                         &mut inline_bytes,
                         format!("data:{mime};base64,{encoded}"),
                     )?;
@@ -111,7 +111,7 @@ async fn prepare_reference_images(
             }
         }
     }
-    Ok(prepared_list)
+    Ok(prepared_images)
 }
 
 fn push_inline_reference(
@@ -127,7 +127,7 @@ fn push_inline_reference(
     Ok(())
 }
 
-fn decode_reference_data(encoded: &str, maximum_bytes: usize) -> AppResult<Vec<u8>> {
+fn decode_reference_image(encoded: &str, maximum_bytes: usize) -> AppResult<Vec<u8>> {
     use base64::Engine;
     if encoded.len() > maximum_bytes.div_ceil(3).saturating_mul(4) {
         return Err(AppError::invalid(

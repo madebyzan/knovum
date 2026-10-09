@@ -15,19 +15,19 @@ interface RetryDescriptor {
 
 interface TaskRetryOptions {
   tasks: Ref<AppTask[]>;
-  succeed: (id: string) => void;
+  succeed: (taskId: string) => void;
   trimHistory: () => void;
-  externallySettled: Set<string>;
+  externallySettledTaskIds: Set<string>;
 }
 
 export function createTaskRetryController({
   tasks,
   succeed,
   trimHistory,
-  externallySettled,
+  externallySettledTaskIds,
 }: TaskRetryOptions) {
-  const retries = new Map<string, RetryDescriptor>();
-  const observationRetries = new Map<string, RetryTask>();
+  const retryDescriptorByTaskId = new Map<string, RetryDescriptor>();
+  const observationRetryByTaskId = new Map<string, RetryTask>();
 
   function restoreFailed(
     task: Omit<AppTask, "status">,
@@ -36,7 +36,7 @@ export function createTaskRetryController({
   ) {
     if (tasks.value.some(({ id }) => id === task.id)) return false;
     tasks.value.unshift({ ...task, status: "failed", retryable: true });
-    retries.set(task.id, {
+    retryDescriptorByTaskId.set(task.id, {
       run: retryTask,
       settlement: options.settlement ?? "automatic",
     });
@@ -44,79 +44,79 @@ export function createTaskRetryController({
     return true;
   }
 
-  function setRetry(id: string, retryTask: RetryTask) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
+  function setRetry(taskId: string, retryTask: RetryTask) {
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
     if (!task || task.status !== "failed") return;
-    retries.set(id, { run: retryTask, settlement: "automatic" });
+    retryDescriptorByTaskId.set(taskId, { run: retryTask, settlement: "automatic" });
     task.retryable = true;
   }
 
-  function markObservationUnavailable(id: string, message: string, retryTask: RetryTask) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
+  function markObservationUnavailable(taskId: string, message: string, retryTask: RetryTask) {
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
     if (!task || (task.status !== "running" && task.status !== "attention")) return;
     task.status = "attention";
     task.statusMessage = message;
     task.retryable = true;
-    observationRetries.set(id, retryTask);
+    observationRetryByTaskId.set(taskId, retryTask);
   }
 
-  function resumeObservation(id: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
+  function resumeObservation(taskId: string) {
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
     if (!task || task.status !== "attention") return;
     task.status = "running";
     task.retryable = false;
-    observationRetries.delete(id);
+    observationRetryByTaskId.delete(taskId);
   }
 
-  async function retryObservation(id: string, task: AppTask) {
-    const observe = observationRetries.get(id);
+  async function retryObservation(taskId: string, task: AppTask) {
+    const observe = observationRetryByTaskId.get(taskId);
     if (!observe || !task.retryable) return;
-    resumeObservation(id);
+    resumeObservation(taskId);
     try {
       await observe();
     } catch (error) {
-      markObservationUnavailable(id, getErrorMessage(error), observe);
+      markObservationUnavailable(taskId, getErrorMessage(error), observe);
     }
   }
 
-  function failRetry(id: string, error: unknown) {
-    const current = tasks.value.find((candidate) => candidate.id === id);
+  function failRetry(taskId: string, error: unknown) {
+    const current = tasks.value.find((candidate) => candidate.id === taskId);
     if (current?.status === "failed") {
       current.retryable = true;
       return;
     }
     if (current?.status !== "running") return;
-    externallySettled.delete(id);
+    externallySettledTaskIds.delete(taskId);
     current.status = "failed";
     current.statusMessage = getErrorMessage(error);
     current.retryable = true;
   }
 
-  async function retry(id: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    if (task?.status === "attention") return retryObservation(id, task);
-    const retryDescriptor = retries.get(id);
+  async function retry(taskId: string) {
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
+    if (task?.status === "attention") return retryObservation(taskId, task);
+    const retryDescriptor = retryDescriptorByTaskId.get(taskId);
     if (!task || task.status !== "failed" || !retryDescriptor) return;
     task.status = "running";
     task.retryable = false;
     delete task.progress;
-    if (retryDescriptor.settlement === "external") externallySettled.add(id);
+    if (retryDescriptor.settlement === "external") externallySettledTaskIds.add(taskId);
     try {
       await retryDescriptor.run();
-      succeed(id);
+      succeed(taskId);
     } catch (error) {
-      failRetry(id, error);
+      failRetry(taskId, error);
     }
   }
 
   return {
-    delete: (id: string) => {
-      retries.delete(id);
-      observationRetries.delete(id);
+    delete: (taskId: string) => {
+      retryDescriptorByTaskId.delete(taskId);
+      observationRetryByTaskId.delete(taskId);
     },
     clear: () => {
-      retries.clear();
-      observationRetries.clear();
+      retryDescriptorByTaskId.clear();
+      observationRetryByTaskId.clear();
     },
     restoreFailed,
     setRetry,

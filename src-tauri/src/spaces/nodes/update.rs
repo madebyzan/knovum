@@ -94,8 +94,8 @@ async fn apply_node_change(
         .map_err(db::sql_error)?
         .ok_or_else(|| format!("Space node {} was not found", change.id))?;
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
-    let previous_data: String = row.try_get("data").map_err(db::sql_error)?;
-    let before: Value = serde_json::from_str(&previous_data).map_err(db::json_error)?;
+    let previous_payload_json: String = row.try_get("data").map_err(db::sql_error)?;
+    let before: Value = serde_json::from_str(&previous_payload_json).map_err(db::json_error)?;
     if before != change.expected_data {
         return Err(format!(
             "Space node {} changed before this edit was saved",

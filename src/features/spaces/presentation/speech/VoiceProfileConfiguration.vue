@@ -28,12 +28,12 @@ const emit = defineEmits<{
   remove: [];
 }>();
 const { t } = useI18n();
-const editorDirty = shallowRef(false);
+const isEditorDirty = shallowRef(false);
 const activeRevision = computed(() => activeVoiceProfileRevision(props.profile));
 watch(
   () => props.expanded,
   (expanded) => {
-    if (!expanded) editorDirty.value = false;
+    if (!expanded) isEditorDirty.value = false;
   },
 );
 const menuItems = computed(() => [
@@ -75,7 +75,7 @@ function toggle(open: boolean) {
 }
 
 function setDirty(value: boolean) {
-  editorDirty.value = value;
+  isEditorDirty.value = value;
   emit("dirty", value);
 }
 </script>
@@ -104,7 +104,7 @@ function setDirty(value: boolean) {
         </div>
         <UiDropdownMenu :items="menuItems">
           <template #trigger>
-            <UiIconButton :label="t('common.more')" size="sm" :disabled="disabled || editorDirty">
+            <UiIconButton :label="t('common.more')" size="sm" :disabled="disabled || isEditorDirty">
               <MoreHorizontal class="size-3.5" />
             </UiIconButton>
           </template>

@@ -15,25 +15,25 @@ pub(crate) async fn prepare_restore_batch(
     if !exists {
         return Err("Deleted structure batch not found".into());
     }
-    let structure_data: Vec<String> = sqlx::query_scalar(
+    let structure_snapshots: Vec<String> = sqlx::query_scalar(
         "SELECT data FROM spaces_deleted_structure_nodes WHERE batch_id=$1 ORDER BY structure_node_id",
     )
     .bind(batch_id)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    let layout_data: Vec<String> = sqlx::query_scalar(
+    let layout_snapshots: Vec<String> = sqlx::query_scalar(
         "SELECT data FROM spaces_deleted_structure_layouts WHERE batch_id=$1 ORDER BY structure_node_id",
     )
     .bind(batch_id)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    let structure = structure_data
+    let structure = structure_snapshots
         .into_iter()
         .map(|data| serde_json::from_str(&data).map_err(db::json_error))
         .collect::<Result<Vec<_>, _>>()?;
-    let layouts = layout_data
+    let layouts = layout_snapshots
         .into_iter()
         .map(|data| serde_json::from_str(&data).map_err(db::json_error))
         .collect::<Result<Vec<_>, _>>()?;

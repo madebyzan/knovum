@@ -56,7 +56,7 @@ pub async fn edit_image(
         .await
         .map_err(|error| error.to_string())?;
     let encoded = edited
-        .image_data()
+        .encoded_image()
         .ok_or("Gemini image edit returned no image")?;
     response::decode_image(&encoded).map_err(|error| error.to_string())
 }

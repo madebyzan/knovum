@@ -2,7 +2,7 @@
 
 `AppCommand` is the single command contract consumed by the command palette and shortcut layer.
 
-- Space commands live with `features/spaces/workspace-definition.ts` as a command factory that receives the current translation function; titles/descriptions therefore follow the app locale without a second locale listener.
+- Space command composables live in `features/spaces/commands/`. `features/spaces/use-spaces-workspace.ts` exposes their composition contract; Shell supplies presentation operations during setup, and `useI18n` keeps command titles/descriptions reactive to the app locale.
 - Window-local shortcuts use `tinykeys` syntax such as `$mod+Shift+P`.
 - Commands exposed in the macOS Application Menu set `appMenuShortcut: true`. macOS lets the menu own those accelerators; Windows/Linux bind the same shortcut through tinykeys because no classic application menu bar is installed there.
 - The macOS Edit submenu dispatches palette-hidden `editing.cut`, `editing.copy` and `editing.paste` without native accelerators. When a WebView input or editor is focused, the desktop command sends AppKit's fixed Cut/Copy/Paste selector through the first-responder chain, preserving system rich-text clipboard and native undo behavior. Outside an editable target, the same commands dispatch `spaces.cut`, `spaces.copy` or `spaces.paste`; those Space commands own the canvas shortcuts on every platform. Undo, Redo and Select All remain with the focused control or canvas command.

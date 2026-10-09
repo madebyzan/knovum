@@ -13,7 +13,7 @@
     "openAudio": "打开音频",
     "viewCode": "查看代码",
     "openFile": "打开文件",
-    "download": "下载"
+    "export": "导出"
   },
   "zoom": {
     "out": "缩小",

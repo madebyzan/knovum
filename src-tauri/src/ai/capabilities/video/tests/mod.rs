@@ -1,8 +1,8 @@
-use super::{decode_reference_data, push_inline_reference, MAX_INLINE_REFERENCES_BYTES};
+use super::{decode_reference_image, push_inline_reference, MAX_INLINE_REFERENCES_BYTES};
 
 #[test]
 fn rejects_oversized_inline_reference_before_decoding() {
-    assert!(decode_reference_data("MTIzNDU=", 4).is_err());
+    assert!(decode_reference_image("MTIzNDU=", 4).is_err());
 }
 
 #[test]

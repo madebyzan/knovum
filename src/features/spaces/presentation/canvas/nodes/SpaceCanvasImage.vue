@@ -15,7 +15,7 @@ import { drawRemovalMask } from "../../../knowledge-derivations/image-removal-pr
 import { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
 import { versionedMediaSource } from "../../../media/media-element-source";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
-import { useImageSourceDimensions } from "../image-source-dimensions";
+import { useImageSourceDimensionsStore } from "../image-source-dimensions-store";
 import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
 import SpaceCanvasImageRemovalCursor from "./SpaceCanvasImageRemovalCursor.vue";
@@ -32,7 +32,7 @@ const props = defineProps<{
 const zoom = inject(canvasPreviewZoomKey)!;
 const renderFailed = shallowRef(false);
 const session = useImageEditSession();
-const dimensions = useImageSourceDimensions();
+const dimensions = useImageSourceDimensionsStore();
 const removalSession = useImageRemovalSession();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const size = shallowRef<ImageCanvasSize>({ width: 1, height: 1, pixelRatio: 1 });

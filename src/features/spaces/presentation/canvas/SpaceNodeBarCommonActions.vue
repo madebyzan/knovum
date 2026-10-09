@@ -9,7 +9,7 @@ import SpaceNodeTranscriptionAction from "../media/SpaceNodeTranscriptionAction.
 import SpaceNodeSpeechAction from "../speech/SpaceNodeSpeechAction.vue";
 
 defineProps<{ disabled?: boolean; node?: SpaceCanvasNode | undefined }>();
-const emit = defineEmits<{ inspect: []; download: [] }>();
+const emit = defineEmits<{ inspect: []; export: [] }>();
 const { t } = useI18n();
 </script>
 
@@ -28,10 +28,10 @@ const { t } = useI18n();
     </ToolbarButton>
     <ToolbarButton as-child>
       <UiIconButton
-        :label="t('spaces.canvas.nodeActions.download')"
+        :label="t('spaces.canvas.nodeActions.export')"
         :disabled="disabled"
         tooltip
-        @click="emit('download')"
+        @click="emit('export')"
       >
         <Download class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>

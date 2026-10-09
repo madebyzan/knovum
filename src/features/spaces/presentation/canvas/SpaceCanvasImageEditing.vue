@@ -7,14 +7,14 @@ import { defaultImageEdit, imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { useImageSourceDimensions } from "./image-source-dimensions";
+import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
 import SpaceImageAdjustmentEditor from "./SpaceImageAdjustmentEditor.vue";
 import SpaceImageCropEditor from "./SpaceImageCropEditor.vue";
 import SpaceImageTransformControls from "./SpaceImageTransformControls.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const session = useImageEditSession();
-const imageDimensions = useImageSourceDimensions();
+const imageDimensions = useImageSourceDimensionsStore();
 const panel = useTemplateRef<HTMLElement>("panel");
 const active = computed(() => (session.active?.nodeId === props.node.id ? session.active : undefined));
 const edit = computed(() => active.value?.draft ?? imageEditOf(props.node.data));

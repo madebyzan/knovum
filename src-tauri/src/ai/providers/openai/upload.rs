@@ -19,7 +19,7 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
     ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
             let upload_url = format!("{}/files", openai_endpoint(&ctx.endpoint));
-            let file_data = upload_file(
+            let file_upload_response = upload_file(
                 ctx,
                 &upload_url,
                 UploadFile {
@@ -31,7 +31,7 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
             )
             .await?;
 
-            let file_id = file_data["id"]
+            let file_id = file_upload_response["id"]
                 .as_str()
                 .ok_or_else(|| {
                     AppError::new("invalid_response", "Missing file ID in OpenAI response")

@@ -5,12 +5,12 @@ import { imageEditOf } from "../../image-editing/image-edit";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import SpaceImageViewpointEditor from "./SpaceImageViewpointEditor.vue";
-import { useImageGenerateActions } from "./use-image-generate-actions";
+import { useImageDerivationActions } from "./use-image-derivation-actions";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const emit = defineEmits<{ close: [] }>();
 const panel = useTemplateRef<HTMLElement>("panel");
-const { busy, availability, help, openAiSettings, run } = useImageGenerateActions({
+const { busy, availability, help, openAiSettings, run } = useImageDerivationActions({
   node: toRef(props, "node"),
   mode: "angle",
   open: toRef(() => true),

@@ -26,10 +26,10 @@ watch(
   },
 );
 
-function setCandidateDirty(id: string, value: boolean) {
+function setCandidateDirty(candidateId: string, isDirty: boolean) {
   const next = new Set(namedCandidateIds.value);
-  if (value) next.add(id);
-  else next.delete(id);
+  if (isDirty) next.add(candidateId);
+  else next.delete(candidateId);
   namedCandidateIds.value = next;
   emit("dirty", next.size > 0);
 }

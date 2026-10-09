@@ -14,7 +14,7 @@ interface ConversationTaskSettlementInput {
 
 const successfulStates = new Set(["succeeded", "paused", "waiting", "cancelled"]);
 
-export async function settleConversationTaskResult(input: ConversationTaskSettlementInput) {
+export async function settleConversationTask(input: ConversationTaskSettlementInput) {
   let projectionError: Error | undefined;
   try {
     await input.project(input.accepted, input.spaceId);

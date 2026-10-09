@@ -164,7 +164,7 @@ watch(
           />
         </template>
       </SpaceCanvasSelectionMenu>
-      <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
+      <SpaceNodeBarCommonActions @inspect="actions.inspect" @export="actions.exportSelection" />
     </ToolbarRoot>
   </div>
 </template>

@@ -16,7 +16,7 @@ import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
 import { createCanvasStructureSelectionActions } from "./canvas-structure-selection-actions";
 import { canvasSelectionProductState } from "./selection-product-state";
-import { useCanvasNodeDownload } from "./use-canvas-node-download";
+import { useCanvasNodeExport } from "./use-canvas-node-export";
 import { useCanvasOperationRunner } from "./use-canvas-operation-runner";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
 import { useCanvasSelectedMedia } from "./use-canvas-selected-media";
@@ -38,7 +38,7 @@ export function useCanvasSelectionActions() {
     }),
   );
   const { t } = useI18n();
-  const downloadSelected = useCanvasNodeDownload(store, state, selectedNodes);
+  const exportSelected = useCanvasNodeExport(store, state, selectedNodes);
   const visible = computed(
     () =>
       Boolean(selection.value.nodeIds.length) ||
@@ -163,7 +163,7 @@ export function useCanvasSelectionActions() {
     dissolveGroup: structureActions.dissolveGroup,
     dissolveSection: structureActions.dissolveSection,
     distribute,
-    download: () => runNodeOperation("export", downloadSelected),
+    exportSelection: () => runNodeOperation("export", exportSelected),
     duplicate,
     focus,
     fitSection: structureActions.fitSection,
