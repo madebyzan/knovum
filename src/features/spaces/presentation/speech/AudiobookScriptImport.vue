@@ -16,10 +16,7 @@ const {
   error,
   importing,
   importScript: runImport,
-} = useAudiobookScriptImport({
-  node: computed(() => props.node),
-  role: () => t("spaces.speech.project.defaultRole"),
-});
+} = useAudiobookScriptImport(computed(() => props.node));
 
 async function importScript() {
   const script = await runImport();

@@ -22,7 +22,7 @@ const props = defineProps<{
   persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>;
 }>();
 const { t } = useI18n();
-const placeholder = t("spaces.editor.note.placeholder");
+const placeholder = computed(() => t("spaces.editor.note.placeholder"));
 const previewContent = computed(() =>
   projectTiptapPreview(props.data.tiptapContent, props.presentationContext),
 );
@@ -30,8 +30,6 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   id: props.id,
   data: toRef(props, "data"),
   interactive: toRef(props, "interactive"),
-  placeholder,
-  defaultTitle: t("spaces.editor.note.new"),
   persist: props.persist,
 });
 </script>

@@ -1,5 +1,6 @@
 import type { Editor } from "@tiptap/vue-3";
 import { onBeforeUnmount, onMounted, ref, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -10,8 +11,8 @@ import { insertSpaceTiptapImagePaths } from "./tiptap-images";
 export function useSpaceTiptapImageDrop(
   editor: Ref<Editor | undefined>,
   target: Ref<HTMLElement | undefined>,
-  errorLabel: () => string,
 ) {
+  const { t } = useI18n();
   const active = ref(false);
   const disposer = createAsyncDisposer();
 
@@ -32,7 +33,7 @@ export function useSpaceTiptapImageDrop(
           try {
             await insertSpaceTiptapImagePaths(current, payload.paths, position);
           } catch (error) {
-            toast.error(errorLabel(), { description: getErrorMessage(error) });
+            toast.error(t("spaces.richtext.image.uploadFailed"), { description: getErrorMessage(error) });
           }
         },
       }),

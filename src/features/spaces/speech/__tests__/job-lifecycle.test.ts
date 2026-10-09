@@ -1,7 +1,9 @@
 import type { error as logError } from "@tauri-apps/plugin-log";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { effectScope, shallowRef } from "vue";
+import { mount } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
+import { defineComponent, effectScope, shallowRef } from "vue";
 
+import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpeechSignalReport } from "../../contracts/generated/SpeechSignalReport";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { ImportedAudiobookScript } from "../audiobook-script";
@@ -94,7 +96,17 @@ describe("speech job lifecycle", () => {
     mocks.readScript.mockReturnValueOnce(oldImport.promise).mockResolvedValueOnce(currentScript);
     mocks.cancel.mockReturnValueOnce(oldCancellation.promise);
     const node = shallowRef(documentNode("revision-1"));
-    const importer = setup(() => useAudiobookScriptImport({ node, role: () => "Narrator" }));
+    let importer!: ReturnType<typeof useAudiobookScriptImport>;
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          importer = useAudiobookScriptImport(node);
+          return () => null;
+        },
+      }),
+      { global: { plugins: [i18n] } },
+    );
+    onTestFinished(() => wrapper.unmount());
 
     const oldTask = importer.importScript();
     await vi.waitFor(() => expect(mocks.readScript).toHaveBeenCalledOnce());

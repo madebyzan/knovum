@@ -1,5 +1,6 @@
 import { Editor } from "@tiptap/vue-3";
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
@@ -17,12 +18,11 @@ interface CanvasTextEditorOptions {
   id: string;
   data: Readonly<Ref<SpaceCanvasTextPayload>>;
   interactive: Readonly<Ref<boolean>>;
-  placeholder: string;
-  defaultTitle: string;
   persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>;
 }
 
 export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
+  const { t } = useI18n();
   const dirty = shallowRef(false);
   const editing = shallowRef(false);
   const editor = shallowRef<Editor>();
@@ -45,7 +45,10 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     editor.value = new Editor({
       content: options.data.value.tiptapContent,
       editable: true,
-      extensions: createCanvasTextExtensions(options.placeholder, options.data.value.kind),
+      extensions: createCanvasTextExtensions(
+        options.data.value.kind === "note" ? t("spaces.editor.note.placeholder") : "",
+        options.data.value.kind,
+      ),
       editorProps: {
         attributes: { class: "canvas-text-prose w-full outline-none", spellcheck: "true" },
       },
@@ -92,7 +95,9 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
       const data: SpaceCanvasTextPayload = {
         ...options.data.value,
-        title: truncateUtf16(plainText.trim().split(/\r?\n/u, 1)[0] ?? "", 80) || options.defaultTitle,
+        title:
+          truncateUtf16(plainText.trim().split(/\r?\n/u, 1)[0] ?? "", 80) ||
+          t(`spaces.editor.${options.data.value.kind}.new`),
         plainText,
         tiptapContent,
       };

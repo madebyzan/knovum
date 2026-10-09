@@ -48,6 +48,7 @@ const SpaceRecentlyDeleted = defineAsyncComponent(
   () => import("./presentation/deletion/SpaceRecentlyDeleted.vue"),
 );
 const store = useSpaceStore();
+const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
 const canvasVisible = computed(
   () =>
@@ -81,7 +82,6 @@ const unregisterConversationNavigation = registerConversationRunNavigation(
     await store.openSpace(spaceId);
     await nextTick();
     dock.openAsk();
-    const conversationSession = useConversationSessionStore();
     await conversationSession.refreshConversations();
     await conversationSession.selectConversation(conversationId);
   },

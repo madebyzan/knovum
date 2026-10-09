@@ -37,9 +37,7 @@ const {
   wordCount,
 } = useSpaceTiptapEditor();
 const writing = useSpaceTiptapWritingTools(editor);
-const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () =>
-  t("spaces.richtext.image.uploadFailed"),
-);
+const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot);
 watch(
   [headings, activeHeadingId],
   ([items, activeId]) => {

@@ -2,7 +2,9 @@ import { mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
+import { i18n } from "../../../foundation/i18n/i18n";
 import { createSpaceTextPayload } from "../editor/tiptap-content";
+import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
 import { useCanvasTextEditor } from "../presentation/canvas/nodes/use-canvas-text-editor";
 
 const notices = vi.hoisted(() => ({ error: vi.fn<(message: string) => void>() }));
@@ -12,22 +14,7 @@ afterEach(() => notices.error.mockReset());
 
 it("preserves an editable draft when content validation fails and permits a corrected save", async () => {
   const persisted: unknown[] = [];
-  let session!: ReturnType<typeof useCanvasTextEditor>;
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        session = useCanvasTextEditor({
-          id: "text-node",
-          data: shallowRef(createSpaceTextPayload("Draft", "Draft")),
-          interactive: shallowRef(true),
-          placeholder: "",
-          defaultTitle: "Text",
-          persist: async (_id, data) => void persisted.push(data),
-        });
-        return () => h("div");
-      },
-    }),
-  );
+  const { session, wrapper } = createTextEditorHarness(async (_id, data) => void persisted.push(data));
   try {
     await session.beginEditing();
     const instance = session.editor.value!;
@@ -56,3 +43,43 @@ it("preserves an editable draft when content validation fails and permits a corr
     wrapper.unmount();
   }
 });
+
+it("uses the current locale for an empty title when saving after a language change", async () => {
+  const previousLocale = i18n.global.locale.value;
+  i18n.global.locale.value = "en";
+  const persisted: unknown[] = [];
+  const { session, wrapper } = createTextEditorHarness(async (_id, data) => void persisted.push(data));
+  try {
+    await session.beginEditing();
+    session.editor.value!.commands.clearContent();
+    i18n.global.locale.value = "zh-CN";
+    await session.save();
+    expect(persisted).toEqual([
+      expect.objectContaining({ title: i18n.global.t("spaces.editor.text.new"), plainText: "" }),
+    ]);
+  } finally {
+    wrapper.unmount();
+    i18n.global.locale.value = previousLocale;
+  }
+});
+
+function createTextEditorHarness(
+  persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>,
+) {
+  let session!: ReturnType<typeof useCanvasTextEditor>;
+  const wrapper = mount(
+    defineComponent({
+      setup() {
+        session = useCanvasTextEditor({
+          id: "text-node",
+          data: shallowRef(createSpaceTextPayload("Draft", "Draft")),
+          interactive: shallowRef(true),
+          persist,
+        });
+        return () => h("div");
+      },
+    }),
+    { global: { plugins: [i18n] } },
+  );
+  return { session, wrapper };
+}
