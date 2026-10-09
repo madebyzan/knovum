@@ -4,13 +4,13 @@ use tauri::AppHandle;
 
 pub(in crate::extensions) async fn require_revision_on(
     connection: &mut sqlx::SqliteConnection,
-    id: &str,
+    connection_id: &str,
     revision: &str,
 ) -> Result<(), String> {
     let current: Option<String> = sqlx::query_scalar(
         "SELECT json_extract(document,'$.revision') FROM connections WHERE id=$1",
     )
-    .bind(id)
+    .bind(connection_id)
     .fetch_optional(connection)
     .await
     .map_err(|error| error.to_string())?;
@@ -30,9 +30,9 @@ pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<McpConnection>, String
         .collect()
 }
 
-pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<McpConnection, String> {
+pub(crate) async fn load(pool: &SqlitePool, connection_id: &str) -> Result<McpConnection, String> {
     let document: String = sqlx::query_scalar("SELECT document FROM connections WHERE id=$1")
-        .bind(id)
+        .bind(connection_id)
         .fetch_optional(pool)
         .await
         .map_err(|error| error.to_string())?

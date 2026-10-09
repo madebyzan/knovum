@@ -32,7 +32,7 @@ interface TrimGesture {
 interface VideoTimelineActions {
   seek(milliseconds: number): void;
   trim(project: VideoEditProject): void;
-  selectClip(id: string): void;
+  selectClip(clipId: string): void;
 }
 
 export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: VideoTimelineActions) {

@@ -12,7 +12,7 @@ use tauri::AppHandle;
 
 pub(super) fn endpoint(
     root: &Path,
-    data: &Path,
+    data_directory: &Path,
     server: &Value,
     configuration: Option<&PluginConnectorConfiguration>,
 ) -> Result<Option<McpEndpoint>, String> {
@@ -42,7 +42,7 @@ pub(super) fn endpoint(
         Some(PluginConnectorConfiguration::Stdio { executable }) => executable.clone(),
         Some(_) => return Err("plugin-connector-configuration-transport-mismatch".into()),
     };
-    let expand = |value: &str| expand(value, root, data);
+    let expand = |value: &str| expand(value, root, data_directory);
     let args = server["args"]
         .as_array()
         .map(|args| {
@@ -61,7 +61,7 @@ pub(super) fn endpoint(
     } else if let Some(relative) = cwd.strip_prefix("${PLUGIN_ROOT}") {
         contained(root, relative.trim_start_matches('/'))?
     } else if let Some(relative) = cwd.strip_prefix("${PLUGIN_DATA}") {
-        contained(data, relative.trim_start_matches('/'))?
+        contained(data_directory, relative.trim_start_matches('/'))?
     } else {
         return Err("plugin-working-directory-root-invalid".into());
     };
@@ -128,11 +128,18 @@ pub(crate) async fn environment(
     .collect())
 }
 
-pub(super) fn paths(app: &AppHandle, id: &str, digest: &str) -> Result<(PathBuf, PathBuf), String> {
+pub(super) fn paths(
+    app: &AppHandle,
+    plugin_id: &str,
+    digest: &str,
+) -> Result<(PathBuf, PathBuf), String> {
     let root = content::root(app)?;
     Ok((
-        root.join("plugins").join(id).join("revisions").join(digest),
-        root.join("plugin-data").join(id),
+        root.join("plugins")
+            .join(plugin_id)
+            .join("revisions")
+            .join(digest),
+        root.join("plugin-data").join(plugin_id),
     ))
 }
 fn contained(root: &Path, relative: &str) -> Result<PathBuf, String> {
@@ -142,7 +149,7 @@ fn contained(root: &Path, relative: &str) -> Result<PathBuf, String> {
     content::validate_path(relative)?;
     Ok(root.join(relative))
 }
-fn expand(value: &str, root: &Path, data: &Path) -> String {
+fn expand(value: &str, root: &Path, data_directory: &Path) -> String {
     let mut command_line = String::new();
     let mut remaining = value;
     while let Some(offset) = remaining.find("${PLUGIN_") {
@@ -152,7 +159,7 @@ fn expand(value: &str, root: &Path, data: &Path) -> String {
             command_line.push_str(&root.to_string_lossy());
             remaining = rest;
         } else if let Some(rest) = remaining.strip_prefix("${PLUGIN_DATA}") {
-            command_line.push_str(&data.to_string_lossy());
+            command_line.push_str(&data_directory.to_string_lossy());
             remaining = rest;
         } else {
             command_line.push_str("${PLUGIN_");

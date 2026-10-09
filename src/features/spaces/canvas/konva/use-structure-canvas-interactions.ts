@@ -87,9 +87,9 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     const cached = sectionDropIndex(options.snapshot());
     const index = cached.structure;
     const layouts = cached.layouts;
-    const structureNodeIds = compact(updates.map(({ nodeId }) => index.nodeIdToStructureNodeId.get(nodeId)));
+    const structureNodeIds = compact(updates.map(({ nodeId }) => index.structureNodeIdByNodeId.get(nodeId)));
     const roots = effectiveOperationRoots(structureNodeIds, index).map(({ id }) => id);
-    const firstStructureNodeId = index.nodeIdToStructureNodeId.get(updates[0]!.nodeId);
+    const firstStructureNodeId = index.structureNodeIdByNodeId.get(updates[0]!.nodeId);
     if (!firstStructureNodeId) return;
     const world = worldTransformFor(firstStructureNodeId, index, layouts);
     const firstLayout = layouts.get(firstStructureNodeId);

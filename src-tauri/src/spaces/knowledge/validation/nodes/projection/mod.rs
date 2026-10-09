@@ -32,9 +32,9 @@ pub(in crate::spaces) async fn validate_same_space_node(
 
 pub(super) async fn validate_portal(
     tx: &mut Transaction<'_, Sqlite>,
-    data: &Value,
+    payload: &Value,
 ) -> Result<(), String> {
-    let object = data
+    let object = payload
         .as_object()
         .ok_or_else(|| "Portal data must be an object".to_string())?;
     let target_space_id = required_string(object, "targetSpaceId", 128)?;
@@ -48,16 +48,18 @@ pub(super) async fn validate_portal(
     }
     let target_count = ["targetSceneId", "targetNodeId", "targetStructureNodeId"]
         .into_iter()
-        .filter(|field| data.get(*field).is_some())
+        .filter(|field| payload.get(*field).is_some())
         .count();
     if target_count > 1 {
         return Err(
             "A Portal can target one Saved View, content node, or structure container".into(),
         );
     }
-    if let Some(scene_id) =
-        optional_nonempty_string(data.get("targetSceneId"), "Portal target Saved View", 128)?
-    {
+    if let Some(scene_id) = optional_nonempty_string(
+        payload.get("targetSceneId"),
+        "Portal target Saved View",
+        128,
+    )? {
         let count = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM spaces_scenes WHERE id=$1 AND space_id=$2",
         )
@@ -71,12 +73,12 @@ pub(super) async fn validate_portal(
         }
     }
     if let Some(node_id) =
-        optional_nonempty_string(data.get("targetNodeId"), "Portal target node", 128)?
+        optional_nonempty_string(payload.get("targetNodeId"), "Portal target node", 128)?
     {
         validate_same_space_node(tx, target_space_id, "", node_id).await?;
     }
     if let Some(structure_node_id) = optional_nonempty_string(
-        data.get("targetStructureNodeId"),
+        payload.get("targetStructureNodeId"),
         "Portal target structure node",
         128,
     )? {

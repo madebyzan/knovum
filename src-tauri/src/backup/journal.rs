@@ -17,7 +17,7 @@ const JOURNAL_LIMIT: u64 = 64 * 1024;
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Journal {
     pub phase: JournalPhase,
-    pub entries: Vec<JournalEntry>,
+    pub entries: Vec<PublicationTarget>,
 }
 
 #[derive(Clone, Copy, Deserialize, Serialize)]
@@ -34,7 +34,7 @@ pub enum ReconcileOutcome {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct JournalEntry {
+pub struct PublicationTarget {
     pub live: PathBuf,
     pub staged: Option<PathBuf>,
     pub rollback: PathBuf,
@@ -43,7 +43,7 @@ pub struct JournalEntry {
 }
 
 impl Journal {
-    pub fn prepared(entries: Vec<JournalEntry>) -> Self {
+    pub fn prepared(entries: Vec<PublicationTarget>) -> Self {
         Self {
             phase: JournalPhase::Prepared,
             entries,

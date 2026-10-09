@@ -128,11 +128,11 @@ async fn append_events(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     entity_kind: &str,
-    ids: &[String],
+    entity_ids: &[String],
     now: i64,
 ) -> Result<(), AppError> {
     let payload = serde_json::json!({});
-    for id in ids {
+    for id in entity_ids {
         events::append(
             tx,
             events::KnowledgeEvent::new(

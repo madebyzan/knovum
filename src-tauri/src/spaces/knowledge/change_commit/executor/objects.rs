@@ -85,8 +85,8 @@ pub(super) async fn create(
         .await?;
         emit_created(tx, space_id, actor, temp_id, &id, &node.data, now).await?;
         structure::creation::append_content(placement, std::slice::from_ref(&node), None)?;
-        state.node_ids.insert(temp_id.clone(), id.clone());
-        state.resolved_ids.insert(temp_id.clone(), id);
+        state.node_id_by_temp_id.insert(temp_id.clone(), id.clone());
+        state.resolved_id_by_temp_id.insert(temp_id.clone(), id);
         state.created_nodes.push(node);
     }
     Ok(())
@@ -111,7 +111,7 @@ pub(super) async fn update(
         else {
             continue;
         };
-        let id = resolve_node(tx, space_id, &state.node_ids, node_id).await?;
+        let id = resolve_node(tx, space_id, &state.node_id_by_temp_id, node_id).await?;
         mutations::update_object(
             tx,
             ObjectUpdate {
@@ -135,8 +135,8 @@ async fn emit_created(
     space_id: &str,
     actor: events::EventActor<'_>,
     temp_id: &str,
-    id: &str,
-    data: &Value,
+    node_id: &str,
+    node_payload: &Value,
     now: i64,
 ) -> Result<(), String> {
     let payload = serde_json::json!({"changeTempId": temp_id});
@@ -144,7 +144,7 @@ async fn emit_created(
         tx,
         events::KnowledgeEvent::new(
             space_id,
-            events::EventEntity::new("node", id),
+            events::EventEntity::new("node", node_id),
             "created",
             actor,
             &payload,
@@ -153,7 +153,16 @@ async fn emit_created(
     )
     .await?;
     let before = serde_json::json!({});
-    events::append_object_status_transition(tx, space_id, id, &before, data, actor, now).await
+    events::append_object_status_transition(
+        tx,
+        space_id,
+        node_id,
+        &before,
+        node_payload,
+        actor,
+        now,
+    )
+    .await
 }
 
 fn build_object_content(

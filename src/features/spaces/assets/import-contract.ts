@@ -14,7 +14,7 @@ export interface SpaceImportContext extends SpaceAssetProcessingContext {
   ): Promise<SpaceCanvasNode[]>;
   savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
   finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
-  discardPendingContent(spaceId: string, id: string): Promise<void>;
+  discardPendingContent(spaceId: string, nodeId: string): Promise<void>;
 }
 
 export interface SpaceImportSessionLabels {

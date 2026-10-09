@@ -6,7 +6,7 @@ use std::{
 use super::{
     contracts::Manifest,
     database, file_publication,
-    journal::{self, Journal, JournalEntry},
+    journal::{self, Journal, PublicationTarget},
     journal_validation,
     paths::AppPaths,
     settings,
@@ -69,8 +69,8 @@ pub fn has_unreconciled(paths: &AppPaths) -> bool {
 fn targets(
     paths: &AppPaths,
     manifest: &Manifest,
-    config: &Path,
-    data: &Path,
+    config_directory: &Path,
+    data_directory: &Path,
 ) -> Result<Vec<Target>, String> {
     let mut targets = Vec::new();
     for (name, key) in database::DATABASES {
@@ -79,23 +79,27 @@ fn targets(
             .roots
             .get(*key)
             .ok_or("Restore manifest has no database root")?;
-        targets.push(target(live.clone(), Some(config.join(name)), present));
+        targets.push(target(
+            live.clone(),
+            Some(config_directory.join(name)),
+            present,
+        ));
         targets.push(target(append(&live, "-wal"), None, false));
         targets.push(target(append(&live, "-shm"), None, false));
     }
     targets.push(target(
         paths.data.join("settings.json"),
-        Some(data.join("settings.json")),
+        Some(data_directory.join("settings.json")),
         root(manifest, "data/store/settings.json")?,
     ));
     targets.push(target(
         paths.data.join("spaces/assets"),
-        Some(data.join("spaces/assets")),
+        Some(data_directory.join("spaces/assets")),
         root(manifest, "data/assets/spaces")?,
     ));
     targets.push(target(
         paths.data.join("agent-extensions"),
-        Some(data.join("agent-extensions")),
+        Some(data_directory.join("agent-extensions")),
         root(manifest, "data/assets/extensions")?,
     ));
     let secrets = paths.config.join("secrets.db");
@@ -153,7 +157,7 @@ fn publish(paths: &AppPaths, targets: Vec<Target>) -> Result<Option<String>, Str
     let entries = targets
         .into_iter()
         .map(|target| {
-            Ok(JournalEntry {
+            Ok(PublicationTarget {
                 rollback: append(&target.live, &format!(".knovum-rollback-{token}")),
                 had_original: super::paths::entry_exists(&target.live)?,
                 live: target.live,

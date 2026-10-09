@@ -27,8 +27,8 @@ const props = defineProps<{
   node: SpaceCanvasNode;
   previewPolicy: CanvasPreviewPolicy;
   interactive: boolean;
-  persist: (id: string, data: SpaceCanvasNode["data"]) => Promise<void>;
-  fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
+  persist: (nodeId: string, payload: SpaceCanvasNode["data"]) => Promise<void>;
+  fitContentHeight: (nodeId: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
 const imageEditSession = useImageEditSessionStore();
 const imageRemovalSession = useImageRemovalSessionStore();

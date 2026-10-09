@@ -140,10 +140,10 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
 }
 
 function command(
-  id: string,
+  commandId: string,
   title: string,
   input: Omit<AppCommand, "id" | "title" | "category"> & { category?: CommandCategory },
 ): AppCommand {
   const { category = "canvas", ...commandInput } = input;
-  return { id, title, category, ...commandInput };
+  return { id: commandId, title, category, ...commandInput };
 }

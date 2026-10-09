@@ -134,13 +134,13 @@ pub async fn list<R: Runtime>(
         return Err(generation::REBUILD_REQUIRED.to_owned());
     }
     let query = centroid(&vectors)?;
-    let mut by_node: HashMap<String, RelatedContentItem> = HashMap::new();
+    let mut content_by_node_id: HashMap<String, RelatedContentItem> = HashMap::new();
     for match_value in
         search_semantic_vector(app, space_id, &query, None, Some(node_id), CANDIDATE_LIMIT).await?
     {
-        collect_match(&mut by_node, &match_value, node_id)?;
+        collect_match(&mut content_by_node_id, &match_value, node_id)?;
     }
-    let mut items = by_node.into_values().collect::<Vec<_>>();
+    let mut items = content_by_node_id.into_values().collect::<Vec<_>>();
     items.sort_by(|left, right| right.score.total_cmp(&left.score));
     items.truncate(RESULT_LIMIT);
     Ok(RelatedContentResponse {

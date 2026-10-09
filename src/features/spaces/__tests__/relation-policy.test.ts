@@ -3,9 +3,9 @@ import { expect, it } from "vitest";
 import { reviseRelation } from "../knowledge/relations/relation-policy";
 import type { SpaceRelation } from "../model/relations/relation";
 
-function relation(id: string, rationale: string): SpaceRelation {
+function relation(relationId: string, rationale: string): SpaceRelation {
   return {
-    id,
+    id: relationId,
     spaceId: "space",
     sourceId: "left",
     targetId: "right",

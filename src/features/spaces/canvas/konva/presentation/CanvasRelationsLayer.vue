@@ -14,7 +14,7 @@ defineProps<{
   connectorDraft: CanvasConnectorDraft | undefined;
   palette: CanvasPalette;
   relations: readonly CanvasSceneRelation[];
-  relationPreviews: ReadonlyMap<string, CanvasSceneRelation>;
+  relationPreviewById: ReadonlyMap<string, CanvasSceneRelation>;
   selectedRelationIds: ReadonlySet<string>;
   zoom: number;
 }>();
@@ -31,7 +31,7 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
       :key="relation.key"
       :source-relation="relation"
       :palette="palette"
-      :previews="relationPreviews"
+      :relation-preview-by-id="relationPreviewById"
       :selected="selectedRelationIds.has(relation.key)"
       :zoom="zoom"
       @pointer-down="(id, event) => emit('pointerDown', id, event)"

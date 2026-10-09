@@ -40,15 +40,15 @@ pub(super) async fn load_records(
     .await
     .map_err(db::sql_error)?;
 
-    let mut by_chunk_id = std::collections::HashMap::with_capacity(rows.len());
+    let mut record_by_chunk_id = std::collections::HashMap::with_capacity(rows.len());
     for row in rows {
         let id: String = row.try_get("chunk_id").map_err(db::sql_error)?;
-        by_chunk_id.insert(id, row);
+        record_by_chunk_id.insert(id, row);
     }
 
     let mut records = Vec::with_capacity(embeddings.len());
     for embedding in embeddings {
-        let row = by_chunk_id.get(&embedding.chunk_id);
+        let row = record_by_chunk_id.get(&embedding.chunk_id);
         let row = match row {
             Some(row) => {
                 let rev: String = row.try_get("source_revision").map_err(db::sql_error)?;

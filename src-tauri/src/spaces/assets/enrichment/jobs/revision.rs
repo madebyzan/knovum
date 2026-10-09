@@ -27,15 +27,15 @@ pub(super) fn expected_revision(
 }
 
 /// Revision of the image actually sent to vision. Generated previews have immutable paths.
-pub(crate) fn visual_revision(data: &Value) -> Result<Option<String>, String> {
-    let Some(source) = source_revision(data) else {
+pub(crate) fn visual_revision(node_payload: &Value) -> Result<Option<String>, String> {
+    let Some(source) = source_revision(node_payload) else {
         return Ok(None);
     };
-    match data.get("kind").and_then(Value::as_str) {
-        Some("image") => input_revision::resolve("image", data, RevisionBasis::Rendered)
+    match node_payload.get("kind").and_then(Value::as_str) {
+        Some("image") => input_revision::resolve("image", node_payload, RevisionBasis::Rendered)
             .map(|(revision, _)| Some(revision)),
         Some("video") => {
-            let Some(preview) = data
+            let Some(preview) = node_payload
                 .get("previewPath")
                 .and_then(Value::as_str)
                 .filter(|path| !path.trim().is_empty())
@@ -45,7 +45,7 @@ pub(crate) fn visual_revision(data: &Value) -> Result<Option<String>, String> {
             let payload = serde_json::to_vec(&json!({
                 "source": source,
                 "preview": preview,
-                "origin": data.get("origin").and_then(|origin| origin.get("kind")),
+                "origin": node_payload.get("origin").and_then(|origin| origin.get("kind")),
             }))
             .map_err(|error| error.to_string())?;
             Ok(Some(format!(

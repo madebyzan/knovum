@@ -12,15 +12,15 @@ export interface DocumentResourceProjection {
 }
 
 export function projectDocumentResources(report: DocumentCoverage): readonly DocumentResourceProjection[] {
-  const occurrencesByResource = new Map<string, DocumentOccurrence[]>();
+  const occurrencesByResourceId = new Map<string, DocumentOccurrence[]>();
   for (const occurrence of report.occurrences) {
     if (occurrence.resourceId === null) continue;
-    const occurrences = occurrencesByResource.get(occurrence.resourceId) ?? [];
+    const occurrences = occurrencesByResourceId.get(occurrence.resourceId) ?? [];
     occurrences.push(occurrence);
-    occurrencesByResource.set(occurrence.resourceId, occurrences);
+    occurrencesByResourceId.set(occurrence.resourceId, occurrences);
   }
   return report.resources.map((resource) => {
-    const occurrences = occurrencesByResource.get(resource.id)!;
+    const occurrences = occurrencesByResourceId.get(resource.id)!;
     const primary = occurrences[0]!;
     return {
       resource,

@@ -59,7 +59,7 @@ async function onRetry() {
 
 async function removeFailedOutput() {
   if (!operations.allows("structure")) return;
-  const structureNodeId = createStructureIndex(store.editSnapshot.structure).nodeIdToStructureNodeId.get(
+  const structureNodeId = createStructureIndex(store.editSnapshot.structure).structureNodeIdByNodeId.get(
     props.node.id,
   );
   if (!structureNodeId) throw new Error("Derived output is unavailable in the Space structure");

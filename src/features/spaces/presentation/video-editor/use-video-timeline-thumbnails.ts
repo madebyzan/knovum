@@ -10,7 +10,7 @@ export interface TimelineFrame {
 }
 
 const MAX_FRAMES = 24;
-const frameCache = new Map<string, TimelineFrame[]>();
+const framesBySourceKey = new Map<string, TimelineFrame[]>();
 
 export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, durationMs: Ref<number>) {
   const frames = shallowRef<TimelineFrame[]>([]);
@@ -23,7 +23,7 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
       error.value = false;
       if (!path || duration <= 0) return;
       const cacheKey = `${path}\0${duration}`;
-      const cached = frameCache.get(cacheKey);
+      const cached = framesBySourceKey.get(cacheKey);
       if (cached) {
         frames.value = cached;
         return;
@@ -74,8 +74,8 @@ async function loadFrames(load: FrameLoad) {
     const count = clamp(Math.ceil(mediaDuration / 2_500), 1, MAX_FRAMES);
     await sampleFrames(load, { canvas, context, duration: mediaDuration, count }, 0);
     if (!abort.signal.aborted) {
-      if (frameCache.size >= 8) frameCache.delete(frameCache.keys().next().value!);
-      frameCache.set(cacheKey, frames.value);
+      if (framesBySourceKey.size >= 8) framesBySourceKey.delete(framesBySourceKey.keys().next().value!);
+      framesBySourceKey.set(cacheKey, frames.value);
     }
   } catch {
     if (!abort.signal.aborted) {

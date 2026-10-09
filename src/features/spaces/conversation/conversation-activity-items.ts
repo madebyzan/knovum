@@ -40,7 +40,7 @@ function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
 }
 
 type ActivityState = { items: ActivityItem[]; indexByCallId: Map<string, number>; commentary: string };
-type ToolLabels = { action: (id: string) => string; default: string };
+type ToolLabels = { action: (actionId: string) => string; default: string };
 
 function appendCommentary(state: ActivityState, event: RunEvent) {
   if (!state.commentary.trim()) return;

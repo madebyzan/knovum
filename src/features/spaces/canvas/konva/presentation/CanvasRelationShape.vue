@@ -15,13 +15,15 @@ import type { CanvasPalette } from "./use-canvas-palette";
 const props = defineProps<{
   sourceRelation: CanvasSceneRelation;
   palette: CanvasPalette;
-  previews: ReadonlyMap<string, CanvasSceneRelation>;
+  relationPreviewById: ReadonlyMap<string, CanvasSceneRelation>;
   selected: boolean;
   zoom: number;
 }>();
 const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
 const { t } = useI18n();
-const relation = computed(() => props.previews.get(props.sourceRelation.id) ?? props.sourceRelation);
+const relation = computed(
+  () => props.relationPreviewById.get(props.sourceRelation.id) ?? props.sourceRelation,
+);
 
 function select(event: Konva.KonvaEventObject<PointerEvent>) {
   event.cancelBubble = true;

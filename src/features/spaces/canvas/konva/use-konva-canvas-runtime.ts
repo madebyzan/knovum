@@ -6,8 +6,8 @@ import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
+import { createCanvasContextMenu } from "./interaction/canvas-context-menu";
 import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
-import { useCanvasContextMenu } from "./interaction/use-canvas-context-menu";
 import { useCanvasInteractionCancellation } from "./interaction/use-canvas-interaction-cancellation";
 import { useConnectorCreation } from "./interaction/use-connector-creation";
 import { useLayoutPreview } from "./interaction/use-layout-preview";
@@ -51,7 +51,7 @@ export function useKonvaCanvasRuntime(
     temporarilyExpandedSectionId,
   });
   const preview = useLayoutPreview(structureInteractions.previewContentMove);
-  const scenePreview = useCanvasScenePreview(projections.previewIndex, preview.layouts);
+  const scenePreview = useCanvasScenePreview(projections.previewIndex, preview.gestureUpdateByNodeId);
   const { activateNode, capturesCanvasInteraction, createTextNode, interactiveNodeId } =
     useNodeContentActivation({
       activate: props.events.onNodeActivate,
@@ -95,7 +95,7 @@ export function useKonvaCanvasRuntime(
     createTextNode,
     createSection: props.events.onCreateSection,
   });
-  const contextMenu = useCanvasContextMenu({ host, selection, stage });
+  const contextMenu = createCanvasContextMenu({ host, selection, stage });
   const nodeDrag = useNodeDragAutoPan({ gestures, viewport });
   const connectors = useConnectorCreation({
     createRelation: props.events.onCreateRelation,
@@ -125,7 +125,7 @@ export function useKonvaCanvasRuntime(
   const sectionCandidateBounds = useSectionDrawCandidateBounds(
     pointer.sectionDraft,
     () => props.sceneInput.editSnapshot,
-    projections.structureBounds,
+    projections.structureBoundsById,
   );
   useCanvasDocumentSync(() => props.document, model, viewport.setViewport, viewport.getViewport);
   useRuntimeEditorRegistration({
@@ -149,7 +149,7 @@ export function useKonvaCanvasRuntime(
     capturesCanvasInteraction,
     connectors,
     contextMenu,
-    finishDrag: (id: string) => void nodeDrag.end(id).catch(props.events.onError),
+    finishDrag: (nodeId: string) => void nodeDrag.end(nodeId).catch(props.events.onError),
     finishTransform: () => void gestures.finish({ kind: "transform" }).catch(props.events.onError),
     gestures,
     host,

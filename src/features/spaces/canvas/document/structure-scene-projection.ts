@@ -33,18 +33,18 @@ export function projectStructureScene({
   temporarilyExpandedSectionIds = new Set(),
 }: StructureSceneProjectionInput): StructureScene {
   const index = createStructureIndex(snapshot.structure);
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
-  const contentById = new Map(nodes.map((node) => [node.id, node]));
+  const layoutByStructureNodeId = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const content: ProjectedContent[] = [];
   const groups: ProjectedGroup[] = [];
   const sections: ProjectedSection[] = [];
   const identity: LocalTransform = { x: 0, y: 0, rotation: 0, scale: 1 };
   const state: ProjectionState = {
     content,
-    contentById,
+    nodeById,
     groups,
     index,
-    layouts,
+    layoutByStructureNodeId,
     sections,
     temporarilyExpandedSectionIds,
   };
@@ -60,7 +60,7 @@ export function projectStructureScene({
   const projectedRelations = projectStructureRelations({
     relations,
     index,
-    layouts,
+    layoutByStructureNodeId,
     temporarilyExpandedSectionIds,
   });
   return { content, groups, sections, relations: projectedRelations };
@@ -68,10 +68,10 @@ export function projectStructureScene({
 
 interface ProjectionState {
   content: ProjectedContent[];
-  contentById: ReadonlyMap<string, SpaceCanvasNode>;
+  nodeById: ReadonlyMap<string, SpaceCanvasNode>;
   groups: ProjectedGroup[];
   index: StructureIndex;
-  layouts: ReadonlyMap<StructureNodeId, StructureLayout>;
+  layoutByStructureNodeId: ReadonlyMap<StructureNodeId, StructureLayout>;
   sections: ProjectedSection[];
   temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId>;
 }
@@ -88,7 +88,7 @@ function walkStructure(
   structureNode: StructureNode,
   traversal: WalkState,
 ): { bounds: WorldBounds | undefined; contentCount: number } {
-  const layout = state.layouts.get(structureNode.id);
+  const layout = state.layoutByStructureNodeId.get(structureNode.id);
   if (!layout || structureNode.kind !== layout.kind)
     throw new Error(`Missing layout for ${structureNode.id}`);
   const world = composeTransforms(traversal.parentWorld, localTransformOf(layout));
@@ -110,7 +110,7 @@ interface ContentProjectionInput {
 
 function projectContent(state: ProjectionState, projection: ContentProjectionInput) {
   const { structureNode, layout, world, traversal } = projection;
-  const node = state.contentById.get(structureNode.nodeId);
+  const node = state.nodeById.get(structureNode.nodeId);
   if (!node) throw new Error(`Active content missing for ${structureNode.nodeId}`);
   const bounds = contentWorldBounds(layout, world);
   state.content.push({

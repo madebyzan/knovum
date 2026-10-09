@@ -51,13 +51,13 @@ async fn recover_interrupted_import(
     app: &tauri::AppHandle,
     space_id: &str,
     node_id: &str,
-    data: &mut Value,
+    payload: &mut Value,
 ) -> Result<(), AppError> {
-    if let Some(path) = data.get("assetPath").and_then(Value::as_str) {
+    if let Some(path) = payload.get("assetPath").and_then(Value::as_str) {
         remove_owned_partial(app, PathBuf::from(path))?;
     }
     enrichment::persistence::persist_processing_state(
-        app, space_id, node_id, data, "failed", None, None,
+        app, space_id, node_id, payload, "failed", None, None,
     )
     .await
 }

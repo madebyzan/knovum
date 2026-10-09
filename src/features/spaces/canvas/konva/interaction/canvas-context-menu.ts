@@ -14,11 +14,13 @@ type ContextTarget =
   | { kind: "relation"; id: string }
   | { kind: "structure"; id: string };
 
-export function useCanvasContextMenu(options: {
+interface CanvasContextMenuOptions {
   host: Readonly<Ref<HTMLElement | null>>;
   stage: Readonly<Ref<Konva.Stage | undefined>>;
   selection: ReturnType<typeof useCanvasSelection>;
-}) {
+}
+
+export function createCanvasContextMenu(options: CanvasContextMenuOptions) {
   function pointer(event: MouseEvent) {
     if (isEditableTarget(event.target)) return;
     event.preventDefault();

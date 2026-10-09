@@ -64,8 +64,8 @@ function options(hasSelection: boolean): Parameters<typeof createCanvasEditingCo
   };
 }
 
-function command(commands: ReturnType<typeof createCanvasEditingCommands>, id: string) {
-  const selectedCommand = commands.find((candidate) => candidate.id === id);
-  if (!selectedCommand) throw new Error(`Missing command ${id}`);
+function command(commands: ReturnType<typeof createCanvasEditingCommands>, commandId: string) {
+  const selectedCommand = commands.find((candidate) => candidate.id === commandId);
+  if (!selectedCommand) throw new Error(`Missing command ${commandId}`);
   return selectedCommand;
 }

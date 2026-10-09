@@ -56,7 +56,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
 async fn emit_created(
     tx: &mut Transaction<'_, Sqlite>,
     input: &ProvenanceInsert<'_>,
-    id: &str,
+    provenance_id: &str,
 ) -> Result<(), String> {
     let payload = serde_json::json!({
         "targetKind": input.target_kind,
@@ -66,7 +66,7 @@ async fn emit_created(
         tx,
         events::KnowledgeEvent::new(
             input.space_id,
-            events::EventEntity::new("provenance", id),
+            events::EventEntity::new("provenance", provenance_id),
             "created",
             input.actor,
             &payload,

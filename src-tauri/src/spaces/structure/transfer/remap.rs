@@ -3,11 +3,11 @@ use super::super::{LocalTransform, StructureLayout, StructureNode};
 use std::collections::HashMap;
 
 pub(super) fn subtree_ids(index: &Index, roots: &[String]) -> Vec<String> {
-    fn append(index: &Index, id: &str, out: &mut Vec<String>) {
-        out.push(id.to_owned());
+    fn append(index: &Index, structure_node_id: &str, out: &mut Vec<String>) {
+        out.push(structure_node_id.to_owned());
         for child in index
-            .children
-            .get(&Some(id.to_owned()))
+            .children_by_parent_id
+            .get(&Some(structure_node_id.to_owned()))
             .into_iter()
             .flatten()
         {
@@ -22,7 +22,7 @@ pub(super) fn subtree_ids(index: &Index, roots: &[String]) -> Vec<String> {
 }
 pub(super) fn remap_structure_node(
     structure_node: &StructureNode,
-    id: String,
+    structure_node_id: String,
     parent_id: Option<String>,
     order: u32,
 ) -> StructureNode {
@@ -30,21 +30,21 @@ pub(super) fn remap_structure_node(
         StructureNode::Content {
             locked, node_id, ..
         } => StructureNode::Content {
-            id,
+            id: structure_node_id,
             parent_id,
             order,
             locked: *locked,
             node_id: node_id.clone(),
         },
         StructureNode::Group { locked, title, .. } => StructureNode::Group {
-            id,
+            id: structure_node_id,
             parent_id,
             order,
             locked: *locked,
             title: title.clone(),
         },
         StructureNode::Section { locked, title, .. } => StructureNode::Section {
-            id,
+            id: structure_node_id,
             parent_id,
             order,
             locked: *locked,
@@ -114,10 +114,10 @@ pub(super) fn normalize_orders(structure: &mut [StructureNode]) {
         }
     }
 }
-pub(super) fn depth(structure: &[StructureNode], index: &Index, id: &str) -> usize {
+pub(super) fn depth(structure: &[StructureNode], index: &Index, structure_node_id: &str) -> usize {
     let mut depth = 0;
     let mut parent = index
-        .node(structure, id)
+        .node(structure, structure_node_id)
         .ok()
         .and_then(StructureNode::parent_id);
     while let Some(value) = parent {

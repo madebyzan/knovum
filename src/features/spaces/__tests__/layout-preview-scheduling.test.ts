@@ -37,12 +37,12 @@ it("processes the latest layout and drop preview together once per frame and can
     scheduled.delete(id);
     frame(0);
     expect(processed).toEqual([update(20)]);
-    expect(preview.layouts.value.get("text")?.frame.x).toBe(20);
+    expect(preview.gestureUpdateByNodeId.value.get("text")?.frame.x).toBe(20);
     preview.update(update(30));
     preview.update([]);
     expect(scheduled.size).toBe(0);
     expect(processed).toEqual([update(20), []]);
-    expect(preview.layouts.value.size).toBe(0);
+    expect(preview.gestureUpdateByNodeId.value.size).toBe(0);
     preview.update(update(40));
     wrapper.unmount();
     expect(scheduled.size).toBe(0);

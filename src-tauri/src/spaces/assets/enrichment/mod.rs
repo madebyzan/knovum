@@ -182,7 +182,7 @@ async fn finish_enrichment_error(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,
-    data: &mut Value,
+    payload: &mut Value,
     error: String,
     guard: &persistence::PublicationGuard<'_>,
 ) -> Result<Value, AppError> {
@@ -191,7 +191,7 @@ async fn finish_enrichment_error(
     } else {
         "failed"
     };
-    persist_processing_state(app, space_id, node_id, data, state, None, Some(guard)).await?;
+    persist_processing_state(app, space_id, node_id, payload, state, None, Some(guard)).await?;
     Err(processing_error(error))
 }
 

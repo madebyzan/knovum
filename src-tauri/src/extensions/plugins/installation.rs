@@ -17,9 +17,9 @@ pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<PluginInstallation>, S
         .collect()
 }
 
-pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<PluginInstallation, String> {
+pub(crate) async fn load(pool: &SqlitePool, plugin_id: &str) -> Result<PluginInstallation, String> {
     let document: String = sqlx::query_scalar("SELECT document FROM plugins WHERE id=$1")
-        .bind(id)
+        .bind(plugin_id)
         .fetch_optional(pool)
         .await
         .map_err(|error| error.to_string())?
@@ -29,7 +29,7 @@ pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<PluginInstallati
 
 pub(super) async fn commit(
     app: &AppHandle,
-    id: &str,
+    plugin_id: &str,
     source: PluginSource,
     reviewed: ReviewedPackage,
     files: PackageFiles,
@@ -40,13 +40,13 @@ pub(super) async fn commit(
     let previous = list(&pool)
         .await?
         .into_iter()
-        .find(|plugin| plugin.id == id);
+        .find(|plugin| plugin.id == plugin_id);
     let enabled = previous
         .as_ref()
         .map(|plugin| plugin.enabled)
         .unwrap_or(true);
     let installation = PluginInstallation {
-        id: id.into(),
+        id: plugin_id.into(),
         source,
         revision: reviewed.inspection,
         enabled,
@@ -55,7 +55,7 @@ pub(super) async fn commit(
     };
     let directory = content::root(app)?
         .join("plugins")
-        .join(id)
+        .join(plugin_id)
         .join("revisions")
         .join(&installation.revision.digest);
     crate::blocking::run(move || content::publish(&directory, &files)).await?;
@@ -68,20 +68,20 @@ pub(super) async fn commit(
     let previous_skills = super::super::skills::list(&pool).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     sqlx::query("INSERT INTO plugins(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
-        .bind(id).bind(sqlx::types::Json(&installation)).execute(&mut *tx).await.map_err(|error| error.to_string())?;
+        .bind(plugin_id).bind(sqlx::types::Json(&installation)).execute(&mut *tx).await.map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM skills WHERE json_extract(document,'$.pluginId')=$1")
-        .bind(id)
+        .bind(plugin_id)
         .execute(&mut *tx)
         .await
         .map_err(|error| error.to_string())?;
     for mut skill in reviewed.skills {
         if let Some(previous) = previous_skills.iter().find(|previous| {
-            previous.plugin_id.as_deref() == Some(id) && previous.name == skill.name
+            previous.plugin_id.as_deref() == Some(plugin_id) && previous.name == skill.name
         }) {
             skill.id = previous.id.clone();
             skill.enabled = previous.enabled;
         }
-        skill.plugin_id = Some(id.into());
+        skill.plugin_id = Some(plugin_id.into());
         sqlx::query("INSERT INTO skills(id,document) VALUES($1,$2)")
             .bind(&skill.id)
             .bind(sqlx::types::Json(&skill))
@@ -97,7 +97,7 @@ pub(super) async fn commit(
     )
     .await?;
     tx.commit().await.map_err(|error| error.to_string())?;
-    super::super::mcp::sessions::revoke_plugin(app, id).await;
+    super::super::mcp::sessions::revoke_plugin(app, plugin_id).await;
     Ok(ExtensionChange::committed(
         installation,
         [

@@ -20,12 +20,14 @@ pub(crate) fn validate_space_snapshot(
     if structure.len() > MAX_STRUCTURE_NODES {
         return Err("Space structure exceeds 100000 structure".into());
     }
-    let mut by_id = HashMap::with_capacity(structure.len());
+    let mut structure_node_by_id = HashMap::with_capacity(structure.len());
     let mut content_ids = HashSet::new();
-    let mut sibling_orders: HashMap<Option<&str>, Vec<u32>> = HashMap::new();
+    let mut orders_by_parent_id: HashMap<Option<&str>, Vec<u32>> = HashMap::new();
     for structure_node in structure {
         if !valid_id(structure_node.id())
-            || by_id.insert(structure_node.id(), structure_node).is_some()
+            || structure_node_by_id
+                .insert(structure_node.id(), structure_node)
+                .is_some()
         {
             return Err(format!(
                 "Invalid or duplicate structure node ID: {}",
@@ -54,12 +56,12 @@ pub(crate) fn validate_space_snapshot(
                 structure_node.id()
             ));
         }
-        sibling_orders
+        orders_by_parent_id
             .entry(structure_node.parent_id())
             .or_default()
             .push(structure_node.order());
     }
-    for (parent_id, orders) in &mut sibling_orders {
+    for (parent_id, orders) in &mut orders_by_parent_id {
         orders.sort_unstable();
         if orders
             .iter()
@@ -70,11 +72,11 @@ pub(crate) fn validate_space_snapshot(
         }
     }
     for structure_node in structure {
-        validate_parent_chain(structure_node, &by_id)?;
+        validate_parent_chain(structure_node, &structure_node_by_id)?;
     }
     for structure_node in structure {
         if matches!(structure_node, StructureNode::Group { .. })
-            && !sibling_orders.contains_key(&Some(structure_node.id()))
+            && !orders_by_parent_id.contains_key(&Some(structure_node.id()))
         {
             return Err(format!("Empty Group: {}", structure_node.id()));
         }
@@ -87,7 +89,7 @@ pub(crate) fn validate_space_snapshot(
                 "Invalid or duplicate structure_node layout ID: {id}"
             ));
         }
-        let structure_node = by_id
+        let structure_node = structure_node_by_id
             .get(id)
             .ok_or_else(|| format!("Layout {id} has no structure node"))?;
         if structure_node.kind_name() != layout.kind_name() {
@@ -95,11 +97,11 @@ pub(crate) fn validate_space_snapshot(
         }
         validate_layout(layout)?;
     }
-    if layout_by_id.len() != by_id.len() {
+    if layout_by_id.len() != structure_node_by_id.len() {
         return Err("Structure and layout structure_node ID sets differ".into());
     }
     for structure_node in structure {
-        validate_world_transform(structure_node, &by_id, &layout_by_id)?;
+        validate_world_transform(structure_node, &structure_node_by_id, &layout_by_id)?;
     }
     Ok(())
 }
@@ -131,12 +133,12 @@ pub(crate) fn validate_content_coverage(
 
 fn validate_parent_chain(
     structure_node: &StructureNode,
-    by_id: &HashMap<&str, &StructureNode>,
+    structure_node_by_id: &HashMap<&str, &StructureNode>,
 ) -> Result<(), String> {
     let mut current = structure_node;
     let mut depth = 1;
     while let Some(parent_id) = current.parent_id() {
-        let parent = by_id
+        let parent = structure_node_by_id
             .get(parent_id)
             .ok_or_else(|| format!("Missing parent {parent_id} for {}", structure_node.id()))?;
         if matches!(current, StructureNode::Section { .. })

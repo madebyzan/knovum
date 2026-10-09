@@ -24,18 +24,18 @@ interface EditorRegistrationOptions {
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   lockedNodeIds(): ReadonlySet<string>;
   model: CanvasDocumentModel;
-  nodeById(id: string): SpaceCanvasNode | undefined;
+  nodeById(nodeId: string): SpaceCanvasNode | undefined;
   runFrameMutation(mutation: CanvasFrameMutation): Promise<void>;
   nudgeSelection(offset: CanvasPoint): Promise<void>;
   nodes(): readonly SpaceCanvasNode[];
   palette(): CanvasPalette;
   relations(): readonly SpaceRelation[];
-  relationBounds(): ReadonlyMap<string, CanvasRect>;
+  relationBoundsById(): ReadonlyMap<string, CanvasRect>;
   pastePoint(): CanvasPoint;
   selectableNodeIds(): readonly string[];
   scene(): CanvasScene;
   snapshot(): SpaceEditSnapshot;
-  structureBounds(): ReadonlyMap<string, CanvasRect>;
+  structureBoundsById(): ReadonlyMap<string, CanvasRect>;
   selection: ReturnType<typeof useCanvasSelection>;
   stage: Ref<Konva.Stage | undefined>;
   stageComponent: Readonly<Ref<VueKonvaRef<Konva.Stage> | null>>;
@@ -63,7 +63,7 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
       palette: options.palette,
       pastePoint: options.pastePoint,
       relationIds: () => options.selection.relationIds.value,
-      relationBounds: options.relationBounds,
+      relationBoundsById: options.relationBoundsById,
       relations: options.relations,
       scene: options.scene,
       selectableNodeIds: options.selectableNodeIds,
@@ -72,7 +72,7 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
       setSelection: options.selection.setNodeIds,
       setStructureSelection: options.selection.setStructureNodeIds,
       snapshot: options.snapshot,
-      structureBounds: options.structureBounds,
+      structureBoundsById: options.structureBoundsById,
       animateViewport: options.viewport.animateViewport,
       setViewport: options.viewport.setViewport,
       size: () => options.viewport.size,

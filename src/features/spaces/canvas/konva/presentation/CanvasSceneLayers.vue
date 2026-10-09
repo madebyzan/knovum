@@ -28,8 +28,8 @@ const props = defineProps<{
   connectorDraft: CanvasConnectorDraft | undefined;
   feedback: CanvasGestureFeedback | undefined;
   palette: CanvasPalette;
-  layoutPreviews: ReadonlyMap<string, CanvasNodeLayoutV1>;
-  relationPreviews: ReadonlyMap<string, CanvasSceneRelation>;
+  layoutPreviewByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
+  relationPreviewById: ReadonlyMap<string, CanvasSceneRelation>;
   scene: CanvasScene;
   selectedNodeIds: ReadonlySet<string>;
   selectedRelationIds: ReadonlySet<string>;
@@ -90,7 +90,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
     :connector-draft="connectorDraft"
     :palette="palette"
     :relations="visibleRelations"
-    :relation-previews="relationPreviews"
+    :relation-preview-by-id="relationPreviewById"
     :selected-relation-ids="selectedRelationIds"
     :zoom="zoom"
     @pointer-down="(id, event) => emit('relationPointerDown', id, event)"

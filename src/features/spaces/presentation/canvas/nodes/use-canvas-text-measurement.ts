@@ -14,7 +14,7 @@ interface Measurement extends Omit<TextMetrics, "content"> {
   fontEpoch: number;
   height: number;
 }
-const measurements = new WeakMap<TiptapJsonNode, Measurement>();
+const measurementByContent = new WeakMap<TiptapJsonNode, Measurement>();
 const useFontEpoch = createGlobalState(() => {
   const epoch = shallowRef(0);
   useEventListener(document.fonts, "loadingdone", () => epoch.value++);
@@ -27,7 +27,7 @@ export function useCanvasTextMeasurement(metrics: () => TextMetrics) {
   watch(
     () => ({ ...metrics(), fontEpoch: fontEpoch.value }),
     (current) => {
-      const cached = measurements.get(current.content);
+      const cached = measurementByContent.get(current.content);
       cachedHeight.value = cached && sameMetrics(cached, current) ? cached.height : undefined;
     },
     { immediate: true },
@@ -37,7 +37,7 @@ export function useCanvasTextMeasurement(metrics: () => TextMetrics) {
     required: computed(() => cachedHeight.value === undefined),
     record(height: number) {
       const { content, ...current } = metrics();
-      measurements.set(content, { ...current, fontEpoch: fontEpoch.value, height });
+      measurementByContent.set(content, { ...current, fontEpoch: fontEpoch.value, height });
       cachedHeight.value = height;
     },
   };

@@ -5,11 +5,11 @@ export function applyCanvasGestureUpdates(
   document: CanvasDocumentV1,
   updates: readonly CanvasGestureUpdate[],
 ) {
-  const layouts = new Map(updates.map((update) => [update.nodeId, update]));
+  const updateByNodeId = new Map(updates.map((update) => [update.nodeId, update]));
   return {
     ...document,
     nodes: document.nodes.map((node) => {
-      const update = layouts.get(node.nodeId);
+      const update = updateByNodeId.get(node.nodeId);
       if (!update) return node;
       return {
         ...node,

@@ -19,7 +19,7 @@ interface CanvasTextEditorOptions {
   interactive: Readonly<Ref<boolean>>;
   placeholder: string;
   defaultTitle: string;
-  persist: (id: string, data: SpaceCanvasTextPayload) => Promise<void>;
+  persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>;
 }
 
 export function useCanvasTextEditor(options: CanvasTextEditorOptions) {

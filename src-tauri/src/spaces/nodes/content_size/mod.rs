@@ -116,12 +116,12 @@ pub(in crate::spaces) async fn fit_in_snapshot(
 }
 
 pub(in crate::spaces) fn fitted_size(
-    data: &Value,
+    payload: &Value,
     current: &Size,
     sizing_mode: SizingMode,
 ) -> Option<Size> {
-    let kind = data.get("kind")?.as_str()?;
-    let ratio = display_ratio(data)?;
+    let kind = payload.get("kind")?.as_str()?;
+    let ratio = display_ratio(payload)?;
     match sizing_mode {
         SizingMode::Content => default_size(kind, ratio),
         SizingMode::Frame if kind == "file" => None,
@@ -166,15 +166,15 @@ fn default_size(kind: &str, ratio: f64) -> Option<Size> {
     })
 }
 
-fn display_ratio(data: &Value) -> Option<f64> {
-    let kind = data.get("kind")?.as_str()?;
+fn display_ratio(payload: &Value) -> Option<f64> {
+    let kind = payload.get("kind")?.as_str()?;
     if !matches!(kind, "image" | "video" | "file") {
         return None;
     }
-    let intrinsic_width = positive_number(data.get("intrinsicWidth")?)?;
-    let intrinsic_height = positive_number(data.get("intrinsicHeight")?)?;
+    let intrinsic_width = positive_number(payload.get("intrinsicWidth")?)?;
+    let intrinsic_height = positive_number(payload.get("intrinsicHeight")?)?;
     let ratio = if kind == "image" {
-        let edit = data.get("imageEdit").filter(|value| value.is_object());
+        let edit = payload.get("imageEdit").filter(|value| value.is_object());
         let crop = edit.and_then(|value| value.get("crop"));
         let width = intrinsic_width
             * crop

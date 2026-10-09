@@ -66,7 +66,7 @@ async function revealTag(tag: string) {
   const index = createStructureIndex(store.editSnapshot.structure);
   const sectionIds = uniq(
     matches.flatMap((node) => {
-      const structureNodeId = index.nodeIdToStructureNodeId.get(node.id);
+      const structureNodeId = index.structureNodeIdByNodeId.get(node.id);
       const section = structureNodeId ? sectionAncestorOf(structureNodeId, index) : undefined;
       return section ? [section.id] : [];
     }),

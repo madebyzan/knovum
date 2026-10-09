@@ -7,9 +7,9 @@ pub(crate) fn merge_restored_snapshot(
     snapshot: &mut SpaceStructureSnapshot,
     restored: &RestoredStructure,
 ) -> Result<(), String> {
-    let mut by_parent: HashMap<Option<String>, Vec<&StructureNode>> = HashMap::new();
+    let mut children_by_parent_id: HashMap<Option<String>, Vec<&StructureNode>> = HashMap::new();
     for structure_node in &restored.structure {
-        by_parent
+        children_by_parent_id
             .entry(structure_node.parent_id().map(str::to_owned))
             .or_default()
             .push(structure_node);
@@ -19,7 +19,7 @@ pub(crate) fn merge_restored_snapshot(
     snapshot
         .relation_styles
         .extend(restored.relation_styles.clone());
-    for (parent, mut restoring) in by_parent {
+    for (parent, mut restoring) in children_by_parent_id {
         restoring.sort_by_key(|structure_node| structure_node.order());
         let restoring_ids: HashSet<&str> = restoring
             .iter()

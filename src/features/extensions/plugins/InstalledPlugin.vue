@@ -80,7 +80,7 @@ const emit = defineEmits<{ toggle: []; update: []; uninstall: [] }>();
       >
         <ChevronDown
           class="size-3 transition-transform group-open:rotate-180 motion-reduce:transition-none"
-        />{{ $t("extensions.plugins.source.details") }}
+        />{{ $t("extensions.plugins.source.provenance") }}
       </summary>
       <dl class="mt-2 grid min-w-0 gap-2 rounded-md bg-surface-muted p-3">
         <div>

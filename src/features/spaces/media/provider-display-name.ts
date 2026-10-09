@@ -1,4 +1,4 @@
-const PROVIDER_NAMES = new Map([
+const DISPLAY_NAME_BY_PROVIDER = new Map([
   ["Youtube", "YouTube"],
   ["BiliBili", "Bilibili"],
   ["Douyin", "抖音"],
@@ -10,5 +10,5 @@ const PROVIDER_NAMES = new Map([
 ]);
 
 export function mediaProviderDisplayName(provider: string): string {
-  return PROVIDER_NAMES.get(provider) ?? provider;
+  return DISPLAY_NAME_BY_PROVIDER.get(provider) ?? provider;
 }

@@ -6,7 +6,7 @@ import type { CanvasScene } from "../scene/canvas-scene";
 import type { useCanvasSelection } from "../selection/use-canvas-selection";
 
 interface NodeContentActivationOptions {
-  activate(id: string): Promise<void>;
+  activate(nodeId: string): Promise<void>;
   create(kind: "note" | "text", point: CanvasPoint): Promise<string | undefined>;
   tool(): CanvasTool;
   reportError(error: unknown): void;
@@ -27,15 +27,15 @@ export function useNodeContentActivation(options: NodeContentActivationOptions) 
     if (id && !disposed && options.tool() === "select") activateNode(id);
   }
 
-  function activateNode(id: string) {
-    const sceneNode = options.scene.value.nodes.find(({ node }) => node.id === id);
+  function activateNode(nodeId: string) {
+    const sceneNode = options.scene.value.nodes.find(({ node }) => node.id === nodeId);
     if (!sceneNode) return;
     if (sceneNode.interaction.activationMode !== "primary") {
-      options.selection.setNodeIds([id]);
-      interactiveNodeId.value = id;
+      options.selection.setNodeIds([nodeId]);
+      interactiveNodeId.value = nodeId;
       return;
     }
-    void options.activate(id).catch(options.reportError);
+    void options.activate(nodeId).catch(options.reportError);
   }
 
   watch(

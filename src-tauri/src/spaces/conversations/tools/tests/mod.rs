@@ -13,7 +13,7 @@ fn discovery_tools_do_not_require_preselected_resource_ids() {
         let tool = catalog
                 .tools
                 .iter()
-                .find(|tool| matches!(&catalog.by_wire_name[&tool.name].source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == id))
+                .find(|tool| matches!(&catalog.binding_by_wire_name[&tool.name].source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == id))
                 .unwrap();
         assert!(tool.input_schema["properties"]
             .get("inputNodeIds")
@@ -27,11 +27,11 @@ fn discovery_tools_do_not_require_preselected_resource_ids() {
 fn standard_agent_tools_preserve_host_effect_classification() {
     let catalog = super::project().unwrap();
     let create = catalog
-            .by_wire_name
+            .binding_by_wire_name
             .values()
             .any(|definition| matches!(&definition.source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == "create-note"));
     assert!(create);
-    for binding in catalog.by_wire_name.values() {
+    for binding in catalog.binding_by_wire_name.values() {
         if let crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } =
             &binding.source
         {

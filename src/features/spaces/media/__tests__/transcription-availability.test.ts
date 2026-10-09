@@ -7,7 +7,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useMediaKnowledge } from "../use-media-knowledge";
 
 const mocks = vi.hoisted(() => ({
-  analyze: vi.fn<(id: string) => Promise<string>>(),
+  analyze: vi.fn<(nodeId: string) => Promise<string>>(),
   refresh: vi.fn<() => Promise<void>>(),
   error: vi.fn<(message: string) => void>(),
 }));

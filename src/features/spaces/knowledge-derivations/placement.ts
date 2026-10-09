@@ -6,8 +6,8 @@ export function derivedNodePosition(
   nodes: readonly SpaceCanvasNode[],
   placements: readonly CanvasNodePlacement[],
 ) {
-  const positions = new Map(placements.map(({ id, x, y }) => [id, { x, y }]));
-  const positioned = nodes.map((node) => ({ node, position: requiredPosition(positions, node.id) }));
+  const positionByNodeId = new Map(placements.map(({ id, x, y }) => [id, { x, y }]));
+  const positioned = nodes.map((node) => ({ node, position: requiredPosition(positionByNodeId, node.id) }));
   const right = Math.max(
     ...positioned.map(({ node, position }) => position.x + spaceNodeDimensions(node.data).width),
   );
@@ -19,8 +19,8 @@ export function requiredNodePosition(placements: readonly CanvasNodePlacement[],
   return requiredPosition(new Map(placements.map(({ id, x, y }) => [id, { x, y }])), nodeId);
 }
 
-function requiredPosition(positions: ReadonlyMap<string, { x: number; y: number }>, nodeId: string) {
-  const position = positions.get(nodeId);
+function requiredPosition(positionByNodeId: ReadonlyMap<string, { x: number; y: number }>, nodeId: string) {
+  const position = positionByNodeId.get(nodeId);
   if (!position) throw new Error(`Current canvas placement is unavailable for node ${nodeId}`);
   return position;
 }

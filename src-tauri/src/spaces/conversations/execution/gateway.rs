@@ -125,7 +125,7 @@ impl Gateway {
         if request.sibling_tools.iter().any(|name| name == "task")
             && self
                 .catalog
-                .by_wire_name
+                .binding_by_wire_name
                 .get(&request.name)
                 .is_some_and(|definition| !definition.read_only)
         {
@@ -199,7 +199,7 @@ pub(in crate::spaces::conversations) fn require_tool(
     namespace: &str,
 ) -> Result<(), String> {
     let research = namespace.contains('|');
-    if let Some(definition) = catalog.by_wire_name.get(name) {
+    if let Some(definition) = catalog.binding_by_wire_name.get(name) {
         if research && !definition.read_only {
             return Err("builtin-agent-research-write-denied".into());
         }

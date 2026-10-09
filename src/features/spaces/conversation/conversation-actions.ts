@@ -23,7 +23,7 @@ interface ConversationActionState {
   loading: ShallowRef<boolean>;
   prompt: ShallowRef<string>;
   refresh: () => Promise<void>;
-  select: (id: string) => Promise<void>;
+  select: (conversationId: string) => Promise<void>;
   send: () => Promise<void>;
 }
 

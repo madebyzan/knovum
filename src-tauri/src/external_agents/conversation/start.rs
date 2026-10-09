@@ -9,7 +9,7 @@ use crate::app_error::{AppError, AppResult};
 use crate::{ai::contracts::ExternalAgentKind, external_agents::session::AgentUpdateHandler};
 
 pub async fn start(
-    id: String,
+    conversation_id: String,
     kind: ExternalAgentKind,
     workspace: PathBuf,
     on_update: AgentUpdateHandler,
@@ -17,10 +17,10 @@ pub async fn start(
     keepalive: Arc<dyn Send + Sync>,
 ) -> AppResult<ConversationSession> {
     let cancellation = CancellationToken::new();
-    let receiver = requests::register(&id, cancellation.clone())?;
+    let receiver = requests::register(&conversation_id, cancellation.clone())?;
     let (ready_tx, ready_rx) = oneshot::channel();
     let (settled, completion) = oneshot::channel();
-    let runtime_id = id.clone();
+    let runtime_id = conversation_id.clone();
     tauri::async_runtime::spawn(async move {
         let context = ServeContext {
             kind,
@@ -44,17 +44,19 @@ pub async fn start(
     match tokio::time::timeout(super::super::connection::START_TIMEOUT, ready_rx).await {
         Ok(Ok(Ok(session))) => Ok(session),
         Ok(Ok(Err(error))) => {
-            requests::remove(&id);
+            requests::remove(&conversation_id);
             Err(error)
         }
         Ok(Err(_)) => {
-            requests::remove(&id);
+            requests::remove(&conversation_id);
             Err(AppError::internal(
                 "ACP conversation ended before session creation",
             ))
         }
         Err(_) => {
-            requests::close(&id).await.map_err(AppError::internal)?;
+            requests::close(&conversation_id)
+                .await
+                .map_err(AppError::internal)?;
             Err(AppError::internal(
                 "ACP conversation timed out during session creation",
             ))

@@ -19,33 +19,38 @@ pub(crate) fn reserve_maintenance() -> Result<JobAdmissionReservation, String> {
 }
 
 pub(super) fn begin(
-    id: &str,
+    operation_id: &str,
 ) -> Result<(CancellationToken, JobLease<CancellationToken>), AppError> {
-    validate_operation_id(id)?;
-    jobs().acquire_cancellable(id).map_err(AppError::from)
+    validate_operation_id(operation_id)?;
+    jobs()
+        .acquire_cancellable(operation_id)
+        .map_err(AppError::from)
 }
 
 #[cfg(test)]
-pub(crate) fn begin_test_job(id: &str) -> Result<JobLease<CancellationToken>, String> {
-    begin(id)
+pub(crate) fn begin_test_job(operation_id: &str) -> Result<JobLease<CancellationToken>, String> {
+    begin(operation_id)
         .map(|(_, lease)| lease)
         .map_err(|error| error.message)
 }
 
-pub(super) fn cancel(id: &str) -> Result<(), AppError> {
-    validate_operation_id(id)?;
-    jobs().cancel(id).map(|_| ()).map_err(AppError::from)
+pub(super) fn cancel(operation_id: &str) -> Result<(), AppError> {
+    validate_operation_id(operation_id)?;
+    jobs()
+        .cancel(operation_id)
+        .map(|_| ())
+        .map_err(AppError::from)
 }
 
-fn validate_operation_id(id: &str) -> Result<(), AppError> {
-    if id.len() != 36 {
+fn validate_operation_id(operation_id: &str) -> Result<(), AppError> {
+    if operation_id.len() != 36 {
         return Err(AppError::invalid(
             "Space package operation ID must be a 36-character UUID",
         ));
     }
-    let parsed = uuid::Uuid::parse_str(id)
+    let parsed = uuid::Uuid::parse_str(operation_id)
         .map_err(|_| AppError::invalid("Space package operation ID must be a UUID"))?;
-    if parsed.to_string() != id {
+    if parsed.to_string() != operation_id {
         return Err(AppError::invalid(
             "Space package operation ID must use canonical lowercase UUID form",
         ));

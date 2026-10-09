@@ -67,14 +67,18 @@ pub(in crate::spaces::structure) fn wrap(
         .collect::<Result<HashMap<_, _>, String>>()?;
     replace_layouts(&mut snapshot.layouts, &updates);
     let selected: HashSet<&str> = roots.iter().map(String::as_str).collect();
-    let source = index.children.get(&parent).cloned().unwrap_or_default();
+    let source = index
+        .children_by_parent_id
+        .get(&parent)
+        .cloned()
+        .unwrap_or_default();
     let members = source
         .iter()
         .filter(|id| selected.contains(id.as_str()))
         .cloned()
         .collect::<Vec<_>>();
     let root_ids = index
-        .children
+        .children_by_parent_id
         .get(&None)
         .cloned()
         .unwrap_or_default()

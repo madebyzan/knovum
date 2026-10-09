@@ -10,7 +10,7 @@ use serde_json::Value;
 
 pub(in crate::spaces::structure) fn update_content(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
     transform: &Option<LocalTransform>,
     size: &Option<Size>,
     sizing_mode: &Option<SizingMode>,
@@ -18,10 +18,16 @@ pub(in crate::spaces::structure) fn update_content(
     subpath: &FieldUpdate<String>,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    if index.node(&snapshot.structure, id)?.kind_name() != "content" {
-        return Err(format!("Content structure_node not found: {id}"));
+    if index
+        .node(&snapshot.structure, structure_node_id)?
+        .kind_name()
+        != "content"
+    {
+        return Err(format!(
+            "Content structure_node not found: {structure_node_id}"
+        ));
     }
-    require_editable(&snapshot.structure, &index, id)?;
+    require_editable(&snapshot.structure, &index, structure_node_id)?;
     let Some(StructureLayout::Content {
         transform: current_transform,
         size: current_size,
@@ -30,11 +36,11 @@ pub(in crate::spaces::structure) fn update_content(
         file_subpath: current_subpath,
         ..
     }) = index
-        .layout
-        .get(id)
+        .layout_index_by_structure_node_id
+        .get(structure_node_id)
         .and_then(|position| snapshot.layouts.get_mut(*position))
     else {
-        return Err(format!("Content layout missing: {id}"));
+        return Err(format!("Content layout missing: {structure_node_id}"));
     };
     if let Some(transform) = transform {
         *current_transform = transform.clone();
@@ -47,7 +53,7 @@ pub(in crate::spaces::structure) fn update_content(
     }
     apply_update(current_appearance, appearance);
     apply_update(current_subpath, subpath);
-    Ok(vec![id.to_owned()])
+    Ok(vec![structure_node_id.to_owned()])
 }
 
 pub(in crate::spaces::structure) fn update_content_heights(
@@ -95,7 +101,7 @@ pub(in crate::spaces::structure) fn update_content_heights(
             appearance,
             ..
         }) = index
-            .layout
+            .layout_index_by_structure_node_id
             .get(&update.structure_node_id)
             .and_then(|position| snapshot.layouts.get_mut(*position))
         else {
@@ -127,15 +133,15 @@ pub(in crate::spaces::structure) fn update_content_heights(
 
 pub(in crate::spaces::structure) fn relation_style(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    relation_id: &str,
     color: Option<&RelationColor>,
 ) -> Result<Vec<String>, String> {
     snapshot
         .relation_styles
-        .retain(|style| style.relation_id != id);
+        .retain(|style| style.relation_id != relation_id);
     if let Some(color) = color {
         snapshot.relation_styles.push(RelationStyle {
-            relation_id: id.to_owned(),
+            relation_id: relation_id.to_owned(),
             color: color.clone(),
         });
     }

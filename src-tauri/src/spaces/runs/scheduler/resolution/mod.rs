@@ -15,10 +15,10 @@ pub(super) use dependencies::resolve_dependents;
 async fn dependency_facts(
     tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,
-    ids: &[String],
+    dependency_step_ids: &[String],
 ) -> Result<Vec<(String, Option<Value>)>, String> {
-    let mut facts = Vec::with_capacity(ids.len());
-    for id in ids {
+    let mut facts = Vec::with_capacity(dependency_step_ids.len());
+    for id in dependency_step_ids {
         let row = sqlx::query(
             "SELECT state,output FROM spaces_run_steps WHERE run_id=$1 AND definition_node_id=$2",
         )
@@ -38,7 +38,7 @@ async fn dependency_facts(
 }
 
 fn dependency_input(
-    ids: &[String],
+    dependency_step_ids: &[String],
     facts: &[(String, Option<Value>)],
     include_states: bool,
 ) -> Value {
@@ -48,7 +48,8 @@ fn dependency_input(
         .collect::<Vec<_>>();
     if include_states {
         Value::Array(
-            ids.iter()
+            dependency_step_ids
+                .iter()
                 .zip(facts)
                 .zip(values)
                 .map(|((id, (state, _)), output)| {
@@ -64,7 +65,7 @@ fn dependency_input(
             .next()
             .expect("single dependency has one value")
     } else {
-        Value::Object(ids.iter().cloned().zip(values).collect())
+        Value::Object(dependency_step_ids.iter().cloned().zip(values).collect())
     }
 }
 

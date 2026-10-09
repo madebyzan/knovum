@@ -9,12 +9,12 @@ use tauri::AppHandle;
 
 pub(crate) async fn read_resource(
     app: &AppHandle,
-    id: &str,
+    connection_id: &str,
     revision: &str,
     catalog_digest: &str,
     selection: &McpResourceSelection,
 ) -> Result<McpResourceContent, String> {
-    let connection = super::connections::load(&database::pool(app).await?, id).await?;
+    let connection = super::connections::load(&database::pool(app).await?, connection_id).await?;
     if connection.revision != revision {
         return Err("mcp-browse-connection-revised".into());
     }
@@ -61,7 +61,7 @@ pub(crate) async fn read_resource(
         }
         let contents = response.contents;
         Ok(McpResourceContent {
-            connection_id: id.into(),
+            connection_id: connection_id.into(),
             connection_revision: revision.into(),
             catalog_digest: catalog_digest.into(),
             uri,

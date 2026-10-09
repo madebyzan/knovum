@@ -2,8 +2,11 @@ use serde_json::Value;
 
 use crate::spaces::knowledge::indexing::{self, KnowledgeChunkSeed};
 
-pub(super) fn note_chunks(data: &Value, revision: &str) -> Result<Vec<KnowledgeChunkSeed>, String> {
-    let root = data
+pub(super) fn note_chunks(
+    payload: &Value,
+    revision: &str,
+) -> Result<Vec<KnowledgeChunkSeed>, String> {
+    let root = payload
         .get("tiptapContent")
         .and_then(Value::as_object)
         .ok_or_else(|| "Note tiptapContent must be an object".to_string())?;

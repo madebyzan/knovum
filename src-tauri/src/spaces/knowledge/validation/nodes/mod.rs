@@ -20,14 +20,16 @@ pub(super) async fn validate_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     kind: &str,
-    data: &Value,
+    node_payload: &Value,
 ) -> Result<Option<String>, String> {
-    payload::validate_base_fields(kind, data)?;
-    validate_payload_shape(kind, data)?;
+    payload::validate_base_fields(kind, node_payload)?;
+    validate_payload_shape(kind, node_payload)?;
     match kind {
-        "object" => object::validate_object(tx, space_id, data).await.map(Some),
+        "object" => object::validate_object(tx, space_id, node_payload)
+            .await
+            .map(Some),
         "portal" => {
-            projection::validate_portal(tx, data).await?;
+            projection::validate_portal(tx, node_payload).await?;
             Ok(None)
         }
         "note" | "text" | "website" | "markdown" | "image" | "video" | "audio" | "file"

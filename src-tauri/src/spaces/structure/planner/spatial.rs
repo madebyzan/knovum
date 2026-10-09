@@ -5,7 +5,7 @@ pub(in crate::spaces::structure) fn world_transform(
     structure: &[StructureNode],
     layouts: &[StructureLayout],
     index: &Index,
-    id: &str,
+    structure_node_id: &str,
 ) -> Result<LocalTransform, String> {
     let mut world = LocalTransform {
         x: 0.0,
@@ -13,12 +13,12 @@ pub(in crate::spaces::structure) fn world_transform(
         rotation: 0.0,
         scale: 1.0,
     };
-    for member in ancestors(structure, index, id)?
+    for member in ancestors(structure, index, structure_node_id)?
         .into_iter()
-        .chain([id.to_owned()])
+        .chain([structure_node_id.to_owned()])
     {
         let layout = &layouts[*index
-            .layout
+            .layout_index_by_structure_node_id
             .get(&member)
             .ok_or_else(|| format!("Layout missing: {member}"))?];
         world = compose(&world, &local_transform(layout));
@@ -72,10 +72,10 @@ pub(in crate::spaces::structure) fn layout_keeping_world(
     structure: &[StructureNode],
     layouts: &[StructureLayout],
     index: &Index,
-    id: &str,
+    target_structure_node_id: &str,
     new_parent: Option<&str>,
 ) -> Result<StructureLayout, String> {
-    let world = world_transform(structure, layouts, index, id)?;
+    let world = world_transform(structure, layouts, index, target_structure_node_id)?;
     let parent = match new_parent {
         Some(parent) => world_transform(structure, layouts, index, parent)?,
         None => LocalTransform {
@@ -87,9 +87,9 @@ pub(in crate::spaces::structure) fn layout_keeping_world(
     };
     let local = local_from_world(&world, &parent);
     let layout = layouts[*index
-        .layout
-        .get(id)
-        .ok_or_else(|| format!("Layout missing: {id}"))?]
+        .layout_index_by_structure_node_id
+        .get(target_structure_node_id)
+        .ok_or_else(|| format!("Layout missing: {target_structure_node_id}"))?]
     .clone();
     Ok(match layout {
         StructureLayout::Content {

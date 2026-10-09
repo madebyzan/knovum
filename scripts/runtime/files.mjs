@@ -65,14 +65,14 @@ function walkRuntimeFiles(root, directory, ErrorType) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     const metadata = lstatSync(path);
-    assertRegularRuntimeEntry(path, metadata, ErrorType);
+    assertRuntimePathKind(path, metadata, ErrorType);
     if (metadata.isDirectory()) files.push(...walkRuntimeFiles(root, path, ErrorType));
     else files.push(relative(root, path).replaceAll("\\", "/"));
   }
   return files;
 }
 
-function assertRegularRuntimeEntry(path, metadata, ErrorType) {
+function assertRuntimePathKind(path, metadata, ErrorType) {
   if (metadata.isSymbolicLink()) throw new ErrorType(`Runtime contains a link: ${path}`);
   if (!metadata.isFile() && !metadata.isDirectory()) {
     throw new ErrorType(`Runtime contains a non-file: ${path}`);

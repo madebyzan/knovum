@@ -12,8 +12,8 @@ import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu
 
 interface StructureOutlineMenuOptions {
   index: ComputedRef<StructureIndex>;
-  rename(id: string): void;
-  reveal(id: string): void;
+  rename(structureNodeId: string): void;
+  reveal(structureNodeId: string): void;
   snapshot(): SpaceEditSnapshot;
   store: ReturnType<typeof useSpaceStore>;
 }
@@ -23,23 +23,34 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
   const editor = getCanvasEditorSession();
   const operations = useNodeOperationGate();
 
-  async function show(id: string) {
+  async function show(structureNodeId: string) {
     if (!operations.allows("structure")) return;
     const index = options.index.value;
-    const structureNode = index.structureById.get(id);
+    const structureNode = index.structureById.get(structureNodeId);
     if (!structureNode) return;
     if (structureNode.kind === "content") editor.selectNodes([structureNode.nodeId]);
-    else editor.selectStructureNodes([id]);
-    const effectivelyLocked = isStructureNodeEffectivelyLocked(id, index);
+    else editor.selectStructureNodes([structureNodeId]);
+    const effectivelyLocked = isStructureNodeEffectivelyLocked(structureNodeId, index);
     const primary = [
-      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => options.reveal(id)),
-      spaceMenuItem(t("common.rename"), () => options.rename(id), {
+      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => options.reveal(structureNodeId)),
+      spaceMenuItem(t("common.rename"), () => options.rename(structureNodeId), {
         enabled: !effectivelyLocked,
       }),
     ];
-    const layout = options.snapshot().layouts.find((candidate) => candidate.structureNodeId === id);
-    const containerActions = containerMenuEntries(id, structureNode.kind, layout, effectivelyLocked);
-    const parentTargets = structureParentTargets(options.snapshot(), [id], t("spaces.canvas.spaceRoot"));
+    const layout = options
+      .snapshot()
+      .layouts.find((candidate) => candidate.structureNodeId === structureNodeId);
+    const containerActions = containerMenuEntries(
+      structureNodeId,
+      structureNode.kind,
+      layout,
+      effectivelyLocked,
+    );
+    const parentTargets = structureParentTargets(
+      options.snapshot(),
+      [structureNodeId],
+      t("spaces.canvas.spaceRoot"),
+    );
     const move = parentTargets.length
       ? [
           {
@@ -48,7 +59,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
               spaceMenuItem(target.title, () =>
                 execute({
                   kind: "structure.reparent",
-                  rootIds: [id],
+                  rootIds: [structureNodeId],
                   parentId: target.id,
                   order: (index.childrenByParent.get(target.id) ?? []).length,
                 }),
@@ -57,11 +68,12 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
           },
         ]
       : [];
-    const hasLockedAncestor = ancestorsOf(id, index).some(({ locked }) => locked);
+    const hasLockedAncestor = ancestorsOf(structureNodeId, index).some(({ locked }) => locked);
     const lock = [
       spaceMenuItem(
         structureNode.locked ? t("spaces.canvas.unlock") : t("spaces.canvas.lock"),
-        () => execute({ kind: "structure.set-lock", rootIds: [id], locked: !structureNode.locked }),
+        () =>
+          execute({ kind: "structure.set-lock", rootIds: [structureNodeId], locked: !structureNode.locked }),
         { enabled: !hasLockedAncestor },
       ),
     ];
@@ -69,7 +81,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
   }
 
   function containerMenuEntries(
-    id: string,
+    structureNodeId: string,
     kind: "content" | "group" | "section",
     layout: SpaceEditSnapshot["layouts"][number] | undefined,
     locked: boolean,
@@ -78,16 +90,21 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
       return [
         spaceMenuItem(
           t(layout.collapsed ? "spaces.canvas.sections.expand" : "spaces.canvas.sections.collapse"),
-          () => execute({ kind: "section.set-collapsed", structureNodeId: id, collapsed: !layout.collapsed }),
+          () =>
+            execute({
+              kind: "section.set-collapsed",
+              structureNodeId: structureNodeId,
+              collapsed: !layout.collapsed,
+            }),
         ),
         spaceMenuItem(
           t("spaces.canvas.sections.fitToContents"),
-          () => execute({ kind: "section.fit", structureNodeId: id }),
+          () => execute({ kind: "section.fit", structureNodeId: structureNodeId }),
           { enabled: !locked },
         ),
         spaceMenuItem(
           t("spaces.canvas.sections.removeOnly"),
-          () => execute({ kind: "section.dissolve", structureNodeId: id }),
+          () => execute({ kind: "section.dissolve", structureNodeId: structureNodeId }),
           { enabled: !locked },
         ),
       ];
@@ -96,7 +113,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
       return [
         spaceMenuItem(
           t("spaces.canvas.groups.ungroup"),
-          () => execute({ kind: "group.dissolve", rootIds: [id] }),
+          () => execute({ kind: "group.dissolve", rootIds: [structureNodeId] }),
           { enabled: !locked },
         ),
       ];

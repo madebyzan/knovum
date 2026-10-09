@@ -22,7 +22,7 @@ export function useCanvasSceneProjections(
     const index = structureIndex.value;
     return new Set(
       nodes.value.flatMap(({ id }) => {
-        const structureNodeId = index.nodeIdToStructureNodeId.get(id);
+        const structureNodeId = index.structureNodeIdByNodeId.get(id);
         if (!structureNodeId) return [];
         return isStructureNodeEffectivelyLocked(structureNodeId, index) ? [id] : [];
       }),
@@ -47,7 +47,7 @@ export function useCanvasSceneProjections(
       structure: structureScene.value,
     }),
   );
-  const relationBounds = computed(
+  const relationBoundsById = computed(
     () =>
       new Map(
         scene.value.relations.map(({ id, midpoint }) => [
@@ -56,7 +56,7 @@ export function useCanvasSceneProjections(
         ]),
       ),
   );
-  const structureBounds = computed(
+  const structureBoundsById = computed(
     () =>
       new Map([
         ...structureScene.value.content.map(
@@ -86,7 +86,7 @@ export function useCanvasSceneProjections(
   });
   function structureSelectionForNode(nodeId: string) {
     const index = structureIndex.value;
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
     if (!structureNodeId) throw new Error(`Content structure is unavailable: ${nodeId}`);
     const ancestors = ancestorsOf(structureNodeId, index);
     const scopeId = props.groupScopePath.at(-1);
@@ -97,9 +97,9 @@ export function useCanvasSceneProjections(
     previewIndex: computed(() => createCanvasScenePreviewIndex(scene.value)),
     groupScopeTitles,
     lockedNodeIds,
-    relationBounds,
+    relationBoundsById,
     scene,
-    structureBounds,
+    structureBoundsById,
     structureScene,
     structureSelectionForNode,
   };

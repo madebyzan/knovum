@@ -10,7 +10,7 @@ import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceIm
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 
-const resourceRefreshes = new Map<string, Promise<SpaceNodePayload | undefined>>();
+const refreshByNodeId = new Map<string, Promise<SpaceNodePayload | undefined>>();
 
 export async function chooseSpaceSourcePath(): Promise<string | undefined> {
   const source = await open({ multiple: false, directory: false });
@@ -84,12 +84,12 @@ export function cancelSpaceAssetProcessing(jobId: string): Promise<void> {
 
 export function refreshSpaceAsset(spaceId: string, nodeId: string): Promise<SpaceNodePayload | undefined> {
   const key = `${spaceId}:${nodeId}`;
-  const pending = resourceRefreshes.get(key);
+  const pending = refreshByNodeId.get(key);
   if (pending) return pending;
   const request = invokeCommand<SpaceNodePayload | null>("plugin:spaces|refresh_asset", { spaceId, nodeId })
     .then((data) => data ?? undefined)
-    .finally(() => resourceRefreshes.delete(key));
-  resourceRefreshes.set(key, request);
+    .finally(() => refreshByNodeId.delete(key));
+  refreshByNodeId.set(key, request);
   return request;
 }
 

@@ -9,10 +9,12 @@ fn registry() -> &'static JobRegistry {
     REGISTRY.get_or_init(|| JobRegistry::new("Video edit render"))
 }
 
-pub fn acquire(id: String) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
-    registry().acquire_cancellable(id)
+pub fn acquire(
+    derivation_id: String,
+) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
+    registry().acquire_cancellable(derivation_id)
 }
 
-pub fn cancel(id: &str) -> Result<(), String> {
-    registry().cancel(id).map(|_| ())
+pub fn cancel(derivation_id: &str) -> Result<(), String> {
+    registry().cancel(derivation_id).map(|_| ())
 }

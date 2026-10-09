@@ -43,22 +43,22 @@ function outlineKey(item: OutlineTreeItem) {
   return item.id;
 }
 
-function toggle(id: string) {
-  expandedIds.value = xor(expandedIds.value, [id]);
+function toggle(structureNodeId: string) {
+  expandedIds.value = xor(expandedIds.value, [structureNodeId]);
 }
 
-function expand(ids: readonly string[]) {
-  expandedIds.value = union(expandedIds.value, ids);
+function expand(structureNodeIds: readonly string[]) {
+  expandedIds.value = union(expandedIds.value, structureNodeIds);
 }
 
-function isSelected(id: string) {
-  if (selectedIds.value.has(id)) return true;
-  const structureNode = index.value.structureById.get(id);
+function isSelected(structureNodeId: string) {
+  if (selectedIds.value.has(structureNodeId)) return true;
+  const structureNode = index.value.structureById.get(structureNodeId);
   return structureNode?.kind === "content" && selectedIds.value.has(structureNode.nodeId);
 }
 
-function select(id: string) {
-  const structureNode = index.value.structureById.get(id);
+function select(structureNodeId: string) {
+  const structureNode = index.value.structureById.get(structureNodeId);
   if (structureNode?.kind === "content") {
     editor.selectNodes([structureNode.nodeId]);
     editor.reveal([structureNode.nodeId], "ensure-visible");
@@ -68,8 +68,8 @@ function select(id: string) {
   }
 }
 
-async function open(id: string) {
-  const structureNode = index.value.structureById.get(id);
+async function open(structureNodeId: string) {
+  const structureNode = index.value.structureById.get(structureNodeId);
   if (!structureNode) return;
   if (structureNode.kind === "group") {
     store.groupScopePath = [...groupScopePathFor(structureNode.id, index.value), structureNode.id];
@@ -89,19 +89,19 @@ async function open(id: string) {
     await openSpaceNode(store, node);
 }
 
-async function rename(id: string) {
+async function rename(structureNodeId: string) {
   if (!operations.allows("edit")) return;
   finishRename();
-  renameLease = drafts.begin(id);
+  renameLease = drafts.begin(structureNodeId);
   if (!renameLease) return;
   const lease = renameLease;
   sidebar.reveal();
-  expand(groupScopePathFor(id, index.value));
+  expand(groupScopePathFor(structureNodeId, index.value));
   await nextTick();
   if (renameLease !== lease) return;
-  const row = outlineRows.value.findIndex(({ value }) => value.id === id);
+  const row = outlineRows.value.findIndex(({ value }) => value.id === structureNodeId);
   if (row >= 0) virtualizer.value?.scrollToIndex(row, { align: "auto" });
-  editingId.value = id;
+  editingId.value = structureNodeId;
 }
 
 function finishRename() {
@@ -110,12 +110,12 @@ function finishRename() {
   editingId.value = undefined;
 }
 
-async function saveName(id: string, title: string) {
-  if (editingId.value !== id || renameLease === undefined) return;
-  const structureNode = index.value.structureById.get(id);
+async function saveName(structureNodeId: string, title: string) {
+  if (editingId.value !== structureNodeId || renameLease === undefined) return;
+  const structureNode = index.value.structureById.get(structureNodeId);
   if (!structureNode) throw new Error("Structure node no longer exists");
   if (structureNode.kind === "content") return store.renameNode(structureNode.nodeId, title);
-  return store.executeSpaceEdit({ kind: "container.rename", structureNodeId: id, title });
+  return store.executeSpaceEdit({ kind: "container.rename", structureNodeId: structureNodeId, title });
 }
 
 const outlineMenu = useStructureOutlineMenu({

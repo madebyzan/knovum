@@ -8,14 +8,14 @@ pub(crate) async fn synchronize_for_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     node_id: &str,
-    data: &Value,
+    payload: &Value,
     now: i64,
     target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
-    let Some(source_revision) = source_revision(data) else {
+    let Some(source_revision) = source_revision(payload) else {
         return Ok(());
     };
-    let visual_revision = visual_revision(data)?;
+    let visual_revision = visual_revision(payload)?;
     sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,updated_at=$2 \
          WHERE space_id=$3 AND node_id=$4 AND \
@@ -32,7 +32,7 @@ pub(crate) async fn synchronize_for_node(
     .await
     .map_err(crate::spaces::db::sql_error)?;
 
-    for job_type in required_jobs(data, visual_revision.as_deref(), source_revision) {
+    for job_type in required_jobs(payload, visual_revision.as_deref(), source_revision) {
         let revision = if job_type == EnrichmentJobType::AnalyzeVisual {
             visual_revision
                 .as_deref()
@@ -46,16 +46,16 @@ pub(crate) async fn synchronize_for_node(
 }
 
 fn required_jobs(
-    data: &Value,
+    payload: &Value,
     visual_revision: Option<&str>,
     source_revision: &str,
 ) -> Vec<EnrichmentJobType> {
-    let mut jobs = match data.get("kind").and_then(Value::as_str) {
-        Some("video" | "audio") => media_jobs(data, source_revision),
-        Some("file") => document_jobs(data, source_revision),
+    let mut jobs = match payload.get("kind").and_then(Value::as_str) {
+        Some("video" | "audio") => media_jobs(payload, source_revision),
+        Some("file") => document_jobs(payload, source_revision),
         _ => Vec::new(),
     };
-    if visual_revision.is_some_and(|revision| !visual_knowledge_is_current(data, revision)) {
+    if visual_revision.is_some_and(|revision| !visual_knowledge_is_current(payload, revision)) {
         jobs.push(EnrichmentJobType::AnalyzeVisual);
     }
     jobs
@@ -73,8 +73,8 @@ fn media_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
         .collect()
 }
 
-fn document_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
-    let extension = data
+fn document_jobs(payload: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
+    let extension = payload
         .get("fileName")
         .and_then(Value::as_str)
         .and_then(|name| std::path::Path::new(name).extension())
@@ -86,10 +86,10 @@ fn document_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> 
     ) {
         return Vec::new();
     }
-    if !knowledge_is_current(data, "documentCoverage", source_revision) {
+    if !knowledge_is_current(payload, "documentCoverage", source_revision) {
         return vec![EnrichmentJobType::ParseDocument];
     }
-    let occurrences = data["documentCoverage"]["occurrences"].as_array();
+    let occurrences = payload["documentCoverage"]["occurrences"].as_array();
     let missing_pdf_resources = occurrences.is_some_and(|occurrences| {
         occurrences.iter().any(|occurrence| {
             !occurrence["pdfInput"].is_null()

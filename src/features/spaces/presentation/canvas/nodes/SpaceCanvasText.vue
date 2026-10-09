@@ -21,11 +21,11 @@ const props = defineProps<{
   interactive: boolean;
   presentationContext: CanvasNodePresentationContext;
   verticalClass: string;
-  fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
+  fitContentHeight: (nodeId: string, measurement: CanvasContentHeightMeasurement) => void;
   fontSize: number;
   frameWidth: number;
   textAlign: "left" | "center" | "right";
-  persist: (id: string, data: SpaceCanvasTextPayload) => Promise<void>;
+  persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>;
   sizingMode: CanvasNodeSizingMode;
   typographyScale: number;
 }>();

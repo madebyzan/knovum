@@ -41,7 +41,13 @@ pub(in crate::spaces::structure) fn plan(
         if let StructureNode::Content { node_id, .. } = structure_node {
             node_ids.push(node_id.clone());
         }
-        pending.extend(index.children.get(&Some(id)).cloned().unwrap_or_default());
+        pending.extend(
+            index
+                .children_by_parent_id
+                .get(&Some(id))
+                .cloned()
+                .unwrap_or_default(),
+        );
     }
     loop {
         let empty = original_structure
@@ -75,7 +81,7 @@ pub(in crate::spaces::structure) fn plan(
         .layouts
         .retain(|layout| !deleted.contains(layout.structure_node_id()));
     let sequences: HashMap<Option<String>, Vec<String>> = index
-        .children
+        .children_by_parent_id
         .iter()
         .map(|(parent, ids)| {
             (

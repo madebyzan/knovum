@@ -14,7 +14,7 @@ import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping
 import type { CanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
 
 export interface CanvasTranslationGestureState {
-  frames: ReadonlyMap<string, CanvasNodeFrame>;
+  frameByNodeId: ReadonlyMap<string, CanvasNodeFrame>;
   origin: { x: number; y: number };
   primaryId: string;
   snapIndex: CanvasTranslationSnapIndex;
@@ -59,7 +59,7 @@ function alignmentSnap(
     moving,
     axis === "x" ? { x: match.offset, y: 0 } : { x: 0, y: match.offset },
   );
-  const extent = (axis === "x" ? index.xExtents : index.yExtents).get(match.value);
+  const extent = (axis === "x" ? index.extentByX : index.extentByY).get(match.value);
   const guide: CanvasSnapGuide = {
     kind: "alignment",
     points: alignmentGuidePoints(moved, extent, match.value, axis),

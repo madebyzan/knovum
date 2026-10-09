@@ -19,7 +19,7 @@ pub(in crate::spaces::structure) fn create(
     let original_structure = snapshot.structure.clone();
     let original_layouts = snapshot.layouts.clone();
     let index = Index::new(&original_structure, &original_layouts);
-    if index.positions.contains_key(group_id) {
+    if index.position_by_structure_node_id.contains_key(group_id) {
         return Err(format!("Structure node already exists: {group_id}"));
     }
     let roots = effective_roots(&original_structure, &index, requested)?;
@@ -43,13 +43,17 @@ pub(in crate::spaces::structure) fn create(
     for id in &roots {
         require_editable(&original_structure, &index, id)?;
     }
-    let siblings = index.children.get(&parent).cloned().unwrap_or_default();
+    let siblings = index
+        .children_by_parent_id
+        .get(&parent)
+        .cloned()
+        .unwrap_or_default();
     let selected: HashSet<&str> = roots.iter().map(String::as_str).collect();
     let first = siblings
         .iter()
         .find(|id| selected.contains(id.as_str()))
         .ok_or("Group anchor missing")?;
-    let anchor = local_transform(&original_layouts[index.layout[first]]);
+    let anchor = local_transform(&original_layouts[index.layout_index_by_structure_node_id[first]]);
     snapshot.structure.push(StructureNode::Group {
         id: group_id.to_owned(),
         parent_id: parent.clone(),

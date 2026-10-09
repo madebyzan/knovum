@@ -29,8 +29,8 @@ describe("Archived Spaces settings", () => {
     const wrapper = mountPane({
       spaces: shallowRef([]),
       initialize,
-      restore: vi.fn<(id: string) => Promise<void>>(),
-      permanentlyDelete: vi.fn<(id: string) => Promise<void>>(),
+      restore: vi.fn<(spaceId: string) => Promise<void>>(),
+      permanentlyDelete: vi.fn<(spaceId: string) => Promise<void>>(),
       permanentlyDeleteAll: vi.fn<() => Promise<void>>(),
     });
     await flushPromises();
@@ -46,14 +46,14 @@ describe("Archived Spaces settings", () => {
 
   it("prevents duplicate restore and reports rejection", async () => {
     let rejectRestore!: (reason: unknown) => void;
-    const restore = vi.fn<(id: string) => Promise<void>>(
+    const restore = vi.fn<(spaceId: string) => Promise<void>>(
       () => new Promise<void>((_resolve, reject) => (rejectRestore = reject)),
     );
     const wrapper = mountPane({
       spaces: shallowRef([{ id: "space", title: "Research" }]),
       initialize: vi.fn<(title: string) => Promise<void>>().mockResolvedValue(undefined),
       restore,
-      permanentlyDelete: vi.fn<(id: string) => Promise<void>>(),
+      permanentlyDelete: vi.fn<(spaceId: string) => Promise<void>>(),
       permanentlyDeleteAll: vi.fn<() => Promise<void>>(),
     });
     await flushPromises();

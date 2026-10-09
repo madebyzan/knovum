@@ -14,11 +14,11 @@ use super::{node::required_string, RunEnrichmentJobRequest};
 pub(super) async fn analyze(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
-    data: &mut Value,
+    payload: &mut Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let source = media_source(data)?;
+    let source = media_source(payload)?;
     let app = app.clone();
     let revision = request.source_revision.clone();
     let token = cancellation.clone();
@@ -27,7 +27,8 @@ pub(super) async fn analyze(
         media_analysis::prepare(&app, Path::new(&source), &revision, &token)
     })
     .await?;
-    data.as_object_mut()
+    payload
+        .as_object_mut()
         .ok_or("Space node data must be an object")?
         .insert(
             "mediaAnalysis".into(),
@@ -46,14 +47,15 @@ pub(super) async fn transcribe(
     app: &AppHandle,
     job_id: &str,
     request: &RunEnrichmentJobRequest,
-    data: &mut Value,
+    payload: &mut Value,
     progress: Channel<MediaTranscriptionProgress>,
 ) -> Result<(), String> {
-    let source = media_source(data)?;
-    if data["mediaAnalysis"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
+    let source = media_source(payload)?;
+    if payload["mediaAnalysis"]["sourceRevision"].as_str() != Some(request.source_revision.as_str())
+    {
         return Err("Transcription requires current media analysis".into());
     }
-    if super::super::requests::has_current_transcript(data, &request.source_revision) {
+    if super::super::requests::has_current_transcript(payload, &request.source_revision) {
         return Err(
             "Current media transcript already exists; automatic retranscription would discard transcript edits"
                 .into(),
@@ -72,7 +74,8 @@ pub(super) async fn transcribe(
         crate::file_inspection::verify_content_revision(Path::new(&source), &revision)
     })
     .await?;
-    data.as_object_mut()
+    payload
+        .as_object_mut()
         .ok_or("Space node data must be an object")?
         .insert(
             "mediaKnowledge".into(),
@@ -89,12 +92,14 @@ pub(super) async fn align(
     app: &AppHandle,
     job_id: &str,
     request: &RunEnrichmentJobRequest,
-    data: &mut Value,
+    payload: &mut Value,
     progress: Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let source = media_source(data)?;
-    if data["mediaKnowledge"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
+    let source = media_source(payload)?;
+    if payload["mediaKnowledge"]["sourceRevision"].as_str()
+        != Some(request.source_revision.as_str())
+    {
         return Err("Alignment requires current media knowledge".into());
     }
     transcription::alignment::align_media(
@@ -102,7 +107,7 @@ pub(super) async fn align(
         job_id,
         &source,
         &request.source_revision,
-        data,
+        payload,
         &progress,
         cancellation,
     )
@@ -113,12 +118,14 @@ pub(super) async fn diarize(
     app: &AppHandle,
     job_id: &str,
     request: &RunEnrichmentJobRequest,
-    data: &mut Value,
+    payload: &mut Value,
     progress: Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let source = media_source(data)?;
-    if data["mediaKnowledge"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
+    let source = media_source(payload)?;
+    if payload["mediaKnowledge"]["sourceRevision"].as_str()
+        != Some(request.source_revision.as_str())
+    {
         return Err("Diarization requires current media knowledge".into());
     }
     transcription::diarization::diarize_media(
@@ -126,7 +133,7 @@ pub(super) async fn diarize(
         job_id,
         &source,
         &request.source_revision,
-        data,
+        payload,
         &progress,
         cancellation,
     )

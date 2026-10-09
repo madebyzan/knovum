@@ -29,20 +29,20 @@ pub(super) async fn available(
 }
 
 pub(super) fn validate_current(
-    data: &Value,
+    payload: &Value,
     source_revision: &str,
     source_edit: &Value,
 ) -> Result<(), String> {
-    if data.get("sourceRevision").and_then(Value::as_str) != Some(source_revision)
-        || data.get("imageEdit").unwrap_or(&Value::Null) != source_edit
+    if payload.get("sourceRevision").and_then(Value::as_str) != Some(source_revision)
+        || payload.get("imageEdit").unwrap_or(&Value::Null) != source_edit
     {
         return Err("Image source changed before background removal started".into());
     }
     Ok(())
 }
 
-pub(super) fn asset_available(app: &AppHandle, data: &Value) -> Result<bool, String> {
-    let path = data
+pub(super) fn asset_available(app: &AppHandle, payload: &Value) -> Result<bool, String> {
+    let path = payload
         .get("assetPath")
         .and_then(Value::as_str)
         .ok_or("Image source path is unavailable")?;

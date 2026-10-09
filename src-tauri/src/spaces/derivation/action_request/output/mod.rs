@@ -108,7 +108,7 @@ async fn insert_output(
     space_id: &str,
     node_id: String,
     kind: &str,
-    data: Value,
+    payload: Value,
     sources: &[String],
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
@@ -135,7 +135,7 @@ async fn insert_output(
         sizing_mode: SizingMode::Content,
         appearance: None,
         file_subpath: None,
-        data,
+        data: payload,
         source_chunks: Vec::<KnowledgeChunkInput>::new(),
     };
     structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;

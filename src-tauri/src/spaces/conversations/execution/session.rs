@@ -33,16 +33,16 @@ impl Session {
 
 pub(in crate::spaces::conversations) async fn select(
     tx: &mut Transaction<'_, Sqlite>,
-    ids: &TaskIds,
+    task_ids: &TaskIds,
     target: &ModelExecutionTarget,
     profile: &crate::ai::settings::contracts::BuiltinAgentModelSettings,
     selection: &ModelTargetSelection,
     catalog_digest: &str,
     now: i64,
 ) -> Result<Session, String> {
-    let input_id = ids.input_id();
-    let conversation_id = &ids.conversation_id;
-    let branch_id = &ids.branch_id;
+    let input_id = task_ids.input_id();
+    let conversation_id = &task_ids.conversation_id;
+    let branch_id = &task_ids.branch_id;
     let previous = sqlx::query("SELECT id,execution_revision,frozen_target,model_profile,target_selection,catalog_digest,graph_version,projection_checkpoint_id,
          (SELECT r.state FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE t.segment_id=spaces_builtin_agent_execution_segments.id ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) AS previous_run_state
          FROM spaces_builtin_agent_execution_segments WHERE conversation_id=$1 AND branch_id=$2 ORDER BY created_at DESC,rowid DESC LIMIT 1")

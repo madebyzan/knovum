@@ -14,23 +14,23 @@ interface CanvasContentLayoutCoordinatorOptions {
 
 export function createCanvasContentLayoutCoordinator(options: CanvasContentLayoutCoordinatorOptions) {
   let mutationPending = false;
-  const pendingMeasurements = new Map<string, CanvasContentHeightMeasurement>();
+  const pendingMeasurementByNodeId = new Map<string, CanvasContentHeightMeasurement>();
   const measurementSources = new Set<() => void>();
 
   function sync() {
     const editor = options.editor();
     if (!editor) return;
     editor.setContentHeightFittingPaused(options.directManipulation() || mutationPending);
-    for (const [nodeId, measurement] of pendingMeasurements) {
+    for (const [nodeId, measurement] of pendingMeasurementByNodeId) {
       editor.fitNodeContentHeight(nodeId, measurement);
     }
-    pendingMeasurements.clear();
+    pendingMeasurementByNodeId.clear();
   }
 
   function fit(nodeId: string, measurement: CanvasContentHeightMeasurement) {
     const editor = options.editor();
     if (editor) editor.fitNodeContentHeight(nodeId, measurement);
-    else pendingMeasurements.set(nodeId, measurement);
+    else pendingMeasurementByNodeId.set(nodeId, measurement);
   }
 
   function updateDirectManipulation(active: boolean) {

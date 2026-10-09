@@ -24,14 +24,14 @@ export function composeTransforms(parent: LocalTransform, local: LocalTransform)
 }
 
 export function worldTransformFor(
-  id: StructureNodeId,
+  structureNodeId: StructureNodeId,
   index: StructureIndex,
   layoutById: ReadonlyMap<StructureNodeId, StructureLayout>,
 ): LocalTransform {
-  const structureNode = index.structureById.get(id);
-  if (!structureNode) throw new Error(`Structure structureNode not found: ${id}`);
+  const structureNode = index.structureById.get(structureNodeId);
+  if (!structureNode) throw new Error(`Structure structureNode not found: ${structureNodeId}`);
   let world = IDENTITY;
-  for (const member of [...ancestorsOf(id, index), structureNode]) {
+  for (const member of [...ancestorsOf(structureNodeId, index), structureNode]) {
     const layout = layoutById.get(member.id);
     if (!layout || layout.kind !== member.kind)
       throw new Error(`Structure layout missing or mismatched: ${member.id}`);

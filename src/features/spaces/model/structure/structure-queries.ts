@@ -22,19 +22,28 @@ export function contentNodeIdsWithin(rootIds: readonly StructureNodeId[], index:
   return [...content];
 }
 
-export function sectionAncestorOf(id: StructureNodeId, index: StructureIndex): StructureNode | undefined {
-  return ancestorsOf(id, index).find((structureNode) => structureNode.kind === "section");
+export function sectionAncestorOf(
+  structureNodeId: StructureNodeId,
+  index: StructureIndex,
+): StructureNode | undefined {
+  return ancestorsOf(structureNodeId, index).find((structureNode) => structureNode.kind === "section");
 }
 
-export function isStructureNodeEffectivelyLocked(id: StructureNodeId, index: StructureIndex): boolean {
-  const structureNode = index.structureById.get(id);
-  if (!structureNode) throw new Error(`Structure structureNode not found: ${id}`);
-  return structureNode.locked || ancestorsOf(id, index).some(({ locked }) => locked);
+export function isStructureNodeEffectivelyLocked(
+  structureNodeId: StructureNodeId,
+  index: StructureIndex,
+): boolean {
+  const structureNode = index.structureById.get(structureNodeId);
+  if (!structureNode) throw new Error(`Structure structureNode not found: ${structureNodeId}`);
+  return structureNode.locked || ancestorsOf(structureNodeId, index).some(({ locked }) => locked);
 }
 
 /** Root-to-inner Group path required to reveal an structureNode in the editor. */
-export function groupScopePathFor(id: StructureNodeId, index: StructureIndex): StructureNodeId[] {
-  return ancestorsOf(id, index)
+export function groupScopePathFor(
+  structureNodeId: StructureNodeId,
+  index: StructureIndex,
+): StructureNodeId[] {
+  return ancestorsOf(structureNodeId, index)
     .filter((structureNode) => structureNode.kind === "group")
     .map((structureNode) => structureNode.id);
 }
@@ -46,7 +55,7 @@ export function visibleRepresentativeForNode(
   layoutById: ReadonlyMap<StructureNodeId, StructureLayout>,
   temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId> = new Set(),
 ): StructureNodeId | undefined {
-  const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+  const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
   if (!structureNodeId) return undefined;
   const section = sectionAncestorOf(structureNodeId, index);
   const sectionLayout = section ? layoutById.get(section.id) : undefined;

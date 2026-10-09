@@ -163,7 +163,7 @@ function currentView(context: SceneActionContext) {
 function currentFocusStructureNodeIds(context: SceneActionContext) {
   const index = createStructureIndex(context.editSnapshot.value.structure);
   return context.focusNodeIds.value.map((nodeId) => {
-    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
     if (!structureNodeId) throw new Error(`Saved View focus node has no structure node: ${nodeId}`);
     return structureNodeId;
   });

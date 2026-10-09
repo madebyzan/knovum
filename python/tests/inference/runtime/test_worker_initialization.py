@@ -37,11 +37,11 @@ def initialization(directory: Path, threads: int = 4) -> Request:
 
 class CapturingWriter:
     def __init__(self) -> None:
-        self.results: list[dict[str, Any]] = []
+        self.responses: list[dict[str, Any]] = []
         self.errors: list[RpcError] = []
 
-    async def send_response(self, request_id: str | int, result: dict[str, Any]) -> None:
-        self.results.append(result)
+    async def send_response(self, request_id: str | int, response: dict[str, Any]) -> None:
+        self.responses.append(response)
 
     async def error(self, request_id: str | int | None, error: RpcError) -> None:
         self.errors.append(error)
@@ -132,7 +132,7 @@ def test_transport_close_cannot_activate_a_pending_session(monkeypatch: pytest.M
         finally:
             release.set()
         await asyncio.wait_for(serving, timeout=2)
-        assert writer.results == []
+        assert writer.responses == []
         assert [error.stable_code for error in writer.errors] == ["cancelled"]
         with pytest.raises(RpcError) as captured:
             await server._dispatch(Request("health", "runtime.health", {"sessionId": "session"}))
@@ -152,7 +152,7 @@ def test_failed_preparation_never_exposes_a_ready_session(monkeypatch: pytest.Mo
     async def scenario() -> None:
         server = worker.Worker()
         await server._handle(initialization(tmp_path))
-        assert writer.results == []
+        assert writer.responses == []
         assert [error.stable_code for error in writer.errors] == ["runtime_mismatch"]
         with pytest.raises(RpcError):
             await server._dispatch(Request("health", "runtime.health", {"sessionId": "session"}))

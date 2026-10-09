@@ -241,9 +241,9 @@ fn valid_revision(value: &str) -> bool {
 fn record_source_revision(
     revisions: &mut HashMap<String, String>,
     token: &str,
-    data: &Value,
+    payload: &Value,
 ) -> Result<(), String> {
-    let revision = data
+    let revision = payload
         .get("sourceRevision")
         .and_then(Value::as_str)
         .filter(|value| value.starts_with("sha256:") && value.len() == 71)

@@ -44,18 +44,22 @@ pub fn state_field_for(action_kind: &str) -> &'static str {
     }
 }
 
-pub(super) async fn fail_message(app: &AppHandle, id: &str, message: &str) -> Result<(), String> {
+pub(super) async fn fail_message(
+    app: &AppHandle,
+    derivation_id: &str,
+    message: &str,
+) -> Result<(), String> {
     let pool = db::pool(app).await?;
-    fail_messages(pool, &[id.to_owned()], message).await
+    fail_messages(pool, &[derivation_id.to_owned()], message).await
 }
 
 pub(super) async fn fail_messages(
     pool: &sqlx::SqlitePool,
-    ids: &[String],
+    derivation_ids: &[String],
     message: &str,
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
-    for id in ids {
+    for id in derivation_ids {
         mark_failed(&mut tx, id, message).await?;
     }
     tx.commit().await.map_err(db::sql_error)
@@ -119,14 +123,14 @@ pub(crate) async fn reconcile_interrupted(app: &AppHandle) -> Result<(), String>
 
 async fn mark_failed(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    id: &str,
+    derivation_id: &str,
     error: &str,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let row: Option<(String, String)> = sqlx::query_as(
         "SELECT n.data,d.action_kind FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
     )
-    .bind(id)
+    .bind(derivation_id)
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -137,8 +141,8 @@ async fn mark_failed(
     let state_field = state_field_for(&action_kind);
     value[state_field] = Value::String("failed".into());
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")
-        .bind(sqlx::types::Json(&value)).bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(sqlx::types::Json(&value)).bind(now).bind(derivation_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='failed',error=$1,completed_at=$2,updated_at=$2 WHERE id=$3 AND status='running'")
-        .bind(error).bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(error).bind(now).bind(derivation_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

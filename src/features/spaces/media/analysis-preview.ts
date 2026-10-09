@@ -31,8 +31,8 @@ export function appendSpaceMediaAnalysisPreview(input: AppendMediaAnalysisPrevie
   };
 }
 
-export function clearSpaceMediaAnalysisPreview(previews: Ref<SpaceMediaAnalysisPreviews>, id: string) {
-  if (id in previews.value) {
-    previews.value = omit(previews.value, [id]);
+export function clearSpaceMediaAnalysisPreview(previews: Ref<SpaceMediaAnalysisPreviews>, nodeId: string) {
+  if (nodeId in previews.value) {
+    previews.value = omit(previews.value, [nodeId]);
   }
 }

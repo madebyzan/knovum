@@ -8,11 +8,11 @@ import type { CanvasRect } from "../contracts/canvas-editor-port";
 export function useSectionDrawCandidateBounds(
   draft: Readonly<Ref<CanvasRect | undefined>>,
   snapshot: () => SpaceEditSnapshot,
-  structureBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>,
+  structureBoundsById: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>,
 ) {
   return computed(() => {
     const frame = draft.value;
     if (!frame) return [];
-    return compact(sectionDrawCandidateIds(snapshot(), frame).map((id) => structureBounds.value.get(id)));
+    return compact(sectionDrawCandidateIds(snapshot(), frame).map((id) => structureBoundsById.value.get(id)));
   });
 }

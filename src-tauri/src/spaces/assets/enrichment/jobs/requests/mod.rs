@@ -108,8 +108,8 @@ pub async fn request_media_transcription(
     Ok(id)
 }
 
-pub(super) fn has_current_transcript(data: &serde_json::Value, source_revision: &str) -> bool {
-    let knowledge = &data["mediaKnowledge"];
+pub(super) fn has_current_transcript(payload: &serde_json::Value, source_revision: &str) -> bool {
+    let knowledge = &payload["mediaKnowledge"];
     knowledge["schemaVersion"].as_u64() == Some(1)
         && knowledge["sourceRevision"].as_str() == Some(source_revision)
         && serde_json::from_value::<crate::media::transcript::MediaTranscript>(

@@ -7,20 +7,20 @@ use std::collections::HashMap;
 
 pub(super) fn append_section(
     snapshot: &mut SpaceStructureSnapshot,
-    id: &str,
+    structure_node_id: &str,
     title: &str,
     frame: &SpaceRect,
     order: u32,
 ) {
     snapshot.structure.push(StructureNode::Section {
-        id: id.to_owned(),
+        id: structure_node_id.to_owned(),
         parent_id: None,
         order,
         locked: false,
         title: title.to_owned(),
     });
     snapshot.layouts.push(StructureLayout::Section {
-        structure_node_id: id.to_owned(),
+        structure_node_id: structure_node_id.to_owned(),
         position: Point {
             x: frame.x,
             y: frame.y,
@@ -33,9 +33,14 @@ pub(super) fn append_section(
         appearance: None,
     });
 }
-pub(super) fn require_new(index: &Index, id: &str) -> Result<(), String> {
-    if index.positions.contains_key(id) {
-        Err(format!("Structure node already exists: {id}"))
+pub(super) fn require_new(index: &Index, structure_node_id: &str) -> Result<(), String> {
+    if index
+        .position_by_structure_node_id
+        .contains_key(structure_node_id)
+    {
+        Err(format!(
+            "Structure node already exists: {structure_node_id}"
+        ))
     } else {
         Ok(())
     }

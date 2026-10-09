@@ -11,7 +11,7 @@ struct ActionBinding {
 }
 
 pub(super) const fn action(
-    id: &'static str,
+    action_id: &'static str,
     execution_capability: Option<ExecutionCapability>,
     routing_purpose: Option<RoutingPurpose>,
     input_roles: &'static [SpaceActionInputRole],
@@ -19,7 +19,7 @@ pub(super) const fn action(
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     definition(
-        id,
+        action_id,
         SpaceActionImpact::CreatesResource,
         SpaceActionExecutionMode::Durable,
         ActionBinding {
@@ -33,7 +33,7 @@ pub(super) const fn action(
 }
 
 pub(super) const fn query_action(
-    id: &'static str,
+    action_id: &'static str,
     execution_capability: Option<ExecutionCapability>,
     routing_purpose: Option<RoutingPurpose>,
     input_roles: &'static [SpaceActionInputRole],
@@ -41,7 +41,7 @@ pub(super) const fn query_action(
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     definition(
-        id,
+        action_id,
         SpaceActionImpact::ReadOnly,
         SpaceActionExecutionMode::Immediate,
         ActionBinding {
@@ -55,7 +55,7 @@ pub(super) const fn query_action(
 }
 
 pub(super) const fn durable_query_action(
-    id: &'static str,
+    action_id: &'static str,
     execution_capability: ExecutionCapability,
     routing_purpose: RoutingPurpose,
     input_roles: &'static [SpaceActionInputRole],
@@ -63,7 +63,7 @@ pub(super) const fn durable_query_action(
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     definition(
-        id,
+        action_id,
         SpaceActionImpact::ReadOnly,
         SpaceActionExecutionMode::Durable,
         ActionBinding {
@@ -77,13 +77,13 @@ pub(super) const fn durable_query_action(
 }
 
 pub(super) const fn immediate_action(
-    id: &'static str,
+    action_id: &'static str,
     input_roles: &'static [SpaceActionInputRole],
     parameters_schema: ParameterSchemaFactory,
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     definition(
-        id,
+        action_id,
         SpaceActionImpact::CreatesResource,
         SpaceActionExecutionMode::Immediate,
         ActionBinding {
@@ -97,12 +97,12 @@ pub(super) const fn immediate_action(
 }
 
 pub(super) const fn immediate_mutation_action(
-    id: &'static str,
+    action_id: &'static str,
     parameters_schema: ParameterSchemaFactory,
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     definition(
-        id,
+        action_id,
         SpaceActionImpact::MutatesResource,
         SpaceActionExecutionMode::Immediate,
         ActionBinding {
@@ -116,7 +116,7 @@ pub(super) const fn immediate_mutation_action(
 }
 
 const fn definition(
-    id: &'static str,
+    action_id: &'static str,
     impact: SpaceActionImpact,
     execution_mode: SpaceActionExecutionMode,
     binding: ActionBinding,
@@ -125,7 +125,7 @@ const fn definition(
     output_contract: SpaceActionOutputContract,
 ) -> SpaceActionDefinition {
     SpaceActionDefinition {
-        id,
+        id: action_id,
         version: 1,
         impact,
         execution_mode,

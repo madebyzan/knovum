@@ -46,7 +46,7 @@ pub(super) fn run(
 fn execute(
     assets: &Path,
     workspace: &Path,
-    id: Uuid,
+    job_id: Uuid,
     source_url: String,
     tools: AcquisitionTools,
     progress: &Channel<AcquisitionProgress>,
@@ -74,7 +74,15 @@ fn execute(
             duration_ms: None,
         })
         .map_err(|error| error.to_string())?;
-    publish::commit(assets, workspace, id, &tools.ffmpeg, progress, cancellation).map(Some)
+    publish::commit(
+        assets,
+        workspace,
+        job_id,
+        &tools.ffmpeg,
+        progress,
+        cancellation,
+    )
+    .map(Some)
 }
 
 fn parse_job_id(value: &str) -> Result<Uuid, String> {

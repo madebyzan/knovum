@@ -35,9 +35,9 @@ const options = computed(() => presets.value.map(({ id, name }) => ({ value: id,
 
 onMounted(store.ensureLoaded);
 
-function apply(id: string) {
-  selected.value = id;
-  const preset = presets.value.find((candidate) => candidate.id === id);
+function apply(presetId: string) {
+  selected.value = presetId;
+  const preset = presets.value.find((candidate) => candidate.id === presetId);
   if (preset) emit("apply", cloneDeep(preset));
 }
 

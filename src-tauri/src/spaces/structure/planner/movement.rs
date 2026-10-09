@@ -8,11 +8,11 @@ use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
 pub(in crate::spaces::structure) fn move_structure(
     snapshot: &mut SpaceStructureSnapshot,
-    ids: &[String],
+    structure_node_ids: &[String],
     delta: &SpacePoint,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let roots = effective_roots(&snapshot.structure, &index, ids)?;
+    let roots = effective_roots(&snapshot.structure, &index, structure_node_ids)?;
     if roots.is_empty() {
         return Err("Move requires selected structure nodes".into());
     }
@@ -31,12 +31,13 @@ pub(in crate::spaces::structure) fn move_structure(
 pub(in crate::spaces::structure) fn moved_layout(
     snapshot: &SpaceStructureSnapshot,
     index: &Index,
-    id: &str,
+    target_structure_node_id: &str,
     dx: f64,
     dy: f64,
 ) -> Result<StructureLayout, String> {
-    let structure_node = index.node(&snapshot.structure, id)?;
-    let layout = snapshot.layouts[index.layout[id]].clone();
+    let structure_node = index.node(&snapshot.structure, target_structure_node_id)?;
+    let layout =
+        snapshot.layouts[index.layout_index_by_structure_node_id[target_structure_node_id]].clone();
     if let StructureLayout::Section {
         structure_node_id,
         mut position,
@@ -74,14 +75,14 @@ pub(in crate::spaces::structure) fn moved_layout(
 
 pub(in crate::spaces::structure) fn transform_structure(
     snapshot: &mut SpaceStructureSnapshot,
-    ids: &[String],
+    structure_node_ids: &[String],
     anchor: &SpacePoint,
     translation: &SpacePoint,
     rotation_delta: f64,
     scale_factor: f64,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let roots = effective_roots(&snapshot.structure, &index, ids)?;
+    let roots = effective_roots(&snapshot.structure, &index, structure_node_ids)?;
     if roots.is_empty()
         || roots
             .iter()
@@ -118,14 +119,15 @@ pub(in crate::spaces::structure) fn transform_structure(
         };
         updates.insert(
             id.clone(),
-            map_transform(snapshot.layouts[index.layout[id]].clone(), |_| {
-                local_from_world(&after, &parent)
-            })?,
+            map_transform(
+                snapshot.layouts[index.layout_index_by_structure_node_id[id]].clone(),
+                |_| local_from_world(&after, &parent),
+            )?,
         );
     }
     replace_layouts(&mut snapshot.layouts, updates);
     if translation.x != 0.0 || translation.y != 0.0 {
-        move_structure(snapshot, ids, translation)?;
+        move_structure(snapshot, structure_node_ids, translation)?;
     }
     Ok(roots)
 }

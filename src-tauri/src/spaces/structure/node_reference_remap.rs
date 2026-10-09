@@ -26,15 +26,19 @@ pub(super) async fn load_object_fields(
 }
 
 pub(super) fn remap(
-    data: &mut Value,
-    node_ids: &HashMap<String, String>,
-    structure_ids: &HashMap<String, String>,
+    payload: &mut Value,
+    node_id_by_source_id: &HashMap<String, String>,
+    structure_node_id_by_source_id: &HashMap<String, String>,
     object_fields: Option<&Value>,
 ) -> Result<(), String> {
-    match data.get("kind").and_then(Value::as_str) {
+    match payload.get("kind").and_then(Value::as_str) {
         Some("portal") => {
-            replace_field(data, "targetNodeId", node_ids);
-            replace_field(data, "targetStructureNodeId", structure_ids);
+            replace_field(payload, "targetNodeId", node_id_by_source_id);
+            replace_field(
+                payload,
+                "targetStructureNodeId",
+                structure_node_id_by_source_id,
+            );
         }
         Some("object") => {
             if let Some(fields) = object_fields {
@@ -47,22 +51,22 @@ pub(super) fn remap(
                             .get("key")
                             .and_then(Value::as_str)
                             .ok_or("Knowledge Type node-ref field key is invalid")?;
-                        if let Some(properties) = data.get_mut("properties") {
-                            replace_field(properties, key, node_ids);
+                        if let Some(properties) = payload.get_mut("properties") {
+                            replace_field(properties, key, node_id_by_source_id);
                         }
                     }
                 }
             }
-            crate::spaces::knowledge::model::revision::apply(data)?;
+            crate::spaces::knowledge::model::revision::apply(payload)?;
         }
         _ => {}
     }
     Ok(())
 }
 
-fn replace_field(value: &mut Value, field: &str, ids: &HashMap<String, String>) {
+fn replace_field(value: &mut Value, field: &str, node_id_by_source_id: &HashMap<String, String>) {
     if let Some(current) = value.get(field).and_then(Value::as_str) {
-        if let Some(replacement) = ids.get(current) {
+        if let Some(replacement) = node_id_by_source_id.get(current) {
             value[field] = Value::String(replacement.clone());
         }
     }

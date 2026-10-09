@@ -33,10 +33,10 @@ function createHarness(initiallyExpanded: string[] = []) {
   const expanded = shallowRef<string[]>(initiallyExpanded);
   const selectedIds: string[] = [];
 
-  function toggleId(id: string) {
-    expanded.value = expanded.value.includes(id)
-      ? expanded.value.filter((value) => value !== id)
-      : [...expanded.value, id];
+  function toggleId(structureNodeId: string) {
+    expanded.value = expanded.value.includes(structureNodeId)
+      ? expanded.value.filter((value) => value !== structureNodeId)
+      : [...expanded.value, structureNodeId];
   }
 
   const Harness = defineComponent({

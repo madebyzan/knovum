@@ -20,7 +20,7 @@ export interface UrlCaptureContext {
   nodes: SpaceCanvasNode[];
   beginUrlCapture(input: Omit<SpaceUrlCaptureProjection, "id">): SpaceUrlCaptureProjection;
   updateUrlCapture(
-    id: string,
+    captureId: string,
     patch: Partial<
       Pick<
         SpaceUrlCaptureProjection,
@@ -28,7 +28,7 @@ export interface UrlCaptureContext {
       >
     >,
   ): void;
-  finishUrlCapture(id: string): void;
+  finishUrlCapture(captureId: string): void;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
   saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
 }

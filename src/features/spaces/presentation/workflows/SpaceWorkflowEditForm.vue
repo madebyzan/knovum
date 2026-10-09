@@ -84,9 +84,9 @@ function setText(key: string, value: string) {
   parameterText.value = { ...parameterText.value, [key]: value };
 }
 
-function setIncludedSteps(ids: string[]) {
-  includedStepIds.value = ids;
-  outputSlots.value = outputSlots.value.filter(({ stepId }) => ids.includes(stepId));
+function setIncludedSteps(stepIds: string[]) {
+  includedStepIds.value = stepIds;
+  outputSlots.value = outputSlots.value.filter(({ stepId }) => stepIds.includes(stepId));
 }
 
 async function save() {

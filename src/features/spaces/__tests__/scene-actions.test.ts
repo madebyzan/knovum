@@ -5,7 +5,7 @@ import type { SpaceScene } from "../scenes/scene";
 
 const sceneRepository = vi.hoisted(() => ({
   createScene: vi.fn<() => Promise<void>>(),
-  deleteScene: vi.fn<(id: string) => Promise<string[]>>(),
+  deleteScene: vi.fn<(sceneId: string) => Promise<string[]>>(),
   updateScene: vi.fn<(scene: SpaceScene) => Promise<string[]>>(),
   updateSceneOrders: vi.fn<() => Promise<void>>(),
 }));

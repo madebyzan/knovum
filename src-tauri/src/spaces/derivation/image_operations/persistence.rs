@@ -131,12 +131,12 @@ async fn complete_persistence(
 async fn persist(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &DeriveImageRequest,
-    data: &mut Value,
+    payload: &mut Value,
     image: &CanonicalImage,
     path: &Path,
 ) -> Result<super::super::DerivationRelation, AppError> {
     let now = crate::clock::unix_time_millis()?;
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or("Image operation node data is invalid")?;
     object.insert(
@@ -151,10 +151,11 @@ async fn persist(
     object.remove("processingState");
     object.remove("imageEdit");
     object.remove("previewPath");
-    revision::apply(data)?;
-    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", data)
+    revision::apply(payload)?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)
         .await?;
-    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
+    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
+        .await?;
     let relation = relations::derives_from(
         &request.space_id,
         &request.output_node_id,

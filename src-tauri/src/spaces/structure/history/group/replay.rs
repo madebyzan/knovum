@@ -122,7 +122,7 @@ pub(super) async fn save_targets(
 
 fn removed_structure_deepest(current: &[StructureNode], desired: &[StructureNode]) -> Vec<String> {
     let desired: HashSet<&str> = desired.iter().map(StructureNode::id).collect();
-    let by_id: HashMap<&str, &StructureNode> = current
+    let structure_node_by_id: HashMap<&str, &StructureNode> = current
         .iter()
         .map(|structure_node| (structure_node.id(), structure_node))
         .collect();
@@ -131,14 +131,14 @@ fn removed_structure_deepest(current: &[StructureNode], desired: &[StructureNode
         .filter(|structure_node| !desired.contains(structure_node.id()))
         .map(|structure_node| structure_node.id().to_owned())
         .collect::<Vec<_>>();
-    removed.sort_by_key(|id| std::cmp::Reverse(depth(id, &by_id)));
+    removed.sort_by_key(|id| std::cmp::Reverse(depth(id, &structure_node_by_id)));
     removed
 }
 
-fn depth(id: &str, structure: &HashMap<&str, &StructureNode>) -> usize {
+fn depth(structure_node_id: &str, structure: &HashMap<&str, &StructureNode>) -> usize {
     let mut depth = 0;
     let mut parent = structure
-        .get(id)
+        .get(structure_node_id)
         .and_then(|structure_node| structure_node.parent_id());
     while let Some(value) = parent {
         depth += 1;

@@ -12,7 +12,7 @@ import { currentCanvasEditor } from "./editor-session";
 
 const SETTLE_DELAY_MS = 800;
 const publications = pLimit(1);
-const captures = new Map<string, symbol>();
+const captureBySpaceId = new Map<string, symbol>();
 const persistScheduledThumbnail = debounce((state: SpaceState) => {
   void persistActiveCanvasThumbnail(state).catch((error) =>
     logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
@@ -27,7 +27,7 @@ export function scheduleCanvasThumbnail(state: SpaceState) {
 }
 
 function needsCapture(state: SpaceState, space: Space) {
-  return state.thumbnailDirty.value || (!space.thumbnailPath && !captures.has(space.id));
+  return state.thumbnailDirty.value || (!space.thumbnailPath && !captureBySpaceId.has(space.id));
 }
 
 export function captureActiveCanvasThumbnail(state: SpaceState) {
@@ -44,7 +44,7 @@ async function persistActiveCanvasThumbnail(state: SpaceState) {
   const editor = currentCanvasEditor();
   if (!editor) throw new Error("Space canvas is not mounted");
   const capture = Symbol(space.id);
-  captures.set(space.id, capture);
+  captureBySpaceId.set(space.id, capture);
   const snapshot = state.editSnapshot.value;
   const nodes = state.nodes.value;
   const updatedAt = space.updatedAt;
@@ -58,7 +58,12 @@ async function persistActiveCanvasThumbnail(state: SpaceState) {
         state.activeSpace.value?.id === space.id &&
         (state.editSnapshot.value !== snapshot || state.nodes.value !== nodes);
       if (changed) state.thumbnailDirty.value = true;
-      if (!current || changed || current.updatedAt !== updatedAt || captures.get(space.id) !== capture) {
+      if (
+        !current ||
+        changed ||
+        current.updatedAt !== updatedAt ||
+        captureBySpaceId.get(space.id) !== capture
+      ) {
         await removeSpaceAsset(stagedPath!);
         stagedPath = undefined;
         return;
@@ -73,7 +78,7 @@ async function persistActiveCanvasThumbnail(state: SpaceState) {
     await removeFailedThumbnail(stagedPath, error);
     throw error;
   } finally {
-    if (captures.get(space.id) === capture) captures.delete(space.id);
+    if (captureBySpaceId.get(space.id) === capture) captureBySpaceId.delete(space.id);
   }
 }
 

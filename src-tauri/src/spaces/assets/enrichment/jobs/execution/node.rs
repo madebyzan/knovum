@@ -33,7 +33,7 @@ pub(super) async fn load_current(
 pub(super) async fn save(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
-    data: Value,
+    payload: Value,
     expected_media_knowledge: &Value,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Value, AppError> {
@@ -45,7 +45,7 @@ pub(super) async fn save(
         super::EnrichmentJobType::AnalyzeVisual => "visualKnowledge",
         _ => return Err(AppError::invalid("Enrichment job does not own node data")),
     };
-    let value = data
+    let value = payload
         .get(field)
         .cloned()
         .ok_or_else(|| format!("Enrichment did not produce node field {field}"))?;

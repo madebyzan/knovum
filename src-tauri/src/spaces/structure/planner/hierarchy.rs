@@ -6,14 +6,14 @@ use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
 pub(in crate::spaces::structure) fn reparent(
     snapshot: &mut SpaceStructureSnapshot,
-    ids: &[String],
+    structure_node_ids: &[String],
     parent: Option<&str>,
     order: u32,
 ) -> Result<Vec<String>, String> {
     let original_structure = snapshot.structure.clone();
     let original_layouts = snapshot.layouts.clone();
     let index = Index::new(&original_structure, &original_layouts);
-    let roots = effective_roots(&original_structure, &index, ids)?;
+    let roots = effective_roots(&original_structure, &index, structure_node_ids)?;
     if roots.is_empty() {
         return Err("Reparent requires selected structure nodes".into());
     }
@@ -53,12 +53,12 @@ pub(in crate::spaces::structure) fn reparent(
         }
     }
     let selected: HashSet<&str> = roots.iter().map(String::as_str).collect();
-    let ordered: Vec<String> = index.children[&old_parent]
+    let ordered: Vec<String> = index.children_by_parent_id[&old_parent]
         .iter()
         .filter(|id| selected.contains(id.as_str()))
         .cloned()
         .collect();
-    let mut sequences = index.children.clone();
+    let mut sequences = index.children_by_parent_id.clone();
     sequences
         .entry(old_parent.clone())
         .or_default()
@@ -86,7 +86,7 @@ pub(in crate::spaces::structure) fn reparent(
 
 fn normalize_orders(snapshot: &mut SpaceStructureSnapshot) {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
-    let _ = apply_sequences(&mut snapshot.structure, &index.children);
+    let _ = apply_sequences(&mut snapshot.structure, &index.children_by_parent_id);
 }
 use std::collections::{HashMap, HashSet};
 

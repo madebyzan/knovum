@@ -63,10 +63,10 @@ function validateRecognitionInputs(report: DocumentCoverage, context: z.Refineme
 
 function validateCompletion(
   occurrence: DocumentCoverage["occurrences"][number],
-  ids: Set<string>,
+  resourceIds: Set<string>,
   context: z.RefinementCtx,
 ) {
-  if (occurrence.resourceId && !ids.has(occurrence.resourceId)) {
+  if (occurrence.resourceId && !resourceIds.has(occurrence.resourceId)) {
     context.addIssue({ code: "custom", message: "Document occurrence references an unavailable resource" });
   }
   if ((occurrence.state === "completed") !== (occurrence.analysis !== null)) {

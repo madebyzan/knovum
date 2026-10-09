@@ -139,8 +139,12 @@ async fn load_pending_output(
         .map_err(AppError::from)
 }
 
-fn apply_layer_content(data: &mut Value, layer: &PreparedLayer, now: i64) -> Result<(), AppError> {
-    let object = data
+fn apply_layer_content(
+    payload: &mut Value,
+    layer: &PreparedLayer,
+    now: i64,
+) -> Result<(), AppError> {
+    let object = payload
         .as_object_mut()
         .ok_or("Image layer output data is invalid")?;
     object.insert(
@@ -160,7 +164,7 @@ fn apply_layer_content(data: &mut Value, layer: &PreparedLayer, now: i64) -> Res
     ] {
         object.remove(field);
     }
-    revision::apply(data)?;
+    revision::apply(payload)?;
     Ok(())
 }
 

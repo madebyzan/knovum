@@ -11,8 +11,11 @@ pub struct EventEntity<'a> {
 }
 
 impl<'a> EventEntity<'a> {
-    pub fn new(kind: &'a str, id: &'a str) -> Self {
-        Self { kind, id }
+    pub fn new(kind: &'a str, entity_id: &'a str) -> Self {
+        Self {
+            kind,
+            id: entity_id,
+        }
     }
 }
 
@@ -23,8 +26,8 @@ pub struct EventActor<'a> {
 }
 
 impl<'a> EventActor<'a> {
-    pub fn new(kind: &'a str, id: Option<&'a str>) -> Self {
-        Self { kind, id }
+    pub fn new(kind: &'a str, actor_id: Option<&'a str>) -> Self {
+        Self { kind, id: actor_id }
     }
 
     pub fn kind(self) -> &'a str {

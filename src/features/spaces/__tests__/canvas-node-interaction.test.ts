@@ -114,8 +114,8 @@ describe("canvas node interaction policy", () => {
   });
 });
 
-function canvasNode(id: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
-  return createSpaceNode(data, { x: 0, y: 0 }, id);
+function canvasNode(nodeId: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
+  return createSpaceNode(data, { x: 0, y: 0 }, nodeId);
 }
 
 function audioContent() {

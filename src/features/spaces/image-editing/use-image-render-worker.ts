@@ -14,16 +14,16 @@ interface RenderJob {
 
 export const useImageRenderWorker = createSharedComposable(() => {
   const worker = new Worker(new URL("./image-render-worker.ts", import.meta.url), { type: "module" });
-  const queued = new Map<object, RenderJob>();
+  const queuedJobByOwner = new Map<object, RenderJob>();
   let running: RenderJob | undefined;
   let stopped = false;
   let failure: Error | undefined;
 
   function cancel(owner: object) {
-    const pending = queued.get(owner);
+    const pending = queuedJobByOwner.get(owner);
     if (pending) {
       pending.resolve(undefined);
-      queued.delete(owner);
+      queuedJobByOwner.delete(owner);
     }
     if (running?.owner === owner) {
       running.cancelled = true;
@@ -31,10 +31,10 @@ export const useImageRenderWorker = createSharedComposable(() => {
     }
   }
   function dispatch() {
-    if (running || stopped || failure || queued.size === 0) return;
-    const jobs = [...queued.values()];
+    if (running || stopped || failure || queuedJobByOwner.size === 0) return;
+    const jobs = [...queuedJobByOwner.values()];
     const job = jobs.find((candidate) => candidate.priority) ?? jobs[0]!;
-    queued.delete(job.owner);
+    queuedJobByOwner.delete(job.owner);
     running = job;
     void job
       .prepare()
@@ -66,16 +66,16 @@ export const useImageRenderWorker = createSharedComposable(() => {
   worker.addEventListener("error", (event) => {
     failure = new Error(event.message || "Image preview worker failed");
     running?.reject(failure);
-    for (const job of queued.values()) job.reject(failure);
-    queued.clear();
+    for (const job of queuedJobByOwner.values()) job.reject(failure);
+    queuedJobByOwner.clear();
     running = undefined;
     worker.terminate();
   });
   onScopeDispose(() => {
     stopped = true;
     running?.resolve(undefined);
-    for (const job of queued.values()) job.resolve(undefined);
-    queued.clear();
+    for (const job of queuedJobByOwner.values()) job.resolve(undefined);
+    queuedJobByOwner.clear();
     worker.terminate();
   });
   return {
@@ -84,7 +84,7 @@ export const useImageRenderWorker = createSharedComposable(() => {
       cancel(owner);
       if (failure) return Promise.reject<ImageBitmap>(failure);
       return new Promise<ImageBitmap | undefined>((resolve, reject) => {
-        queued.set(owner, { owner, prepare, priority, resolve, reject, cancelled: false });
+        queuedJobByOwner.set(owner, { owner, prepare, priority, resolve, reject, cancelled: false });
         dispatch();
       });
     },

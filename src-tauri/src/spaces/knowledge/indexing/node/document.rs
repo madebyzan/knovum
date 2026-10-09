@@ -2,12 +2,12 @@ use crate::spaces::knowledge::indexing::{self, KnowledgeChunkSeed};
 use crate::spaces::knowledge::model::document_coverage::{DocumentCoverage, VisualState};
 use serde_json::{json, Value};
 
-pub(in crate::spaces) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
-    if data.get("documentCoverage").is_none() {
+pub(in crate::spaces) fn chunks(payload: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
+    if payload.get("documentCoverage").is_none() {
         return Ok(Vec::new());
     }
-    let report = DocumentCoverage::from_node_content(data)?;
-    let revision = data
+    let report = DocumentCoverage::from_node_content(payload)?;
+    let revision = payload
         .get("knowledgeRevision")
         .and_then(Value::as_str)
         .ok_or("Document visual chunks require knowledgeRevision")?;

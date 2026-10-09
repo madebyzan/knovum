@@ -15,8 +15,8 @@ function spaceIdValue(spaceId: MaybeRefOrGetter<string | null | undefined>) {
 
 function useSpaceQuery<T>(
   spaceId: MaybeRefOrGetter<string | null | undefined>,
-  keyFactory: (id: string) => readonly unknown[],
-  fetcher: (id: string) => Promise<T>,
+  keyFactory: (spaceId: string) => readonly unknown[],
+  fetcher: (spaceId: string) => Promise<T>,
   extraEnabled?: () => boolean,
 ) {
   return useQuery<T>(

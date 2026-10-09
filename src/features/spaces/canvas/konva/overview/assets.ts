@@ -28,7 +28,7 @@ export async function loadCanvasOverviewImages(
       : spaceCanvasOverviewSource(node.data);
     return source ? [{ id: node.id, source }] : [];
   });
-  const images = new Map<string, HTMLImageElement>();
+  const imageByNodeId = new Map<string, HTMLImageElement>();
   let unavailable = 0;
   await Promise.all(
     candidates.map((candidate) =>
@@ -38,7 +38,7 @@ export async function loadCanvasOverviewImages(
           image.crossOrigin = "anonymous";
           image.src = candidate.source;
           await image.decode();
-          images.set(candidate.id, image);
+          imageByNodeId.set(candidate.id, image);
         } catch {
           unavailable += 1;
         }
@@ -48,5 +48,5 @@ export async function loadCanvasOverviewImages(
   if (unavailable) {
     void logWarn(`Canvas overview could not load ${unavailable} preview image(s)`);
   }
-  return images;
+  return imageByNodeId;
 }

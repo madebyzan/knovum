@@ -8,12 +8,12 @@ import type { SpaceSessionContext } from "../workspace/space-session-context";
 import { createTestSessionContext, createTestSpace } from "./support/session-context";
 
 const lifecycleRepository = vi.hoisted(() => ({
-  archiveSpace: vi.fn<(id: string) => Promise<void>>(),
-  unarchiveSpace: vi.fn<(id: string) => Promise<void>>(),
+  archiveSpace: vi.fn<(spaceId: string) => Promise<void>>(),
+  unarchiveSpace: vi.fn<(spaceId: string) => Promise<void>>(),
 }));
 const spaceRepository = vi.hoisted(() => ({
-  deleteSpacePermanently: vi.fn<(id: string) => Promise<string[]>>(),
-  listCredentialNodeIds: vi.fn<(id: string) => Promise<string[]>>(),
+  deleteSpacePermanently: vi.fn<(spaceId: string) => Promise<string[]>>(),
+  listCredentialNodeIds: vi.fn<(spaceId: string) => Promise<string[]>>(),
 }));
 
 vi.mock("../workspace/space-operations", () => ({

@@ -4,7 +4,7 @@ use crate::spaces::{conversations::Conversation, db};
 
 pub async fn ensure_conversation(
     tx: &mut Transaction<'_, Sqlite>,
-    id: &str,
+    conversation_id: &str,
     space_id: &str,
     title: &str,
     now: i64,
@@ -14,7 +14,7 @@ pub async fn ensure_conversation(
          VALUES($1,$2,$3,$1,$4,$4) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
          WHERE spaces_conversations.space_id=excluded.space_id",
     )
-    .bind(id)
+    .bind(conversation_id)
     .bind(space_id)
     .bind(title)
     .bind(now)
@@ -68,7 +68,7 @@ pub async fn list_conversations(
     rows.into_iter().map(parse).collect()
 }
 
-pub async fn rename(pool: &SqlitePool, id: &str, title: &str) -> Result<(), String> {
+pub async fn rename(pool: &SqlitePool, conversation_id: &str, title: &str) -> Result<(), String> {
     let title = title.trim();
     if title.is_empty() || title.chars().count() > 160 {
         return Err("conversation-title-invalid".into());
@@ -77,41 +77,45 @@ pub async fn rename(pool: &SqlitePool, id: &str, title: &str) -> Result<(), Stri
         sqlx::query("UPDATE spaces_conversations SET title=$1,updated_at=$2 WHERE id=$3")
             .bind(title)
             .bind(crate::clock::unix_time_millis()?)
-            .bind(id)
+            .bind(conversation_id)
             .execute(pool)
             .await
             .map_err(db::sql_error)?;
     db::require_one(conversation_write, "conversation-unavailable")
 }
 
-pub async fn archive(pool: &SqlitePool, id: &str) -> Result<(), String> {
-    set_archived(pool, id, true).await
+pub async fn archive(pool: &SqlitePool, conversation_id: &str) -> Result<(), String> {
+    set_archived(pool, conversation_id, true).await
 }
 
-pub async fn unarchive(pool: &SqlitePool, id: &str) -> Result<(), String> {
-    set_archived(pool, id, false).await
+pub async fn unarchive(pool: &SqlitePool, conversation_id: &str) -> Result<(), String> {
+    set_archived(pool, conversation_id, false).await
 }
 
-async fn set_archived(pool: &SqlitePool, id: &str, archived: bool) -> Result<(), String> {
+async fn set_archived(
+    pool: &SqlitePool,
+    conversation_id: &str,
+    archived: bool,
+) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let archived_at = archived.then_some(now);
     let conversation_write =
         sqlx::query("UPDATE spaces_conversations SET archived_at=$1,updated_at=$2 WHERE id=$3")
             .bind(archived_at)
             .bind(now)
-            .bind(id)
+            .bind(conversation_id)
             .execute(pool)
             .await
             .map_err(db::sql_error)?;
     db::require_one(conversation_write, "conversation-unavailable")
 }
 
-pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
+pub async fn delete(pool: &SqlitePool, conversation_id: &str) -> Result<(), String> {
     let active: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id \
          WHERE t.conversation_id=$1 AND r.completed_at IS NULL",
     )
-    .bind(id)
+    .bind(conversation_id)
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
@@ -123,7 +127,7 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
         "DELETE FROM spaces_action_invocations WHERE principal_kind='builtin_agent' AND principal_id IN
          (SELECT id FROM spaces_builtin_agent_tasks WHERE conversation_id=$1)",
     )
-    .bind(id)
+    .bind(conversation_id)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -134,17 +138,17 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
              ON child.parent_run_id=parent.id
          ) DELETE FROM spaces_runs WHERE id IN (SELECT id FROM run_tree)",
     )
-    .bind(id)
+    .bind(conversation_id)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_conversation_drafts WHERE conversation_id=$1")
-        .bind(id)
+        .bind(conversation_id)
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
     let conversation_write = sqlx::query("DELETE FROM spaces_conversations WHERE id=$1")
-        .bind(id)
+        .bind(conversation_id)
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;

@@ -18,7 +18,7 @@ pub(super) async fn insert_nodes(
     now: i64,
 ) -> Result<Vec<Value>, String> {
     let index = Index::new(structure, layouts);
-    let by_node: HashMap<&str, &str> = structure
+    let structure_node_id_by_node_id: HashMap<&str, &str> = structure
         .iter()
         .filter_map(|structure_node| match structure_node {
             StructureNode::Content { id, node_id, .. } => Some((node_id.as_str(), id.as_str())),
@@ -38,7 +38,12 @@ pub(super) async fn insert_nodes(
         } else {
             None
         };
-        let world = world_transform(structure, layouts, &index, by_node[node.id.as_str()])?;
+        let world = world_transform(
+            structure,
+            layouts,
+            &index,
+            structure_node_id_by_node_id[node.id.as_str()],
+        )?;
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$8)").bind(&node.id).bind(space_id).bind(&kind).bind(object_type_id).bind(world.x).bind(world.y).bind(sqlx::types::Json(&node.data)).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
         response.push(serde_json::json!({"id":node.id,"type":kind,"data":node.data,"initialPosition":{"x":world.x,"y":world.y}}));
     }

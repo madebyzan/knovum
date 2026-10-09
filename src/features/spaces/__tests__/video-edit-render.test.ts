@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   logError: vi.fn<(message: string) => Promise<void>>(),
   toastError: vi.fn<(message: string) => void>(),
   // oxfmt-ignore
-  tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(id: string, progress: number, status?: string) => void>(), succeed: vi.fn<(id: string) => void>(), fail: vi.fn<(id: string, message: string) => void>(), dismiss: vi.fn<(id: string) => void>() },
+  tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(taskId: string, progress: number, status?: string) => void>(), succeed: vi.fn<(taskId: string) => void>(), fail: vi.fn<(taskId: string, message: string) => void>(), dismiss: vi.fn<(taskId: string) => void>() },
 }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));

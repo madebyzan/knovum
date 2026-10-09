@@ -24,14 +24,14 @@ pub(crate) struct RemappedPayload {
 pub(crate) fn remap(
     payload: ClipboardPayload,
     anchor: &SpacePoint,
-    object_fields: &HashMap<String, Value>,
+    fields_by_object_type_id: &HashMap<String, Value>,
 ) -> Result<RemappedPayload, String> {
-    let structure_node_ids = payload
+    let structure_node_id_by_source_id = payload
         .structure
         .iter()
         .map(|structure_node| (structure_node.id().to_owned(), Uuid::new_v4().to_string()))
         .collect::<HashMap<_, _>>();
-    let node_ids = payload
+    let node_id_by_source_id = payload
         .nodes
         .iter()
         .map(|node| (node.id.clone(), Uuid::new_v4().to_string()))
@@ -40,24 +40,35 @@ pub(crate) fn remap(
         .structure
         .into_iter()
         .map(|structure_node| {
-            mapping::remap_structure_node(structure_node, &structure_node_ids, &node_ids)
+            mapping::remap_structure_node(
+                structure_node,
+                &structure_node_id_by_source_id,
+                &node_id_by_source_id,
+            )
         })
         .collect::<Vec<_>>();
     let mut layouts = payload
         .layouts
         .into_iter()
-        .map(|layout| mapping::remap_layout(layout, &structure_node_ids))
+        .map(|layout| mapping::remap_layout(layout, &structure_node_id_by_source_id))
         .collect::<Vec<_>>();
     shift_to_anchor(&structure, &mut layouts, anchor)?;
     let nodes = payload
         .nodes
         .into_iter()
-        .map(|node| remap_node(node, &node_ids, &structure_node_ids, object_fields))
+        .map(|node| {
+            remap_node(
+                node,
+                &node_id_by_source_id,
+                &structure_node_id_by_source_id,
+                fields_by_object_type_id,
+            )
+        })
         .collect::<Result<Vec<_>, _>>()?;
     let relations = payload
         .relations
         .into_iter()
-        .map(|relation| remap_relation(relation, &node_ids))
+        .map(|relation| remap_relation(relation, &node_id_by_source_id))
         .collect();
     validate_space_snapshot(&structure, &layouts)?;
     Ok(RemappedPayload {
@@ -95,41 +106,46 @@ fn shift_to_anchor(
 
 fn remap_node(
     mut node: ClipboardNode,
-    ids: &HashMap<String, String>,
-    structure_ids: &HashMap<String, String>,
-    object_fields: &HashMap<String, Value>,
+    node_id_by_source_id: &HashMap<String, String>,
+    structure_node_id_by_source_id: &HashMap<String, String>,
+    fields_by_object_type_id: &HashMap<String, Value>,
 ) -> Result<ClipboardNode, String> {
     let fields = node
         .data
         .get("objectTypeId")
         .and_then(Value::as_str)
-        .and_then(|id| object_fields.get(id));
+        .and_then(|id| fields_by_object_type_id.get(id));
     crate::spaces::structure::node_reference_remap::remap(
         &mut node.data,
-        ids,
-        structure_ids,
+        node_id_by_source_id,
+        structure_node_id_by_source_id,
         fields,
     )?;
     Ok(ClipboardNode {
-        id: ids[&node.id].clone(),
+        id: node_id_by_source_id[&node.id].clone(),
         data: node.data,
     })
 }
 
 fn remap_relation(
     mut relation: ClipboardRelation,
-    ids: &HashMap<String, String>,
+    node_id_by_source_id: &HashMap<String, String>,
 ) -> ClipboardRelation {
     relation.id = Uuid::new_v4().to_string();
-    relation.source_id = ids[&relation.source_id].clone();
-    relation.target_id = ids[&relation.target_id].clone();
+    relation.source_id = node_id_by_source_id[&relation.source_id].clone();
+    relation.target_id = node_id_by_source_id[&relation.target_id].clone();
     relation
 }
 
-fn shift_root(layouts: &mut [StructureLayout], id: &str, dx: f64, dy: f64) -> Result<(), String> {
+fn shift_root(
+    layouts: &mut [StructureLayout],
+    structure_node_id: &str,
+    dx: f64,
+    dy: f64,
+) -> Result<(), String> {
     match layouts
         .iter_mut()
-        .find(|layout| layout.structure_node_id() == id)
+        .find(|layout| layout.structure_node_id() == structure_node_id)
         .ok_or("Clipboard root layout missing")?
     {
         StructureLayout::Content { transform, .. } | StructureLayout::Group { transform, .. } => {

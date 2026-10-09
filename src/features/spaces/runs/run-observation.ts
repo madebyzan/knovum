@@ -8,16 +8,16 @@ interface RunObserver {
   error(cause: unknown): void;
   finished(): void;
 }
-const observations = new Map<string, Set<RunObserver>>();
+const observersByRunId = new Map<string, Set<RunObserver>>();
 
 export function observeRun(runId: string, observer: RunObserver) {
-  const current = observations.get(runId);
+  const current = observersByRunId.get(runId);
   if (current) {
     current.add(observer);
     return;
   }
   const observers = new Set([observer]);
-  observations.set(runId, observers);
+  observersByRunId.set(runId, observers);
   const updates = new Channel<RunObservation>((run) => {
     for (const subscriber of observers) subscriber.update(run);
   });
@@ -26,7 +26,7 @@ export function observeRun(runId: string, observer: RunObserver) {
       for (const subscriber of observers) subscriber.error(cause);
     })
     .finally(() => {
-      observations.delete(runId);
+      observersByRunId.delete(runId);
       for (const subscriber of observers) subscriber.finished();
     });
 }

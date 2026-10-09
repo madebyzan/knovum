@@ -12,7 +12,7 @@ import { requestRunControl } from "./run-control";
 import { observeRun } from "./run-observation";
 
 type Listener = (run: RunObservation) => void;
-const observations = new Map<string, Set<Listener>>();
+const listenersByRunId = new Map<string, Set<Listener>>();
 let openVoiceLibrary: (() => Promise<void>) | undefined;
 
 export function registerVoiceLibraryRunNavigation(handler: () => Promise<void>) {
@@ -39,7 +39,7 @@ function refreshRunSpace(run: RunObservation) {
 }
 
 export function observeResourceRun(run: RunObservation, title: string, onUpdate?: Listener) {
-  const existing = observations.get(run.id);
+  const existing = listenersByRunId.get(run.id);
   if (existing) {
     if (onUpdate) existing.add(onUpdate);
     return () => {
@@ -48,7 +48,7 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
   }
   const listeners = new Set<Listener>();
   if (onUpdate) listeners.add(onUpdate);
-  observations.set(run.id, listeners);
+  listenersByRunId.set(run.id, listeners);
   const tasks = useTaskStore();
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelResourceRun(run.id));
   tasks.setOpen(run.id, () => openResourceRun(run));
@@ -65,7 +65,7 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
     },
     error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
     finished: () => {
-      observations.delete(run.id);
+      listenersByRunId.delete(run.id);
       refreshCanvas.cancel();
       refreshRunSpace(run);
     },

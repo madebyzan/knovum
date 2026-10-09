@@ -14,7 +14,7 @@ use crate::media::acquisition::{
 pub(super) fn commit(
     assets: &Path,
     workspace: &Path,
-    id: Uuid,
+    job_id: Uuid,
     ffmpeg: &Path,
     progress: &Channel<AcquisitionProgress>,
     cancellation: &CancellationToken,
@@ -34,10 +34,10 @@ pub(super) fn commit(
         cancellation,
     })?;
     let extension = output::extension(&playable)?;
-    let target = assets.join(format!("{id}.{extension}"));
+    let target = assets.join(format!("{job_id}.{extension}"));
     fs::rename(&playable, &target)
         .map_err(|error| format!("Unable to commit downloaded media asset: {error}"))?;
-    let preview_path = match commit_preview(workspace, assets, id) {
+    let preview_path = match commit_preview(workspace, assets, job_id) {
         Ok(value) => value,
         Err(error) => {
             let _ = fs::remove_file(&target);
@@ -97,7 +97,7 @@ fn build_import(
     })
 }
 
-fn commit_preview(workspace: &Path, assets: &Path, id: Uuid) -> Result<Option<String>, String> {
+fn commit_preview(workspace: &Path, assets: &Path, job_id: Uuid) -> Result<Option<String>, String> {
     let source = workspace.join("thumbnail.jpg");
     if !source.exists() {
         return Ok(None);
@@ -106,7 +106,7 @@ fn commit_preview(workspace: &Path, assets: &Path, id: Uuid) -> Result<Option<St
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return Err("yt-dlp returned an invalid media thumbnail".into());
     }
-    let target = assets.join(format!("{id}-preview.jpg"));
+    let target = assets.join(format!("{job_id}-preview.jpg"));
     fs::rename(source, &target)
         .map_err(|error| format!("Unable to commit downloaded media thumbnail: {error}"))?;
     Ok(Some(target.to_string_lossy().into_owned()))

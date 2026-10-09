@@ -43,14 +43,14 @@ export async function addSavedWebsite(
   return node;
 }
 
-export async function refreshSavedWebsite(context: WebsiteCaptureContext, id: string, url: string) {
+export async function refreshSavedWebsite(context: WebsiteCaptureContext, nodeId: string, url: string) {
   const spaceId = requireSpace(context);
-  const node = context.nodes.find((candidate) => candidate.id === id);
+  const node = context.nodes.find((candidate) => candidate.id === nodeId);
   if (!node || node.data.kind !== "website") return;
   const next: SpaceWebsitePayload = { ...node.data, metadataState: "loading" };
-  await context.saveNodeContentForSpace(spaceId, { id, expectedData: node.data, data: next });
+  await context.saveNodeContentForSpace(spaceId, { id: nodeId, expectedData: node.data, data: next });
   await websiteCaptureConcurrency(() =>
-    hydrateSavedWebsite({ context, spaceId, id, data: next }, url, { preserveTitle: true }),
+    hydrateSavedWebsite({ context, spaceId, id: nodeId, data: next }, url, { preserveTitle: true }),
   );
 }
 

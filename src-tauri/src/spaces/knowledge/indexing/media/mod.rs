@@ -45,8 +45,8 @@ struct Chapter {
     summary: String,
 }
 
-pub(crate) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
-    let Some(value) = data.get("mediaKnowledge") else {
+pub(crate) fn chunks(payload: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
+    let Some(value) = payload.get("mediaKnowledge") else {
         return Ok(Vec::new());
     };
     let knowledge: MediaKnowledge = serde_json::from_value(value.clone())

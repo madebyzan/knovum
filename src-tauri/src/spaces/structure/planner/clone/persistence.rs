@@ -7,11 +7,11 @@ use uuid::Uuid;
 pub(super) async fn clone_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    ids: &HashMap<String, String>,
-    structure_ids: &HashMap<String, String>,
+    node_id_by_source_id: &HashMap<String, String>,
+    structure_node_id_by_source_id: &HashMap<String, String>,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
-    for (old_id, new_id) in ids {
+    for (old_id, new_id) in node_id_by_source_id {
         let row = sqlx::query("SELECT n.kind,n.object_type_id,n.initial_x,n.initial_y,n.data,t.fields AS object_fields FROM spaces_nodes n LEFT JOIN spaces_object_types t ON t.id=n.object_type_id WHERE n.id=$1 AND n.space_id=$2 AND n.deleted_at IS NULL")
             .bind(old_id).bind(space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
             .ok_or_else(|| format!("Clone content node not found: {old_id}"))?;
@@ -28,8 +28,8 @@ pub(super) async fn clone_nodes(
             .transpose()?;
         super::super::super::node_reference_remap::remap(
             &mut data,
-            ids,
-            structure_ids,
+            node_id_by_source_id,
+            structure_node_id_by_source_id,
             fields.as_ref(),
         )?;
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at,deleted_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$8,NULL)")
@@ -41,7 +41,7 @@ pub(super) async fn clone_nodes(
             .bind(sqlx::types::Json(&data)).bind(now)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
-    for new_id in ids.values() {
+    for new_id in node_id_by_source_id.values() {
         let row = sqlx::query("SELECT kind,data FROM spaces_nodes WHERE id=$1 AND space_id=$2")
             .bind(new_id)
             .bind(space_id)
@@ -59,7 +59,7 @@ pub(super) async fn clone_nodes(
 pub(super) async fn clone_relations(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    node_ids: &HashMap<String, String>,
+    node_id_by_source_id: &HashMap<String, String>,
     snapshot: &mut SpaceStructureSnapshot,
 ) -> Result<(), String> {
     let rows = sqlx::query("SELECT id,source_id,target_id,kind,rationale,status,status_before_invalidation,confidence,actor_kind,actor_id,created_at,updated_at FROM spaces_relations WHERE space_id=$1")
@@ -72,8 +72,10 @@ pub(super) async fn clone_relations(
     for row in rows {
         let source: String = row.try_get("source_id").map_err(db::sql_error)?;
         let target: String = row.try_get("target_id").map_err(db::sql_error)?;
-        let (Some(new_source), Some(new_target)) = (node_ids.get(&source), node_ids.get(&target))
-        else {
+        let (Some(new_source), Some(new_target)) = (
+            node_id_by_source_id.get(&source),
+            node_id_by_source_id.get(&target),
+        ) else {
             continue;
         };
         let old_relation_id: String = row.try_get("id").map_err(db::sql_error)?;

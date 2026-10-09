@@ -28,23 +28,23 @@ pub(in crate::spaces::assets) async fn load(
     from_payload(&data)
 }
 
-pub(in crate::spaces::assets) fn from_payload(data: &Value) -> Result<ImageDocument, String> {
+pub(in crate::spaces::assets) fn from_payload(payload: &Value) -> Result<ImageDocument, String> {
     Ok(ImageDocument {
-        source_path: data
+        source_path: payload
             .get("assetPath")
             .and_then(Value::as_str)
             .ok_or("Image source path is unavailable")?
             .to_owned(),
-        source_revision: data
+        source_revision: payload
             .get("sourceRevision")
             .and_then(Value::as_str)
             .ok_or("Image source revision is unavailable")?
             .to_owned(),
-        file_name: data
+        file_name: payload
             .get("fileName")
             .and_then(Value::as_str)
             .ok_or("Image file name is unavailable")?
             .to_owned(),
-        edit: data.get("imageEdit").cloned().unwrap_or(Value::Null),
+        edit: payload.get("imageEdit").cloned().unwrap_or(Value::Null),
     })
 }

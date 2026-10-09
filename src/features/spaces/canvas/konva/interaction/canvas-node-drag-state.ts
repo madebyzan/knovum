@@ -17,23 +17,23 @@ export function captureCanvasNodeDragState(options: CanvasNodeDragOptions) {
   const { layouts, selectedNodeIds, lockedNodeIds, primaryId, stage } = options;
   if (lockedNodeIds.has(primaryId)) return undefined;
   const movable = movableCanvasSelectionNodeIds(new Set(selectedNodeIds).add(primaryId), lockedNodeIds);
-  const byId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
-  const frames = new Map(
+  const layoutByNodeId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
+  const frameByNodeId = new Map(
     [...movable].flatMap((id) => {
-      const frame = byId.get(id)?.frame;
+      const frame = layoutByNodeId.get(id)?.frame;
       return frame ? [[id, { ...frame }] as const] : [];
     }),
   );
-  const origin = frames.get(primaryId);
+  const origin = frameByNodeId.get(primaryId);
   if (!origin) return undefined;
-  const stationary = layouts.filter(({ nodeId }) => !frames.has(nodeId)).map(({ frame }) => frame);
+  const stationary = layouts.filter(({ nodeId }) => !frameByNodeId.has(nodeId)).map(({ frame }) => frame);
   const state: CanvasTranslationGestureState = {
     primaryId,
     origin,
-    frames,
+    frameByNodeId,
     snapIndex: createCanvasTranslationSnapIndex(stationary),
   };
-  const nodeRefs = captureCanvasNodeRefs(stage, frames.keys());
+  const nodeRefs = captureCanvasNodeRefs(stage, frameByNodeId.keys());
   return { nodeRefs, state };
 }
 
@@ -46,10 +46,10 @@ export function movableCanvasSelectionNodeIds(
 
 export function restoreCanvasNodeFrames(
   updates: readonly CanvasNodeFrameUpdate[],
-  nodes: ReadonlyMap<string, Konva.Node>,
+  nodeById: ReadonlyMap<string, Konva.Node>,
 ) {
   for (const { nodeId, frame } of updates) {
-    const node = nodes.get(nodeId);
+    const node = nodeById.get(nodeId);
     node?.position({ x: frame.x, y: frame.y });
     node?.rotation(frame.rotation);
     node?.scale({ x: 1, y: 1 });

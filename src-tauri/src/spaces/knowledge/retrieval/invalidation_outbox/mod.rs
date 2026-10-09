@@ -113,15 +113,15 @@ async fn drain_batch(
         return Ok(0);
     }
     let table = open_knowledge_table_if_exists(index).await;
-    let mut by_space: BTreeMap<String, Vec<PendingInvalidation>> = BTreeMap::new();
+    let mut invalidations_by_space_id: BTreeMap<String, Vec<PendingInvalidation>> = BTreeMap::new();
     for invalidation in pending {
-        by_space
+        invalidations_by_space_id
             .entry(invalidation.space_id.clone())
             .or_default()
             .push(invalidation);
     }
     let mut failures = Vec::new();
-    for (space, invalidations) in by_space {
+    for (space, invalidations) in invalidations_by_space_id {
         let outcome = match &table {
             Ok(table) => settlement::apply(table.as_ref(), &space, &invalidations).await,
             Err(error) => Err(error.clone()),
@@ -154,14 +154,14 @@ pub(crate) async fn drain_and_report<R: Runtime>(app: &AppHandle<R>, pool: &sqlx
 
 async fn record_failure(
     tx: &mut Transaction<'_, Sqlite>,
-    id: i64,
+    invalidation_id: i64,
     error: &str,
 ) -> Result<(), String> {
     sqlx::query(
         "UPDATE spaces_retrieval_invalidations SET attempts=attempts+1,last_error=$1 WHERE id=$2",
     )
     .bind(error)
-    .bind(id)
+    .bind(invalidation_id)
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;

@@ -11,20 +11,20 @@ import {
 
 export function useCanvasScenePreview(
   index: Readonly<Ref<CanvasScenePreviewIndex>>,
-  updates: Readonly<Ref<ReadonlyMap<string, CanvasGestureUpdate>>>,
+  gestureUpdateByNodeId: Readonly<Ref<ReadonlyMap<string, CanvasGestureUpdate>>>,
 ): CanvasScenePreview {
-  const layouts = shallowReactive(new Map<string, CanvasNodeLayoutV1>());
-  const relations = shallowReactive(new Map<string, CanvasSceneRelation>());
+  const layoutByNodeId = shallowReactive(new Map<string, CanvasNodeLayoutV1>());
+  const relationById = shallowReactive(new Map<string, CanvasSceneRelation>());
   watch(
-    [index, updates],
+    [index, gestureUpdateByNodeId],
     () => {
-      const projected = projectCanvasScenePreview(index.value, updates.value);
-      synchronizePreviewMap(layouts, projected.layouts);
-      synchronizePreviewMap(relations, projected.relations);
+      const projected = projectCanvasScenePreview(index.value, gestureUpdateByNodeId.value);
+      synchronizePreviewMap(layoutByNodeId, projected.layoutByNodeId);
+      synchronizePreviewMap(relationById, projected.relationById);
     },
     { immediate: true, flush: "sync" },
   );
-  return { layouts, relations };
+  return { layoutByNodeId, relationById };
 }
 
 function synchronizePreviewMap<K, V>(target: Map<K, V>, source: ReadonlyMap<K, V>) {

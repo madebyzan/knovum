@@ -8,13 +8,13 @@ import {
 } from "../model/relations/relation";
 
 function relation(
-  id: string,
+  relationId: string,
   sourceId: string,
   targetId: string,
   kind: SpaceRelation["kind"],
 ): SpaceRelation {
   return {
-    id,
+    id: relationId,
     spaceId: "space",
     sourceId,
     targetId,

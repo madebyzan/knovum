@@ -7,7 +7,7 @@ import { useSpeechWorkspace } from "../use-speech-workspace";
 
 const ipc = vi.hoisted(() => ({
   listSpeechProjects: vi.fn<(spaceId: string, nodeId: string) => Promise<unknown[]>>(),
-  getSpeechProject: vi.fn<(id: string) => Promise<unknown>>(),
+  getSpeechProject: vi.fn<(projectId: string) => Promise<unknown>>(),
   saveSpeechProjectRevision:
     vi.fn<(input: SaveSpeechProjectRevisionRequest) => Promise<SpeechProjectSnapshot>>(),
 }));

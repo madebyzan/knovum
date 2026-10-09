@@ -12,12 +12,14 @@ pub(super) fn reserve_maintenance() -> Result<JobAdmissionReservation, String> {
     jobs().reserve_maintenance()
 }
 
-pub(super) fn begin(id: &str) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
-    jobs().acquire_cancellable(id)
+pub(super) fn begin(
+    operation_id: &str,
+) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
+    jobs().acquire_cancellable(operation_id)
 }
 
-pub(super) fn cancel(id: &str) -> Result<(), String> {
-    jobs().cancel(id).map(|_| ())
+pub(super) fn cancel(operation_id: &str) -> Result<(), String> {
+    jobs().cancel(operation_id).map(|_| ())
 }
 
 pub(super) fn check(token: &CancellationToken) -> Result<(), AppError> {

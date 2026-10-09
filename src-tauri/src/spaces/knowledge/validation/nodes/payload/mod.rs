@@ -23,8 +23,8 @@ const COMMON_FIELDS: &[&str] = &[
     "externalSource",
 ];
 
-pub(super) fn validate_base_fields(kind: &str, data: &Value) -> Result<(), String> {
-    let object = data
+pub(super) fn validate_base_fields(kind: &str, payload: &Value) -> Result<(), String> {
+    let object = payload
         .as_object()
         .ok_or_else(|| "Space node data must be an object".to_string())?;
     if required_string(object, "kind", 32)? != kind {
@@ -38,8 +38,8 @@ pub(super) fn validate_base_fields(kind: &str, data: &Value) -> Result<(), Strin
     Ok(())
 }
 
-pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), String> {
-    let object = data
+pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), String> {
+    let object = payload
         .as_object()
         .ok_or_else(|| "Space node data must be an object".to_string())?;
     let specific = fields::specific_fields_for_kind(kind)?;

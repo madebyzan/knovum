@@ -70,7 +70,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     clearBranches: () => {
       branchSession.branches.value = [];
     },
-    loadBranches: (id) => branchSession.load(id),
+    loadBranches: (conversationId) => branchSession.load(conversationId),
   });
   const branchSession = useConversationBranches({
     selected: selectedConversation,

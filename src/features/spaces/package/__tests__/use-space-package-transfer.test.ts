@@ -18,13 +18,13 @@ vi.mock("vue-sonner", () => ({
 }));
 vi.mock("../../../../foundation/tasks/task-store", () => ({
   useTaskStore: () => ({
-    cancelled: vi.fn<(id: string) => void>(),
-    fail: vi.fn<(id: string, message: string) => void>(),
-    progress: vi.fn<(id: string, percent: number, message: string) => void>(),
+    cancelled: vi.fn<(taskId: string) => void>(),
+    fail: vi.fn<(taskId: string, message: string) => void>(),
+    progress: vi.fn<(taskId: string, percent: number, message: string) => void>(),
     start: (_title: string, _message: undefined, cancelTask: () => Promise<void>) => {
       mocks.cancelTask = cancelTask;
     },
-    succeed: vi.fn<(id: string) => void>(),
+    succeed: vi.fn<(taskId: string) => void>(),
   }),
 }));
 vi.mock("../../session/space-store", () => ({

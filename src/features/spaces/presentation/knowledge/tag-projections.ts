@@ -23,9 +23,9 @@ export function spaceTagCounts(nodes: readonly SpaceCanvasNode[]) {
 export function suggestTags(
   query: string,
   counts: readonly [string, number][],
-  selected: ReadonlyMap<string, number>,
+  selectedCountByTag: ReadonlyMap<string, number>,
 ) {
   if (!query.trim()) return [];
-  const candidates = counts.filter(([tag]) => !selected.has(tag));
+  const candidates = counts.filter(([tag]) => !selectedCountByTag.has(tag));
   return take(search(query.trim(), candidates, { keySelector: ([tag]) => tag }), 5);
 }

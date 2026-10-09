@@ -8,10 +8,10 @@ const CONTAINMENT_TOLERANCE = 0.5;
 /** Drawing considers complete root Content/Group units and never extracts Section descendants. */
 export function sectionDrawCandidateIds(snapshot: SpaceEditSnapshot, frame: SpaceRect): string[] {
   const index = createStructureIndex(snapshot.structure);
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layoutByStructureNodeId = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   return (index.childrenByParent.get(null) ?? []).flatMap((root) => {
     if (root.kind === "section") return [];
-    const bounds = boundsForOperationRoots([root.id], index, layouts);
+    const bounds = boundsForOperationRoots([root.id], index, layoutByStructureNodeId);
     return bounds &&
       bounds.left >= frame.x - CONTAINMENT_TOLERANCE &&
       bounds.top >= frame.y - CONTAINMENT_TOLERANCE &&

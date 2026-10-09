@@ -4,12 +4,12 @@ import type { CanvasScene, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
 
 export interface CanvasScenePreview {
-  layouts: ReadonlyMap<string, CanvasNodeLayoutV1>;
-  relations: ReadonlyMap<string, CanvasSceneRelation>;
+  layoutByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
+  relationById: ReadonlyMap<string, CanvasSceneRelation>;
 }
 
 export interface CanvasScenePreviewIndex {
-  layouts: ReadonlyMap<string, CanvasNodeLayoutV1>;
+  layoutByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
   relationsByNodeId: ReadonlyMap<string, readonly CanvasSceneRelation[]>;
 }
 
@@ -20,42 +20,42 @@ export function createCanvasScenePreviewIndex(scene: CanvasScene): CanvasScenePr
     appendRelation(relationsByNodeId, relation.targetNodeId, relation);
   }
   return {
-    layouts: new Map(scene.nodes.map(({ layout }) => [layout.nodeId, layout])),
+    layoutByNodeId: new Map(scene.nodes.map(({ layout }) => [layout.nodeId, layout])),
     relationsByNodeId,
   };
 }
 
 export function projectCanvasScenePreview(
   index: CanvasScenePreviewIndex,
-  updates: ReadonlyMap<string, CanvasGestureUpdate>,
+  gestureUpdateByNodeId: ReadonlyMap<string, CanvasGestureUpdate>,
 ): CanvasScenePreview {
-  if (updates.size === 0) return { layouts: new Map(), relations: new Map() };
-  const layouts = new Map<string, CanvasNodeLayoutV1>();
-  const affectedRelations = new Map<string, CanvasSceneRelation>();
-  for (const [nodeId, update] of updates) {
-    const layout = index.layouts.get(nodeId);
+  if (gestureUpdateByNodeId.size === 0) return { layoutByNodeId: new Map(), relationById: new Map() };
+  const layoutByNodeId = new Map<string, CanvasNodeLayoutV1>();
+  const affectedRelationById = new Map<string, CanvasSceneRelation>();
+  for (const [nodeId, update] of gestureUpdateByNodeId) {
+    const layout = index.layoutByNodeId.get(nodeId);
     if (!layout) continue;
-    layouts.set(nodeId, previewLayout(layout, update));
+    layoutByNodeId.set(nodeId, previewLayout(layout, update));
     for (const relation of index.relationsByNodeId.get(nodeId) ?? []) {
-      affectedRelations.set(relation.id, relation);
+      affectedRelationById.set(relation.id, relation);
     }
   }
-  const relations = new Map<string, CanvasSceneRelation>();
-  for (const relation of affectedRelations.values()) {
-    const projected = previewRelation(relation, index.layouts, layouts);
-    if (projected) relations.set(relation.id, projected);
+  const relationById = new Map<string, CanvasSceneRelation>();
+  for (const relation of affectedRelationById.values()) {
+    const projected = previewRelation(relation, index.layoutByNodeId, layoutByNodeId);
+    if (projected) relationById.set(relation.id, projected);
   }
-  return { layouts, relations };
+  return { layoutByNodeId, relationById };
 }
 
 function appendRelation(
-  index: Map<string, CanvasSceneRelation[]>,
+  relationsByNodeId: Map<string, CanvasSceneRelation[]>,
   nodeId: string,
   relation: CanvasSceneRelation,
 ) {
-  const relations = index.get(nodeId) ?? [];
-  relations.push(relation);
-  index.set(nodeId, relations);
+  const relationById = relationsByNodeId.get(nodeId) ?? [];
+  relationById.push(relation);
+  relationsByNodeId.set(nodeId, relationById);
 }
 
 function previewLayout(layout: CanvasNodeLayoutV1, update: CanvasGestureUpdate): CanvasNodeLayoutV1 {
@@ -68,16 +68,16 @@ function previewLayout(layout: CanvasNodeLayoutV1, update: CanvasGestureUpdate):
 
 function previewRelation(
   relation: CanvasSceneRelation,
-  canonicalLayouts: ReadonlyMap<string, CanvasNodeLayoutV1>,
-  previewLayouts: ReadonlyMap<string, CanvasNodeLayoutV1>,
+  canonicalLayoutByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>,
+  previewLayoutByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>,
 ) {
   const source =
-    previewLayouts.get(relation.sourceNodeId)?.frame ??
-    canonicalLayouts.get(relation.sourceNodeId)?.frame ??
+    previewLayoutByNodeId.get(relation.sourceNodeId)?.frame ??
+    canonicalLayoutByNodeId.get(relation.sourceNodeId)?.frame ??
     relation.sourceFrame;
   const target =
-    previewLayouts.get(relation.targetNodeId)?.frame ??
-    canonicalLayouts.get(relation.targetNodeId)?.frame ??
+    previewLayoutByNodeId.get(relation.targetNodeId)?.frame ??
+    canonicalLayoutByNodeId.get(relation.targetNodeId)?.frame ??
     relation.targetFrame;
   const geometry = relationGeometry(source, target, relation.parallelOffset);
   return { ...relation, ...geometry };

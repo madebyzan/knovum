@@ -19,7 +19,7 @@ const props = defineProps<{
   verticalClass: string;
   fontSize: number;
   textAlign: "left" | "center" | "right";
-  persist: (id: string, data: SpaceCanvasTextPayload) => Promise<void>;
+  persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>;
 }>();
 const { t } = useI18n();
 const placeholder = t("spaces.editor.note.placeholder");

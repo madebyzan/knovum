@@ -67,7 +67,7 @@ class CompiledVoice:
     ) -> None:
         failure: BaseException | None = None
 
-        def publish(data: Any, count: int, rate: int) -> int:
+        def publish(sample_pointer: Any, count: int, rate: int) -> int:
             nonlocal failure
             try:
                 if cancelled.is_set():
@@ -75,7 +75,7 @@ class CompiledVoice:
                 check_deadline(params.deadline_ms)
                 if not 0 < count <= 1024 * 1024 or rate != 48_000:
                     raise server_error("invalid_output", "Compiled speech chunk exceeds its format contract")
-                samples = np.ctypeslib.as_array(data, shape=(count,)).copy()
+                samples = np.ctypeslib.as_array(sample_pointer, shape=(count,)).copy()
                 publisher.publish(samples, rate, "model_chunk")
                 if cancelled.is_set():
                     raise server_error("cancelled", "Synthesis was cancelled")

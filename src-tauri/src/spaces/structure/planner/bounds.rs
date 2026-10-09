@@ -21,7 +21,9 @@ pub(in crate::spaces::structure) fn bounds_for_roots(
     while let Some(id) = pending.pop() {
         let structure_node = index.node(structure, &id)?;
         if let StructureNode::Content { .. } = structure_node {
-            let StructureLayout::Content { size, .. } = &layouts[index.layout[&id]] else {
+            let StructureLayout::Content { size, .. } =
+                &layouts[index.layout_index_by_structure_node_id[&id]]
+            else {
                 return Err(format!("Content layout missing: {id}"));
             };
             let world = world_transform(structure, layouts, index, &id)?;
@@ -46,7 +48,13 @@ pub(in crate::spaces::structure) fn bounds_for_roots(
                 ));
             }
         } else {
-            pending.extend(index.children.get(&Some(id)).cloned().unwrap_or_default());
+            pending.extend(
+                index
+                    .children_by_parent_id
+                    .get(&Some(id))
+                    .cloned()
+                    .unwrap_or_default(),
+            );
         }
     }
     Ok(bounds)
@@ -56,11 +64,13 @@ pub(in crate::spaces::structure) fn root_bounds(
     structure: &[StructureNode],
     layouts: &[StructureLayout],
     index: &Index,
-    id: &str,
+    structure_node_id: &str,
 ) -> Result<Bounds, String> {
-    if index.node(structure, id)?.kind_name() == "section" {
-        let StructureLayout::Section { position, size, .. } = &layouts[index.layout[id]] else {
-            return Err(format!("Section layout missing: {id}"));
+    if index.node(structure, structure_node_id)?.kind_name() == "section" {
+        let StructureLayout::Section { position, size, .. } =
+            &layouts[index.layout_index_by_structure_node_id[structure_node_id]]
+        else {
+            return Err(format!("Section layout missing: {structure_node_id}"));
         };
         return Ok(Bounds {
             left: position.x,
@@ -69,8 +79,8 @@ pub(in crate::spaces::structure) fn root_bounds(
             bottom: position.y + size.height,
         });
     }
-    bounds_for_roots(structure, layouts, index, &[id.to_owned()])?
-        .ok_or_else(|| format!("Operation root has no geometry: {id}"))
+    bounds_for_roots(structure, layouts, index, &[structure_node_id.to_owned()])?
+        .ok_or_else(|| format!("Operation root has no geometry: {structure_node_id}"))
 }
 
 pub(in crate::spaces::structure) fn merge(left: Option<Bounds>, right: Bounds) -> Bounds {

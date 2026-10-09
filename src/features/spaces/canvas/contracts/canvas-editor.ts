@@ -22,7 +22,7 @@ export interface CanvasFileImportReceipt {
 
 export interface CanvasHostEvents {
   onCopyNodes(nodes: readonly CanvasNodePlacement[]): Promise<void>;
-  onDeleteRelations(ids: readonly string[]): Promise<void>;
+  onDeleteRelations(relationIds: readonly string[]): Promise<void>;
   onCreateRelation(sourceNodeId: string, targetNodeId: string): Promise<void>;
   onCreateTextNode(kind: "note" | "text", point: CanvasPoint): Promise<string | undefined>;
   onCreateSection(frame: CanvasRect): Promise<void>;

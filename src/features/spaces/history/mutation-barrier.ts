@@ -2,7 +2,7 @@ interface SpaceMutationState {
   pendingMutations: number;
 }
 
-const idleWaiters = new WeakMap<SpaceMutationState, Set<() => void>>();
+const idleWaitersByHistory = new WeakMap<SpaceMutationState, Set<() => void>>();
 const closedAdmissions = new WeakSet<SpaceMutationState>();
 
 export function beginSpaceMutation(history: SpaceMutationState) {
@@ -19,18 +19,18 @@ export function beginSpaceMutation(history: SpaceMutationState) {
 function endSpaceMutation(history: SpaceMutationState) {
   history.pendingMutations -= 1;
   if (history.pendingMutations !== 0) return;
-  const waiters = idleWaiters.get(history);
+  const waiters = idleWaitersByHistory.get(history);
   if (!waiters) return;
-  idleWaiters.delete(history);
+  idleWaitersByHistory.delete(history);
   for (const resolve of waiters) resolve();
 }
 
 export async function waitForSpaceMutations(history: SpaceMutationState) {
   if (history.pendingMutations === 0) return;
   await new Promise<void>((resolve) => {
-    const waiters = idleWaiters.get(history) ?? new Set();
+    const waiters = idleWaitersByHistory.get(history) ?? new Set();
     waiters.add(resolve);
-    idleWaiters.set(history, waiters);
+    idleWaitersByHistory.set(history, waiters);
   });
 }
 

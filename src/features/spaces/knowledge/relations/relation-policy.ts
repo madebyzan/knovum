@@ -60,10 +60,10 @@ export function reviseRelation(
 
 export function selectRelationsForSpace(
   relations: readonly SpaceRelation[],
-  ids: readonly string[],
+  relationIds: readonly string[],
   spaceId: string | undefined,
 ) {
-  const uniqueIds = uniq(ids);
+  const uniqueIds = uniq(relationIds);
   const selected = uniqueIds.flatMap((id) => {
     const relation = relations.find((candidate) => candidate.id === id);
     return relation ? [relation] : [];

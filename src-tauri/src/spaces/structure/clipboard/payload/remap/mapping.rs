@@ -3,11 +3,13 @@ use std::collections::HashMap;
 
 pub(super) fn remap_structure_node(
     structure_node: StructureNode,
-    ids: &HashMap<String, String>,
-    nodes: &HashMap<String, String>,
+    structure_node_id_by_source_id: &HashMap<String, String>,
+    node_id_by_source_id: &HashMap<String, String>,
 ) -> StructureNode {
-    let id = ids[structure_node.id()].clone();
-    let parent_id = structure_node.parent_id().map(|parent| ids[parent].clone());
+    let id = structure_node_id_by_source_id[structure_node.id()].clone();
+    let parent_id = structure_node
+        .parent_id()
+        .map(|parent| structure_node_id_by_source_id[parent].clone());
     let order = structure_node.order();
     let locked = structure_node.locked();
     match structure_node {
@@ -16,7 +18,7 @@ pub(super) fn remap_structure_node(
             parent_id,
             order,
             locked,
-            node_id: nodes[&node_id].clone(),
+            node_id: node_id_by_source_id[&node_id].clone(),
         },
         StructureNode::Group { title, .. } => StructureNode::Group {
             id,
@@ -37,9 +39,9 @@ pub(super) fn remap_structure_node(
 
 pub(super) fn remap_layout(
     layout: StructureLayout,
-    ids: &HashMap<String, String>,
+    structure_node_id_by_source_id: &HashMap<String, String>,
 ) -> StructureLayout {
-    let structure_node_id = ids[layout.structure_node_id()].clone();
+    let structure_node_id = structure_node_id_by_source_id[layout.structure_node_id()].clone();
     match layout {
         StructureLayout::Content {
             transform,

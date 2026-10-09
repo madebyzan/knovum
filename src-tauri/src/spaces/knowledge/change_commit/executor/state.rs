@@ -9,19 +9,19 @@ use crate::spaces::{
 
 #[derive(Default)]
 pub(super) struct ApplyState {
-    pub(super) node_ids: HashMap<String, String>,
-    pub(super) relation_ids: HashMap<String, String>,
-    pub(super) resolved_ids: HashMap<String, String>,
+    pub(super) node_id_by_temp_id: HashMap<String, String>,
+    pub(super) relation_id_by_temp_id: HashMap<String, String>,
+    pub(super) resolved_id_by_temp_id: HashMap<String, String>,
     pub(super) created_nodes: Vec<InsertNode>,
 }
 
 pub(super) async fn resolve_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    ids: &HashMap<String, String>,
+    node_id_by_temp_id: &HashMap<String, String>,
     reference: &str,
 ) -> Result<String, String> {
-    if let Some(id) = ids.get(reference) {
+    if let Some(id) = node_id_by_temp_id.get(reference) {
         return Ok(id.clone());
     }
     semantic_nodes::require(
@@ -37,10 +37,10 @@ pub(super) async fn resolve_node(
 pub(super) async fn resolve_relation(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    ids: &HashMap<String, String>,
+    relation_id_by_temp_id: &HashMap<String, String>,
     reference: &str,
 ) -> Result<String, String> {
-    if let Some(id) = ids.get(reference) {
+    if let Some(id) = relation_id_by_temp_id.get(reference) {
         return Ok(id.clone());
     }
     if !relations::exists(tx, space_id, reference).await? {

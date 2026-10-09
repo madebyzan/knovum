@@ -10,21 +10,21 @@ use crate::spaces::{
 pub(crate) async fn create_records(
     app: &AppHandle,
     request: &StartExternalConversationRequest,
-    id: &str,
+    binding_id: &str,
     run_id: &str,
     conversation: Option<(&str, &str)>,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let principal = Principal {
         kind: PrincipalKind::ExternalAgent,
-        id: id.to_owned(),
+        id: binding_id.to_owned(),
     };
     let scope = RunScope::Space {
         space_id: request.space_id.clone(),
     };
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let (conversation_id, branch_id) = conversation.unwrap_or((id, id));
+    let (conversation_id, branch_id) = conversation.unwrap_or((binding_id, binding_id));
     if conversation.is_some() {
         let owns_conversation: Option<i64> =
             sqlx::query_scalar("SELECT 1 FROM spaces_conversations WHERE id=$1 AND space_id=$2")
@@ -81,7 +81,7 @@ pub(crate) async fn create_records(
          id,run_id,space_id,conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
          VALUES($1,$2,$3,$4,$5,$6,$7,'connecting',$8,$8)",
     )
-    .bind(id)
+    .bind(binding_id)
     .bind(run_id)
     .bind(&request.space_id)
     .bind(conversation_id)

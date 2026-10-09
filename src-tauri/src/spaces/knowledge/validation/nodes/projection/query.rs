@@ -72,24 +72,24 @@ pub(in crate::spaces) async fn validate_query_filter(
 async fn validate_object_type_ids(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    ids: &[&str],
+    object_type_ids: &[&str],
 ) -> Result<(), String> {
-    if ids.is_empty() {
+    if object_type_ids.is_empty() {
         return Ok(());
     }
-    let unique = ids.iter().copied().collect::<HashSet<_>>();
-    if unique.len() != ids.len() {
+    let unique = object_type_ids.iter().copied().collect::<HashSet<_>>();
+    if unique.len() != object_type_ids.len() {
         return Err("Saved View object types must not contain duplicates".into());
     }
     let count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM spaces_object_types WHERE (system=1 OR space_id=$1) AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(sqlx::types::Json(ids))
+    .bind(sqlx::types::Json(object_type_ids))
     .fetch_one(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if count != ids.len() as i64 {
+    if count != object_type_ids.len() as i64 {
         return Err(
             "Saved View references an object type that does not exist in this Space".into(),
         );

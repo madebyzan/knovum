@@ -27,15 +27,15 @@ struct VisualInterpretation {
 pub(super) async fn analyze(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
-    data: &mut Value,
+    payload: &mut Value,
     target: TaskExecutionTarget,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(), AppError> {
-    let source = match data.get("kind").and_then(Value::as_str) {
-        Some("image") => crate::spaces::assets::image::rendered_preview(app, data).await?,
+    let source = match payload.get("kind").and_then(Value::as_str) {
+        Some("image") => crate::spaces::assets::image::rendered_preview(app, payload).await?,
         Some("video") => {
-            let path = std::path::Path::new(required_string(data, "previewPath")?);
-            if web_media_preview(data) {
+            let path = std::path::Path::new(required_string(payload, "previewPath")?);
+            if web_media_preview(payload) {
                 authorize_spaces_asset(app, path)?
             } else {
                 authorize_generated_preview(app, path)?
@@ -55,7 +55,7 @@ pub(super) async fn analyze(
         &request.source_revision,
     )
     .await?;
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or("Space node data must be an object")?;
     object.insert("visualKnowledge".into(), completion);

@@ -126,8 +126,8 @@ pub async fn complete(
     }
 }
 
-pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), AppError> {
-    crate::spaces::derivation::failure::fail_message(app, id, error)
+pub async fn fail(app: &AppHandle, derivation_id: &str, error: &str) -> Result<(), AppError> {
+    crate::spaces::derivation::failure::fail_message(app, derivation_id, error)
         .await
         .map_err(AppError::from)
 }
@@ -136,13 +136,13 @@ async fn persist_completion(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVisualizationRequest,
     generated: &VisualizationContent,
-    data: &mut Value,
+    payload: &mut Value,
     bytes: &[u8],
     width: u32,
     height: u32,
 ) -> Result<Vec<super::super::DerivationRelation>, AppError> {
     let now = crate::clock::unix_time_millis()?;
-    let object = data
+    let object = payload
         .as_object_mut()
         .ok_or("Visualization node data is invalid")?;
     object.insert(
@@ -154,10 +154,11 @@ async fn persist_completion(
     object.insert("intrinsicWidth".into(), width.into());
     object.insert("intrinsicHeight".into(), height.into());
     object.remove("processingState");
-    revision::apply(data)?;
-    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", data)
+    revision::apply(payload)?;
+    crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)
         .await?;
-    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
+    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
+        .await?;
     let mut output_relations = Vec::with_capacity(request.inputs.len());
     for input in &request.inputs {
         let relation = relations::derives_from(
