@@ -16,7 +16,7 @@ export interface StructureTitleMatch {
   title: string;
 }
 
-export function useFind(open: Ref<boolean>, close: () => void) {
+export function useFind(open: Ref<boolean>) {
   const store = useSpaceStore();
   const semanticSearch = useSemanticSearch(open);
   const editorSession = getCanvasEditorSession();
@@ -62,8 +62,6 @@ export function useFind(open: Ref<boolean>, close: () => void) {
       .slice(0, 20);
   });
   const semantic = computed(() => searchQuery.data.value?.semantic ?? "empty");
-  const searching = computed(() => searchQuery.isFetching.value);
-  const searchFailed = computed(() => searchQuery.isError.value);
 
   async function select(value: unknown) {
     if (typeof value !== "string") return;
@@ -72,14 +70,14 @@ export function useFind(open: Ref<boolean>, close: () => void) {
         ({ structureNodeId }) => structureNodeId === value.slice("structure:".length),
       );
       if (!match) return;
-      close();
+      open.value = false;
       await revealStructureNode(store, editorSession, match.structureNodeId);
       return;
     }
     if (value.startsWith("match:")) {
       const match = matches.value.find(({ chunkId }) => chunkId === value.slice("match:".length));
       if (!match) return;
-      close();
+      open.value = false;
       await revealContentNode(store, editorSession, match.nodeId);
       dock.openSource({
         nodeId: match.nodeId,
@@ -93,7 +91,7 @@ export function useFind(open: Ref<boolean>, close: () => void) {
     if (value.startsWith("node:")) {
       const node = defaultNodes.value.find(({ id }) => id === value.slice("node:".length));
       if (!node) return;
-      close();
+      open.value = false;
       await revealContentNode(store, editorSession, node.id);
     }
   }
@@ -104,10 +102,10 @@ export function useFind(open: Ref<boolean>, close: () => void) {
     matches,
     structureMatches,
     semantic,
-    searching,
-    searchFailed,
+    searching: searchQuery.isFetching,
+    searchFailed: searchQuery.isError,
     defaultNodes,
     select,
-    retry: () => searchQuery.refetch(),
+    retry: searchQuery.refetch,
   };
 }

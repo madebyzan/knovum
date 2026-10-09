@@ -7,5 +7,4 @@ export interface AudioRecorderControllerOptions {
   spaceId: Ref<string | undefined>;
   save: (asset: PersistedAudioSpaceAsset, spaceId: string) => Promise<void>;
   failed: () => void;
-  close: () => void;
 }

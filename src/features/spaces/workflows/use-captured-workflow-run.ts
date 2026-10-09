@@ -18,7 +18,6 @@ interface CapturedWorkflowRunInput {
   bindings: Record<string, string[]>;
   requestId: string;
   isCurrent: () => boolean;
-  onStarted: (run: RunObservation) => void;
 }
 
 export function useCapturedWorkflowRun() {
@@ -84,8 +83,8 @@ export function useCapturedWorkflowRun() {
         spaceId: input.spaceId,
         bindings: Object.fromEntries(Object.entries(input.bindings).map(([id, nodes]) => [id, [...nodes]])),
       });
-      input.onStarted(started);
       attach(started, input.workflow.name, !disposed && input.isCurrent());
+      return started;
     } catch (cause) {
       if (!disposed && input.isCurrent()) error.value = getErrorMessage(cause);
     } finally {
@@ -104,17 +103,17 @@ export function useCapturedWorkflowRun() {
     }
   }
 
-  async function retry(title: string, onStarted: (run: RunObservation) => void) {
+  async function retry(title: string) {
     if (!runId.value || retrying.value) return;
     const sourceRunId = runId.value;
     retrying.value = true;
     error.value = "";
     try {
       const started = await retryCapturedWorkflowRun(sourceRunId);
-      onStarted(started);
       attach(started, title, !disposed && runId.value === sourceRunId);
+      return started;
     } catch (cause) {
-      error.value = getErrorMessage(cause);
+      if (!disposed && runId.value === sourceRunId) error.value = getErrorMessage(cause);
     } finally {
       retrying.value = false;
     }

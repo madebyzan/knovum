@@ -8,44 +8,88 @@ import { cancelSpeechGeneration, exportSpeechRender, generateSpeechProject } fro
 import { useSpeechPreview } from "./use-speech-preview";
 import { useSpeechRunObservation, type SpeechRunOwner } from "./use-speech-run-observation";
 
+interface SubmissionContext {
+  epoch: number;
+  errorEpoch: number;
+  projectId: string;
+  spaceId: string;
+}
+
 export function useSpeechGeneration(owner: SpeechRunOwner) {
   const store = useSpaceStore();
-  const preview = useSpeechPreview(owner.setError);
+  const {
+    preview,
+    progress,
+    jobId,
+    listening,
+    error: previewError,
+    previewSelection,
+    clearPreview,
+    reset: resetPreview,
+    cancel: cancelPreview,
+    stopListening,
+  } = useSpeechPreview();
+  const {
+    runState,
+    error: observationError,
+    attachRun,
+    reset: resetObservation,
+  } = useSpeechRunObservation(owner);
   const submitting = shallowRef(false);
   const preparingJobId = shallowRef<string>();
   const cancelling = shallowRef(false);
-  const activeJobId = computed(
-    () => preview.jobId.value ?? preparingJobId.value ?? owner.project()?.project.activeRunId,
+  const operationError = shallowRef<string>();
+  const errors = computed(() =>
+    [operationError.value, previewError.value, observationError.value].filter((message): message is string =>
+      Boolean(message),
+    ),
   );
-  const observation = useSpeechRunObservation(owner);
+  const activeJobId = computed(
+    () => jobId.value ?? preparingJobId.value ?? owner.project()?.project.activeRunId,
+  );
   let submissionEpoch = 0;
+  let operationEpoch = 0;
+  let cancellationEpoch = 0;
 
   function reset() {
-    preview.reset();
-    observation.reset();
+    resetPreview();
+    resetObservation();
     submissionEpoch += 1;
+    operationEpoch += 1;
+    cancellationEpoch += 1;
     submitting.value = false;
     preparingJobId.value = undefined;
     cancelling.value = false;
+    operationError.value = undefined;
   }
 
-  function isCurrentSubmission(epoch: number, projectId: string, spaceId: string) {
+  function isCurrentSubmission(context: SubmissionContext) {
     return (
-      epoch === submissionEpoch &&
-      store.activeSpaceId === spaceId &&
-      owner.project()?.project.id === projectId
+      context.epoch === submissionEpoch &&
+      store.activeSpaceId === context.spaceId &&
+      owner.project()?.project.id === context.projectId
     );
   }
-  function reportSubmissionError(cause: unknown, epoch: number, projectId: string, spaceId: string) {
-    if (decodeAppError(cause)?.code === "cancelled") return;
-    if (isCurrentSubmission(epoch, projectId, spaceId)) owner.setError(getErrorMessage(cause));
+  function reportSubmissionError(cause: unknown, context: SubmissionContext) {
+    if (
+      decodeAppError(cause)?.code !== "cancelled" &&
+      context.errorEpoch === operationEpoch &&
+      isCurrentSubmission(context)
+    )
+      operationError.value = getErrorMessage(cause);
   }
   async function generateProject() {
     const project = owner.project()?.project;
     const spaceId = store.activeSpaceId;
     if (!project || !spaceId || activeJobId.value || submitting.value) return;
-    const epoch = ++submissionEpoch;
+    const context = {
+      epoch: ++submissionEpoch,
+      errorEpoch: ++operationEpoch,
+      projectId: project.id,
+      spaceId,
+    };
     submitting.value = true;
+    operationError.value = undefined;
     const requestId = crypto.randomUUID();
     preparingJobId.value = requestId;
     try {
@@ -54,17 +98,17 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
         projectId: project.id,
         expectedRevision: project.activeRevision,
       });
-      if (!isCurrentSubmission(epoch, project.id, spaceId)) {
+      if (!isCurrentSubmission(context)) {
         observeResourceRun(run, project.title);
         return;
       }
-      observation.attachRun(run, project.id, spaceId);
+      attachRun(run, project.id, spaceId);
       await owner.reloadProject(project.id);
-      owner.setError();
+      if (context.errorEpoch === operationEpoch) operationError.value = undefined;
     } catch (cause) {
-      reportSubmissionError(cause, epoch, project.id, spaceId);
+      reportSubmissionError(cause, context);
     } finally {
-      if (epoch === submissionEpoch) {
+      if (context.epoch === submissionEpoch) {
         submitting.value = false;
         preparingJobId.value = undefined;
       }
@@ -73,46 +117,54 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
 
   async function cancelGeneration() {
     if (cancelling.value) return;
+    const epoch = ++operationEpoch;
+    const cancelEpoch = ++cancellationEpoch;
     cancelling.value = true;
+    operationError.value = undefined;
     try {
-      if (preview.jobId.value) await preview.cancel();
+      if (jobId.value) await cancelPreview();
       else if (preparingJobId.value) await cancelSpeechGeneration(preparingJobId.value);
       else {
         const runId = owner.project()?.project.activeRunId;
         if (runId) await cancelResourceRun(runId);
       }
+      if (epoch === operationEpoch) operationError.value = undefined;
     } catch (cause) {
-      owner.setError(getErrorMessage(cause));
+      if (epoch === operationEpoch) operationError.value = getErrorMessage(cause);
     } finally {
-      cancelling.value = false;
+      if (cancelEpoch === cancellationEpoch) cancelling.value = false;
     }
   }
 
   async function exportRender(path: string) {
     const title = owner.project()?.project.title;
     if (!title) return;
+    const epoch = ++operationEpoch;
+    operationError.value = undefined;
     try {
       await exportSpeechRender(path, title);
+      if (epoch === operationEpoch) operationError.value = undefined;
     } catch (cause) {
-      owner.setError(getErrorMessage(cause));
+      if (epoch === operationEpoch) operationError.value = getErrorMessage(cause);
     }
   }
 
   onScopeDispose(reset);
   return {
-    preview: preview.preview,
-    progress: preview.progress,
-    listening: preview.listening,
-    runState: observation.runState,
+    preview,
+    progress,
+    listening,
+    runState,
+    errors,
     activeJobId,
     submitting: readonly(submitting),
     cancelling: readonly(cancelling),
     reset,
-    clearPreview: preview.clearPreview,
-    previewSelection: preview.previewSelection,
+    clearPreview,
+    previewSelection,
     generateProject,
     cancelGeneration,
-    stopListening: preview.stopListening,
+    stopListening,
     exportRender,
   };
 }

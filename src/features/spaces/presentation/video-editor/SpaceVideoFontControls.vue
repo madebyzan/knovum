@@ -12,11 +12,10 @@ import SpaceVideoFontPicker from "./SpaceVideoFontPicker.vue";
 const props = defineProps<{ style: VideoTextStyle }>();
 const emit = defineEmits<{ change: [style: Partial<VideoTextStyle>] }>();
 const { t } = useI18n();
-const catalog = useQuery(videoFontCatalogQuery);
-const fonts = computed(() => catalog.data.value ?? []);
-const isPending = computed(() => catalog.isPending.value);
+const { data, isPending, error: catalogError } = useQuery(videoFontCatalogQuery);
+const fonts = computed(() => data.value ?? []);
 const error = computed(() => {
-  if (catalog.error.value) return getErrorMessage(catalog.error.value);
+  if (catalogError.value) return getErrorMessage(catalogError.value);
   return isPending.value || fonts.value.length > 0 ? "" : t("spaces.media.videoEditor.font.catalogEmpty");
 });
 const selectedFont = computed(() => fonts.value.find(({ family }) => family === props.style.family));

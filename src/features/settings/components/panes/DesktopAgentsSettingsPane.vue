@@ -19,16 +19,22 @@ const { t } = useI18n();
 const aiStore = useAiSettingsStore();
 const { settings, ready: aiReady, loadError: aiLoadError } = storeToRefs(aiStore);
 const saving = shallowRef(false);
-const catalog = useExecutionCatalogQuery({ detectInstallations: true });
-const agents = computed(() => catalog.data.value?.agents ?? []);
-const installations = computed(() => catalog.data.value?.installations ?? []);
-const inspecting = computed(() => catalog.installationFetching.value);
-const ready = computed(() => aiReady.value && !catalog.descriptorPending.value);
+const {
+  data: executionCatalog,
+  installationFetching: inspecting,
+  descriptorPending,
+  descriptorError,
+  installationError,
+  refetchDescriptors,
+} = useExecutionCatalogQuery({ detectInstallations: true });
+const agents = computed(() => executionCatalog.value?.agents ?? []);
+const installations = computed(() => executionCatalog.value?.installations ?? []);
+const ready = computed(() => aiReady.value && !descriptorPending.value);
 const failure = computed(() =>
   aiLoadError.value
     ? { source: "ai" as const, cause: aiLoadError.value, canReset: true }
-    : catalog.descriptorError.value
-      ? { source: "catalog" as const, cause: catalog.descriptorError.value, canReset: false }
+    : descriptorError.value
+      ? { source: "catalog" as const, cause: descriptorError.value, canReset: false }
       : undefined,
 );
 
@@ -51,7 +57,7 @@ async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
 
 async function load() {
   await aiStore.ensureLoaded();
-  if (catalog.descriptorError.value) await catalog.refetchDescriptors();
+  if (descriptorError.value) await refetchDescriptors();
 }
 
 async function resetSection() {
@@ -87,10 +93,10 @@ onMounted(load);
     </p>
     <UiSettingsSection id="settings-desktop-agents" tabindex="-1">
       <div
-        v-if="catalog.installationError.value"
+        v-if="installationError"
         class="border-b border-stroke-warning/30 bg-surface-warning-subtle px-4 py-3"
       >
-        <p class="text-caption text-fg-warning">{{ getErrorMessage(catalog.installationError.value) }}</p>
+        <p class="text-caption text-fg-warning">{{ getErrorMessage(installationError) }}</p>
       </div>
       <div class="divide-y divide-stroke-divider">
         <ExternalAgentAvailability
@@ -100,7 +106,7 @@ onMounted(load);
           :installation="installation(agent.kind)"
           :enabled="isEnabled(agent.kind)"
           :checking="inspecting"
-          :check-failed="Boolean(catalog.installationError.value)"
+          :check-failed="Boolean(installationError)"
           @toggle="setEnabled(agent.kind, $event)"
         />
       </div>

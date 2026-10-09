@@ -4,17 +4,13 @@ import { useI18n } from "vue-i18n";
 import type { LocalModelReferenceTranscript } from "../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import type { PreparedVoiceReference } from "../contracts/generated/PreparedVoiceReference";
 import type { VoiceCandidateSource } from "../contracts/generated/VoiceCandidateSource";
-import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { VoiceModel } from "../contracts/generated/VoiceModel";
 import { useVoiceCandidates } from "./use-voice-candidates";
 
 export type VoiceCandidateSourceKind = "reference" | "designed";
 const DEFAULT_MODEL: VoiceModel = "mossNano";
 
-export function useVoiceCandidateForm(
-  created: (voice: VoiceLibraryRevision) => void,
-  requestedSourceKind?: () => VoiceCandidateSourceKind | undefined,
-) {
+export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidateSourceKind | undefined) {
   const { t } = useI18n();
   const initialMode = requestedSourceKind?.() ?? "reference";
   const mode = shallowRef<VoiceCandidateSourceKind>(initialMode);
@@ -38,8 +34,8 @@ export function useVoiceCandidateForm(
     },
     { flush: "sync" },
   );
-  const { candidates, activeRunId, pendingRequestId, busy, error, draft, save, cancel, discard, audition } =
-    useVoiceCandidates(created);
+  const { candidates, activeRunId, pendingRequestId, busy, errors, draft, save, cancel, discard, audition } =
+    useVoiceCandidates();
   if (requestedSourceKind)
     watch(requestedSourceKind, (sourceKind) => {
       if (sourceKind) mode.value = sourceKind;
@@ -122,7 +118,7 @@ export function useVoiceCandidateForm(
     activeRunId,
     pendingRequestId,
     busy,
-    error,
+    errors,
     modes,
     languages,
     ready,

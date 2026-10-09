@@ -53,11 +53,10 @@ export function useSceneNavigation() {
     return (activeIndex + dir + total) % total;
   }
 
-  function stepScene(step: -1 | 1, onFallback?: () => void) {
+  function stepScene(step: -1 | 1) {
     const target = targetSceneIndex(step);
     const candidate = target >= 0 ? scenes.value[target] : undefined;
     if (candidate) actions.openScene(candidate);
-    else onFallback?.();
   }
 
   function getTargetScene(dir: -1 | 1) {

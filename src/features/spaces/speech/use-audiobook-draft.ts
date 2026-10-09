@@ -24,7 +24,6 @@ export function useAudiobookDraft(
   const chapters = ref<ChapterDraft[]>([]);
   const roles = ref<AudiobookRoleDraft[]>([]);
   const output = useAudiobookOutput();
-  const { format, sampleRate, loudness, peak, paragraphPause, chapterPause, wavPrecision, metadata } = output;
   const configurationError = shallowRef<string>();
   const lexicon = usePronunciationLexicon(() => project().revision);
   let saved = "";
@@ -32,9 +31,9 @@ export function useAudiobookDraft(
     JSON.stringify([
       chapters.value,
       roles.value,
-      format.value,
-      sampleRate.value,
-      loudness.value,
+      output.format.value,
+      output.sampleRate.value,
+      output.loudness.value,
       output.value(),
       lexicon.entries.value,
     ]);
@@ -151,14 +150,7 @@ export function useAudiobookDraft(
   return {
     chapters,
     roles,
-    format,
-    sampleRate,
-    loudness,
-    peak,
-    paragraphPause,
-    chapterPause,
-    wavPrecision,
-    metadata,
+    output,
     lexicon,
     configurationError,
     dirty,

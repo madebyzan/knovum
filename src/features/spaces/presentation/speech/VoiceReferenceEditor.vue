@@ -31,9 +31,18 @@ const {
   choose,
   prepare,
   selectionLoaded,
-} = useVoiceReferenceEditor(props, model, (value) => emit("busy", value));
+} = useVoiceReferenceEditor(props, model);
 const dirty = computed(() => !props.sourceNode && Boolean(path.value));
 watch(dirty, (value) => emit("dirty", value));
+
+async function prepareReference() {
+  emit("busy", true);
+  try {
+    await prepare();
+  } finally {
+    emit("busy", false);
+  }
+}
 </script>
 
 <template>
@@ -91,9 +100,9 @@ watch(dirty, (value) => emit("dirty", value));
             :disabled="disabled || Boolean(jobId)"
         /></label>
       </div>
-      <UiButton data-testid="reference-prepare" size="sm" :disabled="!canPrepare" @click="prepare">{{
-        t("spaces.speech.reference.prepare")
-      }}</UiButton>
+      <UiButton data-testid="reference-prepare" size="sm" :disabled="!canPrepare" @click="prepareReference">
+        {{ t("spaces.speech.reference.prepare") }}
+      </UiButton>
       <UiButton v-if="jobId" data-testid="reference-cancel" size="sm" @click="cancel">{{
         t("common.cancel")
       }}</UiButton>

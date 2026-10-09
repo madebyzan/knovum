@@ -40,7 +40,6 @@ const video = shallowRef<HTMLVideoElement | null>(null);
 const editorRoot = shallowRef<HTMLElement | null>(null);
 const timelineZoom = shallowRef(1);
 const selection = useVideoEditSelection(project);
-const { selectedClipId, selectedTextId } = selection;
 const playback = useVideoProjectPlayback(video, project);
 const {
   visible: inspectorVisible,
@@ -57,7 +56,6 @@ const { previewPath, onMetadataError } = useVideoEditPreviewSource({
 });
 const history = useVideoEditHistory(project);
 const actions = useVideoEditActions({ store, node, data, project, video, history, selection, playback });
-const { canDelete, closeDialogOpen, rendering, saving } = actions;
 const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
   nodeId: computed(() => node.value?.id),
   data,
@@ -89,8 +87,8 @@ async function onAddText() {
   >
     <SpaceVideoEditorHeader
       :title="data.title"
-      :can-save="!!project && history.dirty.value && !saving && !rendering"
-      :can-render="!!project && !editorError && !saving && !rendering"
+      :can-save="!!project && history.dirty.value && !actions.saving.value && !actions.rendering.value"
+      :can-render="!!project && !editorError && !actions.saving.value && !actions.rendering.value"
       :preparing="!proxyPath && !prepareError"
       :dirty="history.dirty.value"
       @close="actions.requestClose"
@@ -104,7 +102,7 @@ async function onAddText() {
           :source-path="previewPath ?? data.assetPath"
           :project="project"
           :timeline-ms="playback.timelineMs.value"
-          :selected-text-id="selectedTextId"
+          :selected-text-id="selection.selectedTextId.value"
           @playing="playback.playing.value = $event"
           @ready="onPreviewReady"
           @failed="onMetadataError"
@@ -114,8 +112,8 @@ async function onAddText() {
           v-if="inspectorVisible"
           :model-value="project"
           :source-duration-ms="sourceDurationMs"
-          :selected-clip-id="selectedClipId"
-          :selected-text-id="selectedTextId"
+          :selected-clip-id="selection.selectedClipId.value"
+          :selected-text-id="selection.selectedTextId.value"
           @edit="history.commit"
           @close="closeInspector"
           @select-text="onSelectText"
@@ -126,7 +124,7 @@ async function onAddText() {
         :playing="playback.playing.value"
         :current-ms="playback.timelineMs.value"
         :duration-ms="playback.durationMs.value"
-        :can-delete="canDelete"
+        :can-delete="actions.canDelete.value"
         :can-undo="history.canUndo.value"
         :can-redo="history.canRedo.value"
         :zoom="timelineZoom"
@@ -143,8 +141,8 @@ async function onAddText() {
         :project="project"
         :source-duration-ms="sourceDurationMs"
         :playhead-ms="playback.timelineMs.value"
-        :selected-clip-id="selectedClipId"
-        :selected-text-id="selectedTextId"
+        :selected-clip-id="selection.selectedClipId.value"
+        :selected-text-id="selection.selectedTextId.value"
         :zoom="timelineZoom"
         :playing="playback.playing.value"
         :thumbnail-source="proxyPath"
@@ -171,8 +169,8 @@ async function onAddText() {
     />
   </section>
   <SpaceVideoUnsavedDialog
-    v-model:open="closeDialogOpen"
-    :saving="saving"
+    v-model:open="actions.closeDialogOpen.value"
+    :saving="actions.saving.value"
     @cancel="actions.cancelLeave"
     @discard="actions.confirmDiscard"
     @save="actions.confirmSave"

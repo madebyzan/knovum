@@ -69,7 +69,7 @@ it("loads one global profile collection", async () => {
 it("rejects a profile response whose active revision is missing", async () => {
   mocks.listVoiceProfiles.mockResolvedValue([{ ...profile, revisions: [] }]);
   const { management } = setup();
-  await vi.waitFor(() => expect(management.error.value).toBe("Voice profile has no active revision"));
+  await vi.waitFor(() => expect(management.errors.value).toContain("Voice profile has no active revision"));
   expect(management.profiles.value).toEqual([]);
 });
 
@@ -95,7 +95,7 @@ it("preserves a mutation failure and releases the profile busy state", async () 
   const { management } = setup();
   await flushPromises();
   management.rename(profile, "Renamed");
-  await vi.waitFor(() => expect(management.error.value).toBe("Rename denied"));
+  await vi.waitFor(() => expect(management.errors.value).toContain("Rename denied"));
   expect(management.busyProfileId.value).toBeUndefined();
 });
 
@@ -109,7 +109,7 @@ it("refreshes committed deletion while preserving a subsequent cleanup error", a
   await flushPromises();
   management.remove(archived);
   await vi.waitFor(() => {
-    expect(management.error.value).toBe("Voice profile was deleted, but asset cleanup failed");
+    expect(management.errors.value).toContain("Voice profile was deleted, but asset cleanup failed");
     expect(management.profiles.value).toEqual([]);
   });
 });

@@ -22,9 +22,6 @@ const controller = useSpaceAudioRecorderController({
   spaceId: toRef(props, "spaceId"),
   save: props.save,
   failed: () => emit("failed"),
-  close: () => {
-    open.value = false;
-  },
 });
 const captureProblemText = computed(() =>
   controller.captureProblem.value ? t(`spaces.recording.problems.${controller.captureProblem.value}`) : "",

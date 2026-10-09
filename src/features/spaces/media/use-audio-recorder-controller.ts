@@ -123,7 +123,7 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
     if (recorderSession === session) recorderSession = undefined;
     if (!isCurrent(sessionGeneration, spaceId)) return removeSpaceAsset(asset.path);
     await options.save(asset, spaceId);
-    options.close();
+    if (isCurrent(sessionGeneration, spaceId)) options.open.value = false;
   }
 
   function togglePause() {

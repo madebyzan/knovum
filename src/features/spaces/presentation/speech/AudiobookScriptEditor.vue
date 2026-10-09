@@ -61,19 +61,22 @@ watchEffect(() =>
 <template>
   <div class="space-y-3">
     <AudiobookOutputSettings
-      v-model:format="draft.format.value"
-      v-model:sample-rate="draft.sampleRate.value"
-      v-model:loudness="draft.loudness.value"
-      v-model:peak="draft.peak.value"
-      v-model:paragraph-pause="draft.paragraphPause.value"
-      v-model:chapter-pause="draft.chapterPause.value"
-      v-model:wav-precision="draft.wavPrecision.value"
+      v-model:format="draft.output.format.value"
+      v-model:sample-rate="draft.output.sampleRate.value"
+      v-model:loudness="draft.output.loudness.value"
+      v-model:peak="draft.output.peak.value"
+      v-model:paragraph-pause="draft.output.paragraphPause.value"
+      v-model:chapter-pause="draft.output.chapterPause.value"
+      v-model:wav-precision="draft.output.wavPrecision.value"
       :disabled="disabled"
     />
-    <p v-if="draft.format.value === 'wav' && draft.metadata.value.cover" class="text-caption text-fg-danger">
+    <p
+      v-if="draft.output.format.value === 'wav' && draft.output.metadata.value.cover"
+      class="text-caption text-fg-danger"
+    >
       {{ t("spaces.speech.audiobook.coverRequiresEncodedOutput") }}
     </p>
-    <AudiobookMetadataEditor v-model="draft.metadata.value" :disabled />
+    <AudiobookMetadataEditor v-model="draft.output.metadata.value" :disabled />
     <PronunciationLexiconEditor
       v-model="draft.lexicon.entries.value"
       :valid="draft.lexicon.isValid.value"

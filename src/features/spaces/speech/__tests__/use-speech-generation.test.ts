@@ -17,10 +17,26 @@ vi.mock("../ipc", () => mocks);
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => mocks }));
 vi.mock("../../runs/resource-run-observation", () => mocks);
 vi.mock("../use-speech-preview", () => ({
-  useSpeechPreview: () => ({ jobId: shallowRef(), reset: vi.fn<() => void>() }),
+  useSpeechPreview: () => ({
+    preview: shallowRef(),
+    progress: shallowRef(),
+    jobId: shallowRef(),
+    listening: shallowRef(false),
+    error: shallowRef(),
+    previewSelection: vi.fn<() => void>(),
+    clearPreview: vi.fn<() => void>(),
+    reset: vi.fn<() => void>(),
+    cancel: vi.fn<() => Promise<void>>(),
+    stopListening: vi.fn<() => void>(),
+  }),
 }));
 vi.mock("../use-speech-run-observation", () => ({
-  useSpeechRunObservation: () => ({ attachRun: mocks.attachRun, reset: vi.fn<() => void>() }),
+  useSpeechRunObservation: () => ({
+    runState: shallowRef(),
+    error: shallowRef(),
+    attachRun: mocks.attachRun,
+    reset: vi.fn<() => void>(),
+  }),
 }));
 
 const run: RunObservation = {
@@ -72,7 +88,6 @@ function setup() {
   const owner = {
     project: () => selected.value,
     reloadProject: vi.fn<(projectId: string) => Promise<void>>().mockResolvedValue(undefined),
-    setError: vi.fn<(message?: string) => void>(),
   };
   const scope = effectScope();
   scopes.push(scope);
@@ -120,10 +135,10 @@ it("keeps a late created Run in Task Center without attaching it to another node
 });
 
 it("treats preparation cancellation as an expected user action", async () => {
-  const { generation, owner, reject } = setup();
+  const { generation, reject } = setup();
   const pending = generation.generateProject();
   reject(new Error("Cancelled", { cause: { code: "cancelled", message: "Cancelled" } }));
   await pending;
-  expect(owner.setError).not.toHaveBeenCalled();
+  expect(generation.errors.value).toEqual([]);
   expect(generation.submitting.value).toBe(false);
 });

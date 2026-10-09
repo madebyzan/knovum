@@ -50,10 +50,11 @@ export function useVoiceManagement() {
     busyProfileId: computed(() =>
       mutation.isPending.value ? mutation.variables.value?.profileId : undefined,
     ),
-    error: computed(() => {
-      const cause = mutation.error.value ?? query.error.value;
-      return cause ? getErrorMessage(cause) : undefined;
-    }),
+    errors: computed(() =>
+      [mutation.error.value, query.error.value]
+        .filter((cause): cause is Error => Boolean(cause))
+        .map(getErrorMessage),
+    ),
     rename: (profile: DeepReadonly<VoiceProfileHistory>, name: string) =>
       mutate(profile.id, () =>
         renameVoiceProfile({ profileId: profile.id, expectedUpdatedAt: profile.updatedAt, name }),

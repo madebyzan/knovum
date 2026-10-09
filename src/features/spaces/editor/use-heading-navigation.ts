@@ -1,4 +1,4 @@
-import { nextTick, ref, watch } from "vue";
+import { nextTick, onScopeDispose, ref, watch } from "vue";
 
 import { activeHeadingFromScroll, type spaceTiptapHeadings } from "./tiptap-outline";
 
@@ -31,6 +31,6 @@ export function useHeadingNavigation(
     root.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   };
   watch(headings, () => void nextTick(syncActiveHeading));
-  const dispose = () => globalThis.cancelAnimationFrame(scrollFrame);
-  return { activeHeadingId, dispose, revealHeading, scrollRoot, syncActiveHeading };
+  onScopeDispose(() => globalThis.cancelAnimationFrame(scrollFrame));
+  return { activeHeadingId, revealHeading, scrollRoot, syncActiveHeading };
 }

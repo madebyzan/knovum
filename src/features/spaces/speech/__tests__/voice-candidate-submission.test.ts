@@ -48,35 +48,29 @@ const run: RunObservation = {
 };
 beforeEach(() => vi.resetAllMocks());
 
-it.each([false, true])(
-  "retains cancellation while task creation settles, including closed view: %s",
-  async (closed) => {
-    let created!: (value: RunObservation) => void;
-    mocks.draftVoiceCandidate.mockReturnValue(
-      new Promise((resolve) => {
-        created = resolve;
-      }),
-    );
-    const submission = useVoiceCandidateSubmission();
-    const attach = vi.fn<(run: RunObservation) => void>();
-    const completion = submission.start(input, attach);
-    const jobId = submission.jobId.value;
-    await submission.cancel();
-    expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(jobId);
-    if (closed) submission.reset();
-    created(run);
-    await completion;
-    expect(mocks.observeResourceRun).toHaveBeenCalledExactlyOnceWith(
-      run,
-      "spaces.speech.voice.candidate.generate",
-    );
-    expect(attach).toHaveBeenCalledExactlyOnceWith(run);
-    expect(mocks.cancelResourceRun).toHaveBeenCalledExactlyOnceWith(run.id);
-    expect(submission.jobId.value).toBeUndefined();
-  },
-);
+it("retains cancellation while task creation settles", async () => {
+  let created!: (value: RunObservation) => void;
+  mocks.draftVoiceCandidate.mockReturnValue(
+    new Promise((resolve) => {
+      created = resolve;
+    }),
+  );
+  const submission = useVoiceCandidateSubmission();
+  const completion = submission.start(input);
+  const jobId = submission.jobId.value;
+  await submission.cancel();
+  expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(jobId);
+  created(run);
+  await expect(completion).resolves.toBe(run);
+  expect(mocks.observeResourceRun).toHaveBeenCalledExactlyOnceWith(
+    run,
+    "spaces.speech.voice.candidate.generate",
+  );
+  expect(mocks.cancelResourceRun).toHaveBeenCalledExactlyOnceWith(run.id);
+  expect(submission.jobId.value).toBeUndefined();
+});
 
-it("attaches the created task before surfacing a persistent cancellation failure", async () => {
+it("observes the created task before surfacing a persistent cancellation failure", async () => {
   let created!: (value: RunObservation) => void;
   mocks.draftVoiceCandidate.mockReturnValue(
     new Promise((resolve) => {
@@ -85,41 +79,19 @@ it("attaches the created task before surfacing a persistent cancellation failure
   );
   mocks.cancelResourceRun.mockRejectedValue(new Error("Cancellation denied"));
   const submission = useVoiceCandidateSubmission();
-  const attach = vi.fn<(run: RunObservation) => void>();
-  const completion = submission.start(input, attach);
+  const completion = submission.start(input);
   await submission.cancel();
   created(run);
   await expect(completion).rejects.toThrow("Cancellation denied");
-  expect(attach).toHaveBeenCalledExactlyOnceWith(run);
+  expect(mocks.observeResourceRun).toHaveBeenCalledOnce();
   expect(submission.jobId.value).toBeUndefined();
-});
-
-it("does not clear a newer submission when a detached creation settles", async () => {
-  let oldCreated!: (value: RunObservation) => void;
-  mocks.draftVoiceCandidate.mockReturnValueOnce(
-    new Promise((resolve) => {
-      oldCreated = resolve;
-    }),
-  );
-  mocks.draftVoiceCandidate.mockReturnValueOnce(new Promise(() => undefined));
-  const submission = useVoiceCandidateSubmission();
-  const old = submission.start(input, vi.fn<(run: RunObservation) => void>());
-  submission.reset();
-  void submission.start({ ...input, text: "Second example" }, vi.fn<(run: RunObservation) => void>());
-  const newId = submission.jobId.value;
-  oldCreated(run);
-  await old;
-  expect(submission.jobId.value).toBe(newId);
-  expect(mocks.cancelResourceRun).not.toHaveBeenCalled();
 });
 
 it("does not create a phantom durable task when preparation is cancelled", async () => {
   const cancellation = new Error("cancelled");
   mocks.draftVoiceCandidate.mockRejectedValue(cancellation);
   const submission = useVoiceCandidateSubmission();
-  const attach = vi.fn<(run: RunObservation) => void>();
-  await expect(submission.start(input, attach)).rejects.toBe(cancellation);
+  await expect(submission.start(input)).rejects.toBe(cancellation);
   expect(mocks.observeResourceRun).not.toHaveBeenCalled();
-  expect(attach).not.toHaveBeenCalled();
   expect(submission.jobId.value).toBeUndefined();
 });

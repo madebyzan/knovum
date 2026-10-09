@@ -30,19 +30,22 @@ const {
 } = useCapturedWorkflowLibrary(() => store.activeSpaceId);
 const workflowId = ref("");
 const run = useCapturedWorkflowRun();
-const { error, runId, runState, cancelling, submitting, retrying, outputNodes } = run;
 const requestId = ref(crypto.randomUUID());
 let autoSelected = false;
 
 const workflow = computed(() => items.value.find((item) => item.workflowId === workflowId.value));
-const binding = useWorkflowBindings(workflow);
-const { slots, ready, bindings } = binding;
+const { slots, ready, bindings, reset: resetBindings, set } = useWorkflowBindings(workflow);
 const choices = useWorkflowChoices(items);
 
 watch(
-  [workflowId, () => workflow.value?.version, () => store.workflowCaptureSelection.join("\u0000")],
+  [
+    workflowId,
+    () => workflow.value?.version,
+    () => store.workflowCaptureSelection.join("\u0000"),
+    () => store.activeSpaceId,
+  ],
   () => {
-    binding.reset();
+    resetBindings();
     run.reset();
     requestId.value = crypto.randomUUID();
   },
@@ -71,32 +74,35 @@ function newRun() {
 }
 
 async function start() {
-  if (!ready.value || !workflow.value || !store.activeSpaceId) return;
+  const spaceId = store.activeSpaceId;
+  if (!ready.value || !workflow.value || !spaceId) return;
   const selectedWorkflow = workflow.value;
   const selectedRequestId = requestId.value;
-  await run.start({
+  const started = await run.start({
     workflow: selectedWorkflow,
-    spaceId: store.activeSpaceId,
+    spaceId,
     bindings: bindings.value,
     requestId: selectedRequestId,
-    isCurrent: () => requestId.value === selectedRequestId,
-    onStarted: (started) => addRun({ run: started, workflowId: selectedWorkflow.workflowId }),
+    isCurrent: () => store.activeSpaceId === spaceId && requestId.value === selectedRequestId,
   });
+  if (started) addRun(spaceId, { run: started, workflowId: selectedWorkflow.workflowId });
 }
 
 async function retry() {
-  const entry = history.value.find(({ run: item }) => item.id === runId.value);
-  if (!entry) return;
+  const entry = history.value.find(({ run: item }) => item.id === run.runId.value);
+  const spaceId = store.activeSpaceId;
+  if (!entry || !spaceId) return;
   const title =
     items.value.find((item) => item.workflowId === entry.workflowId)?.name ??
     t("spaces.creation.workflow.title");
-  await run.retry(title, (started) => addRun({ run: started, workflowId: entry.workflowId }));
+  const started = await run.retry(title);
+  if (started) addRun(spaceId, { run: started, workflowId: entry.workflowId });
 }
 
 function setBinding(slotId: string, nodeIds: string[]) {
-  binding.set(slotId, nodeIds);
+  set(slotId, nodeIds);
   requestId.value = crypto.randomUUID();
-  error.value = "";
+  run.error.value = "";
 }
 
 function deletedWorkflow(id: string) {
@@ -156,28 +162,28 @@ function deletedWorkflow(id: string) {
         <SpaceWorkflowRunHistory
           :entries="history"
           :workflows="items"
-          :active-run-id="runId"
-          :active-run-state="runState"
+          :active-run-id="run.runId.value"
+          :active-run-state="run.runState.value"
           @select="showHistory"
         />
-        <p v-if="error" role="alert" class="text-caption text-fg-danger">
-          {{ error }}
+        <p v-if="run.error.value" role="alert" class="text-caption text-fg-danger">
+          {{ run.error.value }}
         </p>
       </template>
     </div>
-    <div v-if="workflow && !runId" class="border-t border-stroke-default px-3 py-3">
-      <UiButton variant="primary" class="w-full" :disabled="!ready || submitting" @click="start">
+    <div v-if="workflow && !run.runId.value" class="border-t border-stroke-default px-3 py-3">
+      <UiButton variant="primary" class="w-full" :disabled="!ready || run.submitting.value" @click="start">
         {{ t("spaces.creation.workflow.run.start") }}
       </UiButton>
     </div>
     <SpaceWorkflowRunActions
       v-else
-      :run-id="runId"
-      :run-state="runState"
-      :cancelling="cancelling"
-      :retrying="retrying"
+      :run-id="run.runId.value"
+      :run-state="run.runState.value"
+      :cancelling="run.cancelling.value"
+      :retrying="run.retrying.value"
       :allow-new="Boolean(workflow)"
-      :outputs="outputNodes"
+      :outputs="run.outputNodes.value"
       @locate="run.locate"
       @cancel="run.cancel"
       @retry="retry"

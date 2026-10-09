@@ -103,11 +103,10 @@ export function useSpaceTiptapEditor() {
     { immediate: true },
   );
 
-  const outline = useHeadingNavigation(
+  const { activeHeadingId, revealHeading, scrollRoot, syncActiveHeading } = useHeadingNavigation(
     () => editor.value,
     () => headings.value,
   );
-  const { activeHeadingId, revealHeading, scrollRoot, syncActiveHeading } = outline;
   const editorLabel = computed(() =>
     editorNode.value?.data.kind === "note" ? t("spaces.nodeTypes.note") : t("spaces.nodeTypes.markdown"),
   );
@@ -132,7 +131,6 @@ export function useSpaceTiptapEditor() {
 
   onBeforeUnmount(() => {
     detachSessionCommit();
-    outline.dispose();
     derive.cancel();
     statistics.dispose();
   });

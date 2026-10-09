@@ -18,7 +18,6 @@ export interface VoiceReferenceEditorProps {
 export function useVoiceReferenceEditor(
   props: VoiceReferenceEditorProps,
   model: Ref<PreparedVoiceReference | undefined>,
-  busy: (value: boolean) => void,
 ) {
   const { t } = useI18n();
   const sourcePath = computed(() => {
@@ -75,10 +74,8 @@ export function useVoiceReferenceEditor(
   watch([sourcePath, () => props.sourceNode?.data.sourceRevision], ([source]) => {
     if (source) replaceSource(source);
   });
-  watch(jobId, (job) => busy(Boolean(job)));
   onScopeDispose(() => {
     disposed = true;
-    busy(false);
     invalidate();
   });
   async function choose() {

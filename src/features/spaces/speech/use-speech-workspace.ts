@@ -16,7 +16,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
   const store = useSpaceStore();
   const projects = shallowRef<Awaited<ReturnType<typeof listSpeechProjects>>>([]);
   const loading = shallowRef(false);
-  const error = shallowRef<string>();
+  const workspaceError = shallowRef<string>();
   const selectedProject = shallowRef<SpeechProjectSnapshot>();
   const revisionSave = shallowRef<Promise<boolean>>();
   const savingRevision = computed(() => Boolean(revisionSave.value));
@@ -28,9 +28,6 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
   function isCurrentProject(spaceId: string, epoch: number, projectId: string) {
     return isCurrentSpace(spaceId, epoch) && selectedProject.value?.project.id === projectId;
   }
-  function setError(message?: string) {
-    error.value = message;
-  }
   function belongsToNode(project: SpeechProjectSnapshot, spaceId: string) {
     return (
       project.project.spaceId === spaceId &&
@@ -38,17 +35,12 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
       project.project.projectType === projectType()
     );
   }
-  const voiceLibrary = useSpeechVoices(setError);
+  const voiceLibrary = useSpeechVoices();
   const projectCreation = useSpeechProjectCreation({
     activeSpaceId: () => store.activeSpaceId,
     sourceNodeId,
     contextEpoch: () => refreshEpoch,
     isCurrent: isCurrentSpace,
-    created: (summary, snapshot) => {
-      projects.value = [summary, ...projects.value];
-      selectedProject.value = snapshot;
-    },
-    setError,
   });
 
   const generation = useSpeechGeneration({
@@ -62,27 +54,37 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
         selectedProject.value = project;
       }
     },
-    setError,
   });
+  const errors = computed(() => [
+    ...new Set(
+      [
+        workspaceError.value,
+        projectCreation.error.value,
+        ...generation.errors.value,
+        ...voiceLibrary.errors.value,
+      ].filter((message): message is string => Boolean(message)),
+    ),
+  ]);
 
   async function refresh(spaceId = store.activeSpaceId) {
     const epoch = ++refreshEpoch;
     selectionEpoch += 1;
     generation.reset();
+    projectCreation.reset();
     selectedProject.value = undefined;
     projects.value = [];
+    workspaceError.value = undefined;
     if (!spaceId) {
       loading.value = false;
       return;
     }
     loading.value = true;
-    error.value = undefined;
     try {
       const nextProjects = await listSpeechProjects(spaceId, sourceNodeId());
       if (epoch !== refreshEpoch) return;
       projects.value = nextProjects.filter((project) => project.projectType === projectType());
     } catch (cause) {
-      if (epoch === refreshEpoch) error.value = getErrorMessage(cause);
+      if (epoch === refreshEpoch) workspaceError.value = getErrorMessage(cause);
     } finally {
       if (epoch === refreshEpoch) loading.value = false;
     }
@@ -99,12 +101,19 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
         return;
       selectedProject.value = project;
       generation.reset();
-      error.value = undefined;
+      workspaceError.value = undefined;
     } catch (cause) {
       if (selection === selectionEpoch && isCurrentSpace(spaceId, epoch)) {
-        error.value = getErrorMessage(cause);
+        workspaceError.value = getErrorMessage(cause);
       }
     }
+  }
+
+  async function addProject(input: Parameters<typeof projectCreation.add>[0]) {
+    const created = await projectCreation.add(input);
+    if (!created) return;
+    projects.value = [created.summary, ...projects.value];
+    selectedProject.value = created.snapshot;
   }
 
   function saveRevision(input: SpeechRevisionInput) {
@@ -136,11 +145,11 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
       selectedProject.value = snapshot;
       const updated = snapshot.project;
       projects.value = projects.value.map((project) => (project.id === updated.id ? updated : project));
-      error.value = undefined;
+      workspaceError.value = undefined;
       return true;
     } catch (cause) {
       if (spaceId && isCurrentProject(spaceId, epoch, current.project.id))
-        error.value = getErrorMessage(cause);
+        workspaceError.value = getErrorMessage(cause);
       return false;
     }
   }
@@ -155,7 +164,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     addPresetVoice: voiceLibrary.addPreset,
     projects: readonly(projects),
     loading: computed(() => loading.value || voiceLibrary.loading.value),
-    error: readonly(error),
+    errors,
     selectedProject: readonly(selectedProject),
     creatingProject: projectCreation.creating,
     savingRevision,
@@ -166,7 +175,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     activeJobId: generation.activeJobId,
     generationSubmitting: generation.submitting,
     generationCancelling: generation.cancelling,
-    addProject: projectCreation.add,
+    addProject,
     openProject,
     saveRevision,
     settleRevisionSave,

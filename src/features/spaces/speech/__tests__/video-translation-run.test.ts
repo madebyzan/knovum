@@ -61,10 +61,9 @@ function deferred<T>() {
 function setup() {
   const scope = effectScope();
   const apply = vi.fn<(translation: VideoTranslation) => void>();
-  const report = vi.fn<(message: string) => void>();
-  const translation = scope.run(() => useVideoTranslationRun(apply, report))!;
+  const translation = scope.run(() => useVideoTranslationRun(apply))!;
   onTestFinished(() => scope.stop());
-  return { translation, apply, report };
+  return { translation, apply };
 }
 beforeEach(() => {
   vi.resetAllMocks();
@@ -124,21 +123,21 @@ it("keeps the script busy until the completed run's result has arrived", async (
 it("settles cancellation without presenting it as a translation failure", async () => {
   const running = { ...completed, state: "running" as const, completedAt: null };
   mocks.getVideoTranslationRun.mockResolvedValue(running);
-  const { translation, report } = setup();
+  const { translation } = setup();
   await translation.restore("project", 1);
   mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state: "cancelled" });
   expect(translation.activeRunId.value).toBeUndefined();
-  expect(report).not.toHaveBeenCalled();
+  expect(translation.error.value).toBeUndefined();
 });
 
 it("keeps cancellation failures attached to the active translation", async () => {
   const running = { ...completed, state: "running" as const, completedAt: null };
   mocks.getVideoTranslationRun.mockResolvedValue(running);
   mocks.cancelResourceRun.mockRejectedValue(new Error("Cancellation denied"));
-  const { translation, report } = setup();
+  const { translation } = setup();
   await translation.restore("project", 1);
   await translation.cancel();
-  expect(report).toHaveBeenCalledWith("Cancellation denied");
+  expect(translation.error.value).toBe("Cancellation denied");
   expect(translation.activeRunId.value).toBe("run");
   expect(translation.cancelling.value).toBe(false);
 });

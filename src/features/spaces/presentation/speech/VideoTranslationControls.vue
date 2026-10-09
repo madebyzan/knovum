@@ -3,7 +3,6 @@ import { Languages, Square } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
@@ -41,16 +40,10 @@ const { settings, ready } = storeToRefs(store);
 const target = shallowRef<TranslationModelTarget>();
 const targetLanguage = shallowRef<TranslationTarget>("en");
 const localOnly = shallowRef(false);
-const translationRun = useVideoTranslationRun(
+const { activeRunId, submitting, cancelling, error, restore, start, cancel } = useVideoTranslationRun(
   (translation) => emit("translated", translation),
-  (message) => toast.error(t("spaces.speech.translation.failed"), { description: message }),
 );
-const translating = computed(
-  () =>
-    Boolean(translationRun.activeRunId.value) ||
-    translationRun.submitting.value ||
-    translationRun.cancelling.value,
-);
+const translating = computed(() => Boolean(activeRunId.value) || submitting.value || cancelling.value);
 watch(translating, (value) => emit("busy", value), { immediate: true });
 const languageOptions = computed(() =>
   translationTargets.map((value) => ({ value, label: t(translationTargetLabelKey[value]) })),
@@ -91,7 +84,7 @@ watch(
 
 watch(
   [() => props.projectId, () => props.expectedRevision],
-  ([projectId, revision]) => void translationRun.restore(projectId, revision),
+  ([projectId, revision]) => void restore(projectId, revision),
   { immediate: true },
 );
 
@@ -110,7 +103,7 @@ onMounted(() => store.ensureLoaded());
 async function translate() {
   if (!target.value || translating.value || props.segments.length === 0) return;
   const executionTarget: ModelTargetSelection = { ...target.value, temperature: 0 };
-  await translationRun.start({
+  await start({
     jobId: crypto.randomUUID(),
     projectId: props.projectId,
     expectedRevision: props.expectedRevision,
@@ -167,15 +160,12 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
         @click="translate"
         ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
       >
-      <UiButton
-        v-if="translationRun.activeRunId.value"
-        size="sm"
-        variant="dangerSubtle"
-        :disabled="translationRun.cancelling.value"
-        @click="translationRun.cancel"
-      >
+      <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" :disabled="cancelling" @click="cancel">
         <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
       </UiButton>
     </div>
+    <p v-if="error" class="text-caption text-fg-danger" role="alert">
+      {{ t("spaces.speech.translation.failed") }}: {{ error }}
+    </p>
   </section>
 </template>

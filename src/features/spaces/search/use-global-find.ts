@@ -50,8 +50,8 @@ export function useGlobalFind(open: Ref<boolean>) {
   return {
     query,
     matches: computed(() => (normalizedQuery.value ? (searchQuery.data.value ?? []) : [])),
-    searching: computed(() => searchQuery.isFetching.value),
-    failed: computed(() => searchQuery.isError.value),
+    searching: searchQuery.isFetching,
+    failed: searchQuery.isError,
     retry: searchQuery.refetch,
     select,
   };

@@ -11,8 +11,8 @@ import VoiceProfileRow from "./VoiceProfileRow.vue";
 const props = defineProps<{ expandedId?: string | undefined; creating?: boolean | undefined }>();
 const emit = defineEmits<{ dirty: [value: boolean]; toggle: [profileId: string] }>();
 const { t } = useI18n();
-const management = useVoiceManagement();
-const { profiles } = management;
+const { reload, profiles, loading, busyProfileId, errors, rename, revise, archive, unarchive, remove } =
+  useVoiceManagement();
 </script>
 
 <template>
@@ -21,19 +21,21 @@ const { profiles } = management;
       <slot name="create" />
     </div>
     <div
-      v-if="management.loading.value"
+      v-if="loading"
       class="flex items-center gap-2 px-4 py-6 text-caption text-fg-secondary"
       role="status"
     >
       <UiSpinner size="sm" />{{ t("common.loading") }}
     </div>
     <div
-      v-else-if="management.error.value && profiles.length === 0"
+      v-else-if="errors.length && profiles.length === 0"
       class="flex items-center gap-3 px-4 py-6 text-label text-fg-secondary"
       role="alert"
     >
-      <span class="min-w-0 flex-1">{{ management.error.value }}</span>
-      <UiButton size="sm" @click="management.reload()">{{ t("common.retry") }}</UiButton>
+      <div class="min-w-0 flex-1 space-y-1">
+        <p v-for="(message, index) in errors" :key="index">{{ message }}</p>
+      </div>
+      <UiButton size="sm" @click="reload()">{{ t("common.retry") }}</UiButton>
     </div>
     <div v-else-if="profiles.length" class="divide-y divide-stroke-divider">
       <VoiceProfileRow
@@ -41,14 +43,14 @@ const { profiles } = management;
         :key="profile.id"
         :profile
         :expanded="expandedId === profile.id"
-        :disabled="Boolean(management.busyProfileId.value)"
+        :disabled="Boolean(busyProfileId)"
         @dirty="emit('dirty', $event)"
         @toggle="emit('toggle', profile.id)"
-        @rename="management.rename(profile, $event)"
-        @revise="(language, speed) => management.revise(profile, language, speed)"
-        @archive="management.archive(profile)"
-        @unarchive="management.unarchive(profile)"
-        @remove="management.remove(profile)"
+        @rename="rename(profile, $event)"
+        @revise="(language, speed) => revise(profile, language, speed)"
+        @archive="archive(profile)"
+        @unarchive="unarchive(profile)"
+        @remove="remove(profile)"
       />
     </div>
     <div v-else class="px-4 py-6">
@@ -56,11 +58,11 @@ const { profiles } = management;
       <p class="mt-2 text-label text-fg-secondary">{{ t("spaces.speech.library.empty") }}</p>
     </div>
     <p
-      v-if="management.error.value && profiles.length"
+      v-if="errors.length && profiles.length"
       class="border-t border-stroke-divider px-4 py-3 text-caption text-fg-danger"
       role="alert"
     >
-      {{ management.error.value }}
+      <span v-for="(message, index) in errors" :key="index" class="block">{{ message }}</span>
     </p>
   </UiSettingsSection>
 </template>

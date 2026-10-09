@@ -34,7 +34,7 @@ const {
   generationSubmitting,
   generationCancelling,
   loading,
-  error,
+  errors,
   addProject,
   openProject,
   saveRevision,
@@ -84,9 +84,9 @@ const projectOptions = computed(() =>
 
 <template>
   <div class="h-full overflow-y-auto p-3">
-    <p v-if="error" class="mb-3 rounded-md bg-surface-danger-subtle p-2 text-caption text-fg-danger">
-      {{ error }}
-    </p>
+    <div v-if="errors.length" class="mb-3 space-y-1 rounded-md bg-surface-danger-subtle p-2">
+      <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
+    </div>
     <div class="space-y-5" :aria-busy="loading">
       <RouterLink
         :to="{ path: '/settings', query: { pane: 'voices' } }"

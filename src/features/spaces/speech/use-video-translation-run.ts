@@ -11,13 +11,11 @@ import { getVideoTranslation, getVideoTranslationRun, translateVideoDubbing } fr
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
 
-export function useVideoTranslationRun(
-  apply: (translation: VideoTranslation) => void,
-  report: (message: string) => void,
-) {
+export function useVideoTranslationRun(translated: (translation: VideoTranslation) => void) {
   const activeRunId = shallowRef<string>();
   const submitting = shallowRef(false);
   const cancelling = shallowRef(false);
+  const error = shallowRef<string>();
   let stopObservation: (() => unknown) | undefined;
   let epoch = 0;
 
@@ -28,6 +26,7 @@ export function useVideoTranslationRun(
     activeRunId.value = undefined;
     submitting.value = false;
     cancelling.value = false;
+    error.value = undefined;
   }
 
   async function restore(projectId: string, expectedRevision: number) {
@@ -38,7 +37,7 @@ export function useVideoTranslationRun(
       const run = await getVideoTranslationRun(projectId, expectedRevision);
       if (current === epoch && run) await attach(run, current);
     } catch (cause) {
-      if (current === epoch) report(getErrorMessage(cause));
+      if (current === epoch) error.value = getErrorMessage(cause);
     } finally {
       if (current === epoch) submitting.value = false;
     }
@@ -48,11 +47,12 @@ export function useVideoTranslationRun(
     if (submitting.value || activeRunId.value) return;
     const current = ++epoch;
     submitting.value = true;
+    error.value = undefined;
     try {
       const run = await translateVideoDubbing(request);
       if (current === epoch) await attach(run, current);
     } catch (cause) {
-      if (current === epoch) report(getErrorMessage(cause));
+      if (current === epoch) error.value = getErrorMessage(cause);
     } finally {
       if (current === epoch) submitting.value = false;
     }
@@ -67,7 +67,7 @@ export function useVideoTranslationRun(
         activeRunId.value = undefined;
       } else {
         activeRunId.value = undefined;
-        report(i18n.global.t(workflowStateLabelKey(run.state)));
+        error.value = i18n.global.t(workflowStateLabelKey(run.state));
       }
       return;
     }
@@ -83,7 +83,7 @@ export function useVideoTranslationRun(
           activeRunId.value = undefined;
         } else {
           activeRunId.value = undefined;
-          report(i18n.global.t(workflowStateLabelKey(next.state)));
+          error.value = i18n.global.t(workflowStateLabelKey(next.state));
         }
       },
     );
@@ -94,9 +94,12 @@ export function useVideoTranslationRun(
     submitting.value = true;
     try {
       const translation = await getVideoTranslation(runId);
-      if (current === epoch) apply(translation);
+      if (current === epoch) {
+        error.value = undefined;
+        translated(translation);
+      }
     } catch (cause) {
-      if (current === epoch) report(getErrorMessage(cause));
+      if (current === epoch) error.value = getErrorMessage(cause);
     } finally {
       if (current === epoch) submitting.value = false;
     }
@@ -107,10 +110,11 @@ export function useVideoTranslationRun(
     const current = epoch;
     if (!runId || cancelling.value) return;
     cancelling.value = true;
+    error.value = undefined;
     try {
       await cancelResourceRun(runId);
     } catch (cause) {
-      if (current === epoch && activeRunId.value === runId) report(getErrorMessage(cause));
+      if (current === epoch && activeRunId.value === runId) error.value = getErrorMessage(cause);
     } finally {
       if (current === epoch) cancelling.value = false;
     }
@@ -121,6 +125,7 @@ export function useVideoTranslationRun(
     activeRunId: readonly(activeRunId),
     submitting: readonly(submitting),
     cancelling: readonly(cancelling),
+    error: readonly(error),
     restore,
     start,
     cancel,

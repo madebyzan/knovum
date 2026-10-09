@@ -20,15 +20,7 @@ const discovering = shallowRef(false);
 const sourceOpen = shallowRef(false);
 const search = shallowRef("");
 const { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, remove } =
-  usePluginManagement(
-    () => {
-      sourceOpen.value = false;
-    },
-    () => {
-      discovering.value = false;
-      search.value = "";
-    },
-  );
+  usePluginManagement();
 const plugins = computed(() =>
   (query.data.value ?? []).filter((plugin) =>
     `${plugin.revision.manifest.name} ${plugin.revision.manifest.description ?? ""}`
@@ -36,6 +28,14 @@ const plugins = computed(() =>
       .includes(search.value.trim().toLowerCase()),
   ),
 );
+async function inspectSource(source: Parameters<typeof inspect>[0]) {
+  if (await inspect(source)) sourceOpen.value = false;
+}
+async function commitPlugin() {
+  if (!(await commit())) return;
+  discovering.value = false;
+  search.value = "";
+}
 </script>
 
 <template>
@@ -134,7 +134,7 @@ const plugins = computed(() =>
       :closable="!busy"
       @update:open="!busy && (sourceOpen = $event)"
     >
-      <PluginSourceInput :busy="busy" @inspect="inspect" />
+      <PluginSourceInput :busy="busy" @inspect="inspectSource" />
       <p v-if="inspecting.error.value" role="alert" class="mt-3 text-body text-fg-danger">
         {{ getErrorMessage(inspecting.error.value) }}
       </p>
@@ -158,7 +158,7 @@ const plugins = computed(() =>
           :inspection="preview.inspection"
           :busy="changes.isPending.value"
           :updating="Boolean(preview.previous)"
-          @install="commit"
+          @install="commitPlugin"
           @cancel="preview = undefined"
         />
         <p v-if="changes.error.value" role="alert" class="mt-3 text-body text-fg-danger">

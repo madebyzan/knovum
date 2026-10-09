@@ -35,7 +35,7 @@ const {
   activeRunId,
   pendingRequestId,
   busy,
-  error,
+  errors,
   modes,
   languages,
   ready,
@@ -45,14 +45,16 @@ const {
   cancel,
   discard,
   audition,
-} = useVoiceCandidateForm(
-  (voice) => emit("created", voice),
-  () => (props.sourceNode ? "reference" : props.sourceKind),
-);
+} = useVoiceCandidateForm(() => (props.sourceNode ? "reference" : props.sourceKind));
 const referenceEditorDirty = shallowRef(false);
 const candidateListDirty = shallowRef(false);
 const dirty = computed(() => draftDirty.value || referenceEditorDirty.value || candidateListDirty.value);
 watch(dirty, (value) => emit("dirty", value), { immediate: true });
+
+async function saveCandidate(id: string, name: string) {
+  const voice = await save(id, name, authorized.value);
+  if (voice) emit("created", voice);
+}
 </script>
 
 <template>
@@ -147,7 +149,9 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
         </UiButton>
       </div>
     </div>
-    <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
+    <div v-if="errors.length" role="alert" class="space-y-1">
+      <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
+    </div>
     <VoiceCandidateList
       v-if="candidates.length"
       :candidates
@@ -155,7 +159,7 @@ watch(dirty, (value) => emit("dirty", value), { immediate: true });
       :authorized
       @audition="audition"
       @dirty="candidateListDirty = $event"
-      @save="(id, name) => save(id, name, authorized)"
+      @save="saveCandidate"
       @discard="discard"
     />
   </section>

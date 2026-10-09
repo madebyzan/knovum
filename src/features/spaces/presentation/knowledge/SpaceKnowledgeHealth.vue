@@ -22,18 +22,11 @@ const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
 const expanded = ref(false);
 const rebuilding = ref(false);
-const healthQuery = useSpaceKnowledgeHealthQuery(activeSpaceId);
-const issues = computed(() => healthQuery.data.value ?? []);
-const loading = computed(() => healthQuery.isFetching.value);
+const { data, isFetching: loading, error: queryError, refetch } = useSpaceKnowledgeHealthQuery(activeSpaceId);
+const issues = computed(() => data.value ?? []);
 const criticalCount = computed(() => issues.value.filter((issue) => issue.severity === "critical").length);
 
-whenever(
-  () => healthQuery.error.value,
-  (error) => toast.error(getErrorMessage(error)),
-);
-function refresh() {
-  void healthQuery.refetch();
-}
+whenever(queryError, (cause) => toast.error(getErrorMessage(cause)));
 async function rebuildIndex() {
   const spaceId = activeSpaceId.value;
   if (!spaceId || rebuilding.value) return;
@@ -41,7 +34,7 @@ async function rebuildIndex() {
   try {
     const rebuild = await rebuildKnowledgeRetrievalIndex(spaceId);
     toast.success(t("spaces.processing.index.rebuildDone", { count: rebuild.indexed }));
-    void healthQuery.refetch();
+    void refetch();
   } catch (error) {
     toast.error(getErrorMessage(error));
   } finally {
@@ -75,7 +68,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
             :class="expanded && 'rotate-180'"
           />
         </CollapsibleTrigger>
-        <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refresh">
+        <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refetch()">
           <RefreshCw class="size-3" :class="loading && 'animate-spin'" />
         </UiIconButton>
       </div>
@@ -87,7 +80,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
           <h3 class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
             <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
           </h3>
-          <UiButton size="sm" variant="ghost" :disabled="loading" @click="refresh">
+          <UiButton size="sm" variant="ghost" :disabled="loading" @click="refetch()">
             <RefreshCw class="size-3" :class="loading && 'animate-spin'" />{{ t("common.refresh") }}
           </UiButton>
         </div>
