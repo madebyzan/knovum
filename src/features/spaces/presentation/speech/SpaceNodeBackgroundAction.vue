@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Music2 } from "@lucide/vue";
-import { Primitive, ToolbarButton } from "reka-ui";
+import { ToolbarButton } from "reka-ui";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,7 +12,7 @@ import { useSpaceStore } from "../../session/space-store";
 import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 import VideoSourceSeparationReview from "./VideoSourceSeparationReview.vue";
 
-const props = defineProps<{ node: SpaceCanvasNode; compact?: boolean }>();
+const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
 const store = useSpaceStore();
 const { videos, backgrounds } = useSpeechMediaSources();
@@ -24,8 +24,8 @@ watch([() => props.node.id, () => props.node.data.sourceRevision, () => store.ac
 </script>
 
 <template>
-  <component :is="compact ? ToolbarButton : Primitive" as-child>
-    <UiTooltip :text="t('spaces.speech.separation.title')" :disabled="!compact" side="top">
+  <ToolbarButton as-child>
+    <UiTooltip :text="t('spaces.speech.separation.title')" side="top">
       <UiButton
         size="sm"
         variant="ghost"
@@ -35,10 +35,9 @@ watch([() => props.node.id, () => props.node.data.sourceRevision, () => store.ac
         @click="open = true"
       >
         <Music2 class="size-3.5" :stroke-width="1.6" />
-        <span v-if="!compact">{{ t("spaces.speech.separation.title") }}</span>
       </UiButton>
     </UiTooltip>
-  </component>
+  </ToolbarButton>
   <UiDialog
     v-if="open && source && store.activeSpaceId"
     v-model:open="open"

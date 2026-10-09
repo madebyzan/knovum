@@ -1,9 +1,12 @@
 # Knovum desktop design system
 
-Audio processing is exposed by the owning canvas node. Narration/audiobook and video dubbing editors
-open from node actions with the source node fixed; shared voice resources appear inside that operation.
-The selection inspector may expose the same node operation. Do not add an independent speech sidebar
-destination or a Space-wide video/manuscript selector for these operations.
+Audio processing is exposed by the owning canvas node's action bar. Narration/audiobook and video
+dubbing editors open from node actions with the source node fixed; shared voice resources appear
+inside that operation.
+Do not duplicate speech generation, voice cloning, source separation or transcription in the selection
+inspector. Structural selection actions, such as grouping, belong to the selection action bar.
+Do not add an independent speech sidebar destination or a Space-wide video/manuscript selector
+for these operations.
 
 Resource settings are organized around models and user capabilities. Python profiles and dependency
 installation are application-owned implementation details, without manual environment controls.

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { AlertTriangle, ChevronRight, LoaderCircle, ScanText } from "@lucide/vue";
+import { AlertTriangle, ChevronRight } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { formatBytes } from "../../../../foundation/format/bytes";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
 import { useMediaKnowledge } from "../../media/use-media-knowledge";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceNodeEnrichmentStatus from "../enrichment/SpaceNodeEnrichmentStatus.vue";
@@ -19,10 +17,6 @@ const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
 const currentNode = toRef(props, "node");
 const nodeId = computed(() => currentNode.value.id);
-const models = useLocalModelsQuery();
-const transcriptionModel = computed(() =>
-  models.data.value?.find((model) => model.capability === "transcription" && model.selected),
-);
 
 const {
   transcriptOpen,
@@ -34,11 +28,8 @@ const {
   stale,
   canEdit,
   canDerive,
-  canTranscribe,
-  transcribed,
   canGenerateInsights,
   insightsDisabledReason,
-  analyze,
   seek,
   generateInsights,
   saveSummary,
@@ -52,29 +43,6 @@ const {
 
 <template>
   <section>
-    <div class="flex justify-end">
-      <button
-        type="button"
-        class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-md px-2 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-40"
-        :disabled="!canTranscribe"
-        @click="analyze"
-      >
-        <LoaderCircle v-if="analyzing" class="size-3 animate-spin" />
-        <ScanText v-else class="size-3" />
-        {{
-          t(`spaces.media.player.${transcribed ? "transcribed" : analyzing ? "transcribing" : "transcribe"}`)
-        }}
-      </button>
-    </div>
-    <p v-if="transcriptionModel" class="mt-1 text-caption-sm text-fg-tertiary">
-      {{ transcriptionModel.name }} · {{ formatBytes(transcriptionModel.totalBytes) }}
-    </p>
-    <p
-      v-if="transcriptionModel && !transcriptionModel.verified && !transcribed"
-      class="mt-1 text-caption-sm text-fg-tertiary"
-    >
-      {{ t("spaces.media.player.transcriptionFirstUse") }}
-    </p>
     <SpaceNodeEnrichmentStatus :node-id="nodeId" />
 
     <SpaceMediaLiveTranscript v-if="analysisPreview?.segments.length" :preview="analysisPreview" />

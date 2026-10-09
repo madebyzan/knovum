@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { FileText, Group, Tag } from "@lucide/vue";
+import { FileText, Tag } from "@lucide/vue";
 import { computed } from "vue";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
-import { useCanvasSelectionActions } from "../canvas/use-canvas-selection-actions";
 import SpaceDerivedInspection from "../derivations/SpaceDerivedInspection.vue";
 import SpaceKnowledgeHealth from "../knowledge/SpaceKnowledgeHealth.vue";
 import SpaceNodeKnowledgeSections from "../knowledge/SpaceNodeKnowledgeSections.vue";
@@ -20,7 +18,6 @@ import SpaceNodeOverview from "./SpaceNodeOverview.vue";
 
 const store = useSpaceStore();
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const selectionActions = useCanvasSelectionActions();
 const selectedNode = computed(() => (selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined));
 
 function saveTitle(node: SpaceCanvasNode, value: string) {
@@ -69,15 +66,6 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
           {{ node.data.title }}
         </li>
       </ul>
-      <UiButton
-        v-if="selectionActions.state.value.canCreateGroup"
-        size="sm"
-        class="mt-3"
-        @click="selectionActions.createGroup"
-      >
-        <Group class="size-3" />
-        {{ $t("spaces.canvas.groups.create") }}
-      </UiButton>
     </div>
     <SpaceInspectorSection :title="$t('spaces.tags.title')" :icon="Tag" :default-expanded="true">
       <SpaceTags mode="selection" />

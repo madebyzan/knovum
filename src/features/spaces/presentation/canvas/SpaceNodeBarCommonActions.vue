@@ -15,7 +15,7 @@ const { t } = useI18n();
 
 <template>
   <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-stroke-divider px-1">
-    <SpaceNodeSpeechAction :node="node" compact />
+    <SpaceNodeSpeechAction :node="node" />
     <SpaceNodeTranscriptionAction
       v-if="node && (node.data.kind === 'audio' || node.data.kind === 'video')"
       :key="node.id"
