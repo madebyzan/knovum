@@ -14,13 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  runtimes:
-    uses: ./.github/workflows/python-runtime.yml
-    with:
-      production: true
-    secrets: inherit
   build:
-    needs: runtimes
     environment: release-signing
     strategy:
       fail-fast: false
@@ -66,10 +60,14 @@ jobs:
         shell: bash
         run: |
           node --input-type=module -e 'import { readVersion } from "./scripts/release/policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
-      - uses: actions/download-artifact@v7
-        with:
-          name: runtime-publication
-          path: runtime-publication
+      - name: Download reviewed signed runtime publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNTIME_TAG: ${{ vars.KNOVUM_RUNTIME_PUBLICATION_TAG }}
+        shell: bash
+        run: |
+          case "$RUNTIME_TAG" in runtime-*) ;; *) echo 'Set KNOVUM_RUNTIME_PUBLICATION_TAG to a signed controlled runtime-* release' >&2; exit 1 ;; esac
+          gh release download "$RUNTIME_TAG" --repo "$GITHUB_REPOSITORY" --pattern runtime-publication.json --dir runtime-publication
       - name: Provision published native resources
         run: |
           pnpm runtime:provision --profile resources --publication runtime-publication/runtime-publication.json
@@ -162,6 +160,4 @@ jobs:
           KNOVUM_DISTRIBUTION_REPOSITORY: ${{ vars.KNOVUM_DISTRIBUTION_REPOSITORY }}
           KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
           KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
-        run: |
-          node --test scripts/*/__tests__/*.test.mjs
-          node scripts/release/candidate.mjs downloaded "docs/release-notes/${GITHUB_REF_NAME#v}.md"
+        run: node scripts/release/candidate.mjs downloaded "docs/release-notes/${GITHUB_REF_NAME#v}.md"

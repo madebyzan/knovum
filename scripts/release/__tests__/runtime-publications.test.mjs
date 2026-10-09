@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { runtimeProfiles } from "../../runtime/profiles.mjs";
-import { validateRuntimePublications } from "../runtime-publications.mjs";
+import { validateRuntimePublications } from "../policy.mjs";
 
 function publication() {
   return {

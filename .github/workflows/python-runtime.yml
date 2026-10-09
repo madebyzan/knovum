@@ -8,12 +8,6 @@ on:
         type: boolean
         default: false
 
-  workflow_call:
-    inputs:
-      production:
-        type: boolean
-        default: false
-
 permissions:
   contents: write
   id-token: write

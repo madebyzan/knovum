@@ -5,8 +5,14 @@ import { join, resolve } from "node:path";
 import { runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { artifactSha256, safeArtifactFilename, verifyReleaseArtifacts } from "./artifacts.mjs";
 import { github, requireDistributionRepository } from "./github.mjs";
-import { httpsUrl, publicKey, readVersion, requireValue, releaseTargets } from "./policy.mjs";
-import { validateRuntimePublications } from "./runtime-publications.mjs";
+import {
+  httpsUrl,
+  publicKey,
+  readVersion,
+  requireValue,
+  releaseTargets,
+  validateRuntimePublications,
+} from "./policy.mjs";
 import { createManifest } from "./update-manifest.mjs";
 
 const root = resolve(import.meta.dirname, "../..");

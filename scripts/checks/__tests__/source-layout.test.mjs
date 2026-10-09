@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { inspectSourceLayout, sourceRoots } from "../source-layout.mjs";
 
@@ -31,7 +33,7 @@ test("path checks do not infer owner responsibility from directory tokens", (t) 
   assert.deepEqual(inspectSourceLayout(root), []);
 });
 
-test("explicit owner paths reject native identities and index modules", (t) => {
+test("layout checks leave descriptive names to review and reject index modules", (t) => {
   const root = fixture(
     t,
     {
@@ -48,16 +50,19 @@ test("explicit owner paths reject native identities and index modules", (t) => {
     ["native-locks", "NativeRuntime"],
   );
   const violations = inspectSourceLayout(root);
-  assert.equal(violations.length, 9);
-  assert.ok(violations.some((message) => /native-locks: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /native\.cpp: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /native\.json: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /native\.cmake: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /native\.py: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /NativeRenderer\.ts: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /nativeRenderer\.ts: native is not a path identity/.test(message)));
-  assert.ok(violations.some((message) => /NativeRuntime: native is not a path identity/.test(message)));
+  assert.equal(violations.length, 1);
   assert.ok(violations.some((message) => /index\.ts: TypeScript index modules are forbidden/.test(message)));
+});
+
+test("web layout checks its own files without requiring Rust or Python source trees", (t) => {
+  const root = fixture(t, { "src/View.vue": "<template><div /></template>" }, ["tests"]);
+  const script = fileURLToPath(new URL("../source-layout.mjs", import.meta.url));
+  const run = () => spawnSync(process.execPath, [script, "web"], { cwd: root, encoding: "utf8" });
+  assert.equal(run().status, 0);
+  writeFileSync(join(root, "src/View.vue"), "<template>\n" + "<div />\n".repeat(180) + "</template>");
+  const result = run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /exceeds the 180-line/);
 });
 
 test("embedded tests are rejected in Rust, Python and frontend business sources", (t) => {

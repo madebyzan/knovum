@@ -1,4 +1,13 @@
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const layout = spawnSync(
+  process.execPath,
+  [fileURLToPath(new URL("./source-layout.mjs", import.meta.url)), "python"],
+  { stdio: "inherit" },
+);
+if (layout.error) throw layout.error;
+if (layout.status !== 0) process.exit(layout.status ?? 1);
 
 const configuration = ["--config", "python/pyproject.toml"];
 const foundation = [

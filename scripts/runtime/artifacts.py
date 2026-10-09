@@ -7,7 +7,7 @@ import shutil
 import tarfile
 import urllib.request
 from collections.abc import Iterable
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 
@@ -31,36 +31,6 @@ def download(source: dict[str, Any], destination: Path) -> None:
             output.write(chunk)
     if size != source["size"] or digest(destination) != source["sha256"]:
         raise ValueError("Build input size or digest mismatch")
-
-
-def extract_python(archive: Path, destination: Path) -> Path:
-    with tarfile.open(archive) as source:
-        seen: set[str] = set()
-        for entry in source.getmembers():
-            path = PurePosixPath(entry.name)
-            if path.is_absolute() or ".." in path.parts or not path.parts or path.parts[0] != "python":
-                raise ValueError(f"Unsafe standalone archive path: {entry.name}")
-            if (
-                "\\" in entry.name
-                or str(path) in seen
-                or not (entry.isfile() or entry.isdir() or entry.issym() or entry.islnk())
-            ):
-                raise ValueError(f"Invalid standalone archive entry: {entry.name}")
-            if entry.islnk():
-                target = PurePosixPath(entry.linkname)
-                if (
-                    target.is_absolute()
-                    or ".." in target.parts
-                    or not target.parts
-                    or target.parts[0] != "python"
-                    or "\\" in entry.linkname
-                ):
-                    raise ValueError(f"Standalone hard link must name an internal archive file: {entry.name}")
-            seen.add(str(path))
-        source.extractall(destination, filter="data")
-    root = destination / "python"
-    materialize_aliases(root)
-    return root
 
 
 def materialize_aliases(root: Path, entries: Iterable[Path] | None = None) -> None:

@@ -10,6 +10,23 @@ test("consumer binds interpreter, runtime requirements and frozen voice source b
   sample.validate();
 });
 
+test("packaging rejects a runtime without its current producer recipe identity", (context) => {
+  const sample = fixture(context);
+  sample.producer.recipeSha256 = "b".repeat(64);
+  sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
+  assert.throws(sample.validate, /producer recipe differs/);
+  delete sample.producer.recipeSha256;
+  sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
+  assert.throws(sample.validate, /producer recipe differs/);
+});
+
+test("a changed producer invalidates a publication while application Workers stay independent", (context) => {
+  const sample = fixture(context);
+  sample.validate();
+  sample.write(join(sample.python, "../../.."), "scripts/runtime/build_python.py", "changed producer");
+  assert.throws(sample.validate, /producer recipe differs/);
+});
+
 test("runtime manifest and producer reject unsupported schema versions", (context) => {
   const sample = fixture(context);
   const path = join(sample.runtime, "runtime-manifest.json");
@@ -27,7 +44,7 @@ test("runtime manifest and producer reject unsupported schema versions", (contex
 
 test("application Worker changes do not invalidate the third-party runtime", (context) => {
   const sample = fixture(context);
-  sample.write(sample.python, "src/knovum_inference/__main__.py", "different worker\n");
+  sample.write(join(sample.python, "../.."), "src/knovum_inference/__main__.py", "different worker\n");
   sample.validate();
 });
 

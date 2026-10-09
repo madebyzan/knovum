@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from runtime.binaries import compiled_binaries
 
@@ -91,3 +96,11 @@ def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
                 )
                 _verify_binary_signature(path, target, production=True)
     return {"mode": mode, "identity": identity, "compiledBinaryCount": len(files)}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Verify production runtime signatures against approved identities")
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--target", choices=("macos-arm64", "macos-x64", "windows-x64"), required=True)
+    args = parser.parse_args()
+    verify_runtime(args.directory, args.target)
