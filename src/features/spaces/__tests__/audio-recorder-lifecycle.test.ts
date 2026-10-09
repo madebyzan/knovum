@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effectScope, ref } from "vue";
 
 import type { PersistedAudioSpaceAsset } from "../media/audio-recording";
-import { useSpaceAudioRecorderController } from "../media/use-audio-recorder-controller";
+import { useAudioRecorderController } from "../media/use-audio-recorder-controller";
 
 const calls = vi.hoisted(() => ({
   cancel: vi.fn<() => Promise<void>>(),
@@ -68,7 +68,7 @@ function createController() {
   const save = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   const failed = vi.fn<() => void>();
   const controller = scope.run(() =>
-    useSpaceAudioRecorderController({
+    useAudioRecorderController({
       open,
       spaceId,
       save,

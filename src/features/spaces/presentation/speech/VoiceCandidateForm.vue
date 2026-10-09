@@ -8,8 +8,8 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useVoiceCandidateForm, type VoiceCandidateSourceKind } from "../../speech/use-voice-candidate-form";
-import VoiceCandidateList from "./VoiceCandidateList.vue";
 import VoiceCandidateModelSelect from "./VoiceCandidateModelSelect.vue";
+import VoiceCandidateReviews from "./VoiceCandidateReviews.vue";
 import VoiceReferenceEditor from "./VoiceReferenceEditor.vue";
 
 const emit = defineEmits<{ created: [voice: VoiceLibraryRevision]; dirty: [value: boolean] }>();
@@ -152,7 +152,7 @@ async function saveCandidate(id: string, name: string) {
     <div v-if="errors.length" role="alert" class="space-y-1">
       <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
     </div>
-    <VoiceCandidateList
+    <VoiceCandidateReviews
       v-if="candidates.length"
       :candidates
       :disabled="busy"

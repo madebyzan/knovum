@@ -54,10 +54,10 @@ impl ImageGenerationCapability for KlingImageAdapter {
                 return Err(AppError::new("provider_request_failed", error_text));
             }
 
-            let submission_data: serde_json::Value =
+            let submission_response_body: serde_json::Value =
                 response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
-            let task_id = submission_data["data"]["task_id"]
+            let task_id = submission_response_body["data"]["task_id"]
                 .as_str()
                 .ok_or_else(|| {
                     AppError::new(

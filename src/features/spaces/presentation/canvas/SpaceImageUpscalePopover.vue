@@ -12,7 +12,7 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionHelp } from "./image-action-help";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
-import { useImageGenerateActions } from "./use-image-generate-actions";
+import { useImageDerivationActions } from "./use-image-derivation-actions";
 
 const props = defineProps<{
   node: SpaceCanvasNode<SpaceImagePayload>;
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 const { t } = useI18n();
-const { busy, help, targetDimensions, optionAvailability, openAiSettings, run } = useImageGenerateActions({
+const { busy, help, targetDimensions, optionAvailability, openAiSettings, run } = useImageDerivationActions({
   node: toRef(props, "node"),
   mode: "upscale",
   open: toRef(props, "open"),

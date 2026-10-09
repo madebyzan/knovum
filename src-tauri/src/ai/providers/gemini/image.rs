@@ -45,7 +45,7 @@ pub(super) struct GeminiResponse {
 }
 
 impl GeminiResponse {
-    pub(super) fn image_data(self) -> Option<String> {
+    pub(super) fn encoded_image(self) -> Option<String> {
         self.candidates
             .into_iter()
             .flat_map(|candidate| candidate.content.parts)
@@ -128,7 +128,7 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                     .map_err(provider_err)?;
                 let gemini_response: GeminiResponse = check_status(response).await?;
                 gemini_response
-                    .image_data()
+                    .encoded_image()
                     .ok_or_else(|| AppError::new("empty_response", "Gemini returned no image"))?
             };
 

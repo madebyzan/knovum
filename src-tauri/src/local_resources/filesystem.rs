@@ -46,16 +46,18 @@ pub(crate) fn verify_managed_root<R: Runtime>(
         .parent()
         .ok_or("Local resource directory is unavailable")?;
     verify_regular_directory(local_resources)?;
-    let app_data = app
+    let app_data_directory = app
         .path()
         .app_data_dir()
         .map_err(|error| error.to_string())?;
-    let canonical_app_data = app_data.canonicalize().map_err(|error| error.to_string())?;
+    let canonical_app_data_directory = app_data_directory
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
     let canonical_local_resources = local_resources
         .canonicalize()
         .map_err(|error| error.to_string())?;
     let canonical_root = root.canonicalize().map_err(|error| error.to_string())?;
-    if !canonical_root.starts_with(&canonical_app_data)
+    if !canonical_root.starts_with(&canonical_app_data_directory)
         || canonical_root.parent() != Some(canonical_local_resources.as_path())
     {
         return Err("Model directory escapes application data".into());

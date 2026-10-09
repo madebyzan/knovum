@@ -20,7 +20,7 @@ impl FileUploadCapability for DashScopeFileUploadAdapter {
     ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
             let upload_url = format!("{}/files", endpoint(&ctx.endpoint));
-            let file_data = upload_file(
+            let file_upload_response = upload_file(
                 ctx,
                 &upload_url,
                 UploadFile {
@@ -32,15 +32,17 @@ impl FileUploadCapability for DashScopeFileUploadAdapter {
             )
             .await?;
 
-            let file_id = file_data["file_id"]
+            let file_id = file_upload_response["file_id"]
                 .as_str()
-                .or_else(|| file_data["id"].as_str())
+                .or_else(|| file_upload_response["id"].as_str())
                 .ok_or_else(|| {
                     AppError::new("invalid_response", "Missing file ID in DashScope response")
                 })?
                 .to_string();
 
-            let access_url = file_data["url"].as_str().map(ToString::to_string);
+            let access_url = file_upload_response["url"]
+                .as_str()
+                .map(ToString::to_string);
 
             Ok(UploadedFileReference {
                 file_id,

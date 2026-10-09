@@ -1,38 +1,38 @@
 export type CancelTask = () => Promise<void> | void;
 export type OpenTask = () => Promise<void> | void;
 export class TaskExecutionHandlers {
-  readonly #cancellations = new Map<string, CancelTask>();
-  readonly #openers = new Map<string, OpenTask>();
+  readonly #cancellationByTaskId = new Map<string, CancelTask>();
+  readonly #openerByTaskId = new Map<string, OpenTask>();
 
-  delete(id: string) {
-    this.#cancellations.delete(id);
-    this.#openers.delete(id);
+  delete(taskId: string) {
+    this.#cancellationByTaskId.delete(taskId);
+    this.#openerByTaskId.delete(taskId);
   }
 
-  setCancellation(id: string, handler?: CancelTask) {
-    if (handler) this.#cancellations.set(id, handler);
-    else this.#cancellations.delete(id);
+  setCancellation(taskId: string, handler?: CancelTask) {
+    if (handler) this.#cancellationByTaskId.set(taskId, handler);
+    else this.#cancellationByTaskId.delete(taskId);
   }
 
-  cancellation(id: string) {
-    return this.#cancellations.get(id);
+  cancellation(taskId: string) {
+    return this.#cancellationByTaskId.get(taskId);
   }
 
-  deleteCancellation(id: string) {
-    this.#cancellations.delete(id);
+  deleteCancellation(taskId: string) {
+    this.#cancellationByTaskId.delete(taskId);
   }
 
-  setOpen(id: string, handler?: OpenTask) {
-    if (handler) this.#openers.set(id, handler);
-    else this.#openers.delete(id);
+  setOpen(taskId: string, handler?: OpenTask) {
+    if (handler) this.#openerByTaskId.set(taskId, handler);
+    else this.#openerByTaskId.delete(taskId);
   }
 
-  open(id: string) {
-    return this.#openers.get(id)?.();
+  open(taskId: string) {
+    return this.#openerByTaskId.get(taskId)?.();
   }
 
   clear() {
-    this.#cancellations.clear();
-    this.#openers.clear();
+    this.#cancellationByTaskId.clear();
+    this.#openerByTaskId.clear();
   }
 }

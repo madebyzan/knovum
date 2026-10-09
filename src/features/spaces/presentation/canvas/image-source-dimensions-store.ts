@@ -8,7 +8,7 @@ import { useSpaceStore } from "../../session/space-store";
 
 export function imageRemovalSize(
   node: SpaceCanvasNode<SpaceImagePayload>,
-  dimensions: ReturnType<typeof useImageSourceDimensions>,
+  dimensions: ReturnType<typeof useImageSourceDimensionsStore>,
 ) {
   const loaded = dimensions.forNode(node.id, node.data.sourceRevision);
   const width = node.data.intrinsicWidth ?? loaded?.width;
@@ -24,30 +24,32 @@ export function imageRemovalSizeValid(size: { width: number; height: number } | 
   );
 }
 
-export const useImageSourceDimensions = defineStore("spaces-image-source-dimensions", () => {
+export const useImageSourceDimensionsStore = defineStore("spaces-image-source-dimensions", () => {
   const space = useSpaceStore();
-  const dimensions = shallowRef(new Map<string, { revision: string; width: number; height: number }>());
+  const dimensionsByNodeId = shallowRef(
+    new Map<string, { revision: string; width: number; height: number }>(),
+  );
 
   function set(nodeId: string, revision: string, width: number, height: number) {
-    dimensions.value = new Map(dimensions.value).set(nodeId, { revision, width, height });
+    dimensionsByNodeId.value = new Map(dimensionsByNodeId.value).set(nodeId, { revision, width, height });
   }
 
   function clear(nodeId: string) {
-    const next = new Map(dimensions.value);
+    const next = new Map(dimensionsByNodeId.value);
     next.delete(nodeId);
-    dimensions.value = next;
+    dimensionsByNodeId.value = next;
   }
 
   watch(
     () => space.activeSpaceId,
-    () => (dimensions.value = new Map()),
+    () => (dimensionsByNodeId.value = new Map()),
     { flush: "sync" },
   );
   watch(
     () => space.nodes,
     (nodes) => {
       const ids = new Set(nodes.map(({ id }) => id));
-      dimensions.value = new Map([...dimensions.value].filter(([id]) => ids.has(id)));
+      dimensionsByNodeId.value = new Map([...dimensionsByNodeId.value].filter(([id]) => ids.has(id)));
     },
     { flush: "sync" },
   );
@@ -56,7 +58,7 @@ export const useImageSourceDimensions = defineStore("spaces-image-source-dimensi
     set,
     clear,
     forNode: (nodeId: string, revision?: string) => {
-      const current = dimensions.value.get(nodeId);
+      const current = dimensionsByNodeId.value.get(nodeId);
       return current?.revision === revision ? current : undefined;
     },
   };

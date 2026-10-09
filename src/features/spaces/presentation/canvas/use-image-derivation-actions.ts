@@ -15,20 +15,20 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { imageActionAvailability, upscaleAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
-import { useImageSourceDimensions } from "./image-source-dimensions";
+import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
 
-interface ImageGenerateActionsInput {
+interface ImageDerivationActionsInput {
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>;
   mode: "upscale" | "angle";
   open: Readonly<Ref<boolean>>;
   close: () => void;
 }
 
-export function useImageGenerateActions({ node, mode, open, close }: ImageGenerateActionsInput) {
+export function useImageDerivationActions({ node, mode, open, close }: ImageDerivationActionsInput) {
   const { t } = useI18n();
   const router = useRouter();
   const store = useSpaceStore();
-  const imageDimensions = useImageSourceDimensions();
+  const imageDimensions = useImageSourceDimensionsStore();
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
   const busy = shallowRef(false);

@@ -45,9 +45,9 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                 return Err(AppError::new("provider_request_failed", error_text));
             }
 
-            let submission_data: serde_json::Value =
+            let submission_response_body: serde_json::Value =
                 response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
-            let task_id = submission_data["task_id"]
+            let task_id = submission_response_body["task_id"]
                 .as_str()
                 .ok_or_else(|| parse_err("Missing task_id in MiniMax video response"))?
                 .to_string();
@@ -82,20 +82,20 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                 return Err(AppError::new("provider_request_failed", error_text));
             }
 
-            let query_data: serde_json::Value =
+            let status_response_body: serde_json::Value =
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
-            match parse_status(query_data["status"].as_str().unwrap_or_default())? {
+            match parse_status(status_response_body["status"].as_str().unwrap_or_default())? {
                 MiniMaxTaskStatus::Success => {
-                    if let Some(direct_url) = query_data["video_url"]
+                    if let Some(direct_url) = status_response_body["video_url"]
                         .as_str()
-                        .or_else(|| query_data["download_url"].as_str())
+                        .or_else(|| status_response_body["download_url"].as_str())
                     {
                         return Ok(VideoGenerationStatus::Succeeded {
                             video_url: direct_url.to_string(),
                         });
                     }
 
-                    let file_id = query_data["file_id"]
+                    let file_id = status_response_body["file_id"]
                         .as_str()
                         .ok_or_else(|| parse_err("Missing video_url and file_id"))?;
                     let download_url = retrieve_file_url(&endpoint, api_key, file_id).await?;
@@ -104,7 +104,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                     })
                 }
                 MiniMaxTaskStatus::Fail => {
-                    let msg = query_data["base_resp"]["status_msg"]
+                    let msg = status_response_body["base_resp"]["status_msg"]
                         .as_str()
                         .unwrap_or("MiniMax video generation failed");
                     Ok(VideoGenerationStatus::Failed {
@@ -165,16 +165,16 @@ fn parse_err(e: impl std::fmt::Display) -> AppError {
 
 async fn retrieve_file_url(endpoint: &str, api_key: &str, file_id: &str) -> AppResult<String> {
     let file_url = format!("{endpoint}/files/retrieve?file_id={file_id}");
-    let file_response = http_client()
+    let retrieval_response = http_client()
         .get(&file_url)
         .bearer_auth(api_key)
         .send()
         .await
         .map_err(req_err)?;
 
-    let file_data: serde_json::Value =
-        response::read_json(file_response, response::MAX_CONTROL_JSON_BYTES).await?;
-    file_data["file"]["download_url"]
+    let file_response: serde_json::Value =
+        response::read_json(retrieval_response, response::MAX_CONTROL_JSON_BYTES).await?;
+    file_response["file"]["download_url"]
         .as_str()
         .map(ToString::to_string)
         .ok_or_else(|| parse_err("Missing download_url in MiniMax file retrieval"))

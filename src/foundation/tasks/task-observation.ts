@@ -15,27 +15,27 @@ export interface ObservedTask {
 interface TaskObservationOptions {
   tasks: Ref<AppTask[]>;
   handlers: TaskExecutionHandlers;
-  externallySettled: Set<string>;
-  remove: (id: string) => void;
+  externallySettledTaskIds: Set<string>;
+  remove: (taskId: string) => void;
 }
 
 export function createTaskObservation({
   tasks,
   handlers,
-  externallySettled,
+  externallySettledTaskIds,
   remove,
 }: TaskObservationOptions) {
-  const retries = new Map<string, RetryTask>();
-  const retrying = new Set<string>();
-  const canRetry = (id: string, handler?: RetryTask) => Boolean(handler) && !retrying.has(id);
+  const retryByTaskId = new Map<string, RetryTask>();
+  const retryingTaskIds = new Set<string>();
+  const canRetry = (taskId: string, handler?: RetryTask) => Boolean(handler) && !retryingTaskIds.has(taskId);
 
   function reconcile(producer: string, observations: readonly ObservedTask[]) {
     const previous = tasks.value.filter((task) => task.producer === producer);
-    const previousById = new Map(previous.map((task) => [task.id, task]));
+    const previousTaskById = new Map(previous.map((task) => [task.id, task]));
     const incomingIds = new Set(observations.map(({ task }) => task.id));
     for (const task of previous) if (!incomingIds.has(task.id)) remove(task.id);
 
-    for (const entry of observations) sync(producer, entry, previousById.get(entry.task.id));
+    for (const entry of observations) sync(producer, entry, previousTaskById.get(entry.task.id));
   }
 
   function sync(
@@ -68,25 +68,25 @@ export function createTaskObservation({
         openable: Boolean(open),
       });
     }
-    externallySettled.add(next.id);
+    externallySettledTaskIds.add(next.id);
     handlers.setCancellation(next.id, cancel);
     handlers.setOpen(next.id, open);
-    if (retryTask) retries.set(next.id, retryTask);
-    else retries.delete(next.id);
+    if (retryTask) retryByTaskId.set(next.id, retryTask);
+    else retryByTaskId.delete(next.id);
   }
 
-  async function retry(id: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    const handler = retries.get(id);
+  async function retry(taskId: string) {
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
+    const handler = retryByTaskId.get(taskId);
     if (!task || task.status !== "failed" || !handler || !task.retryable) return;
-    retrying.add(id);
+    retryingTaskIds.add(taskId);
     task.retryable = false;
     try {
       await handler();
     } catch (error) {
       task.statusMessage = getErrorMessage(error);
     } finally {
-      retrying.delete(id);
+      retryingTaskIds.delete(taskId);
       if (task.status === "failed") task.retryable = true;
     }
   }
@@ -94,14 +94,14 @@ export function createTaskObservation({
   return {
     reconcile,
     retry,
-    handlesRetry: (id: string) => retries.has(id),
-    delete: (id: string) => {
-      retries.delete(id);
-      retrying.delete(id);
+    handlesRetry: (taskId: string) => retryByTaskId.has(taskId),
+    delete: (taskId: string) => {
+      retryByTaskId.delete(taskId);
+      retryingTaskIds.delete(taskId);
     },
     clear: () => {
-      retries.clear();
-      retrying.clear();
+      retryByTaskId.clear();
+      retryingTaskIds.clear();
     },
   };
 }

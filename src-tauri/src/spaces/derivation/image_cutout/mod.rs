@@ -65,7 +65,7 @@ async fn start(
         &request.output_node_id,
     )
     .await?;
-    let source_data: Option<String> = sqlx::query_scalar(
+    let source_payload: Option<String> = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
     )
     .bind(&request.source_node_id)
@@ -73,11 +73,15 @@ async fn start(
     .fetch_optional(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let source_data: Value =
-        serde_json::from_str(&source_data.ok_or("Image source is unavailable")?)
+    let source_payload: Value =
+        serde_json::from_str(&source_payload.ok_or("Image source is unavailable")?)
             .map_err(db::json_error)?;
-    source::validate_current(&source_data, &request.source_revision, &request.source_edit)?;
-    if !source::asset_available(app, &source_data)? {
+    source::validate_current(
+        &source_payload,
+        &request.source_revision,
+        &request.source_edit,
+    )?;
+    if !source::asset_available(app, &source_payload)? {
         return Err("Original image asset is missing".into());
     }
     let output_content: String = sqlx::query_scalar(
@@ -92,7 +96,7 @@ async fn start(
     let output_content: Value = serde_json::from_str(&output_content).map_err(db::json_error)?;
     pending_output::validate_separate_asset(
         &output_content,
-        source_data
+        source_payload
             .get("assetPath")
             .and_then(Value::as_str)
             .ok_or("Image source path is unavailable")?,

@@ -46,17 +46,19 @@ impl FileUploadCapability for ZhipuFileUploadAdapter {
                 return Err(AppError::new("provider_request_failed", error_text));
             }
 
-            let file_data: serde_json::Value =
+            let file_upload_response: serde_json::Value =
                 response::read_json(upload_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
-            let file_id = file_data["id"]
+            let file_id = file_upload_response["id"]
                 .as_str()
                 .ok_or_else(|| {
                     AppError::new("invalid_response", "Missing file ID in Zhipu response")
                 })?
                 .to_string();
 
-            let access_url = file_data["url"].as_str().map(ToString::to_string);
+            let access_url = file_upload_response["url"]
+                .as_str()
+                .map(ToString::to_string);
 
             Ok(UploadedFileReference {
                 file_id,

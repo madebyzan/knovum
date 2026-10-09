@@ -5,7 +5,7 @@ const ipc = vi.hoisted(() => ({
 }));
 vi.mock("../conversation/conversation-ipc", () => ipc);
 
-import { settleConversationTaskResult } from "../conversation/conversation-task-settlement";
+import { settleConversationTask } from "../conversation/conversation-task-settlement";
 
 const accepted = {
   taskId: "task",
@@ -19,7 +19,7 @@ describe("conversation task result settlement", () => {
 
   it("preserves independent channel and projection failures", async () => {
     const projectionError = new Error("projection database unavailable");
-    const settlement = settleConversationTaskResult({
+    const settlement = settleConversationTask({
       accepted,
       outcome: {
         type: "finished",
@@ -47,7 +47,7 @@ describe("conversation task result settlement", () => {
     ipc.getConversationTaskError.mockResolvedValue("provider rejected request");
 
     await expect(
-      settleConversationTaskResult({
+      settleConversationTask({
         accepted,
         outcome: { type: "finished", state: "failed", error: null },
         spaceId: "space",
@@ -60,7 +60,7 @@ describe("conversation task result settlement", () => {
     const projectionError = new Error("projection unavailable");
     ipc.getConversationTaskError.mockResolvedValue("provider rejected request");
 
-    const error = await settleConversationTaskResult({
+    const error = await settleConversationTask({
       accepted,
       outcome: { type: "finished", state: "failed", error: null },
       spaceId: "space",
@@ -80,7 +80,7 @@ describe("conversation task result settlement", () => {
     const projectionError = new Error("projection unavailable");
     ipc.getConversationTaskError.mockRejectedValue(diagnosticError);
 
-    const error = await settleConversationTaskResult({
+    const error = await settleConversationTask({
       accepted,
       outcome: { type: "finished", state: "failed", error: null },
       spaceId: "space",

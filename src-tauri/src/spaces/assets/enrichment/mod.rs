@@ -143,7 +143,7 @@ pub async fn enrich_node_with_cancellation(
     let cancellation = cancellation.clone();
     let app_handle = app.clone();
     let preview_asset = preview.asset;
-    let preview_data = data.clone();
+    let preview_payload = data.clone();
     let content_revision = revision.clone();
     let enrichment = match crate::blocking::run(move || {
         pipeline::enrich_content(
@@ -151,7 +151,7 @@ pub async fn enrich_node_with_cancellation(
             &canonical,
             &content_revision,
             preview_asset,
-            preview_data,
+            preview_payload,
             &cancellation,
         )
     })

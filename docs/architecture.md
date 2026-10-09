@@ -221,7 +221,7 @@ The complete agent host, security, and extension runtime contracts belong to
 ## One source of truth
 
 `app/router.ts` owns the fixed Spaces and Settings routes.
-`features/spaces/workspace-definition.ts` exposes the single composition contract for Spaces-owned
+`features/spaces/use-spaces-workspace.ts` exposes the single composition contract for Spaces-owned
 shell surfaces and commands. Knovum is one knowledge-space product, not a container for peer apps.
 
 `AppCommand` is the single source of truth for command-palette entries and application-local

@@ -11,14 +11,18 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { imageActionAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
-import { imageRemovalSize, imageRemovalSizeValid, useImageSourceDimensions } from "./image-source-dimensions";
+import {
+  imageRemovalSize,
+  imageRemovalSizeValid,
+  useImageSourceDimensionsStore,
+} from "./image-source-dimensions-store";
 import SpaceImageObjectRemovalControls from "./SpaceImageObjectRemovalControls.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const { t } = useI18n();
 const router = useRouter();
 const panel = useTemplateRef<HTMLElement>("panel");
-const imageDimensions = useImageSourceDimensions();
+const imageDimensions = useImageSourceDimensionsStore();
 const removal = useImageRemovalSession();
 const open = computed(() => removal.active?.nodeId === props.node.id);
 const capability = useImageOperationCapabilities(open);

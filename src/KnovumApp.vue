@@ -18,7 +18,7 @@ import {
   registerVoiceLibraryRunNavigation,
   restoreResourceRuns,
 } from "./features/spaces/runs/resource-run-observation";
-import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
+import { useSpacesWorkspace } from "./features/spaces/use-spaces-workspace";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
 import { getErrorMessage } from "./foundation/errors/error-format";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";

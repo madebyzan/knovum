@@ -100,7 +100,7 @@ module.exports = {
       severity: "error",
       comment: "Only the Space composition surfaces may import presentation components.",
       from: {
-        path: "^src/features/spaces/(?!presentation(?:/|$)|__tests__(?:/|$)|SpaceView\\.vue$|workspace-definition\\.ts$)",
+        path: "^src/features/spaces/(?!presentation(?:/|$)|__tests__(?:/|$)|SpaceView\\.vue$|use-spaces-workspace\\.ts$)",
         pathNot: "(?:^|/)__tests__/",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },

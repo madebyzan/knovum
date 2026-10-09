@@ -89,9 +89,9 @@ export async function renderVideoEdit(
       } satisfies RenderVideoEditRequest,
       onProgress: progress,
     });
-    const data = completedVideoData(completed, pending.id);
-    pending.data = data;
-    store.applyNodeContentForSpace(spaceId, completed.nodeId, data);
+    const videoPayload = validateCompletedVideoPayload(completed, pending.id);
+    pending.data = videoPayload;
+    store.applyNodeContentForSpace(spaceId, completed.nodeId, videoPayload);
     tasks.succeed(taskId);
     await refreshOriginSpace(store, spaceId);
     if (store.activeSpaceId === spaceId && store.videoEditorNodeId === source.id) {
@@ -108,11 +108,11 @@ export async function renderVideoEdit(
   }
 }
 
-function completedVideoData(completed: CompletedDerivationOutput, pendingNodeId: string) {
+function validateCompletedVideoPayload(completed: CompletedDerivationOutput, pendingNodeId: string) {
   if (completed.nodeId !== pendingNodeId) throw new Error("Video render returned a different output node");
-  const data = validateSpaceNodePayload(completed.data);
-  if (data.kind !== "video") throw new Error("Video render returned non-video content");
-  return data;
+  const payload = validateSpaceNodePayload(completed.data);
+  if (payload.kind !== "video") throw new Error("Video render returned non-video content");
+  return payload;
 }
 
 async function refreshOriginSpace(store: VideoEditStore, spaceId: string) {

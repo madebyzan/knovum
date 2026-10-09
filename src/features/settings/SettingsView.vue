@@ -60,7 +60,7 @@ watch(
   { flush: "post", immediate: true },
 );
 
-const paneComponentMap = {
+const componentByPaneId = {
   aiModels: AiModelsSettingsPane,
   voices: toRaw(props.voiceLibraryComponent),
   desktopAgents: DesktopAgentsSettingsPane,
@@ -73,7 +73,7 @@ const paneComponentMap = {
   appearance: AppearanceSettingsPane,
 } satisfies Record<SettingsPaneId, Component>;
 
-const paneComponent = computed(() => paneComponentMap[activePane.value]);
+const paneComponent = computed(() => componentByPaneId[activePane.value]);
 const paneHeaderAction = computed(() =>
   activePane.value === "archivedSpaces"
     ? ArchivedSpacesSettingsAction

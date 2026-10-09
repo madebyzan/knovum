@@ -102,7 +102,7 @@ pub(in crate::spaces) async fn publish_in_transaction(
     .ok_or("Enrichment target no longer exists")?;
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut current: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-    let expected_data = current.clone();
+    let expected_payload = current.clone();
     if document_coverage.is_some_and(|expected| current.get("documentCoverage") != Some(expected)) {
         return Err(AppError::new(
             "document_coverage_obsolete",
@@ -151,7 +151,7 @@ pub(in crate::spaces) async fn publish_in_transaction(
         space_id,
         &[NodeContentChange {
             id: node_id.into(),
-            expected_data,
+            expected_data: expected_payload,
             data: current.clone(),
             source_chunks: chunks,
         }],

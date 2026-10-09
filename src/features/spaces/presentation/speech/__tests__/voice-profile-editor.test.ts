@@ -6,8 +6,8 @@ import { localeMessages } from "../../../../../locales/locale-registry";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
 import UiNumberField from "../../../../../shared/ui/UiNumberField.vue";
 import type { VoiceProfileHistory } from "../../../contracts/generated/VoiceProfileHistory";
+import VoiceProfileConfiguration from "../VoiceProfileConfiguration.vue";
 import VoiceProfileEditor from "../VoiceProfileEditor.vue";
-import VoiceProfileRow from "../VoiceProfileRow.vue";
 
 const firstRevision = {
   id: "revision-1",
@@ -79,7 +79,7 @@ it.each([
   ["zh-CN", 1, "被引用 1 次"],
   ["zh-CN", 2, "被引用 2 次"],
 ] as const)("renders the complete voice reference count in %s at %i", (locale, count, expected) => {
-  const wrapper = mount(VoiceProfileRow, {
+  const wrapper = mount(VoiceProfileConfiguration, {
     props: { profile: { ...profile, referencedBindingCount: count }, expanded: false, disabled: false },
     global: {
       plugins: [createI18n({ legacy: false, locale, fallbackLocale: false, messages: localeMessages })],

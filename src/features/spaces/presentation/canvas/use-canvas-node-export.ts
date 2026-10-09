@@ -7,7 +7,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
-export function useCanvasNodeDownload(
+export function useCanvasNodeExport(
   store: ReturnType<typeof useSpaceStore>,
   state: Readonly<Ref<CanvasSelectionProductState>>,
   selectedNodes: Readonly<Ref<SpaceCanvasNode[]>>,

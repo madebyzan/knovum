@@ -5,29 +5,29 @@ import type { AppTask } from "./task-model";
 
 export function createTaskProgress(tasks: Ref<AppTask[]>) {
   function updateRunning(
-    id: string,
+    taskId: string,
     changes: Partial<Pick<AppTask, "progress" | "statusMessage" | "title">>,
   ) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
     if (task?.status === "running") Object.assign(task, changes);
   }
 
   return {
-    indeterminate(id: string, statusMessage?: string) {
-      const task = tasks.value.find((candidate) => candidate.id === id);
+    indeterminate(taskId: string, statusMessage?: string) {
+      const task = tasks.value.find((candidate) => candidate.id === taskId);
       if (!task || task.status !== "running") return;
       delete task.progress;
       if (statusMessage !== undefined) task.statusMessage = statusMessage;
     },
-    progress(id: string, value: number, statusMessage?: string) {
-      updateRunning(id, {
+    progress(taskId: string, value: number, statusMessage?: string) {
+      updateRunning(taskId, {
         progress: clamp(value, 0, 100),
         ...(statusMessage === undefined ? {} : { statusMessage }),
       });
     },
-    setStatusMessage(id: string, statusMessage: string) {
-      updateRunning(id, { statusMessage });
+    setStatusMessage(taskId: string, statusMessage: string) {
+      updateRunning(taskId, { statusMessage });
     },
-    title: (id: string, value: string) => updateRunning(id, { title: value }),
+    title: (taskId: string, value: string) => updateRunning(taskId, { title: value }),
   };
 }
