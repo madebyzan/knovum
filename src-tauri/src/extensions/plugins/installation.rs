@@ -68,7 +68,7 @@ pub(super) async fn commit(
     let previous_skills = super::super::skills::list(&pool).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     sqlx::query("INSERT INTO plugins(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
-        .bind(id).bind(database::encode(&installation)?).execute(&mut *tx).await.map_err(|error| error.to_string())?;
+        .bind(id).bind(sqlx::types::Json(&installation)).execute(&mut *tx).await.map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM skills WHERE json_extract(document,'$.pluginId')=$1")
         .bind(id)
         .execute(&mut *tx)
@@ -84,7 +84,7 @@ pub(super) async fn commit(
         skill.plugin_id = Some(id.into());
         sqlx::query("INSERT INTO skills(id,document) VALUES($1,$2)")
             .bind(&skill.id)
-            .bind(database::encode(&skill)?)
+            .bind(sqlx::types::Json(&skill))
             .execute(&mut *tx)
             .await
             .map_err(|error| error.to_string())?;

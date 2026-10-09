@@ -41,7 +41,7 @@ pub(in crate::spaces::conversations) async fn prune(
          WHERE id IN (SELECT value FROM json_each($2))",
     )
     .bind(now)
-    .bind(serde_json::to_string(&threads).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&threads))
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;

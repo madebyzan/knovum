@@ -11,14 +11,11 @@ pub(super) async fn persist_snapshot(
     space_id: &str,
     snapshot: &SpaceStructureSnapshot,
 ) -> Result<(), String> {
-    let structure_ids = serde_json::to_string(
-        &snapshot
-            .structure
-            .iter()
-            .map(StructureNode::id)
-            .collect::<Vec<_>>(),
-    )
-    .map_err(db::json_error)?;
+    let structure_ids = snapshot
+        .structure
+        .iter()
+        .map(StructureNode::id)
+        .collect::<Vec<_>>();
     let existing = existing_structure(tx, space_id, &structure_ids).await?;
     for structure_node in &snapshot.structure {
         if let Some((current, _deleted)) = existing.get(structure_node.id()) {
@@ -60,8 +57,8 @@ pub(super) async fn persist_snapshot(
     )
     .bind(now)
     .bind(space_id)
-    .bind(&structure_ids)
-    .bind(serde_json::to_string(&moving_ids).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&structure_ids))
+    .bind(sqlx::types::Json(&moving_ids))
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -81,13 +78,13 @@ pub(super) async fn persist_snapshot(
          WHERE spaces_structure_layouts.data<>excluded.data OR spaces_structure_layouts.kind<>excluded.kind",
     )
     .bind(space_id)
-    .bind(serde_json::to_string(&snapshot.layouts).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&snapshot.layouts))
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id NOT IN (SELECT value FROM json_each($2))")
         .bind(space_id)
-        .bind(serde_json::to_string(&snapshot.relation_styles.iter().map(|style| &style.relation_id).collect::<Vec<_>>()).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(snapshot.relation_styles.iter().map(|style| &style.relation_id).collect::<Vec<_>>()))
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
@@ -99,7 +96,7 @@ pub(super) async fn persist_snapshot(
          WHERE spaces_relation_styles.color<>excluded.color",
     )
     .bind(space_id)
-    .bind(serde_json::to_string(&snapshot.relation_styles).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&snapshot.relation_styles))
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -140,14 +137,14 @@ pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
 async fn existing_structure(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    structure_ids: &str,
+    structure_ids: &[&str],
 ) -> Result<HashMap<String, (StructureNode, bool)>, String> {
     let rows = sqlx::query(
         "SELECT id,kind,node_id,parent_id,order_index,title,locked,deleted_at FROM spaces_structure_nodes \
          WHERE space_id=$1 AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(structure_ids)
+    .bind(sqlx::types::Json(structure_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

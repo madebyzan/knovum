@@ -140,7 +140,7 @@ async fn update_batch(
     sqlx::query(
         "UPDATE spaces_deleted_structure_batches SET root_structure_node_ids=$1 WHERE id=$2",
     )
-    .bind(serde_json::to_string(&remaining_roots).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&remaining_roots))
     .bind(batch_id)
     .execute(&mut **tx)
     .await

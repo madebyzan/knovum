@@ -43,9 +43,6 @@ pub(in crate::spaces::conversations) async fn select(
     let input_id = ids.input_id();
     let conversation_id = &ids.conversation_id;
     let branch_id = &ids.branch_id;
-    let target_json = serde_json::to_string(target).map_err(db::json_error)?;
-    let profile_json = serde_json::to_string(profile).map_err(db::json_error)?;
-    let selection_json = serde_json::to_string(selection).map_err(db::json_error)?;
     let previous = sqlx::query("SELECT id,execution_revision,frozen_target,model_profile,target_selection,catalog_digest,graph_version,projection_checkpoint_id,
          (SELECT r.state FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE t.segment_id=spaces_builtin_agent_execution_segments.id ORDER BY t.created_at DESC,t.rowid DESC LIMIT 1) AS previous_run_state
          FROM spaces_builtin_agent_execution_segments WHERE conversation_id=$1 AND branch_id=$2 ORDER BY created_at DESC,rowid DESC LIMIT 1")
@@ -57,17 +54,20 @@ pub(in crate::spaces::conversations) async fn select(
             .as_deref()
             == Some("succeeded")
             && row
-                .try_get::<String, _>("frozen_target")
+                .try_get::<sqlx::types::Json<ModelExecutionTarget>, _>("frozen_target")
                 .map_err(db::sql_error)?
-                == target_json
+                .0
+                == *target
             && row
-                .try_get::<String, _>("model_profile")
+                .try_get::<sqlx::types::Json<crate::ai::settings::contracts::BuiltinAgentModelSettings>, _>("model_profile")
                 .map_err(db::sql_error)?
-                == profile_json
+                .0
+                == *profile
             && row
-                .try_get::<String, _>("target_selection")
+                .try_get::<sqlx::types::Json<ModelTargetSelection>, _>("target_selection")
                 .map_err(db::sql_error)?
-                == selection_json
+                .0
+                == *selection
             && row
                 .try_get::<String, _>("catalog_digest")
                 .map_err(db::sql_error)?
@@ -97,7 +97,7 @@ pub(in crate::spaces::conversations) async fn select(
     };
     sqlx::query("INSERT INTO spaces_builtin_agent_execution_segments(id,conversation_id,branch_id,execution_revision,graph_version,frozen_target,model_profile,target_selection,catalog_digest,created_at)
         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)").bind(&session.thread_id).bind(conversation_id).bind(branch_id).bind(&session.execution_revision)
-        .bind(protocol::GRAPH_VERSION).bind(target_json).bind(profile_json).bind(selection_json).bind(catalog_digest).bind(now)
+        .bind(protocol::GRAPH_VERSION).bind(sqlx::types::Json(target)).bind(sqlx::types::Json(profile)).bind(sqlx::types::Json(selection)).bind(catalog_digest).bind(now)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(session)
 }

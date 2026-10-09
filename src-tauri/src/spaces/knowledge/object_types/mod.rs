@@ -41,14 +41,13 @@ pub async fn create_object_type<R: Runtime>(
 ) -> Result<(), AppError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
-    let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
         "INSERT INTO spaces_object_types(id,space_id,name,icon,description,fields,system,created_at,updated_at) \
          VALUES($1,$2,$3,$4,$5,$6,0,$7,$7)",
     ).bind(&input.id).bind(&input.space_id).bind(&input.name).bind(&input.icon).bind(&input.description)
-        .bind(fields).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(sqlx::types::Json(&input.fields)).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     events::append(
         &mut tx,
         events::KnowledgeEvent::new(
@@ -72,7 +71,6 @@ pub async fn update_object_type<R: Runtime>(
 ) -> Result<(), AppError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
-    let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let executed = sqlx::query(
@@ -82,7 +80,7 @@ pub async fn update_object_type<R: Runtime>(
     .bind(&input.name)
     .bind(&input.icon)
     .bind(&input.description)
-    .bind(fields)
+    .bind(sqlx::types::Json(&input.fields))
     .bind(now)
     .bind(&input.id)
     .bind(&input.space_id)

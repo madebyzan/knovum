@@ -21,7 +21,7 @@ pub(crate) async fn validate_structure_targets(
          ) \
          AND json_type(p.data,'$.targetStructureNodeId')='text' AND s.id IS NULL LIMIT 1",
     )
-    .bind(serde_json::to_string(changed_space_ids).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(changed_space_ids))
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -42,7 +42,7 @@ pub(crate) async fn reject_structure_targets(
          AND json_extract(data,'$.targetStructureNodeId') IN (SELECT value FROM json_each($2)) LIMIT 1",
     )
     .bind(target_space_id)
-    .bind(serde_json::to_string(target_structure_node_ids).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(target_structure_node_ids))
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -65,7 +65,7 @@ pub(crate) async fn reject_node_targets(
          AND json_extract(data,'$.targetNodeId') IN (SELECT value FROM json_each($2)) LIMIT 1",
     )
     .bind(target_space_id)
-    .bind(serde_json::to_string(target_node_ids).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(target_node_ids))
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;

@@ -97,6 +97,23 @@ describe("audio production scripts", () => {
     ).toEqual({ startMs: 1000, endMs: 2100, text: "Hello", speakerKey: "Alice" });
   });
 
+  it("accepts WebVTT metadata blocks and normalizes safe cue markup", () => {
+    const source = `WEBVTT
+
+NOTE ignored comment
+
+STYLE
+::cue { color: red; }
+
+REGION id:main width:40%
+
+00:01.000 --> 00:02.100 region:main
+<v Alice>Hello &amp;<br>goodbye</v>`;
+    expect(parseDubbingSubtitles(source, "Narrator")).toEqual([
+      { startMs: 1000, endMs: 2100, text: "Hello &\ngoodbye", speakerKey: "Alice" },
+    ]);
+  });
+
   it("rejects malformed subtitle timings and unsupported duration", () => {
     expect(() => parseDubbingSubtitles("1\n00:60:00,000 --> 00:60:01,000\nHello", "Narrator")).toThrow(
       "timestamp",
@@ -107,6 +124,18 @@ describe("audio production scripts", () => {
     expect(() => parseDubbingSubtitles("1\n00:00:00,000 --> 12:00:00,001\nHello", "Narrator")).toThrow(
       "limits",
     );
+    expect(() => parseDubbingSubtitles("WEBVTT\n\n00:01.000 -->", "Narrator")).toThrow("timing");
+  });
+
+  it("rejects a malformed cue even when another cue is valid", () => {
+    const source = `WEBVTT
+
+00:01.000 --> 00:02.000
+Valid
+
+00:03.000 --> 00:02.000
+Invalid`;
+    expect(() => parseDubbingSubtitles(source, "Narrator")).toThrow("limits");
   });
 
   it("publishes configured pauses and precision and rejects WAV with an embedded cover", () => {

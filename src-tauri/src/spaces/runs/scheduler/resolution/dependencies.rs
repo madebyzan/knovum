@@ -45,10 +45,9 @@ async fn resolve_dependent(
     ) else {
         return Ok(false);
     };
-    let input = (state == "ready")
-        .then(|| dependency_input(&dependencies, &facts, collect_results))
-        .transpose()?;
+    let input =
+        (state == "ready").then(|| dependency_input(&dependencies, &facts, collect_results));
     let dependency_write = sqlx::query("UPDATE spaces_run_steps SET state=$1,resolved_input=COALESCE($2,resolved_input),state_version=state_version+1,updated_at=$3 WHERE id=$4 AND state='pending'")
-        .bind(state).bind(input).bind(now).bind(&id).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(state).bind(input.as_ref().map(sqlx::types::Json)).bind(now).bind(&id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(dependency_write.rows_affected() == 1)
 }

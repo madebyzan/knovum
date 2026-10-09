@@ -155,11 +155,5 @@ async def image_segment(
         "requestId": params.request_id,
         "attemptEpoch": params.attempt_epoch,
         "modelSpecId": params.model_spec_id,
-        "maskRef": {
-            "fileName": mask.file_name,
-            "byteLength": mask.byte_length,
-            "sha256": mask.sha256,
-            "shape": list(mask.shape),
-            "dataType": mask.data_type,
-        },
+        "maskRef": mask.model_dump(by_alias=True, mode="json"),
     }

@@ -39,7 +39,6 @@ async fn detach_matching_citations(
         "chunkId" => "$.chunkId",
         _ => return Err("Unsupported Grounded citation reference field".into()),
     };
-    let ids_json = serde_json::to_string(ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT m.id,m.content FROM spaces_conversation_messages m \
          JOIN spaces_conversations t ON t.id=m.conversation_id WHERE t.space_id=$1 AND EXISTS ( \
@@ -50,7 +49,7 @@ async fn detach_matching_citations(
     )
     .bind(space_id)
     .bind(path)
-    .bind(&ids_json)
+    .bind(sqlx::types::Json(ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -86,7 +85,7 @@ async fn detach_matching_citations(
             continue;
         }
         sqlx::query("UPDATE spaces_conversation_messages SET content=$1 WHERE id=$2")
-            .bind(serde_json::to_string(&content).map_err(db::json_error)?)
+            .bind(sqlx::types::Json(&content))
             .bind(id)
             .execute(&mut **tx)
             .await

@@ -10,7 +10,7 @@ import { useContextDock } from "../canvas/use-context-dock";
 import type { Space } from "../model/space";
 import { useSpacePackageTransfer } from "../package/use-space-package-transfer";
 import { useSpaceStore } from "../session/space-store";
-import { popupSpaceContextMenu, spaceMenuItem, spaceSubmenu } from "./space-menu";
+import { popupSpaceContextMenu, spaceMenuItem } from "./space-menu";
 
 async function reportExchange(operation: () => Promise<boolean>, success: string) {
   try {
@@ -46,15 +46,18 @@ export function useSpaceManagementMenu() {
         }),
       ],
       [
-        spaceSubmenu(t("common.export"), [
-          spaceMenuItem(t("spaces.importExport.space.export"), () => packages.exportPackage(space)),
-          spaceMenuItem(
-            t("spaces.importExport.jsonCanvas.export"),
-            () =>
-              reportExchange(() => exportCanvas(space, port), t("spaces.importExport.jsonCanvas.exported")),
-            { enabled: Boolean(port) },
-          ),
-        ]),
+        {
+          text: t("common.export"),
+          items: [
+            spaceMenuItem(t("spaces.importExport.space.export"), () => packages.exportPackage(space)),
+            spaceMenuItem(
+              t("spaces.importExport.jsonCanvas.export"),
+              () =>
+                reportExchange(() => exportCanvas(space, port), t("spaces.importExport.jsonCanvas.exported")),
+              { enabled: Boolean(port) },
+            ),
+          ],
+        },
       ],
     ];
   }

@@ -28,7 +28,7 @@ pub(crate) async fn settle_waiting_step_in_transaction(
     match outcome {
         Ok(output) => {
             let changed = sqlx::query("UPDATE spaces_run_steps SET state='succeeded',output=$1,wait_reason=NULL,state_version=state_version+1,updated_at=$2 WHERE id=$3 AND state='waiting'")
-                .bind(serde_json::to_string(output).map_err(db::json_error)?)
+                .bind(sqlx::types::Json(output))
                 .bind(now).bind(step_id).execute(&mut **tx).await.map_err(db::sql_error)?;
             db::require_one(
                 changed,

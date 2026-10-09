@@ -18,7 +18,7 @@ pub enum ModelTargetSelection {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ModelExecutionTarget {
     pub provider: String,

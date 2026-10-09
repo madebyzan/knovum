@@ -144,13 +144,12 @@ async fn validate_node_refs(
         return Ok(());
     }
     let refs = node_refs.into_iter().collect::<Vec<_>>();
-    let json = serde_json::to_string(&refs).map_err(db::json_error)?;
     let count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL \
          AND kind NOT IN ('credential','portal') AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(json)
+    .bind(sqlx::types::Json(&refs))
     .fetch_one(&mut **tx)
     .await
     .map_err(db::sql_error)?;

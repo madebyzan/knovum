@@ -92,12 +92,11 @@ pub(super) async fn revise(
         .checked_add(1)
         .ok_or("workflow-change-limit: version overflow")?;
     let now = crate::clock::unix_time_millis()?;
-    let encoded = serde_json::to_string(&saved).map_err(db::json_error)?;
     let workflow_write = sqlx::query(
         "UPDATE spaces_workflow_templates SET definition=$1,updated_at=$2 WHERE id=$3
          AND json_extract(definition,'$.version')=$4",
     )
-    .bind(&encoded)
+    .bind(sqlx::types::Json(&saved))
     .bind(now)
     .bind(&saved.workflow_id)
     .bind(i64::from(request.expected_version))
@@ -114,7 +113,7 @@ pub(super) async fn revise(
     )
     .bind(&saved.workflow_id)
     .bind(i64::from(saved.version))
-    .bind(encoded)
+    .bind(sqlx::types::Json(&saved))
     .bind(now)
     .execute(&mut *tx)
     .await
@@ -151,7 +150,7 @@ pub(super) async fn rename(
         "UPDATE spaces_workflow_templates SET name=$1,definition=$2,updated_at=$3 WHERE id=$4",
     )
     .bind(name)
-    .bind(serde_json::to_string(&saved).map_err(db::json_error)?)
+    .bind(sqlx::types::Json(&saved))
     .bind(crate::clock::unix_time_millis()?)
     .bind(workflow_id)
     .execute(&mut *tx)

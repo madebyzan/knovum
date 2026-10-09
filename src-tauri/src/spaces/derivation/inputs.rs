@@ -56,8 +56,8 @@ pub async fn insert(
         .bind(value.source_revision)
         .bind(value.revision_basis.as_str())
         .bind(input_revision)
-        .bind(serde_json::to_string(&input_snapshot).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&source_snapshot).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&input_snapshot))
+        .bind(sqlx::types::Json(&source_snapshot))
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;

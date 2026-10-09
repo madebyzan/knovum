@@ -279,9 +279,8 @@ async fn attach_outputs(
     conversation_id: &str,
     outputs: &[ConversationMessageOutput],
 ) -> Result<(), AppError> {
-    let encoded = serde_json::to_string(outputs).map_err(db::json_error)?;
     let publication = sqlx::query("UPDATE spaces_conversation_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
-        .bind(encoded)
+        .bind(sqlx::types::Json(outputs))
         .bind(conversation_id)
         .execute(&mut **tx)
         .await

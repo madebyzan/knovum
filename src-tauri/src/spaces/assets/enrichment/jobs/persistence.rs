@@ -17,13 +17,11 @@ pub(crate) async fn freeze_target(
     id: &str,
     target: &crate::ai::tasks::TaskTargetSelection,
 ) -> Result<crate::ai::tasks::TaskTargetSelection, String> {
-    let raw = serde_json::to_string(target).map_err(db::json_error)?;
-    let frozen: Option<String> = sqlx::query_scalar("UPDATE spaces_enrichment_jobs SET execution_target=COALESCE(execution_target,$1) WHERE id=$2 AND status IN ('pending','awaiting_configuration') RETURNING execution_target")
-        .bind(raw).bind(id).fetch_optional(pool).await.map_err(db::sql_error)?;
-    serde_json::from_str(
-        &frozen.ok_or("Enrichment intent no longer permits execution preparation")?,
-    )
-    .map_err(db::json_error)
+    let frozen: Option<sqlx::types::Json<crate::ai::tasks::TaskTargetSelection>> = sqlx::query_scalar("UPDATE spaces_enrichment_jobs SET execution_target=COALESCE(execution_target,$1) WHERE id=$2 AND status IN ('pending','awaiting_configuration') RETURNING execution_target")
+        .bind(sqlx::types::Json(target)).bind(id).fetch_optional(pool).await.map_err(db::sql_error)?;
+    Ok(frozen
+        .ok_or("Enrichment intent no longer permits execution preparation")?
+        .0)
 }
 
 pub(crate) async fn claim_job(

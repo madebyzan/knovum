@@ -202,12 +202,8 @@ async fn finish_attempt(
     error: Option<&str>,
     now: i64,
 ) -> Result<(), AppError> {
-    let attempt_output = attempt_output
-        .map(serde_json::to_string)
-        .transpose()
-        .map_err(db::json_error)?;
     let changed = sqlx::query("UPDATE spaces_run_attempts SET state=$1,output=$2,error_code=$3,lease_until=NULL,finished_at=$4 WHERE id=$5 AND state='executing' AND execution_epoch=$6")
-        .bind(state).bind(attempt_output).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
+        .bind(state).bind(attempt_output.map(sqlx::types::Json)).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     if changed.rows_affected() != 1 {
         return Err(AppError::new(
@@ -226,12 +222,8 @@ async fn update_step(
     reason: Option<WaitReason>,
     now: i64,
 ) -> Result<(), AppError> {
-    let output = output
-        .map(serde_json::to_string)
-        .transpose()
-        .map_err(db::json_error)?;
     let changed = sqlx::query("UPDATE spaces_run_steps SET state=$1,state_version=state_version+1,output=$2,wait_reason=$3,updated_at=$4 WHERE id=$5 AND state='running'")
-        .bind(state).bind(output).bind(reason.map(enum_text).transpose()?).bind(now)
+        .bind(state).bind(output.map(sqlx::types::Json)).bind(reason.map(enum_text).transpose()?).bind(now)
         .bind(&claim.step_instance_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     if changed.rows_affected() != 1 {
         return Err(AppError::new(

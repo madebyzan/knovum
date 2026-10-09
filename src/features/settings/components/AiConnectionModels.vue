@@ -4,7 +4,6 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { removeAiConnectionModel, saveAiConnectionModel } from "../../../foundation/ai/connection-settings";
-import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import { requireProvider } from "../../../foundation/ai/providers";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
@@ -45,7 +44,7 @@ const capabilityKey: Record<ExecutionCapability, string> = {
 
 function modelInUse(modelId: string) {
   return props.protectedModelTargets.includes(
-    encodeExecutionTarget({ type: "model", connectionId: props.connection.id, modelId }),
+    JSON.stringify({ type: "model", connectionId: props.connection.id, modelId }),
   );
 }
 

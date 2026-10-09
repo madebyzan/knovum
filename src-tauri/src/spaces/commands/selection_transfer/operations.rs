@@ -88,9 +88,8 @@ pub(super) async fn update_portals(
                 "targetSpaceId".into(),
                 Value::String(request.target_space_id.clone()),
             );
-        let serialized = serde_json::to_string(&data).map_err(db::json_error)?;
         sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3")
-            .bind(serialized)
+            .bind(sqlx::types::Json(&data))
             .bind(now)
             .bind(id)
             .execute(&mut **tx)
@@ -154,7 +153,7 @@ pub(super) async fn remove_scene_focus(
         sqlx::query(
             "UPDATE spaces_scenes SET focus_structure_node_ids=$1,updated_at=$2 WHERE id=$3",
         )
-        .bind(serde_json::to_string(&focus).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&focus))
         .bind(now)
         .bind(id)
         .execute(&mut **tx)

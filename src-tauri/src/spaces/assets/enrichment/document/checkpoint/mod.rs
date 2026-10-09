@@ -103,8 +103,8 @@ pub(super) async fn save(
           AND j.status='running' AND n.deleted_at IS NULL AND json_extract(n.data,'$.sourceRevision')=j.source_revision \
         ON CONFLICT(job_id,occurrence_id) DO UPDATE SET occurrence=excluded.occurrence,resource=excluded.resource")
         .bind(&occurrence.id)
-        .bind(serde_json::to_string(occurrence).map_err(db::json_error)?)
-        .bind(resource.map(serde_json::to_string).transpose().map_err(db::json_error)?)
+        .bind(sqlx::types::Json(occurrence))
+        .bind(resource.map(sqlx::types::Json))
         .bind(&request.job_id).bind(&request.space_id).bind(&request.node_id).bind(&report.source_revision)
         .execute(pool).await.map_err(db::sql_error)?;
     if checkpoint_write.rows_affected() != 1 {

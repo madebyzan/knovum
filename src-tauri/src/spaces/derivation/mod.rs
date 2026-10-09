@@ -50,7 +50,7 @@ pub(crate) async fn persist_output_node(
     now: i64,
 ) -> Result<(), AppError> {
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3")
-        .bind(serde_json::to_string(data).map_err(crate::spaces::db::json_error)?)
+        .bind(sqlx::types::Json(data))
         .bind(now)
         .bind(node_id)
         .execute(&mut **tx)

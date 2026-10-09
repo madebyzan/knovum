@@ -34,14 +34,13 @@ pub(in crate::spaces) async fn load_revision_contracts(
     if node_ids.is_empty() {
         return Ok(HashMap::new());
     }
-    let ids = serde_json::to_string(node_ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT id,json_extract(data,'$.knowledgeRevision') AS knowledge_revision,\
          json_extract(data,'$.sourceRevision') AS source_revision FROM spaces_nodes \
          WHERE space_id=$1 AND deleted_at IS NULL AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(ids)
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

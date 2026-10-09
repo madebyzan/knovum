@@ -67,8 +67,8 @@ pub async fn create_candidate_voice(
             .bind(&revision_id).bind(&request.candidate_id).bind(record.candidate.model.engine()).bind(record.candidate.model.specification())
             .bind(&record.candidate.language).bind(persisted.path.to_string_lossy().as_ref())
             .bind(format!("sha256:{}", reference.sha256)).bind(&record.candidate.reference_text)
-            .bind(&record.candidate.design_description).bind(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":record.candidate.seed}).to_string())
-            .bind(serde_json::to_string(&authorization).map_err(db::json_error)?).bind(now)
+            .bind(&record.candidate.design_description).bind(sqlx::types::Json(serde_json::json!({"speed":1.0,"sampleRate":48000,"seed":record.candidate.seed})))
+            .bind(sqlx::types::Json(&authorization)).bind(now)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
         sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id=? WHERE id=?")
             .bind(&revision_id).bind(&request.candidate_id)

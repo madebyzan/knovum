@@ -71,7 +71,6 @@ pub async fn append(
 ) -> Result<(), String> {
     validation::validate_pair(event.entity.kind, event.event_kind)?;
     validation::validate_actor_kind(event.actor.kind)?;
-    let payload = serde_json::to_string(event.payload).map_err(db::json_error)?;
     sqlx::query(
         "INSERT INTO spaces_knowledge_events(\
            id, space_id, entity_kind, entity_id, event_kind, actor_kind, actor_id, payload, created_at\
@@ -84,7 +83,7 @@ pub async fn append(
     .bind(event.event_kind)
     .bind(event.actor.kind)
     .bind(event.actor.id)
-    .bind(payload)
+    .bind(sqlx::types::Json(event.payload))
     .bind(event.now)
     .execute(&mut **tx)
     .await

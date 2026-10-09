@@ -1,5 +1,5 @@
 use serde_json::{json, Value};
-use sqlx::SqlitePool;
+use sqlx::{types::Json, SqlitePool};
 
 use crate::{
     agent_runtime::protocol::messages::AgentProjection,
@@ -56,13 +56,13 @@ pub(in crate::spaces::conversations) async fn commit(
     }
     sqlx::query("UPDATE spaces_builtin_agent_tasks SET input_accepted=1 WHERE segment_id=$1 AND input_accepted=0 AND input_id IN (SELECT value FROM json_each($2))")
         .bind(&projection.thread_id)
-        .bind(serde_json::to_string(&projection.accepted_input_ids).map_err(db::json_error)?)
+        .bind(Json(&projection.accepted_input_ids))
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     for checkpoint in projection.model_checkpoints {
         sqlx::query("UPDATE spaces_builtin_agent_model_calls SET state='committed' WHERE graph_namespace=$1 AND state='received' AND task_id IN (SELECT id FROM spaces_builtin_agent_tasks WHERE segment_id=$2) AND (id IN (SELECT value FROM json_each($3)) OR message_id IN (SELECT value FROM json_each($4)))")
             .bind(&checkpoint.graph_namespace).bind(&projection.thread_id)
-            .bind(serde_json::to_string(&checkpoint.request_ids).map_err(db::json_error)?)
-            .bind(serde_json::to_string(&checkpoint.message_ids).map_err(db::json_error)?)
+            .bind(Json(&checkpoint.request_ids))
+            .bind(Json(&checkpoint.message_ids))
             .execute(&mut *tx).await.map_err(db::sql_error)?;
     }
     sqlx::query(

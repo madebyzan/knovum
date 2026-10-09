@@ -136,12 +136,12 @@ async fn insert(tx: &mut Transaction<'_, Sqlite>, entry: HistoryInsert<'_>) -> R
     } = entry;
     sqlx::query("INSERT INTO spaces_edit_history(space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id,expected_revision,undone,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,0,$12)")
         .bind(space_id)
-        .bind(serde_json::to_string(&before.snapshot).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&after.snapshot).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&before.node_ids).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&after.node_ids).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&before.relations).map_err(db::json_error)?)
-        .bind(serde_json::to_string(&after.relations).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&before.snapshot))
+        .bind(sqlx::types::Json(&after.snapshot))
+        .bind(sqlx::types::Json(&before.node_ids))
+        .bind(sqlx::types::Json(&after.node_ids))
+        .bind(sqlx::types::Json(&before.relations))
+        .bind(sqlx::types::Json(&after.relations))
         .bind(deletion_batch_id).bind(deletion_restored_after).bind(group_id).bind(revision).bind(now)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())

@@ -24,7 +24,7 @@ pub(super) async fn complete_in_transaction(
     now: i64,
 ) -> Result<(), String> {
     let row = sqlx::query("UPDATE spaces_conversation_tool_operations SET state=$1,output=$2,completed_at=$3 WHERE id=$4 AND state IN ('prepared','dispatching') RETURNING run_id,provider_call_id,wire_name")
-        .bind(state).bind(serde_json::to_string(value).map_err(db::json_error)?).bind(now).bind(operation_id)
+        .bind(state).bind(sqlx::types::Json(value)).bind(now).bind(operation_id)
         .fetch_optional(&mut **tx).await.map_err(db::sql_error)?.ok_or("conversation-tool-receipt-state-changed")?;
     let run_id: String = row.try_get("run_id").map_err(db::sql_error)?;
     let location: (String, String) = sqlx::query_as("SELECT conversation_id,branch_id FROM spaces_builtin_agent_tasks WHERE run_id=$1 UNION ALL SELECT conversation_id,branch_id FROM spaces_external_agent_conversations WHERE run_id=$1")

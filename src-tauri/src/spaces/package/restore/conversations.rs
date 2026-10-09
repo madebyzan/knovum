@@ -21,7 +21,7 @@ pub(super) async fn insert(
              VALUES($1,$2,$3,NULL,$4,$5,$6)",
         ).bind(&row.id).bind(&row.conversation_id).bind(&row.branch_id)
             .bind(&row.role)
-            .bind(serde_json::to_string(&row.content).map_err(db::json_error)?)
+            .bind(sqlx::types::Json(&row.content))
             .bind(row.created_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for row in &request.conversation_messages {

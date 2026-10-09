@@ -44,27 +44,27 @@ pub(super) async fn insert(
             sqlx::query("INSERT INTO spaces_knowledge_derivation_inputs(derivation_id,position,node_id,role,source_revision,revision_basis,input_revision,input_snapshot,source_identity,source_snapshot) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)")
                 .bind(&row.id).bind(position as i64).bind(&input.node_id).bind(&input.role)
                 .bind(&input.source_revision).bind(&input.revision_basis).bind(&input.input_revision)
-                .bind(serde_json::to_string(&input.input_snapshot).map_err(db::json_error)?)
+                .bind(sqlx::types::Json(&input.input_snapshot))
                 .bind(&input.source_identity)
-                .bind(serde_json::to_string(&input.source_snapshot).map_err(db::json_error)?)
+                .bind(sqlx::types::Json(&input.source_snapshot))
                 .execute(&mut **tx).await.map_err(db::sql_error)?;
         }
         if let Some(document) = &row.grounded_document {
             sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES($1,$2,$3)")
                 .bind(&row.id)
-                .bind(serde_json::to_string(&document.citations).map_err(db::json_error)?)
-                .bind(serde_json::to_string(&document.execution_source).map_err(db::json_error)?).execute(&mut **tx).await.map_err(db::sql_error)?;
+                .bind(sqlx::types::Json(&document.citations))
+                .bind(sqlx::types::Json(&document.execution_source)).execute(&mut **tx).await.map_err(db::sql_error)?;
         }
         if let Some(image) = &row.generated_image {
             sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5,$6)")
                 .bind(&row.id).bind(&image.intent).bind(&image.style).bind(&image.aspect_ratio)
-                .bind(serde_json::to_string(&image.execution_source).map_err(db::json_error)?).bind(&image.revised_prompt)
+                .bind(sqlx::types::Json(&image.execution_source)).bind(&image.revised_prompt)
                 .execute(&mut **tx).await.map_err(db::sql_error)?;
         }
         if let Some(video) = &row.generated_video {
             sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES($1,$2,$3,$4,$5,$6)")
                 .bind(&row.id).bind(&video.prompt).bind(&video.aspect_ratio).bind(video.duration_seconds)
-                .bind(serde_json::to_string(&video.execution_source).map_err(db::json_error)?).bind(&video.operation_id)
+                .bind(sqlx::types::Json(&video.execution_source)).bind(&video.operation_id)
                 .execute(&mut **tx).await.map_err(db::sql_error)?;
         }
     }

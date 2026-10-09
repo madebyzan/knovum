@@ -1,4 +1,4 @@
-use sqlx::{Row, Sqlite, Transaction};
+use sqlx::{types::Json, Row, Sqlite, Transaction};
 
 use super::{AuthorizationContext, Principal};
 use crate::spaces::db;
@@ -18,9 +18,9 @@ pub(crate) async fn create_grant(
     .bind(context.principal.kind.as_str())
     .bind(&context.principal.id)
     .bind(&context.home_space_id)
-    .bind(serde_json::to_string(&context.read_space_ids).map_err(db::json_error)?)
-    .bind(serde_json::to_string(&context.write_space_ids).map_err(db::json_error)?)
-    .bind(serde_json::to_string(&context.action_ids).map_err(db::json_error)?)
+    .bind(Json(&context.read_space_ids))
+    .bind(Json(&context.write_space_ids))
+    .bind(Json(&context.action_ids))
     .bind(context.valid_until)
     .bind(now)
     .execute(&mut **tx)
@@ -69,6 +69,7 @@ pub(crate) async fn load_grant(
 }
 
 fn parse_array(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<Vec<String>, String> {
-    let value: String = row.try_get(field).map_err(db::sql_error)?;
-    serde_json::from_str(&value).map_err(db::json_error)
+    row.try_get::<Json<Vec<String>>, _>(field)
+        .map(Json::into_inner)
+        .map_err(db::sql_error)
 }

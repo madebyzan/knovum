@@ -160,7 +160,6 @@ async fn insert_single_node(
     let object_type_id =
         crate::spaces::knowledge::validation::validate_node(tx, space_id, &node.kind, &node.data)
             .await?;
-    let data = serde_json::to_string(&node.data).map_err(db::json_error)?;
     sqlx::query(
         r#"INSERT INTO spaces_nodes (
              id, space_id, kind, object_type_id, initial_x, initial_y, data, created_at, updated_at
@@ -172,7 +171,7 @@ async fn insert_single_node(
     .bind(object_type_id)
     .bind(node.initial_x)
     .bind(node.initial_y)
-    .bind(data)
+    .bind(sqlx::types::Json(&node.data))
     .bind(now)
     .execute(&mut **tx)
     .await

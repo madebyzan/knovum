@@ -82,13 +82,11 @@ async fn insert_packaged_chunk(
         Some(&row.metadata),
         expected_revision,
     )?;
-    let locator = serde_json::to_string(&row.locator).map_err(db::json_error)?;
-    let metadata = serde_json::to_string(&row.metadata).map_err(db::json_error)?;
     sqlx::query(
         "INSERT INTO spaces_knowledge_chunks(id,space_id,node_id,origin,kind,source_revision,text,locator,metadata,created_at,updated_at) \
          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
     ).bind(&row.id).bind(&request.space.id).bind(&row.node_id).bind(&row.origin).bind(&row.kind)
-        .bind(&row.source_revision).bind(&row.text).bind(locator).bind(metadata).bind(row.created_at).bind(row.updated_at)
+        .bind(&row.source_revision).bind(&row.text).bind(sqlx::types::Json(&row.locator)).bind(sqlx::types::Json(&row.metadata)).bind(row.created_at).bind(row.updated_at)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

@@ -152,7 +152,7 @@ async fn enqueue(
     .bind(STATUS_PENDING)
     .bind(source_revision)
     .bind(now)
-    .bind(target.filter(|_| matches!(job_type, EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument | EnrichmentJobType::ParseDocument)).map(serde_json::to_string).transpose().map_err(crate::spaces::db::json_error)?)
+    .bind(target.filter(|_| matches!(job_type, EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument | EnrichmentJobType::ParseDocument)).map(sqlx::types::Json))
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;

@@ -53,7 +53,7 @@ pub async fn start_turn(
     .bind(&message_id)
     .bind(&conversation_id)
     .bind(&branch_id)
-    .bind(serde_json::json!({"parts":[{"type":"text","text":""}], "runId": run_id}).to_string())
+    .bind(sqlx::types::Json(serde_json::json!({"parts":[{"type":"text","text":""}], "runId": run_id})))
     .bind(now)
     .execute(&mut *tx)
     .await

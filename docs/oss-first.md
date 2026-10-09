@@ -24,6 +24,28 @@ license or maintenance burden.
 Import upstream APIs directly. Add an adapter only when it enforces validation, security, domain
 translation, orchestration or lifecycle policy. Do not create rename-only wrappers.
 
+## Existing-code remediation
+
+The same gate applies to maintained code, not only new capabilities. Remove a custom implementation
+when an installed library or platform API covers its full contract, including cancellation,
+ordering, resource bounds and supported targets. Keep product policy at the owning capability and
+let upstream own scheduling, parsing, model serialization and primitive interaction.
+
+Validate once at the owning trust boundary. Repository-owned typed constants and values already
+validated in the same execution path do not need another structural parser. User edits, disk data,
+network responses, IPC and external files still require validation. A TypeScript generic on an IPC
+call does not validate its payload. A local desktop process is not a reason to remove path
+authorization, bounded reads, credential handling or atomic publication checks.
+
+Avoid serialization as cloning or as an intermediate step between an already parsed value and a
+model that accepts it directly. Before removing a conversion, verify upstream semantics: strict
+Pydantic JSON validation intentionally accepts enum strings that strict Python-object validation
+rejects, and wire aliases or vendor-specific content blocks can require domain translation.
+
+Do not replace a short standard-library expression with a new dependency merely to reduce custom
+syntax. Assess the responsibility removed and the resulting code, rather than enforcing a deletion
+quota or wrapping a library behind a new generic subsystem.
+
 For a new dependency or custom subsystem, record:
 
 ```text
@@ -114,6 +136,14 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   full nonlinear editor, but its compiled runtime and project model are excessive for Knovum's bounded
   timeline. Web timeline packages that embed Pixi/WebCodecs engines were rejected because they would
   introduce a competing media model.
+- Subtitle import retains a bounded SRT/WebVTT parser because the reviewed libraries do not cover
+  its reject-the-whole-import contract. [Media Captions](https://github.com/vidstack/captions)
+  `0.0.18` and `1.0.4` silently discard reversed or zero-duration cues even in strict mode;
+  [`subtitle`](https://github.com/gsantiago/subtitle.js) accepts out-of-range timestamp fields and
+  exposes Node-stream APIs with partial WebVTT support;
+  [`srt-vtt-parser`](https://github.com/plussub/srt-vtt-parser) lacks strict timestamp validation.
+  Adding a second parser to recover discarded cues would duplicate the same responsibility. Reassess
+  this exception when an upstream parser passes the malformed and mixed-validity import regressions.
 - Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The producer downloads exact immutable archives by size/hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
 - yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
   executable with ambient config, plugins, cookies, playlists, self-update and remote components

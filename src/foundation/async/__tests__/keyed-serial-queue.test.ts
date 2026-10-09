@@ -35,4 +35,17 @@ describe("createKeyedSerialQueue", () => {
     await a;
     expect(events).toEqual(["b", "a"]);
   });
+
+  it("preserves a failed write's error and continues queued writes for its key", async () => {
+    const queue = createKeyedSerialQueue<string>();
+    const cause = new Error("disk unavailable");
+    const first = queue.run("node", async () => {
+      throw cause;
+    });
+    const second = queue.run("node", async () => "saved");
+
+    await expect(first).rejects.toBe(cause);
+    await expect(second).resolves.toBe("saved");
+    await expect(queue.run("node", async () => "saved again")).resolves.toBe("saved again");
+  });
 });

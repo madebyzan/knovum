@@ -40,15 +40,15 @@ def create_tool(definition: AgentToolDefinition) -> StructuredTool:
             name=definition.name,
             arguments=arguments,
         )
-        response = await context.peer.request("agentRuntime.invokeTool", invocation)
-        outcome = AgentToolOutcome.model_validate_json(json.dumps(response)).root
-        while outcome.type != "completed":
+        while True:
+            response = await context.peer.request("agentRuntime.invokeTool", invocation)
+            outcome = AgentToolOutcome.model_validate(response).root
+            if outcome.type == "completed":
+                break
             if outcome.type == "await_child":
                 interrupt({"type": "child_run", "runId": outcome.run_id})
             else:
                 interrupt({"type": "tool_intervention", "operationId": outcome.operation_id, "reason": outcome.reason})
-            response = await context.peer.request("agentRuntime.invokeTool", invocation)
-            outcome = AgentToolOutcome.model_validate_json(json.dumps(response)).root
         tool_message = ToolMessage(
             id=f"tool:{runtime.tool_call_id}",
             content=json.dumps(outcome.value, ensure_ascii=False),

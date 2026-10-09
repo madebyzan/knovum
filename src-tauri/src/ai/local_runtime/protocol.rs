@@ -2,7 +2,7 @@ use std::io;
 
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Value};
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{ChildStdin, ChildStdout};
 
 use crate::ai::contracts::runtime::MAX_MESSAGE_BYTES;
@@ -120,33 +120,33 @@ impl Protocol {
     }
 
     pub(super) async fn read(&mut self) -> Result<Value, String> {
-        let mut bytes = Vec::new();
-        loop {
-            let available = self
-                .output
-                .fill_buf()
-                .await
-                .map_err(|error| format!("worker_crashed: {error}"))?;
-            if available.is_empty() {
-                return Err("worker_crashed: worker closed its protocol stream".into());
-            }
-            let end = available.iter().position(|byte| *byte == b'\n');
-            let count = end.map_or(available.len(), |index| index + 1);
-            if bytes.len() + count > MAX_MESSAGE_BYTES {
-                return Err("invalid_output: worker protocol message exceeds 1 MiB".into());
-            }
-            bytes.extend_from_slice(&available[..count]);
-            self.output.consume(count);
-            if end.is_some() {
-                break;
-            }
-        }
-        let line = std::str::from_utf8(&bytes)
-            .map_err(|_| "invalid_output: worker emitted non-UTF-8 protocol data")?;
-        serde_json::from_str(line).map_err(|error| format!("invalid_output: {error}"))
+        read_frame(&mut self.output).await
     }
+}
+
+async fn read_frame(reader: &mut (impl AsyncBufRead + Unpin)) -> Result<Value, String> {
+    let mut bytes = Vec::new();
+    reader
+        .take((MAX_MESSAGE_BYTES + 1) as u64)
+        .read_until(b'\n', &mut bytes)
+        .await
+        .map_err(|error| format!("worker_crashed: {error}"))?;
+    if bytes.is_empty() {
+        return Err("worker_crashed: worker closed its protocol stream".into());
+    }
+    if bytes.len() > MAX_MESSAGE_BYTES {
+        return Err("invalid_output: worker protocol message exceeds 1 MiB".into());
+    }
+    if !bytes.ends_with(b"\n") {
+        return Err("worker_crashed: worker closed its protocol stream".into());
+    }
+    serde_json::from_slice(&bytes).map_err(|error| format!("invalid_output: {error}"))
 }
 
 pub(super) fn io_error(error: io::Error) -> String {
     format!("worker_crashed: {error}")
 }
+
+#[cfg(test)]
+#[path = "tests/protocol.rs"]
+mod tests;

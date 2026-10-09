@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
 import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
-import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
@@ -63,7 +62,7 @@ function update(key: keyof AiRoutingDefaults, value: string) {
   emit("updateRoute", key, { ...option.target });
 }
 const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
-  target ? encodeExecutionTarget(target) : UNASSIGNED;
+  target ? JSON.stringify(target) : UNASSIGNED;
 </script>
 
 <template>

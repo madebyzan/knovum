@@ -141,4 +141,8 @@ fn percent_decoding_keeps_bytes_of_invalid_escapes() {
         asset_url::asset_path("asset://localhost/%E4%B8%AD%E6%96%87.png"),
         "中文.png"
     );
+    assert_eq!(
+        asset_url::asset_path("asset://localhost/a%FFb.png"),
+        "a�b.png"
+    );
 }

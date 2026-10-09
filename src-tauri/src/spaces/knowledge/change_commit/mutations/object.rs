@@ -17,7 +17,6 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_object(
     tx: &mut Transaction<'_, Sqlite>,
     input: ObjectInsert<'_>,
 ) -> Result<(), String> {
-    let data = serde_json::to_string(input.data).map_err(db::json_error)?;
     sqlx::query(
         "INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at) \
          VALUES($1,$2,'object',$3,$4,$5,$6,$7,$7)",
@@ -27,7 +26,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_object(
     .bind(input.object_type_id)
     .bind(input.initial_x)
     .bind(input.initial_y)
-    .bind(data)
+    .bind(sqlx::types::Json(input.data))
     .bind(input.now)
     .execute(&mut **tx)
     .await
@@ -107,12 +106,11 @@ async fn persist_object_update(
     object_type_id: &str,
     data: &Value,
 ) -> Result<(), String> {
-    let serialized = serde_json::to_string(data).map_err(db::json_error)?;
     sqlx::query(
         "UPDATE spaces_nodes SET object_type_id=$1,data=$2,updated_at=$3 WHERE id=$4 AND space_id=$5",
     )
     .bind(object_type_id)
-    .bind(serialized)
+    .bind(sqlx::types::Json(data))
     .bind(input.now)
     .bind(input.id)
     .bind(input.space_id)

@@ -59,7 +59,7 @@ pub(super) async fn update_targets(
         let Some(owner) = owner else { continue };
         data["targetSpaceId"] = serde_json::Value::String((*owner).to_owned());
         sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id=$2")
-            .bind(serde_json::to_string(&data).map_err(db::json_error)?)
+            .bind(sqlx::types::Json(&data))
             .bind(id)
             .execute(&mut **tx)
             .await

@@ -20,7 +20,7 @@ DEPENDENCIES = {
         "errors": set(),
         "speech": {"contracts", "errors"},
         "embedding": {"errors"},
-        "image_segmentation": {"errors"},
+        "image_segmentation": {"contracts", "errors"},
     },
 }
 DEPENDENCIES["knovum_model_resources"] = {

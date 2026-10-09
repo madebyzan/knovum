@@ -127,7 +127,7 @@ pub(super) async fn publish_on(
             };
             sqlx::query("INSERT INTO connections(id,document) VALUES($1,$2)")
                 .bind(&connection.id)
-                .bind(database::encode(&connection)?)
+                .bind(sqlx::types::Json(&connection))
                 .execute(&mut *tx)
                 .await
                 .map_err(|error| error.to_string())?;

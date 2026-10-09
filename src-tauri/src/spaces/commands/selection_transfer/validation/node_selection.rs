@@ -31,14 +31,13 @@ async fn validate_derivations(
     space_id: &str,
     selected: &HashSet<&str>,
 ) -> Result<(), String> {
-    let selected_json = serde_json::to_string(selected).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT n.data FROM spaces_knowledge_derivations d \
          JOIN spaces_nodes n ON n.id = d.output_node_id \
          WHERE d.space_id = $1 AND d.output_node_id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(&selected_json)
+    .bind(sqlx::types::Json(selected))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

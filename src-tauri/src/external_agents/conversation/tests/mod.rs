@@ -98,6 +98,26 @@ async fn explicit_finish_and_cancellation_keep_their_distinct_outcomes() {
 }
 
 #[tokio::test]
+async fn close_settles_when_the_registered_conversation_is_removed() {
+    let id = uuid::Uuid::new_v4().to_string();
+    let cancellation = CancellationToken::new();
+    let _requests = requests::register(&id, cancellation.clone()).unwrap();
+    let closing_id = id.clone();
+    let closing = tokio::spawn(async move { requests::close(&closing_id).await });
+
+    tokio::time::timeout(Duration::from_secs(1), cancellation.cancelled())
+        .await
+        .unwrap();
+    assert!(!closing.is_finished());
+    requests::remove(&id);
+    tokio::time::timeout(Duration::from_secs(1), closing)
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+}
+
+#[tokio::test]
 async fn disconnect_during_initialization_fails_without_a_ready_session() {
     let (transport, peer) = Channel::duplex();
     let (_requests, receiver) = mpsc::channel(1);

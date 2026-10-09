@@ -1,4 +1,4 @@
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use sqlx::{types::Json, Sqlite, SqlitePool, Transaction};
 
 use super::run_rows::{enum_text, optional_enum_text, parse_summary};
 use super::{RunKind, RunObservation, RunState, WaitReason};
@@ -32,9 +32,9 @@ pub(crate) async fn create_run_in_transaction(
     .bind(run.principal.kind.as_str())
     .bind(&run.principal.id)
     .bind(enum_text(run.kind)?)
-    .bind(serde_json::to_string(run.policy_snapshot).map_err(db::json_error)?)
-    .bind(serde_json::to_string(run.input_snapshot).map_err(db::json_error)?)
-    .bind(serde_json::to_string(run.budget).map_err(db::json_error)?)
+    .bind(Json(run.policy_snapshot))
+    .bind(Json(run.input_snapshot))
+    .bind(Json(run.budget))
     .bind(now)
     .execute(&mut **tx)
     .await

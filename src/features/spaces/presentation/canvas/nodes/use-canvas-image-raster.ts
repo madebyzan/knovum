@@ -1,5 +1,5 @@
 import { useDebounceFn, useThrottleFn } from "@vueuse/core";
-import { onScopeDispose, shallowRef, toRaw } from "vue";
+import { onScopeDispose, shallowRef } from "vue";
 
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
 import type { ImageEdit } from "../../../image-editing/image-edit";
@@ -47,7 +47,12 @@ export function useCanvasImageRaster(options: {
       draft ? 512 / Math.max(original.width, original.height, 1) : Infinity,
     );
     const size = { ...original, pixelRatio: ratio };
-    const edit = structuredClone(toRaw(options.edit()));
+    const currentEdit = options.edit();
+    const edit: ImageEdit = {
+      ...currentEdit,
+      crop: { ...currentEdit.crop },
+      adjustments: { ...currentEdit.adjustments },
+    };
     void worker
       .render(
         owner,

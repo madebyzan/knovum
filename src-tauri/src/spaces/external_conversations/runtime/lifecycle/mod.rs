@@ -11,7 +11,6 @@ pub(super) async fn mark_connected(
     session: &crate::external_agents::conversation::ConversationSession,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
-    let capabilities = serde_json::to_string(&session.capabilities).map_err(db::json_error)?;
     let mut tx = db::begin_write(pool).await?;
     let connected = sqlx::query(
         "UPDATE spaces_external_agent_conversations SET state='connected',runtime_session_id=$1,
@@ -19,7 +18,7 @@ pub(super) async fn mark_connected(
          AND EXISTS(SELECT 1 FROM spaces_runs WHERE id=$5 AND completed_at IS NULL AND cancel_requested_at IS NULL)",
     )
     .bind(&session.runtime_session_id)
-    .bind(capabilities)
+    .bind(sqlx::types::Json(&session.capabilities))
     .bind(now)
     .bind(id)
     .bind(run_id)

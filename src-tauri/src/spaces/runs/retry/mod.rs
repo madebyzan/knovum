@@ -52,7 +52,7 @@ pub(super) async fn create_retry(
     )
     .bind(&run_id).bind(&source.space_id).bind(source_run_id)
     .bind(&source.principal_kind).bind(&source.principal_id).bind(&source.kind)
-    .bind(retry_policy).bind(&source.input).bind(&source.budget).bind(now)
+    .bind(sqlx::types::Json(&retry_policy)).bind(&source.input).bind(&source.budget).bind(now)
     .execute(&mut *tx).await.map_err(db::sql_error)?;
     for step in &steps {
         insert_step(&mut tx, &run_id, step, &affected, now).await?;
@@ -71,14 +71,14 @@ pub(super) async fn create_retry(
     super::repository::load_run(pool, &run_id).await
 }
 
-fn retry_policy(encoded: &str, source_run_id: &str, grant_id: &str) -> Result<String, String> {
+fn retry_policy(encoded: &str, source_run_id: &str, grant_id: &str) -> Result<Value, String> {
     let mut policy: serde_json::Map<String, Value> =
         serde_json::from_str(encoded).map_err(db::json_error)?;
     policy
         .entry("retryRootRunId")
         .or_insert_with(|| Value::String(source_run_id.to_owned()));
     policy.insert("grantId".into(), Value::String(grant_id.to_owned()));
-    serde_json::to_string(&policy).map_err(db::json_error)
+    Ok(Value::Object(policy))
 }
 
 fn selected_nodes(

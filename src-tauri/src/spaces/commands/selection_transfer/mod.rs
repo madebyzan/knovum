@@ -108,9 +108,8 @@ pub async fn transfer_selection<R: Runtime>(
         .map_err(db::sql_error)?;
     }
 
-    let selected_json = serde_json::to_string(selected).map_err(db::json_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivation_inputs SET node_id=NULL WHERE node_id IN (SELECT value FROM json_each($1)) AND derivation_id IN (SELECT id FROM spaces_knowledge_derivations WHERE space_id=$2)")
-        .bind(&selected_json).bind(&request.source_space_id)
+        .bind(sqlx::types::Json(selected)).bind(&request.source_space_id)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     for relation_id in &moved_relation_ids {
         sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id=$2")
@@ -128,7 +127,7 @@ pub async fn transfer_selection<R: Runtime>(
     .bind(&request.target_space_id)
     .bind(now)
     .bind(&request.source_space_id)
-    .bind(&selected_json)
+    .bind(sqlx::types::Json(selected))
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -143,12 +142,12 @@ pub async fn transfer_selection<R: Runtime>(
          SELECT id FROM spaces_knowledge_chunks WHERE node_id IN (SELECT value FROM json_each($1)) \
         )",
     )
-    .bind(&selected_json)
+    .bind(sqlx::types::Json(selected))
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_chunks SET space_id=$1,updated_at=$2 WHERE space_id=$3 AND node_id IN (SELECT value FROM json_each($4))")
-        .bind(&request.target_space_id).bind(now).bind(&request.source_space_id).bind(&selected_json)
+        .bind(&request.target_space_id).bind(now).bind(&request.source_space_id).bind(sqlx::types::Json(selected))
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     let transfer_receipt = completion::complete(
         &mut tx,

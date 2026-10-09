@@ -12,7 +12,6 @@ import { getErrorMessage } from "../errors/error-format";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { useExecutionCatalogQuery } from "./execution-catalog-query";
-import { encodeExecutionTarget } from "./execution-target-codec";
 
 const props = defineProps<{
   purpose: RoutingPurpose;
@@ -39,7 +38,7 @@ const options = computed(() =>
     }),
   ),
 );
-const value = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
+const value = computed(() => (target.value ? JSON.stringify(target.value) : ""));
 
 function isSelectableExecutionTarget(encodedTarget: string): boolean {
   return options.value.some((option) => option.value === encodedTarget);
@@ -52,13 +51,13 @@ function selectTarget(selectedValue: string) {
 }
 
 function currentTargetIsSelectable(): boolean {
-  return target.value !== undefined && isSelectableExecutionTarget(encodeExecutionTarget(target.value));
+  return target.value !== undefined && isSelectableExecutionTarget(JSON.stringify(target.value));
 }
 
 function resolveConfiguredTarget(): TaskTargetRef | undefined {
   const configured = defaultExecutionTarget(settings.value, props.purpose) ?? undefined;
   if (!configured) return;
-  return isSelectableExecutionTarget(encodeExecutionTarget(configured)) ? configured : undefined;
+  return isSelectableExecutionTarget(JSON.stringify(configured)) ? configured : undefined;
 }
 
 function synchronizeTarget() {

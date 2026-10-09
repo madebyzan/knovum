@@ -71,7 +71,7 @@ pub async fn fail(app: &AppHandle, id: &str, message: &str) -> Result<(), String
     let mut value: serde_json::Value = serde_json::from_str(&data).map_err(db::json_error)?;
     value["derivationState"] = "failed".into();
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")
-        .bind(serde_json::to_string(&value).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&value))
         .bind(now).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='failed',error=$1,completed_at=$2,updated_at=$2 WHERE id=$3 AND status='running'")
         .bind(message).bind(now).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;

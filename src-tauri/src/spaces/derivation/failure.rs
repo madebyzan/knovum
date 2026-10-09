@@ -91,7 +91,7 @@ pub async fn fail_pending(
     }
     data[key] = "failed".into();
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND space_id=$4")
-        .bind(serde_json::to_string(&data).map_err(db::json_error)?)
+        .bind(sqlx::types::Json(&data))
         .bind(crate::clock::unix_time_millis()?)
         .bind(node_id)
         .bind(space_id)
@@ -136,9 +136,8 @@ async fn mark_failed(
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     let state_field = state_field_for(&action_kind);
     value[state_field] = Value::String("failed".into());
-    let encoded = serde_json::to_string(&value).map_err(db::json_error)?;
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")
-        .bind(encoded).bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
+        .bind(sqlx::types::Json(&value)).bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='failed',error=$1,completed_at=$2,updated_at=$2 WHERE id=$3 AND status='running'")
         .bind(error).bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())

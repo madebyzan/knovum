@@ -79,7 +79,7 @@ pub async fn complete(
     }
     sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.prompt).bind(request.aspect_ratio.as_str()).bind(request.duration_seconds)
-        .bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?).bind(generated.operation_id)
+        .bind(sqlx::types::Json(&generated.execution_source)).bind(generated.operation_id)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut *tx).await.map_err(db::sql_error)?;

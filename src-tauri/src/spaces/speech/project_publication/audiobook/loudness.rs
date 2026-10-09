@@ -100,7 +100,6 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
             )
         })
         .await?;
-        let encoded = serde_json::to_string(&measurement).map_err(db::json_error)?;
         let inserted = sqlx::query(
             "INSERT INTO spaces_speech_loudness_checkpoints(id,project_revision_id,input_digest,measurement,created_at) \
              SELECT ?,?,?,?,? WHERE EXISTS( \
@@ -112,7 +111,7 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
         .bind(uuid::Uuid::new_v4().to_string())
         .bind(revision_id)
         .bind(&digest)
-        .bind(encoded)
+        .bind(sqlx::types::Json(&measurement))
         .bind(crate::clock::unix_time_millis()?)
         .bind(&claim.attempt_id)
         .bind(&claim.run_id)

@@ -24,7 +24,7 @@ pub(crate) async fn load(pool: &SqlitePool, id: &str) -> Result<ConnectorAccount
 
 pub(super) async fn save(pool: &SqlitePool, account: &ConnectorAccount) -> Result<(), String> {
     sqlx::query("INSERT INTO connector_accounts(id,document) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET document=excluded.document")
-        .bind(&account.id).bind(database::encode(account)?).execute(pool).await.map_err(|error| error.to_string())?;
+        .bind(&account.id).bind(sqlx::types::Json(account)).execute(pool).await.map_err(|error| error.to_string())?;
     Ok(())
 }
 
@@ -46,7 +46,7 @@ pub(super) async fn begin_authorization(
     account: &ConnectorAccount,
 ) -> Result<(), String> {
     let updated = sqlx::query("UPDATE connector_accounts SET document=json_set(document,'$.enabled',json('false')) WHERE id=$1 AND document=$2")
-        .bind(&account.id).bind(database::encode(account)?).execute(pool).await.map_err(|error| error.to_string())?;
+        .bind(&account.id).bind(sqlx::types::Json(account)).execute(pool).await.map_err(|error| error.to_string())?;
     if updated.rows_affected() != 1 {
         return Err("connector-account-revoked-during-authorization".into());
     }
@@ -61,9 +61,9 @@ pub(super) async fn commit_authorization(
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     let updated =
         sqlx::query("UPDATE connector_accounts SET document=$1 WHERE id=$2 AND document=$3")
-            .bind(database::encode(account)?)
+            .bind(sqlx::types::Json(account))
             .bind(&account.id)
-            .bind(database::encode(previous)?)
+            .bind(sqlx::types::Json(previous))
             .execute(&mut *tx)
             .await
             .map_err(|error| error.to_string())?;

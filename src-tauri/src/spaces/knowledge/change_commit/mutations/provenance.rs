@@ -31,7 +31,6 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
     )
     .await?;
     validate_target(tx, &input).await?;
-    let locator = serde_json::to_string(input.locator).map_err(db::json_error)?;
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query(
         "INSERT INTO spaces_provenance(id,space_id,target_kind,target_id,source_node_id,locator,source_revision,quote,status,actor_kind,actor_id,created_at,updated_at) \
@@ -42,7 +41,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
     .bind(input.target_kind)
     .bind(input.target_id)
     .bind(input.source_node_id)
-    .bind(locator)
+    .bind(sqlx::types::Json(input.locator))
     .bind(input.source_revision)
     .bind(input.quote)
     .bind(input.actor.kind())

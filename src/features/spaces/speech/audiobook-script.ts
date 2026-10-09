@@ -1,3 +1,4 @@
+import { sumBy } from "es-toolkit";
 import { z } from "zod";
 
 const paragraph = z
@@ -10,10 +11,9 @@ export const audiobookScript = z
   .object({ schemaVersion: z.literal(1), chapters: z.array(chapter).min(1).max(10_000) })
   .strict()
   .superRefine((value, context) => {
-    const paragraphs = value.chapters.reduce((total, item) => total + item.paragraphs.length, 0);
-    const characters = value.chapters.reduce(
-      (total, item) => total + item.paragraphs.reduce((sum, entry) => sum + [...entry.text].length, 0),
-      0,
+    const paragraphs = sumBy(value.chapters, (item) => item.paragraphs.length);
+    const characters = sumBy(value.chapters, (item) =>
+      sumBy(item.paragraphs, (entry) => [...entry.text].length),
     );
     if (paragraphs > 10_000) context.addIssue({ code: "custom", message: "Too many paragraphs" });
     if (characters > 1_000_000) context.addIssue({ code: "custom", message: "Script is too large" });

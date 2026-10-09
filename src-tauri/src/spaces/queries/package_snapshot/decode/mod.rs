@@ -1,5 +1,5 @@
 use serde_json::Value;
-use sqlx::{sqlite::SqliteRow, Row};
+use sqlx::{sqlite::SqliteRow, types::Json, Row};
 
 use crate::spaces::db;
 
@@ -20,13 +20,15 @@ pub(super) fn decode_optional_integer(row: &SqliteRow, key: &str) -> Result<Opti
 }
 
 pub(super) fn decode_json(row: &SqliteRow, key: &str) -> Result<Value, String> {
-    serde_json::from_str(&decode_text(row, key)?).map_err(db::json_error)
+    row.try_get::<Json<Value>, _>(key)
+        .map(|Json(value)| value)
+        .map_err(db::sql_error)
 }
 
 pub(super) fn decode_optional_json(row: &SqliteRow, key: &str) -> Result<Option<Value>, String> {
-    decode_optional_text(row, key)?
-        .map(|value| serde_json::from_str(&value).map_err(db::json_error))
-        .transpose()
+    row.try_get::<Option<Json<Value>>, _>(key)
+        .map(|value| value.map(|Json(value)| value))
+        .map_err(db::sql_error)
 }
 
 #[cfg(test)]

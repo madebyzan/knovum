@@ -93,12 +93,11 @@ pub(crate) async fn for_nodes(
     if node_ids.is_empty() {
         return Ok(BTreeSet::new());
     }
-    let ids = serde_json::to_string(node_ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT data FROM spaces_nodes WHERE space_id=$1 AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(&ids)
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -110,7 +109,7 @@ pub(crate) async fn for_nodes(
            AND j.space_id=$1 AND j.node_id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
-    .bind(&ids)
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
@@ -131,7 +130,7 @@ pub(crate) async fn for_nodes(
            AND json_type(l.data,'$.appearance.background')='text'",
     )
     .bind(space_id)
-    .bind(ids)
+    .bind(sqlx::types::Json(node_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

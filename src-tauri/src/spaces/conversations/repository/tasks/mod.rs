@@ -135,7 +135,7 @@ pub async fn insert_task(
 ) -> Result<(), String> {
     sqlx::query("INSERT INTO spaces_builtin_agent_tasks(id,run_id,conversation_id,branch_id,grant_id,model_binding,catalog_digest,segment_id,input_id,created_at,updated_at)
         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10)")
-        .bind(task.task_id).bind(task.run_id).bind(task.conversation_id).bind(task.branch_id).bind(task.grant_id).bind(task.model_binding).bind(task.catalog_digest)
+        .bind(task.task_id).bind(task.run_id).bind(task.conversation_id).bind(task.branch_id).bind(task.grant_id).bind(sqlx::types::Json(task.model_binding)).bind(task.catalog_digest)
         .bind(&task.session.thread_id).bind(&task.session.input_id).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

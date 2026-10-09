@@ -27,7 +27,6 @@ pub(super) async fn load_records(
     let now = crate::clock::unix_time_millis()?;
 
     let chunk_ids: Vec<&str> = embeddings.iter().map(|e| e.chunk_id.as_str()).collect();
-    let chunk_ids_json = serde_json::to_string(&chunk_ids).map_err(db::json_error)?;
     let rows = sqlx::query(
         "SELECT c.id AS chunk_id, c.space_id, c.node_id, n.kind AS node_kind, \
          json_extract(n.data, '$.title') AS node_title, c.kind AS chunk_kind, \
@@ -36,7 +35,7 @@ pub(super) async fn load_records(
          JOIN spaces_nodes n ON n.id=c.node_id AND n.space_id=c.space_id \
          WHERE c.id IN (SELECT value FROM json_each($1)) AND n.deleted_at IS NULL",
     )
-    .bind(chunk_ids_json)
+    .bind(sqlx::types::Json(&chunk_ids))
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

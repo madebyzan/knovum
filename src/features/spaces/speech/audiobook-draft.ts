@@ -1,3 +1,4 @@
+import { sumBy } from "es-toolkit";
 import type { DeepReadonly } from "vue";
 
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
@@ -114,7 +115,7 @@ export function audiobookDraftIsValid(input: {
   const voices = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
   const roleKeys = input.roles.map((role) => role.key.trim());
   const paragraphs = input.chapters.flatMap((chapter) => chapter.paragraphs);
-  const characters = paragraphs.reduce((total, paragraph) => total + [...paragraph.text].length, 0);
+  const characters = sumBy(paragraphs, (paragraph) => [...paragraph.text].length);
   return (
     input.roles.length > 0 &&
     input.roles.length <= 1_000 &&

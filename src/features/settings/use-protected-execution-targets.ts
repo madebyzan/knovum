@@ -4,7 +4,6 @@ import { computed } from "vue";
 
 import { useAiSettingsStore } from "../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../foundation/ai/creation-library-store";
-import { encodeExecutionTarget } from "../../foundation/ai/execution-target-codec";
 import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 
 export function useProtectedExecutionTargets() {
@@ -22,7 +21,7 @@ export function useProtectedExecutionTargets() {
       uniq(targets.value.filter((target) => target.type === "model").map(({ connectionId }) => connectionId)),
     ),
     protectedModelTargets: computed(() =>
-      targets.value.filter((target) => target.type === "model").map(encodeExecutionTarget),
+      targets.value.filter((target) => target.type === "model").map((target) => JSON.stringify(target)),
     ),
   };
 }

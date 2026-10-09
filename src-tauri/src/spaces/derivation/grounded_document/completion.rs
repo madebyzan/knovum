@@ -95,9 +95,8 @@ async fn persist_generation(
     id: &str,
     generated: &GeneratedDocument,
 ) -> Result<(), AppError> {
-    let citations = serde_json::to_string(&generated.citations).map_err(db::json_error)?;
     sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES($1,$2,$3)")
-        .bind(id).bind(citations).bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?)
+        .bind(id).bind(sqlx::types::Json(&generated.citations)).bind(sqlx::types::Json(&generated.execution_source))
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

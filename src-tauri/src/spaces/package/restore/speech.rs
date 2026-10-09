@@ -1,4 +1,4 @@
-use sqlx::{Sqlite, Transaction};
+use sqlx::{types::Json, Sqlite, Transaction};
 
 use super::contracts::RestorePackageRequest;
 use crate::spaces::db;
@@ -25,7 +25,7 @@ async fn insert_voice_candidates(
             .bind(&row.reference_asset_path).bind(&row.reference_sha256).bind(row.reference_byte_length)
             .bind(&row.preview_asset_path).bind(&row.preview_sha256).bind(row.preview_sample_rate)
             .bind(row.preview_sample_count).bind(&row.model_spec_id).bind(row.seed)
-            .bind(json(&row.synthesis_config)?).bind(json(&row.authorization)?).bind(&row.status)
+            .bind(Json(&row.synthesis_config)).bind(Json(&row.authorization)).bind(&row.status)
             .bind(row.auditioned_at).bind(&row.selected_voice_profile_id).bind(&row.selected_voice_revision_id)
             .bind(row.selected_at).bind(row.rejected_at).bind(row.created_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
@@ -61,8 +61,8 @@ async fn insert_voices(
         sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
             .bind(&row.id).bind(&row.profile_id).bind(row.revision).bind(&row.engine_id).bind(&row.model_spec_id)
             .bind(&row.language).bind(&row.preset_voice_id).bind(&row.reference_asset_id).bind(&row.reference_source_revision)
-            .bind(&row.reference_text).bind(&row.design_description).bind(json(&row.synthesis_config)?)
-            .bind(json(&row.authorization)?).bind(row.created_at).execute(&mut **tx).await.map_err(db::sql_error)?;
+            .bind(&row.reference_text).bind(&row.design_description).bind(Json(&row.synthesis_config))
+            .bind(Json(&row.authorization)).bind(row.created_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for row in &request.voice_profiles {
         sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id=? WHERE id=?")
@@ -87,7 +87,7 @@ async fn insert_projects(
     for row in &request.speech_project_revisions {
         sqlx::query("INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,output_asset_path,output_sha256,output_sample_rate,output_sample_count,output_published_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
             .bind(&row.id).bind(&row.project_id).bind(row.revision).bind(&row.source_revision)
-            .bind(json(&row.pronunciation_lexicon)?).bind(json(&row.output_config)?).bind(&row.output_asset_path)
+            .bind(Json(&row.pronunciation_lexicon)).bind(Json(&row.output_config)).bind(&row.output_asset_path)
             .bind(&row.output_sha256).bind(row.output_sample_rate).bind(row.output_sample_count)
             .bind(row.output_published_at).bind(row.created_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
@@ -103,7 +103,7 @@ async fn insert_projects(
     for row in &request.speech_renders {
         sqlx::query("INSERT INTO spaces_speech_renders(id,segment_id,attempt_epoch,input_digest,model_spec_id,engine_version,seed,synthesis_config,state,asset_path,output_sha256,sample_rate,sample_count,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
             .bind(&row.id).bind(&row.segment_id).bind(row.attempt_epoch).bind(&row.input_digest).bind(&row.model_spec_id)
-            .bind(&row.engine_version).bind(row.seed).bind(json(&row.synthesis_config)?).bind(&row.state).bind(&row.asset_path)
+            .bind(&row.engine_version).bind(row.seed).bind(Json(&row.synthesis_config)).bind(&row.state).bind(&row.asset_path)
             .bind(&row.output_sha256).bind(row.sample_rate).bind(row.sample_count).bind(row.created_at).bind(row.published_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
@@ -116,8 +116,4 @@ async fn insert_projects(
             .map_err(db::sql_error)?;
     }
     Ok(())
-}
-
-fn json(value: &serde_json::Value) -> Result<String, String> {
-    serde_json::to_string(value).map_err(db::json_error)
 }

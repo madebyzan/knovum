@@ -87,7 +87,6 @@ pub async fn request_media_alignment(
         ));
     }
 
-    let segment_ids_json = serde_json::to_string(&segment_ids).map_err(db::json_error)?;
     if let Some(row) = sqlx::query(
         "SELECT j.id,r.model_spec_id,r.expected_transcript_revision,r.segment_ids FROM spaces_enrichment_jobs j \
          JOIN spaces_media_alignment_requests r ON r.job_id=j.id \
@@ -104,8 +103,9 @@ pub async fn request_media_alignment(
         let queued_revision: i64 = row
             .try_get("expected_transcript_revision")
             .map_err(db::sql_error)?;
-        let queued_segments: String = row.try_get("segment_ids").map_err(db::sql_error)?;
-        if queued_revision == i64::from(expected_revision) && queued_segments == segment_ids_json
+        let queued_segments: sqlx::types::Json<Vec<String>> =
+            row.try_get("segment_ids").map_err(db::sql_error)?;
+        if queued_revision == i64::from(expected_revision) && queued_segments.0 == segment_ids
             && row.try_get::<String, _>("model_spec_id").map_err(db::sql_error)? == model_spec_id {
             return Ok(row.try_get("id").map_err(db::sql_error)?);
         }
@@ -120,7 +120,7 @@ pub async fn request_media_alignment(
         .bind(&id).bind(&space_id).bind(&node_id).bind(&revision).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     sqlx::query("INSERT INTO spaces_media_alignment_requests(job_id,model_spec_id,expected_transcript_revision,segment_ids) VALUES($1,$2,$3,$4)")
-        .bind(&id).bind(model_spec_id).bind(i64::from(expected_revision)).bind(segment_ids_json)
+        .bind(&id).bind(model_spec_id).bind(i64::from(expected_revision)).bind(sqlx::types::Json(&segment_ids))
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(id)

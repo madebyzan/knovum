@@ -25,14 +25,13 @@ pub fn read_text_preview(path: &Path) -> Result<String, String> {
         trim_incomplete_utf8_tail(&mut bytes);
     }
     let text = String::from_utf8_lossy(&bytes);
-    let lines = text.lines().collect::<Vec<_>>();
+    let mut lines = text.lines();
     let mut preview = lines
-        .iter()
+        .by_ref()
         .take(MAX_TEXT_PREVIEW_LINES)
-        .copied()
         .collect::<Vec<_>>()
         .join("\n");
-    if truncated_bytes || lines.len() > MAX_TEXT_PREVIEW_LINES {
+    if truncated_bytes || lines.next().is_some() {
         preview.push_str("\n…");
     }
     Ok(preview)

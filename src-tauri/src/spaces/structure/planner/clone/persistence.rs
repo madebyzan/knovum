@@ -38,7 +38,7 @@ pub(super) async fn clone_nodes(
             .bind(row.try_get::<Option<String>,_>("object_type_id").map_err(db::sql_error)?)
             .bind(row.try_get::<f64,_>("initial_x").map_err(db::sql_error)?)
             .bind(row.try_get::<f64,_>("initial_y").map_err(db::sql_error)?)
-            .bind(serde_json::to_string(&data).map_err(db::json_error)?).bind(now)
+            .bind(sqlx::types::Json(&data)).bind(now)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     for new_id in ids.values() {

@@ -181,7 +181,7 @@ pub(super) fn append_json_in_filter(
 ) -> Result<(), String> {
     if let Some(node_ids) = node_ids {
         sql.push(" AND c.node_id IN (SELECT value FROM json_each(")
-            .push_bind(serde_json::to_string(&node_ids).map_err(db::json_error)?)
+            .push_bind(sqlx::types::Json(node_ids))
             .push("))");
     }
     Ok(())

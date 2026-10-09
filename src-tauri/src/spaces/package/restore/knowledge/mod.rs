@@ -62,12 +62,11 @@ pub(super) async fn insert_provenance(
         )
         .await?;
         validate_provenance_target(tx, &request.space.id, &row.target_kind, &row.target_id).await?;
-        let locator = serde_json::to_string(&row.locator).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_provenance(id,space_id,target_kind,target_id,source_node_id,locator,source_revision,quote,status,actor_kind,actor_id,created_at,updated_at) \
              VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
         ).bind(&row.id).bind(&request.space.id).bind(&row.target_kind).bind(&row.target_id)
-            .bind(&row.source_node_id).bind(locator).bind(&row.source_revision).bind(&row.quote)
+            .bind(&row.source_node_id).bind(sqlx::types::Json(&row.locator)).bind(&row.source_revision).bind(&row.quote)
             .bind(&row.status).bind(&row.actor_kind).bind(&row.actor_id).bind(row.created_at).bind(row.updated_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
@@ -85,12 +84,11 @@ pub(super) async fn insert_events(
         )?;
         crate::spaces::knowledge::events::validation::validate_actor_kind(&row.actor_kind)?;
         validate_event_entity(tx, &request.space.id, &row.entity_kind, &row.entity_id).await?;
-        let payload = serde_json::to_string(&row.payload).map_err(db::json_error)?;
         sqlx::query(
             "INSERT INTO spaces_knowledge_events(id,space_id,entity_kind,entity_id,event_kind,actor_kind,actor_id,payload,created_at) \
              VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
         ).bind(&row.id).bind(&request.space.id).bind(&row.entity_kind).bind(&row.entity_id)
-            .bind(&row.event_kind).bind(&row.actor_kind).bind(&row.actor_id).bind(payload).bind(row.created_at)
+            .bind(&row.event_kind).bind(&row.actor_kind).bind(&row.actor_id).bind(sqlx::types::Json(&row.payload)).bind(row.created_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())

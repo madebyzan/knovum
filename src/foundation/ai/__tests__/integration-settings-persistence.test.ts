@@ -2,7 +2,12 @@ import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { useAiSettingsStore } from "../ai-settings-store";
-import { saveAiModelSettings, saveCreationLibrary } from "../integration-settings";
+import {
+  loadCreationLibrary,
+  resetCreationLibrary,
+  saveAiModelSettings,
+  saveCreationLibrary,
+} from "../integration-settings";
 import { creationLibrarySchema, defaultCreationLibrary } from "../schema/creation-library";
 import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
 
@@ -23,6 +28,9 @@ vi.mock("@tauri-apps/plugin-store", () => ({
   },
 }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: boundary.invoke }));
+vi.mock("@tauri-apps/plugin-log", () => ({
+  error: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
+}));
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -44,6 +52,22 @@ it("canonicalizes each save once before persisting", async () => {
   expect(aiParse).toHaveBeenCalledOnce();
   expect(creationParse).toHaveBeenCalledOnce();
   expect(boundary.set).toHaveBeenCalledTimes(2);
+});
+
+it("continues queued writes and reads after a store write fails", async () => {
+  const cause = new Error("Store unavailable");
+  boundary.save.mockRejectedValueOnce(cause);
+  boundary.get.mockResolvedValueOnce({ schemaVersion: 1, value: defaultCreationLibrary });
+
+  const failedWrite = saveCreationLibrary(structuredClone(defaultCreationLibrary));
+  const restoredWrite = resetCreationLibrary();
+  const read = loadCreationLibrary();
+
+  await expect(failedWrite).rejects.toBe(cause);
+  await expect(restoredWrite).resolves.toBeUndefined();
+  await expect(read).resolves.toEqual(defaultCreationLibrary);
+  expect(boundary.save).toHaveBeenCalledTimes(2);
+  expect(boundary.save.mock.invocationCallOrder[1]).toBeLessThan(boundary.get.mock.invocationCallOrder[0]!);
 });
 
 it("loads optional routing preferences without a reset and saves through the existing validated boundary", async () => {
