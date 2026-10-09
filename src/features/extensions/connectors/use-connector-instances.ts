@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 import {
   createMcpConnection,
   deleteMcpConnection,
-  updateMcpConnection,
 } from "../../../foundation/extensions/connection-operations";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
@@ -116,11 +115,6 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
     selectedId.value = selectedId.value === connectionId ? "" : connectionId;
   }
 
-  async function toggleEnabled(connection: McpConnection) {
-    if (selectedId.value === connection.id && !(await allowChildLeave())) return;
-    await mutate(() => updateMcpConnection({ ...connection, enabled: !connection.enabled }));
-  }
-
   async function remove(connection: McpConnection) {
     if (
       !(await confirmAction({
@@ -152,7 +146,6 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
     create,
     toggleAdding,
     toggleSelected,
-    toggleEnabled,
     remove,
   };
 }

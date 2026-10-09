@@ -18,12 +18,12 @@ pub(crate) async fn ensure_builtin(app: &AppHandle) -> Result<(), String> {
     let pool = database::pool(app).await?;
     #[cfg(debug_assertions)]
     let directory = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("resources/agent-plugins/knowledge-workflows");
+        .join("resources/agent-plugins/knowledge-work");
     #[cfg(not(debug_assertions))]
     let directory = app
         .path()
         .resolve(
-            "resources/agent-plugins/knowledge-workflows",
+            "resources/agent-plugins/knowledge-work",
             tauri::path::BaseDirectory::Resource,
         )
         .map_err(|error| error.to_string())?;
@@ -47,7 +47,7 @@ pub(crate) async fn ensure_builtin(app: &AppHandle) -> Result<(), String> {
         return Ok(());
     }
     let source = PluginSource::Directory {
-        path: "builtin:knowledge-workflows".into(),
+        path: "builtin:knowledge-work".into(),
     };
     let reviewed = packages::inspect(&files, digest)?;
     let change = installation::commit(app, BUILTIN_ID, source, reviewed, files, true, None).await?;

@@ -99,6 +99,7 @@ fn main() {
                         "delete_skill",
                         "read_mcp_resource",
                         "get_mcp_prompt",
+                        "create_mcp_server",
                         "create_mcp_connection",
                         "update_mcp_connection",
                         "list_mcp_connections",

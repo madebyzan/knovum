@@ -14,5 +14,10 @@
   "disconnect": "断开并删除本地凭据",
   "name": "账号显示名称",
   "add": "添加账号",
-  "billingHint": "外部服务可能另行计费，不计入应用的 Token 用量。"
+  "billingHint": "外部服务可能另行计费，不计入应用的 Token 用量。",
+  "pending": "正在处理授权。完成或取消后再离开此页面。",
+  "discard": {
+    "title": "放弃未保存的账号信息？",
+    "description": "未提交的账号名称或授权字段将被清除。"
+  }
 }

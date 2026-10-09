@@ -23,5 +23,7 @@
   "delete": {
     "title": "Delete {name}?",
     "description": "This permanently deletes the personal Skill and its reference files."
-  }
+  },
+  "instructions": "Instructions",
+  "requiredConnections": "Required connections: {names}"
 }

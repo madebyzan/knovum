@@ -4,7 +4,8 @@
     "headers": "公开请求头（JSON）",
     "environment": "公开环境变量（JSON）",
     "secretsHint": "请在“授权”中添加 API Token、敏感请求头和环境变量。",
-    "invalid": "请输入 JSON 对象，所有字段值必须是字符串。"
+    "invalid": "请输入 JSON 对象，所有字段值必须是字符串。",
+    "advanced": "高级配置"
   },
   "transport": "传输方式",
   "allowLocalNetwork": "允许访问配置的本机或局域网地址",
@@ -36,5 +37,15 @@
   },
   "accounts": "账号",
   "title": "连接实例",
-  "manage": "管理"
+  "manage": "管理",
+  "addServer": "添加 MCP 服务",
+  "description": "MCP 连接负责访问具体服务。配置账号、检查目录并审核工具权限后，再启用用于对话。",
+  "standalone": "独立服务",
+  "packaged": "来自插件",
+  "emptyServers": "尚未添加 MCP 服务",
+  "emptyHint": "添加自己的 MCP 服务，或在应用中为插件提供的服务创建连接。",
+  "serviceAndAccounts": "管理服务与账号",
+  "configureServiceFirst": "请先在应用中完成服务配置。",
+  "conflict": "连接已在其他位置更改。当前修改已保留，请放弃修改并重新打开后再保存。",
+  "saveBeforeCheck": "先保存当前修改，再更换账号或重新检查目录。"
 }

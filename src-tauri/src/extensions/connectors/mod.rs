@@ -9,6 +9,7 @@ pub(crate) mod definitions;
 mod oauth_http;
 pub(super) mod plugin_configuration;
 pub(crate) mod requirements;
+pub(super) mod server_creation;
 pub(crate) use credential_store::credentials;
 
 #[cfg(test)]

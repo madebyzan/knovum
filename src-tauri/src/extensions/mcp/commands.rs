@@ -10,28 +10,13 @@ pub async fn create_mcp_connection(
     connector_id: String,
     name: String,
 ) -> Result<McpConnection, String> {
-    if name.trim().is_empty() {
-        return Err("mcp-connection-name-required".into());
-    }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     super::super::connectors::definitions::load(&pool, &connector_id).await?;
-    let connection = McpConnection {
-        id: uuid::Uuid::new_v4().to_string(),
-        connector_id,
-        name,
-        revision: uuid::Uuid::new_v4().to_string(),
-        account_id: None,
-        enabled: false,
-        tools: Vec::new(),
-    };
-    sqlx::query("INSERT INTO connections(id,document) VALUES($1,$2)")
-        .bind(&connection.id)
-        .bind(sqlx::types::Json(&connection))
-        .execute(&pool)
-        .await
-        .map_err(|error| error.to_string())?;
+    let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
+    let connection = super::connections::create_on(&mut tx, connector_id, name).await?;
+    tx.commit().await.map_err(|error| error.to_string())?;
     Ok(connection)
 }
 

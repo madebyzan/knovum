@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation } from "@tanstack/vue-query";
-import { isEqual } from "es-toolkit";
+import { cloneDeep, isEqual } from "es-toolkit";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -25,6 +25,8 @@ import McpToolSelection from "./McpToolSelection.vue";
 const props = defineProps<{ connection: McpConnection; connector: ConnectorDefinition }>();
 const { t } = useI18n();
 const changes = useExtensionChanges();
+const baseline = shallowRef(props.connection);
+const hasConflict = shallowRef(false);
 const name = shallowRef("");
 const savedName = shallowRef("");
 const catalog = shallowRef<McpConnectionCatalog>();
@@ -39,28 +41,40 @@ const checking = useMutation({
   onSuccess: (value, connection) => {
     if (connection.id !== props.connection.id || connection.revision !== props.connection.revision) return;
     catalog.value = value;
-    permissions.value = props.connection.tools.map((permission) => ({ ...permission }));
-    savedPermissions.value = props.connection.tools.map((permission) => ({ ...permission }));
   },
 });
 watch(
-  () => props.connection.revision,
+  () => [props.connection.id, props.connection.revision],
   () => {
+    if (baseline.value.id === props.connection.id && dirty.value) {
+      hasConflict.value = baseline.value.revision !== props.connection.revision;
+      return;
+    }
+    baseline.value = props.connection;
+    hasConflict.value = false;
     name.value = props.connection.name;
     savedName.value = props.connection.name;
     catalog.value = undefined;
-    permissions.value = [];
-    savedPermissions.value = [];
+    permissions.value = cloneDeep(props.connection.tools);
+    savedPermissions.value = cloneDeep(props.connection.tools);
     checking.reset();
   },
   { immediate: true },
 );
-function save(update: Partial<Pick<McpConnection, "name" | "tools">>) {
+function save() {
   const admitted: Promise<boolean> = changes
     .mutateAsync(async () => {
-      await updateMcpConnection({ ...props.connection, ...update });
-      if (update.name !== undefined) savedName.value = update.name;
-      if (update.tools !== undefined) savedPermissions.value = structuredClone(update.tools);
+      const saved = await updateMcpConnection({
+        ...baseline.value,
+        name: name.value,
+        tools: permissions.value,
+      });
+      baseline.value = saved;
+      name.value = saved.name;
+      savedName.value = saved.name;
+      permissions.value = cloneDeep(saved.tools);
+      savedPermissions.value = cloneDeep(saved.tools);
+      hasConflict.value = false;
     })
     .then(
       () => true,
@@ -86,7 +100,16 @@ const unregister = useSettingsLeaveContext().register({
   prepare: prepareLeave,
   finalize() {
     name.value = savedName.value;
-    permissions.value = structuredClone(savedPermissions.value);
+    permissions.value = cloneDeep(savedPermissions.value);
+    if (hasConflict.value) {
+      baseline.value = props.connection;
+      name.value = props.connection.name;
+      savedName.value = props.connection.name;
+      permissions.value = cloneDeep(props.connection.tools);
+      savedPermissions.value = cloneDeep(props.connection.tools);
+      catalog.value = undefined;
+      hasConflict.value = false;
+    }
   },
 });
 onScopeDispose(unregister);
@@ -94,26 +117,41 @@ onScopeDispose(unregister);
 
 <template>
   <section class="space-y-3 border-t border-stroke-divider pt-3">
-    <form class="flex items-end gap-2" @submit.prevent="save({ name })">
+    <form class="flex items-end gap-2" @submit.prevent="save">
       <label class="min-w-0 flex-1 text-caption"
-        >{{ $t("extensions.connections.name") }}<UiInput v-model="name"
+        >{{ $t("extensions.connections.name")
+        }}<UiInput
+          v-model="name"
+          :disabled="changes.isPending.value || checking.isPending.value || hasConflict"
       /></label>
       <UiButton
         type="submit"
         size="sm"
-        :disabled="!name.trim() || name === connection.name || changes.isPending.value"
+        :disabled="
+          !name.trim() || !dirty || hasConflict || changes.isPending.value || checking.isPending.value
+        "
         >{{ $t("common.save") }}</UiButton
       >
     </form>
-    <ConnectionAccountSelection v-if="connector.authorization.type !== 'none'" :connection="connection" />
+    <ConnectionAccountSelection
+      v-if="connector.authorization.type !== 'none'"
+      :connection="connection"
+      :disabled="dirty || checking.isPending.value"
+    />
     <UiButton
-      :disabled="checking.isPending.value"
+      :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
       data-testid="check-mcp-connection"
       @click="checking.mutate(connection)"
       >{{ $t("extensions.connections.check") }}</UiButton
     >
     <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(changes.error.value || checking.error.value) }}
+    </p>
+    <p v-if="hasConflict" role="alert" class="text-caption text-fg-warning">
+      {{ $t("extensions.connections.conflict") }}
+    </p>
+    <p v-else-if="dirty" class="text-caption text-fg-secondary">
+      {{ $t("extensions.connections.saveBeforeCheck") }}
     </p>
     <McpCatalogBrowser
       v-if="catalog"
@@ -125,8 +163,9 @@ onScopeDispose(unregister);
       v-if="catalog"
       v-model="permissions"
       :catalog="catalog"
-      :busy="changes.isPending.value"
-      @save="save({ tools: permissions })"
+      :can-save="dirty && Boolean(name.trim()) && !hasConflict"
+      :busy="changes.isPending.value || checking.isPending.value || hasConflict"
+      @save="save"
     />
   </section>
 </template>

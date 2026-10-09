@@ -1,7 +1,8 @@
 import { cloneDeep, isEqual } from "es-toolkit";
-import { computed, onScopeDispose, ref, shallowRef } from "vue";
+import { computed, onScopeDispose, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { createMcpServer } from "../../../foundation/extensions/connection-operations";
 import {
   createConnectorDefinition,
   deleteConnectorDefinition,
@@ -9,24 +10,48 @@ import {
 } from "../../../foundation/extensions/connector-operations";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
+import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
 import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 import { connectorDraft } from "./connector-draft";
 
-export function useConnectorEditing() {
+function formatPublicFields(endpoint: McpEndpoint) {
+  return JSON.stringify(
+    endpoint.type === "streamable_http" ? endpoint.headers : endpoint.environment,
+    null,
+    2,
+  );
+}
+export function useConnectorEditing(
+  options: { creation: "application" | "server" } = { creation: "application" },
+) {
   const { t } = useI18n();
   const changes = useExtensionChanges();
   const editing = shallowRef(false);
   const draft = ref(connectorDraft());
   const baseline = ref(connectorDraft());
-  const dirty = computed(() => editing.value && !isEqual(draft.value, baseline.value));
+  const publicFields = shallowRef(formatPublicFields(draft.value.endpoint));
+  const baselinePublicFields = shallowRef(publicFields.value);
+  const dirty = computed(
+    () =>
+      editing.value &&
+      (!isEqual(draft.value, baseline.value) || publicFields.value !== baselinePublicFields.value),
+  );
+  watch(
+    () => draft.value.endpoint.type,
+    () => {
+      publicFields.value = formatPublicFields(draft.value.endpoint);
+    },
+  );
   let admittedMutation: Promise<boolean> | undefined;
 
   function edit(connector?: ConnectorDefinition) {
     const editable = connector ? cloneDeep(connector) : connectorDraft();
     draft.value = { ...editable, endpoint: editable.endpoint! };
     baseline.value = cloneDeep(draft.value);
+    publicFields.value = formatPublicFields(draft.value.endpoint);
+    baselinePublicFields.value = publicFields.value;
     editing.value = true;
   }
 
@@ -56,7 +81,9 @@ export function useConnectorEditing() {
     admittedMutation = trackMutation(async () => {
       const change = draft.value.id
         ? await updateConnectorDefinition(draft.value)
-        : await createConnectorDefinition(draft.value);
+        : options.creation === "server"
+          ? await createMcpServer(draft.value)
+          : await createConnectorDefinition(draft.value);
       editing.value = false;
       return change;
     });
@@ -95,5 +122,5 @@ export function useConnectorEditing() {
       danger: true,
     });
   }
-  return { changes, editing, draft, edit, closeEditor, save, remove };
+  return { changes, editing, draft, publicFields, edit, closeEditor, save, remove };
 }

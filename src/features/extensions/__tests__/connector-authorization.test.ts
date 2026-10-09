@@ -2,7 +2,9 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 
+import { i18n } from "../../../foundation/i18n/i18n";
 import type { ConnectorAccount } from "../../../shared/contracts/generated/ConnectorAccount";
+import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import ConnectorAccounts from "../connectors/ConnectorAccounts.vue";
 
 const mocks = vi.hoisted(() => ({
@@ -45,7 +47,13 @@ it("refreshes authorization state after a failed authorization flow", async () =
         endpoint: { type: "streamable_http", url: account.resource, headers: {}, allowLocalNetwork: false },
       },
     },
-    global: { plugins: [[VueQueryPlugin, { queryClient }]], mocks: { $t: (key: string) => key } },
+    global: {
+      plugins: [i18n, [VueQueryPlugin, { queryClient }]],
+      mocks: { $t: (key: string) => key },
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
+      },
+    },
   });
   try {
     await flushPromises();

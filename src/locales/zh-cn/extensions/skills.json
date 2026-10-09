@@ -23,5 +23,7 @@
   "delete": {
     "title": "删除 {name}？",
     "description": "将永久删除此个人 Skill 及其参考文件。"
-  }
+  },
+  "instructions": "指令内容",
+  "requiredConnections": "需要连接：{names}"
 }

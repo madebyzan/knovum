@@ -1,13 +1,36 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { FolderOpen } from "@lucide/vue";
+import { open } from "@tauri-apps/plugin-dialog";
+import { computed, shallowRef, useId } from "vue";
 
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
+import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 const endpoint = defineModel<McpEndpoint>({ required: true });
-defineProps<{ disabled?: boolean }>();
+const props = defineProps<{ disabled?: boolean }>();
+const executableInputId = useId();
+const directoryInputId = useId();
+const choosing = shallowRef(false);
+const error = shallowRef("");
+async function choosePath(target: "executable" | "cwd") {
+  if (props.disabled || choosing.value) return;
+  const current = endpoint.value;
+  choosing.value = true;
+  error.value = "";
+  try {
+    const path = await open({ directory: target === "cwd", multiple: false });
+    if (typeof path === "string" && endpoint.value === current && current.type === "stdio")
+      endpoint.value = { ...current, [target]: path };
+  } catch (cause) {
+    error.value = getErrorMessage(cause);
+  } finally {
+    choosing.value = false;
+  }
+}
 function setType(type: McpEndpoint["type"]) {
   endpoint.value =
     type === "stdio"
@@ -57,18 +80,38 @@ const cwd = computed({
       >
     </template>
     <template v-else>
-      <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.connectors.process.executable")
-        }}<UiInput :disabled="disabled" v-model="endpoint.executable" data-testid="mcp-executable"
-      /></label>
+      <div class="space-y-1.5 text-caption text-fg-secondary">
+        <label :for="executableInputId">{{ $t("extensions.connectors.process.executable") }}</label>
+        <div class="flex gap-2">
+          <UiInput
+            :id="executableInputId"
+            :disabled="disabled || choosing"
+            v-model="endpoint.executable"
+            data-testid="mcp-executable"
+          /><UiIconButton
+            :label="$t('extensions.connectors.process.chooseExecutable')"
+            :disabled="disabled || choosing"
+            @click="choosePath('executable')"
+            ><FolderOpen class="size-4"
+          /></UiIconButton>
+        </div>
+      </div>
       <label class="block space-y-1.5 text-caption text-fg-secondary"
         >{{ $t("extensions.connectors.process.arguments") }}<UiTextarea :disabled="disabled" v-model="args"
       /></label>
-      <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.connectors.process.workingDirectory")
-        }}<UiInput :disabled="disabled" v-model="cwd"
-      /></label>
+      <div class="space-y-1.5 text-caption text-fg-secondary">
+        <label :for="directoryInputId">{{ $t("extensions.connectors.process.workingDirectory") }}</label>
+        <div class="flex gap-2">
+          <UiInput :id="directoryInputId" :disabled="disabled || choosing" v-model="cwd" /><UiIconButton
+            :label="$t('extensions.connectors.process.chooseDirectory')"
+            :disabled="disabled || choosing"
+            @click="choosePath('cwd')"
+            ><FolderOpen class="size-4"
+          /></UiIconButton>
+        </div>
+      </div>
       <p class="text-caption text-fg-warning">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
     </template>
+    <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
   </div>
 </template>

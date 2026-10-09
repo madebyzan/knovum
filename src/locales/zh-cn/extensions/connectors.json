@@ -6,16 +6,17 @@
     "authorizationHint": "启用此连接后，应用可启动所选 MCP 服务。安装插件不会安装程序或运行包脚本。",
     "declaredCommand": "插件声明的程序",
     "configurationRequired": "使用此连接器前，请选择已安装的程序。",
-    "chooseExecutable": "选择已安装的程序"
+    "chooseExecutable": "选择已安装的程序",
+    "chooseDirectory": "选择工作目录"
   },
   "changes": "更改端点或授权身份后，需要重新绑定账号并审核工具权限。",
   "name": "服务名称",
   "descriptionField": "服务用途与能力说明",
-  "description": "连接外部服务供 Agent 读取数据和执行操作。请为各个连接配置账号和工具权限。",
-  "add": "添加自定义连接器",
+  "description": "应用描述外部服务及其账号。每个 MCP 连接独立选择账号和工具权限；同一应用可以拥有多个连接。",
+  "add": "添加应用服务",
   "empty": {
-    "title": "尚未配置外部服务连接器",
-    "description": "添加自定义服务，或安装提供连接器的插件。"
+    "title": "尚未添加应用服务",
+    "description": "安装带有外部服务的插件，或添加自己的服务定义。"
   },
   "plugin": "由插件提供",
   "custom": "自定义服务",
@@ -27,5 +28,6 @@
   "delete": {
     "title": "删除 {name}？",
     "description": "还会删除该服务的所有连接实例和本地账号凭据。"
-  }
+  },
+  "availableCount": "{count} 个可用连接"
 }

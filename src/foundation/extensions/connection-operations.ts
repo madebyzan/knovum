@@ -1,3 +1,5 @@
+import type { ConnectorDefinition } from "../../shared/contracts/generated/ConnectorDefinition";
+import type { ExtensionChange } from "../../shared/contracts/generated/ExtensionChange";
 import type { McpConnection } from "../../shared/contracts/generated/McpConnection";
 import type { McpConnectionCatalog } from "../../shared/contracts/generated/McpConnectionCatalog";
 import type { McpResourceContent } from "../../shared/contracts/generated/McpResourceContent";
@@ -47,4 +49,8 @@ export function deleteMcpConnection(connection: McpConnection) {
     connectionId: connection.id,
     revision: connection.revision,
   });
+}
+
+export function createMcpServer(definition: ConnectorDefinition) {
+  return invokeCommand<ExtensionChange<McpConnection>>("plugin:extensions|create_mcp_server", { definition });
 }

@@ -44,9 +44,6 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     readonly_store = InMemoryStore()
     skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=readonly_store)
     memory_backend = StoreBackend(namespace=lambda _: ("space_snapshot", "v1"), store=readonly_store)
-    uploaded = skills_backend.upload_files(skill_files(request.skills))
-    if any(item.error for item in uploaded):
-        raise ValueError("agent-runtime-skills-unavailable")
     memory_uploads = memory_backend.upload_files(
         [(path, content.encode("utf-8")) for path, content in request.memory.items()]
     )
@@ -57,6 +54,9 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         routes={"/skills/": skills_backend, "/memory/": memory_backend},
         artifacts_root="/workspace",
     )
+    uploaded = backend.upload_files(skill_files(request.skills))
+    if any(item.error for item in uploaded):
+        raise ValueError("agent-runtime-skills-unavailable")
     main = create_model(request.model, AgentModelPurpose.main)
     summary = create_model(request.model, AgentModelPurpose.context_summary)
     trigger: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens * 3 // 4))

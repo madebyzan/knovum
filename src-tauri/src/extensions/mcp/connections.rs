@@ -88,3 +88,29 @@ async fn require_access(
 #[cfg(test)]
 #[path = "tests/connections.rs"]
 mod tests;
+
+pub(in crate::extensions) async fn create_on(
+    database: &mut sqlx::SqliteConnection,
+    connector_id: String,
+    name: String,
+) -> Result<McpConnection, String> {
+    if name.trim().is_empty() {
+        return Err("mcp-connection-name-required".into());
+    }
+    let connection = McpConnection {
+        id: uuid::Uuid::new_v4().to_string(),
+        connector_id,
+        name,
+        revision: uuid::Uuid::new_v4().to_string(),
+        account_id: None,
+        enabled: false,
+        tools: Vec::new(),
+    };
+    sqlx::query("INSERT INTO connections(id,document) VALUES($1,$2)")
+        .bind(&connection.id)
+        .bind(sqlx::types::Json(&connection))
+        .execute(database)
+        .await
+        .map_err(|error| error.to_string())?;
+    Ok(connection)
+}

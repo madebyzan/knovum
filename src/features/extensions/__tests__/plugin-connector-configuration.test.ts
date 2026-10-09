@@ -3,7 +3,9 @@ import type { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 
+import { i18n } from "../../../foundation/i18n/i18n";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
+import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import PluginConnectorConfiguration from "../connectors/PluginConnectorConfiguration.vue";
 
 const mocks = vi.hoisted(() => ({
@@ -47,7 +49,13 @@ it("binds a user-selected installed executable without modifying the publisher d
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = mount(PluginConnectorConfiguration, {
     props: { connector },
-    global: { plugins: [[VueQueryPlugin, { queryClient }]], mocks: { $t: (key: string) => key } },
+    global: {
+      plugins: [i18n, [VueQueryPlugin, { queryClient }]],
+      mocks: { $t: (key: string) => key },
+      provide: {
+        [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
+      },
+    },
   });
   try {
     await flushPromises();

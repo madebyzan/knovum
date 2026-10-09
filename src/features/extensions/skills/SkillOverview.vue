@@ -1,72 +1,41 @@
 <script setup lang="ts">
-import { Copy, Download, MoreHorizontal, Trash2 } from "@lucide/vue";
+import { Box } from "@lucide/vue";
 
 import type { SkillRevision } from "../../../shared/contracts/generated/SkillRevision";
-import UiBadge from "../../../shared/ui/UiBadge.vue";
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
-import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import UiSwitch from "../../../shared/ui/UiSwitch.vue";
-
+import ExtensionAvailability from "../components/ExtensionAvailability.vue";
+import ExtensionIdentity from "../components/ExtensionIdentity.vue";
+import SkillActions from "./SkillActions.vue";
 defineProps<{ skill: SkillRevision; busy: boolean }>();
-defineEmits<{ edit: []; toggle: []; copy: []; export: []; delete: [] }>();
+defineEmits<{ inspect: []; edit: []; toggle: []; copy: []; export: []; delete: [] }>();
 </script>
-
 <template>
-  <section
-    class="flex min-h-(--knovum-setting-min-height) items-start gap-3 px-4 py-3"
+  <ExtensionIdentity
+    :name="skill.name"
+    :description="skill.description"
+    :icon="Box"
+    :muted="!skill.enabled"
     :data-testid="`skill-${skill.id}`"
+    @inspect="$emit('inspect')"
   >
-    <div class="min-w-0 flex-1">
-      <div class="flex flex-wrap items-center gap-2">
-        <h3 class="text-body-lg font-medium break-words text-fg-primary">{{ skill.name }}</h3>
-        <UiBadge size="sm">{{
-          $t(skill.pluginId ? "extensions.skills.plugin" : "extensions.skills.personal")
-        }}</UiBadge>
-      </div>
-      <p class="mt-0.5 text-caption leading-normal text-fg-secondary">{{ skill.description }}</p>
-      <p v-if="skill.unsupportedRequirements.length" class="mt-2 text-caption text-fg-warning">
-        {{
-          $t("extensions.skills.unsupportedRequirements", {
-            requirements: skill.unsupportedRequirements.join(", "),
-          })
-        }}
-      </p>
-      <UiButton
-        size="sm"
-        variant="ghost"
-        class="mt-1 -ml-2.5"
-        :disabled="busy"
-        :data-testid="`edit-skill-${skill.id}`"
-        @click="$emit('edit')"
-        >{{ $t(skill.pluginId ? "extensions.skills.view" : "common.edit") }}</UiButton
-      >
-    </div>
-    <UiSwitch
-      class="mt-1"
-      :model-value="skill.enabled"
-      :disabled="busy"
-      :label="
-        $t(skill.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', { name: skill.name })
-      "
-      :data-testid="`toggle-skill-${skill.id}`"
-      @update:model-value="$emit('toggle')"
+    <template #status
+      ><ExtensionAvailability
+        class="mt-1"
+        kind="skills"
+        :extension-id="skill.id"
+        :enabled="skill.enabled"
+        :plugin-id="skill.pluginId"
+    /></template>
+    <span class="hidden text-caption text-fg-tertiary sm:inline">{{
+      $t(skill.pluginId ? "extensions.skills.plugin" : "extensions.skills.personal")
+    }}</span>
+    <SkillActions
+      :skill="skill"
+      :busy="busy"
+      @edit="$emit('edit')"
+      @toggle="$emit('toggle')"
+      @copy="$emit('copy')"
+      @export="$emit('export')"
+      @delete="$emit('delete')"
     />
-    <UiDropdownMenu>
-      <template #trigger
-        ><UiIconButton :label="$t('extensions.skills.actions')" :tooltip="false" :disabled="busy"
-          ><MoreHorizontal class="size-4" /></UiIconButton
-      ></template>
-      <UiDropdownMenuItem :disabled="busy" @select="$emit('copy')"
-        ><Copy class="size-3.5" />{{ $t("extensions.skills.copy") }}</UiDropdownMenuItem
-      >
-      <UiDropdownMenuItem :disabled="busy" @select="$emit('export')"
-        ><Download class="size-3.5" />{{ $t("common.export") }}</UiDropdownMenuItem
-      >
-      <UiDropdownMenuItem v-if="!skill.pluginId" destructive :disabled="busy" @select="$emit('delete')"
-        ><Trash2 class="size-3.5" />{{ $t("common.delete") }}</UiDropdownMenuItem
-      >
-    </UiDropdownMenu>
-  </section>
+  </ExtensionIdentity>
 </template>

@@ -105,7 +105,8 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     searchKeys: [
       "extensions.overview.plugins",
       "extensions.overview.skills",
-      "extensions.overview.connectors",
+      "extensions.overview.applications",
+      "extensions.overview.mcp",
     ],
     icon: Puzzle,
   },

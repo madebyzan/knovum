@@ -88,6 +88,14 @@ function toggleSkill(skillId: string) {
         <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
         <p v-if="unavailable" role="alert" class="text-caption text-fg-warning">
           {{ $t("spaces.conversation.extensions.unavailable") }}
+          <UiButton
+            size="sm"
+            variant="ghost"
+            :disabled="disabled"
+            data-testid="clear-conversation-extensions"
+            @click="selection = { skillIds: [], connections: [] }"
+            >{{ $t("spaces.conversation.extensions.clearSelection") }}</UiButton
+          >
         </p>
         <section v-if="availability?.skills.length" class="space-y-1">
           <h3 class="pb-1 text-caption font-medium text-fg-tertiary">
@@ -116,7 +124,7 @@ function toggleSkill(skillId: string) {
         </section>
         <section v-if="availability?.connections.length" class="space-y-1">
           <h3 class="pb-1 text-caption font-medium text-fg-tertiary">
-            {{ $t("extensions.overview.connectors") }}
+            {{ $t("extensions.overview.mcp") }}
           </h3>
           <label
             v-for="connection in availability.connections"
