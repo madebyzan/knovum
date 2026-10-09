@@ -1,12 +1,13 @@
 import { expect, it, vi } from "vitest";
 import { effectScope, ref } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { useVideoEditProject } from "../presentation/video-editor/use-video-edit-project";
 import { createVideoEditProject } from "../video-editing/project";
 
 vi.mock("vue-i18n", async (original) => ({
-  ...(await original<typeof import("vue-i18n")>()),
+  ...(await original<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
 

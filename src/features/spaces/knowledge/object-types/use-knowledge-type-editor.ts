@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/vue-query";
 import { compact, isEqual } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, ref, shallowRef, watch, type Ref } from "vue";
@@ -5,7 +6,6 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { queryClient } from "../../../../foundation/query/query-client";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../model/object-types";
@@ -14,6 +14,7 @@ import { spaceKnowledgeQueryKeys } from "../queries/query-options";
 import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
 
 export function useKnowledgeTypeEditor(open: Ref<boolean>) {
+  const queryClient = useQueryClient();
   const { activeSpaceId } = storeToRefs(useSpaceStore());
   const { t } = useI18n();
   const typesQuery = useSpaceObjectTypesQuery(activeSpaceId);
@@ -34,6 +35,9 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
   const baseline = shallowRef<ReturnType<typeof fingerprint>>();
   const dirty = computed(() => baseline.value !== undefined && !isEqual(baseline.value, fingerprint()));
   const fieldKinds: SpaceObjectFieldKind[] = ["text", "number", "boolean", "date", "node-ref", "enum"];
+  function refreshTypes(spaceId: string) {
+    return queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
+  }
   watch(activeSpaceId, reset);
   watch(open, (value) => {
     if (value) {
@@ -170,10 +174,6 @@ function updateOptions(field: SpaceObjectFieldDefinition, value: string) {
 function updateRequired(field: SpaceObjectFieldDefinition, required: boolean) {
   if (required) field.required = true;
   else delete field.required;
-}
-
-function refreshTypes(spaceId: string) {
-  return queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
 }
 
 function snapshotFields(fields: readonly SpaceObjectFieldDefinition[]) {
