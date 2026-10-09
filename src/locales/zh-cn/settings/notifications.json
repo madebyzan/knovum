@@ -1,0 +1,9 @@
+{
+  "title": "通知",
+  "backgroundTasks": {
+    "label": "后台任务通知",
+    "description": "知生知隐藏时，长时间运行的后台任务完成或失败后发送通知。"
+  },
+  "description": "设置桌面通知的发送时机。",
+  "saveFailed": "通知设置未能保存"
+}

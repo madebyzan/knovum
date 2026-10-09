@@ -97,7 +97,7 @@ async function manageModels(purpose: RoutingPurpose) {
     />
     <div v-else-if="ready">
       <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
-      <div class="grid gap-5">
+      <div class="grid gap-6">
         <AiConnectionsSettings
           :connections="settings.connections"
           :create-model-request="createModelRequest"

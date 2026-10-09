@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const settingsPaneIds = [
   "appearance",
+  "notifications",
   "aiModels",
   "voices",
   "desktopAgents",

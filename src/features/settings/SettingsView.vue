@@ -13,6 +13,7 @@ import BackupSettingsPane from "./components/panes/BackupSettingsPane.vue";
 import CreationSettingsPane from "./components/panes/CreationSettingsPane.vue";
 import DesktopAgentsSettingsAction from "./components/panes/DesktopAgentsSettingsAction.vue";
 import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
+import NotificationsSettingsPane from "./components/panes/NotificationsSettingsPane.vue";
 import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
 import type { GenerationActionOption } from "./generation-action-option";
@@ -71,6 +72,7 @@ const componentByPaneId = {
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
   appearance: AppearanceSettingsPane,
+  notifications: NotificationsSettingsPane,
 } satisfies Record<SettingsPaneId, Component>;
 
 const paneComponent = computed(() => componentByPaneId[activePane.value]);
@@ -112,7 +114,7 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
             <header
               class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
             >
-              <h1 class="m-0 text-display font-semibold tracking-title text-fg-primary">
+              <h1 class="m-0 text-title font-semibold tracking-title text-fg-primary">
                 {{ paneTitle }}
               </h1>
               <component :is="paneHeaderAction" v-if="paneHeaderAction" />
@@ -122,7 +124,7 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
               enter-active-class="animate-in fade-in-0 slide-in-from-right-1 duration-150 ease-standard motion-reduce:animate-none"
               leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
             >
-              <div :key="activePane">
+              <div :key="activePane" class="space-y-6">
                 <CreationSettingsPane
                   v-if="activePane === 'creation'"
                   :load-generation-actions="props.loadGenerationActions"

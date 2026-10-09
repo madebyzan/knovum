@@ -29,8 +29,12 @@ const props = withDefaults(
 const fieldId = useId(props.id);
 const inputRef = useTemplateRef<HTMLInputElement>("input");
 
-function focus() {
-  inputRef.value?.focus();
+function focus(options?: FocusOptions) {
+  inputRef.value?.focus(options);
+}
+
+function select() {
+  inputRef.value?.select();
 }
 
 function handleCommandKey(event: KeyboardEvent) {
@@ -39,7 +43,7 @@ function handleCommandKey(event: KeyboardEvent) {
   else if (event.key === "Escape") emit("cancel", event);
 }
 
-defineExpose({ focus });
+defineExpose({ focus, select });
 </script>
 
 <template>

@@ -10,8 +10,10 @@ import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRo
 import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
+import PreferenceField from "./PreferenceField.vue";
 
 const props = defineProps<{
   defaults: AiRoutingDefaults;
@@ -51,6 +53,19 @@ const routeRows = computed(() =>
     })),
   })),
 );
+const routeGroups = computed(() => [
+  {
+    id: "settings-ai-default-route",
+    title: t("settings.routing.defaultsTitle"),
+    rows: routeRows.value.slice(0, 1),
+  },
+  {
+    id: "settings-ai-routing",
+    title: t("settings.routing.capabilitiesTitle"),
+    description: t("settings.routing.defaultsDescription"),
+    rows: routeRows.value.slice(1),
+  },
+]);
 function update(key: keyof AiRoutingDefaults, value: string) {
   if (value === UNASSIGNED) {
     emit("updateRoute", key, null);
@@ -66,48 +81,42 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
 </script>
 
 <template>
-  <UiSettingsSection
-    id="settings-ai-routing"
-    tabindex="-1"
-    :title="t('settings.routing.defaultsTitle')"
-    :description="t('settings.routing.defaultsDescription')"
-  >
-    <div
-      v-for="row in routeRows"
-      :key="row.key"
-      class="flex min-h-(--knovum-setting-min-height) flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-stroke-divider px-4 py-3 last:border-b-0"
+  <div class="space-y-6">
+    <UiSettingsSection
+      v-for="group in routeGroups"
+      :key="group.id"
+      :id="group.id"
+      tabindex="-1"
+      :title="group.title"
+      :description="group.description"
     >
-      <div class="flex min-w-0 flex-1 items-center gap-3">
-        <component :is="row.icon" class="size-4 shrink-0 text-fg-secondary" aria-hidden="true" />
-        <div class="min-w-0">
-          <p class="text-label font-medium text-fg-primary">{{ row.label }}</p>
-          <p class="mt-0.5 text-caption leading-normal text-fg-secondary">{{ row.description }}</p>
-        </div>
-      </div>
-      <UiSelect
-        v-if="row.options.length"
-        :model-value="selected(defaults[row.key])"
+      <PreferenceField
+        v-for="row in group.rows"
+        :key="row.key"
+        :icon="row.icon"
         :label="row.label"
-        :options="[
-          {
-            value: UNASSIGNED,
-            label: t(
-              row.key === 'defaultTarget' ? 'settings.routing.unselected' : 'settings.routing.unassigned',
-            ),
-          },
-          ...row.options,
-        ]"
-        class="w-full sm:w-64"
-        @update:model-value="update(row.key, $event)"
-      />
-      <button
-        v-else
-        type="button"
-        class="rounded-md text-caption text-fg-secondary underline-offset-2 hover:text-fg-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
-        @click="emit('manageModels', row.purpose ?? 'knowledge')"
+        :description="row.description"
       >
-        {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
-      </button>
-    </div>
-  </UiSettingsSection>
+        <UiSelect
+          v-if="row.options.length"
+          :model-value="selected(defaults[row.key])"
+          :label="row.label"
+          :options="[
+            {
+              value: UNASSIGNED,
+              label: t(
+                row.key === 'defaultTarget' ? 'settings.routing.unselected' : 'settings.routing.unassigned',
+              ),
+            },
+            ...row.options,
+          ]"
+          class="w-52"
+          @update:model-value="update(row.key, $event)"
+        />
+        <UiButton v-else size="sm" variant="ghost" @click="emit('manageModels', row.purpose ?? 'knowledge')">
+          {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
+        </UiButton>
+      </PreferenceField>
+    </UiSettingsSection>
+  </div>
 </template>

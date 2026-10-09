@@ -121,7 +121,7 @@ onScopeDispose(unregisterLeaveParticipant);
               </h3>
               <UiSelect
                 :model-value="creationKind"
-                class="max-w-52"
+                class="w-44 shrink-0"
                 size="sm"
                 :label="t('spaces.speech.voice.mode')"
                 :options="creationOptions"

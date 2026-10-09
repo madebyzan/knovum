@@ -2,7 +2,7 @@ import {
   Activity,
   Archive,
   AudioLines,
-  Boxes,
+  Bell,
   Info,
   MonitorCog,
   Puzzle,
@@ -11,6 +11,7 @@ import {
 } from "@lucide/vue";
 import type { Component } from "vue";
 
+import { aiSettingsDefinition } from "./ai-settings-definition";
 import { backupSettingsDefinition } from "./backup/settings-definition";
 import type { SettingsPaneId } from "./settings-pane";
 
@@ -55,33 +56,24 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         labelKey: "settings.appearance.language.label",
         descriptionKey: "settings.appearance.language.description",
       },
-      {
-        id: "settings-background-task-notifications",
-        labelKey: "settings.appearance.notifications.backgroundTasks.label",
-        descriptionKey: "settings.appearance.notifications.backgroundTasks.description",
-      },
     ],
   },
   {
-    id: "aiModels",
-    group: "intelligence",
-    titleKey: "settings.ai.title",
-    descriptionKey: "settings.ai.description",
-    searchKeys: ["settings.ai.description", "settings.ai.connections"],
-    icon: Boxes,
+    id: "notifications",
+    group: "general",
+    titleKey: "settings.notifications.title",
+    descriptionKey: "settings.notifications.description",
+    searchKeys: ["settings.notifications.backgroundTasks.label"],
+    icon: Bell,
     locations: [
       {
-        id: "settings-ai-providers",
-        labelKey: "settings.ai.connections",
-        descriptionKey: "settings.ai.connectionsDescription",
-      },
-      {
-        id: "settings-ai-routing",
-        labelKey: "settings.routing.defaultsTitle",
-        descriptionKey: "settings.routing.defaultsDescription",
+        id: "settings-background-task-notifications",
+        labelKey: "settings.notifications.backgroundTasks.label",
+        descriptionKey: "settings.notifications.backgroundTasks.description",
       },
     ],
   },
+  aiSettingsDefinition,
   {
     id: "voices",
     group: "intelligence",

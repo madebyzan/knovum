@@ -60,13 +60,16 @@ watchEffect(() => {
 
 <template>
   <div class="space-y-1">
-    <UiSelect
-      v-model="model"
-      size="sm"
-      :label="t('spaces.speech.models.label')"
-      :options="options"
-      :disabled="disabled || catalog.isPending.value"
-    />
+    <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+      <span>{{ t("spaces.speech.models.label") }}</span>
+      <UiSelect
+        v-model="model"
+        size="sm"
+        :label="t('spaces.speech.models.label')"
+        :options="options"
+        :disabled="disabled || catalog.isPending.value"
+      />
+    </label>
     <p v-if="catalog.error.value" class="text-caption text-fg-danger" role="alert">
       {{ catalog.error.value.message }}
     </p>
