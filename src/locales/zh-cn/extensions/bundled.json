@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "知识整理",
+    "description": "查阅、整理和发布空间知识，保留来源依据。"
+  },
+  "evidence-research": {
+    "name": "证据研究",
+    "description": "对照资料，形成有据可查的研究与决策简报。"
+  },
+  "meeting-notes": {
+    "name": "会议纪要",
+    "description": "从会议转录中整理要点、决策和待办。"
+  },
+  "document-delivery": {
+    "name": "文档交付",
+    "description": "基于资料制作报告，交付所需的文档格式。"
+  },
+  "study-companion": {
+    "name": "学习辅导",
+    "description": "将空间资料整理为学习指南、练习与复习计划。"
+  },
+  "github-work": {
+    "name": "GitHub 工作流",
+    "description": "连接 GitHub，查阅仓库并基于证据整理问题。"
+  },
+  "notion-work": {
+    "name": "Notion 知识工作流",
+    "description": "连接 Notion，查阅页面并发布整理后的知识。"
+  },
+  "linear-work": {
+    "name": "Linear 工作流",
+    "description": "连接 Linear，将决策和行动项落实为项目工作。"
+  }
+}

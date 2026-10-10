@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
-import McpConnectionEnablement from "../connections/McpConnectionEnablement.vue";
-import McpServerCreation from "../connections/McpServerCreation.vue";
+import McpConnectionEnablement from "../connections/components/McpConnectionEnablement.vue";
+import McpServerCreation from "../connections/components/McpServerCreation.vue";
 import { mcpConnectionFixture } from "./support/connector-fixtures";
 
 const mocks = vi.hoisted(() => ({

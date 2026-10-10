@@ -4,7 +4,7 @@ const { open } = vi.hoisted(() => ({ open: vi.fn<() => Promise<string | null>>()
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open }));
 import { i18n } from "../../../foundation/i18n/i18n";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import PluginSourceInput from "../plugins/PluginSourceInput.vue";
+import PluginSourceInput from "../plugins/components/PluginSourceInput.vue";
 function sourceForm() {
   return mount(PluginSourceInput, {
     props: { busy: false },

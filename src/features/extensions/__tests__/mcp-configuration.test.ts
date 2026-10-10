@@ -6,8 +6,8 @@ import { i18n } from "../../../foundation/i18n/i18n";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import type { SettingsLeaveParticipant } from "../../../shared/contracts/settings-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
-import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
-import McpToolSelection from "../connections/McpToolSelection.vue";
+import McpConnectionSettings from "../connections/components/McpConnectionSettings.vue";
+import McpToolSelection from "../connections/components/McpToolSelection.vue";
 import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 const invoke = vi.hoisted(() =>
   vi.fn<(command: string, input?: Record<string, unknown>) => Promise<unknown>>(),

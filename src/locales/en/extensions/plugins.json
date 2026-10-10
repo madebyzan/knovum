@@ -14,7 +14,8 @@
     "preview": "Preview",
     "authorizationHint": "Installation does not launch services or authorize accounts. Configure connections and tool permissions separately.",
     "install": "Install",
-    "title": "Review installation"
+    "title": "Review installation",
+    "incomplete": "This plugin has no usable capability or contains an unsupported required component."
   },
   "update": {
     "action": "Update",
@@ -42,7 +43,7 @@
     "description": "Add or refresh catalogs that list available plugins.",
     "empty": {
       "title": "No plugins to discover",
-      "description": "Add a catalog to browse its available plugins."
+      "description": "Browse the bundled catalog or add another plugin source."
     },
     "remove": {
       "title": "Remove catalog?",
@@ -51,7 +52,8 @@
   },
   "discovery": {
     "title": "Discover plugins",
-    "description": "Browse catalog plugins and review their capabilities before installing."
+    "description": "Browse catalog plugins and review their capabilities before installing.",
+    "installed": "Installed · View"
   },
   "empty": {
     "title": "No installed plugins",

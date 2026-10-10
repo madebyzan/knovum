@@ -69,6 +69,13 @@ fn plugin_service_metadata_is_bound_to_the_standard_mcp_component() {
     files.insert("plugin.json".into(), serde_json::to_vec(&manifest).unwrap());
     files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"github":{"type":"streamable-http","url":"https://example.com/mcp"}}})).unwrap());
     let reviewed = super::inspect(&files, "revision".into()).unwrap();
+    assert!(reviewed
+        .inspection
+        .components
+        .iter()
+        .any(|component| component.kind == "app"
+            && component.name == "github"
+            && component.supported));
     let connector = &reviewed.inspection.connectors[0];
     assert_eq!(connector.component_name, "github");
     assert_eq!(connector.name, "GitHub");
@@ -86,6 +93,11 @@ fn stdio_declaration_preserves_valid_skills_before_machine_configuration() {
     files.insert("mcp.json".into(), serde_json::to_vec(&json!({"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"local":{"type":"stdio","command":"node","args":["server.js"]}}})).unwrap());
     let reviewed = super::inspect(&files, "one".into()).unwrap();
     assert_eq!(reviewed.skills.len(), 1);
+    assert!(!reviewed
+        .inspection
+        .components
+        .iter()
+        .any(|component| component.kind == "app"));
     assert_eq!(reviewed.inspection.connectors.len(), 1);
     assert_eq!(
         reviewed.inspection.connectors[0].configuration["command"],
@@ -149,7 +161,7 @@ fn bundled_knowledge_skills_are_valid_independent_standard_components() {
     .unwrap();
     let reviewed = super::inspect(&files, "builtin".into()).unwrap();
     assert_eq!(reviewed.inspection.manifest.name, "knowledge-work");
-    assert_eq!(reviewed.skills.len(), 4);
+    assert_eq!(reviewed.skills.len(), 1);
     assert!(reviewed
         .inspection
         .components
@@ -160,4 +172,30 @@ fn bundled_knowledge_skills_are_valid_independent_standard_components() {
         .iter()
         .all(|skill| skill.requirements.is_empty() && skill.unsupported_requirements.is_empty()));
     assert!(reviewed.inspection.connectors.is_empty());
+}
+
+#[test]
+fn installation_requires_supported_operational_components() {
+    let mut files = package();
+    assert!(super::inspect(&files, "one".into())
+        .unwrap()
+        .require_installable()
+        .is_ok());
+    files.insert("mcp.json".into(), b"{invalid}".to_vec());
+    assert_eq!(
+        super::inspect(&files, "two".into())
+            .unwrap()
+            .require_installable()
+            .unwrap_err(),
+        "plugin-required-component-unsupported"
+    );
+    files.remove("mcp.json");
+    files.remove("skills/example/SKILL.md");
+    assert_eq!(
+        super::inspect(&files, "three".into())
+            .unwrap()
+            .require_installable()
+            .unwrap_err(),
+        "plugin-has-no-supported-capabilities"
+    );
 }

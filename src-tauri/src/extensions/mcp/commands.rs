@@ -80,7 +80,7 @@ pub async fn update_mcp_connection(
 
 #[tauri::command]
 pub async fn list_mcp_connections(app: AppHandle) -> Result<Vec<McpConnection>, String> {
-    super::super::plugins::ensure_builtin(&app).await?;
+    super::super::plugins::reconcile_bundled_plugins(&app).await?;
     super::connections::list(&database::pool(&app).await?).await
 }
 

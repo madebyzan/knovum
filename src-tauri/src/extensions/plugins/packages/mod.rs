@@ -32,6 +32,23 @@ pub(super) struct ReviewedPackage {
     pub skills: Vec<SkillRevision>,
 }
 
+impl ReviewedPackage {
+    pub(super) fn require_installable(&self) -> Result<(), String> {
+        if self
+            .inspection
+            .components
+            .iter()
+            .any(|component| !component.supported)
+        {
+            return Err("plugin-required-component-unsupported".into());
+        }
+        if self.skills.is_empty() && self.inspection.connectors.is_empty() {
+            return Err("plugin-has-no-supported-capabilities".into());
+        }
+        Ok(())
+    }
+}
+
 pub(super) fn inspect(
     files: &PackageFiles,
     source_revision: String,
@@ -186,6 +203,14 @@ pub(super) fn inspect(
     let mut connectors = Vec::new();
     for (name, configuration) in mcp_servers {
         let declaration = extension.connectors.get(&name);
+        if declaration.is_some() {
+            components.push(PluginComponent {
+                name: name.clone(),
+                kind: "app".into(),
+                supported: true,
+                diagnostic: None,
+            });
+        }
         let authorization = declaration
             .map(|declaration| declaration.authorization.clone())
             .unwrap_or(ConnectorAuthorization::None);

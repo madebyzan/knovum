@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Puzzle } from "@lucide/vue";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import type { AgentExtensionAvailability } from "../../../../shared/contracts/generated/AgentExtensionAvailability";
@@ -17,11 +18,12 @@ const props = defineProps<{
   error?: string | undefined;
 }>();
 const router = useRouter();
+const { t } = useI18n();
 const count = computed(
   () =>
     selection.value.pluginIds.length + selection.value.skillIds.length + selection.value.connections.length,
 );
-const unavailable = computed(
+const hasUnavailableSelection = computed(
   () =>
     props.availability &&
     (selection.value.pluginIds.some(
@@ -48,11 +50,17 @@ const extensionGroups = computed(() =>
       kind: "pluginIds" as const,
       label: "plugins",
       items:
-        props.availability?.plugins.map((plugin) => ({
-          id: plugin.id,
-          name: plugin.revision.manifest.name,
-          description: plugin.revision.manifest.description,
-        })) ?? [],
+        props.availability?.plugins.map((plugin) => {
+          const manifest = plugin.revision.manifest;
+          const isBundled = plugin.source.type === "bundled";
+          return {
+            id: plugin.id,
+            name: isBundled ? t(`extensions.bundled.${manifest.name}.name`) : manifest.name,
+            description: isBundled
+              ? t(`extensions.bundled.${manifest.name}.description`)
+              : manifest.description,
+          };
+        }) ?? [],
     },
     { kind: "skillIds" as const, label: "skills", items: props.availability?.skills ?? [] },
   ].filter((group) => group.items.length),
@@ -81,7 +89,7 @@ const extensionGroups = computed(() =>
     <UiScrollArea viewport-class="max-h-72">
       <section class="space-y-3 px-3 pb-3" :aria-label="$t('spaces.conversation.extensions.label')">
         <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
-        <p v-if="unavailable" role="alert" class="text-caption text-fg-warning">
+        <p v-if="hasUnavailableSelection" role="alert" class="text-caption text-fg-warning">
           {{ $t("spaces.conversation.extensions.unavailable") }}
           <UiButton
             size="sm"

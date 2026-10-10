@@ -1,0 +1,10 @@
+{
+  "browse": "Browse plugins",
+  "description": "Apps come with plugins. Connect accounts and configure access here.",
+  "empty": "No apps added",
+  "emptyHint": "Install an app workflow from the plugin catalog.",
+  "manage": "Manage connection",
+  "accounts": "Accounts",
+  "access": "Access",
+  "configurationRequired": "This app has an incomplete connection. Check its source plugin."
+}

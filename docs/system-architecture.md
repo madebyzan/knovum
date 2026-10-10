@@ -243,9 +243,13 @@ Actions finish. Shutdown failure remains visible and retains those resources. Ap
 pending reads and authorization flows, revokes sessions, terminates owned process trees, and clears
 ephemeral credential caches.
 
-The extension settings distinguish complete packages (Plugins), independent personal instructions
-(Skills), and MCP services with their protocol connections and accounts (MCP). `ConnectorDefinition`
-is an internal reusable service definition, not a separate application capability or registry.
+The extension settings distinguish complete packages (Plugins), package-provided service integrations
+(Apps), independent personal instructions (Skills), and raw protocol services (MCP).
+Apps manage the declared service's identities and reviewed tool access; MCP owns custom endpoint
+creation and transport configuration. `ConnectorDefinition` remains the shared internal service
+contract. Apps require explicit service metadata in the package manifest; raw `mcp.json` declarations
+remain MCP services, including package-owned ones. Inspection marks declared integrations as `app`
+components so all settings views share the same distinction without another database or transport.
 Packaged Skills are inspected within their owning plugin and have no independent enablement command.
 Skill and packaged connection reads project their owning plugin's current enablement; personal Skills
 and standalone MCP connections retain independent enablement. A plugin owns exactly one connection
@@ -271,19 +275,30 @@ without package identity are rejected by the strict contracts; there is no compa
 
 `create_mcp_server` validates a custom service and creates its definition and first disabled
 connection in one SQLite transaction. Additional standalone connections reuse a configured service.
-Service configuration and accounts are reached through MCP inspection or the owning plugin. Long
+Protocol services are configured through MCP inspection; declared application accounts and access are reached through Apps or the owning plugin. Long
 configuration forms live in the settings pane and participate in the existing settings leave
 coordinator; they do not open nested modal dialogs.
 Connection configuration saves name and tool permission drafts together against the admitted
 revision. A concurrent revision change retains the draft and requires explicit discard and
 reload; it never silently overwrites unsaved permissions.
 
-The bundled `knowledge-work` package provides the general knowledge-work skill, evidence
-briefs, meeting/media notes from existing timed transcripts, and document delivery through
-existing draft/export/render Space Actions. Skills are progressively loaded by the existing
-DeepAgents skill middleware. They grant no additional authority and are not published
-Workflow definitions. Updates pass through the same package inspection and revision path
-as installed content while retaining the bundled installation identity.
+The application ships an offline, optional plugin catalog using the first-class `bundled` source.
+It offers knowledge-work, evidence-research, meeting-notes, document-delivery, study-companion,
+github-work, notion-work and linear-work. Users review and install chosen packages, then enable,
+disable or uninstall them as complete units. Catalog identities are stable and metadata comes from
+the package manifest. External marketplace releases cannot impersonate bundled packages.
+Already-installed bundled content updates through the normal inspected revision publication path,
+retaining installation identity and enablement. Absent packages are never automatically reinstalled.
+GitHub uses its official remote MCP endpoint with a user-provided bearer credential; Notion and Linear
+use their official Streamable HTTP endpoints and SDK-managed OAuth discovery. No provider credentials
+or fabricated accounts are shipped. Malformed or unsupported declared components reject installation rather than publishing a partial
+package. Inspection exposes the precise diagnostics, including unsupported vendor extensions.
+
+Each bundled Skill contains focused instructions, task-specific references and an adaptable template.
+DeepAgents' existing SkillsMiddleware discovers metadata first, loads SKILL.md on selection, and reads
+referenced resources only when the workflow needs them. No custom skill loader or script executor is
+added. These skills orchestrate existing Space Actions and connected catalogs; they grant no extra
+authority and are not published Workflow definitions.
 These instructions distinguish business Action IDs from advertised tool names and respect the
 executor's capabilities. External Agents generate new deliverables with their own runtime and
 submit files through the existing task-output publication path; they do not call built-in inference
@@ -295,7 +310,7 @@ use that same mounted backend; direct writes to the child store would bypass its
 
 External Agents receive the same frozen package selection through the private Space MCP server,
 supplied by the standard [ACP session MCP binding](https://agentclientprotocol.com/protocol/v1/session-setup).
-`list_selected_skills` exposes selected Skill metadata and the admitted alias-to-tool bindings;
+`list_selected_skills` exposes selected Skill metadata, resource paths and admitted alias-to-tool bindings without loading file bodies;
 `read_selected_skill` reads only exact frozen files. The desktop prompt and MCP instructions guide
 progressive discovery and binding resolution. External services' tools, resources and prompts remain
 behind Knovum authorization, revision checks and task receipts; provider credentials are not forwarded.

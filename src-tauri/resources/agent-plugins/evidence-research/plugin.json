@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "evidence-research",
+  "version": "1.0.0",
+  "description": "Compare sources and prepare evidence-based research and decision briefs.",
+  "author": {
+    "name": "Knovum"
+  },
+  "keywords": [
+    "research",
+    "evidence"
+  ]
+}

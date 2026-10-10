@@ -5,7 +5,7 @@ use tauri::AppHandle;
 pub async fn get_agent_extension_availability(
     app: AppHandle,
 ) -> Result<AgentExtensionAvailability, String> {
-    super::plugins::ensure_builtin(&app).await?;
+    super::plugins::reconcile_bundled_plugins(&app).await?;
     let pool = database::pool(&app).await?;
     let plugins = super::plugins::list(&pool).await?;
     let connectors = super::connectors::definitions::list(&pool).await?;

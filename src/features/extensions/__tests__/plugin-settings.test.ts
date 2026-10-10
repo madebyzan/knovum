@@ -6,7 +6,7 @@ import type * as PluginOperations from "../../../foundation/extensions/plugin-op
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { PluginInspection } from "../../../shared/contracts/generated/PluginInspection";
 import type { PluginInstallation } from "../../../shared/contracts/generated/PluginInstallation";
-import PluginSettings from "../plugins/PluginSettings.vue";
+import PluginSettings from "../plugins/components/PluginSettings.vue";
 
 const mocks = vi.hoisted(() => ({
   list: vi.fn<typeof PluginOperations.listPluginInstallations>(),
@@ -45,7 +45,7 @@ const inspection: PluginInspection = {
   },
   digest: "digest",
   sourceRevision: "revision",
-  components: [],
+  components: [{ name: "example", kind: "skill", supported: true, diagnostic: null }],
   connectors: [],
   fileCount: 1,
   byteLength: 10,
@@ -99,7 +99,7 @@ async function inspectLocalSource() {
   await flushPromises();
 }
 
-describe("plugin management state", () => {
+describe("plugin installation review", () => {
   it("keeps the source dialog open and shows the inspection error when inspection fails", async () => {
     mocks.inspectSource.mockRejectedValueOnce(new Error("inspection failed"));
 
@@ -113,29 +113,33 @@ describe("plugin management state", () => {
     await inspectLocalSource();
 
     expect(wrapper.find('[data-testid="plugin-source-location"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="plugin-installation-preview"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plugin-installation-review"]').exists()).toBe(true);
   });
 
   it("returns to the installed view after a successful catalog installation", async () => {
     await wrapper.get('[data-testid="discover-plugins"]').trigger("click");
+    expect(wrapper.emitted("navigate")?.at(-1)).toEqual([{ tab: "plugins", action: "browse" }]);
+    await wrapper.setProps({ action: "browse" });
     await wrapper.get('[data-testid="inspect-release"]').trigger("click");
     await flushPromises();
     await wrapper.get('[data-testid="confirm-plugin-installation"]').trigger("click");
     await flushPromises();
 
+    expect(wrapper.emitted("navigate")?.at(-1)).toEqual([{ tab: "plugins" }]);
+    await wrapper.setProps({ action: undefined });
     expect(wrapper.find('[data-testid="inspect-release"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="plugin-example"]').exists()).toBe(true);
     expect(mocks.list).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps the preview open and shows the mutation error when installation fails", async () => {
+  it("keeps the installation review open and shows the mutation error when installation fails", async () => {
     mocks.install.mockRejectedValueOnce(new Error("installation failed"));
     await inspectLocalSource();
 
     await wrapper.get('[data-testid="confirm-plugin-installation"]').trigger("click");
     await flushPromises();
 
-    expect(wrapper.find('[data-testid="plugin-installation-preview"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plugin-installation-review"]').exists()).toBe(true);
     expect(wrapper.text()).toContain("installation failed");
   });
 });

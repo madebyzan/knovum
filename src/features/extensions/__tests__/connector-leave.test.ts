@@ -8,7 +8,7 @@ import {
   type SettingsLeaveParticipant,
 } from "../../../shared/contracts/settings-leave";
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
-import ConnectorConnections from "../connectors/ConnectorConnections.vue";
+import ConnectorConnections from "../connectors/components/ConnectorConnections.vue";
 import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 
 const connection = mcpConnectionFixture("work", "Work");

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "github-work",
+  "version": "1.0.0",
+  "description": "Research repositories and turn Space evidence into actionable GitHub issues.",
+  "author": {
+    "name": "Knovum"
+  },
+  "keywords": [
+    "github",
+    "development"
+  ],
+  "extensions": {
+    "com.zand.knovum": {
+      "skillRequirements": {
+        "knovum-github-work": [
+          "github"
+        ]
+      },
+      "connectors": {
+        "github": {
+          "name": "GitHub",
+          "description": "Research repositories and turn Space evidence into actionable GitHub issues.",
+          "authorization": {
+            "type": "bearer"
+          }
+        }
+      }
+    }
+  }
+}

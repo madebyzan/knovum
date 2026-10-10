@@ -36,6 +36,7 @@ pub(super) async fn commit(
     builtin: bool,
     publication: Option<PluginPublication>,
 ) -> Result<ExtensionChange<PluginInstallation>, String> {
+    reviewed.require_installable()?;
     let pool = database::pool(app).await?;
     let previous = list(&pool)
         .await?

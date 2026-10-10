@@ -21,10 +21,14 @@ struct MarketplaceManifest {
 }
 
 async fn read(
+    app: &AppHandle,
     source: &MarketplaceSource,
     cancellation: &CancellationToken,
 ) -> AppResult<MarketplaceManifest> {
     let bytes = match source {
+        MarketplaceSource::Bundled => {
+            return Err("bundled-marketplace-is-application-managed".into())
+        }
         MarketplaceSource::Directory { path } => {
             let path = std::path::PathBuf::from(path).join("marketplace.json");
             crate::blocking::run(move || super::sources::read_bounded(&path, 4 * 1024 * 1024))
@@ -37,6 +41,7 @@ async fn read(
             subdirectory,
         } => {
             let (files, _) = super::sources::read(
+                app,
                 &PluginSource::Git {
                     url: url.clone(),
                     reference: reference.clone(),
@@ -106,7 +111,7 @@ pub async fn add_plugin_marketplace(
     let operation =
         PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let manifest = operation
-        .read(read(&source, operation.cancellation()))
+        .read(read(&app, &source, operation.cancellation()))
         .await?;
     let marketplace = PluginMarketplace {
         id: uuid::Uuid::new_v4().to_string(),
@@ -141,7 +146,7 @@ pub async fn refresh_plugin_marketplace(
         .map_err(|error| error.to_string())?;
     let mut marketplace: PluginMarketplace = database::decode(&document)?;
     let manifest = operation
-        .read(read(&marketplace.source, operation.cancellation()))
+        .read(read(&app, &marketplace.source, operation.cancellation()))
         .await?;
     if manifest.name != marketplace.name {
         return Err("marketplace-identity-changed".into());
@@ -168,6 +173,9 @@ pub async fn remove_plugin_marketplace(
     app: AppHandle,
     marketplace_id: String,
 ) -> Result<(), String> {
+    if marketplace_id == super::bundled::MARKETPLACE_ID {
+        return Err("bundled-marketplace-is-application-managed".into());
+    }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     sqlx::query("DELETE FROM marketplaces WHERE id=$1")
@@ -189,10 +197,17 @@ pub async fn search_plugins(
             .await
             .map_err(|error| error.to_string())?;
     let query = query.to_lowercase();
-    documents
+    let mut marketplaces = vec![super::bundled::marketplace()];
+    marketplaces.extend(
+        documents
+            .iter()
+            .map(|document| database::decode(document))
+            .collect::<Result<Vec<PluginMarketplace>, _>>()?,
+    );
+    marketplaces
         .iter()
-        .map(|document| {
-            let mut marketplace: PluginMarketplace = database::decode(document)?;
+        .map(|marketplace| {
+            let mut marketplace = marketplace.clone();
             marketplace.releases.retain(|release| {
                 format!(
                     "{} {} {}",
@@ -211,6 +226,9 @@ pub(super) async fn require_publication(
     publication: &PluginPublication,
     source: &PluginSource,
 ) -> Result<(), String> {
+    if publication.marketplace_id == super::bundled::MARKETPLACE_ID {
+        return super::bundled::require_publication(publication, source);
+    }
     let pool = database::pool(app).await?;
     let document: String = sqlx::query_scalar("SELECT document FROM marketplaces WHERE id=$1")
         .bind(&publication.marketplace_id)

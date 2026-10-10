@@ -698,11 +698,18 @@ native form submission and dialog behavior.
 
 ### Agent extensions
 
-Extensions use three searchable, counted categories: Plugins, MCP, and Skills.
+Extensions use four searchable, counted categories: Plugins, Apps, MCP, and Skills.
 Plugins are complete installed capability packages; Skills lists only independent personal instructions.
-MCP lists independent servers and owns their configuration, accounts and protocol connections.
-Packaged services are configured from their owning plugin and are not repeated in the MCP list. Do not present an MCP service
-schema as a separate Apps capability: there is no independent application integration in this model.
+Apps lists package-declared integrations and manages accounts and reviewed access in a dedicated
+inspection view. It links to the owning plugin for overall activation and removal; it does not offer
+component switches or another custom MCP form. MCP lists raw protocol services, both user-configured
+and package-owned. A packaged service inherits its plugin enablement and cannot be toggled separately.
+
+The discoverable catalog includes optional bundled workflows without requiring an external source.
+Installed releases lead to their installed inspection rather than offering duplicate installation.
+Localized bundled names describe user outcomes; external package names retain their publisher spelling.
+Catalog browsing is a route state (`extensionAction=browse`) so Apps can lead directly to installation
+and browser history returns predictably. Bundled packages can be uninstalled and remain removed.
 
 Settings title actions use `UiSettingsHeaderActions`, which projects controls into the title-right
 area using Vue Teleport. Each pane owns its actions, operation and dialog state; `SettingsView`
@@ -736,7 +743,7 @@ native executable/directory pickers and literal argument inputs. No raw JSON edi
 Changing transport replaces its configuration and authorization requirements. Credentials remain in
 the dedicated account authorization flow.
 
-The extension tab, selected entity, service configuration and creation intent live in the settings
+The extension tab, selected entity, service configuration, catalog browsing and creation intent live in the settings
 route query (`extensionTab`, `extensionId`, `connectorId`, `extensionAction`). Search is local visual
 state; installed content and availability use TanStack Query. Reuse Knovum semantic tokens, Reka
 behavior and native installation/export dialogs.

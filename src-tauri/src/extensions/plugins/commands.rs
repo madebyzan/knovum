@@ -19,7 +19,7 @@ pub async fn inspect_plugin_source(
     let operation =
         PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let (files, revision) = operation
-        .read(sources::read(&source, operation.cancellation()))
+        .read(sources::read(&app, &source, operation.cancellation()))
         .await?;
     Ok(packages::inspect(&files, revision)?.inspection)
 }
@@ -36,7 +36,7 @@ pub async fn install_plugin(
     let operation =
         PluginOperation::begin(&job_id, on_stage, &app.state::<ExtensionState>().shutdown)?;
     let (files, revision) = operation
-        .read(sources::read(&source, operation.cancellation()))
+        .read(sources::read(&app, &source, operation.cancellation()))
         .await?;
     let reviewed = packages::inspect(&files, revision)?;
     if reviewed.inspection.digest != expected_digest {
@@ -50,14 +50,36 @@ pub async fn install_plugin(
             return Err("marketplace-package-name-mismatch".into());
         }
     }
+    let installed = super::list(&database::pool(&app).await?).await?;
+    if publication.as_ref().is_some_and(|publication| {
+        installed.iter().any(|plugin| {
+            plugin.publication.as_ref().is_some_and(|existing| {
+                existing.marketplace_id == publication.marketplace_id
+                    && existing.publisher_id == publication.publisher_id
+                    && existing.plugin_name == publication.plugin_name
+            })
+        })
+    }) {
+        return Err("marketplace-plugin-already-installed".into());
+    }
+    let (plugin_id, is_bundled) = match &source {
+        PluginSource::Bundled { name } => {
+            let package = super::bundled::require(name)?;
+            if installed.iter().any(|plugin| plugin.id == package.id) {
+                return Err("bundled-plugin-already-installed".into());
+            }
+            (package.id.to_owned(), true)
+        }
+        _ => (uuid::Uuid::new_v4().to_string(), false),
+    };
     operation.commit()?;
     Ok(installation::commit(
         &app,
-        &uuid::Uuid::new_v4().to_string(),
+        &plugin_id,
         source,
         reviewed,
         files,
-        false,
+        is_bundled,
         publication,
     )
     .await?)
@@ -79,7 +101,7 @@ pub async fn update_plugin(
     }
     let source = super::marketplaces::update_source(&app, &old).await?;
     let (files, revision) = operation
-        .read(sources::read(&source, operation.cancellation()))
+        .read(sources::read(&app, &source, operation.cancellation()))
         .await?;
     let reviewed = packages::inspect(&files, revision)?;
     if reviewed.inspection.digest != expected_digest {
@@ -112,7 +134,7 @@ pub async fn update_plugin(
 
 #[tauri::command]
 pub async fn list_plugin_installations(app: AppHandle) -> Result<Vec<PluginInstallation>, String> {
-    super::ensure_builtin(&app).await?;
+    super::reconcile_bundled_plugins(&app).await?;
     super::list(&database::pool(&app).await?).await
 }
 
@@ -152,9 +174,7 @@ pub async fn uninstall_plugin(
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    if super::load(&pool, &plugin_id).await?.builtin {
-        return Err("builtin-plugin-can-be-disabled".into());
-    }
+    super::load(&pool, &plugin_id).await?;
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     sqlx::query("DELETE FROM plugins WHERE id=$1")
         .bind(&plugin_id)
@@ -202,7 +222,7 @@ pub async fn inspect_plugin_update(
     }
     let source = super::marketplaces::update_source(&app, &plugin).await?;
     let (files, revision) = operation
-        .read(sources::read(&source, operation.cancellation()))
+        .read(sources::read(&app, &source, operation.cancellation()))
         .await?;
     let inspection = packages::inspect(&files, revision)?.inspection;
     Ok(PluginUpdatePreview { source, inspection })

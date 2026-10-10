@@ -8,7 +8,7 @@ import type { ConnectorDefinition } from "../../../shared/contracts/generated/Co
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
-import ConnectorServiceSettings from "../connectors/ConnectorServiceSettings.vue";
+import ConnectorServiceSettings from "../connectors/components/ConnectorServiceSettings.vue";
 import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 
 const mocks = vi.hoisted(() => ({
@@ -62,7 +62,7 @@ afterEach(() => {
 });
 async function open() {
   mounted = mount(ConnectorServiceSettings, {
-    props: { selectedId: "github" },
+    props: { connectorId: "github" },
     global: {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
       provide: {
@@ -94,7 +94,7 @@ describe("service connector management", () => {
 
   it("deleting one connection keeps the service and other connections available", async () => {
     const wrapper = await open();
-    await wrapper.setProps({ selectedId: "github" });
+    await wrapper.setProps({ connectorId: "github" });
     await wrapper.get('[data-testid="delete-connection-Work"]').trigger("click");
     expect(mocks.invoke).not.toHaveBeenCalledWith(
       "plugin:extensions|delete_mcp_connection",
@@ -125,7 +125,7 @@ describe("service connector management", () => {
       return original(command, input);
     });
     const wrapper = await open();
-    await wrapper.setProps({ selectedId: "github" });
+    await wrapper.setProps({ connectorId: "github" });
     await wrapper.get('[data-testid="edit-connector"]').trigger("click");
     const editor = wrapper.get('[data-testid="connector-editor"]');
     await editor.get('[data-testid="connector-description"]').setValue("Updated purpose");

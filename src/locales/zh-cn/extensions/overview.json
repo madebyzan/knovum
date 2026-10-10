@@ -1,6 +1,6 @@
 {
   "title": "扩展",
-  "description": "管理完整插件、MCP 服务和个人技能。",
+  "description": "管理插件、应用连接、自定义 MCP 和个人技能。",
   "plugins": "插件",
   "skills": "技能",
   "mcp": "MCP",
@@ -16,7 +16,8 @@
   "search": {
     "plugins": "搜索插件…",
     "mcp": "搜索 MCP 服务…",
-    "skills": "搜索技能…"
+    "skills": "搜索技能…",
+    "apps": "搜索应用…"
   },
   "status": {
     "checking": "正在检查可用性…",
@@ -28,5 +29,6 @@
   },
   "homepage": "网站",
   "repository": "源代码",
-  "license": "许可证"
+  "license": "许可证",
+  "apps": "应用"
 }
