@@ -331,7 +331,7 @@ Task lists are shown only when the Agent uses SDK Todo; simple answers need no p
 step. Extension choices follow configured tool policies, not an inferred conversation intent.
 
 That toggle opens Conversation as the default view. Explicit object actions open Details;
-the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
+the document editor owns its heading Outline locally. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
 An empty Conversation offers short prompts that fill and focus the composer without sending. Composer
@@ -537,9 +537,11 @@ The toolbar is part of the knowledge-space workflow. It contains Space navigatio
 task progress and contextual controls; it is not an application switcher. Settings temporarily
 replaces the workspace and returns to the last knowledge-space route.
 
-In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline belongs to the right sidebar because it navigates only that document. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
+In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline stays inside the editor: a quiet minibar at the upper right expands on hover or explicit keyboard activation into a compact 288px overlay. The minibar shows at most 16 orientation marks, preferring H1/H2 when at least three exist; the expanded directory includes every heading, highlights the current section and scrolls within a bounded height without a visible scrollbar. It does not resize the document or open the workspace right sidebar. Documents without headings omit the minibar; it appears at the xl breakpoint, matching the original editor layout. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
 
-The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation, Details and document Outline views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
+AI writing actions belong to the selection bubble menu. The document toolbar has no AI writing entry.
+
+The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation and Details views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
 
 There is no permanent global status bar. Task progress appears contextually in the top toolbar;
 offline state appears only when offline. Toolbar controls are limited to knowledge-space or truly

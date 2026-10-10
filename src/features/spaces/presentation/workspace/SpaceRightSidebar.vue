@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversation from "../conversation/SpaceConversation.vue";
-import SpaceDocumentOutline from "../editor/SpaceDocumentOutline.vue";
 import SpaceSelectionInspector from "../inspector/SpaceSelectionInspector.vue";
 import { knowledgeLocationLabel } from "../knowledge/knowledge-location-label";
 import SpaceSourcePeek from "../preview/SpaceSourcePeek.vue";
@@ -20,15 +19,6 @@ watch(
   () => store.activeSpaceId,
   () => {
     if (store.sourcePeek) store.closeSource();
-  },
-);
-
-watch(
-  () => store.focusedEditorId,
-  (id) => {
-    if (id) return;
-    if (store.rightSidebarView === "document-outline") store.setRightSidebarView("ask");
-    if (store.sourceReturnView === "document-outline") store.sourceReturnView = "ask";
   },
 );
 
@@ -61,7 +51,6 @@ const subtitle = computed(() =>
     <div class="min-h-0 flex-1 overflow-hidden select-text">
       <SpaceSelectionInspector v-if="rightSidebarView === 'inspect'" class="h-full" />
       <SpaceConversation v-else-if="rightSidebarView === 'ask'" class="h-full" />
-      <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
       <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />
     </div>
   </aside>

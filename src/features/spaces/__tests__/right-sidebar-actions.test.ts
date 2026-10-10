@@ -23,22 +23,6 @@ function setup() {
 }
 
 describe("Space context dock actions", () => {
-  it("defaults to Conversation and returns a source to the document Outline", () => {
-    const { state, actions } = setup();
-    expect(state.rightSidebarView.value).toBe("ask");
-    actions.setRightSidebarView("document-outline");
-    actions.openSource(
-      {
-        nodeId: "note-1",
-        nodeTitle: "Research",
-        locator: { sourceRevision: "1", location: { kind: "note" } },
-      },
-      { reveal: false },
-    );
-    actions.closeSource();
-    expect(state.rightSidebarView.value).toBe("document-outline");
-  });
-
   it("opens Ask with an explicit contextual scope request", () => {
     const { state, actions } = setup();
     actions.requestAsk("selection");

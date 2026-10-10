@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { ArrowLeft, Download, FileText, ImagePlus, ListTree, StickyNote } from "@lucide/vue";
+import { ArrowLeft, Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
-import { onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
-import { useContextDock } from "../../canvas/use-context-dock";
 import { useSpaceTiptapEditor } from "../../editor/use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../../editor/use-space-tiptap-image-drop";
 import { useSpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
-import { useSpaceStore } from "../../session/space-store";
+import SpaceDocumentOutline from "./SpaceDocumentOutline.vue";
 import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
 import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
 import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
 
 const { t } = useI18n();
-const store = useSpaceStore();
-const dock = useContextDock();
 const {
   activeHeadingId,
   characterCount,
@@ -38,24 +34,6 @@ const {
 } = useSpaceTiptapEditor();
 const writing = useSpaceTiptapWritingTools(editor);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot);
-watch(
-  [headings, activeHeadingId],
-  ([items, activeId]) => {
-    store.documentOutlineHeadings = items;
-    store.documentActiveHeadingId = activeId;
-  },
-  { immediate: true },
-);
-watch(
-  () => store.documentOutlineRequest,
-  (request) => {
-    if (request) revealHeading(request.position);
-  },
-);
-onBeforeUnmount(() => {
-  store.documentOutlineHeadings = [];
-  store.documentActiveHeadingId = undefined;
-});
 async function exportMarkdown() {
   if (!editor.value) return;
   try {
@@ -93,14 +71,6 @@ async function exportMarkdown() {
         }}
       </span>
       <SpaceTiptapSearch v-if="editor" :editor="editor" />
-      <UiIconButton
-        :label="t('spaces.sidebar.editorOutline.title')"
-        tooltip
-        size="sm"
-        @click="dock.openDocumentOutline()"
-      >
-        <ListTree class="size-3.5" :stroke-width="1.55" />
-      </UiIconButton>
       <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
         <Download class="size-3.5" />
       </UiIconButton>
@@ -110,7 +80,7 @@ async function exportMarkdown() {
       </span>
     </header>
     <div v-if="editor" class="border-b border-stroke-divider bg-surface-chrome/80">
-      <SpaceTiptapToolbar :editor="editor" :writing="writing" />
+      <SpaceTiptapToolbar :editor="editor" />
     </div>
     <div class="relative flex min-h-0 flex-1">
       <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
@@ -136,6 +106,7 @@ async function exportMarkdown() {
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>
+      <SpaceDocumentOutline :headings="headings" :active-id="activeHeadingId" @select="revealHeading" />
     </div>
   </section>
 </template>

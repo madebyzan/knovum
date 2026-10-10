@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, FileText, Info, MessageCircle, Search } from "@lucide/vue";
+import { ChevronDown, Info, MessageCircle, Search } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -15,8 +15,6 @@ const currentView = computed(() => {
   switch (store.rightSidebarView) {
     case "inspect":
       return { label: t("spaces.inspector.title"), icon: Info };
-    case "document-outline":
-      return { label: t("spaces.sidebar.editorOutline.title"), icon: FileText };
     case "source":
       return { label: t("spaces.inspector.fields.source"), icon: Search };
     default:
@@ -40,15 +38,6 @@ const views = computed(() => {
       onSelect: () => dock.openInspect(),
     },
   ];
-  if (store.focusedEditorId) {
-    items.push({
-      id: "document-outline",
-      label: t("spaces.sidebar.editorOutline.title"),
-      icon: FileText,
-      checked: store.rightSidebarView === "document-outline",
-      onSelect: () => dock.openDocumentOutline(),
-    });
-  }
   return items;
 });
 </script>
