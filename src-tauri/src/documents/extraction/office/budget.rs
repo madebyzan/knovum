@@ -27,7 +27,25 @@ pub(super) fn preflight(source: &Path) -> Result<(), String> {
     if !matches!(extension.as_deref(), Some("docx" | "xlsx" | "pptx")) {
         return Ok(());
     }
-    let mut archive = zip::ZipArchive::new(file).map_err(|error| error.to_string())?;
+    check_archive(file)
+}
+
+pub(crate) fn preflight_archive(
+    bytes: &[u8],
+    format: office_oxide::DocumentFormat,
+) -> Result<(), String> {
+    use office_oxide::DocumentFormat;
+    if matches!(
+        format,
+        DocumentFormat::Docx | DocumentFormat::Xlsx | DocumentFormat::Pptx
+    ) {
+        check_archive(std::io::Cursor::new(bytes))?;
+    }
+    Ok(())
+}
+
+fn check_archive(reader: impl std::io::Read + std::io::Seek) -> Result<(), String> {
+    let mut archive = zip::ZipArchive::new(reader).map_err(|error| error.to_string())?;
     if archive.len() > 20_000 {
         return Err("Office archive exceeds 20000 entries".into());
     }

@@ -7,6 +7,7 @@ export type DerivationUnavailableReason =
   | "active-node-operation";
 
 export type CreationIntentDecision = ActionAvailability<DerivationUnavailableReason>;
+export type DocumentFormat = "docx" | "pdf" | "txt" | "html" | "pptx";
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;
@@ -15,12 +16,13 @@ export interface CreationSelectionContext {
   readonly imageCount: number;
   readonly canRemoveBackground: boolean;
   readonly canAddVideoSubtitles: boolean;
-  readonly canExportDocument: boolean;
+  readonly documentTargets: readonly DocumentFormat[];
 }
 
 export interface CreationIntentDefinition {
   readonly id: string;
   readonly labelKey: string;
   readonly icon: CreationIntentIcon;
+  readonly documentFormat?: DocumentFormat;
   readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;
 }

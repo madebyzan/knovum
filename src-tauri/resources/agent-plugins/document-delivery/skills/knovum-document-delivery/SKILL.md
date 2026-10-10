@@ -18,9 +18,10 @@ Use this skill when the requested outcome is a report, proposal, handout, or pre
 
 For an existing published document, use its current revision and advertised deterministic Action contract. These are business Action IDs, not literal tool names:
 
-- DOCX: `export-document-as-docx`.
-- PDF: `export-document-as-pdf`.
-- Plain text: `export-document-as-txt`.
+- DOCX: `convert-document-to-docx`.
+- PDF: `convert-document-to-pdf`.
+- Plain text: `convert-document-to-txt`.
+- HTML: `convert-document-to-html`.
 - Presentation: `render-presentation`.
 
 Submit only the requested format unless the user asks for alternatives. A presentation should be organized for slides: one main point per slide, concise supporting content, and evidence references. Use the renderer's actual document structure rather than pretending arbitrary Markdown is a finished slide deck.

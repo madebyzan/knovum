@@ -1,6 +1,9 @@
 mod docx;
+mod file_conversion;
+mod html;
 mod markdown;
 mod pdf;
+mod pdf_conversion;
 mod pptx;
 mod text;
 

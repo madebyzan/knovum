@@ -100,9 +100,10 @@
     "generateVideo": "Generate video",
     "renderPresentation": "Create presentation",
     "addVideoSubtitles": "Add subtitles",
-    "exportDocx": "Export Word",
-    "exportPdf": "Export PDF",
-    "exportTxt": "Export text"
+    "convertDocx": "Convert to Word",
+    "convertPdf": "Convert to PDF",
+    "convertTxt": "Convert to text",
+    "convertHtml": "Convert to HTML"
   },
   "empty": "No saved workflows yet. Select a completed derived resource and choose “Save as workflow”."
 }

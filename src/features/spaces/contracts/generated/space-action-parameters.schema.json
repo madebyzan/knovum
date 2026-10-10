@@ -376,19 +376,25 @@
     "type": "object",
     "additionalProperties": false
   },
-  "export-document-as-docx": {
+  "convert-document-to-docx": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "EmptyParameters",
     "type": "object",
     "additionalProperties": false
   },
-  "export-document-as-pdf": {
+  "convert-document-to-pdf": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "EmptyParameters",
     "type": "object",
     "additionalProperties": false
   },
-  "export-document-as-txt": {
+  "convert-document-to-txt": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "convert-document-to-html": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "EmptyParameters",
     "type": "object",

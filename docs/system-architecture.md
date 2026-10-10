@@ -186,7 +186,7 @@ and managed-asset references. Package restore validates before commit and cannot
 Space-package format belongs to [knowledge.md](knowledge.md); application distribution belongs to
 [packaging.md](packaging.md).
 
-Document export uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, versioned source/format frame and returns bounded bytes; it never receives paths, Run authority, or database access. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains source/epoch revalidation and publication. Spawn, protocol and render failures are explicit.
+Document conversion uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, strict current v1 source/format frame and returns bounded bytes. Markdown input carries title/body/citations; PDF/Office input carries only a Rust-authorized Space-owned absolute path and SHA-256 revision. The worker reads a bounded snapshot and verifies its digest before vendor parsing; it never receives Run authority, database access or Renderer-chosen filesystem authority. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains path authorization, file/source/epoch revalidation and publication. Spawn, protocol and conversion failures are explicit. Supported routes and fidelity limits are owned by [document-conversion.md](document-conversion.md).
 
 ## Compiled resources and local inference
 

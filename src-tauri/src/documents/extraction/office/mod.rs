@@ -1,5 +1,5 @@
-mod budget;
-mod content;
+pub(crate) mod budget;
+pub(crate) mod content;
 mod document_text;
 mod images;
 mod location;

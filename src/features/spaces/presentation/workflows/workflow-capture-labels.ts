@@ -24,9 +24,10 @@ const labelKeyByActionId = new Map([
   ["generate-video", "generateVideo"],
   ["add-video-subtitles", "addVideoSubtitles"],
   ["render-presentation", "renderPresentation"],
-  ["export-document-as-docx", "exportDocx"],
-  ["export-document-as-pdf", "exportPdf"],
-  ["export-document-as-txt", "exportTxt"],
+  ["convert-document-to-docx", "convertDocx"],
+  ["convert-document-to-pdf", "convertPdf"],
+  ["convert-document-to-txt", "convertTxt"],
+  ["convert-document-to-html", "convertHtml"],
 ]);
 
 export function captureActionLabel(actionId: string, translate: (key: string) => string) {

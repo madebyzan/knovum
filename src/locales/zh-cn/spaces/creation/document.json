@@ -1,11 +1,24 @@
 {
-  "export": {
-    "docx": "导出为 Word 文档",
-    "pdf": "导出为 PDF",
-    "docxTask": "正在生成 Word 文档",
-    "pdfTask": "正在生成 PDF",
-    "txt": "导出为纯文本",
-    "txtTask": "正在生成纯文本"
+  "conversion": {
+    "docx": "转换为 Word 文档",
+    "pdf": "转换为 PDF",
+    "docxRunTitle": "正在生成 Word 文档",
+    "pdfRunTitle": "正在生成 PDF",
+    "txt": "转换为纯文本",
+    "txtRunTitle": "正在生成纯文本",
+    "html": "转换为 HTML",
+    "htmlRunTitle": "正在生成 HTML 文档"
+  },
+  "convert": {
+    "label": "转换为",
+    "formats": {
+      "docx": "Word 文档 (.docx)",
+      "pdf": "PDF 文档 (.pdf)",
+      "txt": "纯文本 (.txt)",
+      "html": "网页文档 (.html)",
+      "pptx": "演示文稿 (.pptx)"
+    },
+    "help": "创建关联的新文件。PDF 按文本重排，不保留图片；Office 转 Word/HTML 保留支持的表格和图片，含图片的 Office 暂不支持转 PDF。原版式、动画及扫描 PDF 暂不支持。"
   },
   "generate": "生成文档",
   "title": "用选中知识生成文档",

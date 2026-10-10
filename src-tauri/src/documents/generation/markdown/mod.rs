@@ -6,24 +6,27 @@ use pulldown_cmark::{Event, Options, Parser};
 
 use super::document::{Block, Document, DocumentSource, Inline};
 
-const MAX_SOURCE_BYTES: usize = 4 * 1024 * 1024;
-const MAX_EVENTS: usize = 200_000;
-const MAX_DEPTH: usize = 64;
+pub(super) const MAX_SOURCE_BYTES: usize = 4 * 1024 * 1024;
+pub(super) const MAX_EVENTS: usize = 200_000;
+pub(super) const MAX_DEPTH: usize = 64;
+pub(super) const OPTIONS: Options = Options::ENABLE_TABLES
+    .union(Options::ENABLE_STRIKETHROUGH)
+    .union(Options::ENABLE_TASKLISTS);
 
 pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
     validate_source(source)?;
-    let options =
-        Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_TASKLISTS;
     let mut reader = Reader {
-        parser: Parser::new_ext(&source.markdown, options),
+        parser: Parser::new_ext(&source.markdown, OPTIONS),
         events: 0,
     };
     let mut blocks = reader.blocks(None, 0)?;
     let title = source.title.trim().to_owned();
-    if let Some(Block::Heading { level: 1, content }) = blocks.first() {
-        if !title.is_empty() && super::text::inline_text(content, false).trim() == title {
-            blocks.remove(0);
-        }
+    let leading_title_removed = blocks.first().is_some_and(|block| {
+        matches!(block, Block::Heading { level: 1, content }
+            if !title.is_empty() && super::text::inline_text(content, false).trim() == title)
+    });
+    if leading_title_removed {
+        blocks.remove(0);
     }
     if !source.citations.is_empty() {
         blocks.push(Block::Heading {
@@ -38,7 +41,11 @@ pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
             ]));
         }
     }
-    Ok(Document { title, blocks })
+    Ok(Document {
+        title,
+        blocks,
+        leading_title_removed,
+    })
 }
 
 pub(super) fn validate_source(source: &DocumentSource) -> Result<(), String> {
@@ -59,12 +66,16 @@ pub(super) fn validate_source(source: &DocumentSource) -> Result<(), String> {
         if total > MAX_SOURCE_BYTES {
             return Err("Document export input exceeds 4 MiB".into());
         }
-        if value.chars().any(|c| {
-            (c.is_control() && !matches!(c, '\n' | '\r' | '\t'))
-                || matches!(c, '\u{fffe}' | '\u{ffff}')
-        }) {
-            return Err("Document export input contains unsupported control characters".into());
-        }
+        validate_text(value)?;
+    }
+    Ok(())
+}
+
+pub(super) fn validate_text(value: &str) -> Result<(), String> {
+    if value.chars().any(|c| {
+        (c.is_control() && !matches!(c, '\n' | '\r' | '\t')) || matches!(c, '\u{fffe}' | '\u{ffff}')
+    }) {
+        return Err("Document export input contains unsupported control characters".into());
     }
     Ok(())
 }

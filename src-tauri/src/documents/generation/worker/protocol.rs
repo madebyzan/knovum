@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
 
-use super::super::{document::DocumentSource, DocumentFormat};
+use super::super::{input::DocumentInput, DocumentFormat};
 
 pub(super) const VERSION: u16 = 1;
 pub(super) const ARGUMENT: &str = "--knovum-document-worker-v1";
@@ -15,7 +15,7 @@ pub(super) const MAX_OUTPUT_BYTES: u32 = 64 * 1024 * 1024;
 pub(super) struct Request {
     pub version: u16,
     pub format: DocumentFormat,
-    pub source: DocumentSource,
+    pub source: DocumentInput,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -34,9 +34,9 @@ pub(super) enum Outcome {
 
 pub(super) fn encode_request(
     format: DocumentFormat,
-    source: DocumentSource,
+    source: DocumentInput,
 ) -> Result<Vec<u8>, String> {
-    super::super::markdown::validate_source(&source)?;
+    source.validate()?;
     let payload = serde_json::to_vec(&Request {
         version: VERSION,
         format,

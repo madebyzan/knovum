@@ -12,6 +12,7 @@ import {
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SUBMENU_CONTENT_CLASSES } from "../../../../shared/ui/ui-classes";
@@ -21,9 +22,10 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
-import type {
-  CreationIntentDecisions,
-  CreationIntentId,
+import {
+  DOCUMENT_CONVERSION_ACTION_IDS,
+  type CreationIntentDecisions,
+  type CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceDerivationMenuItems from "../derivations/SpaceDerivationMenuItems.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
@@ -32,7 +34,7 @@ import SpaceCanvasParentMenu from "./SpaceCanvasParentMenu.vue";
 import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
-defineProps<{
+const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   nodeBar?: boolean;
@@ -47,6 +49,14 @@ const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
 const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
 const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
+const excludedActions = computed(() => [
+  ...(props.excludeDirectImageActions
+    ? directImageActions
+    : props.nodeBar && props.actions.selectedVideoNode.value
+      ? directVideoActions
+      : []),
+  ...(props.nodeBar ? DOCUMENT_CONVERSION_ACTION_IDS : []),
+]);
 </script>
 
 <template>
@@ -109,13 +119,7 @@ const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
         :derivations="derivations"
         :row-class="menuRow"
         :submenu-class="submenu"
-        :exclude="
-          excludeDirectImageActions
-            ? directImageActions
-            : nodeBar && actions.selectedVideoNode.value
-              ? directVideoActions
-              : []
-        "
+        :exclude="excludedActions"
         @invoke="emit('invokeDerivation', $event)"
       />
       <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">

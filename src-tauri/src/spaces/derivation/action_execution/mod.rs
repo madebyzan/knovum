@@ -29,9 +29,10 @@ fn handler(action_id: &str) -> Option<Handler> {
         "generate-video" => Some(Handler::Video),
         "add-video-subtitles" => Some(Handler::Subtitles),
         "render-presentation"
-        | "export-document-as-docx"
-        | "export-document-as-pdf"
-        | "export-document-as-txt" => Some(Handler::Document),
+        | "convert-document-to-docx"
+        | "convert-document-to-pdf"
+        | "convert-document-to-txt"
+        | "convert-document-to-html" => Some(Handler::Document),
         _ => None,
     }
 }
@@ -208,7 +209,10 @@ fn image_request(mut request: Value) -> Result<Value, String> {
     Ok(request)
 }
 
-fn required_text<'a>(values: &'a Map<String, Value>, key: &str) -> Result<&'a str, String> {
+pub(super) fn required_text<'a>(
+    values: &'a Map<String, Value>,
+    key: &str,
+) -> Result<&'a str, String> {
     values
         .get(key)
         .and_then(Value::as_str)

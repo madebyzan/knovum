@@ -121,7 +121,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::Video,
     ),
     action(
-        "export-document-as-docx",
+        "convert-document-to-docx",
         None,
         None,
         &[Input::Document],
@@ -129,7 +129,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::File,
     ),
     action(
-        "export-document-as-pdf",
+        "convert-document-to-pdf",
         None,
         None,
         &[Input::Document],
@@ -137,7 +137,15 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::File,
     ),
     action(
-        "export-document-as-txt",
+        "convert-document-to-txt",
+        None,
+        None,
+        &[Input::Document],
+        empty,
+        Output::File,
+    ),
+    action(
+        "convert-document-to-html",
         None,
         None,
         &[Input::Document],

@@ -75,7 +75,7 @@ describe("selection derivation catalog", () => {
     const decisions = creationIntentCatalog([note()]).decisions;
 
     expect(decisions["draft-document"].state).toBe("ready");
-    expect(decisions["export-document-as-pdf"].state).toBe("hidden");
+    expect(decisions["convert-document-to-pdf"].state).toBe("hidden");
     expect(decisions["render-presentation"].state).toBe("hidden");
     expect(decisions["generate-video"].state).toBe("ready");
   });
@@ -110,8 +110,13 @@ describe("selection derivation catalog", () => {
       "markdown",
     );
 
-    expect(creationIntentCatalog([markdown]).decisions["export-document-as-docx"].state).toBe("ready");
-    expect(creationIntentCatalog([note()]).decisions["export-document-as-docx"].state).toBe("hidden");
+    expect(creationIntentCatalog([markdown]).decisions["convert-document-to-docx"].state).toBe("ready");
+    expect(creationIntentCatalog([markdown]).decisions["convert-document-to-html"].state).toBe("ready");
+    expect(creationIntentCatalog([note()]).decisions["convert-document-to-docx"].state).toBe("hidden");
+    expect(creationIntentCatalog([note()]).decisions["convert-document-to-html"].state).toBe("hidden");
+    expect(creationIntentCatalog([markdown, note()]).decisions["convert-document-to-html"].state).toBe(
+      "hidden",
+    );
   });
 
   it("keeps the provider reference-image limit explicit", () => {

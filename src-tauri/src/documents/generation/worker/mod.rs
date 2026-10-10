@@ -5,12 +5,12 @@ use std::io::{Read, Write};
 
 use tokio_util::sync::CancellationToken;
 
-use super::{document::DocumentSource, DocumentFormat};
+use super::{input::DocumentInput, DocumentFormat};
 use crate::app_error::{AppError, AppResult};
 
 pub(crate) async fn render(
     format: DocumentFormat,
-    source: DocumentSource,
+    source: DocumentInput,
     cancellation: &CancellationToken,
 ) -> AppResult<Vec<u8>> {
     let request = protocol::encode_request(format, source).map_err(AppError::invalid)?;
@@ -43,7 +43,7 @@ pub(crate) fn run_if_requested() {
 
 fn serve(reader: &mut impl Read, writer: &mut impl Write) -> Result<(), String> {
     let request = protocol::read_request(reader)?;
-    let rendering = request.format.render(&request.source);
+    let rendering = request.source.render(request.format);
     let (outcome, bytes) = match rendering {
         Ok(bytes) if bytes.len() <= protocol::MAX_OUTPUT_BYTES as usize => (
             protocol::Outcome::Rendered {

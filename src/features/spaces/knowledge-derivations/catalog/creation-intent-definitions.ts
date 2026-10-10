@@ -32,28 +32,39 @@ export const creationIntentDefinitions = [
     decide: decideKnowledgeIntent,
   },
   {
-    id: "export-document-as-docx",
-    labelKey: "spaces.creation.document.export.docx",
+    id: "convert-document-to-docx",
+    documentFormat: "docx",
+    labelKey: "spaces.creation.document.conversion.docx",
     icon: "file-output",
-    decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
+    decide: ({ documentTargets }) => (documentTargets.includes("docx") ? AVAILABLE : HIDDEN),
   },
   {
-    id: "export-document-as-pdf",
-    labelKey: "spaces.creation.document.export.pdf",
+    id: "convert-document-to-pdf",
+    documentFormat: "pdf",
+    labelKey: "spaces.creation.document.conversion.pdf",
     icon: "file-output",
-    decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
+    decide: ({ documentTargets }) => (documentTargets.includes("pdf") ? AVAILABLE : HIDDEN),
   },
   {
-    id: "export-document-as-txt",
-    labelKey: "spaces.creation.document.export.txt",
+    id: "convert-document-to-txt",
+    documentFormat: "txt",
+    labelKey: "spaces.creation.document.conversion.txt",
     icon: "file-output",
-    decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
+    decide: ({ documentTargets }) => (documentTargets.includes("txt") ? AVAILABLE : HIDDEN),
+  },
+  {
+    id: "convert-document-to-html",
+    documentFormat: "html",
+    labelKey: "spaces.creation.document.conversion.html",
+    icon: "file-output",
+    decide: ({ documentTargets }) => (documentTargets.includes("html") ? AVAILABLE : HIDDEN),
   },
   {
     id: "render-presentation",
+    documentFormat: "pptx",
     labelKey: "spaces.creation.presentation.create",
     icon: "file-output",
-    decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
+    decide: ({ documentTargets }) => (documentTargets.includes("pptx") ? AVAILABLE : HIDDEN),
   },
   {
     id: "generate-video",
@@ -78,6 +89,11 @@ export const creationIntentDefinitions = [
 type CreationIntent = (typeof creationIntentDefinitions)[number];
 export type CreationIntentId = CreationIntent["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
+
+export const DOCUMENT_CONVERSION_DEFINITIONS = creationIntentDefinitions.filter(
+  (definition) => "documentFormat" in definition,
+);
+export const DOCUMENT_CONVERSION_ACTION_IDS = DOCUMENT_CONVERSION_DEFINITIONS.map(({ id }) => id);
 
 export function decideCreationIntents(context: CreationSelectionContext): CreationIntentDecisions {
   return Object.fromEntries(

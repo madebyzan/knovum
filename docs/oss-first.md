@@ -131,9 +131,24 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   Python/Node execution and packaging boundary that this bounded Rust export does not need.
   The three formats remain separate capabilities rather than a generic Office framework. Real
   PowerPoint/Keynote viewing remains a platform acceptance requirement.
+- PDF/Office conversion reuses the pinned [pdf-inspector](https://github.com/firecrawl/pdf-inspector)
+  and [office_oxide](https://github.com/yfedoseev/office_oxide) crates already admitted for document
+  extraction. Both are Rust libraries usable on the existing desktop targets with no additional
+  WebView permissions, executable discovery or runtime installation. PDF content flows through the
+  vendor Markdown extractor; Office DOCX/PPTX/HTML/TXT serialization uses its IR writers directly.
+  Knovum retains source authorization/revision checks, bounded admission, supported-route policy,
+  safe-link validation, fidelity rejection and durable derivation publication. No new dependency is
+  introduced. [Pandoc](https://pandoc.org/faqs.html) cannot read PDFs and would duplicate the admitted
+  writer boundary; [LibreOffice](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html)
+  provides broader Office layout conversion but needs an additional managed executable/profile
+  lifecycle not present in this product. [pdf2docx](https://github.com/ArtifexSoftware/pdf2docx) is no
+  longer actively maintained by Artifex and would add a separate Python dependency closure. Those
+  candidates do not satisfy the current maintained, embedded, local conversion contract. Exact
+  versions/licenses remain manifest, lockfile and dependency-policy owned; fidelity limits belong
+  to [document-conversion.md](document-conversion.md).
 
 Detailed data and interaction contracts live in [spaces.md](spaces.md),
-[document-export.md](document-export.md) and [data-ownership.md](data-ownership.md).
+[document-conversion.md](document-conversion.md) and [data-ownership.md](data-ownership.md).
 
 ## Media processing and acquisition
 
