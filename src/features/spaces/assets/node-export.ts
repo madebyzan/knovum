@@ -9,7 +9,8 @@ import { exportSpaceAsset, exportSpaceTextFile, safeExportFileName, type SpaceTe
 import { formatExportMarkdown } from "./markdown-document";
 
 export async function exportSpaceNode(spaceId: string, node: SpaceCanvasNode): Promise<boolean> {
-  if (node.data.kind === "image") return exportEditedImage(spaceId, node.id, node.data);
+  if (node.data.kind === "image" && !node.data.imageDepth)
+    return exportEditedImage(spaceId, node.id, node.data);
   if (isSpaceManagedAssetPayload(node.data)) return exportSpaceAsset(node.data);
   return exportSpaceTextFile(nodeTextExport(node.data));
 }

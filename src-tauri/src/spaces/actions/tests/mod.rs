@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use super::definitions;
+mod image_transforms;
 
 #[test]
 fn registry_definitions_are_coherent() {

@@ -8,6 +8,7 @@ import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
 import { useImageCommentSessionStore } from "../../../comments/image-comment-session-store";
 import { useImageEditSessionStore } from "../../../image-editing/image-edit-session-store";
 import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
+import { useImageSelectionSessionStore } from "../../../knowledge-derivations/image-selection-session-store";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { canvasTextPresentation } from "./canvas-text-appearance";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
@@ -31,6 +32,7 @@ const props = defineProps<{
   fitContentHeight: (nodeId: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
 const imageEditSession = useImageEditSessionStore();
+const imageSelectionSession = useImageSelectionSessionStore();
 const imageRemovalSession = useImageRemovalSessionStore();
 const imageComments = useImageCommentSessionStore();
 const contentInteractive = computed(() => {
@@ -40,7 +42,8 @@ const contentInteractive = computed(() => {
     (props.node.data.kind === "image" &&
       (imageComments.activeNodeId === props.node.id ||
         (active?.nodeId === props.node.id && active.tool === "crop") ||
-        imageRemovalSession.active?.nodeId === props.node.id))
+        imageRemovalSession.active?.nodeId === props.node.id ||
+        imageSelectionSession.active?.nodeId === props.node.id))
   );
 });
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));

@@ -134,7 +134,12 @@ pub async fn export_image(
     let document = document::load(&app, &space_id, &node_id).await?;
     Ok((crate::blocking::run(move || {
         let source = access::authorize_spaces_asset(&app, &PathBuf::from(&document.source_path))?;
+        crate::file_inspection::verify_content_revision(&source, &document.source_revision)?;
+        if document.relative_depth {
+            return files::export_asset(&app, source, PathBuf::from(destination_path));
+        }
         let rendered = crate::images::render_source_png(&source, &document.edit)?;
+        crate::file_inspection::verify_content_revision(&source, &document.source_revision)?;
         files::export_image(&app, PathBuf::from(destination_path), rendered.png)
     })
     .await)?)

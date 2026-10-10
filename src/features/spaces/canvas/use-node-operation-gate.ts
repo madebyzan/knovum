@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useImageCommentSessionStore } from "../comments/image-comment-session-store";
 import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
 import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
+import { useImageSelectionSessionStore } from "../knowledge-derivations/image-selection-session-store";
 import { useNodeOperationDraftsStore } from "../session/node-operation-drafts-store";
 import { useSpaceStore } from "../session/space-store";
 import { getCanvasEditorSession } from "./editor-session";
@@ -10,6 +11,7 @@ import { getCanvasEditorSession } from "./editor-session";
 export type NodeOperationEffect = "inspect" | "edit" | "structure" | "create" | "clone" | "derive" | "export";
 export type ActiveNodeOperation =
   | { kind: "image-edit"; nodeId: string }
+  | { kind: "image-selection"; nodeId: string }
   | { kind: "image-removal"; nodeId: string }
   | { kind: "image-comment"; nodeId: string }
   | { kind: "text-edit"; nodeId: string }
@@ -21,6 +23,7 @@ export type ActiveNodeOperation =
 /** Projects existing feature sessions into one admission rule; it owns no second session state. */
 export function useNodeOperationGate() {
   const imageEdit = useImageEditSessionStore();
+  const imageSelection = useImageSelectionSessionStore();
   const imageRemoval = useImageRemovalSessionStore();
   const imageComment = useImageCommentSessionStore();
   const canvas = getCanvasEditorSession();
@@ -28,6 +31,7 @@ export function useNodeOperationGate() {
   const drafts = useNodeOperationDraftsStore();
   const active = computed<ActiveNodeOperation | undefined>(() => {
     if (imageEdit.active) return { kind: "image-edit", nodeId: imageEdit.active.nodeId };
+    if (imageSelection.active) return { kind: "image-selection", nodeId: imageSelection.active.nodeId };
     if (imageRemoval.active) return { kind: "image-removal", nodeId: imageRemoval.active.nodeId };
     if (imageComment.activeNodeId) return { kind: "image-comment", nodeId: imageComment.activeNodeId };
     if (canvas.activeTextEditorNodeId.value)

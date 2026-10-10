@@ -11,11 +11,59 @@ use definition::{
     action, durable_query_action, immediate_action, immediate_mutation_action, query_action,
 };
 use parameters::{
-    contents, empty, image, knowledge_changes, meeting_summary, node, note, purpose, question,
-    script, search, social_copy, space_edit, video, visualization,
+    contents, empty, image, image_transform, knowledge_changes, meeting_summary, node, note,
+    purpose, question, script, search, social_copy, space_edit, video, visualization,
 };
 
 pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
+    action(
+        "upscale-image",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
+    action(
+        "generate-image-angle",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
+    action(
+        "remove-image-object",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
+    action(
+        "remove-image-background",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
+    action(
+        "extract-image-selection",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
+    action(
+        "generate-image-depth",
+        None,
+        None,
+        &[Input::Image],
+        image_transform,
+        Output::Image,
+    ),
     immediate_action("create-note", &[], note, Output::ResourceReceipt),
     immediate_action(
         "commit-knowledge-changes",

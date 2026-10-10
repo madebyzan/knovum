@@ -9,7 +9,7 @@ mod video;
 mod tests;
 
 pub use image::DashScopeImageAdapter;
-pub(crate) use image_operation::{execute_image_operation, SourceImageOperation};
+pub(crate) use image_operation::execute_image_view;
 pub use upload::DashScopeFileUploadAdapter;
 pub use video::DashScopeVideoAdapter;
 

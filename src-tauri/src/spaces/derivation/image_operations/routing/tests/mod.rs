@@ -22,24 +22,20 @@ fn image_operation_routes_match_capabilities() {
         ImageOperationBackend::DashScope
     );
     let qwen = operations("qwen", "wanx2.1-imageedit");
-    assert!(qwen.upscale && qwen.multi_angle && qwen.masked_removal);
+    assert!(qwen.multi_angle);
     assert!(!qwen.prompt_removal);
 
     assert_eq!(
         backend(&target("openai", "gpt-image-1.5")),
-        ImageOperationBackend::OpenAi
+        ImageOperationBackend::Unsupported
     );
-    let openai = operations("openai", "gpt-image-1.5");
-    assert!(openai.masked_removal);
-    assert!(!openai.upscale && !openai.multi_angle && !openai.prompt_removal);
-
     assert_eq!(
         backend(&target("gemini", "gemini-2.5-flash-image")),
         ImageOperationBackend::Gemini
     );
     let gemini = operations("gemini", "gemini-2.5-flash-image");
     assert!(gemini.prompt_removal);
-    assert!(!gemini.upscale && !gemini.multi_angle && !gemini.masked_removal);
+    assert!(!gemini.multi_angle);
 
     for (provider, model, expected) in [
         (
@@ -83,11 +79,11 @@ fn image_operation_routes_match_capabilities() {
         assert_eq!(backend(&target(provider, model)), expected);
         let supported = operations(provider, model);
         assert!(supported.prompt_removal, "{provider}: {model}");
-        assert!(!supported.masked_removal, "{provider}: {model}");
+        assert!(!supported.multi_angle, "{provider}: {model}");
     }
 
     let unsupported = operations("openai-compatible", "gpt-image-1.5");
-    assert!(!unsupported.masked_removal && !unsupported.prompt_removal);
+    assert!(!unsupported.multi_angle && !unsupported.prompt_removal);
     assert_eq!(
         backend(&target("openai-compatible", "gpt-image-1.5")),
         ImageOperationBackend::Unsupported
@@ -100,5 +96,27 @@ fn image_operation_routes_match_capabilities() {
         ("kling", "kling-v2-1"),
     ] {
         assert!(!operations(provider, model).prompt_removal);
+    }
+}
+
+#[test]
+fn remote_routes_do_not_advertise_local_processing() {
+    for (provider, model) in [
+        ("qwen", "wanx2.1-imageedit"),
+        ("gemini", "gemini-2.5-flash-image"),
+        ("openai", "gpt-image-1.5"),
+        ("kling", "kling-image-o1"),
+    ] {
+        let supported = operations(provider, model);
+        for operation in [
+            ImageOperation::Upscale {
+                target_long_edge: 2048,
+            },
+            ImageOperation::RemoveObject { strokes: vec![] },
+            ImageOperation::RemoveBackground,
+            ImageOperation::GenerateDepth,
+        ] {
+            assert!(!supported.allows(&operation), "{provider}: {model}");
+        }
     }
 }

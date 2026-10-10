@@ -71,6 +71,7 @@ pub type ParameterSchemaFactory = fn() -> &'static Value;
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionInputRole {
+    Image,
     Document,
     Knowledge,
     Transcript,
@@ -120,6 +121,17 @@ pub fn validate_parameters(
         .map_err(|error| format!("SpaceAction schema is invalid: {error}"))?;
     if let Err(error) = validator.validate(value) {
         return Err(format!("SpaceAction parameters are invalid: {error}"));
+    }
+    if is_image_transform(definition.id) {
+        let parameters: crate::spaces::derivation::image_operations::contracts::ImageTransformParameters = serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?;
+        if parameters.title.trim().is_empty() {
+            return Err("Image output title must not be blank".into());
+        }
+        parameters.operation.validate()?;
+        parameters.execution.validate(&parameters.operation)?;
+        if parameters.operation.action_kind() != definition.id {
+            return Err("Image operation does not match its Action identity".into());
+        }
     }
     Ok(())
 }
@@ -184,4 +196,16 @@ fn resolve_target(
         );
     }
     Ok(())
+}
+
+pub(crate) fn is_image_transform(action_id: &str) -> bool {
+    matches!(
+        action_id,
+        "upscale-image"
+            | "generate-image-angle"
+            | "remove-image-object"
+            | "remove-image-background"
+            | "extract-image-selection"
+            | "generate-image-depth"
+    )
 }

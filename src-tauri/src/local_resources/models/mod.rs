@@ -7,6 +7,7 @@ pub(crate) mod contracts;
 mod direct_download;
 mod download;
 pub(crate) mod installation;
+pub(crate) mod model_archive;
 pub(crate) mod snapshots;
 pub(crate) mod sources;
 #[cfg(test)]

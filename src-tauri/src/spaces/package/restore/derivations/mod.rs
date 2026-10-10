@@ -82,6 +82,8 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
             | "split-image-layers"
             | "upscale-image"
             | "generate-image-angle"
+            | "extract-image-selection"
+            | "generate-image-depth"
             | "generate-visualization"
             | "generate-image"
             | "add-video-subtitles"

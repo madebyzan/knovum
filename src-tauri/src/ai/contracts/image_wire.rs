@@ -19,10 +19,11 @@ pub struct ImageSegmentationExecutionIdentity {
     pub deadline_ms: u64,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum TensorDataType {
     Float32LittleEndian,
+    Uint8,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

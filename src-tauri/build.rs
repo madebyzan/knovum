@@ -1,6 +1,7 @@
 mod build_support;
 
 fn main() {
+    println!("cargo:rerun-if-changed=migrations");
     println!("cargo:rustc-check-cfg=cfg(knovum_supported_desktop)");
     let os = std::env::var("CARGO_CFG_TARGET_OS").expect("Cargo target OS");
     let arch = std::env::var("CARGO_CFG_TARGET_ARCH").expect("Cargo target architecture");
@@ -312,10 +313,8 @@ fn main() {
                         "list_captured_run_outputs",
                         "list_captured_workflow_runs",
                         "await_space_runtime",
-                        "check_image_cutout_source",
                         "get_image_operation_capabilities",
-                        "run_image_cutout_derivation",
-                        "derive_image",
+                        "preview_image_selection",
                         "get_image_layer_availability",
                         "generate_image_layers",
                         "cancel_image_layer_generation",

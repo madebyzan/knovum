@@ -2,6 +2,7 @@ import { sumBy } from "es-toolkit";
 import { defineStore } from "pinia";
 import { computed, readonly, shallowRef, watch } from "vue";
 
+import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { MaskStroke } from "../contracts/generated/MaskStroke";
 import { useSpaceStore } from "../session/space-store";
@@ -83,7 +84,7 @@ export const useImageRemovalSessionStore = defineStore("spaces-image-removal-ses
     active.value = undefined;
   }
 
-  async function generate() {
+  async function generate(execution?: ImageExecutionTarget) {
     const current = active.value;
     if (!current || submitting.value) return;
     const operation: ImageOperation =
@@ -97,10 +98,13 @@ export const useImageRemovalSessionStore = defineStore("spaces-image-removal-ses
     submitting.value = true;
     let outputCreated = false;
     try {
-      await deriveImage(space, node, operation, () => {
-        outputCreated = true;
-        if (active.value === current) active.value = undefined;
-        submitting.value = false;
+      await deriveImage(space, node, operation, {
+        onOutputCreated: () => {
+          outputCreated = true;
+          if (active.value === current) active.value = undefined;
+          submitting.value = false;
+        },
+        execution,
       });
     } finally {
       if (!outputCreated) submitting.value = false;

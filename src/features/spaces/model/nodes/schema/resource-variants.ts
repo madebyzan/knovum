@@ -102,9 +102,20 @@ export const spaceResourceNodeSchemas = [
       ...visualFields,
       kind: z.literal("image"),
       imageEdit: imageEditSchema.optional(),
+      imageDepth: z
+        .object({
+          encoding: z.literal("relative-inverse-depth-u16-v1"),
+          modelSpecId: z.string().min(1).max(256),
+        })
+        .strict()
+        .optional(),
       comments: z.array(imageCommentSchema).max(200).optional(),
     })
-    .strict(),
+    .strict()
+    .refine((node) => !node.imageDepth || !node.imageEdit, {
+      path: ["imageEdit"],
+      message: "Relative depth fields do not support photo edits",
+    }),
   z
     .object({
       ...baseSpaceNodeFields,

@@ -39,6 +39,12 @@
     "embedding_result": {
       "$ref": "#/$defs/EmbeddingEncoding"
     },
+    "image_compute_params": {
+      "$ref": "#/$defs/ImageComputeParams"
+    },
+    "image_compute_output": {
+      "$ref": "#/$defs/ImageComputationOutput"
+    },
     "image_segment_params": {
       "$ref": "#/$defs/ImageSegmentParams"
     },
@@ -104,6 +110,8 @@
     "shutdown_result",
     "embedding_params",
     "embedding_result",
+    "image_compute_params",
+    "image_compute_output",
     "image_segment_params",
     "image_segment_result",
     "speech_transcribe_params",
@@ -273,7 +281,11 @@
         "speech_diarization",
         "speech_synthesis",
         "speech_separation",
-        "image_segmentation"
+        "image_segmentation",
+        "image_upscaling",
+        "image_inpainting",
+        "image_selection",
+        "image_depth"
       ]
     },
     "RuntimeDeviceProfile": {
@@ -343,9 +355,47 @@
             "string",
             "null"
           ]
+        },
+        "imageProcessing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageRuntimeModelPath"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
+    },
+    "ImageRuntimeModelPath": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "$ref": "#/$defs/ImageModelVariant"
+        },
+        "directory": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "variant",
+        "directory"
+      ]
+    },
+    "ImageModelVariant": {
+      "type": "string",
+      "enum": [
+        "realEsrganGeneralX4v3",
+        "realEsrganX4plus",
+        "migan",
+        "efficientSamTi",
+        "efficientSamS",
+        "depthAnythingV2SmallUint8",
+        "depthAnythingV2Small"
+      ]
     },
     "RuntimeSession": {
       "type": "object",
@@ -663,6 +713,255 @@
         "inputTokens"
       ]
     },
+    "ImageComputeParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "tensorRef": {
+          "$ref": "#/$defs/TensorFileReference"
+        },
+        "computation": {
+          "$ref": "#/$defs/ImageComputation"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "tensorRef",
+        "computation"
+      ]
+    },
+    "TensorFileReference": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "byteLength": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "shape": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "dataType": {
+          "$ref": "#/$defs/TensorDataType"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "fileName",
+        "byteLength",
+        "sha256",
+        "shape",
+        "dataType"
+      ]
+    },
+    "TensorDataType": {
+      "type": "string",
+      "enum": [
+        "float32_little_endian",
+        "uint8"
+      ]
+    },
+    "ImageComputation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "upscale"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "maskRef": {
+              "$ref": "#/$defs/TensorFileReference"
+            },
+            "kind": {
+              "type": "string",
+              "const": "inpaint"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "maskRef"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "points": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ImageSelectionPoint"
+              }
+            },
+            "boxRect": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ImageSelectionRect"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kind": {
+              "type": "string",
+              "const": "select"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "points"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "depth"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ImageSelectionPoint": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "float"
+        },
+        "y": {
+          "type": "number",
+          "format": "float"
+        },
+        "foreground": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "foreground"
+      ]
+    },
+    "ImageSelectionRect": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "float"
+        },
+        "y": {
+          "type": "number",
+          "format": "float"
+        },
+        "width": {
+          "type": "number",
+          "format": "float"
+        },
+        "height": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "ImageComputationOutput": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "tensorRef": {
+          "$ref": "#/$defs/TensorFileReference"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "attemptEpoch",
+        "modelSpecId",
+        "tensorRef"
+      ]
+    },
     "ImageSegmentParams": {
       "type": "object",
       "properties": {
@@ -709,49 +1008,6 @@
         "modelSpecId",
         "deadlineMs",
         "tensorRef"
-      ]
-    },
-    "TensorFileReference": {
-      "type": "object",
-      "properties": {
-        "fileName": {
-          "type": "string"
-        },
-        "byteLength": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0
-        },
-        "sha256": {
-          "type": "string"
-        },
-        "shape": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "uint32",
-            "minimum": 0
-          },
-          "minItems": 4,
-          "maxItems": 4
-        },
-        "dataType": {
-          "$ref": "#/$defs/TensorDataType"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "fileName",
-        "byteLength",
-        "sha256",
-        "shape",
-        "dataType"
-      ]
-    },
-    "TensorDataType": {
-      "type": "string",
-      "enum": [
-        "float32_little_endian"
       ]
     },
     "ImageSegmentation": {

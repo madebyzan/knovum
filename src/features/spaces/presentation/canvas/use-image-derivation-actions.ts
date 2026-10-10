@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
+import type { ImageExecutionTarget } from "../../contracts/generated/ImageExecutionTarget";
 import type { ImageOperation } from "../../contracts/generated/ImageOperation";
 import { imageEditOf, rotatedImageSize } from "../../image-editing/image-edit";
 import { deriveImage } from "../../knowledge-derivations/image-operation";
@@ -32,6 +33,16 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
   const busy = shallowRef(false);
+  const selectedExecution = shallowRef<ImageExecutionTarget>();
+  const targetOptions = computed(
+    () => capabilities.data.value?.targets.filter((option) => option.capability === "imageUpscaling") ?? [],
+  );
+  const executionOption = computed(() => {
+    const selected = selectedExecution.value;
+    return selected
+      ? targetOptions.value.find((option) => JSON.stringify(option.execution) === JSON.stringify(selected))
+      : targetOptions.value.find((option) => option.selected);
+  });
   const dimensions = computed(() => {
     const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
     const width = node.value.data.intrinsicWidth ?? loaded?.width;
@@ -47,7 +58,7 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
       capability: capabilities.isFetching.value
         ? undefined
         : mode === "upscale"
-          ? capabilities.data.value?.upscale
+          ? executionOption.value?.availability
           : capabilities.data.value?.multiAngle,
       failed: capabilities.isError.value && !capabilities.isFetching.value,
       busy: busy.value,
@@ -63,7 +74,10 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
   }
 
   function optionAvailability(size: number) {
-    return upscaleAvailability(availability.value, dimensions.value, size);
+    const target = executionOption.value;
+    return target
+      ? upscaleAvailability(availability.value, dimensions.value, size, target)
+      : availability.value;
   }
 
   function openAiSettings() {
@@ -77,7 +91,9 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     close();
     busy.value = true;
     try {
-      await deriveImage(store, node.value, operation);
+      await deriveImage(store, node.value, operation, {
+        execution: mode === "upscale" ? executionOption.value?.execution : undefined,
+      });
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -87,6 +103,9 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
 
   return {
     busy,
+    targetOptions,
+    executionOption,
+    selectExecution: (execution: ImageExecutionTarget) => (selectedExecution.value = execution),
     availability,
     help,
     targetDimensions,

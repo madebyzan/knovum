@@ -20,7 +20,9 @@ export function imageRemovalSize(
 
 export function imageRemovalSizeValid(size: { width: number; height: number } | undefined) {
   return Boolean(
-    size && [size.width, size.height].every((side) => Math.ceil(side) >= 512 && Math.ceil(side) <= 4096),
+    size &&
+    size.width * size.height <= 16_777_216 &&
+    [size.width, size.height].every((side) => Math.ceil(side) >= 1 && Math.ceil(side) <= 16384),
   );
 }
 

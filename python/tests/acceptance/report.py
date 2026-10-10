@@ -9,6 +9,7 @@ from pathlib import Path
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate real compiled inference evidence against a fixed corpus")
+    parser.add_argument("--suite", choices=("core", "images"), default="core")
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--capture", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -30,12 +31,23 @@ def main() -> int:
         exit_code = 2
     else:
         try:
-            report = evaluate(
-                load_evidence(args.corpus, Corpus),
-                load_evidence(args.capture, CaptureManifest),
-                args.corpus,
-                args.capture,
-            )
+            if args.suite == "images":
+                from acceptance.image_corpus import ImageCapture, ImageCorpus
+                from acceptance.image_evaluation import evaluate_images
+
+                report = evaluate_images(
+                    load_evidence(args.corpus, ImageCorpus),
+                    load_evidence(args.capture, ImageCapture),
+                    args.corpus,
+                    args.capture,
+                )
+            else:
+                report = evaluate(
+                    load_evidence(args.corpus, Corpus),
+                    load_evidence(args.capture, CaptureManifest),
+                    args.corpus,
+                    args.capture,
+                )
             exit_code = 0 if report["status"] == "passed" else 2 if report["status"] == "unavailable" else 1
         except EvidenceUnavailable as error:
             report = _terminal_report("unavailable", str(error))

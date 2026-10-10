@@ -21,6 +21,6 @@ pub fn validate_request(request: &GenerateVisualizationRequest) -> Result<(), St
 }
 
 pub fn canonical_png(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32), String> {
-    let image = super::super::image_operations::output::canonicalize(bytes, None)?;
+    let image = super::super::image_operations::output::canonicalize(bytes)?;
     Ok((image.png, image.width, image.height))
 }

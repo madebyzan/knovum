@@ -11,7 +11,7 @@ export type ImageActionReason =
   | "configuration_incomplete"
   | "provider_unsupported"
   | "credential_unavailable"
-  | "upscale_min_size"
+  | "upscale_source_budget"
   | "upscale_target_too_small"
   | "prompt_required";
 
@@ -49,11 +49,15 @@ export function upscaleAvailability(
   base: ImageActionAvailability,
   dimensions: { width: number; height: number } | undefined,
   target: number,
+  budget: { maximumSide: number | null; maximumPixels: number | null },
 ): ImageActionAvailability {
   if (base.state !== "ready") return base;
   if (!dimensions) return { state: "blocked", reason: "image_preparing" };
-  if (Math.min(dimensions.width, dimensions.height) < 512)
-    return { state: "blocked", reason: "upscale_min_size" };
+  if (
+    (budget.maximumSide !== null && Math.max(dimensions.width, dimensions.height) > budget.maximumSide) ||
+    (budget.maximumPixels !== null && dimensions.width * dimensions.height > budget.maximumPixels)
+  )
+    return { state: "blocked", reason: "upscale_source_budget" };
   if (Math.max(dimensions.width, dimensions.height) >= target)
     return { state: "blocked", reason: "upscale_target_too_small" };
   return base;

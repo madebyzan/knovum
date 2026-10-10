@@ -8,15 +8,17 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import LocalModelCapability from "../components/LocalModelCapability.vue";
 import LocalModelsSettings from "../components/LocalModelsSettings.vue";
 
-const catalog: LocalModelAvailability[] = [
-  ["qwen3Embedding", "embedding", "knowledge", true],
-  ["whisperSmall", "transcription", "audio", true],
-  ["whisperTiny", "transcription", "audio", false],
-  ["mossNano", "speechSynthesis", "audio", false],
-].map(([id, capability, group, installed]) => ({
+const catalog: LocalModelAvailability[] = (
+  [
+    ["qwen3Embedding", "embedding", "knowledge", true],
+    ["whisperSmall", "transcription", "audio", true],
+    ["whisperTiny", "transcription", "audio", false],
+    ["mossNano", "speechSynthesis", "audio", false],
+  ] as const
+).map(([id, capability, group, installed]) => ({
   id: id as LocalModelAvailability["id"],
   name: String(id),
-  capability: String(capability),
+  capability,
   group: group as LocalModelAvailability["group"],
   installed: Boolean(installed),
   verified: Boolean(installed),

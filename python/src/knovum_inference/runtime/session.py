@@ -17,6 +17,7 @@ from knovum_inference.runtime.identity import verify_runtime_digest
 if TYPE_CHECKING:
     from knovum_inference.embedding import EmbeddingEngine
     from knovum_inference.image_segmentation import ImageSegmentationEngine
+    from knovum_inference.runtime.image_execution import ImageEngine
     from knovum_inference.speech.alignment import AlignmentEngine
     from knovum_inference.speech.diarization import DiarizationEngine
     from knovum_inference.speech.separation import SpleeterSourceSeparator
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
         | SynthesisEngine
         | SpleeterSourceSeparator
         | ImageSegmentationEngine
+        | ImageEngine
     )
 
 _TORCH_EXECUTION_PROFILES = frozenset(
@@ -118,8 +120,15 @@ def _selected_model_path(params: RuntimeInitializeParams) -> Path:
         RuntimeCapability.speech_separation: params.model_paths.speech_separation,
         RuntimeCapability.image_segmentation: params.model_paths.image_segmentation,
     }
-    selected = fields[params.capability]
-    if selected is None or sum(value is not None for value in fields.values()) != 1:
+    from knovum_inference.runtime.image_execution import IMAGE_CAPABILITIES
+
+    image_model = params.model_paths.image_processing
+    selected = (
+        image_model.directory
+        if params.capability in IMAGE_CAPABILITIES and image_model is not None
+        else fields.get(params.capability)
+    )
+    if selected is None or sum(value is not None for value in fields.values()) + (image_model is not None) != 1:
         raise invalid_params("Exactly one capability model path is required")
     model_path = Path(selected)
     if not model_path.is_absolute() or not model_path.exists():
@@ -133,6 +142,10 @@ def _create_engine(
     work_directory: Path,
     device_profile: RuntimeDeviceProfile,
 ) -> InferenceEngine:
+    from knovum_inference.runtime.image_execution import IMAGE_CAPABILITIES, create_engine
+
+    if params.capability in IMAGE_CAPABILITIES:
+        return create_engine(params, model_path)
     capability = params.capability
     device = params.device_profile.device
     threads = params.device_profile.cpu_threads

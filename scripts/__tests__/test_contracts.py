@@ -3,8 +3,9 @@ from __future__ import annotations
 import importlib
 import json
 from pathlib import Path
+from typing import get_args
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 from generate_python_contracts import CONTRACT_MODULES
 
@@ -22,7 +23,16 @@ def test_modular_contracts_cover_rust_definitions_without_aliases_or_duplicate_t
             assert model.__module__ == module.__name__
             generated[name] = model
             definition = definitions[name]
-            if issubclass(model, BaseModel):
+            if issubclass(model, RootModel):
+                variants = get_args(model.model_fields["root"].annotation)
+                assert len(variants) == len(definition["oneOf"])
+                for variant, variant_schema in zip(variants, definition["oneOf"], strict=True):
+                    assert {field.alias or key for key, field in variant.model_fields.items()} == variant_schema[
+                        "properties"
+                    ].keys()
+                    assert variant.model_config["extra"] == "forbid"
+                    assert variant.model_config["strict"] is True
+            elif issubclass(model, BaseModel):
                 assert {field.alias or name for name, field in model.model_fields.items()} == definition[
                     "properties"
                 ].keys()

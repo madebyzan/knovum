@@ -14,11 +14,5 @@
     "editorial": "编辑插画",
     "diagram": "信息图解",
     "concept": "概念艺术"
-  },
-  "cutout": {
-    "task": "正在创建透明背景图片",
-    "segmenting": "正在识别前景主体…",
-    "failed": "智能抠图失败",
-    "sourceMissing": "原始图片缺失。请重新导入后再移除背景。"
   }
 }

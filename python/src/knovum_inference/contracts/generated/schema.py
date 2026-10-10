@@ -31,6 +31,8 @@ class InferenceWireSchemas(WireModel):
     shutdown_result: control.RuntimeShutdownAcknowledgement
     embedding_params: embedding.EmbeddingEncodeParams
     embedding_result: embedding.EmbeddingEncoding
+    image_compute_params: image.ImageComputeParams
+    image_compute_output: image.ImageComputationOutput
     image_segment_params: image.ImageSegmentParams
     image_segment_result: image.ImageSegmentation
     speech_transcribe_params: transcription.SpeechTranscribeParams

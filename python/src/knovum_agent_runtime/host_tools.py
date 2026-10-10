@@ -8,8 +8,8 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMe
 from langchain_core.tools import StructuredTool
 from langgraph.types import Command, interrupt
 
-from knovum_agent_runtime.contracts.generated import AgentContentPart, AgentToolOutcome
-from knovum_agent_runtime.contracts.generated.tools import AgentToolDefinition, AgentToolInvocation
+from knovum_agent_runtime.contracts.generated.messages import AgentContentPart
+from knovum_agent_runtime.contracts.generated.tools import AgentToolDefinition, AgentToolInvocation, AgentToolOutcome
 from knovum_agent_runtime.control import ExecutionContext
 
 

@@ -1,5 +1,6 @@
 mod fields;
 mod image_comments;
+mod image_depth;
 mod image_edit;
 mod resource;
 mod tiptap;
@@ -52,6 +53,10 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
         "image" => {
             resource::validate_visual_asset(object)?;
             image_edit::validate(object.get("imageEdit"))?;
+            image_depth::validate(object.get("imageDepth"))?;
+            if object.contains_key("imageDepth") && object.contains_key("imageEdit") {
+                return Err("Relative depth fields do not support photo edits".into());
+            }
             image_comments::validate(object.get("comments"))?;
             super::visual::validate(object.get("visualKnowledge"))
         }

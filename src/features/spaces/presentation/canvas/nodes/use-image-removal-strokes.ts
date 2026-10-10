@@ -1,11 +1,18 @@
 import { shallowRef, watch, type Ref } from "vue";
 
-import { viewportToLocalPoint } from "../../../canvas/viewport-to-local-point";
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
 import type { ImagePixelRect } from "../../../image-editing/image-edit";
-import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
+import { imageCanvasHit } from "./image-canvas-hit";
+
+interface ImageBrushSession {
+  canDraw: boolean;
+  remainingPoints: number;
+  brushDiameter: number;
+  addStroke: (points: number[]) => void;
+}
 
 interface ImageRemovalStrokeInput {
+  session: ImageBrushSession;
   canvas: Readonly<Ref<HTMLCanvasElement | null>>;
   size: Readonly<Ref<ImageCanvasSize>>;
   rect: Readonly<Ref<ImagePixelRect | undefined>>;
@@ -15,21 +22,19 @@ interface ImageRemovalStrokeInput {
 }
 
 export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
-  const session = useImageRemovalSessionStore();
+  const session = input.session;
   const draftStroke = shallowRef<number[]>();
   const cursor = shallowRef<{ x: number; y: number }>();
   const pointerId = shallowRef<number>();
 
   function position(event: PointerEvent) {
-    const canvas = input.canvas.value;
-    const rect = input.rect.value;
-    if (!canvas || !rect) return undefined;
-    const local = viewportToLocalPoint(canvas, event.clientX, event.clientY, input.frameRotation.value);
-    const x = (local.x * input.size.value.width) / canvas.offsetWidth;
-    const y = (local.y * input.size.value.height) / canvas.offsetHeight;
-    if (x < rect.left || x > rect.left + rect.width || y < rect.top || y > rect.top + rect.height)
-      return undefined;
-    return { x, y, point: [(x - rect.left) / rect.width, (y - rect.top) / rect.height] };
+    return imageCanvasHit({
+      canvas: input.canvas.value,
+      size: input.size.value,
+      rect: input.rect.value,
+      rotation: input.frameRotation.value,
+      event,
+    });
   }
 
   function begin(event: PointerEvent) {

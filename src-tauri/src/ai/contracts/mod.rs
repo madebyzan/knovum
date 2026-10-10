@@ -4,6 +4,7 @@ pub mod embedding;
 pub mod embedding_wire;
 pub mod external_agent;
 pub mod files;
+pub mod image_compute;
 pub mod image_wire;
 pub mod media;
 pub mod model_turn;

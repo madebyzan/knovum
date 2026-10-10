@@ -52,6 +52,7 @@ pub(super) async fn start_worker<R: Runtime>(
         speech_synthesis: None,
         speech_separation: None,
         image_segmentation: None,
+        image_processing: None,
     };
     let value = Some(model_path.to_string_lossy().into_owned());
     match capability {

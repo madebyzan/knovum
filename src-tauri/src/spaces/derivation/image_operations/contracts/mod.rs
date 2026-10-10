@@ -1,7 +1,11 @@
+mod target;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+pub use target::{
+    ImageExecutionTarget, ImageOperationTargetOption, ImageSelection, ImageTransformParameters,
+};
 
-#[derive(Clone, Deserialize, ts_rs::TS)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageOperation {
@@ -18,12 +22,24 @@ pub enum ImageOperation {
     RemoveObject {
         strokes: Vec<MaskStroke>,
     },
+    RemoveBackground,
+    ExtractSelection {
+        selection: ImageSelection,
+    },
+    RemoveSelectedObject {
+        selection: ImageSelection,
+        #[serde(rename = "selectionModel")]
+        selection_model: crate::local_resources::model_catalog::LocalModelId,
+        #[serde(rename = "selectionSpecId")]
+        selection_spec_id: String,
+    },
+    GenerateDepth,
     RemoveObjectPrompt {
         prompt: String,
     },
 }
 
-#[derive(Clone, Deserialize, ts_rs::TS)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct MaskStroke {
@@ -31,7 +47,7 @@ pub struct MaskStroke {
     pub points: Vec<f64>,
 }
 
-#[derive(Clone, Copy, Deserialize, ts_rs::TS)]
+#[derive(Clone, Copy, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageViewMode {
@@ -39,7 +55,7 @@ pub enum ImageViewMode {
     Camera,
 }
 
-#[derive(Clone, Copy, Deserialize, ts_rs::TS)]
+#[derive(Clone, Copy, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageZoom {
@@ -50,6 +66,29 @@ pub enum ImageZoom {
 
 impl ImageOperation {
     pub fn validate(&self) -> Result<(), String> {
+        if let Self::Upscale { target_long_edge } = self {
+            if !matches!(target_long_edge, 2048 | 4096 | 8192) {
+                return Err("Unsupported upscale target".into());
+            }
+        }
+        if let Self::RemoveSelectedObject {
+            selection_model,
+            selection_spec_id,
+            ..
+        } = self
+        {
+            if selection_model.capability()
+                != crate::local_resources::model_catalog::LocalModelCapability::ImageSelection
+                || selection_model.image_spec()? != *selection_spec_id
+            {
+                return Err("Invalid selection model identity".into());
+            }
+        }
+        if let Self::ExtractSelection { selection } | Self::RemoveSelectedObject { selection, .. } =
+            self
+        {
+            selection.validate()?;
+        }
         if let Self::RemoveObject { strokes } = self {
             if strokes.is_empty() || strokes.len() > 100 {
                 return Err("Object removal requires 1–100 mask strokes".into());
@@ -131,8 +170,13 @@ impl ImageOperation {
     pub fn action_kind(&self) -> &'static str {
         match self {
             Self::Upscale { .. } => "upscale-image",
+            Self::RemoveBackground => "remove-image-background",
+            Self::ExtractSelection { .. } => "extract-image-selection",
+            Self::GenerateDepth => "generate-image-depth",
             Self::MultiAngle { .. } => "generate-image-angle",
-            Self::RemoveObject { .. } | Self::RemoveObjectPrompt { .. } => "remove-image-object",
+            Self::RemoveObject { .. }
+            | Self::RemoveObjectPrompt { .. }
+            | Self::RemoveSelectedObject { .. } => "remove-image-object",
         }
     }
 
@@ -168,25 +212,28 @@ impl ImageOperation {
                 };
                 format!("{provider}:{model}:{mode}:{yaw}:{pitch}:{zoom}")
             }
-            Self::RemoveObject { .. } => format!("{provider}:{model}:mask"),
+            Self::RemoveBackground | Self::ExtractSelection { .. } | Self::GenerateDepth => {
+                format!("{provider}:{model}")
+            }
+            Self::RemoveObject { .. } | Self::RemoveSelectedObject { .. } => {
+                format!("{provider}:{model}:mask")
+            }
             Self::RemoveObjectPrompt { .. } => format!("{provider}:{model}:prompt"),
         }
     }
 
     pub fn rationale(&self) -> &'static str {
         match self {
+            Self::RemoveBackground => "Background removed from source image",
+            Self::ExtractSelection { .. } => "Selection extracted from source image",
+            Self::GenerateDepth => "Relative inverse depth estimated from source image",
             Self::Upscale { .. } => "Image upscaled from source image",
             Self::MultiAngle { .. } => "View generated from source image",
-            Self::RemoveObject { .. } | Self::RemoveObjectPrompt { .. } => {
+            Self::RemoveObject { .. }
+            | Self::RemoveObjectPrompt { .. }
+            | Self::RemoveSelectedObject { .. } => {
                 "Object removed and background completed from source image"
             }
-        }
-    }
-
-    pub fn target_long_edge(&self) -> Option<u32> {
-        match self {
-            Self::Upscale { target_long_edge } => Some(*target_long_edge),
-            _ => None,
         }
     }
 }
@@ -202,12 +249,17 @@ pub struct DeriveImageRequest {
     pub source_revision: String,
     pub source_edit: Value,
     pub operation: ImageOperation,
+    pub execution: ImageExecutionTarget,
 }
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct ImageOperationCapabilities {
+    pub targets: Vec<ImageOperationTargetOption>,
+    pub remote: Option<ImageExecutionTarget>,
+    pub selection: ImageOperationCapability,
+    pub depth: ImageOperationCapability,
     pub upscale: ImageOperationCapability,
     pub multi_angle: ImageOperationCapability,
     pub masked_removal: ImageOperationCapability,

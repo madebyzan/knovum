@@ -31,8 +31,7 @@
     "promptPlaceholder": "描述要移除的内容…",
     "generate": "移除并生成",
     "submitting": "正在创建派生任务…",
-    "resultSuffix": "移除物体",
-    "sizeLimit": "图片宽高须在 512–4096 像素之间",
+    "sizeLimit": "使用不超过 1600 万像素、每边不超过 16,384 像素的图片。",
     "limitReached": "选区已达上限，可以生成图片或撤销笔画"
   },
   "adjust": {
@@ -47,8 +46,8 @@
   },
   "upscale": {
     "action": "放大",
-    "minSize": "原图宽和高均需至少 512 像素",
-    "targetTooSmall": "该档位不高于当前图片尺寸"
+    "targetTooSmall": "该档位不高于当前图片尺寸",
+    "sourceBudget": "当前图片尺寸超出所选模型的输入限制。"
   },
   "angle": {
     "title": "多角度",
@@ -124,12 +123,7 @@
     "imagePreparing": "图片正在准备中"
   },
   "operation": {
-    "task": "正在生成图片",
-    "failed": "图片生成失败",
-    "stage": {
-      "renderingSource": "正在准备图片",
-      "processing": "正在生成结果"
-    }
+    "execution": "执行模型"
   },
   "finishImageEdit": "请先应用或取消当前图片编辑",
   "adjustments": {
@@ -149,5 +143,31 @@
     "grain": "颗粒",
     "softLight": "柔光",
     "glow": "辉光"
+  },
+  "selection": {
+    "title": "智能选区",
+    "tools": "选区工具",
+    "include": "前景点",
+    "exclude": "排除点",
+    "box": "框选",
+    "brush": "笔刷补充",
+    "processing": "正在更新选区…",
+    "help": "点选主体，添加排除点或框选，再用笔刷补充。最多六个点提示。",
+    "repair": "修补选区",
+    "extract": "提取选区",
+    "undo": "撤销选区",
+    "modelUnavailable": "请在设置中选择可用的智能选区模型。",
+    "promptLimit": "最多六个提示，请撤销一个提示后继续。"
+  },
+  "depth": {
+    "action": "生成相对深度图"
+  },
+  "results": {
+    "upscale": "放大",
+    "multiAngle": "新视角",
+    "removeObject": "修补",
+    "removeBackground": "去背景",
+    "extractSelection": "选区",
+    "generateDepth": "相对深度"
   }
 }

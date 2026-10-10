@@ -111,6 +111,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
                 speech_synthesis: None,
                 speech_separation: None,
                 image_segmentation: None,
+                image_processing: None,
             },
         };
         *guard = Some(

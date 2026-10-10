@@ -2,12 +2,13 @@ import { shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, reactive, shallowRef } from "vue";
+import type * as VueI18n from "vue-i18n";
 
-import { createSpaceNode } from "../canvas/node";
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
 import { decideCreationIntents } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
+import { blockedImageCapabilities, imageSourceNode } from "./image-operation-fixtures";
 
 const context = vi.hoisted(() => ({
   space: null as null | { activeSpaceId: string; nodes: SpaceCanvasNode[] },
@@ -28,7 +29,10 @@ vi.mock("../knowledge-derivations/use-image-capabilities", () => ({
   useImageOperationCapabilities: () => context.capabilities!,
 }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn<() => Promise<void>>() }) }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
 import SpaceCanvasObjectRemoval from "../presentation/canvas/SpaceCanvasObjectRemoval.vue";
 import SpaceImageObjectRemovalControls from "../presentation/canvas/SpaceImageObjectRemovalControls.vue";
@@ -39,25 +43,10 @@ beforeEach(() => {
   setActivePinia(createPinia());
   context.allowed = true;
   context.derive.mockReset().mockResolvedValue(undefined);
-  const data: SpaceImagePayload = {
-    kind: "image",
-    title: "Image",
-    fileName: "image.png",
-    assetPath: "/managed/image.png",
-    sourceRevision: "revision-1",
-    intrinsicWidth: 1024,
-    intrinsicHeight: 1024,
-  };
-  node = { ...createSpaceNode(data, { x: 0, y: 0 }, "image"), data };
+  node = imageSourceNode();
   context.space = reactive({ activeSpaceId: "space", nodes: [node] });
-  const blocked = { state: "blocked", reason: "configuration_incomplete" } as const;
   context.capabilities = {
-    data: shallowRef({
-      maskedRemoval: blocked,
-      promptRemoval: blocked,
-      upscale: blocked,
-      multiAngle: blocked,
-    }),
+    data: shallowRef(blockedImageCapabilities()),
     isFetching: shallowRef(false),
     isError: shallowRef(false),
   };
@@ -89,7 +78,16 @@ function openTool() {
   return { bar, wrapper };
 }
 function setCapabilities(patch: Partial<ImageOperationCapabilities>) {
-  context.capabilities!.data.value = { ...context.capabilities!.data.value!, ...patch };
+  const current = context.capabilities!.data.value!;
+  context.capabilities!.data.value = {
+    ...current,
+    ...patch,
+    targets: current.targets.map((target) =>
+      Object.assign({}, target, {
+        availability: patch.maskedRemoval ?? target.availability,
+      }),
+    ),
+  };
 }
 function openPanel() {
   const removal = useImageRemovalSessionStore();
@@ -98,7 +96,7 @@ function openPanel() {
   return { removal, wrapper, panel: wrapper.findComponent(SpaceImageObjectRemovalControls) };
 }
 
-describe("local eraser preparation and remote generation", () => {
+describe("local brush repair and remote described removal", () => {
   it("admits the tool without a model and permits painting without submitting", () => {
     const { wrapper } = openTool();
     const removal = useImageRemovalSessionStore();

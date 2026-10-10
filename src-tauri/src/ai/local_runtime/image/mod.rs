@@ -1,13 +1,12 @@
-use crate::local_resources::runtimes::python;
 use tensor::{encode_f32, read_mask, stage_tensor, valid_sha256, validate_input};
+pub(crate) mod compute;
+mod session;
 mod tensor;
-use std::time::{Duration, Instant};
 
 use sha2::{Digest, Sha256};
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::process::Worker;
 use crate::{
     ai::contracts::{
         image_wire::{
@@ -16,15 +15,11 @@ use crate::{
             IMAGE_SEGMENTATION_MASK_BYTES, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
             IMAGE_SEGMENTATION_RESOLUTION, IMAGE_SEGMENTATION_SPEC_ID,
         },
-        runtime::{
-            RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
-            RuntimeModelPaths, PROTOCOL_VERSION,
-        },
+        runtime::{RuntimeCapability, RuntimeModelPaths},
     },
     local_resources::{models::catalog::ModelKind, preparation::PreparedModels},
 };
 
-const CANCEL_GRACE: Duration = Duration::from_secs(5);
 const INPUT_SHAPE: [u32; 4] = [
     1,
     3,
@@ -46,9 +41,6 @@ pub(crate) async fn segment_image<R: Runtime>(
     cancellation: &CancellationToken,
 ) -> Result<Vec<f32>, String> {
     validate_input(&input)?;
-    let exit = super::exit_token();
-    let runtime =
-        python::resolve(app, python::RuntimeProfile::LightInference)?.ok_or("runtime_missing")?;
     let model_spec_id = identity.model_spec_id;
     let model = match model_spec_id {
         IMAGE_SEGMENTATION_SPEC_ID => ModelKind::ImageSegmentation,
@@ -56,88 +48,25 @@ pub(crate) async fn segment_image<R: Runtime>(
         _ => return Err("unsupported_model: image segmentation identity is unavailable".into()),
     };
     let model_path = resources.path(model)?;
-    let threads = std::thread::available_parallelism()
-        .map(|count| count.get().min(4) as u8)
-        .unwrap_or(1);
-    let device_profile = RuntimeDeviceProfile {
-        device: "cpu".into(),
-        execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
-        cpu_threads: threads,
-    };
-    super::prepare_worker_for_admission(super::admission::Priority::Interactive, |worker| {
-        worker.matches(
-            &runtime.digest,
+    let mut lease = session::acquire(
+        app,
+        session::ImageWorkerConfiguration {
             model_path,
-            RuntimeCapability::ImageSegmentation,
-            model_spec_id,
-            &device_profile,
-        )
-    })
-    .await?;
-    let _permit = super::admission::acquire(
-        super::admission::Priority::Interactive,
+            paths: RuntimeModelPaths {
+                image_segmentation: Some(model_path.to_string_lossy().into_owned()),
+                ..Default::default()
+            },
+            capability: RuntimeCapability::ImageSegmentation,
+            spec_id: model_spec_id,
+            deadline_ms: identity.deadline_ms,
+        },
         cancellation,
-        exit,
-        super::deadline_duration(identity.deadline_ms)?,
     )
     .await?;
-    let slot = super::worker_slot();
-    let mut guard = tokio::select! {
-        biased;
-        _ = exit.cancelled() => return Err("cancelled".into()),
-        _ = cancellation.cancelled() => return Err("cancelled".into()),
-        guard = slot.lock() => guard,
-    };
-    if let Some(worker) = guard.as_mut() {
-        if !worker.matches(
-            &runtime.digest,
-            model_path,
-            RuntimeCapability::ImageSegmentation,
-            model_spec_id,
-            &device_profile,
-        ) {
-            worker.terminate().await;
-            *guard = None;
-        }
-    }
-    if guard.is_none() {
-        let session_id = uuid::Uuid::new_v4().to_string();
-        let work_directory = inference_directory(app, &session_id)?;
-        let params = RuntimeInitializeParams {
-            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
-            protocol_version: PROTOCOL_VERSION,
-            runtime_digest: runtime.digest.clone(),
-            session_id,
-            capability: RuntimeCapability::ImageSegmentation,
-            capability_spec_id: model_spec_id.into(),
-            device_profile: device_profile.clone(),
-            work_directory: work_directory.to_string_lossy().into_owned(),
-            model_paths: RuntimeModelPaths {
-                embedding: None,
-                speech_transcription: None,
-                speech_alignment: None,
-                speech_diarization: None,
-                speech_synthesis: None,
-                speech_separation: None,
-                image_segmentation: Some(model_path.to_string_lossy().into_owned()),
-            },
-        };
-        *guard = Some(
-            Worker::start(
-                &runtime,
-                &work_directory,
-                model_path,
-                params,
-                identity.deadline_ms,
-                cancellation,
-                exit,
-            )
-            .await?,
-        );
-    }
+    let guard = &mut lease.guard;
     let worker = guard.as_mut().ok_or("worker_crashed")?;
     let request_id = uuid::Uuid::new_v4().to_string();
-    let work_directory = inference_directory(app, &worker.session_id)?;
+    let work_directory = worker.work_directory().to_owned();
     let tensor_name = format!("tensor-{request_id}.f32");
     let tensor_path = work_directory.join(&tensor_name);
     let tensor_bytes = encode_f32(&input);
@@ -160,14 +89,15 @@ pub(crate) async fn segment_image<R: Runtime>(
             data_type: TensorDataType::Float32LittleEndian,
         },
     };
-    let request = request(
+    let request = session::request::<_, ImageSegmentation>(
         worker,
-        &request_id,
-        identity.attempt_epoch,
-        identity.deadline_ms,
+        session::ImageRequestIdentity {
+            request_id: &request_id,
+            attempt_epoch: identity.attempt_epoch,
+            deadline_ms: identity.deadline_ms,
+        },
         &params,
         cancellation,
-        exit,
     )
     .await;
     let _ = tokio::fs::remove_file(&tensor_path).await;
@@ -175,7 +105,7 @@ pub(crate) async fn segment_image<R: Runtime>(
         Ok(output) => output,
         Err(error) => {
             worker.terminate().await;
-            *guard = None;
+            **guard = None;
             return Err(error);
         }
     };
@@ -193,7 +123,7 @@ pub(crate) async fn segment_image<R: Runtime>(
         )
     {
         worker.terminate().await;
-        *guard = None;
+        **guard = None;
         return Err("invalid_output: image segmentation response identity differs".into());
     }
     let mask_path = work_directory.join(expected_mask);
@@ -205,85 +135,9 @@ pub(crate) async fn segment_image<R: Runtime>(
         Ok(mask) => mask,
         Err(error) => {
             worker.terminate().await;
-            *guard = None;
+            **guard = None;
             return Err(error);
         }
     };
-    worker.last_used = Instant::now();
-    drop(guard);
-    super::reclaim_when_idle(slot);
     Ok(mask)
-}
-
-async fn request(
-    worker: &mut Worker,
-    request_id: &str,
-    attempt_epoch: u64,
-    deadline_ms: u64,
-    params: &ImageSegmentParams,
-    cancellation: &CancellationToken,
-    exit: &CancellationToken,
-) -> Result<ImageSegmentation, String> {
-    let deadline = worker
-        .send_request(
-            request_id,
-            RuntimeCapability::ImageSegmentation.method(),
-            params,
-            deadline_ms,
-            cancellation,
-            exit,
-        )
-        .await?;
-    tokio::select! {
-        biased;
-        _ = exit.cancelled() => {
-            cancel(worker, request_id, attempt_epoch).await;
-            Err("cancelled".into())
-        }
-        _ = cancellation.cancelled() => {
-            cancel(worker, request_id, attempt_epoch).await;
-            Err("cancelled".into())
-        }
-        generation = tokio::time::timeout_at(
-            deadline,
-            worker.protocol.read_response::<ImageSegmentation>(request_id),
-        ) => match generation {
-            Ok(value) => value,
-            Err(_) => {
-                cancel(worker, request_id, attempt_epoch).await;
-                Err("deadline_exceeded".into())
-            }
-        }
-    }
-}
-
-async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
-    let _ = tokio::time::timeout(CANCEL_GRACE, async {
-        worker
-            .protocol
-            .notify(
-                "runtime.cancel",
-                &RuntimeCancelParams {
-                    target_request_id: request_id.into(),
-                    attempt_epoch,
-                },
-            )
-            .await?;
-        worker
-            .protocol
-            .read_response::<ImageSegmentation>(request_id)
-            .await
-    })
-    .await;
-    worker.terminate().await;
-}
-
-fn inference_directory<R: Runtime>(
-    app: &AppHandle<R>,
-    session_id: &str,
-) -> Result<std::path::PathBuf, String> {
-    app.path()
-        .app_cache_dir()
-        .map_err(|error| error.to_string())
-        .map(|path| path.join("inference").join(session_id))
 }

@@ -1,7 +1,11 @@
+mod identity;
+
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
-pub use super::model_metadata::{LocalModelOperation, LocalModelReferenceTranscript};
+pub use super::model_metadata::{
+    LocalModelCapability, LocalModelOperation, LocalModelReferenceTranscript,
+};
 use super::{
     model_metadata,
     models::{self, catalog, snapshots::SnapshotKind},
@@ -15,7 +19,9 @@ pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
 pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
     "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, ts_rs::TS)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum LocalModelId {
     Qwen3Embedding,
@@ -29,6 +35,13 @@ pub enum LocalModelId {
     Qwen3AlignerQ8,
     U2netp,
     U2net,
+    RealEsrganGeneralX4v3,
+    RealEsrganX4plus,
+    Migan,
+    EfficientSamTi,
+    EfficientSamS,
+    DepthAnythingV2SmallUint8,
+    DepthAnythingV2Small,
     Spleeter2Stems,
     Spleeter2StemsFull,
     SherpaDiarization,
@@ -40,7 +53,7 @@ pub enum LocalModelId {
 pub struct LocalModelAvailability {
     pub id: LocalModelId,
     pub name: &'static str,
-    pub capability: &'static str,
+    pub capability: LocalModelCapability,
     pub operations: &'static [LocalModelOperation],
     pub reference_transcript: LocalModelReferenceTranscript,
     pub group: LocalModelGroup,
@@ -80,13 +93,41 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::Spleeter2StemsFull,
     LocalModelId::U2netp,
     LocalModelId::U2net,
+    LocalModelId::RealEsrganGeneralX4v3,
+    LocalModelId::RealEsrganX4plus,
+    LocalModelId::Migan,
+    LocalModelId::EfficientSamTi,
+    LocalModelId::EfficientSamS,
+    LocalModelId::DepthAnythingV2SmallUint8,
+    LocalModelId::DepthAnythingV2Small,
 ];
 
 impl LocalModelId {
+    pub(crate) fn image_spec(self) -> Result<String, String> {
+        match self.snapshot() {
+            Some(SnapshotKind::Image(variant)) => Ok(variant.spec_id()),
+            _ => self.image_segmentation_spec().map(str::to_owned),
+        }
+    }
+    pub(crate) fn capability(self) -> LocalModelCapability {
+        model_metadata::metadata(self).1
+    }
+    pub(crate) fn name(self) -> &'static str {
+        model_metadata::metadata(self).0
+    }
+
     fn group(self) -> LocalModelGroup {
         match self {
             Self::Qwen3Embedding => LocalModelGroup::Knowledge,
-            Self::U2netp | Self::U2net => LocalModelGroup::Images,
+            Self::U2netp
+            | Self::U2net
+            | Self::RealEsrganGeneralX4v3
+            | Self::RealEsrganX4plus
+            | Self::Migan
+            | Self::EfficientSamTi
+            | Self::EfficientSamS
+            | Self::DepthAnythingV2SmallUint8
+            | Self::DepthAnythingV2Small => LocalModelGroup::Images,
             Self::WhisperSmall
             | Self::WhisperTiny
             | Self::WhisperLargeV3
@@ -102,22 +143,40 @@ impl LocalModelId {
         }
     }
     pub(crate) fn snapshot(self) -> Option<SnapshotKind> {
-        if self == Self::Qwen3AlignerQ8 {
-            return Some(SnapshotKind::SpeechAlignmentQ8);
+        use SnapshotKind as S;
+        match self {
+            Self::Qwen3Embedding => Some(S::TextEmbedding),
+            Self::WhisperSmall => catalog::TRANSCRIPTION_MODELS
+                .first()
+                .map(|kind| catalog::descriptor(*kind).snapshot),
+            Self::WhisperTiny | Self::WhisperLargeV3 => Some(transcription_snapshot(self)),
+            Self::MossNano => Some(S::MossNano),
+            Self::VoxCpm2 => Some(S::VoxCpm2),
+            Self::VoxCpm2Q8 => Some(S::VoxCpm2Q8),
+            Self::Qwen3Aligner => {
+                (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
+            }
+            Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
+            Self::U2netp => Some(S::ImageSegmentation),
+            Self::U2net => Some(S::ImageSegmentationQuality),
+            Self::Spleeter2Stems => Some(S::SpeechSeparation),
+            Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
+            Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
+            Self::SherpaDiarizationFull => Some(S::Diarization(catalog::DiarizationVariant::Full)),
+            Self::RealEsrganGeneralX4v3 => {
+                Some(S::Image(catalog::ImageModelVariant::RealEsrganGeneralX4v3))
+            }
+            Self::RealEsrganX4plus => Some(S::Image(catalog::ImageModelVariant::RealEsrganX4plus)),
+            Self::Migan => Some(S::Image(catalog::ImageModelVariant::Migan)),
+            Self::EfficientSamTi => Some(S::Image(catalog::ImageModelVariant::EfficientSamTi)),
+            Self::EfficientSamS => Some(S::Image(catalog::ImageModelVariant::EfficientSamS)),
+            Self::DepthAnythingV2SmallUint8 => Some(S::Image(
+                catalog::ImageModelVariant::DepthAnythingV2SmallUint8,
+            )),
+            Self::DepthAnythingV2Small => {
+                Some(S::Image(catalog::ImageModelVariant::DepthAnythingV2Small))
+            }
         }
-        if self == Self::VoxCpm2Q8 {
-            return Some(SnapshotKind::VoxCpm2Q8);
-        }
-        if self == Self::U2net {
-            return Some(SnapshotKind::ImageSegmentationQuality);
-        }
-        if matches!(self, Self::WhisperTiny | Self::WhisperLargeV3) {
-            return Some(transcription_snapshot(self));
-        }
-        self.preparation()
-            .models()
-            .and_then(|kinds| kinds.first())
-            .map(|kind| catalog::descriptor(*kind).snapshot)
     }
 
     pub(crate) fn preparation(self) -> ResourcePreparationTarget {
@@ -126,6 +185,13 @@ impl LocalModelId {
             Self::WhisperSmall => ResourcePreparationTarget::Transcription,
             Self::WhisperTiny
             | Self::WhisperLargeV3
+            | Self::RealEsrganGeneralX4v3
+            | Self::RealEsrganX4plus
+            | Self::Migan
+            | Self::EfficientSamTi
+            | Self::EfficientSamS
+            | Self::DepthAnythingV2SmallUint8
+            | Self::DepthAnythingV2Small
             | Self::U2net
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8
@@ -209,108 +275,8 @@ where
 }
 
 #[cfg(test)]
-#[path = "tests/model_catalog.rs"]
+#[path = "../tests/model_catalog.rs"]
 mod tests;
-
-impl LocalModelId {
-    pub(crate) fn alignment_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::Qwen3Aligner => Ok("qwen3-forced-aligner-0.6b-hf-v1"),
-            Self::Qwen3AlignerQ8 => Ok("qwen3-forced-aligner-0.6b-q8_0-v1"),
-            _ => Err("Model does not support forced alignment".into()),
-        }
-    }
-    pub(crate) fn voxcpm2_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::VoxCpm2 => Ok(VOXCPM2_FULL_SPEC_ID),
-            Self::VoxCpm2Q8 => Ok(VOXCPM2_Q8_SPEC_ID),
-            _ => Err("Model does not support VoxCPM2 synthesis".into()),
-        }
-    }
-    pub(crate) fn from_voxcpm2_spec(spec: &str) -> Result<Self, String> {
-        [Self::VoxCpm2, Self::VoxCpm2Q8]
-            .into_iter()
-            .find(|model| model.voxcpm2_spec().is_ok_and(|value| value == spec))
-            .ok_or("runtime_mismatch: VoxCPM2 model specification is unsupported".into())
-    }
-    pub(crate) fn voxcpm2_models(self) -> Result<&'static [catalog::ModelKind], String> {
-        match self {
-            Self::VoxCpm2 => Ok(catalog::VOXCPM2_MODELS),
-            Self::VoxCpm2Q8 => Ok(catalog::VOXCPM2_Q8_MODELS),
-            _ => Err("Model does not support VoxCPM2 synthesis".into()),
-        }
-    }
-    pub(crate) fn from_alignment_spec(spec: &str) -> Result<Self, String> {
-        [Self::Qwen3Aligner, Self::Qwen3AlignerQ8]
-            .into_iter()
-            .find(|model| model.alignment_spec().is_ok_and(|value| value == spec))
-            .ok_or("runtime_mismatch: forced alignment model specification is unsupported".into())
-    }
-    pub(crate) fn alignment_revision(self) -> Result<&'static str, String> {
-        match self {
-            Self::Qwen3Aligner => Ok(catalog::QWEN3_FORCED_ALIGNER_REVISION),
-            Self::Qwen3AlignerQ8 => Ok(catalog::QWEN3_ALIGNER_Q8_REVISION),
-            _ => Err("Model does not support forced alignment".into()),
-        }
-    }
-    pub(crate) fn diarization_variant(self) -> Result<catalog::DiarizationVariant, String> {
-        match self {
-            Self::SherpaDiarization => Ok(catalog::DiarizationVariant::Int8),
-            Self::SherpaDiarizationFull => Ok(catalog::DiarizationVariant::Full),
-            _ => Err("Model does not support speaker diarization".into()),
-        }
-    }
-    pub(crate) fn from_diarization_spec(spec: &str) -> Result<Self, String> {
-        MODELS
-            .iter()
-            .copied()
-            .find(|model| {
-                model
-                    .diarization_variant()
-                    .is_ok_and(|variant| variant.spec_id() == spec)
-            })
-            .ok_or(
-                "runtime_mismatch: speaker diarization model specification is unsupported".into(),
-            )
-    }
-    pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::U2netp => Ok(IMAGE_SEGMENTATION_SPEC_ID),
-            Self::U2net => Ok(IMAGE_SEGMENTATION_QUALITY_SPEC_ID),
-            _ => Err("Model does not support image segmentation".into()),
-        }
-    }
-    pub(crate) fn from_separation_spec(spec: &str) -> Result<Self, String> {
-        MODELS
-            .iter()
-            .copied()
-            .find(|model| model.separation_spec().is_ok_and(|value| value == spec))
-            .ok_or("runtime_mismatch: source separation model specification is unsupported".into())
-    }
-    pub(crate) fn separation_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::Spleeter2Stems => Ok("spleeter-2stems-fp16-cpu-v1"),
-            Self::Spleeter2StemsFull => Ok("spleeter-2stems-fp32-cpu-v1"),
-            _ => Err("Model does not support source separation".into()),
-        }
-    }
-    pub(crate) fn is_essential(self, transcription: Self) -> bool {
-        self == Self::Qwen3Embedding || self == transcription
-    }
-    pub(crate) fn is_transcription(self) -> bool {
-        matches!(
-            self,
-            Self::WhisperSmall | Self::WhisperTiny | Self::WhisperLargeV3
-        )
-    }
-    pub(crate) fn transcription_models(self) -> &'static [catalog::ModelKind] {
-        if self == Self::WhisperSmall {
-            catalog::TRANSCRIPTION_MODELS
-        } else {
-            transcription_snapshot(self).models()
-        }
-    }
-}
 
 fn transcription_snapshot(model: LocalModelId) -> SnapshotKind {
     use catalog::WhisperVariant as V;

@@ -1,7 +1,5 @@
 use futures::future::BoxFuture;
-use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
-use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
@@ -10,52 +8,6 @@ use crate::ai::{
 use crate::app_error::{AppError, AppResult};
 
 pub struct OpenAiImageAdapter;
-
-pub async fn edit_mask(
-    ctx: &SecurityContext,
-    image: &[u8],
-    mask: Vec<u8>,
-    cancellation: &CancellationToken,
-) -> Result<Vec<u8>, String> {
-    let part = |bytes: Vec<u8>, name: &str| {
-        Part::bytes(bytes)
-            .file_name(name.to_owned())
-            .mime_str("image/png")
-            .map_err(|error| error.to_string())
-    };
-    let form = Form::new()
-        .text("model", ctx.model.clone())
-        .text("prompt", "Recreate the original image with the masked area replaced by a natural, unobstructed continuation of the surrounding background. Preserve everything outside the mask.")
-        .part("image[]", part(image.to_vec(), "source.png")?)
-        .part("mask", part(mask, "mask.png")?);
-    let request = http_client()
-        .post(format!(
-            "{}/images/edits",
-            image_endpoint("openai", &ctx.endpoint)
-        ))
-        .bearer_auth(ctx.require_api_key().map_err(|error| error.to_string())?)
-        .multipart(form)
-        .send();
-    let generation = tokio::select! {
-        _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
-        response = request => response.map_err(|error| error.to_string())?,
-    };
-    if !generation.status().is_success() {
-        return Err(response::read_text(generation)
-            .await
-            .map_err(|error| error.to_string())?);
-    }
-    let body: ImageResponse = response::read_json(generation, response::MAX_IMAGE_JSON_BYTES)
-        .await
-        .map_err(|error| error.to_string())?;
-    let encoded = body
-        .data
-        .into_iter()
-        .next()
-        .and_then(|image| image.b64_json)
-        .ok_or("OpenAI image edit returned no image")?;
-    response::decode_image(&encoded).map_err(|error| error.to_string())
-}
 
 #[derive(Deserialize)]
 struct ImageResponse {

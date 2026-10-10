@@ -12,6 +12,7 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionHelp } from "./image-action-help";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";
 import { useImageDerivationActions } from "./use-image-derivation-actions";
 
 const props = defineProps<{
@@ -21,7 +22,17 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 const { t } = useI18n();
-const { busy, help, targetDimensions, optionAvailability, openAiSettings, run } = useImageDerivationActions({
+const {
+  busy,
+  targetOptions,
+  executionOption,
+  selectExecution,
+  help,
+  targetDimensions,
+  optionAvailability,
+  openAiSettings,
+  run,
+} = useImageDerivationActions({
   node: toRef(props, "node"),
   mode: "upscale",
   open: toRef(props, "open"),
@@ -54,6 +65,13 @@ const sizes = [2048, 4096, 8192] as const;
         </button>
       </ToolbarButton>
     </template>
+    <div class="border-b border-stroke-divider p-1 pb-2">
+      <SpaceImageExecutionSelect
+        :options="targetOptions"
+        :execution="executionOption?.execution"
+        @select="selectExecution"
+      />
+    </div>
     <UiTooltip
       v-for="size in sizes"
       :key="size"

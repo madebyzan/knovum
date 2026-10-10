@@ -1,13 +1,15 @@
+mod target;
 use crate::ai::{
     contracts::ProviderKind, models::ModelExecutionTarget, providers::image_edit::ImageEditApi,
 };
+pub(super) use target::local_capability;
+pub(super) use target::{resolve, ResolvedImageTarget};
 
 use super::contracts::ImageOperation;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum ImageOperationBackend {
     DashScope,
-    OpenAi,
     Gemini,
     Kling,
     ImageEdit(ImageEditApi),
@@ -15,31 +17,23 @@ pub(super) enum ImageOperationBackend {
 }
 
 pub(super) struct SupportedOperations {
-    pub upscale: bool,
     pub multi_angle: bool,
-    pub masked_removal: bool,
     pub prompt_removal: bool,
 }
 
 impl SupportedOperations {
     pub fn allows(&self, operation: &ImageOperation) -> bool {
         match operation {
-            ImageOperation::Upscale { .. } => self.upscale,
             ImageOperation::MultiAngle { .. } => self.multi_angle,
-            ImageOperation::RemoveObject { .. } => self.masked_removal,
             ImageOperation::RemoveObjectPrompt { .. } => self.prompt_removal,
+            _ => false,
         }
     }
 }
 
 pub(super) fn supported_operations(backend: ImageOperationBackend) -> SupportedOperations {
     SupportedOperations {
-        upscale: backend == ImageOperationBackend::DashScope,
         multi_angle: backend == ImageOperationBackend::DashScope,
-        masked_removal: matches!(
-            backend,
-            ImageOperationBackend::DashScope | ImageOperationBackend::OpenAi
-        ),
         prompt_removal: matches!(
             backend,
             ImageOperationBackend::Gemini
@@ -52,11 +46,6 @@ pub(super) fn supported_operations(backend: ImageOperationBackend) -> SupportedO
 pub(super) fn backend(target: &ModelExecutionTarget) -> ImageOperationBackend {
     match (ProviderKind::parse(target.provider()), target.model()) {
         (Some(ProviderKind::DashScope), _) => ImageOperationBackend::DashScope,
-        (Some(ProviderKind::OpenAi), model)
-            if model.starts_with("gpt-image-") || model == "chatgpt-image-latest" =>
-        {
-            ImageOperationBackend::OpenAi
-        }
         (Some(ProviderKind::Gemini), model)
             if model.starts_with("gemini-") && model.contains("-image") =>
         {

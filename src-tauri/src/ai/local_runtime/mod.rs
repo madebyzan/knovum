@@ -10,7 +10,7 @@ pub(crate) mod admission;
 mod artifact;
 pub(crate) mod compute_budget;
 pub(crate) mod device_profiles;
-mod image;
+pub(crate) mod image;
 mod process;
 mod protocol;
 mod runtime_profile;

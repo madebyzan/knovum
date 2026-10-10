@@ -10,6 +10,10 @@ enum Group {
     Transcription,
     SpeechSynthesis,
     ImageSegmentation,
+    ImageUpscaling,
+    ImageInpainting,
+    ImageSelection,
+    ImageDepth,
     SpeechSeparation,
     SpeechDiarization,
     SpeechAlignment,
@@ -21,6 +25,11 @@ impl Group {
             Self::Transcription => "localResources.transcription",
             Self::SpeechSynthesis => "localResources.speechSynthesis",
             Self::ImageSegmentation => "localResources.imageSegmentation",
+            Self::ImageUpscaling => "localResources.imageUpscaling",
+            Self::ImageInpainting => "localResources.imageInpainting",
+            Self::ImageSelection => "localResources.imageSelection",
+            Self::ImageDepth => "localResources.imageDepth",
+
             Self::SpeechSeparation => "localResources.speechSeparation",
             Self::SpeechDiarization => "localResources.speechDiarization",
             Self::SpeechAlignment => "localResources.speechAlignment",
@@ -31,6 +40,11 @@ impl Group {
             Self::Transcription => LocalModelId::WhisperSmall,
             Self::SpeechSynthesis => LocalModelId::MossNano,
             Self::ImageSegmentation => LocalModelId::U2netp,
+            Self::ImageUpscaling => LocalModelId::RealEsrganGeneralX4v3,
+            Self::ImageInpainting => LocalModelId::Migan,
+            Self::ImageSelection => LocalModelId::EfficientSamTi,
+            Self::ImageDepth => LocalModelId::DepthAnythingV2Small,
+
             Self::SpeechSeparation => LocalModelId::Spleeter2Stems,
             Self::SpeechDiarization => LocalModelId::SherpaDiarization,
             Self::SpeechAlignment => LocalModelId::Qwen3AlignerQ8,
@@ -45,6 +59,14 @@ fn group(model: LocalModelId) -> Option<Group> {
         }
         LocalModelId::MossNano | LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8 => {
             Some(Group::SpeechSynthesis)
+        }
+        LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
+            Some(Group::ImageUpscaling)
+        }
+        LocalModelId::Migan => Some(Group::ImageInpainting),
+        LocalModelId::EfficientSamTi | LocalModelId::EfficientSamS => Some(Group::ImageSelection),
+        LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
+            Some(Group::ImageDepth)
         }
         LocalModelId::U2netp | LocalModelId::U2net => Some(Group::ImageSegmentation),
         LocalModelId::Spleeter2Stems | LocalModelId::Spleeter2StemsFull => {
@@ -63,6 +85,10 @@ pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> R
         Group::Transcription,
         Group::SpeechSynthesis,
         Group::ImageSegmentation,
+        Group::ImageUpscaling,
+        Group::ImageInpainting,
+        Group::ImageSelection,
+        Group::ImageDepth,
         Group::SpeechSeparation,
         Group::SpeechDiarization,
         Group::SpeechAlignment,

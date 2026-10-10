@@ -71,7 +71,11 @@
       "speechAlignment": "转录文本与音频精确对齐",
       "speechDiarization": "区分录音中的说话人",
       "speechSeparation": "分离人声与伴奏",
-      "imageSegmentation": "图片移除背景"
+      "imageSegmentation": "图片移除背景",
+      "imageUpscaling": "图片放大",
+      "imageInpainting": "选区修补",
+      "imageSelection": "智能选区",
+      "imageDepth": "相对深度"
     },
     "redownload": "重新下载",
     "groups": {
@@ -96,7 +100,14 @@
       "u2netp": "轻量背景移除，处理更快。",
       "u2net": "完整背景移除模型，处理时间较长。",
       "sherpaDiarizationFull": "完整精度说话人识别，支持自动或指定人数。",
-      "spleeter2StemsFull": "完整精度人声与伴奏分离，音频最长十分钟。"
+      "spleeter2StemsFull": "完整精度人声与伴奏分离，音频最长十分钟。",
+      "realEsrganGeneralX4v3": "轻量通用图片放大。原生四倍推理，按 2K、4K 或 8K 输出。",
+      "realEsrganX4plus": "完整通用图片放大模型，CPU 处理时间较长。",
+      "migan": "修补涂抹或智能选区，保留选区外像素；不支持按文字寻找物体。",
+      "efficientSamTi": "轻量点选、框选与排除点模型，生成二值选区，不是发丝级抠图。",
+      "efficientSamS": "较大的点选与框选模型，使用同一组选区编辑控件。",
+      "depthAnythingV2Small": "全精度相对逆深度，近处较亮，不用于测量真实距离。",
+      "depthAnythingV2SmallUint8": "体积较小的量化相对逆深度，近处较亮，不用于测量真实距离。"
     },
     "selectedVoiceModel": "用于新建参考音色，不影响已保存音色。",
     "modelSize": "模型文件 {size}",
@@ -115,7 +126,11 @@
       "speechAlignment": "转录对齐",
       "speechDiarization": "说话人识别",
       "speechSeparation": "人声分离",
-      "imageSegmentation": "背景移除"
+      "imageSegmentation": "背景移除",
+      "imageUpscaling": "图片放大",
+      "imageInpainting": "选区修补",
+      "imageSelection": "智能选区",
+      "imageDepth": "相对深度"
     },
     "filters": {
       "all": "全部模型",

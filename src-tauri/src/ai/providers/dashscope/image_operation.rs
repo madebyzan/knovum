@@ -5,29 +5,15 @@ use tokio_util::sync::CancellationToken;
 use super::{endpoint, image_operation_protocol as protocol};
 use crate::ai::transport::{http_client, response, SecurityContext};
 
-pub enum SourceImageOperation<'a> {
-    Upscale {
-        data_uri: &'a str,
-        factor: u8,
-    },
-    View {
-        data_uri: &'a str,
-        prompt: &'a str,
-    },
-    Inpaint {
-        data_uri: &'a str,
-        mask_uri: &'a str,
-    },
-}
-
-pub async fn execute_image_operation(
+pub async fn execute_image_view(
     ctx: &SecurityContext,
-    operation: SourceImageOperation<'_>,
+    data_uri: &str,
+    prompt: &str,
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
     let secret = ctx.require_api_key().map_err(|error| error.to_string())?;
     let endpoint = endpoint(&ctx.endpoint);
-    let (path, body) = protocol::request(operation);
+    let (path, body) = protocol::request(data_uri, prompt);
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());
     }

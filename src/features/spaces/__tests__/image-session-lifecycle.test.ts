@@ -16,9 +16,14 @@ const context = vi.hoisted(() => ({
 }));
 const deriveImage = vi.hoisted(() =>
   vi.fn<
-    (_space: unknown, _node: unknown, _operation: unknown, onOutputCreated?: () => void) => Promise<void>
-  >((_space, _node, _operation, onOutputCreated) => {
-    onOutputCreated?.();
+    (
+      _space: unknown,
+      _node: unknown,
+      _operation: unknown,
+      options?: { onOutputCreated?: () => void },
+    ) => Promise<void>
+  >((_space, _node, _operation, options) => {
+    options?.onOutputCreated?.();
     return Promise.resolve(undefined);
   }),
 );
@@ -77,7 +82,7 @@ describe("image session ownership", () => {
         kind: "remove-object",
         strokes: [{ diameter: 0.045, points: [0.5, 0.5, 0.6, 0.6] }],
       },
-      expect.any(Function),
+      { onOutputCreated: expect.any(Function), execution: undefined },
     );
     expect(removal.active).toBeUndefined();
     expect(context.space!.updateNodeContents).not.toHaveBeenCalled();

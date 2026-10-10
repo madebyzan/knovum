@@ -3,8 +3,7 @@ use sqlx::Row;
 use tauri::AppHandle;
 
 use super::{
-    grounded_document, image_cutout, image_layers, image_operations, video_edit, video_generation,
-    visualization,
+    grounded_document, image_layers, image_operations, video_edit, video_generation, visualization,
 };
 use crate::app_error::AppError;
 use crate::spaces::db;
@@ -68,14 +67,6 @@ pub async fn get_image_operation_capabilities(
     app: AppHandle,
 ) -> image_operations::ImageOperationCapabilities {
     image_operations::capabilities(&app).await
-}
-
-#[tauri::command]
-pub async fn check_image_cutout_source(
-    app: AppHandle,
-    request: image_cutout::CheckImageCutoutSourceRequest,
-) -> Result<bool, AppError> {
-    Ok((image_cutout::check_source(&app, request).await)?)
 }
 
 #[tauri::command]

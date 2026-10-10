@@ -7,6 +7,7 @@ import { useImageCommentSessionStore } from "../../comments/image-comment-sessio
 import { useImageEditSessionStore, type ImageEditTool } from "../../image-editing/image-edit-session-store";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
+import { useImageSelectionSessionStore } from "../../knowledge-derivations/image-selection-session-store";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { imageToolAvailability } from "./image-action-availability";
@@ -23,6 +24,7 @@ export function useImageNodeBarState(
   const { t } = useI18n();
   const session = useImageEditSessionStore();
   const imageDimensions = useImageSourceDimensionsStore();
+  const imageSelection = useImageSelectionSessionStore();
   const removal = useImageRemovalSessionStore();
   const nodeOperations = useNodeOperationGate();
   const comments = useImageCommentSessionStore();
@@ -55,7 +57,12 @@ export function useImageNodeBarState(
   const removalReason = computed(() => imageActionHelp(removalAvailability.value, t)?.label ?? "");
 
   function beginTool(tool: ImageEditTool) {
-    if (!nodeOperations.allows("edit") || session.applying || (tool === "crop" && !dimensionsReady.value))
+    if (
+      node.value.data.imageDepth ||
+      !nodeOperations.allows("edit") ||
+      session.applying ||
+      (tool === "crop" && !dimensionsReady.value)
+    )
       return;
     if (commenting.value) comments.cancel();
     openPopover.value = undefined;
@@ -95,11 +102,13 @@ export function useImageNodeBarState(
     () => node.value.id,
     (_next, previous) => {
       openPopover.value = undefined;
+      if (imageSelection.active?.nodeId === previous) imageSelection.cancel();
       if (removal.active?.nodeId === previous) removal.cancel();
       if (comments.activeNodeId === previous) comments.cancel();
     },
   );
   onBeforeUnmount(() => {
+    if (imageSelection.active?.nodeId === node.value.id) imageSelection.cancel();
     if (removal.active?.nodeId === node.value.id) removal.cancel();
     if (comments.activeNodeId === node.value.id) comments.cancel();
   });

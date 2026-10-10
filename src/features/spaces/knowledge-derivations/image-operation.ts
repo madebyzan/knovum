@@ -1,123 +1,104 @@
-import { Channel } from "@tauri-apps/api/core";
-
-import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { getCanvasEditorSession } from "../canvas/editor-session";
+import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
+import type { ImageOperationTargetOption } from "../contracts/generated/ImageOperationTargetOption";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceImagePayload } from "../model/nodes/node-payload";
-import type { SpaceRelation } from "../model/relations/relation";
-import type { useSpaceStore } from "../session/space-store";
-import { applyDerivationOutput } from "./apply-output";
-import { derivedNodePosition } from "./placement";
-import { runDerivation } from "./run-derivation";
-
-type SpaceStore = Pick<
-  ReturnType<typeof useSpaceStore>,
-  | "activeSpaceId"
-  | "addContent"
-  | "applyNodeContentForSpace"
-  | "refreshActiveSpace"
-  | "relations"
-  | "requestReveal"
-  | "saveNodeContentForSpace"
->;
-
-interface ImageOperationOutput {
-  nodeId: string;
-  data: SpaceImagePayload;
-  relation: SpaceRelation;
-}
+import { startDerivationAction, type DerivationActionStore } from "./start-action";
 
 export function getImageOperationCapabilities() {
   return invokeCommand<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
 }
 
+const operations = {
+  upscale: {
+    actionId: "upscale-image",
+    capability: "imageUpscaling",
+    resultKey: "spaces.media.imageEditor.results.upscale",
+  },
+  "multi-angle": {
+    actionId: "generate-image-angle",
+    capability: null,
+    resultKey: "spaces.media.imageEditor.results.multiAngle",
+  },
+  "remove-object": {
+    actionId: "remove-image-object",
+    capability: "imageInpainting",
+    resultKey: "spaces.media.imageEditor.results.removeObject",
+  },
+  "remove-object-prompt": {
+    actionId: "remove-image-object",
+    capability: null,
+    resultKey: "spaces.media.imageEditor.results.removeObject",
+  },
+  "remove-selected-object": {
+    actionId: "remove-image-object",
+    capability: "imageInpainting",
+    resultKey: "spaces.media.imageEditor.results.removeObject",
+  },
+  "remove-background": {
+    actionId: "remove-image-background",
+    capability: "imageSegmentation",
+    resultKey: "spaces.media.imageEditor.results.removeBackground",
+  },
+  "extract-selection": {
+    actionId: "extract-image-selection",
+    capability: "imageSelection",
+    resultKey: "spaces.media.imageEditor.results.extractSelection",
+  },
+  "generate-depth": {
+    actionId: "generate-image-depth",
+    capability: "imageDepth",
+    resultKey: "spaces.media.imageEditor.results.generateDepth",
+  },
+} as const;
+
+export async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget> {
+  const capabilities = await getImageOperationCapabilities();
+  const capability = operations[operation.kind].capability;
+  if (capability) {
+    return selectedImageTarget(capabilities.targets.filter((target) => target.capability === capability));
+  }
+  if (!capabilities.remote) throw new Error("Image execution target is not configured");
+  return capabilities.remote;
+}
+
+export function selectedImageTarget(targets: readonly ImageOperationTargetOption[]): ImageExecutionTarget {
+  const selected = targets.find((target) => target.selected);
+  if (!selected || selected.availability.state !== "ready")
+    throw new Error(i18n.global.t("spaces.media.imageEditor.selection.modelUnavailable"));
+  return selected.execution;
+}
+
 export async function deriveImage(
-  store: SpaceStore,
+  store: DerivationActionStore,
   source: SpaceCanvasNode,
   operation: ImageOperation,
-  onOutputCreated?: () => void,
+  options: { onOutputCreated?: () => void; execution?: ImageExecutionTarget | undefined } = {},
 ) {
-  const spaceId = store.activeSpaceId;
-  if (source.data.kind !== "image") throw new Error("Image source is unavailable");
-  const image = source.data;
-  const sourceRevision = image.sourceRevision;
-  if (!spaceId || !sourceRevision) throw new Error("Image source revision is unavailable");
-  const outputPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
-  const label =
-    operation.kind === "upscale"
-      ? `${operation.targetLongEdge / 1024}K`
-      : operation.kind === "multi-angle"
-        ? `${operation.mode}-${operation.yaw}-${operation.pitch}-${operation.zoom}`
-        : i18n.global.t("spaces.media.imageEditor.removeObject.resultSuffix");
-  const title = `${image.title}-${label}`;
-  const [pending] = await store.addContent(
-    {
-      kind: "image",
-      title,
-      fileName: `${title}.png`,
-      assetPath: outputPath,
-      processingState: "processing",
-    },
-    derivedNodePosition([source], getCanvasEditorSession().selection.value.nodePlacements),
-    { reveal: true },
-  );
-  if (!pending) throw new Error("Image operation output node was not created");
-  const id = crypto.randomUUID();
-  const generation = runDerivation<ImageOperationOutput>({
+  if (source.data.kind !== "image" || !source.data.knowledgeRevision)
+    throw new Error("Image source revision is unavailable");
+  const target = options.execution ?? (await defaultImageTarget(operation));
+  const title = `${source.data.title} · ${i18n.global.t(operations[operation.kind].resultKey)}`.slice(0, 512);
+  const run = await startDerivationAction({
     store,
-    pendingId: pending.id,
-    task: {
-      id,
-      title: i18n.global.t("spaces.media.imageEditor.operation.task"),
-      statusMessage: title,
-      cancel: () => cancelAiJob(id),
+    actionId: operations[operation.kind].actionId,
+    sources: [
+      {
+        nodeId: source.id,
+        title: source.data.title,
+        role: "primary",
+        sourceRevision: source.data.knowledgeRevision,
+      },
+    ],
+    parameters: {
+      operation,
+      execution: target,
+      title,
     },
-    failureMessageKey: "spaces.media.imageEditor.operation.failed",
-    execute: async ({ taskId }) => {
-      const stages = new Channel<string>(
-        taskId
-          ? (stage) =>
-              useTaskStore().setStatusMessage(
-                taskId,
-                i18n.global.t(`spaces.media.imageEditor.operation.stage.${stage}`),
-              )
-          : undefined,
-      );
-      return invokeCommand<ImageOperationOutput>("plugin:spaces|derive_image", {
-        request: {
-          id,
-          spaceId,
-          sourceNodeId: source.id,
-          outputNodeId: pending.id,
-          sourceRevision,
-          sourceEdit: image.imageEdit ?? null,
-          operation,
-        },
-        onStage: stages,
-      });
-    },
-    onSuccess: (completed, currentSpaceId) => {
-      applyDerivationOutput(store, {
-        ...completed,
-        spaceId: currentSpaceId,
-        relations: [completed.relation],
-      });
-    },
-    onError: async () => {
-      if (pending.data.kind === "image")
-        await store.saveNodeContentForSpace(spaceId, {
-          id: pending.id,
-          expectedData: pending.data,
-          data: { ...pending.data, processingState: "failed" },
-        });
-      await store.refreshActiveSpace();
-    },
+    title,
   });
-  onOutputCreated?.();
-  return generation;
+  if (run) options.onOutputCreated?.();
+  return run;
 }

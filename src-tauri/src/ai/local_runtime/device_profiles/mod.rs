@@ -43,6 +43,26 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         {
             (1, 1, "U2Net image segmentation CPU")
         }
+        (RuntimeCapability::ImageUpscaling, _, "cpu")
+            if valid_threaded_profile(device_profile, "image-upscaling-cpu-threads") =>
+        {
+            (1, 3, "Real-ESRGAN tiled CPU")
+        }
+        (RuntimeCapability::ImageInpainting, _, "cpu")
+            if valid_threaded_profile(device_profile, "image-inpainting-cpu-threads") =>
+        {
+            (1, 2, "MI-GAN selected region CPU")
+        }
+        (RuntimeCapability::ImageSelection, _, "cpu")
+            if valid_threaded_profile(device_profile, "image-selection-cpu-threads") =>
+        {
+            (2, 3, "EfficientSAM CPU")
+        }
+        (RuntimeCapability::ImageDepth, _, "cpu")
+            if valid_threaded_profile(device_profile, "image-depth-cpu-threads") =>
+        {
+            (1, 2, "Depth Anything Small CPU")
+        }
         (RuntimeCapability::SpeechTranscription, "mlx-whisper-small-mps-v1", "mps") => {
             (2, 3, "MLX Whisper small MPS")
         }
