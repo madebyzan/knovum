@@ -1,4 +1,5 @@
-import { shallowRef } from "vue";
+import { computed, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import type { SaveSpeechProjectRevisionRequest } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
@@ -12,8 +13,17 @@ export function useSpeechProjectLeave(
   discardDraft: () => void,
   settleRevisionSave: () => Promise<void>,
 ) {
+  const { t } = useI18n();
   const dirty = shallowRef(false);
   const draft = shallowRef<RevisionInput>();
+  const dialogTitle = computed(() =>
+    draft.value ? t("spaces.speech.project.unsavedTitle") : t("spaces.speech.project.incompleteTitle"),
+  );
+  const dialogDescription = computed(() =>
+    draft.value
+      ? t("spaces.speech.project.unsavedDescription")
+      : t("spaces.speech.project.incompleteDescription"),
+  );
   const leave = useUnsavedSessionParticipant({
     dirty,
     beforeLeave: settleRevisionSave,
@@ -37,5 +47,5 @@ export function useSpeechProjectLeave(
     dirty.value = value;
     draft.value = input;
   }
-  return { draft, leave, selectProject, updateDraft };
+  return { draft, dialogTitle, dialogDescription, leave, selectProject, updateDraft };
 }

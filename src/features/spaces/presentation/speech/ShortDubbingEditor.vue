@@ -42,6 +42,7 @@ const {
   wavPrecision,
   lexicon,
   dirty,
+  needsRevision,
   valid,
   revisionInput,
 } = useShortDubbingDraft(
@@ -62,11 +63,14 @@ function preview() {
   );
 }
 
-watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? revisionInput() : undefined));
+watchEffect(() =>
+  emit("draftState", dirty.value, needsRevision.value && valid.value ? revisionInput() : undefined),
+);
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="space-y-3">
+    <p class="text-caption font-medium text-fg-secondary">{{ t("spaces.speech.project.script") }}</p>
     <UiTextarea
       v-model="text"
       :rows="6"
@@ -74,13 +78,17 @@ watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? r
       :placeholder="t('spaces.speech.project.scriptPlaceholder')"
       :aria-label="t('spaces.speech.project.script')"
     />
-    <UiSelect
-      v-model="voiceRevisionId"
-      size="sm"
-      :label="t('spaces.speech.voice.label')"
-      :options="voiceOptions"
-      :disabled="disabled || voices.length === 0"
-    />
+    <label v-if="voiceOptions.length" class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+      <span>{{ t("spaces.speech.voice.label") }}</span>
+      <UiSelect
+        v-model="voiceRevisionId"
+        size="sm"
+        :label="t('spaces.speech.voice.label')"
+        :options="voiceOptions"
+        :placeholder="t('spaces.speech.project.selectVoice')"
+        :disabled="disabled"
+      />
+    </label>
     <UiTextarea
       v-if="supportsDeliveryInstruction"
       v-model="deliveryInstruction"
@@ -90,7 +98,7 @@ watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? r
       :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
       :aria-label="t('spaces.speech.project.deliveryInstruction')"
     />
-    <div class="flex gap-2">
+    <div v-if="voiceOptions.length" class="flex gap-2">
       <UiButton size="sm" :disabled="disabled || !valid" @click="preview">
         <Play class="size-3.5" />{{ t("spaces.speech.project.preview") }}
       </UiButton>

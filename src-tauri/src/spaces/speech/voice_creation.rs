@@ -11,9 +11,6 @@ pub async fn create_candidate_voice(
     app: tauri::AppHandle,
     request: CreateCandidateVoiceRequest,
 ) -> Result<VoiceLibraryRevision, AppError> {
-    if !request.authorized {
-        return Err("Voice creation requires explicit authorization".into());
-    }
     if !(1..=120).contains(&request.name.trim().chars().count()) {
         return Err("Voice name must contain between 1 and 120 characters".into());
     }
@@ -55,8 +52,6 @@ pub async fn create_candidate_voice(
             .bind(&record.candidate.source_kind).bind(now).bind(now)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
         let authorization = serde_json::json!({
-            "declared": true,
-            "declaredAt": now,
             "referenceTranscriptConfirmed": record.candidate.reference_text.is_some(),
             "candidateId": request.candidate_id,
             "candidateRunId": record.candidate.run_id,

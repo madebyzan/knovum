@@ -13,6 +13,7 @@ const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed",
 export function useSourceSeparation() {
   const { t } = useI18n();
   const activeRunId = shallowRef<string>();
+  const runState = shallowRef<RunObservation["state"]>();
   const isPreparing = shallowRef(false);
   const isCancelling = shallowRef(false);
   const isBusy = computed(() => isPreparing.value || isCancelling.value);
@@ -25,12 +26,14 @@ export function useSourceSeparation() {
     stopObservation?.();
     stopObservation = undefined;
     activeRunId.value = undefined;
+    runState.value = undefined;
     isPreparing.value = false;
     isCancelling.value = false;
     error.value = undefined;
   }
 
   function settle(run: RunObservation) {
+    runState.value = run.state;
     activeRunId.value = undefined;
     error.value = ["succeeded", "cancelled"].includes(run.state)
       ? undefined
@@ -38,13 +41,16 @@ export function useSourceSeparation() {
   }
 
   function observe(run: RunObservation, currentEpoch: number) {
+    runState.value = run.state;
     if (TERMINAL_STATES.has(run.state)) {
       settle(run);
       return;
     }
     activeRunId.value = run.id;
     stopObservation = observeResourceRun(run, t("spaces.speech.separation.task"), (next) => {
-      if (currentEpoch !== observationEpoch || !TERMINAL_STATES.has(next.state)) return;
+      if (currentEpoch !== observationEpoch) return;
+      runState.value = next.state;
+      if (!TERMINAL_STATES.has(next.state)) return;
       stopObservation?.();
       stopObservation = undefined;
       settle(next);
@@ -70,6 +76,7 @@ export function useSourceSeparation() {
     const currentEpoch = ++observationEpoch;
     isPreparing.value = true;
     error.value = undefined;
+    runState.value = undefined;
     try {
       const run = await startSpeechSourceSeparation({
         requestId: crypto.randomUUID(),
@@ -110,6 +117,9 @@ export function useSourceSeparation() {
     restore,
     activeRunId: readonly(activeRunId),
     isBusy: readonly(isBusy),
+    isPreparing: readonly(isPreparing),
+    isCancelling: readonly(isCancelling),
+    runState: readonly(runState),
     error: readonly(error),
     start,
     cancel,

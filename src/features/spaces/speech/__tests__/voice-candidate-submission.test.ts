@@ -27,7 +27,6 @@ const input: Omit<DraftVoiceCandidateRequest, "requestId"> = {
   language: "en",
   text: "Example",
   seed: 0,
-  authorized: true,
   source: { kind: "designed", description: "Warm narrator" },
 };
 const run: RunObservation = {

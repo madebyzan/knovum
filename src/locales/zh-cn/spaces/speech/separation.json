@@ -1,10 +1,15 @@
 {
   "task": "人声与背景分离",
-  "cancel": "取消分离",
-  "title": "人声与伴奏分离",
+  "title": "人声与背景分离",
   "stems": {
     "vocals": "人声",
     "background": "背景声"
   },
-  "background": "分离的背景声"
+  "background": "分离的背景声",
+  "running": "正在分离",
+  "starting": "准备分离…",
+  "cancelling": "正在取消…",
+  "completed": "人声与背景声已添加到画布",
+  "sourceUnavailable": "音频信息尚未就绪",
+  "tooLong": "请选择不超过 10 分钟的音频"
 }

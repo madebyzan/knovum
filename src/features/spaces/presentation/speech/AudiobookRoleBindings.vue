@@ -61,6 +61,7 @@ async function addRole() {
         class="min-w-0 flex-1"
         size="sm"
         :label="t('spaces.speech.voice.label')"
+        :placeholder="t('spaces.speech.project.selectVoice')"
         :options="voiceOptions"
         :disabled="disabled"
         @update:model-value="emit('voice', role, $event)"

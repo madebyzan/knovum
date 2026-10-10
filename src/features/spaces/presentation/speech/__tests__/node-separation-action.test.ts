@@ -3,9 +3,13 @@ import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/i18n";
+import type { RunObservation } from "../../../contracts/generated/RunObservation";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { useSourceSeparation } from "../../../speech/use-source-separation";
+import type { NodeSpeechOperation } from "../node-speech-operations";
+import SpaceNodeSeparationBar from "../SpaceNodeSeparationBar.vue";
 import SpaceNodeSpeechActions from "../SpaceNodeSpeechActions.vue";
+import SpaceNodeSpeechControls from "../SpaceNodeSpeechControls.vue";
 import { useNodeSeparation } from "../use-node-separation";
 
 const mocks = vi.hoisted(() => ({
@@ -30,13 +34,19 @@ const node: SpaceCanvasNode = {
     mediaAnalysis: { schemaVersion: 1, sourceRevision: revision, durationMs: 30_000, waveform: [] },
   },
 };
-function render() {
-  mocks.store.nodes = [node];
+function render(nodes = [node]) {
+  mocks.store.nodes = nodes;
   type Separation = ReturnType<typeof useSourceSeparation>;
-  const separation: Separation = {
-    activeRunId: shallowRef(undefined),
+  const state = {
+    activeRunId: shallowRef<string>(),
+    runState: shallowRef<RunObservation["state"]>(),
+    isPreparing: shallowRef(false),
+    isCancelling: shallowRef(false),
     isBusy: shallowRef(false),
-    error: shallowRef(undefined),
+    error: shallowRef<string>(),
+  };
+  const separation: Separation = {
+    ...state,
     restore: vi.fn<Separation["restore"]>().mockResolvedValue(),
     start: vi.fn<Separation["start"]>().mockResolvedValue(),
     cancel: vi.fn<Separation["cancel"]>().mockResolvedValue(),
@@ -45,17 +55,46 @@ function render() {
   mocks.separation.mockReturnValue(separation);
   const Operation = defineComponent({
     setup() {
-      const { toggleSeparation } = useNodeSeparation(shallowRef(node));
-      return () => h(SpaceNodeSpeechActions, { node, onSeparate: toggleSeparation });
+      const { unavailableReason, startSeparation } = useNodeSeparation(shallowRef(node));
+      const operation = shallowRef<NodeSpeechOperation>();
+      return () => [
+        h(SpaceNodeSpeechActions, {
+          node,
+          separating: Boolean(separation.activeRunId.value),
+          separationBusy: separation.isBusy.value,
+          separationUnavailableReason: unavailableReason.value,
+          onSeparate: () => {
+            operation.value = "separate";
+            if (!separation.activeRunId.value) void startSeparation();
+          },
+        }),
+        h(
+          SpaceNodeSpeechControls,
+          {
+            node,
+            operation: operation.value,
+            "onUpdate:operation": (next: NodeSpeechOperation | undefined) => {
+              operation.value = next;
+            },
+          },
+          {
+            separation: ({ close }: { close: () => void }) =>
+              h(SpaceNodeSeparationBar, { separation, onClose: close }),
+          },
+        ),
+      ];
     },
   });
   const wrapper = mount(Operation, {
     global: { plugins: [i18n], stubs: { ToolbarButton: { template: "<slot />" } } },
   });
-  onTestFinished(() => wrapper.unmount());
-  return { wrapper, separation };
+  onTestFinished(() => {
+    wrapper.unmount();
+    document.body.innerHTML = "";
+  });
+  return { wrapper, separation, state };
 }
-it("starts source separation with one toolbar click and opens no intermediate editor", async () => {
+it("starts separation immediately and exposes its task in a nonmodal contextual bar", async () => {
   const { wrapper, separation } = render();
   await flushPromises();
   await wrapper.get('[data-operation="separate"]').trigger("click");
@@ -68,11 +107,50 @@ it("starts source separation with one toolbar click and opens no intermediate ed
   expect(wrapper.getComponent(SpaceNodeSpeechActions).emitted("begin")).toBeUndefined();
   expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
 });
-it("uses the same operation to cancel the currently running separation", async () => {
-  const { wrapper, separation } = render();
-  (separation.activeRunId as ReturnType<typeof shallowRef<string | undefined>>).value = "running";
+it("opens a running separation without cancelling it and uses an explicit cancel action", async () => {
+  const { wrapper, separation, state } = render();
+  state.activeRunId.value = "running";
   await wrapper.get('[data-operation="separate"]').trigger("click");
   await flushPromises();
-  expect(separation.cancel).toHaveBeenCalledOnce();
+  expect(separation.cancel).not.toHaveBeenCalled();
   expect(separation.start).not.toHaveBeenCalled();
+  await wrapper.get('[data-testid="cancel-separation"]').trigger("click");
+  expect(separation.cancel).toHaveBeenCalledOnce();
+  state.isCancelling.value = true;
+  await flushPromises();
+  expect(wrapper.get('[data-testid="cancel-separation"]').attributes("disabled")).toBeDefined();
+});
+
+it("closes task controls without cancelling the background task", async () => {
+  const { wrapper, separation, state } = render();
+  state.activeRunId.value = "running";
+  await wrapper.get('[data-operation="separate"]').trigger("click");
+  await flushPromises();
+  await wrapper.get('[data-testid="node-speech-controls"]').trigger("keydown", { key: "Escape" });
+  expect(wrapper.find('[data-testid="node-separation-controls"]').exists()).toBe(false);
+  expect(separation.cancel).not.toHaveBeenCalled();
+});
+
+it("reflects automatic publication without another confirmation or repeated failure message", async () => {
+  const { wrapper, state } = render();
+  state.activeRunId.value = "running";
+  await wrapper.get('[data-operation="separate"]').trigger("click");
+  await flushPromises();
+  state.activeRunId.value = undefined;
+  state.runState.value = "succeeded";
+  await flushPromises();
+  expect(wrapper.get('[role="status"]').text()).toBe(i18n.global.t("spaces.speech.separation.completed"));
+  expect(wrapper.find('[data-testid="retry-separation"]').exists()).toBe(false);
+  state.runState.value = "failed";
+  state.error.value = i18n.global.t("spaces.creation.workflow.states.failed");
+  await flushPromises();
+  expect(wrapper.findAll('[role="alert"]')).toHaveLength(1);
+});
+
+it("explains an unavailable source instead of leaving a silent disabled action", async () => {
+  const { wrapper } = render([]);
+  await flushPromises();
+  const action = wrapper.get('[data-operation="separate"]');
+  expect(action.attributes("disabled")).toBeDefined();
+  expect(action.attributes("title")).toBe(i18n.global.t("spaces.speech.separation.sourceUnavailable"));
 });

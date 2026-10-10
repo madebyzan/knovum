@@ -193,9 +193,6 @@ fn request_digest(request: &DraftVoiceCandidateRequest) -> Result<String, String
 }
 
 fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> {
-    if !request.authorized {
-        return Err("Voice synthesis requires an explicit authorization declaration".into());
-    }
     if !matches!(request.language.as_str(), "zh-CN" | "en")
         || request.text.trim().is_empty()
         || request.text.chars().count() > 500

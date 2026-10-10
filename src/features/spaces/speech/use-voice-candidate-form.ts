@@ -23,7 +23,6 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const preparingReference = shallowRef(false);
   const transcript = shallowRef("");
   const transcriptConfirmed = shallowRef(false);
-  const authorized = shallowRef(false);
   const initialText = t("spaces.speech.voice.candidate.sample");
   const text = shallowRef(initialText);
   watch(
@@ -34,8 +33,19 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     },
     { flush: "sync" },
   );
-  const { candidates, activeRunId, pendingRequestId, busy, errors, draft, save, cancel, discard, audition } =
-    useVoiceCandidates();
+  const {
+    candidates,
+    activeRunId,
+    pendingRequestId,
+    busy,
+    isCancelling,
+    errors,
+    draft,
+    save,
+    cancel,
+    discard,
+    audition,
+  } = useVoiceCandidates();
   if (requestedSourceKind)
     watch(requestedSourceKind, (sourceKind) => {
       if (sourceKind) mode.value = sourceKind;
@@ -55,16 +65,13 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
         !preparingReference.value &&
         (referenceTranscript.value === "unused" || !transcript.value.trim() || transcriptConfirmed.value),
   );
-  const ready = computed(
-    () => authorized.value && modelAvailable.value && text.value.trim() && sourceReady.value,
-  );
+  const ready = computed(() => modelAvailable.value && text.value.trim() && sourceReady.value);
   const dirty = computed(
     () =>
       mode.value !== initialMode ||
       model.value !== DEFAULT_MODEL ||
       language.value !== "zh-CN" ||
       Boolean(description.value.trim() || reference.value || transcript.value.trim()) ||
-      authorized.value ||
       text.value !== initialText,
   );
 
@@ -94,7 +101,6 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       model: model.value,
       language: language.value,
       text: text.value.trim(),
-      authorized: authorized.value,
       seed: crypto.getRandomValues(new Uint32Array(1))[0]!,
       source: candidateSource,
     });
@@ -111,12 +117,12 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     preparingReference,
     transcript,
     transcriptConfirmed,
-    authorized,
     text,
     candidates,
     activeRunId,
     pendingRequestId,
     busy,
+    isCancelling,
     errors,
     modes,
     languages,

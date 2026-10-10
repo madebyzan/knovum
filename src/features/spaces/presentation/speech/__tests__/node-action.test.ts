@@ -20,6 +20,7 @@ const SpeechOperation = defineComponent({
     return () => [
       h(SpaceNodeSpeechActions, {
         node: props.node,
+        separationUnavailableReason: undefined,
         onBegin: (selected: NodeSpeechOperation) => {
           operation.value = selected;
         },

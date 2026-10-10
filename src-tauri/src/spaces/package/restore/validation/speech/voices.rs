@@ -94,11 +94,6 @@ pub(super) fn validate(
                         || row.design_description.is_some()))
                 || config.sample_rate != 48_000
                 || config.speed != 1.0
-                || row
-                    .authorization
-                    .get("declared")
-                    .and_then(serde_json::Value::as_bool)
-                    != Some(true)
                 || (row.reference_text.is_some()
                     && row
                         .authorization
@@ -107,8 +102,7 @@ pub(super) fn validate(
                         != Some(true))
             {
                 return Err(
-                    "Package reference voice differs from its authorized synthesis model contract"
-                        .into(),
+                    "Package reference voice differs from its synthesis model contract".into(),
                 );
             }
         }

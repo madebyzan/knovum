@@ -28,9 +28,9 @@ watch([() => props.node?.id, () => props.node?.data.sourceRevision, () => store.
 watch(
   operation,
   async (value) => {
-    if (!value) return;
+    if (!value || value === "clone") return;
     await nextTick();
-    const target = value === "clone" ? "button" : "section";
+    const target = value === "separate" ? "button" : "section";
     controlsRef.value?.querySelector<HTMLElement>(target)?.focus({ preventScroll: true });
   },
   { immediate: true, flush: "post" },
@@ -42,15 +42,17 @@ watch(
     v-if="node && operation"
     ref="controlsRef"
     class="w-max max-w-full"
+    :style="{ maxWidth: availableWidth === undefined ? undefined : `${availableWidth}px` }"
     data-testid="node-speech-controls"
     @keydown.esc.stop="close"
   >
     <SpaceVoiceCloneBar
       v-if="operation === 'clone'"
       :node="node"
-      :compact="availableWidth !== undefined && availableWidth < 520"
+      :available-width="availableWidth"
       @close="close"
     />
+    <slot v-else-if="operation === 'separate'" name="separation" :close="close" />
     <section
       v-else
       tabindex="-1"

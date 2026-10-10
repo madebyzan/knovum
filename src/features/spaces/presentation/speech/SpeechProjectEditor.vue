@@ -11,7 +11,7 @@ import type { SpeechGenerationProgress } from "../../contracts/generated/SpeechG
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { nodeSpeechText } from "../../speech/node-speech";
+import { narrationText } from "../../speech/narration-text";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
@@ -39,14 +39,13 @@ const props = defineProps<{
   previewListening: boolean;
 }>();
 const emit = defineEmits<{
-  save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
   preview: [
     text: string,
     voiceRevisionId: string,
     pronunciationLexicon: Record<string, string>,
     deliveryInstruction?: string,
   ];
-  generate: [];
+  generate: [input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
   cancel: [];
   stopListening: [];
   export: [path: string];
@@ -79,10 +78,11 @@ const isEditorDisabled = computed(
 );
 const canGenerate = computed(
   () =>
-    !isDirty.value &&
     !isEditorDisabled.value &&
-    props.project.segments.length > 0 &&
-    props.project.segments.every((segment) => segment.state !== "needs_edit"),
+    (Boolean(draftInput.value) ||
+      (!isDirty.value &&
+        props.project.segments.length > 0 &&
+        props.project.segments.every((segment) => segment.state !== "needs_edit"))),
 );
 const runLabel = computed(() => (props.runState ? t(workflowStateLabelKey(props.runState)) : undefined));
 
@@ -110,7 +110,7 @@ function updateDraft(
         <ShortDubbingEditor
           v-if="project.project.projectType === 'short_dubbing'"
           :project="project"
-          :source-text="nodeSpeechText(sourceNode)"
+          :source-text="narrationText(sourceNode)"
           :voices="voices"
           :disabled="isEditorDisabled"
           @draft-state="updateDraft"
@@ -120,6 +120,7 @@ function updateDraft(
           v-else-if="project.project.projectType === 'audiobook'"
           :project="project"
           :source-node="sourceNode"
+          @busy="isOperationBusy = $event"
           :voices="voices"
           :disabled="isEditorDisabled"
           @draft-state="updateDraft"
@@ -168,14 +169,13 @@ function updateDraft(
     </div>
     <SpeechProjectActions
       :can-generate="canGenerate"
-      :can-save="isDirty && Boolean(draftInput) && !isEditorDisabled"
+      :project-type="project.project.projectType"
       :is-running="running"
       :is-submitting="submitting"
       :is-saving="saving"
       :is-cancelling="cancelling"
       :is-preview-listening="previewListening"
-      @generate="emit('generate')"
-      @save="draftInput && emit('save', draftInput)"
+      @generate="emit('generate', draftInput)"
       @cancel="emit('cancel')"
       @stop-listening="emit('stopListening')"
     />

@@ -5,6 +5,7 @@ import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProject
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { WavPrecision } from "../contracts/generated/WavPrecision";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
+import { useSpeechDraftChanges } from "./use-speech-draft-changes";
 import {
   defaultVoiceRevisionId,
   deliveryInstructionIsValid,
@@ -20,7 +21,6 @@ export function useShortDubbingDraft(
   const voiceRevisionId = shallowRef("");
   const deliveryInstruction = shallowRef("");
   const wavPrecision = shallowRef<WavPrecision>("pcm16");
-  const saved = shallowRef("");
   const lexicon = usePronunciationLexicon(() => project().revision);
 
   const snapshot = () =>
@@ -31,7 +31,7 @@ export function useShortDubbingDraft(
       wavPrecision.value,
       lexicon.entries.value,
     ]);
-  const dirty = computed(() => snapshot() !== saved.value);
+  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
   const selectedVoice = computed(() => voices().find((voice) => voice.revisionId === voiceRevisionId.value));
   const supportsDeliveryInstruction = computed(() =>
     voiceSupportsDeliveryInstruction(voices(), voiceRevisionId.value),
@@ -54,16 +54,19 @@ export function useShortDubbingDraft(
       voiceRevisionId.value =
         projectSnapshot.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());
       deliveryInstruction.value = projectSnapshot.segments[0]?.deliveryInstruction ?? "";
-      saved.value = snapshot();
+      acceptRevision();
       if (projectSnapshot.project.activeRevision === 1 && !projectSnapshot.segments.length)
         text.value = sourceText();
+      acceptInitialization();
     },
     { immediate: true },
   );
 
   watch(voices, () => {
+    const wasDirty = dirty.value;
     if (!voiceRevisionId.value && !project().segments.length)
       voiceRevisionId.value = defaultVoiceRevisionId(voices());
+    if (!wasDirty) acceptInitialization();
   });
   watch(supportsDeliveryInstruction, (supported) => {
     if (!supported) deliveryInstruction.value = "";
@@ -98,6 +101,7 @@ export function useShortDubbingDraft(
     wavPrecision,
     lexicon,
     dirty,
+    needsRevision,
     valid,
     revisionInput,
   };

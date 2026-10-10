@@ -1,10 +1,8 @@
 {
   "backgroundAudio": "Background audio",
   "muteOriginal": "Mute original audio",
-  "sourcesHint": "Choose analyzed media from this Space. Original audio is muted; background audio must be a separate recording.",
   "voiceGain": "Voice gain (dB)",
   "backgroundGain": "Background gain (dB)",
-  "timingRule": "Each line must fit its target interval. Ratios outside 0.90–1.10 require editing; overlapping lines remain on separate tracks.",
   "importTranscript": "Use source transcript",
   "startSeconds": "Start (seconds)",
   "endSeconds": "End (seconds)",

@@ -10,6 +10,7 @@ import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRe
 import type { SpaceMediaTranscript } from "../media/schema/transcript";
 import type { DubbingSubtitle } from "./dubbing-subtitles";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
+import { useSpeechDraftChanges } from "./use-speech-draft-changes";
 import { selectBackground, selectSeparatedBackground } from "./video-background-selection";
 import {
   applyTranslation as applyTranslatedLines,
@@ -30,10 +31,9 @@ export function useVideoDubbingDraft(
   const voiceGain = shallowRef("0");
   const backgroundGain = shallowRef("-12");
   const lexicon = usePronunciationLexicon(() => project().revision);
-  let saved = "";
   const snapshot = () =>
     JSON.stringify([lines.value, config.value, voiceGain.value, backgroundGain.value, lexicon.entries.value]);
-  const dirty = computed(() => snapshot() !== saved);
+  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
   watch(
     () => project().revision.id,
     () => {
@@ -44,10 +44,20 @@ export function useVideoDubbingDraft(
       voiceGain.value = String(config.value.voiceGainDb);
       backgroundGain.value = String(config.value.backgroundGainDb);
       lines.value = projectSnapshot.segments.map(videoLineFromSegment);
-      saved = snapshot();
+      acceptRevision();
     },
     { immediate: true },
   );
+  watch(voices, () => {
+    const wasDirty = dirty.value;
+    const voiceId = defaultVoiceRevisionId(voices());
+    if (!voiceId) return;
+    for (const line of lines.value) {
+      if (!line.voiceRevisionId) line.voiceRevisionId = voiceId;
+    }
+    if (!wasDirty) acceptInitialization();
+  });
+
   function addLine() {
     lines.value.push({
       key: crypto.randomUUID(),
@@ -60,7 +70,8 @@ export function useVideoDubbingDraft(
       needsTimingEdit: false,
     });
   }
-  function importTranscript(transcript: SpaceMediaTranscript) {
+  function importTranscript(transcript: SpaceMediaTranscript, initialize = false) {
+    const wasDirty = dirty.value;
     lines.value = transcript.segments.map((segment) => ({
       key: crypto.randomUUID(),
       text: segment.text,
@@ -80,6 +91,7 @@ export function useVideoDubbingDraft(
         translation: null,
         sourceDialogueIntervals: transcript.segments.map(({ startMs, endMs }) => ({ startMs, endMs })),
       };
+    if (initialize && !wasDirty) acceptInitialization();
   }
   function importSubtitles(cues: readonly DubbingSubtitle[]) {
     lines.value = cues.map((cue) => ({
@@ -152,6 +164,7 @@ export function useVideoDubbingDraft(
     backgroundGain,
     lexicon,
     dirty,
+    needsRevision,
     valid,
     addLine,
     removeLine,

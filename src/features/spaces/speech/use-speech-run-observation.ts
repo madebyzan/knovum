@@ -1,4 +1,4 @@
-import { onScopeDispose, readonly, shallowRef, watch } from "vue";
+import { onScopeDispose, readonly, shallowRef, watch, type DeepReadonly } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
@@ -7,7 +7,7 @@ import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProject
 import { observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
 export interface SpeechRunOwner {
-  project: () => SpeechProjectSnapshot | undefined;
+  project: () => DeepReadonly<SpeechProjectSnapshot> | undefined;
   reloadProject: (projectId: string) => Promise<void>;
 }
 

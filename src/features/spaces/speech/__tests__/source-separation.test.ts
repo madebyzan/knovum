@@ -83,6 +83,19 @@ it("rejoins the selected node's running task and prevents duplicate submission",
   expect(mocks.startSpeechSourceSeparation).not.toHaveBeenCalled();
 });
 
+it("exposes observed task states and clears them when the source changes", async () => {
+  mocks.getLatestSourceSeparationRun.mockResolvedValue(run("running"));
+  const separation = setup();
+  await separation.restore("space", "source", source);
+  expect(separation.runState.value).toBe("running");
+  const update = mocks.observeResourceRun.mock.calls[0]?.[2];
+  update?.(run("succeeded"));
+  expect(separation.runState.value).toBe("succeeded");
+  expect(separation.activeRunId.value).toBeUndefined();
+  separation.reset();
+  expect(separation.runState.value).toBeUndefined();
+});
+
 it("ignores a late restored task after the selected node changes", async () => {
   const loading = deferred<RunObservation | null>();
   mocks.getLatestSourceSeparationRun.mockReturnValueOnce(loading.promise).mockResolvedValueOnce(null);

@@ -8,7 +8,7 @@ const emit = defineEmits<{ change: [start: number, end: number] }>();
 const { t } = useI18n();
 const labels = computed(() => [t("spaces.speech.reference.start"), t("spaces.speech.reference.end")]);
 function change(value: number[] | undefined) {
-  if (value?.length === 2) emit("change", value[0]! / 1000, value[1]! / 1000);
+  if (value?.length === 2) emit("change", value[0]!, value[1]!);
 }
 </script>
 
@@ -16,12 +16,12 @@ function change(value: number[] | undefined) {
   <SliderRoot
     v-if="Number.isFinite(start) && Number.isFinite(end)"
     :model-value="[
-      Math.max(0, Math.min(start * 1000, durationMs)),
-      Math.max(0, Math.min(end * 1000, durationMs)),
+      Math.max(0, Math.min(start, durationMs / 1000)),
+      Math.max(0, Math.min(end, durationMs / 1000)),
     ]"
     :min="0"
-    :max="Math.max(durationMs, 1)"
-    :step="100"
+    :max="Math.max(durationMs / 1000, 0.1)"
+    :step="0.1"
     :disabled="disabled"
     :aria-label="t('spaces.speech.reference.title')"
     class="relative flex h-7 w-full touch-none items-center select-none data-disabled:opacity-40"

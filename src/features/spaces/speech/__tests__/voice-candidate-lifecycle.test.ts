@@ -107,6 +107,27 @@ it("keeps a cancellation failure attached to the active operation", async () => 
   expect(candidates.activeRunId.value).toBe(running.id);
 });
 
+it("submits cancellation once and keeps controls busy until its reply settles", async () => {
+  const { candidates } = setup();
+  await flushPromises();
+  let finish!: () => void;
+  mocks.cancelResourceRun.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const first = candidates.cancel();
+  const second = candidates.cancel();
+  expect(candidates.isCancelling.value).toBe(true);
+  expect(mocks.cancelResourceRun).toHaveBeenCalledOnce();
+  mocks.observeResourceRun.mock.calls[0]?.[2]?.({ ...running, state: "cancelled" });
+  expect(candidates.busy.value).toBe(true);
+  finish();
+  await Promise.all([first, second]);
+  expect(candidates.isCancelling.value).toBe(false);
+  expect(candidates.busy.value).toBe(false);
+});
+
 it("detaches its view observer without cancelling the durable run", async () => {
   const stop = vi.fn<() => void>();
   mocks.observeResourceRun.mockReturnValue(stop);

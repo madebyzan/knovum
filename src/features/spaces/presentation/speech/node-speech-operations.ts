@@ -3,10 +3,9 @@ import { BookOpen, Clapperboard, Mic2, Music2, Speech } from "@lucide/vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { nodeSpeechProjectTypes, type NodeSpeechProjectType } from "../../speech/node-speech";
 
-export type NodeSpeechOperation = NodeSpeechProjectType | "clone";
-export type NodeSpeechAction = NodeSpeechOperation | "separate";
+export type NodeSpeechOperation = NodeSpeechProjectType | "clone" | "separate";
 
-export function nodeSpeechOperationIds(node: SpaceCanvasNode): readonly NodeSpeechAction[] {
+export function nodeSpeechOperationIds(node: SpaceCanvasNode): readonly NodeSpeechOperation[] {
   const projects = nodeSpeechProjectTypes(node);
   return node.data.kind === "audio" || node.data.kind === "video"
     ? [...projects, "clone", "separate"]
@@ -22,5 +21,5 @@ export const NODE_SPEECH_OPERATIONS = {
     label: "spaces.speech.project.types.videoDubbing",
   },
   clone: { surface: "compact-editor", icon: Mic2, label: "spaces.speech.voice.clone" },
-  separate: { surface: "actions", icon: Music2, label: "spaces.speech.separation.title" },
+  separate: { surface: "compact-editor", icon: Music2, label: "spaces.speech.separation.title" },
 } as const;

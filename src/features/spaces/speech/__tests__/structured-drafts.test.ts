@@ -42,7 +42,12 @@ it("seeds a new narration from its node and keeps saved revisions authoritative"
       ),
     )!;
     expect(draft.text.value).toBe("Node text");
+    expect(draft.dirty.value).toBe(false);
+    expect(draft.needsRevision.value).toBe(true);
+    draft.text.value = "Edited narration";
     expect(draft.dirty.value).toBe(true);
+    draft.text.value = "Node text";
+    expect(draft.dirty.value).toBe(false);
     project.value = {
       ...project.value,
       project: { ...project.value.project, activeRevision: 2, activeRevisionId: "second" },

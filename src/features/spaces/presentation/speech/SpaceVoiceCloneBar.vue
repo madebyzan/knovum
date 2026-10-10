@@ -1,162 +1,132 @@
 <script setup lang="ts">
-import { Mic2, Pause, Play, Scissors, SlidersHorizontal, X } from "@lucide/vue";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Check, LoaderCircle, Mic2, X } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from "reka-ui";
-import { shallowRef, toRef, useTemplateRef } from "vue";
+import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
-import UiPopover from "../../../../shared/ui/UiPopover.vue";
-import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "../canvas/canvas-action-classes";
+import { CANVAS_ACTION_BAR_CLASSES } from "../canvas/canvas-action-classes";
+import { nodeActionLabelClass, nodeActionLabelState } from "../canvas/node-action-label";
+import { useNodeActionBarDensity } from "../canvas/use-node-action-bar-density";
 import SpaceVoiceCloneAuditionControls from "./SpaceVoiceCloneAuditionControls.vue";
-import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
+import SpaceVoiceCloneSourceControls from "./SpaceVoiceCloneSourceControls.vue";
 import { useCanvasVoiceClone } from "./use-canvas-voice-clone";
-import VoiceCandidateOptions from "./VoiceCandidateOptions.vue";
-import VoiceReferenceRange from "./VoiceReferenceRange.vue";
 
-const props = defineProps<{ node: SpaceCanvasNode; compact?: boolean }>();
+const props = defineProps<{ node: SpaceCanvasNode; availableWidth?: number | undefined }>();
 const emit = defineEmits<{ close: [] }>();
-const { t } = useI18n();
-const { form, reference, setRange, save } = useCanvasVoiceClone(toRef(props, "node"));
-const player = useTemplateRef("player");
-const playing = shallowRef(false);
+const { t, locale } = useI18n();
+const { form, reference, save } = useCanvasVoiceClone(toRef(props, "node"));
 const playbackError = shallowRef<string>();
-function auditionSelection() {
-  if (playing.value) player.value?.pause();
-  else void player.value?.seekTo(Number(reference.start) * 1000, Number(reference.end) * 1000);
-}
+const referenceActionLabel = computed(() =>
+  t(reference.jobId ? "common.cancel" : "spaces.speech.reference.prepare"),
+);
+const bar = useTemplateRef<HTMLElement>("bar");
+const openPopover = shallowRef<"range" | "options" | "audition" | "candidates">();
+const sourcePopover = computed({
+  get: () =>
+    openPopover.value === "range" || openPopover.value === "options" ? openPopover.value : undefined,
+  set: (value: "range" | "options" | undefined) => {
+    openPopover.value = value;
+  },
+});
+const auditionPopover = computed({
+  get: () =>
+    openPopover.value === "audition" || openPopover.value === "candidates" ? openPopover.value : undefined,
+  set: (value: "audition" | "candidates" | undefined) => {
+    openPopover.value = value;
+  },
+});
+const identity = computed(() => `${locale.value}:${props.node.id}:${Boolean(form.reference)}`);
+const { compact, ready } = useNodeActionBarDensity(
+  bar,
+  computed(() => props.availableWidth ?? Number.POSITIVE_INFINITY),
+  identity,
+);
+let focused = false;
+watch(
+  [ready, () => form.reference],
+  async ([isReady, prepared], [, previous]) => {
+    if (!isReady || (focused && (prepared === previous || document.activeElement !== document.body))) return;
+    await nextTick();
+    const target = prepared ? '[data-testid="clone-audition-options"]' : "button:not(:disabled)";
+    bar.value?.querySelector<HTMLButtonElement>(target)?.focus({ preventScroll: true });
+    focused = true;
+  },
+  { flush: "post" },
+);
 </script>
 
 <template>
-  <ToolbarRoot
-    :class="CANVAS_ACTION_BAR_CLASSES"
-    :aria-label="t('spaces.speech.voice.clone')"
-    :loop="false"
-    data-testid="node-voice-clone-bar"
+  <div
+    ref="bar"
+    class="w-max max-w-full"
+    :class="ready ? 'visible' : 'invisible'"
+    :style="{ maxWidth: availableWidth === undefined ? undefined : `${availableWidth}px` }"
   >
-    <Mic2 class="ml-2 size-4 text-fg-secondary" :stroke-width="1.6" />
-    <span class="px-1.5 text-label font-medium" :class="compact && 'sr-only'">{{
-      t("spaces.speech.voice.cloneShort")
-    }}</span>
-    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
-    <ToolbarButton as-child
-      ><UiIconButton
-        :label="playing ? t('common.pause') : t('spaces.speech.reference.play')"
-        size="sm"
-        :disabled="!reference.selectionValid || form.busy"
-        @click="auditionSelection"
-        ><Pause v-if="playing" class="size-3.5" /><Play v-else class="size-3.5" /></UiIconButton
-    ></ToolbarButton>
-    <UiPopover align="start" class="w-72 space-y-3 p-3">
-      <template #trigger
-        ><ToolbarButton as-child
-          ><button
-            type="button"
-            :class="CANVAS_ACTION_BUTTON_CLASSES"
-            :disabled="form.busy || form.preparingReference"
-            :aria-label="t('spaces.speech.reference.title')"
-          >
-            <Scissors class="size-4" :stroke-width="1.6" /><span class="tabular-nums"
-              >{{ formatDurationMs(Number(reference.start) * 1000) }}–{{
-                formatDurationMs(Number(reference.end) * 1000)
-              }}</span
-            >
-          </button></ToolbarButton
-        ></template
-      >
-      <VoiceReferenceRange
-        :start="Number(reference.start)"
-        :end="Number(reference.end)"
-        :duration-ms="reference.durationMs ?? 0"
-        :disabled="form.busy || form.preparingReference"
-        @change="setRange"
-      />
-      <div class="grid grid-cols-2 gap-3">
-        <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
-          ><span>{{ t("spaces.speech.reference.start") }}</span
-          ><UiInput
-            v-model="reference.start"
-            size="sm"
-            inputmode="decimal"
-            :disabled="form.busy || form.preparingReference"
-        /></label>
-        <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
-          ><span>{{ t("spaces.speech.reference.end") }}</span
-          ><UiInput
-            v-model="reference.end"
-            size="sm"
-            inputmode="decimal"
-            :disabled="form.busy || form.preparingReference"
-        /></label>
-      </div>
-      <p
-        class="text-caption-sm leading-relaxed"
-        :class="reference.selectionValid ? 'text-fg-tertiary' : 'text-fg-danger'"
-      >
-        {{ t("spaces.speech.reference.requirements") }}
-      </p>
-    </UiPopover>
-    <UiPopover class="w-80 p-3" align="start" force-mount>
-      <template #trigger
-        ><ToolbarButton as-child
-          ><button
-            type="button"
-            :class="CANVAS_ACTION_BUTTON_CLASSES"
-            :aria-label="t('spaces.speech.voice.options')"
-          >
-            <SlidersHorizontal class="size-4" :stroke-width="1.6" /></button></ToolbarButton
-      ></template>
-      <VoiceCandidateOptions
-        v-model:mode="form.mode"
-        v-model:model="form.model"
-        v-model:available="form.modelAvailable"
-        v-model:reference-transcript="form.referenceTranscript"
-        v-model:language="form.language"
-        fixed-source
-        :disabled="form.busy || form.preparingReference"
-        :modes="form.modes"
-        :languages="form.languages"
-      />
-    </UiPopover>
-    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
-    <UiButton v-if="reference.jobId" variant="ghost" size="sm" @click="reference.cancel">{{
-      t("common.cancel")
-    }}</UiButton>
-    <UiButton
-      v-else-if="!form.reference"
-      variant="primary"
-      size="sm"
-      class="mx-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
-      :disabled="!reference.canPrepare"
-      @click="reference.prepare"
-      >{{ t("spaces.speech.reference.prepare") }}</UiButton
+    <ToolbarRoot
+      :class="CANVAS_ACTION_BAR_CLASSES"
+      :aria-label="t('spaces.speech.voice.clone')"
+      :loop="false"
+      data-testid="node-voice-clone-bar"
     >
-    <SpaceVoiceCloneAuditionControls v-else :form="form" :save="save" />
-    <UiActionHelp
+      <template v-if="!compact">
+        <Mic2 class="ml-2 size-4.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
+        <span class="px-1.5 text-label font-medium">{{ t("spaces.speech.voice.cloneShort") }}</span>
+        <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
+      </template>
+      <SpaceVoiceCloneSourceControls
+        v-model:open-popover="sourcePopover"
+        :form="form"
+        :reference="reference"
+        :compact="compact"
+        @playback-error="playbackError = $event"
+      />
+      <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
+      <ToolbarButton v-if="!form.reference" as-child>
+        <UiButton
+          :variant="reference.jobId ? 'ghost' : 'primary'"
+          size="sm"
+          class="mx-1"
+          :class="
+            !reference.jobId && 'bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90'
+          "
+          :disabled="reference.jobId ? reference.isCancelling : !reference.canPrepare"
+          :aria-label="referenceActionLabel"
+          :title="compact ? referenceActionLabel : undefined"
+          @click="reference.jobId ? reference.cancel() : reference.prepare()"
+        >
+          <component
+            :is="reference.jobId ? LoaderCircle : Check"
+            class="size-4.5"
+            :class="reference.jobId && 'animate-spin motion-reduce:animate-none'"
+            :stroke-width="1.6"
+          />
+          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+            referenceActionLabel
+          }}</span>
+        </UiButton>
+      </ToolbarButton>
+      <SpaceVoiceCloneAuditionControls
+        v-else
+        v-model:open-popover="auditionPopover"
+        :compact="compact"
+        :form="form"
+        @save="save"
+      />
+      <ToolbarButton as-child
+        ><UiIconButton :label="t('common.close')" size="md" tooltip @click="emit('close')"
+          ><X class="size-4.5" /></UiIconButton
+      ></ToolbarButton>
+    </ToolbarRoot>
+    <div
       v-if="reference.error || playbackError || form.errors.length"
-      :label="reference.error || playbackError || form.errors.join('\n')"
-    />
-    <ToolbarButton as-child
-      ><UiIconButton :label="t('common.close')" size="sm" @click="emit('close')"
-        ><X class="size-3.5" /></UiIconButton
-    ></ToolbarButton>
-  </ToolbarRoot>
-  <SpeechMediaPlayer
-    v-if="reference.path"
-    :key="reference.sourceVersion"
-    ref="player"
-    class="hidden"
-    kind="audio"
-    :source="convertFileSrc(reference.path)"
-    @loaded="reference.selectionLoaded"
-    @error="playbackError = $event"
-    @play="playing = true"
-    @pause="playing = false"
-    @ended="playing = false"
-  />
+      class="mt-2 max-w-sm space-y-1 rounded-panel border border-stroke-divider bg-surface-overlay px-3 py-2 text-caption wrap-break-word text-fg-danger"
+      role="alert"
+    >
+      <p v-if="reference.error || playbackError">{{ reference.error || playbackError }}</p>
+      <p v-for="message in form.errors" :key="message">{{ message }}</p>
+    </div>
+  </div>
 </template>

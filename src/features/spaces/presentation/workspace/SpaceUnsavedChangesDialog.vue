@@ -2,7 +2,17 @@
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 
-defineProps<{ open: boolean; saving: boolean; canSave?: boolean; title: string; description: string }>();
+withDefaults(
+  defineProps<{
+    open: boolean;
+    saving: boolean;
+    canSave?: boolean;
+    showSave?: boolean;
+    title: string;
+    description: string;
+  }>(),
+  { canSave: true, showSave: true },
+);
 const emit = defineEmits<{ save: []; discard: []; cancel: [] }>();
 </script>
 
@@ -13,7 +23,13 @@ const emit = defineEmits<{ save: []; discard: []; cancel: [] }>();
       <UiButton size="sm" :disabled="saving" @click="emit('discard')">
         {{ $t("common.discardChanges") }}
       </UiButton>
-      <UiButton size="sm" variant="primary" :disabled="saving || canSave === false" @click="emit('save')">
+      <UiButton
+        v-if="showSave"
+        size="sm"
+        variant="primary"
+        :disabled="saving || !canSave"
+        @click="emit('save')"
+      >
         {{ saving ? $t("common.saving") : $t("common.save") }}
       </UiButton>
     </template>

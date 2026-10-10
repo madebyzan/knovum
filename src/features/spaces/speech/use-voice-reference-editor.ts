@@ -30,6 +30,7 @@ export function useVoiceReferenceEditor(
   const durationMs = shallowRef<number>();
   const sourceVersion = shallowRef(0);
   const jobId = shallowRef<string>();
+  const isCancelling = shallowRef(false);
   const error = shallowRef<string>();
   const selectionValid = computed(
     () =>
@@ -41,7 +42,7 @@ export function useVoiceReferenceEditor(
       Math.round(Number(end.value) * 1000) <= durationMs.value,
   );
   const canPrepare = computed(() =>
-    Boolean(path.value && selectionValid.value && !jobId.value && !props.disabled),
+    Boolean(path.value && selectionValid.value && !jobId.value && !isCancelling.value && !props.disabled),
   );
   let epoch = 0;
   let jobEpoch = 0;
@@ -52,10 +53,15 @@ export function useVoiceReferenceEditor(
   async function cancel() {
     const job = jobId.value;
     const version = jobEpoch;
-    if (job)
-      await cancelSpeechGeneration(job).catch((cause) => {
-        if (isCurrent(version) && jobId.value === job) error.value = getErrorMessage(cause);
-      });
+    if (!job || isCancelling.value) return;
+    isCancelling.value = true;
+    try {
+      await cancelSpeechGeneration(job);
+    } catch (cause) {
+      if (isCurrent(version) && jobId.value === job) error.value = getErrorMessage(cause);
+    } finally {
+      isCancelling.value = false;
+    }
   }
   function invalidate() {
     epoch += 1;
@@ -137,6 +143,7 @@ export function useVoiceReferenceEditor(
     durationMs,
     sourceVersion,
     jobId,
+    isCancelling,
     error,
     selectionValid,
     canPrepare,

@@ -5,14 +5,13 @@ import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { PreparedVoiceReference } from "../../contracts/generated/PreparedVoiceReference";
 import {
   useVoiceReferenceEditor,
   type VoiceReferenceEditorProps,
 } from "../../speech/use-voice-reference-editor";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
-import VoiceReferenceRange from "./VoiceReferenceRange.vue";
+import VoiceReferenceSelection from "./VoiceReferenceSelection.vue";
 
 const props = defineProps<VoiceReferenceEditorProps>();
 const model = defineModel<PreparedVoiceReference | undefined>();
@@ -26,6 +25,7 @@ const {
   durationMs,
   sourceVersion,
   jobId,
+  isCancelling,
   error,
   selectionValid,
   canPrepare,
@@ -38,11 +38,6 @@ const dirty = computed(() => !props.sourceNode && Boolean(path.value));
 watch(dirty, (value) => emit("dirty", value));
 onBeforeUnmount(() => emit("busy", false));
 const editingDisabled = computed(() => props.disabled || Boolean(jobId.value));
-function setRange(from: number, to: number) {
-  start.value = String(from);
-  end.value = String(to);
-}
-
 async function prepareReference() {
   emit("busy", true);
   try {
@@ -72,49 +67,13 @@ async function prepareReference() {
         :preview="false"
         @loaded="selectionLoaded"
       />
-      <p
-        v-if="durationMs !== undefined && durationMs < 5000"
-        class="text-caption text-fg-secondary"
-        role="status"
-      >
-        {{ t("spaces.speech.reference.tooShort") }}
-      </p>
-      <VoiceReferenceRange
-        :start="Number(start)"
-        :end="Number(end)"
-        :duration-ms="durationMs ?? 0"
-        :disabled="editingDisabled || durationMs === undefined"
-        @change="setRange"
+      <VoiceReferenceSelection
+        v-model:start="start"
+        v-model:end="end"
+        :duration-ms="durationMs"
+        :disabled="editingDisabled"
+        :valid="selectionValid"
       />
-      <p class="text-caption-sm" :class="selectionValid ? 'text-fg-secondary' : 'text-fg-danger'">
-        {{
-          t("spaces.speech.reference.selection", {
-            seconds: Math.max(0, Number(end) - Number(start)).toFixed(1),
-          })
-        }}
-      </p>
-      <div class="grid grid-cols-2 gap-3">
-        <label class="space-y-1 text-caption text-fg-secondary">
-          <span>{{ t("spaces.speech.reference.start") }}</span>
-          <UiInput
-            v-model="start"
-            data-testid="reference-start"
-            size="sm"
-            inputmode="decimal"
-            :disabled="editingDisabled"
-          />
-        </label>
-        <label class="space-y-1 text-caption text-fg-secondary">
-          <span>{{ t("spaces.speech.reference.end") }}</span>
-          <UiInput
-            v-model="end"
-            data-testid="reference-end"
-            size="sm"
-            inputmode="decimal"
-            :disabled="editingDisabled"
-          />
-        </label>
-      </div>
       <div class="flex flex-wrap items-center gap-2">
         <UiButton
           size="sm"
@@ -123,7 +82,13 @@ async function prepareReference() {
         >
           <Play class="size-3.5" />{{ t("spaces.speech.reference.play") }}
         </UiButton>
-        <UiButton v-if="jobId" data-testid="reference-cancel" size="sm" @click="cancel">
+        <UiButton
+          v-if="jobId"
+          data-testid="reference-cancel"
+          size="sm"
+          :disabled="isCancelling"
+          @click="cancel"
+        >
           <Square class="size-3.5" />{{ t("common.cancel") }}
         </UiButton>
         <UiButton

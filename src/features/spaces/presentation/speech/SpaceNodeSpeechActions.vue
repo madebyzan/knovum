@@ -4,8 +4,6 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { useSpaceStore } from "../../session/space-store";
-import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 import SpaceCanvasActionTrigger from "../canvas/SpaceCanvasActionTrigger.vue";
 import {
   nodeSpeechOperationIds,
@@ -19,18 +17,10 @@ const props = defineProps<{
   menuItem?: boolean;
   separating?: boolean;
   separationBusy?: boolean;
+  separationUnavailableReason: string | undefined;
 }>();
 const emit = defineEmits<{ begin: [operation: NodeSpeechOperation]; separate: [] }>();
 const { t } = useI18n();
-const store = useSpaceStore();
-const { videos, backgrounds } = useSpeechMediaSources();
-const canSeparate = computed(
-  () =>
-    Boolean(store.activeSpaceId) &&
-    [...videos.value, ...backgrounds.value].some(
-      ({ id, source }) => id === props.node.id && source.durationMs <= 600_000,
-    ),
-);
 const operations = computed(() => nodeSpeechOperationIds(props.node));
 </script>
 
@@ -41,14 +31,19 @@ const operations = computed(() => nodeSpeechOperationIds(props.node));
     :label="
       t(
         operation === 'separate' && separating
-          ? 'spaces.speech.separation.cancel'
+          ? 'spaces.speech.separation.running'
           : NODE_SPEECH_OPERATIONS[operation].label,
       )
     "
     :icon="operation === 'separate' && separating ? LoaderCircle : NODE_SPEECH_OPERATIONS[operation].icon"
     :compact="compact"
     :menu-item="menuItem"
-    :disabled="operation === 'separate' && (!canSeparate || separationBusy)"
+    :disabled="
+      operation === 'separate' && (Boolean(separationUnavailableReason) || (separationBusy && !separating))
+    "
+    :unavailable-reason="
+      operation === 'separate' && separationUnavailableReason ? t(separationUnavailableReason) : undefined
+    "
     :busy="operation === 'separate' && separating"
     data-testid="node-speech-action"
     :data-operation="operation"

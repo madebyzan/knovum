@@ -15,9 +15,10 @@ const props = withDefaults(
     source: string;
     kind: "audio" | "video";
     preview?: boolean;
+    showControls?: boolean;
     label?: string;
   }>(),
-  { preview: true },
+  { preview: true, showControls: true },
 );
 const emit = defineEmits<{
   ended: [];
@@ -102,7 +103,10 @@ defineExpose({ seekTo, pause });
       @pause="emit('pause')"
       @ended="emit('ended')"
     />
-    <div class="flex items-center gap-2 rounded-md border border-stroke-divider bg-surface-control px-2 py-1">
+    <div
+      v-if="showControls"
+      class="flex items-center gap-2 rounded-md border border-stroke-divider bg-surface-control px-2 py-1"
+    >
       <UiIconButton
         :label="playback.playing.value ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
@@ -120,6 +124,6 @@ defineExpose({ seekTo, pause });
         {{ formatDurationMs(playback.currentMs.value) }} / {{ formatDurationMs(playback.durationMs.value) }}
       </span>
     </div>
-    <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
+    <p v-if="error && showControls" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
   </div>
 </template>
