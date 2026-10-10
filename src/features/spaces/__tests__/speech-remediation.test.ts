@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
-import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
+import type { SpeechSourceSeparationPublication } from "../contracts/generated/SpeechSourceSeparationPublication";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { selectBackground, selectSeparatedBackground } from "../speech/video-background-selection";
 import {
@@ -146,7 +146,7 @@ describe("speech architecture policies", () => {
     );
   });
 
-  it("freezes accepted separation source identity and clears it for manual background selection", () => {
+  it("freezes published separation source identity and clears it for manual background selection", () => {
     const video = { assetPath: "/video.mp4", sourceRevision: `sha256:${"a".repeat(64)}`, durationMs: 1_000 };
     const background = {
       assetPath: "/background.wav",
@@ -165,19 +165,18 @@ describe("speech architecture policies", () => {
       sourceDialogueIntervals: [{ startMs: 0, endMs: 1000 }],
       retainOriginalTrack: true,
     };
-    const candidate: SpeechSourceSeparationCandidate = {
+    const publication: SpeechSourceSeparationPublication = {
       separationId: "separation",
       spaceId: "space",
+      sourceNodeId: "source",
       runId: "separation",
       source: { ...video },
       background,
       vocals: { ...background, assetPath: "/managed/vocals.wav" },
       modelSpecId: "spleeter-2stems-fp16-cpu-v1",
-      reviewStatus: "accepted",
-      reviewWarning: "vocals_accompaniment_requires_full_audition",
     };
-    const separated = selectSeparatedBackground(config, candidate);
-    candidate.source.assetPath = "/changed.mp4";
+    const separated = selectSeparatedBackground(config, publication);
+    publication.source.assetPath = "/changed.mp4";
 
     expect(separated.backgroundSeparation?.source).toEqual(video);
     expect(selectBackground(separated, background).backgroundSeparation).toBeNull();

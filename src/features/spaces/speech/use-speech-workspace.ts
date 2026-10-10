@@ -83,6 +83,8 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
       const nextProjects = await listSpeechProjects(spaceId, sourceNodeId());
       if (epoch !== refreshEpoch) return;
       projects.value = nextProjects.filter((project) => project.projectType === projectType());
+      const latest = projects.value.toSorted((a, b) => b.updatedAt - a.updatedAt)[0];
+      if (latest) await openProject(latest.id);
     } catch (cause) {
       if (epoch === refreshEpoch) workspaceError.value = getErrorMessage(cause);
     } finally {
@@ -172,7 +174,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     previewListening: generation.listening,
     runState: generation.runState,
     generationProgress: generation.progress,
-    activeJobId: generation.activeJobId,
+    hasActiveExecution: generation.hasActiveExecution,
     generationSubmitting: generation.submitting,
     generationCancelling: generation.cancelling,
     addProject,

@@ -100,6 +100,25 @@
     },
     "selectedVoiceModel": "Default for new reference voices; saved voices keep their model.",
     "modelSize": "Model files {size}",
-    "defaultModel": "Default"
+    "defaultModel": "Default",
+    "search": "Search this category",
+    "filterLabel": "Download status",
+    "categories": "Model capabilities",
+    "modelCount": "{count} models",
+    "noResults": "No models match your search or filter.",
+    "categoryLabels": {
+      "embedding": "Semantic search",
+      "transcription": "Transcription",
+      "speechSynthesis": "Speech synthesis",
+      "speechAlignment": "Alignment",
+      "speechDiarization": "Speakers",
+      "speechSeparation": "Stem separation",
+      "imageSegmentation": "Background removal"
+    },
+    "filters": {
+      "all": "All models",
+      "installed": "Downloaded",
+      "notInstalled": "Not downloaded"
+    }
   }
 }

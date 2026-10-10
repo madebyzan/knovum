@@ -9,7 +9,7 @@ import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 import SpaceCanvasActionTrigger from "../canvas/SpaceCanvasActionTrigger.vue";
 import {
   nodeSpeechOperationIds,
-  nodeSpeechOperations,
+  NODE_SPEECH_OPERATIONS,
   type NodeSpeechOperation,
 } from "./node-speech-operations";
 
@@ -42,10 +42,10 @@ const operations = computed(() => nodeSpeechOperationIds(props.node));
       t(
         operation === 'separate' && separating
           ? 'spaces.speech.separation.cancel'
-          : nodeSpeechOperations[operation].label,
+          : NODE_SPEECH_OPERATIONS[operation].label,
       )
     "
-    :icon="operation === 'separate' && separating ? LoaderCircle : nodeSpeechOperations[operation].icon"
+    :icon="operation === 'separate' && separating ? LoaderCircle : NODE_SPEECH_OPERATIONS[operation].icon"
     :compact="compact"
     :menu-item="menuItem"
     :disabled="operation === 'separate' && (!canSeparate || separationBusy)"

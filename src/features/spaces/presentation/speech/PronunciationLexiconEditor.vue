@@ -27,9 +27,9 @@ function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word
 </script>
 
 <template>
-  <section class="space-y-2 rounded-md border border-stroke-divider p-2">
+  <section class="space-y-2">
     <div class="flex items-center justify-between gap-2">
-      <div>
+      <div class="min-w-0 flex-1">
         <h3 class="text-caption font-medium text-fg-secondary">
           {{ t("spaces.speech.audiobook.lexicon.title") }}
         </h3>

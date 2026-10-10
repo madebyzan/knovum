@@ -8,6 +8,15 @@ pub(super) fn validate(
     let SpeechIndex { run_ids, .. } = index;
     for row in &request.speech_source_separations {
         reference(run_ids, &row.run_id, "source separation run")?;
+        let source = request
+            .nodes
+            .iter()
+            .find(|node| node.id == row.source_node_id)
+            .ok_or("Package source separation node is unavailable")?;
+        if !matches!(source.kind.as_str(), "audio" | "video") {
+            return Err("Package source separation requires an audio or video node".into());
+        }
+
         let expected_duration = row
             .background_sample_count
             .checked_mul(1_000)
@@ -28,7 +37,6 @@ pub(super) fn validate(
             || row.background_asset_path.trim().is_empty()
             || row.vocals_asset_path.trim().is_empty()
             || row.vocals_asset_path == row.background_asset_path
-            || row.review_warning != crate::spaces::speech::source_separation::review_warning()
             || row.created_at < 0
         {
             return Err("Package source separation metadata is invalid".into());
@@ -41,11 +49,6 @@ pub(super) fn validate(
             "Source separation background digest",
         )?;
         hex64(&row.vocals_sha256, "Source separation vocal digest")?;
-        match (row.review_status.as_str(), row.reviewed_at) {
-            ("pending", None) => {}
-            ("accepted" | "rejected", Some(reviewed)) if reviewed >= row.created_at => {}
-            _ => return Err("Package source separation review state is invalid".into()),
-        }
     }
     Ok(())
 }

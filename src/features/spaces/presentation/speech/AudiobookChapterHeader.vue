@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Trash2 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 
 const props = defineProps<{
@@ -28,34 +28,38 @@ const title = computed({
   <div class="flex items-center gap-1">
     <UiInput
       v-model="title"
-      class="min-w-0 flex-1"
+      class="min-w-0 flex-1 border-transparent bg-transparent font-medium shadow-none hover:bg-surface-control"
       size="sm"
       :placeholder="t('spaces.speech.audiobook.chapterTitle')"
+      :aria-label="t('spaces.speech.audiobook.chapterTitle')"
       :disabled="disabled"
     />
-    <UiButton
+    <UiIconButton
+      v-if="count > 1"
       size="sm"
-      variant="ghost"
-      :aria-label="t('spaces.speech.audiobook.moveUp')"
+      tooltip
+      :label="t('spaces.speech.audiobook.moveUp')"
       :disabled="disabled || index === 0"
       @click="emit('move', -1)"
       ><ArrowUp class="size-3.5"
-    /></UiButton>
-    <UiButton
+    /></UiIconButton>
+    <UiIconButton
+      v-if="count > 1"
       size="sm"
-      variant="ghost"
-      :aria-label="t('spaces.speech.audiobook.moveDown')"
+      tooltip
+      :label="t('spaces.speech.audiobook.moveDown')"
       :disabled="disabled || index === count - 1"
       @click="emit('move', 1)"
       ><ArrowDown class="size-3.5"
-    /></UiButton>
-    <UiButton
+    /></UiIconButton>
+    <UiIconButton
       size="sm"
-      variant="dangerSubtle"
-      :aria-label="t('spaces.speech.audiobook.removeChapter')"
+      tooltip
+      class="hover:text-fg-danger"
+      :label="t('spaces.speech.audiobook.removeChapter')"
       :disabled="disabled"
       @click="emit('remove')"
       ><Trash2 class="size-3.5"
-    /></UiButton>
+    /></UiIconButton>
   </div>
 </template>

@@ -17,7 +17,7 @@ pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
 mod pending_output;
 pub(crate) mod queries;
-mod relations;
+pub(super) mod relations;
 mod scratch_file;
 mod source_snapshot;
 mod source_validation;

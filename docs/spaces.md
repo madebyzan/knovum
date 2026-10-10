@@ -279,9 +279,12 @@ request and are also available in the Settings model list. No account token or f
 
 Speech actions begin on the selected canvas node and follow the image tools’ contextual bar system.
 Reference intervals, voice settings and auditions use button-anchored controls. Source separation
-starts with one click; its completed stems are auditioned and explicitly accepted/rejected from a
-compact result bar. Dubbing edits retain the current project draft when their parameter popover is
-closed; ending the operation uses the existing save/discard leave contract.
+starts with one click; completion publishes two audio nodes beside the source with active
+`derives-from` relations. Playback and export belong to those audio nodes; there is no review or
+manual insertion stage. Dubbing opens the project editor directly, resuming the most recently updated
+project belonging to the selected node and operation. Creation is a separate stage. Manuscripts and
+timed scripts come first; independent expandable settings retain drafts and tasks when collapsed.
+Ending the operation uses the existing save/discard leave contract.
 
 Speech projects publish audiobook audio, short dubbing audio or video dubbing from durable Runs.
 WAV, MP3 and M4B are supported audio outputs. Chapter boundaries and mix placement use integer sample
@@ -290,15 +293,21 @@ loudness in a separate step, then encode the final output using that measurement
 checkpoint hashes and sample counts before reuse. Temporary normalization files belong to one
 attempt; chapter and measurement checkpoints are cleared after final publication.
 
-Video dubbing can start a separate durable source-separation Run against the revision-pinned video.
-Rust decodes the audio track to a fixed 44.1 kHz stereo PCM timeline, runs the pinned Spleeter
-two-stem CPU profile, and publishes an accompaniment candidate as a managed Space asset. The editor
-labels this as vocals/accompaniment separation and requires playback plus an explicit accept/reject
-decision. Only an accepted candidate can enter the video background configuration. The product does
-not automatically claim that spoken dialogue was removed or that environmental sound was preserved.
-Space packages preserve the completed Run identity, candidate review state, frozen source identity,
-and both referenced source/background assets so an accepted background remains verifiable after
-export and restore.
+Audio and video nodes start a durable source-separation Run bound to their exact node identity,
+managed source asset and source revision. Rust decodes the audio track to a fixed 44.1 kHz stereo
+PCM timeline and runs the selected pinned Spleeter two-stem CPU profile. Its one publication
+transaction creates vocals and background audio nodes, two active system `derives-from` relations
+to the original node, the result receipt and the shared canvas layout/history change. Source bytes
+and node content are unchanged. A missing output, stale source, cancelled Run or expired attempt
+rolls back the complete publication. Retrying an already committed attempt reuses its result and
+never inserts duplicate tracks or relations. Publication belongs to the durable Run and continues
+when the initiating view closes or another Space opens.
+
+Video dubbing may select the published background through its mix configuration. This is a choice
+of input, not a second approval of the derivation. Selecting a background preserves its frozen
+source/model provenance. The product does not claim that spoken dialogue was completely removed
+or that environmental sound was preserved. Space packages preserve the Run identity, source node
+identity, both managed stems, their relations and pinned provenance.
 
 The voice library is application-wide: profiles and immutable revisions have no Space owner, and
 each Space speech project pins a global revision. Settings owns library presentation through app
@@ -653,10 +662,31 @@ The current pre-release Spaces database baseline admits only the current job typ
 
 Local recognition and FFmpeg share the derivation cancellation token. Input asset and knowledge revisions are captured before execution and revalidated before atomic publication; cancelled or stale results cannot be published. Local resource/tool preparation failures remain visible. There is no standalone `subtitle` node kind or subtitle-resource Action. Subtitle tracks in the video editor and transcript cues remain media-owned editing/recognition data.
 
-### Vocal separation results
+### Derivation and source editing
 
-The audio/video node separation operation produces vocals and accompaniment as separate durable assets. Both tracks remain part of one review candidate, can be auditioned individually, and are independently exported after acceptance. Each accepted track can be added as an ordinary audio node; existing Space placement, asset authorization and reference reclamation apply. The video dubbing background selector consumes only the accepted accompaniment, preserving its candidate/source provenance.
+Canvas operation semantics are independent of bar position or panel shape. Image crop, rotation,
+flip and adjustment change the original node through the existing Apply/Cancel edit session and
+one history entry. Transcription enriches the original node's knowledge. Background/object removal,
+upscale, layer splitting, multi-angle generation, burned-in subtitles, rendered video editing,
+speech-project generation and source separation publish derived nodes with active `derives-from`
+relations. Choosing parameters or invoking Generate is the operation's execution decision; a
+successfully validated derived result requires no later acceptance or “add node” click. Cloning
+creates a reusable voice-library resource, and retains its own authorization/audition contract.
 
-The current pre-release v1 database/package baseline includes both stem paths and digests. Obsolete baselines are rejected by the existing strict schema policy; no compatibility reader, migration or silent reset is introduced. Snapshot, restore, remapping and deletion reference graphs preserve both outputs. Interrupted attempts retain publication journals until both assets can be committed or cleaned up.
+Speech-project output publication and source separation share one focused media-node publisher.
+It uses the existing content insertion, source-adjacent collision-aware placement, history and
+semantic-relation contracts. Both separated stems are inserted in one history operation. Each
+stem is an ordinary audio node with its own playback/export actions; the original retains its
+normal action bar. No duplicate result-review bar or insertion state is maintained in the UI.
+The shared resource-run observer invalidates the owning space's resource-publication queries on
+completion, including when its editor is closed or another space is selected. Published-result
+selectors use that query namespace; canvas refresh and query-cache refresh remain separate.
+
+The current pre-release v1 database/package baseline records the source node and both stem paths
+and digests, without review states. Obsolete baselines are rejected by the existing strict schema
+policy; no compatibility reader, migration or silent reset is introduced. Snapshot, restore,
+remapping and deletion reference graphs preserve the source identity and both outputs. Interrupted
+attempts retain publication journals until both assets, nodes and relations can be committed or
+cleaned up.
 
 Audio and video node toolbars expose transcription as a separate operation. A current edited transcript remains authoritative: the action shows the existing transcript state and cannot silently replace it. A queued, running or resource-waiting enrichment job disables a second submission, including jobs restored from Rust state. Transcript and inspector components are keyed by node identity so local editing state cannot leak to another selection.

@@ -4,10 +4,12 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import { queryClient } from "../../../foundation/query/query-client";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { useSpaceStore } from "../session/space-store";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
+import { resourcePublicationQueryKey } from "./resource-publication-query";
 import { requestRunControl } from "./run-control";
 import { observeRun } from "./run-observation";
 
@@ -67,6 +69,8 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
     finished: () => {
       listenersByRunId.delete(run.id);
       refreshCanvas.cancel();
+      if (run.scope.kind === "space")
+        void queryClient.invalidateQueries({ queryKey: resourcePublicationQueryKey(run.scope.spaceId) });
       refreshRunSpace(run);
     },
   });

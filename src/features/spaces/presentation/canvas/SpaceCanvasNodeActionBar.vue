@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ToolbarRoot } from "reka-ui";
-import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
+import { computed, nextTick, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
@@ -12,8 +12,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceNodeTranscriptionAction from "../media/SpaceNodeTranscriptionAction.vue";
 import { nodeSpeechOperationIds, type NodeSpeechOperation } from "../speech/node-speech-operations";
 import SpaceNodeSpeechActions from "../speech/SpaceNodeSpeechActions.vue";
-import SpaceNodeSpeechBar from "../speech/SpaceNodeSpeechBar.vue";
-import SpaceSeparatedTracksBar from "../speech/SpaceSeparatedTracksBar.vue";
+import SpaceNodeSpeechControls from "../speech/SpaceNodeSpeechControls.vue";
 import { useNodeSeparation } from "../speech/use-node-separation";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import { canvasBarPlacement } from "./canvas-bar-density-policy";
@@ -31,6 +30,7 @@ const props = defineProps<{
   derivations: CreationIntentDecisions;
   node?: SpaceCanvasNode | undefined;
   availableWidth: number;
+  availableHeight?: number | undefined;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t, locale } = useI18n();
@@ -40,14 +40,7 @@ watch(speechOperation, async (operation, previous) => {
   await nextTick();
   bar.value?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
 });
-const { separation, invoke: separate } = useNodeSeparation(toRef(props, "node"));
-const reviewedSeparation = shallowRef<string>();
-const showTracks = computed(
-  () =>
-    separation.candidate.value &&
-    separation.candidate.value.reviewStatus !== "rejected" &&
-    separation.candidate.value.separationId !== reviewedSeparation.value,
-);
+const { separation, toggleSeparation } = useNodeSeparation(toRef(props, "node"));
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
@@ -71,28 +64,16 @@ const textKind = computed(() => {
 </script>
 
 <template>
-  <SpaceNodeSpeechBar
+  <SpaceNodeSpeechControls
     v-if="speechOperation"
     v-model:operation="speechOperation"
     :node="node"
     :available-width="availableWidth"
+    :available-height="availableHeight"
   />
-  <SpaceSeparatedTracksBar
-    :compact="availableWidth < 520"
-    v-else-if="showTracks"
-    :separation="separation"
-    @close="reviewedSeparation = separation.candidate.value?.separationId"
-  />
-  <div
-    v-else
-    ref="bar"
-    class="w-max"
-    :class="ready ? 'visible' : 'invisible'"
-    :style="{ maxWidth: `${availableWidth}px` }"
-  >
+  <div v-else ref="bar" :class="ready ? 'visible' : 'invisible'" :style="{ maxWidth: `${availableWidth}px` }">
     <ToolbarRoot
       :class="CANVAS_ACTION_BAR_CLASSES"
-      orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
@@ -123,8 +104,8 @@ const textKind = computed(() => {
         :node="node"
         :compact="compact"
         :separating="Boolean(separation.activeRunId.value)"
-        :separation-busy="separation.busy.value"
-        @separate="separate"
+        :separation-busy="separation.isBusy.value"
+        @separate="toggleSeparation"
         @begin="speechOperation = $event"
       />
       <SpaceNodeTranscriptionAction
@@ -165,8 +146,8 @@ const textKind = computed(() => {
             :node="node"
             menu-item
             :separating="Boolean(separation.activeRunId.value)"
-            :separation-busy="separation.busy.value"
-            @separate="separate"
+            :separation-busy="separation.isBusy.value"
+            @separate="toggleSeparation"
             @begin="speechOperation = $event"
           />
           <SpaceNodeTranscriptionAction

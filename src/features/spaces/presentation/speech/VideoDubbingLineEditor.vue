@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
@@ -42,9 +43,9 @@ function selectVoice(voiceRevisionId: string) {
 </script>
 
 <template>
-  <section class="space-y-2 rounded-md border border-stroke-divider p-2">
+  <section class="space-y-2 border-t border-stroke-divider pt-3 pb-2">
     <div class="grid grid-cols-2 gap-2">
-      <label class="text-caption text-fg-secondary">
+      <label class="block min-w-0 space-y-1 text-caption text-fg-secondary">
         {{ t("spaces.speech.videoDubbing.startSeconds") }}
         <UiInput
           :model-value="line.startSeconds"
@@ -56,7 +57,7 @@ function selectVoice(voiceRevisionId: string) {
           @update:model-value="update('startSeconds', $event)"
         />
       </label>
-      <label class="text-caption text-fg-secondary">
+      <label class="block min-w-0 space-y-1 text-caption text-fg-secondary">
         {{ t("spaces.speech.videoDubbing.endSeconds") }}
         <UiInput
           :model-value="line.endSeconds"
@@ -74,6 +75,7 @@ function selectVoice(voiceRevisionId: string) {
       :rows="3"
       :disabled="disabled"
       :placeholder="t('spaces.speech.project.scriptPlaceholder')"
+      :aria-label="t('spaces.speech.project.script')"
       @update:model-value="update('text', $event)"
     />
     <p v-if="showSource && line.sourceText" class="text-caption text-fg-tertiary">
@@ -107,10 +109,10 @@ function selectVoice(voiceRevisionId: string) {
         :disabled="disabled"
         @update:model-value="selectVoice"
       />
-      <UiButton
+      <UiIconButton
         size="sm"
-        variant="ghost"
-        :aria-label="t('spaces.speech.project.preview')"
+        tooltip
+        :label="t('spaces.speech.project.preview')"
         :disabled="disabled || !lexiconValid || !line.text.trim() || !line.voiceRevisionId"
         @click="
           emit(
@@ -121,15 +123,16 @@ function selectVoice(voiceRevisionId: string) {
           )
         "
         ><Play class="size-3.5"
-      /></UiButton>
-      <UiButton
+      /></UiIconButton>
+      <UiIconButton
         size="sm"
-        variant="dangerSubtle"
-        :aria-label="t('spaces.speech.videoDubbing.removeLine')"
+        tooltip
+        class="hover:text-fg-danger"
+        :label="t('spaces.speech.videoDubbing.removeLine')"
         :disabled="disabled"
         @click="emit('remove')"
         ><Trash2 class="size-3.5"
-      /></UiButton>
+      /></UiIconButton>
     </div>
     <UiTextarea
       v-if="supportsDeliveryInstruction"

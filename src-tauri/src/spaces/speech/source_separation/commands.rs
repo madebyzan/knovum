@@ -3,11 +3,7 @@ use serde_json::json;
 
 use super::super::video_config::SpeechMediaSource;
 use super::{
-    contracts::{
-        ReviewSpeechSourceSeparationRequest, SpeechSourceSeparationCandidate,
-        SpeechSourceSeparationReviewStatus, StartSpeechSourceSeparationRequest,
-    },
-    repository::{load_candidate, transition_review},
+    contracts::{SpeechSourceSeparationPublication, StartSpeechSourceSeparationRequest},
     SeparationConfiguration, WORKFLOW,
 };
 use crate::{
@@ -22,6 +18,9 @@ use crate::{
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct SeparationRunInput {
+    source_node_id: String,
+    vocals_label: String,
+    background_label: String,
     workflow: String,
     source: SpeechMediaSource,
     model: crate::local_resources::model_catalog::LocalModelId,
@@ -35,6 +34,11 @@ pub async fn start_speech_source_separation(
     require_canonical_uuid(&request.request_id, "Source separation request identity")?;
     if request.source.duration_ms == 0 || request.source.duration_ms > 600_000 {
         return Err("Source separation requires media lasting no more than ten minutes".into());
+    }
+    for label in [&request.vocals_label, &request.background_label] {
+        if label.trim().is_empty() || label.chars().count() > 80 {
+            return Err("Source separation track labels must contain 1 to 80 characters".into());
+        }
     }
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -60,7 +64,13 @@ pub async fn start_speech_source_separation(
         }
         return Ok(crate::spaces::runs::load_run(pool, &request.request_id).await?);
     }
-    super::media::require_owned_source(&mut tx, &request.space_id, &request.source).await?;
+    super::media::require_owned_source(
+        &mut tx,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source,
+    )
+    .await?;
     let model = crate::local_resources::model_selection::speech_separation(&app)?;
     crate::ai::local_runtime::device_profiles::speech_separation(model)?;
     let now = crate::clock::unix_time_millis()?;
@@ -75,7 +85,7 @@ pub async fn start_speech_source_separation(
     )?;
     let principal = grant.principal.clone();
     create_grant(&mut tx, &grant, now).await?;
-    let input = json!({"workflow":WORKFLOW,"source":request.source.clone(),"model":model});
+    let input = json!({"workflow":WORKFLOW,"sourceNodeId":request.source_node_id,"vocalsLabel":request.vocals_label,"backgroundLabel":request.background_label,"source":request.source.clone(),"model":model});
     let policy = json!({"grantId":grant.grant_id,"definition":{"failurePolicy":"stop_run"},"workflow":WORKFLOW});
     let budget = json!({"maxParallelism":1,"maxAttempts":3,"maxStepAttempts":3});
     create_run_in_transaction(
@@ -99,7 +109,7 @@ pub async fn start_speech_source_separation(
     )
     .bind(uuid::Uuid::new_v4().to_string())
     .bind(&request.request_id)
-    .bind(sqlx::types::Json(SeparationConfiguration {source:request.source, model}))
+    .bind(sqlx::types::Json(SeparationConfiguration {source_node_id:request.source_node_id, vocals_label:request.vocals_label, background_label:request.background_label, source:request.source, model}))
     .bind(now)
     .bind(now)
     .execute(&mut *tx)
@@ -116,76 +126,35 @@ pub async fn start_speech_source_separation(
 }
 
 #[tauri::command]
-pub async fn get_speech_source_separation(
-    app: tauri::AppHandle,
-    separation_id: String,
-) -> Result<SpeechSourceSeparationCandidate, AppError> {
-    require_canonical_uuid(&separation_id, "Source separation identity")?;
-    Ok(load_candidate(db::pool(&app).await?, &separation_id).await?)
-}
-
-#[tauri::command]
-pub async fn list_accepted_source_separations(
+pub async fn list_source_separations(
     app: tauri::AppHandle,
     space_id: String,
     source: SpeechMediaSource,
-) -> Result<Vec<SpeechSourceSeparationCandidate>, AppError> {
+) -> Result<Vec<SpeechSourceSeparationPublication>, AppError> {
     crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&source.asset_path))?;
-    Ok(super::repository::accepted_for_source(db::pool(&app).await?, &space_id, &source).await?)
+    Ok(
+        super::repository::list_publications_for_source(db::pool(&app).await?, &space_id, &source)
+            .await?,
+    )
 }
 
 #[tauri::command]
 pub async fn get_latest_source_separation_run(
     app: tauri::AppHandle,
     space_id: String,
+    source_node_id: String,
     source: SpeechMediaSource,
 ) -> Result<Option<RunObservation>, AppError> {
     crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&source.asset_path))?;
     let pool = db::pool(&app).await?;
-    let run_id: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_runs WHERE scope_kind='space' AND home_space_id=? AND json_extract(input_snapshot,'$.workflow')=? AND json_extract(input_snapshot,'$.source.assetPath')=? AND json_extract(input_snapshot,'$.source.sourceRevision')=? ORDER BY created_at DESC,id DESC LIMIT 1")
-        .bind(&space_id).bind(WORKFLOW).bind(&source.asset_path).bind(&source.source_revision)
+    let run_id: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_runs WHERE scope_kind='space' AND home_space_id=? AND json_extract(input_snapshot,'$.workflow')=? AND json_extract(input_snapshot,'$.sourceNodeId')=? AND json_extract(input_snapshot,'$.source.assetPath')=? AND json_extract(input_snapshot,'$.source.sourceRevision')=? AND json_extract(input_snapshot,'$.source.durationMs')=? ORDER BY created_at DESC,id DESC LIMIT 1")
+        .bind(&space_id).bind(WORKFLOW).bind(&source_node_id).bind(&source.asset_path).bind(&source.source_revision)
+        .bind(i64::try_from(source.duration_ms).map_err(|_| "Media duration is too large")?)
         .fetch_optional(pool).await.map_err(db::sql_error)?;
     match run_id {
         Some(id) => Ok(Some(crate::spaces::runs::load_run(pool, &id).await?)),
         None => Ok(None),
     }
-}
-
-#[tauri::command]
-pub async fn review_speech_source_separation(
-    app: tauri::AppHandle,
-    request: ReviewSpeechSourceSeparationRequest,
-) -> Result<SpeechSourceSeparationCandidate, AppError> {
-    require_canonical_uuid(&request.separation_id, "Source separation identity")?;
-    if request.expected_review_status != SpeechSourceSeparationReviewStatus::Pending {
-        return Err("Source separation review must target the pending revision".into());
-    }
-    let pool = db::pool(&app).await?;
-    let current = load_candidate(pool, &request.separation_id).await?;
-    for stem in [&current.background, &current.vocals] {
-        let path = crate::spaces::assets::authorize_spaces_asset(
-            &app,
-            std::path::Path::new(&stem.asset_path),
-        )?;
-        let expected = stem
-            .source_revision
-            .strip_prefix("sha256:")
-            .ok_or("Separated track revision is invalid")?;
-        let actual_sha256: String =
-            crate::blocking::run(move || super::super::publication::hash_file(&path)).await?;
-        if actual_sha256 != expected {
-            return Err("stale_revision: separated track changed before review".into());
-        }
-    }
-    transition_review(
-        pool,
-        &request.separation_id,
-        request.expected_review_status,
-        request.accepted,
-        crate::clock::unix_time_millis()?,
-    )
-    .await?;
-    Ok(load_candidate(pool, &request.separation_id).await?)
 }
 
 fn require_canonical_uuid(value: &str, label: &str) -> Result<(), String> {
@@ -206,6 +175,9 @@ pub(super) fn matches_existing_request(
         kind == "workflow"
             && space_id == request.space_id
             && input.workflow == WORKFLOW
+            && input.source_node_id == request.source_node_id
+            && input.vocals_label == request.vocals_label
+            && input.background_label == request.background_label
             && input.source == request.source
             && input.model.separation_spec().is_ok()
     })

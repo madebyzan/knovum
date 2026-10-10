@@ -77,7 +77,7 @@ it.each(["loading", "ready", "failed"])(
           AiConnectionsSettings: { template: '<section data-testid="model-connections" />' },
           AiRoutingSettings: true,
           PythonRuntimeSettings: { template: '<section data-testid="python-runtimes" />' },
-          LocalModelsSettings: true,
+          LocalModelsSettings: { template: '<section data-testid="local-models-pane" />' },
           CreationSettingsPane: { template: '<section data-testid="creation-pane" />' },
           UsageSettingsPane: { template: '<section data-testid="usage-pane" />' },
         },
@@ -103,6 +103,7 @@ it.each(["loading", "ready", "failed"])(
       expect(wrapper.find('[role="status"]').exists()).toBe(state === "loading");
       expect(wrapper.text().includes("Unable to load model settings")).toBe(state === "failed");
       for (const [pane, selector] of [
+        ["localModels", '[data-testid="local-models-pane"]'],
         ["appearance", "#settings-appearance-theme"],
         ["notifications", "#settings-background-task-notifications"],
         ["extensions", '[data-testid="extensions-pane"]'],
@@ -111,7 +112,10 @@ it.each(["loading", "ready", "failed"])(
       ] as const) {
         await router.replace({ path: "/settings", query: { pane } });
         await flushPromises();
-        await vi.waitFor(() => expect(wrapper.find(selector).exists()).toBe(true));
+        await vi.waitFor(() => {
+          expect(wrapper.getComponent(SettingsSidebar).props("activePane")).toBe(pane);
+          expect(wrapper.find(selector).exists()).toBe(true);
+        });
       }
     }
     /* oxlint-enable no-await-in-loop */

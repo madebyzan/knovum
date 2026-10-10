@@ -113,8 +113,7 @@ pub(super) fn validate(
                     .background
                     .as_ref()
                     .ok_or("Package separated video background is unavailable")?;
-                if separation.review_status != "accepted"
-                    || separation.model_spec_id != provenance.model_spec_id
+                if separation.model_spec_id != provenance.model_spec_id
                     || separation.source_asset_path != provenance.source.asset_path
                     || separation.source_revision != provenance.source.source_revision
                     || separation.source_duration_ms != provenance.source.duration_ms as i64
@@ -123,7 +122,7 @@ pub(super) fn validate(
                         != background.source_revision
                     || separation.background_duration_ms != background.duration_ms as i64
                 {
-                    return Err("Package video source separation provenance does not match its accepted candidate".into());
+                    return Err("Package video source separation provenance does not match its published result".into());
                 }
             }
             let ordered = chapter_segments

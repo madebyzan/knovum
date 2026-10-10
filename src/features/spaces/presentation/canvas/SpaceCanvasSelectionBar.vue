@@ -22,6 +22,7 @@ import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 defineProps<{
   derivations: CreationIntentDecisions;
   availableWidth: number;
+  availableHeight?: number | undefined;
   angleNodeId: string | undefined;
 }>();
 const emit = defineEmits<{
@@ -58,6 +59,7 @@ const singleSection = computed(
     v-model:speech-operation="speechOperation"
     :node="singleNode"
     :available-width="availableWidth"
+    :available-height="availableHeight"
     @invoke-derivation="emit('invokeDerivation', $event)"
   />
   <ToolbarRoot

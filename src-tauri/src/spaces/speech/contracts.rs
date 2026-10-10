@@ -276,7 +276,7 @@ pub use super::voice_candidates::{
     CreateCandidateVoiceRequest, DraftVoiceCandidateRequest, VoiceCandidate, VoiceCandidateStatus,
 };
 
-#[derive(Debug, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechAudioOutput {

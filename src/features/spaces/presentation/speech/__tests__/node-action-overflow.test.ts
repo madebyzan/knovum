@@ -9,7 +9,7 @@ import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { NodeSpeechOperation } from "../node-speech-operations";
 import SpaceNodeSpeechActions from "../SpaceNodeSpeechActions.vue";
-import SpaceNodeSpeechBar from "../SpaceNodeSpeechBar.vue";
+import SpaceNodeSpeechControls from "../SpaceNodeSpeechControls.vue";
 
 vi.mock("../../../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space", nodes: [] }),
@@ -49,7 +49,7 @@ it("keeps the node operation editor open after its overflow menu closes", async 
               ),
           },
         ),
-        h(SpaceNodeSpeechBar, {
+        h(SpaceNodeSpeechControls, {
           node,
           operation: operation.value,
           "onUpdate:operation": (selected: NodeSpeechOperation | undefined) => {
@@ -97,7 +97,7 @@ it("closes cloning with Escape while keeping the canvas nonmodal", async () => {
     initialPosition: { x: 0, y: 0 },
     data: { kind: "audio", title: "Recording", assetPath: "/voice.wav", fileName: "voice.wav" },
   };
-  const wrapper = mount(SpaceNodeSpeechBar, {
+  const wrapper = mount(SpaceNodeSpeechControls, {
     props: { node: audio, operation: "clone" },
     global: { plugins: [i18n], stubs: { SpaceVoiceCloneBar: { template: "<button>Clone</button>" } } },
     attachTo: document.body,
@@ -105,7 +105,7 @@ it("closes cloning with Escape while keeping the canvas nonmodal", async () => {
   onTestFinished(() => wrapper.unmount());
   await flushPromises();
   expect(document.querySelector('[role="dialog"]')).toBeNull();
-  const panel = wrapper.get('[data-testid="node-speech-bar"]');
+  const panel = wrapper.get('[data-testid="node-speech-controls"]');
   expect(document.activeElement).toBe(panel.get("button").element);
   await panel.trigger("keydown", { key: "Escape" });
   await flushPromises();
@@ -121,18 +121,18 @@ it("waits for the project leave decision before closing the canvas panel", async
       return () => h("div", "Editor");
     },
   });
-  const wrapper = mount(SpaceNodeSpeechBar, {
+  const wrapper = mount(SpaceNodeSpeechControls, {
     props: { node, operation: "short_dubbing" },
     attachTo: document.body,
     global: { plugins: [i18n], stubs: { SpaceNodeSpeechEditor: Editor } },
   });
   onTestFinished(() => wrapper.unmount());
   await flushPromises();
-  await wrapper.get('button[aria-label="Close"]').trigger("click");
+  wrapper.getComponent(Editor).vm.$emit("close");
   await flushPromises();
   expect(wrapper.emitted("update:operation")).toBeUndefined();
   requestClose.mockResolvedValue(true);
-  await wrapper.get('button[aria-label="Close"]').trigger("click");
+  wrapper.getComponent(Editor).vm.$emit("close");
   await flushPromises();
   expect(wrapper.emitted("update:operation")?.at(-1)).toEqual([undefined]);
 });

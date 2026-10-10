@@ -1,5 +1,5 @@
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
-import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
+import type { SpeechSourceSeparationPublication } from "../contracts/generated/SpeechSourceSeparationPublication";
 import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
 
 export function selectBackground(
@@ -11,16 +11,16 @@ export function selectBackground(
 
 export function selectSeparatedBackground(
   config: VideoDubbingOutputConfig,
-  candidate: SpeechSourceSeparationCandidate,
+  publication: SpeechSourceSeparationPublication,
 ): VideoDubbingOutputConfig {
   return {
     ...config,
-    background: { ...candidate.background },
+    background: { ...publication.background },
     preserveOriginalOutsideDialogue: config.sourceDialogueIntervals.length > 0,
     backgroundSeparation: {
-      separationId: candidate.separationId,
-      modelSpecId: candidate.modelSpecId,
-      source: { ...candidate.source },
+      separationId: publication.separationId,
+      modelSpecId: publication.modelSpecId,
+      source: { ...publication.source },
     },
   };
 }

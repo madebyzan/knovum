@@ -16,7 +16,7 @@ fn dubbing_keeps_both_separation_models_and_rejects_foreign_provenance() {
             source_revision: format!("sha256:{}", "b".repeat(64)),
             duration_ms: 1_000,
         }),
-        background_separation: Some(AcceptedSourceSeparation {
+        background_separation: Some(SourceSeparationProvenance {
             separation_id: uuid::Uuid::new_v4().to_string(),
             model_spec_id: String::new(),
             source,

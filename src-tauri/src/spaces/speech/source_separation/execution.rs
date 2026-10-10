@@ -6,9 +6,9 @@ use sqlx::SqlitePool;
 
 use super::super::video_config::SpeechMediaSource;
 use super::{
-    contracts::SpeechSourceSeparationCandidate,
+    contracts::SpeechSourceSeparationPublication,
     media::{deadline, extract_audio, hash_file, pcm_wav_metadata, workspace, SAMPLE_RATE},
-    repository::{load_candidate, load_candidate_optional, persist_candidate},
+    repository::{commit_publication, find_publication, load_publication},
     SeparationConfiguration,
 };
 use crate::{
@@ -34,15 +34,16 @@ pub(crate) async fn execute(
     super::super::run_execution::require_authority(pool, claim).await?;
     let space_id = claim.scope.require_space_id()?;
     let config = SeparationConfiguration::from_claim(claim)?;
+    if let Some(publication) = find_publication(pool, &claim.run_id).await? {
+        return resume_completed(app, claim, space_id, &config.source, publication);
+    }
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
-    super::media::require_owned_source(&mut tx, space_id, &config.source).await?;
+    super::media::require_owned_source(&mut tx, space_id, &config.source_node_id, &config.source)
+        .await?;
     tx.rollback().await.map_err(db::sql_error)?;
     let source =
         crate::spaces::assets::authorize_spaces_asset(app, Path::new(&config.source.asset_path))?;
     crate::file_inspection::verify_content_revision(&source, &config.source.source_revision)?;
-    if let Some(candidate) = load_candidate_optional(pool, &claim.run_id).await? {
-        return resume_completed(app, claim, space_id, &config.source, candidate);
-    }
     let output_directory = crate::spaces::assets::asset_directory(app)?
         .join("speech")
         .join("source-separation");
@@ -115,7 +116,7 @@ pub(crate) async fn execute(
         .checked_mul(1_000)
         .ok_or("Separated background duration overflow")?
         .div_ceil(u64::from(metadata.background.sample_rate));
-    let candidate = persist_candidate(
+    let publication_commit = commit_publication(
         pool,
         claim,
         &config.source,
@@ -126,11 +127,11 @@ pub(crate) async fn execute(
     )
     .await;
     let _ = fs::remove_dir_all(&workspace);
-    if let Err(error) = candidate {
+    if let Err(error) = publication_commit {
         super::super::asset_publication::abandon_attempt(app, pool, claim).await?;
         return Err(error.into());
     }
-    completed(load_candidate(pool, &claim.run_id).await?)
+    completed(load_publication(pool, &claim.run_id).await?)
 }
 
 fn resume_completed(
@@ -138,12 +139,12 @@ fn resume_completed(
     claim: &AttemptClaim,
     space_id: &str,
     source: &SpeechMediaSource,
-    candidate: SpeechSourceSeparationCandidate,
+    publication: SpeechSourceSeparationPublication,
 ) -> Result<StepOutcome, AppError> {
-    if !candidate_matches_claim(claim, space_id, source, &candidate) {
+    if !is_publication_for_claim(claim, space_id, source, &publication) {
         return Err("stale_revision: persisted source separation differs from its run".into());
     }
-    for stem in [&candidate.background, &candidate.vocals] {
+    for stem in [&publication.background, &publication.vocals] {
         let path = crate::spaces::assets::authorize_spaces_asset(app, Path::new(&stem.asset_path))?;
         let expected = stem
             .source_revision
@@ -153,31 +154,32 @@ fn resume_completed(
             return Err("stale_revision: persisted source separation track changed".into());
         }
     }
-    completed(candidate)
+    completed(publication)
 }
 
-pub(super) fn candidate_matches_claim(
+pub(super) fn is_publication_for_claim(
     claim: &AttemptClaim,
     space_id: &str,
     source: &SpeechMediaSource,
-    candidate: &SpeechSourceSeparationCandidate,
+    publication: &SpeechSourceSeparationPublication,
 ) -> bool {
-    candidate.space_id == space_id
-        && candidate.run_id == claim.run_id
-        && candidate.separation_id == claim.run_id
+    publication.space_id == space_id
+        && publication.run_id == claim.run_id
+        && publication.separation_id == claim.run_id
         && SeparationConfiguration::from_claim(claim).is_ok_and(|config| {
             config.source == *source
+                && config.source_node_id == publication.source_node_id
                 && config
                     .model
                     .separation_spec()
-                    .is_ok_and(|spec| candidate.model_spec_id == spec)
+                    .is_ok_and(|spec| publication.model_spec_id == spec)
         })
-        && candidate.source == *source
+        && publication.source == *source
 }
 
-fn completed(candidate: SpeechSourceSeparationCandidate) -> Result<StepOutcome, AppError> {
+fn completed(publication: SpeechSourceSeparationPublication) -> Result<StepOutcome, AppError> {
     Ok(StepOutcome::Completed {
-        output: serde_json::to_value(candidate).map_err(db::json_error)?,
+        output: serde_json::to_value(publication).map_err(db::json_error)?,
         selected_branch: None,
     })
 }

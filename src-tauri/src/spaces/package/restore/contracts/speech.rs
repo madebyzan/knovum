@@ -37,6 +37,7 @@ pub struct PackageVoiceRevision {
 pub struct PackageSpeechSourceSeparation {
     pub id: String,
     pub run_id: String,
+    pub source_node_id: String,
     pub source_asset_path: String,
     pub source_revision: String,
     pub source_duration_ms: i64,
@@ -48,10 +49,7 @@ pub struct PackageSpeechSourceSeparation {
     pub background_sample_rate: i64,
     pub background_sample_count: i64,
     pub background_duration_ms: i64,
-    pub review_status: String,
-    pub review_warning: String,
     pub created_at: i64,
-    pub reviewed_at: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]

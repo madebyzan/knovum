@@ -21,7 +21,7 @@ pub struct VideoDubbingOutputConfig {
     pub format: String,
     pub video: SpeechMediaSource,
     pub background: Option<SpeechMediaSource>,
-    pub background_separation: Option<AcceptedSourceSeparation>,
+    pub background_separation: Option<SourceSeparationProvenance>,
     pub voice_gain_db: f32,
     pub background_gain_db: f32,
     pub translation: Option<VideoTranslationProvenance>,
@@ -41,7 +41,7 @@ pub struct SourceDialogueInterval {
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct AcceptedSourceSeparation {
+pub struct SourceSeparationProvenance {
     pub separation_id: String,
     pub model_spec_id: String,
     pub source: SpeechMediaSource,
@@ -88,7 +88,7 @@ pub(crate) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
             && (config.background_separation.is_none()
                 || config.source_dialogue_intervals.is_empty()))
     {
-        return Err("Preserving original ambience requires source dialogue intervals and an accepted separation".into());
+        return Err("Preserving original ambience requires source dialogue intervals and a published separation".into());
     }
     separation::validate(config)?;
     if let Some(translation) = &config.translation {
@@ -134,7 +134,7 @@ pub(crate) async fn require_sources(
     require_source(tx, space_id, project_id, "video", &config.video).await?;
     if let Some(background) = &config.background {
         if let Some(separation) = &config.background_separation {
-            separation::require_accepted(tx, space_id, separation, background).await?;
+            separation::require_published(tx, space_id, separation, background).await?;
         } else {
             require_source(tx, space_id, project_id, "audio", background).await?;
         }

@@ -158,7 +158,7 @@ fn spawn_transcription<R: Runtime>(
             }
         }
         let _ = sender.send(DictationAction::Finished {
-            session_id: session_id,
+            session_id,
             target,
             transcription: capture,
         });

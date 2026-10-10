@@ -190,14 +190,16 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
     .await;
     assert!(designed_moss.is_err());
 
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('source','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Source\"}',1,1)")
+        .execute(&pool).await.unwrap();
     sqlx::query(
         "INSERT INTO spaces_speech_source_separations( \
-         id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
+         id,space_id,run_id,source_node_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
          background_asset_path,vocals_asset_path,vocals_sha256,background_sha256,background_sample_rate, \
-         background_sample_count,background_duration_ms,review_status,review_warning,created_at) \
-         VALUES('full-separation','space','full-separation','/source.wav',?,1000, \
+         background_sample_count,background_duration_ms,created_at) \
+         VALUES('full-separation','space','full-separation','source','/source.wav',?,1000, \
          'spleeter-2stems-fp32-cpu-v1','/background.wav','/vocals.wav',?,?,44100,44100,1000, \
-         'pending','Review the separated tracks before use',1)",
+         1)",
     )
     .bind(format!("sha256:{}", "f".repeat(64)))
     .bind("1".repeat(64))

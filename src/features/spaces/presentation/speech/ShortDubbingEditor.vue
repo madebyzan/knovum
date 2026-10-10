@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Play, Save } from "@lucide/vue";
+import { Play } from "@lucide/vue";
 import { computed, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,6 +12,7 @@ import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibrar
 import { useShortDubbingDraft } from "../../speech/use-short-dubbing-draft";
 import { voiceRevisionOptions } from "../../speech/voice-options";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
+import SpeechSettingsDisclosure from "./SpeechSettingsDisclosure.vue";
 import WavPrecisionSelect from "./WavPrecisionSelect.vue";
 
 const props = defineProps<{
@@ -21,7 +22,6 @@ const props = defineProps<{
   sourceText: string;
 }>();
 const emit = defineEmits<{
-  save: [input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
   preview: [
     text: string,
     voiceRevisionId: string,
@@ -72,6 +72,7 @@ watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? r
       :rows="6"
       :disabled="disabled"
       :placeholder="t('spaces.speech.project.scriptPlaceholder')"
+      :aria-label="t('spaces.speech.project.script')"
     />
     <UiSelect
       v-model="voiceRevisionId"
@@ -89,19 +90,21 @@ watchEffect(() => emit("draftState", dirty.value, dirty.value && valid.value ? r
       :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
       :aria-label="t('spaces.speech.project.deliveryInstruction')"
     />
-    <WavPrecisionSelect v-model="wavPrecision" :disabled />
-    <PronunciationLexiconEditor
-      v-model="lexicon.entries.value"
-      :valid="lexicon.isValid.value"
-      :disabled="disabled"
-    />
     <div class="flex gap-2">
       <UiButton size="sm" :disabled="disabled || !valid" @click="preview">
         <Play class="size-3.5" />{{ t("spaces.speech.project.preview") }}
       </UiButton>
-      <UiButton size="sm" :disabled="disabled || !dirty || !valid" @click="emit('save', revisionInput())">
-        <Save class="size-3.5" />{{ t("spaces.speech.project.saveRevision") }}
-      </UiButton>
     </div>
+    <SpeechSettingsDisclosure
+      :title="t('spaces.speech.project.settings')"
+      :is-invalid="!lexicon.isValid.value"
+    >
+      <WavPrecisionSelect v-model="wavPrecision" :disabled />
+      <PronunciationLexiconEditor
+        v-model="lexicon.entries.value"
+        :valid="lexicon.isValid.value"
+        :disabled="disabled"
+      />
+    </SpeechSettingsDisclosure>
   </div>
 </template>

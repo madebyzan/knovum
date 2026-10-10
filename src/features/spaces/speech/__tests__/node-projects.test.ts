@@ -58,7 +58,10 @@ function projectSnapshot(revision: number): SpeechProjectSnapshot {
 }
 
 it.each([true, false])("shares an admitted revision write with the leave barrier (%s)", async (succeeded) => {
-  ipc.listSpeechProjects.mockResolvedValue([projectSnapshot(1).project]);
+  ipc.listSpeechProjects.mockResolvedValue([
+    { ...projectSnapshot(1).project, id: "older", updatedAt: 0 },
+    projectSnapshot(1).project,
+  ]);
   ipc.getSpeechProject.mockResolvedValue(projectSnapshot(1));
   let resolveWrite!: (snapshot: SpeechProjectSnapshot) => void;
   let rejectWrite!: (error: Error) => void;
@@ -77,7 +80,8 @@ it.each([true, false])("shares an admitted revision write with the leave barrier
     ),
   )!;
   await vi.waitFor(() => expect(workspace.loading.value).toBe(false));
-  await workspace.openProject("project");
+  expect(workspace.selectedProject.value?.project.id).toBe("project");
+  expect(ipc.getSpeechProject).toHaveBeenCalledExactlyOnceWith("project");
   const input = {
     sourceRevision: "source-revision",
     pronunciationLexicon: {},

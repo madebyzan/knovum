@@ -25,5 +25,7 @@
   "cover": "封面",
   "noCover": "不使用封面",
   "boundCover": "已绑定的封面版本",
-  "coverRequiresEncodedOutput": "嵌入封面请使用 MP3 或 M4B。"
+  "coverRequiresEncodedOutput": "嵌入封面请使用 MP3 或 M4B。",
+  "outputSettings": "输出设置",
+  "metadataSettings": "书籍信息"
 }

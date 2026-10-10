@@ -15,5 +15,14 @@ const options = [
 </script>
 
 <template>
-  <UiSelect v-model="model" size="sm" :label="t('spaces.speech.audiobook.wavPrecision')" :options :disabled />
+  <label class="block min-w-0 space-y-1 text-caption text-fg-secondary">
+    <span>{{ t("spaces.speech.audiobook.wavPrecision") }}</span>
+    <UiSelect
+      v-model="model"
+      size="sm"
+      :label="t('spaces.speech.audiobook.wavPrecision')"
+      :options
+      :disabled
+    />
+  </label>
 </template>

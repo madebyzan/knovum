@@ -100,6 +100,25 @@
     },
     "selectedVoiceModel": "新建参考音色的默认模型；已保存音色保留原模型。",
     "modelSize": "模型文件 {size}",
-    "defaultModel": "默认"
+    "defaultModel": "默认",
+    "search": "搜索当前分类",
+    "filterLabel": "下载状态",
+    "categories": "模型能力分类",
+    "modelCount": "{count} 个模型",
+    "noResults": "没有匹配的模型，请调整搜索或筛选。",
+    "categoryLabels": {
+      "embedding": "向量检索",
+      "transcription": "音视频转录",
+      "speechSynthesis": "语音合成",
+      "speechAlignment": "转录对齐",
+      "speechDiarization": "说话人识别",
+      "speechSeparation": "人声分离",
+      "imageSegmentation": "背景移除"
+    },
+    "filters": {
+      "all": "全部模型",
+      "installed": "已下载",
+      "notInstalled": "未下载"
+    }
   }
 }

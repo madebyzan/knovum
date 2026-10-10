@@ -8,7 +8,7 @@ import { localeMessages } from "../../../../../locales/locale-registry";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { NodeSpeechOperation } from "../node-speech-operations";
 import SpaceNodeSpeechActions from "../SpaceNodeSpeechActions.vue";
-import SpaceNodeSpeechBar from "../SpaceNodeSpeechBar.vue";
+import SpaceNodeSpeechControls from "../SpaceNodeSpeechControls.vue";
 
 vi.mock("../../../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space", nodes: [] }),
@@ -24,7 +24,7 @@ const SpeechOperation = defineComponent({
           operation.value = selected;
         },
       }),
-      h(SpaceNodeSpeechBar, {
+      h(SpaceNodeSpeechControls, {
         node: props.node,
         operation: operation.value,
         "onUpdate:operation": (selected: NodeSpeechOperation | undefined) => {
@@ -72,13 +72,15 @@ it("opens the selected node editor and closes it when the selected node changes"
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
   expect(document.querySelector('[aria-modal="true"]')).toBeNull();
-  expect(document.querySelector('[data-testid="node-speech-bar"] [role="toolbar"]')).not.toBeNull();
+  expect(wrapper.find('[data-testid="node-speech-controls"] [data-testid="editor"]').exists()).toBe(true);
+  expect(wrapper.find('button[aria-haspopup="dialog"]').exists()).toBe(false);
+  expect(document.querySelector('[data-testid="node-speech-controls"] [role="toolbar"]')).toBeNull();
   await wrapper.setProps({ node: { ...note, data: { ...note.data, title: "Renamed" } } });
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("first");
   await wrapper.setProps({ node: { ...note, id: "second" } });
   await flushPromises();
-  expect(document.querySelector('[data-testid="node-speech-bar"]')).toBeNull();
+  expect(document.querySelector('[data-testid="node-speech-controls"]')).toBeNull();
   await wrapper.get('[data-testid="node-speech-action"]').trigger("click");
   await flushPromises();
   expect(document.querySelector('[data-testid="editor"]')?.textContent).toBe("second");
@@ -99,7 +101,7 @@ it("uses the selected audio as the cloning source", async () => {
   expect(document.querySelector('[data-testid="editor"]')).toBeNull();
   await wrapper.setProps({ node: { ...audio, data: { ...audio.data, sourceRevision: "updated-source" } } });
   await flushPromises();
-  expect(document.querySelector('[data-testid="node-speech-bar"]')).toBeNull();
+  expect(document.querySelector('[data-testid="node-speech-controls"]')).toBeNull();
 });
 
 it("provides separate dubbing and reference-voice operations on a video node", async () => {
