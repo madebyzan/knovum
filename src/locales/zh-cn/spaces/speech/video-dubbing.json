@@ -1,10 +1,8 @@
 {
   "backgroundAudio": "背景音频",
   "muteOriginal": "静音原声",
-  "sourcesHint": "请选择当前空间内已完成分析的媒体。原声会静音；背景音频必须来自独立录音。",
   "voiceGain": "配音音量（dB）",
   "backgroundGain": "背景音量（dB）",
-  "timingRule": "每段配音必须适配目标区间。时长比超出 0.90–1.10 时需要修改；重叠配音保留独立音轨。",
   "importTranscript": "使用源视频转录",
   "startSeconds": "开始时间（秒）",
   "endSeconds": "结束时间（秒）",

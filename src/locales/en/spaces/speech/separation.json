@@ -1,10 +1,15 @@
 {
   "task": "Source separation",
-  "cancel": "Cancel separation",
-  "title": "Vocal separation",
+  "title": "Separate vocals and background",
   "stems": {
     "vocals": "Vocals",
     "background": "Background"
   },
-  "background": "Separated background"
+  "background": "Separated background",
+  "running": "Separating audio",
+  "starting": "Preparing separation…",
+  "cancelling": "Cancelling…",
+  "completed": "Vocals and background added to canvas",
+  "sourceUnavailable": "Audio information is not ready",
+  "tooLong": "Choose audio up to 10 minutes long"
 }

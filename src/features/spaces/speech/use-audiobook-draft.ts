@@ -15,6 +15,7 @@ import { nextAudiobookRoleKey, renamedAudiobookDraft } from "./audiobook-role-dr
 import type { ImportedAudiobookScript } from "./audiobook-script";
 import { useAudiobookOutput } from "./use-audiobook-output";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
+import { useSpeechDraftChanges } from "./use-speech-draft-changes";
 import { defaultVoiceRevisionId, voiceSupportsDeliveryInstruction } from "./voice-options";
 
 export function useAudiobookDraft(
@@ -26,7 +27,6 @@ export function useAudiobookDraft(
   const output = useAudiobookOutput();
   const configurationError = shallowRef<string>();
   const lexicon = usePronunciationLexicon(() => project().revision);
-  let saved = "";
   const snapshot = () =>
     JSON.stringify([
       chapters.value,
@@ -37,7 +37,7 @@ export function useAudiobookDraft(
       output.value(),
       lexicon.entries.value,
     ]);
-  const dirty = computed(() => snapshot() !== saved);
+  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
 
   watch(
     () => project().revision.id,
@@ -58,8 +58,16 @@ export function useAudiobookDraft(
       roles.value = [];
       configurationError.value = cause instanceof Error ? cause.message : String(cause);
     }
-    saved = snapshot();
+    acceptRevision();
   }
+
+  watch(voices, () => {
+    const wasDirty = dirty.value;
+    const voiceId = defaultVoiceRevisionId(voices());
+    if (voiceId)
+      roles.value.filter((role) => !role.voiceRevisionId).forEach((role) => setRoleVoice(role, voiceId));
+    if (!wasDirty) acceptInitialization();
+  });
 
   function addRole(name: string) {
     const key = nextAudiobookRoleKey(name, roles.value);
@@ -90,11 +98,13 @@ export function useAudiobookDraft(
     chapters.value.push(chapter);
     configurationError.value = undefined;
   }
-  function importScript(script: ImportedAudiobookScript) {
+  function importScript(script: ImportedAudiobookScript, initialize = false) {
+    const wasDirty = dirty.value;
     const imported = importedAudiobookDraft(script, roles.value, defaultVoiceRevisionId(voices()));
     roles.value = imported.roles;
     chapters.value = imported.chapters;
     configurationError.value = undefined;
+    if (initialize && !wasDirty) acceptInitialization();
   }
   const usedRoleKeys = computed(() => [
     ...new Set(
@@ -102,8 +112,8 @@ export function useAudiobookDraft(
     ),
   ]);
   const selectedVoiceRevisionIds = computed(() => roles.value.map((role) => role.voiceRevisionId));
-  const valid = computed(() => {
-    return (
+  const valid = computed(
+    () =>
       !configurationError.value &&
       audiobookDraftIsValid({
         roles: roles.value,
@@ -111,9 +121,8 @@ export function useAudiobookDraft(
         voices: voices(),
       }) &&
       lexicon.isValid.value &&
-      output.valid()
-    );
-  });
+      output.valid(),
+  );
 
   function revisionInput() {
     return {
@@ -154,6 +163,7 @@ export function useAudiobookDraft(
     lexicon,
     configurationError,
     dirty,
+    needsRevision,
     valid,
     usedRoleKeys,
     selectedVoiceRevisionIds,

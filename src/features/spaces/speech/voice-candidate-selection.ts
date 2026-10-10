@@ -18,15 +18,10 @@ export async function auditionVoiceCandidate(candidate: VoiceCandidate) {
   return presentVoiceCandidate(await markVoiceCandidateAuditioned(candidate.candidateId));
 }
 
-export function selectVoiceCandidate(
-  candidate: VoiceCandidate,
-  name: string,
-  authorized: boolean,
-): Promise<VoiceLibraryRevision> {
+export function selectVoiceCandidate(candidate: VoiceCandidate, name: string): Promise<VoiceLibraryRevision> {
   return createCandidateVoice({
     candidateId: candidate.candidateId,
     name,
-    authorized,
   });
 }
 

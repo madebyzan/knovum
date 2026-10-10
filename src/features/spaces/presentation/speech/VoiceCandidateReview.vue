@@ -7,7 +7,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { PlayableVoiceCandidate } from "../../speech/voice-candidate-selection";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 
-defineProps<{ candidate: DeepReadonly<PlayableVoiceCandidate>; disabled: boolean; authorized: boolean }>();
+defineProps<{ candidate: DeepReadonly<PlayableVoiceCandidate>; disabled: boolean }>();
 const emit = defineEmits<{ audition: []; dirty: [value: boolean]; save: [name: string]; discard: [] }>();
 const name = shallowRef("");
 const { t } = useI18n();
@@ -32,7 +32,7 @@ watch(name, (value) => emit("dirty", Boolean(value.trim())));
         <UiButton
           size="sm"
           variant="primary"
-          :disabled="disabled || !name.trim() || !authorized || candidate.auditionedAt === null"
+          :disabled="disabled || !name.trim() || candidate.auditionedAt === null"
           @click="emit('save', name.trim())"
         >
           {{ t("spaces.speech.voice.candidate.save") }}

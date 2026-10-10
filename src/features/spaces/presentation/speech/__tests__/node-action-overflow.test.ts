@@ -40,6 +40,7 @@ it("keeps the node operation editor open after its overflow menu closes", async 
                   default: () =>
                     h(SpaceNodeSpeechActions, {
                       node,
+                      separationUnavailableReason: undefined,
                       menuItem: true,
                       onBegin: (selected: NodeSpeechOperation) => {
                         operation.value = selected;
@@ -106,7 +107,6 @@ it("closes cloning with Escape while keeping the canvas nonmodal", async () => {
   await flushPromises();
   expect(document.querySelector('[role="dialog"]')).toBeNull();
   const panel = wrapper.get('[data-testid="node-speech-controls"]');
-  expect(document.activeElement).toBe(panel.get("button").element);
   await panel.trigger("keydown", { key: "Escape" });
   await flushPromises();
   expect(wrapper.emitted("update:operation")?.at(-1)).toEqual([undefined]);

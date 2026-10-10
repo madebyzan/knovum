@@ -53,11 +53,13 @@ it("makes a new narration usable when its first voice is created without losing 
       ),
     )!;
     expect(draft.valid.value).toBe(false);
+    expect(draft.dirty.value).toBe(false);
     draft.text.value = "Edited notes";
     voices.value = [voice];
     await nextTick();
     expect(draft.voiceRevisionId.value).toBe(voice.revisionId);
     expect(draft.valid.value).toBe(true);
+    expect(draft.dirty.value).toBe(true);
     expect(draft.revisionInput().segments[0]?.text).toBe("Edited notes");
     voices.value = [{ ...voice, revisionId: "second" }, voice];
     await nextTick();

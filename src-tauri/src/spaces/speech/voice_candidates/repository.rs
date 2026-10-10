@@ -44,8 +44,6 @@ pub(crate) async fn persist_candidate(
         .transpose()
         .map_err(|_| "Voice candidate input length exceeds storage range")?;
     let authorization = serde_json::json!({
-        "declared": request.authorized,
-        "declaredAt": now,
         "referenceTranscriptConfirmed": reference_text.is_some(),
     });
     let mut tx = db::begin_write(pool).await?;

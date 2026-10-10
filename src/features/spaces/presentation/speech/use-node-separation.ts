@@ -12,6 +12,11 @@ export function useNodeSeparation(node: Readonly<Ref<SpaceCanvasNode | undefined
   const source = computed(
     () => [...videos.value, ...backgrounds.value].find(({ id }) => id === node.value?.id)?.source,
   );
+  const unavailableReason = computed(() => {
+    if (!store.activeSpaceId || !source.value) return "spaces.speech.separation.sourceUnavailable";
+    if (source.value.durationMs > 600_000) return "spaces.speech.separation.tooLong";
+    return undefined;
+  });
   watch(
     [
       () => store.activeSpaceId,
@@ -27,10 +32,9 @@ export function useNodeSeparation(node: Readonly<Ref<SpaceCanvasNode | undefined
     },
     { immediate: true },
   );
-  async function toggleSeparation() {
-    if (separation.activeRunId.value) await separation.cancel();
-    else if (store.activeSpaceId && node.value && source.value && source.value.durationMs <= 600_000)
+  async function startSeparation() {
+    if (!unavailableReason.value && store.activeSpaceId && node.value && source.value)
       await separation.start(store.activeSpaceId, node.value.id, source.value);
   }
-  return { separation, source, toggleSeparation };
+  return { separation, unavailableReason, startSeparation };
 }

@@ -29,11 +29,11 @@ const {
   preparingReference,
   transcript,
   transcriptConfirmed,
-  authorized,
   text,
   candidates,
   activeRunId,
   pendingRequestId,
+  isCancelling,
   busy,
   errors,
   modes,
@@ -52,7 +52,7 @@ const dirty = computed(() => draftDirty.value || referenceEditorDirty.value || c
 watch(dirty, (value) => emit("dirty", value), { immediate: true });
 
 async function saveCandidate(candidateId: string, name: string) {
-  const voice = await save(candidateId, name, authorized.value);
+  const voice = await save(candidateId, name);
   if (voice) emit("created", voice);
 }
 </script>
@@ -112,10 +112,6 @@ async function saveCandidate(candidateId: string, name: string) {
       :placeholder="t('spaces.speech.voice.designDescription')"
       :aria-label="t('spaces.speech.voice.designDescription')"
     />
-    <label class="flex items-center gap-2 text-caption text-fg-secondary">
-      <UiCheckbox v-model="authorized" :disabled="busy" :label="t('spaces.speech.reference.authorization')" />
-      {{ t("spaces.speech.reference.authorization") }}
-    </label>
     <div class="space-y-3 border-t border-stroke-divider pt-3">
       <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
         <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
@@ -136,7 +132,13 @@ async function saveCandidate(candidateId: string, name: string) {
         >
           {{ t(busy ? "spaces.speech.project.starting" : "spaces.speech.voice.candidate.generate") }}
         </UiButton>
-        <UiButton v-if="activeRunId || pendingRequestId" size="sm" variant="dangerSubtle" @click="cancel">
+        <UiButton
+          v-if="activeRunId || pendingRequestId"
+          size="sm"
+          variant="dangerSubtle"
+          :disabled="isCancelling"
+          @click="cancel"
+        >
           {{ t("common.cancel") }}
         </UiButton>
       </div>
@@ -148,7 +150,6 @@ async function saveCandidate(candidateId: string, name: string) {
       v-if="candidates.length"
       :candidates
       :disabled="busy"
-      :authorized
       @audition="audition"
       @dirty="candidateListDirty = $event"
       @save="saveCandidate"

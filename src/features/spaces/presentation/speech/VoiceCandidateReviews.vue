@@ -7,7 +7,6 @@ import VoiceCandidateReview from "./VoiceCandidateReview.vue";
 const props = defineProps<{
   candidates: readonly DeepReadonly<PlayableVoiceCandidate>[];
   disabled: boolean;
-  authorized: boolean;
 }>();
 const emit = defineEmits<{
   audition: [candidateId: string];
@@ -42,7 +41,6 @@ function setCandidateDirty(candidateId: string, isDirty: boolean) {
       :key="candidate.candidateId"
       :candidate
       :disabled
-      :authorized
       @audition="emit('audition', candidate.candidateId)"
       @dirty="setCandidateDirty(candidate.candidateId, $event)"
       @save="emit('save', candidate.candidateId, $event)"

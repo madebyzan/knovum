@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { NodeSpeechProjectType } from "../../speech/node-speech";
 import { publishedSpeechOutput } from "../../speech/published-speech-output";
+import { speechProjectInput } from "../../speech/speech-project-input";
+import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 import { useSpeechProjectLeave } from "../../speech/use-speech-project-leave";
 import { useSpeechWorkspace } from "../../speech/use-speech-workspace";
 import SpaceUnsavedChangesDialog from "../workspace/SpaceUnsavedChangesDialog.vue";
 import SpeechNodeEditorHeader from "./SpeechNodeEditorHeader.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
-import SpeechProjectForm from "./SpeechProjectForm.vue";
+import SpeechProjectSelection from "./SpeechProjectSelection.vue";
+import SpeechVoiceAccess from "./SpeechVoiceAccess.vue";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
 
 const emit = defineEmits<{ close: [] }>();
@@ -21,6 +24,7 @@ const props = defineProps<{ node: SpaceCanvasNode; projectType: NodeSpeechProjec
 const {
   voices,
   projects,
+  initializationReady,
   selectedProject,
   preview,
   previewListening,
@@ -34,11 +38,12 @@ const {
   loading,
   errors,
   addProject,
+  refresh,
   openProject,
   saveRevision,
   settleRevisionSave,
   previewSelection,
-  generateProject,
+  startGeneration,
   cancelGeneration,
   stopPreviewListening,
   exportRender,
@@ -48,7 +53,25 @@ const {
 );
 
 const isAddingVoice = shallowRef(false);
-const isAddingProject = shallowRef(false);
+const { videos } = useSpeechMediaSources();
+const initialInput = computed(() =>
+  speechProjectInput(
+    props.node,
+    props.projectType,
+    videos.value.find((video) => video.id === props.node.id)?.source,
+  ),
+);
+const initializationAttempted = shallowRef(false);
+watch(
+  [loading, initialInput, initializationReady],
+  () => {
+    if (loading.value || !initializationReady.value || selectedProject.value) return;
+    if (!initialInput.value || initializationAttempted.value) return;
+    initializationAttempted.value = true;
+    void addProject(initialInput.value);
+  },
+  { immediate: true },
+);
 const draftEpoch = shallowRef(0);
 const projectLeave = useSpeechProjectLeave(
   saveRevision,
@@ -57,9 +80,6 @@ const projectLeave = useSpeechProjectLeave(
   settleRevisionSave,
 );
 
-const projectOptions = computed(() =>
-  projects.value.map((project) => ({ value: project.id, label: project.title })),
-);
 async function requestClose() {
   try {
     await projectLeave.leave.requestLeave();
@@ -69,73 +89,67 @@ async function requestClose() {
     throw error;
   }
 }
-async function toggleNewProject() {
-  if (!isAddingProject.value && !(await requestClose())) return;
-  isAddingProject.value = !isAddingProject.value;
+async function createProject() {
+  if (!initialInput.value || creatingProject.value || !(await requestClose())) return;
+  await addProject(initialInput.value);
 }
-async function createProject(input: Parameters<typeof addProject>[0]) {
-  const previous = selectedProject.value?.project.id;
-  await addProject(input);
-  if (selectedProject.value?.project.id !== previous) isAddingProject.value = false;
+async function retryInitialization() {
+  initializationAttempted.value = false;
+  await refresh();
 }
 defineExpose({ requestClose });
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-col" :aria-busy="loading">
+  <div class="flex min-h-0 flex-col" :aria-busy="loading || creatingProject">
     <SpeechNodeEditorHeader
       :node
       :project-type
-      :revision="selectedProject?.project.activeRevision"
-      :is-creating="creatingProject"
-      :is-adding-project="isAddingProject"
       :is-adding-voice="isAddingVoice"
-      @new-project="toggleNewProject"
-      @add-voice="isAddingVoice = !isAddingVoice"
+      @back="isAddingVoice = false"
       @close="emit('close')"
     />
     <div v-if="errors.length" class="space-y-1 bg-surface-danger-subtle px-3 py-2" role="alert">
       <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
     </div>
-    <div v-if="loading" class="flex items-center gap-2 p-3 text-caption text-fg-secondary">
+    <div v-if="loading || creatingProject" class="flex items-center gap-2 p-3 text-caption text-fg-secondary">
       <UiSpinner size="sm" />{{ $t("common.loading") }}
     </div>
-    <div v-if="projects.length > 1" class="shrink-0 px-3 py-2">
-      <UiSelect
+    <SpeechVoiceAccess
+      v-if="!loading && !creatingProject && !isAddingVoice"
+      :empty="!voices.some((voice) => voice.isActive && voice.archivedAt == null)"
+      :disabled="hasActiveExecution || savingRevision || generationSubmitting"
+      @add="isAddingVoice = true"
+    >
+      <UiButton
+        v-if="selectedProject"
         size="sm"
-        :model-value="selectedProject?.project.id ?? ''"
-        :options="projectOptions"
-        :label="$t('spaces.speech.project.nodeProjects')"
-        @update:model-value="projectLeave.selectProject"
-      />
+        variant="ghost"
+        class="ml-auto"
+        :disabled="hasActiveExecution || savingRevision || generationSubmitting"
+        @click="createProject"
+        >{{ $t("spaces.speech.project.new") }}</UiButton
+      >
+    </SpeechVoiceAccess>
+    <div v-if="!loading && !creatingProject && !selectedProject" class="space-y-2 p-3">
+      <p v-if="!initialInput" class="text-caption text-fg-secondary" role="status">
+        {{ $t("spaces.speech.project.sourceNotReady") }}
+      </p>
+      <UiButton v-else size="sm" @click="retryInitialization">{{ $t("common.retry") }}</UiButton>
     </div>
-    <p
-      v-else-if="selectedProject && selectedProject.project.title !== node.data.title"
-      class="truncate px-3 py-2 text-caption text-fg-secondary"
-      :title="selectedProject.project.title"
-    >
-      {{ selectedProject.project.title }}
-    </p>
-    <UiScrollArea
-      v-if="isAddingVoice || (!loading && (!selectedProject || isAddingProject))"
-      class="max-h-96 min-h-0"
-      viewport-class="max-h-[inherit]"
-    >
-      <div class="p-3">
-        <VoiceCandidateForm v-if="isAddingVoice" />
-        <SpeechProjectForm
-          v-if="!selectedProject || isAddingProject"
-          v-show="!isAddingVoice"
-          :node="node"
-          :project-type="projectType"
-          :disabled="creatingProject"
-          @create="createProject"
-        />
-      </div>
+    <UiScrollArea v-if="isAddingVoice" class="max-h-96 min-h-0" viewport-class="max-h-[inherit]">
+      <div class="p-3"><VoiceCandidateForm /></div>
     </UiScrollArea>
+    <SpeechProjectSelection
+      v-if="selectedProject && projects.length > 1 && !isAddingVoice"
+      :projects="projects"
+      :selected-id="selectedProject.project.id"
+      :disabled="creatingProject || savingRevision || hasActiveExecution || generationSubmitting"
+      @select="projectLeave.selectProject"
+    />
     <SpeechProjectEditor
       v-if="selectedProject"
-      :visible="!isAddingProject && !isAddingVoice"
+      :visible="!isAddingVoice"
       :key="`${selectedProject.project.id}:${draftEpoch}`"
       :source-node="node"
       :project="selectedProject"
@@ -149,10 +163,9 @@ defineExpose({ requestClose });
       :saving="savingRevision"
       :submitting="generationSubmitting"
       :cancelling="generationCancelling"
-      @save="saveRevision"
       @draft-state="projectLeave.updateDraft"
       @preview="previewSelection"
-      @generate="generateProject"
+      @generate="startGeneration"
       @cancel="cancelGeneration"
       @stop-listening="stopPreviewListening"
       @export="exportRender"
@@ -161,9 +174,9 @@ defineExpose({ requestClose });
   <SpaceUnsavedChangesDialog
     :open="projectLeave.leave.dialogOpen.value"
     :saving="projectLeave.leave.saving.value"
-    :can-save="Boolean(projectLeave.draft.value)"
-    :title="$t('spaces.speech.project.unsavedTitle')"
-    :description="$t('spaces.speech.project.unsavedDescription')"
+    :show-save="Boolean(projectLeave.draft.value)"
+    :title="projectLeave.dialogTitle.value"
+    :description="projectLeave.dialogDescription.value"
     @cancel="projectLeave.leave.cancel"
     @discard="projectLeave.leave.discard"
     @save="projectLeave.leave.save"

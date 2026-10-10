@@ -88,9 +88,7 @@ it("prevents synthesis while the dubbing script is being translated and releases
   const editor = wrapper.getComponent({ name: "VideoDubbingEditor" });
   const generate = wrapper.get('[data-testid="speech-generate"]');
   expect(generate.element.closest("[data-reka-scroll-area-viewport]")).toBeNull();
-  expect(
-    wrapper.get('[data-testid="speech-save"]').element.closest("[data-reka-scroll-area-viewport]"),
-  ).toBeNull();
+  expect(wrapper.find('[data-testid="speech-save"]').exists()).toBe(false);
   expect(generate.attributes("disabled")).toBeUndefined();
   await wrapper.setProps({ saving: true });
   expect(generate.attributes("disabled")).toBeDefined();
@@ -105,16 +103,19 @@ it("prevents synthesis while the dubbing script is being translated and releases
   expect(editor.props("disabled")).toBe(false);
   editor.vm.$emit("draftState", true);
   await wrapper.vm.$nextTick();
-  const save = wrapper.get('[data-testid="speech-save"]');
-  expect(save.attributes("disabled")).toBeDefined();
+  expect(generate.attributes("disabled")).toBeDefined();
   const input = { sourceRevision: "source", outputConfig: {}, pronunciationLexicon: {}, segments: [] };
   editor.vm.$emit("draftState", true, input);
   await wrapper.vm.$nextTick();
-  expect(generate.attributes("disabled")).toBeDefined();
-  expect(save.attributes("disabled")).toBeUndefined();
-  await save.trigger("click");
-  expect(wrapper.emitted("save")?.at(-1)).toEqual([input]);
+  expect(generate.attributes("disabled")).toBeUndefined();
+  await generate.trigger("click");
+  expect(wrapper.emitted("generate")?.at(-1)).toEqual([input]);
+  editor.vm.$emit("draftState", false, input);
+  await wrapper.vm.$nextTick();
+  expect(generate.attributes("disabled")).toBeUndefined();
+  await generate.trigger("click");
+  expect(wrapper.emitted("generate")?.at(-1)).toEqual([input]);
   editor.vm.$emit("busy", true);
   await wrapper.vm.$nextTick();
-  expect(save.attributes("disabled")).toBeDefined();
+  expect(generate.attributes("disabled")).toBeDefined();
 });

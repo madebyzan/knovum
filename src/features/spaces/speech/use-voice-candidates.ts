@@ -35,6 +35,7 @@ export function useVoiceCandidates() {
   });
   const activeRunId = shallowRef<string>();
   const localError = shallowRef<string>();
+  const isCancelling = shallowRef(false);
   const submission = useVoiceCandidateSubmission();
   let stopObservation: (() => unknown) | undefined;
   let disposed = false;
@@ -47,7 +48,7 @@ export function useVoiceCandidates() {
   });
   const candidates = computed(() => (candidatesQuery.data.value ?? []).map(presentVoiceCandidate));
   const busy = computed(() =>
-    Boolean(activeRunId.value || submission.jobId.value || mutation.isPending.value),
+    Boolean(activeRunId.value || submission.jobId.value || mutation.isPending.value || isCancelling.value),
   );
   const errors = computed(() => [
     ...new Set(
@@ -119,13 +120,13 @@ export function useVoiceCandidates() {
     });
   }
 
-  async function save(candidateId: string, name: string, authorized: boolean) {
+  async function save(candidateId: string, name: string) {
     if (busy.value) return;
     localError.value = undefined;
     try {
       return await mutation.mutateAsync({
         execute: async () => {
-          const voice = await selectVoiceCandidate(selected(candidateId), name, authorized);
+          const voice = await selectVoiceCandidate(selected(candidateId), name);
           editCandidates((current) => current.filter((candidate) => candidate.candidateId !== candidateId));
           await Promise.all([
             client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
@@ -148,13 +149,16 @@ export function useVoiceCandidates() {
 
   async function cancel() {
     const runId = activeRunId.value ?? submission.jobId.value;
-    if (!runId) return;
+    if (!runId || isCancelling.value) return;
+    isCancelling.value = true;
     try {
       if (activeRunId.value) await cancelResourceRun(runId);
       else await submission.cancel();
     } catch (cause) {
       if (activeRunId.value === runId || submission.jobId.value === runId)
         localError.value = getErrorMessage(cause);
+    } finally {
+      isCancelling.value = false;
     }
   }
 
@@ -168,6 +172,7 @@ export function useVoiceCandidates() {
     activeRunId,
     pendingRequestId: submission.jobId,
     busy,
+    isCancelling,
     errors,
     draft,
     save,

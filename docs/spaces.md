@@ -327,7 +327,7 @@ Audition completion and the selected profile/revision identity are persisted. Di
 ready candidate removes its terminal Application Run, candidate receipt, unshared grant and
 unreferenced audio; selected candidates remain until their archived, unreferenced profile is
 permanently deleted. Creating a
-reusable voice requires an explicit authorization record and a completed audition; it copies the
+reusable voice requires a completed audition; generation and saving do not ask for a separate voice-use declaration. Application Run grants and managed-file access remain enforced by their respective authorization boundaries. Selecting a voice copies the
 candidate's verified 5–30 second 16 kHz mono reference into an immutable voice revision. Global
 voice profiles may be archived without losing candidate history or breaking existing project pins.
 Permanent deletion requires an archived profile with no speech-segment or audiobook-role references
@@ -671,7 +671,7 @@ upscale, layer splitting, multi-angle generation, burned-in subtitles, rendered 
 speech-project generation and source separation publish derived nodes with active `derives-from`
 relations. Choosing parameters or invoking Generate is the operation's execution decision; a
 successfully validated derived result requires no later acceptance or “add node” click. Cloning
-creates a reusable voice-library resource, and retains its own authorization/audition contract.
+creates a reusable voice-library resource, and retains its own audition and managed-reference validation contract.
 
 Speech-project output publication and source separation share one focused media-node publisher.
 It uses the existing content insertion, source-adjacent collision-aware placement, history and

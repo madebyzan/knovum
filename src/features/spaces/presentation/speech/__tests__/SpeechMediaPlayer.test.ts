@@ -50,3 +50,18 @@ it("pauses when its overlay scope hides and releases playback on unmount", async
   wrapper.unmount();
   expect(pause).toHaveBeenCalledOnce();
 });
+
+it("supports toolbar-owned controls without rendering another set of playback controls", async () => {
+  const wrapper = mount(SpeechMediaPlayer, {
+    props: { kind: "audio", source: "/reference.wav", showControls: false },
+    global: { plugins: [i18n] },
+  });
+  onTestFinished(() => wrapper.unmount());
+  const media = wrapper.get<HTMLAudioElement>("audio").element;
+  Object.defineProperties(media, { duration: { value: 20 }, readyState: { value: 1 } });
+  const play = vi.spyOn(media, "play").mockResolvedValue();
+  expect(wrapper.find("button").exists()).toBe(false);
+  await wrapper.vm.seekTo(2000, 7000);
+  expect(play).toHaveBeenCalledOnce();
+  expect(media.currentTime).toBe(2);
+});

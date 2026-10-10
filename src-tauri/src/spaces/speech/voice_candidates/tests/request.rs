@@ -7,7 +7,6 @@ fn request() -> DraftVoiceCandidateRequest {
         language: "zh-CN".into(),
         text: "你好世界".into(),
         seed: 0,
-        authorized: true,
         source: VoiceCandidateSource::Reference {
             source_path: "/voice.wav".into(),
             source_revision: format!("sha256:{}", "a".repeat(64)),

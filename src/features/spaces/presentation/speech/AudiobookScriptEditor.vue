@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
-import { computed, nextTick, shallowRef, useTemplateRef, watchEffect, type DeepReadonly } from "vue";
+import { computed, nextTick, shallowRef, watch, useTemplateRef, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -33,6 +33,7 @@ const emit = defineEmits<{
     pronunciationLexicon: Record<string, string>,
     deliveryInstruction?: string,
   ];
+  busy: [value: boolean];
   draftState: [
     value: boolean,
     input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
@@ -40,8 +41,12 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const page = shallowRef("script");
+const importing = shallowRef(false);
+const editingDisabled = computed(() => props.disabled || importing.value);
+watch(importing, (value) => emit("busy", value), { immediate: true });
 const chaptersRef = useTemplateRef("chaptersRef");
 async function addChapter() {
+  if (!draft.roles.value.length) draft.addRole(t("spaces.speech.project.defaultRole"));
   draft.addChapter(t("spaces.speech.audiobook.chapterTitle"));
   await nextTick();
   chaptersRef.value?.focusLastChapter();
@@ -68,7 +73,7 @@ watchEffect(() =>
   emit(
     "draftState",
     draft.dirty.value,
-    draft.dirty.value && draft.valid.value ? draft.revisionInput() : undefined,
+    draft.needsRevision.value && draft.valid.value ? draft.revisionInput() : undefined,
   ),
 );
 </script>
@@ -85,7 +90,16 @@ watchEffect(() =>
     "
   >
     <SpeechEditorPage value="script" :active="page">
-      <AudiobookScriptImport :node="sourceNode" :disabled="disabled" @imported="draft.importScript" />
+      <AudiobookScriptImport
+        :node="sourceNode"
+        :disabled="disabled"
+        :initialize="project.project.activeRevision === 1 && !project.segments.length"
+        @imported="(script, initialize) => draft.importScript(script, initialize)"
+        @busy="importing = $event"
+      />
+      <p v-if="!draft.chapters.value.length && !importing" class="text-caption text-fg-secondary">
+        {{ t("spaces.speech.project.emptyManuscript") }}
+      </p>
       <p v-if="draft.configurationError.value" class="text-caption-sm text-fg-danger">
         {{ t("spaces.speech.audiobook.configurationInvalid") }}
       </p>
@@ -93,10 +107,10 @@ watchEffect(() =>
         ref="chaptersRef"
         :draft="draft"
         :voices="voices"
-        :disabled="disabled"
+        :disabled="editingDisabled"
         @preview="forwardPreview"
       />
-      <UiButton size="sm" variant="ghost" :disabled="disabled" @click="addChapter">
+      <UiButton size="sm" variant="ghost" :disabled="editingDisabled" @click="addChapter">
         <Plus class="size-3.5" />{{ t("spaces.speech.audiobook.addChapter") }}
       </UiButton>
     </SpeechEditorPage>
@@ -105,7 +119,7 @@ watchEffect(() =>
         :roles="draft.roles.value"
         :voice-options="voiceOptions"
         :used-role-keys="draft.usedRoleKeys.value"
-        :disabled="disabled"
+        :disabled="editingDisabled"
         @add="draft.addRole(t('spaces.speech.project.defaultRole'))"
         @rename="draft.renameRole"
         @voice="draft.setRoleVoice"
@@ -114,7 +128,7 @@ watchEffect(() =>
     </SpeechEditorPage>
     <SpeechEditorPage value="settings" :active="page">
       <SpeechSettingsDisclosure :title="t('spaces.speech.audiobook.metadataSettings')" :is-expanded="true">
-        <AudiobookMetadataEditor v-model="draft.output.metadata.value" :disabled />
+        <AudiobookMetadataEditor v-model="draft.output.metadata.value" :disabled="editingDisabled" />
       </SpeechSettingsDisclosure>
       <SpeechSettingsDisclosure
         :title="t('spaces.speech.audiobook.outputSettings')"
@@ -128,7 +142,7 @@ watchEffect(() =>
           v-model:paragraph-pause="draft.output.paragraphPause.value"
           v-model:chapter-pause="draft.output.chapterPause.value"
           v-model:wav-precision="draft.output.wavPrecision.value"
-          :disabled="disabled"
+          :disabled="editingDisabled"
         />
         <p
           v-if="draft.output.format.value === 'wav' && draft.output.metadata.value.cover"
@@ -144,7 +158,7 @@ watchEffect(() =>
         <PronunciationLexiconEditor
           v-model="draft.lexicon.entries.value"
           :valid="draft.lexicon.isValid.value"
-          :disabled="disabled"
+          :disabled="editingDisabled"
         />
       </SpeechSettingsDisclosure>
     </SpeechEditorPage>

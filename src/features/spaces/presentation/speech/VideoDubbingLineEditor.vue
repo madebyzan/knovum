@@ -105,6 +105,7 @@ function selectVoice(voiceRevisionId: string) {
         size="sm"
         class="min-w-0 flex-1"
         :label="t('spaces.speech.voice.label')"
+        :placeholder="t('spaces.speech.project.selectVoice')"
         :options="voiceOptions"
         :disabled="disabled"
         @update:model-value="selectVoice"

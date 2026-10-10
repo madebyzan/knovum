@@ -33,7 +33,6 @@ it("generates distinct voice proposals while preserving each submitted seed", ()
   form.mode.value = "designed";
   form.model.value = "voxCpm2";
   form.description.value = "A clear adult voice";
-  form.authorized.value = true;
   form.modelAvailable.value = true;
   form.generate();
   form.generate();
@@ -41,6 +40,7 @@ it("generates distinct voice proposals while preserving each submitted seed", ()
   expect(draft.mock.calls[0]?.[0].seed).toBe(42);
   expect(draft.mock.calls[1]?.[0].seed).toBe(43);
   expect(draft.mock.calls[0]?.[0]).not.toHaveProperty("spaceId");
+  expect(draft.mock.calls[0]?.[0]).not.toHaveProperty("authorized");
 });
 
 it("submits confirmed reference text according to the selected model contract", () => {
@@ -55,7 +55,6 @@ it("submits confirmed reference text according to the selected model contract", 
     transcript: "Sample text",
   };
   form.transcriptConfirmed.value = true;
-  form.authorized.value = true;
   form.modelAvailable.value = true;
   form.generate();
   expect(draft).toHaveBeenCalledWith(

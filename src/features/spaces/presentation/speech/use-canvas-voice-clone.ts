@@ -26,12 +26,8 @@ export function useCanvasVoiceClone(node: Readonly<Ref<SpaceCanvasNode>>) {
     () => reference.jobId,
     (job) => (form.preparingReference = Boolean(job)),
   );
-  function setRange(start: number, end: number) {
-    reference.start = String(start);
-    reference.end = String(end);
-  }
   async function save(candidateId: string, name: string) {
-    await form.save(candidateId, name, form.authorized);
+    await form.save(candidateId, name);
   }
-  return { form, reference, setRange, save };
+  return { form, reference, save };
 }

@@ -61,6 +61,20 @@ const transcript = computed(
         video.source.sourceRevision === draft.config.value?.video.sourceRevision,
     )?.transcript,
 );
+watch(
+  transcript,
+  () => {
+    if (
+      props.project.project.activeRevision !== 1 ||
+      draft.lines.value.length ||
+      !transcript.value ||
+      draft.dirty.value
+    )
+      return;
+    draft.importTranscript(transcript.value, true);
+  },
+  { immediate: true },
+);
 const voiceOptions = computed(() =>
   voiceRevisionOptions(
     props.voices,
@@ -77,7 +91,7 @@ watchEffect(() =>
   emit(
     "draftState",
     draft.dirty.value,
-    draft.dirty.value && draft.valid.value ? draft.revisionInput() : undefined,
+    draft.needsRevision.value && draft.valid.value ? draft.revisionInput() : undefined,
   ),
 );
 </script>
@@ -100,7 +114,9 @@ watchEffect(() =>
         @bind="draft.bindSpeaker"
         @imported="draft.importSubtitles"
       />
-      <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.videoDubbing.timingRule") }}</p>
+      <p v-if="!draft.lines.value.length" class="text-caption text-fg-secondary">
+        {{ t("spaces.speech.project.emptyVideoScript") }}
+      </p>
       <UiButton
         v-if="transcript && !draft.lines.value.length"
         size="sm"

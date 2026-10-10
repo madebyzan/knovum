@@ -74,7 +74,6 @@ pub struct DraftVoiceCandidateRequest {
     pub text: String,
     pub seed: u32,
     pub source: VoiceCandidateSource,
-    pub authorized: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, ts_rs::TS)]
@@ -113,7 +112,6 @@ pub struct VoiceCandidate {
 pub struct CreateCandidateVoiceRequest {
     pub candidate_id: String,
     pub name: String,
-    pub authorized: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
