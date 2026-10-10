@@ -240,6 +240,17 @@ Protocol and authority boundaries are defined in [system-architecture.md](system
 and [secrets.md](secrets.md). Exact package versions and license gates remain lockfile- and
 [dependency-policy.md](dependency-policy.md)-owned.
 
+### Bundled extension workflows
+
+The optional catalog reuses the existing Agent Plugins package inspector, immutable publication path,
+account store and rmcp transports/OAuth. Skill progressive disclosure stays with DeepAgents
+SkillsMiddleware and CompositeBackend rather than a second loader. GitHub, Notion and Linear use their
+official remote MCP services ([GitHub](https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md),
+[Notion](https://developers.notion.com/guides/mcp/build-mcp-client),
+[Linear](https://linear.app/docs/mcp)); no third-party proxy, installer or provider-specific transport is added.
+The package references and templates orchestrate Knovum source reading/publication and service tools,
+without adding inference engines or arbitrary script execution.
+
 ## Local recovery archives
 
 Backup reuses maintained [SQLx](https://github.com/launchbadge/sqlx) and SQLite's

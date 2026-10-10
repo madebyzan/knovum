@@ -18,7 +18,7 @@ pub(crate) async fn prepare(
     local_tools: &[String],
     interaction: Option<Arc<dyn super::mcp::McpInteraction>>,
 ) -> Result<AgentExtensionSnapshot, String> {
-    super::plugins::ensure_builtin(app).await?;
+    super::plugins::reconcile_bundled_plugins(app).await?;
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(app).await?;

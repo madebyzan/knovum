@@ -4,8 +4,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
-import McpServerCreation from "../connections/McpServerCreation.vue";
-import ConnectorRequirements from "../connectors/ConnectorRequirements.vue";
+import McpServerCreation from "../connections/components/McpServerCreation.vue";
+import ConnectorRequirements from "../connectors/components/ConnectorRequirements.vue";
 import { mcpConnectionFixture } from "./support/connector-fixtures";
 
 const invoke = vi.hoisted(() => vi.fn<(command: string) => Promise<unknown>>());

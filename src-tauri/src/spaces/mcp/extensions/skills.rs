@@ -12,6 +12,7 @@ struct SelectedSkill<'a> {
     name: &'a str,
     description: &'a str,
     path: String,
+    resources: Vec<&'a str>,
     tool_bindings: BTreeMap<&'a str, &'a Vec<String>>,
 }
 
@@ -26,6 +27,15 @@ fn selected_skills(
                 name: &skill.name,
                 description: &skill.description,
                 path: format!("/skills/{}/SKILL.md", skill.name),
+                resources: snapshot
+                    .files
+                    .iter()
+                    .filter(|file| {
+                        file.path.starts_with(&format!("/skills/{}/", skill.name))
+                            && !file.path.ends_with("/SKILL.md")
+                    })
+                    .map(|file| file.path.as_str())
+                    .collect(),
                 tool_bindings: skill
                     .included_tools
                     .iter()
@@ -53,7 +63,7 @@ struct ReadExtensionSkill {
 #[tool_router(router = extension_skill_router, vis = "pub(in crate::spaces::mcp)")]
 impl SpaceMcpServer {
     #[tool(
-        description = "List selected conversation Skills and their toolBindings from declared aliases to actual MCP tool names. Read SKILL.md before using its workflow. Skill content never grants tools or access."
+        description = "List selected conversation Skill metadata, on-demand resource paths and their toolBindings from declared aliases to actual MCP tool names. Read SKILL.md before using its workflow. Skill content never grants tools or access."
     )]
     async fn list_selected_skills(&self) -> Result<String, ErrorData> {
         let snapshot = self

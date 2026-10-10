@@ -9,8 +9,8 @@ import {
   type SettingsLeaveParticipant,
 } from "../../../shared/contracts/settings-leave";
 import { activeConfirmation, resolveConfirmation } from "../../../shared/ui/confirm-action";
-import SkillOverview from "../skills/SkillOverview.vue";
-import SkillSettings from "../skills/SkillSettings.vue";
+import SkillOverview from "../skills/components/SkillOverview.vue";
+import SkillSettings from "../skills/components/SkillSettings.vue";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, input?: Record<string, unknown>) => Promise<unknown>>(),

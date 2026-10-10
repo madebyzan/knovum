@@ -4,8 +4,8 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { PluginInstallation } from "../../../shared/contracts/generated/PluginInstallation";
-import PluginContents from "../plugins/PluginContents.vue";
-import SkillActions from "../skills/SkillActions.vue";
+import PluginContents from "../plugins/components/PluginContents.vue";
+import SkillActions from "../skills/components/SkillActions.vue";
 
 const invoke = vi.hoisted(() => vi.fn<(command: string) => Promise<unknown>>());
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: invoke }));

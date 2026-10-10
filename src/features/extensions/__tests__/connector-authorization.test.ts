@@ -5,7 +5,7 @@ import { expect, it, vi } from "vitest";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { ConnectorAccount } from "../../../shared/contracts/generated/ConnectorAccount";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
-import ConnectorAccounts from "../connectors/ConnectorAccounts.vue";
+import ConnectorAccounts from "../connectors/components/ConnectorAccounts.vue";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),

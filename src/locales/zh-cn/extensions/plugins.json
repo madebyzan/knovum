@@ -14,7 +14,8 @@
     "preview": "预览",
     "authorizationHint": "安装不会启动服务或授权账号。连接与工具权限需另行配置。",
     "install": "安装",
-    "title": "确认安装内容"
+    "title": "确认安装内容",
+    "incomplete": "此插件缺少可用能力，或包含尚不支持的必要组件。"
   },
   "update": {
     "action": "更新",
@@ -42,7 +43,7 @@
     "description": "添加或刷新提供插件列表的目录源。",
     "empty": {
       "title": "暂无可发现的插件",
-      "description": "先添加一个目录源，再浏览其中的插件。"
+      "description": "浏览内置目录，或添加其他插件目录源。"
     },
     "remove": {
       "title": "移除目录源？",
@@ -51,7 +52,8 @@
   },
   "discovery": {
     "title": "发现插件",
-    "description": "浏览目录中的插件，安装前查看它们提供的能力。"
+    "description": "浏览目录中的插件，安装前查看它们提供的能力。",
+    "installed": "已安装 · 查看"
   },
   "empty": {
     "title": "尚未安装插件",

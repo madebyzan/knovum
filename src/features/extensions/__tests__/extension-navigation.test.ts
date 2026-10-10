@@ -94,8 +94,8 @@ afterEach(() => {
   queryClient.clear();
 });
 
-it("counts and searches all three categories, and opens readable skill content", async () => {
-  expect(wrapper.findAll('[data-testid^="extensions-tab-"]')).toHaveLength(3);
+it("counts and searches all four categories, and opens readable skill content", async () => {
+  expect(wrapper.findAll('[data-testid^="extensions-tab-"]')).toHaveLength(4);
   expect(wrapper.get('[data-testid="extensions-tab-skills"]').text()).toContain("1");
   await wrapper.get('[data-testid="extensions-tab-skills"]').trigger("mousedown", { button: 0 });
   await flushPromises();

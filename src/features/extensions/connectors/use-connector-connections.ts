@@ -26,8 +26,8 @@ export function useConnectorConnections(options: ConnectorConnectionsOptions) {
   const adding = shallowRef(false);
   const changes = useExtensionChanges();
   const name = shallowRef("");
-  const selectedId = shallowRef("");
-  const selected = computed(() => options.connections().find(({ id }) => id === selectedId.value));
+  const selectedConnectionId = shallowRef("");
+  const selected = computed(() => options.connections().find(({ id }) => id === selectedConnectionId.value));
   const outerLeaveCoordinator = useSettingsLeaveContext();
   const childLeaveParticipants = new Set<SettingsLeaveParticipant>();
   let preparedChildren: SettingsLeaveParticipant[] = [];
@@ -98,7 +98,7 @@ export function useConnectorConnections(options: ConnectorConnectionsOptions) {
     if (!(await allowChildLeave())) return;
     await mutate(async () => {
       const connection = await createMcpConnection(options.connector().id, name.value);
-      selectedId.value = connection.id;
+      selectedConnectionId.value = connection.id;
       name.value = "";
       adding.value = false;
     });
@@ -112,7 +112,7 @@ export function useConnectorConnections(options: ConnectorConnectionsOptions) {
 
   async function toggleSelected(connectionId: string) {
     if (!(await allowChildLeave())) return;
-    selectedId.value = selectedId.value === connectionId ? "" : connectionId;
+    selectedConnectionId.value = selectedConnectionId.value === connectionId ? "" : connectionId;
   }
 
   async function deleteConnection(connection: McpConnection) {
@@ -141,7 +141,7 @@ export function useConnectorConnections(options: ConnectorConnectionsOptions) {
     adding,
     changes,
     name,
-    selectedId,
+    selectedConnectionId,
     selected,
     create,
     toggleAdding,

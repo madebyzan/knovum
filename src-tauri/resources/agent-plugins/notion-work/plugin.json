@@ -1,0 +1,33 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "notion-work",
+  "version": "1.0.0",
+  "description": "Research Notion pages and publish grounded knowledge to your workspace.",
+  "author": {
+    "name": "Knovum"
+  },
+  "keywords": [
+    "notion",
+    "knowledge"
+  ],
+  "extensions": {
+    "com.zand.knovum": {
+      "skillRequirements": {
+        "knovum-notion-work": [
+          "notion"
+        ]
+      },
+      "connectors": {
+        "notion": {
+          "name": "Notion",
+          "description": "Research Notion pages and publish grounded knowledge to your workspace.",
+          "authorization": {
+            "type": "oauth",
+            "clientId": null,
+            "scopes": []
+          }
+        }
+      }
+    }
+  }
+}

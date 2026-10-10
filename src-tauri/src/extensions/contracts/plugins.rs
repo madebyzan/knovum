@@ -5,6 +5,9 @@ use ts_rs::TS;
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum PluginSource {
+    Bundled {
+        name: String,
+    },
     Directory {
         path: String,
     },
@@ -103,6 +106,7 @@ pub struct PluginRelease {
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum MarketplaceSource {
+    Bundled,
     Directory {
         path: String,
     },

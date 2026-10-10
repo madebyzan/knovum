@@ -1,6 +1,6 @@
 {
   "title": "Extensions",
-  "description": "Manage complete plugins, MCP services and personal skills.",
+  "description": "Manage plugins, app connections, custom MCP servers and personal skills.",
   "plugins": "Plugins",
   "skills": "Skills",
   "mcp": "MCP",
@@ -16,7 +16,8 @@
   "search": {
     "plugins": "Search plugins…",
     "mcp": "Search MCP servers…",
-    "skills": "Search skills…"
+    "skills": "Search skills…",
+    "apps": "Search apps…"
   },
   "status": {
     "checking": "Checking availability…",
@@ -28,5 +29,6 @@
   },
   "homepage": "Website",
   "repository": "Repository",
-  "license": "License"
+  "license": "License",
+  "apps": "Apps"
 }

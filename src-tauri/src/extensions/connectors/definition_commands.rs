@@ -8,7 +8,7 @@ use tauri::{AppHandle, Manager};
 pub async fn list_connector_definitions(
     app: AppHandle,
 ) -> Result<Vec<ConnectorDefinition>, String> {
-    super::super::plugins::ensure_builtin(&app).await?;
+    super::super::plugins::reconcile_bundled_plugins(&app).await?;
     super::definitions::list(&database::pool(&app).await?).await
 }
 

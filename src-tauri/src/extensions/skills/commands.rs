@@ -7,7 +7,7 @@ use tauri::{AppHandle, Manager};
 
 #[tauri::command]
 pub async fn list_skills(app: AppHandle) -> Result<Vec<SkillRevision>, String> {
-    super::super::plugins::ensure_builtin(&app).await?;
+    super::super::plugins::reconcile_bundled_plugins(&app).await?;
     super::list(&database::pool(&app).await?).await
 }
 

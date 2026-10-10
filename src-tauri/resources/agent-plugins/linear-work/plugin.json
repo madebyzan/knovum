@@ -1,0 +1,33 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "linear-work",
+  "version": "1.0.0",
+  "description": "Turn decisions and meeting actions into traceable Linear work.",
+  "author": {
+    "name": "Knovum"
+  },
+  "keywords": [
+    "linear",
+    "planning"
+  ],
+  "extensions": {
+    "com.zand.knovum": {
+      "skillRequirements": {
+        "knovum-linear-work": [
+          "linear"
+        ]
+      },
+      "connectors": {
+        "linear": {
+          "name": "Linear",
+          "description": "Turn decisions and meeting actions into traceable Linear work.",
+          "authorization": {
+            "type": "oauth",
+            "clientId": null,
+            "scopes": []
+          }
+        }
+      }
+    }
+  }
+}

@@ -12,10 +12,12 @@ use std::path::Path;
 use tokio_util::sync::CancellationToken;
 
 pub(crate) async fn read(
+    app: &tauri::AppHandle,
     source: &PluginSource,
     cancellation: &CancellationToken,
 ) -> AppResult<(PackageFiles, String)> {
     match source {
+        PluginSource::Bundled { name } => super::bundled::read(app, name, cancellation).await,
         PluginSource::Directory { path } => {
             let path = path.clone();
             let cancellation = cancellation.clone();

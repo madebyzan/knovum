@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { Component } from "vue";
 
-defineProps<{ name: string; description?: string | null | undefined; icon: Component; muted?: boolean }>();
+defineProps<{
+  name: string;
+  description?: string | null | undefined;
+  icon: Component;
+  muted?: boolean;
+  disabled?: boolean;
+}>();
 const emit = defineEmits<{ inspect: [] }>();
 </script>
 
@@ -9,6 +15,7 @@ const emit = defineEmits<{ inspect: [] }>();
   <div class="flex min-h-(--knovum-setting-min-height) min-w-0 items-center gap-3 py-3">
     <button
       type="button"
+      :disabled="disabled"
       class="group flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
       :class="muted ? 'text-fg-tertiary' : 'text-fg-primary'"
       @click="emit('inspect')"
