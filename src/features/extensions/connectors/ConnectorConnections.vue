@@ -9,11 +9,20 @@ import UiInput from "../../../shared/ui/UiInput.vue";
 import ExtensionAvailability from "../components/ExtensionAvailability.vue";
 import McpConnectionEnablement from "../connections/McpConnectionEnablement.vue";
 import McpConnectionSettings from "../connections/McpConnectionSettings.vue";
-import { useConnectorInstances } from "./use-connector-instances";
+import { useConnectorConnections } from "./use-connector-connections";
 
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
-const { adding, changes, name, selectedId, selected, create, toggleAdding, toggleSelected, remove } =
-  useConnectorInstances({ connector: () => props.connector, connections: () => props.connections });
+const {
+  adding,
+  changes,
+  name,
+  selectedId,
+  selected,
+  create,
+  toggleAdding,
+  toggleSelected,
+  deleteConnection,
+} = useConnectorConnections({ connector: () => props.connector, connections: () => props.connections });
 </script>
 <template>
   <div class="space-y-4">
@@ -21,11 +30,12 @@ const { adding, changes, name, selectedId, selected, create, toggleAdding, toggl
       <header class="flex items-center justify-between gap-3">
         <h4 class="text-body font-medium">{{ $t("extensions.connections.title") }}</h4>
         <UiButton
+          v-if="!connector.pluginId"
           size="sm"
           variant="ghost"
           :disabled="busy || changes.isPending.value || !connector.endpoint"
           :aria-expanded="adding"
-          data-testid="add-connection-instance"
+          data-testid="add-mcp-connection"
           @click="toggleAdding"
           ><Plus class="size-3.5" />{{ $t("extensions.connections.add") }}</UiButton
         >
@@ -36,7 +46,7 @@ const { adding, changes, name, selectedId, selected, create, toggleAdding, toggl
           }}<UiInput
             v-model="name"
             :disabled="busy || changes.isPending.value"
-            data-testid="connection-instance-name"
+            data-testid="mcp-connection-name"
         /></label>
         <div class="flex justify-end gap-2">
           <UiButton size="sm" variant="ghost" :disabled="changes.isPending.value" @click="toggleAdding">{{
@@ -47,7 +57,7 @@ const { adding, changes, name, selectedId, selected, create, toggleAdding, toggl
             variant="primary"
             size="sm"
             :disabled="!name.trim() || busy || changes.isPending.value"
-            data-testid="create-connection-instance"
+            data-testid="create-mcp-connection"
             >{{ $t("extensions.connections.add") }}</UiButton
           >
         </div>
@@ -71,6 +81,7 @@ const { adding, changes, name, selectedId, selected, create, toggleAdding, toggl
           />
         </div>
         <McpConnectionEnablement
+          v-if="!connector.pluginId"
           :connection="connection"
           :configured="Boolean(connector.endpoint)"
           :disabled="busy || changes.isPending.value"
@@ -85,10 +96,11 @@ const { adding, changes, name, selectedId, selected, create, toggleAdding, toggl
         <UiButton
           size="sm"
           variant="ghost"
+          v-if="!connector.pluginId"
           class="text-fg-danger"
           :disabled="busy || changes.isPending.value"
           :data-testid="`delete-connection-${connection.id}`"
-          @click="remove(connection)"
+          @click="deleteConnection(connection)"
           >{{ $t("common.delete") }}</UiButton
         >
       </div>

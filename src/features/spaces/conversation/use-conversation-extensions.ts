@@ -10,7 +10,7 @@ import { useConversationDraftStore } from "./conversation-draft-store";
 export function useConversationExtensions(spaceId: Ref<string | undefined>, conversationId: Ref<string>) {
   const drafts = useConversationDraftStore();
   const availability = useQuery(extensionAvailabilityQuery);
-  const selection = shallowRef<AgentExtensionSelection>({ skillIds: [], connections: [] });
+  const selection = shallowRef<AgentExtensionSelection>({ pluginIds: [], skillIds: [], connections: [] });
   const key = computed(() => `${spaceId.value ?? ""}:${conversationId.value}`);
   let initialized = "";
   watch(

@@ -40,5 +40,6 @@
   "archive": "归档",
   "restore": "恢复",
   "required": "请填写此项",
-  "closeSaveFailed": "无法保存更改，应用程序保持打开状态"
+  "closeSaveFailed": "无法保存更改，应用程序保持打开状态",
+  "clearSearch": "清除搜索"
 }

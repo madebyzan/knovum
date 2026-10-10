@@ -16,6 +16,7 @@ fn snapshot() -> AgentExtensionSnapshot {
         policy: McpToolPolicy::Confirm,
     };
     AgentExtensionSnapshot {
+        plugins: Vec::new(),
         id: "snapshot".into(),
         digest: "reviewed".into(),
         skills: vec![],
@@ -29,6 +30,7 @@ fn snapshot() -> AgentExtensionSnapshot {
                 "resource",
                 AgentToolBinding::McpReadResource {
                     connection_id: "connection".into(),
+                    resource_templates: vec![],
                     resource_uris: vec![
                         "fixture://selected".into(),
                         "fixture://expanded/item".into(),

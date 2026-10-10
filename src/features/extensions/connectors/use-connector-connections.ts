@@ -16,12 +16,12 @@ import {
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 
-interface ConnectorInstanceOptions {
+interface ConnectorConnectionsOptions {
   connector: () => ConnectorDefinition;
   connections: () => McpConnection[];
 }
 
-export function useConnectorInstances(options: ConnectorInstanceOptions) {
+export function useConnectorConnections(options: ConnectorConnectionsOptions) {
   const { t } = useI18n();
   const adding = shallowRef(false);
   const changes = useExtensionChanges();
@@ -31,7 +31,7 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
   const outerLeaveCoordinator = useSettingsLeaveContext();
   const childLeaveParticipants = new Set<SettingsLeaveParticipant>();
   let preparedChildren: SettingsLeaveParticipant[] = [];
-  let admittedMutation: Promise<boolean> | undefined;
+  let pendingMutation: Promise<boolean> | undefined;
 
   async function prepareChildLeave() {
     preparedChildren = [...childLeaveParticipants];
@@ -64,7 +64,7 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
   });
 
   async function prepareLeave() {
-    if (admittedMutation && !(await admittedMutation)) return false;
+    if (pendingMutation && !(await pendingMutation)) return false;
     if (adding.value && name.value.trim() && !(await confirmDiscard())) return false;
     return prepareChildLeave();
   }
@@ -79,7 +79,7 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
   onScopeDispose(unregister);
 
   function mutate(operation: () => Promise<unknown>) {
-    const admitted: Promise<boolean> = changes
+    const completion: Promise<boolean> = changes
       .mutateAsync(async () => {
         await operation();
       })
@@ -88,10 +88,10 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
         () => false,
       )
       .finally(() => {
-        if (admittedMutation === admitted) admittedMutation = undefined;
+        if (pendingMutation === completion) pendingMutation = undefined;
       });
-    admittedMutation = admitted;
-    return admitted;
+    pendingMutation = completion;
+    return completion;
   }
 
   async function create() {
@@ -115,7 +115,7 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
     selectedId.value = selectedId.value === connectionId ? "" : connectionId;
   }
 
-  async function remove(connection: McpConnection) {
+  async function deleteConnection(connection: McpConnection) {
     if (
       !(await confirmAction({
         title: t("extensions.connections.delete.title", { name: connection.name }),
@@ -146,6 +146,6 @@ export function useConnectorInstances(options: ConnectorInstanceOptions) {
     create,
     toggleAdding,
     toggleSelected,
-    remove,
+    deleteConnection,
   };
 }

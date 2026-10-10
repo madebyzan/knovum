@@ -6,19 +6,28 @@ import { computed } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { connectionQuery, connectorQuery } from "../../../foundation/extensions/extension-query";
 import UiButton from "../../../shared/ui/UiButton.vue";
+import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionAvailability from "../components/ExtensionAvailability.vue";
-import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../components/ExtensionEmptyState.vue";
 import ExtensionIdentity from "../components/ExtensionIdentity.vue";
-import ConnectorConfiguration from "../connectors/ConnectorConfiguration.vue";
-import { useConnectorEditing } from "../connectors/use-connector-editing";
+import ConnectorServiceSettings from "../connectors/ConnectorServiceSettings.vue";
 import type { ExtensionDestination } from "../extension-destination";
 import McpConnectionEnablement from "./McpConnectionEnablement.vue";
 import McpConnectionInspection from "./McpConnectionInspection.vue";
-const props = withDefaults(defineProps<{ search?: string; selectedId?: string | undefined }>(), {
-  search: "",
-});
+import McpServerCreation from "./McpServerCreation.vue";
+const props = withDefaults(
+  defineProps<{
+    search?: string;
+    selectedId?: string | undefined;
+    connectorId?: string | undefined;
+    action?: "create" | undefined;
+  }>(),
+  {
+    search: "",
+  },
+);
 defineEmits<{ navigate: [destination: ExtensionDestination] }>();
 const connections = useQuery(connectionQuery);
 const connectors = useQuery(connectorQuery);
@@ -26,23 +35,13 @@ const connectorById = computed(
   () => new Map((connectors.data.value ?? []).map((connector) => [connector.id, connector])),
 );
 const visible = computed(() =>
-  (connections.data.value ?? []).filter((connection) =>
-    `${connection.name} ${connectorById.value.get(connection.connectorId)?.name ?? ""}`
-      .toLowerCase()
-      .includes(props.search.trim().toLowerCase()),
-  ),
-);
-const standalone = computed(() =>
-  visible.value.filter((connection) => !connectorById.value.get(connection.connectorId)?.pluginId),
-);
-const packaged = computed(() =>
-  visible.value.filter((connection) => connectorById.value.get(connection.connectorId)?.pluginId),
-);
-const populatedGroups = computed(() =>
-  [
-    { name: "standalone", connections: standalone.value },
-    { name: "packaged", connections: packaged.value },
-  ].filter((group) => group.connections.length),
+  (connections.data.value ?? [])
+    .filter((connection) => !connectorById.value.get(connection.connectorId)?.pluginId)
+    .filter((connection) =>
+      `${connection.name} ${connectorById.value.get(connection.connectorId)?.name ?? ""}`
+        .toLowerCase()
+        .includes(props.search.trim().toLowerCase()),
+    ),
 );
 const selected = computed(() =>
   connections.data.value?.find((connection) => connection.id === props.selectedId),
@@ -50,22 +49,29 @@ const selected = computed(() =>
 const selectedConnector = computed(() =>
   selected.value ? connectorById.value.get(selected.value.connectorId) : undefined,
 );
-const { changes, editing, draft, publicFields, edit, closeEditor, save } = useConnectorEditing({
-  creation: "server",
-});
-const error = computed(() => connections.error.value || connectors.error.value || changes.error.value);
+const inspecting = computed(() => Boolean(props.selectedId || props.connectorId || props.action));
+const error = computed(() => connections.error.value || connectors.error.value);
 </script>
 <template>
   <section class="space-y-4">
-    <header v-if="!selectedId" class="flex justify-end">
-      <UiButton :disabled="changes.isPending.value" data-testid="add-mcp-server" @click="edit()"
+    <UiSettingsHeaderActions v-if="!inspecting">
+      <UiButton
+        size="sm"
+        data-testid="add-mcp-server"
+        @click="$emit('navigate', { tab: 'mcp', action: 'create' })"
         ><Plus class="size-4" />{{ $t("extensions.connections.addServer") }}</UiButton
       >
-    </header>
+    </UiSettingsHeaderActions>
     <p v-if="error" role="alert" class="text-body text-fg-danger">{{ getErrorMessage(error) }}</p>
-    <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
+    <McpServerCreation v-if="action === 'create'" @navigate="$emit('navigate', $event)" />
+    <ConnectorServiceSettings
+      v-else-if="connectorId"
+      :key="connectorId"
+      :selected-id="connectorId"
+      @navigate="$emit('navigate', $event)"
+    />
     <McpConnectionInspection
-      v-if="selected && selectedConnector"
+      v-else-if="selected && selectedConnector"
       :connection="selected"
       :connector="selectedConnector"
       @navigate="$emit('navigate', $event)"
@@ -85,54 +91,45 @@ const error = computed(() => connections.error.value || connectors.error.value |
         $t("extensions.overview.back")
       }}</UiButton></ExtensionEmptyState
     >
-    <template v-else-if="!selectedId">
+    <template v-else-if="!inspecting">
       <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.description") }}</p>
       <ExtensionEmptyState
         v-if="!error && !visible.length"
         :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.connections.emptyServers')"
         :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.connections.emptyHint')"
       />
-      <section v-for="group in populatedGroups" :key="group.name" class="space-y-2">
-        <h3 class="border-b border-stroke-divider pb-2 text-body font-medium">
-          {{ $t(`extensions.connections.${group.name}`) }}
-        </h3>
-        <ExtensionIdentity
-          v-for="connection in group.connections"
-          :key="connection.id"
-          :name="connection.name"
-          :description="connectorById.get(connection.connectorId)?.name"
-          :icon="Server"
-          :muted="!connection.enabled"
-          :data-testid="`mcp-server-${connection.id}`"
-          @inspect="$emit('navigate', { tab: 'mcp', id: connection.id })"
-        >
-          <template #status
-            ><ExtensionAvailability
-              class="mt-1"
-              kind="connections"
-              :extension-id="connection.id"
-              :enabled="connection.enabled"
-              :plugin-id="connectorById.get(connection.connectorId)?.pluginId"
-          /></template>
-          <UiButton size="sm" variant="ghost" @click="$emit('navigate', { tab: 'mcp', id: connection.id })">{{
-            $t("extensions.connections.configure")
-          }}</UiButton>
-          <McpConnectionEnablement
-            :connection="connection"
-            :configured="Boolean(connectorById.get(connection.connectorId)?.endpoint)"
-          />
-        </ExtensionIdentity>
-      </section>
+      <UiSettingsSection v-if="visible.length">
+        <div class="divide-y divide-stroke-divider px-4">
+          <ExtensionIdentity
+            v-for="connection in visible"
+            :key="connection.id"
+            :name="connection.name"
+            :description="connectorById.get(connection.connectorId)?.name"
+            :icon="Server"
+            :muted="!connection.enabled"
+            :data-testid="`mcp-server-${connection.id}`"
+            @inspect="$emit('navigate', { tab: 'mcp', id: connection.id })"
+          >
+            <template #status
+              ><ExtensionAvailability
+                class="mt-1"
+                kind="connections"
+                :extension-id="connection.id"
+                :enabled="connection.enabled"
+            /></template>
+            <UiButton
+              size="sm"
+              variant="ghost"
+              @click="$emit('navigate', { tab: 'mcp', id: connection.id })"
+              >{{ $t("extensions.connections.configure") }}</UiButton
+            >
+            <McpConnectionEnablement
+              :connection="connection"
+              :configured="Boolean(connectorById.get(connection.connectorId)?.endpoint)"
+            />
+          </ExtensionIdentity>
+        </div>
+      </UiSettingsSection>
     </template>
-    <ConnectorConfiguration
-      v-model="draft"
-      v-model:public-fields="publicFields"
-      :open="editing"
-      :busy="changes.isPending.value"
-      :title="$t('extensions.connections.addServer')"
-      :error="changes.error.value ? getErrorMessage(changes.error.value) : undefined"
-      @save="save"
-      @close="closeEditor"
-    />
   </section>
 </template>

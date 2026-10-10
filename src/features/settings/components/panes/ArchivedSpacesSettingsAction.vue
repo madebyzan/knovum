@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSettingsHeaderActions from "../../../../shared/ui/UiSettingsHeaderActions.vue";
 import { useArchiveSettings } from "../../use-archive-settings";
 
 const archive = useArchiveSettings();
@@ -29,8 +30,10 @@ async function permanentlyDeleteAll() {
 </script>
 
 <template>
-  <UiButton v-if="archive.spaces.value.length" size="sm" variant="dangerSubtle" @click="permanentlyDeleteAll">
-    <Trash2 class="size-3" />
-    {{ t("settings.general.archived.deleteAll.label") }}
-  </UiButton>
+  <UiSettingsHeaderActions v-if="archive.spaces.value.length">
+    <UiButton size="sm" variant="dangerSubtle" @click="permanentlyDeleteAll">
+      <Trash2 class="size-3" />
+      {{ t("settings.general.archived.deleteAll.label") }}
+    </UiButton>
+  </UiSettingsHeaderActions>
 </template>

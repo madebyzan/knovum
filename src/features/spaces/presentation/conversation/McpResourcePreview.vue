@@ -14,6 +14,7 @@ const props = defineProps<{
   connection: McpConnection;
   catalogDigest: string;
   selection: McpResourceSelection;
+  disabled: boolean;
 }>();
 const store = useSpaceStore();
 const gate = useNodeOperationGate();
@@ -45,7 +46,7 @@ const importing = useMutation({
     <UiButton
       size="sm"
       variant="ghost"
-      :disabled="reading.isPending.value || importing.isPending.value"
+      :disabled="disabled || reading.isPending.value || importing.isPending.value"
       @click="reading.mutate()"
       >{{ $t("extensions.catalog.read") }}</UiButton
     >
@@ -66,7 +67,7 @@ const importing = useMutation({
         }}</pre>
         <UiButton
           size="sm"
-          :disabled="importing.isPending.value || !gate.allows('create')"
+          :disabled="disabled || importing.isPending.value || !gate.allows('create')"
           @click="importing.mutate(index)"
           >{{ $t("spaces.conversation.extensionResources.import") }}</UiButton
         >

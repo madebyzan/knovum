@@ -24,7 +24,7 @@ Directory `zh-cn` maps to application locale `zh-CN`.
 - A feature normally uses its own namespace and `common.*`, plus foundation capabilities it
   actually consumes. Spaces may share the Extensions catalog actions
   `extensions.catalog.{browse,parameters,read}` and the connector noun
-  `extensions.overview.applications` and `extensions.overview.mcp`. Settings navigation may reference destination titles and search
+  `extensions.overview.mcp`. Settings navigation may reference destination titles and search
   terms in its registry. These metadata references do not move business messages into `common`.
 - A parent JSON must not coexist with a same-named directory. Delete `x.json` when splitting it
   into `x/`. Static structure tests reject parent/child and normalized path collisions; the runtime

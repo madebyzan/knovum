@@ -9,7 +9,7 @@ import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
 import { restoreRunningPreparation } from "./resource-preparation-observation";
-import { resourcePreparationTask, updateTaskProgress } from "./resource-progress";
+import { buildResourcePreparationTask, updateTaskProgress } from "./resource-progress";
 import { invalidateLocalResources } from "./use-resource-queries";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
@@ -54,7 +54,7 @@ export async function restoreResourcePreparationTasks(pinia: Pinia): Promise<voi
     if (snapshot.state === "queued" || snapshot.state === "preparing") {
       restoreRunningPreparation(tasks, snapshot);
     } else if (snapshot.state === "failed") {
-      tasks.restoreFailed(resourcePreparationTask(snapshot), () => retrySnapshot(tasks, snapshot), {
+      tasks.restoreFailed(buildResourcePreparationTask(snapshot), () => retrySnapshot(tasks, snapshot), {
         settlement: "external",
       });
     } else {

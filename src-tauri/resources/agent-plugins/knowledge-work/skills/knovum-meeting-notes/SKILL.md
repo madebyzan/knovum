@@ -9,7 +9,7 @@ Use this skill when the request concerns a recorded meeting, interview, lecture,
 
 ## Establish the source
 
-Read the selected media node and its current revision through `read-node`. Confirm that a usable timed transcript exists. A filename, description, or visual thumbnail is not a transcript. If it is absent or failed, explain that the source needs transcription through the media node's toolbar before notes can be grounded. Do not invent a transcription Action or silently summarize unrelated sources instead.
+Read the selected media node and its current revision through the advertised node-reading tool (`read-node` is its business Action ID; external MCP exposes `get_node`). Confirm that a usable timed transcript exists. A filename, description, or visual thumbnail is not a transcript. If it is absent or failed, explain that the source needs transcription through the media node's toolbar before notes can be grounded. Do not invent a transcription Action or silently summarize unrelated sources instead.
 
 Read relevant transcript segments before writing. Keep source node IDs, revisions, and timestamps with the evidence. Label uncertain or inaudible passages. Identify speakers only when the transcript or authorized source explicitly identifies them; do not infer identity from a voice.
 
@@ -21,4 +21,4 @@ Read relevant transcript segments before writing. Keep source node IDs, revision
 
 Do not fabricate attendance, consensus, deadlines, quotations, or events after the recording. Avoid copying the entire transcript into the notes.
 
-For Ask or Plan, return notes or a publication proposal. For an authorized Execute request, use `summarize-meeting` with the actual Transcript input role and current parameter schema. Make the desired structure and evidence requirements explicit in `summaryPurpose`. Review the generated document against the transcript. Report publication only from a completed Action receipt, preserving the source relationship and timestamp references.
+For Ask or Plan, return notes or a publication proposal. For an authorized Execute request, the built-in Agent uses the admitted `summarize-meeting` Action with the actual Transcript input role and current parameter schema, making the structure and evidence requirements explicit in `summaryPurpose`. An external Agent produces the notes with its own runtime and saves the final Markdown or requested document artifact in the task output directory; it cannot call Knovum inference Actions. Review the notes against the transcript. Preserve source node IDs, revisions and timestamp references in the document, and claim publication only from a completed Action or task output receipt.

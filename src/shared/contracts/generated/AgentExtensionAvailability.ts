@@ -2,6 +2,7 @@
 import type { AgentExtensionSelection } from "./AgentExtensionSelection";
 import type { ConnectorDefinition } from "./ConnectorDefinition";
 import type { McpConnection } from "./McpConnection";
+import type { PluginInstallation } from "./PluginInstallation";
 import type { SkillRevision } from "./SkillRevision";
 
-export type AgentExtensionAvailability = { defaultSelection: AgentExtensionSelection, skills: Array<SkillRevision>, connectors: Array<ConnectorDefinition>, connections: Array<McpConnection>, diagnostics: Array<string>, };
+export type AgentExtensionAvailability = { plugins: Array<PluginInstallation>, defaultSelection: AgentExtensionSelection, skills: Array<SkillRevision>, connectors: Array<ConnectorDefinition>, connections: Array<McpConnection>, diagnostics: Array<string>, };

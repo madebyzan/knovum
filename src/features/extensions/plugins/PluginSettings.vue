@@ -6,6 +6,8 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { enablePlugin, disablePlugin } from "../../../foundation/extensions/plugin-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
+import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../components/ExtensionEmptyState.vue";
@@ -23,7 +25,7 @@ const props = withDefaults(defineProps<{ search?: string; selectedId?: string | 
 defineEmits<{ navigate: [destination: ExtensionDestination] }>();
 const discovering = shallowRef(false);
 const sourceOpen = shallowRef(false);
-const { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, remove } =
+const { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, uninstall } =
   usePluginManagement();
 const plugins = computed(() =>
   (query.data.value ?? []).filter((plugin) =>
@@ -44,7 +46,7 @@ async function commitPlugin() {
 
 <template>
   <div class="min-w-0 space-y-4">
-    <header v-if="!selectedId" class="flex flex-wrap justify-end gap-2">
+    <UiSettingsHeaderActions v-if="!selectedId">
       <UiButton
         v-if="discovering"
         size="sm"
@@ -55,6 +57,7 @@ async function commitPlugin() {
       >
       <UiButton
         :disabled="busy"
+        size="sm"
         data-testid="open-plugin-source"
         @click="
           inspecting.reset();
@@ -65,11 +68,12 @@ async function commitPlugin() {
       <UiButton
         v-if="!discovering"
         :disabled="busy"
+        size="sm"
         data-testid="discover-plugins"
         @click="discovering = true"
         ><Compass class="size-4" />{{ $t("extensions.plugins.discovery.title") }}</UiButton
       >
-    </header>
+    </UiSettingsHeaderActions>
     <p
       v-if="query.error.value || changes.error.value || inspecting.error.value"
       role="alert"
@@ -85,7 +89,7 @@ async function commitPlugin() {
       @navigate="$emit('navigate', $event)"
       @toggle="mutate(() => (selected!.enabled ? disablePlugin(selected!.id) : enablePlugin(selected!.id)))"
       @update="inspect(selected.source, selected)"
-      @uninstall="remove(selected)"
+      @uninstall="uninstall(selected)"
     />
     <ExtensionEmptyState
       v-else-if="selectedId && !query.isPending.value && !query.error.value"
@@ -108,18 +112,20 @@ async function commitPlugin() {
       :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.plugins.empty.title')"
       :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.plugins.empty.description')"
     />
-    <div v-else-if="!selectedId" class="divide-y divide-stroke-divider">
-      <InstalledPlugin
-        v-for="plugin in plugins"
-        :key="plugin.id"
-        :plugin="plugin"
-        :busy="busy"
-        @inspect="$emit('navigate', { tab: 'plugins', id: plugin.id })"
-        @toggle="mutate(() => (plugin.enabled ? disablePlugin(plugin.id) : enablePlugin(plugin.id)))"
-        @update="inspect(plugin.source, plugin)"
-        @uninstall="remove(plugin)"
-      />
-    </div>
+    <UiSettingsSection v-else-if="!selectedId">
+      <div class="divide-y divide-stroke-divider px-4">
+        <InstalledPlugin
+          v-for="plugin in plugins"
+          :key="plugin.id"
+          :plugin="plugin"
+          :busy="busy"
+          @inspect="$emit('navigate', { tab: 'plugins', id: plugin.id })"
+          @toggle="mutate(() => (plugin.enabled ? disablePlugin(plugin.id) : enablePlugin(plugin.id)))"
+          @update="inspect(plugin.source, plugin)"
+          @uninstall="uninstall(plugin)"
+        />
+      </div>
+    </UiSettingsSection>
     <UiDialog
       :open="sourceOpen"
       :title="$t('extensions.plugins.source.install')"

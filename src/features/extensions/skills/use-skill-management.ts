@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/vue-query";
-import { open } from "@tauri-apps/plugin-dialog";
 import { computed, onScopeDispose, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,8 +7,6 @@ import {
   readSkill,
   createSkill,
   saveSkillRevision,
-  importSkill,
-  exportSkill,
   deleteSkill,
 } from "../../../foundation/extensions/skill-operations";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
@@ -17,15 +14,6 @@ import type { SkillContent } from "../../../shared/contracts/generated/SkillCont
 import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
-
-async function importDirectory() {
-  const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") return importSkill(path);
-}
-async function exportDirectory(skillId: string) {
-  const path = await open({ directory: true, multiple: false });
-  if (typeof path === "string") await exportSkill(skillId, path);
-}
 
 export function useSkillManagement() {
   const { t } = useI18n();
@@ -49,12 +37,9 @@ export function useSkillManagement() {
   const initialMarkdown = shallowRef("");
   const initialName = shallowRef("");
   const dirty = computed(
-    () =>
-      editing.value &&
-      !selected.value?.skill.pluginId &&
-      (markdown.value !== initialMarkdown.value || name.value !== initialName.value),
+    () => editing.value && (markdown.value !== initialMarkdown.value || name.value !== initialName.value),
   );
-  let admittedMutation: Promise<boolean> | undefined;
+  let pendingMutation: Promise<boolean> | undefined;
   function create() {
     selected.value = undefined;
     name.value = "";
@@ -64,39 +49,35 @@ export function useSkillManagement() {
     editing.value = true;
   }
   function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
-    admittedMutation = trackMutation(operation);
+    pendingMutation = trackMutation(operation);
   }
   async function save() {
-    admittedMutation = trackMutation(async () => {
+    pendingMutation = trackMutation(async () => {
       const change = selected.value
         ? await saveSkillRevision(selected.value.skill.id, selected.value.skill.digest, markdown.value)
         : await createSkill(name.value, markdown.value);
       editing.value = false;
       return change;
     });
-    await admittedMutation;
+    await pendingMutation;
   }
-  async function closeEditor() {
-    if (admittedMutation) {
-      const succeeded = await admittedMutation;
-      if (!succeeded) return false;
-      if (!editing.value) return true;
-    }
-    if (dirty.value && !(await confirmDiscard())) return false;
-    editing.value = false;
-    return true;
-  }
-  const unregister = useSettingsLeaveContext().register({
+  const leaveParticipant = {
     async prepare() {
-      if (admittedMutation && !(await admittedMutation)) return false;
+      if (pendingMutation && !(await pendingMutation)) return false;
       return !dirty.value || confirmDiscard();
     },
     finalize() {
       editing.value = false;
     },
-  });
-  onScopeDispose(unregister);
-  async function remove(skillId: string, skillName: string) {
+  };
+  onScopeDispose(useSettingsLeaveContext().register(leaveParticipant));
+
+  async function closeEditor() {
+    if (!(await leaveParticipant.prepare())) return false;
+    leaveParticipant.finalize();
+    return true;
+  }
+  async function deletePersonalSkill(skillId: string, skillName: string) {
     if (
       await confirmAction({
         title: t("extensions.skills.delete.title", { name: skillName }),
@@ -118,16 +99,16 @@ export function useSkillManagement() {
   const busy = computed(() => changes.isPending.value || reading.isPending.value);
 
   function trackMutation(operation: () => Promise<ExtensionChange<unknown> | void>) {
-    const admitted: Promise<boolean> = changes
+    const completion: Promise<boolean> = changes
       .mutateAsync(operation)
       .then(
         () => true,
         () => false,
       )
       .finally(() => {
-        if (admittedMutation === admitted) admittedMutation = undefined;
+        if (pendingMutation === completion) pendingMutation = undefined;
       });
-    return admitted;
+    return completion;
   }
 
   return {
@@ -141,10 +122,8 @@ export function useSkillManagement() {
     busy,
     create,
     mutate,
-    importDirectory,
-    exportDirectory,
     save,
     closeEditor,
-    remove,
+    deletePersonalSkill,
   };
 }

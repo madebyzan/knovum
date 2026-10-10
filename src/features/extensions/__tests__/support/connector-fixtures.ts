@@ -22,7 +22,7 @@ export function mcpConnectionFixture(connectionId: string, name = connectionId):
     id: connectionId,
     connectorId: connectorFixture.id,
     name,
-    revision: "instance-one",
+    revision: "connection-one",
     accountId: null,
     enabled: false,
     tools: [],

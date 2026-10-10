@@ -6,7 +6,7 @@ import { i18n } from "../../../foundation/i18n/i18n";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import McpConnectionEnablement from "../connections/McpConnectionEnablement.vue";
-import McpSettings from "../connections/McpSettings.vue";
+import McpServerCreation from "../connections/McpServerCreation.vue";
 import { mcpConnectionFixture } from "./support/connector-fixtures";
 
 const mocks = vi.hoisted(() => ({
@@ -37,7 +37,7 @@ function globalOptions(): NonNullable<MountingOptions<unknown>["global"]> {
 }
 
 describe("MCP management admission", () => {
-  it("creates the service and its first disabled instance through one atomic command", async () => {
+  it("creates the service and its first disabled connection through one atomic command", async () => {
     mocks.invoke.mockImplementation(async (command: string) => {
       if (command === "plugin:extensions|create_mcp_server")
         return { value: mcpConnectionFixture("created"), cleanupErrors: [] };
@@ -48,9 +48,8 @@ describe("MCP management admission", () => {
         return [];
       throw new Error(`Unexpected command: ${command}`);
     });
-    wrapper = mount(McpSettings, { global: globalOptions() });
+    wrapper = mount(McpServerCreation, { global: globalOptions() });
     await flushPromises();
-    await wrapper.get('[data-testid="add-mcp-server"]').trigger("click");
     const editor = wrapper.get('[data-testid="connector-editor"]');
     await editor.get('[data-testid="connector-name"]').setValue("Research");
     await editor.get('[data-testid="connector-description"]').setValue("Read research sources");
@@ -72,7 +71,7 @@ describe("MCP management admission", () => {
     expect(
       mocks.invoke.mock.calls.some(([command]) => command === "plugin:extensions|create_mcp_connection"),
     ).toBe(false);
-    expect(wrapper.find('[data-testid="connector-editor"]').exists()).toBe(false);
+    expect(wrapper.emitted("navigate")).toEqual([[{ tab: "mcp" }]]);
   });
 
   it("keeps enabled state intact when the user declines to discard unsaved configuration", async () => {
@@ -98,7 +97,7 @@ describe("MCP management admission", () => {
     await wrapper.get('[role="switch"]').trigger("click");
     await flushPromises();
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|update_mcp_connection", {
-      connection: expect.objectContaining({ id: "research", enabled: true, revision: "instance-one" }),
+      connection: expect.objectContaining({ id: "research", enabled: true, revision: "connection-one" }),
     });
     expect(wrapper.get('[role="alert"]').text()).toContain("Connection revision changed");
     expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");

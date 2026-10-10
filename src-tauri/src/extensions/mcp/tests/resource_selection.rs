@@ -89,3 +89,47 @@ fn external_schema_references_do_not_open_files_or_network_endpoints() {
         .unwrap()
         .is_valid(&json!({"value":"reviewed"})));
 }
+
+#[test]
+fn runtime_resource_parameters_keep_template_identity_and_rfc6570_authority() {
+    let catalog = catalog();
+    let templates = vec![catalog.resource_templates[0].uri_template.clone()];
+    let schema = super::resource_selection::resource_schema(&[], &templates).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    let arguments =
+        json!({"uriTemplate":templates[0],"parameters":{"id":"a/b","tags":["one","two"]}});
+    assert!(validator.is_valid(&arguments));
+    assert_eq!(
+        super::resource_selection::invocation_uri(&catalog, &[], &templates, arguments.clone())
+            .unwrap(),
+        "https://example.com/items/a%2Fb?tags=one&tags=two"
+    );
+    assert_eq!(
+        super::resource_selection::invocation_uri(&catalog, &[], &[], arguments).unwrap_err(),
+        "mcp-resource-template-not-authorized"
+    );
+    assert_eq!(
+        super::resource_selection::invocation_uri(
+            &catalog,
+            &[],
+            &templates,
+            json!({"uri":"file:///private"})
+        )
+        .unwrap_err(),
+        "mcp-resource-not-authorized"
+    );
+    for parameters in [
+        json!({"unknown":"value"}),
+        json!({"id":1}),
+        json!({"tags":[true]}),
+        json!({"id":{"key":2}}),
+    ] {
+        assert!(!validator.is_valid(&json!({"uriTemplate":templates[0], "parameters":parameters})));
+    }
+    let over_budget = json!({"uriTemplate":templates[0],"parameters":{"id":"a".repeat(65536)}});
+    assert_eq!(
+        super::resource_selection::invocation_uri(&catalog, &[], &templates, over_budget)
+            .unwrap_err(),
+        "mcp-resource-template-parameters-too-large"
+    );
+}

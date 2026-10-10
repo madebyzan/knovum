@@ -49,27 +49,27 @@
   "builtinAgentLimitsInvalid": "上下文至少为 8,192 token；输出上限必须大于零且小于上下文。",
   "localModels": {
     "title": "本地模型",
-    "description": "基础模型和必需资源会自动管理。可在此下载可选模型，并在任务中心查看或取消准备任务。",
+    "description": "管理各项功能的本地模型，所需资源会在使用时自动准备。",
     "download": "下载",
     "downloading": "下载 {name}",
     "removeTitle": "移除 {name}？",
     "removeDescription": "已生成的内容会保留。再次使用此模型时需要重新下载。",
-    "ready": "模型文件已下载",
+    "ready": "已下载",
     "invalid": "文件校验失败，需要重新下载",
     "notInstalled": "尚未下载",
     "essential": "基础功能",
-    "fixedEmbedding": "固定使用，以保证现有知识索引有效。",
+    "fixedEmbedding": "用于现有知识索引，不可切换。",
     "installedSize": "已占用 {size}",
     "preparing": "正在准备本地资源",
     "unavailable": {
-      "memory": "此模型至少需要 32 GiB 物理内存；较低配置可以使用 MOSS-TTS-Nano。"
+      "memory": "内存不足，需要至少 32 GiB。可改用 MOSS-TTS-Nano。"
     },
     "capabilities": {
       "embedding": "语义检索与知识索引",
-      "transcription": "音频与视频转录 · 应用自动匹配设备",
+      "transcription": "将音频与视频转为文本",
       "speechSynthesis": "语音合成、音色克隆与设计",
       "speechAlignment": "转录文本与音频精确对齐",
-      "speechDiarization": "识别不同说话人 · 无需账号授权",
+      "speechDiarization": "区分录音中的说话人",
       "speechSeparation": "分离人声与伴奏",
       "imageSegmentation": "图片移除背景"
     },
@@ -82,29 +82,31 @@
     "select": "设为默认",
     "selected": "新操作的默认模型",
     "modelDescriptions": {
-      "whisperTiny": "低占用、速度快，适合性能有限的电脑；复杂录音精度较低。",
-      "whisperSmall": "默认选择，兼顾下载大小、速度与精度。",
-      "whisperLargeV3": "更高精度，约 3 GB 下载；需要更多内存，CPU 推理较慢。",
-      "qwen3Embedding": "本地知识检索必需，使用固定的 1,024 维向量。",
-      "mossNano": "轻量中英文预设音色与参考音频克隆。在 CPU 上以正常语速输出 48 kHz 音频。",
-      "voxCpm2": "音色克隆与设计。约 5 GB，至少需要 32 GiB 内存；容量允许时使用支持的 GPU，否则使用 CPU。",
-      "voxCpm2Q8": "Q8 音色克隆与设计。约 3 GB，至少需要 32 GiB 内存；容量允许时使用支持的 GPU，否则使用 CPU。",
-      "qwen3Aligner": "用于转录精确对齐的完整模型。每次最多处理五分钟的选中范围。",
-      "qwen3AlignerQ8": "体积更小的 Q8 转录对齐模型。每次最多处理五分钟的选中范围。",
-      "sherpaDiarization": "约 41 MB 的轻量说话人识别模型。支持自动或指定人数，无需账号。",
-      "spleeter2Stems": "在 CPU 上分离人声与伴奏的 FP16 模型。每个音源最多十分钟；接受前请试听两条音轨。",
-      "u2netp": "约 5 MB 的轻量 CPU 去背景模型。效果取决于原图。",
-      "u2net": "约 176 MB 的完整 CPU 去背景模型。比轻量版占用更多内存，处理时间更长。",
-      "sherpaDiarizationFull": "约 46 MB 的完整精度说话人识别模型。支持自动或指定人数，无需账号。",
-      "spleeter2StemsFull": "在 CPU 上分离人声与伴奏的 FP32 模型。下载约为轻量版两倍；每个音源最多十分钟。"
+      "whisperTiny": "速度快、占用低，复杂录音的准确度较低。",
+      "whisperSmall": "兼顾转录速度与准确度。",
+      "whisperLargeV3": "转录更准确，处理时间较长。",
+      "qwen3Embedding": "用于本地语义检索。",
+      "mossNano": "轻量中英文语音合成，支持预设音色与音色克隆。",
+      "voxCpm2": "音色克隆与设计，完整版本。",
+      "voxCpm2Q8": "音色克隆与设计，模型体积更小。",
+      "qwen3Aligner": "完整转录对齐模型，单次最长五分钟。",
+      "qwen3AlignerQ8": "轻量转录对齐模型，单次最长五分钟。",
+      "sherpaDiarization": "轻量说话人识别，支持自动或指定人数。",
+      "spleeter2Stems": "轻量人声与伴奏分离，音频最长十分钟。",
+      "u2netp": "轻量背景移除，处理更快。",
+      "u2net": "完整背景移除模型，处理时间较长。",
+      "sherpaDiarizationFull": "完整精度说话人识别，支持自动或指定人数。",
+      "spleeter2StemsFull": "完整精度人声与伴奏分离，音频最长十分钟。"
     },
-    "selectedVoiceModel": "新建参考音色的默认模型；已保存音色保留原模型。",
+    "selectedVoiceModel": "用于新建参考音色，不影响已保存音色。",
     "modelSize": "模型文件 {size}",
     "defaultModel": "默认",
-    "search": "搜索当前分类",
+    "search": "搜索模型或功能",
     "filterLabel": "下载状态",
-    "categories": "模型能力分类",
     "modelCount": "{count} 个模型",
+    "configuredModel": "默认：{name}",
+    "fixedModel": "固定：{name}",
+    "preparationCount": "{count} 个模型准备中",
     "noResults": "没有匹配的模型，请调整搜索或筛选。",
     "categoryLabels": {
       "embedding": "向量检索",
@@ -119,6 +121,8 @@
       "all": "全部模型",
       "installed": "已下载",
       "notInstalled": "未下载"
-    }
+    },
+    "cancelling": "正在取消",
+    "clearFilters": "清除筛选"
   }
 }

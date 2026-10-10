@@ -33,7 +33,7 @@ async function prepareChange() {
     return false;
   }
 }
-async function remove() {
+async function deleteConnection() {
   if (
     !(await confirmAction({
       title: t("extensions.connections.delete.title", { name: props.connection.name }),
@@ -69,14 +69,16 @@ async function remove() {
           :plugin-id="connector.pluginId"
       /></template>
       <UiButton
+        v-if="!connector.pluginId"
         size="sm"
         variant="ghost"
         class="text-fg-danger"
         :disabled="changes.isPending.value"
-        @click="remove"
+        @click="deleteConnection"
         ><Trash2 class="size-3.5" />{{ $t("common.delete") }}</UiButton
       >
       <McpConnectionEnablement
+        v-if="!connector.pluginId"
         :connection="connection"
         :configured="Boolean(connector.endpoint)"
         :disabled="changes.isPending.value"
@@ -85,7 +87,7 @@ async function remove() {
     <UiButton
       size="sm"
       variant="ghost"
-      @click="$emit('navigate', { tab: 'applications', id: connector.id })"
+      @click="$emit('navigate', { tab: 'mcp', connectorId: connector.id })"
       >{{ $t("extensions.connections.serviceAndAccounts") }}</UiButton
     >
     <p v-if="!connector.endpoint" class="text-caption text-fg-warning">

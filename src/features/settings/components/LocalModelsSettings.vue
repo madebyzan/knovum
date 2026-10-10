@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -9,55 +9,39 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
-import { localModelGroups } from "../local-model-groups";
-import LocalModelConfiguration from "./LocalModelConfiguration.vue";
+import { buildLocalModelGroups } from "../local-model-groups";
+import LocalModelCapability from "./LocalModelCapability.vue";
 
 const { t } = useI18n();
 const models = useLocalModelsQuery();
-const groups = computed(() => localModelGroups(models.data.value ?? []));
-const capabilities = computed(() => groups.value.flatMap((group) => group.capabilities));
-const capabilityOptions = computed(() =>
-  groups.value.flatMap((group) =>
-    group.capabilities.map((capability) => ({
-      value: capability.id,
-      label: t(`settings.ai.localModels.categoryLabels.${capability.id}`),
-      description: t(`settings.ai.localModels.groups.${group.id}`),
-    })),
-  ),
-);
-const activeCapability = shallowRef("");
+const groups = computed(() => buildLocalModelGroups(models.data.value ?? []));
 const searchQuery = shallowRef("");
 const status = shallowRef("all");
+const searchRef = useTemplateRef<InstanceType<typeof UiSearchInput>>("search");
+const searchText = computed(() => searchQuery.value.trim().toLocaleLowerCase());
+function clearFilters() {
+  searchQuery.value = "";
+  status.value = "all";
+  searchRef.value?.focus();
+}
 const statusOptions = computed(() =>
   ["all", "installed", "notInstalled"].map((value) => ({
     value,
     label: t(`settings.ai.localModels.filters.${value}`),
   })),
 );
-watch(
-  capabilities,
-  (items) => {
-    if (!items.some((item) => item.id === activeCapability.value))
-      activeCapability.value = items[0]?.id ?? "";
-  },
-  { immediate: true },
-);
-watch(activeCapability, () => {
-  searchQuery.value = "";
-});
 function matchesModelFilters(model: LocalModelAvailability) {
-  const text = searchQuery.value.trim().toLocaleLowerCase();
   return (
     (status.value === "all" || model.installed === (status.value === "installed")) &&
-    `${model.name} ${t(`settings.ai.localModels.modelDescriptions.${model.id}`)}`
+    `${model.name} ${t(`settings.ai.localModels.modelDescriptions.${model.id}`)} ${t(`settings.ai.localModels.categoryLabels.${model.capability}`)}`
       .toLocaleLowerCase()
-      .includes(text)
+      .includes(searchText.value)
   );
 }
-const visibleModels = computed(
-  () => capabilities.value.find((item) => item.id === activeCapability.value)?.models.filter(matchesModelFilters) ?? [],
-);
+const visibleModels = computed(() => (models.data.value ?? []).filter(matchesModelFilters));
 const visibleModelIds = computed(() => new Set(visibleModels.value.map((model) => model.id)));
+const filtering = computed(() => Boolean(searchQuery.value.trim()) || status.value !== "all");
+const visibleCapabilities = computed(() => new Set(visibleModels.value.map((model) => model.capability)));
 </script>
 
 <template>
@@ -65,23 +49,25 @@ const visibleModelIds = computed(() => new Set(visibleModels.value.map((model) =
     <p class="text-caption leading-normal text-fg-secondary">
       {{ t("settings.ai.localModels.description") }}
     </p>
-    <UiSettingsSection v-if="models.error.value || models.isPending.value">
-      <div v-if="models.error.value" class="flex items-center justify-between gap-4 p-4" role="alert">
+    <UiSettingsSection v-if="models.error.value">
+      <div class="flex flex-wrap items-center justify-between gap-4 p-4" role="alert">
         <p class="text-caption text-fg-danger">{{ getErrorMessage(models.error.value) }}</p>
-        <UiButton size="sm" @click="models.refetch()">{{ t("common.retry") }}</UiButton>
+        <UiButton
+          size="sm"
+          :disabled="models.isFetching.value"
+          :aria-busy="models.isFetching.value"
+          @click="models.refetch()"
+          >{{ t("common.retry") }}</UiButton
+        >
       </div>
-      <p v-else class="p-4 text-caption text-fg-secondary" role="status">{{ t("common.loading") }}</p>
     </UiSettingsSection>
-    <template v-else>
+    <UiSettingsSection v-if="models.isPending.value">
+      <p class="p-4 text-caption text-fg-secondary" role="status">{{ t("common.loading") }}</p>
+    </UiSettingsSection>
+    <template v-else-if="models.data.value">
       <div class="flex flex-wrap items-center gap-2">
-        <UiSelect
-          v-model="activeCapability"
-          data-testid="model-capability-select"
-          class="w-44"
-          :options="capabilityOptions"
-          :label="t('settings.ai.localModels.categories')"
-        />
         <UiSearchInput
+          ref="search"
           v-model="searchQuery"
           class="min-w-40 flex-1"
           :label="t('settings.ai.localModels.search')"
@@ -95,28 +81,43 @@ const visibleModelIds = computed(() => new Set(visibleModels.value.map((model) =
           :label="t('settings.ai.localModels.filterLabel')"
         />
       </div>
-      <UiSettingsSection
-        v-for="capability in capabilities"
-        :key="capability.id"
-        v-show="activeCapability === capability.id"
-        :data-model-capability="capability.id"
-        :title="t(`settings.ai.localModels.categoryLabels.${capability.id}`)"
-        :description="t(`settings.ai.localModels.capabilities.${capability.id}`)"
+      <section
+        v-for="group in groups"
+        :key="group.id"
+        v-show="group.capabilities.some((capability) => visibleCapabilities.has(capability.id))"
+        :data-model-group="group.id"
+        class="space-y-2"
       >
-        <LocalModelConfiguration
-          v-for="model in capability.models"
-          :key="model.id"
-          v-show="visibleModelIds.has(model.id)"
-          :model="model"
-          :class="model.id !== visibleModels[0]?.id && 'border-t border-stroke-divider'"
-        />
-        <p
-          v-if="!visibleModels.length"
-          data-testid="model-no-results"
-          class="px-4 py-6 text-caption text-fg-secondary"
-        >
-          {{ t("settings.ai.localModels.noResults") }}
-        </p>
+        <h2 class="px-0.5 text-title-sm font-semibold text-fg-primary">
+          {{ t(`settings.ai.localModels.groups.${group.id}`) }}
+        </h2>
+        <div class="space-y-2">
+          <LocalModelCapability
+            v-for="capability in group.capabilities"
+            :key="capability.id"
+            v-show="visibleCapabilities.has(capability.id)"
+            :capability="capability.id"
+            :models="capability.models"
+            :visible-ids="visibleModelIds"
+            :filtering="filtering"
+          />
+        </div>
+      </section>
+      <UiSettingsSection v-if="!visibleModels.length">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-6">
+          <p data-testid="model-no-results" class="text-caption text-fg-secondary">
+            {{ t("settings.ai.localModels.noResults") }}
+          </p>
+          <UiButton
+            v-if="filtering"
+            data-testid="model-clear-filters"
+            size="sm"
+            variant="ghost"
+            @click="clearFilters"
+          >
+            {{ t("settings.ai.localModels.clearFilters") }}
+          </UiButton>
+        </div>
       </UiSettingsSection>
     </template>
   </section>

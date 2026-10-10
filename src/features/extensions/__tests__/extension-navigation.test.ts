@@ -1,8 +1,10 @@
 import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { defineComponent } from "vue";
 import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
+import { skillQuery } from "../../../foundation/extensions/extension-query";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
@@ -50,11 +52,12 @@ beforeEach(async () => {
         return [];
       case "plugin:extensions|get_agent_extension_availability":
         return {
+          plugins: [],
           skills: [skill],
           connections: [],
           connectors: [],
           diagnostics: [],
-          defaultSelection: { skillIds: [], connections: [] },
+          defaultSelection: { pluginIds: [], skillIds: [], connections: [] },
         };
       default:
         throw new Error(`Unexpected command: ${command}`);
@@ -62,20 +65,28 @@ beforeEach(async () => {
   });
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   await router.replace("/settings?pane=extensions");
-  wrapper = mount(RouterView, {
-    global: {
-      plugins: [router, i18n, [VueQueryPlugin, { queryClient }]],
-      provide: {
-        [settingsLeaveCoordinatorKey as symbol]: {
-          register: () => () => {},
-          requestLeave: async () => {
-            if (!canLeave) throw new ApplicationLeaveCancelled();
+  wrapper = mount(
+    defineComponent({
+      components: { RouterView },
+      template:
+        '<div><header><h1>Extensions</h1><div id="settings-header-actions" /></header><RouterView /></div>',
+    }),
+    {
+      attachTo: document.body,
+      global: {
+        plugins: [router, i18n, [VueQueryPlugin, { queryClient }]],
+        provide: {
+          [settingsLeaveCoordinatorKey as symbol]: {
+            register: () => () => {},
+            requestLeave: async () => {
+              if (!canLeave) throw new ApplicationLeaveCancelled();
+            },
           },
         },
+        mocks: { $t: (key: string) => key },
       },
-      mocks: { $t: (key: string) => key },
     },
-  });
+  );
   await flushPromises();
 });
 afterEach(() => {
@@ -83,8 +94,8 @@ afterEach(() => {
   queryClient.clear();
 });
 
-it("counts and searches all four categories, and opens readable skill content", async () => {
-  expect(wrapper.findAll('[data-testid^="extensions-tab-"]')).toHaveLength(4);
+it("counts and searches all three categories, and opens readable skill content", async () => {
+  expect(wrapper.findAll('[data-testid^="extensions-tab-"]')).toHaveLength(3);
   expect(wrapper.get('[data-testid="extensions-tab-skills"]').text()).toContain("1");
   await wrapper.get('[data-testid="extensions-tab-skills"]').trigger("mousedown", { button: 0 });
   await flushPromises();
@@ -118,4 +129,36 @@ it("guards tab changes and history navigation without losing a cancelled draft",
   await wrapper.get('[data-testid="extension-back"]').trigger("click");
   await flushPromises();
   expect(router.currentRoute.value.query.extensionId).toBeUndefined();
+});
+
+it("counts and lists only personal Skills, and rejects packaged Skills in the personal inspection", async () => {
+  queryClient.setQueryData(skillQuery.queryKey, [skill, { ...skill, id: "packaged", pluginId: "owner" }]);
+  await flushPromises();
+  expect(wrapper.get('[data-testid="extensions-tab-skills"]').text()).toContain("1");
+  await router.push("/settings?pane=extensions&extensionTab=skills");
+  await flushPromises();
+  expect(wrapper.find('[data-testid="skill-research"]').exists()).toBe(true);
+  expect(wrapper.find('[data-testid="skill-packaged"]').exists()).toBe(false);
+  await router.push("/settings?pane=extensions&extensionTab=skills&extensionId=packaged");
+  await flushPromises();
+  expect(wrapper.find(".ui-markdown").exists()).toBe(false);
+  expect(wrapper.text()).toContain("extensions.overview.notFound");
+});
+
+it("places category actions in the settings title area and hides them during inspection", async () => {
+  expect(wrapper.find('header [data-testid="open-plugin-source"]').exists()).toBe(true);
+  expect(wrapper.find('header [data-testid="discover-plugins"]').exists()).toBe(true);
+  expect(
+    wrapper
+      .get('[data-testid="agent-extensions-settings"]')
+      .find('[data-testid="open-plugin-source"]')
+      .exists(),
+  ).toBe(false);
+  await wrapper.get('[data-testid="extensions-tab-skills"]').trigger("mousedown", { button: 0 });
+  await flushPromises();
+  expect(wrapper.find('header [data-testid="create-skill"]').exists()).toBe(true);
+  expect(wrapper.find('header [data-testid="open-plugin-source"]').exists()).toBe(false);
+  await wrapper.get('[data-testid="skill-research"] button').trigger("click");
+  await flushPromises();
+  expect(wrapper.get("#settings-header-actions").text()).toBe("");
 });

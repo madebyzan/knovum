@@ -11,7 +11,7 @@ function draft(prompt: string): ComposerDraft {
   return {
     prompt,
     attachments: [],
-    extensions: { skillIds: [prompt], connections: [] },
+    extensions: { pluginIds: [], skillIds: [prompt], connections: [] },
     reacquireFileNames: [],
   };
 }
@@ -43,7 +43,7 @@ describe("conversation draft session", () => {
     const selectedConversationId = ref("conversation");
     const prompt = ref("");
     const attachments = ref<ComposerDraft["attachments"]>([]);
-    const extensions = ref({ skillIds: [] as string[], connections: [] });
+    const extensions = ref({ pluginIds: [], skillIds: [] as string[], connections: [] });
     const reacquireFileNames = ref<string[]>([]);
     const session = createConversationDraftSession({
       drafts,
@@ -79,7 +79,7 @@ describe("conversation draft session", () => {
     expect(save).toHaveBeenCalledWith("space-a", "conversation", {
       prompt: "newest A",
       attachments: [],
-      extensions: { skillIds: ["newest A"], connections: [] },
+      extensions: { pluginIds: [], skillIds: ["newest A"], connections: [] },
       reacquireFileNames: [],
     });
   });

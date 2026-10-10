@@ -1,5 +1,6 @@
 import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
+import { cloneDeep } from "es-toolkit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -7,7 +8,7 @@ import type { ConnectorDefinition } from "../../../shared/contracts/generated/Co
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
-import ConnectorSettings from "../connectors/ConnectorSettings.vue";
+import ConnectorServiceSettings from "../connectors/ConnectorServiceSettings.vue";
 import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 
 const mocks = vi.hoisted(() => ({
@@ -30,11 +31,12 @@ beforeEach(() => {
         return [];
       case "plugin:extensions|get_agent_extension_availability":
         return {
+          plugins: [],
           skills: [],
           connections: [],
           connectors: services,
           diagnostics: [],
-          defaultSelection: { skillIds: [], connections: [] },
+          defaultSelection: { pluginIds: [], skillIds: [], connections: [] },
         };
       case "plugin:extensions|list_connector_definitions":
         return structuredClone(services);
@@ -44,15 +46,6 @@ beforeEach(() => {
         const created = mcpConnectionFixture("new", input!.name as string);
         connections.push(created);
         return created;
-      }
-      case "plugin:extensions|create_connector_definition": {
-        const definition = {
-          ...(JSON.parse(JSON.stringify(input!.definition)) as ConnectorDefinition),
-          id: "new-service",
-          revision: "created",
-        };
-        services.push(definition);
-        return { value: definition, cleanupErrors: [] };
       }
       case "plugin:extensions|delete_mcp_connection": {
         connections = connections.filter((connection) => connection.id !== input!.connectionId);
@@ -68,14 +61,14 @@ afterEach(() => {
   queryClient.clear();
 });
 async function open() {
-  mounted = mount(ConnectorSettings, {
+  mounted = mount(ConnectorServiceSettings, {
+    props: { selectedId: "github" },
     global: {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
       provide: {
         [settingsLeaveCoordinatorKey as symbol]: { register: () => () => {}, requestLeave: async () => {} },
       },
       mocks: { $t: (key: string) => key },
-      stubs: { UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' } },
     },
   });
   await flushPromises();
@@ -83,18 +76,12 @@ async function open() {
 }
 
 describe("service connector management", () => {
-  it("creates another instance from one reusable definition without copying endpoints or auth", async () => {
+  it("creates another connection from one reusable definition without copying endpoints or auth", async () => {
     const wrapper = await open();
-    const connector = wrapper.get('[data-testid="connector-github"]');
-    expect(connector.text()).toContain("Read issues and repositories");
-    expect(connector.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(0);
-    await connector.get('[data-testid="manage-connector-github"]').trigger("click");
-    expect(wrapper.emitted("navigate")).toEqual([[{ tab: "applications", id: "github" }]]);
-    await wrapper.setProps({ selectedId: "github" });
     const inspection = wrapper.get('[data-testid="connector-github"]');
     expect(inspection.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(2);
-    await inspection.get('[data-testid="add-connection-instance"]').trigger("click");
-    await inspection.get('[data-testid="connection-instance-name"]').setValue("Research");
+    await inspection.get('[data-testid="add-mcp-connection"]').trigger("click");
+    await inspection.get('[data-testid="mcp-connection-name"]').setValue("Research");
     await inspection.get("form").trigger("submit");
     await flushPromises();
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|create_mcp_connection", {
@@ -105,27 +92,7 @@ describe("service connector management", () => {
     expect(inspection.findAll('[data-testid^="mcp-connection-"]')).toHaveLength(3);
   });
 
-  it("creates a service definition through the service editor without an implicit instance", async () => {
-    const wrapper = await open();
-    await wrapper.get('[data-testid="create-connector"]').trigger("click");
-    const editor = wrapper.get('[data-testid="connector-editor"]');
-    await editor.get('[data-testid="connector-name"]').setValue("Notion");
-    await editor.get('[data-testid="connector-description"]').setValue("Read and update documents");
-    await editor.get('[data-testid="mcp-endpoint-url"]').setValue("https://notion.example.com/mcp");
-    await editor.trigger("submit");
-    await flushPromises();
-    expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|create_connector_definition", {
-      definition: expect.objectContaining({
-        name: "Notion",
-        description: "Read and update documents",
-        endpoint: expect.objectContaining({ url: "https://notion.example.com/mcp" }),
-      }),
-    });
-    expect(connections).toHaveLength(2);
-    expect(wrapper.find('[data-testid="connector-editor"]').exists()).toBe(false);
-  });
-
-  it("deleting one instance keeps the service and other instances available", async () => {
+  it("deleting one connection keeps the service and other connections available", async () => {
     const wrapper = await open();
     await wrapper.setProps({ selectedId: "github" });
     await wrapper.get('[data-testid="delete-connection-Work"]').trigger("click");
@@ -137,7 +104,7 @@ describe("service connector management", () => {
     await flushPromises();
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:extensions|delete_mcp_connection", {
       connectionId: "Work",
-      revision: "instance-one",
+      revision: "connection-one",
     });
     expect(wrapper.find('[data-testid="mcp-connection-Work"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="mcp-connection-Personal"]').exists()).toBe(true);
@@ -149,7 +116,7 @@ describe("service connector management", () => {
     mocks.invoke.mockImplementation(async (command, input) => {
       if (command === "plugin:extensions|update_connector_definition") {
         const definition = {
-          ...(JSON.parse(JSON.stringify(input!.definition)) as ConnectorDefinition),
+          ...cloneDeep(input!.definition as ConnectorDefinition),
           revision: "updated",
         };
         services = [definition];
@@ -173,4 +140,35 @@ describe("service connector management", () => {
     );
     expect(wrapper.find('[data-testid="connector-editor"]').exists()).toBe(false);
   });
+});
+
+it("configures packaged services without offering individual activation, creation or deletion", async () => {
+  services[0]!.pluginId = "owner";
+  connections = [mcpConnectionFixture("Packaged")];
+  const wrapper = await open();
+  expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+  expect(wrapper.find('[data-testid="add-mcp-connection"]').exists()).toBe(false);
+  expect(wrapper.find('[data-testid="delete-connection-Packaged"]').exists()).toBe(false);
+  expect(wrapper.find('[data-testid="delete-connector"]').exists()).toBe(false);
+  expect(wrapper.find('[data-testid="edit-connector"]').exists()).toBe(false);
+  expect(wrapper.find('[data-testid="plugin-connector-configuration"]').exists()).toBe(true);
+});
+
+it("retains the edit draft and displays a rejected save once", async () => {
+  const original = mocks.invoke.getMockImplementation()!;
+  mocks.invoke.mockImplementation(async (command, input) => {
+    if (command === "plugin:extensions|update_connector_definition") throw new Error("Save rejected");
+    return original(command, input);
+  });
+  const wrapper = await open();
+  await wrapper.get('[data-testid="edit-connector"]').trigger("click");
+  await wrapper.get('[data-testid="connector-description"]').setValue("Keep this draft");
+  await wrapper.get('[data-testid="connector-editor"]').trigger("submit");
+  await flushPromises();
+  expect(wrapper.findAll('[role="alert"]')).toHaveLength(1);
+  expect(wrapper.get('[role="alert"]').text()).toBe("Save rejected");
+  expect(wrapper.get('[data-testid="connector-description"]').element).toHaveProperty(
+    "value",
+    "Keep this draft",
+  );
 });

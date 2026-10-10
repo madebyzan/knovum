@@ -107,7 +107,6 @@ fn main() {
                         "delete_mcp_connection",
                         "list_connector_accounts",
                         "list_connector_definitions",
-                        "create_connector_definition",
                         "update_connector_definition",
                         "delete_connector_definition",
                         "configure_plugin_connector",

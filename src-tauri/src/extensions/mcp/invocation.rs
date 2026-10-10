@@ -48,6 +48,20 @@ pub(crate) async fn prepare(
         .map_err(|error| error.to_string())?
         .validate(&arguments)
         .map_err(|error| format!("mcp-tool-arguments-invalid: {error}"))?;
+    let arguments = if let AgentToolBinding::McpReadResource {
+        resource_uris,
+        resource_templates,
+        ..
+    } = &tool.binding
+    {
+        let catalog = snapshot
+            .catalogs
+            .get(connection_id)
+            .ok_or("mcp-frozen-catalog-missing")?;
+        json!({"uri": super::resource_selection::invocation_uri(catalog, resource_uris, resource_templates, arguments)?})
+    } else {
+        arguments
+    };
     let output_schema = if let AgentToolBinding::McpTool {
         tool_name,
         schema_digest,

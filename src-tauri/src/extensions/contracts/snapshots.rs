@@ -6,6 +6,7 @@ use ts_rs::TS;
 #[derive(Clone, Debug, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AgentExtensionSelection {
+    pub plugin_ids: Vec<String>,
     pub skill_ids: Vec<String>,
     pub connections: Vec<AgentConnectionSelection>,
 }
@@ -73,6 +74,7 @@ pub enum AgentToolBinding {
     McpReadResource {
         connection_id: String,
         resource_uris: Vec<String>,
+        resource_templates: Vec<String>,
     },
     McpGetPrompt {
         connection_id: String,
@@ -94,6 +96,7 @@ pub struct AgentExtensionTool {
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AgentExtensionSnapshot {
+    pub plugins: Vec<super::PluginInstallation>,
     pub id: String,
     pub digest: String,
     pub skills: Vec<SkillRevision>,
@@ -109,6 +112,7 @@ pub struct AgentExtensionSnapshot {
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AgentExtensionAvailability {
+    pub plugins: Vec<super::PluginInstallation>,
     pub default_selection: AgentExtensionSelection,
     pub skills: Vec<SkillRevision>,
     pub connectors: Vec<super::ConnectorDefinition>,

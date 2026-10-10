@@ -142,9 +142,7 @@ async fn set_enabled(app: AppHandle, skill_id: String, is_enabled: bool) -> Resu
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    let mut skill = super::load(&pool, &skill_id).await?;
-    skill.enabled = is_enabled;
-    revisions::save(&pool, &skill).await
+    revisions::set_enabled(&pool, &skill_id, is_enabled).await
 }
 
 #[tauri::command]

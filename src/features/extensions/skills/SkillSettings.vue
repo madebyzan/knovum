@@ -6,10 +6,13 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { copySkill, enableSkill, disableSkill } from "../../../foundation/extensions/skill-operations";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
+import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
+import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../components/ExtensionEmptyState.vue";
 import type { ExtensionDestination } from "../extension-destination";
+import { importSkillDirectory, exportSkillDirectory } from "./skill-directory";
 import SkillContentEditor from "./SkillContentEditor.vue";
 import SkillContents from "./SkillContents.vue";
 import SkillOverview from "./SkillOverview.vue";
@@ -30,30 +33,32 @@ const {
   busy,
   create,
   mutate,
-  importDirectory,
-  exportDirectory,
   save,
   closeEditor,
-  remove,
+  deletePersonalSkill,
 } = useSkillManagement();
 const skills = computed(() =>
-  (query.data.value ?? []).filter((skill) =>
-    `${skill.name} ${skill.description}`.toLowerCase().includes(props.search.trim().toLowerCase()),
+  (query.data.value ?? []).filter(
+    (skill) =>
+      !skill.pluginId &&
+      `${skill.name} ${skill.description}`.toLowerCase().includes(props.search.trim().toLowerCase()),
   ),
 );
-const inspected = computed(() => query.data.value?.find((skill) => skill.id === props.selectedId));
+const inspected = computed(() =>
+  query.data.value?.find((skill) => !skill.pluginId && skill.id === props.selectedId),
+);
 </script>
 
 <template>
   <section class="min-w-0 space-y-4">
-    <header v-if="!selectedId" class="flex flex-wrap justify-end gap-2">
-      <UiButton :disabled="busy" data-testid="import-skill" @click="mutate(importDirectory)"
+    <UiSettingsHeaderActions v-if="!selectedId">
+      <UiButton :disabled="busy" size="sm" data-testid="import-skill" @click="mutate(importSkillDirectory)"
         ><FolderInput class="size-4" />{{ $t("extensions.skills.import") }}</UiButton
       >
-      <UiButton :disabled="busy" data-testid="create-skill" @click="create"
+      <UiButton :disabled="busy" size="sm" data-testid="create-skill" @click="create"
         ><Plus class="size-4" />{{ $t("extensions.skills.create") }}</UiButton
       >
-    </header>
+    </UiSettingsHeaderActions>
     <p
       v-if="query.error.value || changes.error.value || reading.error.value"
       role="alert"
@@ -66,12 +71,12 @@ const inspected = computed(() => query.data.value?.find((skill) => skill.id === 
       v-if="inspected"
       :skill="inspected"
       :busy="busy"
-      @navigate="$emit('navigate', $event)"
+      @back="$emit('navigate', { tab: 'skills' })"
       @edit="reading.mutate(inspected.id)"
       @toggle="mutate(() => (inspected!.enabled ? disableSkill(inspected!.id) : enableSkill(inspected!.id)))"
       @copy="mutate(() => copySkill(inspected!.id))"
-      @export="mutate(() => exportDirectory(inspected!.id))"
-      @delete="remove(inspected.id, inspected.name)"
+      @export="mutate(() => exportSkillDirectory(inspected!.id))"
+      @delete="deletePersonalSkill(inspected.id, inspected.name)"
     />
     <div
       v-else-if="query.isPending.value"
@@ -93,20 +98,22 @@ const inspected = computed(() => query.data.value?.find((skill) => skill.id === 
       :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.skills.empty.title')"
       :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.skills.empty.description')"
     />
-    <div v-else-if="!selectedId" class="divide-y divide-stroke-divider">
-      <SkillOverview
-        v-for="skill in skills"
-        :key="skill.id"
-        :skill="skill"
-        :busy="busy"
-        @inspect="$emit('navigate', { tab: 'skills', id: skill.id })"
-        @edit="reading.mutate(skill.id)"
-        @toggle="mutate(() => (skill.enabled ? disableSkill(skill.id) : enableSkill(skill.id)))"
-        @copy="mutate(() => copySkill(skill.id))"
-        @export="mutate(() => exportDirectory(skill.id))"
-        @delete="remove(skill.id, skill.name)"
-      />
-    </div>
+    <UiSettingsSection v-else-if="!selectedId">
+      <div class="divide-y divide-stroke-divider px-4">
+        <SkillOverview
+          v-for="skill in skills"
+          :key="skill.id"
+          :skill="skill"
+          :busy="busy"
+          @inspect="$emit('navigate', { tab: 'skills', id: skill.id })"
+          @edit="reading.mutate(skill.id)"
+          @toggle="mutate(() => (skill.enabled ? disableSkill(skill.id) : enableSkill(skill.id)))"
+          @copy="mutate(() => copySkill(skill.id))"
+          @export="mutate(() => exportSkillDirectory(skill.id))"
+          @delete="deletePersonalSkill(skill.id, skill.name)"
+        />
+      </div>
+    </UiSettingsSection>
     <UiDialog
       :open="editing"
       :title="selected ? selected.skill.name : $t('extensions.skills.create')"
@@ -118,7 +125,6 @@ const inspected = computed(() => query.data.value?.find((skill) => skill.id === 
         v-model:name="name"
         v-model:markdown="markdown"
         :existing="Boolean(selected)"
-        :readonly="Boolean(selected?.skill.pluginId)"
         :busy="changes.isPending.value"
         :files="selected?.files ?? []"
         @save="save"

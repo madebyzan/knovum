@@ -63,18 +63,25 @@ pub(super) fn parse(markdown: &[u8], directory_name: &str) -> Result<SkillMetada
     let name = string(document, "name")?;
     let description = string(document, "description")?;
     if name != directory_name
-        || name.len() > 64
+        || name.chars().count() > 64
+        || name != name.to_lowercase()
         || name.starts_with('-')
         || name.ends_with('-')
         || name.contains("--")
         || !name
-            .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+            .chars()
+            .all(|character| character.is_alphanumeric() || character == '-')
     {
         return Err("skill-name-must-match-directory-and-standard-format".into());
     }
     if description.chars().count() > 1024 {
         return Err("skill-description-size-limit".into());
+    }
+    if document["compatibility"]
+        .as_str()
+        .is_some_and(|value| value.trim().is_empty() || value.chars().count() > 500)
+    {
+        return Err("skill-compatibility-size-invalid".into());
     }
     let included_tools = document["metadata"]["include_tools"]
         .as_str()
@@ -103,3 +110,7 @@ fn string<'a>(document: &'a Yaml, field: &str) -> Result<&'a str, String> {
         .filter(|value| !value.trim().is_empty())
         .ok_or_else(|| format!("skill-required-field: {field}"))
 }
+
+#[cfg(test)]
+#[path = "tests/metadata.rs"]
+mod tests;

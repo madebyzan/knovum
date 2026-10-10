@@ -4,7 +4,11 @@ use futures::StreamExt;
 use serde_json::json;
 use std::time::Duration;
 
-async fn respond(peer: &mut Channel, method: &str, outcome: serde_json::Value) {
+async fn respond(
+    peer: &mut Channel,
+    method: &str,
+    outcome: serde_json::Value,
+) -> serde_json::Value {
     let TransportFrame::Single(RawJsonRpcMessage::Request(request)) = peer.rx.next().await.unwrap()
     else {
         panic!("expected an ACP request");
@@ -18,6 +22,7 @@ async fn respond(peer: &mut Channel, method: &str, outcome: serde_json::Value) {
     peer.tx
         .unbounded_send(TransportFrame::Single(response))
         .unwrap();
+    request
 }
 
 async fn initialized_peer(peer: &mut Channel) {
@@ -28,6 +33,95 @@ async fn initialized_peer(peer: &mut Channel) {
     )
     .await;
     respond(peer, "session/new", json!({"sessionId":"session"})).await;
+}
+
+#[tokio::test]
+async fn authorized_http_mcp_binding_is_supplied_to_the_acp_session() {
+    tokio::time::timeout(Duration::from_secs(3), async {
+        let (transport, mut peer) = Channel::duplex();
+        let (requests, receiver) = mpsc::channel(1);
+        let (ready, session) = oneshot::channel();
+        let (_settled, completion) = oneshot::channel();
+        let mut context = context(completion);
+        context.mcp_servers = vec![McpServer::Http(
+            agent_client_protocol::schema::v1::McpServerHttp::new(
+                "knovum",
+                "http://127.0.0.1:49152/mcp",
+            )
+            .headers(vec![agent_client_protocol::schema::v1::HttpHeader::new(
+                "Authorization",
+                "Bearer session-only-fixture",
+            )]),
+        )];
+        let task = tokio::spawn(serve_connection(
+            transport,
+            context,
+            receiver,
+            CancellationToken::new(),
+            ready,
+        ));
+        respond(
+            &mut peer,
+            "initialize",
+            json!({
+                "protocolVersion":1,"agentCapabilities":{"mcpCapabilities":{"http":true}}
+            }),
+        )
+        .await;
+        let request = respond(&mut peer, "session/new", json!({"sessionId":"session"})).await;
+        assert_eq!(
+            request["params"]["mcpServers"],
+            json!([{
+                "type":"http", "name":"knovum", "url":"http://127.0.0.1:49152/mcp",
+                "headers":[{"name":"Authorization","value":"Bearer session-only-fixture"}]
+            }])
+        );
+        session.await.unwrap().unwrap();
+        requests.send(ConversationRequest::Finish).await.unwrap();
+        task.await.unwrap().unwrap();
+    })
+    .await
+    .unwrap();
+}
+
+#[tokio::test]
+async fn unsupported_http_mcp_fails_before_session_creation() {
+    tokio::time::timeout(Duration::from_secs(3), async {
+        let (transport, mut peer) = Channel::duplex();
+        let (_requests, receiver) = mpsc::channel(1);
+        let (ready, session) = oneshot::channel();
+        let (_settled, completion) = oneshot::channel();
+        let mut context = context(completion);
+        context.mcp_servers = vec![McpServer::Http(
+            agent_client_protocol::schema::v1::McpServerHttp::new(
+                "knovum",
+                "http://127.0.0.1:49152/mcp",
+            ),
+        )];
+        let task = tokio::spawn(serve_connection(
+            transport,
+            context,
+            receiver,
+            CancellationToken::new(),
+            ready,
+        ));
+        respond(
+            &mut peer,
+            "initialize",
+            json!({
+                "protocolVersion":1,"agentCapabilities":{}
+            }),
+        )
+        .await;
+        let Err(error) = session.await.unwrap() else {
+            panic!("unsupported MCP transport must reject session creation");
+        };
+        assert!(error.to_string().contains("does not support HTTP MCP"));
+        task.await.unwrap().unwrap();
+        assert!(peer.rx.next().await.is_none());
+    })
+    .await
+    .unwrap();
 }
 
 #[tokio::test]

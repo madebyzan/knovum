@@ -67,3 +67,17 @@ async fn malformed_service_does_not_create_either_entity() {
     assert!(definitions::list(&pool).await.unwrap().is_empty());
     assert!(connections::list(&pool).await.unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn service_description_is_optional_but_name_is_required() {
+    let pool = pool().await;
+    let mut custom = definition();
+    custom.description.clear();
+    assert!(create(&pool, custom.clone()).await.is_ok());
+    custom.name = " ".into();
+    assert_eq!(
+        create(&pool, custom).await.unwrap_err(),
+        "connector-name-required"
+    );
+    assert_eq!(definitions::list(&pool).await.unwrap().len(), 1);
+}

@@ -22,6 +22,7 @@ import { useConversationDraftStore } from "../conversation/conversation-draft-st
 describe("frozen extension input", () => {
   it("copies nested resource parameters so editing a draft cannot change a submitted selection", async () => {
     const original = {
+      pluginIds: [],
       skillIds: ["skill"],
       connections: [
         {

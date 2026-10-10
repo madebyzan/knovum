@@ -49,27 +49,27 @@
   "builtinAgentLimitsInvalid": "Context must be at least 8,192 tokens; output must be positive and smaller than context.",
   "localModels": {
     "title": "Local models",
-    "description": "Essential models and required resources are managed automatically. Download optional models here; view or cancel preparation in Task Center.",
+    "description": "Manage local models for each feature. Required resources are prepared automatically when needed.",
     "download": "Download",
     "downloading": "Downloading {name}",
     "removeTitle": "Remove {name}?",
     "removeDescription": "Generated content is kept. Using this model again requires another download.",
-    "ready": "Model files downloaded",
+    "ready": "Downloaded",
     "invalid": "Verification failed; download again",
     "notInstalled": "Not downloaded",
     "essential": "Essential",
-    "fixedEmbedding": "Fixed to keep existing knowledge indexes valid.",
+    "fixedEmbedding": "Fixed to preserve existing knowledge indexes.",
     "installedSize": "Using {size}",
     "preparing": "Preparing local resources",
     "unavailable": {
-      "memory": "This model requires at least 32 GiB physical memory. MOSS-TTS-Nano works on smaller computers."
+      "memory": "Not enough memory; at least 32 GiB is required. Use MOSS-TTS-Nano instead."
     },
     "capabilities": {
       "embedding": "Semantic search and knowledge indexing",
-      "transcription": "Audio and video transcription · Matched to your device",
+      "transcription": "Turn audio and video into text",
       "speechSynthesis": "Speech synthesis, voice cloning and design",
       "speechAlignment": "Align transcript text precisely to audio",
-      "speechDiarization": "Identify different speakers · No account authorization",
+      "speechDiarization": "Distinguish speakers in a recording",
       "speechSeparation": "Separate vocals from accompaniment",
       "imageSegmentation": "Remove image backgrounds"
     },
@@ -82,29 +82,31 @@
     "select": "Set as default",
     "selected": "Default for new operations",
     "modelDescriptions": {
-      "whisperTiny": "Small download and fast inference for limited hardware; lower accuracy on difficult recordings.",
-      "whisperSmall": "Default choice balancing size, speed and accuracy.",
-      "whisperLargeV3": "Higher accuracy, about 3 GB download; requires more memory and is slower on CPU.",
-      "qwen3Embedding": "Required for local knowledge retrieval; uses fixed 1,024-dimensional vectors.",
-      "mossNano": "Compact Chinese and English preset voices and reference cloning. Runs on CPU at normal speed with 48 kHz output.",
-      "voxCpm2": "Voice cloning and design. About 5 GB; requires at least 32 GiB memory. Uses a supported GPU when capacity allows, otherwise CPU.",
-      "voxCpm2Q8": "Q8 voice cloning and design. About 3 GB; requires at least 32 GiB memory. Uses a supported GPU when capacity allows, otherwise CPU.",
-      "qwen3Aligner": "Full model for precise transcript timing. Up to five minutes per selected range.",
-      "qwen3AlignerQ8": "Smaller Q8 model for precise transcript timing. Up to five minutes per selected range.",
-      "sherpaDiarization": "Compact speaker identification, about 41 MB. Automatic or exact speaker count; no account required.",
-      "spleeter2Stems": "FP16 vocals/accompaniment separation on CPU. Up to ten minutes per source; audition both tracks before accepting them.",
-      "u2netp": "Compact CPU background removal, about 5 MB. Results depend on the source image.",
-      "u2net": "Full CPU background-removal model, about 176 MB. Uses more memory and processing time than Compact.",
-      "sherpaDiarizationFull": "Full-precision speaker identification, about 46 MB. Automatic or exact speaker count; no account required.",
-      "spleeter2StemsFull": "FP32 vocals/accompaniment separation on CPU. About twice the compact model’s download size; up to ten minutes per source."
+      "whisperTiny": "Fast and lightweight; lower accuracy on difficult recordings.",
+      "whisperSmall": "Balances transcription speed and accuracy.",
+      "whisperLargeV3": "More accurate transcription with longer processing times.",
+      "qwen3Embedding": "For local semantic search.",
+      "mossNano": "Lightweight Chinese and English speech with preset voices and voice cloning.",
+      "voxCpm2": "Full model for voice cloning and design.",
+      "voxCpm2Q8": "Voice cloning and design with a smaller model.",
+      "qwen3Aligner": "Full transcript alignment model; up to five minutes at a time.",
+      "qwen3AlignerQ8": "Lightweight transcript alignment model; up to five minutes at a time.",
+      "sherpaDiarization": "Lightweight speaker identification with automatic or specified speaker count.",
+      "spleeter2Stems": "Lightweight vocal and accompaniment separation; audio up to ten minutes.",
+      "u2netp": "Lightweight background removal with faster processing.",
+      "u2net": "Full background removal model with longer processing times.",
+      "sherpaDiarizationFull": "Full-precision speaker identification with automatic or specified speaker count.",
+      "spleeter2StemsFull": "Full-precision vocal and accompaniment separation; audio up to ten minutes."
     },
-    "selectedVoiceModel": "Default for new reference voices; saved voices keep their model.",
+    "selectedVoiceModel": "For new reference voices; saved voices are unaffected.",
     "modelSize": "Model files {size}",
     "defaultModel": "Default",
-    "search": "Search this category",
+    "search": "Search models or capabilities",
     "filterLabel": "Download status",
-    "categories": "Model capabilities",
     "modelCount": "{count} models",
+    "configuredModel": "Default: {name}",
+    "fixedModel": "Fixed: {name}",
+    "preparationCount": "{count} models preparing",
     "noResults": "No models match your search or filter.",
     "categoryLabels": {
       "embedding": "Semantic search",
@@ -119,6 +121,8 @@
       "all": "All models",
       "installed": "Downloaded",
       "notInstalled": "Not downloaded"
-    }
+    },
+    "cancelling": "Cancelling",
+    "clearFilters": "Clear filters"
   }
 }

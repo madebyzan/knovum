@@ -79,7 +79,6 @@ pub(super) async fn commit(
             previous.plugin_id.as_deref() == Some(plugin_id) && previous.name == skill.name
         }) {
             skill.id = previous.id.clone();
-            skill.enabled = previous.enabled;
         }
         skill.plugin_id = Some(plugin_id.into());
         sqlx::query("INSERT INTO skills(id,document) VALUES($1,$2)")

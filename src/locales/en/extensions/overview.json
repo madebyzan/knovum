@@ -1,9 +1,8 @@
 {
   "title": "Extensions",
-  "description": "Manage plugins, application connections, MCP, and skills.",
+  "description": "Manage complete plugins, MCP services and personal skills.",
   "plugins": "Plugins",
   "skills": "Skills",
-  "applications": "Apps",
   "mcp": "MCP",
   "back": "Back to list",
   "information": "Information",
@@ -13,10 +12,9 @@
   "pluginPaused": "This plugin is disabled. Its skills and connections are unavailable.",
   "notFound": "This extension is unavailable",
   "notFoundHint": "It may have been removed or changed by a plugin update. Return to the list to view the current content.",
-  "usage": "Select skills and MCP connections for each task using the extension picker in a Space conversation. Enabling makes them selectable; it does not automatically access external services.",
+  "usage": "Select complete plugins, personal skills or standalone MCP connections in a Space conversation. A plugin includes its skills and services together. Enabling makes it selectable; external access still requires authorization.",
   "search": {
     "plugins": "Search plugins…",
-    "applications": "Search apps…",
     "mcp": "Search MCP servers…",
     "skills": "Search skills…"
   },

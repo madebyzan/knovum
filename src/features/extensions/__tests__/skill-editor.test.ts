@@ -3,6 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import type { AgentExtensionAvailability } from "../../../shared/contracts/generated/AgentExtensionAvailability";
 import {
   settingsLeaveCoordinatorKey,
   type SettingsLeaveParticipant,
@@ -35,12 +36,13 @@ beforeEach(async () => {
     if (command === "plugin:extensions|list_plugin_installations") return [];
     if (command === "plugin:extensions|get_agent_extension_availability")
       return {
+        plugins: [],
         skills: [skill],
         connections: [],
         connectors: [],
         diagnostics: [],
-        defaultSelection: { skillIds: [], connections: [] },
-      };
+        defaultSelection: { pluginIds: [], skillIds: [], connections: [] },
+      } satisfies AgentExtensionAvailability;
     if (command === "plugin:extensions|list_skills") return [skill];
     if (command === "plugin:extensions|read_skill")
       return { skill, markdown: "Original instructions", files: [] };
@@ -60,7 +62,10 @@ beforeEach(async () => {
         },
       },
       mocks: { $t: (key: string) => key },
-      stubs: { UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' } },
+      stubs: {
+        UiSettingsHeaderActions: { template: "<div><slot /></div>" },
+        UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' },
+      },
     },
   });
   await flushPromises();
@@ -86,12 +91,13 @@ it("disables and re-enables the selected skill through explicit IPC intents", as
     if (command === "plugin:extensions|list_plugin_installations") return [];
     if (command === "plugin:extensions|get_agent_extension_availability")
       return {
+        plugins: [],
         skills: isEnabled ? [skill] : [],
         connections: [],
         connectors: [],
         diagnostics: [],
-        defaultSelection: { skillIds: [], connections: [] },
-      };
+        defaultSelection: { pluginIds: [], skillIds: [], connections: [] },
+      } satisfies AgentExtensionAvailability;
     if (command === "plugin:extensions|list_skills") return [{ ...skill, enabled: isEnabled }];
     if (command === "plugin:extensions|disable_skill") isEnabled = false;
     else if (command === "plugin:extensions|enable_skill") isEnabled = true;

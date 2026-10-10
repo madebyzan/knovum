@@ -1,3 +1,4 @@
+pub(crate) mod selection;
 mod skill_bindings;
 mod tools;
 use super::{
@@ -21,7 +22,15 @@ pub(crate) async fn prepare(
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(app).await?;
+    let (selection, plugins) = selection::resolve(
+        selection,
+        &super::plugins::list(&pool).await?,
+        &super::skills::list(&pool).await?,
+        &super::connectors::definitions::list(&pool).await?,
+        &super::mcp::connections::list(&pool).await?,
+    )?;
     let mut snapshot = AgentExtensionSnapshot {
+        plugins,
         id: uuid::Uuid::new_v4().to_string(),
         digest: String::new(),
         skills: Vec::new(),
@@ -35,6 +44,12 @@ pub(crate) async fn prepare(
     };
     let mut names = BTreeSet::new();
     let mut retained = BTreeSet::new();
+    for plugin in &snapshot.plugins {
+        retained.insert(format!(
+            "plugins/{}/revisions/{}",
+            plugin.id, plugin.revision.digest
+        ));
+    }
     for id in &selection.skill_ids {
         let skill = super::skills::load(&pool, id).await?;
         if !skill.unsupported_requirements.is_empty() {
@@ -45,11 +60,6 @@ pub(crate) async fn prepare(
         }
         if !skill.enabled {
             return Err("selected-skill-disabled".into());
-        }
-        if let Some(plugin_id) = &skill.plugin_id {
-            if !super::plugins::load(&pool, plugin_id).await?.enabled {
-                return Err("selected-skill-plugin-disabled".into());
-            }
         }
         if !names.insert(skill.name.clone()) {
             return Err(format!("selected-skill-name-conflict: {}", skill.name));
@@ -70,13 +80,9 @@ pub(crate) async fn prepare(
                 digest: content::digest(&bytes),
             });
         }
-        let lease = if let Some(plugin_id) = &skill.plugin_id {
-            let plugin = super::plugins::load(&pool, plugin_id).await?;
-            format!("plugins/{plugin_id}/revisions/{}", plugin.revision.digest)
-        } else {
-            format!("skills/{}/revisions/{}", skill.id, skill.digest)
-        };
-        retained.insert(lease);
+        if skill.plugin_id.is_none() {
+            retained.insert(format!("skills/{}/revisions/{}", skill.id, skill.digest));
+        }
         snapshot.skills.push(skill);
     }
     if serde_json::to_vec(&snapshot.files)
@@ -96,13 +102,6 @@ pub(crate) async fn prepare(
         super::mcp::connections::require_current(app, &connection).await?;
         let connector =
             super::connectors::definitions::load(&pool, &connection.connector_id).await?;
-        if let Some(plugin_id) = &connector.plugin_id {
-            let plugin = super::plugins::load(&pool, plugin_id).await?;
-            retained.insert(format!(
-                "plugins/{plugin_id}/revisions/{}",
-                plugin.revision.digest
-            ));
-        }
         if let Some(account_id) = &connection.account_id {
             if !snapshot
                 .accounts
@@ -151,14 +150,24 @@ pub(crate) async fn prepare(
             let catalog =
                 super::mcp::sessions::inspect(app, &snapshot, connection, interaction.clone())
                     .await?;
-            snapshot
-                .tools
-                .extend(tools::project(connection, catalog.clone(), choices)?);
+            let catalog_selection = if snapshot.connectors.iter().any(|connector| {
+                connector.id == connection.connector_id && connector.plugin_id.is_some()
+            }) {
+                tools::CatalogSelection::Package
+            } else {
+                tools::CatalogSelection::Standalone(choices)
+            };
+            snapshot.tools.extend(tools::project(
+                connection,
+                catalog.clone(),
+                catalog_selection,
+            )?);
             snapshot.catalogs.insert(connection.id.clone(), catalog);
         }
         snapshot.skill_tool_bindings = skill_bindings::resolve(&snapshot, local_tools)?;
         snapshot.digest = content::digest(
             &serde_json::to_vec(&(
+                &snapshot.plugins,
                 &snapshot.skills,
                 &snapshot.files,
                 &snapshot.skill_tool_bindings,
@@ -187,6 +196,12 @@ pub(crate) async fn require_current(
     snapshot: &AgentExtensionSnapshot,
 ) -> Result<(), String> {
     let pool = database::pool(app).await?;
+    for plugin in &snapshot.plugins {
+        let current = super::plugins::load(&pool, &plugin.id).await?;
+        if !current.enabled || current.revision.digest != plugin.revision.digest {
+            return Err("plugin-revoked-or-revised".into());
+        }
+    }
     for account in &snapshot.accounts {
         super::connectors::accounts::require_current(&pool, account).await?;
     }
@@ -194,11 +209,6 @@ pub(crate) async fn require_current(
         let current = super::skills::load(&pool, &frozen.id).await?;
         if !current.enabled || current.digest != frozen.digest {
             return Err("skill-revoked-or-revised".into());
-        }
-        if let Some(plugin_id) = &current.plugin_id {
-            if !super::plugins::load(&pool, plugin_id).await?.enabled {
-                return Err("skill-plugin-disabled".into());
-            }
         }
     }
     for connector in &snapshot.connectors {
@@ -213,3 +223,7 @@ pub(crate) async fn require_current(
 #[cfg(test)]
 #[path = "tests/tools.rs"]
 mod tools_tests;
+
+#[cfg(test)]
+#[path = "tests/selection.rs"]
+mod selection_tests;

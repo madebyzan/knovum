@@ -97,6 +97,50 @@ fn parameter(value: &McpResourceTemplateValue) -> TemplateValue {
     }
 }
 
+pub(crate) fn resource_schema(uris: &[String], templates: &[String]) -> Result<Value, String> {
+    let mut variants = Vec::new();
+    if !uris.is_empty() {
+        variants.push(serde_json::json!({"type":"object","properties":{"uri":{"type":"string","enum":uris}},"required":["uri"],"additionalProperties":false}));
+    }
+    let value_schema = serde_json::json!({"oneOf":[
+        {"type":"string"}, {"type":"array","items":{"type":"string"}},
+        {"type":"object","additionalProperties":{"type":"string"}}, {"type":"null"}
+    ]});
+    for uri_template in templates {
+        let template =
+            UriTemplateStr::new(uri_template).map_err(|_| "mcp-resource-template-invalid")?;
+        let properties: BTreeMap<_, _> = template
+            .variables()
+            .map(|name| (name.as_str(), value_schema.clone()))
+            .collect();
+        variants.push(serde_json::json!({"type":"object","properties":{
+            "uriTemplate":{"const":uri_template},
+            "parameters":{"type":"object","properties":properties,"additionalProperties":false}
+        },"required":["uriTemplate","parameters"],"additionalProperties":false}));
+    }
+    Ok(serde_json::json!({"type":"object","oneOf":variants}))
+}
+
+pub(crate) fn invocation_uri(
+    catalog: &McpConnectionCatalog,
+    resource_uris: &[String],
+    resource_templates: &[String],
+    arguments: Value,
+) -> Result<String, String> {
+    if let Some(uri) = arguments.get("uri").and_then(Value::as_str) {
+        if !resource_uris.iter().any(|selected| selected == uri) {
+            return Err("mcp-resource-not-authorized".into());
+        }
+        return Ok(uri.into());
+    }
+    let selected: McpResourceTemplateSelection = serde_json::from_value(arguments)
+        .map_err(|error| format!("mcp-resource-template-arguments-invalid: {error}"))?;
+    if !resource_templates.contains(&selected.uri_template) {
+        return Err("mcp-resource-template-not-authorized".into());
+    }
+    expand(catalog, &selected)
+}
+
 pub(crate) fn prompt_schema(catalog: &McpConnectionCatalog, names: &[String]) -> Value {
     let variants: Vec<_> = catalog.prompts.iter().filter(|prompt| names.contains(&prompt.name)).map(|prompt| {
         let arguments = prompt.arguments.as_deref().unwrap_or_default();

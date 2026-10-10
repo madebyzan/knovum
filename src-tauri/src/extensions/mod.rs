@@ -89,7 +89,6 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             mcp::commands::delete_mcp_connection,
             connectors::commands::list_connector_accounts,
             connectors::definition_commands::list_connector_definitions,
-            connectors::definition_commands::create_connector_definition,
             connectors::definition_commands::update_connector_definition,
             connectors::definition_commands::delete_connector_definition,
             connectors::plugin_configuration::configure_plugin_connector,

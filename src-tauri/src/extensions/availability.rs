@@ -22,17 +22,10 @@ pub async fn get_agent_extension_availability(
             Err(error) => diagnostics.push(format!("{}: {error}", connection.name)),
         }
     }
-    let skills: Vec<_> = super::skills::list(&pool)
-        .await?
-        .into_iter()
-        .filter(|skill| {
-            skill.enabled
-                && skill.plugin_id.as_ref().is_none_or(|id| {
-                    plugins
-                        .iter()
-                        .any(|plugin| &plugin.id == id && plugin.enabled)
-                })
-        })
+    let all_skills = super::skills::list(&pool).await?;
+    let skills: Vec<_> = all_skills
+        .iter()
+        .filter(|skill| skill.enabled)
         .filter(|skill| {
             if !skill.unsupported_requirements.is_empty() {
                 diagnostics.push(format!(
@@ -62,26 +55,55 @@ pub async fn get_agent_extension_availability(
             }
             missing.is_empty()
         })
+        .cloned()
+        .collect();
+    let available_plugins: Vec<_> = plugins
+        .into_iter()
+        .filter(|plugin| {
+            if !plugin.enabled {
+                return false;
+            }
+            match super::snapshots::selection::require_package(
+                plugin,
+                &all_skills,
+                &connectors,
+                &connections,
+            ) {
+                Ok(()) => true,
+                Err(error) => {
+                    diagnostics.push(format!("{}: {error}", plugin.revision.manifest.name));
+                    false
+                }
+            }
+        })
         .collect();
     let default_selection = super::contracts::AgentExtensionSelection {
-        skill_ids: skills
+        plugin_ids: available_plugins
             .iter()
-            .filter(|skill| {
-                skill.plugin_id.as_ref().is_some_and(|id| {
-                    plugins
-                        .iter()
-                        .any(|plugin| &plugin.id == id && plugin.builtin)
-                })
-            })
-            .map(|skill| skill.id.clone())
+            .filter(|plugin| plugin.builtin)
+            .map(|plugin| plugin.id.clone())
             .collect(),
+        skill_ids: Vec::new(),
         connections: Vec::new(),
     };
+    let personal_skills = skills
+        .into_iter()
+        .filter(|skill| skill.plugin_id.is_none())
+        .collect();
+    let standalone_connections = connections
+        .into_iter()
+        .filter(|connection| {
+            connectors.iter().any(|connector| {
+                connector.id == connection.connector_id && connector.plugin_id.is_none()
+            })
+        })
+        .collect();
     Ok(AgentExtensionAvailability {
+        plugins: available_plugins,
         default_selection,
-        skills,
+        skills: personal_skills,
         connectors,
-        connections,
+        connections: standalone_connections,
         diagnostics,
     })
 }
