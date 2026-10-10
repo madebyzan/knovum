@@ -48,7 +48,7 @@ describe("conversation task settlement", () => {
     const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
     const submission = createConversationTaskSubmission({
       input: {
-        extensions: ref({ skillIds: [], connections: [] }),
+        extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
         spaceId: ref("space"),
         selectedConversationId: ref("conversation"),
         conversation: ref(),
@@ -96,7 +96,7 @@ describe("conversation task settlement", () => {
     const prompt = ref("unsent work");
     const submission = createConversationTaskSubmission({
       input: {
-        extensions: ref({ skillIds: [], connections: [] }),
+        extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
         spaceId: ref("space"),
         selectedConversationId: ref("conversation"),
         conversation: ref(),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Blocks } from "@lucide/vue";
+import { Server } from "@lucide/vue";
 import { computed } from "vue";
 
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
@@ -8,11 +8,11 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import ExtensionInspectionHeader from "../components/ExtensionInspectionHeader.vue";
 import type { ExtensionDestination } from "../extension-destination";
 import ConnectorAccounts from "./ConnectorAccounts.vue";
-import ConnectorInstances from "./ConnectorInstances.vue";
+import ConnectorConnections from "./ConnectorConnections.vue";
 import PluginConnectorConfiguration from "./PluginConnectorConfiguration.vue";
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
-defineEmits<{ edit: []; remove: []; navigate: [destination: ExtensionDestination] }>();
-const instances = computed(() =>
+defineEmits<{ edit: []; delete: []; navigate: [destination: ExtensionDestination] }>();
+const connectorConnections = computed(() =>
   props.connections.filter((connection) => connection.connectorId === props.connector.id),
 );
 </script>
@@ -21,8 +21,10 @@ const instances = computed(() =>
     <ExtensionInspectionHeader
       :name="connector.name"
       :description="connector.description"
-      :icon="Blocks"
-      @back="$emit('navigate', { tab: 'applications' })"
+      :icon="Server"
+      @back="
+        $emit('navigate', connector.pluginId ? { tab: 'plugins', id: connector.pluginId } : { tab: 'mcp' })
+      "
     >
       <template v-if="!connector.pluginId"
         ><UiButton size="sm" :disabled="busy" data-testid="edit-connector" @click="$emit('edit')">{{
@@ -34,7 +36,7 @@ const instances = computed(() =>
           class="text-fg-danger"
           :disabled="busy"
           data-testid="delete-connector"
-          @click="$emit('remove')"
+          @click="$emit('delete')"
           >{{ $t("common.delete") }}</UiButton
         ></template
       >
@@ -53,7 +55,7 @@ const instances = computed(() =>
       </h3>
       <ConnectorAccounts :connector="connector" />
     </section>
-    <ConnectorInstances :connector="connector" :connections="instances" :busy="busy" />
+    <ConnectorConnections :connector="connector" :connections="connectorConnections" :busy="busy" />
     <p class="text-caption text-fg-tertiary">{{ $t("extensions.accounts.billingHint") }}</p>
   </section>
 </template>

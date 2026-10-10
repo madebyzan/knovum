@@ -28,7 +28,7 @@ export interface SettingsDefinition {
   locations?: readonly { id: string; labelKey: string; descriptionKey: string }[];
 }
 
-export const settingsRegistry: readonly SettingsDefinition[] = [
+export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
   {
     id: "appearance",
     group: "general",
@@ -111,12 +111,7 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "extensions.overview.title",
     descriptionKey: "extensions.overview.description",
-    searchKeys: [
-      "extensions.overview.plugins",
-      "extensions.overview.skills",
-      "extensions.overview.applications",
-      "extensions.overview.mcp",
-    ],
+    searchKeys: ["extensions.overview.plugins", "extensions.overview.skills", "extensions.overview.mcp"],
     icon: Puzzle,
   },
   {
@@ -166,13 +161,13 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
   },
 ] as const;
 
-export const settingsGroupTitleKeys: Record<SettingsGroupId, string> = {
+export const SETTINGS_GROUP_TITLE_KEYS: Record<SettingsGroupId, string> = {
   general: "settings.general.groups.general",
   intelligence: "settings.general.groups.intelligence",
   data: "settings.general.groups.data",
   information: "settings.general.groups.information",
 };
 
-export function settingsDefinition(paneId: SettingsPaneId) {
-  return settingsRegistry.find((definition) => definition.id === paneId)!;
+export function getSettingsDefinition(paneId: SettingsPaneId) {
+  return SETTINGS_REGISTRY.find((definition) => definition.id === paneId)!;
 }

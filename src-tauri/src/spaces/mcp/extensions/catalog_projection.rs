@@ -23,6 +23,7 @@ pub(in crate::spaces::mcp) fn selected_resources(
         let AgentToolBinding::McpReadResource {
             connection_id,
             resource_uris,
+            ..
         } = &tool.binding
         else {
             continue;

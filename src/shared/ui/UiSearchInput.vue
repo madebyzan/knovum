@@ -2,10 +2,12 @@
 import { Search, X } from "@lucide/vue";
 import { useFocus } from "@vueuse/core";
 import { type HTMLAttributes, useTemplateRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { cn } from "./cn";
 import { INPUT_BASE_CLASSES } from "./ui-classes";
 
+const { t } = useI18n();
 const model = defineModel<string>({ default: "" });
 
 const props = withDefaults(
@@ -41,6 +43,11 @@ function handleEscape(event: KeyboardEvent) {
   }
 }
 
+function clear() {
+  model.value = "";
+  focus();
+}
+
 function focus() {
   focused.value = true;
 }
@@ -51,6 +58,7 @@ defineExpose({ focus, focused });
 <template>
   <div :class="cn('relative flex w-full items-center', props.class)">
     <Search
+      aria-hidden="true"
       :class="[
         'pointer-events-none absolute text-fg-tertiary',
         size === 'sm' ? 'left-2 size-3' : 'left-2.5 size-3.5',
@@ -79,14 +87,16 @@ defineExpose({ focus, focused });
     <button
       v-if="model"
       type="button"
-      tabindex="-1"
+      :disabled="disabled"
+      :aria-label="t('common.clearSearch')"
+      :title="t('common.clearSearch')"
       :class="[
-        'absolute flex items-center justify-center text-fg-tertiary transition-colors duration-100 hover:text-fg-primary',
-        size === 'sm' ? 'right-2 size-3' : 'right-2.5 size-4',
+        'absolute flex items-center justify-center rounded-sm text-fg-tertiary transition-colors duration-100 hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:pointer-events-none disabled:opacity-50',
+        size === 'sm' ? 'right-0.5 size-6' : 'right-1 size-7',
       ]"
-      @click="model = ''"
+      @click="clear"
     >
-      <X :class="size === 'sm' ? 'size-2.5' : 'size-3'" :stroke-width="1.6" />
+      <X aria-hidden="true" :class="size === 'sm' ? 'size-2.5' : 'size-3'" :stroke-width="1.6" />
     </button>
   </div>
 </template>

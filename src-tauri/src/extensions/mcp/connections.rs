@@ -20,24 +20,39 @@ pub(in crate::extensions) async fn require_revision_on(
     Ok(())
 }
 
+fn decode_connection(
+    document: &str,
+    definition: Option<&str>,
+    owner: Option<&str>,
+) -> Result<McpConnection, String> {
+    let mut connection: McpConnection = database::decode(document)?;
+    let connector: super::super::contracts::ConnectorDefinition =
+        database::decode(definition.ok_or("mcp-connector-missing")?)?;
+    if connector.plugin_id.is_some() {
+        let owner = owner.ok_or("mcp-plugin-missing")?;
+        let plugin: super::super::contracts::PluginInstallation = database::decode(owner)?;
+        connection.enabled = plugin.enabled;
+    }
+    Ok(connection)
+}
+
 pub(crate) async fn list(pool: &SqlitePool) -> Result<Vec<McpConnection>, String> {
-    sqlx::query_scalar::<_, String>("SELECT document FROM connections ORDER BY id")
-        .fetch_all(pool)
-        .await
-        .map_err(|error| error.to_string())?
-        .iter()
-        .map(|document| database::decode(document))
-        .collect()
+    sqlx::query_as::<_, (String, Option<String>, Option<String>)>(
+        "SELECT connections.document, connectors.document, plugins.document FROM connections
+         LEFT JOIN connectors ON connectors.id=json_extract(connections.document,'$.connectorId')
+         LEFT JOIN plugins ON plugins.id=json_extract(connectors.document,'$.pluginId') ORDER BY connections.id",
+    ).fetch_all(pool).await.map_err(|error| error.to_string())?.iter()
+        .map(|(document, definition, owner)| decode_connection(document, definition.as_deref(), owner.as_deref())).collect()
 }
 
 pub(crate) async fn load(pool: &SqlitePool, connection_id: &str) -> Result<McpConnection, String> {
-    let document: String = sqlx::query_scalar("SELECT document FROM connections WHERE id=$1")
-        .bind(connection_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(|error| error.to_string())?
+    let (document, definition, owner): (String, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT connections.document, connectors.document, plugins.document FROM connections
+         LEFT JOIN connectors ON connectors.id=json_extract(connections.document,'$.connectorId')
+         LEFT JOIN plugins ON plugins.id=json_extract(connectors.document,'$.pluginId') WHERE connections.id=$1",
+    ).bind(connection_id).fetch_optional(pool).await.map_err(|error| error.to_string())?
         .ok_or("mcp-connection-not-found")?;
-    database::decode(&document)
+    decode_connection(&document, definition.as_deref(), owner.as_deref())
 }
 
 pub(crate) async fn require_current(app: &AppHandle, frozen: &McpConnection) -> Result<(), String> {

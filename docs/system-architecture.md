@@ -225,7 +225,8 @@ and reviewed authorization metadata. Secrets remain outside that database. A tas
 connection, schema, account, authorization, and selected tool/resource/prompt revisions; every
 invocation rechecks revocation.
 
-Plugin installation validates metadata and code before publishing one active revision. Stdio
+Plugin installation validates metadata, package containment and declared components before publishing
+one active revision. Stdio
 declarations do not start or discover processes during installation. Users choose executables through
 the native dialog, and local-network HTTP requires explicit consent. Updating an endpoint,
 authorization requirement, or account binding disables affected execution until the user reviews the
@@ -242,11 +243,37 @@ Actions finish. Shutdown failure remains visible and retains those resources. Ap
 pending reads and authorization flows, revokes sessions, terminates owned process trees, and clears
 ephemeral credential caches.
 
-The extension settings projections distinguish packages (Plugins), reusable instructions
-(Skills), service definitions and identities (Apps), and protocol instances (MCP).
+The extension settings distinguish complete packages (Plugins), independent personal instructions
+(Skills), and MCP services with their protocol connections and accounts (MCP). `ConnectorDefinition`
+is an internal reusable service definition, not a separate application capability or registry.
+Packaged Skills are inspected within their owning plugin and have no independent enablement command.
+Skill and packaged connection reads project their owning plugin's current enablement; personal Skills
+and standalone MCP connections retain independent enablement. A plugin owns exactly one connection
+binding per declared service; users configure its endpoint, account and tool authorization, but cannot
+create, delete or toggle individual packaged connections. Copying a packaged Skill creates personal
+ownership; plugin updates retain component identity, not child toggle intent.
+
+Conversation selection carries `pluginIds`, personal `skillIds`, and standalone `connections`.
+Rust rejects direct packaged-component selections and expands each selected plugin atomically to all
+its Skills and declared service bindings. Unsupported or missing components, ambiguous bindings,
+unavailable accounts, missing grants for required tools and changed schemas reject the whole package instead
+of admitting a partial capability. Packaged MCP catalogs supply tools, listed resources and prompts
+as a unit; only explicitly granted tools are exposed and each call retains its authorization policy.
+Every declared Skill tool binding must resolve or the entire snapshot is rejected; bindings include
+MCP tools, resource reads and prompt retrieval. Complete packages expose their catalog's resource
+templates through the same confirmed resource-read tool. The frozen schema restricts template identity,
+variable names and string/list/map/null values; `iri-string` performs RFC 6570 expansion after argument
+validation and before dispatch. Personal MCP selection instead freezes user-supplied template values
+as concrete URIs. Neither path permits arbitrary resource URIs. Snapshots retain package revisions as well as
+component, account and catalog revisions, so disabling, updating or uninstalling a package revokes
+its tasks even when it contains no Skills. Obsolete pre-release conversation selections/snapshots
+without package identity are rejected by the strict contracts; there is no compatibility reader.
+
 `create_mcp_server` validates a custom service and creates its definition and first disabled
-connection in one SQLite transaction. Adding another connection uses the existing reusable
-service definition; creating a service definition alone remains a separate operation.
+connection in one SQLite transaction. Additional standalone connections reuse a configured service.
+Service configuration and accounts are reached through MCP inspection or the owning plugin. Long
+configuration forms live in the settings pane and participate in the existing settings leave
+coordinator; they do not open nested modal dialogs.
 Connection configuration saves name and tool permission drafts together against the admitted
 revision. A concurrent revision change retains the draft and requires explicit discard and
 reload; it never silently overwrites unsaved permissions.
@@ -257,13 +284,50 @@ existing draft/export/render Space Actions. Skills are progressively loaded by t
 DeepAgents skill middleware. They grant no additional authority and are not published
 Workflow definitions. Updates pass through the same package inspection and revision path
 as installed content while retaining the bundled installation identity.
+These instructions distinguish business Action IDs from advertised tool names and respect the
+executor's capabilities. External Agents generate new deliverables with their own runtime and
+submit files through the existing task-output publication path; they do not call built-in inference
+Actions or assume the built-in memory mount or research subagent exists in an external session.
 
 Runtime skill files retain their `/skills/` paths and are uploaded through the SDK's
 `CompositeBackend`, which routes them into the skills store. Skill discovery and `read_file`
 use that same mounted backend; direct writes to the child store would bypass its path routing.
 
-Service-editor drafts include the raw public header/environment input, so malformed or partial
-JSON remains a protected draft until explicitly saved or discarded. Account-name and secret-field
+External Agents receive the same frozen package selection through the private Space MCP server,
+supplied by the standard [ACP session MCP binding](https://agentclientprotocol.com/protocol/v1/session-setup).
+`list_selected_skills` exposes selected Skill metadata and the admitted alias-to-tool bindings;
+`read_selected_skill` reads only exact frozen files. The desktop prompt and MCP instructions guide
+progressive discovery and binding resolution. External services' tools, resources and prompts remain
+behind Knovum authorization, revision checks and task receipts; provider credentials are not forwarded.
+No global CLI Skill directories or provider plugin settings are modified. HTTP MCP is an optional ACP
+capability: initialization must advertise it before session creation, otherwise execution fails visibly.
+This integration supplies Skill workflows through MCP; it does not claim native plugin installation,
+arbitrary Skill script execution or universal support across external Agent versions.
+
+The portable package loader targets [Agent Plugins 1.0.0](https://agent-plugins.org/specification)
+with locally pinned schemas, and Skills use the [Agent Skills format](https://agentskills.io/specification),
+including Unicode lowercase names, directory identity and metadata character limits. Unknown vendor
+metadata is diagnosed and ignored; it is not a required workflow component. Knovum's execution policy
+admits a selected package's implemented Skills and declared service dependencies together, while
+inspection can still report valid and invalid components separately. This does not claim support for
+Codex's separate `.codex-plugin` package layout or another client's lifecycle hooks.
+
+External MCP uses the [official Rust SDK](https://github.com/modelcontextprotocol/rust-sdk), pinned in
+Cargo, for protocol versions, capabilities, STDIO and Streamable HTTP. Knovum adds authorization,
+frozen schemas, deadline/cancellation handling, bounded results and receipt settlement. The live
+catalog is frozen when a turn is prepared; settings readiness is not a promise that a provider remains
+reachable or that a future schema is unchanged. Legacy HTTP+SSE, MCP Apps UI hosting and arbitrary Skill
+script execution are not advertised. `allowed-tools` metadata cannot grant host permissions; executable
+dependencies still need implemented capabilities and explicit authorization. Built-in Skills orchestrate
+existing Space Actions rather than installing new engines. Local SDK/protocol integration checks do
+not establish live-provider OAuth interoperability or the quality of a model's completed deliverable.
+
+Service-editor drafts include structured public header/environment pairs, so incomplete names and
+duplicate fields remain a protected draft until explicitly saved or discarded. Serialization rejects
+duplicate names rather than overwriting them; HTTP header names are case-insensitive. STDIO arguments
+are ordered literal strings, including empty arguments and spaces. User transport changes reset endpoint
+configuration and authorization requirements together. Service names are required; descriptions are optional.
+Account-name and secret-field
 drafts also participate in the settings leave coordinator. Authorization in progress must complete
 or be cancelled before the owning view leaves; secrets are cleared before IPC and on disposal.
 

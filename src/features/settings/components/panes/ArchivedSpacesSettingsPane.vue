@@ -8,9 +8,11 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { ArchivedSpace } from "../../../../shared/contracts/archive-settings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSettingsEmptyState from "../../../../shared/ui/UiSettingsEmptyState.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useArchiveSettings } from "../../use-archive-settings";
+import ArchivedSpacesSettingsAction from "./ArchivedSpacesSettingsAction.vue";
 
 const archive = useArchiveSettings();
 const { t } = useI18n();
@@ -77,7 +79,8 @@ function finishSpaceOperation(spaceId: string) {
 </script>
 
 <template>
-  <UiSettingsSection :title="t('settings.general.archived.title')">
+  <UiSettingsSection>
+    <ArchivedSpacesSettingsAction />
     <div
       v-if="initializing"
       class="flex items-center gap-2 px-4 py-6 text-caption text-fg-secondary"
@@ -120,10 +123,11 @@ function finishSpaceOperation(spaceId: string) {
           <Trash2 class="size-3" />{{ t("settings.general.archived.delete.label") }}
         </UiButton>
       </article>
-      <div v-if="archive.spaces.value.length === 0" class="px-6 py-12 text-center">
-        <Archive class="mx-auto size-4 text-fg-tertiary" :stroke-width="1.5" />
-        <p class="mt-3 text-label text-fg-secondary">{{ t("settings.general.archived.empty") }}</p>
-      </div>
+      <UiSettingsEmptyState
+        v-if="archive.spaces.value.length === 0"
+        :icon="Archive"
+        :message="t('settings.general.archived.empty')"
+      />
     </template>
   </UiSettingsSection>
 </template>

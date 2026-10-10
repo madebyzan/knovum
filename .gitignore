@@ -46,3 +46,7 @@ design-assets
 src-tauri/resources/python-worker/
 src-tauri/resources/bundled-runtime/*/
 src-tauri/resources/python-*-descriptor.json
+
+# Personal local packaging helper and its cached publication/lock
+/package-local.sh
+/.package-local/

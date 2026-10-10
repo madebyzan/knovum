@@ -5,7 +5,7 @@ import type { ResourcePreparationSnapshot } from "../../shared/contracts/generat
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import type { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations } from "./local-resources";
-import { resourcePreparationTask, updateTaskProgress } from "./resource-progress";
+import { buildResourcePreparationTask, updateTaskProgress } from "./resource-progress";
 
 const OBSERVATION_RETRIES = 3;
 const OBSERVATION_INTERVAL_MS = 1_000;
@@ -21,7 +21,7 @@ export function restoreRunningPreparation(
     tasks.resumeObservation(snapshot.jobId);
     void observeRunning(tasks, snapshot.jobId);
   };
-  const restored = tasks.restoreRunning(resourcePreparationTask(snapshot), cancel);
+  const restored = tasks.restoreRunning(buildResourcePreparationTask(snapshot), cancel);
   if (restored) void observeRunning(tasks, snapshot.jobId);
 }
 

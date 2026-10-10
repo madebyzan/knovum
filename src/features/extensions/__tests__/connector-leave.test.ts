@@ -8,7 +8,7 @@ import {
   type SettingsLeaveParticipant,
 } from "../../../shared/contracts/settings-leave";
 import { resolveConfirmation } from "../../../shared/ui/confirm-action";
-import ConnectorInstances from "../connectors/ConnectorInstances.vue";
+import ConnectorConnections from "../connectors/ConnectorConnections.vue";
 import { connectorFixture, mcpConnectionFixture } from "./support/connector-fixtures";
 
 const connection = mcpConnectionFixture("work", "Work");
@@ -16,7 +16,7 @@ const connection = mcpConnectionFixture("work", "Work");
 it("keeps parent and nested connector drafts when the nested discard is cancelled", async () => {
   let outerParticipant!: SettingsLeaveParticipant;
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const wrapper = mount(ConnectorInstances, {
+  const wrapper = mount(ConnectorConnections, {
     props: { connector: connectorFixture, connections: [connection], busy: false },
     global: {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
@@ -37,8 +37,8 @@ it("keeps parent and nested connector drafts when the nested discard is cancelle
     wrapper.unmount();
     queryClient.clear();
   });
-  await wrapper.get('[data-testid="add-connection-instance"]').trigger("click");
-  await wrapper.get('[data-testid="connection-instance-name"]').setValue("Research");
+  await wrapper.get('[data-testid="add-mcp-connection"]').trigger("click");
+  await wrapper.get('[data-testid="mcp-connection-name"]').setValue("Research");
   await wrapper.get('[data-testid="mcp-connection-work"] button[aria-expanded="false"]').trigger("click");
   await flushPromises();
   const connectionName = wrapper.findAll("form").at(-1)!.get("input");
@@ -50,6 +50,6 @@ it("keeps parent and nested connector drafts when the nested discard is cancelle
   resolveConfirmation(false);
 
   await expect(leaving).resolves.toBe(false);
-  expect(wrapper.get('[data-testid="connection-instance-name"]').element).toHaveProperty("value", "Research");
+  expect(wrapper.get('[data-testid="mcp-connection-name"]').element).toHaveProperty("value", "Research");
   expect(connectionName.element).toHaveProperty("value", "Renamed Work");
 });

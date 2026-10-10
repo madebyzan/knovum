@@ -34,6 +34,7 @@ const catalog = {
 };
 const global = {
   stubs: {
+    UiSettingsHeaderActions: { template: "<div><slot /></div>" },
     UiSettingsSection: { template: '<section data-testid="agent-settings"><slot /></section>' },
     SettingsLoadFailure: { template: '<div data-testid="settings-failure" />' },
   },

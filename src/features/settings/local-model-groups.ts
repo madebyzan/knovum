@@ -1,15 +1,15 @@
 import type { LocalModelAvailability } from "../../shared/contracts/generated/LocalModelAvailability";
 import type { LocalModelGroup } from "../../shared/contracts/generated/LocalModelGroup";
 
-const groupOrder: readonly LocalModelGroup[] = ["knowledge", "audio", "images"];
+const GROUP_ORDER: readonly LocalModelGroup[] = ["knowledge", "audio", "images"];
 
-export function localModelGroups(models: readonly LocalModelAvailability[]) {
-  return groupOrder.flatMap((id) => {
-    const entries = models.filter((model) => model.group === id);
-    if (!entries.length) return [];
-    const capabilities = [...new Set(entries.map((model) => model.capability))].map((capability) => ({
+export function buildLocalModelGroups(models: readonly LocalModelAvailability[]) {
+  return GROUP_ORDER.flatMap((id) => {
+    const groupModels = models.filter((model) => model.group === id);
+    if (!groupModels.length) return [];
+    const capabilities = [...new Set(groupModels.map((model) => model.capability))].map((capability) => ({
       id: capability,
-      models: entries.filter((model) => model.capability === capability),
+      models: groupModels.filter((model) => model.capability === capability),
     }));
     return [{ id, capabilities }];
   });

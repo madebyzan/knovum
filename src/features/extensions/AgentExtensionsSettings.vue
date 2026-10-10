@@ -21,7 +21,6 @@ import { isApplicationLeaveCancelled } from "../../shared/contracts/application-
 import { useSettingsLeaveContext } from "../../shared/contracts/settings-leave";
 import UiSearchInput from "../../shared/ui/UiSearchInput.vue";
 import McpSettings from "./connections/McpSettings.vue";
-import ConnectorSettings from "./connectors/ConnectorSettings.vue";
 import { EXTENSION_TABS, isExtensionTab, type ExtensionDestination } from "./extension-destination";
 import PluginSettings from "./plugins/PluginSettings.vue";
 import SkillSettings from "./skills/SkillSettings.vue";
@@ -34,26 +33,46 @@ const activeTab = computed(() =>
 const selectedId = computed(() =>
   typeof route.query.extensionId === "string" ? route.query.extensionId : undefined,
 );
+const connectorId = computed(() =>
+  typeof route.query.connectorId === "string" ? route.query.connectorId : undefined,
+);
+const action = computed(() => (route.query.extensionAction === "create" ? ("create" as const) : undefined));
+const inspecting = computed(() => Boolean(selectedId.value || connectorId.value || action.value));
 const search = shallowRef("");
 const error = shallowRef("");
 const plugins = useQuery(pluginQuery);
 const skills = useQuery(skillQuery);
-const applications = useQuery(connectorQuery);
 const connections = useQuery(connectionQuery);
+const connectors = useQuery(connectorQuery);
 const counts = computed(() => ({
   plugins: plugins.data.value?.length,
-  skills: skills.data.value?.length,
-  applications: applications.data.value?.length,
-  mcp: connections.data.value?.length,
+  skills: skills.data.value?.filter((skill) => !skill.pluginId).length,
+  mcp: connections.data.value?.filter((connection) =>
+    connectors.data.value?.some(
+      (connector) => connector.id === connection.connectorId && !connector.pluginId,
+    ),
+  ).length,
 }));
 const leaveCoordinator = useSettingsLeaveContext();
 
+function isCurrentDestination(destination: ExtensionDestination) {
+  return (
+    destination.tab === activeTab.value &&
+    destination.id === selectedId.value &&
+    destination.connectorId === connectorId.value &&
+    destination.action === action.value
+  );
+}
 async function navigate(destination: ExtensionDestination) {
-  if (destination.tab === activeTab.value && destination.id === selectedId.value) return;
+  if (isCurrentDestination(destination)) return;
   try {
     const query: LocationQueryRaw = { ...route.query, extensionTab: destination.tab };
     delete query.extensionId;
     delete query.setting;
+    delete query.connectorId;
+    delete query.extensionAction;
+    if (destination.connectorId) query.connectorId = destination.connectorId;
+    if (destination.action) query.extensionAction = destination.action;
     if (destination.id) query.extensionId = destination.id;
     const navigation = await router.push({ path: route.path, query });
     if (isNavigationFailure(navigation)) return;
@@ -65,7 +84,12 @@ async function navigate(destination: ExtensionDestination) {
 }
 onBeforeRouteUpdate(async (to, from) => {
   if (to.query.pane !== from.query.pane) return true;
-  if (to.query.extensionTab === from.query.extensionTab && to.query.extensionId === from.query.extensionId)
+  if (
+    to.query.extensionTab === from.query.extensionTab &&
+    to.query.extensionId === from.query.extensionId &&
+    to.query.connectorId === from.query.connectorId &&
+    to.query.extensionAction === from.query.extensionAction
+  )
     return true;
   try {
     await leaveCoordinator.requestLeave();
@@ -82,12 +106,12 @@ function selectTab(value: string | number) {
 
 <template>
   <section data-testid="agent-extensions-settings" class="min-w-0 space-y-5">
-    <p v-if="!selectedId" class="max-w-xl text-body text-fg-secondary">
+    <p v-if="!inspecting" class="max-w-xl text-body text-fg-secondary">
       {{ $t("extensions.overview.description") }}
     </p>
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
     <TabsRoot :model-value="activeTab" @update:model-value="selectTab">
-      <div v-if="!selectedId" class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div v-if="!inspecting" class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <TabsList
           class="inline-flex max-w-full flex-wrap gap-1"
           :aria-label="$t('extensions.overview.title')"
@@ -123,13 +147,13 @@ function selectTab(value: string | number) {
         class="outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
         ><SkillSettings :search="search" :selected-id="selectedId" @navigate="navigate"
       /></TabsContent>
-      <TabsContent
-        value="applications"
-        class="outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        ><ConnectorSettings :search="search" :selected-id="selectedId" @navigate="navigate"
-      /></TabsContent>
       <TabsContent value="mcp" class="outline-none"
-        ><McpSettings :search="search" :selected-id="selectedId" @navigate="navigate"
+        ><McpSettings
+          :search="search"
+          :selected-id="selectedId"
+          :connector-id="connectorId"
+          :action="action"
+          @navigate="navigate"
       /></TabsContent>
     </TabsRoot>
   </section>

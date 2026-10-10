@@ -75,7 +75,7 @@ export function usePluginManagement() {
   function mutate(operation: () => Promise<ExtensionChange<unknown> | void>) {
     void changes.mutateAsync(operation).catch(() => {});
   }
-  async function remove(plugin: PluginInstallation) {
+  async function uninstall(plugin: PluginInstallation) {
     if (
       await confirmAction({
         title: t("extensions.plugins.uninstall.title", { name: plugin.revision.manifest.name }),
@@ -88,5 +88,5 @@ export function usePluginManagement() {
   }
   const busy = computed(() => changes.isPending.value || inspecting.isPending.value);
 
-  return { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, remove };
+  return { query, changes, inspecting, preview, busy, inspect, inspectRelease, commit, mutate, uninstall };
 }

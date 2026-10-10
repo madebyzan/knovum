@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../foundation/errors/error-format";
-import { resourceProgressMessage } from "../../foundation/runtime/resource-progress";
+import { formatResourceProgressMessage } from "../../foundation/runtime/resource-progress";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiDialog from "../../shared/ui/UiDialog.vue";
 import { useDictationSession } from "./use-dictation-session";
@@ -47,7 +47,7 @@ const status = computed(() => {
   );
 });
 const resourceProgress = computed(() =>
-  session.state.value.resources ? resourceProgressMessage(session.state.value.resources) : "",
+  session.state.value.resources ? formatResourceProgressMessage(session.state.value.resources) : "",
 );
 const transcriptDescription = computed(() => {
   const value = session.state.value;

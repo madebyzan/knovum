@@ -1,26 +1,21 @@
 {
   "process": {
     "executable": "Installed service executable (absolute path)",
-    "arguments": "Arguments (one per line; no shell syntax)",
-    "workingDirectory": "Working directory",
+    "arguments": "Arguments",
+    "workingDirectory": "Working directory (optional)",
     "authorizationHint": "Enabling this connection allows the application to launch the selected MCP service. Installing a plugin never installs programs or runs package scripts.",
     "declaredCommand": "Program requested by plugin",
     "configurationRequired": "Choose an installed program before using this connector.",
     "chooseExecutable": "Choose installed program",
-    "chooseDirectory": "Choose working directory"
+    "chooseDirectory": "Choose working directory",
+    "argumentsHint": "Each field is one literal argument, including spaces. No shell parsing is performed.",
+    "addArgument": "Add argument",
+    "argumentAt": "Argument {index}",
+    "removeArgument": "Remove argument {index}"
   },
   "changes": "Changing the endpoint or authorization identity requires reconnecting the account and reviewing tool permissions.",
   "name": "Service name",
-  "descriptionField": "What this service provides",
-  "description": "Apps describe external services and their accounts. Each MCP connection has its own account and tool permissions; an app can have multiple connections.",
-  "add": "Add application service",
-  "empty": {
-    "title": "No application services",
-    "description": "Install a plugin with external services, or add your own service definition."
-  },
-  "plugin": "Provided by plugin",
-  "custom": "Custom service",
-  "search": "Search connectors…",
+  "descriptionField": "Description (optional)",
   "discard": {
     "title": "Discard connector changes?",
     "description": "Unsaved changes to this connector will be lost."
@@ -28,6 +23,5 @@
   "delete": {
     "title": "Delete {name}?",
     "description": "This also deletes all connections to the service and its local account credentials."
-  },
-  "availableCount": "{count} available connections"
+  }
 }

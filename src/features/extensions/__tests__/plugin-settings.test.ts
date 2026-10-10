@@ -75,6 +75,7 @@ beforeEach(async () => {
       plugins: [i18n, [VueQueryPlugin, { queryClient }]],
       mocks: { $t: (key: string) => key },
       stubs: {
+        UiSettingsHeaderActions: { template: "<div><slot /></div>" },
         UiDialog: { props: ["open"], template: '<div v-if="open"><slot /></div>' },
         PluginDiscovery: {
           template:

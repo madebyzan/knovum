@@ -8,18 +8,16 @@ import LocalModelsSettings from "./components/LocalModelsSettings.vue";
 import AboutSettingsPane from "./components/panes/AboutSettingsPane.vue";
 import AiModelsSettingsPane from "./components/panes/AiModelsSettingsPane.vue";
 import AppearanceSettingsPane from "./components/panes/AppearanceSettingsPane.vue";
-import ArchivedSpacesSettingsAction from "./components/panes/ArchivedSpacesSettingsAction.vue";
 import ArchivedSpacesSettingsPane from "./components/panes/ArchivedSpacesSettingsPane.vue";
 import BackupSettingsPane from "./components/panes/BackupSettingsPane.vue";
 import CreationSettingsPane from "./components/panes/CreationSettingsPane.vue";
-import DesktopAgentsSettingsAction from "./components/panes/DesktopAgentsSettingsAction.vue";
 import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
 import NotificationsSettingsPane from "./components/panes/NotificationsSettingsPane.vue";
 import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
 import type { GenerationActionOption } from "./generation-action-option";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
-import { settingsDefinition } from "./settings-registry";
+import { getSettingsDefinition } from "./settings-registry";
 import { useSettingsLeaveCoordinator } from "./use-settings-leave-coordinator";
 
 const props = defineProps<{
@@ -78,14 +76,7 @@ const componentByPaneId = {
 } satisfies Record<SettingsPaneId, Component>;
 
 const paneComponent = computed(() => componentByPaneId[activePane.value]);
-const paneHeaderAction = computed(() =>
-  activePane.value === "archivedSpaces"
-    ? ArchivedSpacesSettingsAction
-    : activePane.value === "desktopAgents"
-      ? DesktopAgentsSettingsAction
-      : undefined,
-);
-const paneTitle = computed(() => t(settingsDefinition(activePane.value).titleKey));
+const paneTitle = computed(() => t(getSettingsDefinition(activePane.value).titleKey));
 const activeSetting = computed(() => {
   const value = Array.isArray(route.query.setting) ? route.query.setting[0] : route.query.setting;
   return typeof value === "string" ? value : undefined;
@@ -97,6 +88,8 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
   if (pane !== "extensions") {
     delete query.extensionTab;
     delete query.extensionId;
+    delete query.connectorId;
+    delete query.extensionAction;
   }
   if (setting) query.setting = setting;
   else delete query.setting;
@@ -118,12 +111,12 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
         <UiScrollArea class="size-full select-text">
           <div class="mx-auto max-w-208 px-10 pt-10 pb-20">
             <header
-              class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
+              class="mb-5 flex min-h-(--knovum-control-height-sm) flex-wrap items-center justify-between gap-x-4 gap-y-2 px-0.5"
             >
               <h1 class="m-0 text-title font-semibold tracking-title text-fg-primary">
                 {{ paneTitle }}
               </h1>
-              <component :is="paneHeaderAction" v-if="paneHeaderAction" />
+              <div id="settings-header-actions" class="ml-auto" />
             </header>
             <Transition
               mode="out-in"

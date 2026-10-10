@@ -5,12 +5,11 @@ import { useRouter } from "vue-router";
 
 import type { AgentExtensionAvailability } from "../../../../shared/contracts/generated/AgentExtensionAvailability";
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
-import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import ConversationConnectionSelection from "./ConversationConnectionSelection.vue";
+import ConversationMcpSelection from "./ConversationMcpSelection.vue";
 const selection = defineModel<AgentExtensionSelection>({ required: true });
 const props = defineProps<{
   availability?: AgentExtensionAvailability | undefined;
@@ -18,50 +17,46 @@ const props = defineProps<{
   error?: string | undefined;
 }>();
 const router = useRouter();
-const count = computed(() => selection.value.skillIds.length + selection.value.connections.length);
-const selectedConnections = computed(() =>
-  props.availability?.connections.filter((connection) => isConnectionSelected(connection.id)),
+const count = computed(
+  () =>
+    selection.value.pluginIds.length + selection.value.skillIds.length + selection.value.connections.length,
 );
-function isConnectionSelected(connectionId: string) {
-  return selection.value.connections.some((connection) => connection.connectionId === connectionId);
-}
 const unavailable = computed(
   () =>
     props.availability &&
-    (selection.value.skillIds.some((id) => !props.availability?.skills.some((skill) => skill.id === id)) ||
+    (selection.value.pluginIds.some(
+      (id) => !props.availability?.plugins.some((plugin) => plugin.id === id),
+    ) ||
+      selection.value.skillIds.some((id) => !props.availability?.skills.some((skill) => skill.id === id)) ||
       selection.value.connections.some(
         (selected) =>
           !props.availability?.connections.some((connection) => connection.id === selected.connectionId),
       )),
 );
-function toggleConnection(connection: McpConnection) {
-  const id = connection.id;
-  const selected = isConnectionSelected(id);
+function toggleExtension(kind: "pluginIds" | "skillIds", extensionId: string) {
+  const previous = selection.value[kind];
   selection.value = {
     ...selection.value,
-    connections: selected
-      ? selection.value.connections.filter((candidate) => candidate.connectionId !== id)
-      : [
-          ...selection.value.connections,
-          {
-            connectionId: id,
-            toolNames: connection.tools.filter((tool) => tool.policy !== "deny").map((tool) => tool.name),
-            resourceUris: [],
-            resourceTemplates: [],
-            promptNames: [],
-          },
-        ],
+    [kind]: previous.includes(extensionId)
+      ? previous.filter((value) => value !== extensionId)
+      : [...previous, extensionId],
   };
 }
-function toggleSkill(skillId: string) {
-  const previous = selection.value.skillIds;
-  selection.value = {
-    ...selection.value,
-    skillIds: previous.includes(skillId)
-      ? previous.filter((value) => value !== skillId)
-      : [...previous, skillId],
-  };
-}
+const extensionGroups = computed(() =>
+  [
+    {
+      kind: "pluginIds" as const,
+      label: "plugins",
+      items:
+        props.availability?.plugins.map((plugin) => ({
+          id: plugin.id,
+          name: plugin.revision.manifest.name,
+          description: plugin.revision.manifest.description,
+        })) ?? [],
+    },
+    { kind: "skillIds" as const, label: "skills", items: props.availability?.skills ?? [] },
+  ].filter((group) => group.items.length),
+);
 </script>
 
 <template>
@@ -93,60 +88,53 @@ function toggleSkill(skillId: string) {
             variant="ghost"
             :disabled="disabled"
             data-testid="clear-conversation-extensions"
-            @click="selection = { skillIds: [], connections: [] }"
+            @click="selection = { pluginIds: [], skillIds: [], connections: [] }"
             >{{ $t("spaces.conversation.extensions.clearSelection") }}</UiButton
           >
         </p>
-        <section v-if="availability?.skills.length" class="space-y-1">
+
+        <section v-for="group in extensionGroups" :key="group.kind" class="space-y-1">
           <h3 class="pb-1 text-caption font-medium text-fg-tertiary">
-            {{ $t("extensions.overview.skills") }}
+            {{ $t(`extensions.overview.${group.label}`) }}
           </h3>
           <label
-            v-for="skill in availability.skills"
-            :key="skill.id"
+            v-for="extension in group.items"
+            :key="extension.id"
             class="flex cursor-default items-start gap-2.5 rounded-md p-2 hover:bg-surface-control-hover"
           >
             <UiCheckbox
               class="mt-0.5"
-              :model-value="selection.skillIds.includes(skill.id)"
-              :label="skill.name"
-              @update:model-value="toggleSkill(skill.id)"
+              :disabled="disabled"
+              :model-value="selection[group.kind].includes(extension.id)"
+              :label="extension.name"
+              :data-testid="`conversation-${group.label}-${extension.id}`"
+              @update:model-value="toggleExtension(group.kind, extension.id)"
             />
             <span class="min-w-0 flex-1">
-              <span class="block text-label font-medium break-words text-fg-primary">{{ skill.name }}</span>
+              <span class="block text-label font-medium break-words text-fg-primary">{{
+                extension.name
+              }}</span>
               <span
                 class="mt-0.5 line-clamp-2 text-caption break-words text-fg-secondary"
-                :title="skill.description"
-                >{{ skill.description }}</span
+                :title="extension.description ?? undefined"
+                >{{ extension.description }}</span
               >
             </span>
           </label>
         </section>
-        <section v-if="availability?.connections.length" class="space-y-1">
-          <h3 class="pb-1 text-caption font-medium text-fg-tertiary">
-            {{ $t("extensions.overview.mcp") }}
-          </h3>
-          <label
-            v-for="connection in availability.connections"
-            :key="connection.id"
-            class="flex cursor-default items-center gap-2.5 rounded-md p-2 text-label text-fg-primary hover:bg-surface-control-hover"
-          >
-            <UiCheckbox
-              :model-value="isConnectionSelected(connection.id)"
-              :label="connection.name"
-              @update:model-value="toggleConnection(connection)"
-            />
-            <span class="min-w-0 flex-1 truncate">{{ connection.name }}</span>
-          </label>
-          <ConversationConnectionSelection
-            v-for="connection in selectedConnections"
-            :key="connection.id"
-            v-model="selection"
-            :connection="connection"
-          />
-        </section>
+        <ConversationMcpSelection
+          v-if="availability"
+          v-model="selection"
+          :connections="availability.connections"
+          :disabled="disabled"
+        />
         <p
-          v-if="availability && !availability.skills.length && !availability.connections.length"
+          v-if="
+            availability &&
+            !availability.plugins.length &&
+            !availability.skills.length &&
+            !availability.connections.length
+          "
           class="py-2 text-caption text-fg-secondary"
         >
           {{ $t("spaces.conversation.extensions.empty") }}

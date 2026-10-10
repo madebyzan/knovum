@@ -6,17 +6,15 @@ import { computed } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { skillContentQuery } from "../../../foundation/extensions/extension-query";
 import type { SkillRevision } from "../../../shared/contracts/generated/SkillRevision";
-import UiButton from "../../../shared/ui/UiButton.vue";
 import UiMarkdown from "../../../shared/ui/UiMarkdown.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import ExtensionAvailability from "../components/ExtensionAvailability.vue";
 import ExtensionInspectionHeader from "../components/ExtensionInspectionHeader.vue";
-import type { ExtensionDestination } from "../extension-destination";
 import SkillActions from "./SkillActions.vue";
 import SkillResourceBrowser from "./SkillResourceBrowser.vue";
 const props = defineProps<{ skill: SkillRevision; busy: boolean }>();
 defineEmits<{
-  navigate: [destination: ExtensionDestination];
+  back: [];
   edit: [];
   toggle: [];
   copy: [];
@@ -34,7 +32,7 @@ const instructions = computed(
       :name="skill.name"
       :description="skill.description"
       :icon="Box"
-      @back="$emit('navigate', { tab: 'skills' })"
+      @back="$emit('back')"
     >
       <template #status
         ><ExtensionAvailability
@@ -54,13 +52,6 @@ const instructions = computed(
         @delete="$emit('delete')"
       />
     </ExtensionInspectionHeader>
-    <UiButton
-      v-if="skill.pluginId"
-      size="sm"
-      variant="ghost"
-      @click="$emit('navigate', { tab: 'plugins', id: skill.pluginId })"
-      >{{ $t("extensions.overview.sourcePlugin") }}</UiButton
-    >
     <p v-if="skill.pluginId" class="text-caption text-fg-secondary">{{ $t("extensions.skills.readOnly") }}</p>
     <p v-if="skill.unsupportedRequirements.length" class="text-caption text-fg-warning">
       {{

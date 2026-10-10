@@ -8,27 +8,25 @@ import { useI18n } from "vue-i18n";
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import type { SettingsPaneId } from "../settings-pane";
-import { settingsGroupTitleKeys, settingsRegistry } from "../settings-registry";
+import { SETTINGS_GROUP_TITLE_KEYS, SETTINGS_REGISTRY } from "../settings-registry";
 
 const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string | undefined }>();
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
 const { t } = useI18n();
 const query = shallowRef("");
 const groups = computed(() =>
-  Object.entries(settingsGroupTitleKeys).map(([group, titleKey]) => ({
+  Object.entries(SETTINGS_GROUP_TITLE_KEYS).map(([group, titleKey]) => ({
     id: group,
     label: t(titleKey),
-    settings: settingsRegistry
-      .filter((definition) => definition.group === group)
-      .map((definition) => ({
-        id: definition.id,
-        icon: definition.icon,
-        locations: definition.locations,
-        label: t(definition.titleKey),
-        description: t(definition.descriptionKey),
-        location: undefined as string | undefined,
-        searchText: [definition.titleKey, ...definition.searchKeys].map((key) => t(key)).join(" "),
-      })),
+    settings: SETTINGS_REGISTRY.filter((definition) => definition.group === group).map((definition) => ({
+      id: definition.id,
+      icon: definition.icon,
+      locations: definition.locations,
+      label: t(definition.titleKey),
+      description: t(definition.descriptionKey),
+      location: undefined as string | undefined,
+      searchText: [definition.titleKey, ...definition.searchKeys].map((key) => t(key)).join(" "),
+    })),
   })),
 );
 

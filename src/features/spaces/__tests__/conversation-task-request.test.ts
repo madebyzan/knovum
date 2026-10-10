@@ -9,6 +9,7 @@ describe("Agent conversation submission", () => {
     { type: "agent", runtimeKind: "codex" },
   ])("submits the task and frozen extension selection for $type", (target) => {
     const extensions = {
+      pluginIds: [],
       skillIds: ["skill"],
       connections: [
         {

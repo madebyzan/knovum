@@ -25,7 +25,7 @@ function draft(reacquireFileNames: string[]): ComposerDraft {
   return {
     prompt: "preserved prompt",
     attachments: [],
-    extensions: { skillIds: [], connections: [] },
+    extensions: { pluginIds: [], skillIds: [], connections: [] },
     reacquireFileNames,
   };
 }
@@ -36,7 +36,7 @@ function setup() {
   const conversationId = ref("conversation");
   const prompt = ref("");
   const attachments = ref<ConversationAttachment[]>([]);
-  const extensions = ref<AgentExtensionSelection>({ skillIds: [], connections: [] });
+  const extensions = ref<AgentExtensionSelection>({ pluginIds: [], skillIds: [], connections: [] });
   const persistence = scope.run(() =>
     useConversationDraftPersistence({ spaceId, conversationId, prompt, attachments, extensions }),
   );
@@ -67,7 +67,7 @@ describe("conversation draft persistence", () => {
     expect(drafts.save).toHaveBeenCalledWith("space", "conversation", {
       prompt: "preserved prompt",
       attachments: [],
-      extensions: { skillIds: [], connections: [] },
+      extensions: { pluginIds: [], skillIds: [], connections: [] },
       reacquireFileNames: ["keep.pdf"],
     });
     state.scope.stop();

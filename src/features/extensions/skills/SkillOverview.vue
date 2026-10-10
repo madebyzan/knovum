@@ -25,9 +25,6 @@ defineEmits<{ inspect: []; edit: []; toggle: []; copy: []; export: []; delete: [
         :enabled="skill.enabled"
         :plugin-id="skill.pluginId"
     /></template>
-    <span class="hidden text-caption text-fg-tertiary sm:inline">{{
-      $t(skill.pluginId ? "extensions.skills.plugin" : "extensions.skills.personal")
-    }}</span>
     <SkillActions
       :skill="skill"
       :busy="busy"

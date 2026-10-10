@@ -39,17 +39,17 @@ afterEach(() => {
   queryClient.clear();
 });
 it("retains incomplete public-field edits when leaving is cancelled", async () => {
-  wrapper.vm.publicFields = '{"X-Test":';
+  wrapper.vm.endpointFields = [{ name: "X-Test", value: "" }];
   const leaving = participant.prepare();
   expect(activeConfirmation.value).toBeDefined();
   resolveConfirmation(false);
   await expect(leaving).resolves.toBe(false);
-  expect(wrapper.vm.publicFields).toBe('{"X-Test":');
+  expect(wrapper.vm.endpointFields).toEqual([{ name: "X-Test", value: "" }]);
   expect(wrapper.vm.editing).toBe(true);
 });
 it("preserves public-field drafts while changing another field of the same transport", async () => {
   await flushPromises();
-  wrapper.vm.publicFields = '{"X-Test":"draft"}';
+  wrapper.vm.endpointFields = [{ name: "X-Test", value: "draft" }];
   wrapper.vm.draft.endpoint = {
     type: "streamable_http",
     url: "https://next.example.com/mcp",
@@ -57,5 +57,5 @@ it("preserves public-field drafts while changing another field of the same trans
     allowLocalNetwork: false,
   };
   await flushPromises();
-  expect(wrapper.vm.publicFields).toBe('{"X-Test":"draft"}');
+  expect(wrapper.vm.endpointFields).toEqual([{ name: "X-Test", value: "draft" }]);
 });

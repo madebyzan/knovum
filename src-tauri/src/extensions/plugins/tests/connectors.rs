@@ -12,6 +12,17 @@ async fn pool() -> SqlitePool {
         .run(&pool)
         .await
         .unwrap();
+    let plugin = json!({
+        "id":"plugin","enabled":true,"builtin":false,"publication":null,
+        "source":{"type":"directory","path":"/plugin"},
+        "revision":{"digest":"one","sourceRevision":"one","components":[],"connectors":[],"fileCount":1,"byteLength":1,
+            "manifest":{"$schema":"https://test/plugin.schema.json","name":"Sources"}}
+    });
+    sqlx::query("INSERT INTO plugins(id,document) VALUES('plugin',$1)")
+        .bind(sqlx::types::Json(plugin))
+        .execute(&pool)
+        .await
+        .unwrap();
     pool
 }
 fn component(name: &str) -> (PluginConnectorDeclaration, Option<McpEndpoint>) {
@@ -43,12 +54,12 @@ async fn publish(
 }
 
 #[tokio::test]
-async fn plugin_upgrade_preserves_definition_identity_all_instances_and_independent_preferences() {
+async fn plugin_upgrade_preserves_bindings_and_grants_with_package_activation() {
     let pool = pool().await;
     publish(&pool, "one", &[component("github")]).await;
     let old = definitions::list(&pool).await.unwrap().remove(0);
     let mut first = connections::list(&pool).await.unwrap().remove(0);
-    assert!(!first.enabled);
+    assert!(first.enabled);
     first.name = "Work".into();
     first.enabled = true;
     first.tools = vec![McpToolPermission {
@@ -88,13 +99,12 @@ async fn plugin_upgrade_preserves_definition_identity_all_instances_and_independ
     assert_eq!(current_first.tools.len(), 1);
     assert_ne!(current_first.revision, first.revision);
     assert_eq!(current_second.name, "Personal");
-    assert!(!current_second.enabled);
+    assert!(current_second.enabled);
     assert!(current_second.tools.is_empty());
 }
 
 #[tokio::test]
-async fn removed_plugin_component_retires_its_instances_without_recreating_user_deleted_instances()
-{
+async fn removed_plugin_component_retires_connections_without_recreating_deleted_connections() {
     let pool = pool().await;
     publish(&pool, "one", &[component("github"), component("retired")]).await;
     let old = definitions::list(&pool).await.unwrap();
@@ -115,16 +125,16 @@ async fn removed_plugin_component_retires_its_instances_without_recreating_user_
 }
 
 #[tokio::test]
-async fn unconfigured_stdio_component_is_published_as_an_inactive_service() {
+async fn unconfigured_stdio_component_preserves_package_activation_without_an_endpoint() {
     let pool = pool().await;
     let (mut declaration, _) = component("local-server");
     declaration.configuration = json!({"type":"stdio","command":"node"});
     publish(&pool, "one", &[(declaration, None)]).await;
     let definition = definitions::list(&pool).await.unwrap().remove(0);
     assert!(definition.configured_endpoint().is_err());
-    let instance = connections::list(&pool).await.unwrap().remove(0);
-    assert!(!instance.enabled);
-    assert_eq!(instance.connector_id, definition.id);
+    let connection = connections::list(&pool).await.unwrap().remove(0);
+    assert!(connection.enabled);
+    assert_eq!(connection.connector_id, definition.id);
 }
 
 #[test]

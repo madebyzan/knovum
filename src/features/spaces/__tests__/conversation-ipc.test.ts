@@ -33,7 +33,7 @@ describe("conversation task channel settlement", () => {
         prompt: "prompt",
         target: { type: "agent", runtimeKind: "codex" },
         attachments: [],
-        extensions: { skillIds: [], connections: [] },
+        extensions: { pluginIds: [], skillIds: [], connections: [] },
       },
       vi.fn<(update: unknown) => void>(),
     );

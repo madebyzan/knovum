@@ -18,18 +18,13 @@ pub(super) fn resolve(
                 Vec::new()
             };
             for tool in &snapshot.tools {
-                let AgentToolBinding::McpTool {
-                    connection_id,
-                    tool_name: actual,
-                    ..
-                } = &tool.binding
-                else {
+                let Some((connection_id, actual)) = mcp_identity(&tool.binding) else {
                     continue;
                 };
                 let connection = snapshot
                     .connections
                     .iter()
-                    .find(|connection| &connection.id == connection_id)
+                    .find(|connection| connection.id == connection_id)
                     .expect("projected connection");
                 let connector = snapshot
                     .connectors
@@ -64,4 +59,21 @@ pub(super) fn resolve(
         }
     }
     Ok(bindings)
+}
+
+fn mcp_identity(binding: &AgentToolBinding) -> Option<(&str, &str)> {
+    match binding {
+        AgentToolBinding::McpTool {
+            connection_id,
+            tool_name,
+            ..
+        } => Some((connection_id, tool_name)),
+        AgentToolBinding::McpReadResource { connection_id, .. } => {
+            Some((connection_id, "resources/read"))
+        }
+        AgentToolBinding::McpGetPrompt { connection_id, .. } => {
+            Some((connection_id, "prompts/get"))
+        }
+        AgentToolBinding::SpaceAction { .. } => None,
+    }
 }

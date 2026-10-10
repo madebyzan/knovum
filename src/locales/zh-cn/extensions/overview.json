@@ -1,9 +1,8 @@
 {
   "title": "扩展",
-  "description": "管理插件、应用连接、MCP 和技能。",
+  "description": "管理完整插件、MCP 服务和个人技能。",
   "plugins": "插件",
   "skills": "技能",
-  "applications": "应用",
   "mcp": "MCP",
   "back": "返回列表",
   "information": "信息",
@@ -13,10 +12,9 @@
   "pluginPaused": "插件已停用，其技能和连接暂不可用。",
   "notFound": "此扩展已不可用",
   "notFoundHint": "它可能已被删除或随插件更新发生变化，请返回列表查看当前内容。",
-  "usage": "在空间对话中，通过扩展选择器为当前任务选择技能和 MCP 连接。启用表示允许选择，不会自动访问外部服务。",
+  "usage": "在空间对话中选择完整插件、个人技能或独立 MCP 连接。插件内的技能和服务会一起使用。启用表示允许选择，访问外部服务仍需授权。",
   "search": {
     "plugins": "搜索插件…",
-    "applications": "搜索应用…",
     "mcp": "搜索 MCP 服务…",
     "skills": "搜索技能…"
   },

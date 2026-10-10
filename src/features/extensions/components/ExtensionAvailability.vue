@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { extensionAvailabilityQuery, pluginQuery } from "../../../foundation/extensions/extension-query";
+import { extensionAvailabilityQuery } from "../../../foundation/extensions/extension-query";
 const props = defineProps<{
   kind: "skills" | "connections";
   extensionId: string;
@@ -11,21 +11,19 @@ const props = defineProps<{
   pluginId?: string | null | undefined;
 }>();
 const availability = useQuery(extensionAvailabilityQuery);
-const plugins = useQuery(pluginQuery);
-const error = computed(() => availability.error.value || plugins.error.value);
-const isPluginPaused = computed(
-  () =>
-    Boolean(props.pluginId) &&
-    !plugins.data.value?.some((plugin) => plugin.id === props.pluginId && plugin.enabled),
-);
+const error = availability.error;
+const isAvailable = computed(() => {
+  const current = availability.data.value;
+  if (!current) return false;
+  return props.pluginId
+    ? current.plugins.some((plugin) => plugin.id === props.pluginId)
+    : current[props.kind].some((extension) => extension.id === props.extensionId);
+});
 const status = computed(() => {
   if (error.value) return "failed";
-  if (availability.isPending.value || (props.pluginId && plugins.isPending.value)) return "checking";
-  if (isPluginPaused.value) return "pluginPaused";
-  if (!props.enabled) return "disabled";
-  return availability.data.value?.[props.kind].some((extension) => extension.id === props.extensionId)
-    ? "available"
-    : "unavailable";
+  if (availability.isPending.value) return "checking";
+  if (!props.enabled) return props.pluginId ? "pluginPaused" : "disabled";
+  return isAvailable.value ? "available" : "unavailable";
 });
 </script>
 <template>

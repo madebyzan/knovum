@@ -269,7 +269,7 @@ Ending async work keeps three verbs apart: `cancel` abandons a job that has not 
 terminates a service that is still running, and `fail` records that the work already ended in error.
 A command that only writes a failure record is `fail_*`, not `stop_*`.
 
-Plugin and Skill availability exposes `enable_plugin` / `disable_plugin` and `enable_skill` / `disable_skill`; only private persistence helpers accept a boolean.
+Plugin and personal Skill availability exposes `enable_plugin` / `disable_plugin` and `enable_skill` / `disable_skill`; plugin-owned Skills follow their owner's switch. Only private persistence helpers accept a boolean.
 
 Voice profiles expose `archive_voice_profile` and `unarchive_voice_profile` as separate public intents. Their shared private persistence operation may accept a boolean; the public request contracts do not. Conversation tool activity uses `context` for invocation inputs or execution context and `output` for the tool response, consistently across storage and presentation. Run attempts and steps use `output` for their produced artifacts. Vendor tool-result payloads retain their protocol fields.
 

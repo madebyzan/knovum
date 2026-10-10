@@ -19,7 +19,7 @@ const emit = defineEmits<{ inspect: [] }>();
         <component :is="icon" class="size-5" :stroke-width="1.5" />
       </span>
       <span class="min-w-0 flex-1">
-        <span class="block truncate text-body font-medium group-hover:underline">{{ name }}</span>
+        <span class="block truncate text-body-lg font-medium group-hover:underline">{{ name }}</span>
         <span
           v-if="description"
           class="mt-0.5 block truncate text-caption text-fg-secondary"

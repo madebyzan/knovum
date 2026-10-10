@@ -109,7 +109,10 @@ Density-sensitive controls and platform-control exclusion retain product variabl
 Settings and extension lists share `UiSettingsSection` for their raised surface, border and panel radius.
 Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
 use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
-an operation. Empty results retain the settings panel treatment and concise, left-aligned guidance.
+an operation. Empty search results retain concise, left-aligned guidance.
+Empty settings collections use `UiSettingsEmptyState` inside `UiSettingsSection`, with a centered
+icon above the message and generous vertical padding, following the Archived Spaces treatment.
+Avoid repeating the page title as a section title.
 Settings panes keep 24px between peer sections. Appearance owns theme, text size, density and language;
 Notifications is a separate General destination. AI routing separates the application default from
 capability overrides. Local models use one settings surface per capability, with compact name/status,
@@ -636,14 +639,25 @@ management surface, not a prerequisite for using a capability. Application launc
 optional models or tools.
 
 Local models have their own Settings entry, separate from AI connections and execution routing.
-A compact capability selector groups knowledge, audio and image resources through option descriptions,
-alongside model search and download-state filtering. The active capability uses `UiSettingsSection`,
-body-lg model names, caption descriptions and metadata, neutral default markers, and trailing actions.
-The Settings page owns scrolling; do not embed a second sidebar or a fixed-height scroll frame.
-Search and download-state filters apply to the current capability. Model rows expose default/essential
-status, download and installed sizes, and the applicable download/select/remove action. Switching categories or
-filtering hides rows without unmounting their active preparation controls; Task Center remains the
-cross-view owner of preparation progress and cancellation.
+The page starts with a capability overview grouped into knowledge, audio and images. Each capability
+uses `UiSettingsSection` and a keyboard-accessible Reka disclosure that shows its configured or fixed
+model, actual download state, total installed size and active preparation count. Expanding exposes
+model comparisons and download/select/remove actions; default configuration and downloaded files
+remain separate concepts. Downloading never implicitly changes the configured model. Voice selection
+explains its scope for new reference voices; existing voices retain their original model.
+
+Search covers model names, descriptions and capability names across all groups. Search and download
+filters expand matching capabilities without changing the user's normal disclosure state; clearing
+filters restores that state. Empty results have one page-level explanation and a clear-filters action
+that returns focus to search. Background query failures stay visible without unmounting cached model
+controls or resetting disclosure state. Model operations lock competing actions while pending;
+cancellation stays pending until the preparation actually settles. Failures reveal their capability.
+Replacing a model action keeps keyboard focus within that model without stealing dialog focus.
+Downloads show measured transfer percentages; verification and installation remain indeterminate,
+using the same stage policy as Task Center. Hidden capabilities and model controls remain mounted
+to retain active preparation. Settings owns scrolling, with no embedded
+sidebar or fixed-height scroll frame. Task Center remains the cross-view owner of preparation progress
+and cancellation.
 
 ## Product semantic selection rules
 
@@ -682,27 +696,45 @@ native form submission and dialog behavior.
 
 ### Agent extensions
 
-Extensions use four searchable, counted categories: Plugins, Apps, MCP, and Skills.
-Plugins are installed capability packages; Skills are reusable instructions. Apps present
-`ConnectorDefinition` services and their accounts; MCP presents `McpConnection` instances.
-These are projections of the existing extension model, not independent registries.
+Extensions use three searchable, counted categories: Plugins, MCP, and Skills.
+Plugins are complete installed capability packages; Skills lists only independent personal instructions.
+MCP lists independent servers and owns their configuration, accounts and protocol connections.
+Packaged services are configured from their owning plugin and are not repeated in the MCP list. Do not present an MCP service
+schema as a separate Apps capability: there is no independent application integration in this model.
 
-Use flat identity rows with a quiet icon, name, one-line description, and explicit actions.
-Open contents and configuration in a dedicated inspection view with a return action, rather
-than embedding several levels of expanded cards in a list. Plugin contents link to their
-Skills, Apps, and MCP connections; those views link back to their owner. Read-only Skill
-instructions render as Markdown; editing is an explicit operation, and plugin Skills must
-be copied to personal ownership before editing.
+Settings title actions use `UiSettingsHeaderActions`, which projects controls into the title-right
+area using Vue Teleport. Each pane owns its actions, operation and dialog state; `SettingsView`
+provides one header target that stays mounted across pane transitions. Desktop Agent inspection,
+archived-space deletion, extension discovery/installation, MCP creation and personal Skill
+creation/import all use this composition.
 
-Enablement is user intent, not a connection-health claim. “Available in conversations”
-means the backend admits the current extension revision, parent plugin, and account;
-it does not claim that a remote server is online. Service authorization and individual
-connection tool permissions remain separate steps. A connection starts disabled and its
-tools default to deny. Do not add mock integrations, inert trial buttons, or pretend
-that an installed package is an executable desktop application.
+Extension categories and search share the following row; do not add a separate right-aligned
+action row below search. Inspection and configuration views hide collection actions.
 
-The extension tab and selected entity live in the settings route query (`extensionTab`
-and `extensionId`). All internal navigation, browser history, and leaving settings must
-respect the existing settings leave coordinator. Search is local view state; installed
-content and availability use TanStack Query. These views reuse Knovum semantic tokens,
-Reka behavior, and native installation/export dialogs.
+Use flat identity rows with quiet icons, names, one-line descriptions and explicit actions. Contents
+and configuration open in a dedicated inspection view with a return action. Plugin contents inspect
+Skills locally and link to their service configuration. Plugin enablement is the sole activation
+control for all packaged components; do not duplicate them in personal Skills or offer child switches,
+connection creation/deletion, or per-conversation component checkboxes. The conversation picker
+selects complete plugins, personal Skills and standalone MCP connections. A missing required
+component makes the package unavailable as a whole. Read-only instructions render as Markdown;
+editing a packaged Skill requires copying it to personal ownership first.
+
+Enablement is user intent, not a connection-health claim. Availability admits the current revision,
+parent plugin and account; it does not claim a remote server is online. Endpoint/account setup and
+tool authorization remain explicit: selecting a plugin never grants denied or unreviewed tools.
+Standalone connections start disabled and tool permissions default to deny. No mock integrations,
+inert trial buttons or pretend executable applications.
+
+MCP configuration is an inline settings form constrained to `max-w-xl`, not a large modal. Back,
+Cancel, browser history and settings navigation all use the settings leave coordinator to preserve
+unsaved work. Identity, transport and authorization use compact sections; optional public headers
+and environment variables use progressive disclosure. Reuse segmented STDIO/Streamable HTTP controls,
+native executable/directory pickers and literal argument inputs. No raw JSON editors or nested cards.
+Changing transport replaces its configuration and authorization requirements. Credentials remain in
+the dedicated account authorization flow.
+
+The extension tab, selected entity, service configuration and creation intent live in the settings
+route query (`extensionTab`, `extensionId`, `connectorId`, `extensionAction`). Search is local visual
+state; installed content and availability use TanStack Query. Reuse Knovum semantic tokens, Reka
+behavior and native installation/export dialogs.

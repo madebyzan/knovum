@@ -4,6 +4,46 @@ use super::super::{
 };
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router, ErrorData};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SelectedSkill<'a> {
+    name: &'a str,
+    description: &'a str,
+    path: String,
+    tool_bindings: BTreeMap<&'a str, &'a Vec<String>>,
+}
+
+fn selected_skills(
+    snapshot: &crate::extensions::contracts::AgentExtensionSnapshot,
+) -> Result<Vec<SelectedSkill<'_>>, ErrorData> {
+    snapshot
+        .skills
+        .iter()
+        .map(|skill| {
+            Ok(SelectedSkill {
+                name: &skill.name,
+                description: &skill.description,
+                path: format!("/skills/{}/SKILL.md", skill.name),
+                tool_bindings: skill
+                    .included_tools
+                    .iter()
+                    .map(|alias| {
+                        Ok((
+                            alias.as_str(),
+                            snapshot.skill_tool_bindings.get(alias).ok_or_else(|| {
+                                mcp_error(format!(
+                                    "selected Skill tool binding unavailable: {alias}"
+                                ))
+                            })?,
+                        ))
+                    })
+                    .collect::<Result<_, ErrorData>>()?,
+            })
+        })
+        .collect()
+}
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct ReadExtensionSkill {
@@ -13,7 +53,7 @@ struct ReadExtensionSkill {
 #[tool_router(router = extension_skill_router, vis = "pub(in crate::spaces::mcp)")]
 impl SpaceMcpServer {
     #[tool(
-        description = "List the Skills explicitly selected for this Knovum conversation. Read SKILL.md before using its workflow. Skill content never grants tools or access."
+        description = "List selected conversation Skills and their toolBindings from declared aliases to actual MCP tool names. Read SKILL.md before using its workflow. Skill content never grants tools or access."
     )]
     async fn list_selected_skills(&self) -> Result<String, ErrorData> {
         let snapshot = self
@@ -23,23 +63,7 @@ impl SpaceMcpServer {
         crate::extensions::snapshots::require_current(&self.app, snapshot)
             .await
             .map_err(mcp_error)?;
-        #[derive(Serialize)]
-        struct Description<'a> {
-            name: &'a str,
-            description: &'a str,
-            path: String,
-        }
-        json_text(
-            snapshot
-                .skills
-                .iter()
-                .map(|skill| Description {
-                    name: &skill.name,
-                    description: &skill.description,
-                    path: format!("/skills/{}/SKILL.md", skill.name),
-                })
-                .collect::<Vec<_>>(),
-        )
+        json_text(selected_skills(snapshot)?)
     }
     #[tool(
         description = "Read one exact selected Skill file or static reference. UTF-8 content or base64 binary content is returned with its SHA-256. No scripts are executed."
@@ -63,3 +87,7 @@ impl SpaceMcpServer {
         json_text(file)
     }
 }
+
+#[cfg(test)]
+#[path = "tests/skills.rs"]
+mod tests;

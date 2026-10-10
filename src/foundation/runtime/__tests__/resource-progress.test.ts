@@ -3,7 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import type { ResourcePreparationProgress } from "../../../shared/contracts/generated/ResourcePreparationProgress";
 import { useTaskStore } from "../../tasks/task-store";
-import { updateTaskProgress } from "../resource-progress";
+import { buildResourcePreparationTask, updateTaskProgress } from "../resource-progress";
 
 vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 beforeEach(() => setActivePinia(createPinia()));
@@ -37,3 +37,17 @@ it.each(["verifying", "runtimeVerifying", "installing", "runtimeInstalling"] as 
     );
   },
 );
+
+it("restores verification without projecting its completed transfer as task completion", () => {
+  const task = buildResourcePreparationTask({
+    jobId: "prepare-model",
+    title: "Model",
+    target: { kind: "model", model: "whisperSmall" },
+    startedAt: 100,
+    completedAt: null,
+    state: "preparing",
+    error: null,
+    progress: { stage: "verifying", downloaded: 100, total: 100, percent: 100 },
+  });
+  expect(task.progress).toBeUndefined();
+});

@@ -1,11 +1,21 @@
 {
   "name": "Connection name",
   "configuration": {
-    "headers": "Public request headers (JSON)",
-    "environment": "Public environment variables (JSON)",
-    "secretsHint": "Add API tokens, sensitive headers, and secret environment variables under Authorization.",
-    "invalid": "Enter a JSON object with string values.",
-    "advanced": "Advanced configuration"
+    "headers": "Request headers",
+    "environment": "Environment variables",
+    "secretsHint": "Public configuration only. Set tokens and other credentials in Authorization after saving.",
+    "invalidName": "Enter a field name without leading or trailing spaces.",
+    "duplicateName": "Field names must be unique. HTTP header names are case-insensitive.",
+    "fieldName": "Name",
+    "fieldValue": "Value",
+    "fieldNameAt": "Field {index} name",
+    "fieldValueAt": "Field {index} value",
+    "removeField": "Remove field {index}",
+    "addHeader": "Add header",
+    "addVariable": "Add variable",
+    "serverUrl": "Server URL",
+    "authorizationHint": "Choose the authorization method required by the server. Credentials are configured separately after saving.",
+    "advanced": "Environment variables and headers"
   },
   "transport": "Transport",
   "allowLocalNetwork": "Allow access to the configured localhost or LAN address",
@@ -22,7 +32,7 @@
   "account": {
     "label": "Account used by this connection",
     "none": "No account bound",
-    "changeHint": "Changing accounts disables this connection and clears its tool permissions. Review permissions before enabling it again."
+    "changeHint": "Changing accounts clears tool permissions. Review permissions before using the connection again."
   },
   "add": "Add connection",
   "configure": "Configure",
@@ -39,13 +49,12 @@
   "title": "Connections",
   "manage": "Manage",
   "addServer": "Add MCP server",
-  "description": "MCP connections access specific services. Configure an account, inspect the catalog, and review tool permissions before enabling a connection for conversations.",
-  "standalone": "Standalone servers",
-  "packaged": "From plugins",
+  "description": "Configure MCP services, accounts and tool permissions. Plugin services are configured as part of their package.",
   "emptyServers": "No MCP servers",
-  "emptyHint": "Add your MCP server, or create a connection for a plugin service under Apps.",
+  "emptyHint": "Add your MCP server. Configure plugin-provided services inside their owning plugin.",
   "serviceAndAccounts": "Manage service and accounts",
-  "configureServiceFirst": "Complete the service configuration under Apps first.",
+  "configureServiceFirst": "Complete this service's configuration first.",
   "conflict": "This connection changed elsewhere. Your edits are retained. Discard them and reopen the connection before saving.",
-  "saveBeforeCheck": "Save your changes before changing accounts or checking the catalog again."
+  "saveBeforeCheck": "Save your changes before changing accounts or checking the catalog again.",
+  "services": "Services"
 }

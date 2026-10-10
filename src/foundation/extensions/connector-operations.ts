@@ -7,14 +7,6 @@ import { invokeCommand } from "../ipc/invoke-command";
 export function listConnectorDefinitions() {
   return invokeCommand<ConnectorDefinition[]>("plugin:extensions|list_connector_definitions");
 }
-export function createConnectorDefinition(definition: ConnectorDefinition) {
-  return invokeCommand<ExtensionChange<ConnectorDefinition>>(
-    "plugin:extensions|create_connector_definition",
-    {
-      definition,
-    },
-  );
-}
 export function updateConnectorDefinition(definition: ConnectorDefinition) {
   return invokeCommand<ExtensionChange<ConnectorDefinition>>(
     "plugin:extensions|update_connector_definition",

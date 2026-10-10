@@ -26,7 +26,7 @@ function persisted(prompt: string, reacquireFileNames: string[]): ConversationDr
     conversationId: "conversation",
     prompt,
     attachments: [],
-    extensions: { skillIds: [], connections: [] },
+    extensions: { pluginIds: [], skillIds: [], connections: [] },
     reacquireFileNames,
   };
 }
@@ -35,7 +35,7 @@ function composer(prompt: string): ComposerDraft {
   return {
     prompt,
     attachments: [],
-    extensions: { skillIds: [], connections: [] },
+    extensions: { pluginIds: [], skillIds: [], connections: [] },
     reacquireFileNames: [],
   };
 }

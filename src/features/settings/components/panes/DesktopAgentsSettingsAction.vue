@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSettingsHeaderActions from "../../../../shared/ui/UiSettingsHeaderActions.vue";
 
 const { t } = useI18n();
 const catalog = useExecutionCatalogQuery();
@@ -17,8 +18,10 @@ async function refresh() {
 </script>
 
 <template>
-  <UiButton size="sm" variant="ghost" :disabled="catalog.installationFetching.value" @click="refresh">
-    <RefreshCw class="size-3.5" :class="catalog.installationFetching.value && 'animate-spin'" />
-    {{ t("settings.agents.check") }}
-  </UiButton>
+  <UiSettingsHeaderActions>
+    <UiButton size="sm" variant="ghost" :disabled="catalog.installationFetching.value" @click="refresh">
+      <RefreshCw class="size-3.5" :class="catalog.installationFetching.value && 'animate-spin'" />
+      {{ t("settings.agents.check") }}
+    </UiButton>
+  </UiSettingsHeaderActions>
 </template>

@@ -40,5 +40,6 @@
   "archive": "Archive",
   "restore": "Restore",
   "required": "Required",
-  "closeSaveFailed": "Changes could not be saved; the application stayed open"
+  "closeSaveFailed": "Changes could not be saved; the application stayed open",
+  "clearSearch": "Clear search"
 }

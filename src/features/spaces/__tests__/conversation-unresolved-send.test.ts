@@ -14,7 +14,7 @@ describe("conversation unresolved file admission", () => {
     const messages = shallowRef([]);
     const submission = createConversationTaskSubmission({
       input: {
-        extensions: ref({ skillIds: [], connections: [] }),
+        extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
         spaceId: ref("space"),
         selectedConversationId: ref("conversation"),
         conversation: ref(),

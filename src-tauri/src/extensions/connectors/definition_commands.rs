@@ -13,29 +13,13 @@ pub async fn list_connector_definitions(
 }
 
 pub(super) fn validate(definition: &ConnectorDefinition) -> Result<(), String> {
-    if definition.name.trim().is_empty() || definition.description.trim().is_empty() {
-        return Err("connector-name-and-description-required".into());
+    if definition.name.trim().is_empty() {
+        return Err("connector-name-required".into());
     }
     super::requirements::validate_access(
         definition.configured_endpoint()?,
         &definition.authorization,
     )
-}
-
-#[tauri::command]
-pub async fn create_connector_definition(
-    app: AppHandle,
-    mut definition: ConnectorDefinition,
-) -> Result<ExtensionChange<ConnectorDefinition>, String> {
-    validate(&definition)?;
-    let state = app.state::<ExtensionState>();
-    let _guard = state.content_lock.lock().await;
-    initialize(&mut definition);
-    let pool = database::pool(&app).await?;
-    let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
-    super::definitions::replace_on(&mut tx, &definition, None).await?;
-    tx.commit().await.map_err(|error| error.to_string())?;
-    Ok(ExtensionChange::committed(definition, []))
 }
 
 #[tauri::command]

@@ -1,31 +1,22 @@
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
-import { z } from "zod";
+import { shallowRef } from "vue";
 
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpEndpoint } from "../../../shared/contracts/generated/McpEndpoint";
-import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import UiTextarea from "../../../shared/ui/UiTextarea.vue";
+import { validateEndpointFields, type EndpointField } from "../connections/endpoint-fields";
 import McpEndpointFields from "../connections/McpEndpointFields.vue";
+import McpPublicFields from "../connections/McpPublicFields.vue";
 import ConnectorRequirements from "./ConnectorRequirements.vue";
 const connector = defineModel<ConnectorDefinition & { endpoint: McpEndpoint }>({ required: true });
-defineProps<{ busy: boolean }>();
-const emit = defineEmits<{ save: []; close: [] }>();
-const publicFields = defineModel<string>("publicFields", { required: true });
+const endpointFields = defineModel<EndpointField[]>("endpointFields", { required: true });
+defineProps<{ busy: boolean; formId: string }>();
+const emit = defineEmits<{ save: [] }>();
 const fieldError = shallowRef("");
-const fieldsLabel = computed(() =>
-  connector.value.endpoint.type === "streamable_http"
-    ? "extensions.connections.configuration.headers"
-    : "extensions.connections.configuration.environment",
-);
-const publicFieldsSchema = z.record(z.string(), z.string());
 function save() {
-  let fields: Record<string, string>;
-  try {
-    fields = publicFieldsSchema.parse(JSON.parse(publicFields.value));
-  } catch {
-    fieldError.value = "extensions.connections.configuration.invalid";
+  const validatedFields = validateEndpointFields(endpointFields.value, connector.value.endpoint.type);
+  if ("error" in validatedFields) {
+    fieldError.value = validatedFields.error;
     return;
   }
   const endpoint = connector.value.endpoint;
@@ -33,53 +24,48 @@ function save() {
     ...connector.value,
     endpoint:
       endpoint.type === "streamable_http"
-        ? { ...endpoint, headers: fields }
-        : { ...endpoint, environment: fields },
+        ? { ...endpoint, headers: validatedFields.fields }
+        : { ...endpoint, environment: validatedFields.fields },
   };
   fieldError.value = "";
   emit("save");
 }
+function changeTransport() {
+  connector.value.authorization = { type: "none" };
+  fieldError.value = "";
+}
 </script>
-
 <template>
-  <form class="space-y-4" data-testid="connector-editor" @submit.prevent="save">
-    <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.connectors.name")
-      }}<UiInput :disabled="busy" v-model="connector.name" data-testid="connector-name"
-    /></label>
-    <label class="block space-y-1.5 text-caption text-fg-secondary"
-      >{{ $t("extensions.connectors.descriptionField") }}
-      <UiTextarea :disabled="busy" v-model="connector.description" data-testid="connector-description" />
-    </label>
-    <McpEndpointFields :disabled="busy" v-model="connector.endpoint" />
-    <details class="space-y-2 text-caption text-fg-secondary" :open="Boolean(fieldError)">
-      <summary
-        class="w-fit cursor-default rounded-sm py-1 outline-none focus-visible:outline-2 focus-visible:outline-stroke-focus"
-      >
-        {{ $t("extensions.connections.configuration.advanced") }}
-      </summary>
-      <label class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t(fieldsLabel)
-        }}<UiTextarea :disabled="busy" v-model="publicFields" class="font-mono text-caption"
-      /></label>
+  <form :id="formId" class="space-y-4" data-testid="connector-editor" @submit.prevent="save">
+    <section class="space-y-3">
+      <label class="block space-y-1.5 text-caption text-fg-secondary">
+        {{ $t("extensions.connectors.name") }}
+        <UiInput v-model="connector.name" :disabled="busy" data-testid="connector-name" required />
+      </label>
+      <label class="block space-y-1.5 text-caption text-fg-secondary">
+        {{ $t("extensions.connectors.descriptionField") }}
+        <UiInput v-model="connector.description" :disabled="busy" data-testid="connector-description" />
+      </label>
+    </section>
+    <section class="space-y-4 border-t border-stroke-divider pt-4">
+      <McpEndpointFields v-model="connector.endpoint" :disabled="busy" @change-transport="changeTransport" />
+      <details class="group space-y-3" :open="endpointFields.length > 0">
+        <summary class="cursor-default text-label text-fg-secondary">
+          {{ $t("extensions.connections.configuration.advanced") }}
+        </summary>
+        <McpPublicFields v-model="endpointFields" :transport="connector.endpoint.type" :disabled="busy" />
+      </details>
+      <p v-if="fieldError" role="alert" class="text-caption text-fg-danger">{{ $t(fieldError) }}</p>
+    </section>
+    <section class="space-y-2 border-t border-stroke-divider pt-4">
+      <ConnectorRequirements
+        v-model="connector.authorization"
+        :disabled="busy"
+        :http="connector.endpoint.type === 'streamable_http'"
+      />
       <p class="text-caption text-fg-secondary">
-        {{ $t("extensions.connections.configuration.secretsHint") }}
+        {{ $t("extensions.connections.configuration.authorizationHint") }}
       </p>
-    </details>
-    <ConnectorRequirements
-      :disabled="busy"
-      v-model="connector.authorization"
-      :http="connector.endpoint.type === 'streamable_http'"
-    />
-    <p v-if="fieldError" role="alert" class="text-caption text-fg-danger">{{ $t(fieldError) }}</p>
-    <div class="flex gap-2">
-      <UiButton
-        variant="primary"
-        type="submit"
-        :disabled="busy || !connector.name.trim() || !connector.description.trim()"
-        data-testid="save-connector"
-        >{{ $t("common.save") }}</UiButton
-      ><UiButton :disabled="busy" variant="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
-    </div>
+    </section>
   </form>
 </template>

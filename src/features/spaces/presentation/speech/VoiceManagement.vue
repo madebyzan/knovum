@@ -3,6 +3,7 @@ import { AudioLines } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSettingsEmptyState from "../../../../shared/ui/UiSettingsEmptyState.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useVoiceManagement } from "../../speech/use-voice-management";
@@ -53,10 +54,11 @@ const { reload, profiles, loading, busyProfileId, errors, rename, revise, archiv
         @remove="remove(profile)"
       />
     </div>
-    <div v-else-if="!creating" class="flex items-center gap-3 px-4 py-6">
-      <AudioLines class="size-4 text-fg-tertiary" :stroke-width="1.5" />
-      <p class="text-label text-fg-secondary">{{ t("spaces.speech.library.empty") }}</p>
-    </div>
+    <UiSettingsEmptyState
+      v-else-if="!creating"
+      :icon="AudioLines"
+      :message="t('spaces.speech.library.empty')"
+    />
     <p
       v-if="errors.length && profiles.length"
       class="border-t border-stroke-divider px-4 py-3 text-caption text-fg-danger"

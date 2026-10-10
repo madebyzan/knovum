@@ -33,6 +33,7 @@ defineEmits<{ edit: []; toggle: []; copy: []; export: []; delete: [] }>();
     >
   </UiDropdownMenu>
   <UiSwitch
+    v-if="!skill.pluginId"
     :model-value="skill.enabled"
     :disabled="busy || (!skill.enabled && Boolean(skill.unsupportedRequirements.length))"
     :label="

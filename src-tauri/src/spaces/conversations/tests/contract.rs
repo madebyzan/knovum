@@ -8,7 +8,7 @@ fn agent_requests_accept_both_targets_and_reject_removed_modes() {
         json!({"type":"agent","runtimeKind":"codex"}),
     ] {
         let mut request = json!({"spaceId":"space","prompt":"Explain these notes","target":target,
-            "extensions":{"skillIds":[],"connections":[]}});
+            "extensions":{"pluginIds":[],"skillIds":[],"connections":[]}});
         assert!(serde_json::from_value::<SubmitConversationTaskRequest>(request.clone()).is_ok());
         for mode in ["ask", "plan", "execute"] {
             request["mode"] = json!(mode);

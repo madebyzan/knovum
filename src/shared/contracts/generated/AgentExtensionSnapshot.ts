@@ -5,6 +5,7 @@ import type { ConnectorAccount } from "./ConnectorAccount";
 import type { ConnectorDefinition } from "./ConnectorDefinition";
 import type { McpConnection } from "./McpConnection";
 import type { McpConnectionCatalog } from "./McpConnectionCatalog";
+import type { PluginInstallation } from "./PluginInstallation";
 import type { SkillRevision } from "./SkillRevision";
 
-export type AgentExtensionSnapshot = { id: string, digest: string, skills: Array<SkillRevision>, files: Array<AgentSkillFile>, skillToolBindings: { [key in string]: Array<string> }, connectors: Array<ConnectorDefinition>, connections: Array<McpConnection>, accounts: Array<ConnectorAccount>, catalogs: { [key in string]: McpConnectionCatalog }, tools: Array<AgentExtensionTool>, };
+export type AgentExtensionSnapshot = { plugins: Array<PluginInstallation>, id: string, digest: string, skills: Array<SkillRevision>, files: Array<AgentSkillFile>, skillToolBindings: { [key in string]: Array<string> }, connectors: Array<ConnectorDefinition>, connections: Array<McpConnection>, accounts: Array<ConnectorAccount>, catalogs: { [key in string]: McpConnectionCatalog }, tools: Array<AgentExtensionTool>, };

@@ -8,6 +8,8 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import { defaultCreationLibrary } from "../../../foundation/ai/schema/creation-library";
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
+import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
 import SettingsSidebar from "../components/SettingsSidebar.vue";
 import SettingsView from "../SettingsView.vue";
 
@@ -16,6 +18,15 @@ vi.mock("../../../foundation/ai/creation-library-store", () => ({
   useCreationLibraryStore: () => creationStore,
 }));
 vi.mock("../../../foundation/ai/providers", () => ({ loadProviderDescriptors: async () => [] }));
+vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
+  useExecutionCatalogQuery: () => ({
+    data: shallowRef({ agents: [], installations: [] }),
+    descriptorPending: shallowRef(false),
+    descriptorError: shallowRef(),
+    installationFetching: shallowRef(false),
+    installationError: shallowRef(),
+  }),
+}));
 vi.mock("../../../foundation/lifecycle/window-close-coordinator", () => ({
   registerWindowCloseCommit: () => () => {},
 }));
@@ -36,7 +47,14 @@ const creationStore = reactive({
   ensureLoaded: async () => {},
   flush: async () => {},
 });
-const extensions = defineComponent({ render: () => h("section", { "data-testid": "extensions-pane" }) });
+const extensions = defineComponent({
+  render: () =>
+    h("section", { "data-testid": "extensions-pane" }, [
+      h(UiSettingsHeaderActions, null, {
+        default: () => h("button", { "data-testid": "extensions-header-action" }, "Action"),
+      }),
+    ]),
+});
 
 beforeEach(() => {
   ready.value = false;
@@ -67,10 +85,19 @@ it.each(["loading", "ready", "failed"])(
     await router.push("/settings?pane=appearance");
     const warnings = vi.fn<(message: string) => void>();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const archive: ArchiveSettingsContract = {
+      spaces: shallowRef([{ id: "archived-space", title: "Archived space" }]),
+      initialize: async () => {},
+      restore: async () => {},
+      permanentlyDelete: async () => {},
+      permanentlyDeleteAll: async () => {},
+    };
     const wrapper = mount(defineComponent({ template: "<router-view />" }), {
+      attachTo: document.body,
       global: {
         config: { warnHandler: warnings },
         plugins: [createPinia(), i18n, router, [VueQueryPlugin, { queryClient }]],
+        provide: { [archiveSettingsKey as symbol]: archive },
         stubs: {
           Transition: false,
           UiScrollArea: { template: "<div><slot /></div>" },
@@ -107,6 +134,8 @@ it.each(["loading", "ready", "failed"])(
         ["appearance", "#settings-appearance-theme"],
         ["notifications", "#settings-background-task-notifications"],
         ["extensions", '[data-testid="extensions-pane"]'],
+        ["desktopAgents", "#settings-header-actions button"],
+        ["archivedSpaces", '[data-testid="archive-restore-space"]'],
         ["creation", '[data-testid="creation-pane"]'],
         ["usage", '[data-testid="usage-pane"]'],
       ] as const) {
@@ -115,6 +144,12 @@ it.each(["loading", "ready", "failed"])(
         await vi.waitFor(() => {
           expect(wrapper.getComponent(SettingsSidebar).props("activePane")).toBe(pane);
           expect(wrapper.find(selector).exists()).toBe(true);
+          expect(
+            wrapper.get("#settings-header-actions").find('[data-testid="extensions-header-action"]').exists(),
+          ).toBe(pane === "extensions");
+          expect(wrapper.get("#settings-header-actions").findAll("button")).toHaveLength(
+            ["extensions", "desktopAgents", "archivedSpaces"].includes(pane) ? 1 : 0,
+          );
         });
       }
     }

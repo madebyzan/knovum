@@ -7,13 +7,13 @@ import { checkMcpConnection } from "../../../../foundation/extensions/connection
 import type { AgentConnectionSelection } from "../../../../shared/contracts/generated/AgentConnectionSelection";
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
-import type { McpResourceTemplateSelection as TemplateSelection } from "../../../../shared/contracts/generated/McpResourceTemplateSelection";
+import type { McpResourceTemplateSelection } from "../../../../shared/contracts/generated/McpResourceTemplateSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import McpResourcePreview from "./McpResourcePreview.vue";
-import McpResourceTemplateSelection from "./McpResourceTemplateSelection.vue";
+import McpResourceTemplateForm from "./McpResourceTemplateForm.vue";
 const selection = defineModel<AgentExtensionSelection>({ required: true });
-const props = defineProps<{ connection: McpConnection }>();
+const props = defineProps<{ connection: McpConnection; disabled: boolean }>();
 const choices = computed(() =>
   selection.value.connections.find((candidate) => candidate.connectionId === props.connection.id)!,
 );
@@ -37,7 +37,7 @@ function toggle(kind: "toolNames" | "resourceUris" | "promptNames", value: strin
     ),
   };
 }
-function addTemplate(template: TemplateSelection) {
+function addTemplate(template: McpResourceTemplateSelection) {
   selection.value = {
     ...selection.value,
     connections: selection.value.connections.map((connection) =>
@@ -62,23 +62,29 @@ function removeTemplate(index: number) {
 </script>
 
 <template>
-  <section class="space-y-2 border-t border-stroke-divider pt-2 text-caption">
+  <fieldset :disabled="disabled" class="space-y-2 border-t border-stroke-divider pt-2 text-caption">
     <h4 class="font-medium">{{ connection.name }}</h4>
     <label v-for="tool in availableTools" :key="tool.name" class="flex items-center gap-2"
       ><UiCheckbox
+        :disabled="disabled"
         :label="tool.name"
         :model-value="choices.toolNames.includes(tool.name)"
         @update:model-value="toggle('toolNames', tool.name)"
       />{{ tool.name }}</label
     >
-    <UiButton size="sm" variant="ghost" :disabled="catalog.isPending.value" @click="catalog.mutate()">{{
-      $t("extensions.catalog.browse")
-    }}</UiButton>
+    <UiButton
+      size="sm"
+      variant="ghost"
+      :disabled="disabled || catalog.isPending.value"
+      @click="catalog.mutate()"
+      >{{ $t("extensions.catalog.browse") }}</UiButton
+    >
     <p v-if="catalog.error.value" role="alert" class="text-fg-danger">
       {{ getErrorMessage(catalog.error.value) }}
     </p>
     <label v-for="resource in resources" :key="resource.uri" class="flex items-center gap-2"
       ><UiCheckbox
+        :disabled="disabled"
         :label="resource.name"
         :model-value="choices.resourceUris.includes(resource.uri)"
         @update:model-value="toggle('resourceUris', resource.uri)"
@@ -91,31 +97,35 @@ function removeTemplate(index: number) {
         :connection="connection"
         :catalog-digest="catalog.data.value!.digest"
         :selection="{ type: 'resource', uri }"
+        :disabled="disabled"
       />
-      <McpResourceTemplateSelection
+      <McpResourceTemplateForm
         v-for="template in catalog.data.value?.resourceTemplates"
         :key="template.uriTemplate"
         :uri-template="template.uriTemplate"
+        :disabled="disabled"
         @select="addTemplate"
       />
       <section v-for="(template, index) in choices.resourceTemplates" :key="index" class="space-y-1">
         <p class="break-all">{{ template.uriTemplate }} · {{ JSON.stringify(template.parameters) }}</p>
-        <UiButton size="sm" variant="ghost" @click="removeTemplate(index)">{{
+        <UiButton size="sm" variant="ghost" :disabled="disabled" @click="removeTemplate(index)">{{
           $t("common.remove")
         }}</UiButton>
         <McpResourcePreview
           :connection="connection"
           :catalog-digest="catalog.data.value!.digest"
           :selection="{ type: 'template', selection: template }"
+          :disabled="disabled"
         />
       </section>
     </template>
     <label v-for="name in prompts" :key="name" class="flex items-center gap-2"
       ><UiCheckbox
+        :disabled="disabled"
         :label="name"
         :model-value="choices.promptNames.includes(name)"
         @update:model-value="toggle('promptNames', name)"
       />{{ name }}</label
     >
-  </section>
+  </fieldset>
 </template>
