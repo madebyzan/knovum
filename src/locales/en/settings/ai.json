@@ -71,7 +71,11 @@
       "speechAlignment": "Align transcript text precisely to audio",
       "speechDiarization": "Distinguish speakers in a recording",
       "speechSeparation": "Separate vocals from accompaniment",
-      "imageSegmentation": "Remove image backgrounds"
+      "imageSegmentation": "Remove image backgrounds",
+      "imageUpscaling": "Image upscaling",
+      "imageInpainting": "Repair selected areas",
+      "imageSelection": "Smart selection",
+      "imageDepth": "Relative depth"
     },
     "redownload": "Download again",
     "groups": {
@@ -96,7 +100,14 @@
       "u2netp": "Lightweight background removal with faster processing.",
       "u2net": "Full background removal model with longer processing times.",
       "sherpaDiarizationFull": "Full-precision speaker identification with automatic or specified speaker count.",
-      "spleeter2StemsFull": "Full-precision vocal and accompaniment separation; audio up to ten minutes."
+      "spleeter2StemsFull": "Full-precision vocal and accompaniment separation; audio up to ten minutes.",
+      "realEsrganGeneralX4v3": "Compact general image upscaling. Native ×4 inference; output can be sized to 2K, 4K or 8K.",
+      "realEsrganX4plus": "Full general image upscaling model; longer CPU processing times.",
+      "migan": "Brush or smart-selection repair. Unselected pixels are preserved; no text-guided object search.",
+      "efficientSamTi": "Compact point and box selection with exclusion points. Produces a binary mask, not hair-level matting.",
+      "efficientSamS": "Larger point and box selection model with the same editing controls.",
+      "depthAnythingV2Small": "Full-precision relative inverse depth. Near objects appear brighter; this is not a distance measurement.",
+      "depthAnythingV2SmallUint8": "Smaller quantized relative inverse-depth model. Near objects appear brighter; this is not a distance measurement."
     },
     "selectedVoiceModel": "For new reference voices; saved voices are unaffected.",
     "modelSize": "Model files {size}",
@@ -115,7 +126,11 @@
       "speechAlignment": "Alignment",
       "speechDiarization": "Speakers",
       "speechSeparation": "Stem separation",
-      "imageSegmentation": "Background removal"
+      "imageSegmentation": "Background removal",
+      "imageUpscaling": "Image upscaling",
+      "imageInpainting": "Repair selected areas",
+      "imageSelection": "Smart selection",
+      "imageDepth": "Relative depth"
     },
     "filters": {
       "all": "All models",

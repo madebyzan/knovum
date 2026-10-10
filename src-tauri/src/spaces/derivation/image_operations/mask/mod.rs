@@ -1,78 +1,23 @@
-use std::io::Cursor;
-
-use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{ImageFormat, Rgb, RgbImage, Rgba, RgbaImage};
+use image::{Rgb, RgbImage};
 use tokio_util::sync::CancellationToken;
 
 use super::contracts::MaskStroke;
 
 const MAX_MASK_PIXEL_VISITS: u64 = 200_000_000;
 
-pub fn encode(
-    width: u32,
-    height: u32,
-    strokes: &[MaskStroke],
-    cancellation: &CancellationToken,
-) -> Result<String, String> {
-    Ok(format!(
-        "data:image/png;base64,{}",
-        STANDARD.encode(encode_png(width, height, strokes, cancellation)?)
-    ))
-}
-
-pub fn encode_png(
-    width: u32,
-    height: u32,
-    strokes: &[MaskStroke],
-    cancellation: &CancellationToken,
-) -> Result<Vec<u8>, String> {
-    let mask = rasterize(width, height, strokes, cancellation)?;
-    let mut png = Vec::new();
-    image::DynamicImage::ImageRgb8(mask)
-        .write_to(&mut Cursor::new(&mut png), ImageFormat::Png)
-        .map_err(|error| format!("Object removal mask could not be encoded: {error}"))?;
-    if png.len() > 10 * 1024 * 1024 {
-        return Err("Object removal mask exceeds its byte budget".into());
-    }
-    Ok(png)
-}
-
-pub fn encode_openai(
-    width: u32,
-    height: u32,
-    strokes: &[MaskStroke],
-    cancellation: &CancellationToken,
-) -> Result<Vec<u8>, String> {
-    let selection = rasterize(width, height, strokes, cancellation)?;
-    let mut mask = RgbaImage::new(width, height);
-    for y in 0..height {
-        if cancellation.is_cancelled() {
-            return Err("Image operation was cancelled".into());
-        }
-        for x in 0..width {
-            mask.put_pixel(x, y, Rgba([0, 0, 0, 255 - selection.get_pixel(x, y)[0]]));
-        }
-    }
-    let mut png = Vec::new();
-    image::DynamicImage::ImageRgba8(mask)
-        .write_to(&mut Cursor::new(&mut png), ImageFormat::Png)
-        .map_err(|error| format!("Object removal mask could not be encoded: {error}"))?;
-    if png.len() > 10 * 1024 * 1024 {
-        return Err("Object removal mask exceeds the provider limit".into());
-    }
-    Ok(png)
-}
-
-fn rasterize(
+pub(super) fn rasterize(
     width: u32,
     height: u32,
     strokes: &[MaskStroke],
     cancellation: &CancellationToken,
 ) -> Result<RgbImage, String> {
-    if !(512..=4096).contains(&width) || !(512..=4096).contains(&height) {
-        return Err(
-            "Object removal requires an image between 512 and 4096 pixels on each side".into(),
-        );
+    if width == 0
+        || height == 0
+        || width > 16384
+        || height > 16384
+        || u64::from(width) * u64::from(height) > 16_777_216
+    {
+        return Err("Image mask exceeds the admitted pixel budget".into());
     }
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());

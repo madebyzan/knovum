@@ -42,7 +42,7 @@ def test_alignment_session_accepts_the_frozen_torch_device(tmp_path: Path, devic
         "cpuThreads": 2,
     }
     params = validate_params(RuntimeInitializeParams, request.params)
-    assert isinstance(_create_engine(params, tmp_path, tmp_path), AlignmentEngine)
+    assert isinstance(_create_engine(params, tmp_path, tmp_path, params.device_profile), AlignmentEngine)
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda", "mps", "vulkan"])
@@ -64,5 +64,5 @@ def test_compiled_alignment_initializes_without_torch(
     params = validate_params(RuntimeInitializeParams, request.params)
     monkeypatch.setitem(sys.modules, "torch", None)
     _configure_engine_threads(params)
-    assert isinstance(_create_engine(params, tmp_path, tmp_path), AlignmentEngine)
+    assert isinstance(_create_engine(params, tmp_path, tmp_path, params.device_profile), AlignmentEngine)
     assert os.environ["OMP_NUM_THREADS"] == "2"

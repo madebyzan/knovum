@@ -19,6 +19,8 @@ struct InferenceWireSchemas {
     shutdown_result: crate::ai::contracts::runtime::RuntimeShutdownAcknowledgement,
     embedding_params: crate::ai::contracts::embedding_wire::EmbeddingEncodeParams,
     embedding_result: crate::ai::contracts::embedding_wire::EmbeddingEncoding,
+    image_compute_params: crate::ai::contracts::image_compute::ImageComputeParams,
+    image_compute_output: crate::ai::contracts::image_compute::ImageComputationOutput,
     image_segment_params: crate::ai::contracts::image_wire::ImageSegmentParams,
     image_segment_result: crate::ai::contracts::image_wire::ImageSegmentation,
     speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
@@ -39,6 +41,7 @@ struct InferenceWireSchemas {
     speech_separate_result: crate::ai::contracts::speech_wire::SpeechSeparation,
 }
 
+mod action_schemas;
 mod bindings;
 
 pub fn export(project_root: &Path) -> Result<(), String> {
@@ -116,15 +119,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
 
 fn export_schemas(output: &Path) -> Result<(), String> {
     std::fs::create_dir_all(output).map_err(io_error)?;
-    let action_schemas = crate::spaces::actions::definitions()
-        .iter()
-        .map(|definition| {
-            (
-                definition.id.to_owned(),
-                crate::spaces::actions::parameter_schema(definition),
-            )
-        })
-        .collect::<serde_json::Map<_, _>>();
+    let action_schemas = action_schemas::export()?;
     write_json(
         &output.join("space-action-parameters.schema.json"),
         &action_schemas,

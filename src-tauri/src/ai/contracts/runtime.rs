@@ -14,6 +14,10 @@ pub enum RuntimeCapability {
     SpeechSynthesis,
     SpeechSeparation,
     ImageSegmentation,
+    ImageUpscaling,
+    ImageInpainting,
+    ImageSelection,
+    ImageDepth,
 }
 
 impl RuntimeCapability {
@@ -26,6 +30,10 @@ impl RuntimeCapability {
             Self::SpeechSynthesis => "speech.synthesize",
             Self::SpeechSeparation => "speech.separate",
             Self::ImageSegmentation => "image.segment",
+            Self::ImageUpscaling => "image.upscale",
+            Self::ImageInpainting => "image.inpaint",
+            Self::ImageSelection => "image.select",
+            Self::ImageDepth => "image.depth",
         }
     }
 }
@@ -38,7 +46,7 @@ pub struct RuntimeDeviceProfile {
     pub cpu_threads: u8,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Default, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RuntimeModelPaths {
     pub embedding: Option<String>,
@@ -48,6 +56,7 @@ pub struct RuntimeModelPaths {
     pub speech_synthesis: Option<String>,
     pub speech_separation: Option<String>,
     pub image_segmentation: Option<String>,
+    pub image_processing: Option<super::image_compute::ImageRuntimeModelPath>,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

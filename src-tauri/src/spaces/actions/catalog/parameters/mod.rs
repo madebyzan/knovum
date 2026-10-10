@@ -1,5 +1,8 @@
 #![allow(dead_code)] // These structs are the source of generated JSON Schemas.
 
+mod image_transforms;
+pub(super) use image_transforms::image_transform;
+
 use std::sync::OnceLock;
 
 use schemars::{schema_for, JsonSchema};

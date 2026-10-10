@@ -3,6 +3,9 @@
 
 from ._internal import (
     AgentContentDelta,
+    AgentContentPart,
+    AgentContentPartVariant1,
+    AgentContentPartVariant2,
     AgentInputMessage,
     AgentInputRole,
     AgentPlanItem,
@@ -14,6 +17,9 @@ from ._internal import (
 
 __all__ = [
     "AgentContentDelta",
+    "AgentContentPart",
+    "AgentContentPartVariant1",
+    "AgentContentPartVariant2",
     "AgentInputMessage",
     "AgentInputRole",
     "AgentPlanItem",

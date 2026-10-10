@@ -10,12 +10,17 @@ from knovum_inference.contracts.generated.alignment import SpeechAlignment, Spee
 from knovum_inference.contracts.generated.control import RuntimeCapability
 from knovum_inference.contracts.generated.diarization import SpeechDiarization, SpeechDiarizeParams
 from knovum_inference.contracts.generated.embedding import EmbeddingEncodeParams, EmbeddingEncoding
-from knovum_inference.contracts.generated.image import ImageSegmentation, ImageSegmentParams
+from knovum_inference.contracts.generated.image import (
+    ImageComputationOutput,
+    ImageComputeParams,
+    ImageSegmentation,
+    ImageSegmentParams,
+)
 from knovum_inference.contracts.generated.separation import SpeechSeparateParams, SpeechSeparation
 from knovum_inference.contracts.generated.synthesis import SpeechSynthesis, SpeechSynthesizeParams
 from knovum_inference.contracts.generated.transcription import SpeechTranscribeParams, SpeechTranscription
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.runtime import execution
+from knovum_inference.runtime import execution, image_execution
 from knovum_inference.runtime.active_request import ActiveRequest
 from knovum_inference.runtime.session import Session
 from knovum_inference.transport.protocol import ProtocolWriter
@@ -24,6 +29,7 @@ from knovum_inference.transport.validation import validate_params
 InferenceParams = (
     EmbeddingEncodeParams
     | ImageSegmentParams
+    | ImageComputeParams
     | SpeechAlignParams
     | SpeechDiarizeParams
     | SpeechSeparateParams
@@ -95,6 +101,18 @@ INFERENCE_METHODS = {
         SpeechSeparateParams,
         SpeechSeparation,
         execution.speech_separate,
+    ),
+    "image.upscale": InferenceMethod.bind(
+        RuntimeCapability.image_upscaling, ImageComputeParams, ImageComputationOutput, image_execution.execute
+    ),
+    "image.inpaint": InferenceMethod.bind(
+        RuntimeCapability.image_inpainting, ImageComputeParams, ImageComputationOutput, image_execution.execute
+    ),
+    "image.select": InferenceMethod.bind(
+        RuntimeCapability.image_selection, ImageComputeParams, ImageComputationOutput, image_execution.execute
+    ),
+    "image.depth": InferenceMethod.bind(
+        RuntimeCapability.image_depth, ImageComputeParams, ImageComputationOutput, image_execution.execute
     ),
     "image.segment": InferenceMethod.bind(
         RuntimeCapability.image_segmentation, ImageSegmentParams, ImageSegmentation, execution.image_segment

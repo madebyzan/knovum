@@ -17,9 +17,13 @@ enum Handler {
     Video,
     Subtitles,
     Document,
+    ImageTransform,
 }
 
 fn handler(action_id: &str) -> Option<Handler> {
+    if crate::spaces::actions::is_image_transform(action_id) {
+        return Some(Handler::ImageTransform);
+    }
     match action_id {
         "answer-with-sources" => Some(Handler::Answer),
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => {
@@ -51,6 +55,16 @@ pub(crate) async fn execute(
             .await?;
     let request = request_value(&authority.run_id, space_id, parameters, &prepared)?;
     match handler(action_id) {
+        Some(Handler::ImageTransform) => Ok(serialize(
+            super::image_operations::derive_for_action(
+                app.clone(),
+                decode(request)?,
+                quiet_channel(),
+                &authority,
+                cancellation,
+            )
+            .await?,
+        )?),
         Some(Handler::Answer) => {
             super::grounded_answer::answer(app, decode(request)?, &authority, cancellation).await
         }

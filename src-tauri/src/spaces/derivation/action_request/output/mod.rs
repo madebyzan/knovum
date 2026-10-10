@@ -10,6 +10,7 @@ use crate::spaces::{
     structure::{self, SizingMode},
 };
 
+mod image;
 mod media;
 
 pub(super) async fn reserve(
@@ -21,6 +22,9 @@ pub(super) async fn reserve(
     request: &mut Map<String, Value>,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
+    if crate::spaces::actions::is_image_transform(action_id) {
+        image::request(inputs, request)?;
+    }
     match action_id {
         "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
         "render-presentation"
@@ -55,6 +59,12 @@ fn build_pending_output_content(
     inputs: &ResolvedInputs,
 ) -> Result<Option<(&'static str, Value)>, AppError> {
     let title = title(parameters, inputs)?;
+    if crate::spaces::actions::is_image_transform(action_id) {
+        return Ok(Some((
+            "image",
+            json!({"kind":"image","title":title,"fileName":format!("{title}.png"),"assetPath":super::super::output_paths::reserve(app,"generated","png")?,"processingState":"processing"}),
+        )));
+    }
     let output = match action_id {
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => (
             "markdown",
@@ -90,7 +100,7 @@ fn build_pending_output_content(
             )?;
             (
                 "file",
-                json!({"kind":"file", "title":title, "fileName":format!("{title}.{}", format.extension), "assetPath":super::super::output_paths::reserve(app, "document", format.extension)?, "processingState":"processing"}),
+                json!({"kind":"file", "title":title, "fileName":format!("{title}.{}", target.extension), "assetPath":super::super::output_paths::reserve(app, "document", target.extension)?, "processingState":"processing"}),
             )
         }
         _ => return Ok(None),

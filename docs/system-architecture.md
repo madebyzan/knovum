@@ -382,3 +382,17 @@ not establish clean installation, GPU execution, OS integration, cancellation, r
 signing, or update acceptance. Each release candidate requires the real-machine evidence listed in
 [platform-matrix.md](platform-matrix.md) and the artifact controls in
 [release.md](release.md).
+
+## Local image execution ownership
+
+`local_resources` owns the image model catalog, immutable multi-file snapshots and preparation leases.
+The image runtime owner shares the existing WorkerSlot, admission, deadline, cancellation and idle
+reclamation with other inference capabilities. Operation-specific ONNX adapters live in
+`knovum_inference`; Rust owns image decoding, rendered coordinates, alpha composition and PNG assets.
+New image methods use typed bounded tensor references, independently of U²-Net's existing 320px contract.
+
+Spaces registers image transformations as ordinary durable SpaceActions. Renderer controls never
+reserve output assets or submit a parallel image executor. The existing Run owns preparation/execution;
+publication requires its authority and freezes the input revision/edit and explicit model target.
+Ephemeral smart-selection previews have a cancellable request owner and produce no history or assets.
+Canvas controls reuse the existing operation gate, selection surface and bar density/placement policy.

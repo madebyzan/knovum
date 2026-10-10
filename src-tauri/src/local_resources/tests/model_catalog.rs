@@ -213,3 +213,45 @@ fn catalog_availability_is_supplied_by_application_composition() {
         None
     );
 }
+
+#[test]
+fn image_choices_prepare_their_complete_snapshot_without_recursion() {
+    let choices = [
+        LocalModelId::RealEsrganGeneralX4v3,
+        LocalModelId::RealEsrganX4plus,
+        LocalModelId::Migan,
+        LocalModelId::EfficientSamTi,
+        LocalModelId::EfficientSamS,
+        LocalModelId::DepthAnythingV2SmallUint8,
+        LocalModelId::DepthAnythingV2Small,
+    ];
+    let mut identities = std::collections::HashSet::new();
+    for model in choices {
+        let snapshot = model.snapshot().unwrap();
+        assert!(identities.insert(snapshot.digest()));
+        assert!(snapshot.models() == model.preparation().models().unwrap());
+        assert!(snapshot
+            .models()
+            .iter()
+            .all(|part| catalog::descriptor(*part).snapshot == snapshot));
+        assert_eq!(
+            snapshot.runtime_profile(),
+            super::super::runtimes::python::RuntimeProfile::LightInference
+        );
+        assert!(
+            snapshot.models().len() >= 2,
+            "Weights and license are one snapshot"
+        );
+        assert!(super::super::models::sources::for_snapshot(snapshot).is_none());
+    }
+    assert!(
+        LocalModelId::EfficientSamTi
+            .snapshot()
+            .unwrap()
+            .total_bytes()
+            < LocalModelId::EfficientSamS
+                .snapshot()
+                .unwrap()
+                .total_bytes()
+    );
+}

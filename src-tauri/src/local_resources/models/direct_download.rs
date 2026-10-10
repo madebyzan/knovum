@@ -16,9 +16,24 @@ pub(super) async fn snapshot(
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let client = download::client()?;
-    let total = snapshot.total_bytes();
-    let mut completed = 0;
-    for kind in snapshot.models() {
+    let total = snapshot.download_bytes();
+    let archive = match snapshot {
+        SnapshotKind::Image(variant) => variant.archive(),
+        _ => None,
+    };
+    let mut completed = if let Some(archive) = archive {
+        archive
+            .download(snapshot, directory, progress, cancellation)
+            .await?;
+        archive.bytes
+    } else {
+        0
+    };
+    for kind in snapshot
+        .models()
+        .iter()
+        .filter(|kind| !archive.is_some_and(|archive| archive.owns(**kind)))
+    {
         let descriptor = catalog::descriptor(*kind);
         download::to_path(
             client.get(catalog::direct_url(*kind)),

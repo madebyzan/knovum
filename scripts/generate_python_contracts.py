@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Any
 
 # This map selects file ownership only. Rust remains the source of every wire field and type name.
 CONTRACT_MODULES = {
@@ -16,6 +17,8 @@ CONTRACT_MODULES = {
     },
     "control": {
         "RuntimeCapability",
+        "ImageRuntimeModelPath",
+        "ImageModelVariant",
         "RuntimeDeviceProfile",
         "RuntimeModelPaths",
         "RuntimeLimits",
@@ -30,7 +33,17 @@ CONTRACT_MODULES = {
         "RuntimeSession",
     },
     "embedding": {"EmbeddingRole", "EmbeddingEncoding", "EmbeddingEncodeParams"},
-    "image": {"TensorDataType", "TensorFileReference", "ImageSegmentation", "ImageSegmentParams"},
+    "image": {
+        "TensorDataType",
+        "TensorFileReference",
+        "ImageSegmentation",
+        "ImageSegmentParams",
+        "ImageComputeParams",
+        "ImageComputation",
+        "ImageSelectionPoint",
+        "ImageSelectionRect",
+        "ImageComputationOutput",
+    },
     "audio": {"AudioFileReference"},
     "transcription": {
         "AsrEngine",
@@ -53,7 +66,12 @@ CONTRACT_MODULES = {
         "AlignedSpeechUnit",
         "SpeechAlignment",
     },
-    "diarization": {"SpeakerCountBounds", "SpeakerTurn", "SpeechDiarizeParams", "SpeechDiarization"},
+    "diarization": {
+        "SpeakerCountBounds",
+        "SpeakerTurn",
+        "SpeechDiarizeParams",
+        "SpeechDiarization",
+    },
     "synthesis": {
         "VoiceSourceKind",
         "SpeechSynthesisEngine",
@@ -131,14 +149,31 @@ def codegen_options(base_class: str) -> list[str]:
     ]
 
 
+def namespace_references(value: Any, owners: dict[str, str]) -> Any:
+    if isinstance(value, list):
+        return [namespace_references(item, owners) for item in value]
+    if not isinstance(value, dict):
+        return value
+    return {
+        key: f"#/$defs/{owners[item[8:]]}.{item[8:]}"
+        if key == "$ref" and item.startswith("#/$defs/")
+        else namespace_references(item, owners)
+        for key, item in value.items()
+    }
+
+
 def generate_owned_contracts(capability: str, modules: dict[str, set[str]], schema_name: str) -> None:
     root = Path(__file__).resolve().parents[1] / "python"
     schema = json.loads((root / f"schemas/{capability}.schema.json").read_text())
     owners = {name: module for module, names in modules.items() for name in names}
     if len(owners) != sum(len(names) for names in modules.values()) or owners.keys() != schema["$defs"].keys():
         raise ValueError("Every Rust wire definition must have exactly one Python contract module")
+    schema = namespace_references(schema, owners)
+    schema["$defs"] = {f"{owners[name]}.{name}": definition for name, definition in schema["$defs"].items()}
     for name, definition in schema["$defs"].items():
-        definition["title"] = f"{owners[name]}.{name}"
+        definition["title"] = name
+        for position, variant in enumerate(definition.get("oneOf", []), start=1):
+            variant["title"] = f"{name}Variant{position}"
     schema["title"] = f"schema.{schema_name}"
     output = root / f"src/knovum_{capability}/contracts/generated"
     with tempfile.TemporaryDirectory(prefix="knovum-contracts-") as directory:

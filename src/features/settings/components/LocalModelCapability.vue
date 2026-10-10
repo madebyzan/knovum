@@ -6,11 +6,12 @@ import { useI18n } from "vue-i18n";
 
 import { formatBytes } from "../../../foundation/format/bytes";
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
+import type { LocalModelCapability } from "../../../shared/contracts/generated/LocalModelCapability";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import LocalModelConfiguration from "./LocalModelConfiguration.vue";
 
 const props = defineProps<{
-  capability: string;
+  capability: LocalModelCapability;
   models: readonly LocalModelAvailability[];
   visibleIds: ReadonlySet<string>;
   filtering: boolean;

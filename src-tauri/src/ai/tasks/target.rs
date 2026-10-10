@@ -5,7 +5,7 @@ use crate::ai::{
     models::{ModelExecutionTarget, ModelTargetSelection},
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema, ts_rs::TS)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",

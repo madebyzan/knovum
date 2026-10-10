@@ -31,23 +31,7 @@ impl ResourcePreparationTarget {
             Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_MODELS),
             Self::SpeechSynthesis => Some(catalog::MOSS_NANO_MODELS),
             Self::VoiceDesign => Some(catalog::VOXCPM2_MODELS),
-            Self::Model { model } if model.is_transcription() => Some(model.transcription_models()),
-            Self::Model {
-                model: crate::local_resources::model_catalog::LocalModelId::U2net,
-            } => Some(catalog::IMAGE_SEGMENTATION_QUALITY_MODELS),
-            Self::Model {
-                model: crate::local_resources::model_catalog::LocalModelId::Spleeter2StemsFull,
-            } => Some(catalog::SPEECH_SEPARATION_FULL_MODELS),
-            Self::Model {
-                model: crate::local_resources::model_catalog::LocalModelId::SherpaDiarizationFull,
-            } => Some(catalog::DiarizationVariant::Full.models()),
-            Self::Model {
-                model: crate::local_resources::model_catalog::LocalModelId::Qwen3AlignerQ8,
-            } => Some(catalog::QWEN3_ALIGNER_Q8_MODELS),
-            Self::Model {
-                model: crate::local_resources::model_catalog::LocalModelId::VoxCpm2Q8,
-            } => Some(catalog::VOXCPM2_Q8_MODELS),
-            Self::Model { model } => model.preparation().models(),
+            Self::Model { model } => model.snapshot().map(|snapshot| snapshot.models()),
             Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),

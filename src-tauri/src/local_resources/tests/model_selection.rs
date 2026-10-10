@@ -6,6 +6,10 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2),
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2Q8),
         (Group::ImageSegmentation, LocalModelId::U2net),
+        (Group::ImageUpscaling, LocalModelId::RealEsrganX4plus),
+        (Group::ImageInpainting, LocalModelId::Migan),
+        (Group::ImageSelection, LocalModelId::EfficientSamS),
+        (Group::ImageDepth, LocalModelId::DepthAnythingV2SmallUint8),
         (Group::SpeechAlignment, LocalModelId::Qwen3AlignerQ8),
         (Group::SpeechSeparation, LocalModelId::Spleeter2StemsFull),
         (

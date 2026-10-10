@@ -15,7 +15,7 @@ const reasonKeys: Record<ImageActionReason, string> = {
   configuration_incomplete: "spaces.media.imageEditor.errors.modelUnavailable",
   provider_unsupported: "spaces.media.imageEditor.errors.providerUnsupported",
   credential_unavailable: "spaces.media.imageEditor.errors.credentialUnavailable",
-  upscale_min_size: "spaces.media.imageEditor.upscale.minSize",
+  upscale_source_budget: "spaces.media.imageEditor.upscale.sourceBudget",
   upscale_target_too_small: "spaces.media.imageEditor.upscale.targetTooSmall",
   prompt_required: "spaces.media.imageEditor.layers.promptRequired",
 };

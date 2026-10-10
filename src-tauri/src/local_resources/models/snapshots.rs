@@ -5,6 +5,7 @@ use super::catalog::{self, ModelKind};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub(crate) enum SnapshotKind {
+    Image(catalog::ImageModelVariant),
     Diarization(catalog::DiarizationVariant),
     Whisper(catalog::WhisperVariant),
     FasterWhisper,
@@ -41,7 +42,8 @@ impl SnapshotKind {
                 catalog::WhisperVariant::MlxTiny | catalog::WhisperVariant::MlxLargeV3,
             ) => P::TorchInference,
             Self::FasterWhisper => faster_whisper_runtime(),
-            Self::MossNano
+            Self::Image(_)
+            | Self::MossNano
             | Self::ImageSegmentation
             | Self::ImageSegmentationQuality
             | Self::SpeechSeparation
@@ -53,6 +55,7 @@ impl SnapshotKind {
     }
     pub(crate) const fn name(self) -> &'static str {
         match self {
+            Self::Image(variant) => variant.name(),
             Self::Whisper(variant) => match variant {
                 catalog::WhisperVariant::FasterTiny => "faster-whisper-tiny",
                 catalog::WhisperVariant::FasterLargeV3 => "faster-whisper-large-v3",
@@ -77,6 +80,7 @@ impl SnapshotKind {
 
     pub(crate) const fn models(self) -> &'static [ModelKind] {
         match self {
+            Self::Image(variant) => variant.models(),
             Self::Whisper(variant) => variant.models(),
             Self::FasterWhisper => catalog::FASTER_WHISPER_MODELS,
             Self::MlxWhisper => catalog::MLX_WHISPER_MODELS,
@@ -106,6 +110,24 @@ impl SnapshotKind {
                 }
             })
             .collect()
+    }
+
+    pub(crate) fn download_bytes(self) -> u64 {
+        match self {
+            Self::Image(variant) if variant.archive().is_some() => {
+                let archive = variant
+                    .archive()
+                    .expect("Guard checked the release archive");
+                let unpacked: u64 = self
+                    .models()
+                    .iter()
+                    .filter(|kind| archive.owns(**kind))
+                    .map(|kind| catalog::descriptor(*kind).download_size)
+                    .sum();
+                self.total_bytes() - unpacked + archive.bytes
+            }
+            _ => self.total_bytes(),
+        }
     }
 
     pub(crate) fn total_bytes(self) -> u64 {

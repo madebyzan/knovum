@@ -35,6 +35,7 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
             speech_synthesis: None,
             speech_separation: None,
             image_segmentation: None,
+            image_processing: None,
         },
     };
     let startup = Worker::start(

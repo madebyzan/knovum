@@ -15,9 +15,16 @@ pub(super) fn for_execution(
         (C::SpeechAlignment, id) if id.starts_with("qwen3-forced-aligner-0.6b-q8_0-") => {
             Ok(P::VoiceGeneration)
         }
-        (C::ImageSegmentation | C::SpeechSeparation | C::SpeechDiarization, _) => {
-            Ok(P::LightInference)
-        }
+        (
+            C::ImageSegmentation
+            | C::ImageUpscaling
+            | C::ImageInpainting
+            | C::ImageSelection
+            | C::ImageDepth
+            | C::SpeechSeparation
+            | C::SpeechDiarization,
+            _,
+        ) => Ok(P::LightInference),
         (
             C::SpeechTranscription,
             "mlx-whisper-small-mps-v1" | "mlx-whisper-tiny-mps-v1" | "mlx-whisper-large-v3-mps-v1",

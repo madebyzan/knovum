@@ -185,9 +185,9 @@ fail explicitly, without conversion or automatic deletion. Qwen vectors are fixe
 
 U²-Net Compact/full snapshots are 4,574,861 / 175,997,641 bytes and share the same ONNX mask and
 Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
-the exact source timeline and two-output review contract. Both separation models execute on CPU;
+the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
 no qualified GPU path is implemented for this engine. A precision choice changes the model rather
-than the operation or the user's acceptance responsibility.
+than the operation or its publication semantics.
 
 Speaker variants use the shared snapshot installer, preparation, leases and removal path. Their
 public sources need no account or import. The supported clustering controls follow the
@@ -220,3 +220,127 @@ First-time voice design passes the description without a reference transcript. O
 candidate is selected, its immutable recording and matching text form the reference for exact
 cloning. The design description remains provenance, rather than being reapplied during generation.
 This preserves the selected voice identity. See the [pinned official VoxCPM2 model card](https://huggingface.co/openbmb/VoxCPM2/resolve/32279effe8c19989596f05d353d1447f51d9e915/README.md).
+
+## Image inference snapshots
+
+Image resources use the same snapshot installer, verification, preparation task, leases and removal
+owner as speech models. The catalog adds independent defaults for `imageUpscaling`, `imageInpainting`,
+`imageSelection` and `imageDepth`; background removal keeps `imageSegmentation` and its existing default.
+Selections are strict current v1 preferences, not an arbitrary model-import mechanism.
+
+| Capability      | Catalog variants                     | Frozen inference contract                                                                                         |
+| --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles, native 4×                            |
+| Mask repair     | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte    |
+| Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
+| Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
+
+The resource catalog is authoritative for immutable URLs, exact hashes, file sets and bytes. Every
+snapshot includes its license; depth also includes its processor and conversion model card.
+Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;
+transfer size is distinct from installed size. Complete multi-file snapshots are required before use.
+The capability specification incorporates the complete snapshot digest. LightInference and its
+existing ONNX Runtime 1.22.1 are reused; no Torch training dependency or second download service is added.
+
+Initial CPU admission reservations are conservative guards, not measured performance claims.
+Upscaling admits at most 4,194,304 rendered source pixels and a 4096px side; inference uses 128px
+context tiles and publishes the requested 2K/4K/8K image. Repair/selection/depth admit at most
+16,777,216 rendered source pixels. The existing image renderer also bounds original sides at 10,000px.
+Selection reduces the encoding input to a 2048px bounding size; depth
+uses its pinned processor with at most 1,048,576 normalized pixels. Output tensors are bounded at
+256 MiB, canonical PNG assets at 64 MiB. Qualification must measure the actual selected model,
+compiled runtime inventory, latency, cancellation and peak memory on every supported target.
+
+BiRefNet Lite, LaMa, MobileSAM and larger noncommercial depth variants are not installed by this
+change: a complete qualified and redistributable graph chain has not been established. A missing
+second repair/background candidate is an unmet qualification item, not a renamed existing model.
+Snapshot presence and adapter tests alone do not establish release qualification.
+
+### Image adapter evidence — 2026-10-10
+
+Seven frozen graphs were loaded and inferred through their source adapters with the installed
+macOS x64 LightInference native ONNX Runtime 1.22.1, CPU provider, four intra-op threads and
+one inter-op thread. Development generation directory:
+`ba6b3ec1862d5a16bbfcef32a574ae77f772c9d07d9d6a72a91cf7231b827b1c`.
+The runtime manifest digest used by initialization is
+`79d2ff3a97602d7ff871c8d1f45c734a90b1066cc83dd970b3c22ff1a40e8567`.
+This is source-adapter evidence against the managed native libraries, not rebuilt-worker or
+cross-platform release qualification. The 128×96 RGB fixture is the public-domain
+[NASA astronaut photograph supplied by scikit-image](https://scikit-image.org/docs/0.25.2/api/skimage.data.html#skimage.data.astronaut),
+whose downloaded PNG SHA-256 is
+`88431cd9653ccd539741b555fb0a46b61558b301d4110412b5bc28b5e3ea6cb5`.
+Depth used a 518×392 normalized input derived from the same photograph. Results from this
+single photograph establish execution and tensor behavior, not general visual quality.
+
+| Variant                     | Load (s) | First inference (s) | Warm inference (s) | Process peak RSS (MiB) |
+| --------------------------- | -------- | ------------------- | ------------------ | ---------------------- |
+| `realEsrganGeneralX4v3`     | 0.36     | 3.63                | 4.12               | 107.7                  |
+| `realEsrganX4plus`          | 2.41     | 41.45               | 34.87              | 570.3                  |
+| `migan`                     | 1.47     | 3.08                | 2.85               | 981.6                  |
+| `efficientSamTi`            | 5.65     | 11.31               | 0.53               | 726.7                  |
+| `efficientSamS`             | 6.73     | 20.17               | 0.19               | 1351.5                 |
+| `depthAnythingV2Small`      | 3.43     | 3.05                | 3.04               | 436.4                  |
+| `depthAnythingV2SmallUint8` | 1.98     | 2.86                | 2.74               | 330.2                  |
+
+Outputs had the expected shapes/dtypes and finite values; repeated inference was byte-identical.
+MI-GAN preserved all RGB bytes outside the selected area. Pre-cancelled calls rejected execution;
+in-flight cancellation latency still needs compiled-worker qualification. The UINT8 depth output
+had a 0.99957 correlation and 0.00649 mean absolute difference against normalized FP32 depth
+on this fixture. The signed INT8 graph was rejected by ORT 1.22.1 because its ConvInteger kernel
+was unsupported; it is excluded rather than retried through another runtime or model.
+The UINT8 graph SHA-256 is
+`fcf51f1b230362b28690bb9d1809bf0431f29cad20534e3f589bd7285547f20d`.
+
+Release evidence remains required for macOS arm64 and Windows x64, the multi-category image
+corpus, maximum admitted sizes, tile boundaries, in-flight cancellation, packaged-worker identity,
+and desktop interaction screenshots. Depth-based background blur is withheld until depth-edge
+quality is established. These outstanding checks must not be described as passing.
+
+### Debug Worker protocol evidence — 2026-10-11
+
+All seven variants also ran through the isolated debug-source Worker using the managed interpreter,
+real initialization/compute/health/cancel RPC and the manifest identity above. Repeated outputs were
+byte-identical, and corrupted input digests were rejected. The following timings were captured while
+other development and verification work used the device; they establish protocol behavior, not a
+controlled performance profile. RSS is the health observation after inference, not peak memory.
+The smoke session specification was test-owned; this is not packaged-worker release qualification.
+
+| Variant                     | Initialize (s) | Warm (s) | Observed RSS (MiB) | Cancel (s) | Cancellation outcome |
+| --------------------------- | -------------- | -------- | ------------------ | ---------- | -------------------- |
+| `realEsrganGeneralX4v3`     | 3.44           | 2.98     | 105.5              | 0.64       | cooperative          |
+| `realEsrganX4plus`          | 2.31           | 66.60    | 579.6              | 5.18       | bounded termination  |
+| `migan`                     | 8.71           | 5.81     | 993.3              | 4.56       | cooperative          |
+| `efficientSamTi`            | 7.53           | 0.44     | 746.9              | 5.22       | bounded termination  |
+| `efficientSamS`             | 8.53           | 0.47     | 1283.7             | 5.39       | bounded termination  |
+| `depthAnythingV2Small`      | 5.67           | 4.58     | 446.8              | 4.19       | cooperative          |
+| `depthAnythingV2SmallUint8` | 5.57           | 1.22     | 338.3              | 0.83       | cooperative          |
+
+Cancellation was sent during active inference. Native ONNX calls cannot be interrupted directly;
+SAM encoding and x4plus exceeded the five-second acknowledgement window in this run and needed
+worker termination. The measured termination time includes process exit after that window. No result
+from a cancelled invocation is published; the next request starts a fresh worker through the existing
+lifecycle. Full maximum-size and supported-platform acceptance remains required.
+
+### Image qualification reports
+
+The existing acceptance command has a separate image suite:
+`pnpm inference:acceptance --suite images --corpus <corpus.json> --capture <capture.json> --output <report.json>`.
+Its strict contracts live in `python/tests/acceptance/image_corpus.py`; the same hashed-file resolver,
+execution identities, device evidence and atomic report writer are reused from the core suite.
+
+Preregister each target's model specification, snapshot digest, execution configuration and measured
+load/warm/RSS/cancellation limits before capturing results. Every model profile must cover hair,
+product edges, transparency, text, anime, repeated textures, large selections, thin images and EXIF
+orientation. Each sample records its source URL, license, original bytes, worker-grid RGB tensor and
+binary selected-region tensor with hashes. Worker-grid dimensions include the owning operation's
+source reduction; depth evidence uses that grid before ImageNet normalization. Numeric artifacts
+are frozen `.npy` files, read without pickle. Upscaling must return native 4× RGB, repair must preserve
+unselected RGB exactly, selection must be binary, and depth must be finite, nonconstant and normalized.
+Visual quality needs a named review with notes; numeric validity alone cannot establish good edges,
+alpha composition or tile seams.
+
+Captures bind the compiled Worker and runtime digests, model/configuration, target, device and
+invocation identities. In-flight cancellation timing is distinct from rejecting a pre-cancelled request.
+A missing model capture or reference-only execution reports `unavailable`; failed quality or resource
+limits report `failed`. Current adapter smoke evidence does not satisfy this release gate. The unit
+fixtures are synthetic contract checks and are deliberately not distributed as a qualification corpus.

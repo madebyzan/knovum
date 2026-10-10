@@ -75,7 +75,7 @@ pub struct PreparedModels {
 }
 
 impl PreparedModels {
-    fn directory(&self, kinds: &[ModelKind]) -> Result<PathBuf, String> {
+    pub(crate) fn directory(&self, kinds: &[ModelKind]) -> Result<PathBuf, String> {
         let anchor = self.path(kinds[0])?;
         let directory = anchor
             .parent()

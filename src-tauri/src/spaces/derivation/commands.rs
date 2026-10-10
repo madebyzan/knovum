@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use super::{image_cutout, image_layers, image_operations, video_edit, CompletedDerivationOutput};
+use super::{image_layers, video_edit, CompletedDerivationOutput};
 use crate::app_error::AppError;
 
 #[tauri::command]
@@ -15,23 +15,6 @@ pub async fn generate_image_layers(
 #[tauri::command]
 pub fn cancel_image_layer_generation(generation_id: String) -> Result<(), AppError> {
     Ok((image_layers::cancel(&generation_id))?)
-}
-
-#[tauri::command]
-pub async fn derive_image(
-    app: AppHandle,
-    request: image_operations::DeriveImageRequest,
-    on_stage: tauri::ipc::Channel<String>,
-) -> Result<CompletedDerivationOutput, AppError> {
-    image_operations::derive(app, request, on_stage).await
-}
-
-#[tauri::command]
-pub async fn run_image_cutout_derivation(
-    app: AppHandle,
-    request: image_cutout::StartImageCutoutRequest,
-) -> Result<CompletedDerivationOutput, AppError> {
-    image_cutout::run(app, request).await
 }
 
 #[tauri::command]

@@ -143,3 +143,28 @@ fn exported_read_model_files_match_their_type_identity() {
     assert_identity::<crate::spaces::runs::StepObservation>();
     assert_identity::<crate::spaces::conversations::Conversation>();
 }
+
+#[test]
+fn action_schema_graph_shares_types_and_resolves_nested_references() {
+    use crate::local_resources::model_catalog::LocalModelId;
+    use serde_json::json;
+    let schema = super::action_schemas::export().unwrap();
+    let reference = json!({"$ref":"#/$defs/ImageTransformParameters"});
+    for action in [
+        "upscale-image",
+        "generate-image-depth",
+        "extract-image-selection",
+    ] {
+        assert_eq!(schema["properties"][action], reference);
+    }
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    let model = LocalModelId::RealEsrganGeneralX4v3;
+    let mut parameters = json!({"upscale-image":{
+        "title":"Upscaled image", "operation":{"kind":"upscale","targetLongEdge":2048},
+        "execution":{"type":"local","model":model,"specId":model.image_spec().unwrap()}
+    }});
+    assert!(validator.validate(&parameters).is_ok());
+    parameters["upscale-image"]["operation"]["targetLongEdge"] = json!("2048");
+    assert!(validator.validate(&parameters).is_err());
+    assert!(validator.validate(&json!({"unknown-action":{}})).is_err());
+}

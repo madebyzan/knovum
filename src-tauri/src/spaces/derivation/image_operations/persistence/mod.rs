@@ -14,11 +14,13 @@ use crate::spaces::{
 pub async fn start(
     app: &AppHandle,
     request: &DeriveImageRequest,
-    target: &crate::ai::tasks::TaskExecutionTarget,
+    engine: &str,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
     validation::request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     crate::spaces::knowledge::validation::validate_same_space_node(
         &mut tx,
         &request.space_id,
@@ -55,7 +57,7 @@ pub async fn start(
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(request.operation.action_kind())
-        .bind(match target { crate::ai::tasks::TaskExecutionTarget::Model(model) => request.operation.engine(model.provider(), model.model()), crate::ai::tasks::TaskExecutionTarget::Agent { .. } => target.engine() })
+        .bind(engine)
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     inputs::insert(
         &mut tx,
@@ -78,10 +80,13 @@ pub async fn complete(
     app: &AppHandle,
     request: &DeriveImageRequest,
     image: CanonicalImage,
+    authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, AppError> {
+    let pool = db::pool(app).await?;
     let path = output_file::write(app, &image.png).await?;
-    let completed = complete_persistence(app, request, &image, &path, cancellation).await;
+    let completed =
+        complete_persistence(pool, request, &image, &path, authority, cancellation).await;
     if completed.is_err() {
         let _ = tokio::fs::remove_file(&path).await;
     }
@@ -89,14 +94,15 @@ pub async fn complete(
 }
 
 async fn complete_persistence(
-    app: &AppHandle,
+    pool: &sqlx::SqlitePool,
     request: &DeriveImageRequest,
     image: &CanonicalImage,
     path: &Path,
+    authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, AppError> {
-    let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     source_validation::validate(
         &mut tx,
         &request.space_id,
@@ -148,6 +154,19 @@ async fn persist(
     object.insert("modifiedAt".into(), now.into());
     object.insert("intrinsicWidth".into(), image.width.into());
     object.insert("intrinsicHeight".into(), image.height.into());
+    if matches!(
+        request.operation,
+        super::contracts::ImageOperation::GenerateDepth
+    ) {
+        let super::contracts::ImageExecutionTarget::Local { spec_id, .. } = &request.execution
+        else {
+            return Err("Depth requires a local model".into());
+        };
+        object.insert(
+            "imageDepth".into(),
+            serde_json::json!({"encoding":"relative-inverse-depth-u16-v1","modelSpecId":spec_id}),
+        );
+    }
     object.remove("processingState");
     object.remove("imageEdit");
     object.remove("previewPath");
@@ -174,3 +193,6 @@ async fn persist(
         .map_err(db::sql_error)?;
     Ok(relation)
 }
+
+#[cfg(test)]
+mod tests;

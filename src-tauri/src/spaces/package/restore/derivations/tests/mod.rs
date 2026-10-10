@@ -1,4 +1,17 @@
 use super::*;
+#[test]
+fn accepts_completed_local_selection_and_depth_derivations() {
+    for action in ["extract-image-selection", "generate-image-depth"] {
+        let mut value = derivation();
+        value.as_object_mut().unwrap().remove("generatedVideo");
+        value["actionKind"] = serde_json::json!(action);
+        value["engine"] = serde_json::json!("local:image-spec");
+        assert!(
+            validate(&serde_json::from_value(value).unwrap()).is_ok(),
+            "{action}"
+        );
+    }
+}
 fn derivation() -> serde_json::Value {
     serde_json::json!({"id":"derivation","outputNodeId":"video","inputs":[{"nodeId":"source","sourceIdentity":"source","sourceSnapshot":{"title":"Source","kind":"markdown","originalUrl":null,"platform":null},"role":"primary","sourceRevision":"node1:source","revisionBasis":"knowledge","inputRevision":"node1:source","inputSnapshot":null}],"actionKind":"generate-video","actionVersion":1,"engine":"qwen:wan3.0-video","status":"completed","error":"","createdAt":1,"updatedAt":2,"completedAt":2,"generatedVideo":{"prompt":"Explain the source","aspectRatio":"16:9","durationSeconds":10,"executionSource":{"type":"model","provider":"qwen","model":"wan3.0-video"},"operationId":"task-1"}})
 }

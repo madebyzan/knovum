@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from knovum_agent_runtime.contracts.wire_model import WireModel
 
-from . import AgentToolOutcome
 from ._internal import (
     AgentContentDelta,
     AgentControl,
@@ -21,6 +20,7 @@ from ._internal import (
     AgentReady,
     AgentToolAdmission,
     AgentToolInvocation,
+    AgentToolOutcome,
 )
 
 

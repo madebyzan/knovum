@@ -1,6 +1,8 @@
 pub(crate) use separation::{
     SPLEETER_ACCOMPANIMENT, SPLEETER_FULL_ACCOMPANIMENT, SPLEETER_FULL_VOCALS, SPLEETER_VOCALS,
 };
+mod image;
+pub use image::{ImageModelFile, ImageModelPart, ImageModelVariant};
 mod diarization;
 mod moss_nano;
 pub use diarization::{DiarizationPart, DiarizationVariant};
@@ -50,6 +52,7 @@ use super::{snapshots::SnapshotKind, ModelDescriptor};
 #[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Hash, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub enum ModelKind {
+    ImagePart(ImageModelPart),
     DiarizationPart(DiarizationPart),
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
@@ -165,6 +168,7 @@ pub(crate) const IMAGE_SEGMENTATION_QUALITY: ModelDescriptor = ModelDescriptor {
 
 pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
     match kind {
+        ModelKind::ImagePart(part) => part.descriptor(),
         ModelKind::DiarizationPart(part) => part.descriptor(),
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
@@ -209,6 +213,7 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
 
 pub(super) fn direct_url(kind: ModelKind) -> String {
     match kind {
+        ModelKind::ImagePart(part) => part.url(),
         ModelKind::MossNanoPart(part) => part.url(),
         ModelKind::Qwen3AlignerQ8Weights
         | ModelKind::Qwen3AlignerQ8License

@@ -9,7 +9,6 @@ mod document_source;
 mod failure;
 mod grounded_answer;
 pub(crate) mod grounded_document;
-mod image_cutout;
 pub(crate) mod image_layers;
 pub(crate) mod image_operations;
 pub(crate) mod input_revision;

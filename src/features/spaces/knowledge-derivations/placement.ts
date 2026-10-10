@@ -15,10 +15,6 @@ export function derivedNodePosition(
   return { x: right + 48, y: top };
 }
 
-export function requiredNodePosition(placements: readonly CanvasNodePlacement[], nodeId: string) {
-  return requiredPosition(new Map(placements.map(({ id, x, y }) => [id, { x, y }])), nodeId);
-}
-
 function requiredPosition(positionByNodeId: ReadonlyMap<string, { x: number; y: number }>, nodeId: string) {
   const position = positionByNodeId.get(nodeId);
   if (!position) throw new Error(`Current canvas placement is unavailable for node ${nodeId}`);

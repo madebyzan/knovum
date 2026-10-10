@@ -1,7 +1,5 @@
 use serde::Deserialize;
 
-use super::image_operation::SourceImageOperation;
-
 #[derive(Deserialize)]
 pub struct Response {
     pub output: Option<Output>,
@@ -39,41 +37,18 @@ pub struct ChoiceContent {
     pub image: Option<String>,
 }
 
-pub fn request(operation: SourceImageOperation<'_>) -> (&'static str, serde_json::Value) {
-    match operation {
-        SourceImageOperation::Upscale { data_uri, factor } => (
-            "services/aigc/image2image/image-synthesis",
-            serde_json::json!({
-                "model": "wanx2.1-imageedit",
-                "input": { "function": "super_resolution", "prompt": "Image super resolution", "base_image_url": data_uri },
-                "parameters": { "n": 1, "watermark": false, "upscale_factor": factor }
-            }),
-        ),
-        SourceImageOperation::View { data_uri, prompt } => (
-            "services/aigc/image-generation/generation",
-            serde_json::json!({
-                "model": "qwen-image-3.0-pro",
-                "input": { "messages": [{
-                    "role": "user",
-                    "content": [{ "image": data_uri }, { "text": prompt }]
-                }]},
-                "parameters": { "n": 1, "prompt_extend": true, "watermark": false }
-            }),
-        ),
-        SourceImageOperation::Inpaint { data_uri, mask_uri } => (
-            "services/aigc/image2image/image-synthesis",
-            serde_json::json!({
-                "model": "wanx2.1-imageedit",
-                "input": {
-                    "function": "description_edit_with_mask",
-                    "base_image_url": data_uri,
-                    "mask_image_url": mask_uri,
-                    "prompt": "A natural, unobstructed background continuous with the surrounding scene, matching its texture, lighting, and perspective."
-                },
-                "parameters": { "n": 1, "watermark": false }
-            }),
-        ),
-    }
+pub fn request(data_uri: &str, prompt: &str) -> (&'static str, serde_json::Value) {
+    (
+        "services/aigc/image-generation/generation",
+        serde_json::json!({
+            "model": "qwen-image-3.0-pro",
+            "input": { "messages": [{
+                "role": "user",
+                "content": [{ "image": data_uri }, { "text": prompt }]
+            }]},
+            "parameters": { "n": 1, "prompt_extend": true, "watermark": false }
+        }),
+    )
 }
 
 pub fn image_url(output: &Output) -> Option<&str> {

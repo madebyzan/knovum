@@ -5,7 +5,7 @@ import { buildLocalModelGroups } from "../local-model-groups";
 
 function model(
   modelId: LocalModelAvailability["id"],
-  capability: string,
+  capability: LocalModelAvailability["capability"],
   group: LocalModelAvailability["group"] = "audio",
 ): LocalModelAvailability {
   return {

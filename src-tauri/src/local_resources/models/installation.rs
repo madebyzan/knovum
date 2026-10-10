@@ -119,8 +119,8 @@ pub(super) fn update(
 ) -> ResourcePreparationProgress {
     ResourcePreparationProgress {
         stage,
-        downloaded: snapshot.total_bytes(),
-        total: Some(snapshot.total_bytes()),
+        downloaded: snapshot.download_bytes(),
+        total: Some(snapshot.download_bytes()),
         percent: Some(100),
     }
 }

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from knovum_inference.contracts.wire_model import WireModel
 from pydantic import ConfigDict, Field, RootModel
@@ -16,6 +16,40 @@ class ShapeItem(RootModel[int]):
 
 class TensorDataType(StrEnum):
     float32_little_endian = "float32_little_endian"
+    uint8 = "uint8"
+
+
+class ImageComputationVariant1(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    kind: Literal["upscale"]
+
+
+class ImageComputationVariant4(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    kind: Literal["depth"]
+
+
+class ImageSelectionPoint(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    x: float
+    y: float
+    foreground: bool
+
+
+class ImageSelectionRect(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    x: float
+    y: float
+    width: float
+    height: float
 
 
 class TensorFileReference(WireModel):
@@ -29,14 +63,48 @@ class TensorFileReference(WireModel):
     data_type: Annotated[TensorDataType, Field(alias="dataType")]
 
 
-class ImageSegmentation(WireModel):
+class ImageComputationVariant2(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    mask_ref: Annotated[TensorFileReference, Field(alias="maskRef")]
+    kind: Literal["inpaint"]
+
+
+class ImageComputationVariant3(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    points: list[ImageSelectionPoint]
+    box_rect: Annotated[ImageSelectionRect | None, Field(alias="boxRect")] = None
+    kind: Literal["select"]
+
+
+class ImageComputation(
+    RootModel[
+        ImageComputationVariant1
+        | ImageComputationVariant2
+        | ImageComputationVariant3
+        | ImageComputationVariant4
+    ]
+):
+    root: Annotated[
+        ImageComputationVariant1
+        | ImageComputationVariant2
+        | ImageComputationVariant3
+        | ImageComputationVariant4,
+        Field(title="image.ImageComputation"),
+    ]
+
+
+class ImageComputationOutput(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
     request_id: Annotated[str, Field(alias="requestId")]
     attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    mask_ref: Annotated[TensorFileReference, Field(alias="maskRef")]
+    tensor_ref: Annotated[TensorFileReference, Field(alias="tensorRef")]
 
 
 class ImageSegmentParams(WireModel):
@@ -52,3 +120,29 @@ class ImageSegmentParams(WireModel):
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
     deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
     tensor_ref: Annotated[TensorFileReference, Field(alias="tensorRef")]
+
+
+class ImageSegmentation(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    mask_ref: Annotated[TensorFileReference, Field(alias="maskRef")]
+
+
+class ImageComputeParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
+    attempt_id: Annotated[str, Field(alias="attemptId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    input_revision: Annotated[str, Field(alias="inputRevision")]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    tensor_ref: Annotated[TensorFileReference, Field(alias="tensorRef")]
+    computation: ImageComputation

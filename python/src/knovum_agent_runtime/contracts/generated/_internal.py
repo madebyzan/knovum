@@ -4,12 +4,10 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from knovum_agent_runtime.contracts.wire_model import WireModel
-from pydantic import ConfigDict, Field
-
-from . import AgentContentPart
+from pydantic import ConfigDict, Field, RootModel
 
 
 class AgentInitialize(WireModel):
@@ -113,6 +111,30 @@ class AgentExecute(WireModel):
 class AgentInputRole(StrEnum):
     user = "user"
     assistant = "assistant"
+
+
+class AgentContentPartVariant1(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    text: str
+    type: Literal["text"]
+
+
+class AgentContentPartVariant2(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    mime_type: Annotated[str, Field(alias="mimeType")]
+    data: str
+    type: Literal["image"]
+
+
+class AgentContentPart(RootModel[AgentContentPartVariant1 | AgentContentPartVariant2]):
+    root: Annotated[
+        AgentContentPartVariant1 | AgentContentPartVariant2,
+        Field(title="messages.AgentContentPart"),
+    ]
 
 
 class AgentProjectionRequest(WireModel):
@@ -269,6 +291,43 @@ class AgentToolInvocation(WireModel):
     tool_call_id: Annotated[str, Field(alias="toolCallId")]
     name: str
     arguments: Any
+
+
+class AgentToolOutcomeVariant1(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    operation_id: Annotated[str, Field(alias="operationId")]
+    reason: str
+    type: Literal["await_user"]
+
+
+class AgentToolOutcomeVariant2(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    value: Any
+    media: list[AgentContentPart]
+    type: Literal["completed"]
+
+
+class AgentToolOutcomeVariant3(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    run_id: Annotated[str, Field(alias="runId")]
+    type: Literal["await_child"]
+
+
+class AgentToolOutcome(
+    RootModel[
+        AgentToolOutcomeVariant1 | AgentToolOutcomeVariant2 | AgentToolOutcomeVariant3
+    ]
+):
+    root: Annotated[
+        AgentToolOutcomeVariant1 | AgentToolOutcomeVariant2 | AgentToolOutcomeVariant3,
+        Field(title="tools.AgentToolOutcome"),
+    ]
 
 
 class AgentToolAdmission(WireModel):

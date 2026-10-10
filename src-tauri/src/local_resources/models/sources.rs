@@ -20,7 +20,8 @@ pub(crate) enum HubSource {
 
 pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
     Some(match snapshot {
-        SnapshotKind::MossNano
+        SnapshotKind::Image(_)
+        | SnapshotKind::MossNano
         | SnapshotKind::VoxCpm2
         | SnapshotKind::VoxCpm2Q8
         | SnapshotKind::SpeechAlignmentQ8

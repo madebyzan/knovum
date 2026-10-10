@@ -125,7 +125,7 @@ The Rust Run scheduler is the only execution authority. Personal workflows use t
 
 A **Creation Intent** is a localized capability entry with selection availability. The separate Workflow entry opens the canvas inspector to save or reuse verified chains. Immutable numbered workflow definitions remain in the personal library. Each Run has its own execution grant; retry reuses only successful predecessor results whose recorded resources remain valid.
 
-Capture currently covers registered single-resource Actions: document/image/video generation, subtitle burn-in and supported document conversion. Specialized image transformations still use their existing dedicated executors; without a recorded replayable Action invocation they are rejected by capture rather than reconstructed from relations. Audio generation, Excel generation and batch generation are not added by this change.
+Capture covers registered single-resource Actions: document/image/video generation, subtitle burn-in, supported document conversion/export and image transformations. `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as other Actions. Capture records their frozen parameters and execution identity; it never reconstructs operations from relations. Transient masks and selection previews do not produce Action receipts.
 
 The Builtin Agent has one visible conversation and message store for API models and desktop Agents.
 The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
@@ -407,12 +407,12 @@ area above or below and scrolls within that area. The selection surface owns thi
 for other long node controls as well. The persisted `imageEdit` v1 contract keeps the
 source asset immutable; the canvas renderer projects crop, transform and filter edits. Earlier
 pre-release image edit recipes are rejected explicitly; the old transparency eraser is not a
-same-node edit. Object removal publishes a new image with `derives-from` lineage. With Qwen or a
+same-node edit. Object removal publishes a new image with `derives-from` lineage.
 Changing canvas selection does not discard an image edit draft. The draft remains owned by its
 `(spaceId, nodeId)` session until the user returns to it, applies it or discards it. Leaving the Space,
 route or application with a dirty image draft offers Apply, Discard and Cancel through the shared
 leave boundary; a failed Apply retains the draft.
-GPT Image model, brush selections stay transient and Rust sends the rendered source with a
+With a compatible Qwen or GPT Image model, brush selections stay transient and Rust sends the rendered source with a
 provider-specific mask. With a Gemini, Grok Imagine, Doubao Seedream, SiliconFlow Qwen edit,
 Kling Omni or supported OpenRouter image model (including FLUX.2), the user describes the object
 and Rust sends the rendered source with that instruction. Rust uploads the source to Gemini or xAI
@@ -690,3 +690,34 @@ attempts retain publication journals until both assets, nodes and relations can 
 cleaned up.
 
 Audio and video node toolbars expose transcription as a separate operation. A current edited transcript remains authoritative: the action shows the existing transcript state and cannot silently replace it. A queued, running or resource-waiting enrichment job disables a second submission, including jobs restored from Rust state. Transcript and inspector components are keyed by node identity so local editing state cannot leak to another selection.
+
+### Local image transformations
+
+Image operations pin the current asset revision and saved `imageEdit`; the rendered source and all
+normalized mask/point/box coordinates refer to that same image. Original managed bytes are verified
+before and after rendering. Publication checks the active Run authority, current source/edit and
+cancellation in the existing write transaction. Successful operations automatically publish one new
+node and `derives-from` relation. Crop, rotation, flips and deterministic adjustments remain same-node
+edits. AI background removal, upscaling, repair, selection extraction and depth estimation are derivations.
+
+The explicit execution parameter freezes either a local model with its snapshot-bound specification
+or a configured remote target for multi-angle generation and text-described removal only. Upscaling,
+brush/selection repair, background removal, selection extraction and depth analysis use local models;
+their former provider and external-Agent execution code is removed. Changing preferences affects only
+new invocations; a failed execution does not switch models or engines. Local MI-GAN handles a binary
+selected-region mask, not text-guided localization. These rules own the image Actions and canvas tools;
+conversations retain the built-in/external Agents’ own tool selection without interception.
+
+Smart selection holds points, exclusion points, a rectangle and optional brush additions in a transient
+node session. Six decoder prompts include the rectangle's two corners. Prompt updates serialize on
+one worker and ignore obsolete masks while retaining the current encoding; model/source changes and
+closing the session cancel its work. Only Extract or Repair publishes a derived resource.
+Relative depth is saved as a 16-bit PNG with `imageDepth.encoding = relative-inverse-depth-u16-v1`
+and its frozen model specification. Near regions are brighter; the values are relative, not distances.
+Selection extraction and depth generation are included in both the strict SQLite derivation baseline
+and package restore validation. Cargo watches the migration directory so embedded SQL follows that
+baseline. Existing obsolete development baselines are rejected rather than migrated through aliases.
+The original PNG is the delivery asset: image and managed-asset exports copy it without photo rendering
+or 8-bit conversion. Depth nodes expose no photo-edit tools and reject `imageEdit`; their values are
+analysis data rather than photo colors. Depth-based blur remains unavailable until compositing quality
+has passed its own foreground-edge and alpha acceptance.

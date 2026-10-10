@@ -31,8 +31,7 @@
     "promptPlaceholder": "Describe what to remove…",
     "generate": "Remove and generate",
     "submitting": "Creating the derived image task…",
-    "resultSuffix": "object-removed",
-    "sizeLimit": "Image width and height must be 512–4096 pixels",
+    "sizeLimit": "Use a source within 16 megapixels and 16,384 pixels per side.",
     "limitReached": "Selection limit reached. Generate the image or undo a stroke."
   },
   "adjust": {
@@ -47,8 +46,8 @@
   },
   "upscale": {
     "action": "Upscale",
-    "minSize": "The source image must be at least 512 pixels wide and high",
-    "targetTooSmall": "This size is not larger than the current image"
+    "targetTooSmall": "This size is not larger than the current image",
+    "sourceBudget": "This rendered image exceeds the selected model’s input budget."
   },
   "angle": {
     "title": "Multi-angle",
@@ -124,12 +123,7 @@
     "imagePreparing": "The image is still being prepared"
   },
   "operation": {
-    "task": "Generating image",
-    "failed": "Image generation failed",
-    "stage": {
-      "renderingSource": "Preparing image",
-      "processing": "Generating result"
-    }
+    "execution": "Execution model"
   },
   "finishImageEdit": "Apply or cancel the current image edit first",
   "adjustments": {
@@ -149,5 +143,31 @@
     "grain": "Grain",
     "softLight": "Soft light",
     "glow": "Glow"
+  },
+  "selection": {
+    "title": "Smart selection",
+    "tools": "Selection tools",
+    "include": "Foreground point",
+    "exclude": "Exclude point",
+    "box": "Draw a box",
+    "brush": "Refine with brush",
+    "processing": "Updating selection…",
+    "help": "Click the subject; add exclusion points or a box. Brush to include details. Up to six point prompts.",
+    "repair": "Repair",
+    "extract": "Extract",
+    "undo": "Undo selection",
+    "modelUnavailable": "Select an available selection model in Settings.",
+    "promptLimit": "Up to six prompts. Undo a prompt to continue."
+  },
+  "depth": {
+    "action": "Generate relative depth"
+  },
+  "results": {
+    "upscale": "Upscaled",
+    "multiAngle": "New view",
+    "removeObject": "Repaired",
+    "removeBackground": "Cutout",
+    "extractSelection": "Selection",
+    "generateDepth": "Relative depth"
   }
 }

@@ -18,6 +18,10 @@ class RuntimeCapability(StrEnum):
     speech_synthesis = "speech_synthesis"
     speech_separation = "speech_separation"
     image_segmentation = "image_segmentation"
+    image_upscaling = "image_upscaling"
+    image_inpainting = "image_inpainting"
+    image_selection = "image_selection"
+    image_depth = "image_depth"
 
 
 class RuntimeDeviceProfile(WireModel):
@@ -29,19 +33,14 @@ class RuntimeDeviceProfile(WireModel):
     cpu_threads: Annotated[int, Field(alias="cpuThreads", ge=0, le=255)]
 
 
-class RuntimeModelPaths(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    embedding: str | None = None
-    speech_transcription: Annotated[str | None, Field(alias="speechTranscription")] = (
-        None
-    )
-    speech_alignment: Annotated[str | None, Field(alias="speechAlignment")] = None
-    speech_diarization: Annotated[str | None, Field(alias="speechDiarization")] = None
-    speech_synthesis: Annotated[str | None, Field(alias="speechSynthesis")] = None
-    speech_separation: Annotated[str | None, Field(alias="speechSeparation")] = None
-    image_segmentation: Annotated[str | None, Field(alias="imageSegmentation")] = None
+class ImageModelVariant(StrEnum):
+    real_esrgan_general_x4v3 = "realEsrganGeneralX4v3"
+    real_esrgan_x4plus = "realEsrganX4plus"
+    migan = "migan"
+    efficient_sam_ti = "efficientSamTi"
+    efficient_sam_s = "efficientSamS"
+    depth_anything_v2_small_uint8 = "depthAnythingV2SmallUint8"
+    depth_anything_v2_small = "depthAnythingV2Small"
 
 
 class RuntimeLimits(WireModel):
@@ -114,19 +113,12 @@ class RuntimeShutdownAcknowledgement(WireModel):
     accepted: bool
 
 
-class RuntimeInitializeParams(WireModel):
+class ImageRuntimeModelPath(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    runtime_manifest_path: Annotated[str, Field(alias="runtimeManifestPath")]
-    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
-    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
-    session_id: Annotated[str, Field(alias="sessionId")]
-    capability: RuntimeCapability
-    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
-    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
-    work_directory: Annotated[str, Field(alias="workDirectory")]
-    model_paths: Annotated[RuntimeModelPaths, Field(alias="modelPaths")]
+    variant: ImageModelVariant
+    directory: str
 
 
 class RuntimeSession(WireModel):
@@ -141,3 +133,36 @@ class RuntimeSession(WireModel):
     device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
     capabilities: list[str]
     limits: RuntimeLimits
+
+
+class RuntimeModelPaths(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    embedding: str | None = None
+    speech_transcription: Annotated[str | None, Field(alias="speechTranscription")] = (
+        None
+    )
+    speech_alignment: Annotated[str | None, Field(alias="speechAlignment")] = None
+    speech_diarization: Annotated[str | None, Field(alias="speechDiarization")] = None
+    speech_synthesis: Annotated[str | None, Field(alias="speechSynthesis")] = None
+    speech_separation: Annotated[str | None, Field(alias="speechSeparation")] = None
+    image_segmentation: Annotated[str | None, Field(alias="imageSegmentation")] = None
+    image_processing: Annotated[
+        ImageRuntimeModelPath | None, Field(alias="imageProcessing")
+    ] = None
+
+
+class RuntimeInitializeParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    runtime_manifest_path: Annotated[str, Field(alias="runtimeManifestPath")]
+    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
+    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
+    session_id: Annotated[str, Field(alias="sessionId")]
+    capability: RuntimeCapability
+    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
+    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
+    work_directory: Annotated[str, Field(alias="workDirectory")]
+    model_paths: Annotated[RuntimeModelPaths, Field(alias="modelPaths")]

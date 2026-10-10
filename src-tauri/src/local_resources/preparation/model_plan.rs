@@ -44,7 +44,7 @@ pub(super) fn inspect<R: Runtime>(
         .collect::<Result<Vec<_>, String>>()?;
     let model_bytes = missing
         .iter()
-        .map(|kind| catalog::descriptor(*kind).snapshot.total_bytes())
+        .map(|kind| catalog::descriptor(*kind).snapshot.download_bytes())
         .sum::<u64>();
     let download_bytes = runtimes.iter().try_fold(model_bytes, |total, (_, size)| {
         size.map(|bytes| total + bytes)

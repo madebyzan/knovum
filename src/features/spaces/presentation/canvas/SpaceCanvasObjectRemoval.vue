@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, useTemplateRef } from "vue";
+import { computed, shallowRef, nextTick, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import type { ImageExecutionTarget } from "../../contracts/generated/ImageExecutionTarget";
 import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -16,6 +17,7 @@ import {
   imageRemovalSizeValid,
   useImageSourceDimensionsStore,
 } from "./image-source-dimensions-store";
+import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";
 import SpaceImageObjectRemovalControls from "./SpaceImageObjectRemovalControls.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
@@ -27,6 +29,17 @@ const removal = useImageRemovalSessionStore();
 const open = computed(() => removal.active?.nodeId === props.node.id);
 const capability = useImageOperationCapabilities(open);
 const mode = computed(() => removal.active?.mode ?? "mask");
+const selectedExecution = shallowRef<ImageExecutionTarget>();
+const targetOptions = computed(
+  () => capability.data.value?.targets.filter((target) => target.capability === "imageInpainting") ?? [],
+);
+const target = computed(() =>
+  selectedExecution.value
+    ? targetOptions.value.find(
+        (option) => JSON.stringify(option.execution) === JSON.stringify(selectedExecution.value),
+      )
+    : targetOptions.value.find((option) => option.selected),
+);
 const availability = computed(() =>
   imageActionAvailability({
     sourceReady: Boolean(props.node.data.sourceRevision),
@@ -34,7 +47,7 @@ const availability = computed(() =>
     capability: capability.isFetching.value
       ? undefined
       : mode.value === "mask"
-        ? capability.data.value?.maskedRemoval
+        ? target.value?.availability
         : capability.data.value?.promptRemoval,
     failed: capability.isError.value && !capability.isFetching.value,
     busy: removal.submitting,
@@ -68,7 +81,9 @@ function openAiSettings() {
 
 function generate() {
   if (!canGenerate.value) return;
-  void removal.generate().catch((error) => toast.error(getErrorMessage(error)));
+  void removal
+    .generate(mode.value === "mask" ? target.value?.execution : undefined)
+    .catch((error) => toast.error(getErrorMessage(error)));
 }
 onMounted(async () => {
   await nextTick();
@@ -81,6 +96,14 @@ onMounted(async () => {
     ref="panel"
     class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-stroke-strong bg-surface-overlay p-3 shadow-popover"
   >
+    <SpaceImageExecutionSelect
+      v-if="mode === 'mask'"
+      class="mb-3"
+      :options="targetOptions"
+      :execution="target?.execution"
+      :disabled="removal.submitting"
+      @select="selectedExecution = $event"
+    />
     <SpaceImageObjectRemovalControls
       :mode="mode"
       :prompt="removal.active?.prompt ?? ''"

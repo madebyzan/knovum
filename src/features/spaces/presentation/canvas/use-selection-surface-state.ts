@@ -16,6 +16,12 @@ export function useSelectionSurfaceState() {
   const imageRemoval = useImageRemovalSessionStore();
   const angleNodeId = shallowRef<string>();
   const speechOperation = shallowRef<NodeSpeechOperation>();
+  const compactEditor = computed(() =>
+    Boolean(
+      imageRemoval.active ||
+      ["image-comment", "image-selection"].includes(nodeOperations.active.value?.kind ?? ""),
+    ),
+  );
 
   const selectionKey = computed(() => {
     const { nodeIds, structureNodeIds, relationIds } = editorSession.selection.value;
@@ -24,8 +30,8 @@ export function useSelectionSurfaceState() {
   const kind = computed(() => {
     const tool = imageEdit.active?.tool;
     if (speechOperation.value) return NODE_SPEECH_OPERATIONS[speechOperation.value].surface;
-    if (tool === "adjust" || tool === "crop" || angleNodeId.value) return "inspector";
-    if (imageRemoval.active || nodeOperations.active.value?.kind === "image-comment") return "compact-editor";
+    if (["adjust", "crop"].includes(tool ?? "") || angleNodeId.value) return "inspector";
+    if (compactEditor.value) return "compact-editor";
     return tool ? "compact-editor" : "actions";
   });
   const showActions = computed(() => {
@@ -35,7 +41,8 @@ export function useSelectionSurfaceState() {
       !operation ||
       operation.kind === "image-edit" ||
       operation.kind === "image-removal" ||
-      operation.kind === "image-comment"
+      operation.kind === "image-comment" ||
+      operation.kind === "image-selection"
     );
   });
   watch(

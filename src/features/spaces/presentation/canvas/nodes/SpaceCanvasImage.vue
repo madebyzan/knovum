@@ -18,6 +18,7 @@ import { useImageSourceDimensionsStore } from "../image-source-dimensions-store"
 import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
 import SpaceCanvasImageRemovalCursor from "./SpaceCanvasImageRemovalCursor.vue";
+import SpaceCanvasImageSelectionOverlay from "./SpaceCanvasImageSelectionOverlay.vue";
 import SpaceCanvasImageWorkOverlay from "./SpaceCanvasImageWorkOverlay.vue";
 import { useCanvasImageRaster } from "./use-canvas-image-raster";
 import { useCanvasImageSource } from "./use-canvas-image-source";
@@ -73,6 +74,7 @@ const previewEdit = computed<ImageEdit>(() =>
 );
 const imageRect = computed(() => displayedImageRect(size.value, naturalSize.value, previewEdit.value));
 const removal = useImageRemovalStrokes({
+  session: removalSession,
   canvas,
   size,
   rect: imageRect,
@@ -140,6 +142,12 @@ watch(() => (removalSession.active?.nodeId === props.id ? removalSession.active.
       @pointerleave="removal.leave"
       @pointerup.stop.prevent="removal.commit"
       @pointercancel.stop="removal.cancel"
+    />
+    <SpaceCanvasImageSelectionOverlay
+      v-if="imageRect"
+      :id="id"
+      :rect="imageRect"
+      :frame-rotation="frameRotation"
     />
     <SpaceCanvasImageWorkOverlay
       :id="id"
