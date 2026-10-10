@@ -3,10 +3,12 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { showsAction } from "../../../../shared/contracts/action-availability";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
-import type {
-  CreationIntentDecisions,
-  CreationIntentId,
+import {
+  DOCUMENT_CONVERSION_ACTION_IDS,
+  type CreationIntentDecisions,
+  type CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { nodeSpeechOperationIds, type NodeSpeechOperation } from "../speech/node-speech-operations";
@@ -42,10 +44,13 @@ function beginSeparation() {
   if (!separation.activeRunId.value) void startSeparation();
 }
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
+const canConvert = computed(() =>
+  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => showsAction(props.derivations[id])),
+);
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
   () =>
-    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
+    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canOpen}:${canConvert.value}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
@@ -119,6 +124,7 @@ const textKind = computed(() => {
         :node-tools-visible="
           minimal &&
           (showPrimary ||
+            canConvert ||
             Boolean(speechOperations.length) ||
             isMedia ||
             Boolean(actions.selectedVideoNode.value))

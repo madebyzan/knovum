@@ -5,6 +5,7 @@ mod contracts;
 mod document_citations;
 mod document_formats;
 mod document_publication;
+mod document_source;
 mod failure;
 mod grounded_answer;
 pub(crate) mod grounded_document;

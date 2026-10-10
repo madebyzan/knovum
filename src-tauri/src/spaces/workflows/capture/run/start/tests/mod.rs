@@ -67,8 +67,8 @@ fn workflow() -> SavedCapturedWorkflow {
                     })],
                 },
                 CandidateStep {
-                    id: "export".into(),
-                    action_id: "export-document-as-docx".into(),
+                    id: "convert".into(),
+                    action_id: "convert-document-to-docx".into(),
                     action_version: 1,
                     output_kind: "file".into(),
                     execution_spec: RecordedExecutionSpec {
@@ -84,7 +84,7 @@ fn workflow() -> SavedCapturedWorkflow {
                 id: "report".into(),
                 name: "Report.docx".into(),
                 kind: "file".into(),
-                step_id: "export".into(),
+                step_id: "convert".into(),
             }],
         },
     }
@@ -152,8 +152,8 @@ async fn replay_binds_new_input_freezes_agent_and_chains_real_action_runs() {
     assert_eq!(
         states,
         vec![
-            ("draft".into(), "ready".into()),
-            ("export".into(), "pending".into())
+            ("convert".into(), "pending".into()),
+            ("draft".into(), "ready".into())
         ]
     );
     let first = claim(&pool, &run_id, "draft").await;
@@ -189,10 +189,10 @@ async fn replay_binds_new_input_freezes_agent_and_chains_real_action_runs() {
         .execute(&pool)
         .await
         .unwrap();
-    let second = claim(&pool, &run_id, "export").await;
-    let export_id = child(&pool, &second).await;
+    let second = claim(&pool, &run_id, "convert").await;
+    let conversion_run_id = child(&pool, &second).await;
     let input: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=$1")
-        .bind(export_id)
+        .bind(conversion_run_id)
         .fetch_one(&pool)
         .await
         .unwrap();
@@ -236,7 +236,7 @@ async fn edited_inputs_and_cancelled_parents_cannot_create_child_runs() {
 fn replay_rejects_cycles_and_unregistered_execution_contracts() {
     let mut saved = workflow();
     saved.candidate.steps[0].inputs[0].source = CandidateSource::StepOutput {
-        step_id: "export".into(),
+        step_id: "convert".into(),
     };
     assert!(validation::candidate(&saved.candidate).is_err());
     let mut saved = workflow();

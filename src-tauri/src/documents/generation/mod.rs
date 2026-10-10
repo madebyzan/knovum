@@ -1,5 +1,7 @@
 pub(crate) mod document;
 pub(crate) mod docx;
+mod html;
+pub(crate) mod input;
 mod links;
 mod markdown;
 pub(crate) mod pdf;
@@ -14,6 +16,7 @@ pub(crate) enum DocumentFormat {
     Pdf,
     Pptx,
     Text,
+    Html,
 }
 
 impl DocumentFormat {
@@ -23,6 +26,7 @@ impl DocumentFormat {
             Self::Pdf => pdf::render(source),
             Self::Pptx => pptx::render(source),
             Self::Text => render_text(source),
+            Self::Html => html::render(source, &source.title),
         }
     }
 }

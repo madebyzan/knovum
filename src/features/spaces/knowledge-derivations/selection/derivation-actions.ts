@@ -2,12 +2,13 @@ import type { Ref, ShallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
+import type { DocumentFormat } from "../catalog/creation-intent";
 import type { CreationIntentId } from "../catalog/creation-intent-definitions";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
-import { exportMarkdownDocument, isKnowledgeMarkdown, type DocumentFormat } from "../document/export";
+import { convertDocument } from "../document/conversion";
+import { isDocumentConversionSource } from "../document/conversion-source";
 import { generateGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
 import { createImageCutout } from "../image-cutout";
-import { startDerivationAction } from "../start-action";
 import { addVideoSubtitles } from "../subtitled-video";
 import { generateVideoFromSources, type VideoDraft } from "../video/generation";
 import { generateVisualization, type VisualizationDraft } from "../visualization";
@@ -37,16 +38,17 @@ export function createDerivationActions({
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(store, single.value)),
     "draft-document": () => (dialog.value = "document"),
     "generate-visualization": () => (dialog.value = "visualization"),
-    "export-document-as-docx": () => void exportDocument("docx"),
-    "export-document-as-pdf": () => void exportDocument("pdf"),
-    "export-document-as-txt": () => void exportDocument("txt"),
-    "render-presentation": () => void renderPresentation(),
+    "convert-document-to-docx": () => void convertSelectedDocument("docx"),
+    "convert-document-to-pdf": () => void convertSelectedDocument("pdf"),
+    "convert-document-to-txt": () => void convertSelectedDocument("txt"),
+    "convert-document-to-html": () => void convertSelectedDocument("html"),
+    "render-presentation": () => void convertSelectedDocument("pptx"),
     "generate-video": () => (dialog.value = "video"),
   };
 
-  function exportDocument(format: DocumentFormat) {
-    if (!single.value || !isKnowledgeMarkdown(single.value)) return;
-    return exportMarkdownDocument({
+  function convertSelectedDocument(format: DocumentFormat) {
+    if (!single.value || !isDocumentConversionSource(single.value)) return;
+    return convertDocument({
       store,
       source: single.value,
       format,
@@ -87,17 +89,6 @@ export function createDerivationActions({
       store,
       sources: videoSources,
       draft,
-    });
-  }
-
-  function renderPresentation() {
-    if (!single.value || !sources.value) return;
-    return startDerivationAction({
-      store,
-      sources: sources.value,
-      actionId: "render-presentation",
-      parameters: {},
-      title: single.value.data.title,
     });
   }
 

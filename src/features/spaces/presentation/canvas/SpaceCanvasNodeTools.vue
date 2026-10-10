@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
-import type {
-  CreationIntentDecisions,
-  CreationIntentId,
+import { showsAction } from "../../../../shared/contracts/action-availability";
+import {
+  DOCUMENT_CONVERSION_ACTION_IDS,
+  type CreationIntentDecisions,
+  type CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import SpaceDocumentConversionMenu from "../derivations/SpaceDocumentConversionMenu.vue";
 import SpaceNodeTranscriptionAction from "../media/SpaceNodeTranscriptionAction.vue";
 import { nodeSpeechOperationIds, type NodeSpeechOperation } from "../speech/node-speech-operations";
 import SpaceNodeSpeechActions from "../speech/SpaceNodeSpeechActions.vue";
@@ -36,6 +39,9 @@ const { primaryLabel, primaryIcon, showPrimary, runPrimaryAction } = useNodePrim
 );
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
+const canConvert = computed(() =>
+  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => showsAction(props.derivations[id])),
+);
 </script>
 
 <template>
@@ -49,6 +55,13 @@ const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.
     @invoke="runPrimaryAction"
   />
   <slot />
+  <SpaceDocumentConversionMenu
+    v-if="!minimal && canConvert"
+    :decisions="derivations"
+    :is-compact="compact"
+    :is-submenu="menuItem"
+    @invoke="emit('invokeDerivation', $event)"
+  />
   <SpaceCanvasVideoActions
     v-if="!minimal && actions.selectedVideoNode.value"
     :compact="compact"

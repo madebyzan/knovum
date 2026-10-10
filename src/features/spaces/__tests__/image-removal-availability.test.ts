@@ -77,7 +77,7 @@ function openTool() {
             canRemoveBackground: false,
             canAddVideoSubtitles: false,
             hasVideoSources: false,
-            canExportDocument: false,
+            documentTargets: [],
           }),
         ),
         vi.fn<() => void>(),

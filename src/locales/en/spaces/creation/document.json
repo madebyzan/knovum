@@ -1,11 +1,24 @@
 {
-  "export": {
-    "docx": "Export as Word document",
-    "pdf": "Export as PDF",
-    "docxTask": "Generating Word document",
-    "pdfTask": "Generating PDF",
-    "txt": "Export as plain text",
-    "txtTask": "Generating plain text"
+  "conversion": {
+    "docx": "Convert to Word document",
+    "pdf": "Convert to PDF",
+    "docxRunTitle": "Generating Word document",
+    "pdfRunTitle": "Generating PDF",
+    "txt": "Convert to plain text",
+    "txtRunTitle": "Generating plain text",
+    "html": "Convert to HTML",
+    "htmlRunTitle": "Generating HTML document"
+  },
+  "convert": {
+    "label": "Convert to",
+    "formats": {
+      "docx": "Word document (.docx)",
+      "pdf": "PDF document (.pdf)",
+      "txt": "Plain text (.txt)",
+      "html": "HTML document (.html)",
+      "pptx": "Presentation (.pptx)"
+    },
+    "help": "Creates a related file. PDF content is reflowed without images; Office to Word/HTML keeps supported tables and images. Office files with images cannot convert to PDF. Original layout, animations and scanned PDFs are not supported."
   },
   "generate": "Generate document",
   "title": "Create a document from selected knowledge",

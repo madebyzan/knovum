@@ -1,14 +1,11 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { getDocumentConversionTargets } from "../document/conversion-source";
 import { canRemoveImageBackground } from "../image-cutout";
 import { canAddVideoSubtitles } from "../subtitled-video";
 import { selectionCapabilities } from "./capabilities";
 import { decideCreationIntents, type CreationIntentDecisions } from "./creation-intent-definitions";
 import { groundedDocumentSources } from "./grounded-document";
 import { hasDerivableKnowledge } from "./source-capability";
-
-function canExportDocument(node: SpaceCanvasNode | undefined): boolean {
-  return node?.data.kind === "markdown" && Boolean(node.data.knowledgeRevision);
-}
 
 export function creationIntentCatalog(nodes: readonly SpaceCanvasNode[]) {
   const single = nodes.length === 1 ? nodes[0] : undefined;
@@ -32,7 +29,7 @@ export function creationIntentCatalog(nodes: readonly SpaceCanvasNode[]) {
     imageCount: capabilities.imageCount,
     canRemoveBackground: cutout,
     canAddVideoSubtitles: canAddVideoSubtitles(single),
-    canExportDocument: canExportDocument(single),
+    documentTargets: getDocumentConversionTargets(single),
   });
   return {
     decisions,

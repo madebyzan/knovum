@@ -100,9 +100,10 @@
     "generateVideo": "生成视频",
     "renderPresentation": "生成演示文稿",
     "addVideoSubtitles": "添加字幕",
-    "exportDocx": "导出 Word",
-    "exportPdf": "导出 PDF",
-    "exportTxt": "导出文本"
+    "convertDocx": "转换为 Word",
+    "convertPdf": "转换为 PDF",
+    "convertTxt": "转换为文本",
+    "convertHtml": "转换为 HTML"
   },
   "empty": "还没有保存的工作流。选中已完成的派生产物，选择“保存为工作流”。"
 }

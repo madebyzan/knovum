@@ -107,7 +107,7 @@ async fn completed_branching_derivation_chain_captures_one_replaceable_note_inpu
     )));
 }
 #[tokio::test]
-async fn local_document_export_is_capturable_without_model_configuration() {
+async fn local_document_conversion_is_capturable_without_model_configuration() {
     let pool = database().await;
     let revision = node(
         &pool,
@@ -115,11 +115,11 @@ async fn local_document_export_is_capturable_without_model_configuration() {
         json!({"kind":"markdown","title":"Report","text":"Research"}),
     )
     .await;
-    complete(&pool,&request("export-document-as-docx",&[("source",&revision)],json!({}),None),"output",json!({"kind":"file","title":"Report.docx","sourceRevision":"asset:docx","assetPath":"/owned/report.docx"})).await;
+    complete(&pool,&request("convert-document-to-docx",&[("source",&revision)],json!({}),None),"output",json!({"kind":"file","title":"Report.docx","sourceRevision":"asset:docx","assetPath":"/owned/report.docx"})).await;
     let preview = capture::preview(&pool, "space", vec!["output".into()])
         .await
         .unwrap();
     let candidate = preview.candidate.unwrap();
-    assert_eq!(candidate.steps[0].action_id, "export-document-as-docx");
+    assert_eq!(candidate.steps[0].action_id, "convert-document-to-docx");
     assert!(candidate.steps[0].execution_spec.target.is_none());
 }

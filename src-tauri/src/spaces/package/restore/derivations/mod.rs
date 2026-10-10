@@ -90,9 +90,10 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
             | "draft-script"
             | "summarize-meeting"
             | "draft-social-post"
-            | "export-document-as-docx"
-            | "export-document-as-pdf"
-            | "export-document-as-txt"
+            | "convert-document-to-docx"
+            | "convert-document-to-pdf"
+            | "convert-document-to-txt"
+            | "convert-document-to-html"
             | "render-presentation"
             | "generate-video"
     ) && row.action_version == 1;

@@ -13,20 +13,20 @@ pub(super) struct DocumentPublication {
     id: String,
     space_id: String,
     output_node_id: String,
-    inputs: Vec<DocumentInput>,
+    inputs: Vec<PublicationSource>,
     #[serde(skip)]
     bytes: Vec<u8>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct DocumentInput {
+struct PublicationSource {
     node_id: String,
     role: String,
     source_revision: String,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DocumentOutput {
+pub struct DocumentPublicationReceipt {
     node_id: String,
     data: Value,
 }
@@ -71,7 +71,7 @@ pub(super) async fn publish(
     action_id: &str,
     engine: &str,
     authority: &super::action_execution::ExecutionAuthority,
-) -> Result<DocumentOutput, AppError> {
+) -> Result<DocumentPublicationReceipt, AppError> {
     // Prepared Action metadata contains the resolved source document.
     // Rendered bytes come only from the Rust document engine, never from Renderer input.
     let mut request: DocumentPublication =
@@ -132,7 +132,7 @@ pub(super) async fn publish(
         .map_err(db::sql_error)
         .map_err(AppError::from)?;
     file.retain();
-    Ok(DocumentOutput {
+    Ok(DocumentPublicationReceipt {
         node_id: request.output_node_id,
         data,
     })
@@ -173,7 +173,7 @@ async fn persist(
                 &request.space_id,
                 &request.output_node_id,
                 &input.node_id,
-                "Document exported from current Markdown",
+                "Document converted from current source",
                 now,
             ),
         )

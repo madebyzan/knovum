@@ -1,12 +1,12 @@
 use office_oxide::ir::{Element, Section};
 
-pub(super) struct Content<'a> {
+pub(crate) struct Content<'a> {
     pub part: &'static str,
     pub elements: &'a [Element],
 }
 
 /// Borrow all logical content exposed by the library; never duplicate its image-bearing IR.
-pub(super) fn parts(section: &Section) -> impl Iterator<Item = Content<'_>> {
+pub(crate) fn parts(section: &Section) -> impl Iterator<Item = Content<'_>> {
     [
         ("body", Some(section.elements.as_slice())),
         (

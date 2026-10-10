@@ -24,9 +24,10 @@ pub(super) async fn reserve(
     match action_id {
         "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
         "render-presentation"
-        | "export-document-as-docx"
-        | "export-document-as-pdf"
-        | "export-document-as-txt" => media::document_request(inputs, request)?,
+        | "convert-document-to-docx"
+        | "convert-document-to-pdf"
+        | "convert-document-to-txt"
+        | "convert-document-to-html" => media::document_request(inputs, action_id, request)?,
         _ => {}
     }
     let Some((kind, mut data)) = build_pending_output_content(app, action_id, parameters, inputs)?
@@ -77,10 +78,16 @@ fn build_pending_output_content(
         ),
         "add-video-subtitles" => ("video", media::build_subtitled_video_content(app, &title)?),
         "render-presentation"
-        | "export-document-as-docx"
-        | "export-document-as-pdf"
-        | "export-document-as-txt" => {
-            let format = super::super::document_formats::require(action_id)?;
+        | "convert-document-to-docx"
+        | "convert-document-to-pdf"
+        | "convert-document-to-txt"
+        | "convert-document-to-html" => {
+            let target = super::super::document_formats::require(action_id)?;
+            let document = inputs.nodes.first().ok_or("Document source is required")?;
+            let title = super::super::document_formats::resolve_source_title(
+                &document.kind,
+                &document.data,
+            )?;
             (
                 "file",
                 json!({"kind":"file", "title":title, "fileName":format!("{title}.{}", format.extension), "assetPath":super::super::output_paths::reserve(app, "document", format.extension)?, "processingState":"processing"}),

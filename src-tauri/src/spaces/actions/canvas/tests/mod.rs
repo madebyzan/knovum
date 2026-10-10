@@ -93,7 +93,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     )
     .await;
     let malformed = request(
-        "export-document-as-docx",
+        "convert-document-to-docx",
         &[("doc", &revision)],
         json!({"invalid":true}),
         None,
@@ -104,7 +104,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
         .message
         .contains("parameters are invalid"));
     let stale = request(
-        "export-document-as-docx",
+        "convert-document-to-docx",
         &[("doc", "old")],
         json!({}),
         None,

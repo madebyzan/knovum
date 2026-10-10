@@ -147,11 +147,7 @@ fn revision(data: &Value) -> Result<String, String> {
 
 fn order_for_action(action_id: &str, nodes: &mut [ResolvedNode]) -> Result<(), String> {
     let primary_kind = match action_id {
-        "render-presentation"
-        | "export-document-as-docx"
-        | "export-document-as-pdf"
-        | "export-document-as-txt"
-        | "generate-image" => Some("markdown"),
+        "generate-image" => Some("markdown"),
         "add-video-subtitles" => Some("video"),
         _ => None,
     };
