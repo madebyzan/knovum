@@ -1,50 +1,72 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { PopoverContent, PopoverRoot, PopoverTrigger } from "reka-ui";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useSpaceStore } from "../../session/space-store";
-import SpaceContextHeader from "../workspace/SpaceContextHeader.vue";
-import SpaceRightSidebarViewPicker from "../workspace/SpaceRightSidebarViewPicker.vue";
+import type { SpaceTiptapHeading } from "../../editor/tiptap-outline";
 
-const store = useSpaceStore();
+const props = defineProps<{ headings: readonly SpaceTiptapHeading[]; activeId?: string | undefined }>();
+const emit = defineEmits<{ select: [position: number] }>();
 const { t } = useI18n();
-const title = computed(
-  () =>
-    store.nodes.find((node) => node.id === store.focusedEditorId)?.data.title ??
-    t("spaces.sidebar.editorOutline.title"),
-);
+const open = shallowRef(false);
 
-function reveal(position: number) {
-  store.documentOutlineRequest = {
-    position,
-    nonce: (store.documentOutlineRequest?.nonce ?? 0) + 1,
-  };
-}
+// Keep long documents' orientation marks quiet; the expanded directory includes every heading.
+const minibarHeadings = computed(() => {
+  const major = props.headings.filter((heading) => heading.level <= 2);
+  return (major.length >= 3 ? major : props.headings).slice(0, 16);
+});
 </script>
 
 <template>
-  <section class="flex min-h-0 flex-col">
-    <SpaceContextHeader :title="title">
-      <template #leading><SpaceRightSidebarViewPicker /></template>
-    </SpaceContextHeader>
-    <nav
-      class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3"
-      :aria-label="t('spaces.sidebar.editorOutline.title')"
-    >
-      <button
-        v-for="heading in store.documentOutlineHeadings"
-        :key="heading.id"
-        type="button"
-        class="flex min-h-interaction w-full items-center rounded-md pr-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary"
-        :data-active="heading.id === store.documentActiveHeadingId"
-        :style="{ paddingLeft: `${8 + (heading.level - 1) * 14}px` }"
-        @click="reveal(heading.position)"
+  <div
+    v-if="headings.length"
+    class="pointer-events-auto absolute top-5 right-4 z-10 hidden xl:block"
+    data-testid="document-outline"
+    @mouseenter="open = true"
+    @mouseleave="open = false"
+  >
+    <PopoverRoot v-model:open="open" :modal="false">
+      <PopoverTrigger as-child>
+        <button
+          type="button"
+          class="flex w-8 flex-col items-end gap-1 rounded-md px-1.5 py-2.5 text-fg-tertiary transition-colors hover:bg-surface-control-hover hover:text-fg-secondary"
+          :aria-label="t('spaces.sidebar.editorOutline.title')"
+        >
+          <span
+            v-for="heading in minibarHeadings"
+            :key="heading.id"
+            class="h-0.5 rounded-full bg-current transition-[width,color] duration-100"
+            :class="heading.id === activeId ? 'text-fg-primary' : ''"
+            :style="{ width: `${Math.max(8, 22 - (heading.level - 1) * 3)}px` }"
+          />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="left"
+        align="start"
+        :side-offset="-32"
+        class="w-72 rounded-xl border border-stroke-default bg-surface-overlay/96 p-2.5 shadow-popover backdrop-blur"
+        @open-auto-focus.prevent
+        @close-auto-focus.prevent
       >
-        <span class="truncate">{{ heading.text }}</span>
-      </button>
-      <p v-if="!store.documentOutlineHeadings.length" class="px-2 py-4 text-caption text-fg-tertiary">
-        {{ t("spaces.sidebar.editorOutline.empty") }}
-      </p>
-    </nav>
-  </section>
+        <nav
+          class="max-h-112 [scrollbar-width:none] space-y-0.5 overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden"
+          :aria-label="t('spaces.sidebar.editorOutline.title')"
+        >
+          <button
+            v-for="heading in headings"
+            :key="heading.id"
+            type="button"
+            class="flex h-interaction w-full items-center rounded-md pr-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary"
+            :style="{ paddingLeft: `${8 + (heading.level - 1) * 12}px` }"
+            :data-active="heading.id === activeId"
+            :aria-current="heading.id === activeId ? 'location' : undefined"
+            @click="emit('select', heading.position)"
+          >
+            <span class="truncate">{{ heading.text }}</span>
+          </button>
+        </nav>
+      </PopoverContent>
+    </PopoverRoot>
+  </div>
 </template>

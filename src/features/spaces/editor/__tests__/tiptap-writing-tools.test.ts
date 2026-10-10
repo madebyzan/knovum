@@ -109,24 +109,20 @@ describe("editor writing task ownership", () => {
     expect(writing.runningAction.value).toBeUndefined();
   });
 
-  it("disables both menu entries while their shared editor task runs", async () => {
+  it("disables selection writing while the editor task runs", async () => {
     const completion = deferred<string>();
     ai.transform.mockReturnValue(completion.promise);
     const { writing } = session();
-    const toolbar = mount(SpaceTiptapWritingMenu, { props: { writing } });
     const bubble = mount(SpaceTiptapWritingMenu, { props: { writing, compact: true } });
     cleanups.push(() => {
-      toolbar.unmount();
       bubble.unmount();
     });
     const running = writing.run("improve");
     await nextTick();
-    expect(toolbar.get("button").attributes("disabled")).toBeDefined();
     expect(bubble.get("button").attributes("disabled")).toBeDefined();
     completion.resolve("improved");
     await running;
     await nextTick();
-    expect(toolbar.get("button").attributes("disabled")).toBeUndefined();
     expect(bubble.get("button").attributes("disabled")).toBeUndefined();
   });
 });

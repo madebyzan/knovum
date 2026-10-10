@@ -44,12 +44,6 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
     rightSidebar.open();
   }
 
-  function openDocumentOutline() {
-    store.workflowMode = undefined;
-    store.setRightSidebarView("document-outline");
-    rightSidebar.open();
-  }
-
   function openWorkflowCapture(nodeIds: string[]) {
     store.openWorkflowCapture(nodeIds);
     rightSidebar.close();
@@ -70,7 +64,6 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
     openKnowledgeHealth,
     openAsk,
     openSource,
-    openDocumentOutline,
     openWorkflowCapture,
     openWorkflowUse,
     closeDock,
