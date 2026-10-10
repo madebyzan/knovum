@@ -1,6 +1,6 @@
 use std::{io::Write, path::Path};
 
-use super::SAMPLE_RATE;
+use super::super::media::SAMPLE_RATE;
 
 pub(super) fn write_sparse_wav(path: &Path, sample_count: u64) {
     let data_bytes = sample_count * 4;

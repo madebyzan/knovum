@@ -199,12 +199,27 @@ pub(in crate::spaces::speech) fn cleanup_stale_workspaces(
 pub(super) async fn require_owned_source(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
+    node_id: &str,
     source: &super::super::video_config::SpeechMediaSource,
-) -> Result<(), String> {
-    if !super::super::media_source::is_owned(tx, space_id, &["audio", "video"], source).await? {
-        return Err(
-            "Source separation requires an analyzed audio or video node in this Space".into(),
-        );
-    }
-    Ok(())
+) -> Result<String, String> {
+    let title: Option<String> = sqlx::query_scalar(
+        "SELECT json_extract(data,'$.title') FROM spaces_nodes WHERE id=? AND space_id=? \
+         AND kind IN ('audio','video') AND deleted_at IS NULL \
+         AND json_extract(data,'$.assetPath')=? AND json_extract(data,'$.sourceRevision')=? \
+         AND json_extract(data,'$.mediaAnalysis.sourceRevision')=? \
+         AND json_extract(data,'$.mediaAnalysis.durationMs')=?",
+    )
+    .bind(node_id)
+    .bind(space_id)
+    .bind(&source.asset_path)
+    .bind(&source.source_revision)
+    .bind(&source.source_revision)
+    .bind(i64::try_from(source.duration_ms).map_err(|_| "Media duration is too large")?)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    title.ok_or(
+        "stale_revision: source separation requires the current analyzed audio or video node"
+            .into(),
+    )
 }

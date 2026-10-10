@@ -25,14 +25,13 @@ async function importScript() {
 </script>
 
 <template>
-  <section class="space-y-1 rounded-md border border-stroke-divider p-2">
-    <div class="flex items-center justify-between gap-2">
-      <p class="text-caption-sm text-fg-secondary">{{ props.node.data.title }}</p>
+  <section class="space-y-1">
+    <div class="flex items-center gap-2">
       <UiButton size="sm" variant="ghost" :disabled="disabled || importing" @click="importScript">
-        <FileUp class="size-3.5" />{{ t("spaces.speech.project.readManuscript") }}
+        <FileUp class="size-3.5" />{{ t("spaces.speech.project.importManuscript") }}
       </UiButton>
     </div>
     <UiButton v-if="importing" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
-    <p v-if="error" class="text-danger text-caption-sm">{{ error }}</p>
+    <p v-if="error" class="text-caption-sm text-fg-danger">{{ error }}</p>
   </section>
 </template>

@@ -17,6 +17,7 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
         if id.is_none() || id != run_id {
             return Err("Package source separation identity must equal its Run identity".into());
         }
+        maps.field(row, "sourceNodeId", "nodes")?;
         maps.field(row, "runId", "runs")?;
         row["id"] = row["runId"].clone();
         row["sourceAssetPath"] = json!(maps.asset(

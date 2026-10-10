@@ -1486,6 +1486,7 @@ CREATE TABLE spaces_speech_source_separations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   run_id TEXT NOT NULL UNIQUE,
+  source_node_id TEXT NOT NULL,
   source_asset_path TEXT NOT NULL,
   source_revision TEXT NOT NULL CHECK (length(source_revision)=71 AND substr(source_revision,1,7)='sha256:'),
   source_duration_ms INTEGER NOT NULL CHECK (source_duration_ms > 0 AND source_duration_ms <= 600000),
@@ -1499,17 +1500,11 @@ CREATE TABLE spaces_speech_source_separations (
   background_duration_ms INTEGER NOT NULL CHECK (
     background_duration_ms=(background_sample_count * 1000 + 44099) / 44100
   ),
-  review_status TEXT NOT NULL CHECK (review_status IN ('pending','accepted','rejected')),
-  review_warning TEXT NOT NULL CHECK (length(trim(review_warning)) > 0),
   created_at INTEGER NOT NULL,
-  reviewed_at INTEGER,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  CHECK (id=run_id),
-  CHECK (
-    (review_status='pending' AND reviewed_at IS NULL)
-    OR (review_status IN ('accepted','rejected') AND reviewed_at IS NOT NULL)
-  )
+  FOREIGN KEY (source_node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE,
+  CHECK (id=run_id)
 );
 
 CREATE INDEX spaces_voice_profiles_library ON spaces_voice_profiles(archived_at, updated_at DESC);

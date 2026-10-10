@@ -3,7 +3,7 @@ import { computed, ref, shallowRef, watch, type DeepReadonly } from "vue";
 
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
-import type { SpeechSourceSeparationCandidate } from "../contracts/generated/SpeechSourceSeparationCandidate";
+import type { SpeechSourceSeparationPublication } from "../contracts/generated/SpeechSourceSeparationPublication";
 import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
@@ -114,9 +114,9 @@ export function useVideoDubbingDraft(
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
     config.value = selectBackground(config.value, background);
   }
-  function setSeparatedBackground(candidate: SpeechSourceSeparationCandidate) {
+  function setSeparatedBackground(publication: SpeechSourceSeparationPublication) {
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
-    config.value = selectSeparatedBackground(config.value, candidate);
+    config.value = selectSeparatedBackground(config.value, publication);
   }
   function updateLine(index: number, line: VideoLineDraft) {
     lines.value[index] = line;

@@ -117,7 +117,7 @@ const selectionBarGap = computed(() =>
       :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
       :gap="selectionSurfaceKind === 'actions' ? (singleCanvasObjectSelected ? selectionBarGap : 34) : 12"
-      v-slot="{ availableWidth }"
+      v-slot="{ availableWidth, availableHeight }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
       <SpaceCanvasSelectionBar
@@ -127,6 +127,7 @@ const selectionBarGap = computed(() =>
         "
         :derivations="derivations.decisions.value"
         :available-width="availableWidth"
+        :available-height="availableHeight"
         v-model:speech-operation="speechOperation"
         :angle-node-id="angleNodeId"
         @update:angle-node-id="angleNodeId = $event"

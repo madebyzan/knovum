@@ -5,9 +5,9 @@ import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useImageEditSessionStore } from "../../image-editing/image-edit-session-store";
 import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import { useSpaceStore } from "../../session/space-store";
-import type { NodeSpeechOperation } from "../speech/node-speech-operations";
+import { NODE_SPEECH_OPERATIONS, type NodeSpeechOperation } from "../speech/node-speech-operations";
 
-/** Keeps selection controls attached to the owning image interaction. */
+/** Keeps selection controls attached to the owning capability interaction. */
 export function useSelectionSurfaceState() {
   const store = useSpaceStore();
   const editorSession = getCanvasEditorSession();
@@ -23,7 +23,7 @@ export function useSelectionSurfaceState() {
   });
   const kind = computed(() => {
     const tool = imageEdit.active?.tool;
-    if (speechOperation.value) return "compact-editor";
+    if (speechOperation.value) return NODE_SPEECH_OPERATIONS[speechOperation.value].surface;
     if (tool === "adjust" || tool === "crop" || angleNodeId.value) return "inspector";
     if (imageRemoval.active || nodeOperations.active.value?.kind === "image-comment") return "compact-editor";
     return tool ? "compact-editor" : "actions";

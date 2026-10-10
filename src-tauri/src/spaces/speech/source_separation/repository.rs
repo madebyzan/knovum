@@ -2,64 +2,63 @@ use std::path::Path;
 
 use sqlx::{Row, SqlitePool};
 
-use super::{
-    contracts::{SpeechSourceSeparationCandidate, SpeechSourceSeparationReviewStatus},
-    review_warning, SeparationConfiguration,
-};
+use super::{contracts::SpeechSourceSeparationPublication, SeparationConfiguration};
 use crate::{
     ai::local_runtime::separation,
     spaces::{db, runs::AttemptClaim, speech::video_config::SpeechMediaSource},
 };
 
-pub(super) async fn load_candidate(
+pub(super) async fn load_publication(
     pool: &SqlitePool,
     separation_id: &str,
-) -> Result<SpeechSourceSeparationCandidate, String> {
-    load_candidate_optional(pool, separation_id)
+) -> Result<SpeechSourceSeparationPublication, String> {
+    find_publication(pool, separation_id)
         .await?
-        .ok_or("Source separation candidate is unavailable".into())
+        .ok_or("Source separation result is unavailable".into())
 }
 
-macro_rules! candidate_query {
+macro_rules! publication_query {
     ($predicate:literal) => {
-        concat!("SELECT id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_duration_ms,review_status,review_warning FROM spaces_speech_source_separations ", $predicate)
+        concat!("SELECT id,space_id,run_id,source_node_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_duration_ms FROM spaces_speech_source_separations ", $predicate)
     };
 }
 
-pub(super) async fn load_candidate_optional(
+pub(super) async fn find_publication(
     pool: &SqlitePool,
     separation_id: &str,
-) -> Result<Option<SpeechSourceSeparationCandidate>, String> {
-    sqlx::query(candidate_query!("WHERE id=?"))
+) -> Result<Option<SpeechSourceSeparationPublication>, String> {
+    sqlx::query(publication_query!("WHERE id=?"))
         .bind(separation_id)
         .fetch_optional(pool)
         .await
         .map_err(db::sql_error)?
-        .map(candidate_from_row)
+        .map(decode_publication)
         .transpose()
 }
 
-pub(super) async fn accepted_for_source(
+pub(super) async fn list_publications_for_source(
     pool: &SqlitePool,
     space_id: &str,
     source: &SpeechMediaSource,
-) -> Result<Vec<SpeechSourceSeparationCandidate>, String> {
-    sqlx::query(candidate_query!("WHERE space_id=? AND source_asset_path=? AND source_revision=? AND review_status='accepted' ORDER BY created_at DESC,id DESC"))
+) -> Result<Vec<SpeechSourceSeparationPublication>, String> {
+    sqlx::query(publication_query!("WHERE space_id=? AND source_asset_path=? AND source_revision=? AND source_duration_ms=? ORDER BY created_at DESC,id DESC"))
         .bind(space_id).bind(&source.asset_path).bind(&source.source_revision)
-        .fetch_all(pool).await.map_err(db::sql_error)?.into_iter().map(candidate_from_row).collect()
+        .bind(i64::try_from(source.duration_ms).map_err(|_| "Media duration is too large")?)
+        .fetch_all(pool).await.map_err(db::sql_error)?.into_iter().map(decode_publication).collect()
 }
 
-fn candidate_from_row(
+fn decode_publication(
     row: sqlx::sqlite::SqliteRow,
-) -> Result<SpeechSourceSeparationCandidate, String> {
+) -> Result<SpeechSourceSeparationPublication, String> {
     let duration = |column: &str| -> Result<u64, String> {
         u64::try_from(row.try_get::<i64, _>(column).map_err(db::sql_error)?)
             .map_err(|_| "Source separation duration is invalid".into())
     };
-    Ok(SpeechSourceSeparationCandidate {
+    Ok(SpeechSourceSeparationPublication {
         separation_id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         run_id: row.try_get("run_id").map_err(db::sql_error)?,
+        source_node_id: row.try_get("source_node_id").map_err(db::sql_error)?,
         source: SpeechMediaSource {
             asset_path: row.try_get("source_asset_path").map_err(db::sql_error)?,
             source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
@@ -86,15 +85,10 @@ fn candidate_from_row(
             duration_ms: duration("background_duration_ms")?,
         },
         model_spec_id: row.try_get("model_spec_id").map_err(db::sql_error)?,
-        review_status: SpeechSourceSeparationReviewStatus::parse(
-            &row.try_get::<String, _>("review_status")
-                .map_err(db::sql_error)?,
-        )?,
-        review_warning: row.try_get("review_warning").map_err(db::sql_error)?,
     })
 }
 
-pub(super) async fn persist_candidate(
+pub(super) async fn commit_publication(
     pool: &SqlitePool,
     claim: &AttemptClaim,
     source: &SpeechMediaSource,
@@ -103,6 +97,9 @@ pub(super) async fn persist_candidate(
     metadata: &separation::SeparatedAudio,
     duration_ms: u64,
 ) -> Result<(), String> {
+    if claim.cancellation.is_cancelled() {
+        return Err("cancelled".into());
+    }
     let space_id = claim.scope.require_space_id()?;
     let config = SeparationConfiguration::from_claim(claim)?;
     if config.source != *source {
@@ -110,9 +107,9 @@ pub(super) async fn persist_candidate(
             "stale_revision: separation source differs from its frozen configuration".into(),
         );
     }
-    let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    let active: bool = sqlx::query_scalar(
+    let now = crate::clock::unix_time_millis()?;
+    let is_attempt_active: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs r ON r.id=a.run_id \
          WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing' \
            AND a.execution_epoch=? AND a.lease_until>? AND r.execution_epoch=a.execution_epoch \
@@ -128,19 +125,20 @@ pub(super) async fn persist_candidate(
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    if !active {
+    if !is_attempt_active {
         return Err("attempt-stale: source separation lease is no longer active".into());
     }
     sqlx::query(
         "INSERT INTO spaces_speech_source_separations( \
-           id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
+           id,space_id,run_id,source_node_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
            background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_sample_rate,background_sample_count, \
-           background_duration_ms,review_status,review_warning,created_at) \
-         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending',?,?)",
+           background_duration_ms,created_at) \
+         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
     )
     .bind(&claim.run_id)
     .bind(space_id)
     .bind(&claim.run_id)
+    .bind(&config.source_node_id)
     .bind(&source.asset_path)
     .bind(&source.source_revision)
     .bind(i64::try_from(source.duration_ms).map_err(|_| "Source duration exceeds SQLite range")?)
@@ -152,11 +150,11 @@ pub(super) async fn persist_candidate(
     .bind(i64::from(metadata.background.sample_rate))
     .bind(i64::try_from(metadata.background.sample_count).map_err(|_| "Sample count exceeds SQLite range")?)
     .bind(i64::try_from(duration_ms).map_err(|_| "Background duration exceeds SQLite range")?)
-    .bind(review_warning())
     .bind(now)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
+    super::publication::publish(&mut tx, claim, &config, background, vocals, metadata).await?;
     for (path, digest) in [
         (background, &metadata.background.sha256),
         (vocals, &metadata.vocals.sha256),
@@ -166,27 +164,8 @@ pub(super) async fn persist_candidate(
         )
         .await?;
     }
+    if claim.cancellation.is_cancelled() {
+        return Err("cancelled".into());
+    }
     tx.commit().await.map_err(db::sql_error)
-}
-
-pub(super) async fn transition_review(
-    pool: &SqlitePool,
-    separation_id: &str,
-    expected: SpeechSourceSeparationReviewStatus,
-    accepted: bool,
-    reviewed_at: i64,
-) -> Result<(), String> {
-    let status = if accepted { "accepted" } else { "rejected" };
-    let updated = sqlx::query(
-        "UPDATE spaces_speech_source_separations SET review_status=?,reviewed_at=? \
-         WHERE id=? AND review_status=?",
-    )
-    .bind(status)
-    .bind(reviewed_at)
-    .bind(separation_id)
-    .bind(expected.as_str())
-    .execute(pool)
-    .await
-    .map_err(db::sql_error)?;
-    db::require_one(updated, "Source separation review changed concurrently")
 }

@@ -36,7 +36,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     reset: resetObservation,
   } = useSpeechRunObservation(owner);
   const submitting = shallowRef(false);
-  const preparingJobId = shallowRef<string>();
+  const preparingRunId = shallowRef<string>();
   const cancelling = shallowRef(false);
   const operationError = shallowRef<string>();
   const errors = computed(() =>
@@ -44,8 +44,8 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
       Boolean(message),
     ),
   );
-  const activeJobId = computed(
-    () => jobId.value ?? preparingJobId.value ?? owner.project()?.project.activeRunId,
+  const hasActiveExecution = computed(() =>
+    Boolean(jobId.value ?? preparingRunId.value ?? owner.project()?.project.activeRunId),
   );
   let submissionEpoch = 0;
   let operationEpoch = 0;
@@ -58,7 +58,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     operationEpoch += 1;
     cancellationEpoch += 1;
     submitting.value = false;
-    preparingJobId.value = undefined;
+    preparingRunId.value = undefined;
     cancelling.value = false;
     operationError.value = undefined;
   }
@@ -81,7 +81,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
   async function generateProject() {
     const project = owner.project()?.project;
     const spaceId = store.activeSpaceId;
-    if (!project || !spaceId || activeJobId.value || submitting.value) return;
+    if (!project || !spaceId || hasActiveExecution.value || submitting.value) return;
     const context = {
       epoch: ++submissionEpoch,
       errorEpoch: ++operationEpoch,
@@ -91,7 +91,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     submitting.value = true;
     operationError.value = undefined;
     const requestId = crypto.randomUUID();
-    preparingJobId.value = requestId;
+    preparingRunId.value = requestId;
     try {
       const run = await generateSpeechProject({
         requestId,
@@ -110,7 +110,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     } finally {
       if (context.epoch === submissionEpoch) {
         submitting.value = false;
-        preparingJobId.value = undefined;
+        preparingRunId.value = undefined;
       }
     }
   }
@@ -123,7 +123,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     operationError.value = undefined;
     try {
       if (jobId.value) await cancelPreview();
-      else if (preparingJobId.value) await cancelSpeechGeneration(preparingJobId.value);
+      else if (preparingRunId.value) await cancelSpeechGeneration(preparingRunId.value);
       else {
         const runId = owner.project()?.project.activeRunId;
         if (runId) await cancelResourceRun(runId);
@@ -156,7 +156,7 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     listening,
     runState,
     errors,
-    activeJobId,
+    hasActiveExecution,
     submitting: readonly(submitting),
     cancelling: readonly(cancelling),
     reset,

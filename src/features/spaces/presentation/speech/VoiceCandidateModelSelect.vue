@@ -29,7 +29,8 @@ const models = computed(() =>
 const options = computed(() =>
   models.value.map((entry) => ({
     value: entry.id,
-    label: `${entry.name} · ${formatBytes(entry.totalBytes)}`,
+    label: entry.name,
+    description: formatBytes(entry.totalBytes),
     disabled: !entry.downloadAvailable,
   })),
 );
@@ -61,7 +62,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="space-y-1">
+  <div class="min-w-0 space-y-1">
     <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
       <span>{{ t("spaces.speech.models.label") }}</span>
       <UiSelect
@@ -85,6 +86,7 @@ watchEffect(() => {
         {{ t("spaces.speech.models.details") }}<ChevronDown class="size-3" />
       </CollapsibleTrigger>
       <CollapsibleContent class="space-y-1 pb-1 leading-relaxed">
+        <p>{{ formatBytes(selected.totalBytes) }}</p>
         <p>{{ t(`spaces.speech.models.descriptions.${model}`) }}</p>
         <p v-if="!selected.verified">{{ t("spaces.speech.models.firstUse") }}</p>
       </CollapsibleContent>

@@ -117,7 +117,7 @@ watch(
       <div ref="content" class="w-max">
         <slot
           :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)"
-          :available-height="position ? Number.parseFloat(position.maxHeight) : undefined"
+          :available-height="placement?.maxHeight"
         />
       </div>
     </div>

@@ -9,7 +9,7 @@ mod group;
 mod neutral;
 mod replay;
 
-pub(super) use replay::apply;
+pub(in crate::spaces) use replay::apply;
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

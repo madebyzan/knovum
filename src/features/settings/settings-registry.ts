@@ -4,6 +4,7 @@ import {
   AudioLines,
   Bell,
   Info,
+  HardDrive,
   MonitorCog,
   Puzzle,
   Terminal,
@@ -74,6 +75,14 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     ],
   },
   aiSettingsDefinition,
+  {
+    id: "localModels",
+    group: "intelligence",
+    titleKey: "settings.ai.localModels.title",
+    descriptionKey: "settings.ai.localModels.description",
+    searchKeys: ["settings.ai.localModels.description"],
+    icon: HardDrive,
+  },
   {
     id: "voices",
     group: "intelligence",

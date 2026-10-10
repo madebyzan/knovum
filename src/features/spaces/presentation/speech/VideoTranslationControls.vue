@@ -124,23 +124,31 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
 </script>
 
 <template>
-  <section class="space-y-2 rounded-md border border-stroke-divider p-2">
-    <div class="grid grid-cols-2 gap-2">
-      <UiSelect
-        :model-value="targetLanguage"
-        :label="t('spaces.speech.translation.language')"
-        :options="languageOptions"
-        :disabled="disabled || translating"
-        @update:model-value="selectLanguage"
-      />
-      <UiSelect
-        :model-value="targetValue"
-        :label="t('spaces.speech.translation.model')"
-        :options="targets"
-        :placeholder="t('ai.noCompatibleTarget')"
-        :disabled="disabled || translating || !ready || targets.length === 0"
-        @update:model-value="target = targets.find(({ value }) => value === $event)?.target"
-      />
+  <section class="space-y-3">
+    <div class="space-y-3">
+      <label class="block space-y-1 text-caption text-fg-secondary">
+        <span>{{ t("spaces.speech.translation.language") }}</span>
+        <UiSelect
+          size="sm"
+          :model-value="targetLanguage"
+          :label="t('spaces.speech.translation.language')"
+          :options="languageOptions"
+          :disabled="disabled || translating"
+          @update:model-value="selectLanguage"
+        />
+      </label>
+      <label class="block space-y-1 text-caption text-fg-secondary">
+        <span>{{ t("spaces.speech.translation.model") }}</span>
+        <UiSelect
+          size="sm"
+          :model-value="targetValue"
+          :label="t('spaces.speech.translation.model')"
+          :options="targets"
+          :placeholder="t('ai.noCompatibleTarget')"
+          :disabled="disabled || translating || !ready || targets.length === 0"
+          @update:model-value="target = targets.find(({ value }) => value === $event)?.target"
+        />
+      </label>
     </div>
     <label class="flex items-center gap-2 text-caption text-fg-secondary">
       <UiCheckbox

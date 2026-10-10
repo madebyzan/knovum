@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
+import LocalModelsSettings from "./components/LocalModelsSettings.vue";
 import AboutSettingsPane from "./components/panes/AboutSettingsPane.vue";
 import AiModelsSettingsPane from "./components/panes/AiModelsSettingsPane.vue";
 import AppearanceSettingsPane from "./components/panes/AppearanceSettingsPane.vue";
@@ -63,6 +64,7 @@ watch(
 
 const componentByPaneId = {
   aiModels: AiModelsSettingsPane,
+  localModels: LocalModelsSettings,
   voices: toRaw(props.voiceLibraryComponent),
   desktopAgents: DesktopAgentsSettingsPane,
   extensions: toRaw(props.extensionsComponent),

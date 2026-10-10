@@ -77,7 +77,7 @@ function auditionSelection() {
         @change="setRange"
       />
       <div class="grid grid-cols-2 gap-3">
-        <label class="space-y-1 text-caption text-fg-secondary"
+        <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
           ><span>{{ t("spaces.speech.reference.start") }}</span
           ><UiInput
             v-model="reference.start"
@@ -85,7 +85,7 @@ function auditionSelection() {
             inputmode="decimal"
             :disabled="form.busy || form.preparingReference"
         /></label>
-        <label class="space-y-1 text-caption text-fg-secondary"
+        <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
           ><span>{{ t("spaces.speech.reference.end") }}</span
           ><UiInput
             v-model="reference.end"
@@ -101,7 +101,7 @@ function auditionSelection() {
         {{ t("spaces.speech.reference.requirements") }}
       </p>
     </UiPopover>
-    <UiPopover class="w-72 p-3" align="start" force-mount>
+    <UiPopover class="w-80 p-3" align="start" force-mount>
       <template #trigger
         ><ToolbarButton as-child
           ><button

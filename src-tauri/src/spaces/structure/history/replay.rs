@@ -8,7 +8,7 @@ use crate::spaces::{
     db,
     structure::{portal_integrity, repository, repository::SpaceStructureSnapshot},
 };
-pub(in crate::spaces::structure) async fn apply(
+pub(in crate::spaces) async fn apply(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     current_revision: i64,

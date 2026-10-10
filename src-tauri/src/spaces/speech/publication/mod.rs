@@ -1,4 +1,5 @@
 pub(super) use render_commit::commit_render;
+pub(super) mod nodes;
 mod render_commit;
 pub use recovery::reconcile_interrupted;
 mod recovery;

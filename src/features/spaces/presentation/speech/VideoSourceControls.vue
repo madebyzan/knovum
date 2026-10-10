@@ -51,9 +51,6 @@ watch(
 onScopeDispose(() => {
   epoch += 1;
 });
-function update(field: "preserveOriginalOutsideDialogue" | "retainOriginalTrack", value: boolean) {
-  config.value = { ...config.value, [field]: value };
-}
 async function importSubtitles() {
   if (importing.value) return;
   importing.value = true;
@@ -83,30 +80,22 @@ defineExpose({ audition: (startMs: number, endMs: number) => player.value?.seekT
 
 <template>
   <section class="space-y-2">
-    <SpeechMediaPlayer ref="player" kind="video" :source="convertFileSrc(config.video.assetPath)" />
-    <label class="flex gap-2 text-caption text-fg-secondary"
-      ><input
-        type="checkbox"
-        :checked="config.retainOriginalTrack"
-        :disabled
-        @change="update('retainOriginalTrack', ($event.target as HTMLInputElement).checked)"
-      />{{ t("spaces.speech.videoDubbing.retainOriginalTrack") }}</label
-    >
-    <label class="flex gap-2 text-caption text-fg-secondary"
-      ><input
-        type="checkbox"
-        :checked="config.preserveOriginalOutsideDialogue"
-        :disabled="disabled || !config.backgroundSeparation || !config.sourceDialogueIntervals.length"
-        @change="update('preserveOriginalOutsideDialogue', ($event.target as HTMLInputElement).checked)"
-      />{{ t("spaces.speech.videoDubbing.preserveOriginalOutsideDialogue") }}</label
-    >
+    <SpeechMediaPlayer
+      ref="player"
+      kind="video"
+      :preview="false"
+      :source="convertFileSrc(config.video.assetPath)"
+    />
     <UiButton size="sm" :disabled="disabled || importing" @click="importSubtitles">{{
       t("spaces.speech.videoDubbing.importSubtitles")
     }}</UiButton>
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
     <div v-for="speaker in speakers" :key="speaker.key" class="flex items-center gap-2">
-      <span class="text-caption text-fg-secondary">{{ speaker.key }}</span>
+      <span class="max-w-24 shrink-0 truncate text-caption text-fg-secondary" :title="speaker.key">{{
+        speaker.key
+      }}</span>
       <UiSelect
+        class="min-w-0 flex-1"
         :model-value="speaker.revisionId"
         size="sm"
         :options="voiceOptions"

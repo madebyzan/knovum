@@ -25,5 +25,7 @@
   "cover": "Cover",
   "noCover": "No cover",
   "boundCover": "Saved cover revision",
-  "coverRequiresEncodedOutput": "Choose MP3 or M4B to embed a cover."
+  "coverRequiresEncodedOutput": "Choose MP3 or M4B to embed a cover.",
+  "outputSettings": "Output settings",
+  "metadataSettings": "Book details"
 }

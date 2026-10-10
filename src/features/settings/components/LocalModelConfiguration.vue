@@ -92,18 +92,15 @@ async function remove() {
 </script>
 
 <template>
-  <article
-    :data-model-id="model.id"
-    class="space-y-2 border-b border-stroke-divider px-4 py-3 last:border-b-0"
-  >
-    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <div class="min-w-48 flex-1 space-y-1.5">
+  <article :data-model-id="model.id" class="min-h-(--knovum-setting-min-height) space-y-2 px-4 py-3">
+    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+      <div class="min-w-40 flex-1 space-y-1">
         <div class="flex flex-wrap items-center gap-2">
-          <h4 class="text-body-lg font-medium text-fg-primary">{{ model.name }}</h4>
+          <h3 class="text-body-lg font-medium break-words text-fg-primary">{{ model.name }}</h3>
           <UiBadge
             v-if="model.selected"
             size="sm"
-            variant="accent"
+            class="bg-surface-control"
             :title="
               t(
                 `settings.ai.localModels.${model.capability === 'speechSynthesis' ? 'selectedVoiceModel' : 'selected'}`,
@@ -111,25 +108,20 @@ async function remove() {
             "
             >{{ t("settings.ai.localModels.defaultModel") }}</UiBadge
           >
-          <UiBadge v-if="model.essential" size="sm" class="bg-surface-muted">{{
-            t("settings.ai.localModels.essential")
-          }}</UiBadge>
         </div>
-        <p class="max-w-xl text-caption text-fg-secondary">
+        <p class="max-w-xl text-caption leading-normal text-fg-secondary">
           {{ t(`settings.ai.localModels.modelDescriptions.${model.id}`) }}
         </p>
-        <p class="text-caption text-fg-tertiary">
+        <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-caption text-fg-tertiary">
           <span :class="statusKey === 'invalid' && 'text-fg-warning'">{{
             t(`settings.ai.localModels.${statusKey}`)
           }}</span>
-          · {{ t("settings.ai.localModels.modelSize", { size: formatBytes(model.totalBytes) }) }}
-          <template v-if="model.installed">
-            ·
-            {{
-              t("settings.ai.localModels.installedSize", { size: formatBytes(model.installedBytes) })
-            }}</template
-          >
-        </p>
+          <span>{{ t("settings.ai.localModels.modelSize", { size: formatBytes(model.totalBytes) }) }}</span>
+          <span v-if="model.installed">{{
+            t("settings.ai.localModels.installedSize", { size: formatBytes(model.installedBytes) })
+          }}</span>
+          <span v-if="model.essential">{{ t("settings.ai.localModels.essential") }}</span>
+        </div>
         <p v-if="model.fixed" class="text-caption text-fg-tertiary">
           {{ t("settings.ai.localModels.fixedEmbedding") }}
         </p>

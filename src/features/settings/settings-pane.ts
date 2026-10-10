@@ -4,6 +4,7 @@ const settingsPaneIds = [
   "appearance",
   "notifications",
   "aiModels",
+  "localModels",
   "voices",
   "desktopAgents",
   "extensions",

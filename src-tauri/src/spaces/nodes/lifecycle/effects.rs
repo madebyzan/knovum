@@ -10,24 +10,15 @@ pub(super) async fn invalidate_relations_for_nodes(
     node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    let selected: HashSet<String> = sqlx::query_scalar(
-        "SELECT id FROM spaces_structure_nodes WHERE space_id=$1 AND deleted_at IS NULL \
-         AND node_id IN (SELECT value FROM json_each($2))",
-    )
-    .bind(space_id)
-    .bind(sqlx::types::Json(node_ids))
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?
-    .into_iter()
-    .collect();
+    let removed_node_ids: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
     let rows = sqlx::query("SELECT id,source_id,target_id FROM spaces_relations WHERE space_id=$1 AND status <> 'invalidated'")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         let source: String = row.try_get("source_id").map_err(db::sql_error)?;
         let target: String = row.try_get("target_id").map_err(db::sql_error)?;
-        if selected.contains(source.as_str()) || selected.contains(target.as_str()) {
+        if removed_node_ids.contains(source.as_str()) || removed_node_ids.contains(target.as_str())
+        {
             invalidation::invalidate_relation(tx, &id, "human", None, now).await?;
         }
     }
@@ -61,7 +52,7 @@ pub(super) async fn remove_nodes_from_scene_focus(
     node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    let selected: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
+    let removed_node_ids: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
     let rows =
         sqlx::query("SELECT id,focus_structure_node_ids FROM spaces_scenes WHERE space_id=$1")
             .bind(space_id)
@@ -75,7 +66,7 @@ pub(super) async fn remove_nodes_from_scene_focus(
             .map_err(db::sql_error)?;
         let mut focus: Vec<String> = serde_json::from_str(&raw).map_err(db::json_error)?;
         let before = focus.len();
-        focus.retain(|structure_node_id| !selected.contains(structure_node_id.as_str()));
+        focus.retain(|structure_node_id| !removed_node_ids.contains(structure_node_id.as_str()));
         if focus.len() == before {
             continue;
         }

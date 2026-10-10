@@ -34,7 +34,7 @@ const { t } = useI18n();
         :disabled="disabled"
       />
     </label>
-    <div class="grid grid-cols-[minmax(0,1fr)_7rem] items-start gap-3">
+    <div class="space-y-3">
       <VoiceCandidateModelSelect
         v-model="model"
         v-model:available="available"

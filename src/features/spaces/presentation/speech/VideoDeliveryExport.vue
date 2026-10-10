@@ -31,8 +31,7 @@ watch(
 </script>
 
 <template>
-  <section class="space-y-2 border-t border-stroke-divider pt-2">
-    <h3 class="text-caption font-medium text-fg-secondary">{{ t("spaces.speech.videoDubbing.delivery") }}</h3>
+  <section class="space-y-2">
     <div class="flex flex-wrap gap-2">
       <UiButton size="sm" :disabled="delivery.busy.value" @click="delivery.exportAsset('srt')">SRT</UiButton>
       <UiButton size="sm" :disabled="delivery.busy.value" @click="delivery.exportAsset('vtt')"
@@ -40,18 +39,20 @@ watch(
       >
       <UiButton
         size="sm"
-        :disabled="delivery.busy.value || !generated"
+        v-if="generated"
+        :disabled="delivery.busy.value"
         @click="delivery.exportAsset('dialogue_wav')"
         >{{ t("spaces.speech.videoDubbing.dialogueStem") }}</UiButton
       >
       <UiButton
         size="sm"
-        :disabled="delivery.busy.value || !generated || !hasBackground"
+        v-if="generated && hasBackground"
+        :disabled="delivery.busy.value"
         @click="delivery.exportAsset('background_wav')"
         >{{ t("spaces.speech.videoDubbing.backgroundStem") }}</UiButton
       >
     </div>
-    <details>
+    <details v-if="tracks?.length">
       <summary class="cursor-pointer text-caption text-fg-secondary">
         {{ t("spaces.speech.videoDubbing.multipleAudioTracks") }}
       </summary>

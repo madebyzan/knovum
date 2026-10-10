@@ -58,6 +58,7 @@ it("prevents synthesis while the dubbing script is being translated and releases
     data: { kind: "video", title: "Video", assetPath: "/video.mp4", fileName: "video.mp4" },
   };
   const wrapper = mount(SpeechProjectEditor, {
+    attachTo: document.body,
     props: {
       sourceNode,
       project,
@@ -74,9 +75,26 @@ it("prevents synthesis while the dubbing script is being translated and releases
     },
   });
   onTestFinished(() => wrapper.unmount());
+  const delivery = () => wrapper.findComponent({ name: "VideoDeliveryExport" });
+  const deliveryTrigger = wrapper
+    .findAll("button")
+    .find((button) => button.text() === i18n.global.t("spaces.speech.videoDubbing.delivery"))!;
+  expect(deliveryTrigger.attributes("aria-expanded")).toBe("false");
+  await deliveryTrigger.trigger("click");
+  expect(deliveryTrigger.attributes("aria-expanded")).toBe("true");
+  await wrapper.setProps({ project: { ...project, segments: [] } });
+  expect(delivery().exists()).toBe(false);
+  await wrapper.setProps({ project });
   const editor = wrapper.getComponent({ name: "VideoDubbingEditor" });
-  const generate = wrapper.get("button");
+  const generate = wrapper.get('[data-testid="speech-generate"]');
+  expect(generate.element.closest("[data-reka-scroll-area-viewport]")).toBeNull();
+  expect(
+    wrapper.get('[data-testid="speech-save"]').element.closest("[data-reka-scroll-area-viewport]"),
+  ).toBeNull();
   expect(generate.attributes("disabled")).toBeUndefined();
+  await wrapper.setProps({ saving: true });
+  expect(generate.attributes("disabled")).toBeDefined();
+  await wrapper.setProps({ saving: false });
   editor.vm.$emit("busy", true);
   await wrapper.vm.$nextTick();
   expect(generate.attributes("disabled")).toBeDefined();
@@ -85,4 +103,18 @@ it("prevents synthesis while the dubbing script is being translated and releases
   await wrapper.vm.$nextTick();
   expect(generate.attributes("disabled")).toBeUndefined();
   expect(editor.props("disabled")).toBe(false);
+  editor.vm.$emit("draftState", true);
+  await wrapper.vm.$nextTick();
+  const save = wrapper.get('[data-testid="speech-save"]');
+  expect(save.attributes("disabled")).toBeDefined();
+  const input = { sourceRevision: "source", outputConfig: {}, pronunciationLexicon: {}, segments: [] };
+  editor.vm.$emit("draftState", true, input);
+  await wrapper.vm.$nextTick();
+  expect(generate.attributes("disabled")).toBeDefined();
+  expect(save.attributes("disabled")).toBeUndefined();
+  await save.trigger("click");
+  expect(wrapper.emitted("save")?.at(-1)).toEqual([input]);
+  editor.vm.$emit("busy", true);
+  await wrapper.vm.$nextTick();
+  expect(save.attributes("disabled")).toBeDefined();
 });

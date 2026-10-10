@@ -35,29 +35,40 @@ const cover = computed({
     };
   },
 });
-function text(field: "title" | "author" | "narrator", value: string) {
+function updateText(field: "title" | "author" | "narrator", value: string) {
   model.value = { ...model.value, [field]: value };
 }
 </script>
 
 <template>
-  <section class="grid grid-cols-2 gap-2">
-    <label class="text-caption text-fg-secondary"
+  <section class="grid grid-cols-2 gap-x-2 gap-y-3">
+    <label class="col-span-2 block min-w-0 space-y-1 text-caption text-fg-secondary"
       >{{ t("spaces.speech.audiobook.title")
-      }}<UiInput :model-value="model.title" size="sm" :disabled @update:model-value="text('title', $event)"
+      }}<UiInput
+        :model-value="model.title"
+        size="sm"
+        :disabled
+        @update:model-value="updateText('title', $event)"
     /></label>
-    <label class="text-caption text-fg-secondary"
+    <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
       >{{ t("spaces.speech.audiobook.author")
-      }}<UiInput :model-value="model.author" size="sm" :disabled @update:model-value="text('author', $event)"
+      }}<UiInput
+        :model-value="model.author"
+        size="sm"
+        :disabled
+        @update:model-value="updateText('author', $event)"
     /></label>
-    <label class="text-caption text-fg-secondary"
+    <label class="block min-w-0 space-y-1 text-caption text-fg-secondary"
       >{{ t("spaces.speech.audiobook.narrator")
       }}<UiInput
         :model-value="model.narrator"
         size="sm"
         :disabled
-        @update:model-value="text('narrator', $event)"
+        @update:model-value="updateText('narrator', $event)"
     /></label>
-    <UiSelect v-model="cover" size="sm" :label="t('spaces.speech.audiobook.cover')" :options :disabled />
+    <label class="col-span-2 block min-w-0 space-y-1 text-caption text-fg-secondary">
+      <span>{{ t("spaces.speech.audiobook.cover") }}</span>
+      <UiSelect v-model="cover" size="sm" :label="t('spaces.speech.audiobook.cover')" :options :disabled />
+    </label>
   </section>
 </template>

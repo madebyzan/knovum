@@ -1,6 +1,6 @@
 use sqlx::{Sqlite, Transaction};
 
-use super::{AcceptedSourceSeparation, SpeechMediaSource, VideoDubbingOutputConfig};
+use super::{SourceSeparationProvenance, SpeechMediaSource, VideoDubbingOutputConfig};
 use crate::spaces::db;
 
 pub(super) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> {
@@ -20,15 +20,15 @@ pub(super) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
     }
 }
 
-pub(super) async fn require_accepted(
+pub(super) async fn require_published(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    separation: &AcceptedSourceSeparation,
+    separation: &SourceSeparationProvenance,
     background: &SpeechMediaSource,
 ) -> Result<(), String> {
-    let accepted: bool = sqlx::query_scalar(
+    let is_published: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_speech_source_separations WHERE id=? AND space_id=? \
-         AND review_status='accepted' AND model_spec_id=? AND source_asset_path=? AND source_revision=? \
+         AND model_spec_id=? AND source_asset_path=? AND source_revision=? \
          AND source_duration_ms=? AND background_asset_path=? AND 'sha256:' || background_sha256=? \
          AND background_duration_ms=?)",
     )
@@ -44,9 +44,9 @@ pub(super) async fn require_accepted(
     .fetch_one(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if accepted {
+    if is_published {
         Ok(())
     } else {
-        Err("Accepted background no longer matches its source separation revision".into())
+        Err("Published background no longer matches its source separation revision".into())
     }
 }

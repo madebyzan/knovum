@@ -17,12 +17,11 @@ async fn insert_source_separations(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.speech_source_separations {
-        sqlx::query("INSERT INTO spaces_speech_source_separations(id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_sample_rate,background_sample_count,background_duration_ms,review_status,review_warning,created_at,reviewed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(&row.id).bind(&request.space.id).bind(&row.run_id).bind(&row.source_asset_path)
+        sqlx::query("INSERT INTO spaces_speech_source_separations(id,space_id,run_id,source_node_id,source_asset_path,source_revision,source_duration_ms,model_spec_id,background_asset_path,background_sha256,vocals_asset_path,vocals_sha256,background_sample_rate,background_sample_count,background_duration_ms,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(&row.id).bind(&request.space.id).bind(&row.run_id).bind(&row.source_node_id).bind(&row.source_asset_path)
             .bind(&row.source_revision).bind(row.source_duration_ms).bind(&row.model_spec_id)
             .bind(&row.background_asset_path).bind(&row.background_sha256).bind(&row.vocals_asset_path).bind(&row.vocals_sha256).bind(row.background_sample_rate)
-            .bind(row.background_sample_count).bind(row.background_duration_ms).bind(&row.review_status)
-            .bind(&row.review_warning).bind(row.created_at).bind(row.reviewed_at)
+            .bind(row.background_sample_count).bind(row.background_duration_ms).bind(row.created_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())

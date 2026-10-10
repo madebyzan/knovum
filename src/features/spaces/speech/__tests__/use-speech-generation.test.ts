@@ -3,11 +3,12 @@ import { effectScope, shallowRef } from "vue";
 
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
+import type * as speechIpc from "../ipc";
 import { useSpeechGeneration } from "../use-speech-generation";
 
 const mocks = vi.hoisted(() => ({
   activeSpaceId: "space",
-  generateSpeechProject: vi.fn<() => Promise<RunObservation>>(),
+  generateSpeechProject: vi.fn<typeof speechIpc.generateSpeechProject>(),
   cancelSpeechGeneration: vi.fn<() => Promise<boolean>>(),
   cancelResourceRun: vi.fn<() => Promise<void>>(),
   observeResourceRun: vi.fn<(run: RunObservation, title: string) => void>(),
@@ -112,14 +113,15 @@ afterEach(() => scopes.splice(0).forEach((scope) => scope.stop()));
 it("uses the request identity to cancel while first-use resources are being prepared", async () => {
   const { generation, resolve } = setup();
   const pending = generation.generateProject();
-  const requestId = generation.activeJobId.value;
+  const requestId = mocks.generateSpeechProject.mock.calls[0]![0].requestId;
+  expect(generation.hasActiveExecution.value).toBe(true);
   expect(requestId).toBeTypeOf("string");
   await generation.cancelGeneration();
   expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(requestId);
   expect(mocks.cancelResourceRun).not.toHaveBeenCalled();
   resolve(run);
   await pending;
-  expect(generation.activeJobId.value).toBeUndefined();
+  expect(generation.hasActiveExecution.value).toBe(false);
 });
 
 it("keeps a late created Run in Task Center without attaching it to another node", async () => {

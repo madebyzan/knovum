@@ -13,10 +13,14 @@ export function nodeSpeechOperationIds(node: SpaceCanvasNode): readonly NodeSpee
     : projects;
 }
 
-export const nodeSpeechOperations = {
-  short_dubbing: { icon: Speech, label: "spaces.speech.project.generateFromNode" },
-  audiobook: { icon: BookOpen, label: "spaces.speech.project.types.audiobook" },
-  video_dubbing: { icon: Clapperboard, label: "spaces.speech.project.types.videoDubbing" },
-  clone: { icon: Mic2, label: "spaces.speech.voice.clone" },
-  separate: { icon: Music2, label: "spaces.speech.separation.title" },
-};
+export const NODE_SPEECH_OPERATIONS = {
+  short_dubbing: { surface: "inspector", icon: Speech, label: "spaces.speech.project.generateFromNode" },
+  audiobook: { surface: "inspector", icon: BookOpen, label: "spaces.speech.project.types.audiobook" },
+  video_dubbing: {
+    surface: "inspector",
+    icon: Clapperboard,
+    label: "spaces.speech.project.types.videoDubbing",
+  },
+  clone: { surface: "compact-editor", icon: Mic2, label: "spaces.speech.voice.clone" },
+  separate: { surface: "actions", icon: Music2, label: "spaces.speech.separation.title" },
+} as const;

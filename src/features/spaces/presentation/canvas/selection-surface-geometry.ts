@@ -23,6 +23,7 @@ export interface PlacementInput {
 export interface SurfacePlacement {
   left: number;
   top: number;
+  /** Available vertical space, independent of the current editor content height. */
   maxHeight: number;
   side: SurfaceSide;
 }

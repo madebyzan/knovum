@@ -136,12 +136,7 @@ pub(crate) fn request<R: Runtime>(app: &AppHandle<R>) {
 }
 
 fn emit_request<R: Runtime>(app: &AppHandle<R>, request_id: u64) {
-    if let Err(error) = app.emit(
-        "knovum://app-exit-requested",
-        AppExitRequest {
-            request_id: request_id,
-        },
-    ) {
+    if let Err(error) = app.emit("knovum://app-exit-requested", AppExitRequest { request_id }) {
         log::error!("failed to deliver exit request: {error}");
         show_unresponsive(app, request_id);
     }

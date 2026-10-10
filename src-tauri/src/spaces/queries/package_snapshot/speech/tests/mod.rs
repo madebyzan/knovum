@@ -1,5 +1,7 @@
 use super::super::package_assets::PackageAssets;
 
+mod separation;
+
 #[tokio::test]
 async fn snapshot_preserves_source_ownership_and_excludes_trashed_sources() {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()

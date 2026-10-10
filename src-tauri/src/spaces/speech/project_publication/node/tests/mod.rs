@@ -53,7 +53,23 @@ async fn publication_creates_one_audio_node_next_to_source_and_retries_are_idemp
     assert_eq!(kind, "audio");
     let data: serde_json::Value = serde_json::from_str(&data).unwrap();
     assert_eq!(data["assetPath"], output().path);
-    assert_eq!(data["durationSeconds"], 2);
+    assert_eq!(data["durationSeconds"].as_u64(), Some(2));
+    let (output_id, source_id, kind): (String, String, String) = sqlx::query_as(
+        "SELECT source_id,target_id,kind FROM spaces_relations WHERE source_id='revision-output'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        (output_id.as_str(), source_id.as_str(), kind.as_str()),
+        ("revision-output", "source", "derives-from")
+    );
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(count, 1);
+
     let mut tx = db::begin_write(&pool).await.unwrap();
     let (snapshot, revision) = structure::repository::load_in_transaction(&mut tx, "space")
         .await

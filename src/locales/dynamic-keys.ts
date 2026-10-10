@@ -6,10 +6,10 @@ export const dynamicLocaleKeyPrefixes = [
   "settings.ai.localModels.capabilities.",
   "settings.ai.localModels.groups.",
   "settings.ai.localModels.modelDescriptions.",
+  "settings.ai.localModels.categoryLabels.",
+  "settings.ai.localModels.filters.",
   "spaces.speech.models.descriptions.",
   "spaces.speech.voice.origins.",
-  "spaces.speech.separation.export.",
-  "spaces.speech.separation.stems.",
   "settings.agents.connections.",
   "settings.creation.knowledgeActions.",
   "settings.routing.routes.",
@@ -48,7 +48,6 @@ export const dynamicLocaleKeyPrefixes = [
   "spaces.recording.problems.",
   "spaces.richtext.align.",
   "spaces.richtext.highlightColor.",
-  "spaces.speech.separation.status.",
   "spaces.speech.signal.issues.",
 ] as const;
 

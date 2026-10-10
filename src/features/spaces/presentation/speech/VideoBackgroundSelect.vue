@@ -6,21 +6,26 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { SpeechMediaSource } from "../../contracts/generated/SpeechMediaSource";
-import type { SpeechSourceSeparationCandidate } from "../../contracts/generated/SpeechSourceSeparationCandidate";
+import type { SpeechSourceSeparationPublication } from "../../contracts/generated/SpeechSourceSeparationPublication";
 import type { VideoDubbingOutputConfig } from "../../contracts/generated/VideoDubbingOutputConfig";
-import { listAcceptedSourceSeparations } from "../../speech/source-separation-ipc";
+import { resourcePublicationQueryKey } from "../../runs/resource-publication-query";
+import { listSourceSeparations } from "../../speech/source-separation-ipc";
 import { useSpeechMediaSources } from "../../speech/use-speech-media-sources";
 
 const props = defineProps<{ spaceId: string; config: VideoDubbingOutputConfig; disabled: boolean }>();
 const emit = defineEmits<{
   background: [source: SpeechMediaSource | null];
-  separated: [candidate: SpeechSourceSeparationCandidate];
+  separated: [publication: SpeechSourceSeparationPublication];
 }>();
 const { t } = useI18n();
 const { backgrounds } = useSpeechMediaSources();
-const accepted = useQuery({
-  queryKey: computed(() => ["spaces", "speech", "separations", props.spaceId, props.config.video]),
-  queryFn: () => listAcceptedSourceSeparations(props.spaceId, props.config.video),
+const separations = useQuery({
+  queryKey: computed(() => [
+    ...resourcePublicationQueryKey(props.spaceId),
+    "source-separations",
+    props.config.video,
+  ]),
+  queryFn: () => listSourceSeparations(props.spaceId, props.config.video),
 });
 const value = computed(() => {
   if (props.config.backgroundSeparation)
@@ -38,9 +43,9 @@ const options = computed(() => {
   const choices = [
     { value: "mute", label: t("spaces.speech.videoDubbing.muteOriginal") },
     ...backgrounds.value.map(({ id, name }) => ({ value: id, label: name })),
-    ...(accepted.data.value ?? []).map((candidate, index) => ({
-      value: `separation:${candidate.separationId}`,
-      label: `${t("spaces.speech.separation.acceptedBackground")} · ${index + 1}`,
+    ...(separations.data.value ?? []).map((publication, index) => ({
+      value: `separation:${publication.separationId}`,
+      label: `${t("spaces.speech.separation.background")} · ${index + 1}`,
     })),
   ];
   if (!choices.some((choice) => choice.value === value.value)) {
@@ -48,7 +53,7 @@ const options = computed(() => {
       value: value.value,
       label: t(
         props.config.backgroundSeparation
-          ? "spaces.speech.separation.acceptedBackground"
+          ? "spaces.speech.separation.background"
           : "spaces.speech.videoDubbing.currentBackground",
       ),
     });
@@ -57,8 +62,8 @@ const options = computed(() => {
 });
 function select(selected: string) {
   if (selected === value.value) return;
-  const separation = accepted.data.value?.find(
-    (candidate) => `separation:${candidate.separationId}` === selected,
+  const separation = separations.data.value?.find(
+    (publication) => `separation:${publication.separationId}` === selected,
   );
   if (separation) emit("separated", separation);
   else
@@ -78,9 +83,13 @@ function select(selected: string) {
     :disabled
     @update:model-value="select"
   />
-  <div v-if="accepted.error.value" role="alert" class="flex items-center gap-2 text-caption text-fg-danger">
-    <span>{{ accepted.error.value.message }}</span>
-    <UiButton size="sm" :disabled="accepted.isFetching.value" @click="accepted.refetch()">
+  <div
+    v-if="separations.error.value"
+    role="alert"
+    class="flex items-center gap-2 text-caption text-fg-danger"
+  >
+    <span>{{ separations.error.value.message }}</span>
+    <UiButton size="sm" :disabled="separations.isFetching.value" @click="separations.refetch()">
       {{ t("common.retry") }}
     </UiButton>
   </div>
