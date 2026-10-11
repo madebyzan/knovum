@@ -19,7 +19,7 @@ fn verified_receipt_replaces_repeated_content_hashing() {
     let model = root.join(DESCRIPTOR.file);
     fs::write(&model, b"model").unwrap();
 
-    assert!(verification::verify_and_record_cancellable(
+    assert!(verification::record_verification(
         &model,
         DESCRIPTOR.sha256,
         &CancellationToken::new(),

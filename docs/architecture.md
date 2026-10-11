@@ -43,12 +43,12 @@ All other dependency rules remain in force, including the prohibition on product
 ## Rust inference boundary
 
 The Cargo workspace contains the Tauri host, `inference-contracts`, `inference-worker` and the
-project-owned native supply crates. The neutral
-contracts crate depends on serialization/schema tooling only. Cargo also owns `inference-native`
-and `media-native`, whose CMake builds expose install metadata to the host. The worker imports those contracts and
+project-owned compiled library crates. The neutral
+contracts crate depends on serialization/schema tooling only. Cargo also owns `inference-libraries`
+and `media-libraries`, whose CMake builds expose install metadata to the host. The worker imports those contracts and
 maintained execution libraries; it never imports the host or feature storage. The host imports the
 contracts and manages the private process. Engine-specific adapters remain inside the worker.
-Native build definitions belong to their Cargo owner, and Agent build definitions to its single uv
+CMake build definitions belong to their Cargo owner, and Agent build definitions to its single uv
 project. `scripts/desktop` coordinates vendor commands and verifies final artifacts; it owns no
 dependency solver, interpreter installer or independent build cache. Model measurements remain
 validation evidence rather than a second tool subsystem. Python source and generated Python contracts belong
@@ -144,6 +144,13 @@ The destination and selected work item derive the readonly `workspace/space-surf
 editor registry. Document drafts belong to `editor/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
 instances alive and mounts heavy video media only while active.
+`workspace/editor-resource-protection.ts` projects open tabs into neutral Space/node identities and
+checks affected subtrees for product availability. No editor lock is persisted. Structural mutation
+and history IPC pass those identities to `structure/editor_protection/mod.rs`, which captures live
+ownership and validates it again before transaction commit. This one transaction invariant covers
+normal deletion, transfer and cross-Space history; UI availability is only its presentation.
+Mutation admission prevents opening a tab during an in-flight change. Closing tabs continues to use
+scoped participant decisions; destructive resource operations never implicitly close editor tabs.
 
 `workspace/session-participants.ts` owns scoped, ordered content/layout/persistence preparation.
 Navigation commits documents and non-tab editors without closing retained video sessions; close
@@ -220,7 +227,7 @@ and owns durable publication.
 
 `local_resources/models` owns model identity, installation, and integrity;
 `local_resources/tools` owns verified tool installation and bundled executable discovery;
-`local_resources/runtimes/inference` verifies the bundled native inventory;
+`local_resources/runtimes/inference` verifies the bundled compiled-library inventory;
 `agent_runtime/runtime` resolves the editable Agent or verifies its frozen bundled inventory; and
 `local_resources/preparation` coordinates preparation and execution leases. `app_resources` may
 compose resource removal with consumers that must release an active model, while
@@ -234,7 +241,7 @@ resource paths, or publishes engine results to Space storage.
 ### Rust inference and retained Agent Python
 
 `src-tauri/crates/inference-contracts` owns the strict neutral wire types shared by the host and
-private worker. The host imports neutral contracts and native build metadata, never inference execution APIs.
+private worker. The host imports neutral contracts and compiled-library build metadata, never inference execution APIs.
 `inference-worker` owns bounded framing, request admission and independent reader/compute threads;
 `embedding`, `images` and `speech` own their capability adapters. Compiled libraries receive only
 verified models and request-scoped inputs. Business authorization and publication remain with the

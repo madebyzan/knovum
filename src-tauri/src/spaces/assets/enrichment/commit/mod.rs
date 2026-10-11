@@ -151,7 +151,7 @@ pub(in crate::spaces) async fn publish_in_transaction(
         space_id,
         &[NodeContentChange {
             id: node_id.into(),
-            expected_data: expected_payload,
+            expected_content: expected_payload,
             data: current.clone(),
             source_chunks: chunks,
         }],

@@ -1,11 +1,13 @@
 #[path = "../build_support/layout.rs"]
 mod layout;
-#[path = "../build_support/relocation.rs"]
+#[path = "../build_support/relocation/mod.rs"]
 pub mod relocation;
 use std::{fs, path::PathBuf};
 fn fixture(name: &str) -> PathBuf {
-    let root =
-        std::env::temp_dir().join(format!("knovum-native-test-{}-{name}", std::process::id()));
+    let root = std::env::temp_dir().join(format!(
+        "knovum-compiled-test-{}-{name}",
+        std::process::id()
+    ));
     let _ = fs::remove_dir_all(&root);
     fs::create_dir_all(root.join("compiled-libraries/whisper")).unwrap();
     for name in [
@@ -15,7 +17,7 @@ fn fixture(name: &str) -> PathBuf {
         "compiled-libraries/sherpa-onnx-c-api.dylib",
         "compiled-libraries/whisper/libwhisper.dylib",
     ] {
-        fs::write(root.join(name), b"native bytes").unwrap();
+        fs::write(root.join(name), b"compiled bytes").unwrap();
     }
     root
 }
@@ -42,7 +44,7 @@ fn materializes_only_aliases_within_the_installed_supplier_tree() {
     std::os::unix::fs::symlink("libonnxruntime.1.22.1.dylib", &alias).unwrap();
     relocation::materialize(&root, &root).unwrap();
     assert!(!fs::symlink_metadata(&alias).unwrap().is_symlink());
-    assert_eq!(fs::read(&alias).unwrap(), b"native bytes");
+    assert_eq!(fs::read(&alias).unwrap(), b"compiled bytes");
     std::os::unix::fs::symlink("/etc/passwd", root.join("escape.dylib")).unwrap();
     assert!(relocation::materialize(&root, &root).is_err());
     fs::remove_dir_all(root).unwrap();

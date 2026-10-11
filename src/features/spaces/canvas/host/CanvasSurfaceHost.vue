@@ -23,10 +23,10 @@ const props = defineProps<{
   importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportReceipt>;
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
-  interactionEnabled: boolean;
-  navigationEnabled: boolean;
-  renderingEnabled: boolean;
-  canvasGesturesEnabled: boolean;
+  isInteractionEnabled: boolean;
+  isNavigationEnabled: boolean;
+  isRenderingEnabled: boolean;
+  canCommitCanvasGestures: boolean;
   tool: CanvasTool;
   sceneInput: CanvasSceneInput;
   exchangeRelations: readonly SpaceRelation[];
@@ -102,10 +102,10 @@ onBeforeUnmount(() => {
     :events="surfaceEvents"
     :focus-node-ids="focusNodeIds"
     :group-scope-path="groupScopePath"
-    :interaction-enabled="interactionEnabled"
-    :navigation-enabled="navigationEnabled"
-    :rendering-enabled="renderingEnabled"
-    :canvas-gestures-enabled="canvasGesturesEnabled"
+    :is-interaction-enabled="isInteractionEnabled"
+    :is-navigation-enabled="isNavigationEnabled"
+    :is-rendering-enabled="isRenderingEnabled"
+    :can-commit-canvas-gestures="canCommitCanvasGestures"
     :tool="tool"
     @document-change="session.documentChanged"
   >

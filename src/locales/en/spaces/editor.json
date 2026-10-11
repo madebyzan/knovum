@@ -27,6 +27,9 @@
     "rendered": "Edited video is ready",
     "viewResult": "View result",
     "next": "Next work tab",
-    "previous": "Previous work tab"
+    "previous": "Previous work tab",
+    "protected": "Close the relevant editor tabs before deleting or moving this content to another Space.",
+    "goToEditor": "Go to editor tab",
+    "opened": "Open in editor tab"
   }
 }

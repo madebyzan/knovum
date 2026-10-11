@@ -9,20 +9,20 @@ export function buildDesktopDependencies(repository, options) {
     "-p",
     "knovum-inference-worker",
     "-p",
-    "knovum-media-native",
+    "knovum-media-libraries",
     "--message-format=json-render-diagnostics",
   ];
   if (options.profile !== "dev") args.push("--profile", options.profile);
   if (options.explicitTarget) args.push("--target", options.triple);
-  const result = spawnSync("cargo", args, {
+  const buildOutput = spawnSync("cargo", args, {
     cwd: repository,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],
     maxBuffer: 32 * 1024 ** 2,
   });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`Cargo dependency build failed (${result.status})`);
-  const events = result.stdout
+  if (buildOutput.error) throw buildOutput.error;
+  if (buildOutput.status !== 0) throw new Error(`Cargo dependency build failed (${buildOutput.status})`);
+  const events = buildOutput.stdout
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line));
@@ -33,17 +33,17 @@ function desktopArtifacts(events) {
   for (const event of events) {
     if (event.reason === "compiler-artifact" && event.target.name === "knovum-inference-worker")
       output.worker = event.executable;
-    if (event.reason === "build-script-executed") Object.assign(output, nativePaths(event.env));
+    if (event.reason === "build-script-executed") Object.assign(output, libraryPaths(event.env));
   }
   if (!output.worker || !output.inference || !output.media)
     throw new Error("Cargo did not produce the required desktop dependency artifacts");
   return output;
 }
-function nativePaths(environment) {
+function libraryPaths(environment) {
   const output = {};
   for (const [key, value] of environment) {
-    if (key === "KNOVUM_INFERENCE_NATIVE_DIRECTORY") output.inference = value;
-    if (key === "KNOVUM_MEDIA_NATIVE_DIRECTORY") output.media = value;
+    if (key === "KNOVUM_INFERENCE_LIBRARIES_DIRECTORY") output.inference = value;
+    if (key === "KNOVUM_MEDIA_LIBRARIES_DIRECTORY") output.media = value;
   }
   return output;
 }

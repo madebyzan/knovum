@@ -3,7 +3,7 @@ import { ScanLine } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
+import { canRunAction, shouldShowAction } from "../../../../shared/contracts/action-availability";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import type { ImageActionAvailability } from "./image-action-availability";
@@ -17,7 +17,7 @@ const REMOVE_BACKGROUND_LABEL_KEY = "spaces.creation.image.removeBackground";
 
 <template>
   <UiTooltip
-    v-if="showsAction(availability)"
+    v-if="shouldShowAction(availability)"
     :text="canRunAction(availability) ? t(REMOVE_BACKGROUND_LABEL_KEY) : reason"
     :disabled="canRunAction(availability) && !compact"
     side="top"

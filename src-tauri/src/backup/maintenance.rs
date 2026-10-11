@@ -98,8 +98,7 @@ async fn perform(paths: &AppPaths, operation: PendingOperation) -> Result<Option
         }
         PendingOperation::Restore { source } => {
             let (manifest, config_stage, data_stage) = archive::extract(paths, Path::new(&source))?;
-            let outcome =
-                publish::validate_and_publish(paths, &manifest, &config_stage, &data_stage).await;
+            let outcome = publish::publish(paths, &manifest, &config_stage, &data_stage).await;
             match outcome {
                 Ok(cleanup_warning) => Ok(cleanup_warning),
                 Err(error) => {

@@ -64,7 +64,7 @@ pub(crate) struct ActiveRequest(pub(crate) Mutex<Option<(String, u64, Cancellati
 impl ActiveRequest {
     pub(crate) fn admit(
         &self,
-        id: &str,
+        request_id: &str,
         epoch: u64,
         deadline: u64,
     ) -> Result<Cancellation, String> {
@@ -77,18 +77,18 @@ impl ActiveRequest {
         }
         let cancel = Cancellation::new(deadline);
         cancel.check()?;
-        *active = Some((id.into(), epoch, cancel.clone()));
+        *active = Some((request_id.into(), epoch, cancel.clone()));
         Ok(cancel)
     }
 
-    pub(crate) fn cancel(&self, id: &str, epoch: u64) -> Result<bool, String> {
+    pub(crate) fn cancel(&self, request_id: &str, epoch: u64) -> Result<bool, String> {
         let active = self
             .0
             .lock()
             .map_err(|_| "worker_crashed: admission lock poisoned")?;
         if let Some((current, attempt, cancellation)) = active
             .as_ref()
-            .filter(|(current, attempt, _)| current == id && *attempt == epoch)
+            .filter(|(current, attempt, _)| current == request_id && *attempt == epoch)
         {
             let _ = (current, attempt);
             cancellation.cancel();

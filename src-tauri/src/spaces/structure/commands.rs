@@ -4,6 +4,7 @@ use tauri::{AppHandle, Runtime};
 use super::edit_contract::{
     ExecuteSpaceEditRequest, SpaceEditHistoryReceipt, SpaceEditHistoryRequest, SpaceEditReceipt,
 };
+use super::editor_protection::{EditorResourceProtection, SpaceEditorResource};
 use super::{history, planner, receipts, repository, validation};
 use crate::spaces::db;
 
@@ -11,10 +12,13 @@ use crate::spaces::db;
 pub(crate) async fn execute_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: ExecuteSpaceEditRequest,
+    editor_resources: Vec<SpaceEditorResource>,
 ) -> Result<SpaceEditReceipt, AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
+    let protection = EditorResourceProtection::capture(&mut tx, &editor_resources).await?;
     let receipt = execute_in_transaction(&mut tx, request).await?;
+    protection.ensure_preserved(&mut tx).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(receipt)
 }
@@ -139,21 +143,24 @@ pub(crate) async fn execute_in_transaction(
 pub(crate) async fn undo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
+    editor_resources: Vec<SpaceEditorResource>,
 ) -> Result<SpaceEditHistoryReceipt, AppError> {
-    apply_history(app, request, false).await
+    apply_history(app, request, editor_resources, false).await
 }
 
 #[tauri::command]
 pub(crate) async fn redo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
+    editor_resources: Vec<SpaceEditorResource>,
 ) -> Result<SpaceEditHistoryReceipt, AppError> {
-    apply_history(app, request, true).await
+    apply_history(app, request, editor_resources, true).await
 }
 
 async fn apply_history<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
+    editor_resources: Vec<SpaceEditorResource>,
     redo: bool,
 ) -> Result<SpaceEditHistoryReceipt, AppError> {
     validation::validate_id("Space ID", &request.space_id)?;
@@ -169,8 +176,10 @@ async fn apply_history<R: Runtime>(
             "Space edit revision conflict",
         ));
     }
+    let protection = EditorResourceProtection::capture(&mut tx, &editor_resources).await?;
     let applied_at_revision =
         history::apply(&mut tx, &request.space_id, revision, &snapshot, redo).await?;
+    protection.ensure_preserved(&mut tx).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(SpaceEditHistoryReceipt {
         applied_at_revision,

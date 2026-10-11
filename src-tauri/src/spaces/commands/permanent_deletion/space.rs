@@ -47,7 +47,7 @@ pub async fn delete<R: Runtime>(
     if let Err(error) = agent_cleanup {
         log::warn!("failed to clean up Agent workspace for deleted space: {error}");
     }
-    crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(app, pool).await;
+    crate::spaces::knowledge::retrieval::invalidation_outbox::settle(app, pool).await;
     let unreferenced = crate::spaces::assets::unreferenced_paths(pool, paths).await;
     unreferenced
 }

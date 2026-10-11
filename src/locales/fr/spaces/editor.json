@@ -27,6 +27,9 @@
     "rendered": "La vidéo montée est prête",
     "viewResult": "Voir le résultat",
     "next": "Onglet de travail suivant",
-    "previous": "Onglet de travail précédent"
+    "previous": "Onglet de travail précédent",
+    "protected": "Fermez les onglets d’édition concernés avant de supprimer ce contenu ou de le déplacer vers un autre Space.",
+    "goToEditor": "Accéder à l’onglet d’édition",
+    "opened": "Ouvert dans un onglet d’édition"
   }
 }

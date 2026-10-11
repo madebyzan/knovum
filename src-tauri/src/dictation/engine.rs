@@ -27,12 +27,12 @@ pub(crate) enum DictationAction {
     },
 }
 
-pub(crate) struct DictationService {
+pub(crate) struct DictationEngine {
     actions: UnboundedSender<DictationAction>,
     snapshot: Arc<RwLock<DictationSnapshot>>,
 }
 
-impl DictationService {
+impl DictationEngine {
     pub(crate) fn start<R: Runtime>(app: AppHandle<R>) -> Self {
         super::lifecycle::cleanup_cache(&app);
         let (actions, receiver) = mpsc::unbounded_channel();
@@ -48,7 +48,7 @@ impl DictationService {
 
     pub(crate) fn dispatch(&self, action: DictationAction) {
         if self.actions.send(action).is_err() {
-            log::warn!("dictation service is no longer available");
+            log::warn!("dictation engine is no longer available");
         }
     }
 

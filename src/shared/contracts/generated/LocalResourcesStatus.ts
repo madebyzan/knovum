@@ -3,4 +3,4 @@ import type { AgentRuntimeStatus } from "./AgentRuntimeStatus";
 import type { ModelStatuses } from "./ModelStatuses";
 import type { ToolStatus } from "./ToolStatus";
 
-export type LocalResourcesStatus = { platform: string, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, builtinAgent: AgentRuntimeStatus, nativeInference: boolean, models: ModelStatuses, };
+export type LocalResourcesStatus = { platform: string, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, builtinAgent: AgentRuntimeStatus, hasBundledInference: boolean, models: ModelStatuses, };

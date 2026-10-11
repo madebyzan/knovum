@@ -94,7 +94,11 @@ const singleSection = computed(
         <Sparkles class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <SpaceSelectionMoveMenu v-if="actions.state.value.structureNodeIds.length" @move="actions.moveToSpace" />
+    <SpaceSelectionMoveMenu
+      v-if="actions.state.value.structureNodeIds.length"
+      :disabled="!actions.editorProtection.canTransfer.value"
+      @move="actions.moveToSpace"
+    />
     <ToolbarButton v-if="actions.state.value.canCreateGroup" as-child>
       <UiIconButton
         :label="t('spaces.canvas.groups.create')"

@@ -46,10 +46,10 @@ pub(crate) async fn clear(
     origin: &str,
 ) -> Result<(), String> {
     validate_origin(origin)?;
-    detach_and_delete_chunks(tx, space_id, node_id, origin).await
+    delete_chunks(tx, space_id, node_id, origin).await
 }
 
-async fn detach_and_delete_chunks(
+async fn delete_chunks(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     node_id: &str,
@@ -140,7 +140,7 @@ async fn replace_internal(
             expected_revision,
         )?;
     }
-    detach_and_delete_chunks(tx, space_id, node_id, origin).await?;
+    delete_chunks(tx, space_id, node_id, origin).await?;
     for chunk in chunks {
         insert(tx, space_id, node_id, origin, chunk, now).await?;
     }

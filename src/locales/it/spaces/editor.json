@@ -27,6 +27,9 @@
     "rendered": "Il video modificato è pronto",
     "viewResult": "Visualizza risultato",
     "next": "Scheda di lavoro successiva",
-    "previous": "Scheda di lavoro precedente"
+    "previous": "Scheda di lavoro precedente",
+    "protected": "Chiudi le schede di modifica interessate prima di eliminare questo contenuto o spostarlo in un altro Space.",
+    "goToEditor": "Vai alla scheda di modifica",
+    "opened": "Aperto in una scheda di modifica"
   }
 }

@@ -17,13 +17,13 @@ it.each(["saved", "failed"])("returns to canvas only after its session is %s", a
       commit: persist,
     }),
   );
-  const result = await createEditorSurfaceActions(context)
+  const leaveFailure = await createEditorSurfaceActions(context)
     .returnToCanvas()
     .then(
       () => undefined,
       (error: unknown) => error,
     );
-  expect(result).toBe(outcome === "saved" ? undefined : failure);
+  expect(leaveFailure).toBe(outcome === "saved" ? undefined : failure);
   expect(context.surface.value.kind).toBe(outcome === "saved" ? "canvas" : "document");
   expect(persist).toHaveBeenCalledOnce();
   expect(context.editorTabs.value).toHaveLength(1);

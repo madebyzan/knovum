@@ -46,8 +46,8 @@ def review_inputs(project: Path, root: Path) -> str:
         "python": platform.python_version(),
         "pyinstaller": distribution("pyinstaller").version,
         "packages": {name: distribution(name).version for name in sorted(runtime_distributions())},
-        "nativeInputs": hashlib.sha256(
-            (root / "_internal/build-evidence/agent-native-inputs.json").read_bytes()
+        "compiledInputs": hashlib.sha256(
+            (root / "_internal/build-evidence/agent-compiled-inputs.json").read_bytes()
         ).hexdigest(),
         "files": {
             name: hashlib.sha256((project / name).read_bytes()).hexdigest()

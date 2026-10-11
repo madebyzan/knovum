@@ -135,7 +135,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.analysis.knowledge.stale"));
     await store.saveNodeContent({
       id: node.value.id,
-      expectedData: data,
+      expectedContent: data,
       data: { ...data, mediaKnowledge: next },
     });
   }

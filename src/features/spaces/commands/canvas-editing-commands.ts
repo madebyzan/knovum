@@ -4,6 +4,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { CanvasEditorPort } from "../canvas/contracts/canvas-editor-port";
+import { runEditorMutation } from "../workspace/editor-protection-feedback";
 
 interface CanvasEditingCommandLabels {
   copy: string;
@@ -46,7 +47,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       shortcut: "$mod+Z",
       category: "editing",
       availability: () => availableWhen(options.canUndo(), "nothing_to_undo"),
-      run: options.undo,
+      run: () => runEditorMutation(options.undo),
     },
     {
       id: "spaces.redo",
@@ -54,7 +55,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       shortcut: "$mod+Shift+Z",
       category: "editing",
       availability: () => availableWhen(options.canRedo(), "nothing_to_redo"),
-      run: options.redo,
+      run: () => runEditorMutation(options.redo),
     },
     {
       id: "spaces.copy",
@@ -70,7 +71,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       shortcut: "$mod+X",
       category: "editing",
       availability: () => availableWhen(options.hasNodeSelection(), "no_selection"),
-      run: () => editor()?.cutSelection(),
+      run: () => runEditorMutation(() => editor()?.cutSelection()),
     },
     {
       id: "spaces.paste",
@@ -99,7 +100,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       shortcut: platform() === "macos" ? "Backspace" : "Delete",
       category: "editing",
       availability: () => availableWhen(options.hasSelection(), "no_selection"),
-      run: () => editor()?.deleteSelection(),
+      run: () => runEditorMutation(() => editor()?.deleteSelection()),
     },
     {
       id: "spaces.select-all",

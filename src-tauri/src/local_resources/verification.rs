@@ -47,7 +47,7 @@ pub(crate) fn receipt_matches(
         && receipt.modified_nanos == modified_nanos(metadata)?)
 }
 
-pub(crate) fn verify_and_record_cancellable(
+pub(crate) fn record_verification(
     path: &Path,
     sha256: &str,
     cancellation: &CancellationToken,

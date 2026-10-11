@@ -26,7 +26,7 @@ pub(in crate::spaces) async fn sync_changed_in_transaction(
         .iter()
         .filter_map(|change| {
             let after = display_ratio(&change.data)?;
-            (display_ratio(&change.expected_data) != Some(after)).then(|| change.id.clone())
+            (display_ratio(&change.expected_content) != Some(after)).then(|| change.id.clone())
         })
         .collect::<Vec<_>>();
     if node_ids.is_empty() {

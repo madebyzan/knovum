@@ -12,36 +12,36 @@ export function useImageSelectionPreview(input: () => SelectionPreviewInput | un
   const maskSource = shallowRef<string>();
   const busy = shallowRef(false);
   const error = shallowRef<string>();
-  let previewId: string | undefined;
+  let previewJobId: string | undefined;
   let revision = 0;
-  function isCurrent(id: string, version: number) {
-    return previewId === id && revision === version;
+  function isCurrent(jobId: string, version: number) {
+    return previewJobId === jobId && revision === version;
   }
   function stop() {
     revision++;
-    const previous = previewId;
-    previewId = undefined;
+    const previous = previewJobId;
+    previewJobId = undefined;
     if (previous) void cancelAiJob(previous).catch((cause: unknown) => toast.error(getErrorMessage(cause)));
     busy.value = false;
   }
   async function refresh() {
-    if (previewId) return;
+    if (previewJobId) return;
     const version = revision;
     const current = input();
     if (!current || !hasForeground(current.selection)) {
       busy.value = false;
       return;
     }
-    const id = crypto.randomUUID();
-    previewId = id;
+    const jobId = crypto.randomUUID();
+    previewJobId = jobId;
     try {
-      const mask = await previewImageSelection({ ...current, id });
-      if (isCurrent(id, version)) maskSource.value = mask;
+      const mask = await previewImageSelection({ ...current, jobId });
+      if (isCurrent(jobId, version)) maskSource.value = mask;
     } catch (cause) {
-      if (isCurrent(id, version)) error.value = getErrorMessage(cause);
+      if (isCurrent(jobId, version)) error.value = getErrorMessage(cause);
     } finally {
-      if (previewId === id) {
-        previewId = undefined;
+      if (previewJobId === jobId) {
+        previewJobId = undefined;
         if (revision !== version) {
           schedule.cancel();
           void refresh();

@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceNotePayload } from "../../../model/nodes/node-payload";
+import SpaceCanvasEditorIndicator from "./SpaceCanvasEditorIndicator.vue";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";
 import SpaceCanvasTextSelectionBar from "./SpaceCanvasTextSelectionBar.vue";
 import { projectTiptapPreview } from "./tiptap-preview-projection";
@@ -36,12 +37,13 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
 
 <template>
   <div
-    class="flex size-full min-h-0 flex-col overflow-hidden p-4 leading-relaxed"
+    class="relative flex size-full min-h-0 flex-col overflow-hidden p-4 leading-relaxed"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
     :tabindex="interactive ? 0 : undefined"
     @dblclick.stop="beginEditing"
     @keydown.enter="beginEditing"
   >
+    <SpaceCanvasEditorIndicator :node-id="id" class="absolute top-1 right-1" />
     <SpaceCanvasTextSelectionBar
       v-if="editor"
       :editor="editor"

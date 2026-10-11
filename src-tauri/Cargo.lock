@@ -6805,8 +6805,8 @@ dependencies = [
  "iri-string",
  "jsonschema",
  "knovum-inference-contracts",
- "knovum-inference-native",
- "knovum-media-native",
+ "knovum-inference-libraries",
+ "knovum-media-libraries",
  "lancedb",
  "libc",
  "log",
@@ -6878,7 +6878,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "knovum-inference-native"
+name = "knovum-inference-libraries"
 version = "0.1.0"
 
 [[package]]
@@ -6893,7 +6893,7 @@ dependencies = [
  "hex",
  "hound",
  "knovum-inference-contracts",
- "knovum-inference-native",
+ "knovum-inference-libraries",
  "libc",
  "libloading 0.8.9",
  "memory-stats",
@@ -6913,7 +6913,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "knovum-media-native"
+name = "knovum-media-libraries"
 version = "0.1.0"
 
 [[package]]

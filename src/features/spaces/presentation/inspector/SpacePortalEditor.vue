@@ -36,7 +36,7 @@ watch(
 async function savePortal() {
   if (!draft.value || !dirty.value || !nodeDraft.canContinue.value) return;
   try {
-    await store.saveNodeContent({ id: props.node.id, expectedData: props.node.data, data: draft.value });
+    await store.saveNodeContent({ id: props.node.id, expectedContent: props.node.data, data: draft.value });
     nodeDraft.end();
   } catch (error) {
     toast.error(getErrorMessage(error));

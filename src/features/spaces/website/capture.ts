@@ -48,7 +48,7 @@ export async function refreshSavedWebsite(context: WebsiteCaptureContext, nodeId
   const node = context.nodes.find((candidate) => candidate.id === nodeId);
   if (!node || node.data.kind !== "website") return;
   const next: SpaceWebsitePayload = { ...node.data, metadataState: "loading" };
-  await context.saveNodeContentForSpace(spaceId, { id: nodeId, expectedData: node.data, data: next });
+  await context.saveNodeContentForSpace(spaceId, { id: nodeId, expectedContent: node.data, data: next });
   await websiteCaptureConcurrency(() =>
     hydrateSavedWebsite({ context, spaceId, id: nodeId, data: next }, url, { preserveTitle: true }),
   );

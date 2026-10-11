@@ -96,7 +96,7 @@ async fn apply_node_change(
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
     let previous_payload_json: String = row.try_get("data").map_err(db::sql_error)?;
     let before: Value = serde_json::from_str(&previous_payload_json).map_err(db::json_error)?;
-    if before != change.expected_data {
+    if before != change.expected_content {
         return Err(format!(
             "Space node {} changed before this edit was saved",
             change.id

@@ -9,13 +9,13 @@ export function canRunAction(availability: ActionAvailability): boolean {
   return availability.state === "ready";
 }
 
-export function showsAction(availability: ActionAvailability): boolean {
+export function shouldShowAction(availability: ActionAvailability): boolean {
   return availability.state !== "hidden";
 }
 
 export function availableWhen<Reason extends string>(
-  condition: boolean,
+  isAvailable: boolean,
   reason: Reason,
 ): ActionAvailability<Reason> {
-  return condition ? { state: "ready" } : { state: "blocked", reason };
+  return isAvailable ? { state: "ready" } : { state: "blocked", reason };
 }

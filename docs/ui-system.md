@@ -555,6 +555,13 @@ Titles identify resources, with type icons and a quiet unsaved marker. Reka owns
 behavior; overflow scrolls horizontally and the active item remains visible. Closing an item restores
 focus to its successor. With only canvas open, the extra strip is absent.
 
+Open editor resources show a compact editing indicator, separate from the user-authored lock icon.
+A protected selection disables deletion and cross-Space transfer, explains that its editor tabs must
+be closed first, and offers an explicit action to the affected editor. Keyboard deletion/cut reports
+the same reason with a navigation action; protected history replay reports the reason and preserves
+the current history entry. Layout controls remain available. No operation silently skips protected
+members of a multi-selection or closes their tabs as a side effect.
+
 `Control+Tab` / `Control+Shift+Tab` cycle work items; `$mod+W` closes the current editor, or the Space
 when canvas/library is active and another Space exists. `$mod+1` through `$mod+9` retain Space
 navigation. All shortcuts enter through AppCommand, including the native Close Tab menu action.

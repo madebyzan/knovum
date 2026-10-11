@@ -10,6 +10,7 @@ import { useImageEditSessionStore } from "../../../image-editing/image-edit-sess
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { useSpaceStore } from "../../../session/space-store";
 import { canvasNodeWork } from "./canvas-node-work";
+import SpaceCanvasEditorIndicator from "./SpaceCanvasEditorIndicator.vue";
 import SpaceCanvasWorkEffect from "./SpaceCanvasWorkEffect.vue";
 
 const props = defineProps<{ id: string; data: SpaceNodePayload }>();
@@ -40,6 +41,7 @@ const label = computed(() => (work.value ? t(work.value.labelKey) : ""));
 </script>
 
 <template>
+  <SpaceCanvasEditorIndicator :node-id="id" />
   <span v-if="enrichment" :title="enrichmentLabel" :aria-label="enrichmentLabel" role="status">
     <CircleAlert v-if="enrichment.status === 'failed'" class="size-3 text-fg-danger" :stroke-width="1.6" />
     <CircleAlert

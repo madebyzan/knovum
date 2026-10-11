@@ -46,13 +46,13 @@ pub(super) fn installation_directory<R: Runtime>(
         })
 }
 
-pub(super) async fn verify_and_record_file(
+pub(super) async fn record_file_verification(
     path: PathBuf,
     expected_sha256: String,
     cancellation: CancellationToken,
 ) -> Result<bool, String> {
     crate::blocking::run(move || {
-        super::super::verification::verify_and_record_cancellable(
+        super::super::verification::record_verification(
             &path,
             &expected_sha256,
             &cancellation,

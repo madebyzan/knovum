@@ -26,7 +26,7 @@ fn records_receipts_only_for_verified_snapshot_content() {
     let directory = Directory::new();
     let path = directory.0.join(FILE.path);
     fs::write(&path, b"model").unwrap();
-    verify_and_record(&directory.0, &[FILE], &CancellationToken::new()).unwrap();
+    record_verification(&directory.0, &[FILE], &CancellationToken::new()).unwrap();
     assert!(
         verification::receipt_matches(&path, FILE.sha256, &fs::metadata(&path).unwrap()).unwrap()
     );
@@ -38,7 +38,7 @@ fn rejects_and_removes_corrupt_download_for_next_sdk_attempt() {
         let directory = Directory::new();
         let path = directory.0.join(FILE.path);
         fs::write(&path, bytes).unwrap();
-        assert!(verify_and_record(&directory.0, &[FILE], &CancellationToken::new()).is_err());
+        assert!(record_verification(&directory.0, &[FILE], &CancellationToken::new()).is_err());
         assert!(!path.exists());
     }
 }
@@ -51,7 +51,7 @@ fn cancellation_preserves_staging_and_prevents_verification() {
     let cancellation = CancellationToken::new();
     cancellation.cancel();
     assert_eq!(
-        verify_and_record(&directory.0, &[FILE], &cancellation).unwrap_err(),
+        record_verification(&directory.0, &[FILE], &cancellation).unwrap_err(),
         RESOURCE_PREPARATION_CANCELLED
     );
     assert!(path.exists());

@@ -15,6 +15,7 @@ import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
 import { createCanvasStructureSelectionActions } from "./canvas-structure-selection-actions";
 import { canvasSelectionProductState } from "./selection-product-state";
+import { useCanvasEditorProtection } from "./use-canvas-editor-protection";
 import { useCanvasNodeExport } from "./use-canvas-node-export";
 import { useCanvasOperationRunner } from "./use-canvas-operation-runner";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
@@ -36,6 +37,7 @@ export function useCanvasSelectionActions() {
       snapshot: store.editSnapshot,
     }),
   );
+  const editorProtection = useCanvasEditorProtection(selection, () => state.value.structureNodeIds);
   const exportSelected = useCanvasNodeExport(state, selectedNodes);
   const visible = computed(
     () =>
@@ -165,6 +167,7 @@ export function useCanvasSelectionActions() {
     inspectWorkflow,
     openWorkflowUse,
     editVideo,
+    editorProtection,
     moveToSpace,
     moveLayer,
     open,

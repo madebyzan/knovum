@@ -67,7 +67,7 @@ export async function markSavedWebsiteFailedAfter(target: SavedWebsiteBinding, e
 async function saveWebsiteBinding(target: SavedWebsiteBinding, payload: SpaceWebsitePayload) {
   await target.context.saveNodeContentForSpace(target.spaceId, {
     id: target.id,
-    expectedData: target.data,
+    expectedContent: target.data,
     data: payload,
   });
   target.data = payload;

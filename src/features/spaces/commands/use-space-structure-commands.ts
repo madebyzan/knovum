@@ -7,9 +7,9 @@ import type { WorkspaceSidebarPresentation } from "../../../shared/contracts/wor
 import { useSpaceStore } from "../session/space-store";
 import {
   canRenameStructureNode,
-  dissolveGroupCapability,
-  groupCapability,
-} from "../structure/structure-capabilities";
+  dissolveGroupAvailability,
+  groupAvailability,
+} from "../structure/action-availability";
 
 interface SpaceStructureCommandInput {
   selectedStructureNodeIds: () => string[];
@@ -29,7 +29,7 @@ export function useSpaceStructureCommands({ selectedStructureNodeIds, sidebar }:
       category: "canvas",
       availability: () =>
         availableWhen(
-          groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+          groupAvailability(store.editSnapshot, selectedStructureNodeIds()).enabled,
           "selection_not_eligible",
         ),
       run: () =>
@@ -49,7 +49,7 @@ export function useSpaceStructureCommands({ selectedStructureNodeIds, sidebar }:
       category: "canvas",
       availability: () =>
         availableWhen(
-          dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+          dissolveGroupAvailability(store.editSnapshot, selectedStructureNodeIds()).enabled,
           "selection_not_eligible",
         ),
       run: () =>

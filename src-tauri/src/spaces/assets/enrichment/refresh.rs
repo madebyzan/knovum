@@ -29,7 +29,7 @@ pub(in crate::spaces::assets) async fn refresh_node(
         .map(str::to_owned)
         .into_iter()
         .collect();
-    let refreshed_content = refresh_and_publish(app, &space_id, &node_id, &data).await;
+    let refreshed_content = refresh_content(app, &space_id, &node_id, &data).await;
     // Only this node's former previews are candidates; never scan another in-flight generation.
     if refreshed_content.is_ok() {
         if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, old_previews).await {
@@ -39,7 +39,7 @@ pub(in crate::spaces::assets) async fn refresh_node(
     refreshed_content
 }
 
-async fn refresh_and_publish(
+async fn refresh_content(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,

@@ -74,7 +74,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
         "space",
         &[NodeContentChange {
             id: "node".into(),
-            expected_data: before,
+            expected_content: before,
             data: after.clone(),
             source_chunks: None,
         }],

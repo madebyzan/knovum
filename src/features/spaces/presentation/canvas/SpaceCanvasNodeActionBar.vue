@@ -3,7 +3,7 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { showsAction } from "../../../../shared/contracts/action-availability";
+import { shouldShowAction } from "../../../../shared/contracts/action-availability";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import {
   DOCUMENT_CONVERSION_ACTION_IDS,
@@ -45,7 +45,7 @@ function beginSeparation() {
 }
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const canConvert = computed(() =>
-  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => showsAction(props.derivations[id])),
+  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => shouldShowAction(props.derivations[id])),
 );
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(

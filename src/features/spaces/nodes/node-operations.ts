@@ -69,7 +69,7 @@ function spaceNodeLayoutInput(node: SpaceCanvasNode) {
 
 export interface NodePayloadChangeInput {
   id: string;
-  expectedData: SpaceNodePayload;
+  expectedContent: SpaceNodePayload;
   data: SpaceNodePayload;
   sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
 }
@@ -78,10 +78,10 @@ export async function updateNodePayload(
   spaceId: string,
   change: NodePayloadChangeInput,
 ): Promise<{ data: SpaceNodePayload; editSnapshot: SpaceEditSnapshot | null }> {
-  const { id, expectedData: expectedContent, data, sourceChunks } = change;
+  const { id, expectedContent, data, sourceChunks } = change;
   const committed = await updateNodePayloadMany(
     spaceId,
-    [{ id, expectedData: expectedContent, data }],
+    [{ id, expectedContent, data }],
     sourceChunks ? new Map([[id, sourceChunks]]) : undefined,
   );
   const committedNode = committed.nodes.find((node) => node.id === id);
@@ -91,7 +91,7 @@ export async function updateNodePayload(
 
 export async function updateNodePayloadMany(
   spaceId: string,
-  changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[],
+  changes: readonly { id: string; expectedContent: SpaceNodePayload; data: SpaceNodePayload }[],
   sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
 ): Promise<{ nodes: Array<{ id: string; data: SpaceNodePayload }>; editSnapshot: SpaceEditSnapshot | null }> {
   if (!changes.length) return { nodes: [], editSnapshot: null };

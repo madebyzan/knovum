@@ -20,6 +20,7 @@ pub async fn delete_space_permanently<R: Runtime>(
 pub async fn move_structure_selection<R: Runtime>(
     app: AppHandle<R>,
     request: selection_transfer::contracts::TransferSelectionRequest,
+    editor_resources: Vec<crate::spaces::structure::editor_protection::SpaceEditorResource>,
 ) -> Result<selection_transfer::contracts::TransferSelectionResponse, AppError> {
-    selection_transfer::transfer_selection(&app, request).await
+    selection_transfer::transfer_selection(&app, request, &editor_resources).await
 }

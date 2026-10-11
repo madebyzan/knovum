@@ -27,6 +27,9 @@
     "rendered": "剪辑视频已完成",
     "viewResult": "查看结果",
     "next": "下一个工作标签",
-    "previous": "上一个工作标签"
+    "previous": "上一个工作标签",
+    "protected": "请先关闭相关编辑 Tab，再删除内容或将其移到其他 Space。",
+    "goToEditor": "前往编辑 Tab",
+    "opened": "已在编辑 Tab 打开"
   }
 }

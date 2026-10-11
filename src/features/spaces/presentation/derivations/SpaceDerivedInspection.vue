@@ -45,7 +45,7 @@ async function onRetry() {
       });
       await store.saveNodeContentForSpace(spaceId, {
         id: props.node.id,
-        expectedData: props.node.data,
+        expectedContent: props.node.data,
         data: { ...props.node.data, derivationState: undefined },
       });
     }

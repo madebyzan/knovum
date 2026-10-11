@@ -4,7 +4,7 @@ import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMe
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
+import { canRunAction, shouldShowAction } from "../../../../shared/contracts/action-availability";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type {
@@ -37,7 +37,7 @@ const derivationActions = computed(() =>
   CREATION_INTENT_DEFINITIONS.filter(({ id }) => {
     if (props.exclude?.includes(id)) return false;
     const decision = props.derivations[id];
-    return showsAction(decision);
+    return shouldShowAction(decision);
   }),
 );
 const hasActions = computed(() => derivationActions.value.length > 0);

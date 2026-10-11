@@ -37,7 +37,7 @@ const objectTitles = computed(() => [
 function saveTitle(node: SpaceCanvasNode, value: string) {
   return store.saveNodeContent({
     id: node.id,
-    expectedData: node.data,
+    expectedContent: node.data,
     data: { ...node.data, title: value },
   });
 }

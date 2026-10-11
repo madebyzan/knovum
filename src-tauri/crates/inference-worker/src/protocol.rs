@@ -49,13 +49,17 @@ impl Output {
         self.send(&json!({"jsonrpc":"2.0","method":method,"params":params}))
     }
 
-    pub(crate) fn respond(&self, id: &str, response: &impl Serialize) -> Result<(), String> {
-        self.send(&json!({"jsonrpc":"2.0", "id":id, "result":response}))
+    pub(crate) fn respond(
+        &self,
+        request_id: &str,
+        response: &impl Serialize,
+    ) -> Result<(), String> {
+        self.send(&json!({"jsonrpc":"2.0", "id":request_id, "result":response}))
     }
 
-    pub(crate) fn error(&self, id: Option<&str>, error: &str) -> Result<(), String> {
+    pub(crate) fn error(&self, request_id: Option<&str>, error: &str) -> Result<(), String> {
         let code = error.split_once(':').map_or(error, |(code, _)| code);
-        self.send(&json!({"jsonrpc":"2.0", "id":id, "error":{
+        self.send(&json!({"jsonrpc":"2.0", "id":request_id, "error":{
             "code":-32000, "message":error, "data":{"code":code}
         }}))
     }

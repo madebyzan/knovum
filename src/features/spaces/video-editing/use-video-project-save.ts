@@ -21,7 +21,7 @@ export function useVideoProjectSave(session: VideoSession) {
     pending = store
       .saveNodeContentForSpace(session.tab.spaceId, {
         id: node.id,
-        expectedData: node.data,
+        expectedContent: node.data,
         data: { ...node.data, videoEditProject: snapshot },
       })
       .then((payload) => {

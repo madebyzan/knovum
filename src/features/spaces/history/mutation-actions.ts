@@ -28,7 +28,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     const apply = (
       entries: readonly {
         id: string;
-        expectedData: NodePayloadChange["before"];
+        expectedContent: NodePayloadChange["before"];
         data: NodePayloadChange["after"];
       }[],
     ) =>
@@ -48,7 +48,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     const releaseMutation = beginSpaceMutation(history);
     try {
       const committed = await apply(
-        prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })),
+        prepared.map(({ id, before, after }) => ({ id, expectedContent: before, data: after })),
       );
       for (const change of prepared) {
         const committedNode = committed.find(({ id }) => id === change.id);
@@ -57,10 +57,14 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
       }
       recordSpaceHistory(history, {
         undo: async () => {
-          await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: after, data: before })));
+          await apply(
+            prepared.map(({ id, before, after }) => ({ id, expectedContent: after, data: before })),
+          );
         },
         redo: async () => {
-          await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })));
+          await apply(
+            prepared.map(({ id, before, after }) => ({ id, expectedContent: before, data: after })),
+          );
         },
       });
     } finally {

@@ -1,8 +1,8 @@
-#[path = "../../build_support/native_cmake.rs"]
-mod native_cmake;
+#[path = "../../build_support/cmake_install.rs"]
+mod cmake_install;
 fn main() {
-    println!("cargo:rerun-if-changed=native");
-    println!("cargo:rerun-if-changed=../../build_support/native_cmake.rs");
+    println!("cargo:rerun-if-changed=cmake");
+    println!("cargo:rerun-if-changed=../../build_support/cmake_install.rs");
     println!("cargo:rerun-if-changed=../../build_support/windows-system-libraries.json");
     let triple = std::env::var("TARGET").unwrap();
     let target = match triple.as_str() {
@@ -12,9 +12,9 @@ fn main() {
         other => panic!("Unsupported media target: {other}"),
     };
     let root = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("runtime");
-    native_cmake::install(&triple, target, &root);
+    cmake_install::install(&triple, target, &root);
     println!(
-        "cargo:rustc-env=KNOVUM_MEDIA_NATIVE_DIRECTORY={}",
+        "cargo:rustc-env=KNOVUM_MEDIA_LIBRARIES_DIRECTORY={}",
         root.display()
     );
     println!("cargo::metadata=directory={}", root.display());

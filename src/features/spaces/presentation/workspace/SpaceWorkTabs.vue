@@ -35,9 +35,9 @@ function dirty(tab: SpaceEditorTab) {
     ? documents.sessions.get(tab.id)?.dirty.value
     : videos.sessions.get(tab.id)?.history.dirty.value;
 }
-async function close(id: string) {
+async function close(tabId: string) {
   try {
-    await store.closeEditorTab(id);
+    await store.closeEditorTab(tabId);
   } catch (error) {
     if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
   }

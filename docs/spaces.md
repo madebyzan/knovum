@@ -41,7 +41,19 @@ gestures and inline input suspend; inactive canvas navigation requests wait unti
 Canvas Outline and contextual side panes belong only to the canvas; editors own their local controls.
 Document citation previews close on content handoff without discarding the document session.
 
-Resource deletion and cross-Space moves prepare affected editor sessions before mutating ownership.
+An open document/video tab protects its live resource's existence and Space ownership, even while
+inactive or while the library is shown. Deletion, deletion of containing Groups/Sections, and
+cross-Space transfer require closing every affected tab first. A mixed selection is rejected as a
+whole, never partially deleted. Layout, grouping, selection and user-authored locks remain separate.
+Protection is derived from existing tab identities; it is not a persisted lock or another lease store.
+Structural edit, transfer and Undo/Redo IPC carry the current editor resource identities. Rust captures
+their live ownership inside the write transaction and rejects a result that loses any identity before
+commit, including coordinated history in another Space. The entire transaction rolls back, preserving
+its revision and history position. Resources already missing before the transaction are error-state
+sessions, not a reason to block unrelated work. Tab opening waits for admitted mutations before it
+creates an editor owner, so its protection cannot appear halfway through a structural transaction.
+Closing a tab releases protection only after the existing close/save decision succeeds. Space close
+and archive explicitly end their owned sessions through the same scoped close protocol.
 Clean editors reload changed resources with a fresh history. Dirty conflicts or missing owners keep
 the draft, expose an error and require an explicit discard before closing; they never overwrite new
 content or write back a missing node. Video rendering captures the source Space and project snapshot,

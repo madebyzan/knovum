@@ -18,7 +18,7 @@ struct Target {
     present: bool,
 }
 
-pub async fn validate_and_publish(
+pub async fn publish(
     paths: &AppPaths,
     manifest: &Manifest,
     config_stage: &Path,

@@ -20,8 +20,8 @@ defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const runtime = useKonvaCanvasRuntime(props, (document) => emit("documentChange", document));
 const selectGesturesEnabled = computed(
   () =>
-    props.interactionEnabled &&
-    props.canvasGesturesEnabled &&
+    props.isInteractionEnabled &&
+    props.canCommitCanvasGestures &&
     props.tool === "select" &&
     !runtime.viewport.panning.value,
 );
@@ -54,16 +54,16 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     class="relative h-full min-h-0 w-full overflow-hidden outline-none"
     :class="cursorClass"
     tabindex="0"
-    @contextmenu="interactionEnabled && runtime.contextMenu.pointer($event)"
+    @contextmenu="isInteractionEnabled && runtime.contextMenu.pointer($event)"
     @keydown="
-      interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.key($event, true)
+      isInteractionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.key($event, true)
     "
   >
     <KonvaStage
       ref="stage"
       :config="{
-        visible: renderingEnabled,
-        listening: renderingEnabled,
+        visible: isRenderingEnabled,
+        listening: isRenderingEnabled,
         width: runtime.viewport.stageSize.width,
         height: runtime.viewport.stageSize.height,
         x: runtime.viewport.viewport.value.x,
@@ -71,11 +71,11 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         scaleX: runtime.viewport.viewport.value.zoom,
         scaleY: runtime.viewport.viewport.value.zoom,
       }"
-      @pointerdown="interactionEnabled && canvasGesturesEnabled && runtime.pointer.pointerDown($event)"
-      @pointermove="interactionEnabled && canvasGesturesEnabled && runtime.connectors.pointerMove($event)"
+      @pointerdown="isInteractionEnabled && canCommitCanvasGestures && runtime.pointer.pointerDown($event)"
+      @pointermove="isInteractionEnabled && canCommitCanvasGestures && runtime.connectors.pointerMove($event)"
       @pointercancel="runtime.pointer.pointerCancel($event.evt)"
-      @pointerup="interactionEnabled && canvasGesturesEnabled && runtime.connectors.pointerUp($event)"
-      @wheel="interactionEnabled && runtime.viewport.wheel($event)"
+      @pointerup="isInteractionEnabled && canCommitCanvasGestures && runtime.connectors.pointerUp($event)"
+      @wheel="isInteractionEnabled && runtime.viewport.wheel($event)"
     >
       <CanvasGridLayer
         :palette="runtime.palette.value"
@@ -139,14 +139,14 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     </KonvaStage>
     <Teleport v-if="runtime.stage.value" :to="runtime.stage.value.getContent()">
       <CanvasDomOverlay
-        :rendering-enabled="renderingEnabled"
-        :interaction-enabled="
-          interactionEnabled &&
+        :is-rendering-enabled="isRenderingEnabled"
+        :is-interaction-enabled="
+          isInteractionEnabled &&
           tool === 'select' &&
           !runtime.viewport.spacePressed.value &&
           !runtime.viewport.panning.value
         "
-        :interactive-node-id="interactionEnabled ? runtime.interactiveNodeId.value : undefined"
+        :interactive-node-id="isInteractionEnabled ? runtime.interactiveNodeId.value : undefined"
         :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
         :scene="runtime.scene.value"
         :viewport="runtime.viewport.viewport.value"

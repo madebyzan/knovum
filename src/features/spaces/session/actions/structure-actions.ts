@@ -14,6 +14,8 @@ import {
   type SpaceEditProjection,
 } from "../../structure/space-edit-command";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
+import { assertEditorResourcesRemovable, editorResources } from "../../workspace/editor-resource-protection";
+import type { SpaceEditorTab } from "../../workspace/work-items";
 import { loadSpaceSessionProjection } from "../space-projection";
 
 interface StructureActionContext {
@@ -23,7 +25,7 @@ interface StructureActionContext {
   relations: Ref<SpaceRelation[]>;
   history: SpaceHistoryState;
   ensureActiveSpacePersisted: () => Promise<unknown>;
-  prepareContentRemoval(rootIds: readonly string[]): Promise<() => Promise<void>>;
+  editorTabs: Ref<readonly SpaceEditorTab[]>;
 }
 
 export function createStructureActions(context: StructureActionContext) {
@@ -31,20 +33,25 @@ export function createStructureActions(context: StructureActionContext) {
     await context.ensureActiveSpacePersisted();
     const spaceId = context.activeSpaceId.value;
     if (!spaceId) throw new Error("A Space must be active");
-    const finishRemoval =
-      command.kind === "structure.delete-subtrees"
-        ? await context.prepareContentRemoval(command.rootIds)
-        : undefined;
+    if (command.kind === "structure.delete-subtrees")
+      assertEditorResourcesRemovable(
+        context.editorTabs.value,
+        spaceId,
+        context.editSnapshot.value,
+        command.rootIds,
+      );
     if (context.activeSpaceId.value !== spaceId) throw new Error("Structure edit Space changed");
     const releaseMutation = beginSpaceMutation(context.history);
     try {
-      const receipt = await spaceEditOperations.execute({
-        spaceId,
-        mutationId: crypto.randomUUID(),
-        expectedEditRevision: context.editSnapshot.value.editRevision,
-        command,
-      });
-      await finishRemoval?.();
+      const receipt = await spaceEditOperations.execute(
+        {
+          spaceId,
+          mutationId: crypto.randomUUID(),
+          expectedEditRevision: context.editSnapshot.value.editRevision,
+          command,
+        },
+        editorResources(context.editorTabs.value),
+      );
       const projection = spaceEditCommandProjection(command);
       await reloadProjection(spaceId, projection);
       if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId, projection);
@@ -75,7 +82,11 @@ export function createStructureActions(context: StructureActionContext) {
     if (context.activeSpaceId.value !== spaceId)
       throw new Error("Open the Space where this edit was made before changing its history");
     try {
-      await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
+      await spaceEditOperations[direction](
+        spaceId,
+        context.editSnapshot.value.editRevision,
+        editorResources(context.editorTabs.value),
+      );
       await reloadProjection(spaceId, projection);
     } catch (error) {
       if (decodeAppError(error)?.code === "space_edit_revision_conflict")

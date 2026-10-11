@@ -3,8 +3,8 @@ members = [
   ".",
   "crates/inference-contracts",
   "crates/inference-worker",
-  "crates/inference-native",
-  "crates/media-native",
+  "crates/inference-libraries",
+  "crates/media-libraries",
 ]
 resolver = "2"
 
@@ -35,8 +35,8 @@ default = []
 e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [dependencies]
-knovum-media-native = { path = "crates/media-native" }
-knovum-inference-native = { path = "crates/inference-native" }
+knovum-media-libraries = { path = "crates/media-libraries" }
+knovum-inference-libraries = { path = "crates/inference-libraries" }
 knovum-inference-contracts = { path = "crates/inference-contracts" }
 tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
 tauri-plugin-clipboard = "2.1.11"

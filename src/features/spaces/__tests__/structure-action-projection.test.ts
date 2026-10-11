@@ -44,7 +44,7 @@ function setup() {
       ],
       relationStyles: [],
     }),
-    prepareContentRemoval: async () => async () => {},
+    editorTabs: shallowRef([]),
     ensureActiveSpacePersisted: async () => undefined,
   };
   return { context, actions: createStructureActions(context) };
