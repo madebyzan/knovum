@@ -29,7 +29,7 @@ ownership are defined in [desktop-foundation.md](desktop-foundation.md) and
 
 ## Pinning and lock ownership
 
-- `pnpm-lock.yaml`, `src-tauri/Cargo.lock` and each Python runtime's `uv.lock` are generated only by
+- `pnpm-lock.yaml`, `src-tauri/Cargo.lock` and `python/uv.lock` are generated only by
   their owning package managers and are committed.
 - Exact pins are required where an SDK protocol, compiled-library ABI, model/runtime supplier or coordinated
   package family can change product behavior. Compatible ranges are acceptable only where the
@@ -95,9 +95,9 @@ No exception constitutes platform, distribution or legal approval.
 
 ## Compiled and Python supply chain
 
-The retained Agent CPython runtime, static core media binary and native inference components are
-producer outputs, not development-environment copies. Their manifests and per-target locks own the
-interpreter, packages, shared compiled libraries, source archives, hashes and supplier identities. End-user
+The frozen Agent, static core media binary and native inference components are project build
+outputs. The single uv lock, Cargo/CMake supplier records and sealed inventories own packages,
+compiled libraries, source archives, hashes and supplier identities. End-user
 machines never resolve or install production dependencies.
 
 Every conveyed target inventory must be bound to:
@@ -113,10 +113,16 @@ not approve distribution. GPL/LGPL and other source-offer obligations apply to t
 compiled dependency closure, including FFmpeg, eSpeak NG, piper and any libraries embedded by a wheel or archive.
 The compiled-source evidence and license-review records remain required packaging inputs.
 
-Each `python/runtimes/<profile>/dependency-license-review.json` starts unapproved. Production
+The Agent `python/packaging/license-review.json` starts unapproved. PyInstaller uses GPL with
+a bootloader distribution exception; review the actual scope of that exception alongside the
+frozen dependency closure, rather than treating the package name as distribution approval. Production
 packaging may consume it only after an accountable reviewer binds the frozen requirements/lock
-identity to each target's exact dependency evidence. A changed dependency, source revision or
-installed inventory invalidates that review. QA results cannot substitute for legal/license
+identity to each target's resolved dependency evidence. `reviewInputSha256` binds the single lock,
+project/spec/build-policy inputs, installed runtime package versions, CPython and PyInstaller versions,
+and the original complete binary input inventory from PyInstaller Analysis before relocation/signing;
+`reviewer`, timezone-qualified `reviewedAt` and durable HTTPS `evidenceLocation` identify the decision.
+A changed dependency or build policy invalidates that review. Complete frozen file inventories and
+SBOMs independently bind the actual signed bytes of each candidate. QA results cannot substitute for legal/license
 approval.
 
 Model files are independently downloaded resources. Their source, license, hash and runtime

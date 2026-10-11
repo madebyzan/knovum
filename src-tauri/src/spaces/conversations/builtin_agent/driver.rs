@@ -48,17 +48,9 @@ pub(super) async fn drive(
     .await
     .map_err(|_| "builtin-agent-duration-budget-exhausted")?
     .map_err(|_| "builtin-agent-process-admission-closed")?;
-    tokio::time::timeout_at(
-        deadline,
-        crate::local_resources::preparation::prepare_agent_for_job(
-            &host.app,
-            &format!("builtin-agent-runtime:{}", host.ids.run_id),
-            "Preparing built-in Agent resources",
-            &cancellation,
-        ),
-    )
-    .await
-    .map_err(|_| "builtin-agent-duration-budget-exhausted")??;
+    if cancellation.is_cancelled() {
+        return Err("builtin-agent-cancelled".into());
+    }
     let checkpoint_path = host
         .app
         .path()
@@ -86,12 +78,14 @@ pub(super) async fn drive(
         memory,
     };
     let host = Arc::new(host);
-    let mut process = tokio::time::timeout_at(
-        deadline,
-        Process::start(&host.app, &checkpoint_path, host.clone()),
-    )
-    .await
-    .map_err(|_| "builtin-agent-duration-budget-exhausted")??;
+    let mut process = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err("builtin-agent-cancelled".into()),
+        started = tokio::time::timeout_at(
+            deadline,
+            Process::start(&host.app, &checkpoint_path, host.clone()),
+        ) => started.map_err(|_| "builtin-agent-duration-budget-exhausted")??,
+    };
     let outcome = tokio::time::timeout_at(
         deadline,
         async {

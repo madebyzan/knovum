@@ -1,6 +1,7 @@
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { reactive, shallowReadonly } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import SpaceWorkflowEditForm from "../presentation/workflows/SpaceWorkflowEditForm.vue";
@@ -9,7 +10,10 @@ import SpaceWorkflowParameterFields from "../presentation/workflows/SpaceWorkflo
 import type { reviseCapturedWorkflow } from "../workflows/captured-workflow-ipc";
 
 const revise = vi.hoisted(() => vi.fn<typeof reviseCapturedWorkflow>());
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("../workflows/captured-workflow-ipc", () => ({ reviseCapturedWorkflow: revise }));
 vi.mock("../workflows/action-catalog", () => ({
   listSpaceActions: async () => [{ id: "generate_image", parametersSchema: {} }],

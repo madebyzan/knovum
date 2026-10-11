@@ -60,7 +60,6 @@ to prove the feature's contract. The sections below own the implementation and r
 ## Testing and gates
 
 ```bash
-pnpm check:scripts
 pnpm check:web
 pnpm check:rust
 pnpm check:python
@@ -77,4 +76,4 @@ The repository uses Oxlint/Oxfmt, dependency-cruiser, Knip, jscpd, Vitest, Vue T
 
 Update documentation in the same PR for changes to architecture, design tokens, permissions, persistence schema, commands, background task contracts, packaging, or release behavior.
 
-The Quality workflow covers Rust gates and desktop compilation on macOS arm64/x64 and Windows x64. Python audits check the retained Agent lock and the root tooling lock directly with uv. Node discovers owned script tests; actual model measurements and target-platform release acceptance remain separate. Contract drift checks use the generator-owned output list. Directory and naming conventions remain review requirements rather than a custom scanning subsystem.
+The Quality workflow covers Rust gates and desktop compilation on macOS arm64/x64 and Windows x64. Python audits check the single Agent/tooling project lock directly with uv. The web gate includes the few desktop helper tests; actual model measurements and target-platform release acceptance remain separate. Contract drift checks use the generator-owned output list. Directory and naming conventions remain review requirements rather than a custom scanning subsystem.

@@ -17,6 +17,7 @@ vi.mock("@tauri-apps/api/window", () => ({
 }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => void>() }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
+vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
 let exit: (requestId?: number) => Promise<void>;
 let close: (event: { preventDefault(): void }) => Promise<void>;

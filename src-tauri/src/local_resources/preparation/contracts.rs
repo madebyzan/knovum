@@ -18,7 +18,6 @@ pub enum ResourcePreparationTarget {
     SpeechSeparation,
     SpeechDiarization,
     MediaImportTools,
-    BuiltinAgent,
 }
 
 impl ResourcePreparationTarget {
@@ -36,7 +35,7 @@ impl ResourcePreparationTarget {
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
             Self::SpeechDiarization => Some(catalog::DiarizationVariant::Int8.models()),
-            Self::MediaImportTools | Self::BuiltinAgent => None,
+            Self::MediaImportTools => None,
         }
     }
 }
@@ -49,9 +48,6 @@ pub enum ResourcePreparationStage {
     Verifying,
     Installing,
     Ready,
-    RuntimeDownloading,
-    RuntimeVerifying,
-    RuntimeInstalling,
 }
 
 #[derive(Clone, Serialize, Deserialize, ts_rs::TS)]

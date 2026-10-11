@@ -8,16 +8,16 @@ Platform-specific runtime binaries belong to the application release and are nev
 
 - FFmpeg
 - the Rust inference worker with its verified ONNX Runtime, audio.cpp, Sherpa and Whisper libraries
-- one trusted descriptor for the retained on-demand CPython 3.11.17 Deep Agent profile
+- the complete frozen CPython 3.11.17 Deep Agent distribution and trusted file/link inventory
 
-`pnpm desktop:dev` prepares native suppliers and the Rust worker before starting Tauri. CI publishes compiled resources for all three desktop targets and embeds the resulting immutable descriptors in the application. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The bundled native manifest lists every worker/library/notice file, size and SHA-256; the retained Agent has its own published Python inventory. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing resources do not block ordinary startup or Space editing; feature execution prepares its required runtime and model through the shared cancellable Task Center.
+`pnpm desktop:dev` runs standard uv project sync and Cargo's native dependency graph before starting Tauri. CI builds complete application resources on all three desktop targets. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The native manifest lists every worker/library/notice file, size and SHA-256. The Agent uses the editable project in development and its bundled frozen inventory in release; it has no on-demand interpreter installation or resource-preparation task. Rust verifies each private subprocess's resources before launch; Vue has no process-launch permission. Feature execution prepares missing models and optional media-import tools through the shared cancellable Task Center. Missing required bundled infrastructure fails visibly.
 
 ## Prepared on first use
 
 Resource status queries report media-import tools as unavailable on targets absent from the pinned
 manifest without failing the status of other resources. The status retains the unsupported-platform
 identity; preparing those tools still fails explicitly. Feature preparation distinguishes an unsupported
-build architecture from missing runtime publication descriptors.
+build architecture from missing bundled runtime manifests.
 
 A supported web-media import prepares the exact-pinned yt-dlp executable and Deno JavaScript runtime
 from the repository-owned manifest. Both are installed under the versioned

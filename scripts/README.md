@@ -1,40 +1,23 @@
-# Repository tools
+# Desktop build helpers
 
-Daily development uses five commands: `pnpm desktop:dev`, `pnpm test`, `pnpm format`,
-`pnpm check` and `pnpm package`. Use the vendor CLI's flags for watch, fix and bundle variants.
-`dev` and `build` are Tauri's Vite hooks. `desktop:dev` prepares FFmpeg and compiled libraries,
-builds the worker with Cargo, then starts Tauri; it does not prepare Python.
+Daily development uses `pnpm desktop:dev`, `pnpm test`, `pnpm format`, `pnpm check` and
+`pnpm package`. `dev` and `build` are Tauri's Vite hooks.
 
-These are auxiliary tools for one desktop product. Prefer package scripts and existing vendor
-CLIs. Retain custom code for concrete resource, contract or verification policy;
-do not build a task runner, installer framework or a second dependency manager. Avoid extra
-public commands and handwritten duplicate schemas. Test fixtures are not developer entry points.
+`desktop/tauri.mjs` coordinates an ordinary uv project sync, Cargo dependency builds and the
+vendor Tauri CLI. Cargo JSON artifacts identify the native outputs; there is no independent
+runtime recipe, downloader, cache namespace, interpreter installer or publication service.
+The remaining modules implement concrete resource assembly, signing, license approval and
+final installer verification. Tests are developer verification, not additional entry points.
 
-## Occasional operations
+Native suppliers and the voice bridge belong to `src-tauri/crates/inference-native`; FFmpeg
+belongs to `src-tauri/crates/media-native`. CMake owns their supplier builds and hashed downloads.
+Agent source, its single uv lock, frozen spec, SBOM and packaging tests belong to `python/`.
+Capability checks are Rust tests; Spaces handlers and ACLs consume one Rust declaration.
 
-- `contracts:generate` / `contracts:check`: Rust-owned TS/Agent contracts and drift checks.
-- `e2e`: the isolated desktop test flavor.
-- `runtime:prepare`, `runtime:build`, `runtime:provision`: the retained Agent and controlled
-  resource supply. These serve explicit resource preparation and release workflows. The installed
-  product consumes finished resources and never invokes repository producers or uv/pip.
+`contracts.mjs` is the occasional Rust/TypeScript/Python generation and drift-check entry.
+Python generation lives in `python/contracts`. `e2e` uses the isolated desktop configuration.
+The quality workflow verifies project owners; the desktop workflow builds and verifies complete
+installers. There is no independent Python runtime workflow or runtime command family.
 
-## CI and ownership
-
-| Workflow                | Responsibility                                                        |
-| ----------------------- | --------------------------------------------------------------------- |
-| `quality.yml`           | Source/unit/audit gates and three desktop compilation targets.        |
-| `python-runtime.yml`    | The retained Agent interpreter/package publication only.              |
-| `release-candidate.yml` | QA builds or signed app drafts uploaded by the official Tauri action. |
-
-`desktop/` owns the Tauri entry point, resource assembly and production packaging policy;
-`runtime/` owns necessary resource production and verification; `checks/` contains capability
-policy, contract drift and retained Python checks. There is no custom release framework.
-Each owner's `__tests__/` contains its regressions.
-`pnpm check:scripts` discovers Node tests; `check:python` covers retained Python tooling.
-
-Model qualification uses actual engine tests and reviewed measurements. There is no separate
-repository scoring CLI, corpus schema or synthetic qualification fixture collection. Naming and
-directory conventions stay in review; do not add custom scanners that duplicate language tooling.
-
-Exact supply, signing and platform obligations belong to [packaging](../docs/packaging.md)
-and [release](../docs/release.md), rather than a separate tooling contract.
+Authoritative supply, signing and platform contracts live in [packaging](../docs/packaging.md)
+and [release](../docs/release.md).

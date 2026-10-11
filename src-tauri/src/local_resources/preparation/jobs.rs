@@ -67,39 +67,3 @@ pub(crate) async fn prepare_models_for_request<R: Runtime>(
     request.finish(prepared_models.as_ref().err())?;
     prepared_models
 }
-
-pub(crate) async fn prepare_agent_for_request<R: Runtime>(
-    app: &AppHandle<R>,
-    request: requests::PreparationRequest,
-    business_cancellation: &CancellationToken,
-    progress: &mut impl FnMut(ResourcePreparationProgress),
-) -> Result<(), String> {
-    let prepared = {
-        let mut observe = |update: ResourcePreparationProgress| {
-            request.update(update.clone());
-            progress(update);
-        };
-        tokio::select! {
-            biased;
-            _ = business_cancellation.cancelled() => {
-                request.cancellation().cancel();
-                Err(RESOURCE_PREPARATION_CANCELLED.to_string())
-            }
-            outcome = crate::local_resources::runtimes::python::prepare(app,
-                crate::local_resources::runtimes::python::RuntimeProfile::Agent,
-                request.cancellation(), &mut observe) => outcome,
-        }
-    };
-    request.finish(prepared.as_ref().err())?;
-    prepared
-}
-
-pub(crate) async fn prepare_agent_for_job<R: Runtime>(
-    app: &AppHandle<R>,
-    job_id: &str,
-    title: &str,
-    cancellation: &CancellationToken,
-) -> Result<(), String> {
-    let request = requests::begin(job_id, title, ResourcePreparationTarget::BuiltinAgent)?;
-    prepare_agent_for_request(app, request, cancellation, &mut |_| {}).await
-}

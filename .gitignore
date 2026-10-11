@@ -29,7 +29,6 @@ target
 *.sw?
 .pnpm-store
 python/.venv/
-python/runtimes/agent/.venv/
 runtime-artifacts/
 .runtime-development/
 .bundled-runtime-stage-*/
@@ -43,9 +42,7 @@ __pycache__/
 design-assets
 .omx
 
-src-tauri/resources/python-worker/
 src-tauri/resources/bundled-runtime/*/
-src-tauri/resources/python-*-descriptor.json
 
 # Personal local packaging helper and its cached publication/lock
 /package-local.sh
@@ -53,3 +50,5 @@ src-tauri/resources/python-*-descriptor.json
 
 src-tauri/resources/*-runtime/
 src-tauri/resources/.*-package-*/
+
+python/.build/

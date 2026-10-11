@@ -4,7 +4,7 @@ import asyncio
 import json
 from contextlib import AsyncExitStack
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from pydantic import BaseModel, ValidationError
@@ -19,10 +19,11 @@ from knovum_agent_runtime.contracts.generated.control import (
 )
 from knovum_agent_runtime.contracts.generated.messages import AgentProjectionRequest
 from knovum_agent_runtime.contracts.values import GRAPH_VERSION, PROTOCOL_VERSION
-from knovum_agent_runtime.execution import Execution
-from knovum_agent_runtime.projection import export_projection
 from knovum_agent_runtime.retention import prune_checkpoints
 from knovum_agent_runtime.transport import HostRejected, Peer
+
+if TYPE_CHECKING:
+    from knovum_agent_runtime.execution import Execution
 
 Model = TypeVar("Model", bound=BaseModel)
 
@@ -48,7 +49,10 @@ class Server:
             case "agentRuntime.execute":
                 if self.saver is None or (self.execution is not None and self.execution.task is not None):
                     raise HostRejected(-32000, "agent-runtime-not-ready")
-                self.execution = Execution(parameters(AgentExecute, value), self.saver, self.peer)
+                request = parameters(AgentExecute, value)
+                from knovum_agent_runtime.execution import Execution
+
+                self.execution = Execution(request, self.saver, self.peer)
                 return await self.execution.run()
             case "agentRuntime.control":
                 control = parameters(AgentControl, value)
@@ -63,6 +67,8 @@ class Server:
                 projection = parameters(AgentProjectionRequest, value)
                 if self.execution is None or projection.thread_id != self.execution.request.identity.thread_id:
                     raise HostRejected(-32000, "agent-runtime-thread-unbound")
+                from knovum_agent_runtime.projection import export_projection
+
                 return await export_projection(
                     self.execution.graph, self.execution.saver, projection.thread_id, projection.after_checkpoint_id
                 )

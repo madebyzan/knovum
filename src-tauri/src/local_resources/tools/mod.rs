@@ -29,7 +29,7 @@ pub(crate) struct PreparedMediaImportTools {
 
 #[cfg(debug_assertions)]
 fn bundled_runtime_dir<R: Runtime>(_: &AppHandle<R>) -> Result<PathBuf, String> {
-    Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/bundled-runtime"))
+    Ok(PathBuf::from(env!("KNOVUM_MEDIA_RUNTIME_DIRECTORY")))
 }
 
 #[cfg(not(debug_assertions))]
@@ -42,6 +42,9 @@ fn bundled_runtime_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String
 
 pub fn resolve_ffmpeg<R: Runtime>(app: &AppHandle<R>) -> Result<Option<PathBuf>, String> {
     let directory = bundled_runtime_dir(app)?;
+    #[cfg(debug_assertions)]
+    let candidate = directory.join(ffmpeg_name());
+    #[cfg(not(debug_assertions))]
     let candidate = directory.join(platform_directory()).join(ffmpeg_name());
     Ok(candidate.is_file().then_some(candidate))
 }

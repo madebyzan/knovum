@@ -22,6 +22,5 @@ pub(crate) mod diagnostic_lines;
 mod tests;
 
 pub(crate) mod process_tree;
-pub(crate) mod python;
 #[cfg(windows)]
 pub(crate) mod windows_job;

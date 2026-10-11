@@ -8,7 +8,7 @@ import traceback
 from collections.abc import Awaitable, Callable
 from concurrent.futures import CancelledError as ReadCancelled
 from pathlib import Path
-from typing import Any, BinaryIO, NoReturn
+from typing import IO, Any, NoReturn
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -49,7 +49,7 @@ def reject_nonfinite(value: str) -> NoReturn:
 
 
 class Peer:
-    def __init__(self, source: BinaryIO = sys.stdin.buffer, sink: BinaryIO = sys.stdout.buffer) -> None:
+    def __init__(self, source: IO[bytes] = sys.stdin.buffer, sink: IO[bytes] = sys.stdout.buffer) -> None:
         self.source = source
         self.sink = sink
         self._pending: dict[str, asyncio.Future[Any]] = {}

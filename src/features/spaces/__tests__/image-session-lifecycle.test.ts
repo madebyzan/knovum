@@ -15,17 +15,12 @@ const context = vi.hoisted(() => ({
   },
 }));
 const deriveImage = vi.hoisted(() =>
-  vi.fn<
-    (
-      _space: unknown,
-      _node: unknown,
-      _operation: unknown,
-      options?: { onOutputCreated?: () => void },
-    ) => Promise<void>
-  >((_space, _node, _operation, options) => {
-    options?.onOutputCreated?.();
-    return Promise.resolve(undefined);
-  }),
+  vi.fn<(_node: unknown, _operation: unknown, options?: { onOutputCreated?: () => void }) => Promise<void>>(
+    (_node, _operation, options) => {
+      options?.onOutputCreated?.();
+      return Promise.resolve(undefined);
+    },
+  ),
 );
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage }));
@@ -76,7 +71,6 @@ describe("image session ownership", () => {
     expect(edits.active).toBeUndefined();
     await removal.generate();
     expect(deriveImage).toHaveBeenCalledWith(
-      context.space,
       source,
       {
         kind: "remove-object",

@@ -12,8 +12,7 @@ mod installation;
 mod jobs;
 mod model_plan;
 pub(crate) use jobs::{
-    prepare_agent_for_job, prepare_agent_for_request, prepare_models_for_job,
-    prepare_models_for_request, prepare_voxcpm2_for_job,
+    prepare_models_for_job, prepare_models_for_request, prepare_voxcpm2_for_job,
 };
 pub(crate) mod locks;
 pub(crate) mod requests;

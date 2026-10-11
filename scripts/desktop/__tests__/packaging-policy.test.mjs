@@ -68,19 +68,17 @@ test("stable versions exclude prereleases and ambiguous numeric forms", () => {
     assert.throws(() => stableVersion(version));
 });
 
-test("release metadata has one aligned version source", () => {
+test("Tauri and release metadata use package.json as the application version source", () => {
   const root = mkdtempSync(join(tmpdir(), "knovum-release-"));
   try {
     mkdirSync(join(root, "src-tauri"));
     writeFileSync(join(root, "package.json"), JSON.stringify({ version: "1.2.3" }));
-    writeFileSync(join(root, "src-tauri/tauri.conf.json"), JSON.stringify({ version: "1.2.3" }));
-    writeFileSync(
-      join(root, "src-tauri/Cargo.toml"),
-      '[package]\nname = "knovum"\nversion = "1.2.3"\n[dependencies]\n',
-    );
+    writeFileSync(join(root, "src-tauri/tauri.conf.json"), JSON.stringify({ version: "../package.json" }));
     assert.equal(readVersion(root), "1.2.3");
     writeFileSync(join(root, "package.json"), JSON.stringify({ version: "1.2.4" }));
-    assert.throws(() => readVersion(root), /must match/);
+    assert.equal(readVersion(root), "1.2.4");
+    writeFileSync(join(root, "src-tauri/tauri.conf.json"), JSON.stringify({ version: "1.2.4" }));
+    assert.throws(() => readVersion(root), /version source/);
   } finally {
     rmSync(root, { recursive: true });
   }

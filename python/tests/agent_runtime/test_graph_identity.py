@@ -9,9 +9,8 @@ from knovum_agent_runtime.contracts.values import GRAPH_VERSION
 
 def test_graph_identity_matches_manifest_lock_and_installed_sdks() -> None:
     root = Path(__file__).resolve().parents[2]
-    profile = root / "runtimes/agent"
-    manifest = tomllib.loads((profile / "pyproject.toml").read_text())
-    lock = tomllib.loads((profile / "uv.lock").read_text())
+    manifest = tomllib.loads((root / "pyproject.toml").read_text())
+    lock = tomllib.loads((root / "uv.lock").read_text())
     dependencies = manifest["project"]["dependencies"]
     packages = {package["name"]: package["version"] for package in lock["package"]}
     expected = "knovum-agent-v1"

@@ -13,6 +13,10 @@ installation are application-owned implementation details, without manual enviro
 The initiating feature prepares dependencies automatically and owns progress/cancellation through
 the Task Center. Download-region/source selection belongs to the catalog and publication configuration.
 
+Tailwind class detection is scoped to the frontend `src/` tree through the stylesheet's standard
+`source()` option. Native build inputs, packaging evidence and repository tooling are not UI class
+sources; they must not affect CSS output or frontend compilation cost.
+
 ## Product language
 
 Knovum is a desktop workbench. The target is Apple-like platform sensibility plus Linear-like information density, not a web dashboard and not a visual clone of either product.

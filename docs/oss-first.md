@@ -165,7 +165,7 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   [`srt-vtt-parser`](https://github.com/plussub/srt-vtt-parser) lacks strict timestamp validation.
   Adding a second parser to recover discarded cues would duplicate the same responsibility. Reassess
   this exception when an upstream parser passes the malformed and mixed-validity import regressions.
-- Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The producer downloads exact immutable archives by size/hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
+- Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The media-native Cargo/CMake build downloads exact immutable archives by hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
 - yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
   executable with ambient config, plugins, cookies, playlists, self-update and remote components
   disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.
@@ -275,3 +275,26 @@ imports and cleans up the temporary macOS signing keychain before resource signi
 handwritten keychain lifecycle steps; the Tauri bundler remains responsible for app signing and
 notarization. FFmpeg preparation remains direct because its pinned supplier validation, required
 filters/encoders, license review and resource manifest are concrete Knovum requirements.
+
+## Desktop build ownership
+
+Cargo owns native build outputs in `OUT_DIR`; CMake ExternalProject owns the immutable supplier
+download/configure/build/install graph. The native crates use the CMake CLI directly, without Rust
+build dependencies whose feature unification can produce duplicate supplier build units. This is a
+standard project build, without a parallel recipe hash, cache or provisioner.
+
+The single uv project owns editable Agent development. PyInstaller's maintained onedir mode owns
+the distributable Python interpreter/module graph and platform binary relocation; Knovum adds
+only its stdio/UTF-8, complete inventory, license and signing policy. Its official POSIX symlink
+requirements are honored through Tauri's macOS directory-copy option. Onefile was rejected because
+per-launch extraction adds startup/lifecycle surface; standalone Python archives and Conda
+assembly were rejected because they make Knovum own interpreter installation and environment repair.
+Nuitka was considered; compiling this orchestration process has no demonstrated requirement and
+adds a C/C++ build graph for the retained Python SDKs. Existing SDK versions and native suppliers
+remain selected; this change transfers their build ownership, not the engines.
+
+References: [Cargo build scripts](https://doc.rust-lang.org/cargo/reference/build-scripts.html),
+[CMake ExternalProject](https://cmake.org/cmake/help/latest/module/ExternalProject.html),
+[uv projects](https://docs.astral.sh/uv/guides/projects/),
+[PyInstaller pitfalls](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html), and
+[Tauri configuration](https://v2.tauri.app/reference/config/).

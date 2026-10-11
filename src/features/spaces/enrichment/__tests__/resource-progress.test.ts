@@ -54,7 +54,7 @@ it("projects the whole resource download budget onto the cancellable node task",
         stage: "preparingResources",
         progress: 0,
         partial: null,
-        resources: { stage: "runtimeDownloading", downloaded: 512, total: 1024, percent: 50 },
+        resources: { stage: "downloading", downloaded: 512, total: 1024, percent: 50 },
       },
     },
   });

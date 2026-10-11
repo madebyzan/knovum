@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "target": "@KNOVUM_TARGET@",
+  "cmakeVersion": "@CMAKE_VERSION@",
+  "compiler": "@CMAKE_CXX_COMPILER_ID@",
+  "compilerVersion": "@CMAKE_CXX_COMPILER_VERSION@",
+  "configuration": "Release",
+  "macosDeploymentTarget": "@CMAKE_OSX_DEPLOYMENT_TARGET@"
+}
