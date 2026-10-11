@@ -19,6 +19,19 @@ Verify these files in the actual distribution.
 
 ## Local commands
 
+Daily development uses `pnpm desktop:dev`. The same project can run through the standard
+tools directly, without importing any helper implementation:
+
+```bash
+uv sync --project python --locked
+cargo build --locked --manifest-path src-tauri/Cargo.toml --workspace
+pnpm exec tauri dev
+```
+
+The Cargo workspace builds the desktop host and its private Rust worker. The helper only
+coordinates these tool invocations. Distribution packaging additionally assembles and verifies
+the product's resources, signatures and license evidence before invoking Tauri.
+
 Compile development code without bundling:
 
 ```bash
@@ -95,130 +108,76 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 
 ## Distribution boundaries
 
-The installer contains FFmpeg, the Rust inference worker, its compiled library/notice closure, the
-current Deep Agent `.py` source and exactly one `python-agent-descriptor.json`. The Agent interpreter
-and its third-party packages remain an independently published on-demand resource. The installer
-never includes Torch, MLX, inference Python packages or a model-download Python worker.
+The installer contains FFmpeg, the Rust inference worker and its library/notice closure, the
+complete frozen Agent onedir distribution, and bundled Agent plugin data. Agent dependencies
+are built from the one `python/uv.lock`; users do not download an interpreter or install packages.
+Model weights and optional yt-dlp/Deno remain independently prepared resources.
 
-`inference-contracts` owns neutral wire DTOs. Rust exports TypeScript and Rust inference JSON
-Schema; Python generation consumes only Agent contracts. Obsolete pre-release request, index and
-runtime identities fail strictly, with no compatibility reader or alternate engine.
+`inference-contracts` owns neutral Rust worker DTOs; Python generation consumes Agent contracts
+only. Obsolete pre-release protocols fail visibly without compatibility readers or alternate engines.
 
-### Rust inference package
+### Cargo and CMake ownership
 
-`node scripts/runtime/inference/preparation.mjs` builds the controlled library closure for the actual host target.
-Source archives, public ONNX headers, source revisions, sizes and hashes are fixed in the four
-`scripts/runtime/inference/*-source.json` supplier records. ONNX Runtime 1.22.1's official wheel is an archive supplier:
-only its C library and notices are extracted; no interpreter, Python binding or package is installed.
-CMake 4.3.4 builds frozen audio.cpp, Sherpa-ONNX 1.13.8 and whisper.cpp 1.8.3. Sherpa TTS/eSpeak,
-Python, PortAudio and server examples are disabled. The callback bridge changes no vendor source.
+`inference-native` owns pinned ONNX, audio.cpp, Sherpa and Whisper suppliers, CMake projects,
+notices and the voice bridge. Independent ExternalProject builds avoid GGML target collisions.
+`media-native` owns the pinned FFmpeg archive, legal records and qualification. Both are normal
+Cargo dependencies and install inside their own `OUT_DIR/runtime`; CMake uses hashed supplier
+archives and Cargo tracks native sources and build parameters. Window/Tauri configuration does
+not participate in a handwritten native cache key. There is no manual preparation command.
 
-Audio.cpp's CPU dispatch modules and optional Metal/Vulkan modules live in `bin/`. Whisper has a
-separate private GGML closure under `compiled-libraries/whisper` so incompatible supplier GGML
-versions cannot share a loader namespace. Installed aliases are materialized as regular files.
-Whisper uses upstream CPU dispatch modules, selected from that sealed directory through the public
-GGML loader; it preserves portable baseline support while using the host's available instructions.
-macOS library references are relocated to verified `@loader_path` dependencies, then signed.
-Windows worker DLL search is restricted to System32 and the verified runtime root/bin; ambient
-PATH, current directories and `GGML_BACKEND_PATH` cannot authorize a backend.
-The host removes inherited and command-local `DYLD_*`, `LD_*`, `GGML_*` and `VK_*` overrides
-before worker execution or backend probing, alongside Python path settings and provider tokens.
+CMake's configure and build processes limit Git discovery to the supplier build directory with
+`GIT_CEILING_DIRECTORIES`. Extracted upstream archives must not inherit Knovum's Git commit as
+their build version or recompile when application commits change; archive identity remains the
+pinned supplier URL and SHA-256 recorded in the build evidence.
 
-`pnpm package` builds the Rust worker, copies the verified closure into
-`src-tauri/resources/inference-runtime`, signs its compiled resources, preserves verified Microsoft
-runtime signatures, and seals the final file inventory.
-The worker lives at `bin/knovum-inference-worker[.exe]` inside that inventory. Host compilation embeds
-this exact manifest. At runtime, the host checks the manifest against its embedded trusted copy,
-rejects extra files/links/reparse directories, checks every hash, then starts the verified executable.
-Worker initialization repeats the bounded inventory check before loading compiled libraries. The packaged
-manifest does not authorize itself. Final package verification detects any bundler-induced changes
-instead of relaxing hashes after signing.
+The ONNX wheel remains an archive supplier for the previously qualified libraries and notices;
+its Python package is never shipped. Windows uses licensed MSVC redistributables selected by
+CMake and verifies Microsoft signatures. Vulkan is the pinned supplier, never a System32 copy.
+Missing imports outside the packaged/system closure fail the build. Source changes trigger the
+nested CMake dependency graph; there is no Cargo invocation inside a Cargo build script.
 
-Production uses the application's real Developer ID/Authenticode identity for Knovum resources;
-Microsoft runtime files retain their verified vendor signatures. QA uses ad-hoc
-macOS signing and unsigned Windows output. Signature verification invokes native OS tools directly
-from Node. Rust build inputs, notices and signing receipts accompany the sealed package. Exact
-license inventory and target execution evidence remain required before release promotion.
+### One Agent project
 
-### Retained Deep Agent publication
+`uv sync --project python --locked` installs the editable Agent into `python/.venv`. The desktop
+entry runs this standard command before development. The app never invokes uv, pip, Node or a
+repository producer. Debug processes run the installed module with `-I -B -X utf8`; distribution
+processes execute `knovum-agent` directly. Credentials/configuration from the launcher remain
+excluded from the child environment. Required resources fail visibly instead of being repaired
+or replaced by system Python.
 
-Only `python/runtimes/agent/uv.lock` and the base Conda-forge CPython 3.11.17 locks remain. Agent
-archives contain an independent interpreter/package root, notices, requirements and strict v1
-runtime manifest. Worker source remains part of the application; its digest covers the entire
-current Agent source tree. Agent environments load no local inference or model-download code.
-Agent binary inventory and signing reuse `scripts/runtime/compiled-signing.mjs`, the same OS-native
-implementation used by other compiled resources. Local preparation still provisions its managed
-uv/micromamba tools automatically; development and packaging commands are unchanged.
+Debug Cargo builds do not track the frozen Agent manifest as an input; that manifest belongs
+only to distribution builds. Editing or qualifying the Python project does not rebuild Rust.
 
-```bash
-pnpm runtime:build --profile agent --output <fresh-directory> --signing <adhoc|unsigned|production> \
-  --archive-url <immutable-https-url>
-pnpm runtime:provision --tag runtime-<commit>-<run>-<attempt> \
-  --repository <public-distribution-owner/repo> --source-repository <private-source-owner/repo>
-```
+`python/packaging/agent.spec` uses PyInstaller onedir, console stdio and the Windows UTF-8
+manifest. The Windows host uses CREATE_NO_WINDOW. macOS uses Tauri's official `bundle.macOS.files`
+to preserve the complete directory and POSIX symlinks; ordinary resource iteration dereferences
+links. Windows uses resource mapping. No executable is separated from its `_internal` directory.
 
-`python-runtime.yml` produces only Agent on all three OS runners and attests the interpreter
-archive, evidence archive and descriptor. It publishes these assets to the initialized public
-distribution repository, keeping private source separate. QA and release builds select an explicit
-immutable tag. `gh release download` fetches its three target assets; `gh attestation verify` checks
-the source repository, owning workflow, `main` ref and exact source commit before any extraction.
-Current recipes, requirements, manifests and inventories must still match the checkout.
-No custom publication catalog, latest-runtime selection or compatibility reader remains.
+PyInstaller owns bootloader/extension relocation and macOS signing. The distribution carries
+runtime metadata/licenses, CPython/PyInstaller notices, dependency/build inputs and a validated
+CycloneDX SBOM. An immutable file/link inventory is sealed after signing and embedded by the host.
+Each link must be relative and resolve within the distribution; every file is verified before spawn.
+The bundled Agent has no resource-preparation target or interpreter installation task. Its own
+process startup validates the distribution once, within the feature's cancellation and time budget.
+DeepAgents, LangGraph, provider SDKs, checkpoints, authorization, cancellation and Skills remain
+product code. Model provider imports occur at execution, not control initialization.
 
-CI uses its read-only source-repository `GH_TOKEN` for public asset retrieval and private
-attestations. QA needs no distribution write token. Local maintainers need `gh` authenticated for
-the same read access. Application clients download the public archive anonymously; they do not need
-`gh`, source access or any token. Only the descriptor and owned Worker ship in the installer.
+### Desktop orchestration and verification
 
-Agent installation uses existing bounded streaming, Task Center progress, complete verification,
-atomic activation and OS file leases. Its namespace is
-`local-resources/runtimes/python/agent/<target>/<archive-sha256>`. Inference development publications
-use `.runtime-development/inference/<target>/<recipe-sha256>` and separate lease anchors. Active
-workers retain leases; stale identities are reclaimed only when unleased. Cargo uses the checkout's
-ordinary target and default profiles; shared-target builds are serialized.
+The small desktop helper consumes Cargo's JSON artifact records, builds the frozen Agent,
+assembles resources, signs native bytes, seals inventories and invokes Tauri. Worker profiles
+follow Tauri debug/custom profiles. Frozen builds require the native target host; cross-host
+packaging is rejected explicitly. `--no-bundle` assembles resources beside the Cargo executable.
 
-Completed audio.cpp, Sherpa and Whisper supplier libraries are cached independently under
-`.runtime-development/inference-suppliers/<target>/<supplier>/<recipe-sha256>`. Each completed
-supplier has a verified file inventory and is activated atomically. A later supplier failure
-discards only that supplier's incomplete build; the next preparation reuses earlier verified
-suppliers. The final inference bundle is still assembled, relocated, signed and verified as a
-complete closure before desktop startup or packaging. Supplier recipe changes invalidate that
-supplier; shared download/inventory/library tooling and desktop configuration changes invalidate
-all affected suppliers. Downloads retry transient network/server failures at most twice, identify
-the URL and underlying error, and remove rejected partial files. Integrity failures are not retried.
+Final macOS app and extracted Windows NSIS/MSI inventories are compared with trusted build
+inputs before upload. Production signing/notarization verification remains mandatory. Native
+inventories include the worker executable after signing, before the host embeds their hashes.
 
-### Core FFmpeg and developer startup
-
-FFmpeg 9.0.2 remains one static executable plus notices and owned evidence. The Node producer uses
-pinned source archives, yauzl selected-entry extraction, compiled-library dependency checks and OS signing.
-FFmpeg is prepared directly on the development/packaging host and included in the app; it has
-no independent archive, descriptor, release or provisioning step. Production preparation requires
-approved license evidence and signs the actual executable before sealing its manifest.
-It rejects non-system dynamic dependencies, nonfree builds and missing subtitles/analysis/loudness/
-concatenation/platform encoder capabilities. Real libx264/AAC/loudness, subtitle, concat and PCM
-smokes run from relocated paths including Chinese characters. There is no Python media producer.
-
-`media-license-review.json` remains an accountable release input; pending approval permits QA only.
-Source/license changes invalidate its receipt. No tooling or QA result constitutes legal approval.
-
-`pnpm desktop:dev` prepares core FFmpeg, inference suppliers and the Rust worker before invoking the
-Tauri CLI; `beforeDevCommand` starts only Vite. Rust build tooling requires pinned CMake, the
-normal Rust/Clang toolchain and macOS Metal tooling or the frozen Windows Vulkan SDK. The SDK's
-`copy_only=1` mode stays in build scratch and does not change system drivers or registry. Python is
-required only for retained Agent production and contract/build tools, never local model execution.
-CI's single `setup-rust-build` action installs the pinned Protobuf compiler and CMake, and selects
-the Windows runner's LLVM `libclang.dll` for bindgen. Missing compiler libraries fail the build
-before inference packaging. Quality runs the same `pnpm check:rust` entry as local development
-and compiles the desktop on all three supported targets. Final signing/notarization
-verification belongs to the package command and runs before draft artifact upload. CI prepares supplier libraries once; Cargo gates or packaging build the worker
-in the required profile rather than first building a disposable debug worker.
-
-Packaging verifies the exact Agent source/descriptor payload and forbids bundled interpreters.
-NSIS extraction uses pinned 7-Zip; MSI uses a Windows Installer administrative image. macOS verifies
-the actual `.app` resource inventory. Inference package checks cover the sealed worker and libraries in
-addition to Agent payload validation. Real installation, launch, first-use model download, offline
-execution, signing/notarization and Windows/macOS target acceptance are separate mandatory release
-evidence. Editing CI does not claim a run on hardware unavailable to the implementer.
+CI installs pinned Protobuf/CMake and Windows libclang through `setup-rust-build`. Project gates
+build the same Cargo graph; the desktop matrix also builds the actual frozen Agent. There is no
+separate interpreter archive release, publication tag, GitHub downloader or provisioning step.
+Real installation, offline Agent use, model acquisition, cancellation, OS certificates and
+supported-target behavior are release evidence; changing CI does not claim unavailable hardware.
 
 ## Artifact policy
 
@@ -232,8 +191,8 @@ evidence. Editing CI does not claim a run on hardware unavailable to the impleme
 ## QA packaging workflow
 
 The manual `workflow_dispatch` entry of `.github/workflows/release-candidate.yml` produces internal
-QA artifacts from the selected `runtime_publication_tag`, using the same target matrix and
-provisioning as signed candidates:
+QA artifacts from the selected commit, using the same native target matrix and project
+builds as signed candidates:
 
 - macOS uses ad-hoc signing so test artifacts are structurally signed without pretending to be a notarized production release;
 - Windows NSIS artifacts are unsigned and may trigger SmartScreen warnings;
@@ -243,8 +202,7 @@ Manual QA uses the `runtime-qa` environment. Production signing steps, signing s
 notarization and candidate publication execute only for version-tag pushes in their protected
 release environments. Sharing build preparation does not grant the QA entry production authority.
 
-This workflow requires committed lockfiles, the selected attested Agent tag and the public
-distribution repository. It refuses to package if resource verification fails.
+This workflow requires committed lockfiles and the configured public distribution repository. It refuses to package if resource verification fails.
 
 ## Production packaging
 
@@ -259,7 +217,7 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The official Tauri action builds and uploads all three targets to a draft and generates the update
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `package.json` owns the application version through Tauri's `"version": "../package.json"` setting. `pnpm package --release` validates that version source, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The official Tauri action builds and uploads all three targets to a draft and generates the update
 manifest. Target-platform acceptance and manual GitHub publication are documented in `release.md`.
 
 ## Bundled Agent plugin content
@@ -304,5 +262,5 @@ certificate passwords, updater signing keys and distribution endpoints are relea
 GitHub job identifiers and artifact addresses are supplied by the workflows. OS variables such
 as `PATH`, `SystemRoot` and Windows SDK installation roots retain their system meanings.
 Private worker environments configure third-party offline mode, cache ownership and thread counts;
-they are set by the application and are not user configuration. Tests requiring provisioned artifacts
+they are set by the application and are not user configuration. Tests requiring built artifacts
 use an explicit ignored-test invocation rather than an environment switch that silently reports success.

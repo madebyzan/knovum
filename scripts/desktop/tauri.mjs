@@ -1,36 +1,21 @@
 import { execFileSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { run } from "@tauri-apps/cli";
 
-import { prepareInferenceRuntime } from "../runtime/inference/preparation.mjs";
-import { prepareCoreMedia } from "../runtime/media.mjs";
+import { buildDesktopDependencies } from "./cargo.mjs";
+import { buildOptions, lockedRunnerArguments } from "./options.mjs";
+import { packageDesktop, packagingConfiguration } from "./package.mjs";
 
-const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const args = process.argv.slice(2);
-const separator = args.indexOf("--");
-const cliArgs = separator < 0 ? args : args.slice(0, separator);
-const command = cliArgs.find((argument) => !argument.startsWith("-"));
-const informational = cliArgs.some((argument) => ["--help", "-h", "--version", "-V"].includes(argument));
-try {
-  // Resource production precedes Tauri's bounded wait for the frontend server.
-  if (command === "dev" && !informational) {
-    await prepareCoreMedia(repository);
-    await prepareInferenceRuntime(repository);
-    execFileSync(
-      "cargo",
-      ["build", "--locked", "--manifest-path", "src-tauri/Cargo.toml", "-p", "knovum-inference-worker"],
-      { cwd: repository, stdio: "inherit" },
-    );
-  }
-  if (command === "build" && !informational) {
-    if (args[0] !== "build") throw new Error("Use build before its options");
-    await import("./package.mjs");
-  } else {
-    await run(args, "node scripts/desktop/tauri.mjs");
-  }
-} catch (error) {
-  console.error(error.message);
-  process.exitCode = 1;
+const repository = fileURLToPath(new URL("../../", import.meta.url));
+const [command, ...args] = process.argv.slice(2);
+if (!["dev", "build"].includes(command) || args.includes("--help") || args.includes("-h")) {
+  await run(process.argv.slice(2), "node scripts/desktop/tauri.mjs");
+} else {
+  const options = buildOptions(args, command);
+  const configuration = command === "build" ? packagingConfiguration(repository, options) : undefined;
+  execFileSync("uv", ["sync", "--project", "python", "--locked"], { cwd: repository, stdio: "inherit" });
+  const dependencies = buildDesktopDependencies(repository, options);
+  if (command === "build") await packageDesktop(repository, options, dependencies, configuration);
+  else await run(["dev", ...lockedRunnerArguments(options.args)], "pnpm desktop:dev");
 }

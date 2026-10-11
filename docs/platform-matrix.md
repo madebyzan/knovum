@@ -30,7 +30,7 @@ Artifact construction and promotion belong to [packaging.md](packaging.md) and
 | Locale and text      | BCP-47; system/SF and PingFang via Core Text                | BCP-47; Segoe UI Variable and Microsoft YaHei UI via DirectWrite | System fonts; no packaged UI font                                        |
 | Release trust        | Signed and notarized application/update                     | Code-signed installer/update                                     | Credentials remain outside source and build logs                         |
 
-Both macOS architectures are separate release targets with distinct runtime publications, signatures,
+Both macOS architectures are separate release targets with distinct compiled resources, signatures,
 and update artifacts. An arm64 result does not qualify x86_64, and an adapter test does not qualify an
 installed application.
 

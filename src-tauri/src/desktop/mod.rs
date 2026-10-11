@@ -192,3 +192,7 @@ pub(crate) fn finish_maintenance_progress<R: Runtime>(
 ) -> Result<(), String> {
     tasks::maintenance(app, Some(100), Some(succeeded))
 }
+
+#[cfg(test)]
+#[path = "tests/capabilities.rs"]
+mod capability_tests;

@@ -135,5 +135,5 @@ fn dependency_owner<'a>(file: &str, name: &str, libraries: &[&'a String]) -> io:
 }
 
 #[cfg(test)]
-#[path = "../tests/relocation.rs"]
+#[path = "relocation/tests.rs"]
 mod tests;

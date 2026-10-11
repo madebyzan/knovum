@@ -6,9 +6,10 @@ Knovum targets the Tauri desktop runtime.
 
 Required:
 
-- Node.js `>=22.12`;
+- Node.js `>=22.13`;
 - Corepack + pnpm `11.17.0` from `packageManager`;
 - Rust toolchain from `rust-toolchain.toml`;
+- uv `0.12.23`, CMake `4.3.4`, Protobuf `32.1`, and LLVM/libclang for the native worker;
 - platform prerequisites required by Tauri for macOS or Windows.
 
 First setup:
@@ -19,11 +20,12 @@ pnpm install --frozen-lockfile
 pnpm desktop:dev
 ```
 
-The checkout includes both lockfiles:
+The checkout includes the project lockfiles:
 
 ```text
 pnpm-lock.yaml
 src-tauri/Cargo.lock
+python/uv.lock
 ```
 
 Use the committed lockfiles for normal setup and CI. Regenerate a lockfile only for an intentional dependency change.
@@ -32,10 +34,10 @@ Use the committed lockfiles for normal setup and CI. Regenerate a lockfile only 
 
 ```bash
 pnpm check
-pnpm exec tauri build --no-bundle --debug
+pnpm package --no-bundle --debug
 ```
 
-`pnpm exec tauri build --no-bundle --debug` compiles the desktop application without creating installers or requiring published release resources. Packaging is documented in `packaging.md`.
+`pnpm package --no-bundle --debug` compiles the desktop application without creating installers. The normal project builds supply all resources; no runtime publication is required. Packaging is documented in `packaging.md`.
 
 ## End-user installation
 

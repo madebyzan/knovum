@@ -11,4 +11,5 @@ def main() -> None:
     serve()
 
 
-main()
+if __name__ == "__main__":
+    main()

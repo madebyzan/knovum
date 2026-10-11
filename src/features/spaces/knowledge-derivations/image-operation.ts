@@ -55,7 +55,7 @@ const IMAGE_OPERATION_CONFIG = {
   },
 } as const;
 
-export async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget> {
+async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget> {
   const capabilities = await getImageOperationCapabilities();
   const capability = IMAGE_OPERATION_CONFIG[operation.kind].capability;
   if (capability) {

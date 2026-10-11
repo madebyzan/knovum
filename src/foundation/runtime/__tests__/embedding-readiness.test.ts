@@ -11,9 +11,7 @@ function resources(): LocalResourcesStatus {
     ffmpeg: tool,
     ytDlp: tool,
     deno: tool,
-    pythonRuntimes: {
-      agent: { state: "not_published" },
-    },
+    builtinAgent: { state: "ready" },
     nativeInference: true,
     models: {
       transcription: [],
@@ -33,10 +31,10 @@ function resources(): LocalResourcesStatus {
   };
 }
 
-it("indexes verified embeddings without unrelated or downloader runtime publications", () => {
+it("indexes verified embeddings without unrelated Agent availability", () => {
   const status = resources();
   expect(textEmbeddingReady(status)).toBe(true);
-  status.pythonRuntimes.agent = { state: "invalid", message: "Downloader manifest is corrupt" };
+  status.builtinAgent = { state: "invalid", message: "Agent manifest is corrupt" };
   expect(textEmbeddingReady(status)).toBe(true);
 });
 

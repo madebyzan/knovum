@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified compiled tools, Rust inference workers, retained Deep Agent CPython and private document workers
+      +-- verified compiled tools, Rust inference workers, bundled frozen Agent and private document workers
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -192,11 +192,10 @@ Document conversion uses the current application executable in one private worke
 
 ## Compiled resources and local inference
 
-FFmpeg is a bundled, verified core media resource. It contains one statically linked executable plus notices and build evidence; supplier/download contracts belong to `packaging.md`. The retained Agent environment, models, and optional media
-tools are application-managed resources prepared on capability use. All resolve through signed or
-hash-verified manifests in application-owned locations. Installed runtime leases prevent retirement
-while a worker or Agent still uses a generation; explicit lease release makes retired generations
-eligible for cleanup.
+FFmpeg is a bundled, verified core media resource. It contains one statically linked executable plus notices and build evidence; supplier/download contracts belong to `packaging.md`. The frozen Agent and Rust inference libraries are immutable installer resources. Development uses
+Cargo-owned native outputs and the Agent project’s editable uv environment. Models and optional
+media tools are prepared on capability use. The application never assembles, installs, repairs or
+retires a Python environment. Required resource inventories fail visibly when missing or altered.
 
 Idle-worker admission checks `runtime.health` for the current session, empty request slot and actual
 resident bytes. Invalid or unavailable health fails visibly, and health never reads in-flight stdio.
@@ -204,11 +203,10 @@ Memory pressure or an incompatible interactive request reclaims an idle worker b
 The supervisor owns one-worker reservation, priority fairness and the 60-second idle TTL; an active
 compute permit remains held until calculation settles or the owned process tree exits.
 
-Resource preparation is a cancellable long-running task. A recipe and target identity determine the
-publication and installation path. Preparation publishes atomically only after file manifests,
-producer identity, executable policy, and required notices pass verification. Missing core resources,
-unsupported targets, corrupt manifests, and failed verification are explicit errors; no alternate
-backend, device, executable, or legacy resource is selected after execution starts.
+Model/tool acquisition is a cancellable long-running task. Built-in Agent and native inference
+resources are compiled application inputs: the host verifies the embedded trusted inventory,
+executable policy and notices before starting their processes. Installed-resource validation does
+not resolve dependencies, repair environments or choose a system interpreter.
 
 Optional media import runs only through the verified application-managed `yt-dlp` and Deno absolute
 paths. The host disables ambient configuration, plugins, remote components, self-update, playlists,
@@ -368,7 +366,7 @@ Web capture decodes a recognized BOM or declared HTTP charset through `encoding_
 - Commit admission and cancellation share an ordering boundary. Once a commit is admitted, it reaches
   its atomic result and reports that result; cancellation cannot leave an ambiguous half-commit.
 
-Agent graph identity contains the exact locked DeepAgents and LangGraph versions. Contract generation synchronizes that identity with Python, while profile/lock/installed-SDK regression checks detect a stale source identity. Changed identities retire incompatible execution segments through the existing strict boundary; no compatibility reader is introduced.
+Agent graph identity contains the exact locked DeepAgents and LangGraph versions. Contract generation synchronizes that identity with Python, while project/lock/installed-SDK regression checks detect a stale source identity. Changed identities retire incompatible execution segments through the existing strict boundary; no compatibility reader is introduced.
 
 ### Provider and Agent output network policy
 
@@ -378,7 +376,7 @@ IPv6 resource addresses must belong to ordinary public unicast space (`2000::/3`
 
 ## Distribution gate
 
-The supported targets are shipped only when their runtime descriptors, compiled resources, application
+The supported targets are shipped only when their sealed Agent/native inventories, compiled resources, application
 binary, signing policy, and updater identity agree. A compile succeeds only as a compile gate; it does
 not establish clean installation, GPU execution, OS integration, cancellation, recovery, media quality,
 signing, or update acceptance. Each release candidate requires the real-machine evidence listed in

@@ -42,12 +42,16 @@ All other dependency rules remain in force, including the prohibition on product
 
 ## Rust inference boundary
 
-The Cargo workspace contains the Tauri host, `inference-contracts` and `inference-worker`. The neutral
-contracts crate depends on serialization/schema tooling only. The worker imports those contracts and
+The Cargo workspace contains the Tauri host, `inference-contracts`, `inference-worker` and the
+project-owned native supply crates. The neutral
+contracts crate depends on serialization/schema tooling only. Cargo also owns `inference-native`
+and `media-native`, whose CMake builds expose install metadata to the host. The worker imports those contracts and
 maintained execution libraries; it never imports the host or feature storage. The host imports the
 contracts and manages the private process. Engine-specific adapters remain inside the worker.
-Node resource-build tooling belongs to `scripts/runtime`; model measurements remain validation
-evidence rather than a second tool subsystem. Python source and generated Python contracts belong
+Native build definitions belong to their Cargo owner, and Agent build definitions to its single uv
+project. `scripts/desktop` coordinates vendor commands and verifies final artifacts; it owns no
+dependency solver, interpreter installer or independent build cache. Model measurements remain
+validation evidence rather than a second tool subsystem. Python source and generated Python contracts belong
 exclusively to the retained Deep Agent.
 
 ## Ownership
@@ -216,7 +220,8 @@ and owns durable publication.
 
 `local_resources/models` owns model identity, installation, and integrity;
 `local_resources/tools` owns verified tool installation and bundled executable discovery;
-`local_resources/runtimes` owns trusted runtime publications and leases; and
+`local_resources/runtimes/inference` verifies the bundled native inventory;
+`agent_runtime/runtime` resolves the editable Agent or verifies its frozen bundled inventory; and
 `local_resources/preparation` coordinates preparation and execution leases. `app_resources` may
 compose resource removal with consumers that must release an active model, while
 `local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app_resources` composes catalog facts with that policy for product availability.
@@ -229,7 +234,7 @@ resource paths, or publishes engine results to Space storage.
 ### Rust inference and retained Agent Python
 
 `src-tauri/crates/inference-contracts` owns the strict neutral wire types shared by the host and
-private worker. The host depends on this package alone, never on the inference engines.
+private worker. The host imports neutral contracts and native build metadata, never inference execution APIs.
 `inference-worker` owns bounded framing, request admission and independent reader/compute threads;
 `embedding`, `images` and `speech` own their capability adapters. Compiled libraries receive only
 verified models and request-scoped inputs. Business authorization and publication remain with the
@@ -407,7 +412,6 @@ The repository enforces these boundaries through:
   frontend tests, Knip, frontend duplication checks, and Oxfmt;
 - `pnpm check:rust`: structured capability policy, rustfmt, Clippy, Rust tests and Rust duplication checks;
 - `pnpm check:python`: Ruff, Mypy and retained Agent/tooling tests;
-- `pnpm check:scripts`: owned Node script unit tests discovered by Node itself from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
 - `pnpm check`: all four groups;
 - `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
 - `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including the Rust worker schema and retained Agent contracts.

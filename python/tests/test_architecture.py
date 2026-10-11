@@ -120,3 +120,42 @@ import knovum_agent_runtime.transport
         [sys.executable, "-I", "-B", "-c", script, str(SOURCE)], capture_output=True, text=True, timeout=10, check=False
     )
     assert process.returncode == 0, process.stderr
+
+
+def test_control_initialization_and_malformed_requests_do_not_load_model_providers(tmp_path: Path) -> None:
+    script = """
+import importlib.abc
+import sys
+class RejectProviders(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        providers = {'deepagents', 'langchain_openai', 'langchain_anthropic', 'langchain_google_genai',
+            'langchain_ollama', 'langchain_deepseek', 'langchain_groq'}
+        if fullname.startswith('langgraph.graph') or fullname.split('.')[0] in providers:
+            raise AssertionError('Control initialization loaded a model provider: ' + fullname)
+sys.meta_path.insert(0, RejectProviders())
+import knovum_agent_runtime.server
+import asyncio
+import io
+from contextlib import AsyncExitStack
+from knovum_agent_runtime.server import Server, AgentInitialize, GRAPH_VERSION, PROTOCOL_VERSION
+from knovum_agent_runtime.transport import Peer, HostRejected
+async def run():
+    async with AsyncExitStack() as lifetime:
+        server = Server(Peer(io.BytesIO(), io.BytesIO()), lifetime)
+        await server.initialize(AgentInitialize(protocol_version=PROTOCOL_VERSION,
+            graph_version=GRAPH_VERSION, checkpoint_path=sys.argv[1]))
+        try:
+            await server.dispatch('agentRuntime.execute', {})
+        except HostRejected as error:
+            assert error.code == -32602
+        else:
+            raise AssertionError('Malformed execution request was accepted')
+asyncio.run(run())
+"""
+    process = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", script, str(tmp_path / "checkpoint.sqlite")],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert process.returncode == 0, process.stderr

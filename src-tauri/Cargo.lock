@@ -6805,6 +6805,8 @@ dependencies = [
  "iri-string",
  "jsonschema",
  "knovum-inference-contracts",
+ "knovum-inference-native",
+ "knovum-media-native",
  "lancedb",
  "libc",
  "log",
@@ -6876,6 +6878,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "knovum-inference-native"
+version = "0.1.0"
+
+[[package]]
 name = "knovum-inference-worker"
 version = "0.1.0"
 dependencies = [
@@ -6887,6 +6893,7 @@ dependencies = [
  "hex",
  "hound",
  "knovum-inference-contracts",
+ "knovum-inference-native",
  "libc",
  "libloading 0.8.9",
  "memory-stats",
@@ -6904,6 +6911,10 @@ dependencies = [
  "windows-sys 0.61.2",
  "windows-version",
 ]
+
+[[package]]
+name = "knovum-media-native"
+version = "0.1.0"
 
 [[package]]
 name = "krilla"

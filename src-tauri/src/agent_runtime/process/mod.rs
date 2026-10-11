@@ -10,7 +10,7 @@ use super::protocol::{
     self,
     control::{AgentInitialize, AgentReady},
 };
-use crate::local_resources::runtimes::python::{self, RuntimeProfile};
+use super::runtime;
 use crate::subprocess::process_tree::ProcessTree;
 
 mod diagnostics;
@@ -23,7 +23,6 @@ pub(crate) struct Process {
     tree: ProcessTree,
     listener: JoinHandle<Result<(), String>>,
     pub(crate) peer: Peer,
-    _lease: Option<Arc<python::RuntimeLease>>,
 }
 
 impl Process {
@@ -32,10 +31,8 @@ impl Process {
         checkpoint_path: &Path,
         host: Arc<dyn Host>,
     ) -> Result<Self, String> {
-        let runtime = python::resolve(app, RuntimeProfile::Agent)?
-            .ok_or("agent-runtime-runtime-not-prepared")?;
-        let checked = runtime.clone();
-        crate::blocking::run(move || python::verify_before_spawn(&checked)).await?;
+        let handle = app.clone();
+        let runtime = crate::blocking::run(move || runtime::resolve(&handle)).await?;
         let work = app
             .path()
             .app_data_dir()
@@ -44,14 +41,9 @@ impl Process {
         tokio::fs::create_dir_all(&work)
             .await
             .map_err(|error| error.to_string())?;
-        let bootstrap = crate::subprocess::python::isolated_bootstrap(
-            "import runpy;runpy.run_module('knovum_agent_runtime',run_name='__main__')",
-        );
         let mut command = Command::new(&runtime.executable);
         command
-            .args(["-I", "-B", "-X", "utf8", "-c", &bootstrap])
-            .arg(&runtime.worker_root)
-            .arg(&runtime.package_root)
+            .args(&runtime.arguments)
             .current_dir(work)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -71,6 +63,8 @@ impl Process {
             use std::os::unix::process::CommandExt;
             command.as_std_mut().process_group(0);
         }
+        #[cfg(windows)]
+        command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW: keep console stdio without a visible console.
         #[cfg(windows)]
         let job = crate::subprocess::windows_job::WindowsJob::new()?;
         let mut child = command
@@ -108,7 +102,6 @@ impl Process {
             tree,
             listener,
             peer,
-            _lease: runtime.lease,
         };
         let ready = tokio::time::timeout(
             Duration::from_secs(20),

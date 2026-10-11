@@ -1,3 +1,9 @@
+#[macro_use]
+#[path = "../../../spaces_commands.rs"]
+mod declarations;
+macro_rules! command_handler {
+    ($($path:path),* $(,)?) => { tauri::generate_handler![$($path),*] };
+}
 mod execution;
 mod knowledge;
 mod workspace;

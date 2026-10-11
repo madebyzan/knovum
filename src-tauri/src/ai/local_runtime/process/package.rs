@@ -1,5 +1,5 @@
-use crate::local_resources::runtimes::{inference::InferenceRuntimePaths, RuntimeLease};
-use std::{process::Stdio, sync::Arc};
+use crate::local_resources::runtimes::inference::InferenceRuntimePaths;
+use std::process::Stdio;
 use tokio::process::Command;
 
 #[derive(Clone)]
@@ -21,9 +21,6 @@ impl WorkerPackage {
     }
     pub(super) fn digest(&self) -> &str {
         &self.0.digest
-    }
-    pub(super) fn lease(&self) -> Option<Arc<RuntimeLease>> {
-        self.0.lease.clone()
     }
     pub(super) fn command(&self, threads: u8) -> Command {
         let mut command = Command::new(&self.0.executable);

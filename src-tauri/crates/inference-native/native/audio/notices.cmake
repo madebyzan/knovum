@@ -1,0 +1,5 @@
+file(MAKE_DIRECTORY "${PREFIX}/source-notices/audio-cpp")
+foreach(path LICENSE external/ggml/LICENSE external/sentencepiece/LICENSE external/cJSON/LICENSE external/libyaml/License)
+  string(REPLACE "/" "-" name "${path}")
+  file(COPY_FILE "${SOURCE}/${path}" "${PREFIX}/source-notices/audio-cpp/${name}")
+endforeach()

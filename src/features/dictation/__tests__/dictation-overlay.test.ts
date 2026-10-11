@@ -13,7 +13,7 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 it("shows resource preparation and cancellation, then switches to transcription after preparation", async () => {
   const state = shallowRef<DictationSnapshot>({
     phase: "preparing_resources",
-    resources: { stage: "runtimeDownloading", downloaded: 1024, total: 2048, percent: 50 },
+    resources: { stage: "downloading", downloaded: 1024, total: 2048, percent: 50 },
     sessionId: "recording",
     startedAt: 1,
     targetApplication: "Editor",

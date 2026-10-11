@@ -8,11 +8,11 @@ import { buildResourcePreparationTask, updateTaskProgress } from "../resource-pr
 vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 beforeEach(() => setActivePinia(createPinia()));
 
-it("keeps an unknown-size runtime transfer visible without inventing a total or failing the task", () => {
+it("keeps an unknown-size resource transfer visible without inventing a total or failing the task", () => {
   const tasks = useTaskStore();
   const id = tasks.start("Download");
   updateTaskProgress(tasks, id, {
-    stage: "runtimeDownloading",
+    stage: "downloading",
     downloaded: 1024,
     total: null,
     percent: null,
@@ -23,7 +23,7 @@ it("keeps an unknown-size runtime transfer visible without inventing a total or 
   expect(tasks.tasks[0]?.statusMessage).not.toContain("/");
 });
 
-it.each(["verifying", "runtimeVerifying", "installing", "runtimeInstalling"] as const)(
+it.each(["verifying", "installing"] as const)(
   "distinguishes %s from completed downloading without a misleading 100 percent",
   (stage) => {
     const tasks = useTaskStore();
@@ -33,7 +33,7 @@ it.each(["verifying", "runtimeVerifying", "installing", "runtimeInstalling"] as 
     expect(tasks.tasks[0]?.status).toBe("running");
     expect(tasks.tasks[0]?.progress).toBeUndefined();
     expect(tasks.tasks[0]?.statusMessage).toContain(
-      stage.includes("erifying") ? "tasks.verifyingResource" : "tasks.installingResource",
+      stage.includes("erifying") ? "tasks.resources.verifying" : "tasks.resources.installing",
     );
   },
 );

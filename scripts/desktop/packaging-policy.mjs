@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { runtimeTargets } from "../runtime/profiles.mjs";
+import { runtimeTargets } from "./options.mjs";
 
 function requireValue(value, name) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${name} is required`);
@@ -44,13 +44,9 @@ export function publicKey(value) {
 
 export function readVersion(root) {
   const read = (path) => readFileSync(join(root, path), "utf8");
-  const version = stableVersion(JSON.parse(read("src-tauri/tauri.conf.json")).version);
-  const cargo = read("src-tauri/Cargo.toml").split(/\n\[/)[0];
-  const cargoVersion = /^version\s*=\s*"([^"]+)"/m.exec(cargo)?.[1];
-  if (JSON.parse(read("package.json")).version !== version || cargoVersion !== version) {
-    throw new Error("package.json, Cargo.toml and tauri.conf.json versions must match");
-  }
-  return version;
+  if (JSON.parse(read("src-tauri/tauri.conf.json")).version !== "../package.json")
+    throw new Error("Tauri must use package.json as the application version source");
+  return stableVersion(JSON.parse(read("package.json")).version);
 }
 
 export function updaterConfiguration(env) {

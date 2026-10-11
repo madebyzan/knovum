@@ -151,7 +151,6 @@ impl Worker {
             process_tree,
             memory_reservation: Some(memory_reservation),
             _kill_registration: kill_registration,
-            _runtime_lease: runtime.lease(),
             protocol,
             session_id: params.session_id,
             runtime_digest: runtime.digest().to_owned(),

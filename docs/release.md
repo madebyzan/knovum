@@ -1,7 +1,7 @@
 # Production release
 
 QA packaging and production publishing are different concerns. `packaging.md` owns local installer
-creation and bundled-runtime provisioning. This document owns signed distribution, the stable update
+creation and bundled project build outputs. This document owns signed distribution, the stable update
 channel and release acceptance. Workflow files implement the process; their existence does not prove
 that signing credentials, environment protection or target-platform upgrade acceptance have been configured.
 
@@ -18,14 +18,14 @@ The new release does not restore old Ask/Plan/Execute records by defaulting them
 ## Release prerequisites
 
 A production candidate must use committed pnpm/Cargo lockfiles and one reviewed commit on `main`.
-The candidate workflow requires the tag to match all three application versions, reviewed notes at
+The candidate workflow requires the tag to match the application version in `package.json`, reviewed notes at
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, target-platform
-builds and provisioned runtime smoke. Real background-removal acceptance remains target-platform evidence. The release matrix contains
+builds and bundled subprocess smoke. Real background-removal acceptance remains target-platform evidence. The release matrix contains
 macOS arm64/x64 and Windows x64. A partial matrix cannot enter the stable manifest.
 Unauthorized writes, lost edits, duplicate irreversible effects, post-cancel publication, false
 success or evidence, secret leakage and unrecoverable data loss block release.
-The independently published, on-demand CPython interpreter, compiled extension modules and dependent dynamic libraries are
-part of the application trust boundary. Each target must verify the complete runtime manifest,
+The frozen Agent, its CPython interpreter, compiled extension modules and dependent dynamic
+libraries are bundled parts of the application trust boundary. Each target must verify the complete runtime manifest,
 compiled-library loadability, signing/notarization or Authenticode conditions, and an installed inference
 smoke on a clean machine without a system Python installation. A matching hash alone does not
 establish code-signing trust or binary-wheel support.
@@ -79,16 +79,17 @@ asset is ad-hoc signed, not publisher-signed. Never remove quarantine metadata o
 to make an unsigned tool run. Where policy requires publisher signatures, use controlled signed
 artifacts, review their provenance/hashes and repeat target-platform acceptance.
 
-Record the installed Agent descriptor/tree digest and the sealed Rust worker/runtime digests
+Record the bundled Agent manifest/SBOM digests and the sealed Rust worker/runtime digests
 with each platform's installer hash in the acceptance evidence. These identities come from the
 actual package; there is no separate candidate metadata format or collection framework.
 
 ## Version and artifact identity
 
-`src-tauri/tauri.conf.json` is the bundle version source. The packaging preflight requires its version
-to equal `package.json` and the `[package]` version in `src-tauri/Cargo.toml`. Stable releases use plain
-`major.minor.patch`; beta channels are not implicitly mixed into stable. Change all three version
-fields in the release PR, review release notes, merge and tag that commit as `v<version>`.
+`package.json` owns the application version. `src-tauri/tauri.conf.json` uses Tauri's supported
+`"version": "../package.json"` reference, so the runtime, bundle and updater share that value.
+Private Cargo crate versions identify crates, not application releases. Stable releases use plain
+`major.minor.patch`; beta channels are not implicitly mixed into stable. Change the application version
+in the release PR, review release notes, merge and tag that commit as `v<version>`.
 
 Published versions are immutable: do not rebuild, re-sign or replace their artifacts. An unpublished
 draft may be repaired or discarded while qualification is incomplete; publish only after all three
@@ -125,26 +126,25 @@ requires a signing key and builds Cargo with its lockfile. Ordinary QA packages 
 regardless of inherited updater environment variables. Missing production configuration fails the
 build; it never produces a silently disabled production updater.
 
-Create `runtime-qa`, `release-signing` and `release-publish` GitHub environments. Configure their actual protection
+Create `runtime-qa` and `release-signing` GitHub environments. Configure their actual protection
 rules: trusted `main`/release tags, required reviewers where the account plan supports them, restricted
 administration and no untrusted-fork access. A YAML `environment` name alone does not create approval
 protection. Only authorized maintainers publish the app draft in GitHub after acceptance;
 a successful build never publishes a stable update automatically. Scope distribution write access
-in `release-signing` to creating/updating drafts and `release-publish` to Agent resource publication.
+in `release-signing` to creating/updating application drafts.
 
 Repository/environment variables, consistent between build and publication jobs:
 
-| Variable                                                                                           | Value                                                                         |
-| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `KNOVUM_RUNTIME_PUBLICATION_TAG`                                                                   | Reviewed signed controlled-runtime release tag; required by candidate builds. |
-| `KNOVUM_DISTRIBUTION_REPOSITORY`                                                                   | The public distribution-only `owner/repository`.                              |
-| `KNOVUM_UPDATER_ENDPOINT`                                                                          | The permanent anonymous HTTPS channel JSON URL.                               |
-| `KNOVUM_UPDATER_PUBKEY`                                                                            | Entire base64 public-key output produced by the Tauri signer, not a path.     |
-| `APPLE_SIGNING_IDENTITY`                                                                           | Actual `Developer ID Application: ...` identity.                              |
-| `APPLE_API_ISSUER`, `APPLE_API_KEY`                                                                | App Store Connect notarization issuer and key IDs.                            |
-| `KNOVUM_WINDOWS_SIGN_COMMAND`                                                                      | Explicit production signing command containing Tauri's `%1` file argument.    |
-| `KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT`, `KNOVUM_WINDOWS_SIGNTOOL`, `KNOVUM_WINDOWS_TIMESTAMP_URL` | Approved resource signer, native signing tool and HTTPS timestamp service.    |
-| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`                                                               | Identity used by the selected Windows Artifact Signing client.                |
+| Variable                                                                                           | Value                                                                      |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `KNOVUM_DISTRIBUTION_REPOSITORY`                                                                   | The public distribution-only `owner/repository`.                           |
+| `KNOVUM_UPDATER_ENDPOINT`                                                                          | The permanent anonymous HTTPS channel JSON URL.                            |
+| `KNOVUM_UPDATER_PUBKEY`                                                                            | Entire base64 public-key output produced by the Tauri signer, not a path.  |
+| `APPLE_SIGNING_IDENTITY`                                                                           | Actual `Developer ID Application: ...` identity.                           |
+| `APPLE_API_ISSUER`, `APPLE_API_KEY`                                                                | App Store Connect notarization issuer and key IDs.                         |
+| `KNOVUM_WINDOWS_SIGN_COMMAND`                                                                      | Explicit production signing command containing Tauri's `%1` file argument. |
+| `KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT`, `KNOVUM_WINDOWS_SIGNTOOL`, `KNOVUM_WINDOWS_TIMESTAMP_URL` | Approved resource signer, native signing tool and HTTPS timestamp service. |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`                                                               | Identity used by the selected Windows Artifact Signing client.             |
 
 Secrets are scoped to the step/environment that needs them:
 
@@ -157,13 +157,8 @@ Secrets are scoped to the step/environment that needs them:
 | `AZURE_CLIENT_SECRET`                                               | Windows signing service credential.                                                |
 | `KNOVUM_DISTRIBUTION_TOKEN`                                         | Fine-grained distribution-repository Contents write access only.                   |
 
-The selected Agent archives and descriptor must be anonymously downloadable as documented in
-`packaging.md`. Packaging verifies their GitHub provenance with the official `gh` CLI before
-extraction, then checks current recipes, dependency identities, inventories and native signatures. Public verification keys are intentionally not secrets.
-Generate updater keys with the official Tauri signer, outside the repository, and keep an encrypted
-backup under release ownership. Loss of the private key breaks trust continuity for already-installed
-clients. Key rotation requires a separately reviewed bridge/recovery plan; changing a CI variable is
-not a rotation strategy.
+The complete frozen Agent is built from the same commit and bundled in every installer. There
+is no separate Agent publication tag, runtime download URL or first-launch installation.
 
 macOS uses Developer ID signing and App Store Connect API notarization. The workflow verifies the app
 with `codesign`, Gatekeeper assessment and stapled notarization validation, followed by clean-machine
@@ -177,10 +172,9 @@ Authenticode signatures and timestamps. Signing does not promise immediate Smart
 ## Draft build and publication
 
 `.github/workflows/release-candidate.yml` builds signed macOS arm64/x64 and Windows x64 from a
-reviewed `v<version>` tag on `main`. First produce the retained Agent with `python-runtime.yml`
-on `main` and `production: true`, then select its immutable `runtime-*` tag through
-`KNOVUM_RUNTIME_PUBLICATION_TAG`. FFmpeg and Rust inference resources are prepared directly
-from pinned suppliers on each packaging runner; there is no second FFmpeg release.
+reviewed `v<version>` tag on `main`. Each runner builds the frozen Agent from `python/uv.lock`
+and obtains FFmpeg and inference artifacts from the Cargo/CMake graph in that same checkout.
+There is one application release; independent runtime releases and provisioning tags are removed.
 
 The package command verifies final resources, platform signatures and macOS notarization before
 the official Tauri action uploads to the public **draft** release. The matrix is serialized to
@@ -259,35 +253,26 @@ previous release available. Do not claim automatic application/database rollback
 
 ## Agent and inference distribution acceptance
 
-The desktop installer excludes CPython/third-party packages and includes the current application
-Worker and trusted runtime descriptor. Target-platform acceptance must cover anonymous first download,
-cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Local model execution uses the bundled Rust worker; local model weights are prepared before inference deadlines. Release acceptance records the actual packaged Agent descriptor/tree digest and the Rust
-inference worker/manifest digests beside installer hashes; no duplicate JSON release protocol remains.
-The Agent Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
-with paths relative to the application-owned `python/src` tree. `scripts/runtime/packaged-resources.mjs` owns this
-calculation. Agent execution binds that digest and the Agent descriptor's `manifestSha256`.
-Inference capture provenance and every candidate execution source bind the bundled Rust binary
-digest and the sealed inference runtime manifest digest; outputs from another worker or runtime are rejected.
-Runtime archives and corresponding evidence/source attachments must be published at the actual
-immutable URLs before distributing an application that requires them. Workflow artifact uploads
-are build outputs, not confirmation that those public locations exist.
+The desktop installer contains the complete frozen Agent and the Rust inference closure. Record
+installer hashes, the Agent manifest/SBOM digest and Rust worker/native manifest digests from the
+actual final artifact. Every frozen file and safe relative symlink must match the sealed build input.
+Native signing precedes inventory sealing and host compilation. Final artifact verification runs
+before upload; production OS signature and notarization acceptance remain separate mandatory gates.
 
-Resource acceptance requires each descriptor's single `archiveUrl` to serve the declared SHA-256
-without credentials, and every catalog-selected Hub source to pass application download/cancel/resume
-and offline inference acceptance on supported networks. ModelScope content identity evidence does
-not establish full transfer or target execution. Clients do not ask users for regions or infer them;
-CDN routing belongs to the publisher. Current upstream URLs have not been qualified for every
-mainland network. If a route fails acceptance, publish a permitted identical qualified copy and
-update the catalog before release. Legacy dual-region descriptors are rejected.
-MOSS-TTS-Nano and compiled VoxCPM2 require their exact source/model notices and platform qualification. Public Sherpa diarization requires target-platform acceptance
-for anonymous download, cancellation, digest verification and subsequent offline inference.
-Automatic speaker counting and turn quality are separate from known-count sample correctness.
-No manual folder import or application-owned terms declaration remains.
-No provider failover, compatibility endpoint precedence or replacement model satisfies this gate.
+Target-platform acceptance covers offline Agent startup without system Python, stdio framing,
+Chinese executable/workspace paths, OS certificate trust, provider imports, checkpoint recovery,
+cancellation and process-tree cleanup. macOS must preserve the complete PyInstaller onedir tree;
+Windows must retain console stdio while suppressing the console window. Missing or changed resources
+fail visibly. Application updates replace the bundled Agent with the application; no runtime cache
+retirement, repair service or interpreter migration remains.
+
+Models and optional media-import tools retain their own hash/permission/download/cancellation
+contracts. Model weights are prepared before inference deadlines. Inference capture provenance
+binds the bundled worker and sealed native manifest; another runtime’s outputs are rejected.
 
 ## Deep Agents acceptance
 
-The Agent Runtime is an independent profile with its own descriptor, installed inventory and
+The Agent is one uv project and bundled frozen process with its own sealed inventory and
 license policy. The current locked SDK proof suite uses actual public Deep Agents/LangGraph APIs,
 real SQLite persistence and controlled model responses/HTTP streams. Those checks establish
 host admission, durable tool intent, projection and replay behavior; they do not qualify a real
@@ -296,7 +281,7 @@ provider, a model's quality, system TLS/proxy behavior or either release platfor
 Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
 checkout before target-platform acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
 inside its own locked environment. Provision/build commands select the retained Agent explicitly.
-Packaging verifies its descriptor and ships only current owned source. The maintainer owns target build/signing/installation acceptance.
+Packaging verifies the complete frozen distribution built from the current source and lock. The maintainer owns target build/signing/installation acceptance.
 
 ### Provider qualification record
 
@@ -363,13 +348,12 @@ Zero authorization violations or duplicate business effects are required. Invest
 feature loss. More than 20% median cost/time increase requires evidence, a strategy correction
 and remeasurement; do not declare improvement from a constructed mock.
 
-### Managed-runtime/control matrix
+### Bundled Agent/control matrix
 
 On **macOS 14+ arm64/x64** and **Windows x64**, record clean installation without system Python,
-anonymous first download of the retained Agent through the application-managed sources, cancellation, dependency
-imports, restart/offline use, system CA/proxy behavior, protocol initialization, process-tree
+bundled Agent readiness, cancellation, dependency imports, restart/offline use, system CA/proxy behavior, protocol initialization, process-tree
 termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
-asset publication. The producer performs relocation imports from a path with spaces and Chinese
+asset publication. Packaging exercises the relocated frozen process from a path with spaces and Chinese
 characters before and after signing. Verify compiled binary signers/timestamps, app signing,
 install/uninstall and upgrade separately. macOS x64 development checks do not satisfy this matrix.
 

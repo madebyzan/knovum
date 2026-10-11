@@ -1,6 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+const repository = fileURLToPath(new URL("../", import.meta.url));
 
 export const generatedContractOutputs = [
   "src/shared/contracts/generated",
@@ -11,6 +15,20 @@ export const generatedContractOutputs = [
   "src-tauri/crates/inference-contracts/inference.schema.json",
   "python/src/knovum_agent_runtime/contracts",
 ];
+
+function snapshot() {
+  const files = generatedContractOutputs.flatMap((relative) => {
+    const path = resolve(repository, relative);
+    if (!existsSync(path)) return [];
+    if (statSync(path).isFile()) return [path];
+    return readdirSync(path, { recursive: true })
+      .filter((name) => /\.(ts|json|py)$/.test(name))
+      .map((name) => join(path, name));
+  });
+  return JSON.stringify(
+    files.toSorted().map((path) => [path, createHash("sha256").update(readFileSync(path)).digest("hex")]),
+  );
+}
 
 export function generateContracts() {
   const commands = [
@@ -24,17 +42,17 @@ export function generateContracts() {
         "run",
         "--project",
         "python",
-        "--only-group",
+        "--group",
         "contracts",
-        "--frozen",
+        "--locked",
         "python",
-        "scripts/generate_python_contracts.py",
+        "python/contracts/generate_python_contracts.py",
       ],
     ],
   ];
   for (const [command, args] of commands) {
     const execution = spawnSync(command, args, {
-      cwd: fileURLToPath(new URL("../", import.meta.url)),
+      cwd: repository,
       stdio: "inherit",
     });
     if (execution.error) throw execution.error;
@@ -42,4 +60,11 @@ export function generateContracts() {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) generateContracts();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const before = snapshot();
+  generateContracts();
+  if (process.argv.includes("--check") && before !== snapshot())
+    throw new Error(
+      "Generated contracts differ from the current project sources; review the regenerated files",
+    );
+}

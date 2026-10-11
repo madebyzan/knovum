@@ -3,10 +3,12 @@ use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
 use crate::spaces::{
     knowledge::model::revision,
     runs::{AttemptClaim, StepOutcome},
-    workflows::capture::contracts::{
-        CandidateBinding, CandidateInputSlot, CandidateOutputSlot, CandidateSource, CandidateStep,
-        CaptureCandidate, CaptureInputRole, RecordedExecutionSpec, SavedCapturedWorkflow,
-        StartCapturedWorkflowRequest,
+    workflows::capture::{
+        contracts::{
+            CandidateBinding, CandidateInputSlot, CandidateOutputSlot, CandidateSource,
+            CandidateStep, CaptureCandidate, CaptureInputRole, RecordedExecutionSpec,
+        },
+        SavedCapturedWorkflow, StartCapturedWorkflowRequest,
     },
 };
 use serde_json::Value;

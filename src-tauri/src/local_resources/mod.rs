@@ -26,15 +26,9 @@ pub struct LocalResourcesStatus {
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
-    python_runtimes: PythonRuntimeStatuses,
+    builtin_agent: crate::agent_runtime::runtime::AgentRuntimeStatus,
     native_inference: bool,
     models: ModelStatuses,
-}
-
-#[derive(Serialize, ts_rs::TS)]
-#[serde(rename_all = "kebab-case")]
-struct PythonRuntimeStatuses {
-    agent: runtimes::python::RuntimeStatus,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -75,9 +69,7 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
         native_inference: true,
-        python_runtimes: PythonRuntimeStatuses {
-            agent: runtimes::python::status(app, runtimes::python::RuntimeProfile::Agent),
-        },
+        builtin_agent: crate::agent_runtime::runtime::status(app),
         models: model_statuses(app)?,
     })
 }

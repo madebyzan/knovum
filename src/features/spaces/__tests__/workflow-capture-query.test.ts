@@ -1,6 +1,7 @@
 import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { ref, type ComputedRef } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 const captured = vi.hoisted(() => ({
   options: undefined as
@@ -16,7 +17,10 @@ vi.mock("@tanstack/vue-query", () => ({
     return { data: ref(undefined), isFetching: ref(false), error: ref(null) };
   },
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space-1", workflowCaptureSelection: ["output-1"], nodes: [] }),
 }));

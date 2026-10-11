@@ -10,7 +10,6 @@ pub(crate) struct InferenceRuntimePaths {
     pub(crate) manifest_path: PathBuf,
     pub(crate) executable: PathBuf,
     pub(crate) digest: String,
-    pub(crate) lease: Option<std::sync::Arc<super::RuntimeLease>>,
 }
 
 pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntimePaths, String> {
@@ -22,10 +21,9 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
         );
     }
     #[cfg(debug_assertions)]
-    let (directory, executable, lease) = {
+    let (directory, executable) = {
         let _ = app;
         let directory = PathBuf::from(env!("KNOVUM_INFERENCE_RUNTIME_DIRECTORY"));
-        let lease = super::retention::acquire(&directory)?;
         let executable = std::env::current_exe()
             .map_err(|error| error.to_string())?
             .parent()
@@ -35,10 +33,10 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
             } else {
                 "knovum-inference-worker"
             });
-        (directory, executable, Some(lease))
+        (directory, executable)
     };
     #[cfg(not(debug_assertions))]
-    let (directory, executable, lease) = {
+    let (directory, executable) = {
         let directory = app
             .path()
             .resource_dir()
@@ -49,7 +47,7 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
         } else {
             "knovum-inference-worker"
         });
-        (directory, executable, None)
+        (directory, executable)
     };
     let manifest_path = directory.join("inference-runtime-manifest.json");
     let bytes = read_manifest(&manifest_path)?;
@@ -57,7 +55,6 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
         manifest_path,
         executable,
         digest: hex::encode(Sha256::digest(&bytes)),
-        lease,
     };
     verify_before_spawn(&runtime)?;
     Ok(runtime)

@@ -9,28 +9,24 @@ export function formatResourceProgressMessage(progress: ResourcePreparationProgr
   const hasTotal = total !== null && total > 0;
   switch (progress.stage) {
     case "verifying":
-    case "runtimeVerifying":
-      return i18n.global.t("tasks.verifyingResource");
+      return i18n.global.t("tasks.resources.verifying");
     case "installing":
-    case "runtimeInstalling":
-      return i18n.global.t("tasks.installingResource");
+      return i18n.global.t("tasks.resources.installing");
     case "queued":
       return hasTotal
-        ? i18n.global.t("tasks.localResourceDownloadSize", { size: formatBytes(total) })
-        : i18n.global.t("tasks.preparingLocalInference");
+        ? i18n.global.t("tasks.resources.downloadSize", { size: formatBytes(total) })
+        : i18n.global.t("tasks.resources.preparingInference");
     default: {
       const transfer = hasTotal
         ? `${formatBytes(progress.downloaded)} / ${formatBytes(total)}`
         : formatBytes(progress.downloaded);
-      return progress.stage === "runtimeDownloading"
-        ? `${i18n.global.t("tasks.preparingLocalInference")} · ${transfer}`
-        : transfer;
+      return transfer;
     }
   }
 }
 
 export function resolveResourcePreparationPercent(progress: ResourcePreparationProgress): number | null {
-  return ["downloading", "runtimeDownloading", "ready"].includes(progress.stage) ? progress.percent : null;
+  return ["downloading", "ready"].includes(progress.stage) ? progress.percent : null;
 }
 
 export function updateTaskProgress(

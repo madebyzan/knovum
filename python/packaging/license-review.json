@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "pending",
+  "scope": "Frozen Agent dependency closure, CPython, PyInstaller bootloader exception and bundled native libraries",
+  "targets": {
+    "macos-x64": null,
+    "macos-arm64": null,
+    "windows-x64": null
+  }
+}
