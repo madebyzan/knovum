@@ -170,6 +170,16 @@ use `.runtime-development/native/<target>/<recipe-sha256>` and separate lease an
 workers retain leases; stale identities are reclaimed only when unleased. Cargo uses the checkout's
 ordinary target and default profiles; shared-target builds are serialized.
 
+Completed audio.cpp, Sherpa and Whisper supplier libraries are cached independently under
+`.runtime-development/inference-suppliers/<target>/<supplier>/<recipe-sha256>`. Each completed
+supplier has a verified file inventory and is activated atomically. A later supplier failure
+discards only that supplier's incomplete build; the next preparation reuses earlier verified
+suppliers. The final inference bundle is still assembled, relocated, signed and verified as a
+complete closure before desktop startup or packaging. Supplier recipe changes invalidate that
+supplier; shared download/inventory/library tooling and desktop configuration changes invalidate
+all affected suppliers. Downloads retry transient network/server failures at most twice, identify
+the URL and underlying error, and remove rejected partial files. Integrity failures are not retried.
+
 ### Core FFmpeg and developer startup
 
 FFmpeg 9.0.2 remains one static executable plus notices and owned evidence. The Node producer uses
