@@ -1,9 +1,6 @@
+import type { RelationStatus } from "../../contracts/generated/RelationStatus";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import {
-  isSymmetricRelationKind,
-  type SpaceRelation,
-  type SpaceRelationStatus,
-} from "../../model/relations/relation";
+import { isSymmetricRelationKind, type SpaceRelation } from "../../model/relations/relation";
 import type { SpaceSavedViewFilter } from "./saved-view-filter";
 import { isSpaceSemanticNode } from "./semantic-node";
 
@@ -11,7 +8,7 @@ export function relationNeighborhood(
   relations: readonly SpaceRelation[],
   seeds: readonly string[],
   depth: number,
-  statuses: readonly SpaceRelationStatus[] = ["active", "contested"],
+  statuses: readonly RelationStatus[] = ["active", "contested"],
 ) {
   const visited = new Set(seeds);
   let frontier = [...seeds];

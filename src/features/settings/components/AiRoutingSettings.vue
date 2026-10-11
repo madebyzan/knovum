@@ -27,7 +27,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const UNASSIGNED = "__unassigned__";
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
-const routeDefinitions = [
+const ROUTE_DEFINITIONS = [
   ["defaultTarget", undefined, Bot],
   ["writing", "writing", PenLine],
   ["knowledge", "knowledge", BookOpen],
@@ -37,7 +37,7 @@ const routeDefinitions = [
   ["videoGeneration", "video-generation", Video],
 ] as const;
 const routeRows = computed(() =>
-  routeDefinitions.map(([key, purpose, icon]) => ({
+  ROUTE_DEFINITIONS.map(([key, purpose, icon]) => ({
     key,
     purpose,
     icon,
@@ -76,8 +76,9 @@ function update(key: keyof AiRoutingDefaults, value: string) {
   if (!option) throw new Error("AI routing target is unavailable");
   emit("updateRoute", key, { ...option.target });
 }
-const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
-  target ? JSON.stringify(target) : UNASSIGNED;
+function serializeTarget(target: AiRoutingDefaults[keyof AiRoutingDefaults]) {
+  return target ? JSON.stringify(target) : UNASSIGNED;
+}
 </script>
 
 <template>
@@ -99,7 +100,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
       >
         <UiSelect
           v-if="row.options.length"
-          :model-value="selected(defaults[row.key])"
+          :model-value="serializeTarget(defaults[row.key])"
           :label="row.label"
           :options="[
             {

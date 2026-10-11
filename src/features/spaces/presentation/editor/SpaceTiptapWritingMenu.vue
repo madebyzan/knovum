@@ -30,9 +30,9 @@ const props = withDefaults(defineProps<{ writing: SpaceTiptapWritingTools; compa
 });
 const { t } = useI18n();
 const { runningAction, tones, translations, run, runTranslation } = props.writing;
-const itemClass =
+const ITEM_CLASS =
   "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
-const submenuClass =
+const SUBMENU_CLASS =
   "z-50 w-56 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay p-1.5 shadow-popover outline-none";
 </script>
 
@@ -59,45 +59,45 @@ const submenuClass =
         :side-offset="7"
         class="z-50 w-60 rounded-xl border border-stroke-default bg-surface-overlay p-1.5 shadow-popover outline-none"
       >
-        <DropdownMenuItem :class="itemClass" @select="run('fix_grammar')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('fix_grammar')">
           <SpellCheck2 class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.fixGrammar") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('extend')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('extend')">
           <ListPlus class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.extend") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('reduce')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('reduce')">
           <ListCollapse class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.reduce") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('simplify')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('simplify')">
           <ScanText class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.simplify") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('emojify')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('emojify')">
           <span class="grid size-3.5 place-items-center text-body-lg">🙂</span
           >{{ t("spaces.richtext.ai.actions.emojify") }}
         </DropdownMenuItem>
         <DropdownMenuSeparator class="bg-border-divider my-1 h-px" />
-        <DropdownMenuItem :class="itemClass" @select="run('improve')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('improve')">
           <WandSparkles class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.improve") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('complete')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('complete')">
           <Sparkles class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.complete") }}
         </DropdownMenuItem>
-        <DropdownMenuItem :class="itemClass" @select="run('summarize')">
+        <DropdownMenuItem :class="ITEM_CLASS" @select="run('summarize')">
           <ListCollapse class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.summarize") }}
         </DropdownMenuItem>
         <DropdownMenuSeparator class="bg-border-divider my-1 h-px" />
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger :class="itemClass">
+          <DropdownMenuSubTrigger :class="ITEM_CLASS">
             <MessageSquareMore class="size-3.5 text-fg-secondary" />
             <span class="min-w-0 flex-1">{{ t("spaces.richtext.ai.actions.adjustTone") }}</span>
             <ChevronRight class="size-3 text-fg-tertiary" />
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
-            <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+            <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CLASS">
               <DropdownMenuItem
                 v-for="option in tones"
                 :key="option[0]"
-                :class="itemClass"
+                :class="ITEM_CLASS"
                 @select="run(option[0])"
               >
                 <span class="size-3.5" />{{ option[1] }}
@@ -106,17 +106,17 @@ const submenuClass =
           </DropdownMenuPortal>
         </DropdownMenuSub>
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger :class="itemClass">
+          <DropdownMenuSubTrigger :class="ITEM_CLASS">
             <Languages class="size-3.5 text-fg-secondary" />
             <span class="min-w-0 flex-1">{{ t("spaces.richtext.ai.actions.translate") }}</span>
             <ChevronRight class="size-3 text-fg-tertiary" />
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
-            <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+            <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CLASS">
               <DropdownMenuItem
                 v-for="option in translations"
                 :key="option[0]"
-                :class="itemClass"
+                :class="ITEM_CLASS"
                 @select="runTranslation(option[0])"
               >
                 <span class="size-3.5" />{{ option[1] }}

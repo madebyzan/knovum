@@ -12,8 +12,9 @@ const { cancel, error, inspect, jobId, report, scannedMs } = useSpeechSignalInsp
   projectId: computed(() => props.projectId),
   revisionId: computed(() => props.revisionId),
 });
-const timestamp = (ms: number) =>
-  `${Math.floor(ms / 60_000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}.${String(ms % 1000).padStart(3, "0")}`;
+function formatTimestamp(ms: number) {
+  return `${Math.floor(ms / 60_000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}.${String(ms % 1000).padStart(3, "0")}`;
+}
 </script>
 
 <template>
@@ -23,7 +24,7 @@ const timestamp = (ms: number) =>
         t("spaces.speech.signal.inspect")
       }}</UiButton>
       <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
-      <span v-if="jobId" class="text-caption text-fg-tertiary">{{ timestamp(scannedMs) }}</span>
+      <span v-if="jobId" class="text-caption text-fg-tertiary">{{ formatTimestamp(scannedMs) }}</span>
     </div>
     <p class="text-caption text-fg-tertiary">{{ t("spaces.speech.signal.advisory") }}</p>
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
@@ -37,7 +38,7 @@ const timestamp = (ms: number) =>
       <ul class="space-y-1">
         <li v-for="(warning, index) in report.warnings" :key="index">
           <UiButton size="sm" variant="ghost" @click="emit('seek', warning.startMs)">
-            {{ timestamp(warning.startMs) }}–{{ timestamp(warning.endMs) }} ·
+            {{ formatTimestamp(warning.startMs) }}–{{ formatTimestamp(warning.endMs) }} ·
             {{ t(`spaces.speech.signal.issues.${warning.kind}`) }}
           </UiButton>
         </li>

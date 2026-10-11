@@ -5,11 +5,11 @@ import { listActionableEnrichmentJobs } from "./enrichment-jobs";
 
 const POLL_INTERVAL_MS = 2_000;
 
-const enrichmentJobsKey = ["spaces", "enrichment-jobs"] as const;
+const ENRICHMENT_JOBS_KEY = ["spaces", "enrichment-jobs"] as const;
 
 export function enrichmentJobsQuery(enabled = true) {
   return queryOptions({
-    queryKey: enrichmentJobsKey,
+    queryKey: ENRICHMENT_JOBS_KEY,
     queryFn: listActionableEnrichmentJobs,
     enabled,
     refetchInterval: (query) =>
@@ -20,5 +20,5 @@ export function enrichmentJobsQuery(enabled = true) {
 }
 
 export function refreshEnrichmentJobs() {
-  return queryClient.invalidateQueries({ queryKey: enrichmentJobsKey });
+  return queryClient.invalidateQueries({ queryKey: ENRICHMENT_JOBS_KEY });
 }

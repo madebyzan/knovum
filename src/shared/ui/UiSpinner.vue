@@ -21,7 +21,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 const accessibleLabel = computed(() => props.label ?? t("common.loading"));
-const toneClasses: Record<"muted" | "accent" | "faint", string> = {
+const TONE_CLASSES: Record<"muted" | "accent" | "faint", string> = {
   accent: "text-fg-accent",
   faint: "text-fg-tertiary",
   muted: "text-fg-secondary",
@@ -34,7 +34,7 @@ const toneClasses: Record<"muted" | "accent" | "faint", string> = {
       cn(
         'animate-spin motion-reduce:animate-none',
         size === 'sm' ? 'size-3.5' : 'size-4',
-        toneClasses[tone],
+        TONE_CLASSES[tone],
         props.class,
       )
     "

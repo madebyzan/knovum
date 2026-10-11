@@ -15,12 +15,12 @@ const paragraphPause = defineModel<string>("paragraphPause", { required: true })
 const chapterPause = defineModel<string>("chapterPause", { required: true });
 const wavPrecision = defineModel<WavPrecision>("wavPrecision", { required: true });
 const { t } = useI18n();
-const formats = [
+const FORMATS = [
   { value: "m4b", label: "M4B" },
   { value: "mp3", label: "MP3" },
   { value: "wav", label: "WAV" },
 ] as const;
-const sampleRates = [
+const SAMPLE_RATES = [
   { value: "24000", label: "24 kHz" },
   { value: "48000", label: "48 kHz" },
 ] as const;
@@ -34,7 +34,7 @@ const sampleRates = [
         v-model="format"
         size="sm"
         :label="t('spaces.speech.project.format')"
-        :options="formats"
+        :options="FORMATS"
         :disabled
       />
     </label>
@@ -44,7 +44,7 @@ const sampleRates = [
         v-model="sampleRate"
         size="sm"
         :label="t('spaces.speech.project.sampleRate')"
-        :options="sampleRates"
+        :options="SAMPLE_RATES"
         :disabled
       />
     </label>

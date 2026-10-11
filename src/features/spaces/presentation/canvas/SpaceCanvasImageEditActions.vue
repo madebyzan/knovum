@@ -8,7 +8,7 @@ import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type { ImageEditTool } from "../../image-editing/image-edit-session-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { IMAGE_EDIT_TOOL_ORDER } from "./canvas-bar-density-policy";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
 
 defineProps<{ compact: boolean; dimensionsReady: boolean }>();
@@ -26,7 +26,7 @@ const { t } = useI18n();
         @click="emit('beginComment')"
       >
         <MessageCircle class="size-4.5" :stroke-width="1.6" />
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+        <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
           t("spaces.media.imageEditor.comments.title")
         }}</span>
       </button>

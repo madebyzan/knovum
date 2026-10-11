@@ -1,5 +1,9 @@
 use super::selection::{require_package, resolve};
-use crate::extensions::contracts::*;
+use crate::extensions::contracts::{
+    AgentExtensionSelection, AgentExtensionSnapshot, ConnectorAuthorization, ConnectorDefinition,
+    McpConnection, McpEndpoint, McpToolPermission, McpToolPolicy, PluginComponent,
+    PluginConnectorDeclaration, PluginInstallation, SkillRevision,
+};
 use serde_json::json;
 
 fn plugin() -> PluginInstallation {

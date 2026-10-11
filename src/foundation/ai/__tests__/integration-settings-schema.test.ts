@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { decodeAiModelSettings } from "../integration-settings";
-import { defaultAiModelSettings } from "../schema/model-settings";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 describe("integration settings persisted contracts", () => {
   it("defaults without built-in AI models or connections", () => {
-    expect(defaultAiModelSettings.connections).toEqual([]);
-    expect(defaultAiModelSettings.defaults).toEqual({
+    expect(DEFAULT_AI_MODEL_SETTINGS.connections).toEqual([]);
+    expect(DEFAULT_AI_MODEL_SETTINGS.defaults).toEqual({
       defaultTarget: null,
       writing: null,
       knowledge: null,
@@ -18,13 +18,13 @@ describe("integration settings persisted contracts", () => {
   });
 
   it("accepts the exact current v1 envelopes", () => {
-    expect(decodeAiModelSettings({ schemaVersion: 1, value: defaultAiModelSettings })).toEqual(
-      defaultAiModelSettings,
+    expect(decodeAiModelSettings({ schemaVersion: 1, value: DEFAULT_AI_MODEL_SETTINGS })).toEqual(
+      DEFAULT_AI_MODEL_SETTINGS,
     );
   });
 
   it("accepts user-configured connections without persisting a credential", () => {
-    const value = structuredClone(defaultAiModelSettings);
+    const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     value.connections.push({
       id: "custom-qwen",
       name: "My Qwen",
@@ -46,7 +46,7 @@ describe("integration settings persisted contracts", () => {
   });
 
   it("accepts a provider connection before models are added", () => {
-    const value = structuredClone(defaultAiModelSettings);
+    const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     value.connections.push({
       id: "openai",
       name: "OpenAI",
@@ -58,7 +58,7 @@ describe("integration settings persisted contracts", () => {
   });
 
   it("rejects malformed or unenabled desktop Agent identities", () => {
-    const value = structuredClone(defaultAiModelSettings) as unknown as Record<string, unknown>;
+    const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS) as unknown as Record<string, unknown>;
     value.defaults = {
       writing: { type: "agent", kind: "codex" },
       knowledge: null,
@@ -71,7 +71,7 @@ describe("integration settings persisted contracts", () => {
   });
 
   it("leaves provider capability authority to Rust validation", () => {
-    const value = structuredClone(defaultAiModelSettings);
+    const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     value.connections.push({
       id: "openai",
       name: "OpenAI",
@@ -90,7 +90,7 @@ describe("integration settings persisted contracts", () => {
   });
 
   it("rejects incomplete providers instead of persisting editor drafts", () => {
-    const value = structuredClone(defaultAiModelSettings);
+    const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     value.connections.push({
       id: "incomplete",
       name: "Incomplete",
@@ -104,7 +104,7 @@ describe("integration settings persisted contracts", () => {
   it.each(["ftp://models.example.test/v1", "https://user:secret@models.example.test/v1", "https://"])(
     "rejects an unsafe provider URL without reflecting credentials: %s",
     (baseUrl) => {
-      const value = structuredClone(defaultAiModelSettings);
+      const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
       value.connections.push({
         id: "unsafe",
         name: "Unsafe",
@@ -127,12 +127,12 @@ describe("integration settings persisted contracts", () => {
   );
 
   it("rejects unversioned or non-current envelopes", () => {
-    expect(() => decodeAiModelSettings({ schemaVersion: 2, value: defaultAiModelSettings })).toThrow(/./u);
+    expect(() => decodeAiModelSettings({ schemaVersion: 2, value: DEFAULT_AI_MODEL_SETTINGS })).toThrow(/./u);
   });
 });
 
 it("accepts enabled Agent-only product routing", () => {
-  const value = structuredClone(defaultAiModelSettings);
+  const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   value.desktopAgents = [{ kind: "codex", enabled: true }];
   value.defaults.defaultTarget = { type: "agent", runtimeKind: "codex" };
   value.defaults.visualUnderstanding = { type: "agent", runtimeKind: "codex" };

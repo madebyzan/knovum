@@ -1,5 +1,5 @@
 mod boundary;
-use super::job::*;
+use super::job::EnrichmentJobType;
 use serde_json::json;
 
 #[test]

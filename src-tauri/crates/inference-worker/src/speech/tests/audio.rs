@@ -1,4 +1,4 @@
-use super::super::audio::*;
+use super::super::audio::{pcm16, read, write_wave};
 
 #[test]
 fn wav_decode_binds_header_hash_and_declared_timeline() {

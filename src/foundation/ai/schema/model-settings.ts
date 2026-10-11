@@ -8,8 +8,7 @@ import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTarg
 import { desktopAgentSettingsSchema } from "./external-agents";
 import { aiConnectionSettingsSchema, aiDefaultsSchema } from "./models";
 
-type AiModelSettingsShape = AiSettings;
-type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;
+type SettingsRefinement = z.core.$RefinementCtx<AiSettings>;
 
 export const aiModelSettingsSchema = z
   .object({
@@ -26,25 +25,25 @@ export const aiModelSettingsSchema = z
 
 export type AiModelSettings = z.infer<typeof aiModelSettingsSchema>;
 
-export const defaultAiModelSettings: AiModelSettings = {
+export const DEFAULT_AI_MODEL_SETTINGS: AiModelSettings = {
   connections: [],
   desktopAgents: [],
   defaults: aiDefaultsSchema.parse({}),
 };
 
-function rejectDuplicateConnections(settings: AiModelSettingsShape, context: SettingsRefinement) {
+function rejectDuplicateConnections(settings: AiSettings, context: SettingsRefinement) {
   if (new Set(settings.connections.map(({ id }) => id)).size !== settings.connections.length) {
     context.addIssue({ code: "custom", path: ["connections"], message: "Duplicate AI connection id" });
   }
 }
 
-function rejectDuplicateDesktopAgents(settings: AiModelSettingsShape, context: SettingsRefinement) {
+function rejectDuplicateDesktopAgents(settings: AiSettings, context: SettingsRefinement) {
   if (new Set(settings.desktopAgents.map(({ kind }) => kind)).size !== settings.desktopAgents.length) {
     context.addIssue({ code: "custom", path: ["desktopAgents"], message: "Duplicate desktop agent" });
   }
 }
 
-function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: SettingsRefinement) {
+function rejectInvalidDefaultTargets(settings: AiSettings, context: SettingsRefinement) {
   const targets: ReadonlyArray<readonly [TaskTargetRef | null, RoutingPurpose | undefined]> = [
     [settings.defaults.defaultTarget, undefined],
     [settings.defaults.writing, "writing"],
@@ -70,7 +69,7 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 }
 
 function resolvesToCapability(
-  connections: AiModelSettingsShape["connections"],
+  connections: AiSettings["connections"],
   target: Extract<TaskTargetRef, { type: "model" }>,
   capability: ExecutionCapability | undefined,
 ) {

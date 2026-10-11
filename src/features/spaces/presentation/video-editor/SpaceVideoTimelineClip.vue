@@ -13,7 +13,7 @@ const props = defineProps<{
   waveform?: number[] | undefined;
   sourceDurationMs: number;
 }>();
-const edges = ["start", "end"] as const;
+const TIMELINE_EDGES = ["start", "end"] as const;
 defineEmits<{
   select: [];
   trimStart: [event: PointerEvent, edge: "start" | "end"];
@@ -81,7 +81,7 @@ const peaks = computed(() => {
         </span>
       </button>
       <button
-        v-for="edge in edges"
+        v-for="edge in TIMELINE_EDGES"
         :key="edge"
         type="button"
         class="absolute inset-y-0 z-10 w-2.5 cursor-ew-resize touch-none bg-surface-accent/70 hover:bg-surface-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"

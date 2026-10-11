@@ -25,10 +25,10 @@ export function useStructureDragAutoPan(options: StructureDragAutoPanOptions) {
     viewport: options.viewport.viewport,
   });
 
-  function begin(id: string, event: Konva.KonvaEventObject<DragEvent>) {
+  function begin(structureNodeId: string, event: Konva.KonvaEventObject<DragEvent>) {
     active = true;
     options.onBegin();
-    options.gestures.beginMove(id, event.target);
+    options.gestures.beginMove(structureNodeId, event.target);
   }
 
   function beginNode(nodeId: string, event: Konva.KonvaEventObject<DragEvent>) {

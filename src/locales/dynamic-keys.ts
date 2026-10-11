@@ -2,7 +2,7 @@
  * Locale keys resolved at runtime from a domain value, so no translation call names them literally.
  * Every entry must stay narrow: a prefix here exempts all keys beneath it from the dead-key gate.
  */
-export const dynamicLocaleKeyPrefixes = [
+export const DYNAMIC_LOCALE_KEY_PREFIXES = [
   "extensions.bundled.",
   "extensions.overview.search.",
   "extensions.overview.status.",
@@ -54,7 +54,7 @@ export const dynamicLocaleKeyPrefixes = [
 ] as const;
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
-export const dynamicLocaleKeys = [
+export const DYNAMIC_LOCALE_KEYS = [
   "extensions.overview.apps",
   "extensions.connections.configuration.headers",
   "extensions.connections.configuration.environment",

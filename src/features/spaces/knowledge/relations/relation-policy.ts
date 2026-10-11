@@ -1,16 +1,13 @@
 import { uniq } from "es-toolkit";
 
-import {
-  canonicalRelationEndpoints,
-  type SpaceRelation,
-  type SpaceRelationKind,
-} from "../../model/relations/relation";
+import type { RelationKind } from "../../contracts/generated/RelationKind";
+import { canonicalRelationEndpoints, type SpaceRelation } from "../../model/relations/relation";
 
 export interface CreateRelationInput {
   spaceId: string;
   sourceId: string;
   targetId: string;
-  kind: SpaceRelationKind;
+  kind: RelationKind;
   rationale?: string;
 }
 
@@ -79,7 +76,7 @@ function findDuplicateRelation(
   relations: readonly SpaceRelation[],
   sourceId: string,
   targetId: string,
-  kind: SpaceRelationKind,
+  kind: RelationKind,
 ) {
   const [left, right] = canonicalRelationEndpoints(sourceId, targetId, kind);
   return relations.find((relation) => {

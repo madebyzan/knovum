@@ -1,4 +1,6 @@
-pub use knovum_inference_contracts::embedding_wire::*;
+pub use knovum_inference_contracts::embedding_wire::{
+    EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingRole, EMBEDDING_SPEC_ID,
+};
 
 #[derive(Clone, Debug)]
 pub struct EmbeddingExecutionIdentity {

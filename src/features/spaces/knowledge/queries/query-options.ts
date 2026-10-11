@@ -1,12 +1,12 @@
-export const spaceKnowledgeQueryKeys = {
+export const SPACE_KNOWLEDGE_QUERY_KEYS = {
   root: ["space-knowledge"] as const,
-  space: (spaceId: string) => [...spaceKnowledgeQueryKeys.root, "space", spaceId] as const,
-  objectTypes: (spaceId: string) => [...spaceKnowledgeQueryKeys.space(spaceId), "object-types"] as const,
-  health: (spaceId: string) => [...spaceKnowledgeQueryKeys.space(spaceId), "health"] as const,
+  space: (spaceId: string) => [...SPACE_KNOWLEDGE_QUERY_KEYS.root, "space", spaceId] as const,
+  objectTypes: (spaceId: string) => [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "object-types"] as const,
+  health: (spaceId: string) => [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "health"] as const,
   history: (spaceId: string, nodeId: string) =>
-    [...spaceKnowledgeQueryKeys.space(spaceId), "history", nodeId] as const,
+    [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "history", nodeId] as const,
   provenance: (spaceId: string, targetKind: "node" | "relation", targetId: string) =>
-    [...spaceKnowledgeQueryKeys.space(spaceId), "provenance", targetKind, targetId] as const,
+    [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "provenance", targetKind, targetId] as const,
   related: (spaceId: string, nodeId: string) =>
-    [...spaceKnowledgeQueryKeys.space(spaceId), "related", nodeId] as const,
+    [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "related", nodeId] as const,
 };

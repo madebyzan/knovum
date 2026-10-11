@@ -6,13 +6,15 @@ import pLimit from "p-limit";
 import { defineStore } from "pinia";
 import { reactive, toRefs } from "vue";
 
+import {
+  preferenceDefaults,
+  preferencesSchemaVersion,
+} from "../../shared/contracts/generated/contract-values";
 import { i18n, systemLocale, type AppLocale } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import {
   decodePreferences,
-  defaultPreferences,
-  PREFERENCES_SCHEMA_VERSION,
   type DensityPreference,
   type LocalePreference,
   type Preferences,
@@ -45,7 +47,7 @@ function activeLocale(locale: LocalePreference): AppLocale {
 
 async function persist(state: Preferences): Promise<void> {
   const store = await load(SETTINGS_FILE, { autoSave: false });
-  await store.set(SETTINGS_KEY, { schemaVersion: PREFERENCES_SCHEMA_VERSION, value: state });
+  await store.set(SETTINGS_KEY, { schemaVersion: preferencesSchemaVersion, value: state });
   await store.save();
 }
 
@@ -64,7 +66,7 @@ function applyPreferences(state: Preferences): void {
 }
 
 export const usePreferencesStore = defineStore("preferences", () => {
-  const preferences = reactive(snapshot(defaultPreferences));
+  const preferences = reactive(snapshot(preferenceDefaults));
   const serialize = pLimit(1);
   let loaded = false;
   let dirty = false;

@@ -1,6 +1,9 @@
 use crate::extensions::{
     connectors::{accounts, definitions, requirements},
-    contracts::*,
+    contracts::{
+        ConnectorAccount, ConnectorAuthorization, ConnectorDefinition, McpConnection, McpEndpoint,
+        McpToolPermission, McpToolPolicy,
+    },
     database,
     mcp::connections,
 };

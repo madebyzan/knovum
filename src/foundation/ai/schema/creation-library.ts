@@ -19,6 +19,6 @@ export const creationLibrarySchema = z
 
 export type CreationLibrary = z.infer<typeof creationLibrarySchema>;
 
-export const defaultCreationLibrary: CreationLibrary = {
+export const DEFAULT_CREATION_LIBRARY: CreationLibrary = {
   generationPresets: [],
 };

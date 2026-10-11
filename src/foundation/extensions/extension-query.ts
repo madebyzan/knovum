@@ -7,37 +7,37 @@ import { listConnectorDefinitions, listConnectorAccounts } from "./connector-ope
 import { listPluginInstallations, searchPlugins } from "./plugin-operations";
 import { readSkill, listSkills } from "./skill-operations";
 
-export const extensionQueryKey = ["agent-extensions"] as const;
+export const EXTENSION_QUERY_KEY = ["agent-extensions"] as const;
 export const pluginQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "plugins"],
+  queryKey: [...EXTENSION_QUERY_KEY, "plugins"],
   queryFn: listPluginInstallations,
 });
-export const skillQuery = queryOptions({ queryKey: [...extensionQueryKey, "skills"], queryFn: listSkills });
+export const skillQuery = queryOptions({ queryKey: [...EXTENSION_QUERY_KEY, "skills"], queryFn: listSkills });
 export const connectionQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "connections"],
+  queryKey: [...EXTENSION_QUERY_KEY, "connections"],
   queryFn: listMcpConnections,
 });
 export const accountQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "accounts"],
+  queryKey: [...EXTENSION_QUERY_KEY, "accounts"],
   queryFn: listConnectorAccounts,
 });
 export const connectorQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "connectors"],
+  queryKey: [...EXTENSION_QUERY_KEY, "connectors"],
   queryFn: listConnectorDefinitions,
 });
 export const marketplaceQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "marketplaces"],
+  queryKey: [...EXTENSION_QUERY_KEY, "marketplaces"],
   queryFn: () => searchPlugins(""),
 });
 export const extensionAvailabilityQuery = queryOptions({
-  queryKey: [...extensionQueryKey, "availability"],
+  queryKey: [...EXTENSION_QUERY_KEY, "availability"],
   queryFn: () =>
     invokeCommand<AgentExtensionAvailability>("plugin:extensions|get_agent_extension_availability"),
 });
 
 export function skillContentQuery(skillId: string, digest: string) {
   return queryOptions({
-    queryKey: [...extensionQueryKey, "skill-content", skillId, digest],
+    queryKey: [...EXTENSION_QUERY_KEY, "skill-content", skillId, digest],
     queryFn: () => readSkill(skillId),
   });
 }

@@ -21,7 +21,7 @@ const { t } = useI18n();
 const name = shallowRef("");
 const language = shallowRef("");
 const speed = shallowRef<number>();
-const languageOptions = [
+const LANGUAGE_OPTIONS = [
   { value: "zh-CN", label: "中文" },
   { value: "en", label: "English" },
 ];
@@ -90,7 +90,7 @@ function setAuditionDirty(value: boolean) {
               v-model="language"
               size="sm"
               :label="t('spaces.speech.project.language')"
-              :options="languageOptions"
+              :options="LANGUAGE_OPTIONS"
               :disabled
             />
           </label>

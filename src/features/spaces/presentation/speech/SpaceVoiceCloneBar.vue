@@ -8,7 +8,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas/canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "../canvas/node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "../canvas/node-action-label";
 import { useNodeActionBarDensity } from "../canvas/use-node-action-bar-density";
 import SpaceVoiceCloneAuditionControls from "./SpaceVoiceCloneAuditionControls.vue";
 import SpaceVoiceCloneSourceControls from "./SpaceVoiceCloneSourceControls.vue";
@@ -103,7 +103,7 @@ watch(
             :class="reference.jobId && 'animate-spin motion-reduce:animate-none'"
             :stroke-width="1.6"
           />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+          <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
             referenceActionLabel
           }}</span>
         </UiButton>

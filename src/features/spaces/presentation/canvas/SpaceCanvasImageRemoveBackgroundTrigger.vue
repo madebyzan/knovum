@@ -7,18 +7,18 @@ import { canRunAction, showsAction } from "../../../../shared/contracts/action-a
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import type { ImageActionAvailability } from "./image-action-availability";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 
 defineProps<{ compact: boolean; availability: ImageActionAvailability; reason: string }>();
 const emit = defineEmits<{ begin: [] }>();
 const { t } = useI18n();
-const label = "spaces.creation.image.removeBackground";
+const REMOVE_BACKGROUND_LABEL_KEY = "spaces.creation.image.removeBackground";
 </script>
 
 <template>
   <UiTooltip
     v-if="showsAction(availability)"
-    :text="canRunAction(availability) ? t(label) : reason"
+    :text="canRunAction(availability) ? t(REMOVE_BACKGROUND_LABEL_KEY) : reason"
     :disabled="canRunAction(availability) && !compact"
     side="top"
   >
@@ -27,11 +27,13 @@ const label = "spaces.creation.image.removeBackground";
         type="button"
         :class="CANVAS_ACTION_BUTTON_CLASSES"
         :aria-disabled="!canRunAction(availability)"
-        :aria-label="t(label)"
+        :aria-label="t(REMOVE_BACKGROUND_LABEL_KEY)"
         @click="emit('begin')"
       >
         <ScanLine class="size-4.5" :stroke-width="1.6" />
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ t(label) }}</span>
+        <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
+          t(REMOVE_BACKGROUND_LABEL_KEY)
+        }}</span>
       </button>
     </ToolbarButton>
   </UiTooltip>

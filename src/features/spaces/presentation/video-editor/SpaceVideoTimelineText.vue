@@ -14,7 +14,7 @@ const emit = defineEmits<{
 }>();
 
 type GestureKind = "move" | "start" | "end";
-const edges = ["start", "end"] as const;
+const TIMELINE_EDGES = ["start", "end"] as const;
 const gesture = shallowRef<{ kind: GestureKind; originX: number; trackWidth: number }>();
 const draft = shallowRef<VideoTextOverlay>();
 const visible = computed(() => draft.value ?? props.item);
@@ -95,7 +95,7 @@ function nudge(kind: GestureKind, delta: number) {
       <span class="block truncate">{{ item.text }}</span>
     </button>
     <button
-      v-for="edge in edges"
+      v-for="edge in TIMELINE_EDGES"
       :key="edge"
       type="button"
       class="absolute inset-y-0 w-2 cursor-ew-resize touch-none bg-surface-accent/25 hover:bg-surface-accent/50 focus-visible:outline-2 focus-visible:outline-stroke-focus"

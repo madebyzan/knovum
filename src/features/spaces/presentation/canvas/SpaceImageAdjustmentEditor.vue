@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { ImageAdjustments } from "../../image-editing/image-edit";
-import { imageAdjustmentGroups, type ImageAdjustmentGroupId } from "./image-adjustment-groups";
+import { IMAGE_ADJUSTMENT_GROUPS, type ImageAdjustmentGroupId } from "./image-adjustment-groups";
 import SpaceImageToneSlider from "./SpaceImageToneSlider.vue";
 
 const props = defineProps<{ adjustments: ImageAdjustments }>();
@@ -43,7 +43,7 @@ function navigate(groupId: ImageAdjustmentGroupId) {
 function syncActive() {
   const container = list.value?.viewportElement;
   if (!container) return;
-  for (const group of imageAdjustmentGroups.toReversed()) {
+  for (const group of IMAGE_ADJUSTMENT_GROUPS.toReversed()) {
     const section = container.querySelector<HTMLElement>(`[data-adjust-group="${group.id}"]`);
     if (section && section.offsetTop <= container.scrollTop + 80) {
       active.value = group.id;
@@ -85,7 +85,7 @@ function syncActive() {
       :aria-label="t('spaces.media.imageEditor.adjust.sections')"
     >
       <button
-        v-for="group in imageAdjustmentGroups"
+        v-for="group in IMAGE_ADJUSTMENT_GROUPS"
         :key="group.id"
         type="button"
         class="flex h-(--knovum-control-height-md) min-w-0 flex-1 items-center justify-center rounded-md text-fg-secondary transition-[background-color,color,box-shadow] duration-150 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
@@ -100,7 +100,7 @@ function syncActive() {
     <UiScrollArea ref="list" class="min-h-0 flex-1" @scroll="syncActive">
       <div class="pr-3 pl-1">
         <section
-          v-for="group in imageAdjustmentGroups"
+          v-for="group in IMAGE_ADJUSTMENT_GROUPS"
           :key="group.id"
           :data-adjust-group="group.id"
           class="pt-2 pb-3 last:min-h-80"

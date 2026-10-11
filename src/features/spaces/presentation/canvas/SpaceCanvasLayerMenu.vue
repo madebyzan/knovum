@@ -9,7 +9,7 @@ import type { CanvasLayerMove } from "../../canvas/contracts/canvas-editor-port"
 defineProps<{ rowClass: string; submenuClass: string }>();
 const emit = defineEmits<{ move: [mode: CanvasLayerMove] }>();
 const { t } = useI18n();
-const moves: readonly { mode: CanvasLayerMove; label: string; icon: typeof BringToFront }[] = [
+const LAYER_MOVES: readonly { mode: CanvasLayerMove; label: string; icon: typeof BringToFront }[] = [
   { mode: "front", label: "spaces.canvas.arrange.toFront", icon: BringToFront },
   { mode: "forward", label: "spaces.canvas.arrange.forward", icon: BringToFront },
   { mode: "backward", label: "spaces.canvas.arrange.backward", icon: SendToBack },
@@ -26,7 +26,7 @@ const moves: readonly { mode: CanvasLayerMove; label: string; icon: typeof Bring
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
-        <UiDropdownMenuItem v-for="move in moves" :key="move.mode" @select="emit('move', move.mode)">
+        <UiDropdownMenuItem v-for="move in LAYER_MOVES" :key="move.mode" @select="emit('move', move.mode)">
           <component :is="move.icon" class="size-3.5" />{{ t(move.label) }}
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>

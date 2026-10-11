@@ -13,12 +13,12 @@ const props = defineProps<{
   selected: "left" | "center" | "right";
 }>();
 const { t } = useI18n();
-const alignments = [
+const ALIGNMENTS = [
   { value: "left", icon: AlignLeft },
   { value: "center", icon: AlignCenter },
   { value: "right", icon: AlignRight },
 ] as const;
-const selectedAlignment = computed(() => alignments.find(({ value }) => value === props.selected)!);
+const selectedAlignment = computed(() => ALIGNMENTS.find(({ value }) => value === props.selected)!);
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const selectedAlignment = computed(() => alignments.find(({ value }) => value ==
       </UiIconButton>
     </template>
     <UiDropdownMenuItem
-      v-for="alignment in alignments"
+      v-for="alignment in ALIGNMENTS"
       :key="alignment.value"
       @select="editor.chain().focus().setTextAlign(alignment.value).run()"
     >

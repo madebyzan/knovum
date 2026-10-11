@@ -112,11 +112,13 @@ export function importedAudiobookDraft(
   };
 }
 
-export function audiobookDraftIsValid(input: {
+interface AudiobookDraftValidationInput {
   roles: readonly AudiobookRoleDraft[];
   chapters: readonly ChapterDraft[];
   voices: readonly VoiceLibraryRevision[];
-}) {
+}
+
+export function audiobookDraftIsValid(input: AudiobookDraftValidationInput) {
   const voiceByRevisionId = new Map(input.voices.map((voice) => [voice.revisionId, voice]));
   const roleKeys = input.roles.map((role) => role.key.trim());
   const paragraphs = input.chapters.flatMap((chapter) => chapter.paragraphs);

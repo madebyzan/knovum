@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import {
-  translationTargetLabelKey,
-  translationTargets,
+  TRANSLATION_TARGET_LABEL_KEYS,
+  TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../../foundation/ai/translation";
 import type { ModelTargetSelection } from "../../../../shared/contracts/generated/ModelTargetSelection";
@@ -46,7 +46,7 @@ const { activeRunId, submitting, cancelling, error, restore, start, cancel } = u
 const translating = computed(() => Boolean(activeRunId.value) || submitting.value || cancelling.value);
 watch(translating, (value) => emit("busy", value), { immediate: true });
 const languageOptions = computed(() =>
-  translationTargets.map((value) => ({ value, label: t(translationTargetLabelKey[value]) })),
+  TRANSLATION_TARGETS.map((value) => ({ value, label: t(TRANSLATION_TARGET_LABEL_KEYS[value]) })),
 );
 const allTargets = computed(() => availableModelTargets(settings.value, "translation"));
 const targets = computed(() =>
@@ -119,7 +119,7 @@ function selectLanguage(value: string) {
 }
 
 function isTranslationTarget(value: string | undefined): value is TranslationTarget {
-  return translationTargets.includes(value as TranslationTarget);
+  return TRANSLATION_TARGETS.includes(value as TranslationTarget);
 }
 </script>
 

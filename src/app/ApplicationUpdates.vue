@@ -15,8 +15,8 @@ import { toast } from "vue-sonner";
 
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { useTaskStore } from "../foundation/tasks/task-store";
-import { updateFailureKeys, updateStatusKeys } from "../foundation/updates/update-presentation";
-import { applicationUpdateTaskId as taskId, useUpdateStore } from "../foundation/updates/update-store";
+import { UPDATE_FAILURE_KEYS, UPDATE_STATUS_KEYS } from "../foundation/updates/update-presentation";
+import { UPDATE_TASK_ID, useUpdateStore } from "../foundation/updates/update-store";
 import type { UpdateState } from "../shared/contracts/generated/UpdateState";
 
 const updates = useUpdateStore();
@@ -45,21 +45,21 @@ function announceUpdate(state: UpdateState) {
 }
 
 function reflectProgress(state: Extract<UpdateState, { status: "downloading" | "verifying" }>) {
-  if (!tasks.running.some((task) => task.id === taskId)) {
-    tasks.dismiss(taskId);
+  if (!tasks.running.some((task) => task.id === UPDATE_TASK_ID)) {
+    tasks.dismiss(UPDATE_TASK_ID);
     tasks.restoreRunning(
-      { id: taskId, title: t("settings.updates.title"), startedAt: Date.now() },
+      { id: UPDATE_TASK_ID, title: t("settings.updates.title"), startedAt: Date.now() },
       updates.cancelDownload,
     );
-    tasks.setOpen(taskId, reviewUpdate);
+    tasks.setOpen(UPDATE_TASK_ID, reviewUpdate);
   }
-  const message = t(updateStatusKeys[state.status]);
+  const message = t(UPDATE_STATUS_KEYS[state.status]);
   if (state.status === "downloading" && state.total) {
-    tasks.progress(taskId, (state.downloaded / state.total) * 100, message);
+    tasks.progress(UPDATE_TASK_ID, (state.downloaded / state.total) * 100, message);
   } else {
-    tasks.indeterminate(taskId, message);
+    tasks.indeterminate(UPDATE_TASK_ID, message);
   }
-  tasks.setCancellation(taskId, state.status === "downloading" ? updates.cancelDownload : undefined);
+  tasks.setCancellation(UPDATE_TASK_ID, state.status === "downloading" ? updates.cancelDownload : undefined);
 }
 
 function reflectTask(state: UpdateState) {
@@ -69,13 +69,13 @@ function reflectTask(state: UpdateState) {
       reflectProgress(state);
       break;
     case "ready":
-      tasks.succeed(taskId);
+      tasks.succeed(UPDATE_TASK_ID);
       break;
     case "failed":
-      tasks.fail(taskId, t(updateFailureKeys[state.reason]));
+      tasks.fail(UPDATE_TASK_ID, t(UPDATE_FAILURE_KEYS[state.reason]));
       break;
     case "available":
-      tasks.cancelled(taskId);
+      tasks.cancelled(UPDATE_TASK_ID);
       break;
   }
 }

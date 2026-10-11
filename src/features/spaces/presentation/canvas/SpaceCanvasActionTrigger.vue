@@ -5,7 +5,7 @@ import type { Component } from "vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 
 defineOptions({ inheritAttrs: false });
 defineProps<{
@@ -50,7 +50,7 @@ const emit = defineEmits<{ invoke: [] }>();
           :class="{ 'animate-spin motion-reduce:animate-none': busy }"
           :stroke-width="1.6"
         />
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
+        <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </button>
     </ToolbarButton>
   </UiTooltip>

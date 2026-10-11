@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-settings";
 import type { SpeechSourceSeparationPublication } from "../contracts/generated/SpeechSourceSeparationPublication";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { selectBackground, selectSeparatedBackground } from "../speech/video-background-selection";
@@ -39,7 +39,7 @@ function voice(
 
 describe("speech architecture policies", () => {
   it("allows local-only translation only through loopback Ollama and restores exact provenance", () => {
-    const settings = structuredClone(defaultAiModelSettings);
+    const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     settings.connections = [
       {
         id: "remote",

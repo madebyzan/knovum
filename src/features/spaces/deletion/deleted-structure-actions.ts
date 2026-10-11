@@ -7,7 +7,7 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
 import type { SpaceEditReceipt } from "../contracts/generated/SpaceEditReceipt";
-import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "../knowledge/queries/query-options";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 import { spaceEditOperations } from "../structure/space-edit-operations";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
@@ -85,7 +85,7 @@ function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], who
 }
 
 function refreshDeletedStructure() {
-  return queryClient.invalidateQueries({ queryKey: [...spaceKnowledgeQueryKeys.root, "deleted"] });
+  return queryClient.invalidateQueries({ queryKey: [...SPACE_KNOWLEDGE_QUERY_KEYS.root, "deleted"] });
 }
 
 async function refreshCommittedDeletedStructure(operation: string) {

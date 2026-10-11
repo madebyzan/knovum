@@ -11,8 +11,6 @@ import {
 } from "../../../shared/contracts/generated/contract-values";
 import type { Preferences as PersistedPreferences } from "../../../shared/contracts/generated/Preferences";
 
-export const PREFERENCES_SCHEMA_VERSION = preferencesSchemaVersion;
-
 const preferencesSchema = z
   .object({
     theme: z.enum(preferenceThemes),
@@ -44,7 +42,7 @@ const preferencesSchema = z
 
 const persistedSchema = z
   .object({
-    schemaVersion: z.literal(PREFERENCES_SCHEMA_VERSION),
+    schemaVersion: z.literal(preferencesSchemaVersion),
     value: preferencesSchema,
   })
   .strict();
@@ -55,8 +53,6 @@ export type DensityPreference = Preferences["density"];
 export type TextSizePreference = Preferences["textSize"];
 export type LocalePreference = Preferences["locale"];
 export type WorkbenchPreferences = Preferences["workbench"];
-
-export const defaultPreferences: Preferences = preferenceDefaults;
 
 export function decodePreferences(raw: unknown): Preferences {
   const current = persistedSchema.safeParse(raw);

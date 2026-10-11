@@ -10,6 +10,7 @@ import type { CanvasPoint, CanvasRect } from "../../contracts/canvas-editor-port
 import type { CanvasDirectManipulation } from "./canvas-gesture-session";
 import type { CanvasGestureFeedback } from "./canvas-snapping";
 import { snapCanvasTranslation } from "./canvas-translation-snapping";
+import type { GroupHandleTransform } from "./group-handle-transform";
 import { createSectionFrameGesture } from "./section-frame-gesture";
 import { captureStructureGesture } from "./structure-gesture-capture";
 import {
@@ -37,10 +38,10 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
   let command: StructureGestureCommand | undefined;
   let committing = false;
 
-  function capture(id: string, target: Konva.Node, kind: CanvasDirectManipulation) {
+  function capture(structureNodeId: string, target: Konva.Node, kind: CanvasDirectManipulation) {
     if (committing) return undefined;
     const captured = captureStructureGesture({
-      id,
+      id: structureNodeId,
       target,
       snapshot: options.snapshot(),
       selectedIds: options.selectedRootIds(),
@@ -51,8 +52,8 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
     return captured;
   }
 
-  function beginMove(id: string, target: Konva.Node) {
-    active = capture(id, target, "drag");
+  function beginMove(structureNodeId: string, target: Konva.Node) {
+    active = capture(structureNodeId, target, "drag");
   }
 
   function move() {
@@ -66,15 +67,20 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
   }
 
   let resizeGesture: ReturnType<typeof createSectionFrameGesture> | undefined;
-  function beginResize(id: string, corner: SectionResizeCorner, target: Konva.Node, origin: CanvasPoint) {
-    active = capture(id, target, "transform");
+  function beginResize(
+    structureNodeId: string,
+    corner: SectionResizeCorner,
+    target: Konva.Node,
+    origin: CanvasPoint,
+  ) {
+    active = capture(structureNodeId, target, "transform");
     if (active)
       resizeGesture = createSectionFrameGesture({
-        id,
+        id: structureNodeId,
         corner,
         target,
         origin,
-        frame: options.bounds().get(id)!,
+        frame: options.bounds().get(structureNodeId)!,
       });
   }
 
@@ -82,11 +88,11 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
     if (active && resizeGesture) preview(resizeGesture.command());
   }
 
-  function beginTransform(id: string, target: Konva.Node) {
-    active = capture(id, target, "transform");
+  function beginTransform(structureNodeId: string, target: Konva.Node) {
+    active = capture(structureNodeId, target, "transform");
   }
 
-  function transform(input: { anchor: CanvasPoint; rotationDelta: number; scaleFactor: number }) {
+  function transform(input: GroupHandleTransform) {
     if (active)
       preview({ kind: "structure.transform", rootIds: active.roots, ...input, translation: { x: 0, y: 0 } });
   }

@@ -1,6 +1,6 @@
 import { Boxes } from "@lucide/vue";
 
-export const aiSettingsDefinition = {
+export const AI_SETTINGS_DEFINITION = {
   id: "aiModels",
   group: "intelligence",
   titleKey: "settings.ai.title",

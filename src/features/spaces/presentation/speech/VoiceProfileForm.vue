@@ -8,7 +8,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { CreatePresetVoiceRequest } from "../../contracts/generated/CreatePresetVoiceRequest";
 import { listPresetVoices } from "../../speech/ipc";
-import { voiceQueryKeys } from "../../speech/voice-query-keys";
+import { VOICE_QUERY_KEYS } from "../../speech/voice-query-keys";
 import VoiceAudition from "./VoiceAudition.vue";
 
 const emit = defineEmits<{
@@ -18,7 +18,7 @@ const emit = defineEmits<{
 defineProps<{ disabled?: boolean }>();
 const { t } = useI18n();
 const { data: presets, error } = useQuery({
-  queryKey: voiceQueryKeys.presetCatalog,
+  queryKey: VOICE_QUERY_KEYS.presetCatalog,
   queryFn: listPresetVoices,
   staleTime: Infinity,
 });
@@ -38,7 +38,7 @@ watch([language, presets], ([value]) => {
   const preferred = presets.value?.find((voice) => voice.primaryLanguage === value);
   if (preferred) speakerId.value = preferred.speakerId;
 });
-const languageOptions = [
+const LANGUAGE_OPTIONS = [
   { value: "zh-CN", label: "中文" },
   { value: "en", label: "English" },
 ] as const;
@@ -98,7 +98,7 @@ function markAuditionDirty(value: boolean) {
           v-model="language"
           size="sm"
           :label="t('spaces.speech.project.language')"
-          :options="languageOptions"
+          :options="LANGUAGE_OPTIONS"
           :disabled="disabled"
           @update:model-value="markIdentityDirty"
         />

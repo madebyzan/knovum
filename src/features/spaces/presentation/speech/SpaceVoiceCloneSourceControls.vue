@@ -9,7 +9,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import { formatDurationMs } from "../../media/format-duration";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas/canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "../canvas/node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "../canvas/node-action-label";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 import type { useCanvasVoiceClone } from "./use-canvas-voice-clone";
 import VoiceCandidateOptions from "./VoiceCandidateOptions.vue";
@@ -65,7 +65,7 @@ function auditionSelection() {
         >
           <component :is="form.reference ? Check : Scissors" class="size-4.5" :stroke-width="1.6" /><span
             class="tabular-nums"
-            :class="[nodeActionLabelClass, nodeActionLabelState(compact)]"
+            :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]"
             >{{ formatDurationMs(Number(reference.start) * 1000) }}–{{
               formatDurationMs(Number(reference.end) * 1000)
             }}</span

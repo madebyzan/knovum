@@ -1,4 +1,6 @@
-use crate::extensions::contracts::*;
+use crate::extensions::contracts::{
+    ConnectorAuthorization, ConnectorDefinition, McpConnection, McpToolPermission, McpToolPolicy,
+};
 
 #[test]
 fn changing_or_removing_account_disables_connection_and_clears_reviewed_permissions() {

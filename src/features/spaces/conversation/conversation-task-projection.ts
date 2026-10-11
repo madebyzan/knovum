@@ -2,7 +2,7 @@ import type { AppTask, TaskStatus } from "../../../foundation/tasks/task-model";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { RunState } from "../contracts/generated/RunState";
 
-const statuses: Record<RunState, TaskStatus> = {
+const TASK_STATUS_BY_RUN_STATE: Record<RunState, TaskStatus> = {
   queued: "queued",
   running: "running",
   waiting: "attention",
@@ -32,7 +32,7 @@ export function conversationRunTask(run: RunObservation, title: string, statusMe
   return {
     id: run.id,
     title,
-    status: run.waitReason === "executor" ? "running" : statuses[run.state],
+    status: run.waitReason === "executor" ? "running" : TASK_STATUS_BY_RUN_STATE[run.state],
     startedAt: run.createdAt,
     ...(run.state === "waiting" || run.state === "paused" ? { statusMessage } : {}),
   };

@@ -17,7 +17,7 @@ import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 const { t } = useI18n();
 const selection = useImageSelectionSessionStore();
 const surface = useTemplateRef<HTMLElement>("surface");
-const tools = [
+const TOOLS = [
   { id: "include", labelKey: "spaces.media.imageEditor.selection.include", icon: MousePointer2 },
   { id: "exclude", labelKey: "spaces.media.imageEditor.selection.exclude", icon: MousePointer2 },
   { id: "box", labelKey: "spaces.media.imageEditor.selection.box", icon: SquareDashed },
@@ -69,7 +69,7 @@ onMounted(async () => {
       role="group"
       :aria-label="t('spaces.media.imageEditor.selection.tools')"
     >
-      <UiTooltip v-for="item in tools" :key="item.id" :text="t(item.labelKey)">
+      <UiTooltip v-for="item in TOOLS" :key="item.id" :text="t(item.labelKey)">
         <UiButton
           variant="ghost"
           size="sm"

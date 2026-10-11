@@ -1,4 +1,4 @@
-export const voiceQueryKeys = {
+export const VOICE_QUERY_KEYS = {
   activeCandidateRun: ["speech", "active-voice-candidate-run"] as const,
   candidates: ["speech", "voice-candidates"] as const,
   presetCatalog: ["speech", "preset-voices"] as const,

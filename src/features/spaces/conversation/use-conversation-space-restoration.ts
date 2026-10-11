@@ -2,13 +2,15 @@ import { onScopeDispose, readonly, shallowRef, watch, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 
-export function useConversationSpaceRestoration(input: {
+interface ConversationSpaceRestorationOptions {
   spaceId: Ref<string | undefined>;
   reset: () => void;
   restoreDraft: (spaceId?: string) => Promise<boolean>;
   refresh: () => Promise<void>;
   restoreTask: (spaceId: string) => Promise<void>;
-}) {
+}
+
+export function useConversationSpaceRestoration(input: ConversationSpaceRestorationOptions) {
   const error = shallowRef<string>();
   let generation = 0;
 

@@ -12,7 +12,7 @@ import type {
   DerivationUnavailableReason,
 } from "../../knowledge-derivations/catalog/creation-intent";
 import {
-  creationIntentDefinitions,
+  CREATION_INTENT_DEFINITIONS,
   type CreationIntentId,
   type CreationIntentDecisions,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
@@ -25,7 +25,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ invoke: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
-const icons = {
+const ICONS = {
   captions: Captions,
   "file-output": FileOutput,
   "file-pen": FilePenLine,
@@ -34,7 +34,7 @@ const icons = {
   sparkles: Sparkles,
 } satisfies Record<CreationIntentIcon, Component>;
 const derivationActions = computed(() =>
-  creationIntentDefinitions.filter(({ id }) => {
+  CREATION_INTENT_DEFINITIONS.filter(({ id }) => {
     if (props.exclude?.includes(id)) return false;
     const decision = props.derivations[id];
     return showsAction(decision);
@@ -84,7 +84,7 @@ function selectAction(event: Event, actionId: CreationIntentId) {
             :aria-disabled="!canRunAction(props.derivations[action.id])"
             @select="selectAction($event, action.id)"
           >
-            <component :is="icons[action.icon]" class="size-3.5" />{{ t(action.labelKey) }}
+            <component :is="ICONS[action.icon]" class="size-3.5" />{{ t(action.labelKey) }}
           </UiDropdownMenuItem>
         </UiTooltip>
       </DropdownMenuSubContent>

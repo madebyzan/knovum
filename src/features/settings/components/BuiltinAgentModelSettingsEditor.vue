@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const switchId = useId();
-const labels: Record<ChatModelProtocol, string> = {
+const PROTOCOL_LABELS: Record<ChatModelProtocol, string> = {
   open_ai_chat: "OpenAI Chat Completions",
   open_ai_responses: "OpenAI Responses",
   anthropic: "Anthropic Messages",
@@ -26,7 +26,7 @@ const labels: Record<ChatModelProtocol, string> = {
   deep_seek: "DeepSeek Chat",
   groq: "Groq Chat",
 };
-const options = computed(() => props.protocols.map((value) => ({ value, label: labels[value] })));
+const options = computed(() => props.protocols.map((value) => ({ value, label: PROTOCOL_LABELS[value] })));
 const enabled = computed({
   get: () => model.value !== null,
   set: (value: boolean) => {

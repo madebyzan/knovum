@@ -1,13 +1,15 @@
 import { computed, type MaybeRefOrGetter, toValue } from "vue";
 
+import type { RelationKind } from "../../contracts/generated/RelationKind";
+import type { RelationStatus } from "../../contracts/generated/RelationStatus";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceRelation, SpaceRelationKind, SpaceRelationStatus } from "../../model/relations/relation";
+import type { SpaceRelation } from "../../model/relations/relation";
 
 interface VisibleCanvasContentInput {
   nodes: MaybeRefOrGetter<readonly SpaceCanvasNode[]>;
   relations: MaybeRefOrGetter<readonly SpaceRelation[]>;
-  relationKinds: MaybeRefOrGetter<readonly SpaceRelationKind[]>;
-  relationStatuses: MaybeRefOrGetter<readonly SpaceRelationStatus[]>;
+  relationKinds: MaybeRefOrGetter<readonly RelationKind[]>;
+  relationStatuses: MaybeRefOrGetter<readonly RelationStatus[]>;
 }
 
 export function useVisibleCanvasContent({

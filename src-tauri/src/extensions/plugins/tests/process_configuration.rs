@@ -1,5 +1,5 @@
 use super::endpoint;
-use crate::extensions::contracts::*;
+use crate::extensions::contracts::{McpEndpoint, PluginConnectorConfiguration};
 use serde_json::json;
 
 #[test]

@@ -4,8 +4,8 @@ import { localeMessages } from "../../locales/locale-registry";
 
 export type AppLocale = "en" | "zh-CN";
 
-const compact = { notation: "compact", maximumFractionDigits: 1 } as const;
-const dateTimeFormats = {
+const COMPACT_NUMBER_FORMAT = { notation: "compact", maximumFractionDigits: 1 } as const;
+const DATE_TIME_FORMATS = {
   short: { dateStyle: "short", timeStyle: "short" },
   medium: { dateStyle: "medium" },
 } as const;
@@ -16,12 +16,12 @@ export const i18n = createI18n({
   fallbackLocale: false,
   messages: localeMessages,
   numberFormats: {
-    en: { compact },
-    "zh-CN": { compact },
+    en: { compact: COMPACT_NUMBER_FORMAT },
+    "zh-CN": { compact: COMPACT_NUMBER_FORMAT },
   },
   dateTimeFormats: {
-    en: dateTimeFormats,
-    "zh-CN": dateTimeFormats,
+    en: DATE_TIME_FORMATS,
+    "zh-CN": DATE_TIME_FORMATS,
   },
 });
 

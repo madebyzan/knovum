@@ -4,14 +4,16 @@ import type { VideoTextOverlay } from "../../video-editing/project";
 
 const props = defineProps<{ item: VideoTextOverlay; durationMs: number }>();
 const emit = defineEmits<{ change: [patch: Partial<VideoTextOverlay>] }>();
-const seconds = (milliseconds: number) => (milliseconds / 1_000).toFixed(3);
+function formatSeconds(milliseconds: number) {
+  return (milliseconds / 1_000).toFixed(3);
+}
 
 function changeTime(event: Event, edge: "start" | "end") {
   const input = event.currentTarget as HTMLInputElement;
   const value = Math.round(Number(input.value) * 1_000);
   if (input.value.trim() && Number.isFinite(value) && value >= 0 && value <= props.durationMs)
     emit("change", { [edge === "start" ? "startMs" : "endMs"]: value });
-  input.value = seconds(edge === "start" ? props.item.startMs : props.item.endMs);
+  input.value = formatSeconds(edge === "start" ? props.item.startMs : props.item.endMs);
 }
 </script>
 
@@ -25,9 +27,9 @@ function changeTime(event: Event, edge: "start" | "end") {
         size="sm"
         type="number"
         min="0"
-        :max="seconds(item.endMs - 100)"
+        :max="formatSeconds(item.endMs - 100)"
         step="0.001"
-        :model-value="seconds(item.startMs)"
+        :model-value="formatSeconds(item.startMs)"
         @change="changeTime($event, 'start')"
       />
     </label>
@@ -38,10 +40,10 @@ function changeTime(event: Event, edge: "start" | "end") {
         class="mt-1 tabular-nums"
         size="sm"
         type="number"
-        :min="seconds(item.startMs + 100)"
-        :max="seconds(durationMs)"
+        :min="formatSeconds(item.startMs + 100)"
+        :max="formatSeconds(durationMs)"
         step="0.001"
-        :model-value="seconds(item.endMs)"
+        :model-value="formatSeconds(item.endMs)"
         @change="changeTime($event, 'end')"
       />
     </label>

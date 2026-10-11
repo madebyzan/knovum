@@ -9,7 +9,7 @@ import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueR
 import { useSpaceStore } from "../../session/space-store";
 import { previewWorkflowCapture } from "../../workflows/captured-workflow-ipc";
 import SpaceWorkflowSaveForm from "./SpaceWorkflowSaveForm.vue";
-import { captureActionLabel, captureIssueLabels } from "./workflow-capture-labels";
+import { captureActionLabel, CAPTURE_ISSUE_LABELS } from "./workflow-capture-labels";
 
 const store = useSpaceStore();
 const { t } = useI18n();
@@ -42,7 +42,7 @@ function title(nodeId: string) {
 }
 
 function issueText(reason: CaptureIssueReason) {
-  return t(`spaces.creation.workflow.captureIssues.${captureIssueLabels[reason]}`);
+  return t(`spaces.creation.workflow.captureIssues.${CAPTURE_ISSUE_LABELS[reason]}`);
 }
 
 function actionText(actionId: string) {

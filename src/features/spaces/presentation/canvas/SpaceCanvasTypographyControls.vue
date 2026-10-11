@@ -23,7 +23,7 @@ import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../canvas/docume
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../canvas/node-size";
 import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { CANVAS_FONT_SIZES } from "./canvas-typography-options";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 
 const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
@@ -36,12 +36,12 @@ const textAlign = computed(() => props.appearance?.textAlign ?? (props.kind === 
 const verticalAlign = computed(
   () => props.appearance?.verticalAlign ?? (props.kind === "text" ? "middle" : "top"),
 );
-const horizontalOptions = [
+const HORIZONTAL_OPTIONS = [
   { value: "left", icon: AlignLeft },
   { value: "center", icon: AlignCenter },
   { value: "right", icon: AlignRight },
 ] as const;
-const verticalOptions = [
+const VERTICAL_OPTIONS = [
   { value: "top", icon: AlignStartVertical },
   { value: "middle", icon: AlignCenterVertical },
   { value: "bottom", icon: AlignEndVertical },
@@ -58,7 +58,7 @@ const verticalOptions = [
         :title="compact ? t('spaces.canvas.typography') : undefined"
       >
         Aa
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+        <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
           t("spaces.canvas.typography")
         }}</span>
       </button>
@@ -117,7 +117,7 @@ const verticalOptions = [
       </UiDropdownMenu>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
       <UiIconButton
-        v-for="option in horizontalOptions"
+        v-for="option in HORIZONTAL_OPTIONS"
         :key="option.value"
         :label="t(`spaces.canvas.textAlignments.${option.value}`)"
         size="sm"
@@ -128,7 +128,7 @@ const verticalOptions = [
       </UiIconButton>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
       <UiIconButton
-        v-for="option in verticalOptions"
+        v-for="option in VERTICAL_OPTIONS"
         :key="option.value"
         :label="t(`spaces.canvas.verticalAlignments.${option.value}`)"
         size="sm"

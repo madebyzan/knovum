@@ -4,7 +4,7 @@ import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import { cropPresetGroups, type CropPreset } from "../../image-editing/crop-presets";
+import { CROP_PRESET_GROUPS, type CropPreset } from "../../image-editing/crop-presets";
 
 const props = defineProps<{ activeRatio?: number | undefined; fullCrop: boolean }>();
 const emit = defineEmits<{ select: [ratio?: number] }>();
@@ -35,7 +35,7 @@ function glyphStyle(ratio = 1): CSSProperties {
     </p>
     <UiScrollArea class="min-h-0 flex-1">
       <details
-        v-for="group in cropPresetGroups"
+        v-for="group in CROP_PRESET_GROUPS"
         :key="group.id"
         :open="group.id === 'general'"
         class="group pr-3"

@@ -1,6 +1,6 @@
 import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueReason";
 
-export const captureIssueLabels: Record<CaptureIssueReason, string> = {
+export const CAPTURE_ISSUE_LABELS: Record<CaptureIssueReason, string> = {
   "resource-unavailable": "resourceUnavailable",
   "derivation-incomplete": "derivationIncomplete",
   "execution-spec-unavailable": "executionSpecUnavailable",

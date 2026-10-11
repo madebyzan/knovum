@@ -1,5 +1,8 @@
 use super::{admit, prepare};
-use crate::extensions::{connectors::accounts, contracts::*};
+use crate::extensions::{
+    connectors::accounts,
+    contracts::{ConnectorAccount, ConnectorAuthorization, ConnectorDefinition, McpEndpoint},
+};
 use sqlx::sqlite::SqlitePoolOptions;
 use std::collections::BTreeMap;
 

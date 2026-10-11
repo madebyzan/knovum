@@ -1,6 +1,6 @@
 import type { CommandUnavailableReason } from "../shared/contracts/app-command";
 
-export const commandUnavailableLabelKeys = {
+export const COMMAND_UNAVAILABLE_LABEL_KEYS = {
   nothing_to_undo: "nothingToUndo",
   nothing_to_redo: "nothingToRedo",
   no_selection: "noSelection",

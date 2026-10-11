@@ -23,7 +23,7 @@ pub(super) async fn account_lock(app: &AppHandle, account_id: &str) -> Arc<tokio
         .clone()
 }
 
-pub(super) async fn manager(
+pub(super) async fn create_authorization_manager(
     app: &AppHandle,
     account: &ConnectorAccount,
     allow_local: bool,
@@ -89,7 +89,7 @@ async fn authorize_flow(
             .port()
     );
     let mut state = OAuthState::Unauthorized(
-        manager(app, account, allow_local, Some(cancellation.clone())).await?,
+        create_authorization_manager(app, account, allow_local, Some(cancellation.clone())).await?,
     );
     let mut request = AuthorizationRequest::new(&callback)
         .with_client_name("Knovum")
@@ -192,7 +192,7 @@ pub(crate) async fn oauth_client(
     if let Some(client) = state.oauth_clients.lock().await.get(&account.id).cloned() {
         return Ok(client);
     }
-    let mut manager = manager(app, account, allow_local, None).await?;
+    let mut manager = create_authorization_manager(app, account, allow_local, None).await?;
     if !manager
         .initialize_from_store()
         .await

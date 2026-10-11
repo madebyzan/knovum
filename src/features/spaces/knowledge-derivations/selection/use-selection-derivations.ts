@@ -5,7 +5,7 @@ import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import {
-  creationIntentDefinitions,
+  CREATION_INTENT_DEFINITIONS,
   type CreationIntentDecisions,
 } from "../catalog/creation-intent-definitions";
 import type { CreationDialogId } from "./creation-dialog";
@@ -20,7 +20,7 @@ export function useSelectionDerivations(selection: Ref<SpaceCanvasNode[]>) {
   const decisions = computed<CreationIntentDecisions>(
     () =>
       Object.fromEntries(
-        creationIntentDefinitions.map((definition) => {
+        CREATION_INTENT_DEFINITIONS.map((definition) => {
           const decision = catalogState.decisions.value[definition.id];
           return [
             definition.id,

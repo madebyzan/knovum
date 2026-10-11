@@ -4,14 +4,16 @@ import { computed, nextTick, shallowRef, watch, type Ref } from "vue";
 
 import type { Space } from "../../model/space";
 
-export function useLibraryViewport(options: {
+interface LibraryViewportOptions {
   spaces: Readonly<Ref<Space[]>>;
   layout: Readonly<Ref<"grid" | "list">>;
   root: Readonly<Ref<HTMLElement | null>>;
   host: Readonly<Ref<HTMLElement | null>>;
   scroll: () => HTMLElement | undefined;
   editingId: Readonly<Ref<string | undefined>>;
-}) {
+}
+
+export function useLibraryViewport(options: LibraryViewportOptions) {
   const { width } = useElementSize(options.root);
   const columns = computed(() =>
     options.layout.value === "list" ? 1 : Math.max(1, Math.floor((width.value + 20) / 230)),

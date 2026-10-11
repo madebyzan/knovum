@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { queryClient } from "../../../foundation/query/query-client";
 import { attachProvenanceFromPeek } from "../knowledge/provenance-actions";
-import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "../knowledge/queries/query-options";
 
 const invoke = vi.hoisted(() => vi.fn<(command: string, arguments_?: unknown) => Promise<void>>());
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: invoke }));
@@ -45,7 +45,7 @@ it("persists canonical provenance from a peek and refreshes its target projectio
     },
   });
   expect(invalidate).toHaveBeenCalledWith({
-    queryKey: spaceKnowledgeQueryKeys.provenance("space", "node", "evidence"),
+    queryKey: SPACE_KNOWLEDGE_QUERY_KEYS.provenance("space", "node", "evidence"),
   });
 });
 

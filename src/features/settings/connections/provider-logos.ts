@@ -20,7 +20,7 @@ import zhipu from "../assets/provider-logos/zhipu.svg?url";
 
 type ProviderLogo = { src: string; monochrome?: true } | null;
 
-export const providerLogos: Record<ProviderKind, ProviderLogo> = {
+export const PROVIDER_LOGOS: Record<ProviderKind, ProviderLogo> = {
   openai: { src: openai, monochrome: true },
   "openai-compatible": null,
   openrouter: { src: openrouter },

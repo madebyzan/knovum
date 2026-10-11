@@ -18,11 +18,13 @@ export function requestMediaAlignment(
   });
 }
 
-export function requestMediaDiarization(request: {
+type MediaDiarizationRequest = {
   spaceId: string;
   nodeId: string;
   expectedRevision: number;
   numSpeakers: number | null;
-}) {
+};
+
+export function requestMediaDiarization(request: MediaDiarizationRequest) {
   return invokeCommand<string>("plugin:spaces|request_media_diarization", request);
 }

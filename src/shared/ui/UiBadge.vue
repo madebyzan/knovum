@@ -18,7 +18,7 @@ const props = withDefaults(
   },
 );
 
-const variantClasses: Record<BadgeVariant, string> = {
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
   neutral: "bg-surface-raised text-fg-secondary",
   accent: "bg-surface-accent-subtle text-fg-accent",
   danger: "bg-surface-danger-subtle text-fg-danger",
@@ -32,7 +32,7 @@ const variantClasses: Record<BadgeVariant, string> = {
       cn(
         'inline-flex shrink-0 items-center justify-center rounded-md font-medium tabular-nums select-none',
         size === 'sm' ? 'h-4 px-1.5 text-caption-sm' : 'h-5 px-2 text-caption',
-        variantClasses[variant],
+        VARIANT_CLASSES[variant],
         props.class,
       )
     "

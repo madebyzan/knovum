@@ -98,12 +98,12 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
       () => options.selection.setNodeIds([nodeId]),
     );
   }
-  function structurePointerDown(id: string, event: Konva.KonvaEventObject<PointerEvent>) {
+  function structurePointerDown(structureNodeId: string, event: Konva.KonvaEventObject<PointerEvent>) {
     targetPointerDown(
       event,
-      options.selection.structureNodeIds.value.has(id),
-      () => options.selection.selectStructureNode(id, event.evt),
-      () => options.selection.setStructureNodeIds([id]),
+      options.selection.structureNodeIds.value.has(structureNodeId),
+      () => options.selection.selectStructureNode(structureNodeId, event.evt),
+      () => options.selection.setStructureNodeIds([structureNodeId]),
     );
   }
   function targetPointerDown(

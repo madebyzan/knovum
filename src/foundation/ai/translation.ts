@@ -6,7 +6,7 @@ import type { TranslationCommandRequest } from "../../shared/contracts/generated
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 
-export const translationTargets = [
+export const TRANSLATION_TARGETS = [
   "zh-CN",
   "zh-TW",
   "en",
@@ -21,9 +21,9 @@ export const translationTargets = [
   "ar",
 ] as const;
 
-export type TranslationTarget = (typeof translationTargets)[number];
+export type TranslationTarget = (typeof TRANSLATION_TARGETS)[number];
 
-export const translationTargetLabelKey: Record<TranslationTarget, string> = {
+export const TRANSLATION_TARGET_LABEL_KEYS: Record<TranslationTarget, string> = {
   "zh-CN": "ai.languages.zhCn",
   "zh-TW": "ai.languages.zhTw",
   en: "ai.languages.en",

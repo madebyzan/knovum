@@ -6,7 +6,7 @@ import {
   revokeProvenance,
   type CreateProvenanceInput,
 } from "./persistence/knowledge-operations";
-import { spaceKnowledgeQueryKeys } from "./queries/query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "./queries/query-options";
 
 interface ProvenanceTarget {
   spaceId: string;
@@ -34,6 +34,6 @@ export async function detachProvenance(provenanceId: string, target: ProvenanceT
 
 function refreshProvenance(target: ProvenanceTarget) {
   return queryClient.invalidateQueries({
-    queryKey: spaceKnowledgeQueryKeys.provenance(target.spaceId, target.targetKind, target.targetId),
+    queryKey: SPACE_KNOWLEDGE_QUERY_KEYS.provenance(target.spaceId, target.targetKind, target.targetId),
   });
 }

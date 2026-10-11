@@ -11,7 +11,7 @@ export function getImageOperationCapabilities() {
   return invokeCommand<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
 }
 
-const operations = {
+const IMAGE_OPERATION_CONFIG = {
   upscale: {
     actionId: "upscale-image",
     capability: "imageUpscaling",
@@ -56,7 +56,7 @@ const operations = {
 
 export async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget> {
   const capabilities = await getImageOperationCapabilities();
-  const capability = operations[operation.kind].capability;
+  const capability = IMAGE_OPERATION_CONFIG[operation.kind].capability;
   if (capability) {
     return selectedImageTarget(capabilities.targets.filter((target) => target.capability === capability));
   }
@@ -80,10 +80,11 @@ export async function deriveImage(
   if (source.data.kind !== "image" || !source.data.knowledgeRevision)
     throw new Error("Image source revision is unavailable");
   const target = options.execution ?? (await defaultImageTarget(operation));
-  const title = `${source.data.title} · ${i18n.global.t(operations[operation.kind].resultKey)}`.slice(0, 512);
+  const title =
+    `${source.data.title} · ${i18n.global.t(IMAGE_OPERATION_CONFIG[operation.kind].resultKey)}`.slice(0, 512);
   const run = await startDerivationAction({
     store,
-    actionId: operations[operation.kind].actionId,
+    actionId: IMAGE_OPERATION_CONFIG[operation.kind].actionId,
     sources: [
       {
         nodeId: source.id,

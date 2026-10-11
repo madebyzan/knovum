@@ -12,7 +12,7 @@ import { useDictationSession } from "./use-dictation-session";
 
 const { t } = useI18n();
 const session = useDictationSession();
-const errorMessages: Record<string, string> = {
+const ERROR_MESSAGES: Record<string, string> = {
   microphone_permission_denied: "dictation.errors.microphonePermissionDenied",
   microphone_unavailable: "dictation.errors.microphoneUnavailable",
   recording_limit_reached: "dictation.errors.recordingLimitReached",
@@ -51,7 +51,7 @@ const resourceProgress = computed(() =>
 );
 const transcriptDescription = computed(() => {
   const value = session.state.value;
-  const key = value.errorCode ? errorMessages[value.errorCode] : undefined;
+  const key = value.errorCode ? ERROR_MESSAGES[value.errorCode] : undefined;
   return t(key ?? "dictation.result.description");
 });
 

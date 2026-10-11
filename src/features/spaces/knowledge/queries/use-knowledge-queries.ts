@@ -7,7 +7,7 @@ import {
   listObjectTypes,
   listProvenance,
 } from "../persistence/knowledge-operations";
-import { spaceKnowledgeQueryKeys } from "./query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "./query-options";
 
 function spaceIdValue(spaceId: MaybeRefOrGetter<string | null | undefined>) {
   return toValue(spaceId) ?? "none";
@@ -32,11 +32,11 @@ function useSpaceQuery<T>(
 }
 
 export function useSpaceObjectTypesQuery(spaceId: MaybeRefOrGetter<string | null | undefined>) {
-  return useSpaceQuery(spaceId, spaceKnowledgeQueryKeys.objectTypes, listObjectTypes);
+  return useSpaceQuery(spaceId, SPACE_KNOWLEDGE_QUERY_KEYS.objectTypes, listObjectTypes);
 }
 
 export function useSpaceKnowledgeHealthQuery(spaceId: MaybeRefOrGetter<string | null | undefined>) {
-  return useSpaceQuery(spaceId, spaceKnowledgeQueryKeys.health, listKnowledgeHealthIssues);
+  return useSpaceQuery(spaceId, SPACE_KNOWLEDGE_QUERY_KEYS.health, listKnowledgeHealthIssues);
 }
 
 export function useSpaceKnowledgeHistoryQuery(
@@ -45,7 +45,7 @@ export function useSpaceKnowledgeHistoryQuery(
 ) {
   return useSpaceQuery(
     spaceId,
-    (id) => spaceKnowledgeQueryKeys.history(id, toValue(nodeId)),
+    (id) => SPACE_KNOWLEDGE_QUERY_KEYS.history(id, toValue(nodeId)),
     (id) =>
       listKnowledgeEvents({
         spaceId: id,
@@ -64,7 +64,7 @@ export function useSpaceProvenanceQuery(
 ) {
   return useSpaceQuery(
     spaceId,
-    (id) => spaceKnowledgeQueryKeys.provenance(id, targetKind, toValue(targetId)),
+    (id) => SPACE_KNOWLEDGE_QUERY_KEYS.provenance(id, targetKind, toValue(targetId)),
     (id) => listProvenance(id, targetKind, toValue(targetId)),
     () => Boolean(toValue(targetId)),
   );

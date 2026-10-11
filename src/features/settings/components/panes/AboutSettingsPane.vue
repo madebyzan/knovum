@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
-import { updateFailureKeys, updateStatusKeys } from "../../../../foundation/updates/update-presentation";
+import { UPDATE_FAILURE_KEYS, UPDATE_STATUS_KEYS } from "../../../../foundation/updates/update-presentation";
 import { useUpdateStore } from "../../../../foundation/updates/update-store";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -20,7 +20,7 @@ const release = computed(() => (updates.state && "release" in updates.state ? up
 const statusText = computed(() => {
   const state = updates.state;
   if (!state) return t("settings.updates.connection.loading");
-  return t(state.status === "failed" ? updateFailureKeys[state.reason] : updateStatusKeys[state.status]);
+  return t(state.status === "failed" ? UPDATE_FAILURE_KEYS[state.reason] : UPDATE_STATUS_KEYS[state.status]);
 });
 const canCheck = computed(
   () => updates.state && ["idle", "current", "failed"].includes(updates.state.status),

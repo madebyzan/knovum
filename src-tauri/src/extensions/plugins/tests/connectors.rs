@@ -1,4 +1,12 @@
-use crate::extensions::{connectors::definitions, contracts::*, database, mcp::connections};
+use crate::extensions::{
+    connectors::definitions,
+    contracts::{
+        ConnectorAuthorization, ConnectorDefinition, McpEndpoint, McpToolPermission, McpToolPolicy,
+        PluginConnectorConfiguration, PluginConnectorDeclaration,
+    },
+    database,
+    mcp::connections,
+};
 use serde_json::json;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 

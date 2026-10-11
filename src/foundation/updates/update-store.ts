@@ -11,7 +11,7 @@ import { flushWindowCloseCommits } from "../lifecycle/window-close-coordinator";
 import { useTaskStore } from "../tasks/task-store";
 import { updateSnapshotSchema } from "./schema/snapshot";
 
-export const applicationUpdateTaskId = "application-update";
+export const UPDATE_TASK_ID = "application-update";
 
 export const useUpdateStore = defineStore("application-update", () => {
   const snapshot = shallowRef<UpdateSnapshot | null>(null);
@@ -22,7 +22,7 @@ export const useUpdateStore = defineStore("application-update", () => {
   let unlisten: UnlistenFn | undefined;
   let disposed = false;
   const state = computed(() => snapshot.value?.state ?? null);
-  const blockedByTasks = computed(() => tasks.running.some((task) => task.id !== applicationUpdateTaskId));
+  const blockedByTasks = computed(() => tasks.running.some((task) => task.id !== UPDATE_TASK_ID));
   const installing = computed(() => preparingInstall.value || state.value?.status === "installing");
   const canInstall = computed(
     () =>

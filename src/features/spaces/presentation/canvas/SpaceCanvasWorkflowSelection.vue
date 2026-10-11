@@ -23,12 +23,13 @@ const editor = getCanvasEditorSession();
 const panel = useTemplateRef<HTMLElement>("panel");
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const { t } = useI18n();
-const selectionFingerprint = () =>
+const selectionFingerprint = computed(() =>
   selectedNodes.value
     .map(({ id }) => id)
     .toSorted()
-    .join("\u0000");
-const openingSelection = selectionFingerprint();
+    .join("\u0000"),
+);
+const openingSelection = selectionFingerprint.value;
 const title = computed(() =>
   t(
     store.workflowMode === "capture"

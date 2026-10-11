@@ -41,7 +41,7 @@ const dialogOpen = computed({
     if (!value) void requestClose();
   },
 });
-const capabilityKey: Record<ExecutionCapability, string> = {
+const CAPABILITY_LABEL_KEYS: Record<ExecutionCapability, string> = {
   "text-generation": "text",
   "vision-understanding": "vision",
   "image-generation": "image",
@@ -82,7 +82,7 @@ watch(
           <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{
               model.capabilities
-                .map((capability) => t(`settings.ai.capabilities.${capabilityKey[capability]}`))
+                .map((capability) => t(`settings.ai.capabilities.${CAPABILITY_LABEL_KEYS[capability]}`))
                 .join(" · ")
             }}
           </p>

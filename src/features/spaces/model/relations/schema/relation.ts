@@ -1,15 +1,16 @@
 import { z } from "zod";
 
-import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES, type SpaceRelation } from "../relation";
+import { relationKinds, relationStatuses } from "../../../contracts/generated/contract-values";
+import { type SpaceRelation } from "../relation";
 
 const relationShape = {
   id: z.string().min(1),
   spaceId: z.string().min(1),
   sourceId: z.string().min(1),
   targetId: z.string().min(1),
-  kind: z.enum(SPACE_RELATION_KINDS),
+  kind: z.enum(relationKinds),
   rationale: z.string().max(16_000),
-  status: z.enum(SPACE_RELATION_STATUSES),
+  status: z.enum(relationStatuses),
   statusBeforeInvalidation: z.enum(["active", "contested"]).nullable(),
   confidence: z.number().min(0).max(1).nullable(),
   actorKind: z.enum(["human", "builtin_agent", "external_agent", "system"]),

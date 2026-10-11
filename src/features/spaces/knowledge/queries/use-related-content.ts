@@ -11,7 +11,7 @@ import {
   subscribeKnowledgeIndexStatus,
   type KnowledgeIndexStatus,
 } from "../indexing/index-scheduler";
-import { spaceKnowledgeQueryKeys } from "./query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "./query-options";
 import { listRelatedContent } from "./related-content";
 
 export function useRelatedContent(
@@ -32,7 +32,9 @@ export function useRelatedContent(
       const unsubscribe = subscribeKnowledgeIndexStatus(id, (status) => {
         indexStatus.value = status;
         if (status === "ready") {
-          void queryClient.invalidateQueries({ queryKey: [...spaceKnowledgeQueryKeys.space(id), "related"] });
+          void queryClient.invalidateQueries({
+            queryKey: [...SPACE_KNOWLEDGE_QUERY_KEYS.space(id), "related"],
+          });
         }
       });
       onCleanup(unsubscribe);
@@ -44,7 +46,7 @@ export function useRelatedContent(
       const space = toValue(spaceId);
       const node = toValue(nodeId);
       return {
-        queryKey: spaceKnowledgeQueryKeys.related(space ?? "none", node),
+        queryKey: SPACE_KNOWLEDGE_QUERY_KEYS.related(space ?? "none", node),
         queryFn: () => listRelatedContent(space!, node),
         enabled: Boolean(space && node),
         staleTime: 30_000,

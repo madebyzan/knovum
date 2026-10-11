@@ -12,7 +12,7 @@ import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
 import { findGroundedCitation } from "../knowledge/model/grounded-citation";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { useSpaceStore as useStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings } from "./tiptap-outline";
@@ -22,7 +22,7 @@ import { createTiptapTextStatistics } from "./tiptap-text-statistics";
 import { useHeadingNavigation } from "./use-heading-navigation";
 
 export function useSpaceTiptapEditor() {
-  const store = useStore();
+  const store = useSpaceStore();
   const { editorLocateRequest, focusedEditorId, nodes } = storeToRefs(store);
   const { t } = useI18n();
   const dock = useContextDock();

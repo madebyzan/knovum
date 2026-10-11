@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 
 import { canvasChromeMetrics } from "../canvas/canvas-chrome-metrics";
 import { canvasSelectionGap } from "../presentation/canvas/canvas-selection-gap";
@@ -16,6 +16,7 @@ describe("container selection chrome", () => {
       kind: "actions",
       gap: canvasSelectionGap(undefined, true),
     });
+    assert.isDefined(placement);
     expect(placement.side).toBe("above");
     const group = canvasChromeMetrics(zoom).group;
     const hitAreaTop = 300 - (group.rotationOffset + group.handleRadius + group.hitStrokeWidth / 2) * zoom;

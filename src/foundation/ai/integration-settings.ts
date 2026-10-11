@@ -8,13 +8,17 @@ import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 import {
   creationLibrarySchema,
-  defaultCreationLibrary,
+  DEFAULT_CREATION_LIBRARY,
   type CreationLibrary,
 } from "./schema/creation-library";
-import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } from "./schema/model-settings";
+import {
+  aiModelSettingsSchema,
+  DEFAULT_AI_MODEL_SETTINGS,
+  type AiModelSettings,
+} from "./schema/model-settings";
 
 const SETTINGS_FILE = "settings.json";
-const settingKeys = { aiModels: "ai.models", creationLibrary: "creation.library" } as const;
+const SETTING_KEYS = { aiModels: "ai.models", creationLibrary: "creation.library" } as const;
 const SETTINGS_SCHEMA_VERSION = 1;
 const settingsStore = new LazyStore(SETTINGS_FILE, { autoSave: false });
 
@@ -47,23 +51,23 @@ function persistSetting<T>(key: string, value: T): Promise<void> {
 }
 
 export function loadAiModelSettings() {
-  return readSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
+  return readSetting(SETTING_KEYS.aiModels, aiModelSettingsSchema, DEFAULT_AI_MODEL_SETTINGS);
 }
 export async function saveAiModelSettings(value: AiModelSettings) {
   const parsed = aiModelSettingsSchema.parse(value);
   await invokeCommand("plugin:ai|validate_model_settings", { settings: parsed });
-  return persistSetting(settingKeys.aiModels, parsed);
+  return persistSetting(SETTING_KEYS.aiModels, parsed);
 }
 export function resetAiModelSettings() {
-  return persistSetting(settingKeys.aiModels, defaultAiModelSettings);
+  return persistSetting(SETTING_KEYS.aiModels, DEFAULT_AI_MODEL_SETTINGS);
 }
 export function loadCreationLibrary() {
-  return readSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+  return readSetting(SETTING_KEYS.creationLibrary, creationLibrarySchema, DEFAULT_CREATION_LIBRARY);
 }
 export async function saveCreationLibrary(value: CreationLibrary) {
   const parsed = creationLibrarySchema.parse(value);
-  return persistSetting(settingKeys.creationLibrary, parsed);
+  return persistSetting(SETTING_KEYS.creationLibrary, parsed);
 }
 export function resetCreationLibrary() {
-  return persistSetting(settingKeys.creationLibrary, defaultCreationLibrary);
+  return persistSetting(SETTING_KEYS.creationLibrary, DEFAULT_CREATION_LIBRARY);
 }

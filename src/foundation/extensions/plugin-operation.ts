@@ -7,7 +7,7 @@ import { i18n } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { useTaskStore } from "../tasks/task-store";
 
-const stageMessageKeys: Record<PluginOperationStage, string> = {
+const STAGE_MESSAGE_KEYS: Record<PluginOperationStage, string> = {
   reading: "extensions.plugins.stages.reading",
   validating: "extensions.plugins.stages.validating",
   committing: "extensions.plugins.stages.committing",
@@ -23,7 +23,7 @@ export async function runPluginOperation<T>(
   const cancel = () => invokeCommand<void>("plugin:extensions|cancel_plugin_operation", { jobId });
   tasks.restoreRunning({ id: jobId, title: i18n.global.t(titleKey), startedAt: Date.now() }, cancel);
   const onStage = new Channel<PluginOperationStage>((stage) => {
-    tasks.indeterminate(jobId, i18n.global.t(stageMessageKeys[stage]));
+    tasks.indeterminate(jobId, i18n.global.t(STAGE_MESSAGE_KEYS[stage]));
     if (stage === "committing") tasks.setCancellation(jobId);
   });
   try {

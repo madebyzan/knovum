@@ -6,7 +6,7 @@ export function spaceEditCommandRecordsHistory(command: SpaceEditCommand) {
 
 export type SpaceEditProjection = "structure" | "session";
 
-const projections: Record<SpaceEditCommand["kind"], SpaceEditProjection> = {
+const PROJECTION_BY_COMMAND_KIND: Record<SpaceEditCommand["kind"], SpaceEditProjection> = {
   "section.create-empty": "structure",
   "section.draw": "structure",
   "section.wrap-selection": "structure",
@@ -34,5 +34,5 @@ const projections: Record<SpaceEditCommand["kind"], SpaceEditProjection> = {
 };
 
 export function spaceEditCommandProjection(command: SpaceEditCommand): SpaceEditProjection {
-  return projections[command.kind];
+  return PROJECTION_BY_COMMAND_KIND[command.kind];
 }

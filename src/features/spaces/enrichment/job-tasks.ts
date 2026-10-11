@@ -7,7 +7,7 @@ import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobSta
 
 export const ENRICHMENT_TASK_PRODUCER = "spaces-enrichment";
 
-const taskStatus: Record<EnrichmentJobState["status"], TaskStatus> = {
+const TASK_STATUS_BY_JOB_STATUS: Record<EnrichmentJobState["status"], TaskStatus> = {
   pending: "queued",
   running: "running",
   awaiting_configuration: "attention",
@@ -25,7 +25,7 @@ export function enrichmentTask(record: EnrichmentJobProjection): AppTask {
   return {
     id: job.id,
     title: enrichmentJobTitle(job.jobType),
-    status: taskStatus[job.status],
+    status: TASK_STATUS_BY_JOB_STATUS[job.status],
     ...(job.error && { statusMessage: job.error }),
     startedAt: job.createdAt,
     scope: { kind: "space", id: job.spaceId, label: record.spaceTitle },
