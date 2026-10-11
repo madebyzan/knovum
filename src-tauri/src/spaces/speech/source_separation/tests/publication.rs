@@ -2,7 +2,6 @@ use super::super::{
     execution::is_publication_for_claim,
     media::SAMPLE_RATE,
     repository::{commit_publication, list_publications_for_source, load_publication},
-    MODEL_SPEC_ID,
 };
 use super::{database, source};
 use crate::{
@@ -12,6 +11,8 @@ use crate::{
 use serde_json::json;
 use std::path::Path;
 use tokio_util::sync::CancellationToken;
+
+const MODEL_SPEC_ID: &str = "spleeter-2stems-fp16-cpu-v1";
 
 #[tokio::test]
 async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_nodes_atomically() {

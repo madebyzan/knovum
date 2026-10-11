@@ -240,11 +240,5 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unresolved_system_language_is_rejected() {
-        assert!(labels(LocalePreference::System).is_err());
-    }
-}
+#[path = "tests/locale.rs"]
+mod tests;

@@ -75,11 +75,6 @@ pub(super) fn parse_cancellable(
     })
 }
 
-#[cfg(test)]
-pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, crate::app_error::AppError> {
-    parse_cancellable(manifest, &CancellationToken::new())
-}
-
 fn collect_speech_assets(
     value: &Value,
     used_tokens: &mut HashSet<String>,

@@ -189,15 +189,6 @@ pub(super) fn prepare_cancellable(
     serde_json::from_value(value).map_err(|e| format!("Invalid Space restore contract: {e}").into())
 }
 
-#[cfg(test)]
-pub(super) fn prepare(
-    source: &str,
-    assets: &[ImportedPackageAsset],
-    target_space: &str,
-) -> Result<RestorePackageRequest, crate::app_error::AppError> {
-    prepare_cancellable(source, assets, target_space, &CancellationToken::new())
-}
-
 impl IdMaps {
     fn id(&self, collection: &str, source: &str) -> Result<String, String> {
         self.entities

@@ -1,5 +1,11 @@
 use super::*;
 
+pub(crate) fn begin_test_job(operation_id: &str) -> Result<JobLease<CancellationToken>, String> {
+    begin(operation_id)
+        .map(|(_, lease)| lease)
+        .map_err(|error| error.message)
+}
+
 #[test]
 fn operation_ids_require_canonical_bounded_uuids() {
     for invalid in [

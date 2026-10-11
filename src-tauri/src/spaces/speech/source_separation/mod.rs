@@ -12,8 +12,6 @@ pub use contracts::{SpeechSourceSeparationPublication, StartSpeechSourceSeparati
 pub(crate) use execution::execute;
 pub(super) use media::cleanup_stale_workspaces;
 
-#[cfg(test)]
-pub(crate) const MODEL_SPEC_ID: &str = "spleeter-2stems-fp16-cpu-v1";
 pub(super) const WORKFLOW: &str = "speech_source_separation_v1";
 
 #[derive(serde::Deserialize, serde::Serialize)]
