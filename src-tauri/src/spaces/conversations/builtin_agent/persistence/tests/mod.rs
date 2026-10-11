@@ -80,7 +80,7 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
             ids: &ids,
             grant: &grant,
             catalog: &catalog,
-            extensions: &serde_json::from_value(json!({"id":"snapshot","digest":"digest","skills":[],"files":[],"skillToolBindings":{},"connectors":[],"connections":[],"accounts":[],"catalogs":{},"tools":[]})).unwrap(),
+            extensions: &serde_json::from_value(json!({"plugins":[],"id":"snapshot","digest":"digest","skills":[],"files":[],"skillToolBindings":{},"connectors":[],"connections":[],"accounts":[],"catalogs":{},"tools":[]})).unwrap(),
             context_manifest: &attachments,
             space_context: &space,
             attachment_summaries: &[],

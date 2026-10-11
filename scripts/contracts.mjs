@@ -7,10 +7,9 @@ export const generatedContractOutputs = [
   "src/features/spaces/contracts/generated",
   "src/features/settings/contracts/generated",
   "src/features/dictation/contracts/generated",
-  "python/schemas",
-  "python/src/knovum_inference/contracts/generated",
+  "python/schemas/agent_runtime.schema.json",
+  "src-tauri/crates/inference-contracts/inference.schema.json",
   "python/src/knovum_agent_runtime/contracts",
-  "python/src/knovum_model_resources/contracts.py",
 ];
 
 export function generateContracts() {

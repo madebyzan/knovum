@@ -155,14 +155,14 @@ fn packaged_services_require_exactly_one_binding_and_cannot_be_selected_directly
     };
     let skills = [skill("research"), skill("delivery")];
     assert_eq!(
-        require_package(&plugin, &skills, &[connector.clone()], &[]).unwrap_err(),
+        require_package(&plugin, &skills, std::slice::from_ref(&connector), &[]).unwrap_err(),
         "plugin-connection-missing"
     );
     assert_eq!(
         require_package(
             &plugin,
             &skills,
-            &[connector.clone()],
+            std::slice::from_ref(&connector),
             &[connection.clone(), connection.clone()]
         )
         .unwrap_err(),
@@ -172,8 +172,8 @@ fn packaged_services_require_exactly_one_binding_and_cannot_be_selected_directly
         &selection(),
         &[plugin.clone()],
         &skills,
-        &[connector.clone()],
-        &[connection.clone()],
+        std::slice::from_ref(&connector),
+        std::slice::from_ref(&connection),
     )
     .unwrap();
     assert_eq!(resolved.connections[0].connection_id, connection.id);

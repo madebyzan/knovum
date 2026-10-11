@@ -1,5 +1,7 @@
 use super::*;
 
+mod embedding;
+
 fn profile(device: &str, id: &str, threads: u8) -> RuntimeDeviceProfile {
     RuntimeDeviceProfile {
         device: device.into(),
@@ -13,47 +15,51 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-v1", 4),
+            profile("cpu", "cpu-f32-threads4-native-v2", 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("mps", "mps-f32-threads4-v1", 4),
+            profile("mps", "mps-f32-threads4-native-v2", 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cuda", "cuda-f32-threads2-v1", 2),
+            profile("cpu", "cpu-f32-threads2-native-v2", 2),
             4,
         ),
         (
             RuntimeCapability::ImageSegmentation,
-            profile("cpu", "cpu-f32-threads2-v1", 2),
+            profile("cpu", "cpu-f32-threads2-native-v2", 2),
             1,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("mps", "mlx-whisper-small-mps-v1", 4),
+            profile("mps", "whisper-small-mps-q8_0-native-v2", 4),
             3,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("cpu", "faster-whisper-small-cpu-int8-v1", 4),
+            profile("cpu", "whisper-small-cpu-q8_0-native-v2", 4),
             3,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("cpu", "qwen3-forced-aligner-0.6b-hf-cpu-v1", 4),
+            profile("cpu", "qwen3-forced-aligner-0.6b-f16-cpu-native-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("mps", "qwen3-forced-aligner-0.6b-hf-mps-v1", 4),
+            profile("mps", "qwen3-forced-aligner-0.6b-f16-mps-native-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("cuda", "qwen3-forced-aligner-0.6b-hf-cuda-v1", 4),
+            profile(
+                "vulkan",
+                "qwen3-forced-aligner-0.6b-f16-vulkan-native-v2",
+                4,
+            ),
             6,
         ),
         (
@@ -98,7 +104,7 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
         ),
         (
             RuntimeCapability::SpeechSynthesis,
-            profile("cpu", "moss-nano-cpu-f32-threads1-v1", 1),
+            profile("cpu", "moss-nano-cpu-f32-threads1-native-v2", 1),
             2,
         ),
     ];
@@ -117,15 +123,15 @@ fn profile_manifest_rejects_device_thread_and_capability_mismatches() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("mps", "cpu-f32-threads4-v1", 4),
+            profile("mps", "cpu-f32-threads4-native-v2", 4),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-v1", 3),
+            profile("cpu", "cpu-f32-threads4-native-v2", 3),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads5-v1", 5),
+            profile("cpu", "cpu-f32-threads5-native-v2", 5),
         ),
         (
             RuntimeCapability::SpeechAlignment,
@@ -155,17 +161,20 @@ fn inference_budget_preserves_system_memory_and_caps_inference_share() {
 #[test]
 fn alignment_model_profiles_reject_unqualified_devices_before_execution() {
     use crate::local_resources::model_catalog::LocalModelId as M;
-    for device in ["cpu", "mps", "cuda", "vulkan"] {
-        let id = super::alignment::execution_id(M::Qwen3AlignerQ8, device).unwrap();
-        let value = profile(device, &id, 2);
-        assert_eq!(
-            super::memory_requirement(RuntimeCapability::SpeechAlignment, &value)
-                .unwrap()
-                .peak_bytes(),
-            6 * super::GIB
-        );
+    for model in [M::Qwen3Aligner, M::Qwen3AlignerQ8] {
+        for device in ["cpu", "mps", "vulkan"] {
+            let id = super::alignment::execution_id(model, device).unwrap();
+            assert!(id.ends_with("-native-v2"));
+            let value = profile(device, &id, 2);
+            assert_eq!(
+                super::memory_requirement(RuntimeCapability::SpeechAlignment, &value)
+                    .unwrap()
+                    .peak_bytes(),
+                6 * super::GIB
+            );
+        }
     }
-    assert!(super::alignment::execution_id(M::Qwen3Aligner, "vulkan").is_err());
+    assert!(super::alignment::execution_id(M::Qwen3Aligner, "cuda").is_err());
     assert!(super::alignment::execution_id(M::Qwen3AlignerQ8, "invalid").is_err());
     assert!(super::alignment::execution_id(M::MossNano, "cpu").is_err());
 }

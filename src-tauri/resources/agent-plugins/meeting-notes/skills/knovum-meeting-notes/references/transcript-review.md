@@ -1,4 +1,5 @@
 # Transcript review
+
 Read when the transcript is ambiguous, speaker attribution matters, or actions must be extracted.
 
 Keep the original timestamp interval and source revision for decisions and actions. Use the transcript's explicit speaker labels; a guess at a person's identity must never become an owner. Unclear speech stays unclear. Summaries should not turn a proposal into agreement or a discussed date into a deadline.

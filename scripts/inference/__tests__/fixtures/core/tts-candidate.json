@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "bundled_worker",
+    "method": "speech.synthesize",
+    "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "modelSpecId": "tts-model",
+    "configId": "tts-profile",
+    "invocations": [
+      {
+        "requestId": "unit-fixture",
+        "attemptEpoch": 1,
+        "startedAt": "2026-10-03T12:00:00Z",
+        "finishedAt": "2026-10-03T12:01:00Z"
+      }
+    ]
+  },
+  "values": {
+    "artifacts": [
+      {
+        "sampleId": "tts-0",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-1",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-2",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-3",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-4",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-5",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-6",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-7",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-8",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-9",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-10",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-11",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-12",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-13",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-14",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-15",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-16",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-17",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-18",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-19",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-20",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-21",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-22",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-23",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-24",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-25",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-26",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-27",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-28",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      },
+      {
+        "sampleId": "tts-29",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        }
+      }
+    ]
+  }
+}

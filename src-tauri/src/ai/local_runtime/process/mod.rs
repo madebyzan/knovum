@@ -1,8 +1,10 @@
 mod diagnostics;
+mod environment;
+mod package;
+pub(super) use environment::isolate_environment;
 mod request;
 mod startup;
 use crate::subprocess::process_tree::{KillHandle, ProcessTree};
-pub(super) use startup::verify_runtime_for_spawn;
 use std::{
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
@@ -23,7 +25,7 @@ pub(super) struct Worker {
     process_tree: ProcessTree,
     memory_reservation: Option<super::admission::MemoryReservation>,
     _kill_registration: KillRegistration,
-    _runtime_lease: Option<std::sync::Arc<crate::local_resources::runtimes::python::RuntimeLease>>,
+    _runtime_lease: Option<std::sync::Arc<crate::local_resources::runtimes::RuntimeLease>>,
     pub(super) protocol: Protocol,
     pub(super) session_id: String,
     pub(super) runtime_digest: String,

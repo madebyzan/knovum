@@ -1,4 +1,5 @@
 # Retrieval practice
+
 Read when creating questions or a review plan.
 
 A useful learning objective states what the learner can explain, distinguish or apply. Make each question test one objective. Open recall should come before answer options; plausible distractors must represent meaningful distinctions, never arbitrary trivia. Include application questions only when the source supports the situation and answer.

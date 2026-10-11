@@ -11,7 +11,7 @@ import {
   validateCompiledBinaryInventory,
   validateMediaProducer,
 } from "./media-runtime-content.mjs";
-import { producerBytes, recipeBytes, runtimeTargets } from "./profiles.mjs";
+import { recipeBytes, runtimeTargets } from "./profiles.mjs";
 import { validateRuntimeSigning } from "./provenance.mjs";
 
 export const mediaManifestName = "media-manifest.json";
@@ -27,7 +27,6 @@ export function mediaSource(repository, target) {
   );
   const source = configuration.targets[target];
   if (!source) throw new Error(`Unsupported media target: ${target}`);
-  const runtime = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
   const licenseReview = validateMediaLicenseReview(repository, target, { requireApproved: false });
   return {
     schemaVersion: configuration.schemaVersion,
@@ -37,15 +36,13 @@ export function mediaSource(repository, target) {
     sourceOffer: configuration.sourceOffer,
     source,
     licenseReviewSha256: licenseReview.sha256,
-    uvVersion: runtime.uvVersion,
-    uv: runtime.uv.targets[target],
   };
 }
 
-function mediaRecipeIdentity(repository, target) {
+export function mediaRecipeIdentity(repository, target) {
   return createHash("sha256")
     .update(recipeBytes(mediaSource(repository, target)))
-    .update(producerBytes(repository, "media"))
+    .update(mediaProducerBytes(repository))
     .digest("hex");
 }
 
@@ -170,24 +167,17 @@ function validateFileContent(directory, file, executable, target) {
   }
 }
 
-export function validateMediaDescriptor(repository, descriptor, target) {
-  const expected = {
-    schemaVersion: 1,
-    runtimeId: "ffmpeg",
-    target,
-    version: mediaSource(repository, target).version,
-    sourceSha256: mediaSource(repository, target).source.sha256,
-    licenseReviewSha256: mediaSource(repository, target).licenseReviewSha256,
-  };
-  if (
-    !exactKeys(descriptor, [...Object.keys(expected), "archiveUrl", "size", "sha256", "manifestSha256"]) ||
-    Object.entries(expected).some(([key, value]) => descriptor[key] !== value) ||
-    !validSize(descriptor.size) ||
-    descriptor.size === 0 ||
-    [descriptor.sha256, descriptor.manifestSha256].some((hash) => !/^[a-f0-9]{64}$/u.test(hash ?? ""))
-  )
-    throw new Error("Invalid core media publication descriptor");
-  const url = new URL(descriptor.archiveUrl);
-  if (url.protocol !== "https:" || url.username || url.password || url.hash)
-    throw new Error("Invalid core media archive URL");
+function mediaProducerBytes(repository) {
+  const configuration = JSON.parse(
+    readFileSync(join(repository, "scripts/runtime/media-source.json"), "utf8"),
+  );
+  return Buffer.concat(
+    configuration.producerSources
+      .toSorted()
+      .flatMap((name) => [
+        Buffer.from(`${name}\0`),
+        readFileSync(join(repository, "scripts/runtime", name)),
+        Buffer.from("\0"),
+      ]),
+  );
 }

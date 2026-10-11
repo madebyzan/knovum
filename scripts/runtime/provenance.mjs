@@ -35,12 +35,6 @@ export function validateRuntimeProvenance(directory, manifest, dependencyLock) {
     JSON.stringify(producer.condaSupplier)
   )
     throw new Error("Conda package inventory differs from the producer receipt");
-  if (manifest.profile === "light-inference") {
-    validateCompiledSources(evidence, dependencyLock);
-  }
-  if (manifest.profile === "voice-generation") {
-    validateVoxCpm(producer.voxcpm, evidence, configuration.voiceLibrary, repository);
-  }
 }
 
 function validateProducerIdentity(record, manifest, configuration) {
@@ -83,57 +77,15 @@ export function validateRuntimeSigning(signing, target, ErrorType = Error) {
     throw new ErrorType("Runtime producer signing record is invalid");
 }
 
-function validateEvidenceFiles(evidence, profile) {
+function validateEvidenceFiles(evidence) {
   for (const name of [
     "producer.json",
     "conda-packages.json",
     "dependency-evidence.json",
     "sbom.cdx.json",
     "requirements.txt",
-    ...(profile === "voice-generation"
-      ? ["audio-cpp-source.tar.gz", "voice_bridge.cpp", "voice_bridge.cmake"]
-      : []),
-    ...(profile === "light-inference" ? ["compiled-source-evidence.json"] : []),
   ]) {
     const file = join(evidence, name);
     if (!lstatSync(file).isFile()) throw new Error(`Runtime build evidence is missing: ${file}`);
-  }
-}
-
-function validateCompiledSources(evidence, dependencyLock) {
-  const policy = join(dirname(dependencyLock), "../../compiled-source-evidence.json");
-  if (sha256File(join(evidence, "compiled-source-evidence.json")) !== sha256File(policy))
-    throw new Error("Compiled source review evidence differs from the application");
-  const compiledSources = JSON.parse(readFileSync(policy, "utf8"));
-  for (const source of compiledSources.sources) {
-    const path = join(evidence, "compiled-sources", source.fileName);
-    if (sha256File(path) !== source.sha256 || lstatSync(path).size !== source.size)
-      throw new Error(`Compiled source archive differs: ${source.name}`);
-  }
-}
-
-function validateVoxCpm(voiceReceipt, evidence, configuration, repository) {
-  const expected = {
-    name: "audio.cpp",
-    version: configuration.revision,
-    cmakeVersion: configuration.cmakeVersion,
-    portableCpu: true,
-    license: configuration.license,
-    sourceSha256: configuration.source.sha256,
-  };
-  if (
-    Object.entries(expected).some(([key, value]) => voiceReceipt?.[key] !== value) ||
-    sha256File(join(evidence, "audio-cpp-source.tar.gz")) !== configuration.source.sha256
-  )
-    throw new Error("VoxCPM compiled source identity differs from the frozen supplier");
-  for (const [file, key] of [
-    ["voice_bridge.cpp", "bridgeSha256"],
-    ["voice_bridge.cmake", "recipeSha256"],
-  ]) {
-    if (
-      sha256File(join(evidence, file)) !== voiceReceipt[key] ||
-      sha256File(join(repository, "scripts/runtime", file)) !== voiceReceipt[key]
-    )
-      throw new Error(`VoxCPM compiled adapter identity differs: ${file}`);
   }
 }

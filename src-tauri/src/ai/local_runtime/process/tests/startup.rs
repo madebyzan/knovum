@@ -1,16 +1,13 @@
 use super::*;
 use crate::ai::contracts::runtime::{RuntimeInitializeParams, RuntimeModelPaths, PROTOCOL_VERSION};
-use crate::local_resources::runtimes::python::{PythonRuntimePaths, RuntimeProfile};
+use crate::local_resources::runtimes::native::NativeRuntimePaths;
 
 #[tokio::test]
-async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creation() {
+async fn missing_native_runtime_is_rejected_before_admission_or_workspace_creation() {
     let directory = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
-    let runtime = PythonRuntimePaths {
-        profile: RuntimeProfile::Resources,
+    let runtime = NativeRuntimePaths {
         manifest_path: directory.join("runtime-manifest.json"),
-        executable: directory.join("python"),
-        package_root: directory.join("packages"),
-        worker_root: directory.join("worker"),
+        executable: directory.join("knovum-inference-worker"),
         digest: "a".repeat(64),
         lease: None,
     };
@@ -23,7 +20,7 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
         capability_spec_id: "qwen3-embedding-0.6b".into(),
         device_profile: RuntimeDeviceProfile {
             device: "cpu".into(),
-            execution_profile_id: "cpu-f32-threads4-v1".into(),
+            execution_profile_id: "cpu-f32-threads4-native-v2".into(),
             cpu_threads: 4,
         },
         work_directory: directory.to_string_lossy().into_owned(),
@@ -39,7 +36,7 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
         },
     };
     let startup = Worker::start(
-        &runtime,
+        (&runtime).into(),
         &directory,
         &directory.join("model"),
         params,
@@ -48,8 +45,6 @@ async fn wrong_runtime_package_is_rejected_before_admission_or_workspace_creatio
         &CancellationToken::new(),
     )
     .await;
-    assert!(
-        matches!(startup, Err(error) if error == "runtime_mismatch: worker package does not own the execution profile")
-    );
+    assert!(matches!(startup, Err(error) if error.starts_with("runtime_missing:")));
     assert!(!directory.exists());
 }

@@ -58,7 +58,7 @@ pub(crate) async fn install<R: Runtime>(
     let staging = parent.join(format!(".{}.downloading", snapshot.digest()));
     fs::create_dir_all(&staging).map_err(|error| error.to_string())?;
     filesystem::verify_regular_directory(&staging)?;
-    download::snapshot(app, snapshot, &staging, progress, cancellation).await?;
+    download::snapshot(snapshot, &staging, progress, cancellation).await?;
     progress(update(snapshot, ResourcePreparationStage::Verifying));
     let verify_path = staging.clone();
     let verify_cancellation = cancellation.clone();

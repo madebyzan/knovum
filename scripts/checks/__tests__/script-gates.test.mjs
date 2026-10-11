@@ -29,8 +29,8 @@ test("one script gate discovers new owned unit tests and excludes integration/fi
 
 test("contract drift gate includes model constraints, Python models and all TS owners", () => {
   for (const path of [
-    "python/schemas",
-    "python/src/knovum_model_resources/contracts.py",
+    "python/schemas/agent_runtime.schema.json",
+    "src-tauri/crates/inference-contracts/inference.schema.json",
     "python/src/knovum_agent_runtime/contracts",
     "src/features/dictation/contracts/generated",
     "src/features/spaces/contracts/generated",

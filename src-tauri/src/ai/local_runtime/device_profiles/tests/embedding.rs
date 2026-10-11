@@ -1,13 +1,17 @@
 use super::*;
 
 #[test]
-fn available_gpu_precedes_cpu() {
-    for (cuda, mps, expected) in [
-        (true, true, "cuda"),
-        (true, false, "cuda"),
-        (false, true, "mps"),
-        (false, false, "cpu"),
-    ] {
-        assert_eq!(Backends { cuda, mps }.preferred_device(), expected);
-    }
+fn embedding_profile_matches_compiled_backend() {
+    let profile = super::super::embedding::profile().unwrap();
+    let device = if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
+        "mps"
+    } else {
+        "cpu"
+    };
+    assert_eq!(profile.device, device);
+    assert_eq!(
+        profile.execution_profile_id,
+        format!("{device}-f32-threads{}-native-v2", profile.cpu_threads)
+    );
+    assert!(memory_requirement(RuntimeCapability::Embedding, &profile).is_ok());
 }

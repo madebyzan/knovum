@@ -7,6 +7,8 @@ import { useVideoEditLeave } from "../presentation/video-editor/use-video-edit-l
 import { useSpeechProjectLeave } from "../speech/use-speech-project-leave";
 import { flushSpaceSessionContent } from "../workspace/session-participants";
 
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+
 describe("editor leave protection", () => {
   it("rejects the Space leave when a dirty video editor cancels", async () => {
     const discard = vi.fn<() => void>();

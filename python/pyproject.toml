@@ -5,52 +5,26 @@ build-backend = "hatchling.build"
 [project]
 name = "knovum-python"
 version = "0.1.0"
-description = "Application-owned Python capabilities for Knovum"
+description = "Retained Deep Agent worker and its build tooling"
 requires-python = "==3.11.17"
 dependencies = []
 
-[project.scripts]
-knovum-model-resources = "knovum_model_resources.server:main"
-knovum-inference = "knovum_inference.server:main"
-
 [dependency-groups]
-runtime-build = ["setuptools==84.0.0", "wheel==0.48.0", "setuptools-scm==10.3.4"]
-publication = ["cmake==4.3.4", "cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
-acceptance = ["jiwer==4.0.0", "numpy==2.4.6", "pydantic==2.13.5"]
+publication = ["cyclonedx-python-lib[json-validation]==11.12.0", "packageurl-python==0.17.6"]
 contracts = ["datamodel-code-generator==0.83.0"]
-quality = [
-  "huggingface-hub==1.33.0",
-  "modelscope-hub==0.4.5",
-  "tqdm==4.70.1",
-  "mypy==2.4.0",
-  "numpy==2.4.6",
-  "pydantic==2.13.5",
-  "pytest==9.1.1",
-  "ruff==0.16.10",
-]
+quality = ["mypy==2.4.0", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
 
 [tool.ruff]
 target-version = "py311"
 line-length = 120
 src = ["src"]
-extend-exclude = [
-  "**/knovum_inference/contracts/generated",
-  "**/knovum_agent_runtime/contracts/generated",
-  "**/knovum_model_resources/contracts.py",
-]
+extend-exclude = ["**/knovum_agent_runtime/contracts/generated"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = [
-  "knovum_inference",
-  "knovum_agent_runtime",
-  "knovum_model_resources",
-  "acceptance",
-  "runtime",
-  "generate_python_contracts",
-]
+known-first-party = ["knovum_agent_runtime", "runtime", "generate_python_contracts"]
 
 [tool.mypy]
 python_version = "3.11"

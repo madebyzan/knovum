@@ -21,6 +21,8 @@ export function validatePackagedResources(resources, repository, target) {
   const payload = join(resources, "python-worker");
   const expected = listRuntimeFiles(source).filter((path) => path.endsWith(".py"));
   const actual = listRuntimeFiles(payload);
+  if (expected.some((path) => !path.startsWith("knovum_agent_runtime/")))
+    throw new Error("Python Worker ownership is restricted to Agent");
   if (
     actual.length !== expected.length ||
     expected.some((path) => sha256File(join(payload, path)) !== sha256File(join(source, path)))
@@ -31,12 +33,13 @@ export function validatePackagedResources(resources, repository, target) {
     files.some(
       (path) =>
         path.includes("python-runtime/") ||
-        path.endsWith("runtime-manifest.json") ||
+        path.endsWith("/runtime-manifest.json") ||
+        path === "runtime-manifest.json" ||
         /(?:^|\/)python(?:3(?:\.11)?|\.exe)?$/u.test(path),
     )
   )
     throw new Error("Desktop package must exclude the third-party Python runtime");
-  const worker = join(payload, "knovum_inference");
+  const worker = join(payload, "knovum_agent_runtime");
   return { worker, workerDigest: workerDigest(payload) };
 }
 

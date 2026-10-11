@@ -1,4 +1,5 @@
 {
+  "identifier": "com.zand.knovum.e2e",
   "build": {
     "beforeBuildCommand": ""
   },

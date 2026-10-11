@@ -1,3 +1,4 @@
+use crate::local_resources::models::catalog::ImageModelCatalog;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -8,8 +9,6 @@ pub(crate) enum SnapshotKind {
     Image(catalog::ImageModelVariant),
     Diarization(catalog::DiarizationVariant),
     Whisper(catalog::WhisperVariant),
-    FasterWhisper,
-    MlxWhisper,
     ImageSegmentation,
     ImageSegmentationQuality,
     TextEmbedding,
@@ -30,47 +29,21 @@ pub(crate) struct SnapshotFile {
 }
 
 impl SnapshotKind {
-    pub(crate) fn runtime_profile(
-        self,
-    ) -> crate::local_resources::runtimes::python::RuntimeProfile {
-        use crate::local_resources::runtimes::python::RuntimeProfile as P;
-        match self {
-            Self::Whisper(
-                catalog::WhisperVariant::FasterTiny | catalog::WhisperVariant::FasterLargeV3,
-            ) => faster_whisper_runtime(),
-            Self::Whisper(
-                catalog::WhisperVariant::MlxTiny | catalog::WhisperVariant::MlxLargeV3,
-            ) => P::TorchInference,
-            Self::FasterWhisper => faster_whisper_runtime(),
-            Self::Image(_)
-            | Self::MossNano
-            | Self::ImageSegmentation
-            | Self::ImageSegmentationQuality
-            | Self::SpeechSeparation
-            | Self::SpeechSeparationFull
-            | Self::Diarization(_) => P::LightInference,
-            Self::MlxWhisper | Self::TextEmbedding | Self::SpeechAlignment => P::TorchInference,
-            Self::VoxCpm2 | Self::VoxCpm2Q8 | Self::SpeechAlignmentQ8 => P::VoiceGeneration,
-        }
-    }
     pub(crate) const fn name(self) -> &'static str {
         match self {
             Self::Image(variant) => variant.name(),
             Self::Whisper(variant) => match variant {
-                catalog::WhisperVariant::FasterTiny => "faster-whisper-tiny",
-                catalog::WhisperVariant::FasterLargeV3 => "faster-whisper-large-v3",
-                catalog::WhisperVariant::MlxTiny => "mlx-whisper-tiny",
-                catalog::WhisperVariant::MlxLargeV3 => "mlx-whisper-large-v3",
+                catalog::WhisperVariant::Tiny => "whisper-tiny-q8-native",
+                catalog::WhisperVariant::Small => "whisper-small-q8-native",
+                catalog::WhisperVariant::LargeV3 => "whisper-large-v3-f16-native",
             },
-            Self::FasterWhisper => "faster-whisper-small",
-            Self::MlxWhisper => "mlx-whisper-small",
             Self::ImageSegmentation => "u2netp",
             Self::ImageSegmentationQuality => "u2net",
             Self::TextEmbedding => "qwen3-embedding",
             Self::MossNano => "moss-tts-nano",
             Self::VoxCpm2 => "voxcpm2",
             Self::VoxCpm2Q8 => "voxcpm2-q8_0",
-            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-hf",
+            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-f16-native",
             Self::SpeechAlignmentQ8 => "qwen3-forced-aligner-0.6b-q8_0",
             Self::SpeechSeparation => "spleeter-2stems-fp16",
             Self::SpeechSeparationFull => "spleeter-2stems-fp32",
@@ -78,12 +51,10 @@ impl SnapshotKind {
         }
     }
 
-    pub(crate) const fn models(self) -> &'static [ModelKind] {
+    pub(crate) fn models(self) -> &'static [ModelKind] {
         match self {
             Self::Image(variant) => variant.models(),
             Self::Whisper(variant) => variant.models(),
-            Self::FasterWhisper => catalog::FASTER_WHISPER_MODELS,
-            Self::MlxWhisper => catalog::MLX_WHISPER_MODELS,
             Self::ImageSegmentation => catalog::IMAGE_SEGMENTATION_MODELS,
             Self::ImageSegmentationQuality => catalog::IMAGE_SEGMENTATION_QUALITY_MODELS,
             Self::TextEmbedding => catalog::TEXT_EMBEDDING_MODELS,
@@ -146,14 +117,5 @@ impl SnapshotKind {
             digest.update(file.size.to_le_bytes());
         }
         hex::encode(digest.finalize())
-    }
-}
-
-fn faster_whisper_runtime() -> crate::local_resources::runtimes::python::RuntimeProfile {
-    use crate::local_resources::runtimes::python::RuntimeProfile as P;
-    if cfg!(target_os = "windows") {
-        P::TorchInference
-    } else {
-        P::LightInference
     }
 }

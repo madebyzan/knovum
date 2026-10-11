@@ -1,0 +1,51 @@
+{
+  "revision": "11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf",
+  "version": "1.13.8",
+  "license": "Apache-2.0",
+  "source": {
+    "name": "sherpa-onnx",
+    "declaredLicense": "Apache-2.0",
+    "url": "https://github.com/k2-fsa/sherpa-onnx/archive/11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf.zip",
+    "size": 15973229,
+    "sha256": "1e546178d875fae6e74ffd9aa15a13546b9a4a13d0c90c60524ca5022a113edf",
+    "fileName": "sherpa-onnx.zip"
+  },
+  "headers": [
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.1/include/onnxruntime/core/session/onnxruntime_c_api.h",
+      "fileName": "onnxruntime_c_api.h",
+      "size": 275409,
+      "sha256": "d683537d0fdc29e977b5520f7f15d87a0ac212ae6d94fa9be8893a52655621ae"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.1/include/onnxruntime/core/session/onnxruntime_cxx_api.h",
+      "fileName": "onnxruntime_cxx_api.h",
+      "size": 128360,
+      "sha256": "28b21dfc371fb53d1ba67356adeb124f36643ee5ab6f1ad2e9afbf09eb4bf305"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.1/include/onnxruntime/core/session/onnxruntime_cxx_inline.h",
+      "fileName": "onnxruntime_cxx_inline.h",
+      "size": 104233,
+      "sha256": "c41b9a11aac46851f68f4bd888bb2444a0e1eb6b37eadb41bf15f5154b48ea31"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.1/include/onnxruntime/core/session/onnxruntime_float16.h",
+      "fileName": "onnxruntime_float16.h",
+      "size": 17860,
+      "sha256": "6c4db3d1954b266c4febe413351af86cac922e3448538e7e452e51d646e56a4a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.1/include/onnxruntime/core/providers/coreml/coreml_provider_factory.h",
+      "fileName": "coreml_provider_factory.h",
+      "size": 5247,
+      "sha256": "d6430c47d2b076d4a40ba6523e78d75cc4c4b0e5604fb280168891331b057ade"
+    }
+  ],
+  "windowsImportLibrary": {
+    "url": "https://github.com/microsoft/onnxruntime/releases/download/v1.22.1/onnxruntime-win-x64-1.22.1.zip",
+    "size": 73731806,
+    "sha256": "855276cd4be3cda14fe636c69eb038d75bf5bcd552bda1193a5d79c51f436dfe",
+    "fileName": "ort-windows.zip"
+  }
+}

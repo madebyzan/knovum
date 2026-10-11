@@ -23,7 +23,7 @@ function fixture(context) {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-manifest-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   const scriptDirectory = join(root, "scripts", "runtime");
-  const python = join(root, "python/runtimes/resources");
+  const python = join(root, "python/runtimes/agent");
   const runtime = join(root, "runtime");
   mkdirSync(scriptDirectory, { recursive: true });
   mkdirSync(python, { recursive: true });
@@ -41,7 +41,7 @@ function fixture(context) {
   writeFileSync(
     join(root, "python/runtime-source.json"),
     JSON.stringify({
-      condaSupplier: { profiles: { resources: "base" } },
+      condaSupplier: { profiles: { agent: "base" } },
     }),
   );
   mkdirSync(join(root, "python/conda-locks/base"), { recursive: true });
@@ -64,7 +64,7 @@ function fixture(context) {
           "--directory",
           runtime,
           "--profile",
-          "resources",
+          "agent",
         ],
         { encoding: "utf8" },
       ),

@@ -1,4 +1,4 @@
-use crate::local_resources::runtimes::python;
+use crate::local_resources::runtimes::native;
 use worker_start::{start_worker, WorkerStart};
 mod worker_start;
 use std::{
@@ -70,8 +70,7 @@ where
     let deadline = super::super::deadline_duration(identity.deadline_ms)?;
     let exit = super::super::exit_token();
     let capability = params.capability();
-    let profile = super::super::runtime_profile::for_execution(capability, &device_profile)?;
-    let runtime = python::resolve(app, profile)?.ok_or("runtime_missing")?;
+    let runtime = native::resolve(app)?;
     super::super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(
             &runtime.digest,

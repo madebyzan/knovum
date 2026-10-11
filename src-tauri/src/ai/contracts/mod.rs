@@ -1,16 +1,16 @@
 pub mod chat;
-pub mod diagnostics;
+pub use knovum_inference_contracts::diagnostics;
 pub mod embedding;
 pub mod embedding_wire;
 pub mod external_agent;
 pub mod files;
-pub mod image_compute;
+pub use knovum_inference_contracts::image_compute;
 pub mod image_wire;
 pub mod media;
 pub mod model_turn;
 pub mod provider;
-pub mod runtime;
-pub mod speech_wire;
+pub use knovum_inference_contracts::runtime;
+pub use knovum_inference_contracts::speech_wire;
 
 pub use external_agent::{
     AgentArtifact, AgentArtifactKind, ExternalAgentConnectionKind, ExternalAgentDescriptor,

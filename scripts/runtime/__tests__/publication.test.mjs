@@ -71,15 +71,14 @@ test("publication binds every target and profile to its actual archive", (contex
   }
   writePublication(directory, baseUrl);
   const published = JSON.parse(readFileSync(join(directory, "runtime-publication.json"), "utf8"));
-  assert.equal(published.entries.length, 18);
-  assert.equal(publicationSources(published, "macos-arm64", "voice-generation").length, 3);
-  assert.equal(publicationSources(published, "macos-arm64", "light-inference").length, 5);
+  assert.equal(published.entries.length, 6);
+  assert.equal(publicationSources(published, "macos-arm64", "agent").length, 3);
   assert.equal(publicationSources(published, "windows-x64", "core-media").length, 2);
   const incomplete = {
     ...published,
     entries: published.entries.filter((entry) => entry.profile !== "core-media"),
   };
-  assert.throws(() => publicationSources(incomplete, "macos-arm64", "light-inference"), /core-media/u);
+  assert.equal(publicationSources(incomplete, "macos-arm64", "agent").length, 3);
 
   const archive = join(directory, "python-agent-windows-x64.tar.gz");
   writeFileSync(archive, "changed after descriptor creation");

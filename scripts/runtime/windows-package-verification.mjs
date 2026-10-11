@@ -3,6 +3,7 @@ import { lstatSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 
+import { validateNativePackage } from "./native-package.mjs";
 import { validatePackagedResources } from "./packaged-resources.mjs";
 
 const windowsTarget = "windows-x64";
@@ -28,16 +29,22 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
 function verifyExtractedWindowsApplication(extractionRoot, options) {
   const resources = locateApplicationResources(extractionRoot, options.target);
   validatePackagedResources(resources, resolve(options.repository), options.target);
+  validateNativePackage(
+    join(resources, "native-runtime"),
+    options.target,
+    options.nativeManifest,
+    options.production,
+  );
   return resources;
 }
 
 export function locateApplicationResources(extractionRoot, target = windowsTarget) {
   if (target !== windowsTarget) throw new Error(`Unsupported packaged runtime target: ${target}`);
-  const manifests = findFiles(extractionRoot, (name) => name === "python-resources-descriptor.json");
+  const manifests = findFiles(extractionRoot, (name) => name === "python-agent-descriptor.json");
   if (manifests.length !== 1)
     throw new Error(`Windows package must contain exactly one runtime descriptor; found ${manifests.length}`);
   const parts = relative(resolve(extractionRoot), manifests[0]).split(sep);
-  if (!hasPathSuffix(parts, ["resources", "python-resources-descriptor.json"]))
+  if (!hasPathSuffix(parts, ["resources", "python-agent-descriptor.json"]))
     throw new Error("Windows package descriptor is outside the application resources directory");
   const forbidden = findFiles(
     extractionRoot,

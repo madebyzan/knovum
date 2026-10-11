@@ -47,19 +47,8 @@ pub(crate) async fn prepare<R: Runtime>(
     let descriptor_size = descriptor.size;
     #[cfg(debug_assertions)]
     let descriptor_size = 0;
-    static RESOURCES: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    static LIGHT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    static TORCH: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    static VOICE: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
     static AGENT: OnceLock<Arc<Registry<ResourcePreparationProgress>>> = OnceLock::new();
-    let registry = match profile {
-        super::RuntimeProfile::Resources => &RESOURCES,
-        super::RuntimeProfile::LightInference => &LIGHT,
-        super::RuntimeProfile::TorchInference => &TORCH,
-        super::RuntimeProfile::VoiceGeneration => &VOICE,
-        super::RuntimeProfile::Agent => &AGENT,
-    }
-    .get_or_init(Registry::new);
+    let registry = AGENT.get_or_init(Registry::new);
     let handle = app.clone();
     let mut waiter = registry
         .join(

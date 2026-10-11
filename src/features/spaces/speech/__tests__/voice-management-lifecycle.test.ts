@@ -26,7 +26,7 @@ const profile: VoiceProfileHistory = {
       id: "revision",
       revision: 1,
       engineId: "moss_nano",
-      modelSpecId: "moss-tts-nano-onnx-v1",
+      modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
       language: "en",
       speed: 1,
       sampleRate: 48_000,

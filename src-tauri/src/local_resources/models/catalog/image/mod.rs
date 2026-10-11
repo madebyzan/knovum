@@ -2,29 +2,12 @@ mod files;
 use super::{ModelDescriptor, ModelKind, SnapshotKind};
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Deserialize,
-    Serialize,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    schemars::JsonSchema,
-    ts_rs::TS,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum ImageModelVariant {
-    RealEsrganGeneralX4v3,
-    RealEsrganX4plus,
-    Migan,
-    EfficientSamTi,
-    EfficientSamS,
-    DepthAnythingV2SmallUint8,
-    DepthAnythingV2Small,
+pub use knovum_inference_contracts::image_compute::ImageModelVariant;
+
+pub(crate) trait ImageModelCatalog {
+    fn models(self) -> &'static [ModelKind];
+    fn archive(self) -> Option<super::super::model_archive::ModelArchive>;
+    fn spec_id(self) -> String;
 }
 
 #[derive(
@@ -57,19 +40,8 @@ pub struct ImageModelPart {
     pub file: ImageModelFile,
 }
 
-impl ImageModelVariant {
-    pub(crate) const fn name(self) -> &'static str {
-        match self {
-            Self::RealEsrganGeneralX4v3 => "real-esrgan-general-x4v3",
-            Self::RealEsrganX4plus => "real-esrgan-x4plus",
-            Self::Migan => "mi-gan",
-            Self::EfficientSamTi => "efficient-sam-ti",
-            Self::EfficientSamS => "efficient-sam-s",
-            Self::DepthAnythingV2SmallUint8 => "depth-anything-v2-small-uint8",
-            Self::DepthAnythingV2Small => "depth-anything-v2-small-fp32",
-        }
-    }
-    pub(crate) const fn models(self) -> &'static [ModelKind] {
+impl ImageModelCatalog for ImageModelVariant {
+    fn models(self) -> &'static [ModelKind] {
         match self {
             Self::RealEsrganGeneralX4v3 => &[
                 ModelKind::ImagePart(ImageModelPart {
@@ -175,10 +147,10 @@ impl ImageModelVariant {
             ],
         }
     }
-    pub(crate) const fn archive(self) -> Option<super::super::model_archive::ModelArchive> {
+    fn archive(self) -> Option<super::super::model_archive::ModelArchive> {
         files::archive(self)
     }
-    pub(crate) fn spec_id(self) -> String {
+    fn spec_id(self) -> String {
         format!(
             "{}-cpu-v1:{}",
             self.name(),

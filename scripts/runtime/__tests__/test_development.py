@@ -10,7 +10,7 @@ from runtime import build_python
 
 
 def test_development_mode_does_not_require_a_publication_url() -> None:
-    args = build_python.arguments(["--profile", "resources", "--output", "/tmp/runtime", "--development"])
+    args = build_python.arguments(["--profile", "agent", "--output", "/tmp/runtime", "--development"])
     assert args.development
     assert args.archive_url is None
 
@@ -20,7 +20,7 @@ def test_development_and_publication_are_exclusive() -> None:
         build_python.arguments(
             [
                 "--profile",
-                "resources",
+                "agent",
                 "--output",
                 "/tmp/runtime",
                 "--development",
@@ -44,7 +44,11 @@ def test_development_producer_activates_runtime_and_evidence_without_archiving(
     (interpreter / "runtime-manifest.json").write_text("{}")
     monkeypatch.setattr(build_python, "host_target", lambda: "macos-x64")
     monkeypatch.setattr(build_python, "install_conda_packages", lambda *_: (interpreter, {}))
-    monkeypatch.setattr(build_python, "sign_runtime", lambda *_: {"mode": "adhoc", "compiledBinaryCount": 1})
+    monkeypatch.setattr(
+        build_python,
+        "sign_runtime",
+        lambda *_: {"mode": "adhoc", "compiledBinaryCount": 1},
+    )
     smoke = Mock(side_effect=[None, RuntimeError("final smoke failed")] if fail_activation else None)
     monkeypatch.setattr(build_python, "relocated_smoke", smoke)
     archived = Mock()
@@ -66,13 +70,13 @@ def test_development_producer_activates_runtime_and_evidence_without_archiving(
     monkeypatch.setattr(build_python, "run", run)
     if fail_activation:
         with pytest.raises(RuntimeError, match="final smoke failed"):
-            build_python.build(output, "adhoc", None, "resources")
+            build_python.build(output, "adhoc", None, "agent")
         assert not output.exists()
         return
-    build_python.build(output, "adhoc", None, "resources")
+    build_python.build(output, "adhoc", None, "agent")
     assert (output / "runtime/runtime-manifest.json").is_file()
     record = json.loads((output / "build-evidence/producer.json").read_text())
-    assert record["profile"] == "resources"
+    assert record["profile"] == "agent"
     archived.assert_not_called()
     assert not (output / "runtime-descriptor.json").exists()
     assert smoke.call_args.args[0] == output / "runtime"
@@ -81,5 +85,5 @@ def test_development_producer_activates_runtime_and_evidence_without_archiving(
 def test_existing_destination_is_never_overwritten(tmp_path: Path) -> None:
     (tmp_path / "keep.txt").write_text("keep")
     with pytest.raises(ValueError, match="output already exists"):
-        build_python.build(tmp_path, "adhoc", None, "resources")
+        build_python.build(tmp_path, "adhoc", None, "agent")
     assert (tmp_path / "keep.txt").read_text() == "keep"

@@ -1,4 +1,5 @@
-use super::{catalog, snapshots::SnapshotKind};
+use super::{catalog, snapshots::SnapshotKind, sources};
+use crate::local_resources::models::catalog::ImageModelCatalog;
 use crate::local_resources::{
     download,
     preparation::{
@@ -35,9 +36,21 @@ pub(super) async fn snapshot(
         .filter(|kind| !archive.is_some_and(|archive| archive.owns(**kind)))
     {
         let descriptor = catalog::descriptor(*kind);
+        let path = directory.join(descriptor.file);
+        if let Some(parent) = path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|error| error.to_string())?;
+            crate::local_resources::filesystem::verify_regular_directory(parent)?;
+        }
+        let url = match sources::for_snapshot(snapshot) {
+            Some(source) => source.url(descriptor.file),
+            None => reqwest::Url::parse(&catalog::direct_url(*kind))
+                .expect("Catalog owns valid model URLs"),
+        };
         download::to_path(
-            client.get(catalog::direct_url(*kind)),
-            &directory.join(descriptor.file),
+            client.get(url),
+            &path,
             download::DownloadPolicy {
                 maximum_bytes: descriptor.download_size,
                 required_bytes: Some(descriptor.download_size),

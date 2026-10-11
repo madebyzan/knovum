@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "ExecutionSource": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": ["bundled_worker", "official_python_reference", "product_baseline"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "method": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Method",
+          "type": "string"
+        },
+        "workerDigest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Workerdigest"
+        },
+        "runtimeDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtimedigest",
+          "type": "string"
+        },
+        "modelSpecId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelspecid",
+          "type": "string"
+        },
+        "configId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Configid",
+          "type": "string"
+        },
+        "invocations": {
+          "items": {
+            "$ref": "#/$defs/Invocation"
+          },
+          "minItems": 1,
+          "title": "Invocations",
+          "type": "array"
+        }
+      },
+      "required": ["kind", "method", "runtimeDigest", "modelSpecId", "configId", "invocations"],
+      "title": "ExecutionSource",
+      "type": "object"
+    },
+    "HashedFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": ["path", "sha256"],
+      "title": "HashedFile",
+      "type": "object"
+    },
+    "Invocation": {
+      "additionalProperties": false,
+      "properties": {
+        "requestId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Requestid",
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "minimum": 0,
+          "title": "Attemptepoch",
+          "type": "integer"
+        },
+        "startedAt": {
+          "format": "date-time",
+          "title": "Startedat",
+          "type": "string"
+        },
+        "finishedAt": {
+          "format": "date-time",
+          "title": "Finishedat",
+          "type": "string"
+        }
+      },
+      "required": ["requestId", "attemptEpoch", "startedAt", "finishedAt"],
+      "title": "Invocation",
+      "type": "object"
+    },
+    "SynthesisArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "sampleId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Sampleid",
+          "type": "string"
+        },
+        "audio": {
+          "$ref": "#/$defs/HashedFile"
+        }
+      },
+      "required": ["sampleId", "audio"],
+      "title": "SynthesisArtifact",
+      "type": "object"
+    },
+    "SynthesisValues": {
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/SynthesisArtifact"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        }
+      },
+      "required": ["artifacts"],
+      "title": "SynthesisValues",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "maximum": 1,
+      "minimum": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "source": {
+      "$ref": "#/$defs/ExecutionSource"
+    },
+    "values": {
+      "$ref": "#/$defs/SynthesisValues"
+    }
+  },
+  "required": ["schemaVersion", "source", "values"],
+  "title": "ExecutionEvidence[SynthesisValues]",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

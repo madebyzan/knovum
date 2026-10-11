@@ -11,13 +11,7 @@ pub(crate) fn embed_descriptors() {
         "x86_64-pc-windows-msvc" => "windows-x64",
         other => panic!("Unsupported desktop target: {other}"),
     };
-    for profile in [
-        "resources",
-        "light-inference",
-        "torch-inference",
-        "voice-generation",
-        "agent",
-    ] {
+    for profile in ["agent"] {
         embed_producer_sources(&root, &source, profile);
         embed_recipe(&root, target, profile);
         let group = source["condaSupplier"]["profiles"][profile]
@@ -66,18 +60,6 @@ fn embed_recipe(root: &std::path::Path, target: &str, profile: &str) {
     let repository = root
         .parent()
         .expect("Python project belongs to the repository");
-    if profile == "light-inference" {
-        println!(
-            "cargo:rerun-if-changed={}",
-            root.join("compiled-source-evidence.json").display()
-        );
-    }
-    if profile == "voice-generation" && target.starts_with("macos-") {
-        println!(
-            "cargo:rerun-if-changed={}",
-            repository.join("src-tauri/tauri.conf.json").display()
-        );
-    }
     println!(
         "cargo:rerun-if-changed={}",
         repository.join("scripts/runtime/profiles.mjs").display()

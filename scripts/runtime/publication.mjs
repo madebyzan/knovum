@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { sha256File } from "./files.mjs";
-import { validateMediaDescriptor } from "./media-manifest.mjs";
+import { validateMediaDescriptor } from "./media-descriptor.mjs";
 import { runtimeProfiles, runtimeTargets } from "./profiles.mjs";
 
 export function publicationSources(publication, target, profile) {
@@ -13,9 +13,7 @@ export function publicationSources(publication, target, profile) {
       ? ["FFMPEG", "FFMPEG_DESCRIPTOR"]
       : ["PYTHON_RUNTIME", "PYTHON_RUNTIME_DESCRIPTOR", "PYTHON_RUNTIME_EVIDENCE"];
   const sources = selectSources(publication, target, profile, kinds);
-  return profile === "light-inference"
-    ? [...sources, ...publicationSources(publication, target, "core-media")]
-    : sources;
+  return sources;
 }
 
 function selectSources(publication, target, profile, kinds) {

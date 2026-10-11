@@ -20,8 +20,7 @@ pub(crate) fn engine_id() -> Result<&'static str, String> {
         crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
     )
     .map(|profile| match profile.engine {
-        crate::ai::contracts::speech_wire::AsrEngine::MlxWhisper => "mlx-whisper",
-        crate::ai::contracts::speech_wire::AsrEngine::FasterWhisper => "faster-whisper",
+        crate::ai::contracts::speech_wire::AsrEngine::WhisperCpp => "whisper-cpp",
     })
 }
 

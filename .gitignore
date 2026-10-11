@@ -50,3 +50,6 @@ src-tauri/resources/python-*-descriptor.json
 # Personal local packaging helper and its cached publication/lock
 /package-local.sh
 /.package-local/
+
+src-tauri/resources/native-runtime/
+src-tauri/resources/.native-package-*/

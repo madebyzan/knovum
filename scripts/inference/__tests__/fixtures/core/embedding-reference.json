@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "official_python_reference",
+    "method": "embedding.encode",
+    "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "modelSpecId": "embedding-model",
+    "configId": "embedding-profile",
+    "invocations": [
+      {
+        "requestId": "unit-fixture",
+        "attemptEpoch": 1,
+        "startedAt": "2026-10-03T12:00:00Z",
+        "finishedAt": "2026-10-03T12:01:00Z"
+      }
+    ]
+  },
+  "values": {
+    "queries": {
+      "query": [
+        1.0,
+        0.0
+      ]
+    },
+    "documents": {
+      "document": [
+        1.0,
+        0.0
+      ],
+      "note": [
+        0.0,
+        1.0
+      ],
+      "code": [
+        -1.0,
+        0.0
+      ],
+      "transcript": [
+        0.0,
+        -1.0
+      ]
+    }
+  }
+}

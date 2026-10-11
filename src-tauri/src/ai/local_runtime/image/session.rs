@@ -4,7 +4,7 @@ use crate::{
         RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
         RuntimeModelPaths, PROTOCOL_VERSION,
     },
-    local_resources::runtimes::python,
+    local_resources::runtimes::native,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{path::Path, time::Instant};
@@ -44,8 +44,7 @@ pub(super) async fn acquire<R: Runtime>(
         deadline_ms,
     } = configuration;
     let exit = super::super::exit_token();
-    let runtime =
-        python::resolve(app, python::RuntimeProfile::LightInference)?.ok_or("runtime_missing")?;
+    let runtime = native::resolve(app)?;
     let threads = super::super::compute_budget::ComputeBudget::detect()?.model_threads;
     let profile_name = match capability {
         RuntimeCapability::ImageSegmentation => "cpu-f32",
@@ -57,7 +56,7 @@ pub(super) async fn acquire<R: Runtime>(
     };
     let profile = RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: format!("{profile_name}-threads{threads}-v1"),
+        execution_profile_id: format!("{profile_name}-threads{threads}-native-v2"),
         cpu_threads: threads,
     };
     super::super::prepare_worker_for_admission(admission::Priority::Interactive, |worker| {
@@ -105,7 +104,7 @@ pub(super) async fn acquire<R: Runtime>(
         };
         *guard = Some(
             Worker::start(
-                &runtime,
+                (&runtime).into(),
                 &work,
                 model_path,
                 params,

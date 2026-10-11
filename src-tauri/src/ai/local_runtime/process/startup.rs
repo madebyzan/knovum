@@ -1,3 +1,4 @@
+use super::package::WorkerPackage;
 #[cfg(windows)]
 use super::windows_job::WindowsJob;
 use super::{KillRegistration, ProcessTree, Worker};
@@ -6,19 +7,15 @@ use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
 };
-use crate::local_resources::runtimes::python::PythonRuntimePaths;
 use std::{
     path::Path,
-    process::Stdio,
-    sync::OnceLock,
     time::{Duration, Instant},
 };
-use tokio::{process::Command, sync::oneshot};
 use tokio_util::sync::CancellationToken;
 
 impl Worker {
     pub(in crate::ai::local_runtime) async fn start(
-        runtime: &PythonRuntimePaths,
+        runtime: WorkerPackage,
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
@@ -27,7 +24,7 @@ impl Worker {
         exit: &CancellationToken,
     ) -> Result<Self, String> {
         let startup = Self::start_inner(
-            runtime,
+            &runtime,
             work_directory,
             model_path,
             params,
@@ -43,7 +40,7 @@ impl Worker {
     }
 
     async fn start_inner(
-        runtime: &PythonRuntimePaths,
+        runtime: &WorkerPackage,
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
@@ -51,73 +48,21 @@ impl Worker {
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
-        if crate::ai::local_runtime::runtime_profile::for_execution(
-            params.capability,
-            &params.device_profile,
-        )? != runtime.profile
-        {
-            return Err(
-                "runtime_mismatch: worker package does not own the execution profile".into(),
-            );
-        }
-        let memory_reservation =
-            admission::reserve_memory(params.capability, &params.device_profile)?;
         tokio::select! {
             biased;
             _ = exit.cancelled() => return Err("cancelled".into()),
             _ = cancellation.cancelled() => return Err("cancelled".into()),
             startup = tokio::time::timeout(crate::ai::local_runtime::deadline_duration(deadline_ms)?, async {
+                runtime.verify().await?;
                 crate::ai::local_runtime::prepare_inference_root(work_directory).await?;
-                verify_runtime_for_spawn(runtime.clone()).await?;
                 tokio::fs::create_dir(work_directory)
                     .await
                     .map_err(|error| format!("resource_exhausted: {error}"))
             }) => startup.map_err(|_| "deadline_exceeded".to_owned())??,
         }
-        let bootstrap = crate::subprocess::python::isolated_bootstrap(
-            "from knovum_inference.server import main; main()",
-        );
-        let mut command = Command::new(&runtime.executable);
-        command
-            .args(["-I", "-B", "-X", "utf8", "-c", &bootstrap])
-            .arg(&runtime.worker_root)
-            .arg(&runtime.package_root)
-            .current_dir(work_directory)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .env_remove("PYTHONPATH")
-            .env_remove("PYTHONHOME")
-            .env_remove("PYTHONSTARTUP")
-            .env_remove("VOXCPM_MPS_DTYPE")
-            .env_remove("HF_TOKEN")
-            .env_remove("HUGGING_FACE_HUB_TOKEN")
-            .env("HF_HUB_OFFLINE", "1")
-            .env("TRANSFORMERS_OFFLINE", "1")
-            .env("PYANNOTE_METRICS_ENABLED", "0")
-            .env("HF_HUB_DISABLE_TELEMETRY", "1")
-            .env("PYTORCH_ENABLE_MPS_FALLBACK", "0")
-            .env(
-                "OMP_NUM_THREADS",
-                params.device_profile.cpu_threads.to_string(),
-            )
-            .env(
-                "MKL_NUM_THREADS",
-                params.device_profile.cpu_threads.to_string(),
-            )
-            .env(
-                "OPENBLAS_NUM_THREADS",
-                params.device_profile.cpu_threads.to_string(),
-            )
-            .env(
-                "NUMEXPR_NUM_THREADS",
-                params.device_profile.cpu_threads.to_string(),
-            )
-            .env(
-                "VECLIB_MAXIMUM_THREADS",
-                params.device_profile.cpu_threads.to_string(),
-            )
-            .kill_on_drop(true);
+        let memory_reservation =
+            admission::reserve_memory(params.capability, &params.device_profile)?;
+        let mut command = runtime.command(params.device_profile.cpu_threads);
         #[cfg(unix)]
         {
             use std::os::unix::process::CommandExt;
@@ -206,10 +151,10 @@ impl Worker {
             process_tree,
             memory_reservation: Some(memory_reservation),
             _kill_registration: kill_registration,
-            _runtime_lease: runtime.lease.clone(),
+            _runtime_lease: runtime.lease(),
             protocol,
             session_id: params.session_id,
-            runtime_digest: runtime.digest.clone(),
+            runtime_digest: runtime.digest().to_owned(),
             model_path: model_path.to_owned(),
             capability: params.capability,
             capability_spec_id: params.capability_spec_id,
@@ -218,26 +163,4 @@ impl Worker {
             last_used: Instant::now(),
         })
     }
-}
-
-static VERIFY_GATE: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
-
-pub(in crate::ai::local_runtime) async fn verify_runtime_for_spawn(
-    runtime: PythonRuntimePaths,
-) -> Result<(), String> {
-    let (sender, receiver) = oneshot::channel();
-    tokio::spawn(async move {
-        let gate = VERIFY_GATE.get_or_init(|| tokio::sync::Mutex::new(()));
-        let _guard = gate.lock().await;
-        let startup = tokio::task::spawn_blocking(move || {
-            crate::local_resources::runtimes::python::verify_before_spawn(&runtime)
-        })
-        .await
-        .map_err(|error| format!("Python runtime verification task failed: {error}"))
-        .and_then(|outcome| outcome.map_err(String::from));
-        let _ = sender.send(startup);
-    });
-    receiver
-        .await
-        .map_err(|_| "Python runtime verification stopped".to_string())?
 }

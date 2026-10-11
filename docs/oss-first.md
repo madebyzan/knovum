@@ -178,57 +178,42 @@ construction and approval gates are in [packaging.md](packaging.md) and [release
 
 ## Local models and inference
 
-- The application-managed CPython worker uses capability-specific locked profiles. Rust owns resource
-  identity, process lifecycle, cancellation and publication; the worker receives verified local paths,
-  stays offline during inference and loads only the selected capability.
-- Qwen3 Embedding through Sentence Transformers remains the fixed semantic-index engine because the
-  persisted vector dimension and model identity are database contracts. Local ASR uses MLX Whisper
-  on Apple Silicon and faster-whisper/CTranslate2 on supported CPU/CUDA targets. FFmpeg owns input
-  normalization.
-- Qwen3 Forced Aligner was selected over WhisperX because WhisperX requires an older Torch line that
-  conflicts with the secure runtime. CTC alternatives require a second language-specific catalog.
-  The official Qwen aligner API supplies multilingual alignment while Knovum maps results to immutable
-  transcript ranges.
-- Speaker diarization uses Sherpa-ONNX with public ungated segmentation and embedding resources.
-  This avoids Pyannote account-token plumbing and its training stack while retaining a maintained
-  inference API.
-- Spleeter through Sherpa-ONNX owns vocals/accompaniment separation. Demucs code is permissive, but
-  the author's
-  [checkpoint clarification](https://github.com/facebookresearch/demucs/issues/508#issuecomment-1663033356)
-  restricts the reviewed pretrained weights; a third-party model-card tag cannot override it.
-- Hub downloads use the official
-  [huggingface-hub API](https://huggingface.co/docs/huggingface_hub/en/guides/download) and ModelScope
-  SDK public APIs for their respective repository protocols. Rust owns allowlists, hashes,
-  cancellation and atomic publication. The full ModelScope inference framework and Rust hf-hub file
-  path were rejected because they add unrelated machinery or fail the required resume contract.
-
-Source selection is explicit; there is no locale/IP routing or provider failover. A second SDK may be
-removed only after one qualified protocol covers every approved snapshot, redistribution permission
-and supported-network acceptance. Model identities, user-visible choices, GPU admission and resource
-preparation are owned by [local-models.md](local-models.md).
+- The Rust inference worker uses ONNX Runtime 1.22.1 via exact-pinned ort with the API-21
+  contract, Candle 0.11 for Qwen3 embeddings, official whisper.cpp 1.8.3 C APIs, Sherpa-ONNX
+  1.13.8 C APIs and frozen audio.cpp C APIs. Bindgen generates supplier ABI declarations.
+  The host retains resource, memory, process, cancellation and publication policy.
+- ONNX Runtime covers all nine image models. Tract was compared but does not meet the frozen
+  graphs and mature cancellation/session requirements. Existing verified model exports remain fixed.
+- Candle's official Qwen3 implementation replaces Sentence Transformers/Torch. The last-token
+  output is qualified against the official F32 reference, and the new index identity rejects old data.
+- whisper.cpp replaces MLX and Faster Whisper. The upstream MIT C API is used directly; whisper-rs
+  was rejected because its Unlicense dependency is outside the repository's approved policy.
+- Sherpa owns public ungated diarization and Spleeter separation. Its native build disables TTS
+  and eSpeak, Python, PortAudio and server examples. No training framework is conveyed.
+- reqwest is the existing maintained streaming client for pinned Hub HTTP protocols. hf-hub was
+  compared but does not cover ModelScope plus this strict resume contract. The narrow Rust code
+  owns HTTP validation, cancellation, hashes and atomic publication rather than another download
+  subsystem or a second SDK.
 
 ## Speech generation
 
-MOSS-TTS-Nano is the default compact CPU-capable synthesis and reference-cloning engine. Knovum uses
-the
-[official standalone ONNX runtime](https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb/ort_cpu_runtime.py)
-rather than its full PyTorch application. Supertonic lacked Chinese support; the reviewed OmniVoice
-weights were noncommercial; CosyVoice's footprint was materially larger; Kokoro's reviewed archive
-did not provide sufficient eSpeak distribution evidence. Those implementations are not retained as
-aliases or dormant profiles.
+MOSS-TTS-Nano uses the original frozen ONNX graphs and built-in ten-speaker tables. ONNX Runtime,
+SentencePiece, rubato and rand_pcg own graph execution, tokenization, reference resampling and RNG.
+The maintained moss-tts-nano Rust candidate was evaluated: its private fixed 375-frame limit and
+adaptive codec chunking cannot satisfy the required streaming/reference/cancellation contract.
+audio.cpp exposes MOSS only as a synchronous result. Knovum therefore retains a narrow graph
+orchestrator for this concrete gap; it does not implement neural layers, codecs, resamplers or RNG.
+Its new frozen identity is `moss-tts-nano-100m-onnx-native-v2`.
 
-VoxCPM2 owns optional high-quality cloning and voice design. Its published Python dependency graph
-requires a Datasets line below the security floor, so metadata rewriting, advisory suppression and
-environment splitting were rejected. The audio.cpp path uses the upstream-recommended
-[audio.cpp](https://github.com/0xShug0/audio.cpp/tree/a1c24b2f90c6e6bcb9a525210d826717e96cdfa9)
-at the frozen reviewed revision with verified
-GGUF resources. Knovum adds a narrow callback bridge because upstream's public pull API exposes output
-only after synchronous generation; the bridge preserves bounded chunks and cancellation without
-modifying vendor source.
+VoxCPM2 uses the frozen upstream audio.cpp supplier and GGUF exports. A narrow C++ callback bridge
+is required because the public pull API exposes output after synchronous generation; callback ABI 3
+passes an explicit context, bounds chunks and supports cancellation. Vendor source is unchanged.
+Forced alignment uses the public C API directly and native F16/Q8 exports.
 
-The worker initializes only the selected engine. Failure remains visible and does not rerun on a
-different device. Exact snapshots, controls and platform qualification remain in
-[local-models.md](local-models.md) and [release.md](release.md).
+Node media production uses yauzl for selected ZIP extraction and OS signing/dependency tools.
+Node acceptance uses Ajv with strict JSON Schemas, npyjs for numeric tensors and maintained
+fastest-levenshtein for token error scoring. Qualification stays outside the shipped application.
+Source/model identities, controls and platform acceptance remain in the owning model/release docs.
 
 ## Agents, protocols and extensibility
 

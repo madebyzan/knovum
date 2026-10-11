@@ -15,7 +15,7 @@
     "test": "vitest run",
     "check": "pnpm check:scripts && pnpm check:web && pnpm check:rust && pnpm check:python",
     "check:web": "pnpm typecheck && pnpm lint && node scripts/checks/source-layout.mjs web && depcruise --config .dependency-cruiser.cjs src && pnpm test && knip && jscpd src --min-lines 6 --min-tokens 80 --threshold 1 && pnpm format --check",
-    "check:rust": "node scripts/checks/source-layout.mjs rust && node scripts/checks/capabilities.mjs && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --locked --manifest-path src-tauri/Cargo.toml && jscpd src-tauri/src --min-lines 6 --min-tokens 80 --threshold 1",
+    "check:rust": "node scripts/checks/source-layout.mjs rust && node scripts/checks/capabilities.mjs && cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && cargo clippy --locked --manifest-path src-tauri/Cargo.toml --workspace --all-targets -- -D warnings && cargo test --locked --manifest-path src-tauri/Cargo.toml --workspace && jscpd src-tauri/src src-tauri/crates --min-lines 6 --min-tokens 80 --threshold 1",
     "check:python": "node scripts/checks/python.mjs",
     "security:web": "pnpm --registry=https://registry.npmjs.org audit --prod --audit-level high && pnpm --registry=https://registry.npmjs.org audit signatures",
     "e2e:build": "vite build --mode e2e && tauri build --no-bundle --features e2e --config src-tauri/tauri.e2e.conf.json",
@@ -24,10 +24,11 @@
     "runtime:build": "node scripts/runtime/producer.mjs",
     "runtime:prepare": "node scripts/runtime/development.mjs",
     "runtime:provision": "node scripts/runtime/provision.mjs",
-    "inference:acceptance": "uv run --project python --only-group acceptance --frozen python -I -B -X utf8 python/tests/acceptance/report.py",
+    "inference:acceptance": "node scripts/inference/report.mjs",
     "check:scripts": "node scripts/checks/scripts.mjs",
     "security:python": "node scripts/checks/python-audit.mjs",
-    "contracts:check": "node scripts/checks/contracts.mjs"
+    "contracts:check": "node scripts/checks/contracts.mjs",
+    "runtime:native": "node scripts/runtime/native.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
@@ -96,10 +97,14 @@
     "@wdio/spec-reporter": "9.30.1",
     "@wdio/tauri-plugin": "^1.4.0",
     "@wdio/tauri-service": "^1.4.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "dependency-cruiser": "^18.5.0",
+    "fastest-levenshtein": "1.0.16",
     "happy-dom": "^20.14.5",
     "jscpd": "^5.4.0",
     "knip": "^6.40.0",
+    "npyjs": "1.2.0",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
     "tailwindcss": "^4.3.3",
@@ -107,7 +112,8 @@
     "typescript": "~6.0.3",
     "vite": "^8.3.3",
     "vitest": "^5.0.3",
-    "vue-tsc": "^3.3.12"
+    "vue-tsc": "^3.3.12",
+    "yauzl": "3.4.0"
   },
   "engines": {
     "node": ">=22.13"

@@ -7,7 +7,6 @@
     "subdirectory": "包所在子目录",
     "install": "从来源安装",
     "description": "选择本地包或远程 URL，确认内容后再安装。",
-    "provenance": "来源与版本详情",
     "revision": "来源版本"
   },
   "installation": {
@@ -52,7 +51,6 @@
   },
   "discovery": {
     "title": "发现插件",
-    "description": "浏览目录中的插件，安装前查看它们提供的能力。",
     "installed": "已安装 · 查看"
   },
   "empty": {
@@ -72,13 +70,10 @@
     "committing": "提交更改"
   },
   "title": "已安装插件",
-  "description": "管理已安装插件及其能力。",
   "search": {
-    "placeholder": "搜索插件…",
     "empty": "没有匹配的结果",
     "hint": "尝试其他关键词，或清空搜索。"
   },
-  "capabilityCount": "包含 {count} 项扩展能力",
   "disable": "停用 {name}",
   "enable": "启用 {name}",
   "actions": "插件操作",

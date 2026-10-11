@@ -49,19 +49,6 @@ pub async fn prepare_models<R: Runtime>(
         total,
         percent: total.map(|_| 0),
     });
-    let mut completed = 0_u64;
-    for (profile, size) in plan.runtimes {
-        super::runtimes::python::prepare(app, profile, request_cancellation, &mut |update| {
-            if !matches!(update.stage, ResourcePreparationStage::Ready) {
-                progress(update.with_overall_progress(completed, total));
-            }
-        })
-        .await?;
-        if let Some(size) = size {
-            completed += size;
-        }
-    }
-
     let mut waiters = Vec::with_capacity(plan.missing.len());
     for kind in plan.missing {
         waiters.push((
@@ -74,7 +61,7 @@ pub async fn prepare_models<R: Runtime>(
         waiter
             .wait(request_cancellation, &mut |update| {
                 downloaded.insert(*kind, update.downloaded);
-                let current = completed + downloaded.values().copied().sum::<u64>();
+                let current = downloaded.values().copied().sum::<u64>();
                 let stage = if matches!(update.stage, ResourcePreparationStage::Ready) {
                     ResourcePreparationStage::Verifying
                 } else {
@@ -95,7 +82,7 @@ pub async fn prepare_models<R: Runtime>(
     let prepared = locks::acquire_verified_models(app, kinds, request_cancellation).await?;
     progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Ready,
-        downloaded: completed + downloaded.values().copied().sum::<u64>(),
+        downloaded: downloaded.values().copied().sum::<u64>(),
         total,
         percent: Some(100),
     });

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "onnxRuntimeVersion": "1.22.1",
+  "onnxRuntime": {
+    "macos": {
+      "url": "https://files.pythonhosted.org/packages/82/ff/4a1a6747e039ef29a8d4ee4510060e9a805982b6da906a3da2306b7a3be6/onnxruntime-1.22.1-cp311-cp311-macosx_13_0_universal2.whl",
+      "size": 34324148,
+      "sha256": "f4581bccb786da68725d8eac7c63a8f31a89116b8761ff8b4989dc58b61d49a0"
+    },
+    "windows": {
+      "url": "https://files.pythonhosted.org/packages/a8/01/e536397b03e4462d3260aee5387e6f606c8fa9d2b20b1728f988c3c72891/onnxruntime-1.22.1-cp311-cp311-win_amd64.whl",
+      "size": 12689881,
+      "sha256": "f28a42bb322b4ca6d255531bb334a2b3e21f172e37c1741bd5e66bc4b7b61f03"
+    }
+  },
+  "files": {
+    "macos-x64": [
+      {
+        "path": "libonnxruntime.1.22.1.dylib",
+        "size": 56487112,
+        "sha256": "114a54d0c08cc94c68dba8a30dbc16627e543f978c345e016f67e46f8b727c51"
+      },
+      {
+        "path": "ONNX-RUNTIME-LICENSE",
+        "size": 1073,
+        "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+      },
+      {
+        "path": "ONNX-RUNTIME-NOTICES",
+        "size": 326866,
+        "sha256": "e9e90971a8e75a9a8ac0c6412e29c1202d079998389915aa485f46c816c3b4cc"
+      }
+    ],
+    "windows-x64": [
+      {
+        "path": "ONNX-RUNTIME-LICENSE",
+        "size": 1094,
+        "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674"
+      },
+      {
+        "path": "ONNX-RUNTIME-NOTICES",
+        "size": 333022,
+        "sha256": "e00f828e0a33de591a355ae6606d2625f5758da7d2c844db7821c9dd3e3647b6"
+      },
+      {
+        "path": "onnxruntime_providers_shared.dll",
+        "size": 22088,
+        "sha256": "121329b5f87d4c16ca422f1565322a529c8548683a56e338222bbc0c39f9a82c"
+      },
+      {
+        "path": "onnxruntime.dll",
+        "size": 14854696,
+        "sha256": "b7d046825412fe3d6c582145f527a197817b2ed717a3a3f21c6e81896f5fce48"
+      }
+    ],
+    "macos-arm64": [
+      {
+        "path": "libonnxruntime.1.22.1.dylib",
+        "size": 56487112,
+        "sha256": "114a54d0c08cc94c68dba8a30dbc16627e543f978c345e016f67e46f8b727c51"
+      },
+      {
+        "path": "ONNX-RUNTIME-LICENSE",
+        "size": 1073,
+        "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+      },
+      {
+        "path": "ONNX-RUNTIME-NOTICES",
+        "size": 326866,
+        "sha256": "e9e90971a8e75a9a8ac0c6412e29c1202d079998389915aa485f46c816c3b4cc"
+      }
+    ]
+  }
+}

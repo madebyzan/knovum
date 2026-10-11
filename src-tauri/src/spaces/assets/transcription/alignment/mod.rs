@@ -90,15 +90,9 @@ pub(crate) async fn align_media(
     .await?;
     let deadline_ms = profile::deadline(total_duration)?;
     let handle = app.clone();
-    let snapshot = request
-        .model
-        .snapshot()
-        .ok_or("Forced alignment model snapshot is unavailable")?;
-    let runtime = crate::blocking::run(move || {
-        crate::local_resources::runtimes::python::resolve(&handle, snapshot.runtime_profile())?
-            .ok_or_else(|| "runtime_mismatch: prepared alignment runtime is missing".to_owned())
-    })
-    .await?;
+    let runtime =
+        crate::blocking::run(move || crate::local_resources::runtimes::native::resolve(&handle))
+            .await?;
     let device =
         device_profiles::alignment::profile(&runtime, request.model, cancellation, deadline_ms)
             .await?;

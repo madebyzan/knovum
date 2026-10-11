@@ -23,10 +23,8 @@ pub(crate) async fn align<R: Runtime>(
     priority: Priority,
 ) -> Result<SpeechAlignment, String> {
     validate_alignment_platform()?;
-    if !matches!(
-        device_profile.device.as_str(),
-        "cpu" | "cuda" | "mps" | "vulkan"
-    ) || params.profile.device != device_profile.device
+    if !matches!(device_profile.device.as_str(), "cpu" | "mps" | "vulkan")
+        || params.profile.device != device_profile.device
     {
         return Err("runtime_mismatch: alignment request and execution devices differ".into());
     }

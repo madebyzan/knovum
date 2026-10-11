@@ -49,12 +49,12 @@ Names are part of the architecture contract. Prefer domain language over impleme
 
 ## Source paths and files
 
-Application-owned Python import packages use `knovum_<capability>` under `python/src/`.
-The `knovum-python` distribution names the product's Python project; capability process entries
-name their operation boundary, such as `knovum-inference` and `knovum-model-resources`. `knovum_inference/runtime` means
-inference Worker lifecycle; managed Python runtime resources mean CPython and frozen third-party
-packages. These are separate owners. Python capability tests use `python/tests/<capability>/`,
-and Rust-owned wire schemas use `python/schemas/<capability>.schema.json`.
+The retained Python package is `knovum_agent_runtime` under `python/src/`; `knovum-python` names
+its distribution and `knovum-agent-runtime` its process entry. Agent tests live in
+`python/tests/agent_runtime/` and its Rust-owned wire schema in `python/schemas/agent_runtime.schema.json`.
+Native inference lives in the Rust `knovum-inference-worker` package; shared wire types and its
+schema belong to `inference-contracts`. Managed Agent CPython resources and native inference
+resources are separate owners.
 
 Paths describe ownership; file names describe the responsibility within that owner. Do not
 mechanically repeat the complete parent path in a file name. Once a capability owns submodules, use

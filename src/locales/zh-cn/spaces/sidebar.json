@@ -4,8 +4,7 @@
     "empty": "添加到画布的内容会显示在这里。"
   },
   "editorOutline": {
-    "title": "文档大纲",
-    "empty": "这篇文档还没有标题。"
+    "title": "文档大纲"
   },
   "rightSidebarViews": "右侧栏视图",
   "rename": {

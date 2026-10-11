@@ -21,7 +21,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: npm run check:scripts
+      - run: corepack enable && corepack prepare pnpm@11.17.0 --activate && pnpm install --frozen-lockfile
+      - run: pnpm check:scripts
 
   python:
     name: Python quality
@@ -61,7 +62,7 @@ jobs:
       - name: Run web gates
         run: pnpm check:web
       - name: Check Rust duplication
-        run: pnpm exec jscpd src-tauri/src --min-lines 6 --min-tokens 80 --threshold 1
+        run: pnpm exec jscpd src-tauri/src src-tauri/crates --min-lines 6 --min-tokens 80 --threshold 1
 
   rust-audit:
     name: Rust dependency audit
@@ -89,6 +90,10 @@ jobs:
         with:
           version: "0.12.23"
       - uses: ./.github/actions/setup-protoc
+      - run: corepack enable && corepack prepare pnpm@11.17.0 --activate && pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-native-build
+      - name: Prepare native worker and suppliers
+        run: node scripts/runtime/native-worker.mjs
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify source and capability boundaries
@@ -100,13 +105,13 @@ jobs:
         run: rustc --version && cargo --version
       - name: Check Rust formatting
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
       - name: Run Clippy
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+        run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --workspace --all-targets -- -D warnings
       - name: Run Rust unit tests
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --workspace
       - name: Verify generated Rust, TypeScript and Python contracts
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: npm run contracts:check

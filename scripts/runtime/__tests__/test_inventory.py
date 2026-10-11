@@ -72,12 +72,12 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     (root / "bin").mkdir(parents=True)
     (root / "bin/python.exe").write_bytes(b"MZ\0\0interpreter")
     (root / "LICENSE.python.txt").write_text("fixture CPython license\n")
-    source_license = root / "source-notices/audio-cpp/LICENSE"
+    source_license = root / "source-notices/native-module/LICENSE"
     source_license.parent.mkdir(parents=True)
-    source_license.write_text("fixture audio.cpp license\n")
-    voice_library = root / "compiled-libraries/voice.dll"
-    voice_library.parent.mkdir(parents=True)
-    voice_library.write_bytes(b"MZ\0\0audio.cpp")
+    source_license.write_text("fixture native module license\n")
+    native_library = root / "Library/bin/native.dll"
+    native_library.parent.mkdir(parents=True)
+    native_library.write_bytes(b"MZ\0\0native")
     write_distribution(root)
     configuration = tmp_path / "runtime-source.json"
     write_interpreter_configuration(configuration)
@@ -93,19 +93,7 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     )
     output = tmp_path / "evidence"
 
-    supplier = {
-        "name": "standalone-tts",
-        "version": "source-revision",
-        "license": "Apache-2.0",
-        "files": [
-            {
-                "url": "https://example.test/tts.py",
-                "path": "packages/tts.py",
-                "sha256": "e" * 64,
-            }
-        ],
-    }
-    write_inventory(root, lock, output, configuration, "windows-x64", [supplier])
+    write_inventory(root, lock, output, configuration, "windows-x64")
 
     sbom = json.loads((output / "sbom.cdx.json").read_text())
     evidence = json.loads((output / "dependency-evidence.json").read_text())
@@ -114,7 +102,7 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
 
     assert JsonStrictValidator(SchemaVersion.V1_6).validate_str(json.dumps(sbom)) is None
     components = {item["name"]: item for item in sbom["components"]}
-    assert components.keys() == {"CPython", "Demo_Package", "standalone-tts"}
+    assert components.keys() == {"CPython", "Demo_Package"}
     assert components["CPython"]["version"] == "3.11.17"
     assert components["CPython"]["externalReferences"] == [
         {"type": "distribution", "url": "https://example.test/cpython.tar.gz"},
@@ -127,16 +115,15 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     assert evidence["cpython"]["version"] == "3.11.17"
     assert evidence["cpython"]["source"]["url"] == "https://example.test/cpython.tar.gz"
     assert evidence["runtimeInstallation"]["compiledBinaries"] == [
+        "Library/bin/native.dll",
         "bin/python.exe",
-        "compiled-libraries/voice.dll",
     ]
     assert evidence["runtimeInstallation"]["notices"][0]["path"] == "LICENSE.python.txt"
     assert {notice["path"]: notice["sha256"] for notice in evidence["runtimeInstallation"]["notices"]}[
-        "source-notices/audio-cpp/LICENSE"
+        "source-notices/native-module/LICENSE"
     ] == sha256(source_license)
     assert "interpreter" not in evidence
-    assert evidence["sourceComponents"] == [supplier]
-    assert components["standalone-tts"]["licenses"] == [{"expression": "Apache-2.0"}]
+    assert "sourceComponents" not in evidence
     distribution = evidence["distributions"][0]
     assert distribution["compiledBinaries"] == ["packages/demo_native.pyd"]
     assert distribution["notices"][0]["path"].endswith("LICENSE.txt")

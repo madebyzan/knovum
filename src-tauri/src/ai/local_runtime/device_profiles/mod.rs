@@ -3,7 +3,6 @@ use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile};
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
 pub(crate) mod embedding;
-mod torch;
 pub(crate) mod voice;
 
 const GIB: u64 = 1024 * 1024 * 1024;
@@ -33,7 +32,7 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
     let id = device_profile.execution_profile_id.as_str();
     let device = device_profile.device.as_str();
     let (load_peak_gib, inference_peak_gib, profile_name) = match (capability, id, device) {
-        (RuntimeCapability::Embedding, _, "cpu" | "mps" | "cuda")
+        (RuntimeCapability::Embedding, _, "cpu" | "mps")
             if valid_threaded_profile(device_profile, &format!("{device}-f32-threads")) =>
         {
             (3, EMBEDDING_PEAK_GIB, "Qwen3 embedding F32")
@@ -63,34 +62,28 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         {
             (1, 2, "Depth Anything Small CPU")
         }
-        (RuntimeCapability::SpeechTranscription, "mlx-whisper-small-mps-v1", "mps") => {
-            (2, 3, "MLX Whisper small MPS")
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == format!("whisper-tiny-{device}-q8_0-native-v2") =>
+        {
+            (1, 2, "Whisper.cpp tiny Q8")
         }
-        (RuntimeCapability::SpeechTranscription, "faster-whisper-small-cpu-int8-v1", "cpu")
-        | (RuntimeCapability::SpeechTranscription, "faster-whisper-small-cuda-f16-v1", "cuda") => {
-            (2, 3, "faster-whisper small CPU INT8")
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == format!("whisper-small-{device}-q8_0-native-v2") =>
+        {
+            (2, 3, "Whisper.cpp small Q8")
         }
-        (RuntimeCapability::SpeechTranscription, "mlx-whisper-tiny-mps-v1", "mps") => {
-            (1, 2, "MLX Whisper tiny MPS")
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == format!("whisper-large-v3-{device}-f16-native-v2") =>
+        {
+            (5, 7, "Whisper.cpp large-v3 F16")
         }
-        (RuntimeCapability::SpeechTranscription, "faster-whisper-tiny-cpu-int8-v1", "cpu")
-        | (RuntimeCapability::SpeechTranscription, "faster-whisper-tiny-cuda-f16-v1", "cuda") => {
-            (1, 2, "faster-whisper tiny CPU INT8")
-        }
-        (RuntimeCapability::SpeechTranscription, "mlx-whisper-large-v3-mps-v1", "mps") => {
-            (5, 7, "MLX Whisper large-v3 MPS")
-        }
-        (RuntimeCapability::SpeechTranscription, "faster-whisper-large-v3-cpu-int8-v1", "cpu")
-        | (RuntimeCapability::SpeechTranscription, "faster-whisper-large-v3-cuda-f16-v1", "cuda") => {
-            (5, 7, "faster-whisper large-v3 CPU INT8")
-        }
-        (RuntimeCapability::SpeechAlignment, _, "cpu" | "cuda" | "mps")
-            if id == format!("qwen3-forced-aligner-0.6b-hf-{device}-v1") =>
+        (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
+            if id == format!("qwen3-forced-aligner-0.6b-f16-{device}-native-v2") =>
         {
             (5, 6, "Qwen3 forced aligner CPU")
         }
-        (RuntimeCapability::SpeechAlignment, _, "cpu" | "cuda" | "mps" | "vulkan")
-            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-v1") =>
+        (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
+            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-native-v2") =>
         {
             (5, 6, "Qwen3 forced aligner Q8 GGUF")
         }
@@ -108,7 +101,6 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             (20, 24, "VoxCPM2 audio.cpp Metal GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-orig-v1", "cpu")
-        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-orig-v1", "cuda")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-orig-v1", "vulkan") => {
             (14, 16, "VoxCPM2 audio.cpp GGUF")
         }
@@ -116,7 +108,6 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             (20, 24, "VoxCPM2 audio.cpp Q8 Metal GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-q8_0-v1", "cpu")
-        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-cuda-gguf-q8_0-v1", "cuda")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-q8_0-v1", "vulkan") => {
             (14, 16, "VoxCPM2 audio.cpp Q8 GGUF")
         }
@@ -138,7 +129,7 @@ fn valid_threaded_profile(profile: &RuntimeDeviceProfile, prefix: &str) -> bool 
     profile
         .execution_profile_id
         .strip_prefix(prefix)
-        .and_then(|value| value.strip_suffix("-v1"))
+        .and_then(|value| value.strip_suffix("-native-v2"))
         .and_then(|value| value.parse::<u8>().ok())
         .is_some_and(|threads| (1..=4).contains(&threads) && threads == profile.cpu_threads)
 }

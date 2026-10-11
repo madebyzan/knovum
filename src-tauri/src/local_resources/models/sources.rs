@@ -1,21 +1,56 @@
-use serde::Serialize;
+use super::snapshots::SnapshotKind;
 
-use super::{catalog, snapshots::SnapshotKind};
-
-#[derive(Clone, Serialize, Debug, schemars::JsonSchema)]
-#[serde(tag = "provider", rename_all = "snake_case", deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub(crate) enum HubSource {
-    #[schemars(title = "HuggingFaceSource")]
     HuggingFace {
         repository: &'static str,
         revision: &'static str,
         endpoint: &'static str,
     },
-    #[schemars(title = "ModelScopeSource")]
     ModelScope {
         repository: &'static str,
         revision: &'static str,
     },
+}
+
+impl HubSource {
+    pub(super) fn url(&self, file: &str) -> reqwest::Url {
+        let (mut url, repository) = match self {
+            Self::HuggingFace {
+                endpoint,
+                repository,
+                ..
+            } => (
+                reqwest::Url::parse(endpoint).expect("Catalog owns a valid hub endpoint"),
+                repository,
+            ),
+            Self::ModelScope { repository, .. } => (
+                reqwest::Url::parse("https://modelscope.cn/api/v1/models/")
+                    .expect("Static ModelScope endpoint"),
+                repository,
+            ),
+        };
+        {
+            let mut path = url
+                .path_segments_mut()
+                .expect("Hub endpoint accepts path segments");
+            path.pop_if_empty().extend(repository.split('/'));
+            match self {
+                Self::HuggingFace { revision, .. } => {
+                    path.push("resolve").push(revision).extend(file.split('/'));
+                }
+                Self::ModelScope { .. } => {
+                    path.push("repo");
+                }
+            }
+        }
+        if let Self::ModelScope { revision, .. } = self {
+            url.query_pairs_mut()
+                .append_pair("Revision", revision)
+                .append_pair("FilePath", file);
+        }
+        url
+    }
 }
 
 pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
@@ -24,27 +59,13 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         | SnapshotKind::MossNano
         | SnapshotKind::VoxCpm2
         | SnapshotKind::VoxCpm2Q8
+        | SnapshotKind::SpeechAlignment
         | SnapshotKind::SpeechAlignmentQ8
         | SnapshotKind::Diarization(_) => return None,
-        SnapshotKind::Whisper(variant) => variant.source(),
-        SnapshotKind::FasterWhisper => HubSource::HuggingFace {
-            repository: "Systran/faster-whisper-small",
-            revision: "536b0662742c02347bc0e980a01041f333bce120",
-            endpoint: "https://huggingface.co",
-        },
-        SnapshotKind::MlxWhisper => HubSource::HuggingFace {
-            repository: "mlx-community/whisper-small-mlx",
-            revision: "45f3915923c7a79a5a5b5a7d909d39aeb0e5630e",
-            endpoint: "https://huggingface.co",
-        },
+        SnapshotKind::Whisper(_) => return None,
         SnapshotKind::TextEmbedding => HubSource::ModelScope {
             repository: "Qwen/Qwen3-Embedding-0.6B",
             revision: "dd3e37eb506b3addbd930037796e25d349ae9010",
-        },
-        SnapshotKind::SpeechAlignment => HubSource::HuggingFace {
-            repository: "Qwen/Qwen3-ForcedAligner-0.6B-hf",
-            revision: catalog::QWEN3_FORCED_ALIGNER_REVISION,
-            endpoint: "https://huggingface.co",
         },
         SnapshotKind::ImageSegmentation | SnapshotKind::ImageSegmentationQuality => {
             HubSource::HuggingFace {

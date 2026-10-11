@@ -23,6 +23,7 @@ import { distributionDirectory, validateRuntimeDistribution } from "../runtime/d
 import { listRuntimeFiles } from "../runtime/files.mjs";
 import { validateMediaLicenseReview } from "../runtime/media-license-policy.mjs";
 import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
+import { prepareNativePackage, validateNativePackage } from "../runtime/native-package.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { verifyCompiledResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
@@ -40,6 +41,7 @@ if (explicitRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
 const target = buildRuntimeTarget;
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
+const nativeManifest = await prepareNativePackage(repository, { production: release });
 requireRuntime(target);
 for (const profile of runtimeProfiles) {
   const distribution = distributionDirectory(repository, target, profile);
@@ -59,6 +61,9 @@ validatePackagedResources(join(repository, "src-tauri", "resources"), repository
 
 const bundleResources = [
   "resources/agent-plugins/**/*",
+  ...listRuntimeFiles(join(repository, "src-tauri/resources/native-runtime")).map(
+    (path) => `resources/native-runtime/${path}`,
+  ),
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),
@@ -95,7 +100,12 @@ if (target === "windows-x64") {
     const packages = readdirSync(directory).filter((name) => name.endsWith(extension));
     if (!packages.length) throw new Error(`No final ${format} package was produced`);
     for (const name of packages) {
-      verifyWindowsApplicationPackage(join(directory, name), { target, repository, production: release });
+      verifyWindowsApplicationPackage(join(directory, name), {
+        target,
+        repository,
+        production: release,
+        nativeManifest,
+      });
     }
   }
 }
@@ -103,6 +113,7 @@ if (target.startsWith("macos-")) {
   const name = readJson("src-tauri/tauri.conf.json").productName;
   const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
   validatePackagedResources(packaged, repository, target);
+  validateNativePackage(join(packaged, "native-runtime"), target, nativeManifest, release);
 }
 
 function productionConfiguration() {

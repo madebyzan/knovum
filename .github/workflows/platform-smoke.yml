@@ -12,6 +12,7 @@ on:
       - "vite.config.ts"
       - "tsconfig*.json"
       - ".github/actions/setup-protoc/**"
+      - ".github/actions/setup-native-build/**"
       - ".github/workflows/platform-smoke.yml"
   workflow_dispatch:
 
@@ -51,5 +52,11 @@ jobs:
           test -f src-tauri/Cargo.lock
       - name: Install web dependencies
         run: pnpm install --frozen-lockfile
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+      - uses: ./.github/actions/setup-native-build
+      - name: Prepare native worker and suppliers
+        run: node scripts/runtime/native-worker.mjs
       - name: Build desktop binary (compile smoke only)
         run: pnpm exec tauri build --no-bundle --debug

@@ -13,7 +13,7 @@ const firstRevision = {
   id: "revision-1",
   revision: 1,
   engineId: "moss_nano",
-  modelSpecId: "moss-tts-nano-onnx-v1",
+  modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
   language: "zh-CN",
   speed: 1,
   sampleRate: 48_000,

@@ -1,7 +1,7 @@
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { compiledFiles, verifyCompiledSignature } from "./compiled-signing.mjs";
 import { validateDependencyLicenseReview } from "./license-policy.mjs";
 
 export function verifyRuntimeSignatures(directory, runtimeTarget, repository, profile) {
@@ -26,24 +26,5 @@ export function verifyCompiledResourceSignatures(directory, runtimeTarget, repos
   ) {
     throw new Error("Python runtime signing certificate differs from the approved certificate");
   }
-  execFileSync(
-    "uv",
-    [
-      "run",
-      "--no-project",
-      "--python",
-      JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8")).version,
-      "python",
-      "-I",
-      "-B",
-      "-X",
-      "utf8",
-      join(repository, "scripts", "runtime", "signing.py"),
-      "--directory",
-      directory,
-      "--target",
-      runtimeTarget,
-    ],
-    { stdio: "inherit" },
-  );
+  for (const path of compiledFiles(directory, runtimeTarget)) verifyCompiledSignature(path, runtimeTarget);
 }

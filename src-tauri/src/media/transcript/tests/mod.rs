@@ -24,7 +24,7 @@ pub(crate) fn knowledge_fixture(source_revision: &str, segments: Vec<TranscriptS
         duration_ms,
         source_revision,
         TranscriptProvenance {
-            engine_id: "faster-whisper".into(),
+            engine_id: "whisper-cpp".into(),
             model_spec_id: "whisper-small-v1".into(),
             model_revision: "test-model-revision".into(),
             timing: "segment_only".into(),

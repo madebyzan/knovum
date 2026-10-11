@@ -186,18 +186,20 @@ pub(crate) async fn discard_candidate(
     pool: &SqlitePool,
     candidate_id: &str,
 ) -> Result<BTreeSet<String>, String> {
+    #[derive(sqlx::FromRow)]
+    struct CandidateRun {
+        status: String,
+        scope_kind: String,
+        home_space_id: Option<String>,
+        run_state: String,
+        completed_at: Option<i64>,
+        input_snapshot: String,
+        reference_asset_path: String,
+        preview_asset_path: String,
+    }
     let mut tx = db::begin_write(pool).await?;
-    let row: Option<(
-        String,
-        String,
-        Option<String>,
-        String,
-        Option<i64>,
-        String,
-        String,
-        String,
-    )> = sqlx::query_as(
-        "SELECT candidate.status,run.scope_kind,run.home_space_id,run.state,run.completed_at, \
+    let row: Option<CandidateRun> = sqlx::query_as(
+        "SELECT candidate.status,run.scope_kind,run.home_space_id,run.state AS run_state,run.completed_at, \
          run.input_snapshot,candidate.reference_asset_path,candidate.preview_asset_path \
          FROM spaces_voice_candidates candidate JOIN spaces_runs run ON run.id=candidate.run_id \
          WHERE candidate.id=?",
@@ -206,7 +208,7 @@ pub(crate) async fn discard_candidate(
     .fetch_optional(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let Some((
+    let Some(CandidateRun {
         status,
         scope_kind,
         home_space_id,
@@ -215,7 +217,7 @@ pub(crate) async fn discard_candidate(
         input_snapshot,
         reference_asset_path,
         preview_asset_path,
-    )) = row
+    }) = row
     else {
         return Err("Voice candidate is unavailable".into());
     };

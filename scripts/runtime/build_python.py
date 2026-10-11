@@ -29,34 +29,14 @@ ISOLATED_PYTHON_ARGS = ("-I", "-B", "-X", "utf8")
 
 def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> None:
     executable = runtime / ("python.exe" if target == "windows-x64" else "bin/python3")
-    imports = {
-        "resources": "import huggingface_hub,modelscope_hub,pydantic,tqdm;assert 'torch' not in sys.modules",
-        "light-inference": "sys.modules['torch']=None;import onnxruntime,sherpa_onnx,sentencepiece,soxr;"
-        "from moss_tts_nano_ort.ort_cpu_runtime import OrtCpuRuntime;"
-        + ("import faster_whisper" if target != "macos-arm64" else "import numpy"),
-        "torch-inference": "import torch,sentence_transformers;"
-        + ("import mlx_whisper" if target == "macos-arm64" else "import transformers")
-        + (";import faster_whisper,ctranslate2;assert torch.version.cuda=='12.8'" if target == "windows-x64" else ""),
-        "voice-generation": "sys.modules['torch']=None;import numpy,pydantic,ctypes;"
-        "os.chdir(os.path.join(sys.prefix,'bin'));os.environ.pop('GGML_BACKEND_PATH',None);"
-        "_backend_dll=os.add_dll_directory(os.getcwd()) if os.name=='nt' else None;"
-        "_voice=ctypes.CDLL(os.path.join(sys.prefix,'compiled-libraries',"
-        "{'darwin':'knovum_voice.dylib','win32':'knovum_voice.dll'}[sys.platform]));"
-        "assert _voice.knovum_voice_abi()==2;assert _voice.knovum_voice_devices()>0;"
-        "_align=ctypes.CDLL(os.path.join(sys.prefix,'compiled-libraries',"
-        "{'darwin':'audiocpp.dylib','win32':'audiocpp.dll'}[sys.platform]));"
-        "assert _align.audiocpp_abi_version()==0x000200;"
-        "_registry=ctypes.c_void_p();assert _align.audiocpp_registry_create(None,ctypes.byref(_registry))==0;"
-        "_families=[ctypes.c_char_p() for _ in range(_align.audiocpp_registry_family_count(_registry))];"
-        "assert all(_align.audiocpp_registry_family(_registry,ctypes.c_size_t(i),ctypes.byref(name))==0 "
-        "for i,name in enumerate(_families));"
-        "assert {b'voxcpm2',b'qwen3_forced_aligner'}.issubset({name.value for name in _families});"
-        "_align.audiocpp_registry_free(_registry)",
-        "agent": "from deepagents import create_deep_agent;"
+    if profile != "agent":
+        raise ValueError("Only the Agent Python runtime is retained")
+    imports = (
+        "from deepagents import create_deep_agent;"
         "from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver;"
         "import langchain_openai,langchain_anthropic,langchain_google_genai;"
-        "import langchain_ollama,langchain_deepseek,langchain_groq,truststore",
-    }[profile]
+        "import langchain_ollama,langchain_deepseek,langchain_groq,truststore"
+    )
     codepage = "import ctypes;assert ctypes.windll.kernel32.GetACP()==65001;" if target == "windows-x64" else ""
     code = (
         "import os,sys;_windows_dll_directory=os.add_dll_directory(os.path.join(sys.prefix,'Library','bin')) "
@@ -68,11 +48,6 @@ def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> N
     environment = dict(
         os.environ,
         PYTHONDONTWRITEBYTECODE="1",
-        HF_HUB_OFFLINE="1",
-        HF_HUB_DISABLE_TELEMETRY="1",
-        TRANSFORMERS_OFFLINE="1",
-        PYANNOTE_METRICS_ENABLED="0",
-        PYTORCH_ENABLE_MPS_FALLBACK="0",
     )
     for name in (
         "PYTHONPATH",
@@ -124,7 +99,7 @@ def build(
             "import sys;assert '.'.join(map(str,sys.version_info[:3]))==sys.argv[1]",
             config["version"],
         )
-        dependencies = install_dependencies(runtime, scratch, executable, REPOSITORY, profile, target)
+        install_dependencies(runtime, scratch, executable, REPOSITORY, profile, target)
         if target == "windows-x64":
             configure_utf8(executable, scratch / "build-evidence")
         relocated = scratch / "relocated runtime 中文"
@@ -156,8 +131,6 @@ def build(
             "signing": signature,
             "licenseReview": "required",
         }
-        if profile == "voice-generation":
-            record["voxcpm"] = dependencies
         (scratch / "build-evidence/conda-packages.json").write_text(json.dumps(conda_inventory, indent=2) + "\n")
         (scratch / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
         run(
@@ -210,13 +183,7 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--profile",
-        choices=(
-            "resources",
-            "light-inference",
-            "torch-inference",
-            "voice-generation",
-            "agent",
-        ),
+        choices=("agent",),
         required=True,
     )
     parser.add_argument("--output", type=Path, required=True)

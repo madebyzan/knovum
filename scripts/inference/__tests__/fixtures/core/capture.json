@@ -1,0 +1,1292 @@
+{
+  "schemaVersion": 1,
+  "runId": "unit-fixture",
+  "capturedAt": "2026-10-03T13:00:00Z",
+  "provenance": {
+    "appVersion": "unit-fixture",
+    "appCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtimeVersion": "unit-fixture",
+    "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target": "macos-arm64",
+    "models": {
+      "embedding": {
+        "specId": "embedding-model",
+        "identityDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "asr": {
+        "specId": "asr-model",
+        "identityDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "alignment": {
+        "specId": "alignment-model",
+        "identityDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "tts": {
+        "specId": "tts-model",
+        "identityDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "configs": {
+      "embedding": {
+        "id": "embedding-profile",
+        "parameters": {
+          "modelFamily": "whisper",
+          "modelSize": "small"
+        }
+      },
+      "asr": {
+        "id": "asr-profile",
+        "parameters": {
+          "modelFamily": "whisper",
+          "modelSize": "small"
+        }
+      },
+      "alignment": {
+        "id": "alignment-profile",
+        "parameters": {
+          "modelFamily": "whisper",
+          "modelSize": "small"
+        }
+      },
+      "tts": {
+        "id": "tts-profile",
+        "parameters": {
+          "modelFamily": "whisper",
+          "modelSize": "small"
+        }
+      }
+    },
+    "corpusSha256": "1f0b50f7c8a8e44b87506b247c2cc18a0bd384a6e848e0f81a9bb7a33d4aa4cc",
+    "device": {
+      "manufacturer": "fixture",
+      "model": "fixture",
+      "cpu": "fixture",
+      "physicalCores": 1,
+      "memoryBytes": 1024,
+      "os": "fixture",
+      "osVersion": "fixture",
+      "powerMode": "fixture",
+      "accelerator": "cpu",
+      "driver": null
+    }
+  },
+  "capabilities": {
+    "embedding": {
+      "status": "completed",
+      "comparisonMode": "cpu_float32",
+      "referenceOutput": {
+        "path": "embedding-reference.json",
+        "sha256": "c03f96f56c709b51f2feb893c17f767a1a3ee4ea10acc70bd038e6b09beae013"
+      },
+      "candidateOutput": {
+        "path": "embedding-candidate.json",
+        "sha256": "5e594024cf1654dc122863fcb0c80e0f72bbe9a3e6312651858f844e5f246568"
+      }
+    },
+    "asr": {
+      "status": "completed",
+      "baselineOutput": {
+        "path": "asr-baseline.json",
+        "sha256": "e958d33002c78bfb1892f934cdc999cb8afb9b48da4dab2c54c9069ef79224a9"
+      },
+      "candidateOutput": {
+        "path": "asr-candidate.json",
+        "sha256": "85106e95517a43875668039bcc6ac9dfa826a69eaf157349b5fbb562ee9c4491"
+      }
+    },
+    "alignment": {
+      "status": "completed",
+      "candidateOutput": {
+        "path": "alignment-candidate.json",
+        "sha256": "83d59b4ac03e7cf8f94abb54bfbd911d9080006051c0eca19ce5e6a5ad1b8c50"
+      }
+    },
+    "tts": {
+      "status": "completed",
+      "candidateOutput": {
+        "path": "tts-candidate.json",
+        "sha256": "6fbb50fe6d19e8fec516cc0ea61d2af1e71489ce684e588bea452ac8f15b5893"
+      },
+      "blinding": {
+        "assignment": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "revealedAfterReviewsAt": "2026-10-03T13:00:00Z"
+      },
+      "reviews": [
+        {
+          "sampleId": "tts-0",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-0",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-0",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-1",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-1",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-1",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-2",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-2",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-2",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-3",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-3",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-3",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-4",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-4",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-4",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-5",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-5",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-5",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-6",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-6",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-6",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-7",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-7",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-7",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-8",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-8",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-8",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-9",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-9",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-9",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-10",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-10",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-10",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-11",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-11",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-11",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-12",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-12",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-12",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-13",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-13",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-13",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-14",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-14",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-14",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-15",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-15",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-15",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-16",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-16",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-16",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-17",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-17",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-17",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-18",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-18",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-18",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-19",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-19",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-19",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-20",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-20",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-20",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-21",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-21",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-21",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-22",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-22",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-22",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-23",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-23",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-23",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-24",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-24",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-24",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-25",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-25",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-25",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-26",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-26",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-26",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-27",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-27",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-27",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-28",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-28",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-28",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-29",
+          "raterId": "rater-0",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-29",
+          "raterId": "rater-1",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        },
+        {
+          "sampleId": "tts-29",
+          "raterId": "rater-2",
+          "scores": {
+            "pronunciation": 4.0,
+            "naturalness": 4.0,
+            "voiceConsistency": 4.0,
+            "referenceSimilarity": 4.0,
+            "emotionControl": 4.0
+          },
+          "notes": null,
+          "reviewedAt": "2026-10-03T12:00:00Z"
+        }
+      ]
+    }
+  }
+}

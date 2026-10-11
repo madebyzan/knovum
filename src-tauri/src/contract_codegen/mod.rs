@@ -3,7 +3,7 @@ use std::path::Path;
 use schemars::{schema_for, Schema};
 use ts_rs::Config;
 
-// The fields exist only to collect one closed schema graph for Python generation.
+// Collect the neutral native worker protocol into a closed schema graph.
 #[allow(dead_code)]
 #[derive(schemars::JsonSchema)]
 struct InferenceWireSchemas {
@@ -64,7 +64,8 @@ pub fn export(project_root: &Path) -> Result<(), String> {
         settings_values,
     )
     .map_err(io_error)?;
-    let wire_schema = project_root.join("python/schemas/inference.schema.json");
+    let wire_schema =
+        project_root.join("src-tauri/crates/inference-contracts/inference.schema.json");
     std::fs::create_dir_all(
         wire_schema
             .parent()
@@ -72,10 +73,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     )
     .map_err(io_error)?;
     write_json(&wire_schema, &schema_for!(InferenceWireSchemas))?;
-    write_json(
-        &project_root.join("python/schemas/model-resources.schema.json"),
-        &schema_for!(crate::local_resources::models::contracts::DownloadRequest),
-    )?;
     write_json(
         &project_root.join("python/schemas/agent_runtime.schema.json"),
         &schema_for!(crate::agent_runtime::protocol::AgentWireSchemas),

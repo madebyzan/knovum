@@ -88,7 +88,7 @@ describe("resource preparation task lifetime", () => {
       startedAt: 1,
       completedAt: null,
       state: "preparing",
-      progress: { stage: "installing", downloaded: 37, total: 100, percent: 37 },
+      progress: { stage: "downloading", downloaded: 37, total: 100, percent: 37 },
       error: null,
     };
     vi.mocked(listResourcePreparations)

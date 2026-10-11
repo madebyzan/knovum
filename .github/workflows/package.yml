@@ -72,11 +72,11 @@ jobs:
           gh release download "$RUNTIME_TAG" --repo "$GITHUB_REPOSITORY" --pattern runtime-publication.json --dir runtime-publication
       - name: Provision published native resources
         run: |
-          pnpm runtime:provision --profile resources --publication runtime-publication/runtime-publication.json
-          pnpm runtime:provision --profile light-inference --publication runtime-publication/runtime-publication.json
-          pnpm runtime:provision --profile torch-inference --publication runtime-publication/runtime-publication.json
-          pnpm runtime:provision --profile voice-generation --publication runtime-publication/runtime-publication.json
+          pnpm runtime:provision --profile core-media --publication runtime-publication/runtime-publication.json
           pnpm runtime:provision --profile agent --publication runtime-publication/runtime-publication.json
+      - uses: ./.github/actions/setup-native-build
+      - name: Prepare native inference
+        run: node scripts/runtime/native-worker.mjs
       - name: Audit production web dependencies
         run: pnpm security:web
       - name: Install cargo-deny

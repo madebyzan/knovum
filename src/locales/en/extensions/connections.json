@@ -40,14 +40,12 @@
   "check": "Check connection and read catalog",
   "empty": "No connections for this service",
   "cleanupPending": "Changes saved, but cleanup is incomplete. Affected accounts remain unavailable.",
-  "count": "{count} connection | {count} connections",
   "delete": {
     "title": "Delete connection {name}?",
     "description": "Only this connection is deleted. Other connections to the service are kept."
   },
   "accounts": "Accounts",
   "title": "Connections",
-  "manage": "Manage",
   "addServer": "Add MCP server",
   "description": "Configure MCP services, accounts and tool permissions. Plugin services are configured as part of their package.",
   "emptyServers": "No MCP servers",

@@ -3,7 +3,6 @@ use std::{fs, path::PathBuf};
 use tauri::{AppHandle, Manager, Runtime};
 
 pub mod catalog;
-pub(crate) mod contracts;
 mod direct_download;
 mod download;
 pub(crate) mod installation;

@@ -138,7 +138,7 @@ it("preserves a current transcript instead of attempting to overwrite its edits"
       subtitleCues: [],
       speakerTracks: [],
       provenance: {
-        engineId: "faster_whisper",
+        engineId: "whisper-cpp",
         modelSpecId: "whisper-small",
         modelRevision: "fixed",
         timing: "engine_words",

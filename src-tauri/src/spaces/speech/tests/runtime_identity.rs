@@ -2,8 +2,8 @@ use super::*;
 use serde_json::json;
 
 #[test]
-fn mixed_voice_runs_freeze_both_packages_and_reject_obsolete_identity() {
-    let snapshot = json!({"runtimeDigests": {"light-inference": "a".repeat(64), "voice-generation": "b".repeat(64)}});
+fn mixed_voice_runs_freeze_one_native_package_and_reject_obsolete_identity() {
+    let snapshot = json!({"runtimeDigests": {"native-inference-v2": "a".repeat(64)}});
     let digests = read_snapshot(&snapshot).unwrap();
     assert_eq!(
         digests[&profile_for_engine("moss_nano").unwrap()],
@@ -11,7 +11,7 @@ fn mixed_voice_runs_freeze_both_packages_and_reject_obsolete_identity() {
     );
     assert_eq!(
         digests[&profile_for_engine("voxcpm2").unwrap()],
-        "b".repeat(64)
+        "a".repeat(64)
     );
     for invalid in [
         json!({"runtimeDigest": "a".repeat(64)}),
@@ -53,14 +53,14 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         project_id: project_id.clone(),
         expected_revision: 1,
     };
-    let mut digests = RuntimeDigests::from([(RuntimeProfile::LightInference, "a".repeat(64))]);
+    let mut digests = RuntimeDigests::new();
     assert!(run_start::start(&pool, request(), &digests).await.is_err());
     let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_runs")
         .fetch_one(&pool)
         .await
         .unwrap();
     assert_eq!(count, 0);
-    digests.insert(RuntimeProfile::VoiceGeneration, "b".repeat(64));
+    digests.insert("native-inference-v2".into(), "b".repeat(64));
     run_start::start(&pool, request(), &digests).await.unwrap();
     run_start::start(&pool, request(), &digests).await.unwrap();
     let snapshot: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=?")
@@ -72,6 +72,6 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         read_snapshot(&serde_json::from_str(&snapshot).unwrap()).unwrap(),
         digests
     );
-    digests.insert(RuntimeProfile::VoiceGeneration, "c".repeat(64));
+    digests.insert("native-inference-v2".into(), "c".repeat(64));
     assert!(run_start::start(&pool, request(), &digests).await.is_err());
 }

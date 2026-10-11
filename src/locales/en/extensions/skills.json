@@ -3,8 +3,6 @@
   "readOnly": "This Skill is controlled by its plugin. Copy it as a personal Skill to edit or enable it independently.",
   "create": "Create Skill",
   "import": "Import directory",
-  "personal": "Personal Skill",
-  "view": "View",
   "copy": "Copy as personal Skill",
   "binaryResource": "This is a binary reference resource. Export the Skill to inspect its original bytes.",
   "empty": {
@@ -12,9 +10,6 @@
     "description": "Create a personal Skill or import an existing Skill directory."
   },
   "actions": "Skill actions",
-  "description": "Manage independent personal Skills. Packaged Skills are managed under their plugin.",
-  "search": "Search Skills…",
-  "plugin": "Plugin Skill",
   "unsupportedRequirements": "Unsupported requirements: {requirements}",
   "discard": {
     "title": "Discard unsaved changes?",

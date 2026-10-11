@@ -101,7 +101,7 @@ fn aligned_hello_world_with_gap() -> Value {
     knowledge["transcript"]["revision"] = json!(2);
     knowledge["transcript"]["alignment"] = json!({
         "engineId": "qwen3_forced_aligner",
-        "modelSpecId": "qwen3-forced-aligner-0.6b-hf-cpu-v1",
+        "modelSpecId": "qwen3-forced-aligner-0.6b-f16-cpu-v1",
         "modelRevision": "pinned-revision",
         "alignedAt": 1
     });

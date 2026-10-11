@@ -1,0 +1,51 @@
+import assert from "node:assert/strict";
+import childProcess from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { mock, test } from "node:test";
+
+import { signCompiledFiles } from "../compiled-signing.mjs";
+
+test("Windows production signing verifies the approved signer and preserves vendor CRT only explicitly", () => {
+  const directory = mkdtempSync(join(tmpdir(), "knovum-signing-test-"));
+  const names = [
+    "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT",
+    "KNOVUM_WINDOWS_TIMESTAMP_URL",
+    "KNOVUM_WINDOWS_SIGNTOOL",
+  ];
+  const previous = names.map((name) => process.env[name]);
+  const identity = "A".repeat(40);
+  const calls = [];
+  const replacement = mock.method(childProcess, "execFileSync", (command, args) => {
+    calls.push([command, args]);
+    return command === "powershell.exe" ? identity : "";
+  });
+  syncBuiltinESMExports();
+  try {
+    process.env.KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT = identity;
+    process.env.KNOVUM_WINDOWS_TIMESTAMP_URL = "https://example.invalid/timestamp";
+    process.env.KNOVUM_WINDOWS_SIGNTOOL = "qualified-signtool";
+    for (const name of ["worker.exe", "vcruntime140.dll"]) writeFileSync(join(directory, name), "MZxx");
+    const ordinary = signCompiledFiles(directory, "windows-x64", "production");
+    assert.equal(ordinary.identity, identity);
+    assert.equal(
+      calls.filter(([command, args]) => command === "qualified-signtool" && args[0] === "sign").length,
+      2,
+    );
+    calls.length = 0;
+    signCompiledFiles(directory, "windows-x64", "production", { preserveMicrosoftRuntime: true });
+    const signed = calls.filter(([command, args]) => command === "qualified-signtool" && args[0] === "sign");
+    assert.equal(signed.length, 1);
+    assert.equal(signed[0][1].at(-1), join(directory, "worker.exe"));
+  } finally {
+    replacement.mock.restore();
+    syncBuiltinESMExports();
+    names.forEach((name, index) => {
+      if (previous[index] === undefined) delete process.env[name];
+      else process.env[name] = previous[index];
+    });
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

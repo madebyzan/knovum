@@ -12,12 +12,9 @@ function resources(): LocalResourcesStatus {
     ytDlp: tool,
     deno: tool,
     pythonRuntimes: {
-      resources: { state: "not_published" },
-      "light-inference": { state: "not_published" },
-      "torch-inference": { state: "ready" },
-      "voice-generation": { state: "not_published" },
       agent: { state: "not_published" },
     },
+    nativeInference: true,
     models: {
       transcription: [],
       imageSegmentation: model,
@@ -39,16 +36,16 @@ function resources(): LocalResourcesStatus {
 it("indexes verified embeddings without unrelated or downloader runtime publications", () => {
   const status = resources();
   expect(textEmbeddingReady(status)).toBe(true);
-  status.pythonRuntimes.resources = { state: "invalid", message: "Downloader manifest is corrupt" };
+  status.pythonRuntimes.agent = { state: "invalid", message: "Downloader manifest is corrupt" };
   expect(textEmbeddingReady(status)).toBe(true);
 });
 
 it("keeps background indexing unprepared when its own runtime or snapshot is unavailable", () => {
   expect(textEmbeddingReady()).toBe(false);
   const status = resources();
-  status.pythonRuntimes["torch-inference"] = { state: "not_installed", downloadSize: 1 };
+  status.nativeInference = false;
   expect(textEmbeddingReady(status)).toBe(false);
-  status.pythonRuntimes["torch-inference"] = { state: "ready" };
+  status.nativeInference = true;
   status.models.textEmbeddingConfig.verified = false;
   expect(textEmbeddingReady(status)).toBe(false);
 });

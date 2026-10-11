@@ -91,7 +91,7 @@ defineExpose({ focus, focused });
       :aria-label="t('common.clearSearch')"
       :title="t('common.clearSearch')"
       :class="[
-        'absolute flex items-center justify-center rounded-sm text-fg-tertiary transition-colors duration-100 hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:pointer-events-none disabled:opacity-50',
+        'absolute flex items-center justify-center rounded-sm text-fg-tertiary transition-colors duration-100 hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:pointer-events-none disabled:opacity-40',
         size === 'sm' ? 'right-0.5 size-6' : 'right-1 size-7',
       ]"
       @click="clear"

@@ -1,0 +1,13 @@
+{
+  "vulkanLoader": {
+    "version": "1.4.363.0",
+    "license": "MIT AND Apache-2.0",
+    "fileName": "VulkanRT-X64-1.4.363.0-Components.zip",
+    "url": "https://sdk.lunarg.com/sdk/download/1.4.363.0/windows/VulkanRT-X64-1.4.363.0-Components.zip",
+    "size": 18211191,
+    "sha256": "a25a927aa8b9f0371048f1861cf88ac3b9bc9b1fb332c42d897c8ab32695769a",
+    "entry": "VulkanRT-X64-1.4.363.0-Components/x64/vulkan-1.dll",
+    "licenseEntry": "VulkanRT-X64-1.4.363.0-Components/VulkanRT-License.txt",
+    "source": "https://github.com/KhronosGroup/Vulkan-Loader/tree/vulkan-sdk-1.4.363.0"
+  }
+}

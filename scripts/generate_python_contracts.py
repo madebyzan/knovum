@@ -7,85 +7,6 @@ from pathlib import Path
 from typing import Any
 
 # This map selects file ownership only. Rust remains the source of every wire field and type name.
-CONTRACT_MODULES = {
-    "diagnostics": {
-        "RuntimeDiagnostic",
-        "RuntimeDiagnosticFrame",
-        "RuntimeDiagnosticEvent",
-        "RuntimeDiagnosticMethod",
-        "RuntimeDiagnosticCode",
-    },
-    "control": {
-        "RuntimeCapability",
-        "ImageRuntimeModelPath",
-        "ImageModelVariant",
-        "RuntimeDeviceProfile",
-        "RuntimeModelPaths",
-        "RuntimeLimits",
-        "RuntimeHealthParams",
-        "RuntimeHealthObservation",
-        "RuntimeCancelParams",
-        "RuntimeCancellationAcknowledgement",
-        "RuntimeAckChunkParams",
-        "RuntimeShutdownParams",
-        "RuntimeShutdownAcknowledgement",
-        "RuntimeInitializeParams",
-        "RuntimeSession",
-    },
-    "embedding": {"EmbeddingRole", "EmbeddingEncoding", "EmbeddingEncodeParams"},
-    "image": {
-        "TensorDataType",
-        "TensorFileReference",
-        "ImageSegmentation",
-        "ImageSegmentParams",
-        "ImageComputeParams",
-        "ImageComputation",
-        "ImageSelectionPoint",
-        "ImageSelectionRect",
-        "ImageComputationOutput",
-    },
-    "audio": {"AudioFileReference"},
-    "transcription": {
-        "AsrEngine",
-        "LanguagePolicy",
-        "SpeechFileReference",
-        "SpeechWordTiming",
-        "SpeechProgressEventType",
-        "AsrProfile",
-        "SpeechTranscription",
-        "SpeechTranscriptSegment",
-        "SpeechProgressEvent",
-        "SpeechTranscribeParams",
-        "SpeechTranscriptArtifact",
-    },
-    "alignment": {
-        "AlignmentTextSegment",
-        "AlignmentProfile",
-        "AlignmentUnitKind",
-        "SpeechAlignParams",
-        "AlignedSpeechUnit",
-        "SpeechAlignment",
-    },
-    "diarization": {
-        "SpeakerCountBounds",
-        "SpeakerTurn",
-        "SpeechDiarizeParams",
-        "SpeechDiarization",
-    },
-    "synthesis": {
-        "VoiceSourceKind",
-        "SpeechSynthesisEngine",
-        "SpeechSynthesisChunkGranularity",
-        "SynthesizedAudioFileReference",
-        "SpeechSynthesis",
-        "VoiceRevisionReference",
-        "SynthesisProfile",
-        "SpeechSynthesisChunkEvent",
-        "SpeechSynthesizeParams",
-    },
-    "separation": {"SpeechSeparateParams", "SpeechSeparation"},
-}
-
 AGENT_RUNTIME_CONTRACT_MODULES = {
     "control": {
         "AgentInitialize",
@@ -204,28 +125,8 @@ def generate_owned_contracts(capability: str, modules: dict[str, set[str]], sche
             (output / module.name).write_text(module.read_text())
 
 
-def generate_model_resources() -> None:
-    root = Path(__file__).resolve().parents[1] / "python"
-    subprocess.run(
-        [
-            "datamodel-codegen",
-            "--input",
-            str(root / "schemas/model-resources.schema.json"),
-            "--input-file-type",
-            "jsonschema",
-            "--output",
-            str(root / "src/knovum_model_resources/contracts.py"),
-            *codegen_options("knovum_model_resources.wire_model.WireModel"),
-            "--collapse-root-models",
-        ],
-        check=True,
-    )
-
-
 def main() -> None:
-    generate_owned_contracts("inference", CONTRACT_MODULES, "InferenceWireSchemas")
     generate_owned_contracts("agent_runtime", AGENT_RUNTIME_CONTRACT_MODULES, "AgentWireSchemas")
-    generate_model_resources()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const sourceScopes = {
   web: ["src", "tests"],
-  rust: ["src-tauri/src", "src-tauri/tests", "src-tauri/build_support"],
+  rust: ["src-tauri/src", "src-tauri/tests", "src-tauri/build_support", "src-tauri/crates"],
   python: ["python/src", "python/tests"],
   scripts: ["scripts", "docs"],
 };

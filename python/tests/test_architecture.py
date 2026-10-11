@@ -9,46 +9,7 @@ from pathlib import Path
 import pytest
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
-DEPENDENCIES = {
-    "knovum_inference": {
-        "__init__": set(),
-        "__main__": {"server"},
-        "server": {"runtime"},
-        "runtime": {
-            "contracts",
-            "embedding",
-            "errors",
-            "image_segmentation",
-            "image_tensors",
-            "image_upscaling",
-            "image_inpainting",
-            "image_selection",
-            "image_depth",
-            "speech",
-            "transport",
-        },
-        "transport": {"contracts", "errors"},
-        "contracts": set(),
-        "errors": set(),
-        "speech": {"contracts", "errors"},
-        "embedding": {"errors"},
-        "image_segmentation": {"contracts", "errors", "image_tensors"},
-        "image_tensors": {"contracts", "errors"},
-        "image_upscaling": {"errors"},
-        "image_inpainting": {"errors"},
-        "image_selection": {"contracts", "errors"},
-        "image_depth": {"errors"},
-    },
-}
-DEPENDENCIES["knovum_model_resources"] = {
-    "__init__": set(),
-    "wire_model": set(),
-    "contracts": {"wire_model"},
-    "progress": set(),
-    "hugging_face": {"contracts", "progress"},
-    "model_scope": {"contracts", "progress"},
-    "server": {"contracts", "progress", "hugging_face", "model_scope"},
-}
+DEPENDENCIES = {}
 DEPENDENCIES["knovum_agent_runtime"] = {
     "__init__": set(),
     "__main__": {"server"},
@@ -94,7 +55,8 @@ def check_dependencies(source: str, module: str, owner: str) -> None:
         if not parts[0].startswith("knovum_"):
             continue
         assert parts[0] == root, f"{module}: undeclared cross-capability dependency {dependency}"
-        if len(parts) > 1 and parts[1] in DEPENDENCIES[root]:
+        if len(parts) > 1:
+            assert parts[1] in DEPENDENCIES[root], f"{module}: unknown dependency {dependency}"
             assert parts[1] in allowed, f"{module}: forbidden dependency {dependency}"
 
 
@@ -119,22 +81,21 @@ def test_all_source_packages_have_explicit_dependency_and_test_ownership() -> No
         "from knovum_inference import runtime",
         "from ..runtime import worker",
         "from .. import runtime",
-        "import knovum_agent_runtime",
         "from scripts.runtime import artifacts",
         "from acceptance import evaluator",
     ],
 )
 def test_capability_boundary_rejects_absolute_relative_and_package_imports(source: str) -> None:
-    with pytest.raises(AssertionError):
-        check_dependencies(source, "knovum_inference.speech.alignment", "speech")
+    with pytest.raises((AssertionError, ImportError)):
+        check_dependencies(source, "knovum_agent_runtime.skills", "skills")
 
 
 @pytest.mark.parametrize(
     "source",
-    ["from ..errors import server_error", "from .request import verify_audio", "from ..contracts import wire_model"],
+    ["from .contracts import wire_model", "from .skills import Skill", "from . import contracts"],
 )
 def test_capability_boundary_accepts_owned_dependencies(source: str) -> None:
-    check_dependencies(source, "knovum_inference.speech.alignment", "speech")
+    check_dependencies(source, "knovum_agent_runtime.skills", "skills")
 
 
 def test_worker_entry_import_does_not_load_unselected_inference_libraries() -> None:
@@ -153,8 +114,7 @@ class RejectEngineImports(importlib.abc.MetaPathFinder):
             raise AssertionError('Worker imported an unselected inference library: ' + fullname)
 
 sys.meta_path.insert(0, RejectEngineImports())
-import knovum_inference.server
-import knovum_model_resources.server
+import knovum_agent_runtime.transport
 """
     process = subprocess.run(
         [sys.executable, "-I", "-B", "-c", script, str(SOURCE)], capture_output=True, text=True, timeout=10, check=False

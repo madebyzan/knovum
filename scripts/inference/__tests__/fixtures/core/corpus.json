@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "unit-fixture",
+  "corpusVersion": "1",
+  "description": "Synthetic unit evidence, not compiled-engine qualification",
+  "embedding": {
+    "referenceProfile": {
+      "modelSpecId": "embedding-model",
+      "configId": "embedding-profile",
+      "device": "cpu",
+      "precision": "float32"
+    },
+    "documents": [
+      {
+        "id": "document",
+        "kind": "document",
+        "text": "document"
+      },
+      {
+        "id": "note",
+        "kind": "note",
+        "text": "note"
+      },
+      {
+        "id": "code",
+        "kind": "code",
+        "text": "code"
+      },
+      {
+        "id": "transcript",
+        "kind": "transcript",
+        "text": "transcript"
+      }
+    ],
+    "queries": [
+      {
+        "id": "query",
+        "text": "document",
+        "relevantDocumentIds": [
+          "document"
+        ]
+      }
+    ]
+  },
+  "asr": {
+    "baselineProfile": {
+      "modelSpecId": "asr-model",
+      "configId": "asr-profile",
+      "modelFamily": "whisper",
+      "modelSize": "small"
+    },
+    "samples": [
+      {
+        "id": "zh-CN",
+        "language": "zh-CN",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "durationMs": 600000,
+        "sampleRateHz": 16000,
+        "coverageTags": [
+          "long_recording",
+          "mixed_language",
+          "noise",
+          "numbers",
+          "proper_noun",
+          "silence",
+          "speaker_overlap"
+        ],
+        "referenceText": "你好世界"
+      },
+      {
+        "id": "en-US",
+        "language": "en-US",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "durationMs": 600000,
+        "sampleRateHz": 48000,
+        "coverageTags": [
+          "long_recording",
+          "mixed_language",
+          "noise",
+          "numbers",
+          "proper_noun",
+          "silence",
+          "speaker_overlap"
+        ],
+        "referenceText": "It's a test"
+      },
+      {
+        "id": "silence",
+        "language": "en-US",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "durationMs": 600000,
+        "sampleRateHz": 48000,
+        "coverageTags": [
+          "long_recording",
+          "mixed_language",
+          "noise",
+          "numbers",
+          "proper_noun",
+          "silence",
+          "speaker_overlap"
+        ],
+        "referenceText": ""
+      }
+    ]
+  },
+  "alignment": {
+    "thresholds": {
+      "minimumCoverage": 1,
+      "maximumMedianBoundaryErrorMs": 20,
+      "maximumP95BoundaryErrorMs": 50
+    },
+    "samples": [
+      {
+        "id": "zh-CN",
+        "language": "zh-CN",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "durationMs": 1000,
+        "sampleRateHz": 16000,
+        "units": [
+          {
+            "id": "unit",
+            "text": "text",
+            "startMs": 0,
+            "endMs": 100
+          }
+        ]
+      },
+      {
+        "id": "en-US",
+        "language": "en-US",
+        "audio": {
+          "path": "fixture.wav",
+          "sha256": "8e5549f4f70cb4dcf138a9ba29caf6a3a5e6bfd3777c94e6e43312640c8e9730"
+        },
+        "durationMs": 1000,
+        "sampleRateHz": 48000,
+        "units": [
+          {
+            "id": "unit",
+            "text": "text",
+            "startMs": 0,
+            "endMs": 100
+          }
+        ]
+      }
+    ]
+  },
+  "tts": {
+    "thresholds": {
+      "pronunciation": 4.0,
+      "naturalness": 4.0,
+      "voiceConsistency": 4.0,
+      "referenceSimilarity": 4.0,
+      "emotionControl": 4.0
+    },
+    "samples": [
+      {
+        "id": "tts-0",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-1",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-2",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-3",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-4",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-5",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-6",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-7",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-8",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-9",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-10",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-11",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-12",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-13",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-14",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-15",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-16",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-17",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-18",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-19",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-20",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-21",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-22",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-23",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-24",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-25",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-26",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-27",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-28",
+        "language": "en-US",
+        "text": "unit fixture"
+      },
+      {
+        "id": "tts-29",
+        "language": "zh-CN",
+        "text": "unit fixture"
+      }
+    ]
+  }
+}

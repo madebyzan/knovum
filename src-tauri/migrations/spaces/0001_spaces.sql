@@ -1273,7 +1273,7 @@ CREATE TABLE spaces_voice_candidates (
   preview_sample_rate INTEGER NOT NULL CHECK (preview_sample_rate > 0),
   preview_sample_count INTEGER NOT NULL CHECK (preview_sample_count > 0),
   model_spec_id TEXT NOT NULL CHECK (
-    (model_spec_id='moss-tts-nano-onnx-v1' AND source_kind='reference' AND reference_text IS NULL)
+    (model_spec_id='moss-tts-nano-100m-onnx-native-v2' AND source_kind='reference' AND reference_text IS NULL)
     OR model_spec_id IN ('voxcpm2-2b-gguf-orig-v1','voxcpm2-2b-gguf-q8_0-v1')
   ),
   seed INTEGER NOT NULL,

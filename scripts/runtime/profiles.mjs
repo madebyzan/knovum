@@ -4,13 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-export const runtimeProfiles = [
-  "resources",
-  "light-inference",
-  "torch-inference",
-  "voice-generation",
-  "agent",
-];
+export const runtimeProfiles = ["agent"];
 export const runtimeTargets = {
   "aarch64-apple-darwin": "macos-arm64",
   "x86_64-apple-darwin": "macos-x64",
@@ -71,30 +65,6 @@ export function runtimeRecipeBytes(repository, target, profile) {
       pythonDistributions: configuration.condaSupplier.pythonDistributions[condaGroup],
     },
     micromamba: configuration.micromamba.targets[target],
-    ...(profile === "light-inference"
-      ? {
-          mossNano: configuration.mossNano,
-          compiledSourceEvidence: JSON.parse(
-            readFileSync(join(repository, "python/compiled-source-evidence.json"), "utf8"),
-          ),
-        }
-      : {}),
-    ...(profile === "voice-generation"
-      ? {
-          voiceLibrary: Object.fromEntries(
-            Object.entries(configuration.voiceLibrary).filter(
-              ([key]) => key !== "vulkanSdk" || target === "windows-x64",
-            ),
-          ),
-          ...(target.startsWith("macos-")
-            ? {
-                macosMinimumSystemVersion: JSON.parse(
-                  readFileSync(join(repository, "src-tauri/tauri.conf.json"), "utf8"),
-                ).bundle.macOS.minimumSystemVersion,
-              }
-            : {}),
-        }
-      : {}),
   };
   return recipeBytes(recipe);
 }
@@ -112,13 +82,13 @@ export function recipeBytes(recipe) {
 }
 
 export function producerBytes(repository, profile) {
-  if (profile !== "media") runtimeProject(repository, profile);
+  runtimeProject(repository, profile);
   const { producerSources } = JSON.parse(
     readFileSync(join(repository, "python/runtime-source.json"), "utf8"),
   );
   const names = [
     ...producerSources.common,
-    ...(profile === "media" ? producerSources.media : producerSources.python),
+    ...producerSources.python,
     ...(producerSources.profiles[profile] ?? []),
   ].toSorted();
   return Buffer.concat(

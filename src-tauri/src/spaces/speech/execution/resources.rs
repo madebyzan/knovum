@@ -100,9 +100,7 @@ pub(in crate::spaces::speech) async fn synthesis_device_profile(
         }
         "moss_nano" => Err("runtime_mismatch: MOSS engine and model specification differ".into()),
         "voxcpm2" => {
-            use crate::local_resources::runtimes::python::{self, RuntimeProfile};
-            let runtime = python::resolve(app, RuntimeProfile::VoiceGeneration)?
-                .ok_or("runtime_mismatch: Voice runtime is not prepared")?;
+            let runtime = crate::local_resources::runtimes::native::resolve(app)?;
             device_profiles::voice::profile(&runtime, model_spec_id, cancellation).await
         }
         _ => Err("Speech voice uses an unsupported engine".into()),

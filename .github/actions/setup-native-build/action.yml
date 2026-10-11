@@ -1,0 +1,18 @@
+name: Setup native build toolchain
+description: Install the frozen supplier compiler driver and locate the runner's libclang for bindgen.
+
+runs:
+  using: composite
+  steps:
+    - name: Install pinned CMake
+      shell: bash
+      run: uv tool install cmake==4.3.4
+    - name: Select Windows libclang
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $directory = Join-Path $env:ProgramFiles 'LLVM\bin'
+        if (!(Test-Path -LiteralPath (Join-Path $directory 'libclang.dll') -PathType Leaf)) {
+          throw 'The native build requires the runner LLVM libclang.dll'
+        }
+        "LIBCLANG_PATH=$directory" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8

@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified compiled tools, private CPython workers and private document worker processes
+      +-- verified compiled tools, native inference workers, retained Deep Agent CPython and private document workers
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -45,11 +45,13 @@ consumer lifecycle. This worker receives decoded bitmaps and validated image edi
 filesystem paths or database authority. Failure stays visible and does not rerun tone processing on the main
 thread. Vue's long-document statistics Worker remains separate.
 
-Local inference runs in verified, application-owned CPython environments over JSON-RPC on stdio.
-The application selects and prepares the required environment and model when a capability is used;
-users do not select internal runtimes. Compiled tools and workers are resolved from fixed development
-or installed application locations, never from `PATH` or project environment overrides. Required
-resources fail explicitly when unavailable or invalid. Local IPC queries and mutations use TanStack
+Local inference runs in the private Rust `knovum-inference-worker` process over bounded JSON-RPC stdio.
+The host owns downloads, model identity, resource verification, admission, cancellation and publication.
+The native worker owns model execution only; it has no database or secret authority. Stable DTOs live in
+`src-tauri/crates/inference-contracts` and generate TypeScript contracts. Deep Agents/LangGraph is the
+only retained Python business runtime. Native libraries and the release worker are bundled, signed
+and sealed in one manifest; model weights remain on demand. Fixed development and installed paths
+replace executable discovery. Required resources fail visibly. Local IPC queries and mutations use TanStack
 `networkMode: always`. Only Renderer-owned network requests use browser connectivity admission.
 Mixed local/remote extension and MCP IPC always reaches Rust, whose transport reports actual network
 failures without blocking local directory, ZIP or stdio operations.
@@ -190,7 +192,7 @@ Document conversion uses the current application executable in one private worke
 
 ## Compiled resources and local inference
 
-FFmpeg is a bundled, verified core media resource. It contains one statically linked executable plus notices and build evidence; supplier/download contracts belong to `packaging.md`. Python environments, models, and optional media
+FFmpeg is a bundled, verified core media resource. It contains one statically linked executable plus notices and build evidence; supplier/download contracts belong to `packaging.md`. The retained Agent environment, models, and optional media
 tools are application-managed resources prepared on capability use. All resolve through signed or
 hash-verified manifests in application-owned locations. Installed runtime leases prevent retirement
 while a worker or Agent still uses a generation; explicit lease release makes retired generations
@@ -388,7 +390,7 @@ signing, or update acceptance. Each release candidate requires the real-machine 
 `local_resources` owns the image model catalog, immutable multi-file snapshots and preparation leases.
 The image runtime owner shares the existing WorkerSlot, admission, deadline, cancellation and idle
 reclamation with other inference capabilities. Operation-specific ONNX adapters live in
-`knovum_inference`; Rust owns image decoding, rendered coordinates, alpha composition and PNG assets.
+`inference-worker/src/images`; the host owns image decoding, rendered coordinates, alpha composition and PNG assets.
 New image methods use typed bounded tensor references, independently of U²-Net's existing 320px contract.
 
 Spaces registers image transformations as ordinary durable SpaceActions. Renderer controls never
@@ -396,3 +398,8 @@ reserve output assets or submit a parallel image executor. The existing Run owns
 publication requires its authority and freezes the input revision/edit and explicit model target.
 Ephemeral smart-selection previews have a cancellable request owner and produce no history or assets.
 Canvas controls reuse the existing operation gate, selection surface and bar density/placement policy.
+
+Model weights load lazily on the first admitted computation, under that computation’s deadline.
+Worker initialization validates the sealed runtime and capability identity within its startup budget;
+it does not spend that budget parsing model graphs or allocating model weights. The worker retains
+only its owning capability’s loaded engine until shutdown.

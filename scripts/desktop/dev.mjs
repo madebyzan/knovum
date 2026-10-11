@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { run } from "@tauri-apps/cli";
 
 import { prepareCoreMedia } from "../runtime/media.mjs";
+import { prepareNativeWorker } from "../runtime/native-worker.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
@@ -15,6 +16,7 @@ try {
   // Resource production precedes Tauri's bounded wait for the frontend server.
   if (command === "dev" && !informational) {
     await prepareCoreMedia(repository);
+    await prepareNativeWorker(repository);
   }
   await run(args, "pnpm tauri");
 } catch (error) {
