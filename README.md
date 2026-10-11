@@ -6,6 +6,15 @@ application.
 
 Author: Zan.
 
+## License
+
+Knovum is source-available under the custom [Knovum Personal Noncommercial License 1.0](LICENSE).
+Personal noncommercial use, modification and free sharing are permitted under its terms.
+Organizational use, professional work and commercialization require separate prior written authorization.
+Third-party components retain their own licenses.
+
+许可说明与使用示例：[个人非商业使用与商业授权](docs/licensing.md)。
+
 ## Foundation stack
 
 - Vue 3 + TypeScript + Vite

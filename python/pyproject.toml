@@ -6,6 +6,8 @@ build-backend = "hatchling.build"
 name = "knovum-python"
 version = "0.1.0"
 description = "Retained Deep Agent worker and its build tooling"
+license = "LicenseRef-Knovum-Personal-Noncommercial-1.0"
+license-files = ["LICENSE"]
 requires-python = "==3.11.17"
 dependencies = []
 
