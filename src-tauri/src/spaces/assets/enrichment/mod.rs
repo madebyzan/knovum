@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use super::access::authorize_spaces_asset;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::knowledge::model::revision as knowledge_revision;
 use node_payload::{load_node_content, required_string};
 use persistence::persist_processing_state;
@@ -103,7 +103,7 @@ pub async fn enrich_node_with_cancellation(
     let preview_revision = revision.clone();
     let current = data.clone();
     let preview_cancellation = cancellation.clone();
-    let preview = match crate::blocking::run(move || {
+    let preview = match crate::foundation::blocking::run(move || {
         pipeline::prepare_visual(
             &app_handle,
             &canonical,
@@ -145,7 +145,7 @@ pub async fn enrich_node_with_cancellation(
     let preview_asset = preview.asset;
     let preview_payload = data.clone();
     let content_revision = revision.clone();
-    let enrichment = match crate::blocking::run(move || {
+    let enrichment = match crate::foundation::blocking::run(move || {
         pipeline::enrich_content(
             &app_handle,
             &canonical,

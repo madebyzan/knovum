@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::collections::HashSet;
 
 use sqlx::{Row, Sqlite, Transaction};
@@ -92,7 +92,7 @@ pub(in crate::spaces) async fn apply(
             !restored_after
         };
         sqlx::query("UPDATE spaces_deleted_structure_batches SET restored_at=$1 WHERE id=$2 AND space_id=$3")
-            .bind(if should_restore { Some(crate::clock::unix_time_millis()?) } else { None })
+            .bind(if should_restore { Some(crate::foundation::clock::unix_time_millis()?) } else { None })
             .bind(batch_id).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     sqlx::query(
@@ -131,7 +131,7 @@ async fn apply_nodes(
         .filter(|id| !current_set.contains(id.as_str()))
         .cloned()
         .collect::<Vec<_>>();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     if !trash.is_empty() {
         crate::spaces::nodes::trash_in_transaction(tx, space_id, &trash, now).await?;
     }

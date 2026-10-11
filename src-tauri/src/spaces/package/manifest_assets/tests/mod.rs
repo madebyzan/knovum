@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use super::{parse_cancellable, ManifestAssets};
 use tokio_util::sync::CancellationToken;
 
-fn parse(manifest: &str) -> Result<ManifestAssets, crate::app_error::AppError> {
+fn parse(manifest: &str) -> Result<ManifestAssets, crate::foundation::app_error::AppError> {
     parse_cancellable(manifest, &CancellationToken::new())
 }
 
@@ -13,7 +13,7 @@ fn digest(fill: char) -> String {
     format!("sha256:{}", fill.to_string().repeat(64))
 }
 
-fn parse_node(data: Value) -> Result<ManifestAssets, crate::app_error::AppError> {
+fn parse_node(data: Value) -> Result<ManifestAssets, crate::foundation::app_error::AppError> {
     parse(
         &json!({
             "nodes": [{ "data": data }],

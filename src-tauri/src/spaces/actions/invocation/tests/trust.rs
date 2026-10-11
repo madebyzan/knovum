@@ -22,7 +22,7 @@ async fn both_agent_principals_create_canvas_resources_without_approval_and_keep
         .await
         .unwrap();
     setup.commit().await.unwrap();
-    let now = crate::clock::unix_time_millis().unwrap();
+    let now = crate::foundation::clock::unix_time_millis().unwrap();
     for kind in [PrincipalKind::BuiltinAgent, PrincipalKind::ExternalAgent] {
         let grant_id = kind.as_str();
         let mut tx = db::begin_write(&pool).await.unwrap();

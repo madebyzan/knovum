@@ -1,6 +1,6 @@
 use tauri::{ipc::Channel, AppHandle};
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 pub(crate) mod contracts;
 mod execution;
 pub(crate) mod import;
@@ -68,7 +68,7 @@ pub async fn preview_generated_artifact(
     let workspace =
         crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)?;
     let artifact = crate::external_agents::artifacts::resolve(&workspace, &relative_path)?;
-    crate::system_preview::open(app, artifact)
+    crate::desktop::system_preview::open(app, artifact)
         .await
         .map_err(AppError::internal)
 }

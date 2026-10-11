@@ -139,7 +139,7 @@ pub(crate) async fn http_client(value: &str, allow_local: bool) -> Result<reqwes
     .collect::<Vec<_>>();
     let private = addresses
         .iter()
-        .any(|address| !crate::public_network::public_address(address.ip()));
+        .any(|address| !crate::foundation::public_network::public_address(address.ip()));
     if addresses.is_empty()
         || (private && !allow_local)
         || (url.scheme() != "https" && !(url.scheme() == "http" && allow_local && private))

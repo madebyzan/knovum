@@ -39,14 +39,14 @@ pub(in crate::spaces::speech) async fn commit_render(
                 "UPDATE spaces_speech_segments SET state='ready',state_reason='stale_revision',updated_at=? \
                  WHERE id=? AND state='rendering'",
             )
-            .bind(crate::clock::unix_time_millis()?).bind(segment_id)
+            .bind(crate::foundation::clock::unix_time_millis()?).bind(segment_id)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
         }
         tx.commit().await.map_err(db::sql_error)?;
         let _ = fs::remove_file(path);
         return Err(error);
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let published = sqlx::query(
         "UPDATE spaces_speech_renders SET state='published',asset_path=?,output_sha256=?, \
          sample_rate=?,sample_count=?,published_at=? WHERE id=? AND state='staged' \
@@ -143,7 +143,7 @@ async fn reject_cancelled(
             "UPDATE spaces_speech_segments SET state='ready',state_reason='cancelled',updated_at=? \
              WHERE id=? AND state='rendering'",
         )
-        .bind(crate::clock::unix_time_millis()?).bind(segment_id)
+        .bind(crate::foundation::clock::unix_time_millis()?).bind(segment_id)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())

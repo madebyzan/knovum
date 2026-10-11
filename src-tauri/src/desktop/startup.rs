@@ -68,7 +68,7 @@ pub(crate) fn fail<R: Runtime>(app: &AppHandle<R>, reason: &str) {
 pub(crate) fn report_startup_failure<R: Runtime>(
     app: AppHandle<R>,
     reason: String,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     if reason.is_empty() || reason.len() > 4096 {
         return Err("invalid startup failure diagnostic".into());
     }

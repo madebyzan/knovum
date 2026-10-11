@@ -3,7 +3,7 @@ use tauri::AppHandle;
 
 use super::super::failure::with_settlement;
 use super::{required_text, serialize, ExecutionAuthority};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 pub(super) async fn execute(
     app: &AppHandle,
@@ -56,7 +56,7 @@ pub(super) async fn execute(
             crate::documents::generation::worker::render(target.format, source, cancellation)
                 .await?;
         if let Some(file) = file {
-            crate::blocking::run(move || file.verify_current()).await?;
+            crate::foundation::blocking::run(move || file.verify_current()).await?;
         }
         if cancellation.is_cancelled() {
             return Err(AppError::cancelled("Document rendering was cancelled"));

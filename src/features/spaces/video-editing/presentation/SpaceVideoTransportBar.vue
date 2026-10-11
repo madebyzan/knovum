@@ -1,0 +1,129 @@
+<script setup lang="ts">
+import {
+  Maximize2,
+  Pause,
+  Play,
+  Redo2,
+  Scissors,
+  SkipBack,
+  SkipForward,
+  Trash2,
+  Type,
+  Undo2,
+  ZoomIn,
+  ZoomOut,
+} from "@lucide/vue";
+import { useI18n } from "vue-i18n";
+
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { formatVideoTimelineTime } from "../timecode";
+
+defineProps<{
+  playing: boolean;
+  currentMs: number;
+  durationMs: number;
+  canDelete: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  zoom: number;
+}>();
+defineEmits<{
+  split: [];
+  addText: [];
+  remove: [];
+  undo: [];
+  redo: [];
+  toggle: [];
+  step: [milliseconds: number];
+  zoom: [value: number];
+}>();
+const { t } = useI18n();
+</script>
+
+<template>
+  <div
+    class="grid h-13 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t border-stroke-default bg-surface-panel px-3"
+  >
+    <div class="flex min-w-0 items-center gap-1">
+      <UiIconButton :label="t('common.undo')" size="sm" :disabled="!canUndo" @click="$emit('undo')">
+        <Undo2 class="size-3.5" />
+      </UiIconButton>
+      <UiIconButton :label="t('common.redo')" size="sm" :disabled="!canRedo" @click="$emit('redo')">
+        <Redo2 class="size-3.5" />
+      </UiIconButton>
+      <span class="bg-border-divider mx-1 h-5 w-px" aria-hidden="true" />
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.clip.split')"
+        tooltip
+        size="sm"
+        @click="$emit('split')"
+        ><Scissors class="size-3.5"
+      /></UiIconButton>
+      <UiIconButton :label="t('spaces.media.videoEditor.text.add')" size="sm" @click="$emit('addText')"
+        ><Type class="size-3.5"
+      /></UiIconButton>
+      <UiIconButton :label="t('common.delete')" size="sm" :disabled="!canDelete" @click="$emit('remove')"
+        ><Trash2 class="size-3.5"
+      /></UiIconButton>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="w-12 text-right text-caption font-medium tabular-nums">{{
+        formatVideoTimelineTime(currentMs)
+      }}</span>
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.playback.stepBackward')"
+        size="sm"
+        @click="$emit('step', -100)"
+        ><SkipBack class="size-3.5"
+      /></UiIconButton>
+      <UiIconButton
+        class="size-9 rounded-full bg-surface-inverse text-fg-inverse hover:bg-surface-inverse-hover hover:text-fg-inverse active:bg-surface-inverse-hover active:text-fg-inverse"
+        :label="playing ? t('common.pause') : t('spaces.media.player.play')"
+        size="sm"
+        @click="$emit('toggle')"
+      >
+        <Pause v-if="playing" class="size-3.5" fill="currentColor" />
+        <Play v-else class="size-3.5" fill="currentColor" />
+      </UiIconButton>
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.playback.stepForward')"
+        size="sm"
+        @click="$emit('step', 100)"
+        ><SkipForward class="size-3.5"
+      /></UiIconButton>
+      <span class="w-12 text-caption text-fg-tertiary tabular-nums">{{
+        formatVideoTimelineTime(durationMs)
+      }}</span>
+    </div>
+    <div class="flex items-center justify-end gap-1">
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.timeline.zoomOut')"
+        size="sm"
+        :disabled="zoom <= 1"
+        @click="$emit('zoom', Math.max(1, zoom / 1.5))"
+      >
+        <ZoomOut class="size-3.5" />
+      </UiIconButton>
+      <span class="w-10 text-center text-caption-sm text-fg-secondary tabular-nums"
+        >{{ Math.round(zoom * 100) }}%</span
+      >
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.timeline.zoomIn')"
+        size="sm"
+        :disabled="zoom >= 8"
+        @click="$emit('zoom', Math.min(8, zoom * 1.5))"
+      >
+        <ZoomIn class="size-3.5" />
+      </UiIconButton>
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.timeline.fit')"
+        tooltip
+        size="sm"
+        :disabled="zoom === 1"
+        @click="$emit('zoom', 1)"
+      >
+        <Maximize2 class="size-3.5" />
+      </UiIconButton>
+    </div>
+  </div>
+</template>

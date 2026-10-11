@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::{
     ai::tasks::{
         completion::{self, TaskInput},
@@ -97,7 +97,7 @@ async fn interpret(
         "sourceRevision": revision,
         "description": analysis.description,
         "tags": analysis.tags,
-        "generatedAt": crate::clock::unix_time_millis()?,
+        "generatedAt": crate::foundation::clock::unix_time_millis()?,
         "executionSource": completion.execution_source,
     });
     if !detected_text.is_empty() {

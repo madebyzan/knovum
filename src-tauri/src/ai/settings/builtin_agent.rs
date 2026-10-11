@@ -6,7 +6,7 @@ use crate::{
         contracts::{ExecutionCapability, ProviderKind},
         models::{ModelExecutionTarget, ModelTargetSelection},
     },
-    app_error::{AppError, AppResult},
+    foundation::app_error::{AppError, AppResult},
 };
 
 pub(crate) fn resolve<R: Runtime>(

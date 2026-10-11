@@ -1,6 +1,6 @@
 use genai::chat::ChatStreamEvent;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 // A turn is persisted and may also retain failed partial output. Bound both copies.
 pub(super) const MAX_OUTPUT_BYTES: usize = 8 * 1024 * 1024;

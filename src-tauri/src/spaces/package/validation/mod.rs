@@ -89,7 +89,7 @@ pub fn validate_manifest_version(manifest: &str) -> Result<(), String> {
 pub fn validate_archive(
     archive: &mut ZipArchive<std::fs::File>,
     cancellation: &CancellationToken,
-) -> Result<u64, crate::app_error::AppError> {
+) -> Result<u64, crate::foundation::app_error::AppError> {
     use std::collections::HashSet;
     if archive.len() > MAX_ENTRIES {
         return Err("Space package contains too many entries".into());

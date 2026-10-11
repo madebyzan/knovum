@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::{future::Future, pin::Pin, sync::Arc, time::Duration};
 
 use tauri::AppHandle;
@@ -45,7 +45,7 @@ pub(crate) fn start(app: AppHandle, hooks: SchedulerHooks) {
                 Ok(deadline) => deadline,
                 Err(error) => {
                     log::error!("Space Run scheduler tick failed: {error}");
-                    match crate::clock::unix_time_millis() {
+                    match crate::foundation::clock::unix_time_millis() {
                         Ok(now) => Some(now + ERROR_RETRY_MILLIS),
                         Err(error) => {
                             log::error!("Space Run scheduler clock failed: {error}");
@@ -85,7 +85,7 @@ async fn dispatch(
             super::signals::announce();
         });
     }
-    scheduler::wakeup::next_deadline(pool, crate::clock::unix_time_millis()?).await
+    scheduler::wakeup::next_deadline(pool, crate::foundation::clock::unix_time_millis()?).await
 }
 
 async fn maintain(app: &AppHandle, hooks: SchedulerHooks) -> Result<(), String> {

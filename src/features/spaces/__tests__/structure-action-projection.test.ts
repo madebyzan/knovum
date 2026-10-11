@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { shallowRef } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import { createSpaceHistoryState } from "../history/history-state";
 import { redoSpaceHistory, undoSpaceHistory } from "../history/stack";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";

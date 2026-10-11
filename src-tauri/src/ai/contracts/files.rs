@@ -2,7 +2,7 @@ use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
 use crate::ai::transport::SecurityContext;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

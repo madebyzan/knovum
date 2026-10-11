@@ -1,5 +1,5 @@
 use super::TaskHub;
-use crate::desktop_task::{DesktopTask, DesktopTaskState};
+use crate::desktop::tasks::contracts::{DesktopTask, DesktopTaskState};
 use std::sync::atomic::Ordering;
 use tauri::{
     window::{ProgressBarState, ProgressBarStatus},
@@ -43,7 +43,7 @@ pub(super) fn notify<R: Runtime>(app: &AppHandle<R>, hub: &TaskHub, task: &Deskt
     {
         return;
     }
-    let Ok(now) = crate::clock::unix_time_millis() else {
+    let Ok(now) = crate::foundation::clock::unix_time_millis() else {
         return;
     };
     if now.saturating_sub(task.started_at) < 10_000 {

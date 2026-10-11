@@ -3,7 +3,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use super::{filesystem, model_catalog::LocalModelId, preparation::locks};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[tauri::command]
 pub async fn remove_model(app: AppHandle, model: LocalModelId) -> Result<(), AppError> {
@@ -24,7 +24,7 @@ pub async fn remove_model(app: AppHandle, model: LocalModelId) -> Result<(), App
             "Select another transcription model before removing the active model",
         ));
     }
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let models_root = app
             .path()
             .app_data_dir()

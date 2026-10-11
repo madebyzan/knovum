@@ -9,7 +9,7 @@ pub(crate) async fn reconcile(
     expected_version: i64,
     decision: ReconciliationDecision,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query(
         "SELECT s.run_id FROM spaces_run_steps s JOIN spaces_runs r ON r.id=s.run_id

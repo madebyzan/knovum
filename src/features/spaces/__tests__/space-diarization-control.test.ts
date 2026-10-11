@@ -1,7 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 
-import SpaceDiarizationControl from "../presentation/media/SpaceDiarizationControl.vue";
+import SpaceDiarizationControl from "../media/presentation/SpaceDiarizationControl.vue";
 
 const mocks = vi.hoisted(() => ({
   data: {

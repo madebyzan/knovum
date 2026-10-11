@@ -6,7 +6,7 @@ pub(super) async fn pool(app: &AppHandle) -> Result<SqlitePool, String> {
     let state = app.state::<ExtensionState>();
     state.database.get_or_try_init(|| async {
         let pool = crate::sqlite::connect_feature_database(app, "extensions.db").await?;
-        sqlx::migrate!("migrations/extensions").run(&pool).await
+        sqlx::migrate!("src/extensions/migrations").run(&pool).await
             .map_err(|error| format!("extensions-database-invalid: {error}; reset obsolete pre-release extension data explicitly"))?;
         Ok::<_,String>(pool)
     }).await?;

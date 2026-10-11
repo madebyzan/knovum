@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, Sqlite, Transaction};
 
@@ -79,7 +79,7 @@ pub(crate) async fn record(
     applied_revision: i64,
 ) -> Result<(), String> {
     clear_redo(tx, space_id).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     insert(
         tx,
         HistoryInsert {
@@ -155,7 +155,7 @@ async fn apply_relations(
     tx: &mut Transaction<'_, Sqlite>,
     relations: &[RelationLifecycle],
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     for relation in relations {
         sqlx::query("UPDATE spaces_relations SET status=$1,status_before_invalidation=$2,updated_at=$3 WHERE id=$4")
             .bind(&relation.status).bind(&relation.status_before_invalidation).bind(now).bind(&relation.id)

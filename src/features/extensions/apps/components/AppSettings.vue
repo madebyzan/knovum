@@ -17,7 +17,7 @@ import ExtensionAvailability from "../../components/ExtensionAvailability.vue";
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
 import ExtensionIdentity from "../../components/ExtensionIdentity.vue";
 import { isAppConnector } from "../../connectors/app-connector";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { usePluginLabels } from "../../plugins/use-plugin-labels";
 import AppInspection from "./AppInspection.vue";
 

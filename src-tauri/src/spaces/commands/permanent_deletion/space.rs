@@ -26,7 +26,7 @@ pub async fn delete<R: Runtime>(
     crate::spaces::knowledge::retrieval::invalidation_outbox::enqueue_space(
         &mut tx,
         &request.space_id,
-        crate::clock::unix_time_millis()?,
+        crate::foundation::clock::unix_time_millis()?,
     )
     .await?;
     let executed = sqlx::query(

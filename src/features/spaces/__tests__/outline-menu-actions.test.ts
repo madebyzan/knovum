@@ -9,7 +9,7 @@ import { i18n } from "../../../foundation/i18n/instance";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
-import SpaceOutline from "../presentation/outline/SpaceOutline.vue";
+import SpaceOutline from "../outline/presentation/SpaceOutline.vue";
 
 const menuMocks = vi.hoisted(() => ({ items: [] as MenuItemOptions[] }));
 vi.mock("@tauri-apps/api/menu", () => ({

@@ -5,6 +5,7 @@ members = [
   "crates/inference-worker",
   "crates/inference-libraries",
   "crates/media-libraries",
+  "tools/contract-exporter",
 ]
 resolver = "2"
 

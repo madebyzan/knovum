@@ -8,7 +8,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::stage;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::{
     ai::{
         contracts::ExecutionCapability,

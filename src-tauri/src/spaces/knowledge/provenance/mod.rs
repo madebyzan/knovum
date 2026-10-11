@@ -3,7 +3,7 @@ use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{events, locator, semantic_nodes};
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 mod command_contracts;
 pub use command_contracts::{KnowledgeEventRequest, ProvenanceInput};
@@ -72,7 +72,7 @@ pub async fn create_provenance<R: Runtime>(
     input: ProvenanceInput,
 ) -> Result<(), AppError> {
     validate_input(&input)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     ensure_target(&mut tx, &input).await?;
@@ -127,7 +127,7 @@ pub async fn revoke_provenance<R: Runtime>(
     app: AppHandle<R>,
     provenance_id: String,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query(

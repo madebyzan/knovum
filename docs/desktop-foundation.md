@@ -46,7 +46,7 @@ use the bootstrap error state before the main window is revealed.
 
 The resolved display language updates native application menus, Tray actions, and Task Center
 notifications together. Rust accepts only the current display-language identifiers; `system` must
-be resolved before IPC. Interface language support is documented in `src/locales/README.md`.
+be resolved before IPC. Interface language support is documented in `src/foundation/i18n/locales/README.md`.
 Traditional Chinese is selected for `zh-Hant` or Taiwan, Hong Kong, and Macau system locales;
 an explicit `zh-Hans` script selects Simplified Chinese. Other supported language families use
 their registered display locale; Portuguese uses `pt-BR`. An unsupported OS language selects English.

@@ -12,7 +12,7 @@ async fn fixture() -> (SqlitePool, ConnectorAccount) {
         .connect("sqlite::memory:")
         .await
         .unwrap();
-    sqlx::migrate!("migrations/extensions")
+    sqlx::migrate!("src/extensions/migrations")
         .run(&pool)
         .await
         .unwrap();

@@ -8,7 +8,7 @@ const CANCELLATION_TREE: &str = "WITH RECURSIVE cancelled_tree(id) AS (
 )";
 
 pub(super) async fn recover_expired_leases(pool: &SqlitePool) -> Result<bool, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let expired: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a
          JOIN spaces_run_steps s ON s.id=a.step_instance_id AND s.run_id=a.run_id
@@ -214,7 +214,7 @@ async fn recover_local_speech_attempts(
 }
 
 pub(super) async fn apply(pool: &SqlitePool) -> Result<bool, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pending: bool = sqlx::QueryBuilder::<sqlx::Sqlite>::new(CANCELLATION_TREE).push(
         " SELECT EXISTS(SELECT 1 FROM spaces_runs WHERE completed_at IS NULL
            AND (cancel_requested_at IS NOT NULL OR

@@ -7,10 +7,10 @@ import { h } from "vue";
 import { i18n } from "../../../foundation/i18n/instance";
 import type * as CanvasSession from "../canvas/editor-session";
 import { applySpaceNodeContent, createSpaceNode } from "../canvas/node";
-import { useDocumentSessionStore } from "../editor/document-session-store";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import SpaceWorkTabs from "../presentation/workspace/SpaceWorkTabs.vue";
+import { useDocumentSessionStore } from "../document-editing/document-session-store";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
+import SpaceWorkTabs from "../workspace/presentation/SpaceWorkTabs.vue";
 import { useWorkspaceTabCommands } from "../workspace/use-workspace-tab-commands";
 
 const mocks = vi.hoisted(() => ({ focus: vi.fn<() => void>() }));

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 use super::contracts;
 

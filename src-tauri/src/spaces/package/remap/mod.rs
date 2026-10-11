@@ -75,7 +75,7 @@ pub(super) fn prepare_cancellable(
     assets: &[ImportedPackageAsset],
     target_space: &str,
     cancellation: &CancellationToken,
-) -> Result<RestorePackageRequest, crate::app_error::AppError> {
+) -> Result<RestorePackageRequest, crate::foundation::app_error::AppError> {
     super::control::check(cancellation)?;
     let mut value: Value = serde_json::from_str(source).map_err(|e| e.to_string())?;
     super::control::check(cancellation)?;
@@ -174,7 +174,7 @@ pub(super) fn prepare_cancellable(
     super::control::check(cancellation)?;
     knowledge::remap(&mut value, &maps)?;
     super::control::check(cancellation)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let space = &value["space"];
     let created = space["createdAt"]
         .as_i64()

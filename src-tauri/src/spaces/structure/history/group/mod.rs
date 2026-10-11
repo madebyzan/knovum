@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::{clear_redo, insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
@@ -23,7 +23,7 @@ pub(super) async fn record(
     group_id: &str,
     entries: &[(&str, &HistoryState, &HistoryState, i64)],
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     for (space_id, before, after, revision) in entries {
         clear_redo(tx, space_id).await?;
         insert(

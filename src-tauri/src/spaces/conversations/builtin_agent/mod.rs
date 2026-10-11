@@ -13,7 +13,7 @@ use tauri::ipc::Channel;
 use tauri::AppHandle;
 
 use super::{context, repository, tools, ConversationTaskAccepted, StartBuiltinAgentTaskRequest};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     runs::{transition_run, RunState},
@@ -68,7 +68,7 @@ pub async fn start(
         catalog.extend(&extensions)?;
         let ids = identity::TaskIds::new(&request);
         let history = repository::load_history(pool, &ids.conversation_id, &ids.branch_id).await?;
-        let now = crate::clock::unix_time_millis()?;
+        let now = crate::foundation::clock::unix_time_millis()?;
         let grant = identity::grant(&request, &ids, &catalog, now);
         let messages = vec![context.initial_message(ids.input_id(), &request.prompt, None)];
         let (session, messages) = persistence::persist_task(

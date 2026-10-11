@@ -1,16 +1,16 @@
 import { difference, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
-import { DYNAMIC_LOCALE_KEY_PREFIXES, DYNAMIC_LOCALE_KEYS } from "../../../locales/dynamic-keys";
-import { localeMessages } from "../../../locales/locale-registry";
 import { preferenceLocales } from "../../../shared/contracts/generated/contract-values";
+import { DYNAMIC_LOCALE_KEY_PREFIXES, DYNAMIC_LOCALE_KEYS } from "../locales/dynamic-keys";
+import { localeMessages } from "../locales/locale-registry";
 
 type LocaleTree = { readonly [key: string]: LocaleTree | string };
 
 const sourceModules = import.meta.glob(
   [
     "/src/**/*.{ts,vue}",
-    "!/src/locales/**",
+    "!/src/foundation/i18n/locales/**",
     "!/src/**/__tests__/**",
     "!/src/**/tests/**",
     "!/src/**/*.test.ts",
@@ -23,7 +23,7 @@ const sourceModules = import.meta.glob(
   },
 ) as Record<string, string>;
 
-const localeFragments = import.meta.glob("/src/locales/*/**/*.json", {
+const localeFragments = import.meta.glob("/src/foundation/i18n/locales/*/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, Record<string, unknown>>;
@@ -97,7 +97,9 @@ describe("locale completeness", () => {
 
   it("loads exactly the supported language roots", () => {
     const expected = preferenceLocales.filter((locale) => locale !== "system").toSorted();
-    const roots = [...new Set(Object.keys(localeFragments).map((path) => path.split("/")[3]!))].toSorted();
+    const roots = [
+      ...new Set(Object.keys(localeFragments).map((path) => path.split("/locales/")[1]!.split("/")[0]!)),
+    ].toSorted();
     expect(roots).toEqual(expected);
     expect(Object.keys(localeMessages).toSorted()).toEqual(expected);
   });

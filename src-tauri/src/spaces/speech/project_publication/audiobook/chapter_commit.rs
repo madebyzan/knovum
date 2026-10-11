@@ -65,12 +65,12 @@ pub(super) async fn commit<R: Runtime>(
         .bind(&rendered.sha256)
         .bind(i64::from(request.sample_rate))
         .bind(i64::try_from(rendered.sample_count).map_err(|_| "Chapter sample count exceeds SQLite range")?)
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .bind(&claim.attempt_id)
         .bind(&claim.run_id)
         .bind(&claim.step_instance_id)
         .bind(claim.execution_epoch)
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;

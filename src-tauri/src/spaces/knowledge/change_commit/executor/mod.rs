@@ -7,7 +7,7 @@ use sqlx::{Sqlite, Transaction};
 
 use super::contracts::KnowledgeChange;
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{knowledge::events::EventActor, structure},
 };
 use state::ApplyState;

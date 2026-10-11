@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 use super::super::job::EnrichmentJobType;
 
@@ -114,7 +114,7 @@ pub async fn request_media_alignment(
         ));
     }
 
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'align_media_transcript','pending',$4,0,$5,$5)")
         .bind(&id).bind(&space_id).bind(&node_id).bind(&revision).bind(now)

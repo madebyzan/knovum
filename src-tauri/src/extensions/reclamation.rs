@@ -28,7 +28,7 @@ pub(super) async fn collect(app: &AppHandle) -> Result<(), String> {
     for lease in leases {
         retained_revision_paths.extend(database::decode::<Vec<String>>(&lease)?);
     }
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         collect_content(&root, &retained_revision_paths, retained_plugin_ids)
     })
     .await

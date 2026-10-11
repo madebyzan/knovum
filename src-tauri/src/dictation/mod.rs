@@ -1,4 +1,6 @@
 pub(crate) mod contracts;
+#[cfg(not(knovum_supported_desktop))]
+pub(crate) mod unsupported;
 
 #[cfg(knovum_supported_desktop)]
 mod actor;
@@ -29,7 +31,7 @@ mod runtime {
         engine::{DictationAction, DictationEngine},
         insertion,
     };
-    use crate::app_error::{AppError, AppResult};
+    use crate::foundation::app_error::{AppError, AppResult};
 
     const SHORTCUT: &str = "CommandOrControl+Shift+Space";
 
@@ -93,7 +95,7 @@ mod runtime {
             .map_err(AppError::from)?
             .text
             .ok_or_else(|| AppError::invalid("No dictation result is available"))?;
-        crate::blocking::run(move || insertion::copy_text(text))
+        crate::foundation::blocking::run(move || insertion::copy_text(text))
             .await
             .map_err(AppError::from)
     }

@@ -6,7 +6,7 @@ import type { CanvasScene } from "../canvas/konva/scene/canvas-scene";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { useSceneVisibility } from "../canvas/konva/scene/use-scene-visibility";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 
 function section(sectionId: string, top: number, collapsed = false): ProjectedSection {
   return {

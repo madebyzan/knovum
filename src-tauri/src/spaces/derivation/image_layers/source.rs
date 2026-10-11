@@ -17,7 +17,7 @@ pub async fn load_image_uri(
     .await?;
     let app = app.clone();
     let edit = request.source_edit.clone();
-    let rendered = crate::blocking::run(move || {
+    let rendered = crate::foundation::blocking::run(move || {
         let source =
             crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&path))?;
         crate::images::render_source_png(&source, &edit)

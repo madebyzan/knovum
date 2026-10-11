@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     commands::relations::SpaceRelationInput,
     nodes::contracts::InsertNode,
@@ -97,7 +97,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         )
         .await?;
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     crate::spaces::nodes::insert_rows_in_transaction(
         &mut tx,
         &request.space_id,

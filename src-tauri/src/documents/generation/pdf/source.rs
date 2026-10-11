@@ -1,5 +1,5 @@
 use super::super::document::{Alignment, Block, Document, Inline, Table};
-use crate::system_font::SYSTEM_SANS_FAMILY;
+use crate::desktop::system_font::SYSTEM_SANS_FAMILY;
 
 pub(super) fn render(document: &Document) -> Result<String, String> {
     let mut output = include_str!("document.typ").to_owned();

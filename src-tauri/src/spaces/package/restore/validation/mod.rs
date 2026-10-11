@@ -8,7 +8,7 @@ mod translation;
 pub(super) fn validate_request_shape_cancellable(
     request: &RestorePackageRequest,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     super::super::control::check(cancellation)?;
     let space = &request.space;
     if space.kind != "space"

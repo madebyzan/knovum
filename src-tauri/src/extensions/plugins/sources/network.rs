@@ -21,7 +21,7 @@ pub(super) async fn resolve_url(value: &str) -> Result<(Url, Vec<std::net::Socke
     if addresses.is_empty()
         || addresses
             .iter()
-            .any(|address| !crate::public_network::public_address(address.ip()))
+            .any(|address| !crate::foundation::public_network::public_address(address.ip()))
     {
         return Err("package-source-requires-public-address".into());
     }

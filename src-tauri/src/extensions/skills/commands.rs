@@ -84,7 +84,7 @@ pub async fn import_skill(
         .and_then(|name| name.to_str())
         .ok_or("skill-directory-name-required")?
         .to_owned();
-    let files = crate::blocking::run(move || {
+    let files = crate::foundation::blocking::run(move || {
         super::super::plugins::sources::directory_files(
             &directory,
             &tokio_util::sync::CancellationToken::new(),
@@ -125,7 +125,8 @@ pub async fn export_skill(app: AppHandle, skill_id: String, path: String) -> Res
     if destination.exists() {
         return Err("skill-export-destination-exists".into());
     }
-    crate::blocking::run(move || super::super::content::publish(&destination, &files)).await
+    crate::foundation::blocking::run(move || super::super::content::publish(&destination, &files))
+        .await
 }
 
 #[tauri::command]

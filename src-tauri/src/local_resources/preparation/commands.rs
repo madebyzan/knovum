@@ -8,7 +8,7 @@ use super::{
     },
     requests,
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[tauri::command]
 pub async fn prepare_resources(

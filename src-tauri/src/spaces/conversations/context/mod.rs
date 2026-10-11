@@ -94,7 +94,7 @@ impl ResolvedContext {
                     .find(|(source, _)| source == path)
                     .map(|(_, origin)| origin)
                     .ok_or_else(|| {
-                        crate::app_error::AppError::invalid("Unknown agent attachment")
+                        crate::foundation::app_error::AppError::invalid("Unknown agent attachment")
                     })?;
                 let authorized_attachment = match origin {
                     AgentPathOrigin::Upload => upload::authorize(app, &path.to_string_lossy())
@@ -107,7 +107,7 @@ impl ResolvedContext {
                         crate::spaces::assets::authorize_edited_image_preview(app, path).map(|_| ())
                     }
                 };
-                authorized_attachment.map_err(crate::app_error::AppError::invalid)
+                authorized_attachment.map_err(crate::foundation::app_error::AppError::invalid)
             },
         )
         .map_err(|error| error.to_string())

@@ -1,7 +1,7 @@
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::knowledge::retrieval;
 
 #[derive(Debug, Serialize)]

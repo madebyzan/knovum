@@ -11,7 +11,7 @@ use super::protocol::{
     control::{AgentInitialize, AgentReady},
 };
 use super::runtime;
-use crate::subprocess::process_tree::ProcessTree;
+use crate::foundation::subprocess::process_tree::ProcessTree;
 
 mod diagnostics;
 mod framing;
@@ -32,7 +32,7 @@ impl Process {
         host: Arc<dyn Host>,
     ) -> Result<Self, String> {
         let handle = app.clone();
-        let runtime = crate::blocking::run(move || runtime::resolve(&handle)).await?;
+        let runtime = crate::foundation::blocking::run(move || runtime::resolve(&handle)).await?;
         let work = app
             .path()
             .app_data_dir()
@@ -66,7 +66,7 @@ impl Process {
         #[cfg(windows)]
         command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW: keep console stdio without a visible console.
         #[cfg(windows)]
-        let job = crate::subprocess::windows_job::WindowsJob::new()?;
+        let job = crate::foundation::subprocess::windows_job::WindowsJob::new()?;
         let mut child = command
             .spawn()
             .map_err(|_| "agent-runtime-process-start-failed")?;

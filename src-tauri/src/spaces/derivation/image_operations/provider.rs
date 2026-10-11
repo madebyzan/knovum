@@ -6,7 +6,7 @@ use crate::ai::{
     providers::{dashscope::execute_image_view, gemini, image_edit, kling},
     transport::SecurityContext,
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 pub(super) async fn execute(
     target: &ModelExecutionTarget,

@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 use serde::Serialize;
 use serde_json::Value;

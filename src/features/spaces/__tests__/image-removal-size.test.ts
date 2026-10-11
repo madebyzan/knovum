@@ -1,8 +1,8 @@
 import { setActivePinia } from "pinia";
 import { expect, it } from "vitest";
 
+import { imageRemovalSize } from "../canvas/presentation/images/image-source-dimensions-store";
 import { defaultImageEdit } from "../image-editing/image-edit";
-import { imageRemovalSize } from "../presentation/canvas/image-source-dimensions-store";
 import { imageSourceNode } from "./support/image-operation-fixtures";
 
 it("calculates cropped and rotated removal dimensions without a Pinia context", () => {

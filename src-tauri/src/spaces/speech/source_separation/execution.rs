@@ -18,7 +18,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, separation},
     },
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::{preparation, tools},
     spaces::{
         db,

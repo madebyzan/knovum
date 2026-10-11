@@ -32,7 +32,7 @@ pub(crate) async fn persist_candidate(
 ) -> Result<(), String> {
     claim.scope.require_application()?;
     let request = &configuration.request;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let preview_sample_count = i64::try_from(preview_sample_count)
         .map_err(|_| "Voice candidate sample count exceeds storage range")?;
     let reference_byte_length = i64::try_from(reference.byte_length)

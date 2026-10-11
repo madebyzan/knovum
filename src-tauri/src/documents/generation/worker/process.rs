@@ -8,8 +8,8 @@ use tokio_util::sync::CancellationToken;
 
 use super::protocol;
 use crate::{
-    app_error::{AppError, AppResult},
-    subprocess::process_tree::ProcessTree,
+    foundation::app_error::{AppError, AppResult},
+    foundation::subprocess::process_tree::ProcessTree,
 };
 
 pub(super) async fn run(
@@ -38,7 +38,8 @@ pub(super) async fn run(
         command.as_std_mut().process_group(0);
     }
     #[cfg(windows)]
-    let job = crate::subprocess::windows_job::WindowsJob::new().map_err(worker_error)?;
+    let job =
+        crate::foundation::subprocess::windows_job::WindowsJob::new().map_err(worker_error)?;
     let mut child = command.spawn().map_err(worker_error)?;
     #[cfg(windows)]
     if let Err(error) = job.assign(&child) {

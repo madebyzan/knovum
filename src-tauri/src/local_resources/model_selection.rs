@@ -3,7 +3,7 @@ use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
 use super::model_catalog::{self, LocalModelId};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Group {
@@ -175,7 +175,7 @@ pub async fn select_local_model(app: AppHandle, model: LocalModelId) -> Result<(
     )?
     .read_owned()
     .await;
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let status = model_catalog::inspect(&app, model, &|_| Ok(true))?;
         if !status.verified {
             return Err("Download and verify the model before selecting it".into());

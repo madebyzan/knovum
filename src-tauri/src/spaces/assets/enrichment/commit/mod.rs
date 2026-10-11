@@ -2,7 +2,7 @@ use serde_json::Value;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     knowledge::{indexing::KnowledgeChunkInput, model::revision},
@@ -145,7 +145,7 @@ pub(in crate::spaces) async fn publish_in_transaction(
         }
     }
     revision::apply(&mut current)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     nodes::update_many_in_transaction(
         tx,
         space_id,

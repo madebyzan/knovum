@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::fs;
 
 const MAX_THUMBNAIL_BYTES: usize = 10 * 1024 * 1024;
@@ -8,7 +8,7 @@ pub async fn persist_canvas_thumbnail(
     app: tauri::AppHandle,
     bytes: Vec<u8>,
 ) -> Result<String, AppError> {
-    Ok((crate::blocking::run(move || persist(&app, &bytes)).await)?)
+    Ok((crate::foundation::blocking::run(move || persist(&app, &bytes)).await)?)
 }
 
 fn persist(app: &tauri::AppHandle, bytes: &[u8]) -> Result<String, String> {

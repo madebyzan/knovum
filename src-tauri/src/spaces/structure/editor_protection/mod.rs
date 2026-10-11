@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, Sqlite, Transaction};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
 #[derive(Clone, Deserialize, Serialize, ts_rs::TS)]

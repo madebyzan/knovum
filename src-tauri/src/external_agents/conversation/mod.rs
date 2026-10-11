@@ -11,7 +11,7 @@ use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::contracts::ExternalAgentKind;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 use super::session::AgentUpdateHandler;
 mod requests;

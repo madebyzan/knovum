@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::AppError;
-use crate::job_registry::{JobLease, JobRegistry};
+use crate::foundation::app_error::AppError;
+use crate::foundation::job_registry::{JobLease, JobRegistry};
 
 #[derive(Default)]
 pub(super) struct Generation {

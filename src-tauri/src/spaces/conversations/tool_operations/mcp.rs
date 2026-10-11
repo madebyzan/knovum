@@ -44,7 +44,7 @@ pub(crate) async fn invoke(
     }
     let digest = super::context_digest(&call.arguments)?;
     let id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let existing: Option<String> = sqlx::query_scalar("SELECT id FROM spaces_conversation_tool_operations WHERE invocation_id=$1 ORDER BY attempt DESC LIMIT 1")
         .bind(call.intent_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
@@ -131,7 +131,7 @@ pub(crate) async fn invoke(
             return Ok(ToolInvocationOutcome::Completed(value));
         }
     };
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     if !call.tool.read_only {
         super::require_reconciled_on(&mut tx, call.run_id).await?;

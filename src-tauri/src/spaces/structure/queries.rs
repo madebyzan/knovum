@@ -1,6 +1,6 @@
 use super::edit_contract::SpaceEditSnapshotResponse;
 use super::{receipts, repository, validation};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 use tauri::{AppHandle, Runtime};
 

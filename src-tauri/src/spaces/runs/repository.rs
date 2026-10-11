@@ -95,7 +95,7 @@ pub(crate) async fn transition_run(
     state: RunState,
     wait_reason: Option<WaitReason>,
 ) -> Result<RunObservation, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let completed_at = state.is_terminal().then_some(now);
     let run_write = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=$2,updated_at=$3,completed_at=$4 WHERE id=$5 AND state_version=$6 AND completed_at IS NULL")
         .bind(enum_text(state)?).bind(optional_enum_text(wait_reason)?).bind(now).bind(completed_at)
@@ -111,7 +111,7 @@ pub(crate) async fn request_control(
     run_id: &str,
     control: &str,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let sql = match control {
         "cancel" => "WITH RECURSIVE run_tree(id) AS (
             SELECT id FROM spaces_runs WHERE id=$2 AND completed_at IS NULL

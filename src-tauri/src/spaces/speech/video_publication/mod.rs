@@ -81,7 +81,7 @@ pub(super) async fn publish_video<R: Runtime>(
     let inspect_video = video.clone();
     let expected_video_ms = config.video.duration_ms;
     let inspect_cancellation = cancellation.clone();
-    let video_duration_us = crate::blocking::run(move || {
+    let video_duration_us = crate::foundation::blocking::run(move || {
         policy::verified_duration_us(
             &inspect_ffmpeg,
             &inspect_video,
@@ -96,7 +96,7 @@ pub(super) async fn publish_video<R: Runtime>(
         let inspect_path = path.clone();
         let expected_ms = source.duration_ms;
         let inspect_cancellation = cancellation.clone();
-        crate::blocking::run(move || {
+        crate::foundation::blocking::run(move || {
             policy::verified_duration_us(
                 &inspect_ffmpeg,
                 &inspect_path,
@@ -135,7 +135,7 @@ pub(super) async fn publish_video<R: Runtime>(
     let build_background = background;
     let build_config = config.clone();
     let build_cancellation = cancellation.clone();
-    let mixed = crate::blocking::run(move || {
+    let mixed = crate::foundation::blocking::run(move || {
         mixing::build_mix(
             &build_ffmpeg,
             &build_work,

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::local_resources::models::catalog::{self, ModelKind};
 
 #[derive(Clone, Deserialize, Serialize, ts_rs::TS)]

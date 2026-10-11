@@ -7,7 +7,7 @@ use tauri::{AppHandle, Manager};
 
 use super::{asset_publication, cancellation, voice_assets, voice_reference_validation};
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{assets, db},
 };
 
@@ -90,7 +90,7 @@ pub async fn prepare_voice_reference(
         let cancel = cancellation.clone();
         let handle = app.clone();
         let interval = (request.start_ms, request.end_ms);
-        let (revision, audio) = crate::blocking::run(move || -> Result<_, String> {
+        let (revision, audio) = crate::foundation::blocking::run(move || -> Result<_, String> {
             let (revision, mut audio) = voice_assets::prepare_reference_clip(
                 &handle, &original, &snapshot, length, &cancel, interval,
             )?;

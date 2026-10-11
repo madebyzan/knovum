@@ -2,9 +2,9 @@ use sha2::{Digest, Sha256};
 use sqlx::{migrate::Migrator, sqlite::SqliteConnectOptions, Connection, Row, SqliteConnection};
 use std::{collections::BTreeMap, path::Path};
 
-static SPACES: Migrator = sqlx::migrate!("./migrations/spaces");
-static EXTENSIONS: Migrator = sqlx::migrate!("./migrations/extensions");
-static AI_USAGE: Migrator = sqlx::migrate!("./migrations/ai_usage");
+static SPACES: Migrator = sqlx::migrate!("src/spaces/db/migrations");
+static EXTENSIONS: Migrator = sqlx::migrate!("src/extensions/migrations");
+static AI_USAGE: Migrator = sqlx::migrate!("src/ai/usage/migrations");
 
 pub const DATABASES: &[(&str, &str)] = &[
     ("spaces.db", "data/config/spaces.db"),

@@ -1,6 +1,6 @@
 import { createI18n } from "vue-i18n";
 
-import { localeMessages } from "../../locales/locale-registry";
+import { localeMessages } from "./locales/locale-registry";
 
 export type AppLocale = keyof typeof localeMessages;
 

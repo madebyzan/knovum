@@ -3,7 +3,7 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use super::resource;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::knowledge::model::document_coverage::{DocumentAnalysis, DocumentCoverage};
 use crate::{
     ai::tasks::{
@@ -37,7 +37,8 @@ pub(super) async fn analyze_occurrence(
         .clone();
     let checked_app = app.clone();
     let path =
-        crate::blocking::run(move || resource::verified_path(&checked_app, &resource)).await?;
+        crate::foundation::blocking::run(move || resource::verified_path(&checked_app, &resource))
+            .await?;
     let context = serde_json::json!({"bodyContext":occurrence.context, "altText":occurrence.alt_text, "pdfInput":occurrence.pdf_input});
     analyze_input(&completion::ProductExecutor(app), target, TaskInput {
         purpose: crate::ai::usage::UsagePurpose::VisualAnalysis, text: String::new(), image: Some(path),
@@ -74,7 +75,7 @@ async fn analyze_input(
         description: parsed.description,
         detected_text: text,
         execution_source: output.execution_source,
-        generated_at: crate::clock::unix_time_millis()?,
+        generated_at: crate::foundation::clock::unix_time_millis()?,
         analysis_version: "document-visual:1".into(),
     })
 }

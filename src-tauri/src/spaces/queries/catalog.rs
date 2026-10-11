@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};

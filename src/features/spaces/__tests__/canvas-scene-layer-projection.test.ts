@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { shallowReactive } from "vue";
 
-import { useCanvasSceneLayerProjection } from "../canvas/konva/presentation/use-canvas-scene-layer-projection";
+import { useCanvasSceneLayerProjection } from "../canvas/konva/rendering/use-canvas-scene-layer-projection";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceRelation } from "../model/relations/relation";
 
 function scene() {

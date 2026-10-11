@@ -721,7 +721,7 @@ focus remain distinct. HTML, ARIA and Reka disabled controls use opacity-40; thi
 not a new color token. Disabled controls keep the desktop default cursor. Informational capability
 badges and loading indicators are not disabled controls.
 
-Spaces owns `src/features/spaces/presentation/space-tokens.css`, imported once by app.css so DOM and
+Spaces owns `src/features/spaces/space-tokens.css`, imported once by app.css so DOM and
 runtime canvas paints remain available together. It owns canvas grid and object elevation, including appearance overrides. Shared content colors belong
 to the product theme. The remaining feature variables are not exported through @theme and must not be used
 outside Spaces. Built-in Tailwind palette variables are available to token definitions and content composition.

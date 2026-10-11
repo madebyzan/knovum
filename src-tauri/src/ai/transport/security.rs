@@ -1,5 +1,5 @@
 use crate::ai::models::ModelExecutionTarget;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 #[derive(Debug, Clone)]
 pub struct SecurityContext {

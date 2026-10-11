@@ -2,7 +2,7 @@
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import ConnectorConfiguration from "../../connectors/components/ConnectorConfiguration.vue";
 import { useConnectorEditing } from "../../connectors/use-connector-editing";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 const emit = defineEmits<{ navigate: [destination: ExtensionDestination] }>();
 const { changes, draft, endpointFields, edit, save } = useConnectorEditing();
 edit();

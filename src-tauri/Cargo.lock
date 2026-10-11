@@ -6868,6 +6868,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "knovum-contract-exporter"
+version = "0.1.0"
+dependencies = [
+ "knovum",
+]
+
+[[package]]
 name = "knovum-inference-contracts"
 version = "0.1.0"
 dependencies = [

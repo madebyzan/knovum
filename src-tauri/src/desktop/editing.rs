@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[derive(Clone, Copy, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]

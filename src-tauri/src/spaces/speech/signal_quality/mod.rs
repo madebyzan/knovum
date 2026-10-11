@@ -12,10 +12,10 @@ use tauri::{ipc::Channel, AppHandle};
 
 use super::{cancellation, publication::hash_file};
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
+    foundation::subprocess,
     local_resources::tools,
     spaces::{assets, db},
-    subprocess,
 };
 
 #[derive(Clone, Copy, Serialize, PartialEq, Eq, ts_rs::TS)]
@@ -62,19 +62,21 @@ pub async fn inspect_speech_audio(
         .ok_or("Generate a complete project output before checking its audio")?;
     let source = assets::authorize_spaces_asset(&app, Path::new(&source))?;
     let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
-    Ok(crate::blocking::run(move || -> Result<_, String> {
-        if hash_file(&source)? != sha256 {
-            return Err("Speech output changed before signal inspection".into());
-        }
-        let report = inspect_file(&ffmpeg, &source, &cancellation, |milliseconds| {
-            let _ = on_progress.send(milliseconds);
-        })?;
-        if hash_file(&source)? != sha256 {
-            return Err("Speech output changed during signal inspection".into());
-        }
-        Ok(report)
-    })
-    .await?)
+    Ok(
+        crate::foundation::blocking::run(move || -> Result<_, String> {
+            if hash_file(&source)? != sha256 {
+                return Err("Speech output changed before signal inspection".into());
+            }
+            let report = inspect_file(&ffmpeg, &source, &cancellation, |milliseconds| {
+                let _ = on_progress.send(milliseconds);
+            })?;
+            if hash_file(&source)? != sha256 {
+                return Err("Speech output changed during signal inspection".into());
+            }
+            Ok(report)
+        })
+        .await?,
+    )
 }
 
 fn inspect_file(

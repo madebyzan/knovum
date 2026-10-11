@@ -108,7 +108,7 @@ pub(super) async fn commit_publication(
         );
     }
     let mut tx = db::begin_write(pool).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let is_attempt_active: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs r ON r.id=a.run_id \
          WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing' \

@@ -56,7 +56,7 @@ pub async fn publish(
     }
     file_publication::sync_tree(config_stage)?;
     file_publication::sync_tree(data_stage)?;
-    publish(paths, targets)
+    publish_targets(paths, targets)
 }
 
 pub fn reconcile(paths: &AppPaths) -> Result<journal::ReconcileOutcome, String> {
@@ -152,7 +152,7 @@ fn prepare_empty_roots(targets: &[Target]) -> Result<(), String> {
     Ok(())
 }
 
-fn publish(paths: &AppPaths, targets: Vec<Target>) -> Result<Option<String>, String> {
+fn publish_targets(paths: &AppPaths, targets: Vec<Target>) -> Result<Option<String>, String> {
     let token = uuid::Uuid::new_v4();
     let entries = targets
         .into_iter()

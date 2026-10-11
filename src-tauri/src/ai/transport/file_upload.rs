@@ -1,7 +1,7 @@
 use reqwest::multipart::{Form, Part};
 
 use super::{http_client, response, SecurityContext};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(crate) struct UploadFile<'a> {
     pub bytes: Vec<u8>,

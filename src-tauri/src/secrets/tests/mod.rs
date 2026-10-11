@@ -15,7 +15,7 @@ async fn configuration_state_tracks_nonempty_credentials_without_returning_them(
         .connect("sqlite::memory:")
         .await
         .unwrap();
-    sqlx::migrate!("./migrations/secrets")
+    sqlx::migrate!("src/secrets/migrations")
         .run(&pool)
         .await
         .unwrap();

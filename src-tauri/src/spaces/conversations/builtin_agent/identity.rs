@@ -95,7 +95,7 @@ pub(in crate::spaces::conversations) async fn remaining_duration(
 ) -> Result<std::time::Duration, String> {
     let remaining: Option<i64> = sqlx::query_scalar(
         "SELECT json_extract(budget,'$.maxDurationSeconds')*1000-($1-created_at) FROM spaces_runs WHERE id=$2",
-    ).bind(crate::clock::unix_time_millis()?).bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
+    ).bind(crate::foundation::clock::unix_time_millis()?).bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     remaining
         .filter(|value| *value > 0)
         .map(|millis| std::time::Duration::from_millis(millis as u64))

@@ -8,7 +8,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { useConnectorEditing } from "../use-connector-editing";
 import ConnectorConfiguration from "./ConnectorConfiguration.vue";
 import ConnectorInspection from "./ConnectorInspection.vue";

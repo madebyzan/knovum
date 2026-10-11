@@ -9,7 +9,7 @@ mod source;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::CompletedDerivationOutput;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 pub use contracts::{GenerateImageLayersRequest, ImageLayerAvailability};
 
 pub(crate) async fn availability() -> ImageLayerAvailability {
@@ -56,7 +56,7 @@ pub async fn generate(
     };
     let preparation_app = app.clone();
     let preparation_cancellation = cancellation.clone();
-    let prepared = match crate::blocking::run(move || {
+    let prepared = match crate::foundation::blocking::run(move || {
         assets::prepare(&preparation_app, layers, &preparation_cancellation)
     })
     .await

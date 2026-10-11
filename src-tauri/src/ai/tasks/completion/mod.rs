@@ -10,7 +10,7 @@ use crate::ai::{
     models::{CompletionOutput, CompletionRequest, ImageAnalysisRequest, ModelExecutionTarget},
     usage::UsagePurpose,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 #[derive(Clone, Debug)]
 pub struct TaskInput {

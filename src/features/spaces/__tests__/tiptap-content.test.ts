@@ -1,13 +1,13 @@
 import { Editor } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 
-import { createSpaceNotePayload, createSpaceTextPayload } from "../editor/tiptap-content";
-import type { TiptapJsonNode } from "../editor/tiptap-document";
-import { createCanvasTextExtensions } from "../editor/tiptap-extensions";
+import { canvasTextAppearanceStyle } from "../canvas/presentation/nodes/canvas-text-appearance";
+import { canvasTextHtml } from "../canvas/presentation/nodes/canvas-text-html";
+import { createSpaceNotePayload, createSpaceTextPayload } from "../document-editing/tiptap-content";
+import type { TiptapJsonNode } from "../document-editing/tiptap-document";
+import { createCanvasTextExtensions } from "../document-editing/tiptap-extensions";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
-import { canvasTextAppearanceStyle } from "../presentation/canvas/nodes/canvas-text-appearance";
-import { canvasTextHtml } from "../presentation/canvas/nodes/canvas-text-html";
 
 describe("spaces Tiptap content", () => {
   it("uses black note text regardless of the requested text color", () => {

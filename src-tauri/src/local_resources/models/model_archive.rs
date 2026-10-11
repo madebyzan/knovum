@@ -58,7 +58,10 @@ impl ModelArchive {
         .map_err(|error| error.message())?;
         let target = directory.to_owned();
         let token = cancellation.clone();
-        crate::blocking::run(move || self.extract(&path, &target, snapshot.models(), &token)).await
+        crate::foundation::blocking::run(move || {
+            self.extract(&path, &target, snapshot.models(), &token)
+        })
+        .await
     }
 
     fn extract(

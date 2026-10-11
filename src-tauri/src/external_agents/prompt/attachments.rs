@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_fs::FsExt;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) struct AgentAttachments(Vec<PathBuf>);
 

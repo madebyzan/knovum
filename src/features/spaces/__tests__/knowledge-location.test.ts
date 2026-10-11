@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { isLocatorCurrent } from "../knowledge/model/location";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
-import { knowledgeLocationLabel } from "../presentation/knowledge/knowledge-location-label";
+import { knowledgeLocationLabel } from "../knowledge/presentation/knowledge-location-label";
 import { highlightedSnippet } from "../search/highlighted-snippet";
 
 function locator(location: KnowledgeLocator["location"], sourceRevision = "sha256:source"): KnowledgeLocator {

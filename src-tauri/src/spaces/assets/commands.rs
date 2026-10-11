@@ -1,6 +1,6 @@
 use std::{collections::BTreeSet, path::PathBuf};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::assets::{
     access, enrichment, external_open, files,
     image::{document, preview},
@@ -18,13 +18,16 @@ pub async fn refresh_asset(
 
 #[tauri::command]
 pub async fn open_asset(app: tauri::AppHandle, source_path: String) -> Result<(), AppError> {
-    Ok((crate::blocking::run(move || files::open_asset(&app, PathBuf::from(source_path))).await)?)
+    Ok((crate::foundation::blocking::run(move || {
+        files::open_asset(&app, PathBuf::from(source_path))
+    })
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn preview_asset(app: tauri::AppHandle, source_path: String) -> Result<(), AppError> {
     let source = access::authorize_spaces_asset(&app, &PathBuf::from(source_path))?;
-    Ok((crate::system_preview::open(app, source).await)?)
+    Ok((crate::desktop::system_preview::open(app, source).await)?)
 }
 
 #[tauri::command]
@@ -35,8 +38,9 @@ pub async fn preview_image(
 ) -> Result<(), AppError> {
     let document = document::load(&app, &space_id, &node_id).await?;
     let render_app = app.clone();
-    let path = crate::blocking::run(move || preview::prepare(&render_app, document)).await?;
-    Ok((crate::system_preview::open(app, path).await)?)
+    let path =
+        crate::foundation::blocking::run(move || preview::prepare(&render_app, document)).await?;
+    Ok((crate::desktop::system_preview::open(app, path).await)?)
 }
 
 #[tauri::command]
@@ -45,7 +49,7 @@ pub async fn open_asset_at_location(
     source_path: String,
     location: external_open::ExternalLocation,
 ) -> Result<(), AppError> {
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         let canonical = access::authorize_spaces_asset(&app, &PathBuf::from(source_path))?;
         external_open::open_at_location(&canonical, location)
     })
@@ -57,10 +61,10 @@ pub async fn duplicate_asset(
     app: tauri::AppHandle,
     source_path: String,
 ) -> Result<String, AppError> {
-    Ok(
-        (crate::blocking::run(move || files::duplicate_asset(&app, PathBuf::from(source_path)))
-            .await)?,
-    )
+    Ok((crate::foundation::blocking::run(move || {
+        files::duplicate_asset(&app, PathBuf::from(source_path))
+    })
+    .await)?)
 }
 
 #[tauri::command]
@@ -75,7 +79,7 @@ pub async fn remove_assets(
     let pool = crate::spaces::db::pool(&app).await?;
     let removable = reclamation::unreferenced_paths(pool, candidates.clone()).await?;
     let retained = candidates.len() - removable.len();
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         let mut failures = Vec::new();
         if retained > 0 {
             failures.push(format!(
@@ -102,7 +106,7 @@ pub async fn export_asset(
     source_path: String,
     destination_path: String,
 ) -> Result<(), AppError> {
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         files::export_asset(
             &app,
             PathBuf::from(source_path),
@@ -118,7 +122,7 @@ pub async fn export_text(
     destination_path: String,
     text: String,
 ) -> Result<(), AppError> {
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         files::export_text(&app, PathBuf::from(destination_path), text)
     })
     .await)?)
@@ -132,7 +136,7 @@ pub async fn export_image(
     destination_path: String,
 ) -> Result<(), AppError> {
     let document = document::load(&app, &space_id, &node_id).await?;
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         let source = access::authorize_spaces_asset(&app, &PathBuf::from(&document.source_path))?;
         crate::file_inspection::verify_content_revision(&source, &document.source_revision)?;
         if document.relative_depth {

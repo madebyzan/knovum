@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 mod deleted;
 mod history;
 mod read;
@@ -30,7 +30,7 @@ pub(crate) async fn initialize_empty_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let edit_state_write = sqlx::query(
         "INSERT INTO spaces_edit_state(space_id,revision,updated_at) \
          SELECT id,0,$2 FROM spaces WHERE id=$1 \
@@ -92,7 +92,7 @@ pub(crate) async fn save_in_transaction(
     let next_revision = base_revision
         .checked_add(1)
         .ok_or("Space edit revision overflow")?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let edit_state_write = sqlx::query(
         "UPDATE spaces_edit_state SET revision=$1,updated_at=$2 WHERE space_id=$3 AND revision=$4",
     )

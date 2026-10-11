@@ -7,7 +7,10 @@ use std::{
     net::TcpListener,
 };
 
-async fn upload(status: &str, body: &str) -> crate::app_error::AppResult<serde_json::Value> {
+async fn upload(
+    status: &str,
+    body: &str,
+) -> crate::foundation::app_error::AppResult<serde_json::Value> {
     let server = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = server.local_addr().unwrap();
     let wire = format!(

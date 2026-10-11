@@ -1,4 +1,4 @@
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub fn language_name(target: &str) -> AppResult<&'static str> {
     match target {

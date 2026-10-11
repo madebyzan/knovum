@@ -14,7 +14,7 @@ pub(in crate::spaces::conversations) async fn commit(
     task_ids: &TaskIds,
     projection: AgentProjection,
 ) -> Result<Value, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let state: (String, Option<i64>) = sqlx::query_as("SELECT segment_id,r.cancel_requested_at FROM spaces_builtin_agent_tasks t JOIN spaces_runs r ON r.id=t.run_id WHERE t.id=$1")
         .bind(&task_ids.task_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;

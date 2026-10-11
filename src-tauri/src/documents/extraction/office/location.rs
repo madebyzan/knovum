@@ -50,6 +50,8 @@ pub(super) fn update_heading_path(path: &mut Vec<String>, level: u8, text: &str)
     while path.len() < depth.saturating_sub(1) {
         path.push(String::new());
     }
-    path.push(crate::utf16::truncate_with_suffix(text, 512, "…"));
+    path.push(crate::foundation::utf16::truncate_with_suffix(
+        text, 512, "…",
+    ));
     path.retain(|value| !value.is_empty());
 }

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CanvasGestureUpdate } from "../canvas/konva/interaction/canvas-gesture-update";
 import { NodeGestureController } from "../canvas/konva/interaction/node-gesture-controller";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 
 describe("Konva node gesture callbacks", () => {
   it("keeps event callbacks bound to their gesture controller", () => {

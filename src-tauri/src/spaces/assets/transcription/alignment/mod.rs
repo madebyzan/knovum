@@ -53,7 +53,7 @@ pub(crate) async fn align_media(
     let source_path = source.to_owned();
     let revision = source_revision.to_owned();
     let token = cancellation.clone();
-    let audio = crate::blocking::run(move || {
+    let audio = crate::foundation::blocking::run(move || {
         media_analysis::prepare(&app_for_audio, Path::new(&source_path), &revision, &token)
     })
     .await?;
@@ -83,16 +83,17 @@ pub(crate) async fn align_media(
             format!("local-resource-unavailable: {error}")
         }
     })?;
-    let audio_ref = crate::blocking::run({
+    let audio_ref = crate::foundation::blocking::run({
         let wav = audio.wav.clone();
         move || audio_reference(&wav)
     })
     .await?;
     let deadline_ms = profile::deadline(total_duration)?;
     let handle = app.clone();
-    let runtime =
-        crate::blocking::run(move || crate::local_resources::runtimes::inference::resolve(&handle))
-            .await?;
+    let runtime = crate::foundation::blocking::run(move || {
+        crate::local_resources::runtimes::inference::resolve(&handle)
+    })
+    .await?;
     let device =
         device_profiles::alignment::profile(&runtime, request.model, cancellation, deadline_ms)
             .await?;
@@ -157,7 +158,7 @@ pub(crate) async fn align_media(
         engine_id: ENGINE_ID.into(),
         model_spec_id: model_spec_id.clone(),
         model_revision: request.model.alignment_revision()?.into(),
-        aligned_at: u64::try_from(crate::clock::unix_time_millis()?)
+        aligned_at: u64::try_from(crate::foundation::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });
     payload["mediaKnowledge"]["transcript"] =

@@ -6,7 +6,7 @@ import type { ConnectorDefinition } from "../../../../shared/contracts/generated
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeader.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import ConnectorAccounts from "./ConnectorAccounts.vue";
 import ConnectorConnections from "./ConnectorConnections.vue";
 import PluginConnectorConfiguration from "./PluginConnectorConfiguration.vue";

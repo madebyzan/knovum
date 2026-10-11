@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{
     ai::{contracts::ExecutionCapability, settings},
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         authorization::{create_grant, local_user_grant, RunScope},
         db,
@@ -147,7 +147,7 @@ async fn create_run(
     space_id: &str,
     input: &TranslationRunInput,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let scope = RunScope::Space {
         space_id: space_id.to_owned(),
     };

@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::collections::{HashMap, HashSet};
 
 use sqlx::{Sqlite, Transaction};
@@ -72,7 +72,7 @@ pub(super) async fn reconcile_knowledge_ownership(
         .iter()
         .flat_map(|target| target.relations.iter().map(|relation| relation.id.as_str()))
         .collect();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     for id in ids {
         sqlx::query("UPDATE spaces_relations SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=source_id),updated_at=$1 WHERE id=$2 AND (SELECT space_id FROM spaces_nodes WHERE id=source_id)=(SELECT space_id FROM spaces_nodes WHERE id=target_id)").bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
     }

@@ -3,7 +3,7 @@ use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
 use super::{assets::PreparedLayer, contracts::GenerateImageLayersRequest, source};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output, relations, CompletedDerivationOutput},
@@ -40,7 +40,7 @@ pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Res
         let derivation_id = derivation_id(&request.generation_id, index);
         sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'split-image-layers',1,'fal:qwen-image-layered','running',$4,$4)")
             .bind(&derivation_id).bind(&request.space_id).bind(output_id)
-            .bind(crate::clock::unix_time_millis()?).execute(&mut *tx).await.map_err(db::sql_error)?;
+            .bind(crate::foundation::clock::unix_time_millis()?).execute(&mut *tx).await.map_err(db::sql_error)?;
         inputs::insert(
             &mut tx,
             &derivation_id,
@@ -68,7 +68,7 @@ pub async fn complete(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     source::validate(&mut tx, request).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut completed = Vec::with_capacity(layers.len());
     for (index, (output_id, layer)) in request.output_node_ids.iter().zip(layers).enumerate() {
         let mut data =

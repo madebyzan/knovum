@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]

@@ -1,7 +1,7 @@
 use tauri::{AppHandle, Runtime};
 
 use crate::{
-    job_registry::JobAdmissionReservation,
+    foundation::job_registry::JobAdmissionReservation,
     local_resources::preparation::requests::PreparationAdmissionReservation,
 };
 

@@ -1,4 +1,4 @@
-use crate::subprocess::process_tree::ProcessTree;
+use crate::foundation::subprocess::process_tree::ProcessTree;
 use std::{collections::BTreeMap, process::Stdio};
 use tokio::{
     process::{Child, Command},
@@ -38,7 +38,7 @@ pub(super) fn start(
     }
     command.envs(environment).envs(secrets);
     #[cfg(windows)]
-    let job = crate::subprocess::windows_job::WindowsJob::new()?;
+    let job = crate::foundation::subprocess::windows_job::WindowsJob::new()?;
     let mut child = command.spawn().map_err(|_| "mcp-process-start-failed")?;
     #[cfg(windows)]
     job.assign(&child)?;

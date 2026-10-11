@@ -22,7 +22,7 @@ use crate::{
         contracts::runtime::RuntimeDeviceProfile,
         local_runtime::{admission::Priority, speech},
     },
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::preparation,
     spaces::{db, runs::RunObservation},
 };

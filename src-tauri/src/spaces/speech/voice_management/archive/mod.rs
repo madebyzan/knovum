@@ -8,7 +8,7 @@ pub(super) async fn update_state(
     expected_updated_at: i64,
     is_archived: bool,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let archived_at = is_archived.then_some(now);
     let changed = sqlx::query(
         "UPDATE spaces_voice_profiles SET archived_at=?,updated_at=? WHERE id=? AND updated_at=?",

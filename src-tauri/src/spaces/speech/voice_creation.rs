@@ -1,4 +1,6 @@
-use crate::{ai::contracts::speech_wire::AudioFileReference, app_error::AppError, spaces::db};
+use crate::{
+    ai::contracts::speech_wire::AudioFileReference, foundation::app_error::AppError, spaces::db,
+};
 
 use super::{
     contracts::{CreateCandidateVoiceRequest, VoiceLibraryRevision},
@@ -28,7 +30,7 @@ pub async fn create_candidate_voice(
     )?;
     let preview_sha256 = record.candidate.audio.sha256.clone();
     let actual_preview =
-        crate::blocking::run(move || super::publication::hash_file(&preview)).await?;
+        crate::foundation::blocking::run(move || super::publication::hash_file(&preview)).await?;
     if actual_preview != preview_sha256 {
         return Err("stale_revision: voice candidate changed after audition".into());
     }
@@ -44,7 +46,7 @@ pub async fn create_candidate_voice(
     let persisted =
         voice_assets::persist_reference(&app, &reference, &request.candidate_id).await?;
     let revision_id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let creation = async {
         let mut tx = db::begin_write(pool).await?;
         sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,active_revision_id,created_at,updated_at) VALUES(?,?,?,NULL,?,?)")

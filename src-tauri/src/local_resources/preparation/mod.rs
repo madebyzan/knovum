@@ -40,7 +40,8 @@ pub async fn prepare_models<R: Runtime>(
     }
     let handle = app.clone();
     let requested = kinds.to_vec();
-    let plan = crate::blocking::run(move || model_plan::inspect(&handle, &requested)).await?;
+    let plan =
+        crate::foundation::blocking::run(move || model_plan::inspect(&handle, &requested)).await?;
     let total = plan.download_bytes;
     progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Queued,

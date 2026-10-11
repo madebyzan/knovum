@@ -66,7 +66,7 @@ pub(crate) async fn embed_query<R: Runtime>(
 }
 
 fn deadline_after(duration_ms: i64) -> Result<u64, String> {
-    crate::clock::unix_time_millis()?
+    crate::foundation::clock::unix_time_millis()?
         .checked_add(duration_ms)
         .and_then(|deadline| u64::try_from(deadline).ok())
         .ok_or_else(|| "Embedding deadline exceeds the supported range".to_owned())

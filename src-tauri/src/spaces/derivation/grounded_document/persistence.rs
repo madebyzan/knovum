@@ -31,7 +31,7 @@ pub async fn start(
         )
         .await?;
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,(SELECT json_extract(input_snapshot,'$.actionId') FROM spaces_runs WHERE id=$1 AND kind='action'),1,'knovum-grounded-ai:1','running',$4,$4)",
     )
@@ -67,7 +67,7 @@ pub async fn fail(app: &AppHandle, derivation_id: &str, message: &str) -> Result
     .await
     .map_err(db::sql_error)?;
     let Some(data) = data else { return Ok(()) };
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut value: serde_json::Value = serde_json::from_str(&data).map_err(db::json_error)?;
     value["derivationState"] = "failed".into();
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")

@@ -24,7 +24,7 @@ pub(crate) async fn settle_waiting_step_in_transaction(
     outcome: Result<&Value, &str>,
 ) -> Result<(), String> {
     require_active_waiting_step(tx, step_id, run_id).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     match outcome {
         Ok(output) => {
             let changed = sqlx::query("UPDATE spaces_run_steps SET state='succeeded',output=$1,wait_reason=NULL,state_version=state_version+1,updated_at=$2 WHERE id=$3 AND state='waiting'")

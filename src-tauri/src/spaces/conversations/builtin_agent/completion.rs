@@ -11,7 +11,7 @@ pub(super) async fn complete(
     let run = crate::spaces::runs::load_run(pool, &task_ids.run_id).await?;
     crate::spaces::conversations::execution::ledger::require_reconciled(pool, &task_ids.task_id)
         .await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let within_budget: bool = sqlx::query_scalar(
         "SELECT total_tokens<=json_extract(budget,'$.maxTotalTokens') FROM spaces_runs WHERE id=$1",
@@ -93,7 +93,7 @@ pub(super) async fn complete(
 }
 
 pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let control = sqlx::query_as::<_, (Option<i64>, Option<i64>)>(
         "SELECT pause_requested_at,cancel_requested_at FROM spaces_runs WHERE id=$1",
     )

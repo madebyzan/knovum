@@ -3,7 +3,7 @@ use std::time::Duration;
 use tauri::AppHandle;
 use tokio::sync::oneshot;
 
-use crate::{app_error::AppResult, spaces::db};
+use crate::{foundation::app_error::AppResult, spaces::db};
 
 pub(in crate::spaces::external_conversations::runtime) fn observe(
     app: AppHandle,
@@ -28,7 +28,7 @@ async fn settle(
 ) -> Result<(), String> {
     let remaining = Duration::from_millis(
         deadline_at
-            .saturating_sub(crate::clock::unix_time_millis()?)
+            .saturating_sub(crate::foundation::clock::unix_time_millis()?)
             .max(0) as u64,
     );
     let (error, deadline_reached) = tokio::select! {

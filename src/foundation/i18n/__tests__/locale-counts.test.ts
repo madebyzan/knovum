@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createI18n } from "vue-i18n";
 
-import { localeMessages } from "../../../locales/locale-registry";
 import { i18n as appI18n } from "../instance";
+import { localeMessages } from "../locales/locale-registry";
 
 const examples = [
   ["settings.ai.models.count", "model", "models"],

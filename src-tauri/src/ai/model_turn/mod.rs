@@ -7,7 +7,7 @@ use crate::ai::{
     models::ModelExecutionTarget,
     transport::SecurityContext,
 };
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 use genai::adapter::AdapterKind;
 use tokio_util::sync::CancellationToken;
@@ -29,7 +29,7 @@ pub async fn execute(
     let capability = adapter(target.model_provider_kind()?)?;
     let response = tokio::select! {
         biased;
-        _ = cancellation.cancelled() => return Err(crate::app_error::AppError::cancelled("Model task was cancelled")),
+        _ = cancellation.cancelled() => return Err(crate::foundation::app_error::AppError::cancelled("Model task was cancelled")),
         turn = capability.execute_turn(&context, request) => turn?,
     };
     crate::ai::usage::record_turn(request.purpose, &response).await?;
@@ -56,7 +56,7 @@ fn adapter(provider: ProviderKind) -> AppResult<&'static dyn ModelTurnCapability
         AdapterKind::Groq => &GROQ,
         AdapterKind::Ollama => &OLLAMA,
         _ => {
-            return Err(crate::app_error::AppError::unsupported(
+            return Err(crate::foundation::app_error::AppError::unsupported(
                 "Unsupported ModelTurn adapter",
             ))
         }
@@ -72,7 +72,7 @@ fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
         ProviderKind::DeepSeek => Ok(AdapterKind::DeepSeek),
         ProviderKind::Groq => Ok(AdapterKind::Groq),
         ProviderKind::Ollama => Ok(AdapterKind::Ollama),
-        ProviderKind::Kling => Err(crate::app_error::AppError::unsupported(
+        ProviderKind::Kling => Err(crate::foundation::app_error::AppError::unsupported(
             "Kling does not provide the ModelTurn text protocol",
         )),
         ProviderKind::OpenAi

@@ -1,4 +1,7 @@
-use crate::ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile};
+use crate::{
+    ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile},
+    local_resources::model_catalog::LocalModelId,
+};
 
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
@@ -77,13 +80,15 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         {
             (5, 7, "Whisper.cpp large-v3 F16")
         }
-        (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
-            if id == format!("qwen3-forced-aligner-0.6b-f16-{device}-inference-v2") =>
+        (RuntimeCapability::SpeechAlignment, _, _)
+            if alignment::execution_id(LocalModelId::Qwen3Aligner, device)
+                .is_ok_and(|expected| expected == id) =>
         {
-            (5, 6, "Qwen3 forced aligner CPU")
+            (5, 6, "Qwen3 forced aligner F16 GGUF")
         }
-        (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
-            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-inference-v2") =>
+        (RuntimeCapability::SpeechAlignment, _, _)
+            if alignment::execution_id(LocalModelId::Qwen3AlignerQ8, device)
+                .is_ok_and(|expected| expected == id) =>
         {
             (5, 6, "Qwen3 forced aligner Q8 GGUF")
         }

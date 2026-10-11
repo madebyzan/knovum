@@ -1,11 +1,11 @@
 use crate::{
-    desktop_task::{DesktopTask, DesktopTaskState},
+    desktop::tasks::contracts::{DesktopTask, DesktopTaskState},
     spaces::db,
 };
 use sqlx::{Row, SqlitePool};
 
 pub(crate) async fn snapshot(pool: &SqlitePool) -> Result<Vec<DesktopTask>, String> {
-    let cutoff = crate::clock::unix_time_millis()? - 600_000;
+    let cutoff = crate::foundation::clock::unix_time_millis()? - 600_000;
     let rows = sqlx::query("SELECT id,status,created_at FROM spaces_enrichment_jobs WHERE status IN ('pending','running','awaiting_configuration') OR updated_at>$1")
         .bind(cutoff).fetch_all(pool).await.map_err(db::sql_error)?;
     rows.iter()

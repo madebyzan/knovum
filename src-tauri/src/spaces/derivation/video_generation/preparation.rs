@@ -163,8 +163,10 @@ async fn load_references(
         crate::file_inspection::verify_content_revision(path, revision)?;
         let source = path.to_owned();
         let edit = data.get("imageEdit").cloned().unwrap_or(Value::Null);
-        let rendered =
-            crate::blocking::run(move || crate::images::render_source_png(&source, &edit)).await?;
+        let rendered = crate::foundation::blocking::run(move || {
+            crate::images::render_source_png(&source, &edit)
+        })
+        .await?;
         crate::file_inspection::verify_content_revision(path, revision)?;
         let reference = directory.join(format!("video-reference-{}.png", uuid::Uuid::new_v4()));
         let file = super::super::scratch_file::ScratchFile::new(reference.clone());
@@ -211,7 +213,7 @@ async fn persist_start(
     request: &GenerateVideoRequest,
     target: &TaskExecutionTarget,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'generate-video',1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(target.engine()).bind(now)

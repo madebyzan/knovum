@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use sqlx::{migrate::Migrator, SqlitePool};
 use tauri::{AppHandle, Manager};
 
-static MIGRATOR: Migrator = sqlx::migrate!("./migrations/secrets");
+static MIGRATOR: Migrator = sqlx::migrate!("src/secrets/migrations");
 
 pub(super) async fn open(app: &AppHandle) -> Result<SqlitePool, String> {
     crate::backup::ready(app).await?;

@@ -90,7 +90,7 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
         let ffmpeg = tools::resolve_ffmpeg(app)?
             .ok_or("The bundled FFmpeg tool is unavailable")?;
         let measure_cancellation = cancellation.clone();
-        let measurement = crate::blocking::run(move || {
+        let measurement = crate::foundation::blocking::run(move || {
             measure_loudness(
                 &ffmpeg,
                 &concat,
@@ -112,12 +112,12 @@ pub(in crate::spaces::speech) async fn measure_audiobook<R: Runtime>(
         .bind(revision_id)
         .bind(&digest)
         .bind(sqlx::types::Json(&measurement))
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .bind(&claim.attempt_id)
         .bind(&claim.run_id)
         .bind(&claim.step_instance_id)
         .bind(claim.execution_epoch)
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .execute(pool)
         .await
         .map_err(db::sql_error)?;

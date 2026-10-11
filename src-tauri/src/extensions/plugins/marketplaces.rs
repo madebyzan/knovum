@@ -6,7 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::operations::PluginOperation;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 use serde::Deserialize;
 use tauri::{ipc::Channel, AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
@@ -31,8 +31,10 @@ async fn read(
         }
         MarketplaceSource::Directory { path } => {
             let path = std::path::PathBuf::from(path).join("marketplace.json");
-            crate::blocking::run(move || super::sources::read_bounded(&path, 4 * 1024 * 1024))
-                .await?
+            crate::foundation::blocking::run(move || {
+                super::sources::read_bounded(&path, 4 * 1024 * 1024)
+            })
+            .await?
         }
         MarketplaceSource::Https { url } => super::sources::download(url, 4 * 1024 * 1024).await?,
         MarketplaceSource::Git {

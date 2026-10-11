@@ -3,7 +3,7 @@ mod contracts;
 mod jobs;
 mod publish;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::media::acquisition::contracts::AcquisitionProgress;
 pub(crate) use contracts::ImportedMedia;
 
@@ -11,8 +11,8 @@ pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), Str
     acquisition::cleanup_stale(app)
 }
 
-pub(super) fn reserve_maintenance() -> Result<crate::job_registry::JobAdmissionReservation, String>
-{
+pub(super) fn reserve_maintenance(
+) -> Result<crate::foundation::job_registry::JobAdmissionReservation, String> {
     jobs::reserve_maintenance()
 }
 
@@ -59,7 +59,7 @@ pub async fn import_media_from_url(
         },
     );
     let execution_id = job_id;
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let _job = _lease;
         acquisition::run(&app, &execution_id, url, tools, &on_progress, &cancellation)
     })

@@ -5,8 +5,8 @@ use std::{
 
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
 use crate::external_agents::session::AgentSessionUpdate;
+use crate::foundation::app_error::AppError;
 
 enum UpdateCommand {
     Record(AgentSessionUpdate),
@@ -141,7 +141,7 @@ async fn record(
         return Ok(());
     };
     let pool = super::super::db::pool(app).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = super::super::db::begin_write(pool).await?;
     if let Some(message) = message {
         super::repository::append_agent_message_in_transaction(&mut tx, conversation_id, &message)

@@ -335,8 +335,10 @@ async fn cancellation_after_atomic_completion_is_rejected_as_already_complete() 
 #[tokio::test]
 async fn failure_policy_uses_codes_and_records_the_complete_envelope() {
     let fixture = executing_fixture().await;
-    let error =
-        crate::app_error::AppError::new("authentication_failed", "rate-limited: misleading prose");
+    let error = crate::foundation::app_error::AppError::new(
+        "authentication_failed",
+        "rate-limited: misleading prose",
+    );
     super::fail_step(&fixture.pool, &fixture.claim, &error)
         .await
         .unwrap();
@@ -360,9 +362,8 @@ async fn failure_policy_uses_codes_and_records_the_complete_envelope() {
         serde_json::from_str::<serde_json::Value>(&payload).unwrap()["error"],
         serde_json::to_value(&error).unwrap()
     );
-    assert!(super::retryable(&crate::app_error::AppError::new(
-        "rate_limited",
-        "Unrelated prose"
-    )));
+    assert!(super::retryable(
+        &crate::foundation::app_error::AppError::new("rate_limited", "Unrelated prose")
+    ));
     assert!(!super::retryable(&error));
 }

@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
@@ -73,7 +73,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     let relations = cleanup::relation_ids(&mut tx, &request.space_id, &request.node_id).await?;
     let provenance =
         cleanup::provenance_ids(&mut tx, &request.space_id, &request.node_id, &relations).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     crate::spaces::knowledge::retrieval::invalidation_outbox::enqueue_nodes(
         &mut tx,
         &request.space_id,

@@ -6,14 +6,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import SpaceCanvasMedia from "../canvas/presentation/nodes/SpaceCanvasMedia.vue";
+import SpaceCanvasNodeStatus from "../canvas/presentation/nodes/SpaceCanvasNodeStatus.vue";
+import SpaceCanvasNote from "../canvas/presentation/nodes/SpaceCanvasNote.vue";
 import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { enrichmentProjectionKey } from "../enrichment/enrichment-projection-key";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
-import SpaceCanvasMedia from "../presentation/canvas/nodes/SpaceCanvasMedia.vue";
-import SpaceCanvasNodeStatus from "../presentation/canvas/nodes/SpaceCanvasNodeStatus.vue";
-import SpaceCanvasNote from "../presentation/canvas/nodes/SpaceCanvasNote.vue";
 import { useSpaceStore } from "../session/space-store";
 
 describe("Konva rich node interactions", () => {

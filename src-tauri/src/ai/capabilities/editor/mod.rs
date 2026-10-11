@@ -1,5 +1,5 @@
 use crate::ai::{models::EditorTransformAction, tasks::completion::TaskInput};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 const EDITOR_SYSTEM: &str = "You are Knovum's Markdown writing engine. Follow the requested transformation exactly. Preserve factual meaning, Markdown structure, links, code spans, and proper nouns unless the action explicitly requires a change. Return only the transformed text without commentary, labels, quotation marks, or code fences.";
 

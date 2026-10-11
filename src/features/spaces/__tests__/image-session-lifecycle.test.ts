@@ -24,13 +24,13 @@ const deriveImage = vi.hoisted(() =>
 );
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage }));
+import { useImageSourceDimensionsStore } from "../canvas/presentation/images/image-source-dimensions-store";
 import { useImageCommentSessionStore } from "../comments/image-comment-session-store";
 import { defaultImageEdit } from "../image-editing/image-edit";
 import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
+import SpaceCanvasImageEditing from "../image-editing/presentation/SpaceCanvasImageEditing.vue";
+import SpaceImageTransformControls from "../image-editing/presentation/SpaceImageTransformControls.vue";
 import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
-import { useImageSourceDimensionsStore } from "../presentation/canvas/image-source-dimensions-store";
-import SpaceCanvasImageEditing from "../presentation/canvas/SpaceCanvasImageEditing.vue";
-import SpaceImageTransformControls from "../presentation/canvas/SpaceImageTransformControls.vue";
 
 beforeEach(() => {
   deriveImage.mockClear();

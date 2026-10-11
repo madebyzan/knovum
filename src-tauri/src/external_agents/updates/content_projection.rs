@@ -104,7 +104,7 @@ pub(super) async fn persist_content(
     }
 }
 
-pub(super) fn projection_error(error: crate::app_error::AppError) -> Error {
+pub(super) fn projection_error(error: crate::foundation::app_error::AppError) -> Error {
     Error::invalid_request().data(error.to_string())
 }
 

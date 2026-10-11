@@ -14,6 +14,7 @@ pub(crate) async fn rendered_preview(
 ) -> Result<std::path::PathBuf, String> {
     let document = document::from_payload(data)?;
     let render_app = app.clone();
-    let path = crate::blocking::run(move || preview::prepare(&render_app, document)).await?;
+    let path =
+        crate::foundation::blocking::run(move || preview::prepare(&render_app, document)).await?;
     super::authorize_edited_image_preview(app, &path)
 }

@@ -1,11 +1,11 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
 use crate::documents::generation::{
     document::DocumentSource,
     input::{DocumentFileSource, DocumentInput},
 };
+use crate::foundation::app_error::AppError;
 
 pub(super) async fn load(app: &AppHandle, request: &Value) -> Result<DocumentInput, AppError> {
     let document = request

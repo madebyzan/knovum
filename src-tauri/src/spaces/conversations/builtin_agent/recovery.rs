@@ -138,7 +138,7 @@ pub(super) async fn prepare(
     if pending != 0 {
         return Err("builtin-agent-tool-intervention-required".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     if let Some(version) = expected_retry_version {
         super::model_recovery::authorize_retry(&mut tx, run_id, version, now).await?;
     }

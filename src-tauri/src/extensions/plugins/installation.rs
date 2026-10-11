@@ -59,7 +59,7 @@ pub(super) async fn commit(
         .join(plugin_id)
         .join("revisions")
         .join(&installation.revision.digest);
-    crate::blocking::run(move || content::publish(&directory, &files)).await?;
+    crate::foundation::blocking::run(move || content::publish(&directory, &files)).await?;
     let components = super::connectors::resolve(
         app,
         &installation,

@@ -6,7 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::artifacts as agent_artifacts;
 use crate::ai::{contracts::ExternalAgentKind, tasks::completion::TaskInput};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 const TEXT_OUTPUT_FILE: &str = "response.txt";
 const TASK_TIMEOUT: Duration = Duration::from_secs(900);

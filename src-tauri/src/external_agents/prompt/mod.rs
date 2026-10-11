@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use agent_client_protocol::schema::v1::{ContentBlock, ResourceLink, TextContent};
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 mod attachments;
 

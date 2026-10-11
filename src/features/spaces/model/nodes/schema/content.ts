@@ -1,7 +1,7 @@
 import { isPlainObject } from "es-toolkit";
 import { z } from "zod";
 
-import type { TiptapJsonNode } from "../../../editor/tiptap-document";
+import type { TiptapJsonNode } from "../../../document-editing/tiptap-document";
 
 const MAX_JSON_DEPTH = 64;
 const MAX_JSON_CONTAINER_ENTRIES = 10_000;

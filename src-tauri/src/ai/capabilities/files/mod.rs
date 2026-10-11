@@ -7,7 +7,7 @@ use crate::ai::{
     contracts::UploadedFileReference, models::ModelExecutionTarget, providers::resolve_provider,
     transport::SecurityContext,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub async fn upload_file_path(
     target: &ModelExecutionTarget,

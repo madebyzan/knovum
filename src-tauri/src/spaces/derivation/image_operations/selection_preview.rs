@@ -1,5 +1,7 @@
 use super::{contracts::ImageSelection, local, source};
-use crate::{app_error::AppError, local_resources::model_catalog::LocalModelId, spaces::db};
+use crate::{
+    foundation::app_error::AppError, local_resources::model_catalog::LocalModelId, spaces::db,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::AppHandle;
@@ -37,7 +39,7 @@ pub(crate) async fn preview_image_selection(
     }
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     let path = source_path(&app, &request).await?;
-    let rendered = crate::blocking::run({
+    let rendered = crate::foundation::blocking::run({
         let app = app.clone();
         let edit = request.source_edit.clone();
         let revision = request.source_revision.clone();

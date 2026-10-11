@@ -5,7 +5,7 @@ use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 
 use super::{requests, serve, ConversationSession, ServeContext};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 use crate::{ai::contracts::ExternalAgentKind, external_agents::session::AgentUpdateHandler};
 
 pub async fn start(

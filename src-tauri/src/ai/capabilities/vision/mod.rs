@@ -15,7 +15,7 @@ use crate::ai::{
     models::{CompletionOutput, ImageAnalysisRequest},
     transport::SecurityContext,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub async fn analyze_image(
     _app: &AppHandle,

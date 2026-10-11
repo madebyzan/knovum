@@ -18,7 +18,7 @@ import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
 import ExtensionIdentity from "../../components/ExtensionIdentity.vue";
 import { isAppConnector } from "../../connectors/app-connector";
 import ConnectorServiceSettings from "../../connectors/components/ConnectorServiceSettings.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import McpConnectionEnablement from "./McpConnectionEnablement.vue";
 import McpConnectionInspection from "./McpConnectionInspection.vue";
 import McpServerCreation from "./McpServerCreation.vue";

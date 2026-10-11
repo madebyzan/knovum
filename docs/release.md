@@ -111,8 +111,8 @@ https://github.com/madebyzan/knovum-releases/releases/latest/download/latest.jso
 
 This is a configuration example, not a provisioned service. Draft app releases are invisible to
 anonymous clients. Publishing the reviewed stable release through GitHub makes its `latest.json`
-discoverable. Agent resource releases are prereleases with `--latest=false`, so they cannot replace
-the app's latest stable release. Never put a GitHub token into the desktop binary.
+discoverable. The frozen Agent is bundled with that application release; it has no separate
+resource release channel. Never put a GitHub token into the desktop binary.
 
 Before first public distribution, verify the configured endpoint and every artifact anonymously.
 Preserve that endpoint and the updater key for existing installations. A future hosting change

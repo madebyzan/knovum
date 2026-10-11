@@ -7,7 +7,7 @@ import { createServer } from "vite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const tokenSource = readFileSync("src/styles/tokens.css", "utf8");
-const spaceTokenSource = readFileSync("src/features/spaces/presentation/space-tokens.css", "utf8");
+const spaceTokenSource = readFileSync("src/features/spaces/space-tokens.css", "utf8");
 const tailwindTheme = readFileSync("node_modules/tailwindcss/theme.css", "utf8");
 const allTokens = tokenSource + spaceTokenSource;
 const publicTheme = tokenSource.slice(

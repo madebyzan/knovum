@@ -8,7 +8,7 @@ use super::{
     file_import::ImportRequest,
     import::{ImportJsonCanvasNodesRequest, JsonCanvasNodeImport},
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     nodes::contracts::InsertNode,
     structure::{

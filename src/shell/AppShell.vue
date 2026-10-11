@@ -4,11 +4,11 @@ import { RouterView, useRoute } from "vue-router";
 
 import { overlayScopeVisibleKey } from "../shared/contracts/overlay-scope-visibility";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
-import CommandPalette from "./components/CommandPalette.vue";
-import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal.vue";
-import WorkspaceLayout from "./components/WorkspaceLayout.vue";
-import WorkspaceToolbar from "./components/WorkspaceToolbar.vue";
+import CommandPalette from "./commands/CommandPalette.vue";
+import KeyboardShortcutsModal from "./commands/KeyboardShortcutsModal.vue";
 import FeatureErrorBoundary from "./FeatureErrorBoundary.vue";
+import WorkspaceLayout from "./layout/WorkspaceLayout.vue";
+import WorkspaceToolbar from "./layout/WorkspaceToolbar.vue";
 import { useShellController } from "./use-shell-controller";
 
 const props = defineProps<{ workspace: WorkspaceDefinition; workspaceActive: boolean }>();

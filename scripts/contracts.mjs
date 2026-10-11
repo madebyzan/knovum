@@ -34,7 +34,7 @@ export function generateContracts() {
   const commands = [
     [
       "cargo",
-      ["run", "--locked", "--manifest-path", "src-tauri/Cargo.toml", "--bin", "export_space_contracts"],
+      ["run", "--locked", "--manifest-path", "src-tauri/Cargo.toml", "--package", "knovum-contract-exporter"],
     ],
     [
       "uv",

@@ -13,7 +13,7 @@ import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import ExtensionAvailability from "../../components/ExtensionAvailability.vue";
 import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeader.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { useExtensionChanges } from "../../use-extension-changes";
 import McpConnectionEnablement from "./McpConnectionEnablement.vue";
 import McpConnectionSettings from "./McpConnectionSettings.vue";

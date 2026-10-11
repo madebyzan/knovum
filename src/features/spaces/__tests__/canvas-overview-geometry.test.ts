@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { canvasOverviewViewport } from "../canvas/konva/overview/geometry";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import type { CanvasDocumentV1 } from "../canvas/schema/document";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 
 function sceneAt(frame: { x: number; y: number; width: number; height: number; rotation?: number }) {
   const { x, y, width, height, rotation = 0 } = frame;

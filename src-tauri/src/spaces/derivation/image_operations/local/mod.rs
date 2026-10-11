@@ -7,7 +7,7 @@ use crate::{
     ai::local_runtime::image::compute::{
         self, ImageComputeRequest, ImageTensor, ImageTensorOperation,
     },
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::{model_catalog::LocalModelId, models::snapshots::SnapshotKind, preparation},
 };
 pub(super) use selection::preview;
@@ -32,7 +32,7 @@ pub(super) async fn execute(
                 selection::compute(app, model, selection, source, owner_id, cancellation).await?;
             let operation = operation.clone();
             let token = cancellation.clone();
-            return crate::blocking::run(move || {
+            return crate::foundation::blocking::run(move || {
                 raster::materialize(source_image, mask, &operation, &token)
             })
             .await
@@ -62,7 +62,7 @@ pub(super) async fn execute(
             let source_bytes = source.bytes.clone();
             let prepared_operation = operation.clone();
             let token = cancellation.clone();
-            crate::blocking::run(move || {
+            crate::foundation::blocking::run(move || {
                 raster::prepare(&source_bytes, &prepared_operation, &token)
             })
             .await?
@@ -80,9 +80,11 @@ pub(super) async fn execute(
     .await?;
     let operation = operation.clone();
     let token = cancellation.clone();
-    crate::blocking::run(move || raster::materialize(source_image, pixels, &operation, &token))
-        .await
-        .map_err(Into::into)
+    crate::foundation::blocking::run(move || {
+        raster::materialize(source_image, pixels, &operation, &token)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 async fn infer(
@@ -106,7 +108,7 @@ async fn infer(
         &mut |_| {},
     )
     .await?;
-    let deadline_ms = u64::try_from(crate::clock::unix_time_millis()?)
+    let deadline_ms = u64::try_from(crate::foundation::clock::unix_time_millis()?)
         .map_err(|_| "System clock is before the Unix epoch")?
         .saturating_add(20 * 60 * 1000);
     Ok(compute::execute(

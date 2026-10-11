@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use super::contracts::{InsertNodesRequest, UpdateNodesRequest};

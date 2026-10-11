@@ -11,7 +11,7 @@ import { isApplicationLeaveCancelled } from "../shared/contracts/application-lea
 import { returnToWorkspace } from "./workspace-session";
 
 const voiceLibraryComponent = defineAsyncComponent(
-  () => import("../features/spaces/presentation/speech/VoiceLibrarySettings.vue"),
+  () => import("../features/spaces/speech/presentation/VoiceLibrarySettings.vue"),
 );
 const extensionsComponent = defineAsyncComponent(
   () => import("../features/extensions/AgentExtensionsSettings.vue"),

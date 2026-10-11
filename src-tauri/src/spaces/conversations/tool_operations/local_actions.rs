@@ -36,7 +36,7 @@ pub(in crate::spaces) async fn start_tool_call(
         target_selection,
     } = call;
     let id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let previous: Option<String> = sqlx::query_scalar(
         "SELECT id FROM spaces_conversation_tool_operations WHERE invocation_id=$1",

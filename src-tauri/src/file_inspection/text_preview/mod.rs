@@ -55,7 +55,7 @@ pub fn read_html_preview(path: &Path) -> Result<String, String> {
     } else {
         ""
     };
-    Ok(crate::utf16::truncate_with_suffix(
+    Ok(crate::foundation::utf16::truncate_with_suffix(
         &preview,
         MAX_HTML_PREVIEW_UTF16,
         suffix,

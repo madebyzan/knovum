@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 mod exit;
 pub(crate) mod file_drop;
 pub(crate) use exit::AppExitRequest;
@@ -8,9 +8,13 @@ pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
 mod startup;
+pub(crate) mod system_font;
+pub(crate) mod system_preview;
 pub(crate) mod tasks;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod tray;
+pub(crate) mod updater;
+pub(crate) mod window;
 mod window_close;
 
 #[cfg(target_os = "macos")]
@@ -70,7 +74,7 @@ pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError>
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         tray::ensure_installed(&app, crate::preferences::LocalePreference::English)
             .map_err(|error| error.to_string())?;
-        crate::app_window::focus_main(&app)
+        crate::desktop::window::focus_main(&app)
     };
     match reveal() {
         Ok(()) => {
@@ -127,7 +131,7 @@ pub fn handle_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) 
 pub fn handle_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
     if let RunEvent::ExitRequested { api, code, .. } = event {
         if app
-            .try_state::<crate::updater::UpdateService>()
+            .try_state::<crate::desktop::updater::UpdateService>()
             .is_some_and(|service| service.blocks_exit())
         {
             exit::revoke_approval();
@@ -151,7 +155,7 @@ pub fn handle_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
     } = event
     {
         if !has_visible_windows {
-            if let Err(error) = crate::app_window::focus_main(app) {
+            if let Err(error) = crate::desktop::window::focus_main(app) {
                 log::error!("failed to reopen main window from Dock: {error}");
             }
         }

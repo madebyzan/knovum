@@ -18,7 +18,7 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
     ) -> BoxFuture<'_, Result<ElicitResult, String>> {
         Box::pin(async move {
             let id = uuid::Uuid::new_v4().to_string();
-            let now = crate::clock::unix_time_millis()?;
+            let now = crate::foundation::clock::unix_time_millis()?;
             let mut changes = runs::subscribe_to_changes();
             let mut tx = db::begin_write(&self.pool).await?;
             sqlx::query("INSERT INTO spaces_conversation_mcp_interactions(id,run_id,request,created_at) VALUES($1,$2,$3,$4)").bind(&id).bind(&self.run_id).bind(sqlx::types::Json(&request)).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
@@ -63,7 +63,7 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
                     None,
                     runs::RunEventKind::McpProgress,
                     &serde_json::to_value(progress).map_err(db::json_error)?,
-                    crate::clock::unix_time_millis()?,
+                    crate::foundation::clock::unix_time_millis()?,
                 )
                 .await?;
                 tx.commit().await.map_err(db::sql_error)?;

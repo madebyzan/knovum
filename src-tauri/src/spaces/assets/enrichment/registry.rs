@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 use tokio_util::sync::CancellationToken;
 
-use crate::job_registry::{JobLease, JobRegistry};
+use crate::foundation::job_registry::{JobLease, JobRegistry};
 
 fn registry() -> &'static JobRegistry {
     static REGISTRY: OnceLock<JobRegistry> = OnceLock::new();

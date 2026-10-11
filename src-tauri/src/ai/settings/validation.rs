@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::ai::{contracts::RoutingPurpose, tasks::TaskTargetRef};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 use super::contracts::AiSettings;
 

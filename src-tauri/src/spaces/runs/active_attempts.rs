@@ -82,7 +82,7 @@ pub(super) async fn reconcile(pool: &sqlx::SqlitePool) -> Result<(), String> {
          AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL AND s.state='running'",
     )
     .bind(sqlx::types::Json(&ids))
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .fetch_all(pool)
     .await
     .map_err(crate::spaces::db::sql_error)?;

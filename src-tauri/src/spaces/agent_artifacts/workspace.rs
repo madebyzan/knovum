@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use tauri::{AppHandle, Manager, Runtime};
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(crate) fn root<R: Runtime>(app: &AppHandle<R>) -> AppResult<PathBuf> {
     app.path()

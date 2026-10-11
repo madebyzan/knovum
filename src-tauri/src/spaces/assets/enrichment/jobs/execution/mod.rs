@@ -9,7 +9,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::{
     ai::tasks::TaskTargetSelection, spaces::assets::transcription::MediaTranscriptionProgress,
 };

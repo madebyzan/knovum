@@ -5,7 +5,7 @@ use tokio_util::sync::CancellationToken;
 pub(super) mod contracts;
 
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{db, knowledge::object_types},
 };
 use contracts::RestorePackageRequest;

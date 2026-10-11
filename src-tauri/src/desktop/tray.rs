@@ -76,7 +76,7 @@ pub fn ensure_installed<R: Runtime>(
 }
 
 fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
-    if let Err(error) = crate::app_window::focus_main(app) {
+    if let Err(error) = crate::desktop::window::focus_main(app) {
         log::error!("failed to focus main window: {error}");
     }
 }

@@ -9,7 +9,7 @@ pub async fn start_turn(
     attachments: &[crate::spaces::conversations::ConversationMessageAttachment],
 ) -> Result<String, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let binding = sqlx::query(
         "SELECT state,conversation_id,branch_id,run_id
@@ -135,7 +135,7 @@ pub async fn finish_turn(
     state: &str,
     error: Option<&str>,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "UPDATE spaces_external_agent_turns SET state=$1,error=$2,completed_at=$3
          WHERE id=$4 AND state='running'",

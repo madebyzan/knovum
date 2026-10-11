@@ -10,7 +10,7 @@ pub(super) async fn start(
     kind: ExternalAgentKind,
     prompt: &str,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let principal = crate::spaces::authorization::Principal {
@@ -77,7 +77,7 @@ async fn finish(
     state: &str,
     error: Option<&str>,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let session_write = sqlx::query(
         "UPDATE spaces_agent_artifact_sessions SET state=$1,error=$2,updated_at=$3,completed_at=$3
@@ -133,7 +133,7 @@ pub(super) async fn fail_interrupted(app: &AppHandle) -> Result<Vec<(String, Str
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "UPDATE spaces_agent_artifact_sessions SET state='failed',
          error='Agent artifact execution was interrupted',updated_at=$1,completed_at=$1

@@ -14,7 +14,7 @@ pub(super) struct ManifestAssets {
 pub(super) fn parse_cancellable(
     manifest: &str,
     cancellation: &CancellationToken,
-) -> Result<ManifestAssets, crate::app_error::AppError> {
+) -> Result<ManifestAssets, crate::foundation::app_error::AppError> {
     super::control::check(cancellation)?;
     let value: Value = serde_json::from_str(manifest).map_err(|error| error.to_string())?;
     let mut used_tokens = HashSet::new();
@@ -80,7 +80,7 @@ fn collect_speech_assets(
     used_tokens: &mut HashSet<String>,
     source_revisions: &mut HashMap<String, String>,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     for separation in value
         .get("speechSourceSeparations")
         .and_then(Value::as_array)

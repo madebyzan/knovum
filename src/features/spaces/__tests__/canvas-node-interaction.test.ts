@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { canvasNodeInteraction } from "../canvas/canvas-node-interaction";
 import { projectSelectionTransformPolicy } from "../canvas/konva/selection/selection-transform-policy";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload, createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload, createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
 describe("canvas node interaction policy", () => {

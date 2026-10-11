@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
@@ -22,7 +22,7 @@ pub(crate) async fn complete_step(
     output: &Value,
     selected_branch: Option<&str>,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let output_bytes = serde_json::to_vec(output).map_err(db::json_error)?.len();
     let mut tx = db::begin_write(pool).await?;
     require_current_claim(&mut tx, claim).await?;
@@ -49,7 +49,7 @@ pub(crate) async fn wait_step(
     reason: WaitReason,
     checkpoint: &Value,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     require_current_claim(&mut tx, claim).await?;
     finish_attempt(&mut tx, claim, "succeeded", Some(checkpoint), None, now).await?;
@@ -89,7 +89,7 @@ pub(crate) async fn fail_step(
     claim: &AttemptClaim,
     error: &AppError,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     require_current_claim(&mut tx, claim).await?;
     finish_attempt(&mut tx, claim, "failed", None, Some(&error.code), now).await?;

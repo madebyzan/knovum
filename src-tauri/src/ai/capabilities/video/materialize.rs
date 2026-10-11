@@ -8,7 +8,7 @@ use crate::ai::{
     },
     transport::SecurityContext,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub async fn materialize(
     adapter: &dyn VideoGenerationCapability,

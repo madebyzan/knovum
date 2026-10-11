@@ -6,7 +6,7 @@ use std::{
 use walkdir::WalkDir;
 
 use crate::ai::contracts::AgentArtifact;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 mod classification;
 mod output_projection;

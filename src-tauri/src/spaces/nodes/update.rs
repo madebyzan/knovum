@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -39,7 +39,7 @@ pub(in crate::spaces) async fn update_many<R: Runtime>(
         )
         .await?;
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let edit_snapshot = update_many_in_transaction(
         &mut tx,
         &request.space_id,

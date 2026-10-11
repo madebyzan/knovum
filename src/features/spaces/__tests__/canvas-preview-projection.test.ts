@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { projectPreviewItems } from "../canvas/presentation/nodes/canvas-preview-budget";
+import { projectMarkdownPreview } from "../canvas/presentation/nodes/markdown-preview-projection";
+import { projectTiptapPreview } from "../canvas/presentation/nodes/tiptap-preview-projection";
 import type { CanvasNodePresentationContext } from "../canvas/preview/policy";
-import type { TiptapJsonNode } from "../editor/tiptap-document";
-import { projectPreviewItems } from "../presentation/canvas/nodes/canvas-preview-budget";
-import { projectMarkdownPreview } from "../presentation/canvas/nodes/markdown-preview-projection";
-import { projectTiptapPreview } from "../presentation/canvas/nodes/tiptap-preview-projection";
+import type { TiptapJsonNode } from "../document-editing/tiptap-document";
 
 const contexts = {
   compact: { viewport: { level: "compact", previewItemLimit: 2 }, mode: "preview" },

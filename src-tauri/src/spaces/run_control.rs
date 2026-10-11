@@ -1,4 +1,4 @@
-use crate::{app_error::AppError, spaces::runs::RunKind};
+use crate::{foundation::app_error::AppError, spaces::runs::RunKind};
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]

@@ -4,7 +4,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use super::super::asset_directory;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::web_capture::{CapturedWebResource, WebDocumentKind};
 
 #[derive(Serialize)]

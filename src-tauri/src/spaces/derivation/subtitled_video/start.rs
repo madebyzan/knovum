@@ -53,7 +53,7 @@ pub async fn start(
         path: required_string(&video, "assetPath")?.into(),
         subtitles,
     };
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind("add-video-subtitles").bind(engine).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;

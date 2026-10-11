@@ -5,10 +5,10 @@ import { reactive } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
 import { useImageEditSessionStore } from "../image-editing/image-edit-session-store";
+import SpaceImageEditLeaveDialog from "../image-editing/presentation/SpaceImageEditLeaveDialog.vue";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import SpaceImageEditLeaveDialog from "../presentation/canvas/SpaceImageEditLeaveDialog.vue";
-import SpaceUnsavedChangesDialog from "../presentation/workspace/SpaceUnsavedChangesDialog.vue";
+import SpaceUnsavedChangesDialog from "../workspace/presentation/SpaceUnsavedChangesDialog.vue";
 import {
   flushSpaceSessionCommits,
   flushSpaceSessionContent,

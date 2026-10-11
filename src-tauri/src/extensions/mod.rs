@@ -102,7 +102,7 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
 }
 
 pub(crate) fn reserve_plugin_operations_for_maintenance(
-) -> Result<crate::job_registry::JobAdmissionReservation, String> {
+) -> Result<crate::foundation::job_registry::JobAdmissionReservation, String> {
     plugins::operations::reserve_maintenance()
 }
 

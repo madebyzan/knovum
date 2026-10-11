@@ -1,7 +1,15 @@
 mod build_support;
 
 fn main() {
-    println!("cargo:rerun-if-changed=migrations");
+    for source in [
+        "src/spaces/db/migrations",
+        "src/extensions/migrations",
+        "src/ai/usage/migrations",
+        "src/secrets/migrations",
+        "src/spaces/command_registry/declarations.rs",
+    ] {
+        println!("cargo:rerun-if-changed={source}");
+    }
     println!("cargo:rerun-if-changed=../package.json");
     println!("cargo:rustc-check-cfg=cfg(knovum_supported_desktop)");
     let os = std::env::var("CARGO_CFG_TARGET_OS").expect("Cargo target OS");

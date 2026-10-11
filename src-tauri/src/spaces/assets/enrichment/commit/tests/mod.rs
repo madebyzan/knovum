@@ -1,5 +1,5 @@
 use super::{publish_in_transaction, PublicationGuard};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;

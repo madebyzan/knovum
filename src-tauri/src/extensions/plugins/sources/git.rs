@@ -9,7 +9,7 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 const INTERRUPT_NONE: u8 = 0;
 const INTERRUPT_CANCELLED: u8 = 1;

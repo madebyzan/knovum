@@ -6,7 +6,7 @@ use genai::chat::{
 use crate::ai::contracts::{
     ModelBinarySource, ModelContentPart, ModelMessage, ModelRole, ModelToolChoice, ModelTurnRequest,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(crate) fn to_genai_request(request: &ModelTurnRequest) -> AppResult<ChatRequest> {
     let messages = request

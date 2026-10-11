@@ -3,8 +3,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     ai::transport::{response, SecurityContext},
-    app_error::{AppError, AppResult},
-    public_network::{resource_response, same_origin},
+    foundation::app_error::{AppError, AppResult},
+    foundation::public_network::{resource_response, same_origin},
 };
 
 const MAX_VIDEO_BYTES: usize = 512 * 1024 * 1024;

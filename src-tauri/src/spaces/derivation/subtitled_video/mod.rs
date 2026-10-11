@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
-use crate::app_error::AppError;
-use crate::blocking;
+use crate::foundation::app_error::AppError;
+use crate::foundation::blocking;
 
 pub const CANCELLED: &str = "video-subtitle-derivation-cancelled";
 

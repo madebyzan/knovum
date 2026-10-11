@@ -1,0 +1,20 @@
+import { Aperture, Blend, CircleDotDashed, Contrast } from "@lucide/vue";
+
+import type { ImageAdjustments } from "../image-edit";
+
+export const IMAGE_ADJUSTMENT_GROUPS = [
+  {
+    id: "light",
+    icon: Contrast,
+    keys: ["exposure", "contrast", "highlights", "shadows", "whites", "blacks"],
+  },
+  { id: "color", icon: Blend, keys: ["vibrance", "saturation", "warmth", "tint"] },
+  { id: "texture", icon: CircleDotDashed, keys: ["sharpness", "clarity", "grain"] },
+  { id: "effects", icon: Aperture, keys: ["vignette", "softLight", "glow"] },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  icon: typeof Aperture;
+  keys: readonly (keyof ImageAdjustments)[];
+}>;
+
+export type ImageAdjustmentGroupId = (typeof IMAGE_ADJUSTMENT_GROUPS)[number]["id"];

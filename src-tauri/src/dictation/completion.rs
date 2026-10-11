@@ -42,13 +42,14 @@ async fn publish_transcription<R: Runtime>(
     transcription: TranscriptionOutcome,
 ) {
     let text = transcription.text.clone();
-    let insertion =
-        crate::blocking::run(move || Ok::<_, String>(insertion::insert(&target, &text)))
-            .await
-            .unwrap_or_else(|error| insertion::InsertionDecision {
-                outcome: InsertionOutcome::Failed,
-                message: Some(error),
-            });
+    let insertion = crate::foundation::blocking::run(move || {
+        Ok::<_, String>(insertion::insert(&target, &text))
+    })
+    .await
+    .unwrap_or_else(|error| insertion::InsertionDecision {
+        outcome: InsertionOutcome::Failed,
+        message: Some(error),
+    });
     let needs_attention = !matches!(insertion.outcome, InsertionOutcome::Inserted);
     let error_code = match insertion.outcome {
         InsertionOutcome::Inserted => None,
@@ -105,7 +106,7 @@ pub(super) fn publish<R: Runtime>(
 }
 
 pub(super) fn reveal<R: Runtime>(app: &AppHandle<R>) {
-    if let Err(error) = crate::app_window::focus_main(app) {
+    if let Err(error) = crate::desktop::window::focus_main(app) {
         log::warn!("failed to reveal dictation result: {error}");
     }
 }

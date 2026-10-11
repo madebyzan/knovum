@@ -18,7 +18,7 @@ pub(crate) async fn verify_file(
     expected_sha256: String,
     cancellation: CancellationToken,
 ) -> Result<bool, String> {
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         super::verification::verify_cancellable(
             &path,
             &expected_sha256,

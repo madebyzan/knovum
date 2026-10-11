@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::collections::HashMap;
 
 use serde_json::{json, Value};

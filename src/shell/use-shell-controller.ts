@@ -11,8 +11,8 @@ import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
-import { createShellCommands } from "./commands";
-import { useWorkbenchLayoutPreferences } from "./use-workbench-layout-preferences";
+import { createShellCommands } from "./commands/commands";
+import { useWorkbenchLayoutPreferences } from "./layout/use-workbench-layout-preferences";
 
 export function useShellController(
   workspace: WorkspaceDefinition,

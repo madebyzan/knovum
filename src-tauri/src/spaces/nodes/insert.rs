@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use super::{
@@ -40,7 +40,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     if request.expected_edit_revision < 0 {
         return Err("Expected edit revision must be nonnegative".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let digest = structure::receipts::digest(&request)?;
     if let Some(edit_revision) =
         structure::receipts::find_typed(tx, &request.mutation_id, &digest).await?

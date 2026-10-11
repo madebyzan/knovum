@@ -20,7 +20,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
     let run_id = uuid::Uuid::new_v4().to_string();
     let step_id = uuid::Uuid::new_v4().to_string();
     let attempt_id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis().unwrap();
+    let now = crate::foundation::clock::unix_time_millis().unwrap();
     sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES(?,'space','space','user','local-user','workflow','running',2,'{}','{}','{}',1,1)")
         .bind(&run_id).execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,resolved_input,created_at,updated_at) VALUES(? ,?,'separate','separate','speech_source_separation','running','{}',1,1)")
@@ -84,7 +84,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
     {
         // An attempt can lose its lease while waiting for another writer's connection.
         let mut writer = crate::spaces::db::begin_write(&pool).await.unwrap();
-        let lease_until = crate::clock::unix_time_millis().unwrap() + 50;
+        let lease_until = crate::foundation::clock::unix_time_millis().unwrap() + 50;
         sqlx::query("UPDATE spaces_run_attempts SET lease_until=? WHERE id=?")
             .bind(lease_until)
             .bind(&attempt_id)
@@ -107,7 +107,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
             std::task::Poll::Ready(())
         })
         .await;
-        while crate::clock::unix_time_millis().unwrap() <= lease_until {
+        while crate::foundation::clock::unix_time_millis().unwrap() <= lease_until {
             tokio::time::sleep(std::time::Duration::from_millis(1)).await;
         }
         writer.commit().await.unwrap();
@@ -118,7 +118,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         .unwrap()
         .is_none());
     sqlx::query("UPDATE spaces_run_attempts SET lease_until=? WHERE id=?")
-        .bind(crate::clock::unix_time_millis().unwrap() + 60_000)
+        .bind(crate::foundation::clock::unix_time_millis().unwrap() + 60_000)
         .bind(&attempt_id)
         .execute(&pool)
         .await

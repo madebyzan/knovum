@@ -1,5 +1,5 @@
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::conversations::{
         contracts::{ConversationDraft, SaveConversationDraftRequest},
         repository,
@@ -52,7 +52,7 @@ pub async fn move_conversation_draft(
                       WHERE c.id=$1 AND c.space_id=$3 AND s.archived_at IS NULL)",
     )
     .bind(to_conversation_id)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .bind(space_id)
     .bind(from_conversation_id)
     .execute(pool)

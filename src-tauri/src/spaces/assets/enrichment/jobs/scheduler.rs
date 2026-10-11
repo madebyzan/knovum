@@ -86,7 +86,7 @@ async fn dispatch(
                     pool,
                     &job.id,
                     error.to_string(),
-                    crate::clock::unix_time_millis()?,
+                    crate::foundation::clock::unix_time_millis()?,
                 )
                 .await?;
                 continue;
@@ -98,7 +98,7 @@ async fn dispatch(
                     "'pending','awaiting_configuration'",
                     "failed",
                     Some(error.to_string()),
-                    crate::clock::unix_time_millis()?,
+                    crate::foundation::clock::unix_time_millis()?,
                     false,
                 )
                 .await?;
@@ -122,7 +122,7 @@ async fn dispatch(
 fn vision_selection(
     app: &AppHandle,
     kind: EnrichmentJobType,
-) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::app_error::AppError> {
+) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::foundation::app_error::AppError> {
     if !matches!(
         kind,
         EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument

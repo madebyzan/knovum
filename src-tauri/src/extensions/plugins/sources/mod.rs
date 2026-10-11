@@ -6,7 +6,7 @@ use super::super::{
     content::{self, PackageFiles},
     contracts::PluginSource,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 pub(super) use archive::read_bounded;
 use std::path::Path;
 use tokio_util::sync::CancellationToken;
@@ -21,16 +21,20 @@ pub(crate) async fn read(
         PluginSource::Directory { path } => {
             let path = path.clone();
             let cancellation = cancellation.clone();
-            let files =
-                crate::blocking::run(move || directory_files(Path::new(&path), &cancellation))
-                    .await?;
+            let files = crate::foundation::blocking::run(move || {
+                directory_files(Path::new(&path), &cancellation)
+            })
+            .await?;
             let revision = content::files_digest(&files);
             Ok((files, revision))
         }
         PluginSource::Zip { path } => {
             let path = path.clone();
             let cancellation = cancellation.clone();
-            crate::blocking::run(move || archive::read_file(Path::new(&path), &cancellation)).await
+            crate::foundation::blocking::run(move || {
+                archive::read_file(Path::new(&path), &cancellation)
+            })
+            .await
         }
         PluginSource::HttpsZip { url, sha256 } => {
             let bytes = network::download(url, 64 * 1024 * 1024).await?;
@@ -40,7 +44,8 @@ pub(crate) async fn read(
             }
             let cancellation = cancellation.clone();
             let files =
-                crate::blocking::run(move || archive::extract(bytes, &cancellation)).await?;
+                crate::foundation::blocking::run(move || archive::extract(bytes, &cancellation))
+                    .await?;
             Ok((files, digest))
         }
         PluginSource::Git {
@@ -52,7 +57,7 @@ pub(crate) async fn read(
             let (url, reference, subdirectory) =
                 (parsed.to_string(), reference.clone(), subdirectory.clone());
             let cancellation = cancellation.clone();
-            crate::blocking::run(move || {
+            crate::foundation::blocking::run(move || {
                 git::read(&url, &reference, &subdirectory, addresses, cancellation)
             })
             .await

@@ -116,9 +116,10 @@ async fn publish_project_with_measurement<R: Runtime>(
             measurement,
         };
         let assembly_cancellation = cancellation.clone();
-        let sample_count =
-            crate::blocking::run(move || assembly::assemble(&input, &assembly_cancellation))
-                .await?;
+        let sample_count = crate::foundation::blocking::run(move || {
+            assembly::assemble(&input, &assembly_cancellation)
+        })
+        .await?;
         inputs::verify_cover(app, &profile)?;
         inputs::verify_sources(&sources, renders, cancellation)?;
         if cancellation.is_cancelled() {
