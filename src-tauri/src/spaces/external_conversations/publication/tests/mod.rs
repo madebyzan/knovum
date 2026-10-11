@@ -154,7 +154,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
 async fn context_attachment_does_not_assert_derivation() {
     let pool = fixture().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    nodes::insert_many_in_transaction(
+    nodes::tests::insert_many_in_transaction(
         &mut tx,
         nodes::contracts::InsertNodesRequest {
             space_id: "space".into(),

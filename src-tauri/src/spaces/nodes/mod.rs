@@ -12,8 +12,6 @@ pub(in crate::spaces) use content_size::fit_in_snapshot as fit_content_sizes_in_
 pub(in crate::spaces) use content_size::fitted_size as fitted_content_size;
 pub(in crate::spaces) use content_size::sync_node_ids_in_transaction as sync_content_sizes_in_transaction;
 pub use insert::insert_many;
-#[cfg(test)]
-pub(in crate::spaces) use insert::insert_many_in_transaction;
 pub(in crate::spaces) use insert::insert_rows_in_transaction;
 pub(in crate::spaces) use insert::insert_rows_with_actor;
 pub(in crate::spaces) use lifecycle::restore_in_transaction;
@@ -23,4 +21,4 @@ pub(in crate::spaces) use update::update_many;
 pub(in crate::spaces) use update::update_many_in_transaction;
 
 #[cfg(test)]
-mod tests;
+pub(in crate::spaces) mod tests;

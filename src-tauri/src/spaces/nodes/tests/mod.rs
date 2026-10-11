@@ -1,3 +1,5 @@
+pub(in crate::spaces) use super::insert::insert_many_in_transaction;
+
 use serde_json::json;
 
 #[tokio::test]

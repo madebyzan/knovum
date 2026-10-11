@@ -18,7 +18,7 @@ async fn derived_pair_undo_and_redo_preserve_relations_and_source() {
                 "sourceRevision":format!("sha256:{}", "a".repeat(64)),"durationSeconds":1}}]
     }))
     .unwrap();
-    nodes::insert_many_in_transaction(&mut tx, request, None)
+    nodes::tests::insert_many_in_transaction(&mut tx, request, None)
         .await
         .unwrap();
     let source_before: String =
