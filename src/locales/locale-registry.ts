@@ -2,10 +2,10 @@ import { camelCase } from "es-toolkit";
 import { isPlainObject } from "es-toolkit/predicate";
 import type { LocaleMessageValue } from "vue-i18n";
 
-type Locale = "en" | "zh-cn";
+type Locale = "en" | "zh-CN";
 type Messages = Record<string, LocaleMessageValue>;
 
-const modules = import.meta.glob<{ default: Messages }>("./{en,zh-cn}/**/*.json", { eager: true });
+const modules = import.meta.glob<{ default: Messages }>("./{en,zh-CN}/**/*.json", { eager: true });
 
 function createLocaleMessages(locale: Locale): Messages {
   const root: Messages = {};
@@ -40,5 +40,5 @@ function createLocaleMessages(locale: Locale): Messages {
 
 export const localeMessages = {
   en: createLocaleMessages("en"),
-  "zh-CN": createLocaleMessages("zh-cn"),
+  "zh-CN": createLocaleMessages("zh-CN"),
 } as const;
