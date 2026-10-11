@@ -120,6 +120,7 @@ export function validateReleaseArguments(args) {
 export function validateRuntimePublications(value, target) {
   if (!value || !/^[a-f0-9]{64}$/u.test(value.workerDigest ?? ""))
     throw new Error("Candidate requires the packaged Worker identity");
+  validateNativePublication(value.nativeInference, target);
   const runtimes = value.pythonRuntimes;
   if (
     !Array.isArray(runtimes) ||
@@ -132,4 +133,15 @@ export function validateRuntimePublications(value, target) {
     if (!runtime) throw new Error(`Candidate runtime publication is missing: ${profile}`);
     validateRuntimeDescriptor(runtime, target, profile);
   }
+}
+
+function validateNativePublication(native, target) {
+  if (
+    !native ||
+    Object.keys(native).toSorted().join(",") !== "runtimeDigest,schemaVersion,target,workerDigest" ||
+    native.schemaVersion !== 1 ||
+    native.target !== target ||
+    [native.runtimeDigest, native.workerDigest].some((hash) => !/^[a-f0-9]{64}$/u.test(hash ?? ""))
+  )
+    throw new Error("Candidate requires the target-bound native inference worker and manifest");
 }

@@ -99,7 +99,7 @@ impl PreparedModels {
             .paths
             .keys()
             .map(|kind| catalog::descriptor(*kind).snapshot)
-            .filter(|snapshot| matches!(snapshot, S::FasterWhisper | S::MlxWhisper | S::Whisper(_)))
+            .filter(|snapshot| matches!(snapshot, S::Whisper(_)))
             .collect::<std::collections::HashSet<_>>();
         if snapshots.len() != 1 {
             return Err(
@@ -107,9 +107,9 @@ impl PreparedModels {
             );
         }
         match snapshots.into_iter().next().unwrap() {
-            S::FasterWhisper | S::MlxWhisper => Ok(M::WhisperSmall),
-            S::Whisper(V::FasterTiny | V::MlxTiny) => Ok(M::WhisperTiny),
-            S::Whisper(V::FasterLargeV3 | V::MlxLargeV3) => Ok(M::WhisperLargeV3),
+            S::Whisper(V::Tiny) => Ok(M::WhisperTiny),
+            S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
+            S::Whisper(V::Small) => Ok(M::WhisperSmall),
             _ => unreachable!("Only ASR snapshots remain after filtering"),
         }
     }

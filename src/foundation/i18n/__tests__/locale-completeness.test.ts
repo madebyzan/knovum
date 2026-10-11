@@ -30,6 +30,7 @@ const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
 // These namespaces key their messages by a serialized domain value, so the key carries that value's
 // own casing rather than the naming convention every other message key follows.
 const serializedValueMaps = new Set([
+  "extensions.bundled",
   "spaces.knowledge.fields.kindLabels",
   "spaces.knowledge.health.issues",
   "spaces.knowledge.relations.kinds",

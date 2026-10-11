@@ -70,11 +70,9 @@ checks and Cargo advisory/license policy. `deny.toml` is the Rust license allowl
 the same accountable release/legal review as the dependency they admit. Dependabot is an update
 signal, not evidence that an update is compatible or approved.
 
-Security floors recorded in runtime manifests must not be lowered. This includes the selected
-PyTorch line's fix for
-[`GHSA-rrmf-rvhw-rf47`](https://github.com/advisories/GHSA-rrmf-rvhw-rf47), the MLX
-unsafe-deserialization floor, and the contract generator's schema/template, local-file and SSRF
-fixes. Exact current versions remain lockfile-owned.
+Security floors recorded in runtime manifests must not be lowered. This includes the retained
+Agent and contract generator's schema/template, local-file and SSRF fixes. Removed Torch/MLX
+environments do not define native dependency policy. Exact current versions remain lockfile-owned.
 
 Temporary advisory acceptance must identify the advisory and dependency path, exposure review,
 accountable owner, review date and removal condition. Opening an issue or passing unrelated tests is
@@ -97,7 +95,7 @@ No exception constitutes platform, distribution or legal approval.
 
 ## Compiled and Python supply chain
 
-The application-managed CPython runtimes, static core media binary and compiled inference components are
+The retained Agent CPython runtime, static core media binary and native inference components are
 producer outputs, not development-environment copies. Their manifests and per-target locks own the
 interpreter, packages, shared compiled libraries, source archives, hashes and supplier identities. End-user
 machines never resolve or install production dependencies.
@@ -134,3 +132,15 @@ require supported-target evidence; a local compile does not claim that evidence.
 
 Keep verification output with CI or release artifacts. This policy records durable rules and live
 exceptions, not dated test logs, machine-local probe results or lockfile inventories.
+
+Native inference dependencies are exact-pinned in the workspace and supplier records. The native
+Sherpa build excludes TTS/eSpeak; no removed Tensor or inference Python lock contributes shipped
+code. Bindgen uses committed supplier headers. License policy is unchanged: an unavailable binding
+license is resolved by a supported supplier API, never by widening the allowlist. Native notices,
+source/build evidence, signed inventories and target execution records accompany the candidate.
+
+Windows installer MSVC runtime supply uses the official CMake system-runtime module and preserves
+Microsoft's verified publisher signatures. The Vulkan loader uses a pinned official LunarG
+components archive with its included license. Neither dependency may be copied opportunistically
+from a user's system directory; DLL imports must close against the sealed package or the Windows
+OS allowlist. Redistribution permissions and real fresh-machine execution remain release evidence.

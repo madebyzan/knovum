@@ -126,10 +126,6 @@ fn diarization_choices_own_complete_snapshots_without_a_special_installer() {
         let snapshot = model.snapshot().unwrap();
         assert!(snapshot.models() == model.preparation().models().unwrap());
         assert_eq!(snapshot.models().len(), 4);
-        assert_eq!(
-            snapshot.runtime_profile(),
-            super::super::runtimes::python::RuntimeProfile::LightInference
-        );
         assert!(super::super::models::sources::for_snapshot(snapshot).is_none());
         for kind in snapshot.models() {
             let file = catalog::descriptor(*kind);
@@ -162,10 +158,6 @@ fn alignment_choices_freeze_model_identity_independently_of_execution_device() {
     }
     let q8 = LocalModelId::Qwen3AlignerQ8.snapshot().unwrap();
     assert!(q8.total_bytes() < LocalModelId::Qwen3Aligner.snapshot().unwrap().total_bytes());
-    assert_eq!(
-        q8.runtime_profile(),
-        super::super::runtimes::python::RuntimeProfile::VoiceGeneration
-    );
     assert!(super::super::models::sources::for_snapshot(q8).is_none());
     assert!(LocalModelId::from_alignment_spec("obsolete-alignment").is_err());
 }
@@ -234,10 +226,6 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
             .models()
             .iter()
             .all(|part| catalog::descriptor(*part).snapshot == snapshot));
-        assert_eq!(
-            snapshot.runtime_profile(),
-            super::super::runtimes::python::RuntimeProfile::LightInference
-        );
         assert!(
             snapshot.models().len() >= 2,
             "Weights and license are one snapshot"

@@ -17,7 +17,7 @@ mod error;
 #[cfg(not(debug_assertions))]
 mod installation;
 mod profile;
-mod retention;
+use super::retention;
 pub(crate) use coordinator::prepare;
 pub(crate) use descriptor::RuntimeStatus;
 pub(crate) use error::RuntimeError;
@@ -158,27 +158,6 @@ pub(crate) fn status<R: Runtime>(app: &AppHandle<R>, profile: RuntimeProfile) ->
     inspect().unwrap_or_else(|message| RuntimeStatus::Invalid { message })
 }
 
-pub(crate) fn download_size<R: Runtime>(
-    app: &AppHandle<R>,
-    profile: RuntimeProfile,
-) -> Result<Option<u64>, String> {
-    match status(app, profile) {
-        RuntimeStatus::Ready => Ok(Some(0)),
-        RuntimeStatus::NotInstalled { download_size } => Ok(Some(download_size)),
-        RuntimeStatus::NotPublished => {
-            #[cfg(debug_assertions)]
-            {
-                Ok(None)
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                Err("This build cannot download the resources required for this feature. A build with published local resources is required".into())
-            }
-        }
-        RuntimeStatus::Invalid { message } => Err(message),
-    }
-}
-
 fn verification_descriptor(
     profile: RuntimeProfile,
 ) -> Result<Option<descriptor::Descriptor>, RuntimeError> {
@@ -216,23 +195,6 @@ fn checked_worker_root(root: PathBuf, profile: RuntimeProfile) -> Result<PathBuf
         ));
     }
     Ok(root)
-}
-
-pub(crate) fn required_digest<R: Runtime>(
-    app: &AppHandle<R>,
-    profile: RuntimeProfile,
-) -> Result<String, String> {
-    #[cfg(debug_assertions)]
-    {
-        resolve(app, profile)?
-            .map(|runtime| runtime.digest)
-            .ok_or_else(|| "runtime_missing: prepared development runtime is missing".into())
-    }
-    #[cfg(not(debug_assertions))]
-    {
-        let _ = app;
-        Ok(descriptor::required(profile)?.manifest_sha256)
-    }
 }
 
 pub(super) fn retire_unused<R: Runtime>(

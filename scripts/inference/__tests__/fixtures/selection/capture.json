@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "runId": "unit",
+  "capturedAt": "2026-10-10T12:00:00Z",
+  "appCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "corpusSha256": "f7fbe13028fe35bac8c7c2137b87eba1e7a99a6b99835343a6257a453fba43a5",
+  "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target": "macos-x64",
+  "device": {
+    "manufacturer": "fixture",
+    "model": "fixture",
+    "cpu": "fixture",
+    "physicalCores": 1,
+    "memoryBytes": 1024,
+    "os": "fixture",
+    "osVersion": "fixture",
+    "powerMode": "fixture",
+    "accelerator": "cpu",
+    "driver": null
+  },
+  "models": [
+    {
+      "profileId": "model",
+      "source": {
+        "kind": "bundled_worker",
+        "method": "image.selection",
+        "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "modelSpecId": "image-model",
+        "configId": "image-profile",
+        "invocations": [
+          {
+            "requestId": "unit-fixture",
+            "attemptEpoch": 1,
+            "startedAt": "2026-10-03T12:00:00Z",
+            "finishedAt": "2026-10-03T12:01:00Z"
+          }
+        ]
+      },
+      "loadSeconds": 1,
+      "peakRssBytes": 512,
+      "artifacts": [
+        {
+          "sampleId": "sample",
+          "output": {
+            "path": "output.npy",
+            "sha256": "87ecee779b8fb1038f1dcb94a440ec739d7a0b3ffd428ab92918be8a4a3df3b6"
+          },
+          "warmSeconds": 1,
+          "cancelSeconds": 1,
+          "qualityPassed": true,
+          "reviewer": "synthetic",
+          "reviewNotes": "synthetic unit evidence"
+        }
+      ]
+    }
+  ]
+}

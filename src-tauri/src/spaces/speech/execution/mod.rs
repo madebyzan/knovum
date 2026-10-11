@@ -19,7 +19,7 @@ use crate::{
     spaces::{db, runs::RunObservation},
 };
 
-pub(crate) const MOSS_NANO_MODEL_SPEC_ID: &str = "moss-tts-nano-onnx-v1";
+pub(crate) const MOSS_NANO_MODEL_SPEC_ID: &str = "moss-tts-nano-100m-onnx-native-v2";
 // Preview packet sequence is a bounded IPC transport sequence. The runtime validates the
 // originating model-chunk or sentence sequence before this presentation-only split.
 const PREVIEW_AUDIO_PACKET_BYTES: usize = 128 * 1024;
@@ -214,7 +214,7 @@ pub(super) fn moss_nano_device_profile() -> RuntimeDeviceProfile {
         .unwrap_or(1);
     RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: format!("moss-nano-cpu-f32-threads{threads}-v1"),
+        execution_profile_id: format!("moss-nano-cpu-f32-threads{threads}-native-v2"),
         cpu_threads: threads,
     }
 }

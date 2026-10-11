@@ -63,18 +63,6 @@ pub struct ResourcePreparationProgress {
     pub percent: Option<u8>,
 }
 
-impl ResourcePreparationProgress {
-    pub(super) fn with_overall_progress(mut self, completed: u64, total: Option<u64>) -> Self {
-        self.downloaded += completed;
-        self.total = self.total.and(total);
-        self.percent = self
-            .total
-            .filter(|total| *total > 0)
-            .map(|total| ((self.downloaded.saturating_mul(100) / total).min(100)) as u8);
-        self
-    }
-}
-
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub enum ResourcePreparationState {

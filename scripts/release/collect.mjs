@@ -2,6 +2,7 @@ import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } fro
 import { join, resolve } from "node:path";
 
 import { distributionDirectory, readRuntimeDescriptor } from "../runtime/distribution.mjs";
+import { sha256File } from "../runtime/files.mjs";
 import { workerDigest } from "../runtime/packaged-resources.mjs";
 import { runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { artifactSha256, safeArtifactFilename } from "./artifacts.mjs";
@@ -30,6 +31,18 @@ const localRuntimes = {
     ),
   ),
   workerDigest: workerDigest(join(root, "src-tauri/resources/python-worker")),
+  nativeInference: {
+    schemaVersion: 1,
+    target: runtimeTarget,
+    runtimeDigest: sha256File(join(root, "src-tauri/resources/native-runtime/native-runtime-manifest.json")),
+    workerDigest: sha256File(
+      join(
+        root,
+        "src-tauri/resources/native-runtime/bin",
+        runtimeTarget === "windows-x64" ? "knovum-inference-worker.exe" : "knovum-inference-worker",
+      ),
+    ),
+  },
 };
 const artifact = {
   target,

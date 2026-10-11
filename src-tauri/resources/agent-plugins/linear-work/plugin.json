@@ -6,16 +6,11 @@
   "author": {
     "name": "Knovum"
   },
-  "keywords": [
-    "linear",
-    "planning"
-  ],
+  "keywords": ["linear", "planning"],
   "extensions": {
     "com.zand.knovum": {
       "skillRequirements": {
-        "knovum-linear-work": [
-          "linear"
-        ]
+        "knovum-linear-work": ["linear"]
       },
       "connectors": {
         "linear": {

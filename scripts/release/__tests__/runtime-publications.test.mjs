@@ -7,6 +7,12 @@ import { validateRuntimePublications } from "../policy.mjs";
 function publication() {
   return {
     workerDigest: "a".repeat(64),
+    nativeInference: {
+      schemaVersion: 1,
+      target: "macos-x64",
+      runtimeDigest: "f".repeat(64),
+      workerDigest: "a".repeat(64),
+    },
     pythonRuntimes: runtimeProfiles.map((profile) => ({
       schemaVersion: 1,
       profile,
@@ -29,6 +35,9 @@ test("release binds all independent runtime publications to the target and worke
     (value) => (value.pythonRuntimes[1] = value.pythonRuntimes[0]),
     (value) => (value.pythonRuntimes[0].target = "macos-arm64"),
     (value) => (value.workerDigest = "invalid"),
+    (value) => delete value.nativeInference,
+    (value) => (value.nativeInference.runtimeDigest = "invalid"),
+    (value) => (value.nativeInference.target = "windows-x64"),
   ]) {
     const value = publication();
     mutate(value);

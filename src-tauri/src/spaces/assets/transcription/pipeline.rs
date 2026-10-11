@@ -38,10 +38,11 @@ pub struct TranscriptionPipeline<'a> {
 
 impl TranscriptionPipeline<'_> {
     pub async fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
-        let (attempt_epoch, deadline_ms) = deadline(audio.analysis.duration_ms)?;
+        let model = self.resources.transcription_model()?;
+        let (attempt_epoch, deadline_ms) = deadline(model, audio.analysis.duration_ms)?;
         let profile = speech::transcription_execution_profile(
             self.app,
-            self.resources.transcription_model()?,
+            model,
             self.cancellation,
             deadline_ms,
         )
@@ -53,8 +54,7 @@ impl TranscriptionPipeline<'_> {
         let model_kind = self.resources.transcription_model()?.transcription_models()[0];
         let provenance = TranscriptProvenance {
             engine_id: match &engine {
-                AsrEngine::MlxWhisper => "mlx-whisper",
-                AsrEngine::FasterWhisper => "faster-whisper",
+                AsrEngine::WhisperCpp => "whisper-cpp",
             }
             .into(),
             model_spec_id: profile_id.into(),
@@ -155,14 +155,15 @@ pub(super) fn audio_reference(wav: &Path) -> Result<AudioFileReference, String> 
     })
 }
 
-fn deadline(duration_ms: u64) -> Result<(u64, u64), String> {
+fn deadline(
+    model: crate::local_resources::model_catalog::LocalModelId,
+    duration_ms: u64,
+) -> Result<(u64, u64), String> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| error.to_string())?;
     let now_ms = u64::try_from(now.as_millis()).map_err(|error| error.to_string())?;
-    let allowance = duration_ms
-        .saturating_mul(4)
-        .clamp(120_000, 6 * 60 * 60 * 1_000);
+    let allowance = speech::transcription_budget_ms(model, duration_ms)?;
     let deadline_ms = now_ms
         .checked_add(allowance)
         .ok_or("ASR deadline exceeds the supported range")?;

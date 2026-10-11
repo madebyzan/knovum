@@ -1,7 +1,7 @@
 use super::*;
 
 fn installation() -> Arc<Installation> {
-    Installation::new(ModelKind::FasterWhisperConfig)
+    Installation::new(ModelKind::WhisperPart(catalog::WhisperPart::SmallVad))
 }
 
 #[tokio::test]
@@ -41,8 +41,12 @@ async fn terminal_progress_reaches_remaining_waiter() {
     let mut waiter = installation.join();
     installation.finish(InstallationState::Progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Ready,
-        downloaded: catalog::FASTER_WHISPER_CONFIG.download_size,
-        total: Some(catalog::FASTER_WHISPER_CONFIG.download_size),
+        downloaded: catalog::descriptor(ModelKind::WhisperPart(catalog::WhisperPart::SmallVad))
+            .download_size,
+        total: Some(
+            catalog::descriptor(ModelKind::WhisperPart(catalog::WhisperPart::SmallVad))
+                .download_size,
+        ),
         percent: Some(100),
     }));
     let mut observed = None;
@@ -62,7 +66,7 @@ async fn terminal_progress_reaches_remaining_waiter() {
 
 #[test]
 fn cancelled_installation_remains_registered_until_runner_finishes() {
-    let kind = ModelKind::FasterWhisperConfig;
+    let kind = ModelKind::WhisperPart(catalog::WhisperPart::SmallVad);
     let identity = catalog::descriptor(kind).snapshot;
     let installation = Installation::new(kind);
     let waiter = installation.join();
@@ -87,54 +91,10 @@ fn cancelled_installation_remains_registered_until_runner_finishes() {
 
 #[test]
 fn snapshot_parts_share_installation_but_different_snapshots_do_not() {
-    let weights = catalog::descriptor(ModelKind::FasterWhisperWeights).snapshot;
-    let config = catalog::descriptor(ModelKind::FasterWhisperConfig).snapshot;
+    let weights =
+        catalog::descriptor(ModelKind::WhisperPart(catalog::WhisperPart::SmallWeights)).snapshot;
+    let config =
+        catalog::descriptor(ModelKind::WhisperPart(catalog::WhisperPart::SmallVad)).snapshot;
     assert!(weights == config);
     assert!(catalog::descriptor(ModelKind::TextEmbeddingConfig).snapshot != config);
-}
-
-#[test]
-fn combined_progress_keeps_the_full_download_budget_across_phases() {
-    let progress = ResourcePreparationProgress {
-        stage: ResourcePreparationStage::Downloading,
-        downloaded: 100,
-        total: Some(500),
-        percent: Some(20),
-    }
-    .with_overall_progress(1000, Some(1500));
-    assert_eq!(progress.downloaded, 1100);
-    assert_eq!(progress.total, Some(1500));
-    assert_eq!(progress.percent, Some(73));
-    assert!(matches!(
-        progress.stage,
-        ResourcePreparationStage::Downloading
-    ));
-}
-
-#[test]
-fn unknown_preparation_size_remains_indeterminate() {
-    let progress = ResourcePreparationProgress {
-        stage: ResourcePreparationStage::RuntimeInstalling,
-        downloaded: 0,
-        total: None,
-        percent: None,
-    }
-    .with_overall_progress(100, Some(1_500));
-    assert_eq!(progress.downloaded, 100);
-    assert_eq!(progress.total, None);
-    assert_eq!(progress.percent, None);
-}
-
-#[test]
-fn known_model_download_does_not_claim_an_unknown_combined_runtime_total() {
-    let progress = ResourcePreparationProgress {
-        stage: ResourcePreparationStage::Downloading,
-        downloaded: 200,
-        total: Some(500),
-        percent: Some(40),
-    }
-    .with_overall_progress(100, None);
-    assert_eq!(progress.downloaded, 300);
-    assert_eq!(progress.total, None);
-    assert_eq!(progress.percent, None);
 }

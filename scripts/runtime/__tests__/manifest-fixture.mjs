@@ -17,7 +17,7 @@ function write(base, path, bytes) {
   writeFileSync(file, bytes);
 }
 
-export function fixture(context, profile = "voice-generation") {
+export function fixture(context, profile = "agent") {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-validation-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   cpSync(fileURLToPath(new URL("../", import.meta.url)), join(root, "scripts/runtime"), { recursive: true });
@@ -66,7 +66,7 @@ export function fixture(context, profile = "voice-generation") {
     sources: [{ fileName: "compiled.zip", name: "compiled", sha256: hash("source"), size: 6 }],
   };
   write(shared, "compiled-source-evidence.json", JSON.stringify(compiledSources));
-  write(shared, "src/knovum_inference/__main__.py", "pass\n");
+  write(shared, "src/knovum_agent_runtime/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
   write(runtime, "packages/dependency.py", "pass\n");

@@ -59,7 +59,11 @@ pub(crate) async fn transcribe<R: Runtime>(
         }
     })?;
     let audio_ref = crate::blocking::run(move || audio_reference(&wav, recording)).await?;
-    let (attempt_epoch, deadline_ms) = deadline(120_000)?;
+    let pcm_duration_ms = audio_ref.byte_length.saturating_mul(1_000)
+        / (u64::from(audio_ref.sample_rate) * u64::from(audio_ref.channels) * 2);
+    let allowance = speech::transcription_budget_ms(model, pcm_duration_ms)
+        .map_err(|error| DictationFailure::classified("transcription_failed", error))?;
+    let (attempt_epoch, deadline_ms) = deadline(allowance)?;
     let profile = speech::transcription_execution_profile(app, model, cancellation, deadline_ms)
         .await
         .map_err(|error| transcription_failure(cancellation, error))?;

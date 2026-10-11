@@ -1,7 +1,9 @@
 pub(crate) use timing::{align, diarize};
 mod artifact;
 mod profiles;
-pub(crate) use profiles::{transcription_execution_profile, transcription_profile};
+pub(crate) use profiles::{
+    transcription_budget_ms, transcription_execution_profile, transcription_profile,
+};
 mod execution;
 mod stream;
 mod timing;
@@ -163,11 +165,9 @@ fn validate_voxcpm2_profile(
         crate::local_resources::model_catalog::VOXCPM2_Q8_SPEC_ID => "q8_0",
         _ => return Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
     };
-    if !matches!(
-        device_profile.device.as_str(),
-        "cpu" | "mps" | "cuda" | "vulkan"
-    ) || device_profile.execution_profile_id
-        != format!("voxcpm2-{}-gguf-{quantization}-v1", device_profile.device)
+    if !matches!(device_profile.device.as_str(), "cpu" | "mps" | "vulkan")
+        || device_profile.execution_profile_id
+            != format!("voxcpm2-{}-gguf-{quantization}-v1", device_profile.device)
     {
         return Err(
             "runtime_mismatch: VoxCPM2 execution backend differs from its frozen profile".into(),
@@ -213,12 +213,6 @@ fn co_located_model_directory<'a>(
 fn model_kind_name(kind: ModelKind) -> &'static str {
     match kind {
         ModelKind::WhisperPart(_) => "whisper model part",
-        ModelKind::FasterWhisperConfig => "faster-whisper config",
-        ModelKind::FasterWhisperWeights => "faster-whisper weights",
-        ModelKind::FasterWhisperTokenizer => "faster-whisper tokenizer",
-        ModelKind::FasterWhisperVocabulary => "faster-whisper vocabulary",
-        ModelKind::MlxWhisperConfig => "mlx-whisper config",
-        ModelKind::MlxWhisperWeights => "mlx-whisper weights",
         _ => "non-ASR model",
     }
 }

@@ -91,7 +91,7 @@ pub(super) fn metadata(
             OptionalConfirmed,
         ),
         LocalModelId::Qwen3Aligner => (
-            "Qwen3 Forced Aligner · 0.6B / FP32",
+            "Qwen3 Forced Aligner · 0.6B / F16",
             LocalModelCapability::SpeechAlignment,
             NONE,
             Unused,

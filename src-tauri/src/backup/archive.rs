@@ -162,7 +162,7 @@ fn extract_inner(
         if total > MAX_TOTAL_BYTES || entry.size() != declared.size {
             return Err("Backup size validation failed".into());
         }
-        let destination = staged_path(&config_stage, &data_stage, &name)?;
+        let destination = staged_path(config_stage, data_stage, &name)?;
         let digest = files::copy_bounded(&mut entry, &destination, declared.size)?;
         if digest != declared.sha256 {
             return Err(format!("Backup hash validation failed: {name}"));

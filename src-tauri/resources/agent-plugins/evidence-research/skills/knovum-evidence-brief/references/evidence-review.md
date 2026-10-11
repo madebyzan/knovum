@@ -1,4 +1,5 @@
 # Reviewing evidence
+
 Read for comparison, disputed claims, or a consequential recommendation.
 
 Record claims before composing the conclusion. Prefer direct evidence from the relevant period. Two sources copying the same assertion are one evidence lineage, not corroboration. Preserve units, dates, denominators and scope; do not compare unlike measurements.

@@ -50,7 +50,7 @@ function submit() {
     name: name.value.trim() || preset.name,
     presetVoiceId: speakerId.value,
     engineId: "moss_nano",
-    modelSpecId: "moss-tts-nano-onnx-v1",
+    modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
     language: language.value,
     synthesisConfig: { speed: 1, sampleRate: 48_000, seed: 0 },
   });

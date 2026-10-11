@@ -3,8 +3,6 @@
   "readOnly": "此技能由所属插件统一启停。如需独立管理或编辑，请复制为个人技能。",
   "create": "创建 Skill",
   "import": "导入目录",
-  "personal": "个人 Skill",
-  "view": "查看",
   "copy": "复制为个人 Skill",
   "binaryResource": "这是二进制参考资源，可导出 Skill 后查看原始文件。",
   "empty": {
@@ -12,9 +10,6 @@
     "description": "创建个人 Skill，或导入已有的 Skill 目录。"
   },
   "actions": "Skill 操作",
-  "description": "管理独立的个人技能。插件提供的技能请在对应插件中查看。",
-  "search": "搜索 Skill…",
-  "plugin": "插件 Skill",
   "unsupportedRequirements": "暂不支持的要求：{requirements}",
   "discard": {
     "title": "放弃未保存的修改？",

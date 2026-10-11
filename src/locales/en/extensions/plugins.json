@@ -7,7 +7,6 @@
     "subdirectory": "Package subdirectory",
     "install": "Install from source",
     "description": "Choose a local package or remote URL, then review it before installing.",
-    "provenance": "Source and version details",
     "revision": "Source revision"
   },
   "installation": {
@@ -52,7 +51,6 @@
   },
   "discovery": {
     "title": "Discover plugins",
-    "description": "Browse catalog plugins and review their capabilities before installing.",
     "installed": "Installed · View"
   },
   "empty": {
@@ -72,13 +70,10 @@
     "committing": "Committing changes"
   },
   "title": "Installed plugins",
-  "description": "Manage installed plugins and their capabilities.",
   "search": {
-    "placeholder": "Search plugins…",
     "empty": "No matching results",
     "hint": "Try another keyword or clear the search."
   },
-  "capabilityCount": "{count} included capability | {count} included capabilities",
   "disable": "Disable {name}",
   "enable": "Enable {name}",
   "actions": "Plugin actions",

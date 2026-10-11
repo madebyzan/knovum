@@ -6,16 +6,11 @@
   "author": {
     "name": "Knovum"
   },
-  "keywords": [
-    "notion",
-    "knowledge"
-  ],
+  "keywords": ["notion", "knowledge"],
   "extensions": {
     "com.zand.knovum": {
       "skillRequirements": {
-        "knovum-notion-work": [
-          "notion"
-        ]
+        "knovum-notion-work": ["notion"]
       },
       "connectors": {
         "notion": {

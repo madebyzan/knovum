@@ -1,3 +1,4 @@
+use crate::local_resources::models::catalog::ImageModelCatalog;
 mod identity;
 
 use serde::{Deserialize, Serialize};
@@ -146,10 +147,9 @@ impl LocalModelId {
         use SnapshotKind as S;
         match self {
             Self::Qwen3Embedding => Some(S::TextEmbedding),
-            Self::WhisperSmall => catalog::TRANSCRIPTION_MODELS
-                .first()
-                .map(|kind| catalog::descriptor(*kind).snapshot),
-            Self::WhisperTiny | Self::WhisperLargeV3 => Some(transcription_snapshot(self)),
+            Self::WhisperSmall | Self::WhisperTiny | Self::WhisperLargeV3 => {
+                Some(transcription_snapshot(self))
+            }
             Self::MossNano => Some(S::MossNano),
             Self::VoxCpm2 => Some(S::VoxCpm2),
             Self::VoxCpm2Q8 => Some(S::VoxCpm2Q8),
@@ -279,18 +279,11 @@ where
 mod tests;
 
 fn transcription_snapshot(model: LocalModelId) -> SnapshotKind {
-    use catalog::WhisperVariant as V;
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     let variant = match model {
-        LocalModelId::WhisperTiny => V::MlxTiny,
-        LocalModelId::WhisperLargeV3 => V::MlxLargeV3,
-        _ => unreachable!("The catalog owns supported transcription alternatives"),
-    };
-    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
-    let variant = match model {
-        LocalModelId::WhisperTiny => V::FasterTiny,
-        LocalModelId::WhisperLargeV3 => V::FasterLargeV3,
-        _ => unreachable!("The catalog owns supported transcription alternatives"),
+        LocalModelId::WhisperTiny => catalog::WhisperVariant::Tiny,
+        LocalModelId::WhisperSmall => catalog::WhisperVariant::Small,
+        LocalModelId::WhisperLargeV3 => catalog::WhisperVariant::LargeV3,
+        _ => unreachable!("The catalog owns supported transcription models"),
     };
     SnapshotKind::Whisper(variant)
 }

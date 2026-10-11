@@ -6,16 +6,11 @@
   "author": {
     "name": "Knovum"
   },
-  "keywords": [
-    "github",
-    "development"
-  ],
+  "keywords": ["github", "development"],
   "extensions": {
     "com.zand.knovum": {
       "skillRequirements": {
-        "knovum-github-work": [
-          "github"
-        ]
+        "knovum-github-work": ["github"]
       },
       "connectors": {
         "github": {

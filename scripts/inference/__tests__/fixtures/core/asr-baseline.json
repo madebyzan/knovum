@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "product_baseline",
+    "method": "speech.transcribe",
+    "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "modelSpecId": "asr-model",
+    "configId": "asr-profile",
+    "invocations": [
+      {
+        "requestId": "unit-fixture",
+        "attemptEpoch": 1,
+        "startedAt": "2026-10-03T12:00:00Z",
+        "finishedAt": "2026-10-03T12:01:00Z"
+      }
+    ]
+  },
+  "values": {
+    "transcripts": {
+      "zh-CN": "你好世界",
+      "en-US": "It's a test",
+      "silence": ""
+    }
+  }
+}

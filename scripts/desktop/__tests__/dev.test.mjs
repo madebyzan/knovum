@@ -48,6 +48,17 @@ function fixture(context) {
     }
   `,
   );
+  writeFileSync(
+    join(root, "scripts/runtime/native-worker.mjs"),
+    `
+    import { appendFileSync, existsSync } from 'node:fs';
+    import { join } from 'node:path';
+    export async function prepareNativeWorker(repository) {
+      if (existsSync(join(repository,'broken-native'))) throw new Error('Native worker verification failed');
+      appendFileSync(join(repository,'events.jsonl'),JSON.stringify({stage:'native'})+'\\n');
+    }
+  `,
+  );
   return root;
 }
 
@@ -67,7 +78,7 @@ for (const args of [
     const root = fixture(context);
     const execution = launch(root, args);
     assert.equal(execution.status, 0, execution.stderr);
-    assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "tauri", args }]);
+    assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "native" }, { stage: "tauri", args }]);
   });
 }
 
@@ -98,4 +109,13 @@ test("desktop development uses preflight and the Tauri hook only starts Vite", (
   assert.equal(configuration.build.beforeDevCommand, "pnpm dev");
   assert.equal(Object.hasOwn(scripts, "tauri"), false);
   assert.equal(scripts["desktop:dev"], "node scripts/desktop/dev.mjs dev");
+});
+
+test("invalid native worker prevents launching the desktop", (context) => {
+  const root = fixture(context);
+  writeFileSync(join(root, "broken-native"), "");
+  const execution = launch(root, ["dev"]);
+  assert.equal(execution.status, 1);
+  assert.match(execution.stderr, /Native worker verification failed/u);
+  assert.deepEqual(events(root), [{ stage: "prepared" }]);
 });

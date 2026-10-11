@@ -118,7 +118,7 @@ pub(super) async fn start(
             super::runtime_identity::profile_for_engine(&engine)
         })
         .collect::<Result<std::collections::BTreeSet<_>, String>>()?;
-    if profiles != runtime_digests.keys().copied().collect() {
+    if profiles != runtime_digests.keys().cloned().collect() {
         return Err("runtime_mismatch: speech project runtime packages changed".into());
     }
     if let super::project_config::ProjectOutputConfig::Audiobook(config) = &config {

@@ -56,14 +56,6 @@ test("changing an interpreter input remains invalid after recomputing file hashe
   assert.throws(sample.validate, /producer identity differs/);
 });
 
-test("producer cannot claim a different frozen VoxCPM source", (context) => {
-  const sample = fixture(context);
-  sample.producer.voxcpm.version = "d".repeat(40);
-  sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
-  sample.manifest();
-  assert.throws(sample.validate, /VoxCPM compiled source identity differs/);
-});
-
 test("requirements evidence must agree with producer digest", (context) => {
   const sample = fixture(context);
   sample.write(sample.evidence, "requirements.txt", "changed");
@@ -92,13 +84,6 @@ test("any changed dependency lock invalidates the frozen runtime identity", (con
     `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`,
   );
   assert.throws(sample.validate, /dependency lock differs/);
-});
-
-test("light runtime retains compiled source verification independently of VoxCPM", (context) => {
-  const sample = fixture(context, "light-inference");
-  sample.validate();
-  sample.write(sample.evidence, "compiled-sources/compiled.zip", "changed");
-  assert.throws(sample.validate, /Compiled source archive differs/);
 });
 
 test("Conda installed inventory is bound to the producer receipt", (context) => {

@@ -1,0 +1,480 @@
+{
+  "$defs": {
+    "AlignmentCorpus": {
+      "additionalProperties": false,
+      "properties": {
+        "thresholds": {
+          "$ref": "#/$defs/AlignmentThresholds"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/AlignmentSample"
+          },
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": ["thresholds", "samples"],
+      "title": "AlignmentCorpus",
+      "type": "object"
+    },
+    "AlignmentSample": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "language": {
+          "enum": ["zh-CN", "en-US"],
+          "title": "Language",
+          "type": "string"
+        },
+        "audio": {
+          "$ref": "#/$defs/HashedFile"
+        },
+        "durationMs": {
+          "exclusiveMinimum": 0,
+          "title": "Durationms",
+          "type": "number"
+        },
+        "sampleRateHz": {
+          "exclusiveMinimum": 0,
+          "title": "Sampleratehz",
+          "type": "integer"
+        },
+        "units": {
+          "items": {
+            "$ref": "#/$defs/AnnotatedUnit"
+          },
+          "minItems": 1,
+          "title": "Units",
+          "type": "array"
+        }
+      },
+      "required": ["id", "language", "audio", "durationMs", "sampleRateHz", "units"],
+      "title": "AlignmentSample",
+      "type": "object"
+    },
+    "AlignmentThresholds": {
+      "additionalProperties": false,
+      "properties": {
+        "minimumCoverage": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Minimumcoverage",
+          "type": "number"
+        },
+        "maximumMedianBoundaryErrorMs": {
+          "minimum": 0,
+          "title": "Maximummedianboundaryerrorms",
+          "type": "number"
+        },
+        "maximumP95BoundaryErrorMs": {
+          "minimum": 0,
+          "title": "Maximump95Boundaryerrorms",
+          "type": "number"
+        }
+      },
+      "required": ["minimumCoverage", "maximumMedianBoundaryErrorMs", "maximumP95BoundaryErrorMs"],
+      "title": "AlignmentThresholds",
+      "type": "object"
+    },
+    "AnnotatedUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "startMs": {
+          "minimum": 0,
+          "title": "Startms",
+          "type": "number"
+        },
+        "endMs": {
+          "minimum": 0,
+          "title": "Endms",
+          "type": "number"
+        }
+      },
+      "required": ["id", "text", "startMs", "endMs"],
+      "title": "AnnotatedUnit",
+      "type": "object"
+    },
+    "BaselineProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "modelSpecId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelspecid",
+          "type": "string"
+        },
+        "configId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Configid",
+          "type": "string"
+        },
+        "modelFamily": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelfamily",
+          "type": "string"
+        },
+        "modelSize": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelsize",
+          "type": "string"
+        }
+      },
+      "required": ["modelSpecId", "configId", "modelFamily", "modelSize"],
+      "title": "BaselineProfile",
+      "type": "object"
+    },
+    "EmbeddingCorpus": {
+      "additionalProperties": false,
+      "properties": {
+        "referenceProfile": {
+          "$ref": "#/$defs/ReferenceProfile"
+        },
+        "documents": {
+          "items": {
+            "$ref": "#/$defs/RetrievalDocument"
+          },
+          "minItems": 1,
+          "title": "Documents",
+          "type": "array"
+        },
+        "queries": {
+          "items": {
+            "$ref": "#/$defs/RetrievalQuery"
+          },
+          "minItems": 1,
+          "title": "Queries",
+          "type": "array"
+        }
+      },
+      "required": ["referenceProfile", "documents", "queries"],
+      "title": "EmbeddingCorpus",
+      "type": "object"
+    },
+    "HashedFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": ["path", "sha256"],
+      "title": "HashedFile",
+      "type": "object"
+    },
+    "ReferenceProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "modelSpecId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelspecid",
+          "type": "string"
+        },
+        "configId": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Configid",
+          "type": "string"
+        },
+        "device": {
+          "const": "cpu",
+          "title": "Device",
+          "type": "string"
+        },
+        "precision": {
+          "const": "float32",
+          "title": "Precision",
+          "type": "string"
+        }
+      },
+      "required": ["modelSpecId", "configId", "device", "precision"],
+      "title": "ReferenceProfile",
+      "type": "object"
+    },
+    "RetrievalDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["document", "note", "code", "transcript"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": ["id", "kind", "text"],
+      "title": "RetrievalDocument",
+      "type": "object"
+    },
+    "RetrievalQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Text",
+          "type": "string"
+        },
+        "relevantDocumentIds": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Relevantdocumentids",
+          "type": "array"
+        }
+      },
+      "required": ["id", "text", "relevantDocumentIds"],
+      "title": "RetrievalQuery",
+      "type": "object"
+    },
+    "SynthesisCorpus": {
+      "additionalProperties": false,
+      "properties": {
+        "thresholds": {
+          "$ref": "#/$defs/VoiceScores"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/SynthesisSample"
+          },
+          "minItems": 30,
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": ["thresholds", "samples"],
+      "title": "SynthesisCorpus",
+      "type": "object"
+    },
+    "SynthesisSample": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "language": {
+          "enum": ["zh-CN", "en-US"],
+          "title": "Language",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": ["id", "language", "text"],
+      "title": "SynthesisSample",
+      "type": "object"
+    },
+    "TranscriptionCorpus": {
+      "additionalProperties": false,
+      "properties": {
+        "baselineProfile": {
+          "$ref": "#/$defs/BaselineProfile"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/TranscriptionSample"
+          },
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": ["baselineProfile", "samples"],
+      "title": "TranscriptionCorpus",
+      "type": "object"
+    },
+    "TranscriptionSample": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Id",
+          "type": "string"
+        },
+        "language": {
+          "enum": ["zh-CN", "en-US"],
+          "title": "Language",
+          "type": "string"
+        },
+        "audio": {
+          "$ref": "#/$defs/HashedFile"
+        },
+        "durationMs": {
+          "exclusiveMinimum": 0,
+          "title": "Durationms",
+          "type": "number"
+        },
+        "sampleRateHz": {
+          "exclusiveMinimum": 0,
+          "title": "Sampleratehz",
+          "type": "integer"
+        },
+        "coverageTags": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Coveragetags",
+          "type": "array"
+        },
+        "referenceText": {
+          "title": "Referencetext",
+          "type": "string"
+        }
+      },
+      "required": ["id", "language", "audio", "durationMs", "sampleRateHz", "coverageTags", "referenceText"],
+      "title": "TranscriptionSample",
+      "type": "object"
+    },
+    "VoiceScores": {
+      "additionalProperties": false,
+      "properties": {
+        "pronunciation": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Pronunciation",
+          "type": "number"
+        },
+        "naturalness": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Naturalness",
+          "type": "number"
+        },
+        "voiceConsistency": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Voiceconsistency",
+          "type": "number"
+        },
+        "referenceSimilarity": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Referencesimilarity",
+          "type": "number"
+        },
+        "emotionControl": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Emotioncontrol",
+          "type": "number"
+        }
+      },
+      "required": [
+        "pronunciation",
+        "naturalness",
+        "voiceConsistency",
+        "referenceSimilarity",
+        "emotionControl"
+      ],
+      "title": "VoiceScores",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "maximum": 1,
+      "minimum": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "corpusId": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Corpusid",
+      "type": "string"
+    },
+    "corpusVersion": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Corpusversion",
+      "type": "string"
+    },
+    "description": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Description",
+      "type": "string"
+    },
+    "embedding": {
+      "$ref": "#/$defs/EmbeddingCorpus"
+    },
+    "asr": {
+      "$ref": "#/$defs/TranscriptionCorpus"
+    },
+    "alignment": {
+      "$ref": "#/$defs/AlignmentCorpus"
+    },
+    "tts": {
+      "$ref": "#/$defs/SynthesisCorpus"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "corpusId",
+    "corpusVersion",
+    "description",
+    "embedding",
+    "asr",
+    "alignment",
+    "tts"
+  ],
+  "title": "Corpus",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

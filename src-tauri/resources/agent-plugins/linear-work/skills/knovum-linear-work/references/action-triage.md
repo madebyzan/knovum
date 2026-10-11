@@ -1,4 +1,5 @@
 # Action triage
+
 Read when translating a decision, transcript or brief into tracked work.
 
 Separate decided actions from suggestions and open questions. A useful issue has one outcome, bounded scope, evidence, and observable acceptance criteria. Split independent outcomes only when they can be completed independently; do not create a task for every sentence.

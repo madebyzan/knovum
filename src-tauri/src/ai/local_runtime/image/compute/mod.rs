@@ -1,4 +1,5 @@
 use super::{session, tensor};
+use crate::local_resources::models::catalog::ImageModelCatalog;
 use crate::{
     ai::contracts::{
         image_compute::{
@@ -38,21 +39,6 @@ pub(crate) struct ImageComputeRequest {
     pub deadline_ms: u64,
     pub input: ImageTensor,
     pub operation: ImageTensorOperation,
-}
-
-impl ImageModelVariant {
-    pub(crate) fn capability(self) -> RuntimeCapability {
-        match self {
-            Self::RealEsrganGeneralX4v3 | Self::RealEsrganX4plus => {
-                RuntimeCapability::ImageUpscaling
-            }
-            Self::Migan => RuntimeCapability::ImageInpainting,
-            Self::EfficientSamTi | Self::EfficientSamS => RuntimeCapability::ImageSelection,
-            Self::DepthAnythingV2SmallUint8 | Self::DepthAnythingV2Small => {
-                RuntimeCapability::ImageDepth
-            }
-        }
-    }
 }
 
 pub(crate) async fn execute<R: Runtime>(

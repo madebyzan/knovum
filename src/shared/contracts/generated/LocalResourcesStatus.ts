@@ -3,4 +3,4 @@ import type { ModelStatuses } from "./ModelStatuses";
 import type { PythonRuntimeStatuses } from "./PythonRuntimeStatuses";
 import type { ToolStatus } from "./ToolStatus";
 
-export type LocalResourcesStatus = { platform: string, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, pythonRuntimes: PythonRuntimeStatuses, models: ModelStatuses, };
+export type LocalResourcesStatus = { platform: string, ffmpeg: ToolStatus, ytDlp: ToolStatus, deno: ToolStatus, pythonRuntimes: PythonRuntimeStatuses, nativeInference: boolean, models: ModelStatuses, };

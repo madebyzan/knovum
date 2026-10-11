@@ -6,8 +6,7 @@ use crate::ai::contracts::{
     EmbeddingCapability, EmbeddingResponse,
 };
 
-pub const EMBEDDING_SPEC_ID: &str =
-    "qwen3-embedding-0.6b:28255eff53c370348c73c06e47af24a08692641967a32d1413bf18bb0867296e";
+pub use crate::ai::contracts::embedding_wire::EMBEDDING_SPEC_ID;
 
 struct QwenEmbeddingSpec;
 

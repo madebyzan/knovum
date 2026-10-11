@@ -27,16 +27,13 @@ pub struct LocalResourcesStatus {
     yt_dlp: ToolStatus,
     deno: ToolStatus,
     python_runtimes: PythonRuntimeStatuses,
+    native_inference: bool,
     models: ModelStatuses,
 }
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 struct PythonRuntimeStatuses {
-    resources: runtimes::python::RuntimeStatus,
-    light_inference: runtimes::python::RuntimeStatus,
-    torch_inference: runtimes::python::RuntimeStatus,
-    voice_generation: runtimes::python::RuntimeStatus,
     agent: runtimes::python::RuntimeStatus,
 }
 
@@ -71,25 +68,14 @@ pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError
 }
 
 fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
+    runtimes::native::resolve(app)?;
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
         ffmpeg: tool_status_from_path(tools::resolve_ffmpeg(app)?),
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
+        native_inference: true,
         python_runtimes: PythonRuntimeStatuses {
-            resources: runtimes::python::status(app, runtimes::python::RuntimeProfile::Resources),
-            light_inference: runtimes::python::status(
-                app,
-                runtimes::python::RuntimeProfile::LightInference,
-            ),
-            torch_inference: runtimes::python::status(
-                app,
-                runtimes::python::RuntimeProfile::TorchInference,
-            ),
-            voice_generation: runtimes::python::status(
-                app,
-                runtimes::python::RuntimeProfile::VoiceGeneration,
-            ),
             agent: runtimes::python::status(app, runtimes::python::RuntimeProfile::Agent),
         },
         models: model_statuses(app)?,

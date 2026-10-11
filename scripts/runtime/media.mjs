@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { activateDirectory } from "./files.mjs";
+import { buildCoreMedia } from "./media-build.mjs";
 import {
   mediaExecutable,
   mediaManifestName,
@@ -11,7 +12,6 @@ import {
   writeMediaManifest,
 } from "./media-manifest.mjs";
 import { MediaRuntimeContentError } from "./media-runtime-content.mjs";
-import { runProducer } from "./producer.mjs";
 import { hostRuntimeTarget } from "./profiles.mjs";
 
 export async function prepareCoreMedia(repository) {
@@ -32,7 +32,7 @@ export async function prepareCoreMedia(repository) {
   try {
     console.log(`Preparing core FFmpeg media resource for ${target}`);
     const output = join(scratch, "produced");
-    await runProducer(repository, ["--output", output, "--development"], "build_media.py");
+    await buildCoreMedia(repository, ["--output", output, "--development"]);
     const runtime = join(output, "runtime");
     validateMediaRuntime(repository, runtime, target);
     activateDirectory(runtime, destination);
@@ -50,6 +50,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       throw new Error("Usage: media.mjs --write-manifest <directory> <target> <producer-json>");
     writeMediaManifest(repository, args[1], args[2], JSON.parse(readFileSync(args[3], "utf8")));
   } else {
-    await runProducer(repository, args, "build_media.py");
+    await buildCoreMedia(repository, args);
   }
 }

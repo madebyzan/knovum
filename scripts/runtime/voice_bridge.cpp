@@ -13,7 +13,7 @@
 #define KNOVUM_VOICE_API __attribute__((visibility("default")))
 #endif
 using namespace engine;
-using Callback = int (*)(const float *, size_t, int);
+using Callback = int (*)(void *, const float *, size_t, int);
 struct VoiceHandle {
     std::unique_ptr<models::voxcpm2::VoxCPM2LoadedModel> model;
     std::unique_ptr<runtime::IVoiceTaskSession> session;
@@ -21,7 +21,7 @@ struct VoiceHandle {
 static thread_local std::string failure;
 extern "C" {
 KNOVUM_VOICE_API const char *knovum_voice_error() { return failure.c_str(); }
-KNOVUM_VOICE_API int knovum_voice_abi() { return 2; }
+KNOVUM_VOICE_API int knovum_voice_abi() { return 3; }
 KNOVUM_VOICE_API int knovum_audio_devices(uint64_t minimum_free_bytes) {
     try {
         int device_flags = 1;
@@ -65,7 +65,7 @@ KNOVUM_VOICE_API void *knovum_voice_open(const char *path, int device, int threa
 }
 KNOVUM_VOICE_API void knovum_voice_close(void *opaque) { delete static_cast<VoiceHandle *>(opaque); }
 KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const float *reference, size_t reference_count,
-                          const char *prompt_text, unsigned int seed, int max_tokens, Callback callback) {
+                          const char *prompt_text, unsigned int seed, int max_tokens, Callback callback, void *context) {
     try {
         failure.clear();
         auto &session = dynamic_cast<runtime::IStreamingVoiceTaskSession &>(*static_cast<VoiceHandle *>(opaque)->session);
@@ -90,7 +90,7 @@ KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const
                 constexpr size_t callback_samples = 16 * 1024;
                 for (size_t offset = 0; offset < named.audio.samples.size(); offset += callback_samples) {
                     const auto count = std::min(callback_samples, named.audio.samples.size() - offset);
-                    if (callback(named.audio.samples.data() + offset, count, named.audio.sample_rate))
+                    if (callback(context, named.audio.samples.data() + offset, count, named.audio.sample_rate))
                         throw std::runtime_error("voice-callback-stopped");
                 }
             }

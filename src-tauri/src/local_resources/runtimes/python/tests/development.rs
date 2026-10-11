@@ -18,7 +18,7 @@ fn producer_scope_reclaims_only_its_owned_staging() {
 #[test]
 fn cancelled_verification_keeps_the_owned_runtime_directory() {
     let fixture = Fixture::new();
-    let profile = RuntimeProfile::TorchInference;
+    let profile = RuntimeProfile::Agent;
     let mut manifest: serde_json::Value = serde_json::from_slice(&fixture.bytes).unwrap();
     manifest["dependencyLockSha256"] =
         serde_json::json!(super::super::verification::digest(profile.lock_bytes()));
@@ -46,7 +46,7 @@ fn metadata_io_failure_keeps_the_owned_runtime_directory() {
         prepare_identity(
             &fixture.root,
             &path,
-            RuntimeProfile::TorchInference,
+            RuntimeProfile::Agent,
             &CancellationToken::new()
         ),
         Err(RuntimeError::Infrastructure(_))

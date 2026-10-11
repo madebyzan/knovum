@@ -23,7 +23,12 @@ it("starts with a named preset when no custom library name is entered", async ()
   await flushPromises();
   await wrapper.get("form").trigger("submit");
   expect(wrapper.emitted("create")?.[0]?.[0]).toEqual(
-    expect.objectContaining({ name: "Default speaker", presetVoiceId: "0", engineId: "moss_nano" }),
+    expect.objectContaining({
+      name: "Default speaker",
+      presetVoiceId: "0",
+      engineId: "moss_nano",
+      modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
+    }),
   );
   expect(wrapper.emitted("create")?.[0]?.[0]).not.toHaveProperty("spaceId");
   await wrapper.get("input").setValue("Narrator");

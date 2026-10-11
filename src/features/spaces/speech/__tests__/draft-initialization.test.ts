@@ -22,7 +22,7 @@ const voice: VoiceLibraryRevision = {
   name: "Voice",
   sourceKind: "preset",
   engineId: "moss_nano",
-  modelSpecId: "moss-tts-nano-onnx-v1",
+  modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
   language: "zh-CN",
   supportsDeliveryInstruction: false,
   isActive: true,

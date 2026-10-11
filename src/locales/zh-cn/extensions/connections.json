@@ -40,14 +40,12 @@
   "check": "检查连接并读取目录",
   "empty": "该服务尚未添加连接实例",
   "cleanupPending": "更改已保存，但清理尚未完成。相关账号仍不可用。",
-  "count": "{count} 个连接实例",
   "delete": {
     "title": "删除连接 {name}？",
     "description": "仅删除此连接实例，同一服务的其他连接仍会保留。"
   },
   "accounts": "账号",
   "title": "连接实例",
-  "manage": "管理",
   "addServer": "添加 MCP 服务",
   "description": "配置 MCP 服务、账号和工具权限。插件内的服务随插件整体使用。",
   "emptyServers": "尚未添加 MCP 服务",

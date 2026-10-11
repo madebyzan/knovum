@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     include: ["src/**/*.test.ts"],
+    maxWorkers: 4,
     restoreMocks: true,
   },
 });

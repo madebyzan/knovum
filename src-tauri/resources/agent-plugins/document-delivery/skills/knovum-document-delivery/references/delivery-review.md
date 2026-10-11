@@ -1,4 +1,5 @@
 # Deliverable review
+
 Read after choosing the requested format and before reporting delivery.
 
 Reports need a clear purpose, outcome-first structure, evidence locators and explicit limits. Proposals need a decision, scope, approach and success criteria grounded in available facts. Presentations need one point per slide, short supporting material and evidence references, not report-length prose pasted onto slides.

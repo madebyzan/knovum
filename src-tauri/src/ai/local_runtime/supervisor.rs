@@ -1,4 +1,4 @@
-use crate::local_resources::runtimes::python;
+use crate::local_resources::runtimes::native;
 use std::{
     path::Path,
     time::{Duration, Instant},
@@ -40,16 +40,9 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         EmbeddingRole::Query => super::admission::Priority::Interactive,
         EmbeddingRole::Document => super::admission::Priority::Background,
     };
-    let runtime =
-        python::resolve(app, python::RuntimeProfile::TorchInference)?.ok_or("runtime_missing")?;
+    let runtime = native::resolve(app)?;
     let model_directory = embedding_directory(resources)?;
-    let device_profile = super::device_profiles::embedding::profile(
-        &runtime,
-        cancellation,
-        exit,
-        identity.deadline_ms,
-    )
-    .await?;
+    let device_profile = super::device_profiles::embedding::profile()?;
     super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(
             &runtime.digest,
@@ -116,7 +109,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         };
         *guard = Some(
             Worker::start(
-                &runtime,
+                (&runtime).into(),
                 &work_directory,
                 model_directory,
                 params,

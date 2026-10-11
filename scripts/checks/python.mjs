@@ -17,8 +17,6 @@ const foundation = [
   "--group",
   "quality",
   "--group",
-  "acceptance",
-  "--group",
   "publication",
   "--frozen",
 ];
@@ -33,8 +31,6 @@ const checks = [
     "python/pyproject.toml",
     "--exclude",
     "knovum_agent_runtime",
-    "python/src",
-    "python/tests/acceptance",
     "scripts/runtime",
     "scripts/generate_python_contracts.py",
   ],

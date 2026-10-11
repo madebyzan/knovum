@@ -13,7 +13,7 @@ const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 function fixture(context) {
   const repository = mkdtempSync(join(tmpdir(), "knovum-license-review-"));
   context.after(() => rmSync(repository, { recursive: true, force: true }));
-  const python = join(repository, "python/runtimes/resources");
+  const python = join(repository, "python/runtimes/agent");
   const directory = join(repository, "runtime");
   mkdirSync(python, { recursive: true });
   mkdirSync(directory);
@@ -30,7 +30,7 @@ function fixture(context) {
     schemaVersion: 1,
     reviewStatus: "approved",
     dependencyRequirementsSha256: hash("locked graph"),
-    profile: "resources",
+    profile: "agent",
     dependencyLockSha256: hash("locked graph"),
     targets: { "macos-arm64": review, "windows-x64": null },
   };
@@ -49,7 +49,7 @@ function fixture(context) {
     policy,
     save: () => writeFileSync(join(python, "dependency-license-review.json"), JSON.stringify(policy)),
     validate: (target = "macos-arm64") =>
-      validateDependencyLicenseReview(directory, target, repository, "resources"),
+      validateDependencyLicenseReview(directory, target, repository, "agent"),
   };
 }
 
@@ -86,7 +86,7 @@ test("production verification enforces unresolved review before invoking system 
     }),
   );
   assert.throws(
-    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository, "resources"),
+    () => verifyRuntimeSignatures(sample.directory, "macos-arm64", sample.repository, "agent"),
     /license review is unresolved/,
   );
 });

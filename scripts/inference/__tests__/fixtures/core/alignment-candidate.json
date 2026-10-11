@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "bundled_worker",
+    "method": "speech.align",
+    "workerDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtimeDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "modelSpecId": "alignment-model",
+    "configId": "alignment-profile",
+    "invocations": [
+      {
+        "requestId": "unit-fixture",
+        "attemptEpoch": 1,
+        "startedAt": "2026-10-03T12:00:00Z",
+        "finishedAt": "2026-10-03T12:01:00Z"
+      }
+    ]
+  },
+  "values": {
+    "samples": {
+      "zh-CN": [
+        {
+          "id": "unit",
+          "startMs": 0,
+          "endMs": 100
+        }
+      ],
+      "en-US": [
+        {
+          "id": "unit",
+          "startMs": 0,
+          "endMs": 100
+        }
+      ]
+    }
+  }
+}

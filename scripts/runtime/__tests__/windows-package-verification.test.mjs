@@ -27,7 +27,7 @@ function extraction(context) {
 function manifest(root, prefix = "Knovum") {
   const runtime = join(root, prefix, "resources");
   mkdirSync(runtime, { recursive: true });
-  writeFileSync(join(runtime, "python-resources-descriptor.json"), "{}");
+  writeFileSync(join(runtime, "python-agent-descriptor.json"), "{}");
   return runtime;
 }
 
@@ -52,7 +52,7 @@ test("rejects duplicate runtime descriptors", (context) => {
 test("rejects a bundled interpreter even when its manifest is missing", (context) => {
   const root = extraction(context);
   manifest(root, "Knovum");
-  const duplicate = join(root, "duplicate", "resources", "bundled-runtime", "windows-x64", "python-runtime");
+  const duplicate = join(root, "duplicate", "agent", "bundled-runtime", "windows-x64", "python-runtime");
   mkdirSync(duplicate, { recursive: true });
   writeFileSync(join(duplicate, "python.exe"), "python");
   assert.throws(() => locateApplicationResources(root), /exclude the third-party Python runtime/u);
@@ -60,7 +60,7 @@ test("rejects a bundled interpreter even when its manifest is missing", (context
 
 test("rejects a manifest outside the packaged resource path", (context) => {
   const root = extraction(context);
-  writeFileSync(join(root, "python-resources-descriptor.json"), "{}");
+  writeFileSync(join(root, "python-agent-descriptor.json"), "{}");
   assert.throws(() => locateApplicationResources(root), /outside the application resources/u);
 });
 
@@ -135,7 +135,7 @@ printf '%s\n' "$@" > "$KNOVUM_MSI_TEST_LOG"
 for value in "$@"; do case "$value" in TARGETDIR=*) target="\${value#TARGETDIR=}";; esac; done
 runtime="$target/Knovum/resources"
 mkdir -p "$runtime"
-printf '{}' > "$runtime/python-resources-descriptor.json"
+printf '{}' > "$runtime/python-agent-descriptor.json"
 
 `,
   );

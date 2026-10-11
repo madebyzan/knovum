@@ -128,3 +128,79 @@ async fn declared_oversize_is_rejected_before_creating_a_file() {
     assert!(!path.exists());
     server.await.unwrap();
 }
+
+#[tokio::test]
+async fn interrupted_immutable_transfer_resumes_from_the_saved_offset() {
+    let origin = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}/model", origin.local_addr().unwrap());
+    let server = tokio::spawn(serve(
+        origin,
+        "HTTP/1.1 206 Partial Content\r\nContent-Length: 2\r\nContent-Range: bytes 2-3/4\r\nConnection: close\r\n\r\nta".into(),
+    ));
+    let path = destination();
+    std::fs::write(&path, b"da").unwrap();
+    let result = to_path(
+        reqwest::Client::new().get(url),
+        &path,
+        policy(),
+        &CancellationToken::new(),
+        &mut |_, _| {},
+    )
+    .await;
+    let request = server.await.unwrap();
+    assert!(result.is_ok(), "{result:?}");
+    assert!(request.contains("range: bytes=2-"));
+    assert_eq!(std::fs::read(&path).unwrap(), b"data");
+    std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
+async fn mismatched_range_does_not_append_or_truncate_the_partial_file() {
+    let origin = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}/model", origin.local_addr().unwrap());
+    let server = tokio::spawn(serve(
+        origin,
+        "HTTP/1.1 206 Partial Content\r\nContent-Length: 2\r\nContent-Range: bytes 1-2/4\r\nConnection: close\r\n\r\nta".into(),
+    ));
+    let path = destination();
+    std::fs::write(&path, b"da").unwrap();
+    let result = to_path(
+        reqwest::Client::new().get(url),
+        &path,
+        policy(),
+        &CancellationToken::new(),
+        &mut |_, _| {},
+    )
+    .await;
+    assert!(result.is_err());
+    server.await.unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), b"da");
+    std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
+async fn server_ignoring_range_restarts_the_same_file_from_zero() {
+    let origin = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}/model", origin.local_addr().unwrap());
+    let server = tokio::spawn(serve(
+        origin,
+        "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\ndata".into(),
+    ));
+    let path = destination();
+    std::fs::write(&path, b"da").unwrap();
+    let mut observed = Vec::new();
+    to_path(
+        reqwest::Client::new().get(url),
+        &path,
+        policy(),
+        &CancellationToken::new(),
+        &mut |bytes, _| observed.push(bytes),
+    )
+    .await
+    .unwrap();
+    assert!(server.await.unwrap().contains("range: bytes=2-"));
+    assert_eq!(observed.first(), Some(&0));
+    assert_eq!(observed.last(), Some(&4));
+    assert_eq!(std::fs::read(&path).unwrap(), b"data");
+    std::fs::remove_file(path).unwrap();
+}

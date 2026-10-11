@@ -54,5 +54,23 @@
       },
       "buildSource": "https://github.com/GyanD/codexffmpeg/releases/tag/9.0.2"
     }
-  }
+  },
+  "producerSources": [
+    "media.mjs",
+    "media-build.mjs",
+    "media-binary.mjs",
+    "media-smoke.mjs",
+    "compiled-signing.mjs",
+    "windows-runtime-signature.mjs",
+    "selected-zip.mjs",
+    "windows-system-libraries.json",
+    "media-license-policy.mjs",
+    "media-manifest.mjs",
+    "media-descriptor.mjs",
+    "media-runtime-content.mjs",
+    "profiles.mjs",
+    "provenance.mjs",
+    "files.mjs",
+    "transfer.mjs"
+  ]
 }

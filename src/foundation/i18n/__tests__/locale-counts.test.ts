@@ -5,7 +5,6 @@ import { localeMessages } from "../../../locales/locale-registry";
 
 const examples = [
   ["settings.ai.modelCount", "model", "models"],
-  ["extensions.connections.count", "connection", "connections"],
   ["spaces.inspector.itemsSelected", "item selected", "items selected"],
   ["spaces.trash.structure.deletedCount", "deleted node", "deleted nodes"],
   ["spaces.space.nodeCount", "item", "items"],

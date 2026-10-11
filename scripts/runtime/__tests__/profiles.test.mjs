@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url)).replace(/\/$/u, "");
 
+import { mediaRecipeIdentity } from "../media-manifest.mjs";
 import {
   developmentDirectory,
   requirementsArguments,
@@ -20,43 +21,42 @@ import {
 test("development identity binds the producer recipe as well as dependency locks", (context) => {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-identity-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  for (const name of ["python/runtimes/resources", "python/conda-locks/base", "scripts/runtime"])
+  for (const name of ["python/runtimes/agent", "python/conda-locks/base", "scripts/runtime"])
     mkdirSync(join(root, name), { recursive: true });
   copyFileSync(join(repository, "python/runtime-source.json"), join(root, "python/runtime-source.json"));
   cpSync(join(repository, "scripts/runtime"), join(root, "scripts/runtime"), { recursive: true });
-  writeFileSync(join(root, "python/runtimes/resources/uv.lock"), "frozen dependencies");
+  writeFileSync(join(root, "python/runtimes/agent/uv.lock"), "frozen dependencies");
   writeFileSync(join(root, "python/conda-locks/base/macos-x64.json"), "frozen Conda packages");
   writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "first producer");
-  const first = developmentDirectory(root, "macos-x64", "resources");
-  assert.equal(developmentDirectory(root, "macos-x64", "resources"), first);
+  const first = developmentDirectory(root, "macos-x64", "agent");
+  assert.equal(developmentDirectory(root, "macos-x64", "agent"), first);
   writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "corrected producer");
-  assert.notEqual(developmentDirectory(root, "macos-x64", "resources"), first);
+  assert.notEqual(developmentDirectory(root, "macos-x64", "agent"), first);
   writeFileSync(join(root, "scripts/runtime/conda_packages.py"), "first producer");
   writeFileSync(join(root, "scripts/runtime/provision.mjs"), "changed distribution consumer");
   writeFileSync(join(root, "scripts/runtime/unrelated.mjs"), "unrelated tool");
-  assert.equal(developmentDirectory(root, "macos-x64", "resources"), first);
+  assert.equal(developmentDirectory(root, "macos-x64", "agent"), first);
 });
 
 test("runtime recipe includes only the selected target and profile configuration", (context) => {
   const root = mkdtempSync(join(tmpdir(), "knovum-runtime-recipe-"));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  mkdirSync(join(root, "python/runtimes/resources"), { recursive: true });
+  mkdirSync(join(root, "python/runtimes/agent"), { recursive: true });
   mkdirSync(join(root, "src-tauri"), { recursive: true });
   copyFileSync(join(repository, "python/runtime-source.json"), join(root, "python/runtime-source.json"));
   copyFileSync(join(repository, "src-tauri/tauri.conf.json"), join(root, "src-tauri/tauri.conf.json"));
   const sourcePath = join(root, "python/runtime-source.json");
-  const first = runtimeRecipeBytes(root, "macos-x64", "resources");
+  const first = runtimeRecipeBytes(root, "macos-x64", "agent");
   const source = JSON.parse(readFileSync(sourcePath, "utf8"));
   source.uv.targets["windows-x64"].url = "https://example.invalid/unrelated-uv.zip";
-  source.voiceLibrary.revision = "unrelated voice revision";
   source.uv.targets["macos-x64"] = Object.fromEntries(
     Object.entries(source.uv.targets["macos-x64"]).toReversed(),
   );
   writeFileSync(sourcePath, JSON.stringify(source, null, 4));
-  assert.deepEqual(runtimeRecipeBytes(root, "macos-x64", "resources"), first);
+  assert.deepEqual(runtimeRecipeBytes(root, "macos-x64", "agent"), first);
   source.uv.targets["macos-x64"].url = "https://example.invalid/selected-uv.tar.gz";
   writeFileSync(sourcePath, JSON.stringify(source));
-  assert.notDeepEqual(runtimeRecipeBytes(root, "macos-x64", "resources"), first);
+  assert.notDeepEqual(runtimeRecipeBytes(root, "macos-x64", "agent"), first);
 });
 
 test("producer identity follows the selected resource's actual source closure", (context) => {
@@ -65,30 +65,19 @@ test("producer identity follows the selected resource's actual source closure", 
   mkdirSync(join(root, "python"));
   copyFileSync(join(repository, "python/runtime-source.json"), join(root, "python/runtime-source.json"));
   cpSync(join(repository, "scripts/runtime"), join(root, "scripts/runtime"), { recursive: true });
-  const before = new Map(
-    [...runtimeProfiles, "media"].map((profile) => [profile, producerBytes(root, profile)]),
-  );
+  const before = producerBytes(root, "agent"),
+    mediaBefore = mediaRecipeIdentity(root, "macos-x64");
   writeFileSync(join(root, "scripts/runtime/voice_bridge.cpp"), "changed voice supplier");
-  for (const profile of [...runtimeProfiles, "media"]) {
-    assert.equal(
-      producerBytes(root, profile).equals(before.get(profile)),
-      profile !== "voice-generation",
-      profile,
-    );
-  }
-  writeFileSync(join(root, "scripts/runtime/media_binary.py"), "changed static FFmpeg installer");
-  assert.equal(producerBytes(root, "media").equals(before.get("media")), false);
-  assert.equal(producerBytes(root, "resources").equals(before.get("resources")), true);
+  assert(producerBytes(root, "agent").equals(before));
+  assert.equal(mediaRecipeIdentity(root, "macos-x64"), mediaBefore);
+  writeFileSync(join(root, "scripts/runtime/media-binary.mjs"), "changed static FFmpeg installer");
+  assert.notEqual(mediaRecipeIdentity(root, "macos-x64"), mediaBefore);
+  assert(producerBytes(root, "agent").equals(before));
+  assert.throws(() => producerBytes(root, "media"), /Unsupported/u);
 });
 
 test("production profiles export only their own independent frozen dependency project", () => {
-  assert.deepEqual(runtimeProfiles, [
-    "resources",
-    "light-inference",
-    "torch-inference",
-    "voice-generation",
-    "agent",
-  ]);
+  assert.deepEqual(runtimeProfiles, ["agent"]);
   for (const profile of runtimeProfiles) {
     const args = requirementsArguments(repository, profile);
     assert.equal(args[args.indexOf("--project") + 1], `${repository}/python/runtimes/${profile}`);
@@ -110,11 +99,12 @@ test("requirements exclusions follow the configured profile group", (context) =>
   context.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, "python"));
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
-  configuration.condaSupplier.profiles.resources = "tensor";
+  configuration.condaSupplier.profiles.agent = "alternate";
+  configuration.condaSupplier.pythonDistributions.alternate = ["owned-exclusion"];
   writeFileSync(join(root, "python/runtime-source.json"), JSON.stringify(configuration));
-  const args = requirementsArguments(root, "resources");
+  const args = requirementsArguments(root, "agent");
   const exclusions = args.flatMap((value, index) => (value === "--no-emit-package" ? [args[index + 1]] : []));
-  assert.deepEqual(exclusions, configuration.condaSupplier.pythonDistributions.tensor);
+  assert.deepEqual(exclusions, configuration.condaSupplier.pythonDistributions.alternate);
 });
 
 test("only supported desktop release triples can select a runtime", () => {

@@ -20,7 +20,7 @@ def test_conda_installation_preserves_notices_from_micromamba_package_cache(
                 "condaSupplier": {
                     "name": "conda-forge",
                     "micromambaVersion": "2.9.0",
-                    "profiles": {"resources": "base"},
+                    "profiles": {"agent": "base"},
                 }
             }
         )
@@ -52,19 +52,17 @@ def test_conda_installation_preserves_notices_from_micromamba_package_cache(
         return ""
 
     monkeypatch.setattr(conda_packages, "run", run)
-    runtime, inventory = conda_packages.install_conda_packages(project, "resources", "macos-x64", scratch)
+    runtime, inventory = conda_packages.install_conda_packages(project, "agent", "macos-x64", scratch)
     assert (runtime / "conda-notices/python/LICENSE").read_text() == "Python license notice"
     assert inventory["packages"][0]["url"] == package["url"]
     assert not (runtime / "conda-meta").exists()
     assert not (scratch / "conda-cache").exists()
 
 
-def test_windows_tensor_lock_supplies_one_cuda_abi_and_its_runtime_libraries() -> None:
-    lock = json.loads((Path(__file__).resolve().parents[3] / "python/conda-locks/tensor/windows-x64.json").read_text())
-    packages = {package["name"]: package for package in lock["packages"]}
-    assert packages["cuda-version"]["version"] == "12.8"
-    for name in ("pytorch", "libtorch", "torchaudio", "torchcodec"):
-        assert packages[name]["build_string"].startswith("cuda128_")
-    assert packages["libcudnn"]["version"].startswith("9.")
-    assert "libcublas" in packages and "cuda-cudart" in packages
-    assert all(len(package["sha256"]) == 64 for package in packages.values())
+def test_agent_locks_do_not_convey_tensor_inference_packages() -> None:
+    root = Path(__file__).resolve().parents[3] / "python/conda-locks/base"
+    for target in ("macos-x64", "macos-arm64", "windows-x64"):
+        lock = json.loads((root / f"{target}.json").read_text())
+        names = {package["name"] for package in lock["packages"]}
+        assert not names.intersection({"pytorch", "libtorch", "torchaudio", "torchcodec", "cuda-version"})
+        assert "python" in names

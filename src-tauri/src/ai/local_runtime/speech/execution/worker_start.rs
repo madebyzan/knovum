@@ -5,14 +5,14 @@ use crate::ai::{
     },
     local_runtime::process::Worker,
 };
-use crate::local_resources::runtimes::python;
+use crate::local_resources::runtimes::native;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager, Runtime};
 use tokio_util::sync::CancellationToken;
 
 pub(super) struct WorkerStart<'a, R: Runtime> {
     pub(super) app: &'a AppHandle<R>,
-    pub(super) runtime: &'a python::PythonRuntimePaths,
+    pub(super) runtime: &'a native::NativeRuntimePaths,
     pub(super) model_path: &'a Path,
     pub(super) capability: RuntimeCapability,
     pub(super) model_spec_id: String,
@@ -76,7 +76,7 @@ pub(super) async fn start_worker<R: Runtime>(
     };
     *slot = Some(
         Worker::start(
-            runtime,
+            runtime.into(),
             &work_directory,
             model_path,
             params,

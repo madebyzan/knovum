@@ -6,18 +6,13 @@ import { fileURLToPath } from "node:url";
 import { hostRuntimeTarget } from "./profiles.mjs";
 import { ensureMicromamba, ensureUv } from "./toolchain.mjs";
 
-export async function runProducer(repository, args, entry = "build_python.py") {
+export async function runProducer(repository, args) {
+  const entry = "build_python.py";
   const target = hostRuntimeTarget();
   const configuration = JSON.parse(readFileSync(join(repository, "python/runtime-source.json"), "utf8"));
   const uv = await ensureUv(repository, target, configuration.uv.targets[target]);
-  const micromamba =
-    entry === "build_python.py"
-      ? await ensureMicromamba(repository, target, configuration.micromamba.targets[target])
-      : undefined;
-  const environment =
-    entry === "build_python.py"
-      ? ["--project", join(repository, "python"), "--only-group", "publication", "--frozen"]
-      : ["--no-project", "--python", configuration.version];
+  const micromamba = await ensureMicromamba(repository, target, configuration.micromamba.targets[target]);
+  const environment = ["--project", join(repository, "python"), "--only-group", "publication", "--frozen"];
   execFileSync(
     uv,
     [

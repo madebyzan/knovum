@@ -1,4 +1,5 @@
 # Source and publication contract
+
 Read this when the source identity or executor matters to the task.
 
 For each material claim retain the source node ID, current revision, and locator (section, page, or media timestamp). Search results are discovery aids; read the actual node before quoting it. If a revision changes during the run, re-read affected passages before publishing. Label source assertions and your inferences separately.

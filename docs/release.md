@@ -9,7 +9,7 @@ that signing credentials, environment protection or target-platform upgrade acce
 
 The first-release contracts use the single Spaces v1 SQLx baseline, Space packages v1,
 private Agent RPC v1, graph identity v1 and Builtin Agent profile v1. Ship matching Rust
-and generated Python contracts/runtime source together. Old requests and packages fail strict
+and generated neutral contracts/worker source together. Old requests and packages fail strict
 validation; old graph segments are not resumed through field conversion. An obsolete database
 checksum produces a visible bootstrap error and preserves the original database. Backing up and
 explicitly resetting pre-release data is a separate operation, never an automatic upgrade step.
@@ -38,10 +38,10 @@ offline inference without credentials or external configuration. Alignment accep
 
 ### Target-platform inference quality evidence
 
-`python/tests/acceptance/report.py` is the model qualification evaluator. It reads a fixed corpus
+`scripts/inference/report.mjs` is the model qualification evaluator. It reads a fixed corpus
 manifest, candidate outputs captured from the private worker and hash-bound reference/baseline outputs;
-it does not generate inference, substitute fixture values or infer a pass from imports. Capture target-platform outputs on each supported target, then score their retained evidence in the frozen
-acceptance development environment. The scoring libraries are not installed in the bundled worker:
+it does not generate inference, substitute fixture values or infer a pass from imports. Capture target-platform outputs on each supported target, then score their retained evidence with the
+locked Node development dependencies. The scoring libraries are not installed in the bundled worker:
 
 ```text
 pnpm inference:acceptance \
@@ -109,7 +109,10 @@ preregistered limits. An ASR round-trip score cannot replace these human
 records. The acceptance report remains attached to the exact candidate artifacts and is regenerated for
 every runtime, model, execution-config or corpus change.
 
-The light inference Sherpa compiled binary still requires complete corresponding-source and notice materials for its GPL-bearing eSpeak components and an explicit maintainer distribution decision. Removing the former Kokoro model archive does not establish approval for the remaining binary. Release tooling cannot manufacture that decision.
+The selected native Sherpa build disables TTS/eSpeak and contains only the required diarization
+and separation closure. Its frozen supplier notices and source identity must be reviewed with the
+candidate; the removed Python Sherpa wheel and its eSpeak closure are not distributed. Retained
+Agent compiled dependencies still require their independent corresponding-source review.
 
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
@@ -117,7 +120,7 @@ Exercise the full embedded Spaces SQLx migration history and packaged applicatio
 Fresh-database tests alone are not upgrade acceptance. Final product icons and publisher metadata
 must be approved before the first public distribution.
 
-FFmpeg and the locked Python runtime must be provisioned for each target. Pinned yt-dlp/Deno downloads must
+FFmpeg, the sealed native inference package and the retained Agent runtime must be prepared for each target. Pinned yt-dlp/Deno downloads must
 remain available and match their embedded hashes. Clean-profile tests must install that pair and
 exercise representative PDF, media and transcription workflows. Hashes prove artifact identity,
 not publisher signing or successful target execution. The inspected macOS arm64 yt-dlp standalone
@@ -126,8 +129,8 @@ to make an unsigned tool run. Where policy requires publisher signatures, use co
 artifacts, review their provenance/hashes and repeat target-platform acceptance.
 
 Candidate metadata uses `localRuntimes`: one entry per target, containing the shipped
-Worker tree digest and the complete five-profile descriptor collection. Collection and candidate
-validation require every profile exactly once, matching the artifact target and the strict runtime
+Worker tree digest and the one Agent descriptor plus native worker/runtime inventory digests. Collection and candidate
+validation require the Agent profile exactly once and the native package inventory, matching the artifact target and the strict runtime
 descriptor contract. Old `localInference` metadata cannot qualify a candidate.
 
 ## Version and artifact identity
@@ -243,7 +246,7 @@ Authenticode signatures and timestamps. Signing does not promise immediate Smart
 
 ## Candidate, acceptance, promotion
 
-`.github/workflows/release-candidate.yml` builds all three supported signed targets from a reviewed version tag. First publish the controlled runtime with `python-runtime.yml` and `production: true`, then set `KNOVUM_RUNTIME_PUBLICATION_TAG` in `release-signing` to that immutable `runtime-*` release. The candidate downloads its publication manifest and validates current recipes, dependency identities, complete resources and production signatures; it does not rebuild runtimes for application-only changes.
+`.github/workflows/release-candidate.yml` builds all three supported signed targets from a reviewed version tag. First publish the controlled runtime with `python-runtime.yml` and `production: true`, then set `KNOVUM_RUNTIME_PUBLICATION_TAG` in `release-signing` to that immutable `runtime-*` release. The candidate downloads its publication manifest and validates current recipes, dependency identities, complete resources and production signatures; it reuses Agent/core-media publications and builds the native Rust worker and supplier closure from the candidate checkout.
 It collects immutable uniquely named update artifacts and human-facing installers. `candidate.json`
 records their hashes, original signatures, source commit, endpoint and public key. Collection rejects
 mixed commits/versions/configurations. Publication verifies every updater artifact with the official
@@ -325,17 +328,17 @@ database. After the first public persisted schema is frozen, maintain reviewed m
 recovery policy and test restored data against the intended binary. Keep rescue installers and the
 previous release available. Do not claim automatic application/database rollback without evidence.
 
-## Python distribution acceptance
+## Agent and native distribution acceptance
 
 The desktop installer excludes CPython/third-party packages and includes the current application
 Worker and trusted runtime descriptor. Target-platform acceptance must cover anonymous first download,
-cancellation/retry, concurrent sharing and offline use after preparation, with all existing local
-AI profiles. Runtime components are prepared before models and inference deadlines. Release
-`platform.json`/`candidate.json` retain the descriptor and Worker digest beside installer identities.
-The candidate Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
+cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Native model execution uses the bundled Rust worker; native model weights are prepared before inference deadlines. Release
+`platform.json`/`candidate.json` retain the Agent descriptor/tree digest and the native inference worker/manifest digests beside installer identities.
+The Agent Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
 with paths relative to the application-owned `python/src` tree. `scripts/runtime/packaged-resources.mjs` owns this
-calculation. Capture provenance and each candidate execution source must record that digest and
-the descriptor's `manifestSha256`; an output from either another Worker or runtime is rejected.
+calculation. Agent execution binds that digest and the Agent descriptor's `manifestSha256`.
+Inference capture provenance and every candidate execution source bind the bundled Rust binary
+digest and the sealed native runtime manifest digest; outputs from another worker or runtime are rejected.
 Runtime archives and corresponding evidence/source attachments must be published at the actual
 immutable URLs before distributing an application that requires them. Workflow artifact uploads
 are build outputs, not confirmation that those public locations exist.
@@ -365,7 +368,7 @@ Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:
 checkout before target-platform acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
 inside its own locked environment. Provision/build commands select one of the five strict
 profiles explicitly. Packaging verifies every profile and ships only current owned source
-and all five descriptors. The maintainer owns target build/signing/installation acceptance.
+and the Agent descriptors. The maintainer owns target build/signing/installation acceptance.
 
 ### Provider qualification record
 
@@ -453,3 +456,17 @@ standard plugin in resource/signature inventories and dependency SBOM/license re
 the release binary/package delta for gix and rmcp client/auth features on each target; no package
 size result is inferred from source or a development binary. Signing, installer acceptance and
 physical platform qualification are maintainer release tasks.
+
+## Native inference candidate identity
+
+The native package is built and sealed before host compilation. Record the SHA-256 of the shipped
+Rust worker, final signed native manifest and complete compiled-library inventory alongside each
+target artifact. Inference capture uses these native digests; the Python tree digest belongs only to
+Deep Agent and cannot authorize native inference evidence. The Node acceptance CLI keeps strict
+hash/provenance checks, CER/WER micro-aggregation, retrieval, alignment and independent blind TTS
+review thresholds. Synthetic tests prove the evaluator, never model or hardware qualification.
+
+Real model smoke, F32 reference equivalence and stream/backpressure tests supplement the fixed
+quality corpus. They do not replace visual review, bilingual ASR/alignment quality or thirty-sample
+blind voice review. A platform unavailable to the implementer remains explicitly unqualified until
+its actual CI/package/hardware acceptance completes. No unmeasured target is reported as passed.

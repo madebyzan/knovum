@@ -33,7 +33,6 @@ def write_inventory(
     output: Path,
     conda_lock: Path,
     target: str,
-    source_components: list[dict[str, Any]] | None = None,
 ) -> None:
     root = root.resolve(strict=True)
     lock = tomllib.loads(lock_path.read_text())
@@ -81,19 +80,6 @@ def write_inventory(
                         type=ExternalReferenceType.DISTRIBUTION,
                         url=XsUri(package["url"]),
                     )
-                ],
-            )
-        )
-    for supplier in source_components or []:
-        bom.components.add(
-            Component(
-                type=ComponentType.LIBRARY,
-                name=supplier["name"],
-                version=supplier["version"],
-                licenses=[LicenseExpression(supplier["license"])],
-                external_references=[
-                    ExternalReference(type=ExternalReferenceType.DISTRIBUTION, url=XsUri(file["url"]))
-                    for file in supplier["files"]
                 ],
             )
         )
@@ -173,7 +159,6 @@ def write_inventory(
                 "cpython": cpython,
                 "runtimeInstallation": runtime_installation,
                 "distributions": licenses,
-                "sourceComponents": source_components or [],
             },
             indent=2,
         )

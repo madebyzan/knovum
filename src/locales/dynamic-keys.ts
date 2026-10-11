@@ -3,6 +3,9 @@
  * Every entry must stay narrow: a prefix here exempts all keys beneath it from the dead-key gate.
  */
 export const dynamicLocaleKeyPrefixes = [
+  "extensions.bundled.",
+  "extensions.overview.search.",
+  "extensions.overview.status.",
   "settings.ai.localModels.capabilities.",
   "settings.ai.localModels.groups.",
   "settings.ai.localModels.modelDescriptions.",
@@ -52,6 +55,18 @@ export const dynamicLocaleKeyPrefixes = [
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
 export const dynamicLocaleKeys = [
+  "extensions.overview.apps",
+  "extensions.connections.configuration.headers",
+  "extensions.connections.configuration.environment",
+  "extensions.connections.configuration.addHeader",
+  "extensions.connections.configuration.addVariable",
+  "settings.ai.localModels.configuredModel",
+  "settings.ai.localModels.fixedModel",
+  "spaces.creation.document.convert.formats.docx",
+  "spaces.creation.document.convert.formats.pdf",
+  "spaces.creation.document.convert.formats.txt",
+  "spaces.creation.document.convert.formats.html",
+  "spaces.creation.document.convert.formats.pptx",
   "settings.data.backup.confirmTitle",
   "settings.data.backup.confirmDescription",
   "settings.data.backup.failed",

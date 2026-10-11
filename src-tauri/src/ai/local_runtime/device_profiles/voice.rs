@@ -1,6 +1,6 @@
 use crate::{
     ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile},
-    local_resources::runtimes::python::PythonRuntimePaths,
+    local_resources::runtimes::native::NativeRuntimePaths,
 };
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -29,7 +29,7 @@ pub(crate) fn require_memory(model_spec_id: &str) -> Result<(), String> {
     }
 }
 pub(crate) async fn profile(
-    runtime: &PythonRuntimePaths,
+    runtime: &NativeRuntimePaths,
     model_spec_id: &str,
     cancellation: &CancellationToken,
 ) -> Result<RuntimeDeviceProfile, String> {
@@ -45,7 +45,7 @@ pub(crate) async fn profile(
         u64::try_from(deadline).map_err(|_| "GPU probe deadline is invalid")?,
     )
     .await?;
-    if !matches!(backend.device.as_str(), "cpu" | "mps" | "cuda" | "vulkan") {
+    if !matches!(backend.device.as_str(), "cpu" | "mps" | "vulkan") {
         return Err("runtime_mismatch: Compiled voice selected an unsupported backend".into());
     }
     select_profile(

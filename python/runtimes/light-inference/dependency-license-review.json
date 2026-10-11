@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "profile": "light-inference",
-  "reviewStatus": "required",
-  "targets": {},
-  "dependencyRequirementsSha256": null,
-  "dependencyLockSha256": null
-}

@@ -13,7 +13,6 @@ pub(crate) mod device_profiles;
 pub(crate) mod image;
 mod process;
 mod protocol;
-mod runtime_profile;
 pub(crate) mod separation;
 pub(crate) mod speech;
 mod supervisor;

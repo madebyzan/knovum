@@ -1,0 +1,17 @@
+{
+  "revision": "a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+  "license": "Apache-2.0",
+  "cmakeVersion": "4.3.4",
+  "vulkanSdk": {
+    "fileName": "vulkansdk-windows-X64-1.4.363.0.exe",
+    "url": "https://sdk.lunarg.com/sdk/download/1.4.363.0/windows/vulkansdk-windows-X64-1.4.363.0.exe",
+    "size": 303082720,
+    "sha256": "94a82d378f7a5e3e54c9db7d2fb7016af136e14ac0a18dbf0f2f67a36352d141"
+  },
+  "source": {
+    "fileName": "audio-cpp-source.tar.gz",
+    "url": "https://codeload.github.com/0xShug0/audio.cpp/tar.gz/a1c24b2f90c6e6bcb9a525210d826717e96cdfa9",
+    "size": 110784238,
+    "sha256": "a430eda3d0c9a8db6f81e762214eee61198bc6f720030f431966496536f2bf26"
+  }
+}

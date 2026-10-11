@@ -4,16 +4,31 @@ use super::super::{
 };
 
 #[test]
+fn fixed_hub_urls_preserve_revision_and_encode_nested_file_names() {
+    let source = sources::for_snapshot(SnapshotKind::ImageSegmentation).unwrap();
+    assert_eq!(source.url("nested/a b.onnx").as_str(), "https://huggingface.co/tomjackson2023/rembg/resolve/cd3a3d6767a7859efea31ef0f2f373582cf06d82/nested/a%20b.onnx");
+    let source = sources::for_snapshot(SnapshotKind::TextEmbedding).unwrap();
+    let url = source.url("nested/a+b.json");
+    assert_eq!(url.path(), "/api/v1/models/Qwen/Qwen3-Embedding-0.6B/repo");
+    assert_eq!(
+        url.query_pairs().collect::<Vec<_>>(),
+        vec![
+            (
+                "Revision".into(),
+                "dd3e37eb506b3addbd930037796e25d349ae9010".into()
+            ),
+            ("FilePath".into(), "nested/a+b.json".into()),
+        ]
+    );
+}
+
+#[test]
 fn catalog_owns_one_pinned_source_per_snapshot() {
-    let transcription = sources::for_snapshot(SnapshotKind::FasterWhisper).unwrap();
-    let embedding = sources::for_snapshot(SnapshotKind::TextEmbedding).unwrap();
-    assert!(matches!(
-        transcription,
-        HubSource::HuggingFace {
-            endpoint: "https://huggingface.co",
-            ..
-        }
+    let transcription = sources::for_snapshot(SnapshotKind::Whisper(
+        super::super::catalog::WhisperVariant::Small,
     ));
+    let embedding = sources::for_snapshot(SnapshotKind::TextEmbedding).unwrap();
+    assert!(transcription.is_none());
     assert!(matches!(
         embedding,
         HubSource::ModelScope {
@@ -26,10 +41,7 @@ fn catalog_owns_one_pinned_source_per_snapshot() {
 #[test]
 fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
     for snapshot in [
-        SnapshotKind::FasterWhisper,
-        SnapshotKind::MlxWhisper,
         SnapshotKind::TextEmbedding,
-        SnapshotKind::SpeechAlignment,
         SnapshotKind::ImageSegmentation,
         SnapshotKind::ImageSegmentationQuality,
         SnapshotKind::SpeechSeparation,
@@ -96,33 +108,13 @@ fn compiled_voice_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
 }
 
 #[test]
-fn forced_alignment_uses_the_complete_compiled_transformers_checkpoint() {
-    use super::super::catalog;
+fn forced_alignment_uses_the_native_f16_package() {
     let snapshot = SnapshotKind::SpeechAlignment;
-    assert!(matches!(
-        sources::for_snapshot(snapshot).unwrap(),
-        HubSource::HuggingFace {
-            repository: "Qwen/Qwen3-ForcedAligner-0.6B-hf",
-            revision: catalog::QWEN3_FORCED_ALIGNER_REVISION,
-            endpoint: "https://huggingface.co"
-        }
-    ));
-    let files = snapshot.files();
-    let paths = files
-        .iter()
-        .map(|file| file.path)
-        .collect::<std::collections::HashSet<_>>();
+    assert!(sources::for_snapshot(snapshot).is_none());
     assert_eq!(
-        paths,
-        std::collections::HashSet::from([
-            "chat_template.jinja",
-            "config.json",
-            "model.safetensors",
-            "processor_config.json",
-            "tokenizer.json",
-            "tokenizer_config.json",
-        ])
+        snapshot.files().iter().map(|f| f.path).collect::<Vec<_>>(),
+        vec!["qwen3-forced-aligner-0.6b-f16.gguf", "LICENSE", "README.md"]
     );
-    assert_eq!(snapshot.name(), "qwen3-forced-aligner-0.6b-hf");
-    assert_eq!(snapshot.total_bytes(), 1_847_225_867);
+    assert_eq!(snapshot.name(), "qwen3-forced-aligner-0.6b-f16-native");
+    assert_eq!(snapshot.total_bytes(), 1_840_118_458);
 }

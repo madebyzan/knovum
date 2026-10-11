@@ -1,15 +1,14 @@
 use std::collections::BTreeMap;
 
-use crate::local_resources::runtimes::python::{self, RuntimeProfile};
 use crate::spaces::db;
 
-pub(in crate::spaces) type RuntimeDigests = BTreeMap<RuntimeProfile, String>;
+pub(in crate::spaces) type RuntimeDigests = BTreeMap<String, String>;
 
-pub(in crate::spaces) fn profile_for_engine(engine: &str) -> Result<RuntimeProfile, String> {
-    match engine {
-        "moss_nano" => Ok(RuntimeProfile::LightInference),
-        "voxcpm2" => Ok(RuntimeProfile::VoiceGeneration),
-        _ => Err("runtime_mismatch: speech engine has no runtime package".into()),
+pub(in crate::spaces) fn profile_for_engine(engine: &str) -> Result<String, String> {
+    if matches!(engine, "moss_nano" | "voxcpm2") {
+        Ok("native-inference-v2".into())
+    } else {
+        Err("runtime_mismatch: speech engine has no native runtime".into())
     }
 }
 
@@ -46,7 +45,10 @@ pub(super) async fn resolve(
         )
         .await?;
         let profile = profile_for_engine(&engine)?;
-        digests.insert(profile, python::required_digest(app, profile)?);
+        digests.insert(
+            profile,
+            crate::local_resources::runtimes::native::resolve(app)?.digest,
+        );
     }
     validate(&digests)?;
     Ok(digests)
@@ -68,12 +70,9 @@ pub(in crate::spaces) fn read_snapshot(
 
 pub(super) fn validate(digests: &RuntimeDigests) -> Result<(), String> {
     if digests.is_empty()
-        || digests.iter().any(|(profile, digest)| {
-            !matches!(
-                profile,
-                RuntimeProfile::LightInference | RuntimeProfile::VoiceGeneration
-            ) || !valid_digest(digest)
-        })
+        || digests
+            .iter()
+            .any(|(profile, digest)| profile != "native-inference-v2" || !valid_digest(digest))
     {
         return Err("runtime_mismatch: Speech Run runtime package identities are invalid".into());
     }

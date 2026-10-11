@@ -1,27 +1,15 @@
-use crate::{
-    ai::contracts::runtime::RuntimeDeviceProfile,
-    local_resources::runtimes::python::PythonRuntimePaths,
-};
-use tokio_util::sync::CancellationToken;
+use crate::ai::contracts::runtime::RuntimeDeviceProfile;
 
-pub(crate) async fn profile(
-    runtime: &PythonRuntimePaths,
-    cancellation: &CancellationToken,
-    exit: &CancellationToken,
-    deadline_ms: u64,
-) -> Result<RuntimeDeviceProfile, String> {
-    let device = super::torch::preferred_device(
-        runtime,
-        super::EMBEDDING_PEAK_GIB * super::GIB,
-        cancellation,
-        exit,
-        deadline_ms,
-    )
-    .await?;
-    let threads = crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?.model_threads;
+pub(crate) fn profile() -> Result<RuntimeDeviceProfile, String> {
+    let threads = super::super::compute_budget::ComputeBudget::detect()?.model_threads;
+    let device = if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
+        "mps"
+    } else {
+        "cpu"
+    };
     Ok(RuntimeDeviceProfile {
         device: device.into(),
-        execution_profile_id: format!("{device}-f32-threads{threads}-v1"),
+        execution_profile_id: format!("{device}-f32-threads{threads}-native-v2"),
         cpu_threads: threads,
     })
 }

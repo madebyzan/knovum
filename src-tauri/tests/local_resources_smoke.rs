@@ -25,13 +25,8 @@ fn provisioned_local_resources_starts() {
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
     let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src");
     let worker = worker.to_str().expect("Worker path must be UTF-8");
-    for (profile, module) in [
-        ("resources", "knovum_model_resources.server"),
-        ("light-inference", "knovum_inference.server"),
-        ("torch-inference", "knovum_inference.server"),
-        ("voice-generation", "knovum_inference.server"),
-        ("agent", "knovum_agent_runtime.server"),
-    ] {
+    {
+        let (profile, module) = ("agent", "knovum_agent_runtime.server");
         let runtime = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../runtime-artifacts")
             .join(profile)

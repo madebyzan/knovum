@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [resources, light-inference, torch-inference, voice-generation, agent]
+        profile: [agent]
         platform:
           - os: macos-15
             target: macos-arm64
@@ -81,8 +81,14 @@ jobs:
       - name: Name the target descriptor
         shell: bash
         run: mv runtime-artifacts/runtime-descriptor.json runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}-descriptor.json
+      - name: Install Node producer dependencies
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
       - name: Produce locked core media and verify relocation
-        if: matrix.profile == 'light-inference'
+        if: matrix.profile == 'agent'
         env:
           KNOVUM_RUNTIME_ARCHIVE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
@@ -95,7 +101,7 @@ jobs:
         with:
           subject-path: runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz
       - name: Attest core media archive
-        if: matrix.profile == 'light-inference'
+        if: matrix.profile == 'agent'
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: core-media-artifacts/ffmpeg-${{ matrix.platform.target }}.tar.gz

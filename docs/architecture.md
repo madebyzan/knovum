@@ -40,6 +40,15 @@ quality and restricted imports; it is not a dependency-graph engine.
 The Spaces core/presentation rule exempts tests in any capability-owned `__tests__/` directory.
 All other dependency rules remain in force, including the prohibition on production imports of tests.
 
+## Native inference boundary
+
+The Cargo workspace contains the Tauri host, `inference-contracts` and `inference-worker`. The neutral
+contracts crate depends on serialization/schema tooling only. The worker imports those contracts and
+maintained execution libraries; it never imports the host or feature storage. The host imports the
+contracts and manages the private process. Engine-specific adapters remain inside the worker.
+Node build and qualification tooling belongs to `scripts/runtime` and `scripts/inference`; Python
+source and generated Python contracts belong exclusively to the retained Deep Agent.
+
 ## Ownership
 
 - `app/` owns the router, application-wide policy, workspace-session wiring, diagnostics, bootstrap
@@ -175,28 +184,24 @@ and owns durable publication.
 compose resource removal with consumers that must release an active model, while
 `local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app_resources` composes catalog facts with that policy for product availability.
 
-Runtime selection, Python processes, model/device policy, downloads, packaging, and GPU behavior are
+Runtime selection, native and Agent processes, model/device policy, downloads, packaging, and GPU behavior are
 specified in [system-architecture.md](system-architecture.md) and
 [local-models.md](local-models.md). The WebView never starts Python directly, chooses unverified
 resource paths, or publishes engine results to Space storage.
 
-### Python capabilities
+### Native inference and retained Agent Python
 
-`python/` is the application-owned `knovum-python` project. Production packages use the standard
-`src/` layout and capability names `knovum_<capability>`. Capability packages do not import peer
-implementation internals; composition belongs to the process entry or Rust orchestration. A shared
-module requires real consumers and one concrete responsibility. Package `__init__.py` files do not
-re-export implementation symbols.
+`src-tauri/crates/inference-contracts` owns the strict neutral wire types shared by the host and
+private worker. The host depends on this package alone, never on the inference engines.
+`inference-worker` owns bounded framing, request admission and independent reader/compute threads;
+`embedding`, `images` and `speech` own their capability adapters. Native libraries receive only
+verified models and request-scoped inputs. Business authorization and publication remain with the
+calling host capability. `local_resources` owns model acquisition without a Python process.
 
-Within `knovum_inference`, `runtime/` owns request admission and capability dispatch,
-`transport/` owns bounded framing and JSON-RPC validation, and capability directories own their
-computation. Capability implementations depend on their modules, generated contracts, and neutral
-errors; they do not depend on worker lifecycle or transport.
-
-`knovum_model_resources` owns one bounded resource request and invokes vendor SDKs directly. It does
-not import inference engines. Rust remains the authority for inventory, region policy, integrity,
-and installation publication. Python cannot authorize Space data, create durable runs, choose a
-replacement model after failure, or publish results.
+`python/` retains only `knovum_agent_runtime` and its generated Agent contracts under the standard
+`src/` layout. Agent modules do not import native inference implementations. Package `__init__.py`
+files do not re-export implementation symbols. Python cannot authorize Space data, create durable
+runs, choose replacement models after failures or publish results independently of Rust authority.
 
 ### Agents and extensions
 

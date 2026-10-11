@@ -7,9 +7,10 @@ Knovum separates bundled core media runtimes from on-demand capability resources
 Platform-specific runtime binaries belong to the application release and are never fetched from arbitrary URLs at runtime:
 
 - FFmpeg
-- trusted platform descriptors for the on-demand CPython 3.11.17 inference and Agent profiles
+- the Rust inference worker with its verified ONNX Runtime, audio.cpp, Sherpa and Whisper libraries
+- one trusted descriptor for the retained on-demand CPython 3.11.17 Deep Agent profile
 
-Debug builds prepare the selected managed runtime from this checkout on first use. CI publishes compiled resources for all three desktop targets and embeds the resulting immutable descriptors in the application. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. Each separately published Python runtime has its own manifest listing every file, size and SHA-256. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing resources do not block ordinary startup or Space editing; feature execution prepares its required runtime and model through the shared cancellable Task Center.
+`pnpm desktop:dev` prepares native suppliers and the Rust worker before starting Tauri. CI publishes compiled resources for all three desktop targets and embeds the resulting immutable descriptors in the application. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The bundled native manifest lists every worker/library/notice file, size and SHA-256; the retained Agent has its own published Python inventory. Rust verifies the complete runtime before starting its private worker; Vue has no process-launch permission. Missing resources do not block ordinary startup or Space editing; feature execution prepares its required runtime and model through the shared cancellable Task Center.
 
 ## Prepared on first use
 
@@ -35,44 +36,56 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                     | Supported models                                                                                         |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Sentence Transformers                                                        |
-| Transcription                  | Whisper Tiny / Small (default) / Large-v3; MLX on Apple Silicon, Faster Whisper on Intel Mac and Windows |
-| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / original-precision GGUF                                    |
-| Voice design                   | VoxCPM2 Q8_0 / original-precision GGUF                                                                   |
-| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / full Transformers checkpoint                                       |
-| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32 + ERes2Net embeddings                                          |
-| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                        |
-| Image background removal       | U²-Net Compact (default) / full, ONNX engine                                                             |
+| Capability                     | Supported models                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                      |
+| Transcription                  | Whisper Tiny / Small (default) Q8_0 / Large-v3 F16; whisper.cpp on all targets |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / original-precision GGUF          |
+| Voice design                   | VoxCPM2 Q8_0 / original-precision GGUF                                         |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                      |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32 + ERes2Net embeddings                |
+| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                              |
+| Image background removal       | U²-Net Compact (default) / full, ONNX Runtime                                  |
+| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                          |
+| Image repair                   | MI-GAN, selected-region ONNX Runtime                                           |
+| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                       |
+| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                              |
 
-Preparation selects the model snapshot's execution package: Intel ASR, background
-removal, separation, diarization and MOSS-TTS-Nano use `light-inference`; Windows ASR, Apple Silicon ASR, embeddings
-and alignment use `torch-inference`; VoxCPM2 uses `voice-generation`. Hub downloads use
-`resources` only when verified snapshots are missing. Ordinary settings do not expose package
-profiles or environment preparation controls. First-use preparation inspects required packages and
-missing snapshots before downloading and reports their combined download budget through Task Center.
-A missing production publication is a build configuration failure, not an unsupported computer.
-Diarization, MOSS-TTS-Nano and VoxCPM2 use direct hash-bound downloads without the Hub SDK package.
+All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
+ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
+Downloads validate 206 Content-Range before appending, restart on 200, stream bounded progress and
+preserve partial bytes on cancellation. The installer verifies complete snapshots before atomic
+publication. No Python Hub SDK, Torch, MLX or inference environment remains.
 
-The Apple Silicon ASR profile uses the ONNX Silero VAD model packaged with the exact-locked
-`silero-vad==6.2.3` runtime dependency. It evaluates the prepared 16 kHz PCM audio on its original
-timeline before MLX transcription; speech interval filtering does not compress timestamps.
+Whisper tiny/small use the official Q8_0 exports and Large-v3 uses the official F16 export.
+All use the separately pinned whisper.cpp Silero 6.2.0 VAD binary, preserving the source timeline.
+Silero's public VAD API selects and filters speech regions on the original waveform. Whisper's
+state-based decode receives the original offset and duration, so both segment and word timestamps
+retain source silence and gaps; no compressed-audio timestamp reconstruction is used.
+With VAD enabled, automatic language detection uses the first speech window through the public
+Whisper API, so leading silence is excluded from language detection while retaining source offsets.
+Word timings combine complete Unicode token pieces. Chinese, Japanese, Thai, Lao, Burmese and
+Cantonese retain these units; other languages merge non-space subwords using the upstream
+[Whisper tokenizer language policy](https://github.com/openai/whisper/blob/main/whisper/tokenizer.py).
+The upstream decoder pads its final window with 30 seconds of zeros. Native timestamps are
+validated against that bounded context, then clipped to the source audio. Published word spans
+must have positive duration within their segment; untimed punctuation remains in segment text.
+Both dictation and media transcription use the native profile's compute budget. Tiny/Small and
+Metal execution allow four times the input duration with a two-minute minimum. Large-v3 CPU
+allows 120 times the input duration with a thirty-minute minimum; every profile is capped at six
+hours. These are cancellable task deadlines, not quality or performance acceptance thresholds.
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer
 than eight transcript segments or 300 seconds. Settings offers a smaller Q8_0 GGUF model (default)
-and the official full Transformers checkpoint. The GGUF snapshot fixes the audio.cpp export
-at `09fe073ba154561f4474162e8bd4ab233a848eca`; weights, Apache-2.0 license and model card total
-1,129,987,258 bytes. It uses the same frozen audio.cpp supplier as audio.cpp voice generation,
-through its public C API, and selects Metal/CUDA/Vulkan when the compiled backend has sufficient
-currently free memory. CPU selection happens before inference; failures are reported without
-trying another engine or device. The full snapshot is `Qwen/Qwen3-ForcedAligner-0.6B-hf` at
-`c07281df297b9905d24a508279258cccf987a064`, matched to the frozen Transformers 5.19 API.
-Its six Transformers-layout files total 1,847,225,867 bytes. The obsolete checkpoint layout is not read or
-converted. The adapter requests supplier loading evidence and rejects missing, unexpected or
-mismatched parameters before inference; no randomly initialized weights are accepted. See the
-[official model documentation](https://huggingface.co/docs/transformers/model_doc/qwen3_asr).
+and the native F16 GGUF. Both exports are fixed at
+`audio-cpp/audio.cpp-gguf` revision `09fe073ba154561f4474162e8bd4ab233a848eca`.
+Q8_0 weighs 1,129,966,496 bytes and F16 weighs 1,840,097,696 bytes; the catalog also owns
+model-license evidence. The original HF file set cannot satisfy this supplier's required generation
+configuration, so it is replaced completely. No fabricated sidecars, model-spec overrides or old
+checkpoint readers exist. Public audio.cpp C APIs own loading, session execution and alignment.
+Supported Metal/Vulkan devices are selected before inference after capacity checks; CPU is the
+explicit profile on machines without an admitted accelerator. Execution failures remain errors.
 Each durable alignment request freezes a model specification independent of its execution device.
 Retries use that specification; transcript provenance retains the selected model and upstream revision.
 The synchronous audio.cpp C API owns one session per worker and does not expose an inference abort hook.
@@ -83,9 +96,7 @@ results remain visible, while a manual edit invalidates timing only for the edit
 The locked aligner profile covers Chinese, English, Cantonese, French, German,
 Italian, Portuguese, Russian and Spanish. Japanese and Korean require optional
 upstream tokenizers absent from this reviewed runtime and return
-`unsupported_language`. Prepared PCM samples enter the processor as NumPy arrays;
-the worker does not delegate file decoding to Transformers' automatic backend.
-See the [frozen 5.19.0 forced-alignment input contract](https://github.com/huggingface/transformers/blob/v5.19.0/src/transformers/models/qwen3_asr/processing_qwen3_asr.py).
+`unsupported_language`. Prepared PCM16 WAV samples are validated in Rust and passed to the native supplier as finite float samples.
 
 Speaker diarization offers the official Sherpa-ONNX Pyannote 3.0 INT8 (default) and FP32 segmentation
 exports, both with 3D-Speaker ERes2Net base embeddings. Weights and MIT/Apache-2.0 notices total
@@ -93,7 +104,7 @@ exports, both with 3D-Speaker ERes2Net base embeddings. Weights and MIT/Apache-2
 upstream revision, path, size and SHA-256;
 verified staging is atomically published. Downloads require no token, account, manual model import
 or terms form. No external configuration enters the worker. The node action and Settings model
-entry share the same cancellable capability preparation request and light inference package.
+entry share the same cancellable capability preparation request and native runtime inventory.
 
 Diarization is bounded to two hours of mono 16 kHz PCM16 WAV. The user may leave the speaker count
 automatic or provide one exact known count from 1 through 32. Sherpa clustering does not expose
@@ -116,11 +127,11 @@ removed or that every environmental sound was preserved. The candidate therefore
 as a video background until the user auditions and explicitly accepts it.
 
 Every local model file has a pinned revision, size and SHA-256. The embedding snapshot includes the Sentence Transformers module and last-token pooling configuration, not just weights and tokenizer. Installation uses a temporary file, streams real byte progress into the shared Task Center, verifies the checksum, and only then atomically activates the model.
-The frozen Sentence Transformers 6.1 adapter uses its current public
-[Pooling module](https://www.sbert.net/docs/package_reference/sentence_transformer/modules.html)
-and `get_embedding_dimension` API. It requires exactly one `lasttoken` pooling module with prompt
-inclusion; there is no legacy-attribute compatibility branch. Real JSON-RPC qualification checks
-1,024 finite dimensions, unit norms and relevant-query ranking on the complete verified Qwen snapshot.
+Candle 0.11 owns Qwen3 execution and tokenizers owns tokenization. Knovum applies the frozen query
+instruction, document input, last-token selection and L2 normalization. The identity is
+`qwen3-embedding-0.6b:candle-0.11-f32-lasttoken-v2`; persisted indexes with an older identity
+are rejected and rebuilt explicitly. Inputs are limited to 32 texts and 2,048 tokens; output is
+1,024 finite normalized dimensions.
 Installed weights live under the current `local-resources/models/` application-data namespace; pre-release legacy paths are not read.
 
 ## Runtime ownership
@@ -146,17 +157,12 @@ CPU is selected only when no usable supported GPU path exists. A GPU inference f
 the application does not retry that request on CPU or switch models. Users do not choose dependency
 packages or implementation backends.
 
-Qwen3 embeddings now probe the verified managed Torch runtime before admission, prefer CUDA then
-MPS when supported and available, and otherwise select CPU. Torch 2.13 requires unified-memory
-Apple Silicon for MPS allocation; Intel AMD GPU enumeration alone does not qualify that backend.
-Detection runs before each execution profile is frozen. CUDA qualification uses current globally free device memory, not total VRAM; previous reports cannot freeze a later job on CPU or reuse GPU capacity occupied by another application. Detection failures remain errors. MPS checks its recommended working-set capacity, while admission separately checks currently available host memory.
-The request and worker identity freeze the selected backend, F32 precision and thread budget.
-The model revision, last-token pooling, token limit and 1,024-dimensional index remain fixed.
-The unified-memory restriction is in the pinned [Torch MPS allocator](https://github.com/pytorch/pytorch/blob/v2.13.0/aten/src/ATen/mps/MPSAllocator.mm).
-Apple Silicon transcription already selects MLX/Metal. Windows uses the frozen CUDA 12.8 Tensor closure (Torch 2.13.0, cuDNN 9.10.2.21) for Qwen and Faster Whisper. It includes CPU execution for computers without a qualified CUDA device. Faster Whisper checks CTranslate2 float16 support before selecting its CUDA profile. The closure is application-managed; users do not install a CUDA toolkit. Windows GPU execution still requires hardware acceptance. Other CPU-only engine packages retain their supplier execution contract.
-VoxCPM2's audio.cpp x64 runtime builds the supplier's CPU instruction-set variants and chooses a supported kernel before loading the model. Its Windows Vulkan backend is a separately loaded module; a machine without a Vulkan driver can initialize the CPU backend. Metal/Vulkan availability and free GPU capacity are probed before the request freezes its device. The Windows build path still needs actual Windows target acceptance; the Intel host does not prove that target.
-Backend selection follows the official [PyTorch backend availability API](https://docs.pytorch.org/docs/stable/backends)
-and [Sentence Transformers device contract](https://sbert.net/docs/package_reference/sentence_transformer/model.html).
+Qwen3 uses Candle Metal on Apple Silicon and CPU on Intel macOS and Windows. Whisper uses
+Metal on Apple Silicon and CPU on the other targets. Images, Sherpa and MOSS use explicit CPU
+profiles with bounded threads. audio.cpp alignment and VoxCPM2 use its public native device
+probe, admitted Metal/Vulkan capacity and portable CPU dispatch. CUDA is not shipped or advertised.
+Backend probing runs in a separate verified native process; it does not load Python or Torch.
+Windows Vulkan remains subject to real hardware qualification. No request retries on another device.
 
 ## Hardware guidance
 
@@ -239,7 +245,7 @@ The resource catalog is authoritative for immutable URLs, exact hashes, file set
 snapshot includes its license; depth also includes its processor and conversion model card.
 Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;
 transfer size is distinct from installed size. Complete multi-file snapshots are required before use.
-The capability specification incorporates the complete snapshot digest. LightInference and its
+The capability specification incorporates the complete snapshot digest. The sealed native runtime and its
 existing ONNX Runtime 1.22.1 are reused; no Torch training dependency or second download service is added.
 
 Initial CPU admission reservations are conservative guards, not measured performance claims.
@@ -256,10 +262,10 @@ change: a complete qualified and redistributable graph chain has not been establ
 second repair/background candidate is an unmet qualification item, not a renamed existing model.
 Snapshot presence and adapter tests alone do not establish release qualification.
 
-### Image adapter evidence — 2026-10-10
+### Historical Python reference evidence — 2026-10-10
 
 Seven frozen graphs were loaded and inferred through their source adapters with the installed
-macOS x64 LightInference native ONNX Runtime 1.22.1, CPU provider, four intra-op threads and
+macOS x64 historical Python LightInference ONNX Runtime 1.22.1, CPU provider, four intra-op threads and
 one inter-op thread. Development generation directory:
 `ba6b3ec1862d5a16bbfcef32a574ae77f772c9d07d9d6a72a91cf7231b827b1c`.
 The runtime manifest digest used by initialization is

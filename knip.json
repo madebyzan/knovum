@@ -21,6 +21,6 @@
   "ignoreIssues": {
     "src/**/contracts/generated/*.ts": ["types"]
   },
-  "ignoreBinaries": ["minisign", "uv"],
+  "ignoreBinaries": ["clang", "cmake", "install_name_tool", "minisign", "otool", "uv"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

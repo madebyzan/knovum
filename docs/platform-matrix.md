@@ -1,6 +1,6 @@
 # Desktop platform matrix
 
-Knovum releases for macOS 14+ arm64, macOS 14+ x86_64, and Windows 10 1903+ x64. Windows arm64 and
+Knovum releases for macOS 14+ arm64, macOS 14+ x86_64, and Windows 10 2004+ (build 19041+) x64. Windows arm64 and
 Linux are outside the product release scope. Unsupported targets fail explicitly; they do not receive
 partial local inference or compatibility execution paths.
 
@@ -36,7 +36,7 @@ installed application.
 
 ## Compiled resources and inference
 
-FFmpeg is a bundled core resource on every supported target. Python environments, models, and optional
+FFmpeg is a bundled core resource on every supported target. The retained Agent environment, model weights, and optional
 media tools are prepared on demand into verified application-owned storage. Offline startup and basic
 Space editing do not require on-demand resources. Dictation and media transcription share the selected
 ASR runtime and model rather than installing independent copies.
@@ -89,3 +89,17 @@ Evidence from another architecture, a raw adapter, or an earlier candidate canno
 Any change to lifecycle, window chrome, menus, shortcuts, files, clipboard, notifications, updater,
 processes, compiled resources, or device selection reopens the relevant acceptance rows. Release evidence
 retention and promotion rules are defined in [release.md](release.md).
+
+## Native inference target gate
+
+All targets ship the private Rust worker and hash-sealed native libraries. Apple Silicon uses Candle/
+Whisper Metal and admitted audio.cpp Metal; Intel macOS uses CPU for embedding/ASR and admitted
+audio.cpp devices; Windows uses CPU embedding/ASR with optional qualified audio.cpp Vulkan. Images,
+Sherpa and MOSS use CPU. Target-specific compile, real package, installed launch, cancellation and
+model tests are required independently. Intel macOS evidence cannot approve Apple Silicon or Windows.
+
+The native ONNX Runtime 1.22.1 supplier raises the product's Windows floor to 2004 (19041),
+matching its [official release contract](https://github.com/microsoft/onnxruntime/releases/tag/v1.22.1).
+The host and worker reject older builds visibly before loading native libraries. Windows version
+detection imports Microsoft's `windows-version` 0.1.7 directly; no replacement OS probe or
+older-runtime compatibility path is maintained.

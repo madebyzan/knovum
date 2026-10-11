@@ -39,7 +39,7 @@ impl Fixture {
         }
         let requirements = digest(b"requirements");
         let bytes = serde_json::to_vec(&json!({"schemaVersion": 1, "runtimeId": "cpython", "version": "3.11.17",
-            "dependencyRequirementsSha256": requirements, "profile":"torch-inference", "dependencyLockSha256":"a".repeat(64),
+            "dependencyRequirementsSha256": requirements, "profile":"agent", "dependencyLockSha256":"a".repeat(64),
             "target": crate::local_resources::tools::platform_directory(), "executable": executable, "packageRoot": "packages", "files": files})).unwrap();
         fs::write(root.join(MANIFEST_NAME), &bytes).unwrap();
         let descriptor = Descriptor {
@@ -47,7 +47,7 @@ impl Fixture {
             target: crate::local_resources::tools::platform_directory().into(),
             version: "3.11.17".into(),
             dependency_requirements_sha256: requirements,
-            profile: crate::local_resources::runtimes::python::RuntimeProfile::TorchInference,
+            profile: crate::local_resources::runtimes::python::RuntimeProfile::Agent,
             dependency_lock_sha256: "a".repeat(64),
             archive_url: "https://example.test/runtime.tar.gz".into(),
             size: 1,
@@ -67,7 +67,7 @@ impl Fixture {
             digest(&self.bytes),
             cancellation,
             Some(&self.descriptor),
-            crate::local_resources::runtimes::python::RuntimeProfile::TorchInference,
+            crate::local_resources::runtimes::python::RuntimeProfile::Agent,
         )
     }
 }
@@ -101,7 +101,7 @@ fn rejects_recomputed_manifest_from_another_publication() {
 #[test]
 fn development_runtime_must_match_the_current_capability_lock() {
     let fixture = Fixture::new();
-    let profile = crate::local_resources::runtimes::python::RuntimeProfile::TorchInference;
+    let profile = crate::local_resources::runtimes::python::RuntimeProfile::Agent;
     let verify = |bytes: &[u8]| {
         verify_runtime(
             &fixture.root.join(MANIFEST_NAME),
