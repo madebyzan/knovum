@@ -6,7 +6,7 @@ Daily development uses five commands: `pnpm desktop:dev`, `pnpm test`, `pnpm for
 builds the worker with Cargo, then starts Tauri; it does not prepare Python.
 
 These are auxiliary tools for one desktop product. Prefer package scripts and existing vendor
-CLIs. Retain custom code for concrete resource, contract, verification or publication policy;
+CLIs. Retain custom code for concrete resource, contract or verification policy;
 do not build a task runner, installer framework or a second dependency manager. Avoid extra
 public commands and handwritten duplicate schemas. Test fixtures are not developer entry points.
 
@@ -20,16 +20,15 @@ public commands and handwritten duplicate schemas. Test fixtures are not develop
 
 ## CI and ownership
 
-| Workflow                | Responsibility                                                                                     |
-| ----------------------- | -------------------------------------------------------------------------------------------------- |
-| `quality.yml`           | Source/unit/audit gates, all three desktop compilation targets and actual signing rejection tests. |
-| `python-runtime.yml`    | Explicit Agent and FFmpeg publication on their target hosts.                                       |
-| `release-candidate.yml` | Shared QA/candidate build preparation; only protected tag releases sign and publish candidates.    |
-| `promote-update.yml`    | Explicit promotion of a verified candidate.                                                        |
+| Workflow                | Responsibility                                                        |
+| ----------------------- | --------------------------------------------------------------------- |
+| `quality.yml`           | Source/unit/audit gates and three desktop compilation targets.        |
+| `python-runtime.yml`    | The retained Agent interpreter/package publication only.              |
+| `release-candidate.yml` | QA builds or signed app drafts uploaded by the official Tauri action. |
 
-`desktop/` owns desktop preflight and resource assembly; `runtime/` owns controlled resource
-production and verification; `release/` owns distribution policy; `checks/` contains only
-capability policy, contract drift and the retained two-environment Python checks.
+`desktop/` owns the Tauri entry point, resource assembly and production packaging policy;
+`runtime/` owns necessary resource production and verification; `checks/` contains capability
+policy, contract drift and retained Python checks. There is no custom release framework.
 Each owner's `__tests__/` contains its regressions.
 `pnpm check:scripts` discovers Node tests; `check:python` covers retained Python tooling.
 

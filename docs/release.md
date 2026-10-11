@@ -79,10 +79,9 @@ asset is ad-hoc signed, not publisher-signed. Never remove quarantine metadata o
 to make an unsigned tool run. Where policy requires publisher signatures, use controlled signed
 artifacts, review their provenance/hashes and repeat target-platform acceptance.
 
-Candidate metadata uses `localRuntimes`: one entry per target, containing the shipped
-Worker tree digest and the one Agent descriptor plus native worker/runtime inventory digests. Collection and candidate
-validation require the Agent profile exactly once and the native package inventory, matching the artifact target and the strict runtime
-descriptor contract. Old `localInference` metadata cannot qualify a candidate.
+Record the installed Agent descriptor/tree digest and the sealed native worker/runtime digests
+with each platform's installer hash in the acceptance evidence. These identities come from the
+actual package; there is no separate candidate metadata format or collection framework.
 
 ## Version and artifact identity
 
@@ -91,58 +90,32 @@ to equal `package.json` and the `[package]` version in `src-tauri/Cargo.toml`. S
 `major.minor.patch`; beta channels are not implicitly mixed into stable. Change all three version
 fields in the release PR, review release notes, merge and tag that commit as `v<version>`.
 
-A version is immutable. Never rebuild, re-sign or replace the artifacts associated with an existing
-release/tag. An existing draft is not silently overwritten either. A failed candidate is investigated
-and a new version is cut where its inputs must change. Hosting migration copies the already-approved
-bytes and their original signatures; it does not create a new release identity.
+Published versions are immutable: do not rebuild, re-sign or replace their artifacts. An unpublished
+draft may be repaired or discarded while qualification is incomplete; publish only after all three
+platforms and the upgrade matrix pass on the exact final bytes.
 
-## Permanent discovery, replaceable storage
+## Update discovery and public distribution
 
-The client embeds exactly one permanent HTTPS manifest URL and the public updater key. It consumes
-the official Tauri static JSON format: `version`, `notes`, `pub_date`, and each platform's `url` and
-`signature`. There is no custom discovery protocol, hard-coded mirror list, client cloud SDK, embedded
-GitHub token, or disabled-signature escape hatch.
+The client embeds one permanent anonymous HTTPS manifest URL and the public updater key. It uses
+the official Tauri static JSON format. The maintained [Tauri action](https://github.com/tauri-apps/tauri-action)
+uploads the signed installers/archives and generates `latest.json`; Knovum does not maintain a
+GitHub API client, candidate schema, channel promotion program or hosting migration framework.
 
-Keep private source and public distribution separate. Create an initialized **public distribution-only
-repository** with default branch `main`; do not make `madebyzan/knovum` public. For example, after the
-owner creates `madebyzan/knovum-releases`, the permanent endpoint can be:
+Keep private source separate from an initialized **public distribution-only repository**, with
+`main` as its default branch. For example, after the owner creates `madebyzan/knovum-releases`, use:
 
 ```text
-https://raw.githubusercontent.com/madebyzan/knovum-releases/main/channels/stable.json
+https://github.com/madebyzan/knovum-releases/releases/latest/download/latest.json
 ```
 
-That is a configuration example, not a provisioned service. GitHub Releases initially hosts the
-signed installers/archives. Publishing writes `channels/stable.json` to the distribution repository
-with a compare-and-swap on the previous file SHA. Private repository downloads cannot be used by
-anonymous application clients; never solve that by putting a PAT into the desktop binary.
+This is a configuration example, not a provisioned service. Draft app releases are invisible to
+anonymous clients. Publishing the reviewed stable release through GitHub makes its `latest.json`
+discoverable. Agent resource releases are prereleases with `--latest=false`, so they cannot replace
+the app's latest stable release. Never put a GitHub token into the desktop binary.
 
-For independence from GitHub itself, select an **owner-controlled domain before the first public
-release**. Serve the same channel file at its permanent path, initially through GitHub Pages or a
-controlled edge, then change DNS/origin to COS/CDN later while preserving HTTPS and that path. The
-publication workflow writes the canonical channel file in GitHub; an edge/custom-domain deployment
-must serve that file before its post-publication check can pass. DNS, domain ownership and edge
-configuration are infrastructure prerequisites, not fabricated by a repository build.
-
-Old clients cannot discover a completely new endpoint if the only address they know is deleted.
-Retain the original GitHub entry for the lifetime of those installations, or retain the same owned
-domain. Merely embedding a different endpoint in the next binary strands dormant old clients.
-Do not rotate the updater key as part of a hosting move.
-
-### Moving artifacts to Tencent COS or another host
-
-Copy the exact published version's archives/installers to permanent, anonymous HTTPS object URLs.
-Do not use expiring signed query URLs, expose bucket write access, or change artifact bytes. Retain
-the existing filenames. Run **Promote stable update** for that same version with `artifact_base_url`
-set to the new version directory. The workflow verifies the candidate signatures, then downloads all
-two public URLs without credentials and compares their SHA-256 hashes before changing discovery.
-Same-version promotion may change URLs only, not signatures, notes or publication time.
-
-Keep old download URLs working during migration so clients that already selected or started a
-previous URL can finish. New checks, including checks from dormant installations, receive the new
-locations from the unchanged manifest. Use short/revalidated caching for the channel JSON and
-immutable long-lived caching for versioned artifacts. The final workflow check reads the permanent
-endpoint and requires the promoted manifest. A stale edge may fail that check after a successful
-channel commit; fix/purge its cache and repeat the same promotion rather than repacking the release.
+Before first public distribution, verify the configured endpoint and every artifact anonymously.
+Preserve that endpoint and the updater key for existing installations. A future hosting change
+needs a concrete requirement and a separate design; no unused CDN migration machinery is retained.
 
 ## Signing decision and environment ownership
 
@@ -152,35 +125,41 @@ requires a signing key and builds Cargo with its lockfile. Ordinary QA packages 
 regardless of inherited updater environment variables. Missing production configuration fails the
 build; it never produces a silently disabled production updater.
 
-Create `release-signing` and `release-publish` GitHub environments. Configure their actual protection
+Create `runtime-qa`, `release-signing` and `release-publish` GitHub environments. Configure their actual protection
 rules: trusted `main`/release tags, required reviewers where the account plan supports them, restricted
 administration and no untrusted-fork access. A YAML `environment` name alone does not create approval
-protection. Promotion is separately manual even after candidate builds succeed.
+protection. Only authorized maintainers publish the app draft in GitHub after acceptance;
+a successful build never publishes a stable update automatically. Scope distribution write access
+in `release-signing` to creating/updating drafts and `release-publish` to Agent resource publication.
 
 Repository/environment variables, consistent between build and publication jobs:
 
-| Variable                             | Value                                                                         |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `KNOVUM_RUNTIME_PUBLICATION_TAG`     | Reviewed signed controlled-runtime release tag; required by candidate builds. |
-| `KNOVUM_DISTRIBUTION_REPOSITORY`     | The public distribution-only `owner/repository`.                              |
-| `KNOVUM_UPDATER_ENDPOINT`            | The permanent anonymous HTTPS channel JSON URL.                               |
-| `KNOVUM_UPDATER_PUBKEY`              | Entire base64 public-key output produced by the Tauri signer, not a path.     |
-| `APPLE_SIGNING_IDENTITY`             | Actual `Developer ID Application: ...` identity.                              |
-| `APPLE_API_ISSUER`, `APPLE_API_KEY`  | App Store Connect notarization issuer and key IDs.                            |
-| `KNOVUM_WINDOWS_SIGN_COMMAND`        | Explicit production signing command containing Tauri's `%1` file argument.    |
-| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | Identity used by the selected Windows Artifact Signing client.                |
+| Variable                                                                                           | Value                                                                         |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `KNOVUM_RUNTIME_PUBLICATION_TAG`                                                                   | Reviewed signed controlled-runtime release tag; required by candidate builds. |
+| `KNOVUM_DISTRIBUTION_REPOSITORY`                                                                   | The public distribution-only `owner/repository`.                              |
+| `KNOVUM_UPDATER_ENDPOINT`                                                                          | The permanent anonymous HTTPS channel JSON URL.                               |
+| `KNOVUM_UPDATER_PUBKEY`                                                                            | Entire base64 public-key output produced by the Tauri signer, not a path.     |
+| `APPLE_SIGNING_IDENTITY`                                                                           | Actual `Developer ID Application: ...` identity.                              |
+| `APPLE_API_ISSUER`, `APPLE_API_KEY`                                                                | App Store Connect notarization issuer and key IDs.                            |
+| `KNOVUM_WINDOWS_SIGN_COMMAND`                                                                      | Explicit production signing command containing Tauri's `%1` file argument.    |
+| `KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT`, `KNOVUM_WINDOWS_SIGNTOOL`, `KNOVUM_WINDOWS_TIMESTAMP_URL` | Approved resource signer, native signing tool and HTTPS timestamp service.    |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`                                                               | Identity used by the selected Windows Artifact Signing client.                |
 
 Secrets are scoped to the step/environment that needs them:
 
-| Secret                                                            | Purpose                                                                            |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater signing; never shipped to clients.                                         |
-| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`                 | Developer ID `.p12` material for the Tauri bundler.                                |
-| `APPLE_API_PRIVATE_KEY`                                           | Notarization `.p8` contents; CI writes a restricted temporary file and removes it. |
-| `AZURE_CLIENT_SECRET`                                             | Windows signing service credential.                                                |
-| `KNOVUM_DISTRIBUTION_TOKEN`                                       | Fine-grained distribution-repository Contents write access only.                   |
+| Secret                                                              | Purpose                                                                            |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`   | Updater signing; never shipped to clients.                                         |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`                   | Developer ID `.p12` material imported for resource and app signing.                |
+| `APPLE_API_PRIVATE_KEY`                                             | Notarization `.p8` contents; CI writes a restricted temporary file and removes it. |
+| `KNOVUM_WINDOWS_CERTIFICATE`, `KNOVUM_WINDOWS_CERTIFICATE_PASSWORD` | Resource-signing PFX and its password, imported temporarily on the runner.         |
+| `AZURE_CLIENT_SECRET`                                               | Windows signing service credential.                                                |
+| `KNOVUM_DISTRIBUTION_TOKEN`                                         | Fine-grained distribution-repository Contents write access only.                   |
 
-The selected controlled-runtime publication must be anonymously downloadable as documented in `packaging.md`; packaging obtains resource URLs and hashes from that manifest. Public verification keys are intentionally not secrets.
+The selected Agent archives and descriptor must be anonymously downloadable as documented in
+`packaging.md`. Packaging verifies their GitHub provenance with the official `gh` CLI before
+extraction, then checks current recipes, dependency identities, inventories and native signatures. Public verification keys are intentionally not secrets.
 Generate updater keys with the official Tauri signer, outside the repository, and keep an encrypted
 backup under release ownership. Loss of the private key breaks trust continuity for already-installed
 clients. Key rotation requires a separately reviewed bridge/recovery plan; changing a CI variable is
@@ -195,26 +174,25 @@ Microsoft Artifact Signing account, for example `artifact-signing-cli -e <servic
 build-time mechanism, not an application dependency. Validate the application and NSIS installer's
 Authenticode signatures and timestamps. Signing does not promise immediate SmartScreen reputation.
 
-## Candidate, acceptance, promotion
+## Draft build and publication
 
-`.github/workflows/release-candidate.yml` builds all three supported signed targets from a reviewed version tag. First publish the controlled runtime with `python-runtime.yml` and `production: true`, then set `KNOVUM_RUNTIME_PUBLICATION_TAG` in `release-signing` to that immutable `runtime-*` release. The candidate downloads its publication manifest and validates current recipes, dependency identities, complete resources and production signatures; it reuses Agent/core-media publications and builds the native Rust worker and supplier closure from the candidate checkout.
-It collects immutable uniquely named update artifacts and human-facing installers. `candidate.json`
-records their hashes, original signatures, source commit, endpoint and public key. Collection rejects
-mixed commits/versions/configurations. Publication verifies every updater artifact with the official
-`minisign` verifier before creating a **draft** Release in the public distribution repository.
+`.github/workflows/release-candidate.yml` builds signed macOS arm64/x64 and Windows x64 from a
+reviewed `v<version>` tag on `main`. First produce the retained Agent with `python-runtime.yml`
+on `main` and `production: true`, then select its immutable `runtime-*` tag through
+`KNOVUM_RUNTIME_PUBLICATION_TAG`. FFmpeg and native inference resources are prepared directly
+from pinned suppliers on each packaging runner; there is no second FFmpeg release.
 
-Perform target-platform acceptance on those exact candidate bytes. Record the OS/architecture, source and
-destination versions, source commit, hashes and observations at a reviewable evidence URL. Then run
-`.github/workflows/promote-update.yml` from `main`, providing `version` and `upgrade_evidence_url`.
-The evidence URL identifies reviewer-owned evidence; the workflow does not pretend that a URL proves
-successful QA. Approvers must inspect it. An optional `artifact_base_url` selects COS/CDN storage.
+The package command verifies final resources, platform signatures and macOS notarization before
+the official Tauri action uploads to the public **draft** release. The matrix is serialized to
+avoid simultaneous writes to the action's shared `latest.json`. Only the owned updater-enabled
+config may be passed to the production command; arbitrary config injection is rejected.
 
-Promotion re-verifies downloaded candidate signatures/hashes, refuses stable downgrades and immutable
-version replacement, publishes the draft if needed, verifies anonymous artifact downloads, and only
-then atomically updates the channel. A failure before that channel update leaves the current update
-offer unchanged, even if the candidate release has become publicly downloadable. Concurrent writes
-fail instead of silently overwriting another promotion. The final step checks the actual permanent
-entrypoint; no successful build alone pushes an update to users.
+Inspect the successful three-platform run, its draft artifacts, all three `latest.json` platform
+entries, signatures, notices/source offers and target-platform installation/upgrade evidence.
+Record source commit, OS/architecture, source/destination versions and installer/resource hashes
+in reviewed release notes or linked acceptance evidence. Publish that exact draft and mark it as the latest stable release using GitHub's
+normal release interface after acceptance. A failed or partial matrix remains unpublished.
+There is no automatic promotion or custom channel-writing workflow.
 
 ## Client lifecycle contract
 
@@ -269,9 +247,9 @@ crypto rejection tests complement this matrix, not replace it.
 
 ## Recovery and post-release
 
-Monitor the real manifest and anonymous downloads after promotion, verify platform code signatures and
-review sanitized update failures. Stop a bad rollout by removing that version from the channel or
-restoring the previous known-good manifest through an explicitly reviewed emergency change. That
+Monitor the real manifest and anonymous downloads after publication, verify platform code signatures
+and review sanitized update failures. Stop a bad offer through an explicitly reviewed GitHub release
+change that withdraws the affected latest release or selects the previous known-good release. That
 stops offers to old clients; it does not downgrade machines already upgraded.
 
 Prefer a higher-version forward fix. Never automatically run an older binary against a newly migrated
@@ -283,8 +261,8 @@ previous release available. Do not claim automatic application/database rollback
 
 The desktop installer excludes CPython/third-party packages and includes the current application
 Worker and trusted runtime descriptor. Target-platform acceptance must cover anonymous first download,
-cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Native model execution uses the bundled Rust worker; native model weights are prepared before inference deadlines. Release
-`platform.json`/`candidate.json` retain the Agent descriptor/tree digest and the native inference worker/manifest digests beside installer identities.
+cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Native model execution uses the bundled Rust worker; native model weights are prepared before inference deadlines. Release acceptance records the actual packaged Agent descriptor/tree digest and the native
+inference worker/manifest digests beside installer hashes; no duplicate JSON release protocol remains.
 The Agent Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
 with paths relative to the application-owned `python/src` tree. `scripts/runtime/packaged-resources.mjs` owns this
 calculation. Agent execution binds that digest and the Agent descriptor's `manifestSha256`.
@@ -412,9 +390,9 @@ physical platform qualification are maintainer release tasks.
 The native package is built and sealed before host compilation. Record the SHA-256 of the shipped
 Rust worker, final signed native manifest and complete compiled-library inventory alongside each
 target artifact. Inference capture uses these native digests; the Python tree digest belongs only to
-Deep Agent and cannot authorize native inference evidence. The Node acceptance CLI keeps strict
-hash/provenance checks, CER/WER micro-aggregation, retrieval, alignment and independent blind TTS
-review thresholds. Synthetic tests prove the evaluator, never model or hardware qualification.
+Deep Agent and cannot authorize native inference evidence. Measurements retain strict hash/provenance checks, CER/WER micro-aggregation, retrieval, alignment
+and independent blind TTS review thresholds. Record reviewed results from real executions;
+synthetic fixtures do not qualify models or hardware.
 
 Real model smoke, F32 reference equivalence and stream/backpressure tests supplement the fixed
 quality corpus. They do not replace visual review, bilingual ASR/alignment quality or thirty-sample

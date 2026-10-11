@@ -4,8 +4,7 @@
     "tests/e2e/**/*.e2e.ts",
     "src/foundation/secrets/secret-store.ts",
     "src/**/*.css",
-    "scripts/*/__tests__/*.test.mjs",
-    "scripts/*/__tests__/*.integration.mjs"
+    "scripts/*/__tests__/*.test.mjs"
   ],
   "project": [
     "src/**/*.{ts,tsx,vue}",
@@ -21,6 +20,6 @@
   "ignoreIssues": {
     "src/**/contracts/generated/*.ts": ["types"]
   },
-  "ignoreBinaries": ["clang", "cmake", "install_name_tool", "minisign", "otool", "uv"],
+  "ignoreBinaries": ["clang", "cmake", "install_name_tool", "otool", "uv", "spctl"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

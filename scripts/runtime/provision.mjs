@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, copyFileSync, rmSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, resolve as resolvePath } from "node:path";
+import { mkdirSync, mkdtempSync, copyFileSync, rmSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -11,92 +11,93 @@ import {
   validateRuntimeDistribution,
 } from "./distribution.mjs";
 import { activateDirectory, sha256File } from "./files.mjs";
-import { validateMediaDescriptor } from "./media-descriptor.mjs";
-import { mediaManifestName, validateMediaRuntime } from "./media-manifest.mjs";
-import { hostRuntimeTarget, runtimeProject, runtimeTargets } from "./profiles.mjs";
-import { publicationSources } from "./publication.mjs";
-import { downloadArtifact } from "./transfer.mjs";
+import { hostRuntimeTarget, runtimeTargets } from "./profiles.mjs";
 
-const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
+const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { values } = parseArgs({
-  options: { target: { type: "string" }, profile: { type: "string" }, publication: { type: "string" } },
+  options: {
+    target: { type: "string" },
+    tag: { type: "string" },
+    repository: { type: "string" },
+    "source-repository": { type: "string" },
+  },
 });
 const target = values.target ?? hostRuntimeTarget();
-const profile = values.profile;
-if (profile !== "core-media") runtimeProject(repository, profile);
-const supportedTargets = new Set(Object.values(runtimeTargets));
-if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
-if (!values.publication)
-  throw new Error("Provisioning requires the runtime-publication.json produced by target CI");
-const publication = JSON.parse(readFileSync(values.publication, "utf8"));
-const sources = publicationSources(publication, target, profile);
-
-const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
-const scratch = mkdtempSync(join(repository, ".bundled-runtime-stage-"));
-const destination = join(runtimeRoot, target);
+if (!Object.values(runtimeTargets).includes(target)) throw new Error(`Unsupported Agent target: ${target}`);
+if (!/^runtime-[a-f0-9]{40}-[1-9]\d*-[1-9]\d*$/u.test(values.tag ?? ""))
+  throw new Error("Select an explicit controlled runtime-<commit>-<run>-<attempt> release");
+for (const name of ["repository", "source-repository"]) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/u.test(values[name] ?? ""))
+    throw new Error(`${name} must be owner/repository`);
+}
+const scratch = mkdtempSync(join(repository, ".agent-runtime-stage-"));
 try {
-  const stagedRuntime = join(scratch, "runtime");
-  mkdirSync(stagedRuntime);
-  const downloaded = await Promise.all(
-    sources.map((source) =>
-      downloadArtifact(
-        { url: source.url, sha256: source.expectedHash },
-        join(scratch, `${source.kind}.tar`),
-        { "User-Agent": "Knovum runtime provisioner" },
-      ),
-    ),
+  const prefix = `python-agent-${target}`;
+  const files = [`${prefix}.tar.gz`, `${prefix}-evidence.tar.gz`, `${prefix}-descriptor.json`];
+  execFileSync(
+    "gh",
+    [
+      "release",
+      "download",
+      values.tag,
+      "--repo",
+      values.repository,
+      ...files.flatMap((name) => ["--pattern", name]),
+      "--dir",
+      scratch,
+    ],
+    {
+      stdio: "inherit",
+    },
   );
-  const archives = Object.fromEntries(sources.map((source, index) => [source.kind, downloaded[index]]));
-  const sourceByKind = Object.fromEntries(sources.map((source) => [source.kind, source]));
-  if (profile === "core-media") {
-    const descriptor = JSON.parse(readFileSync(archives.FFMPEG_DESCRIPTOR, "utf8"));
-    validateMediaDescriptor(repository, descriptor, target);
-    if (
-      descriptor.archiveUrl !== sourceByKind.FFMPEG.url ||
-      descriptor.sha256 !== sourceByKind.FFMPEG.expectedHash ||
-      statSync(archives.FFMPEG).size !== descriptor.size
-    )
-      throw new Error("Core media descriptor differs from its controlled archive");
-    preflightArchive(archives.FFMPEG);
-    execFileSync("tar", ["-xf", archives.FFMPEG, "-C", stagedRuntime], { stdio: "inherit" });
-    if (sha256File(join(stagedRuntime, mediaManifestName)) !== descriptor.manifestSha256)
-      throw new Error("Core media manifest differs from its descriptor");
-    validateMediaRuntime(repository, stagedRuntime, target);
-    activateDirectory(stagedRuntime, destination);
-    console.log(`Provisioned core media for ${target}`);
-  } else {
-    const distribution = join(scratch, "distribution");
-    mkdirSync(distribution);
-    const python = join(distribution, "runtime");
-    const evidence = join(distribution, "build-evidence");
-    mkdirSync(python);
-    mkdirSync(evidence);
-    const descriptorPath = join(distribution, "runtime-descriptor.json");
-    copyFileSync(archives.PYTHON_RUNTIME_DESCRIPTOR, descriptorPath);
-    const descriptor = readRuntimeDescriptor(descriptorPath, target, profile);
-    if (
-      descriptor.sha256 !== sourceByKind.PYTHON_RUNTIME.expectedHash ||
-      descriptor.archiveUrl !== sourceByKind.PYTHON_RUNTIME.url
-    )
-      throw new Error("Runtime descriptor differs from the controlled archive source");
-    if (statSync(archives.PYTHON_RUNTIME).size !== descriptor.size)
-      throw new Error("Runtime archive size differs from its descriptor");
-    for (const [kind, directory] of [
-      ["PYTHON_RUNTIME", python],
-      ["PYTHON_RUNTIME_EVIDENCE", evidence],
-    ]) {
-      preflightArchive(archives[kind]);
-      execFileSync("tar", ["-xf", archives[kind], "-C", directory], { stdio: "inherit" });
-    }
-    validateRuntimeDistribution(repository, target, profile, distribution);
-    const distributionDestination = distributionDirectory(repository, target, profile);
-    mkdirSync(dirname(distributionDestination), { recursive: true });
-    activateDirectory(distribution, distributionDestination);
-    console.log(`Provisioned ${profile} runtime for ${target}`);
+  for (const name of files) {
+    execFileSync(
+      "gh",
+      [
+        "attestation",
+        "verify",
+        join(scratch, name),
+        "--repo",
+        values["source-repository"],
+        "--signer-workflow",
+        `${values["source-repository"]}/.github/workflows/python-runtime.yml`,
+        "--source-digest",
+        values.tag.split("-")[1],
+        "--source-ref",
+        "refs/heads/main",
+        "--deny-self-hosted-runners",
+      ],
+      { stdio: "inherit" },
+    );
   }
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
+  const directory = join(scratch, "distribution");
+  mkdirSync(directory);
+  const descriptorPath = join(directory, "runtime-descriptor.json");
+  copyFileSync(join(scratch, files[2]), descriptorPath);
+  const descriptor = readRuntimeDescriptor(descriptorPath, target, "agent");
+  const archive = join(scratch, files[0]);
+  const expectedURL = `https://github.com/${values.repository}/releases/download/${values.tag}/${files[0]}`;
+  if (
+    descriptor.archiveUrl !== expectedURL ||
+    statSync(archive).size !== descriptor.size ||
+    sha256File(archive) !== descriptor.sha256
+  )
+    throw new Error("Agent descriptor differs from its controlled public archive");
+  for (const [name, destination] of [
+    [files[0], "runtime"],
+    [files[1], "build-evidence"],
+  ]) {
+    const path = join(scratch, name);
+    preflightArchive(path);
+    const output = join(directory, destination);
+    mkdirSync(output);
+    execFileSync("tar", ["-xf", path, "-C", output], { stdio: "inherit" });
+  }
+  validateRuntimeDistribution(repository, target, "agent", directory);
+  const destination = distributionDirectory(repository, target, "agent");
+  mkdirSync(dirname(destination), { recursive: true });
+  activateDirectory(directory, destination);
+  console.log(`Verified controlled Agent runtime for ${target}`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

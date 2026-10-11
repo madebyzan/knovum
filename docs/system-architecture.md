@@ -8,7 +8,7 @@ belongs to [spaces.md](spaces.md), and visual rules belong to [ui-system.md](ui-
 
 Supported runtime identities are macOS arm64, macOS x64, and Windows x64. Target-specific behavior
 and real-machine qualification are defined in [platform-matrix.md](platform-matrix.md). Runtime
-production, bundling, signing, and release promotion belong to [packaging.md](packaging.md) and
+production, bundling, signing, and release publication belong to [packaging.md](packaging.md) and
 [release.md](release.md). Models, profiles, download sizes, and hardware admission belong to
 [local-models.md](local-models.md).
 

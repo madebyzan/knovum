@@ -24,7 +24,12 @@ try {
       { cwd: repository, stdio: "inherit" },
     );
   }
-  await run(args, "pnpm tauri");
+  if (command === "build" && !informational) {
+    if (args[0] !== "build") throw new Error("Use build before its options");
+    await import("./package.mjs");
+  } else {
+    await run(args, "node scripts/desktop/tauri.mjs");
+  }
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

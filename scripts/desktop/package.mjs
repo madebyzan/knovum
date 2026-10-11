@@ -13,34 +13,31 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  platformSigningConfiguration,
-  readVersion,
-  updaterConfiguration,
-  validateReleaseArguments,
-} from "../release/policy.mjs";
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
 import { validateMediaLicenseReview } from "../runtime/media-license-policy.mjs";
 import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
+import { prepareCoreMedia } from "../runtime/media.mjs";
 import { prepareNativePackage, validateNativePackage } from "../runtime/native-package.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { verifyCompiledResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
 import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
+import {
+  platformSigningConfiguration,
+  readVersion,
+  updaterConfiguration,
+  validateReleaseArguments,
+} from "./packaging-policy.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
-const args = process.argv.slice(2);
-const explicitRuntimeTarget = option("--runtime-target");
+const args = process.argv.slice(3);
 const buildTarget = value("--target");
-const buildRuntimeTarget = runtimeTargetFromTriple(buildTarget) ?? hostRuntimeTarget();
-if (explicitRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
-  throw new Error(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
-}
-const target = buildRuntimeTarget;
+const target = runtimeTargetFromTriple(buildTarget) ?? hostRuntimeTarget();
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
+await prepareCoreMedia(repository, { production: release });
 const nativeManifest = await prepareNativePackage(repository, { production: release });
 requireRuntime(target);
 for (const profile of runtimeProfiles) {
@@ -114,6 +111,12 @@ if (target.startsWith("macos-")) {
   const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
   validatePackagedResources(packaged, repository, target);
   validateNativePackage(join(packaged, "native-runtime"), target, nativeManifest, release);
+  if (release) {
+    const app = join(bundleRoot, "macos", `${name}.app`);
+    execFileSync("codesign", ["--verify", "--deep", "--strict", app], { stdio: "inherit" });
+    execFileSync("spctl", ["--assess", "--type", "execute", app], { stdio: "inherit" });
+    execFileSync("xcrun", ["stapler", "validate", app], { stdio: "inherit" });
+  }
 }
 
 function productionConfiguration() {
@@ -157,15 +160,6 @@ function requireRuntime(runtimeTarget) {
 function runtimeResources(runtimeTarget) {
   const directory = join(runtimeRoot, runtimeTarget);
   return listRuntimeFiles(directory).map((path) => `resources/bundled-runtime/${runtimeTarget}/${path}`);
-}
-
-function option(name) {
-  const index = args.indexOf(name);
-  if (index < 0) return undefined;
-  const optionValue = args[index + 1];
-  if (!optionValue || optionValue.startsWith("--")) throw new Error(`Missing value for ${name}`);
-  args.splice(index, 2);
-  return optionValue;
 }
 
 function value(name) {

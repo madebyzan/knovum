@@ -260,3 +260,18 @@ Adding rusqlite as a second SQLite access stack or a second archive engine would
 responsibilities without meeting an additional requirement. Knovum owns the explicit storage
 whitelist, baseline/hash validation, credential exclusion and restore publication journal because
 those are product authority and lifecycle decisions.
+
+## Desktop release tooling
+
+Use the maintained official [tauri-apps/tauri-action](https://github.com/tauri-apps/tauri-action)
+for app drafts, asset uploads and the standard updater JSON, and the official GitHub CLI for
+Agent asset retrieval, provenance verification and resource releases. Direct `gh` calls suffice;
+an Octokit dependency or custom GitHub client adds no required policy. The former candidate,
+channel-promotion and hosting-migration framework is removed. Reviewed platform acceptance and
+manual publication use GitHub's release interface. CI actions are pinned to reviewed commits.
+
+[Apple-Actions/import-codesign-certs](https://github.com/Apple-Actions/import-codesign-certs)
+imports and cleans up the temporary macOS signing keychain before resource signing. It replaces
+handwritten keychain lifecycle steps; the Tauri bundler remains responsible for app signing and
+notarization. FFmpeg preparation remains direct because its pinned supplier validation, required
+filters/encoders, license review and resource manifest are concrete Knovum requirements.

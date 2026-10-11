@@ -17,6 +17,7 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
   }
   const packageFile = resolve(packagePath);
   requireRegularFile(packageFile, "Windows package");
+  if (options.production) verifyDistributionSignature(packageFile);
   const staging = mkdtempSync(join(tmpdir(), "knovum-windows-package-"));
   try {
     extractPackage(packageFile, staging, options.sevenZipPath ?? defaultSevenZip);
@@ -29,6 +30,7 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
 function verifyExtractedWindowsApplication(extractionRoot, options) {
   const resources = locateApplicationResources(extractionRoot, options.target);
   validatePackagedResources(resources, resolve(options.repository), options.target);
+  if (options.production) verifyDistributionSignature(join(dirname(resources), "knovum.exe"));
   validateNativePackage(
     join(resources, "native-runtime"),
     options.target,
@@ -119,4 +121,14 @@ function findFiles(root, matches) {
 
 function requireRegularFile(path, label) {
   if (!lstatSync(path).isFile()) throw new Error(`${label} is not a regular file`);
+}
+
+function verifyDistributionSignature(path) {
+  requireRegularFile(path, "Signed distribution file");
+  const script =
+    "$ErrorActionPreference='Stop'; $s=Get-AuthenticodeSignature -LiteralPath $env:KNOVUM_SIGNATURE_VERIFY_PATH; if($s.Status -ne 'Valid' -or $null -eq $s.TimeStamperCertificate){throw 'A valid timestamped distribution signature is required'}";
+  execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
+    env: { ...process.env, KNOVUM_SIGNATURE_VERIFY_PATH: path },
+    windowsHide: true,
+  });
 }

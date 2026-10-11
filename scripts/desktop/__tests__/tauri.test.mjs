@@ -20,7 +20,7 @@ function fixture(context) {
   for (const directory of ["scripts/desktop", "scripts/runtime", "node_modules/@tauri-apps/cli"]) {
     mkdirSync(join(root, directory), { recursive: true });
   }
-  copyFileSync(new URL("../dev.mjs", import.meta.url), join(root, "scripts/desktop/dev.mjs"));
+  copyFileSync(new URL("../tauri.mjs", import.meta.url), join(root, "scripts/desktop/tauri.mjs"));
   writeFileSync(
     join(root, "node_modules/@tauri-apps/cli/package.json"),
     JSON.stringify({
@@ -77,7 +77,7 @@ function fixture(context) {
 }
 
 const launch = (root, args) =>
-  spawnSync(process.execPath, ["--import", "./cargo-fixture.mjs", "scripts/desktop/dev.mjs", ...args], {
+  spawnSync(process.execPath, ["--import", "./cargo-fixture.mjs", "scripts/desktop/tauri.mjs", ...args], {
     cwd: root,
     encoding: "utf8",
     timeout: 5000,
@@ -131,16 +131,6 @@ for (const args of [["dev", "--help"], ["dev", "-h"], ["dev", "--version"], ["in
   });
 }
 
-test("desktop development uses preflight and the Tauri hook only starts Vite", () => {
-  const configuration = JSON.parse(
-    readFileSync(new URL("../../../src-tauri/tauri.conf.json", import.meta.url)),
-  );
-  const { scripts } = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url)));
-  assert.equal(configuration.build.beforeDevCommand, "pnpm dev");
-  assert.equal(Object.hasOwn(scripts, "tauri"), false);
-  assert.equal(scripts["desktop:dev"], "node scripts/desktop/dev.mjs dev");
-});
-
 test("invalid native worker prevents launching the desktop", (context) => {
   const root = fixture(context);
   writeFileSync(join(root, "broken-native"), "");
@@ -157,4 +147,42 @@ test("failed worker compilation prevents launching the desktop", (context) => {
   assert.equal(execution.status, 1);
   assert.match(execution.stderr, /Native worker compilation failed/u);
   assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "native" }]);
+});
+
+test("the official action's build command reaches resource-aware packaging", (context) => {
+  const root = fixture(context);
+  writeFileSync(
+    join(root, "scripts/desktop/package.mjs"),
+    `
+    import { appendFileSync } from 'node:fs';
+    appendFileSync('events.jsonl', JSON.stringify({stage:'package', args:process.argv.slice(3)})+'\\n');
+  `,
+  );
+  const args = [
+    "--release",
+    "--target",
+    "aarch64-apple-darwin",
+    "--config",
+    "src-tauri/tauri.release.conf.json",
+  ];
+  const execution = launch(root, ["build", ...args]);
+  assert.equal(execution.status, 0, execution.stderr);
+  assert.deepEqual(events(root), [{ stage: "package", args }]);
+});
+
+test("build help does not package or prepare resources", (context) => {
+  const root = fixture(context);
+  writeFileSync(join(root, "scripts/desktop/package.mjs"), 'throw new Error("Unexpected packaging");');
+  const execution = launch(root, ["build", "--help"]);
+  assert.equal(execution.status, 0, execution.stderr);
+  assert.deepEqual(events(root), [{ stage: "tauri", args: ["build", "--help"] }]);
+});
+
+test("packaging failures propagate before any official action upload", (context) => {
+  const root = fixture(context);
+  writeFileSync(join(root, "scripts/desktop/package.mjs"), 'throw new Error("Final resources are invalid");');
+  const execution = launch(root, ["build"]);
+  assert.equal(execution.status, 1);
+  assert.match(execution.stderr, /Final resources are invalid/u);
+  assert.equal(existsSync(join(root, "events.jsonl")), false);
 });

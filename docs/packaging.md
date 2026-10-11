@@ -143,14 +143,22 @@ current Agent source tree. Agent environments load no local inference or model-d
 ```bash
 pnpm runtime:build --profile agent --output <fresh-directory> --signing <adhoc|unsigned|production> \
   --archive-url <immutable-https-url>
-pnpm runtime:provision --profile agent --publication <runtime-publication.json>
-pnpm runtime:provision --profile core-media --publication <runtime-publication.json>
+pnpm runtime:provision --tag runtime-<commit>-<run>-<attempt> \
+  --repository <public-distribution-owner/repo> --source-repository <private-source-owner/repo>
 ```
 
-`python-runtime.yml` produces Agent and core FFmpeg on all three native target runners and verifies
-one complete six-entry publication. The immutable publication tag is selected explicitly by QA or
-release-candidate workflows; all URLs/hashes come from real descriptors. No latest-release fallback
-exists. Core media is provisioned independently from the same publication.
+`python-runtime.yml` produces only Agent on all three native runners and attests the interpreter
+archive, evidence archive and descriptor. It publishes these assets to the initialized public
+distribution repository, keeping private source separate. QA and release builds select an explicit
+immutable tag. `gh release download` fetches its three target assets; `gh attestation verify` checks
+the source repository, owning workflow, `main` ref and exact source commit before any extraction.
+Current recipes, requirements, manifests and inventories must still match the checkout.
+No custom publication catalog, latest-runtime selection or compatibility reader remains.
+
+CI uses its read-only source-repository `GH_TOKEN` for public asset retrieval and private
+attestations. QA needs no distribution write token. Local maintainers need `gh` authenticated for
+the same read access. Application clients download the public archive anonymously; they do not need
+`gh`, source access or any token. Only the descriptor and owned Worker ship in the installer.
 
 Agent installation uses existing bounded streaming, Task Center progress, complete verification,
 atomic activation and OS file leases. Its namespace is
@@ -163,6 +171,9 @@ ordinary target and default profiles; shared-target builds are serialized.
 
 FFmpeg 9.0.2 remains one static executable plus notices and owned evidence. The Node producer uses
 pinned source archives, yauzl selected-entry extraction, native dependency checks and OS signing.
+FFmpeg is prepared directly on the development/packaging host and included in the app; it has
+no independent archive, descriptor, release or provisioning step. Production preparation requires
+approved license evidence and signs the actual executable before sealing its manifest.
 It rejects non-system dynamic dependencies, nonfree builds and missing subtitles/analysis/loudness/
 concatenation/platform encoder capabilities. Real libx264/AAC/loudness, subtitle, concat and PCM
 smokes run from relocated paths including Chinese characters. There is no Python media producer.
@@ -178,8 +189,8 @@ required only for retained Agent production and contract/build tools, never loca
 CI's single `setup-native-build` action installs the pinned Protobuf compiler and CMake, and selects
 the Windows runner's LLVM `libclang.dll` for bindgen. Missing compiler libraries fail the build
 before inference packaging. Quality runs the same `pnpm check:rust` entry as local development
-and compiles the desktop on all three supported targets; signing integration belongs to that
-workflow too. CI prepares supplier libraries once; Cargo gates or packaging build the worker
+and compiles the desktop on all three supported targets. Final signing/notarization
+verification belongs to the package command and runs before draft artifact upload. CI prepares supplier libraries once; Cargo gates or packaging build the worker
 in the required profile rather than first building a disposable debug worker.
 
 Packaging verifies the exact Agent source/descriptor payload and forbids bundled interpreters.
@@ -212,7 +223,8 @@ Manual QA uses the `runtime-qa` environment. Production signing steps, signing s
 notarization and candidate publication execute only for version-tag pushes in their protected
 release environments. Sharing build preparation does not grant the QA entry production authority.
 
-This workflow requires committed pnpm and Cargo lockfiles plus configured controlled bundled-runtime archive URLs/SHA-256 values for the runner architecture. It refuses to package if provisioning or verification fails.
+This workflow requires committed lockfiles, the selected attested Agent tag and the public
+distribution repository. It refuses to package if resource verification fails.
 
 ## Production packaging
 
@@ -227,7 +239,8 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all three supported release targets; promotion, target-platform upgrade acceptance and GitHub/COS migration are documented in `release.md`.
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package --release` validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The official Tauri action builds and uploads all three targets to a draft and generates the update
+manifest. Target-platform acceptance and manual GitHub publication are documented in `release.md`.
 
 ## Bundled Agent plugin content
 
