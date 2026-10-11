@@ -11,16 +11,14 @@ import { deriveImage } from "../../knowledge-derivations/image-operation";
 import { useImageSelectionSessionStore } from "../../knowledge-derivations/image-selection-session-store";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { useSpaceStore } from "../../session/space-store";
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const { t } = useI18n();
 const gate = useNodeOperationGate();
 const selection = useImageSelectionSessionStore();
-const space = useSpaceStore();
 const disabled = computed(() => !gate.allows("derive") || !props.node.data.sourceRevision);
 function depth() {
   if (!disabled.value)
-    void deriveImage(space, props.node, { kind: "generate-depth" }).catch((cause: unknown) =>
+    void deriveImage(props.node, { kind: "generate-depth" }).catch((cause: unknown) =>
       toast.error(getErrorMessage(cause)),
     );
 }

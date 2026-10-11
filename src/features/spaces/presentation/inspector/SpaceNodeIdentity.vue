@@ -10,7 +10,6 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { isSpaceNodeOpenable, openSpaceNode, selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { useSpaceStore } from "../../session/space-store";
 import { nodeIcon } from "../canvas/node-icon";
 import { useNodeDraft } from "./use-node-draft";
 
@@ -19,7 +18,6 @@ const props = defineProps<{
   saveTitle: (node: SpaceCanvasNode, value: string) => Promise<void>;
 }>();
 const { d, t } = useI18n();
-const store = useSpaceStore();
 const draft = shallowRef(props.node.data.title);
 const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
 const editing = shallowRef(false);
@@ -78,7 +76,7 @@ function cancel() {
 
 async function open() {
   try {
-    await openSpaceNode(store, props.node);
+    await openSpaceNode(props.node);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }

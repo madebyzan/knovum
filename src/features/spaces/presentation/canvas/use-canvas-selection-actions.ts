@@ -1,5 +1,4 @@
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 
 import type {
   CanvasAlignMode,
@@ -37,7 +36,6 @@ export function useCanvasSelectionActions() {
       snapshot: store.editSnapshot,
     }),
   );
-  const { t } = useI18n();
   const exportSelected = useCanvasNodeExport(state, selectedNodes);
   const visible = computed(
     () =>
@@ -52,9 +50,7 @@ export function useCanvasSelectionActions() {
     run: runSelectionMutation,
   });
   const structureActions = createCanvasStructureSelectionActions({
-    store,
     state,
-    titles: { group: t("spaces.canvas.groups.untitled"), section: t("spaces.canvas.sections.untitled") },
     run: runSelectionMutation,
   });
 
@@ -74,7 +70,7 @@ export function useCanvasSelectionActions() {
   function open() {
     const node = selectedNodes.value[0];
     const effect = node?.data.kind === "note" || node?.data.kind === "markdown" ? "edit" : "inspect";
-    runNodeOperation(effect, () => openSpaceNode(store, node));
+    runNodeOperation(effect, () => openSpaceNode(node));
   }
 
   function inspect() {

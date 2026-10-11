@@ -1,7 +1,10 @@
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { WorkspaceSidebarPresentation } from "../../../shared/contracts/workspace-sidebar";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import {
   canRenameStructureNode,
   dissolveGroupCapability,
@@ -9,22 +12,16 @@ import {
 } from "../structure/structure-capabilities";
 
 interface SpaceStructureCommandInput {
-  store: Pick<
-    ReturnType<typeof useSpaceStore>,
-    "editSnapshot" | "executeSpaceEdit" | "outlineRenameStructureNodeId"
-  >;
   selectedStructureNodeIds: () => string[];
-  t: (key: string) => string;
+
   sidebar: WorkspaceSidebarPresentation;
 }
 
-export function createSpaceStructureCommands({
-  store,
-  selectedStructureNodeIds,
-  t,
-  sidebar,
-}: SpaceStructureCommandInput): AppCommand[] {
-  return [
+export function useSpaceStructureCommands({ selectedStructureNodeIds, sidebar }: SpaceStructureCommandInput) {
+  const store = useSpaceStore();
+  const { t } = useI18n();
+
+  return computed<AppCommand[]>(() => [
     {
       id: "spaces.group-selection",
       title: t("spaces.canvas.groups.create"),
@@ -75,5 +72,5 @@ export function createSpaceStructureCommands({
         store.outlineRenameStructureNodeId = selectedStructureNodeIds()[0]!;
       },
     },
-  ];
+  ]);
 }

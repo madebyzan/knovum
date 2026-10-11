@@ -3,10 +3,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import type { useSpaceStore } from "../session/space-store";
 import { yieldToCanvas } from "./canvas-yield";
-
-type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpaceId">;
 
 interface DerivationTask {
   id?: string;
@@ -22,7 +19,7 @@ interface DerivationExecutionContext {
 }
 
 export interface RunDerivationOptions<Output> {
-  store: SpaceStore;
+  spaceId: string;
   pendingId: string;
   task: DerivationTask;
   failureMessageKey: string;
@@ -34,9 +31,7 @@ export interface RunDerivationOptions<Output> {
 export async function runDerivation<Output>(
   options: RunDerivationOptions<Output>,
 ): Promise<Output | undefined> {
-  const { store, pendingId, task, execute, onSuccess, onError, failureMessageKey } = options;
-  const spaceId = store.activeSpaceId;
-  if (!spaceId) return undefined;
+  const { spaceId, pendingId, task, execute, onSuccess, onError, failureMessageKey } = options;
 
   const tasks = useTaskStore();
   const taskId = tasks.start(task.title, task.statusMessage, task.cancel, task.id);

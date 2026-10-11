@@ -7,11 +7,13 @@ import type { RenderVideoEditRequest } from "../contracts/generated/RenderVideoE
 import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import type { useSpaceStore } from "../session/space-store";
 import { createVideoEditProject } from "../video-editing/project";
 import { renderVideoEdit } from "../video-editing/render";
 import { deferred } from "./support/canvas-fixtures";
 
 const mocks = vi.hoisted(() => ({
+  current: undefined as unknown,
   allocate: vi.fn<() => Promise<string>>(),
   invoke: vi.fn<(command: string, args?: InvokeArgs) => Promise<unknown>>(),
   logError: vi.fn<(message: string) => Promise<void>>(),
@@ -19,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   // oxfmt-ignore
   tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(taskId: string, progress: number, status?: string) => void>(), succeed: vi.fn<(taskId: string) => void>(), fail: vi.fn<(taskId: string, message: string) => void>(), dismiss: vi.fn<(taskId: string) => void>() },
 }));
+vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.current }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
 vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => mocks.tasks }));
@@ -35,25 +38,26 @@ const pending = { ...source, id: "output-node" };
 // oxfmt-ignore
 const project = createVideoEditProject({ sourceRevision: "source-revision", durationMs: 2_000, sourceWidth: 1080, sourceHeight: 1920 });
 
-function createStore(): Parameters<typeof renderVideoEdit>[0] {
-  return {
+function createStore() {
+  return (mocks.current = {
     activeSpaceId: "space-id",
     videoEditorNodeId: source.id,
     createPendingContentForSpace: vi
-      .fn<Parameters<typeof renderVideoEdit>[0]["createPendingContentForSpace"]>()
+      .fn<ReturnType<typeof useSpaceStore>["createPendingContentForSpace"]>()
       .mockResolvedValue([pending]),
-    finalizePendingContent: vi.fn<Parameters<typeof renderVideoEdit>[0]["finalizePendingContent"]>(),
-    applyNodeContentForSpace: vi.fn<Parameters<typeof renderVideoEdit>[0]["applyNodeContentForSpace"]>(),
+    finalizePendingContent: vi.fn<ReturnType<typeof useSpaceStore>["finalizePendingContent"]>(),
+    applyNodeContentForSpace: vi.fn<ReturnType<typeof useSpaceStore>["applyNodeContentForSpace"]>(),
     refreshActiveSpace: vi
-      .fn<Parameters<typeof renderVideoEdit>[0]["refreshActiveSpace"]>()
+      .fn<ReturnType<typeof useSpaceStore>["refreshActiveSpace"]>()
       .mockResolvedValue(undefined),
-    closeVideoEditor: vi.fn<Parameters<typeof renderVideoEdit>[0]["closeVideoEditor"]>(),
-    requestReveal: vi.fn<Parameters<typeof renderVideoEdit>[0]["requestReveal"]>(),
-  };
+    closeVideoEditor: vi.fn<ReturnType<typeof useSpaceStore>["closeVideoEditor"]>(),
+    requestReveal: vi.fn<ReturnType<typeof useSpaceStore>["requestReveal"]>(),
+  });
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  createStore();
   mocks.allocate.mockReset();
   mocks.allocate.mockResolvedValue("/assets/edited-reserved.mp4");
   mocks.invoke.mockReset();
@@ -91,7 +95,7 @@ describe("video render IPC boundary", () => {
         progress.onmessage({ stage: "renderingVideoEdit", progress: 45 } satisfies VideoEditProgress);
       return { nodeId: pending.id, data: source.data };
     });
-    await renderVideoEdit(store, source, project);
+    await renderVideoEdit(source, project);
     expect(store.createPendingContentForSpace).toHaveBeenCalledWith(
       "space-id",
       expect.objectContaining({
@@ -130,7 +134,7 @@ describe("video render IPC boundary", () => {
   ])("does not publish invalid render output: %j", async (completed) => {
     const store = createStore();
     mocks.invoke.mockResolvedValue(completed);
-    await renderVideoEdit(store, source, project);
+    await renderVideoEdit(source, project);
     expect(store.applyNodeContentForSpace).not.toHaveBeenCalled();
     expect(store.closeVideoEditor).not.toHaveBeenCalled();
     expect(mocks.tasks.succeed).not.toHaveBeenCalled();
@@ -140,7 +144,7 @@ describe("video render IPC boundary", () => {
 
   it("keeps cancellation in the video capability and dismisses the cancelled task", async () => {
     mocks.invoke.mockRejectedValueOnce({ code: "video_edit_render_cancelled", message: "Cancelled" });
-    await renderVideoEdit(createStore(), source, project);
+    await renderVideoEdit(source, project);
     expect(mocks.tasks.dismiss).toHaveBeenCalledWith("task-id");
     expect(mocks.toastError).not.toHaveBeenCalled();
     mocks.invoke.mockResolvedValueOnce(undefined);
@@ -157,7 +161,7 @@ describe("video render IPC boundary", () => {
     const store = createStore();
     vi.mocked(store.refreshActiveSpace).mockRejectedValueOnce(new Error("Refresh failed"));
     mocks.invoke.mockResolvedValueOnce({ nodeId: pending.id, data: source.data });
-    await expect(renderVideoEdit(store, source, project)).resolves.toBeUndefined();
+    await expect(renderVideoEdit(source, project)).resolves.toBeUndefined();
     expect(mocks.tasks.succeed).toHaveBeenCalledWith("task-id");
     expect(mocks.tasks.fail).not.toHaveBeenCalled();
     expect(mocks.logError).toHaveBeenCalledWith(expect.stringContaining("Refresh failed"));
@@ -168,11 +172,12 @@ describe("video render IPC boundary", () => {
     mocks.allocate.mockReturnValueOnce(allocation.promise);
     mocks.invoke.mockResolvedValueOnce({ nodeId: pending.id, data: source.data });
     const store = createStore();
-    const rendering = renderVideoEdit(store, source, project);
+    const rendering = renderVideoEdit(source, project);
     await vi.waitFor(() => expect(mocks.allocate).toHaveBeenCalledOnce());
 
     store.activeSpaceId = "space-b";
     store.videoEditorNodeId = "new-source";
+    const newerStore = createStore();
     allocation.resolve("/assets/edited-reserved.mp4");
     await rendering;
 
@@ -182,6 +187,7 @@ describe("video render IPC boundary", () => {
     );
     expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
     expect(store.refreshActiveSpace).not.toHaveBeenCalled();
+    expect(newerStore.refreshActiveSpace).not.toHaveBeenCalled();
     expect(store.closeVideoEditor).not.toHaveBeenCalled();
     expect(store.requestReveal).not.toHaveBeenCalled();
   });

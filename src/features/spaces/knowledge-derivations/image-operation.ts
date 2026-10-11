@@ -5,7 +5,8 @@ import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
 import type { ImageOperationTargetOption } from "../contracts/generated/ImageOperationTargetOption";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { startDerivationAction, type DerivationActionStore } from "./start-action";
+import { useSpaceStore } from "../session/space-store";
+import { startDerivationAction } from "./start-action";
 
 export function getImageOperationCapabilities() {
   return invokeCommand<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
@@ -72,18 +73,20 @@ export function selectedImageTarget(targets: readonly ImageOperationTargetOption
 }
 
 export async function deriveImage(
-  store: DerivationActionStore,
   source: SpaceCanvasNode,
   operation: ImageOperation,
   options: { onOutputCreated?: () => void; execution?: ImageExecutionTarget | undefined } = {},
 ) {
+  const store = useSpaceStore();
+  const spaceId = store.activeSpaceId;
+  if (!spaceId) return;
   if (source.data.kind !== "image" || !source.data.knowledgeRevision)
     throw new Error("Image source revision is unavailable");
   const target = options.execution ?? (await defaultImageTarget(operation));
+  if (store.activeSpaceId !== spaceId) throw new Error("Image derivation target Space changed");
   const title =
     `${source.data.title} · ${i18n.global.t(IMAGE_OPERATION_CONFIG[operation.kind].resultKey)}`.slice(0, 512);
   const run = await startDerivationAction({
-    store,
     actionId: IMAGE_OPERATION_CONFIG[operation.kind].actionId,
     sources: [
       {

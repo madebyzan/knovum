@@ -1,5 +1,4 @@
 import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
 
 import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
@@ -21,7 +20,6 @@ export function useImageNodeBarState(
   derivations: Readonly<Ref<CreationIntentDecisions>>,
   invokeBackgroundRemoval: () => void,
 ) {
-  const { t } = useI18n();
   const session = useImageEditSessionStore();
   const imageDimensions = useImageSourceDimensionsStore();
   const imageSelection = useImageSelectionSessionStore();
@@ -39,7 +37,7 @@ export function useImageNodeBarState(
     if (!canRunAction(decision)) return { state: "hidden" as const };
     return availableWhen(!session.active && !removal.active && !commenting.value, "finish_image_edit");
   });
-  const directReason = computed(() => imageActionHelp(directAvailability.value, t)?.label ?? "");
+  const directReason = computed(() => imageActionHelp(directAvailability.value)?.label ?? "");
   const dimensionsReady = computed(() => {
     const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
     return Boolean(
@@ -54,7 +52,7 @@ export function useImageNodeBarState(
       busy: removal.submitting,
     }),
   );
-  const removalReason = computed(() => imageActionHelp(removalAvailability.value, t)?.label ?? "");
+  const removalReason = computed(() => imageActionHelp(removalAvailability.value)?.label ?? "");
 
   function beginTool(tool: ImageEditTool) {
     if (

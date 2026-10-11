@@ -3,12 +3,12 @@ import type { McpConnection } from "../../../shared/contracts/generated/McpConne
 import type { McpResourceContent } from "../../../shared/contracts/generated/McpResourceContent";
 import type { McpResourceSelection } from "../../../shared/contracts/generated/McpResourceSelection";
 import type { PreparedMcpResourceImport } from "../contracts/generated/PreparedMcpResourceImport";
-import { spaceImportContext, type SpaceImportStore } from "./import-context";
+import { useSpaceStore } from "../session/space-store";
+import { spaceImportContext } from "./import-context";
 import type { SpaceImportSessionLabels } from "./import-contract";
 import { importSpaceSource } from "./import-session";
 
 interface McpResourceImportInput {
-  store: SpaceImportStore & { nextInsertionPoint(): { x: number; y: number } };
   connection: McpConnection;
   selection: McpResourceSelection;
   content: McpResourceContent;
@@ -16,9 +16,12 @@ interface McpResourceImportInput {
   labels: SpaceImportSessionLabels;
 }
 export async function importMcpResource(input: McpResourceImportInput) {
-  const { store, connection, selection, content, contentIndex, labels } = input;
+  const store = useSpaceStore();
+  const context = spaceImportContext();
+  const { connection, selection, content, contentIndex, labels } = input;
   const spaceId = store.activeSpaceId;
   if (!spaceId) throw new Error("Space is required for a resource import");
+  const position = store.nextInsertionPoint();
   const staged = await invokeCommand<PreparedMcpResourceImport>("plugin:spaces|stage_mcp_resource_import", {
     connectionId: connection.id,
     revision: connection.revision,
@@ -28,9 +31,9 @@ export async function importMcpResource(input: McpResourceImportInput) {
     contentIndex,
   });
   return importSpaceSource({
-    context: spaceImportContext(store),
+    context,
     spaceId,
-    position: store.nextInsertionPoint(),
+    position,
     labels,
     source: {
       externalSource: staged.externalSource,

@@ -2,13 +2,7 @@ import { differenceBy } from "es-toolkit";
 
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
-import type { useSpaceStore } from "../session/space-store";
-
-type Store = ReturnType<typeof useSpaceStore>;
-type DerivationOutputStore = Pick<
-  Store,
-  "activeSpaceId" | "applyNodeContentForSpace" | "relations" | "requestReveal"
->;
+import { useSpaceStore } from "../session/space-store";
 
 interface DerivationOutput {
   spaceId: string;
@@ -17,7 +11,9 @@ interface DerivationOutput {
   relations: readonly SpaceRelation[];
 }
 
-export function applyDerivationOutput(store: DerivationOutputStore, output: DerivationOutput) {
+export function applyDerivationOutput(output: DerivationOutput) {
+  const store = useSpaceStore();
+
   if (store.activeSpaceId !== output.spaceId) return false;
   store.applyNodeContentForSpace(output.spaceId, output.nodeId, output.data);
   store.relations = [...store.relations, ...differenceBy(output.relations, store.relations, ({ id }) => id)];

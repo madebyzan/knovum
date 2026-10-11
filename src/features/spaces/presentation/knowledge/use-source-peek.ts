@@ -67,7 +67,6 @@ export function useSourcePeek() {
     if (!target) return;
     try {
       await createSourceEvidence({
-        store,
         target,
         title: t("spaces.inspector.excerpts.title", { title: target.nodeTitle }),
         sourceLine: t("spaces.inspector.excerpts.line", {

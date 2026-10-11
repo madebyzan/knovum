@@ -47,8 +47,16 @@ export async function prepareSpaceImportSource(
     statusMessage: labels.preparing,
     startedAt: Date.now(),
   });
-  const prepared = await prepareImportSource(source, sourceAccess, tasks, taskId);
-  return { source, prepared, taskId };
+  try {
+    const prepared = await (typeof source === "string"
+      ? prepareSpaceAssetImport(source, sourceAccess)
+      : source.prepare());
+    tasks.title(taskId, prepared.asset.name);
+    return { source, prepared, taskId };
+  } catch (error) {
+    tasks.fail(taskId, getErrorMessage(error));
+    throw error;
+  }
 }
 
 interface PreparedSpaceImportInput {
@@ -72,24 +80,6 @@ export async function commitPreparedSpaceImport(input: PreparedSpaceImportInput)
   }
   await disposeCommittedSource(source);
   return nodes;
-}
-
-async function prepareImportSource(
-  source: SpaceImportSource,
-  sourceAccess: SpaceImportSourceAccess,
-  tasks: ReturnType<typeof useTaskStore>,
-  taskId: string,
-) {
-  try {
-    const prepared = await (typeof source === "string"
-      ? prepareSpaceAssetImport(source, sourceAccess)
-      : source.prepare());
-    tasks.title(taskId, prepared.asset.name);
-    return prepared;
-  } catch (error) {
-    tasks.fail(taskId, getErrorMessage(error));
-    throw error;
-  }
 }
 
 async function finalizePreparedImport(options: CommitManagedImportOptions) {

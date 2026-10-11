@@ -1,4 +1,5 @@
-import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
+import { i18n } from "../../../../foundation/i18n/instance";
+import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasHostEvents } from "../../canvas/contracts/canvas-editor";
 import type { CanvasEditorPort } from "../../canvas/contracts/canvas-editor-port";
 import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from "../../canvas/editor-session";
@@ -6,7 +7,7 @@ import type { useNodeOperationGate } from "../../canvas/use-node-operation-gate"
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import type { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
-import type { useSpaceStore } from "../../session/space-store";
+import { useSpaceStore } from "../../session/space-store";
 import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates";
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import type { useSpaceCanvasImports } from "./use-space-canvas-imports";
@@ -20,13 +21,13 @@ interface SpaceCanvasEventOptions {
   operations: ReturnType<typeof useNodeOperationGate>;
   reportError(error: unknown): void;
   selection: ReturnType<typeof createCanvasSelectionActions>;
-  store: ReturnType<typeof useSpaceStore>;
-  tools: ReturnType<typeof useCanvasToolStore>;
-  untitledSection: string;
 }
 
 export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): CanvasHostEvents {
-  const { store, operations } = options;
+  const store = useSpaceStore();
+  const tools = useCanvasToolStore();
+
+  const { operations } = options;
   return {
     onCreateTextNode: (kind, point) =>
       operations.allowsGestureCommit() ? options.createTextNode(kind, point) : Promise.resolve(undefined),
@@ -35,11 +36,11 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
       await store.executeSpaceEdit({
         kind: "section.draw",
         sectionId: crypto.randomUUID(),
-        title: options.untitledSection,
+        title: i18n.global.t("spaces.canvas.sections.untitled"),
         frame,
         containedRootIds: sectionDrawCandidateIds(store.editSnapshot, frame),
       });
-      options.tools.resetTool();
+      tools.resetTool();
     },
     onExecuteSpaceEdit: (command) =>
       operations.allowsGestureCommit() ? store.executeSpaceEdit(command) : Promise.resolve(),

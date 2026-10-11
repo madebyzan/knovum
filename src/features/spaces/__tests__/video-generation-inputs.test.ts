@@ -1,7 +1,6 @@
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { afterEach, expect, it, vi } from "vitest";
-
-import type { useSpaceStore } from "../session/space-store";
+vi.mock("../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));
 const observed = vi.hoisted(() => vi.fn<(...args: unknown[]) => void>());
 vi.mock("../runs/resource-run-observation", () => ({ observeResourceRun: observed }));
 vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -18,7 +17,6 @@ it("generates video directly from selected knowledge with only its explicit exec
     return { id: "video-run" };
   });
   await generateVideoFromSources({
-    store: { activeSpaceId: "space" } as ReturnType<typeof useSpaceStore>,
     sources: [{ nodeId: "note", role: "primary", sourceRevision: "knowledge:1", title: "Idea" }],
     draft: {
       title: "Video",

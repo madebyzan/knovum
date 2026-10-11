@@ -9,14 +9,12 @@ import type { McpResourceSelection } from "../../../../shared/contracts/generate
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { importMcpResource } from "../../assets/mcp-resource-import";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
-import { useSpaceStore } from "../../session/space-store";
 const props = defineProps<{
   connection: McpConnection;
   catalogDigest: string;
   selection: McpResourceSelection;
   disabled: boolean;
 }>();
-const store = useSpaceStore();
 const gate = useNodeOperationGate();
 const { t } = useI18n();
 const reading = useMutation({
@@ -27,7 +25,6 @@ const importing = useMutation({
   mutationFn: (index: number) => {
     if (!gate.allows("create")) throw new Error(t("spaces.conversation.extensionResources.readOnly"));
     return importMcpResource({
-      store,
       connection: props.connection,
       selection: props.selection,
       content: reading.data.value!,

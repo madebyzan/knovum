@@ -10,18 +10,16 @@ import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor } from "../model/structure/structure-queries";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import { getCanvasEditorSession } from "./editor-session";
 
 export async function copySpaceSelectionToClipboard(payload: SpaceClipboardPayload) {
   await writeSpaceClipboardDirect(payload);
 }
 
-export async function pasteSpaceClipboardAt(
-  store: ReturnType<typeof useSpaceStore>,
-  point: { x: number; y: number },
-  html: string | null,
-) {
+export async function pasteSpaceClipboardAt(point: { x: number; y: number }, html: string | null) {
+  const store = useSpaceStore();
+
   if (html) {
     const payload = readSpaceClipboardHtml(html);
     if (!payload) return false;
@@ -47,29 +45,32 @@ export async function pasteSpaceClipboardAt(
   return false;
 }
 
-type OpenHandler = (store: ReturnType<typeof useSpaceStore>, node: SpaceCanvasNode) => void | Promise<void>;
+type OpenHandler = (node: SpaceCanvasNode) => void | Promise<void>;
 
-function openEditorNode(store: ReturnType<typeof useSpaceStore>, node: SpaceCanvasNode) {
+function openEditorNode(node: SpaceCanvasNode) {
+  const store = useSpaceStore();
   store.focusedEditorId = node.id;
 }
 
 const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {
   note: openEditorNode,
   markdown: openEditorNode,
-  website: (_, node) => {
+  website: (node) => {
     if (node.data.kind === "website" && node.data.url) return openUrl(node.data.url);
   },
-  portal: (store, node) => {
+  portal: (node) => {
     if (node.data.kind !== "portal") return;
-    return openPortalNode(store, node.data);
+    return openPortalNode(node.data);
   },
 };
 
-export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, node?: SpaceCanvasNode) {
+export async function openSpaceNode(node?: SpaceCanvasNode) {
+  const store = useSpaceStore();
+
   if (!node || !isSpaceNodeOpenable(node)) return;
   const handler = OPEN_HANDLERS[node.data.kind];
   if (handler) {
-    await handler(store, node);
+    await handler(node);
     return;
   }
   if (node.data.kind === "image") {
@@ -91,10 +92,8 @@ export function selectAndRevealSpaceNode(nodeId: string, mode: "focus" | "ensure
   getCanvasEditorSession().reveal([nodeId], mode);
 }
 
-async function openPortalNode(
-  store: ReturnType<typeof useSpaceStore>,
-  target: Extract<SpaceCanvasNode["data"], { kind: "portal" }>,
-) {
+async function openPortalNode(target: Extract<SpaceCanvasNode["data"], { kind: "portal" }>) {
+  const store = useSpaceStore();
   const {
     targetSpaceId: spaceId,
     targetSceneId: sceneId,

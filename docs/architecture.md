@@ -109,6 +109,17 @@ containers do not create architecture boundaries. Use Vue, Reka, VueUse, TanStac
 plugins, and other selected vendor APIs directly unless a local boundary owns Knovum policy,
 validation, security, domain translation, or real multi-API orchestration.
 
+Business consumers obtain Router, Pinia stores, vue-i18n and TanStack Query at their owning entry point;
+do not relay whole framework instances through business composables. Composables encapsulate reactive
+state and effects; injection and lifecycle APIs run synchronously during component setup. Ordinary
+business functions may use the installed Pinia context or owning application instances. Pure model
+functions receive data and labels. Keep store initialization and other effects out of computed getters.
+Async operations retain the dependencies obtained at entry; once a business target is chosen, capture
+its ID and data before later awaits and retain them in internal callbacks. Composition and lifecycle
+entry points may receive explicit framework contexts to install, bootstrap or restore the application.
+Business inputs, pure model data and cross-owner operations remain explicit contracts. Store
+construction receives its own state and actions rather than recursively resolving itself.
+
 Use `cloneDeep` from the existing `es-toolkit` dependency for independent editable copies of
 repository-owned data, including Vue reactive data. Do not add a clone wrapper or use serialization
 as cloning. Built-in `structuredClone` remains appropriate when platform structured-clone semantics

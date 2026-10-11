@@ -6,7 +6,6 @@ import type { AgentExtensionSelection } from "../../../shared/contracts/generate
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 import { createConversationDraftSession } from "./conversation-draft-session";
-import { useConversationDraftStore } from "./conversation-draft-store";
 
 interface ConversationDraftPersistenceInput {
   spaceId: Ref<string | undefined>;
@@ -20,7 +19,6 @@ export function useConversationDraftPersistence(input: ConversationDraftPersiste
   const reacquireFileNames = shallowRef<string[]>([]);
   const error = shallowRef<string>();
   const session = createConversationDraftSession({
-    drafts: useConversationDraftStore(),
     spaceId: input.spaceId,
     selectedConversationId: input.conversationId,
     prompt: input.prompt,

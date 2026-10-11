@@ -75,7 +75,7 @@ const UPSCALE_SIZES = [2048, 4096, 8192] as const;
     <UiTooltip
       v-for="size in UPSCALE_SIZES"
       :key="size"
-      :text="imageActionHelp(optionAvailability(size), t)?.label ?? ''"
+      :text="imageActionHelp(optionAvailability(size))?.label ?? ''"
       :disabled="canRunAction(optionAvailability(size))"
       side="right"
     >

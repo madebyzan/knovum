@@ -6,13 +6,10 @@ import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTarg
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { StartSpaceActionRequest } from "../contracts/generated/StartSpaceActionRequest";
 import { observeResourceRun } from "../runs/resource-run-observation";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
 
-export type DerivationActionStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpaceId">;
-
 interface StartActionOptions {
-  store: DerivationActionStore;
   actionId: string;
   sources: readonly GroundedDocumentSource[];
   parameters: Record<string, unknown>;
@@ -21,13 +18,14 @@ interface StartActionOptions {
 }
 
 export async function startDerivationAction({
-  store,
   actionId,
   sources,
   parameters,
   title,
   target,
 }: StartActionOptions) {
+  const store = useSpaceStore();
+
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
   const request: StartSpaceActionRequest = {

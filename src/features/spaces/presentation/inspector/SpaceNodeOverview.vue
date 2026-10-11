@@ -9,12 +9,10 @@ import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { truncateUtf16 } from "../../model/text";
-import { useSpaceStore } from "../../session/space-store";
 import SpaceVisualAnalysis from "./SpaceVisualAnalysis.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
-const store = useSpaceStore();
 const preview = computed(() => spaceCanvasOverviewSource(props.node.data));
 const visual = computed(() => props.node.data.kind === "image" || props.node.data.kind === "video");
 const excerpt = computed(() => {
@@ -32,7 +30,7 @@ const duration = computed(() => {
 
 async function openPreview() {
   try {
-    await openSpaceNode(store, props.node);
+    await openSpaceNode(props.node);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }

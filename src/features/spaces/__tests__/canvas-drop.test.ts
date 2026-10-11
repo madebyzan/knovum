@@ -5,19 +5,21 @@ import { importDroppedFiles } from "../canvas/drop";
 import { createSpaceNode } from "../canvas/node";
 
 const mocks = vi.hoisted(() => ({
+  current: undefined as unknown,
   importSpaceBatch: vi.fn<typeof importSpaceBatch>(),
   spaceImportContext: vi.fn<() => object>(() => ({})),
 }));
 
+vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.current }));
 vi.mock("../assets/import-batch", () => ({ importSpaceBatch: mocks.importSpaceBatch }));
 vi.mock("../assets/import-context", () => ({ spaceImportContext: mocks.spaceImportContext }));
 
 function store() {
-  return {
+  return (mocks.current = {
     activeSpaceId: "space-a",
     focusedEditorId: undefined,
     requestReveal: vi.fn<(ids: readonly string[]) => void>(),
-  };
+  });
 }
 
 describe("canvas file drop", () => {
@@ -37,10 +39,13 @@ describe("canvas file drop", () => {
     ]);
 
     await expect(
-      importDroppedFiles({ paths: ["/one.pdf", "/two.pdf"], position: { x: 0, y: 0 } }, current as never, {
-        x: 80,
-        y: 120,
-      }),
+      importDroppedFiles(
+        { paths: ["/one.pdf", "/two.pdf"], position: { x: 0, y: 0 } },
+        {
+          x: 80,
+          y: 120,
+        },
+      ),
     ).rejects.toBe(failure);
     expect(current.requestReveal).toHaveBeenCalledWith(["node-one"]);
   });
@@ -50,10 +55,13 @@ describe("canvas file drop", () => {
     mocks.importSpaceBatch.mockResolvedValue([{ status: "cancelled", key: "/one.pdf" }]);
 
     await expect(
-      importDroppedFiles({ paths: ["/one.pdf"], position: { x: 0, y: 0 } }, current as never, {
-        x: 80,
-        y: 120,
-      }),
+      importDroppedFiles(
+        { paths: ["/one.pdf"], position: { x: 0, y: 0 } },
+        {
+          x: 80,
+          y: 120,
+        },
+      ),
     ).resolves.toBeUndefined();
     expect(current.requestReveal).not.toHaveBeenCalled();
   });

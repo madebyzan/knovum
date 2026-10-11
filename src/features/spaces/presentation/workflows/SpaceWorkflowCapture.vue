@@ -46,7 +46,7 @@ function issueText(reason: CaptureIssueReason) {
 }
 
 function actionText(actionId: string) {
-  return captureActionLabel(actionId, t);
+  return captureActionLabel(actionId);
 }
 </script>
 

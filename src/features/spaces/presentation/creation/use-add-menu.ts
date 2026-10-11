@@ -59,7 +59,7 @@ export function useAddMenu() {
   async function importFromPicker() {
     if (!store.activeSpaceId || !operations.allows("create")) return;
     try {
-      await importSpaceFromPicker(store, {
+      await importSpaceFromPicker({
         title: t("spaces.importExport.progress.resource"),
         preparing: t("spaces.importExport.progress.preparing"),
       });

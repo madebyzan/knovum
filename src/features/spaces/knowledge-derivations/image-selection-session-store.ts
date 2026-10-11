@@ -129,7 +129,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     if (!node) return;
     submitting.value = true;
     try {
-      const run = await deriveImageSelection(space, node, {
+      const run = await deriveImageSelection(node, {
         selection: current.selection,
         execution: current.execution,
         effect,

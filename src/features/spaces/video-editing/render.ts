@@ -16,30 +16,16 @@ import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import type { VideoEditProject } from "./project";
 
 const videoEditProgressSchema: z.ZodType<VideoEditProgress> = z
   .object({ stage: z.string().min(1), progress: z.number().int().min(0).max(100) })
   .strict();
 
-type VideoEditStore = Pick<
-  ReturnType<typeof useSpaceStore>,
-  | "activeSpaceId"
-  | "videoEditorNodeId"
-  | "createPendingContentForSpace"
-  | "finalizePendingContent"
-  | "applyNodeContentForSpace"
-  | "refreshActiveSpace"
-  | "closeVideoEditor"
-  | "requestReveal"
->;
-
-export async function renderVideoEdit(
-  store: VideoEditStore,
-  source: SpaceCanvasNode<SpaceVideoPayload>,
-  project: VideoEditProject,
-) {
+export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>, project: VideoEditProject) {
+  const store = useSpaceStore();
+  const tasks = useTaskStore();
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
@@ -66,7 +52,6 @@ export async function renderVideoEdit(
   if (!pending) throw new Error("Could not create the edited video output");
   store.finalizePendingContent(spaceId, [pending], false);
   const derivationId = crypto.randomUUID();
-  const tasks = useTaskStore();
   const cancel = () => invokeCommand<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
   const taskId = tasks.start(
     i18n.global.t("spaces.media.videoEditor.render.task"),
@@ -93,7 +78,7 @@ export async function renderVideoEdit(
     pending.data = videoPayload;
     store.applyNodeContentForSpace(spaceId, completed.nodeId, videoPayload);
     tasks.succeed(taskId);
-    await refreshOriginSpace(store, spaceId);
+    await refreshOriginSpace();
     if (store.activeSpaceId === spaceId && store.videoEditorNodeId === source.id) {
       store.closeVideoEditor();
       store.requestReveal([completed.nodeId], "ensure-visible");
@@ -104,7 +89,16 @@ export async function renderVideoEdit(
       tasks.fail(taskId, getErrorMessage(error));
       toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     }
-    await refreshOriginSpace(store, spaceId);
+    await refreshOriginSpace();
+  }
+
+  async function refreshOriginSpace() {
+    if (store.activeSpaceId !== spaceId) return;
+    try {
+      await store.refreshActiveSpace();
+    } catch (error) {
+      void logError(`Video edit Space refresh failed: ${formatErrorDiagnostic(error)}`);
+    }
   }
 }
 
@@ -113,15 +107,6 @@ function validateCompletedVideoPayload(completed: CompletedDerivationOutput, pen
   const payload = validateSpaceNodePayload(completed.data);
   if (payload.kind !== "video") throw new Error("Video render returned non-video content");
   return payload;
-}
-
-async function refreshOriginSpace(store: VideoEditStore, spaceId: string) {
-  if (store.activeSpaceId !== spaceId) return;
-  try {
-    await store.refreshActiveSpace();
-  } catch (error) {
-    void logError(`Video edit Space refresh failed: ${formatErrorDiagnostic(error)}`);
-  }
 }
 
 function editedName(value: string) {

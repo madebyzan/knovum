@@ -25,7 +25,7 @@ it("settles a failed task even if output recovery fails", async () => {
   const onError = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("Recovery failed"));
   await expect(
     runDerivation({
-      store: { activeSpaceId: "space" },
+      spaceId: "space",
       pendingId: "output",
       task: { title: "Derive" },
       failureMessageKey: "derivation.failed",
@@ -51,7 +51,7 @@ it("does not run failure recovery after a committed output has a projection erro
   const onError = vi.fn<() => Promise<void>>();
   await expect(
     runDerivation({
-      store: { activeSpaceId: "space" },
+      spaceId: "space",
       pendingId: "output",
       task: { title: "Derive" },
       failureMessageKey: "derivation.failed",

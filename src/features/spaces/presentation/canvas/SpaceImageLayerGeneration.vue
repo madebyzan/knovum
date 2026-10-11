@@ -15,7 +15,6 @@ import { generateImageLayers } from "../../knowledge-derivations/image-layers";
 import { useImageLayerAvailability } from "../../knowledge-derivations/use-image-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { useSpaceStore } from "../../session/space-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionAvailability, promptedLayerAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
@@ -24,7 +23,6 @@ import SpaceImageCustomLayerForm from "./SpaceImageCustomLayerForm.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload>; compact?: boolean; open: boolean }>();
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
-const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
 const { t } = useI18n();
 const router = useRouter();
@@ -47,10 +45,10 @@ const availability = computed(() =>
     busy: busy.value,
   }),
 );
-const help = computed(() => imageActionHelp(availability.value, t));
+const help = computed(() => imageActionHelp(availability.value));
 const canSubmit = computed(() => canRunAction(availability.value));
 const customAvailability = computed(() => promptedLayerAvailability(availability.value, prompt.value));
-const customHelp = computed(() => imageActionHelp(customAvailability.value, t));
+const customHelp = computed(() => imageActionHelp(customAvailability.value));
 
 async function submit(mode: "automatic" | "custom") {
   if (busy.value || !nodeOperations.allows("derive") || !canSubmit.value) return;
@@ -58,7 +56,7 @@ async function submit(mode: "automatic" | "custom") {
   setOpen(false);
   busy.value = true;
   try {
-    await generateImageLayers(store, props.node, 4, mode === "custom" ? prompt.value : undefined);
+    await generateImageLayers(props.node, 4, mode === "custom" ? prompt.value : undefined);
   } catch (error) {
     toast.error(getErrorMessage(error));
   } finally {

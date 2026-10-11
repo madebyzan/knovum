@@ -22,7 +22,7 @@ function addNote() {
 async function importFile() {
   if (!operations.allows("create")) return;
   try {
-    await importSpaceFromPicker(store, {
+    await importSpaceFromPicker({
       title: t("spaces.importExport.progress.resource"),
       preparing: t("spaces.importExport.progress.preparing"),
     });

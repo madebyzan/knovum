@@ -98,7 +98,7 @@ export const useImageRemovalSessionStore = defineStore("spaces-image-removal-ses
     submitting.value = true;
     let outputCreated = false;
     try {
-      await deriveImage(space, node, operation, {
+      await deriveImage(node, operation, {
         onOutputCreated: () => {
           outputCreated = true;
           if (active.value === current) active.value = undefined;

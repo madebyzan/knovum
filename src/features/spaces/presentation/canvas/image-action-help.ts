@@ -1,6 +1,6 @@
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { ImageActionAvailability, ImageActionReason } from "./image-action-availability";
 
-type Translate = (key: string) => string;
 export interface ImageActionHelp {
   label: string;
   actionLabel?: string | undefined;
@@ -20,10 +20,9 @@ const REASON_KEYS: Record<ImageActionReason, string> = {
   prompt_required: "spaces.media.imageEditor.layers.promptRequired",
 };
 
-export function imageActionHelp(
-  availability: ImageActionAvailability,
-  t: Translate,
-): ImageActionHelp | undefined {
+export function imageActionHelp(availability: ImageActionAvailability): ImageActionHelp | undefined {
+  const t = i18n.global.t;
+
   if (availability.state === "ready" || availability.state === "hidden") return undefined;
   if (availability.state === "checking")
     return { label: t("spaces.media.imageEditor.status.capabilityChecking") };

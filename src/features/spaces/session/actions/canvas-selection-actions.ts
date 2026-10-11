@@ -1,11 +1,11 @@
 import type { CanvasNodePlacement } from "../../canvas/contracts/canvas-editor-port";
 import { copySpaceSelectionToClipboard } from "../../canvas/selection-actions";
 import { createSpaceClipboardPayload } from "../../clipboard/payload";
-import type { useSpaceStore } from "../space-store";
+import { useSpaceStore } from "../space-store";
 
-type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "editSnapshot" | "nodes" | "relations">;
+export function createCanvasSelectionActions() {
+  const store = useSpaceStore();
 
-export function createCanvasSelectionActions(store: SpaceStore) {
   function clipboardPayload(nodeIds: readonly string[]) {
     const structureNodeIds = new Set(store.editSnapshot.structure.map(({ id }) => id));
     const structureNodeIdByContentId = new Map(

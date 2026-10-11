@@ -1,6 +1,6 @@
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { DocumentFormat } from "../catalog/creation-intent";
-import { startDerivationAction, type DerivationActionStore } from "../start-action";
+import { startDerivationAction } from "../start-action";
 import type { DocumentConversionSource } from "./conversion-source";
 const RUN_TITLE_KEY_BY_FORMAT: Record<DocumentFormat, string> = {
   docx: "spaces.creation.document.conversion.tasks.docx",
@@ -11,14 +11,12 @@ const RUN_TITLE_KEY_BY_FORMAT: Record<DocumentFormat, string> = {
 };
 
 interface DocumentConversionOptions {
-  store: DerivationActionStore;
   source: DocumentConversionSource;
   format: DocumentFormat;
 }
 
-export function convertDocument({ store, source, format }: DocumentConversionOptions) {
+export function convertDocument({ source, format }: DocumentConversionOptions) {
   return startDerivationAction({
-    store,
     sources: [
       {
         nodeId: source.id,
