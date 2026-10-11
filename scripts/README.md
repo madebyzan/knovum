@@ -14,8 +14,6 @@ public commands and handwritten duplicate schemas. Test fixtures are not develop
 
 - `contracts:generate` / `contracts:check`: Rust-owned TS/Agent contracts and drift checks.
 - `e2e`: the isolated desktop test flavor.
-- `inference:acceptance`: offline evidence scoring with shared strict Zod contracts. Real
-  inference remains in the Rust worker.
 - `runtime:prepare`, `runtime:build`, `runtime:provision`: the retained Agent and controlled
   resource supply. These serve explicit resource preparation and release workflows. The installed
   product consumes finished resources and never invokes repository producers or uv/pip.
@@ -30,9 +28,14 @@ public commands and handwritten duplicate schemas. Test fixtures are not develop
 | `promote-update.yml`    | Explicit promotion of a verified candidate.                                                        |
 
 `desktop/` owns desktop preflight and resource assembly; `runtime/` owns controlled resource
-production and verification; `inference/` owns offline qualification; `release/` owns distribution
-policy; `checks/` owns source gates. Each owner's `__tests__/` contains its regressions.
+production and verification; `release/` owns distribution policy; `checks/` contains only
+capability policy, contract drift and the retained two-environment Python checks.
+Each owner's `__tests__/` contains its regressions.
 `pnpm check:scripts` discovers Node tests; `check:python` covers retained Python tooling.
+
+Model qualification uses actual engine tests and reviewed measurements. There is no separate
+repository scoring CLI, corpus schema or synthetic qualification fixture collection. Naming and
+directory conventions stay in review; do not add custom scanners that duplicate language tooling.
 
 Exact supply, signing and platform obligations belong to [packaging](../docs/packaging.md)
 and [release](../docs/release.md), rather than a separate tooling contract.

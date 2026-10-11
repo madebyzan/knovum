@@ -46,8 +46,9 @@ The Cargo workspace contains the Tauri host, `inference-contracts` and `inferenc
 contracts crate depends on serialization/schema tooling only. The worker imports those contracts and
 maintained execution libraries; it never imports the host or feature storage. The host imports the
 contracts and manages the private process. Engine-specific adapters remain inside the worker.
-Node build and qualification tooling belongs to `scripts/runtime` and `scripts/inference`; Python
-source and generated Python contracts belong exclusively to the retained Deep Agent.
+Node resource-build tooling belongs to `scripts/runtime`; model measurements remain validation
+evidence rather than a second tool subsystem. Python source and generated Python contracts belong
+exclusively to the retained Deep Agent.
 
 ## Ownership
 
@@ -366,14 +367,14 @@ direction.
 
 The repository enforces these boundaries through:
 
-- `pnpm check:web`: TypeScript checks, Oxlint, source-layout policy tests, dependency-cruiser,
+- `pnpm check:web`: TypeScript checks, Oxlint, dependency-cruiser,
   frontend tests, Knip, frontend duplication checks, and Oxfmt;
-- `pnpm check:rust`: Rust source-layout, structured capability policy, rustfmt, Clippy, Rust tests and Rust duplication checks;
-- `pnpm check:python`: Python source-layout, lint/type checks and application/tooling tests;
-- `pnpm check:scripts`: tooling/documentation source-layout and all owned Node script unit tests, discovered from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
+- `pnpm check:rust`: structured capability policy, rustfmt, Clippy, Rust tests and Rust duplication checks;
+- `pnpm check:python`: Ruff, Mypy and retained Agent/tooling tests;
+- `pnpm check:scripts`: owned Node script unit tests discovered by Node itself from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
 - `pnpm check`: all four groups;
 - `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
-- `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including Model Resources Python constraints.
+- `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including the native worker schema and retained Agent contracts.
 
 Add or change an owner only with matching dependency rules and focused tests. Do not weaken a gate
 to admit a boundary violation; repair the ownership or record a narrow, explicit architectural

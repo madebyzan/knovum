@@ -327,26 +327,18 @@ worker termination. The measured termination time includes process exit after th
 from a cancelled invocation is published; the next request starts a fresh worker through the existing
 lifecycle. Full maximum-size and supported-platform acceptance remains required.
 
-### Image qualification reports
+### Image qualification evidence
 
-The existing acceptance command has a separate image suite:
-`pnpm inference:acceptance --suite images --corpus <corpus.json> --capture <capture.json> --output <report.json>`.
-Its strict contracts live in `python/tests/acceptance/image_corpus.py`; the same hashed-file resolver,
-execution identities, device evidence and atomic report writer are reused from the core suite.
+Use actual candidate outputs and reviewed measurements rather than a repository scoring suite.
+Record each target's model specification, snapshot digest, execution configuration, worker/runtime
+digests and device, and freeze load/warm/RSS/cancellation limits before capturing results.
+Every model profile must cover hair, product edges, transparency, text, anime, repeated textures,
+large selections, thin images and EXIF orientation. Retain source/license, original bytes, operation
+grid and selection mask with hashes so the execution can be reproduced.
 
-Preregister each target's model specification, snapshot digest, execution configuration and measured
-load/warm/RSS/cancellation limits before capturing results. Every model profile must cover hair,
-product edges, transparency, text, anime, repeated textures, large selections, thin images and EXIF
-orientation. Each sample records its source URL, license, original bytes, worker-grid RGB tensor and
-binary selected-region tensor with hashes. Worker-grid dimensions include the owning operation's
-source reduction; depth evidence uses that grid before ImageNet normalization. Numeric artifacts
-are frozen `.npy` files, read without pickle. Upscaling must return native 4× RGB, repair must preserve
-unselected RGB exactly, selection must be binary, and depth must be finite, nonconstant and normalized.
-Visual quality needs a named review with notes; numeric validity alone cannot establish good edges,
-alpha composition or tile seams.
-
-Captures bind the compiled Worker and runtime digests, model/configuration, target, device and
-invocation identities. In-flight cancellation timing is distinct from rejecting a pre-cancelled request.
-A missing model capture or reference-only execution reports `unavailable`; failed quality or resource
-limits report `failed`. Current adapter smoke evidence does not satisfy this release gate. The unit
-fixtures are synthetic contract checks and are deliberately not distributed as a qualification corpus.
+Upscaling must return native 4× RGB, repair must preserve unselected RGB exactly, selection must be
+binary, and depth must be finite, nonconstant and normalized. Review edges, alpha composition and
+tile seams visually with named notes; numeric validity alone does not establish visual quality.
+Measure cancellation during active inference separately from rejecting a pre-cancelled request.
+Missing model execution, reference-only runs or missing reviews cannot qualify a release; synthetic
+unit fixtures remain tests. Adapter smoke does not replace full supported-platform acceptance.
