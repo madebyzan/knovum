@@ -1,0 +1,19 @@
+{
+  "task": "Analisi dei media",
+  "preparing": "Preparazione dei supporti",
+  "unavailable": "La durata e la forma d'onda non sono ancora disponibili",
+  "audioPreparing": "Preparazione dell'audio",
+  "transcribing": "Trascrizione locale",
+  "organizing": "Creazione di capitoli e riepilogo",
+  "knowledge": {
+    "title": "Conoscenza dei media",
+    "pending": "Inviato alla coda di analisi in background.",
+    "stale": "I dati dell'analisi non sono sincronizzati con il file di origine; per favore, rianalizzare."
+  },
+  "summary": "Riepilogo",
+  "inProgress": "Analisi dei media in background...",
+  "insights": {
+    "unavailable": "I dati della trascrizione non sono disponibili; per favore analizza prima i media.",
+    "generate": "Genera capitoli e riepilogo"
+  }
+}

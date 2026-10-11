@@ -1,0 +1,41 @@
+{
+  "title": "Aussehen",
+  "description": "Passen Sie Design, Schriftgröße und Layoutdichte an.",
+  "saveFailed": "Darstellungseinstellungen konnten nicht gespeichert werden",
+  "theme": {
+    "label": "Thema",
+    "description": "Wählen Sie hell, dunkel oder folgen Sie dem System."
+  },
+  "textSize": {
+    "label": "Schriftgröße",
+    "description": "Passen Sie die Textgröße der Benutzeroberfläche an."
+  },
+  "density": {
+    "label": "Dichte",
+    "description": "Passen Sie die Größe und den Abstand der Steuerelemente an."
+  },
+  "language": {
+    "label": "Sprache",
+    "description": "Wählen Sie die Anzeigesprache oder passen Sie das Systemgebietsschema an."
+  },
+  "options": {
+    "followSystem": "Systemeinstellung verwenden",
+    "theme": {
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "textSize": {
+      "small": "Klein",
+      "default": "Standard",
+      "large": "Groß"
+    },
+    "density": {
+      "compact": "Kompakt",
+      "comfortable": "Großzügig"
+    },
+    "language": {
+      "english": "Englisch",
+      "simplifiedChinese": "Chinesisch (vereinfacht)"
+    }
+  }
+}

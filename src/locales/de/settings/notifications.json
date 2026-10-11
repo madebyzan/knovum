@@ -1,0 +1,9 @@
+{
+  "title": "Benachrichtigungen",
+  "backgroundTasks": {
+    "label": "Hintergrundaufgabenbenachrichtigungen",
+    "description": "Benachrichtigen Sie, wenn eine lang laufende Hintergrundaufgabe beendet wird oder fehlschlägt, während Knovum ausgeblendet ist."
+  },
+  "description": "Wählen Sie aus, wann Knovum Desktop-Benachrichtigungen sendet.",
+  "saveFailed": "Benachrichtigungseinstellungen konnten nicht gespeichert werden"
+}

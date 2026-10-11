@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "Verarbeitung",
+    "pending": "Ausstehend {count}",
+    "running": "Verarbeitung {count}",
+    "failed": "Fehlgeschlagen {count}"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "Visuelles Verständnis",
+    "analyze_media": "Mediendauer und Wellenform",
+    "transcribe_media": "Audio- und Videotranskription",
+    "parse_document": "Dokumentenextraktion",
+    "analyze_document": "Visuelle Dokumentanalyse",
+    "align_media_transcript": "Ausgewählte Transkriptausrichtung",
+    "diarize_media_transcript": "Sprechertagebuch"
+  },
+  "jobStatus": {
+    "pending": "In der Warteschlange",
+    "running": "Wird ausgeführt",
+    "awaiting_configuration": "Setup erforderlich",
+    "failed": "Fehlgeschlagen",
+    "succeeded": "Abgeschlossen",
+    "cancelled": "Abgebrochen"
+  },
+  "matchBadge": {
+    "documentOcr": "Erkannter Dokumenttext",
+    "documentInterpretation": "Visuelle Interpretation des Dokuments",
+    "imageDescription": "Bildbeschreibung",
+    "videoCover": "Videocover",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "Abrufindex neu erstellen",
+    "rebuildDone": "Index neu erstellt; generierter {count}-Vektoreintrag. | Index neu erstellt; generierte {count}-Vektoreinträge."
+  },
+  "failed": "Verarbeitung fehlgeschlagen",
+  "nodeUnavailable": "Der Knoten der Aufgabe ist nicht mehr verfügbar",
+  "imageProgress": "Bild wird verarbeitet",
+  "mediaProgress": "Verarbeitungsmedien",
+  "applyingEdit": "Änderungen werden übernommen",
+  "loadingImage": "Bild wird geladen",
+  "imageUnavailable": "Bild nicht verfügbar",
+  "document": {
+    "coverage": "Dokumentenverarbeitung",
+    "ocrEvidence": "Maschinell erkannter Text · Erkennungsfehler sind möglich",
+    "interpretationEvidence": "AI visuelle Interpretation · Keine Originaldokumentaussage",
+    "textCoverage": "Seiten mit extrahiertem Text: {count} oder {total}.",
+    "unclassifiedPages": "Die {count}-Seite enthält keinen extrahierbaren Textkörper oder bekannte Bilder. Möglicherweise ist es leer oder enthält nicht unterstützte Inhalte. | {count}-Seiten enthalten keinen extrahierbaren Textkörper oder bekannte Bilder. Sie sind möglicherweise leer oder enthalten nicht unterstützte Inhalte.",
+    "recognitionRequired": "Seiten, die eine Erkennung erfordern: {pages}",
+    "visualCoverage": "Analysierte Quellen: {count} oder {total}.",
+    "visualUnavailable": "Das auf {count} verwiesene Bild kann vom Dokumentparser nicht dekodiert werden. | {count}-referenzierte Bilder können vom Dokumentparser nicht dekodiert werden.",
+    "resources": {
+      "title": "Dokumentressourcen",
+      "open": "Öffnen Sie die Dokumentressource {index}",
+      "occurrences": "Verwendete {count}-Zeit | {count} mal verwendet",
+      "embedded": "Aus dem Dokument extrahiertes eingebettetes Bild.",
+      "rendered": "Vom PDF gerenderte Seite oder visueller Bereich.",
+      "detectedText": "Erkannter Text"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Office-Vektorzeichnungen werden nicht visuell analysiert; sie verbleiben in der Originaldatei.",
+      "spreadsheetImageCellAnchorsUnavailable": "Tabellenkalkulationsbilder werden nach Arbeitsblatt und nicht nach Zelle angeordnet.",
+      "spreadsheetChartRenderingUnsupported": "Verfügbarer Diagrammtext wird extrahiert; Das Erscheinungsbild des Diagramms wird nicht analysiert.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "Dieses ältere Office-Format stellt keine vollständigen Bildpositionen zur Verfügung.",
+      "legacySpreadsheetFormulasUnavailable": "Ältere Tabellenkalkulationen stellen zwischengespeicherte Werte und keine Formelausdrücke bereit.",
+      "pdfVisualCoverageLimited": "PDF-Bildregionen verwenden die öffentlichen Positionsdaten des Parsers. Es kann nicht garantiert werden, dass Inline-Bilder und Vektorgrafiken vollständig abgedeckt sind. Die Originaldatei behält den gesamten Inhalt."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "Konfigurieren Sie ein visuelles Verständnismodell, um dieses Bild oder Video zu analysieren."
+  }
+}

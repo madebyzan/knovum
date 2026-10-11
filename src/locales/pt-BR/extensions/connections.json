@@ -1,0 +1,58 @@
+{
+  "name": "Nome da conexão",
+  "configuration": {
+    "headers": "Cabeçalhos de solicitação",
+    "environment": "Variáveis ​​de ambiente",
+    "secretsHint": "Somente configuração pública. Defina tokens e outras credenciais em Autorização após salvar.",
+    "invalidName": "Insira um nome de campo sem espaços iniciais ou finais.",
+    "duplicateName": "Os nomes dos campos devem ser exclusivos. Os nomes de cabeçalho HTTP não diferenciam maiúsculas de minúsculas.",
+    "fieldName": "Nome",
+    "fieldValue": "Valor",
+    "fieldNameAt": "Nome do campo {index}",
+    "fieldValueAt": "Valor do campo {index}",
+    "removeField": "Remover campo {index}",
+    "addHeader": "Adicionar cabeçalho",
+    "addVariable": "Adicionar variável",
+    "serverUrl": "URL do servidor",
+    "authorizationHint": "Escolha o método de autorização exigido pelo servidor. As credenciais são configuradas separadamente após salvar.",
+    "advanced": "Variáveis ​​de ambiente e cabeçalhos"
+  },
+  "transport": "Transporte",
+  "allowLocalNetwork": "Permitir acesso ao host local ou endereço LAN configurado",
+  "tools": {
+    "policyHint": "As ferramentas são negadas por padrão. Verifique você mesmo as ferramentas somente leitura; rótulos de servidor são apenas declarações. A pesquisa pode usar apenas ferramentas marcadas como somente leitura.",
+    "policy": "Política de invocação",
+    "deny": "Negar",
+    "confirm": "Confirme cada invocação",
+    "allow": "Permitir",
+    "reviewedReadOnly": "Revisado como somente leitura",
+    "serverReadOnlyHint": "Servidor afirma ser somente leitura",
+    "savePermissions": "Salvar permissões da ferramenta"
+  },
+  "account": {
+    "label": "Conta usada por esta conexão",
+    "none": "Sem conta vinculada",
+    "changeHint": "Alterar contas limpa as permissões da ferramenta. Revise as permissões antes de usar a conexão novamente."
+  },
+  "add": "Adicionar conexão",
+  "configure": "Configurar",
+  "accountsAndTools": "Contas e ferramentas",
+  "check": "Verifique a conexão e leia o catálogo",
+  "empty": "Nenhuma conexão para este serviço",
+  "cleanupPending": "As alterações foram salvas, mas a limpeza está incompleta. As contas afetadas permanecem indisponíveis.",
+  "delete": {
+    "title": "Excluir conexão {name}?",
+    "description": "Somente esta conexão é excluída. Outras ligações ao serviço são mantidas."
+  },
+  "accounts": "Contas",
+  "title": "Conexões",
+  "addServer": "Adicionar servidor MCP",
+  "description": "Configure serviços, contas e permissões de ferramentas MCP. Os serviços de plug-in são configurados como parte de seu pacote.",
+  "emptyServers": "Sem servidores MCP",
+  "emptyHint": "Adicione seu servidor MCP. Configure os serviços fornecidos pelo plug-in dentro do plug-in de sua propriedade.",
+  "serviceAndAccounts": "Gerenciar serviços e contas",
+  "configureServiceFirst": "Conclua primeiro a configuração deste serviço.",
+  "conflict": "Esta conexão mudou em outro lugar. Suas edições são mantidas. Descarte-os e reabra a conexão antes de salvar.",
+  "saveBeforeCheck": "Salve suas alterações antes de mudar de conta ou verificar o catálogo novamente.",
+  "services": "Serviços"
+}

@@ -1,0 +1,16 @@
+{
+  "title": "參考音訊",
+  "choose": "選擇參考音訊",
+  "transcript": "參考音訊文字（可選）",
+  "transcriptConfirmed": "文字與錄音內容一致",
+  "requirements": "選擇 5–30 秒清晰的單人語音。",
+  "tooShort": "這段音訊不足 5 秒，請選擇更長的參考錄音。",
+  "start": "選區開始（秒）",
+  "end": "選區結束（秒）",
+  "prepare": "準備參考音頻",
+  "play": "試聽選區",
+  "sourceChanged": "音訊節點的來源檔案已變化，請更新節點後重新準備參考音訊。",
+  "selection": "已選擇 {seconds} 秒 · 拖曳兩端調整",
+  "prepared": "選區已識別",
+  "playbackFailed": "無法播放來源音頻，請檢查媒體檔案是否可讀取。"
+}

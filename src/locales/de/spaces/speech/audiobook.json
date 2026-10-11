@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "Kapiteltitel",
+  "configurationInvalid": "Diese Vorabversion des Hörbuchs weist keine gültigen Rollenbindungen auf. Importieren Sie das Skript oder erstellen Sie es neu und speichern Sie dann eine neue Revision.",
+  "lexicon": {
+    "title": "Aussprachewörterbuch",
+    "hint": "Ersetzen Sie Namen oder Begriffe durch die genaue Lesart, die während der Synthese verwendet wurde.",
+    "word": "Wort oder Begriff",
+    "reading": "Aussprache",
+    "add": "Aussprache hinzufügen",
+    "remove": "Aussprache entfernen",
+    "invalid": "Vervollständigen Sie jeden Eintrag und entfernen Sie doppelte Wörter."
+  },
+  "moveUp": "Kapitel nach oben verschieben",
+  "moveDown": "Kapitel nach unten verschieben",
+  "removeChapter": "Kapitel entfernen",
+  "removeParagraph": "Absatz entfernen",
+  "addParagraph": "Absatz hinzufügen",
+  "addChapter": "Kapitel hinzufügen",
+  "wavPrecision": "WAV-Präzision",
+  "paragraphPause": "Absatzpause (ms)",
+  "chapterPause": "Kapitelpause (ms)",
+  "title": "Buchtitel",
+  "author": "Autor",
+  "narrator": "Erzähler",
+  "cover": "Abdeckung",
+  "noCover": "Keine Abdeckung",
+  "boundCover": "Gespeicherte Cover-Revision",
+  "coverRequiresEncodedOutput": "Wählen Sie MP3 oder M4B, um eine Abdeckung einzubetten.",
+  "outputSettings": "Ausgabeeinstellungen",
+  "metadataSettings": "Buchdetails"
+}

@@ -1,0 +1,15 @@
+{
+  "task": "Separazione della fonte",
+  "title": "Voce e sottofondo separati",
+  "stems": {
+    "vocals": "Voce",
+    "background": "Sfondo"
+  },
+  "background": "Sfondo separato",
+  "running": "Separazione dell'audio",
+  "starting": "Preparazione della separazione…",
+  "cancelling": "Annullamento in corso...",
+  "completed": "Voce e sottofondo aggiunti alla tela",
+  "sourceUnavailable": "Le informazioni audio non sono pronte",
+  "tooLong": "Scegli un audio della durata massima di 10 minuti"
+}

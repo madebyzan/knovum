@@ -1,0 +1,99 @@
+{
+  "edit": "Editar vídeo",
+  "title": "Editor de vídeo",
+  "loading": "Cargando editor de vídeo…",
+  "preview": {
+    "optimizing": "Optimizando la vista previa en segundo plano…",
+    "retry": "Reintentar preparación de vista previa",
+    "sourceUnavailable": "La fuente del vídeo no está disponible. Vuelve a importar el vídeo para editarlo.",
+    "proxyFailed": "No se pudo preparar una vista previa receptiva",
+    "durationUnavailable": "No se pudo leer la duración del video.",
+    "metadataUnavailable": "No se pudieron leer las dimensiones del fotograma del video.",
+    "unavailable": "No se pudo abrir la vista previa del video",
+    "audioUnavailable": "No se pudo preparar la vista previa de audio"
+  },
+  "tracks": {
+    "video": "Vídeo",
+    "audio": "Audio",
+    "text": "Texto"
+  },
+  "timeline": {
+    "thumbnailFailed": "No se pudieron generar miniaturas de la línea de tiempo",
+    "zoomOut": "Alejar la línea de tiempo",
+    "zoomIn": "Acercar la línea de tiempo",
+    "fit": "Ajustar todo el vídeo",
+    "seek": "Buscar línea de tiempo"
+  },
+  "text": {
+    "tools": "Herramientas de texto",
+    "invalidColor": "Ingrese un color hexadecimal de seis dígitos, como #FFFFFF.",
+    "presets": {
+      "title": "Preajustes",
+      "plain": "Simple",
+      "outline": "Esquema",
+      "shadow": "Sombra",
+      "badge": "Insignia"
+    },
+    "placement": "Posición",
+    "add": "Agregar texto",
+    "content": "Texto"
+  },
+  "tabs": {
+    "captions": "Subtítulos",
+    "text": "Texto"
+  },
+  "closeInspector": "Cerrar panel de edición",
+  "captions": {
+    "search": "Buscar subtítulos",
+    "none": "Aún no hay subtítulos. Agrega uno arriba.",
+    "noMatches": "No hay subtítulos coincidentes"
+  },
+  "font": {
+    "family": "Fuente",
+    "searchEmpty": "No hay fuentes coincidentes",
+    "weight": "Grosor",
+    "unavailable": "La fuente {family} no está instalada en esta computadora. Elija otra fuente.",
+    "catalogEmpty": "No hay fuentes instaladas disponibles.",
+    "size": "Tamaño (720p)",
+    "color": "Color del texto"
+  },
+  "videoSettings": "Configuración de vídeo",
+  "clip": {
+    "selected": "Clip seleccionado",
+    "volume": "Volumen",
+    "rotate": "Rotar",
+    "split": "Dividir",
+    "inPoint": "Entrada (segundos)",
+    "outPoint": "Salida (segundos)",
+    "startsAt": "Inicios (segundos)",
+    "endsAt": "Finaliza (segundos)"
+  },
+  "top": "Arriba",
+  "center": "Centro",
+  "bottom": "Abajo",
+  "project": {
+    "saved": "Proyecto de edición de vídeo guardado"
+  },
+  "render": {
+    "action": "Renderizar vídeo",
+    "task": "Renderizado de vídeo",
+    "failed": "Error en la renderización de vídeo"
+  },
+  "preparingVideoEdit": "Preparando edición",
+  "renderingVideoEdit": "Renderizado de vídeo",
+  "savingResource": "Ahorro de recursos",
+  "previousStep": "Retrocede 0,1 segundos",
+  "nextStep": "Paso adelante 0,1 segundo",
+  "trim": {
+    "start": "Inicio de recorte de clip",
+    "end": "Recortar extremo del clip",
+    "textStart": "Inicio de recorte de texto",
+    "textEnd": "Recortar final del texto",
+    "hint": "Arrastra el borde de un clip para recortarlo. Mantenga presionada la opción o Alt para un ajuste preciso."
+  },
+  "unsaved": {
+    "title": "¿Guardar cambios en este vídeo?",
+    "status": "Cambios no guardados",
+    "description": "Sus ediciones se perderán si cierra sin guardar."
+  }
+}

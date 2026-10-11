@@ -1,0 +1,24 @@
+{
+  "name": "Nom Skill (doit correspondre au répertoire)",
+  "readOnly": "Ce Skill est contrôlé par son plugin. Copiez-le en tant que Skill personnel pour le modifier ou l'activer indépendamment.",
+  "create": "Créer une compétence",
+  "import": "Répertoire d'importation",
+  "copy": "Copier en tant que Skill personnel",
+  "binaryResource": "Il s'agit d'une ressource de référence binaire. Exportez le Skill pour inspecter ses octets d'origine.",
+  "empty": {
+    "title": "Aucune compétence personnelle",
+    "description": "Créez un répertoire Skill personnel ou importez un répertoire Skill existant."
+  },
+  "actions": "Actions de compétence",
+  "unsupportedRequirements": "Exigences non prises en charge : {requirements}",
+  "discard": {
+    "title": "Annuler les modifications non enregistrées ?",
+    "description": "Les modifications non enregistrées seront perdues."
+  },
+  "delete": {
+    "title": "Supprimer {name} ?",
+    "description": "Cela supprime définitivement le Skill personnel et ses fichiers de référence."
+  },
+  "instructions": "Instructions",
+  "requiredConnections": "Connexions requises : {names}"
+}

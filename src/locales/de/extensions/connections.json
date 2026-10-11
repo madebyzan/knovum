@@ -1,0 +1,58 @@
+{
+  "name": "Verbindungsname",
+  "configuration": {
+    "headers": "Anforderungsheader",
+    "environment": "Umgebungsvariablen",
+    "secretsHint": "Nur öffentliche Konfiguration. Legen Sie nach dem Speichern Token und andere Anmeldeinformationen in der Autorisierung fest.",
+    "invalidName": "Geben Sie einen Feldnamen ohne führende oder nachgestellte Leerzeichen ein.",
+    "duplicateName": "Feldnamen müssen eindeutig sein. Bei HTTP-Headernamen wird die Groß-/Kleinschreibung nicht beachtet.",
+    "fieldName": "Name",
+    "fieldValue": "Wert",
+    "fieldNameAt": "Name des Feldes {index}",
+    "fieldValueAt": "Wert des Feldes {index}",
+    "removeField": "Entfernen Sie das Feld {index}",
+    "addHeader": "Header hinzufügen",
+    "addVariable": "Variable hinzufügen",
+    "serverUrl": "Server-URL",
+    "authorizationHint": "Wählen Sie die vom Server benötigte Autorisierungsmethode. Anmeldeinformationen werden nach dem Speichern separat konfiguriert.",
+    "advanced": "Umgebungsvariablen und Header"
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Erlauben Sie den Zugriff auf den konfigurierten lokalen Host oder die LAN-Adresse",
+  "tools": {
+    "policyHint": "Werkzeuge werden standardmäßig abgelehnt. Überprüfen Sie selbst schreibgeschützte Tools. Serverbezeichnungen sind lediglich Behauptungen. Für die Forschung können nur Tools verwendet werden, die Sie als schreibgeschützt markieren.",
+    "policy": "Aufrufrichtlinie",
+    "deny": "Verweigern",
+    "confirm": "Bestätigen Sie jeden Aufruf",
+    "allow": "Zulassen",
+    "reviewedReadOnly": "Als schreibgeschützt überprüft",
+    "serverReadOnlyHint": "Server beansprucht schreibgeschützt",
+    "savePermissions": "Tool-Berechtigungen speichern"
+  },
+  "account": {
+    "label": "Von dieser Verbindung verwendetes Konto",
+    "none": "Kein Konto gebunden",
+    "changeHint": "Durch das Ändern von Konten werden Werkzeugberechtigungen gelöscht. Überprüfen Sie die Berechtigungen, bevor Sie die Verbindung erneut verwenden."
+  },
+  "add": "Verbindung hinzufügen",
+  "configure": "Konfigurieren",
+  "accountsAndTools": "Konten und Tools",
+  "check": "Verbindung prüfen und Katalog lesen",
+  "empty": "Keine Verbindungen für diesen Dienst",
+  "cleanupPending": "Änderungen gespeichert, aber die Bereinigung ist unvollständig. Betroffene Konten sind weiterhin nicht verfügbar.",
+  "delete": {
+    "title": "Verbindung {name} löschen?",
+    "description": "Nur diese Verbindung wird gelöscht. Andere Verbindungen zum Dienst bleiben erhalten."
+  },
+  "accounts": "Konten",
+  "title": "Verbindungen",
+  "addServer": "MCP-Server hinzufügen",
+  "description": "Konfigurieren Sie MCP-Dienste, Konten und Tool-Berechtigungen. Plugin-Dienste werden als Teil ihres Pakets konfiguriert.",
+  "emptyServers": "Keine MCP-Server",
+  "emptyHint": "Fügen Sie Ihren MCP-Server hinzu. Konfigurieren Sie vom Plugin bereitgestellte Dienste in ihrem eigenen Plugin.",
+  "serviceAndAccounts": "Dienste und Konten verwalten",
+  "configureServiceFirst": "Schließen Sie zunächst die Konfiguration dieses Dienstes ab.",
+  "conflict": "Dieser Zusammenhang hat sich an anderer Stelle geändert. Ihre Änderungen bleiben erhalten. Verwerfen Sie sie und öffnen Sie die Verbindung erneut, bevor Sie sie speichern.",
+  "saveBeforeCheck": "Speichern Sie Ihre Änderungen, bevor Sie das Konto wechseln oder den Katalog erneut überprüfen.",
+  "services": "Dienste"
+}

@@ -1,0 +1,18 @@
+{
+  "removeBackground": "Remover fundo",
+  "visualization": {
+    "title": "Gerar imagem",
+    "description": "Gere uma imagem ao lado das fontes selecionadas.",
+    "defaultTitle": "Imagem gerada",
+    "intent": "Foco na imagem",
+    "placeholder": "Descreva os conceitos ou relações a mostrar, com base nas fontes selecionadas.",
+    "task": "Gerando imagem"
+  },
+  "style": "Direção visual",
+  "aspectRatio": "Proporção",
+  "styles": {
+    "editorial": "Ilustração editorial",
+    "diagram": "Diagrama de informações",
+    "concept": "Arte conceitual"
+  }
+}

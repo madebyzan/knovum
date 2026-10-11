@@ -1,0 +1,14 @@
+{
+  "inspect": "Inspecter le signal audio",
+  "advisory": "Les contrôles de signaux signalent les endroits à examiner. Ils n’évaluent pas le naturel de la voix et peuvent signaler des pauses intentionnelles.",
+  "noFindings": "Aucune anomalie de signal trouvée dans l'intervalle analysé.",
+  "truncated": "L'inspection scanne jusqu'à deux heures et rapporte jusqu'à 100 résultats.",
+  "issues": {
+    "empty": "Aucun échantillon audio",
+    "silence": "Silence",
+    "quiet": "Relativement silencieux",
+    "loud": "Relativement fort",
+    "clipping": "Près du pic à pleine échelle",
+    "invalid": "Échantillons de signaux invalides"
+  }
+}

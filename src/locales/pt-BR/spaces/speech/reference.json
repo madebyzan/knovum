@@ -1,0 +1,16 @@
+{
+  "title": "Áudio de referência",
+  "choose": "Escolha o áudio de referência",
+  "transcript": "Transcrição de referência (opcional)",
+  "transcriptConfirmed": "A transcrição corresponde à gravação",
+  "requirements": "Escolha de 5 a 30 segundos de fala clara de uma pessoa.",
+  "tooShort": "Este áudio tem menos de cinco segundos. Escolha uma gravação de referência mais longa.",
+  "start": "Início(s) de seleção",
+  "end": "Extremidade(s) da seleção",
+  "prepare": "Preparar referência",
+  "play": "Seleção de reprodução",
+  "sourceChanged": "A origem do nó de áudio foi alterada. Atualize o nó antes de preparar uma referência de voz.",
+  "selection": "{seconds}s selecionados · Arraste uma das extremidades",
+  "prepared": "Seleção reconhecida",
+  "playbackFailed": "O áudio de origem não pôde ser reproduzido. Verifique se o arquivo de mídia está legível."
+}

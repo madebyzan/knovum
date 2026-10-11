@@ -1,0 +1,39 @@
+{
+  "title": "Datos",
+  "description": "Cree y restaure copias de seguridad completas de los datos administrados de Knovum.",
+  "tasksActive": "Finalice o cancele las tareas activas antes de comenzar el mantenimiento de datos.",
+  "backup": {
+    "title": "Copia de seguridad",
+    "description": "Crea un archivo coherente mientras Knovum se reinicia en modo de mantenimiento.",
+    "contentsTitle": "Datos gestionados",
+    "contentsDescription": "Incluye espacios de trabajo, historial de uso, preferencias, espacios de trabajo administrados y recursos de voz, y extensiones instaladas. Se excluyen las credenciales, los modelos descargados, los tiempos de ejecución, las cachés y los registros.",
+    "action": "Crear copia de seguridad",
+    "confirmTitle": "¿Reiniciar Knovum para crear esta copia de seguridad?",
+    "confirmDescription": "Knovum guardará los cambios pendientes, reiniciará, creará la copia de seguridad seleccionada antes de abrir sus bases de datos y luego continuará con el inicio. Las ejecuciones activas y los trabajos de procesamiento deben finalizar o cancelarse primero.",
+    "failed": "No se pudo iniciar la copia de seguridad"
+  },
+  "restore": {
+    "title": "Restaurar copia de seguridad",
+    "description": "Valida el archivo completo antes de reemplazar los datos administrados, con reversión si falla la publicación. Las copias de seguridad completas se restauran únicamente en la misma ubicación de datos Knovum; Utilice paquetes de espacio de trabajo para mover espacios de trabajo entre instalaciones.",
+    "credentialsTitle": "Las credenciales nunca se restauran",
+    "credentialsDescription": "Restaurar elimina las credenciales guardadas actuales para evitar que la autorización anterior coincida con los registros restaurados. Configure las credenciales del proveedor y del conector nuevamente después.",
+    "action": "Restaurar copia de seguridad",
+    "confirmTitle": "¿Reiniciar Knovum y restaurar esta copia de seguridad?",
+    "confirmDescription": "Knovum guardará los cambios pendientes y reiniciará. El archivo debe coincidir exactamente con esta versión. Los datos administrados actuales permanecen disponibles para revertirse hasta que la restauración se realice correctamente.",
+    "failed": "No se pudo iniciar la restauración"
+  },
+  "receipt": {
+    "backup": {
+      "success": "Copia de seguridad creada",
+      "failed": "Error en la copia de seguridad"
+    },
+    "restore": {
+      "success": "Copia de seguridad restaurada",
+      "failed": "Error de restauración"
+    },
+    "credentials": "No se incluyeron las credenciales. Configure nuevamente las credenciales del proveedor y del conector antes de usarlos.",
+    "exclusions": "Se excluyeron las credenciales, los modelos descargados, los tiempos de ejecución, los cachés y los registros.",
+    "readFailed": "No se pudo leer el resultado del mantenimiento",
+    "acknowledgeFailed": "El resultado del mantenimiento no se pudo descartar."
+  }
+}

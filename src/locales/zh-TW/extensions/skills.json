@@ -1,0 +1,24 @@
+{
+  "name": "Skill 名稱（與目錄一致）",
+  "readOnly": "此技能由所屬插件統一啟動停止。如需獨立管理或編輯，請複製為個人技能。",
+  "create": "創建 Skill",
+  "import": "導入目錄",
+  "copy": "複製為個人 Skill",
+  "binaryResource": "這是二進位參考資源，可匯出 Skill 後查看原始檔案。",
+  "empty": {
+    "title": "尚未添加個人技能",
+    "description": "建立個人 Skill，或匯入現有的 Skill 目錄。"
+  },
+  "actions": "Skill 操作",
+  "unsupportedRequirements": "暫不支援的要求：{requirements}",
+  "discard": {
+    "title": "放棄未保存的修改？",
+    "description": "未儲存的修改將會遺失。"
+  },
+  "delete": {
+    "title": "刪除 {name}？",
+    "description": "將永久刪除此個人 Skill 及其參考檔案。"
+  },
+  "instructions": "指令內容",
+  "requiredConnections": "需連接：{names}"
+}

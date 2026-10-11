@@ -1,0 +1,149 @@
+{
+  "health": {
+    "title": "知識チェック",
+    "description": "このワークスペースで、サポートされていない知識、矛盾する知識、または古い知識を見つけます。",
+    "clean": "問題は見つかりませんでした。",
+    "critical": "{count} 重大な問題が検出されました",
+    "issues": {
+      "unsupported-claim": "主張には裏付け関係 (Supports) がありません。",
+      "contradicted-claim": "受け入れられた主張には積極的な矛盾があります (矛盾)。",
+      "ungrounded-evidence": "証拠には有効な出典情報が不足しています。",
+      "answered-open-question": "未解決の質問は回答関係に関連付けられます。",
+      "stale-provenance": "ソースのバージョンが変更されました。再検証が必要です。"
+    }
+  },
+  "history": {
+    "title": "ナレッジ バージョン履歴",
+    "empty": "まだ変更はありません。",
+    "actor": "{actor} によって変更されました",
+    "events": {
+      "created": "作成済み",
+      "updated": "更新",
+      "drafted": "ドラフト",
+      "accepted": "承認済み",
+      "contested": "争われた",
+      "superseded": "置き換えられました",
+      "invalidated": "無効",
+      "opened": "オープン",
+      "resolved": "解決済み",
+      "restored": "復元",
+      "linked": "リンク済み",
+      "unlinked": "リンクされていない",
+      "applied": "適用",
+      "rejected": "拒否",
+      "moved": "移動"
+    },
+    "loadFailed": "ナレッジ履歴をロードできませんでした"
+  },
+  "icons": {
+    "select": "アイコンを選択",
+    "general": "全般",
+    "database": "データベース",
+    "document": "ドキュメント",
+    "bookmark": "ブックマーク",
+    "tag": "タグ",
+    "layers": "レイヤー",
+    "container": "コンテナ",
+    "intelligence": "知能",
+    "experiment": "実験",
+    "decision": "決断",
+    "question": "質問",
+    "idea": "アイデア"
+  },
+  "structuredKnowledge": "構造化された知識",
+  "relations": {
+    "title": "知識関係",
+    "symmetric": "双方向 ({count})",
+    "incoming": "受信 ({count})",
+    "outgoing": "発信 ({count})",
+    "empty": "ノード アンカーをドラッグするか、複数の項目を選択して関係を作成します。",
+    "inspect": "接続の詳細",
+    "kind": "関係タイプ",
+    "rationale": "なぜこれらがつながっているのか",
+    "addRationale": "追加",
+    "rationalePlaceholder": "これらのアイテムがどのように接続されているか説明してください...",
+    "color": "関係線の色",
+    "colors": {
+      "neutral": "中性",
+      "blue": "青",
+      "green": "緑",
+      "amber": "アンバー",
+      "red": "赤",
+      "purple": "紫"
+    },
+    "remove": "関係の削除",
+    "removeConfirm": "「{title}」との関係を削除しますか?",
+    "kinds": {
+      "reference": "参照",
+      "related": "関連",
+      "supports": "サポート",
+      "contradicts": "矛盾する",
+      "depends-on": "依存",
+      "supersedes": "置き換えられます",
+      "answers": "答え",
+      "uses": "用途",
+      "derives-from": "派生元",
+      "caused-by": "原因"
+    }
+  },
+  "provenance": "ソース",
+  "portal": {
+    "create": "新しいポータル ノード",
+    "createDescription": "別のワークスペースにすばやく移動できるようにポータル ノードを作成します。"
+  },
+  "objects": {
+    "custom": "カスタム ナレッジ オブジェクト",
+    "create": "新しいカスタム オブジェクト",
+    "createDescription": "選択したスキーマを使用してナレッジ オブジェクト ノードを作成します。"
+  },
+  "fields": {
+    "add": "フィールドの追加",
+    "title": "プロパティ フィールド",
+    "key": "フィールド キー",
+    "label": "フィールド名",
+    "kind": "フィールド タイプ",
+    "kindLabels": {
+      "text": "テキスト",
+      "number": "番号",
+      "boolean": "ブール値",
+      "date": "日付",
+      "node-ref": "ノード参照",
+      "enum": "列挙型オプション"
+    },
+    "options": "Enum オプション (カンマ区切り)",
+    "required": "必須",
+    "invalid": "各フィールドには名前と一意の識別子が必要です。",
+    "remove": "フィールドの削除"
+  },
+  "status": {
+    "label": "ナレッジ ステータス",
+    "labels": {
+      "draft": "ドラフト",
+      "accepted": "承認済み",
+      "contested": "争われた",
+      "superseded": "置き換えられました",
+      "invalidated": "無効",
+      "open": "開く",
+      "resolved": "解決済み"
+    }
+  },
+  "summary": "概要",
+  "types": {
+    "label": "ナレッジ タイプ",
+    "description": "説明",
+    "icon": "アイコン",
+    "name": "タイプ名",
+    "manage": "知識タイプの管理",
+    "manageDescription": "このワークスペースで構造化知識のプロパティを定義します。",
+    "delete": "タイプを削除…",
+    "discardChanges": "このタイプに対する保存されていない変更を破棄しますか?",
+    "emptyFields": "この種の知識に必要なプロパティを追加します。",
+    "deleteConfirmation": "「{name}」を削除しますか?ナレッジ オブジェクトによって使用されるタイプは削除できません。",
+    "create": "新しいタイプ",
+    "none": "カスタム スキーマ タイプはありません。",
+    "loadFailed": "スキーマタイプをロードできませんでした"
+  },
+  "visual": {
+    "empty": "画像解析はまだ行われていません"
+  }
+}

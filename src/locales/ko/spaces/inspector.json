@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "{count} 항목 선택됨",
+  "title": "세부정보",
+  "basicInformation": "일반",
+  "showSource": "소스 보기",
+  "fields": {
+    "type": "유형",
+    "source": "소스",
+    "size": "크기",
+    "originalUrl": "원본 URL",
+    "provider": "플랫폼",
+    "siteName": "웹사이트",
+    "description": "설명",
+    "canonicalUrl": "표준 URL",
+    "modified": "수정 날짜"
+  },
+  "extractedDocumentText": "추출된 텍스트",
+  "visualDetectedText": "OCR 인식 텍스트",
+  "excerpts": {
+    "title": "발췌 · {title}",
+    "line": "— {title} · {location}",
+    "content": "콘텐츠 발췌"
+  },
+  "openSource": "소스 노드 찾기",
+  "targetSpace": "대상 작업공간",
+  "none": "설정되지 않음",
+  "renameHint": "이름을 바꾸려면 클릭하세요",
+  "openContent": "콘텐츠 열기",
+  "content": "콘텐츠",
+  "playVideo": "비디오 재생",
+  "related": {
+    "title": "관련 콘텐츠",
+    "show": "자세히 보기",
+    "showLess": "간략히 보기",
+    "unavailable": "관련 콘텐츠를 일시적으로 이용할 수 없습니다.",
+    "indexing": "콘텐츠 인덱스를 구축합니다. 관련 콘텐츠가 준비되면 표시됩니다.",
+    "notIndexed": "이 항목에 대한 관련 콘텐츠가 아직 준비되지 않았습니다.",
+    "prepare": "지금 준비하세요",
+    "noContent": "이 항목에는 아직 검색 가능한 콘텐츠가 없습니다.",
+    "empty": "이 작업공간에는 아직 관련 콘텐츠가 없습니다.",
+    "explanation": "의미별로 이 작업공간에서 관련 콘텐츠를 찾아보세요. 결과는 연결을 생성하지 않습니다."
+  },
+  "containedItems": "{count} 포함 아이템"
+}

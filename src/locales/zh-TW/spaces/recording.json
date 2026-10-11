@@ -1,0 +1,19 @@
+{
+  "starting": "正在啟動錄音…",
+  "active": "正在錄音",
+  "paused": "已暫停",
+  "saving": "正在保存錄音…",
+  "stopAndSave": "完成錄音",
+  "note": "錄音筆記",
+  "startFailed": "無法啟動錄音或儲存音訊。",
+  "microphone": {
+    "settingsHint": "麥克風權限受限，請在系統偏好設定中允許存取。"
+  },
+  "problems": {
+    "denied": "麥克風存取權限被拒絕。",
+    "missing": "未偵測到可用麥克風設備。",
+    "busy": "麥克風被其他應用程式佔用。",
+    "unsupported": "當前環境不支援音訊採集。",
+    "unknown": "無法開啟麥克風設備。"
+  }
+}

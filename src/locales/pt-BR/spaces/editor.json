@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "Nova nota",
+    "placeholder": "Escreva qualquer coisa…"
+  },
+  "text": {
+    "new": "Texto",
+    "placeholder": "Digite para inserir texto"
+  },
+  "markdown": {
+    "untitled": "Remarcação sem título",
+    "title": "Título Markdown",
+    "empty": "Remarcação vazia"
+  },
+  "loading": "Preparando editor…",
+  "loadingHint": "Documentos grandes podem demorar um pouco para serem abertos.",
+  "placeholder": "Comece a escrever…"
+}

@@ -1,0 +1,29 @@
+{
+  "chapters": {
+    "title": "Capitoli",
+    "edit": "Modifica capitolo",
+    "seek": "Salta al capitolo",
+    "titleField": "Titolo del capitolo",
+    "summary": "Riepilogo capitolo"
+  },
+  "text": {
+    "title": "Testo trascrizione",
+    "editSegment": "Modifica segmento di trascrizione",
+    "search": "Trascrizione della ricerca",
+    "noMatches": "Nessun testo di trascrizione corrispondente",
+    "live": "Trascrizione live",
+    "liveHint": "Il testo della trascrizione in tempo reale verrà visualizzato qui come riconosciuto.",
+    "alignSelected": "Allinea selezionato",
+    "alignmentLimit": "Fino a 8 segmenti/5 minuti",
+    "alignmentFirstUse": "Al primo utilizzo scarica automaticamente il modello selezionato e le risorse richieste. Gestisci le scelte del modello in Impostazioni.",
+    "selectForAlignment": "Seleziona per allineamento"
+  },
+  "speakers": {
+    "title": "Tracce del relatore",
+    "durationLimit": "La diarizzazione dell'altoparlante supporta registrazioni fino a due ore.",
+    "generate": "Identifica gli altoparlanti",
+    "firstUse": "Le risorse locali vengono scaricate automaticamente al primo utilizzo; annullare nel Centro attività.",
+    "count": "Conteggio degli oratori conosciuti (facoltativo)",
+    "automatic": "Automatico"
+  }
+}

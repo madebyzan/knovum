@@ -1,0 +1,36 @@
+{
+  "title": "Agenti desktop",
+  "description": "Utilizza gli agenti AI supportati già installati e registrati su questo computer. Gli agenti abilitati funzionano con gli strumenti disponibili, i server MCP e le competenze senza conferma per azione.",
+  "check": "Verifica agenti",
+  "enable": "Abilita",
+  "disable": "Disabilita",
+  "status": {
+    "checking": "Verifica in corso",
+    "checkFailed": "Verifica fallita"
+  },
+  "entry": {
+    "missing": "Immissione di comando non rilevata",
+    "applicationOnly": "Applicazione trovata; comando non disponibile",
+    "commandDetected": "Comando rilevato"
+  },
+  "requiredCommands": "Comando richiesto: {commands}",
+  "connectionHelp": "Aiuto per la connessione {name}",
+  "officialDocumentation": "Guida ufficiale",
+  "acpSetup": "Configurazione ACP",
+  "detectionBoundary": "Verifica solo la disponibilità dei comandi; l'accesso e la connettività ACP non sono verificati.",
+  "documentationOpenFailed": "Impossibile aprire il collegamento ufficiale dell'agente",
+  "connections": {
+    "executableCli": {
+      "title": "ACP diretto",
+      "requirements": "Installa una CLI ufficiale con supporto ACP e aggiungi la sua directory dei comandi a PATH."
+    },
+    "nodeAdapter": {
+      "title": "adattatore ACP",
+      "requirements": "Richiede la CLI ufficiale e Node.js (npx). Al primo utilizzo è possibile scaricare l'adattatore ACP."
+    },
+    "standaloneServer": {
+      "title": "Server ACP autonomo",
+      "requirements": "Scarica l'archivio ufficiale ACP, conserva i file associati e aggiungi la directory del server a PATH."
+    }
+  }
+}

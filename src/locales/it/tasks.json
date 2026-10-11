@@ -1,0 +1,30 @@
+{
+  "title": "Attività",
+  "summary": "Compiti, {count} totale",
+  "scopeFilter": "Ambito del compito",
+  "all": "Tutti",
+  "currentSpace": "Spazio corrente",
+  "empty": "Nessuna attività.",
+  "emptyCurrentSpace": "Nessuna attività in quest'area di lavoro.",
+  "scope": "Spazio",
+  "subject": "Articolo",
+  "status": {
+    "queued": "In coda",
+    "running": "In esecuzione",
+    "attention": "Richiede attenzione",
+    "failed": "Fallito",
+    "succeeded": "Completato",
+    "cancelled": "Annullato"
+  },
+  "clearCompleted": "Cancella completata",
+  "openSubject": "Apri elemento correlato",
+  "dismiss": "Ignora",
+  "cancel": "Annulla attività",
+  "cancelling": "Annullamento in corso...",
+  "forceDismiss": "Rimuovi dall'elenco",
+  "failed": "Impossibile completare questa attività.",
+  "verifyingResource": "Verifica integrità…",
+  "preparingLocalInference": "Preparazione dei componenti AI locali…",
+  "localResourceDownloadSize": "Il primo utilizzo richiede {size} di download di risorse locali",
+  "installingResource": "Installazione delle risorse locali…"
+}

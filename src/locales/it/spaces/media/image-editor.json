@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "Ritaglia",
+    "original": "Originale",
+    "presets": "Preimpostazioni",
+    "general": "Generale",
+    "square": "Piazza",
+    "story": "Storia",
+    "portrait": "Verticale",
+    "landscape": "Orizzontale",
+    "referenceSize": "Taglia di riferimento; i pixel esportati dipendono dall'immagine sorgente",
+    "lockAspect": "Blocca le proporzioni del ritaglio"
+  },
+  "transform": {
+    "rotateClockwise": "Ruotare in senso orario",
+    "flipHorizontal": "Capovolgere orizzontalmente",
+    "flipVertical": "Capovolgi verticalmente",
+    "title": "Capovolgi e ruota",
+    "rotationDegrees": "Angolo di rotazione"
+  },
+  "removeObject": {
+    "tool": "Gomma",
+    "mode": "Ingresso di rimozione",
+    "modes": {
+      "mask": "Dipingi una maschera",
+      "prompt": "Descrivi"
+    },
+    "undo": "Annulla tratto di selezione",
+    "brushSize": "Pennello di selezione",
+    "promptLabel": "Descrivi cosa rimuovere",
+    "promptPlaceholder": "Descrivi cosa rimuovere...",
+    "generate": "Rimuovi e genera",
+    "submitting": "Creazione dell'attività immagine derivata…",
+    "sizeLimit": "Utilizza una sorgente entro 16 megapixel e 16.384 pixel per lato.",
+    "limitReached": "Limite di selezione raggiunto. Genera l'immagine o annulla un tratto."
+  },
+  "adjust": {
+    "title": "Regola",
+    "sections": "Sezioni di regolazione dell'immagine"
+  },
+  "adjustGroups": {
+    "light": "Luce",
+    "color": "Colore",
+    "texture": "Texture",
+    "effects": "Effetti"
+  },
+  "upscale": {
+    "action": "Aumenta risoluzione",
+    "targetTooSmall": "Questa dimensione non è più grande dell'immagine corrente",
+    "sourceBudget": "Questa immagine renderizzata supera il budget di input del modello selezionato."
+  },
+  "angle": {
+    "title": "Multi-angolo",
+    "mode": "Regola target",
+    "modes": {
+      "subject": "Oggetto",
+      "camera": "Fotocamera"
+    },
+    "preview": "Trascina per regolare la vista; tieni premuto Maiusc per la precisione o scorri per modificare l'inquadratura",
+    "yaw": "Rotazione",
+    "pitch": "Inclinazione",
+    "zoom": "Zoom",
+    "zoomLevels": {
+      "wide": "Grandangolo",
+      "medium": "Medio",
+      "close": "Primo piano"
+    },
+    "tiltUp": "Inclinare verso l'alto",
+    "tiltDown": "Inclinare verso il basso",
+    "turnLeft": "Girare a sinistra",
+    "turnRight": "Girare a destra"
+  },
+  "layers": {
+    "title": "Dividi livelli",
+    "panel": "Dividi livelli",
+    "selectContent": "Seleziona regione",
+    "selectContentUnavailable": "Il modello di livello corrente non può dividere una regione selezionata",
+    "auto": "Divisione automatica",
+    "custom": "Suddivisione personalizzata",
+    "prompt": "Focus di separazione",
+    "promptPlaceholder": "Descrivi cosa dividere in strati",
+    "split": "Dividi",
+    "task": "Divisione dei livelli dell'immagine",
+    "failed": "Divisione del livello non riuscita",
+    "stage": {
+      "submitting": "Invio immagine",
+      "processing": "Divisione dei livelli",
+      "downloading": "Recupero livelli",
+      "publishing": "Salvataggio livelli"
+    },
+    "keyMissing": "La suddivisione dei livelli richiede una chiave fal API",
+    "promptRequired": "Descrivi prima cosa dovrebbe essere separato"
+  },
+  "comments": {
+    "title": "Commento",
+    "prompt": "Aggiungi una descrizione",
+    "save": "Salva commento",
+    "addToConversation": "Aggiungi alla conversazione",
+    "conversationContext": "Annotazione immagine ({kind}; origine in alto a sinistra; le coordinate sono percentuali della larghezza e dell'altezza dell'immagine): {coordinates}\nAnnotazione: {text}",
+    "delete": "Elimina commento",
+    "hint": "Fare clic sulla posizione di un'immagine per commentare",
+    "mode": "Modalità annotazione commenti",
+    "point": "Punto commento",
+    "draw": "Disegna un commento",
+    "region": "Commento regione"
+  },
+  "applyNow": "Utilizza ora",
+  "unsaved": {
+    "title": "Applica modifiche immagine?",
+    "description": "Applica questa modifica all'immagine prima di uscire oppure elimina la bozza."
+  },
+  "errors": {
+    "modelUnavailable": "Controlla il modello di immagine e le impostazioni delle credenziali",
+    "providerUnsupported": "Il modello di immagine selezionato non supporta questa operazione",
+    "credentialUnavailable": "Impossibile leggere le credenziali del modello di immagine",
+    "secretDatabaseUnavailable": "Il database delle credenziali locali non è disponibile",
+    "capabilityCheckFailed": "Impossibile verificare se questa azione è disponibile",
+    "busy": "È in corso un'operazione"
+  },
+  "openAiSettings": "Apri impostazioni AI",
+  "status": {
+    "capabilityChecking": "Verifica delle funzionalità dell'immagine...",
+    "imagePreparing": "L'immagine è ancora in fase di preparazione"
+  },
+  "operation": {
+    "execution": "Modello di esecuzione"
+  },
+  "finishImageEdit": "Applicare o annullare prima la modifica dell'immagine corrente",
+  "adjustments": {
+    "exposure": "Esposizione",
+    "contrast": "Contrasto",
+    "highlights": "Punti salienti",
+    "shadows": "Ombre",
+    "whites": "Bianchi",
+    "blacks": "Neri",
+    "saturation": "Saturazione",
+    "warmth": "Calore",
+    "sharpness": "Nitidezza",
+    "vignette": "Vignettatura",
+    "vibrance": "Vividezza",
+    "tint": "Tinta",
+    "clarity": "Chiarezza",
+    "grain": "Grana",
+    "softLight": "Luce soffusa",
+    "glow": "Incandescenza"
+  },
+  "selection": {
+    "title": "Selezione intelligente",
+    "tools": "Strumenti di selezione",
+    "include": "Punto in primo piano",
+    "exclude": "Punto di esclusione",
+    "box": "Disegna una scatola",
+    "brush": "Rifinisci con pennello",
+    "processing": "Aggiornamento selezione…",
+    "help": "Fare clic sull'oggetto; aggiungere punti di esclusione o una casella. Pennello per includere i dettagli. Fino a sei punti di richiesta.",
+    "repair": "Riparazione",
+    "extract": "Estrai",
+    "undo": "Annulla selezione",
+    "modelUnavailable": "Seleziona un modello di selezione disponibile in Impostazioni.",
+    "promptLimit": "Fino a sei prompt. Annulla una richiesta per continuare."
+  },
+  "depth": {
+    "action": "Genera profondità relativa"
+  },
+  "results": {
+    "upscale": "Risoluzione aumentata",
+    "multiAngle": "Nuova vista",
+    "removeObject": "Riparato",
+    "removeBackground": "Scontorno",
+    "extractSelection": "Selezione",
+    "generateDepth": "Profondità relativa"
+  }
+}

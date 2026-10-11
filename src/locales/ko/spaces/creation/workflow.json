@@ -1,0 +1,109 @@
+{
+  "title": "워크플로",
+  "select": "워크플로우 선택",
+  "createFromSelection": "파생 체인을 워크플로로 저장",
+  "derivation": {
+    "loading": "파생 검사 중…",
+    "separateChains": "선택 항목에는 연결이 끊긴 파생 체인 {count}가 포함되어 있습니다. 원하는 출력을 별도로 선택하십시오.",
+    "chain": "체인 {index}",
+    "steps": "확인된 작업",
+    "inputs": "프로세스 입력",
+    "issues": "재사용할 수 없는 부품",
+    "empty": "선택 항목에 재생 가능한 파생 작업이 없습니다.",
+    "sources": "출처: {sources}"
+  },
+  "name": "워크플로 이름",
+  "namePlaceholder": "이 워크플로 이름 지정",
+  "saveCaptured": "워크플로로 저장",
+  "saved": "워크플로 라이브러리에 저장됨",
+  "useSaved": "워크플로 사용",
+  "inputs": {
+    "slot": "{index}를 입력하세요",
+    "bind": "선택한 재질을 입력에 바인딩",
+    "select": "재료 선택",
+    "sequenceLimit": "{count} 항목까지 아래 순서대로 처리",
+    "moveUp": "재료를 위로 이동",
+    "moveDown": "재료를 아래로 이동",
+    "missing": "선택 항목에는 이 워크플로우에 필요한 재료 유형이 없습니다."
+  },
+  "summary": "{steps} 동작 · {outputs} 출력",
+  "outputs": {
+    "title": "출력",
+    "select": "“{action}”의 결과를 유지합니다.",
+    "locate": "\"{name}\"를 찾으세요",
+    "name": "결과 {index}",
+    "namesUnique": "각 결과에 최대 120자까지 다른 이름을 지정합니다."
+  },
+  "steps": {
+    "title": "단계",
+    "keep": "“{action}” 단계 유지",
+    "required": "이후 단계에서 사용됨"
+  },
+  "run": {
+    "start": "워크플로 실행",
+    "state": "실행 상태: {state}. 이 패널을 닫은 후에도 작업 센터에 진행 상황이 남아 있습니다.",
+    "recent": "최근 실행",
+    "new": "새 실행",
+    "retryFailedSteps": "실패한 단계 재시도",
+    "cancel": "실행 취소"
+  },
+  "edit": "작업 흐름 편집",
+  "parameters": {
+    "title": "제목",
+    "purpose": "목적",
+    "content": "콘텐츠",
+    "question": "질문",
+    "prompt": "프롬프트",
+    "summaryPurpose": "요약 목적",
+    "audience": "청중",
+    "goal": "목표",
+    "tone": "음정",
+    "intent": "의지",
+    "style": "스타일",
+    "imageStyle": "이미지 스타일",
+    "aspectRatio": "종횡비",
+    "durationSeconds": "기간(초)",
+    "platform": "플랫폼"
+  },
+  "delete": "워크플로우 삭제",
+  "deleteConfirm": "'{name}'를 삭제하시겠습니까? 완료된 실행과 해당 출력은 그대로 유지됩니다.",
+  "states": {
+    "queued": "대기 중",
+    "running": "실행 중",
+    "waiting": "대기 중",
+    "paused": "일시 중지됨",
+    "succeeded": "완료",
+    "completedWithErrors": "완료되었지만 오류가 발생했습니다",
+    "failed": "실패",
+    "cancelled": "취소됨",
+    "cancelling": "취소 중"
+  },
+  "captureIssues": {
+    "resourceUnavailable": "리소스가 삭제되었거나 이 작업공간 외부에 있습니다.",
+    "derivationIncomplete": "파생이 성공적으로 완료되지 않았습니다.",
+    "executionSpecUnavailable": "확인된 작업 매개변수 또는 실행 대상이 누락되어 이 단계를 재생할 수 없습니다.",
+    "derivationInputsUnavailable": "검증 가능한 소스 입력이 기록되지 않았습니다.",
+    "sourceUnavailable": "소스 리소스를 더 이상 사용할 수 없습니다.",
+    "sourceMismatch": "파생 소스 또는 해당 순서가 실행된 작업과 다르기 때문에 이 단계를 재생할 수 없습니다.",
+    "sourceIdentityUnavailable": "소스 레코드에 리소스 ID가 없습니다.",
+    "parameterInstanceReference": "작업 매개변수는 원본 캔버스 리소스를 참조하며 워크플로로 재사용할 수 없습니다.",
+    "candidateBindingUnavailable": "단계 입력은 워크플로 입력 또는 이전 출력에 바인딩될 수 없습니다.",
+    "noDerivedOutputSelected": "작업으로 생성된 출력을 선택합니다."
+  },
+  "captureActions": {
+    "draftDocument": "문서 만들기",
+    "draftScript": "초안 비디오 스크립트",
+    "summarizeMeeting": "회의 요약",
+    "draftSocialPost": "초안 소셜 게시물",
+    "generateVisualization": "시각화 생성",
+    "generateImage": "이미지 생성",
+    "generateVideo": "비디오 생성",
+    "renderPresentation": "프레젠테이션 만들기",
+    "addVideoSubtitles": "자막 추가",
+    "convertDocx": "Word로 변환",
+    "convertPdf": "PDF로 변환",
+    "convertTxt": "텍스트로 변환",
+    "convertHtml": "HTML로 변환"
+  },
+  "empty": "아직 저장된 워크플로가 없습니다. 완료된 파생 리소스를 선택하고 \"워크플로로 저장\"을 선택합니다."
+}

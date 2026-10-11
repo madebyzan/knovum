@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "In ein Word-Dokument konvertieren",
+    "pdf": "In PDF konvertieren",
+    "docxRunTitle": "Word-Dokument wird generiert",
+    "pdfRunTitle": "PDF wird generiert",
+    "txt": "In einfachen Text konvertieren",
+    "txtRunTitle": "Generieren von Klartext",
+    "html": "In HTML konvertieren",
+    "htmlRunTitle": "HTML-Dokument wird generiert"
+  },
+  "convert": {
+    "label": "Konvertieren in",
+    "formats": {
+      "docx": "Word-Dokument (.docx)",
+      "pdf": "PDF-Dokument (.pdf)",
+      "txt": "Klarer Text (.txt)",
+      "html": "HTML-Dokument (.html)",
+      "pptx": "Präsentation (.pptx)"
+    },
+    "help": "Erstellt eine zugehörige Datei. PDF-Inhalte werden ohne Bilder umgebrochen; Office to Word/HTML behält unterstützte Tabellen und Bilder bei. Office-Dateien mit Bildern können nicht in PDF konvertiert werden. Originallayout, Animationen und gescannte PDFs werden nicht unterstützt."
+  },
+  "generate": "Dokument generieren",
+  "title": "Erstellen Sie ein Dokument aus ausgewähltem Wissen",
+  "description": "Entwerfen Sie neben den ausgewählten Quellen eine zitierte Markdown-Ressource.",
+  "defaultTitle": "Wissensentwurf",
+  "purpose": "Dokumentkurzfassung",
+  "purposePlaceholder": "Beschreiben Sie das Ziel, das Format und die wichtigsten Punkte des Dokuments.",
+  "sources": "{count} Wissensquelle | {count} Wissensquellen",
+  "task": "Dokument wird generiert",
+  "generating": "Aus ausgewähltem Wissen generieren…",
+  "failed": "Dokument konnte nicht generiert werden"
+}

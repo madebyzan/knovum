@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "Esecuzione AI",
+  "defaultsDescription": "Imposta ciascuna funzionalità individualmente o lascia che utilizzi il metodo di esecuzione predefinito.",
+  "unassigned": "Utilizza il metodo di esecuzione predefinito",
+  "noCompatibleModel": "Configura un modello per questa attività",
+  "routes": {
+    "writing": {
+      "label": "Scrittura",
+      "description": "Redazione, riscrittura e assistenza editoriale."
+    },
+    "knowledge": {
+      "label": "Agente integrato",
+      "description": "Conversazioni, pianificazione delle attività, utilizzo degli strumenti e organizzazione della conoscenza."
+    },
+    "visualUnderstanding": {
+      "label": "Comprensione visiva",
+      "description": "Comprendere immagini, immagini di documenti e immagini di anteprima video per il recupero."
+    },
+    "translation": {
+      "label": "Traduzione",
+      "description": "Traduci i contenuti in tutta l'applicazione."
+    },
+    "imageGeneration": {
+      "label": "Creazione immagine",
+      "description": "Crea immagini dalle istruzioni e dal contesto spaziale."
+    },
+    "videoGeneration": {
+      "label": "Creazione video",
+      "description": "Crea video partendo da istruzioni e materiale originale."
+    },
+    "defaultTarget": {
+      "label": "Metodo di esecuzione predefinito",
+      "description": "Utilizzato dalle funzionalità senza una scelta di esecuzione individuale."
+    }
+  },
+  "unselected": "Nessun metodo di esecuzione selezionato",
+  "capabilitiesTitle": "Per capacità"
+}

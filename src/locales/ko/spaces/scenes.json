@@ -1,0 +1,26 @@
+{
+  "title": "장면",
+  "previous": "이전 장면",
+  "next": "다음 장면",
+  "focus": {
+    "mode": "집중보기 · {count} 아이템",
+    "exit": "포커스 종료",
+    "selection": "초점 선택",
+    "unavailable": "이 저장된 보기는 더 이상 존재하지 않는 구조를 참조합니다."
+  },
+  "collapse": "장면 컨트롤 축소",
+  "expand": "장면 제어 확장",
+  "defaultName": "장면 {index}",
+  "saved": "저장된 장면 “{title}”",
+  "updated": "업데이트된 장면 “{title}”",
+  "opened": "“{title}” 장면으로 이동했습니다.",
+  "save": "현재 장면 저장",
+  "delete": "장면 삭제",
+  "empty": "특정 영역으로 빠르게 돌아가려면 뷰포트 위치를 저장하세요.",
+  "open": "장면으로 이동",
+  "update": "현재 뷰포트로 업데이트",
+  "duplicate": "중복 장면",
+  "moveUp": "위로 이동",
+  "moveDown": "아래로 이동",
+  "rename": "장면 이름 바꾸기"
+}

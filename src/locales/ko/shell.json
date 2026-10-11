@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "명령 팔레트",
+    "searchPlaceholder": "검색 명령…",
+    "noMatches": "일치하는 명령 없음"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "실행 취소할 항목이 없습니다.",
+    "nothingToRedo": "다시 실행할 항목 없음",
+    "noSelection": "먼저 콘텐츠 선택",
+    "notEnoughScenes": "다른 장면은 없어요",
+    "selectionNotEligible": "이 선택 항목은 작업을 사용할 수 없습니다.",
+    "checking": "가용성 확인 중",
+    "busy": "작업이 진행 중입니다."
+  },
+  "toggleRightSidebar": "오른쪽 사이드바 표시 또는 숨기기",
+  "toggleSidebar": "사이드바 전환",
+  "layoutSaveFailed": "워크벤치 레이아웃을 저장할 수 없습니다.",
+  "shortcuts": {
+    "title": "키보드 단축키",
+    "search": "바로가기 검색",
+    "categories": {
+      "general": "일반",
+      "navigation": "항해",
+      "canvas": "캔버스",
+      "editing": "편집"
+    },
+    "noMatches": "일치하는 바로가기 없음"
+  },
+  "startup": {
+    "starting": "Knovum 시작 중..."
+  }
+}

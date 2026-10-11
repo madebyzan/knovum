@@ -1,0 +1,27 @@
+{
+  "recent": {
+    "title": "Récemment supprimé",
+    "description": "Restaurez les cartes supprimées ou supprimez définitivement la structure.",
+    "loadFailed": "Impossible de charger la structure supprimée.",
+    "empty": "Aucun élément récemment supprimé dans cette étendue."
+  },
+  "filters": {
+    "space": "Filtrer par espace"
+  },
+  "structure": {
+    "deletedCount": "Nœud supprimé {count} | Nœuds supprimés {count}",
+    "processing": "Traitement …",
+    "deletedNotice": "Nœud {count} définitivement supprimé | Nœuds {count} définitivement supprimés",
+    "restoreNode": "Nœud de restauration",
+    "restoreOperation": "Restaurer la suppression complète",
+    "restoreFailed": "Impossible de restaurer le nœud",
+    "deleteDescription": "Supprimer définitivement « {title} » ? Cette action ne peut pas être annulée.",
+    "deleteFailed": "Impossible de supprimer définitivement le nœud"
+  },
+  "deleteAll": {
+    "action": "Supprimer définitivement tout…",
+    "title": "Supprimer définitivement tous les éléments ?",
+    "description": "Supprimer définitivement l'élément supprimé {count} dans « {scope} » ? Les connaissances actives ne sont pas affectées. Cette action ne peut pas être annulée. | Supprimer définitivement les éléments supprimés {count} dans « {scope} » ? Les connaissances actives ne sont pas affectées. Cette action ne peut pas être annulée."
+  },
+  "deletePermanently": "Supprimer définitivement"
+}

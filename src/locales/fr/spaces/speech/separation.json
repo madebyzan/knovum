@@ -1,0 +1,15 @@
+{
+  "task": "Séparation des sources",
+  "title": "Voix et arrière-plan séparés",
+  "stems": {
+    "vocals": "Voix",
+    "background": "Arrière-plan"
+  },
+  "background": "Arrière-plan séparé",
+  "running": "Séparation de l'audio",
+  "starting": "Préparation de la séparation…",
+  "cancelling": "Annulation…",
+  "completed": "Voix et arrière-plan ajoutés à la toile",
+  "sourceUnavailable": "Les informations audio ne sont pas prêtes",
+  "tooLong": "Choisissez un audio d'une durée maximale de 10 minutes"
+}

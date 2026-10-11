@@ -1,0 +1,36 @@
+{
+  "title": "デスクトップ エージェント",
+  "description": "このコンピューターに既にインストールされサインインしている、サポートされている AI エージェントを使用します。有効なエージェントは、アクションごとの確認なしで、利用可能なツール、MCP サーバー、およびスキルを使用して実行されます。",
+  "check": "エージェントをチェックする",
+  "enable": "有効",
+  "disable": "無効",
+  "status": {
+    "checking": "チェック中",
+    "checkFailed": "チェックに失敗しました"
+  },
+  "entry": {
+    "missing": "コマンド入力が検出されない",
+    "applicationOnly": "アプリが見つかりました。コマンドが使用不可",
+    "commandDetected": "コマンドが検出されました"
+  },
+  "requiredCommands": "必要なコマンド: {commands}",
+  "connectionHelp": "{name} 接続ヘルプ",
+  "officialDocumentation": "公式ガイダンス",
+  "acpSetup": "ACP セットアップ",
+  "detectionBoundary": "コマンドの可用性のみをチェックします。サインインと ACP 接続は検証されません。",
+  "documentationOpenFailed": "エージェントの公式リンクを開けませんでした",
+  "connections": {
+    "executableCli": {
+      "title": "直接ACP",
+      "requirements": "ACP をサポートする公式 CLI をインストールし、そのコマンド ディレクトリを PATH に追加します。"
+    },
+    "nodeAdapter": {
+      "title": "ACP アダプター",
+      "requirements": "公式 CLI と Node.js (npx) が必要です。初めて使用する場合は、ACP アダプターをダウンロードする場合があります。"
+    },
+    "standaloneServer": {
+      "title": "スタンドアロン ACP サーバー",
+      "requirements": "公式 ACP アーカイブをダウンロードし、その関連ファイルを保存し、サーバー ディレクトリを PATH に追加します。"
+    }
+  }
+}

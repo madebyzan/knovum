@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "畫布工具",
+    "select": "選擇",
+    "section": "繪製分區"
+  },
+  "nodeActions": {
+    "label": "節點操作",
+    "openOriginal": "打開原文",
+    "goToTarget": "前往目標",
+    "viewLarge": "看大圖",
+    "openVideo": "打開視頻",
+    "openAudio": "打開音訊",
+    "viewCode": "檢視程式碼",
+    "openFile": "開啟文件",
+    "export": "匯出"
+  },
+  "zoom": {
+    "out": "縮小",
+    "in": "放大",
+    "options": "縮放比例",
+    "toFitContent": "縮放以適應內容",
+    "toSelection": "縮放到選取項"
+  },
+  "arrange": {
+    "title": "排列",
+    "toFront": "置於頂層",
+    "forward": "上移一層",
+    "backward": "下移一層",
+    "toBack": "置於底層",
+    "autoHorizontal": "自動佈局（橫向）",
+    "autoVertical": "自動佈局（縱向）"
+  },
+  "layerOrder": "層級排序",
+  "selection": {
+    "label": "目前選取",
+    "selectAll": "全選",
+    "delete": "刪除選取項目",
+    "toggleLock": "鎖定或解鎖選取項目"
+  },
+  "kinds": {
+    "group": "組合",
+    "section": "分割區"
+  },
+  "groups": {
+    "create": "編組選取項",
+    "ungroup": "取消編組",
+    "untitled": "未命名組合"
+  },
+  "sections": {
+    "create": "建立分區",
+    "createEmpty": "新建分割區",
+    "removeOnly": "僅移除分割區",
+    "backgroundFailed": "無法載入分區背景圖片",
+    "drop": {
+      "enter": "鬆開以移入分區",
+      "leave": "鬆開以移出分區"
+    },
+    "fitToContents": "適應分區內容",
+    "untitled": "未命名分區",
+    "collapse": "折疊分區",
+    "expand": "展開分區"
+  },
+  "lock": "鎖定",
+  "locked": "已鎖定",
+  "unlock": "解鎖",
+  "align": {
+    "left": "左對齊",
+    "center": "水平居中",
+    "right": "右對齊",
+    "top": "頂對齊",
+    "middle": "垂直居中",
+    "bottom": "底對齊"
+  },
+  "distribute": {
+    "horizontal": "水平等距",
+    "vertical": "垂直等距"
+  },
+  "nudge": {
+    "left": "向左微移",
+    "right": "向右微移",
+    "up": "向上微移",
+    "down": "向下微移",
+    "leftLarge": "向左移動 10px",
+    "rightLarge": "向右移動 10px",
+    "upLarge": "向上移動 10px",
+    "downLarge": "向下移動 10px"
+  },
+  "relations": {
+    "connect": "建立關聯"
+  },
+  "typography": "文字排版",
+  "noteBackground": "便籤背景",
+  "textColor": "文字顏色",
+  "fontSize": "號碼",
+  "noteFills": {
+    "yellow": "黃色",
+    "green": "綠色",
+    "blue": "藍色",
+    "pink": "粉紅色",
+    "gray": "灰色"
+  },
+  "textColors": {
+    "ink": "墨色",
+    "muted": "灰色",
+    "red": "紅色",
+    "blue": "藍色",
+    "green": "綠色",
+    "purple": "紫色"
+  },
+  "selectionTextColors": {
+    "default": "預設",
+    "gray": "灰色",
+    "red": "紅色",
+    "amber": "橘色",
+    "yellow": "黃色",
+    "green": "綠色",
+    "teal": "青綠色",
+    "cyan": "青色",
+    "blue": "藍色",
+    "purple": "紫色",
+    "pink": "粉紅色",
+    "white": "白色"
+  },
+  "textAlignments": {
+    "left": "左對齊",
+    "center": "居中",
+    "right": "右對齊"
+  },
+  "verticalAlignments": {
+    "top": "頂部",
+    "middle": "垂直居中",
+    "bottom": "底部"
+  },
+  "revealInCanvas": "在畫布中定位",
+  "shortcuts": {
+    "panCanvas": "平移畫布",
+    "zoomReset": "重置縮放",
+    "nudgeSelection": "微調選項",
+    "nudgeLarge": "移動 10px"
+  },
+  "dropToSave": "拖放以儲存到目前空間",
+  "cancelInteraction": "取消畫布操作",
+  "htmlSandboxAssetsBlocked": "目前 HTML 缺少 {count} 個關聯資源，建議匯入包含完整依賴的資料夾。",
+  "moveToContainer": "移動到容器",
+  "spaceRoot": "空間根級",
+  "addContent": {
+    "title": "添加內容",
+    "importFiles": "導入文件…"
+  }
+}

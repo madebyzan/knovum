@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "Contour",
+    "empty": "Les éléments ajoutés au canevas apparaissent ici."
+  },
+  "editorOutline": {
+    "title": "Aperçu du document"
+  },
+  "rightSidebarViews": "Vues de la barre latérale droite",
+  "rename": {
+    "nameRequired": "Entrez un nom.",
+    "failed": "Le nom n'a pas pu être enregistré. Appuyez sur Entrée pour réessayer."
+  }
+}

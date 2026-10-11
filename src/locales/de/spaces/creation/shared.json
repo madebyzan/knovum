@@ -1,0 +1,21 @@
+{
+  "failedAttempt": "Erstellung fehlgeschlagen",
+  "removeFailedOutput": "Fehlgeschlagenes Element entfernen",
+  "knowledgeDerivation": "Aus Wissen erstellt",
+  "resourceTask": "Ressourcenaufgabe",
+  "presets": {
+    "save": "Als Voreinstellung speichern",
+    "saved": "Generationsvoreinstellung gespeichert",
+    "label": "Generationsvoreinstellung",
+    "empty": "Keine Generierungsvoreinstellungen",
+    "select": "Wählen Sie eine Generationsvoreinstellung aus"
+  },
+  "source": {
+    "knowledge": "Quellenwissen",
+    "changed": "Einige Quellen haben sich nach der Erstellung dieses Artikels geändert."
+  },
+  "citations": "Zitate · {count}",
+  "createFromSelection": "Aus Auswahl erstellen",
+  "needsIndexedKnowledge": "Die ausgewählten Elemente enthalten noch keinen durchsuchbaren Text.",
+  "finishNodeOperation": "Beenden oder brechen Sie zuerst den aktuellen Knotenvorgang ab."
+}

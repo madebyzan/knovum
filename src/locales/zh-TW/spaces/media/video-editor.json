@@ -1,0 +1,99 @@
+{
+  "edit": "編輯影片",
+  "title": "影片編輯工作台",
+  "loading": "正在載入影片編輯器…",
+  "preview": {
+    "optimizing": "正在後台優化預覽…",
+    "retry": "重試準備預覽",
+    "sourceUnavailable": "視訊來源檔案不可用，請重新匯入後編輯。",
+    "proxyFailed": "無法準備流暢預覽",
+    "durationUnavailable": "無法讀取影片時長",
+    "metadataUnavailable": "無法讀取影片畫面尺寸",
+    "unavailable": "無法打開影片預覽",
+    "audioUnavailable": "無法準備音訊預覽"
+  },
+  "tracks": {
+    "video": "影片",
+    "audio": "音訊",
+    "text": "文字"
+  },
+  "timeline": {
+    "thumbnailFailed": "無法產生時間軸縮圖",
+    "zoomOut": "縮小時間軸",
+    "zoomIn": "放大時間軸",
+    "fit": "適配整段視頻",
+    "seek": "定位時間軸"
+  },
+  "text": {
+    "tools": "文字工具",
+    "invalidColor": "請輸入六位十六進位顏色，例如 #FFFFFF。",
+    "presets": {
+      "title": "預設樣式",
+      "plain": "簡潔",
+      "outline": "描邊",
+      "shadow": "陰影",
+      "badge": "底框"
+    },
+    "placement": "畫面位置",
+    "add": "新增文字",
+    "content": "文字內容"
+  },
+  "tabs": {
+    "captions": "字幕",
+    "text": "文字"
+  },
+  "closeInspector": "關閉編輯面板",
+  "captions": {
+    "search": "搜尋字幕文字",
+    "none": "暫無字幕。點擊上方按鈕新增。",
+    "noMatches": "沒有符合的字幕。"
+  },
+  "font": {
+    "family": "字體",
+    "searchEmpty": "未找到符合的字體。",
+    "weight": "字重",
+    "unavailable": "本機未安裝字型「{family}」，請重新選擇。",
+    "catalogEmpty": "本機沒有可用字體。",
+    "size": "字號（720p）",
+    "color": "字體顏色"
+  },
+  "videoSettings": "影片設定",
+  "clip": {
+    "selected": "所選片段",
+    "volume": "音量",
+    "rotate": "旋轉",
+    "split": "分割",
+    "inPoint": "入點（秒）",
+    "outPoint": "出點（秒）",
+    "startsAt": "開始（秒）",
+    "endsAt": "結束（秒）"
+  },
+  "top": "頂部",
+  "center": "居中",
+  "bottom": "底部",
+  "project": {
+    "saved": "影片編輯工程已儲存"
+  },
+  "render": {
+    "action": "渲染影片",
+    "task": "影片渲染",
+    "failed": "影片渲染失敗"
+  },
+  "preparingVideoEdit": "正在準備編輯工程",
+  "renderingVideoEdit": "正在渲染視頻",
+  "savingResource": "正在保存資源",
+  "previousStep": "後退 0.1 秒",
+  "nextStep": "前進 0.1 秒",
+  "trim": {
+    "start": "修剪片段起點",
+    "end": "修剪片段終點",
+    "textStart": "修剪文字起點",
+    "textEnd": "修剪文字終點",
+    "hint": "拖曳片段邊緣修剪；按住 Option 或 Alt 可精細調整。"
+  },
+  "unsaved": {
+    "title": "儲存影片修改？",
+    "status": "有未儲存的修改",
+    "description": "關閉前未儲存的修改將會遺失。"
+  }
+}

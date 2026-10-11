@@ -1,0 +1,11 @@
+{
+  "title": "Gestione vocale",
+  "collectionTitle": "Libreria vocale",
+  "empty": "Ancora nessuna voce.",
+  "manage": "Gestisci le voci e fai riferimento all'audio",
+  "description": "Gestisci voci, audio di riferimento e revisioni di campioni condivisi nell'applicazione. Ogni area di lavoro può utilizzare le voci salvate qui.",
+  "discardTitle": "Scarta modifiche vocali",
+  "discardDescription": "Le impostazioni vocali non salvate andranno perse.",
+  "presets": "Voci preimpostate",
+  "addTitle": "Aggiungi voce"
+}

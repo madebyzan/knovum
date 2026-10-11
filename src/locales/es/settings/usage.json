@@ -1,0 +1,40 @@
+{
+  "title": "Uso",
+  "description": "Uso y actividad del token AI integrado durante el año pasado.",
+  "tokens": {
+    "total": "Total de tokens",
+    "input": "Tokens de entrada",
+    "output": "Tokens de salida",
+    "split": "Mezcla de entrada y salida"
+  },
+  "requests": "Usos",
+  "activeDays": "Días activos",
+  "streak": {
+    "current": "Racha activa actual",
+    "longest": "Racha activa más larga"
+  },
+  "activity": {
+    "title": "Actividad del token",
+    "insightsTitle": "Descripción general de la actividad",
+    "description": "Día pico · Tokens {peak}",
+    "tokenCount": "Ficha {tokens}",
+    "less": "Menos",
+    "more": "Más",
+    "weekdays": {
+      "monday": "Lun",
+      "wednesday": "Mié",
+      "friday": "Viernes"
+    },
+    "empty": "No se utilizó token en el último año."
+  },
+  "purpose": {
+    "title": "Uso por capacidad",
+    "editor": "Herramientas de escritura",
+    "knowledge": "Creación de conocimiento",
+    "knowledgeIndexing": "Indexación de conocimientos",
+    "translation": "Traducción",
+    "visualAnalysis": "Comprensión visual",
+    "builtinAgent": "Agente incorporado"
+  },
+  "providerReported": "Los totales incluyen sólo la actividad que informa el uso; Es posible que falten algunas operaciones."
+}

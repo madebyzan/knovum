@@ -1,0 +1,40 @@
+{
+  "title": "使用情況",
+  "description": "看看近一年內建 AI 的 Token 用量與活動。",
+  "tokens": {
+    "total": "Token 總用量",
+    "input": "輸入 Token",
+    "output": "輸出 Token",
+    "split": "輸入與輸出佔比"
+  },
+  "requests": "使用次數",
+  "activeDays": "活躍天數",
+  "streak": {
+    "current": "目前連續活躍",
+    "longest": "最長連續活躍"
+  },
+  "activity": {
+    "title": "Token 活動",
+    "insightsTitle": "活動概覽",
+    "description": "單日峰值 {peak} Token",
+    "tokenCount": "{tokens} Token",
+    "less": "較少",
+    "more": "較多",
+    "weekdays": {
+      "monday": "週一",
+      "wednesday": "週三",
+      "friday": "週五"
+    },
+    "empty": "過去一年暫無 Token 用量。"
+  },
+  "purpose": {
+    "title": "按能力分類",
+    "editor": "寫作工具",
+    "knowledge": "知識創作",
+    "knowledgeIndexing": "知識索引",
+    "translation": "翻譯",
+    "visualAnalysis": "視覺理解",
+    "builtinAgent": "內建 Agent"
+  },
+  "providerReported": "僅匯總提供用量資訊的活動；部分操作可能未計入。"
+}

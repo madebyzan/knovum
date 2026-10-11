@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "Word 문서로 변환",
+    "pdf": "PDF로 변환",
+    "docxRunTitle": "Word 문서 생성 중",
+    "pdfRunTitle": "PDF 생성 중",
+    "txt": "일반 텍스트로 변환",
+    "txtRunTitle": "일반 텍스트 생성 중",
+    "html": "HTML로 변환",
+    "htmlRunTitle": "HTML 문서 생성 중"
+  },
+  "convert": {
+    "label": "다음으로 변환",
+    "formats": {
+      "docx": "Word 문서(.docx)",
+      "pdf": "PDF 문서(.pdf)",
+      "txt": "일반 텍스트(.txt)",
+      "html": "HTML 문서(.html)",
+      "pptx": "프레젠테이션(.pptx)"
+    },
+    "help": "관련 파일을 생성합니다. PDF 콘텐츠는 이미지 없이 리플로우됩니다. Office to Word/HTML는 지원되는 테이블과 이미지를 유지합니다. 이미지가 포함된 Office 파일은 PDF로 변환할 수 없습니다. 원본 레이아웃, 애니메이션, 스캔한 PDF는 지원되지 않습니다."
+  },
+  "generate": "문서 생성",
+  "title": "선택한 지식으로 문서 만들기",
+  "description": "선택한 소스 옆에 인용된 마크다운 리소스 초안을 작성합니다.",
+  "defaultTitle": "지식 초안",
+  "purpose": "문서 요약",
+  "purposePlaceholder": "문서의 목표, 형식, 핵심 사항을 설명하세요.",
+  "sources": "{count} 지식 소스",
+  "task": "문서 생성 중",
+  "generating": "선택된 지식으로부터 생성…",
+  "failed": "문서를 생성할 수 없습니다."
+}

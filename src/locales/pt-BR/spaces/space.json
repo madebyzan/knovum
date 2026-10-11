@@ -1,0 +1,45 @@
+{
+  "title": "Espaços",
+  "new": "Novo Espaço",
+  "untitled": "Espaço de trabalho sem título",
+  "inbox": "Caixa de entrada",
+  "empty": {
+    "title": "Espaço de trabalho vazio",
+    "description": "Clique duas vezes na tela vazia para escrever · Colar o conteúdo da área de transferência · Soltar arquivos para importar"
+  },
+  "rename": "Renomear espaço",
+  "tabs": {
+    "close": "Fechar guia",
+    "closeOthers": "Fechar outras guias",
+    "closeToRight": "Fechar guias à direita",
+    "actionFailed": "Falha na ação da guia Espaço de trabalho",
+    "reopen": "Reabrir guia fechada",
+    "switchTo": "Mudar para guia {number}"
+  },
+  "back": "Voltar",
+  "forward": "Avançar",
+  "sections": {
+    "open": "Espaços de trabalho abertos",
+    "all": "Todos os espaços",
+    "recent": "Aberto recentemente",
+    "favorites": "Favoritos"
+  },
+  "views": {
+    "grid": "Visualização em grade",
+    "list": "Visualização de lista"
+  },
+  "search": {
+    "placeholder": "Espaços de pesquisa…",
+    "noResults": "Sem espaços correspondentes"
+  },
+  "nodeCount": "Item {count} | Itens {count}",
+  "favorite": "Espaço favorito",
+  "unfavorite": "Remover dos favoritos",
+  "open": "Abrir espaço de trabalho",
+  "loadFailed": "Não foi possível abrir o espaço de trabalho",
+  "loadFailedHint": "Falha ao carregar o banco de dados do espaço de trabalho. Os arquivos locais não são afetados; por favor tente novamente.",
+  "archive": "Espaço de arquivo",
+  "moveTo": "Mover para o espaço de trabalho",
+  "moveNoTargets": "Nenhum outro espaço de trabalho disponível para onde migrar.",
+  "archived": "Arquivado “{title}”"
+}

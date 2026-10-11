@@ -1,0 +1,36 @@
+{
+  "title": "創作",
+  "description": "管理創作預設和圖片圖層分割所需的服務。",
+  "presets": {
+    "title": "產生預設",
+    "description": "用於內容創作的已儲存模型設定。",
+    "empty": "尚未儲存生成預設。",
+    "deleteConfirm": "刪除此預設？",
+    "name": "預設名稱",
+    "edit": "編輯生成預設",
+    "discardTitle": "放棄預設更改？",
+    "discardDescription": "對此產生預設的未儲存變更將會遺失。"
+  },
+  "parameters": "參數",
+  "copyName": "{name} 副本",
+  "saveFailed": "無法儲存創作設置",
+  "knowledgeActions": {
+    "groundedAnswer": "溯源回答",
+    "structureDocument": "結構化文檔",
+    "writeScript": "腳本",
+    "summarizeMeeting": "會議總結",
+    "writeSocialCopy": "社群內容",
+    "visualization": "視覺化",
+    "createCompanionImage": "配圖",
+    "generateVideo": "產生影片",
+    "extractSubtitles": "擷取字幕",
+    "renderSubtitledVideo": "字幕影片",
+    "renderPresentation": "簡報"
+  },
+  "imageLayers": {
+    "title": "圖片圖層拆分",
+    "description": "接入 fal，用於拆分圖片圖層。",
+    "apiKey": "fal API Key",
+    "apiKeyDescription": "僅保存在這台設備上。"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "知識整理",
+    "description": "查閱、整理和發布空間知識，保留來源依據。"
+  },
+  "evidence-research": {
+    "name": "證據研究",
+    "description": "對照資料，形成有據可查的研究與決策簡報。"
+  },
+  "meeting-notes": {
+    "name": "會議紀要",
+    "description": "從會議轉錄整理要點、決策和待辦。"
+  },
+  "document-delivery": {
+    "name": "文件交付",
+    "description": "基於資料製作報告，交付所需的文檔格式。"
+  },
+  "study-companion": {
+    "name": "學習輔導",
+    "description": "將空間資料整理為學習指南、練習與複習計畫。"
+  },
+  "github-work": {
+    "name": "GitHub 工作流程",
+    "description": "連接 GitHub，查閱倉庫並基於證據整理問題。"
+  },
+  "notion-work": {
+    "name": "Notion 知識工作流程",
+    "description": "連接 Notion，查閱頁面並發布整理後的知識。"
+  },
+  "linear-work": {
+    "name": "Linear 工作流程",
+    "description": "連結 Linear，將決策和行動項落實為專案工作。"
+  }
+}

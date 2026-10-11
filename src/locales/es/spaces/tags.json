@@ -1,0 +1,8 @@
+{
+  "title": "Etiquetas",
+  "selectionHint": "Seleccione nodos del lienzo para administrar etiquetas.",
+  "add": "Agregar etiqueta",
+  "empty": "No hay etiquetas en este espacio de trabajo.",
+  "showNodes": "Filtrar nodos etiquetados",
+  "remove": "Eliminar etiqueta {tag}"
+}

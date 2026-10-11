@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { DYNAMIC_LOCALE_KEY_PREFIXES, DYNAMIC_LOCALE_KEYS } from "../../../locales/dynamic-keys";
 import { localeMessages } from "../../../locales/locale-registry";
+import { preferenceLocales } from "../../../shared/contracts/generated/contract-values";
 
 type LocaleTree = { readonly [key: string]: LocaleTree | string };
 
@@ -22,7 +23,7 @@ const sourceModules = import.meta.glob(
   },
 ) as Record<string, string>;
 
-const localeFragments = import.meta.glob("/src/locales/{en,zh-CN}/**/*.json", {
+const localeFragments = import.meta.glob("/src/locales/*/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, Record<string, unknown>>;
@@ -52,7 +53,7 @@ function placeholders(message: string) {
 }
 
 function localeModulePath(path: string) {
-  return path.replace(/^.*\/locales\/(?:en|zh-CN)\//u, "");
+  return path.replace(/^.*\/locales\/[^/]+\//u, "");
 }
 
 function nonCamelCaseKeys(tree: Record<string, unknown>, parent = "", keys: string[] = []) {
@@ -88,27 +89,32 @@ function collectReferencedKeyLiterals() {
 }
 
 describe("locale completeness", () => {
-  const { en, "zh-CN": zhCN } = localeMessages;
-  const english = flattenMessages(en as LocaleTree);
-  const chinese = flattenMessages(zhCN as LocaleTree);
+  const english = flattenMessages(localeMessages.en as LocaleTree);
   const enKeys = new Set(english.keys());
-  const zhCNKeys = new Set(chinese.keys());
+  const locales = Object.entries(localeMessages).map(
+    ([locale, tree]) => [locale, flattenMessages(tree as LocaleTree)] as const,
+  );
 
-  it("keeps English and Simplified Chinese keys aligned", () => {
-    expect(difference([...enKeys], [...zhCNKeys])).toEqual([]);
-    expect(difference([...zhCNKeys], [...enKeys])).toEqual([]);
+  it("loads exactly the supported language roots", () => {
+    const expected = preferenceLocales.filter((locale) => locale !== "system").toSorted();
+    const roots = [...new Set(Object.keys(localeFragments).map((path) => path.split("/")[3]!))].toSorted();
+    expect(roots).toEqual(expected);
+    expect(Object.keys(localeMessages).toSorted()).toEqual(expected);
   });
 
-  it("defines every statically referenced translation key", () => {
-    const usedKeys = collectStaticTranslationKeys();
-    expect(difference([...usedKeys], [...enKeys])).toEqual([]);
-    expect(difference([...usedKeys], [...zhCNKeys])).toEqual([]);
+  it.each(locales)("keeps %s keys aligned with English", (_locale, messages) => {
+    expect(difference([...enKeys], [...messages.keys()])).toEqual([]);
+    expect(difference([...messages.keys()], [...enKeys])).toEqual([]);
   });
 
-  it("keeps placeholders aligned between languages", () => {
+  it.each(locales)("defines all product references in %s", (_locale, messages) => {
+    expect(difference([...collectStaticTranslationKeys()], [...messages.keys()])).toEqual([]);
+  });
+
+  it.each(locales)("keeps %s placeholders aligned with English", (_locale, messages) => {
     const mismatches = [...english].flatMap(([key, message]) => {
       const expected = placeholders(message);
-      const actual = placeholders(chinese.get(key) ?? "");
+      const actual = placeholders(messages.get(key) ?? "");
       return expected.join() === actual.join() ? [] : [{ key, expected, actual }];
     });
     expect(mismatches).toEqual([]);
@@ -118,17 +124,16 @@ describe("locale completeness", () => {
     expect(placeholders("{count} item | {count} items")).toEqual(["count"]);
   });
 
-  it("keeps locale module paths aligned", () => {
+  it.each(locales)("keeps %s module paths aligned with English", (locale) => {
     const paths = Object.keys(localeFragments);
     const enPaths = paths.filter((path) => path.includes("/locales/en/")).map(localeModulePath);
-    const zhCNPaths = paths.filter((path) => path.includes("/locales/zh-CN/")).map(localeModulePath);
-    expect(difference(enPaths, zhCNPaths)).toEqual([]);
-    expect(difference(zhCNPaths, enPaths)).toEqual([]);
+    const localizedPaths = paths.filter((path) => path.includes(`/locales/${locale}/`)).map(localeModulePath);
+    expect(difference(enPaths, localizedPaths)).toEqual([]);
+    expect(difference(localizedPaths, enPaths)).toEqual([]);
   });
 
-  it("uses semantic lowerCamelCase message keys", () => {
-    expect(nonCamelCaseKeys(en as unknown as Record<string, unknown>)).toEqual([]);
-    expect(nonCamelCaseKeys(zhCN as unknown as Record<string, unknown>)).toEqual([]);
+  it.each(Object.entries(localeMessages))("uses lowerCamelCase keys in %s", (_locale, tree) => {
+    expect(nonCamelCaseKeys(tree as unknown as Record<string, unknown>)).toEqual([]);
   });
 
   it("keeps every message key reachable from product code", () => {

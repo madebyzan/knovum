@@ -3,6 +3,7 @@ mod exit;
 pub(crate) mod file_drop;
 pub(crate) use exit::AppExitRequest;
 mod editing;
+mod locale;
 pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
@@ -19,7 +20,7 @@ use tauri::{plugin::TauriPlugin, AppHandle, Manager, RunEvent, Runtime, Window, 
 const MAIN_WINDOW_LABEL: &str = "main";
 #[cfg(target_os = "macos")]
 pub fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
-    menu::build(app, "en")
+    menu::build(app, crate::preferences::LocalePreference::English)
 }
 
 #[cfg(target_os = "macos")]
@@ -28,14 +29,12 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
 }
 
 #[tauri::command]
-pub fn set_locale<R: Runtime>(app: AppHandle<R>, locale: String) -> Result<(), AppError> {
-    let locale = match locale.as_str() {
-        "en" => "en",
-        "zh-CN" => "zh-CN",
-        _ => return Err("unsupported system locale".into()),
-    };
-
-    tasks::set_locale(&app, locale);
+pub fn set_locale<R: Runtime>(
+    app: AppHandle<R>,
+    locale: crate::preferences::LocalePreference,
+) -> Result<(), AppError> {
+    locale::labels(locale)?;
+    tasks::set_locale(&app, locale)?;
     #[cfg(target_os = "macos")]
     menu::rebuild(&app, locale).map_err(|error| error.to_string())?;
 
@@ -69,7 +68,8 @@ pub fn set_workspace_menu_state<R: Runtime>(
 pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
     let reveal = || -> Result<(), String> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
-        tray::ensure_installed(&app, "en").map_err(|error| error.to_string())?;
+        tray::ensure_installed(&app, crate::preferences::LocalePreference::English)
+            .map_err(|error| error.to_string())?;
         crate::app_window::focus_main(&app)
     };
     match reveal() {

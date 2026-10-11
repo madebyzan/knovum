@@ -1,0 +1,46 @@
+{
+  "backToApp": "Retour à l'application",
+  "search": "Paramètres de recherche…",
+  "noResults": "Aucun paramètre correspondant trouvé.",
+  "load": {
+    "failed": "Les paramètres n'ont pas pu être chargés",
+    "failedDescription": "Les données enregistrées sont incompatibles avec le format actuel. Réessayez ou réinitialisez cette section."
+  },
+  "reset": {
+    "action": "Section Réinitialiser",
+    "confirmation": "Réinitialiser les paramètres enregistrés dans cette section ? Cela ne peut pas être annulé."
+  },
+  "about": {
+    "title": "À propos",
+    "author": "Auteur",
+    "description": "Informations sur la version et le système."
+  },
+  "version": "Version {version}",
+  "readingVersion": "Version en lecture…",
+  "archived": {
+    "title": "Espaces archivés",
+    "description": "Restaurez ou supprimez définitivement les espaces de travail archivés.",
+    "restore": "Restaurer l'espace de travail",
+    "restoreFailed": "Impossible de restaurer l'espace de travail",
+    "loadFailed": "Impossible de charger les espaces de travail archivés",
+    "delete": {
+      "label": "Supprimer définitivement",
+      "title": "Supprimer définitivement « {title} » ?",
+      "description": "Cela supprime définitivement l'espace de travail et toutes les données associées de cet appareil. Cette action ne peut pas être annulée.",
+      "failed": "Impossible de supprimer l'espace de travail"
+    },
+    "deleteAll": {
+      "label": "Supprimer tout",
+      "title": "Supprimer définitivement tous les espaces de travail archivés ?",
+      "description": "Supprimer définitivement l'espace de travail archivé {count} et son contenu ? Cela ne peut pas être annulé. | Supprimer définitivement les espaces de travail archivés {count} et leur contenu ? Cela ne peut pas être annulé."
+    },
+    "empty": "Aucun espace archivé."
+  },
+  "inboxSpace": "Boîte de réception",
+  "groups": {
+    "intelligence": "Intelligence",
+    "general": "Général",
+    "data": "Données & archives",
+    "information": "Information"
+  }
+}

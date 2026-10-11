@@ -1,0 +1,27 @@
+{
+  "recent": {
+    "title": "Eliminado recientemente",
+    "description": "Restaura tarjetas eliminadas o elimina permanentemente la estructura.",
+    "loadFailed": "No se pudo cargar la estructura eliminada.",
+    "empty": "No hay elementos eliminados recientemente en este ámbito."
+  },
+  "filters": {
+    "space": "Filtrar por espacio"
+  },
+  "structure": {
+    "deletedCount": "Nodo eliminado {count} | {count} nodos eliminados",
+    "processing": "Procesando…",
+    "deletedNotice": "Nodo {count} eliminado permanentemente | Nodos {count} eliminados permanentemente",
+    "restoreNode": "Restaurar nodo",
+    "restoreOperation": "Restaurar eliminación completa",
+    "restoreFailed": "No se pudo restaurar el nodo",
+    "deleteDescription": "¿Eliminar permanentemente “{title}”? Esta acción no se puede deshacer.",
+    "deleteFailed": "No se pudo eliminar permanentemente el nodo"
+  },
+  "deleteAll": {
+    "action": "Eliminar todo permanentemente…",
+    "title": "¿Eliminar permanentemente todos los elementos?",
+    "description": "¿Eliminar permanentemente el elemento eliminado {count} en “{scope}”? El conocimiento activo no se ve afectado. Esta acción no se puede deshacer. | ¿Eliminar permanentemente los elementos eliminados de {count} en “{scope}”? El conocimiento activo no se ve afectado. Esta acción no se puede deshacer."
+  },
+  "deletePermanently": "Eliminar permanentemente"
+}

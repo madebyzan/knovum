@@ -1,0 +1,26 @@
+{
+  "title": "Escenas",
+  "previous": "Escena anterior",
+  "next": "Siguiente escena",
+  "focus": {
+    "mode": "Vista enfocada · Elemento {count} | Vista enfocada · Artículos {count}",
+    "exit": "Salir del foco",
+    "selection": "Selección de enfoque",
+    "unavailable": "Esta vista guardada hace referencia a una estructura que ya no existe."
+  },
+  "collapse": "Contraer controles de escena",
+  "expand": "Ampliar controles de escena",
+  "defaultName": "Escena {index}",
+  "saved": "Escena guardada “{title}”",
+  "updated": "Escena actualizada “{title}”",
+  "opened": "Navegó a la escena “{title}”",
+  "save": "Guardar escena actual",
+  "delete": "Eliminar escena",
+  "empty": "Guarde la posición de la ventana gráfica para regresar rápidamente a áreas específicas.",
+  "open": "Navegar a la escena",
+  "update": "Actualizar a la ventana gráfica actual",
+  "duplicate": "Escena duplicada",
+  "moveUp": "Mover hacia arriba",
+  "moveDown": "Mover hacia abajo",
+  "rename": "Cambiar nombre de escena"
+}

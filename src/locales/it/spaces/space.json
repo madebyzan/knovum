@@ -1,0 +1,45 @@
+{
+  "title": "Spazi",
+  "new": "Nuovo spazio di lavoro",
+  "untitled": "Spazio senza titolo",
+  "inbox": "Posta in arrivo",
+  "empty": {
+    "title": "Area di lavoro vuota",
+    "description": "Fare doppio clic sulla tela vuota per scrivere · Incollare il contenuto degli appunti · Rilasciare i file da importare"
+  },
+  "rename": "Rinomina spazio",
+  "tabs": {
+    "close": "Chiudi scheda",
+    "closeOthers": "Chiudi altre schede",
+    "closeToRight": "Chiudi le schede a destra",
+    "actionFailed": "Azione della scheda Area di lavoro non riuscita",
+    "reopen": "Riapri scheda chiusa",
+    "switchTo": "Passa alla scheda {number}"
+  },
+  "back": "Torna indietro",
+  "forward": "Vai avanti",
+  "sections": {
+    "open": "Spazi di lavoro aperti",
+    "all": "Tutti gli spazi",
+    "recent": "Aperto di recente",
+    "favorites": "Preferiti"
+  },
+  "views": {
+    "grid": "Vista griglia",
+    "list": "Visualizzazione elenco"
+  },
+  "search": {
+    "placeholder": "Cerca spazi…",
+    "noResults": "Nessuno spazio corrispondente"
+  },
+  "nodeCount": "Articolo {count} | Articoli {count}",
+  "favorite": "Spazio preferito",
+  "unfavorite": "Rimuovi dai preferiti",
+  "open": "Spazio di lavoro aperto",
+  "loadFailed": "Impossibile aprire l'area di lavoro",
+  "loadFailedHint": "Impossibile caricare il database dell'area di lavoro. I file locali non sono interessati; per favore riprova.",
+  "archive": "Archiviare l'area di lavoro",
+  "moveTo": "Spostarsi nell'area di lavoro",
+  "moveNoTargets": "Nessun'altra area di lavoro disponibile in cui spostarsi.",
+  "archived": "Archiviato “{title}”"
+}

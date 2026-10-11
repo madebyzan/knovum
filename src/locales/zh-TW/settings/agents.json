@@ -1,0 +1,36 @@
+{
+  "title": "桌面 Agent",
+  "description": "使用這台電腦上已安裝並登入的 AI Agent。啟用後，Agent 可直接使用其工具、MCP 服務與 Skills，不再逐項請求確認。",
+  "check": "檢查 Agent",
+  "enable": "啟用",
+  "disable": "停用",
+  "status": {
+    "checking": "檢查中",
+    "checkFailed": "檢查失敗"
+  },
+  "entry": {
+    "missing": "未偵測到命令入口",
+    "applicationOnly": "已找到應用，命令不可用",
+    "commandDetected": "已偵測到命令"
+  },
+  "requiredCommands": "所需指令：{commands}",
+  "connectionHelp": "{name} 接入說明",
+  "officialDocumentation": "官方說明",
+  "acpSetup": "ACP 接入",
+  "detectionBoundary": "僅檢查命令是否可用，不驗證登入狀態或 ACP 連線。",
+  "documentationOpenFailed": "無法打開 Agent 官方鏈接",
+  "connections": {
+    "executableCli": {
+      "title": "直接 ACP 接入",
+      "requirements": "安裝支援 ACP 的官方 CLI，並將指令目錄加入 PATH。"
+    },
+    "nodeAdapter": {
+      "title": "ACP 轉接器",
+      "requirements": "需要官方 CLI 和 Node.js（npx）。首次運行可能連網下載 ACP 轉接器。"
+    },
+    "standaloneServer": {
+      "title": "獨立 ACP 服務端",
+      "requirements": "需單獨下載官方 ACP 包，保留配套文件，並將服務端目錄加入 PATH。"
+    }
+  }
+}

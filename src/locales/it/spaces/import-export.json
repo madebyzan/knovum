@@ -1,0 +1,42 @@
+{
+  "import": "Importa",
+  "importFailed": "Importazione non riuscita. Controlla il formato del file e riprova.",
+  "website": {
+    "add": "Aggiungi sito web",
+    "description": "Salva web URL ed estrai titolo e riepilogo.",
+    "previewUnavailable": "Impossibile recuperare i dettagli del sito web. Lo URL viene salvato; riprovare dai dettagli.",
+    "refresh": "Aggiorna contenuto web",
+    "captureFailed": "Impossibile aggiungere questo collegamento",
+    "loading": "Recupero metadati web…",
+    "refreshFailed": "Impossibile recuperare il contenuto web"
+  },
+  "preview": {
+    "system": "Anteprima",
+    "show": "Vista anteprima",
+    "instantUnavailable": "Nessuna anteprima istantanea",
+    "instantUnavailableHint": "L'anteprima istantanea non è disponibile; il testo estratto rimane ricercabile."
+  },
+  "markdown": {
+    "export": "Riduzione dell'esportazione"
+  },
+  "exportCompleted": "Esportazione completata",
+  "fileName": "Nome file",
+  "openExternally": "Apri nell'app esterna",
+  "space": {
+    "export": "Pacchetto Export Space…",
+    "import": "Importa pacchetto Space…",
+    "exported": "Pacchetto spaziale esportato",
+    "imported": "Spazio importato correttamente"
+  },
+  "jsonCanvas": {
+    "import": "Importa JSON Canvas…",
+    "export": "Esporta JSON Canvas…",
+    "exported": "JSON Canvas esportato"
+  },
+  "progress": {
+    "resource": "Importazione risorsa",
+    "preparing": "Copia e verifica delle risorse…",
+    "processing": "Analisi delle risorse…"
+  },
+  "openInEditor": "Apri nell'editor esterno"
+}

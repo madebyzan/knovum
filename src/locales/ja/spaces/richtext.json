@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "AI 書き込み",
+    "selectText": "最初にテキストコンテンツを選択します。",
+    "failed": "AI 生成に失​​敗しました",
+    "applyFailed": "AI の結果を適用できませんでした",
+    "actions": {
+      "adjustTone": "調整トーン",
+      "fixGrammar": "文法とスペルを修正する",
+      "extend": "テキストの拡張",
+      "reduce": "要約と要約",
+      "simplify": "表現を簡略化する",
+      "emojify": "絵文字の追加",
+      "improve": "洗練と改善",
+      "complete": "オートコンプリート",
+      "summarize": "要約",
+      "translate": "翻訳する"
+    },
+    "tones": {
+      "academic": "アカデミック",
+      "business": "ビジネス",
+      "casual": "カジュアル",
+      "confident": "自信を持って",
+      "creative": "クリエイティブ",
+      "friendly": "フレンドリー",
+      "humorous": "ユーモア",
+      "informative": "明確で有益",
+      "inspirational": "インスピレーション",
+      "objective": "客観的",
+      "persuasive": "説得力のある"
+    },
+    "needContext": "既存のテキストの後にカーソルを置くか、コンテキストとしてテキストを選択します。"
+  },
+  "find": {
+    "title": "テキストの検索",
+    "placeholder": "ドキュメント内を検索…",
+    "previous": "前回の一致",
+    "next": "次の一致",
+    "toggleReplace": "置換を表示",
+    "replace": "置換",
+    "replaceAll": "すべて置換",
+    "replacePlaceholder": "置換…"
+  },
+  "paragraph": "段落",
+  "heading1": "見出し 1",
+  "heading2": "見出し 2",
+  "heading3": "見出し 3",
+  "heading4": "見出し 4",
+  "heading5": "見出し 5",
+  "heading6": "見出し 6",
+  "headings": {
+    "menu": "タイポグラフィ"
+  },
+  "bold": "太字",
+  "italic": "斜体",
+  "underline": "下線",
+  "strike": "取り消し線",
+  "inlineCode": "インライン コード",
+  "horizontalRule": "ディバイダー",
+  "highlight": "ハイライト",
+  "superscript": "上付き文字",
+  "subscript": "添字",
+  "align": {
+    "left": "左揃え",
+    "center": "中央揃え",
+    "right": "右揃え",
+    "justify": "正当化する"
+  },
+  "highlightColor": {
+    "yellow": "黄色",
+    "green": "緑",
+    "blue": "青",
+    "pink": "ピンク",
+    "clear": "ハイライトをクリア"
+  },
+  "image": {
+    "insert": "画像の挿入",
+    "tabUpload": "ローカル ファイル",
+    "tabUrl": "URL",
+    "url": "画像 URL",
+    "alt": "画像の説明",
+    "choose": "画像の選択",
+    "uploadFailed": "画像の挿入に失敗しました",
+    "dropDocumentHint": "ファイルを選択するか、画像をドキュメントエディタにドラッグします。",
+    "altPlaceholder": "スクリーンリーダー用に画像を説明する",
+    "dropNow": "ドロップして画像を挿入",
+    "urlInvalid": "有効な http:// または https:// 画像アドレスを入力してください。",
+    "insertFailed": "画像を挿入できませんでした"
+  },
+  "link": {
+    "label": "ハイパーリンク",
+    "placeholder": "URL を入力または貼り付けます",
+    "remove": "リンクの削除",
+    "editorTitle": "リンクの編集",
+    "editorDescription": "選択したテキストに Web または電子メールのリンクを追加します。",
+    "url": "リンク URL",
+    "invalid": "有効な HTTP、HTTPS、または mailto リンクを入力してください。",
+    "open": "リンクを開く",
+    "updateFailed": "リンクを更新できませんでした",
+    "openFailed": "リンクを開けませんでした"
+  },
+  "bulletList": "箇条書きリスト",
+  "orderedList": "順序付きリスト",
+  "taskList": "タスク リスト",
+  "blockquote": "引用",
+  "listMenu": "リスト スタイル",
+  "table": {
+    "title": "テーブル",
+    "addRow": "下に行を挿入",
+    "addColumn": "右に列を挿入",
+    "delete": "テーブルの削除"
+  },
+  "words": "言葉",
+  "characters": "キャラクター"
+}

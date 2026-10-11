@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "처리 중",
+    "pending": "{count} 보류 중",
+    "running": "{count} 처리 중",
+    "failed": "{count} 실패"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "시각적 이해",
+    "analyze_media": "미디어 지속 시간 및 파형",
+    "transcribe_media": "오디오 및 비디오 전사",
+    "parse_document": "문서 추출",
+    "analyze_document": "문서 시각적 분석",
+    "align_media_transcript": "선택된 성적표 정렬",
+    "diarize_media_transcript": "스피커 분할"
+  },
+  "jobStatus": {
+    "pending": "대기 중",
+    "running": "실행 중",
+    "awaiting_configuration": "설정 필요",
+    "failed": "실패",
+    "succeeded": "완료",
+    "cancelled": "취소됨"
+  },
+  "matchBadge": {
+    "documentOcr": "인식된 문서 텍스트",
+    "documentInterpretation": "문서 시각적 해석",
+    "imageDescription": "이미지 설명",
+    "videoCover": "비디오 커버",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "검색 인덱스 다시 작성",
+    "rebuildDone": "인덱스가 재구축되었습니다. {count} 벡터 항목을 생성했습니다."
+  },
+  "failed": "처리 실패",
+  "nodeUnavailable": "작업 노드를 더 이상 사용할 수 없습니다.",
+  "imageProgress": "이미지 처리 중",
+  "mediaProgress": "미디어 처리 중",
+  "applyingEdit": "편집 적용 중",
+  "loadingImage": "이미지 로드 중",
+  "imageUnavailable": "이미지를 사용할 수 없음",
+  "document": {
+    "coverage": "문서 처리",
+    "ocrEvidence": "기계가 인식한 텍스트 · 인식 오류가 발생할 수 있음",
+    "interpretationEvidence": "AI 시각적 해석 · 원본 문서 진술이 아님",
+    "textCoverage": "추출된 텍스트가 있는 페이지: {count} of {total}.",
+    "unclassifiedPages": "{count} 페이지에는 추출 가능한 본문 텍스트나 알려진 이미지가 없습니다. 비어 있거나 지원되지 않는 콘텐츠가 포함되어 있을 수 있습니다.",
+    "recognitionRequired": "인식이 필요한 페이지: {pages}",
+    "visualCoverage": "분석된 소스: {total}의 {count}.",
+    "visualUnavailable": "{count} 참조 이미지는 문서 파서에서 디코딩할 수 없습니다.",
+    "resources": {
+      "title": "문서 리소스",
+      "open": "문서 리소스 {index} 열기",
+      "occurrences": "{count} 시간 사용",
+      "embedded": "문서에서 추출된 삽입된 이미지입니다.",
+      "rendered": "PDF에서 렌더링된 페이지 또는 시각적 영역입니다.",
+      "detectedText": "감지된 텍스트"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Office 벡터 드로잉은 시각적으로 분석되지 않습니다. 원본 파일에 남아 있습니다.",
+      "spreadsheetImageCellAnchorsUnavailable": "스프레드시트 이미지는 셀이 아닌 워크시트별로 위치합니다.",
+      "spreadsheetChartRenderingUnsupported": "사용 가능한 차트 텍스트가 추출됩니다. 차트 모양은 분석되지 않습니다.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "이 레거시 Office 형식은 전체 이미지 위치를 노출하지 않습니다.",
+      "legacySpreadsheetFormulasUnavailable": "기존 스프레드시트는 수식 표현식이 아닌 캐시된 값을 노출합니다.",
+      "pdfVisualCoverageLimited": "PDF 이미지 영역은 파서의 공개 위치 데이터를 사용합니다. 인라인 이미지와 벡터 그래픽은 완전히 포함되지 않을 수 있습니다. 원본 파일에는 모든 내용이 유지됩니다."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "이 이미지 또는 비디오를 분석하려면 시각적 이해 모델을 구성하십시오."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "Gliederung",
+    "empty": "Hier werden der Leinwand hinzugefügte Elemente angezeigt."
+  },
+  "editorOutline": {
+    "title": "Dokumentübersicht"
+  },
+  "rightSidebarViews": "Ansichten der rechten Seitenleiste",
+  "rename": {
+    "nameRequired": "Geben Sie einen Namen ein.",
+    "failed": "Der Name konnte nicht gespeichert werden. Drücken Sie die Eingabetaste, um es erneut zu versuchen."
+  }
+}

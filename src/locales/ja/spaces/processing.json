@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "処理",
+    "pending": "保留中 {count}",
+    "running": "{count}の処理中",
+    "failed": "失敗しました {count}"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "視覚的理解",
+    "analyze_media": "メディアの長さと波形",
+    "transcribe_media": "音声とビデオの文字起こし",
+    "parse_document": "ドキュメント抽出",
+    "analyze_document": "ドキュメントの視覚的分析",
+    "align_media_transcript": "選択されたトランスクリプトの配置",
+    "diarize_media_transcript": "スピーカー ダイアライゼーション"
+  },
+  "jobStatus": {
+    "pending": "キューに入れられました",
+    "running": "実行中",
+    "awaiting_configuration": "セットアップが必要",
+    "failed": "失敗",
+    "succeeded": "完了",
+    "cancelled": "キャンセル"
+  },
+  "matchBadge": {
+    "documentOcr": "認識されたドキュメント テキスト",
+    "documentInterpretation": "ドキュメントの視覚的解釈",
+    "imageDescription": "画像の説明",
+    "videoCover": "ビデオ カバー",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "検索インデックスの再構築",
+    "rebuildDone": "インデックスが再構築されました。 {count} ベクトル エントリが生成されました。"
+  },
+  "failed": "処理に失敗しました",
+  "nodeUnavailable": "タスクのノードは使用できなくなりました",
+  "imageProgress": "画像の処理",
+  "mediaProgress": "処理メディア",
+  "applyingEdit": "編集の適用",
+  "loadingImage": "画像の読み込み",
+  "imageUnavailable": "画像が利用できません",
+  "document": {
+    "coverage": "文書処理",
+    "ocrEvidence": "機械認識されたテキスト・認識エラーの可能性があります",
+    "interpretationEvidence": "AI 視覚的解釈 · オリジナルの文書ステートメントではありません",
+    "textCoverage": "抽出されたテキストを含むページ: {count} または {total}。",
+    "unclassifiedPages": "{count} ページには、抽出可能な本文テキストや既知の画像がありません。空白であるか、サポートされていないコンテンツが含まれている可能性があります。",
+    "recognitionRequired": "認識が必要なページ: {pages}",
+    "visualCoverage": "分析されたソース: {count} または {total}。",
+    "visualUnavailable": "{count} 参照イメージはドキュメント パーサーでデコードできません。",
+    "resources": {
+      "title": "ドキュメント リソース",
+      "open": "ドキュメントリソース {index} を開く",
+      "occurrences": "使用時間 {count}",
+      "embedded": "ドキュメントから抽出された埋め込み画像。",
+      "rendered": "PDF からレンダリングされたページまたはビジュアル領域。",
+      "detectedText": "検出されたテキスト"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Office のベクター図面は視覚的に分析されません。それらは元のファイルに残ります。",
+      "spreadsheetImageCellAnchorsUnavailable": "スプレッドシート画像はセルごとではなくワークシートごとに配置されます。",
+      "spreadsheetChartRenderingUnsupported": "利用可能なグラフのテキストが抽出されます。チャートの外観は分析されません。",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "この従来の Office 形式では、完全な画像位置が公開されません。",
+      "legacySpreadsheetFormulasUnavailable": "従来のスプレッドシートは、数式ではなく、キャッシュされた値を公開します。",
+      "pdfVisualCoverageLimited": "PDF 画像領域は、パーサーの公開位置データを使用します。インライン画像とベクターグラフィックスは完全にカバーされているという保証はありません。元のファイルにはすべてのコンテンツが保持されます。"
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "この画像またはビデオを分析するための視覚的理解モデルを構成します。"
+  }
+}

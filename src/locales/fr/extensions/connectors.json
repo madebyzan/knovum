@@ -1,0 +1,27 @@
+{
+  "process": {
+    "executable": "Exécutable du service installé (chemin absolu)",
+    "arguments": "Arguments",
+    "workingDirectory": "Répertoire de travail (facultatif)",
+    "authorizationHint": "L'activation de cette connexion permet à l'application de lancer le service MCP sélectionné. L'installation d'un plugin n'installe jamais de programmes ni n'exécute de scripts de package.",
+    "declaredCommand": "Programme demandé par le plugin",
+    "configurationRequired": "Choisissez un programme installé avant d'utiliser ce connecteur.",
+    "chooseExecutable": "Choisir le programme installé",
+    "chooseDirectory": "Choisir le répertoire de travail",
+    "argumentsHint": "Chaque champ est un argument littéral, espaces compris. Aucune analyse du shell n’est effectuée.",
+    "addArgument": "Ajouter un argument",
+    "argumentAt": "Argument {index}",
+    "removeArgument": "Supprimer l'argument {index}"
+  },
+  "changes": "La modification du point de terminaison ou de l'identité d'autorisation nécessite la reconnexion du compte et la révision des autorisations de l'outil.",
+  "name": "Nom du service",
+  "descriptionField": "Description (facultatif)",
+  "discard": {
+    "title": "Annuler les modifications apportées au connecteur ?",
+    "description": "Les modifications non enregistrées sur ce connecteur seront perdues."
+  },
+  "delete": {
+    "title": "Supprimer {name} ?",
+    "description": "Cela supprime également toutes les connexions au service et ses informations d'identification de compte local."
+  }
+}

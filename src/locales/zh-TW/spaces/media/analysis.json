@@ -1,0 +1,19 @@
+{
+  "task": "影音分析",
+  "preparing": "正在準備媒體文件",
+  "unavailable": "時長與波形尚不可用",
+  "audioPreparing": "正在準備音訊",
+  "transcribing": "正在本地轉錄",
+  "organizing": "正在產生章節與摘要",
+  "knowledge": {
+    "title": "媒體知識",
+    "pending": "已提交至後台分析隊列。",
+    "stale": "分析資料與原檔案版本不一致，請重新分析。"
+  },
+  "summary": "摘要",
+  "inProgress": "正在後台分析音視頻…",
+  "insights": {
+    "unavailable": "轉錄資料不可用，請先分析媒體檔案。",
+    "generate": "生成結構化章節與摘要"
+  }
+}

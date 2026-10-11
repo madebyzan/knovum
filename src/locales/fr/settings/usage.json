@@ -1,0 +1,40 @@
+{
+  "title": "Utilisation",
+  "description": "Utilisation et activité du jeton AI intégré au cours de l’année écoulée.",
+  "tokens": {
+    "total": "Total des jetons",
+    "input": "Jetons d'entrée",
+    "output": "Jetons de sortie",
+    "split": "Mixage d'entrée et de sortie"
+  },
+  "requests": "Utilisations",
+  "activeDays": "Jours actifs",
+  "streak": {
+    "current": "Série active actuelle",
+    "longest": "Série active la plus longue"
+  },
+  "activity": {
+    "title": "Activité du jeton",
+    "insightsTitle": "Aperçu de l'activité",
+    "description": "Jour de pointe · Jetons {peak}",
+    "tokenCount": "Jeton {tokens}",
+    "less": "Moins",
+    "more": "Plus",
+    "weekdays": {
+      "monday": "Lun",
+      "wednesday": "Mer",
+      "friday": "Ven"
+    },
+    "empty": "Aucune utilisation de jeton au cours de la dernière année."
+  },
+  "purpose": {
+    "title": "Utilisation par fonctionnalité",
+    "editor": "Outils d'écriture",
+    "knowledge": "Création de connaissances",
+    "knowledgeIndexing": "Indexation des connaissances",
+    "translation": "Traduction",
+    "visualAnalysis": "Compréhension visuelle",
+    "builtinAgent": "Builtin Agent"
+  },
+  "providerReported": "Les totaux incluent uniquement les activités qui rapportent l'utilisation ; certaines opérations peuvent manquer."
+}

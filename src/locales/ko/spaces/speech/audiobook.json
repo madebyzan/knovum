@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "장 제목",
+  "configurationInvalid": "이 시험판 오디오북 개정판에는 유효한 역할 바인딩이 없습니다. 스크립트를 가져오거나 다시 빌드한 다음 새 개정판을 저장하세요.",
+  "lexicon": {
+    "title": "발음 사전",
+    "hint": "이름이나 용어를 합성 중에 사용된 정확한 판독값으로 바꾸십시오.",
+    "word": "단어 또는 용어",
+    "reading": "발음",
+    "add": "발음 추가",
+    "remove": "발음 제거",
+    "invalid": "모든 항목을 완료하고 중복된 단어를 제거하세요."
+  },
+  "moveUp": "장을 위로 이동",
+  "moveDown": "아래로 장 이동",
+  "removeChapter": "장 제거",
+  "removeParagraph": "단락 제거",
+  "addParagraph": "단락 추가",
+  "addChapter": "장 추가",
+  "wavPrecision": "WAV 정밀도",
+  "paragraphPause": "단락 일시 중지(ms)",
+  "chapterPause": "챕터 일시 중지(ms)",
+  "title": "책 제목",
+  "author": "저자",
+  "narrator": "내레이터",
+  "cover": "표지",
+  "noCover": "표지 없음",
+  "boundCover": "표지 개정판 저장됨",
+  "coverRequiresEncodedOutput": "커버를 내장하려면 MP3 또는 M4B를 선택하세요.",
+  "outputSettings": "출력 설정",
+  "metadataSettings": "도서 세부정보"
+}

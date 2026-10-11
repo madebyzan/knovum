@@ -1,0 +1,10 @@
+{
+  "followPlayback": "再生をフォロー",
+  "load": "{title}をロードする",
+  "play": "再生",
+  "closePlayback": "再生を閉じる",
+  "timeline": "メディア タイムライン",
+  "transcribe": "文字起こし",
+  "transcribed": "Trancribed",
+  "transcribing": "転写処理中"
+}

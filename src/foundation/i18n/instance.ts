@@ -2,7 +2,10 @@ import { createI18n } from "vue-i18n";
 
 import { localeMessages } from "../../locales/locale-registry";
 
-export type AppLocale = "en" | "zh-CN";
+export type AppLocale = keyof typeof localeMessages;
+
+const locales = Object.keys(localeMessages);
+const russianPlurals = new Intl.PluralRules("ru");
 
 const COMPACT_NUMBER_FORMAT = { notation: "compact", maximumFractionDigits: 1 } as const;
 const DATE_TIME_FORMATS = {
@@ -15,16 +18,27 @@ export const i18n = createI18n({
   locale: systemLocale(globalThis.navigator.language),
   fallbackLocale: false,
   messages: localeMessages,
-  numberFormats: {
-    en: { compact: COMPACT_NUMBER_FORMAT },
-    "zh-CN": { compact: COMPACT_NUMBER_FORMAT },
-  },
-  dateTimeFormats: {
-    en: DATE_TIME_FORMATS,
-    "zh-CN": DATE_TIME_FORMATS,
+  numberFormats: Object.fromEntries(locales.map((locale) => [locale, { compact: COMPACT_NUMBER_FORMAT }])),
+  dateTimeFormats: Object.fromEntries(locales.map((locale) => [locale, DATE_TIME_FORMATS])),
+  pluralRules: {
+    fr: (count) => (count === 0 || count === 1 ? 0 : 1),
+    "pt-BR": (count) => (count === 0 || count === 1 ? 0 : 1),
+    ru: (count, length) => {
+      if (length === 1) return 0;
+      const category = russianPlurals.select(count);
+      if (category === "one") return 0;
+      return category === "many" ? 2 : 1;
+    },
   },
 });
 
 export function systemLocale(locale: string | null): AppLocale {
-  return locale?.toLowerCase().startsWith("zh") ? "zh-CN" : "en";
+  if (locale === null) return "en";
+  const { language, script, region } = new Intl.Locale(locale);
+  if (language === "zh") {
+    if (script === "Hans") return "zh-CN";
+    return script === "Hant" || ["TW", "HK", "MO"].includes(region ?? "") ? "zh-TW" : "zh-CN";
+  }
+  if (language === "pt") return "pt-BR";
+  return Object.hasOwn(localeMessages, language) ? (language as AppLocale) : "en";
 }

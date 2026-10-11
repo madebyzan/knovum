@@ -1,0 +1,29 @@
+{
+  "chapters": {
+    "title": "章節",
+    "edit": "編輯章節",
+    "seek": "跳到此章節",
+    "titleField": "章節標題",
+    "summary": "章節摘要"
+  },
+  "text": {
+    "title": "轉錄文字",
+    "editSegment": "編輯轉錄文本",
+    "search": "搜尋轉錄文本",
+    "noMatches": "無匹配的轉錄文本",
+    "live": "即時轉錄中",
+    "liveHint": "即時轉錄文字將同步顯示於此。",
+    "alignSelected": "對齊所選片段",
+    "alignmentLimit": "最多 8 段 / 5 分鐘",
+    "alignmentFirstUse": "首次使用會自動下載所選模型與所需資源；可在設定中下載並選擇其他模型。",
+    "selectForAlignment": "選擇此片段進行對齊"
+  },
+  "speakers": {
+    "title": "說話者軌道",
+    "durationLimit": "說話者分離支持最長兩小時的媒體。",
+    "generate": "辨識說話人",
+    "firstUse": "首次使用將自動下載本機資源，可在任務中心取消。",
+    "count": "已知人數（可選）",
+    "automatic": "自動識別"
+  }
+}

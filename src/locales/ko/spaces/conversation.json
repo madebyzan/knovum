@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "소스 위치에 텍스트 콘텐츠가 없습니다.",
+    "open": "소스에서 찾기"
+  },
+  "title": "대화",
+  "agents": {
+    "builtinAgent": "Knovum 에이전트",
+    "desktop": "데스크톱 에이전트",
+    "select": "에이전트 선택",
+    "noModel": "AI 설정에서 공구 호출을 지원하는 모델을 활성화합니다.",
+    "manage": "모델 및 에이전트 구성…"
+  },
+  "empty": {
+    "title": "다음 작업 중 하나를 시도해 보세요.",
+    "topic": "[주제]",
+    "search": "소스 찾기",
+    "searchPrompt": "이 작업 공간에서 {topic}에 대한 소스를 찾고 각 소스의 출처를 나열하세요.",
+    "document": "문서 만들기",
+    "documentPrompt": "이 작업 공간에서 {topic}에 대한 소스로부터 편집 가능한 개요 문서를 만듭니다.",
+    "compare": "아이디어 비교",
+    "comparePrompt": "공통점, 차이점, 증거 등을 포함하여 이 작업 공간에서 {topic}에 대한 아이디어를 비교해 보세요."
+  },
+  "input": {
+    "placeholder": "에이전트의 작업을 설명합니다...",
+    "send": "보내기",
+    "shortcutHint": "입력하다"
+  },
+  "conversations": {
+    "preparing": "대화 시작 중…",
+    "create": "새 대화",
+    "history": "대화 기록",
+    "none": "아직 대화가 없습니다",
+    "actions": "대화 작업",
+    "exportFailed": "대화를 내보낼 수 없습니다.",
+    "deleteConfirm": "'{title}' 및 해당 작업 기록을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+    "search": "대화 검색",
+    "archived": "보관됨",
+    "today": "오늘",
+    "yesterday": "어제",
+    "viewArchived": "보관된 대화 보기",
+    "backToRecent": "최근 대화로 돌아가기",
+    "branch": "여기에서 분기",
+    "branchNumber": "지점 {number}",
+    "regenerateAttachments": "이 요청을 다시 보내기 전에 원래 리소스를 다시 연결하세요.",
+    "branchCreated": "새로운 지점으로 전환했습니다",
+    "returnToRunning": "대화 작업이 실행 중입니다. 대화로 돌아갑니다."
+  },
+  "evidence": {
+    "sourceRationale": "출처 및 증거",
+    "ask": "질문하기",
+    "useCurrent": "현재 선택을 증거로 사용",
+    "remove": "증거 제거",
+    "stale": "증거 소스 버전이 변경되었습니다.",
+    "extract": "증거로 추출"
+  },
+  "attachments": {
+    "add": "리소스 추가",
+    "attached": "첨부된 리소스, 더 보려면 가로로 스크롤하세요.",
+    "citeCanvasNode": "참조 캔버스 콘텐츠",
+    "citeCanvasNodeHint": "이 작업공간에서 콘텐츠 선택",
+    "canvasNodeShort": "캔버스 참조",
+    "uploadLocalFile": "로컬 파일 추가",
+    "uploadLocalFileHint": "이미지, PDF 또는 문서",
+    "localFileShort": "로컬 파일",
+    "dropFiles": "첨부할 파일 삭제",
+    "limit": "하나의 메시지에 최대 32개의 항목을 첨부할 수 있습니다.",
+    "addCurrentSelection": "현재 선택 추가({count})",
+    "search": "이 작업공간에서 리소스 검색",
+    "none": "일치하는 리소스 없음",
+    "remove": "리소스 제거: {name}",
+    "preview": "미리보기 리소스: {name}"
+  },
+  "uploads": {
+    "sizeError": "파일은 비워둘 수 없습니다. 이미지는 최대 10MiB여야 합니다. 다른 파일은 최대 20MiB입니다.",
+    "typeError": "이 파일 형식은 지원되지 않습니다. 이미지, 텍스트, PDF 또는 Office 문서를 선택하세요.",
+    "invalidError": "이 파일을 읽을 수 없습니다. 내용과 형식을 확인하세요.",
+    "permissionError": "이 파일은 사용할 수 없습니다. 시스템 파일 대화 상자에서 다시 선택하십시오.",
+    "reacquire": "다시 첨부하려면 다음 외부 파일을 다시 선택하세요. {names}"
+  },
+  "tasks": {
+    "waitingForResult": "작업이 완료되기를 기다리는 중…",
+    "failed": "대화 작업이 실패했습니다. 자세한 내용을 보려면 대화로 돌아가세요.",
+    "paused": "이 작업은 일시중지되었습니다. 준비가 되면 계속할 수 있습니다.",
+    "resume": "작업 재개",
+    "modelOutcomeUnknown": "복구 가능한 결과 없이 모델 요청이 종료되었습니다. 실행은 귀하의 결정을 기다리고 있습니다.",
+    "modelResponseUncommitted": "모델이 응답했지만 실행 결과가 커밋되지 않았습니다. 자동 복구를 안전하게 계속할 수 없습니다.",
+    "modelUsageUnknown": "해당 모델은 사용정보 없이 답변을 했습니다. 추가 모델 호출이 중단되었습니다.",
+    "modelRetryCost": "계속하면 또 다른 유료 요청을 보낼 수 있습니다. 이전 요금은 기록되어 있거나 알 수 없는 상태로 남아 있습니다.",
+    "retryModel": "새로운 모델 시도 승인"
+  },
+  "response": {
+    "stopped": "중지됨",
+    "incomplete": "응답 불완전"
+  },
+  "outputs": {
+    "added": "캔버스에 추가됨 · {count}"
+  },
+  "messages": {
+    "copy": "메시지 복사",
+    "copied": "복사됨",
+    "copyFailed": "메시지를 복사할 수 없습니다. 다시 시도해 보세요.",
+    "new": "최신으로 이동 ↓",
+    "loadOlder": "이전 메시지 로드"
+  },
+  "regenerate": "재생성",
+  "stop": "중지",
+  "sources": "출처 · {count}",
+  "actions": {
+    "viewCreated": "결과 찾기"
+  },
+  "activity": {
+    "generating": "응답 생성 중…",
+    "running": "작동 중 · {count} 동작",
+    "finished": "완료됨 · {count} 작업 완료",
+    "recorded": "활동 · {count} 활동",
+    "tool": "도구 작업",
+    "invalidResult": "검색결과를 표시할 수 없습니다.",
+    "noSources": "일치하는 소스 없음",
+    "plan": "계획"
+  },
+  "askSelection": "선택 요청",
+  "extensions": {
+    "label": "대화 확장 프로그램",
+    "unavailable": "선택한 확장 프로그램을 사용할 수 없습니다. 선택 사항을 검토합니다.",
+    "clearSelection": "확장 선택 지우기",
+    "manage": "확장 관리",
+    "empty": "사용 가능한 확장이 없습니다. 설정에서 추가하세요."
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "외부 작업에는 승인이 필요합니다.",
+      "allow": "허용",
+      "deny": "거부"
+    },
+    "outcomeUnknown": {
+      "title": "외부 결과를 알 수 없음",
+      "retry": "선택됨; 재시도 허용",
+      "stop": "작업 중지",
+      "description": "작업이 완료되었을 수 있습니다. 재시도를 승인하기 전에 서비스를 확인하세요."
+    },
+    "attempt": "시도",
+    "history": {
+      "title": "공구 기록",
+      "empty": "아직 도구 작업이 없습니다."
+    },
+    "progress": "진행"
+  },
+  "interactions": {
+    "title": "외부 서비스에 입력이 필요합니다.",
+    "openAuthorizationPage": "인증 페이지 열기",
+    "submit": "제출",
+    "decline": "거절",
+    "invalid": "외부 서비스에서 잘못된 양식을 보냈습니다."
+  },
+  "extensionResources": {
+    "import": "Space로 가져오기",
+    "select": "리소스 선택",
+    "readOnly": "이 작업공간은 읽기 전용입니다."
+  }
+}

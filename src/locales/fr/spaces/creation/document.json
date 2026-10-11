@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "Convertir en document Word",
+    "pdf": "Convertir en PDF",
+    "docxRunTitle": "Génération d'un document Word",
+    "pdfRunTitle": "Génération de PDF",
+    "txt": "Convertir en texte brut",
+    "txtRunTitle": "Génération de texte brut",
+    "html": "Convertir en HTML",
+    "htmlRunTitle": "Génération d'un document HTML"
+  },
+  "convert": {
+    "label": "Convertir en",
+    "formats": {
+      "docx": "Document Word (.docx)",
+      "pdf": "Document PDF (.pdf)",
+      "txt": "Texte brut (.txt)",
+      "html": "Document HTML (.html)",
+      "pptx": "Présentation (.pptx)"
+    },
+    "help": "Crée un fichier associé. Le contenu PDF est redistribué sans images ; Office vers Word/HTML conserve les tableaux et images pris en charge. Les fichiers Office contenant des images ne peuvent pas être convertis en PDF. La mise en page originale, les animations et les PDF numérisés ne sont pas pris en charge."
+  },
+  "generate": "Générer un document",
+  "title": "Créer un document à partir de connaissances sélectionnées",
+  "description": "Rédigez une ressource Markdown citée à côté des sources sélectionnées.",
+  "defaultTitle": "Brouillon de connaissances",
+  "purpose": "Résumé du document",
+  "purposePlaceholder": "Décrivez l’objectif, le format et les points clés du document.",
+  "sources": "Source de connaissances {count} | Sources de connaissances {count}",
+  "task": "Génération du document",
+  "generating": "Générer à partir de connaissances sélectionnées…",
+  "failed": "Impossible de générer le document"
+}

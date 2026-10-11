@@ -1,0 +1,14 @@
+{
+  "inspect": "Ispeziona il segnale audio",
+  "advisory": "Signal controlla i luoghi da recensire. Non valutano la naturalezza della voce e possono segnalare pause intenzionali.",
+  "noFindings": "Nessuna anomalia del segnale rilevata nell'intervallo scansionato.",
+  "truncated": "L'ispezione esegue la scansione fino a due ore e riporta fino a 100 risultati.",
+  "issues": {
+    "empty": "Nessun campione audio",
+    "silence": "Silenzio",
+    "quiet": "Relativamente silenzioso",
+    "loud": "Relativamente rumoroso",
+    "clipping": "Vicino al picco di fondo scala",
+    "invalid": "Campioni di segnali non validi"
+  }
+}

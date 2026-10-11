@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "새 메모",
+    "placeholder": "무엇이든 쓰기…"
+  },
+  "text": {
+    "new": "텍스트",
+    "placeholder": "텍스트를 입력하려면 입력하세요."
+  },
+  "markdown": {
+    "untitled": "제목 없음 마크다운",
+    "title": "마크다운 제목",
+    "empty": "빈 마크다운"
+  },
+  "loading": "편집기 준비 중…",
+  "loadingHint": "큰 문서를 여는 데 시간이 걸릴 수 있습니다.",
+  "placeholder": "쓰기 시작…"
+}

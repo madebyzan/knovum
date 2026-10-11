@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "Elemento {count} selezionato | Elementi {count} selezionati",
+  "title": "Dettagli",
+  "basicInformation": "Generale",
+  "showSource": "Vista sorgente",
+  "fields": {
+    "type": "Tipo",
+    "source": "Sorgente",
+    "size": "Dimensione",
+    "originalUrl": "URL originale",
+    "provider": "Piattaforma",
+    "siteName": "Sito Web",
+    "description": "Descrizione",
+    "canonicalUrl": "URL canonico",
+    "modified": "Data di modifica"
+  },
+  "extractedDocumentText": "Testo estratto",
+  "visualDetectedText": "Testo riconosciuto dall'OCR",
+  "excerpts": {
+    "title": "Estratto · {title}",
+    "line": "— {title} · {location}",
+    "content": "Estratto di contenuto"
+  },
+  "openSource": "Localizza nodo sorgente",
+  "targetSpace": "Area di lavoro di destinazione",
+  "none": "Non impostata",
+  "renameHint": "Fare clic per rinominare",
+  "openContent": "Apri contenuto",
+  "content": "Contenuto",
+  "playVideo": "Riproduci video",
+  "related": {
+    "title": "Contenuti correlati",
+    "show": "Mostra altro",
+    "showLess": "Mostra meno",
+    "unavailable": "Il contenuto correlato è temporaneamente non disponibile.",
+    "indexing": "Costruire l'indice dei contenuti. Il contenuto correlato verrà visualizzato quando sarà pronto.",
+    "notIndexed": "Il contenuto correlato non è ancora pronto per questo elemento.",
+    "prepare": "Prepara ora",
+    "noContent": "Questo elemento non ha ancora contenuti ricercabili.",
+    "empty": "Nessun contenuto correlato ancora in quest'area di lavoro.",
+    "explanation": "Scopri i contenuti correlati in quest'area di lavoro in base al significato. I risultati non creano connessioni."
+  },
+  "containedItems": "{count} conteneva oggetti"
+}

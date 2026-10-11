@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "已選取 {count} 項",
+  "title": "詳情",
+  "basicInformation": "基本訊息",
+  "showSource": "原文視圖",
+  "fields": {
+    "type": "類型",
+    "source": "來源",
+    "size": "大小",
+    "originalUrl": "原地址",
+    "provider": "平台",
+    "siteName": "網站",
+    "description": "簡介",
+    "canonicalUrl": "規範地址",
+    "modified": "修改時間"
+  },
+  "extractedDocumentText": "擷取的純文字",
+  "visualDetectedText": "OCR 辨識文字",
+  "excerpts": {
+    "title": "摘錄 · {title}",
+    "line": "— {title} · {location}",
+    "content": "內容摘錄"
+  },
+  "openSource": "定位原始節點",
+  "targetSpace": "目標空間",
+  "none": "未設定",
+  "renameHint": "點擊重命名",
+  "openContent": "打開內容",
+  "content": "內容",
+  "playVideo": "播放影片",
+  "related": {
+    "title": "相關內容",
+    "show": "看更多",
+    "showLess": "收起",
+    "unavailable": "相關內容暫時無法檢索。",
+    "indexing": "正在建立內容索引，完成後會顯示相關內容。",
+    "notIndexed": "目前內容尚未準備好相關內容檢索。",
+    "prepare": "開始準備",
+    "noContent": "目前內容尚無可檢索的資訊。",
+    "empty": "當前空間暫無相關內容。",
+    "explanation": "根據內容語義在當前空間中發現關聯；結果不會自動建立連線。"
+  },
+  "containedItems": "包含 {count} 項內容"
+}

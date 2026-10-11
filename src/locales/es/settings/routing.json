@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "Ejecución de IA",
+  "defaultsDescription": "Configure cada capacidad individualmente o déjela usar el método de ejecución predeterminado.",
+  "unassigned": "Usar el método de ejecución predeterminado",
+  "noCompatibleModel": "Configurar un modelo para esta tarea",
+  "routes": {
+    "writing": {
+      "label": "Escritura",
+      "description": "Redacción, reescritura y asistencia editorial."
+    },
+    "knowledge": {
+      "label": "Agente incorporado",
+      "description": "Conversaciones, planificación de tareas, uso de herramientas y organización del conocimiento."
+    },
+    "visualUnderstanding": {
+      "label": "Comprensión visual",
+      "description": "Comprenda imágenes, elementos visuales de documentos e imágenes de vista previa de videos para su recuperación."
+    },
+    "translation": {
+      "label": "Traducción",
+      "description": "Traduce el contenido en toda la aplicación."
+    },
+    "imageGeneration": {
+      "label": "Creación de imágenes",
+      "description": "Crea imágenes a partir de instrucciones y contexto espacial."
+    },
+    "videoGeneration": {
+      "label": "Creación de vídeo",
+      "description": "Cree videos a partir de instrucciones y material fuente."
+    },
+    "defaultTarget": {
+      "label": "Método de ejecución predeterminado",
+      "description": "Utilizado por funciones sin una opción de ejecución individual."
+    }
+  },
+  "unselected": "No se seleccionó ningún método de ejecución",
+  "capabilitiesTitle": "Por capacidad"
+}

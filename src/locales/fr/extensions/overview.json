@@ -1,0 +1,34 @@
+{
+  "title": "Rallonges",
+  "description": "Gérez les plugins, les connexions d'applications, les serveurs MCP personnalisés et les compétences personnelles.",
+  "plugins": "Plugins",
+  "skills": "Skills",
+  "mcp": "MCP",
+  "back": "Retour à la liste",
+  "information": "Information",
+  "author": "Développeur",
+  "version": "Version",
+  "sourcePlugin": "Afficher le plugin source",
+  "pluginPaused": "Ce plugin est désactivé. Ses compétences et ses connexions ne sont pas disponibles.",
+  "notFound": "Cette extension n'est pas disponible",
+  "notFoundHint": "Il a peut-être été supprimé ou modifié par une mise à jour du plugin. Revenez à la liste pour afficher le contenu actuel.",
+  "usage": "Sélectionnez des plugins complets, des compétences personnelles ou des connexions MCP autonomes dans une conversation dans un espace de travail. Un plugin regroupe ses compétences et ses services. L'activation le rend sélectionnable ; l’accès externe nécessite toujours une autorisation.",
+  "search": {
+    "plugins": "Plugins de recherche…",
+    "mcp": "Rechercher des serveurs MCP…",
+    "skills": "Compétences de recherche…",
+    "apps": "Rechercher des applications…"
+  },
+  "status": {
+    "checking": "Vérification de la disponibilité…",
+    "failed": "Impossible de lire la disponibilité",
+    "pluginPaused": "Plugin source désactivé",
+    "disabled": "Désactivé",
+    "available": "Disponible dans les conversations",
+    "unavailable": "Configuration ou autorisation incomplète"
+  },
+  "homepage": "Site Web",
+  "repository": "Référentiel",
+  "license": "Licence",
+  "apps": "Applications"
+}

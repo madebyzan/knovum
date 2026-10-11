@@ -1,0 +1,42 @@
+{
+  "import": "Importer",
+  "importFailed": "L'importation a échoué. Vérifiez le format du fichier et réessayez.",
+  "website": {
+    "add": "Ajouter un site Web",
+    "description": "Enregistrez le Web URL et extrayez le titre et le résumé.",
+    "previewUnavailable": "Les détails du site Web n'ont pas pu être récupérés. Le URL est enregistré ; réessayez à partir des détails.",
+    "refresh": "Actualiser le contenu Web",
+    "captureFailed": "Impossible d'ajouter ce lien",
+    "loading": "Récupération des métadonnées Web…",
+    "refreshFailed": "Échec de la récupération du contenu Web"
+  },
+  "preview": {
+    "system": "Aperçu",
+    "show": "Vue d'aperçu",
+    "instantUnavailable": "Pas d'aperçu instantané",
+    "instantUnavailableHint": "L'aperçu instantané n'est pas disponible ; le texte extrait reste consultable."
+  },
+  "markdown": {
+    "export": "Exporter la démarque"
+  },
+  "exportCompleted": "Exportation terminée",
+  "fileName": "Nom du fichier",
+  "openExternally": "Ouvrir dans une application externe",
+  "space": {
+    "export": "Package Export Space…",
+    "import": "Importer le package Space…",
+    "exported": "Package spatial exporté",
+    "imported": "Espace importé avec succès"
+  },
+  "jsonCanvas": {
+    "import": "Importer JSON Canvas…",
+    "export": "Exporter JSON Canvas…",
+    "exported": "JSON Canvas exporté"
+  },
+  "progress": {
+    "resource": "Importation de la ressource",
+    "preparing": "Copie et vérification des ressources…",
+    "processing": "Analyse des ressources…"
+  },
+  "openInEditor": "Ouvrir dans un éditeur externe"
+}

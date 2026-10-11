@@ -1,0 +1,12 @@
+{
+  "counts": "Ressources {resources} · modèles {templates} · invites {prompts}",
+  "browse": "Parcourir les ressources et les invites",
+  "kind": "Type de contenu",
+  "item": "Contenu",
+  "resources": "Ressources",
+  "templates": "Modèles de ressources",
+  "prompts": "Invites",
+  "parameters": "Paramètres (JSON)",
+  "read": "Lire le contenu sélectionné",
+  "source": "Choisir la source"
+}

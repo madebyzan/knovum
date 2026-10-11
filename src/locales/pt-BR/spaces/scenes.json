@@ -1,0 +1,26 @@
+{
+  "title": "Cenas",
+  "previous": "Cena anterior",
+  "next": "Próxima cena",
+  "focus": {
+    "mode": "Visão focada · Item {count} | Visão focada · Itens {count}",
+    "exit": "Sair do foco",
+    "selection": "Seleção de foco",
+    "unavailable": "Esta visualização salva faz referência a uma estrutura que não existe mais"
+  },
+  "collapse": "Recolher controles de cena",
+  "expand": "Expandir controles de cena",
+  "defaultName": "Cena {index}",
+  "saved": "Cena salva “{title}”",
+  "updated": "Cena atualizada “{title}”",
+  "opened": "Navegou até a cena “{title}”",
+  "save": "Salvar cena atual",
+  "delete": "Excluir cena",
+  "empty": "Salve a posição da janela de visualização para retornar rapidamente a áreas específicas.",
+  "open": "Navegar até a cena",
+  "update": "Atualizar para a janela de visualização atual",
+  "duplicate": "Cena duplicada",
+  "moveUp": "Mover para cima",
+  "moveDown": "Mover para baixo",
+  "rename": "Renomear cena"
+}

@@ -1,0 +1,28 @@
+{
+  "create": "Criar com Agente",
+  "description": "Informe um agente de desktop, revise seus arquivos e importe os resultados selecionados para este espaço de trabalho.",
+  "unavailable": "Habilite um agente de desktop instalado para continuar.",
+  "configure": "Configurar agentes de desktop",
+  "desktopAgent": "Agente de área de trabalho",
+  "prompt": "Descreva o que você deseja que o Agente crie.",
+  "context": {
+    "add": "Anexar contexto",
+    "remove": "Remover {name}"
+  },
+  "knowledgeConnected": "O conhecimento deste espaço de trabalho é conectado automaticamente através do MCP.",
+  "starting": "Iniciando Agente…",
+  "task": "Criando com o agente de desktop",
+  "artifacts": {
+    "ready": "O arquivo {count} está pronto para revisão. | Os arquivos {count} estão prontos para revisão.",
+    "none": "O Agente foi concluído sem criar nenhum arquivo.",
+    "import": "Importar arquivo {count} | Importar arquivos {count}",
+    "discard": "Descartar resultados",
+    "discardFailed": "Não foi possível descartar os resultados do agente"
+  },
+  "recovered": {
+    "runs": "Agente Recuperável é executado",
+    "run": "Execute o arquivo {index} · {count} | Execute arquivos {index} · {count}"
+  },
+  "failed": "Falha na criação do agente",
+  "run": "Executar Agente"
+}

@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "章節標題",
+  "configurationInvalid": "這個預發布有聲書版本缺少有效的角色綁定。請匯入或重新編排腳本，再儲存新版本。",
+  "lexicon": {
+    "title": "發音字典",
+    "hint": "將姓名或專有字替換為合成時所使用的準確讀法。",
+    "word": "字或專名",
+    "reading": "讀法",
+    "add": "新增讀法",
+    "remove": "移除讀法",
+    "invalid": "請補全每條讀法並刪除重複詞語。"
+  },
+  "moveUp": "上移章節",
+  "moveDown": "下移章節",
+  "removeChapter": "移除章節",
+  "removeParagraph": "移除段落",
+  "addParagraph": "新增段落",
+  "addChapter": "新增章節",
+  "wavPrecision": "WAV 精準度",
+  "paragraphPause": "段落停頓（毫秒）",
+  "chapterPause": "章節停頓（毫秒）",
+  "title": "書名",
+  "author": "作者",
+  "narrator": "朗讀者",
+  "cover": "封面",
+  "noCover": "不使用封面",
+  "boundCover": "已綁定的封面版本",
+  "coverRequiresEncodedOutput": "嵌入封面請使用 MP3 或 M4B。",
+  "outputSettings": "輸出設定",
+  "metadataSettings": "書籍訊息"
+}

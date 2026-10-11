@@ -1,0 +1,10 @@
+{
+  "label": "Modello vocale",
+  "firstUse": "Il modello selezionato e le risorse richieste vengono scaricati automaticamente al primo utilizzo. Tieni traccia o annulla l'attività nel Centro attività.",
+  "descriptions": {
+    "mossNano": "Voci preimpostate cinesi e inglesi compatte e clonazione di riferimenti. Solo CPU; velocità normale.",
+    "voxCpm2": "Massima precisione · Clonazione e progettazione della voce. Richiede almeno 32 GiB di memoria.",
+    "voxCpm2Q8": "Quantizzato · Download e utilizzo del disco ridotti. Richiede comunque almeno 32 GiB di memoria."
+  },
+  "details": "Dettagli modello"
+}

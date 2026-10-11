@@ -1,0 +1,45 @@
+{
+  "title": "Espaces",
+  "new": "Nouvel espace de travail",
+  "untitled": "Espace de travail sans titre",
+  "inbox": "Boîte de réception",
+  "empty": {
+    "title": "Espace vide",
+    "description": "Double-cliquez sur le canevas vide pour écrire · Coller le contenu du presse-papiers · Déposer les fichiers à importer"
+  },
+  "rename": "Renommer l'espace",
+  "tabs": {
+    "close": "Fermer l'onglet",
+    "closeOthers": "Fermer les autres onglets",
+    "closeToRight": "Fermer les onglets à droite",
+    "actionFailed": "L'action de l'onglet Espace de travail a échoué",
+    "reopen": "Rouvrir l'onglet fermé",
+    "switchTo": "Passer à l'onglet {number}"
+  },
+  "back": "Retour",
+  "forward": "Aller de l'avant",
+  "sections": {
+    "open": "Espaces de travail ouverts",
+    "all": "Tous les espaces",
+    "recent": "Récemment ouvert",
+    "favorites": "Favoris"
+  },
+  "views": {
+    "grid": "Vue en grille",
+    "list": "Vue en liste"
+  },
+  "search": {
+    "placeholder": "Espaces de recherche…",
+    "noResults": "Aucun espace correspondant"
+  },
+  "nodeCount": "Article {count} | Articles {count}",
+  "favorite": "Espace favori",
+  "unfavorite": "Supprimer des favoris",
+  "open": "Espace de travail ouvert",
+  "loadFailed": "Impossible d'ouvrir l'espace de travail",
+  "loadFailedHint": "Échec du chargement de la base de données de l'espace de travail. Les fichiers locaux ne sont pas affectés ; veuillez réessayer.",
+  "archive": "Espace de travail d'archivage",
+  "moveTo": "Déplacer vers l'espace de travail",
+  "moveNoTargets": "Aucun autre espace de travail disponible vers lequel déplacer.",
+  "archived": "Archivé « {title} »"
+}

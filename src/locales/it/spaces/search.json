@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "Trova",
+    "placeholder": "Cerca note, siti Web, trascrizioni, file, tag...",
+    "noResults": "Nessun elemento corrispondente in quest'area di lavoro.",
+    "defaultTitle": "Spazio corrente",
+    "defaultContentLabel": "Contenuto Canvas",
+    "emptyHint": "Nessun contenuto disponibile per la ricerca in quest'area di lavoro."
+  },
+  "allSpaces": {
+    "title": "Cerca in tutti gli spazi",
+    "placeholder": "Cerca in tutti gli spazi di lavoro...",
+    "hint": "Cerca conoscenze a livello globale in tutti gli spazi di lavoro.",
+    "noResults": "Nessun elemento corrispondente trovato in tutte le aree di lavoro."
+  },
+  "failed": "Ricerca fallita; per favore riprova.",
+  "semantic": {
+    "enable": "Ricerca semantica",
+    "preparing": "Preparazione della ricerca semantica",
+    "indexing": "Indicizzazione dei contenuti per la ricerca semantica"
+  }
+}

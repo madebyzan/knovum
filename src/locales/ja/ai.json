@@ -1,0 +1,27 @@
+{
+  "target": "実行ターゲット",
+  "targetModelApi": "型式 API ・直接実行",
+  "targetExternalAgent": "Desktop Agent · 出力は現在のツールと Skills に依存します",
+  "noCompatibleTarget": "互換性のある実行ターゲットがありません",
+  "desktopAgentNotInstalled": "検出されません",
+  "disabledTitle": "互換性のある AI ターゲットがありません",
+  "disabledDescription": "このアクションに対して互換性のあるモデルを設定するか、インストールされているデスクトップ エージェントを有効にします。",
+  "openSettings": "モデルの構成",
+  "settingsUnavailable": "AI 設定をロードできませんでした",
+  "executedWithModel": "{provider}・{model}で実行",
+  "executedWithAgent": "{name} · デスクトップエージェントによって実行",
+  "languages": {
+    "zhCn": "簡体字中国語",
+    "zhTw": "繁体字中国語",
+    "en": "英語",
+    "ja": "日本語",
+    "ko": "韓国語",
+    "fr": "フランス語",
+    "de": "ドイツ語",
+    "es": "スペイン語",
+    "pt": "ポルトガル語",
+    "it": "イタリア語",
+    "ru": "ロシア語",
+    "ar": "アラビア語"
+  }
+}

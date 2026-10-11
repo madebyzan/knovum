@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "正在處理",
+    "pending": "等待中 {count}",
+    "running": "處理中 {count}",
+    "failed": "失敗 {count}"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "視覺理解",
+    "analyze_media": "媒體時長與波形分析",
+    "transcribe_media": "影音轉錄",
+    "parse_document": "文檔內容擷取",
+    "analyze_document": "文件圖片分析",
+    "align_media_transcript": "所選轉錄片段對齊",
+    "diarize_media_transcript": "說話者分離"
+  },
+  "jobStatus": {
+    "pending": "排隊中",
+    "running": "進行中",
+    "awaiting_configuration": "需要配置",
+    "failed": "失敗",
+    "succeeded": "已完成",
+    "cancelled": "已取消"
+  },
+  "matchBadge": {
+    "documentOcr": "文件識別文字",
+    "documentInterpretation": "文檔視覺解釋",
+    "imageDescription": "影像描述",
+    "videoCover": "影片封面",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "重建向量檢索索引",
+    "rebuildDone": "索引完成，已建立 {count} 條向量資料。"
+  },
+  "failed": "解析處理失敗",
+  "nodeUnavailable": "任務所屬節點已不可用",
+  "imageProgress": "正在處理圖片",
+  "mediaProgress": "正在處理媒體",
+  "applyingEdit": "正在套用編輯",
+  "loadingImage": "正在載入圖片",
+  "imageUnavailable": "無法載入圖片",
+  "document": {
+    "coverage": "文件處理",
+    "ocrEvidence": "機器辨識文字 · 可能有辨識錯誤",
+    "interpretationEvidence": "AI 視覺解釋 · 並非原文陳述",
+    "textCoverage": "已擷取 {count} / {total} 頁文字。",
+    "unclassifiedPages": "{count} 頁沒有可擷取的正文或已知圖片，可能為空白頁或包含不支援的內容。",
+    "recognitionRequired": "需要識別的頁面：{pages}",
+    "visualCoverage": "已完成 {count} / {total} 項圖片分析。",
+    "visualUnavailable": "{count} 張引用圖片無法由文件解析器解碼。",
+    "resources": {
+      "title": "文檔資源",
+      "open": "查看第 {index} 個文件資源",
+      "occurrences": "出現 {count} 次",
+      "embedded": "從文件中提取的嵌入圖片。",
+      "rendered": "從 PDF 頁面視覺區域渲染的圖片。",
+      "detectedText": "辨識文字"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Office 向量圖不參與視覺理解，完整內容保留在原始文件中。",
+      "spreadsheetImageCellAnchorsUnavailable": "表格圖片按工作表定位，不提供儲存格錨點。",
+      "spreadsheetChartRenderingUnsupported": "已提取可用圖表文字，未分析圖表外觀。",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "此舊版 Office 格式無法提供完整的圖片位置。",
+      "legacySpreadsheetFormulasUnavailable": "舊版表格提取快取值，不提供公式表達式。",
+      "pdfVisualCoverageLimited": "PDF 圖片區域來自解析器公開的位置資料；行內圖片、向量圖形等內容不保證完整覆蓋，完整內容保留在原始檔案中。"
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "配置視覺理解模型後，可查看圖片或影片的內容分析。"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "retrieving": "Lecture des connaissances sélectionnées…",
+  "generating": "Rédaction d'un document fondé…",
+  "generatingImage": "Génération d'une image explicative…",
+  "submittingVideo": "Soumission de la génération vidéo",
+  "generatingVideo": "Génération de vidéo",
+  "downloadingVideo": "Enregistrement de la vidéo",
+  "preparingSubtitles": "Préparation des sous-titres de la transcription…",
+  "renderingSubtitles": "Rendu des sous-titres dans la vidéo…",
+  "savingResource": "Enregistrement de la vidéo dérivée…",
+  "recognizingSubtitles": "Reconnaissance des sous-titres…"
+}

@@ -1,0 +1,36 @@
+{
+  "title": "Agents de bureau",
+  "description": "Utilisez les agents AI pris en charge déjà installés et connectés sur cet ordinateur. Les agents activés s'exécutent avec leurs outils disponibles, leurs serveurs MCP et leurs compétences sans confirmation par action.",
+  "check": "Vérifier les agents",
+  "enable": "Activer",
+  "disable": "Désactiver",
+  "status": {
+    "checking": "Vérification",
+    "checkFailed": "Échec de la vérification"
+  },
+  "entry": {
+    "missing": "Entrée de commande non détectée",
+    "applicationOnly": "Application trouvée ; commande indisponible",
+    "commandDetected": "Commande détectée"
+  },
+  "requiredCommands": "Commande requise : {commands}",
+  "connectionHelp": "Aide à la connexion {name}",
+  "officialDocumentation": "Guide officiel",
+  "acpSetup": "Configuration ACP",
+  "detectionBoundary": "Vérifie uniquement la disponibilité des commandes ; la connexion et la connectivité ACP ne sont pas vérifiées.",
+  "documentationOpenFailed": "Impossible d'ouvrir le lien officiel de l'agent",
+  "connections": {
+    "executableCli": {
+      "title": "Direct ACP",
+      "requirements": "Installez une CLI officielle avec le support ACP et ajoutez son répertoire de commandes à PATH."
+    },
+    "nodeAdapter": {
+      "title": "Adaptateur ACP",
+      "requirements": "Nécessite la CLI officielle et Node.js (npx). La première utilisation peut télécharger l'adaptateur ACP."
+    },
+    "standaloneServer": {
+      "title": "Serveur ACP autonome",
+      "requirements": "Téléchargez l'archive officielle ACP, conservez ses fichiers compagnon et ajoutez le répertoire du serveur à PATH."
+    }
+  }
+}

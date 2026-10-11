@@ -1,0 +1,10 @@
+{
+  "language": "Langue de traduction",
+  "model": "Modèle de traduction",
+  "translate": "Traduire le script",
+  "cancel": "Annuler la traduction",
+  "failed": "Échec de la traduction du script vidéo",
+  "source": "Source",
+  "localOnly": "Gardez la traduction entièrement locale",
+  "localUnavailable": "Aucun modèle de traduction local n'est configuré. Entrez le script de la langue cible ou configurez un modèle Ollama de bouclage."
+}

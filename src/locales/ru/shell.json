@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "Палитра команд",
+    "searchPlaceholder": "Команды поиска…",
+    "noMatches": "Нет соответствующих команд"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "Отменить нечего",
+    "nothingToRedo": "Нечего переделывать",
+    "noSelection": "Сначала выберите контент",
+    "notEnoughScenes": "Другой сцены нет",
+    "selectionNotEligible": "Этот выбор не может использовать действие",
+    "checking": "Проверка доступности",
+    "busy": "Идет операция"
+  },
+  "toggleRightSidebar": "Показать или скрыть правую боковую панель",
+  "toggleSidebar": "Переключить боковую панель",
+  "layoutSaveFailed": "Не удалось сохранить макет рабочего места.",
+  "shortcuts": {
+    "title": "Сочетания клавиш",
+    "search": "Ярлыки поиска",
+    "categories": {
+      "general": "Общие",
+      "navigation": "Навигация",
+      "canvas": "Холст",
+      "editing": "Редактирование"
+    },
+    "noMatches": "Нет соответствующих ярлыков"
+  },
+  "startup": {
+    "starting": "Запуск Knovum…"
+  }
+}

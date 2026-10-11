@@ -1,0 +1,9 @@
+{
+  "title": "알림",
+  "backgroundTasks": {
+    "label": "백그라운드 작업 알림",
+    "description": "Knovum가 숨겨져 있는 동안 장기 실행 백그라운드 작업이 완료되거나 실패하면 알립니다."
+  },
+  "description": "Knovum가 데스크톱 알림을 보내는 시기를 선택합니다.",
+  "saveFailed": "알림 설정을 저장할 수 없습니다."
+}

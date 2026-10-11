@@ -1,0 +1,24 @@
+{
+  "name": "Skill 名 (ディレクトリと一致する必要があります)",
+  "readOnly": "この Skill はプラグインによって制御されます。これを個人用 Skill としてコピーして、個別に編集または有効化します。",
+  "create": "スキルの作成",
+  "import": "インポート ディレクトリ",
+  "copy": "個人 Skill としてコピー",
+  "binaryResource": "これはバイナリ参照リソースです。 Skill をエクスポートして、元のバイトを検査します。",
+  "empty": {
+    "title": "個人スキルなし",
+    "description": "個人用 Skill を作成するか、既存の Skill ディレクトリをインポートします。"
+  },
+  "actions": "スキル アクション",
+  "unsupportedRequirements": "サポートされていない要件: {requirements}",
+  "discard": {
+    "title": "保存されていない変更を破棄しますか?",
+    "description": "保存されていない編集内容は失われます。"
+  },
+  "delete": {
+    "title": "{name}を削除しますか？",
+    "description": "これにより、個人の Skill とその参照ファイルが完全に削除されます。"
+  },
+  "instructions": "説明",
+  "requiredConnections": "必要な接続: {names}"
+}

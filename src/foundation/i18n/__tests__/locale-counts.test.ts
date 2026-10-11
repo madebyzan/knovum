@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createI18n } from "vue-i18n";
 
 import { localeMessages } from "../../../locales/locale-registry";
+import { i18n as appI18n } from "../instance";
 
 const examples = [
   ["settings.ai.modelCount", "model", "models"],
@@ -31,5 +32,30 @@ describe("desktop count messages", () => {
     expect(i18n.global.t("spaces.processing.document.visualCoverage", { count: 1, total: 1 })).toBe(
       "Sources analyzed: 1 of 1.",
     );
+  });
+});
+
+describe("Russian count messages", () => {
+  it.each([
+    [0, "0 моделей"],
+    [1, "1 модель"],
+    [2, "2 модели"],
+    [5, "5 моделей"],
+    [11, "11 моделей"],
+    [12, "12 моделей"],
+    [14, "14 моделей"],
+    [21, "21 модель"],
+    [22, "22 модели"],
+    [25, "25 моделей"],
+    [101, "101 модель"],
+    [111, "111 моделей"],
+  ])("selects the correct form for %s", (count, expected) => {
+    const previous = appI18n.global.locale.value;
+    appI18n.global.locale.value = "ru";
+    try {
+      expect(appI18n.global.t("settings.ai.modelCount", { count }, count)).toBe(expected);
+    } finally {
+      appI18n.global.locale.value = previous;
+    }
   });
 });

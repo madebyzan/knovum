@@ -1,0 +1,42 @@
+{
+  "import": "Importieren",
+  "importFailed": "Der Import ist fehlgeschlagen. Überprüfen Sie das Dateiformat und versuchen Sie es erneut.",
+  "website": {
+    "add": "Website hinzufügen",
+    "description": "Speichern Sie das Web URL und extrahieren Sie Titel und Zusammenfassung.",
+    "previewUnavailable": "Website-Details konnten nicht abgerufen werden. Der URL wird gespeichert; Versuchen Sie es erneut mit den Details.",
+    "refresh": "Webinhalt aktualisieren",
+    "captureFailed": "Dieser Link konnte nicht hinzugefügt werden",
+    "loading": "Web-Metadaten werden abgerufen…",
+    "refreshFailed": "Webinhalt konnte nicht abgerufen werden"
+  },
+  "preview": {
+    "system": "Vorschau",
+    "show": "Vorschauansicht",
+    "instantUnavailable": "Keine sofortige Vorschau",
+    "instantUnavailableHint": "Die Sofortvorschau ist nicht verfügbar. Der extrahierte Text bleibt durchsuchbar."
+  },
+  "markdown": {
+    "export": "Markdown exportieren"
+  },
+  "exportCompleted": "Export abgeschlossen",
+  "fileName": "Dateiname",
+  "openExternally": "In externer App öffnen",
+  "space": {
+    "export": "Arbeitsbereichspaket exportieren…",
+    "import": "Space-Paket importieren…",
+    "exported": "Space-Paket exportiert",
+    "imported": "Space erfolgreich importiert"
+  },
+  "jsonCanvas": {
+    "import": "JSON Canvas importieren…",
+    "export": "JSON Canvas exportieren…",
+    "exported": "JSON Canvas exportiert"
+  },
+  "progress": {
+    "resource": "Ressource wird importiert",
+    "preparing": "Ressourcen kopieren und überprüfen…",
+    "processing": "Parsing-Ressourcen…"
+  },
+  "openInEditor": "Im externen Editor öffnen"
+}

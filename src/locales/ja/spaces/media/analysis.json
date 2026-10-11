@@ -1,0 +1,19 @@
+{
+  "task": "メディア分析",
+  "preparing": "メディアの準備中",
+  "unavailable": "期間と波形はまだ利用できません",
+  "audioPreparing": "オーディオの準備中",
+  "transcribing": "ローカルで転写中",
+  "organizing": "章と要約の作成",
+  "knowledge": {
+    "title": "メディア ナレッジ",
+    "pending": "バックグラウンド分析キューに送信されます。",
+    "stale": "分析データがソース ファイルと同期していません。再分析してください。"
+  },
+  "summary": "概要",
+  "inProgress": "バックグラウンドでメディアを分析しています…",
+  "insights": {
+    "unavailable": "転写データは利用できません。まずはメディアを分析してください。",
+    "generate": "章と要約を生成する"
+  }
+}

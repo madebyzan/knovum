@@ -1,0 +1,10 @@
+{
+  "label": "Modèle vocal",
+  "firstUse": "Le modèle sélectionné et les ressources requises sont téléchargés automatiquement lors de la première utilisation. Suivez ou annulez la tâche dans le centre de tâches.",
+  "descriptions": {
+    "mossNano": "Voix prédéfinies compactes en chinois et en anglais et clonage de référence. Processeur uniquement ; vitesse normale.",
+    "voxCpm2": "Précision totale · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
+    "voxCpm2Q8": "Quantifié · Téléchargement et utilisation du disque réduits. Nécessite toujours au moins 32 Gio de mémoire."
+  },
+  "details": "Détails du modèle"
+}

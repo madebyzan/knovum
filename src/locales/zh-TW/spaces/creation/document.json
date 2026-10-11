@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "轉換為 Word 文檔",
+    "pdf": "轉換為 PDF",
+    "docxRunTitle": "正在產生 Word 文檔",
+    "pdfRunTitle": "正在生成 PDF",
+    "txt": "轉換為純文字",
+    "txtRunTitle": "正在生成純文字",
+    "html": "轉換為 HTML",
+    "htmlRunTitle": "正在產生 HTML 文檔"
+  },
+  "convert": {
+    "label": "轉換為",
+    "formats": {
+      "docx": "Word 文件 (.docx)",
+      "pdf": "PDF 文件 (.pdf)",
+      "txt": "純文字 (.txt)",
+      "html": "網頁文檔 (.html)",
+      "pptx": "簡報 (.pptx)"
+    },
+    "help": "建立關聯的新檔案。 PDF 依文字重排，不保留圖片；Office 轉 Word/HTML 保留支援的表格和圖片，含圖片的 Office 暫不支援轉 PDF。原版式、動畫及掃描 PDF 暫不支援。"
+  },
+  "generate": "產生文件",
+  "title": "用選取知識生成文檔",
+  "description": "在所選來源旁產生帶有引用的 Markdown 知識資源。",
+  "defaultTitle": "知識草稿",
+  "purpose": "文件要求",
+  "purposePlaceholder": "說明文件目標、形式和需要保留的重點。",
+  "sources": "{count} 知識來源",
+  "task": "正在產生知識文檔",
+  "generating": "正在用選取知識生成…",
+  "failed": "文檔生成失敗"
+}

@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "Recadrer",
+    "original": "Original",
+    "presets": "Préréglages",
+    "general": "Général",
+    "square": "Carré",
+    "story": "Histoire",
+    "portrait": "Portrait",
+    "landscape": "Paysage",
+    "referenceSize": "Taille de référence ; les pixels exportés dépendent de l'image source",
+    "lockAspect": "Verrouiller le rapport hauteur/largeur du recadrage"
+  },
+  "transform": {
+    "rotateClockwise": "Rotation dans le sens des aiguilles d'une montre",
+    "flipHorizontal": "Retourner horizontalement",
+    "flipVertical": "Retourner verticalement",
+    "title": "Retourner et faire pivoter",
+    "rotationDegrees": "Angle de rotation"
+  },
+  "removeObject": {
+    "tool": "Gomme",
+    "mode": "Entrée de suppression",
+    "modes": {
+      "mask": "Peindre un masque",
+      "prompt": "Décrire"
+    },
+    "undo": "Annuler le trait de sélection",
+    "brushSize": "Pinceau de sélection",
+    "promptLabel": "Décrire ce qu'il faut supprimer",
+    "promptPlaceholder": "Décrivez ce qu'il faut supprimer…",
+    "generate": "Supprimer et générer",
+    "submitting": "Création de la tâche d'image dérivée…",
+    "sizeLimit": "Utilisez une source de 16 mégapixels et 16 384 pixels par côté.",
+    "limitReached": "Limite de sélection atteinte. Générez l’image ou annulez un trait."
+  },
+  "adjust": {
+    "title": "Ajuster",
+    "sections": "Sections de réglage de l'image"
+  },
+  "adjustGroups": {
+    "light": "Lumière",
+    "color": "Couleur",
+    "texture": "Texture",
+    "effects": "Effets"
+  },
+  "upscale": {
+    "action": "Augmenter la résolution",
+    "targetTooSmall": "Cette taille n'est pas plus grande que l'image actuelle",
+    "sourceBudget": "Cette image rendue dépasse le budget d’entrée du modèle sélectionné."
+  },
+  "angle": {
+    "title": "Multi-angle",
+    "mode": "Ajuster la cible",
+    "modes": {
+      "subject": "Sujet",
+      "camera": "Caméra"
+    },
+    "preview": "Faites glisser pour ajuster la vue ; maintenez Shift pour plus de précision ou faites défiler pour modifier le cadrage",
+    "yaw": "Rotation",
+    "pitch": "Inclinaison",
+    "zoom": "Zoom",
+    "zoomLevels": {
+      "wide": "Grand angle",
+      "medium": "Moyen",
+      "close": "Gros plan"
+    },
+    "tiltUp": "Incliner vers le haut",
+    "tiltDown": "Inclinaison vers le bas",
+    "turnLeft": "Tourner à gauche",
+    "turnRight": "Tourner à droite"
+  },
+  "layers": {
+    "title": "Split layer",
+    "panel": "Split layer",
+    "selectContent": "Sélectionner la région",
+    "selectContentUnavailable": "Le modèle de calque actuel ne peut pas diviser une région sélectionnée",
+    "auto": "Partage automatique",
+    "custom": "Partage personnalisé",
+    "prompt": "Focus de séparation",
+    "promptPlaceholder": "Décrire ce qu'il faut diviser en couches",
+    "split": "Diviser",
+    "task": "Diviser les calques d'images",
+    "failed": "Échec du fractionnement des couches",
+    "stage": {
+      "submitting": "Envoi d'une image",
+      "processing": "Splitting layer",
+      "downloading": "Récupération des couches",
+      "publishing": "Sauvegarde des couches"
+    },
+    "keyMissing": "La division des couches nécessite une clé fal API",
+    "promptRequired": "Décrivez ce qui doit être séparé en premier"
+  },
+  "comments": {
+    "title": "Commentaire",
+    "prompt": "Ajouter une description",
+    "save": "Enregistrer le commentaire",
+    "addToConversation": "Ajouter à la conversation",
+    "conversationContext": "Annotation d'image ({kind} ; origine en haut à gauche ; les coordonnées sont des pourcentages de la largeur et de la hauteur de l'image) : {coordinates}\nAnnotation : {text}",
+    "delete": "Supprimer le commentaire",
+    "hint": "Cliquez sur un emplacement d'image pour commenter",
+    "mode": "Mode d'annotation des commentaires",
+    "point": "Point de commentaire",
+    "draw": "Dessiner un commentaire",
+    "region": "Commentaire de région"
+  },
+  "applyNow": "Utiliser maintenant",
+  "unsaved": {
+    "title": "Appliquer les modifications d'image ?",
+    "description": "Appliquez cette modification d'image avant de quitter ou supprimez le brouillon."
+  },
+  "errors": {
+    "modelUnavailable": "Vérifiez le modèle d'image et les paramètres d'identification",
+    "providerUnsupported": "Le modèle d'image sélectionné ne prend pas en charge cette opération",
+    "credentialUnavailable": "Les informations d'identification du modèle d'image n'ont pas pu être lues",
+    "secretDatabaseUnavailable": "La base de données locale des informations d'identification n'est pas disponible",
+    "capabilityCheckFailed": "Impossible de vérifier si cette action est disponible",
+    "busy": "Une opération est en cours"
+  },
+  "openAiSettings": "Ouvrir les paramètres de l'IA",
+  "status": {
+    "capabilityChecking": "Vérification des capacités de l'image…",
+    "imagePreparing": "L'image est toujours en préparation"
+  },
+  "operation": {
+    "execution": "Modèle d'exécution"
+  },
+  "finishImageEdit": "Appliquer ou annuler d'abord la modification de l'image actuelle",
+  "adjustments": {
+    "exposure": "Exposition",
+    "contrast": "Contraste",
+    "highlights": "Points forts",
+    "shadows": "Ombres",
+    "whites": "Blancs",
+    "blacks": "Noirs",
+    "saturation": "Saturation",
+    "warmth": "Chaleur",
+    "sharpness": "Netteté",
+    "vignette": "Vignettage",
+    "vibrance": "Vibrance",
+    "tint": "Teinte",
+    "clarity": "Clarté",
+    "grain": "Grain",
+    "softLight": "Lumière douce",
+    "glow": "Briller"
+  },
+  "selection": {
+    "title": "Sélection intelligente",
+    "tools": "Outils de sélection",
+    "include": "Point de premier plan",
+    "exclude": "Point d'exclusion",
+    "box": "Dessiner une boîte",
+    "brush": "Affiner avec le pinceau",
+    "processing": "Mise à jour de la sélection…",
+    "help": "Cliquez sur le sujet ; ajoutez des points d'exclusion ou une case. Brossez pour inclure les détails. Jusqu'à six invites de points.",
+    "repair": "Réparer",
+    "extract": "Extraire",
+    "undo": "Annuler la sélection",
+    "modelUnavailable": "Sélectionnez un modèle de sélection disponible dans Paramètres.",
+    "promptLimit": "Jusqu'à six invites. Annulez une invite pour continuer."
+  },
+  "depth": {
+    "action": "Générer une profondeur relative"
+  },
+  "results": {
+    "upscale": "Résolution augmentée",
+    "multiAngle": "Nouvelle vue",
+    "removeObject": "Réparé",
+    "removeBackground": "Détourage",
+    "extractSelection": "Sélection",
+    "generateDepth": "Profondeur relative"
+  }
+}

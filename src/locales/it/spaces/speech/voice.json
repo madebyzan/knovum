@@ -1,0 +1,38 @@
+{
+  "name": "Nome vocale",
+  "add": "Aggiungi",
+  "usage": "Orario {count} di riferimento | Tempi {count} referenziati",
+  "revise": "Nuova revisione",
+  "history": "Cronologia revisioni",
+  "speed": "Velocità",
+  "archived": "Archiviato",
+  "delete": {
+    "title": "Elimina voce in modo permanente",
+    "description": "Elimina questa voce archiviata e tutte le relative revisioni. Non è possibile eliminare una voce utilizzata da un progetto."
+  },
+  "label": "Voce",
+  "clone": "Clona da riferimento",
+  "design": "Progetta una voce",
+  "mode": "Sorgente vocale",
+  "designDescription": "Descrivi la voce, il modo di parlare, la fascia di età e il tono",
+  "candidate": {
+    "text": "Testo di esempio",
+    "generate": "Genera campione",
+    "auditionRequired": "Riproduci il candidato una volta prima di salvare questa voce.",
+    "save": "Salva voce",
+    "discard": "Scarta campione",
+    "sample": "Benvenuto. Oggi è il 3 ottobre 2026 e il numero del progetto è 108. Ascolta la pronuncia chiara, il ritmo costante e la conclusione naturale delle frasi.",
+    "auditions": "Risultati dell'audizione"
+  },
+  "gender": {
+    "female": "Femmina",
+    "male": "Maschio"
+  },
+  "origins": {
+    "preset": "Voce preimpostata",
+    "reference": "Voce di riferimento",
+    "designed": "Voce progettata"
+  },
+  "options": "Impostazioni vocali",
+  "cloneShort": "Clona voce"
+}

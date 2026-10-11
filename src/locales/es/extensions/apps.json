@@ -1,0 +1,10 @@
+{
+  "browse": "Buscar complementos",
+  "description": "Las aplicaciones vienen con complementos. Conecte cuentas y configure el acceso aquí.",
+  "empty": "No se agregaron aplicaciones",
+  "emptyHint": "Instale un flujo de trabajo de aplicación desde el catálogo de complementos.",
+  "manage": "Administrar conexión",
+  "accounts": "Cuentas",
+  "access": "Acceso",
+  "configurationRequired": "Esta aplicación tiene una conexión incompleta. Verifique su complemento fuente."
+}

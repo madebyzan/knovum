@@ -1,0 +1,149 @@
+{
+  "health": {
+    "title": "Contrôle des connaissances",
+    "description": "Recherchez des connaissances non prises en charge, contradictoires ou obsolètes dans cet espace de travail.",
+    "clean": "Aucun problème trouvé.",
+    "critical": "Problème critique {count} détecté | Problèmes critiques {count} détectés",
+    "issues": {
+      "unsupported-claim": "La revendication n'a pas de relation de support (Supports).",
+      "contradicted-claim": "La revendication acceptée comporte une contradiction active (Contradicts).",
+      "ungrounded-evidence": "Les preuves manquent d’une source de provenance valide.",
+      "answered-open-question": "La question ouverte est associée à une relation de réponse.",
+      "stale-provenance": "La version source a changé ; revérification requise."
+    }
+  },
+  "history": {
+    "title": "Historique des versions de connaissances",
+    "empty": "Aucune modification pour l'instant.",
+    "actor": "Modifié par {actor}",
+    "events": {
+      "created": "Créé",
+      "updated": "Mise à jour",
+      "drafted": "Rédigé",
+      "accepted": "Accepté",
+      "contested": "Contesté",
+      "superseded": "Remplacé",
+      "invalidated": "Invalidé",
+      "opened": "Ouvert",
+      "resolved": "Résolu",
+      "restored": "Restauré",
+      "linked": "Lié",
+      "unlinked": "Non lié",
+      "applied": "Appliqué",
+      "rejected": "Rejeté",
+      "moved": "Déplacé"
+    },
+    "loadFailed": "Impossible de charger l'historique des connaissances"
+  },
+  "icons": {
+    "select": "Sélectionner l'icône",
+    "general": "Général",
+    "database": "Base de données",
+    "document": "Document",
+    "bookmark": "Marque-page",
+    "tag": "Étiqueter",
+    "layers": "Couches",
+    "container": "Conteneur",
+    "intelligence": "Intelligence",
+    "experiment": "Expérience",
+    "decision": "Décision",
+    "question": "Question",
+    "idea": "Idée"
+  },
+  "structuredKnowledge": "Connaissances structurées",
+  "relations": {
+    "title": "Relations de connaissances",
+    "symmetric": "Bidirectionnel ({count})",
+    "incoming": "Entrant ({count})",
+    "outgoing": "Sortant ({count})",
+    "empty": "Faites glisser les ancres de nœud ou sélectionnez plusieurs éléments pour créer des relations.",
+    "inspect": "Détails de connexion",
+    "kind": "Type de relation",
+    "rationale": "Pourquoi ils sont connectés",
+    "addRationale": "Ajouter",
+    "rationalePlaceholder": "Décrivez comment ces éléments sont connectés…",
+    "color": "Couleur de la ligne de relation",
+    "colors": {
+      "neutral": "Neutre",
+      "blue": "Bleu",
+      "green": "Vert",
+      "amber": "Ambre",
+      "red": "Rouge",
+      "purple": "Violet"
+    },
+    "remove": "Supprimer la relation",
+    "removeConfirm": "Supprimer la relation avec « {title} » ?",
+    "kinds": {
+      "reference": "Référence",
+      "related": "Associé",
+      "supports": "Prise en charge",
+      "contradicts": "Contradictions",
+      "depends-on": "Dépend de",
+      "supersedes": "Remplace",
+      "answers": "Réponses",
+      "uses": "Utilisations",
+      "derives-from": "Dérive de",
+      "caused-by": "Causé par"
+    }
+  },
+  "provenance": "Source",
+  "portal": {
+    "create": "Nouveau nœud du portail",
+    "createDescription": "Créez un nœud de portail pour une navigation rapide vers un autre espace de travail."
+  },
+  "objects": {
+    "custom": "Objet de connaissances personnalisé",
+    "create": "Nouvel objet personnalisé",
+    "createDescription": "Créez un nœud d'objet de connaissances à l'aide d'un schéma sélectionné."
+  },
+  "fields": {
+    "add": "Ajouter un champ",
+    "title": "Champ de propriété",
+    "key": "Touche de champ",
+    "label": "Nom du champ",
+    "kind": "Type de champ",
+    "kindLabels": {
+      "text": "Texte",
+      "number": "Numéro",
+      "boolean": "Booléen",
+      "date": "Date",
+      "node-ref": "Référence du nœud",
+      "enum": "Options d'énumération"
+    },
+    "options": "Options d'énumération (séparées par des virgules)",
+    "required": "Obligatoire",
+    "invalid": "Chaque champ nécessite un nom et un identifiant unique.",
+    "remove": "Supprimer le champ"
+  },
+  "status": {
+    "label": "État des connaissances",
+    "labels": {
+      "draft": "Brouillon",
+      "accepted": "Accepté",
+      "contested": "Contesté",
+      "superseded": "Remplacé",
+      "invalidated": "Invalidé",
+      "open": "Ouvrir",
+      "resolved": "Résolu"
+    }
+  },
+  "summary": "Résumé",
+  "types": {
+    "label": "Type de connaissance",
+    "description": "Description",
+    "icon": "Icône",
+    "name": "Nom du type",
+    "manage": "Gérer les types de connaissances",
+    "manageDescription": "Définissez les propriétés des connaissances structurées dans cet espace de travail.",
+    "delete": "Supprimer le type…",
+    "discardChanges": "Supprimer les modifications non enregistrées pour ce type ?",
+    "emptyFields": "Ajoutez les propriétés dont ce type de connaissances a besoin.",
+    "deleteConfirmation": "Supprimer « {name} » ? Les types utilisés par les objets de connaissances ne peuvent pas être supprimés.",
+    "create": "Nouveau type",
+    "none": "Aucun type de schéma personnalisé.",
+    "loadFailed": "Impossible de charger les types de schéma"
+  },
+  "visual": {
+    "empty": "Aucune analyse d'image pour l'instant"
+  }
+}

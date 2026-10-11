@@ -1,0 +1,9 @@
+{
+  "title": "Notifications",
+  "backgroundTasks": {
+    "label": "Notifications de tâches en arrière-plan",
+    "description": "Avertissez lorsqu'une tâche en arrière-plan de longue durée se termine ou échoue alors que Knovum est masqué."
+  },
+  "description": "Choisissez quand Knovum envoie des notifications sur le bureau.",
+  "saveFailed": "Les paramètres de notification n'ont pas pu être enregistrés"
+}

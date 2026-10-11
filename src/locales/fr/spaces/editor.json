@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "Nouvelle note",
+    "placeholder": "Écrivez n'importe quoi…"
+  },
+  "text": {
+    "new": "Texte",
+    "placeholder": "Tapez pour saisir du texte"
+  },
+  "markdown": {
+    "untitled": "Démarquage sans titre",
+    "title": "Titre Markdown",
+    "empty": "Démarquage vide"
+  },
+  "loading": "Préparation de l'éditeur…",
+  "loadingHint": "Les documents volumineux peuvent prendre un certain temps à s'ouvrir.",
+  "placeholder": "Commencer à écrire…"
+}

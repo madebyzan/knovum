@@ -1,0 +1,25 @@
+{
+  "recording": "正在聽寫…鬆開快捷鍵開始識別",
+  "transcribing": "正在辨識聽寫內容…",
+  "errors": {
+    "microphonePermissionDenied": "麥克風存取被拒絕，請在系統設定中允許 Knovum 使用麥克風。",
+    "microphoneUnavailable": "麥克風已不可用，請檢查目前輸入裝置後重試。",
+    "recordingLimitReached": "錄音達兩分鐘上限，已取消本次聽寫。",
+    "audioCaptureEmpty": "麥克風沒有採集到音訊。",
+    "unsupportedAudioFormat": "目前麥克風格式不支援聽寫。",
+    "unsupportedDevice": "目前設備沒有透過驗收的桌面聽寫配置。",
+    "dictationFocusChanged": "目標應用程式已改變，因此沒有自動插入文字。",
+    "dictationPermissionDenied": "系統阻止了文字插入，識別結果已保留在下方。",
+    "dictationEmptyResult": "沒有辨識到可插入的文字。",
+    "dictationInsertionFailed": "文字插入失敗，辨識結果已保留在下方。",
+    "dictationFailed": "聽寫未能完成。"
+  },
+  "result": {
+    "title": "聽寫結果",
+    "description": "未能自動插入​​，識別結果已保留在這裡。",
+    "noText": "未識別到文字。",
+    "copy": "複製文字",
+    "copied": "已複製聽寫結果"
+  },
+  "preparingResources": "首次使用正在下載本機資源…"
+}

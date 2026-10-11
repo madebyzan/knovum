@@ -1,0 +1,27 @@
+{
+  "process": {
+    "executable": "已安裝服務的可執行檔（絕對路徑）",
+    "arguments": "參數",
+    "workingDirectory": "工作目錄（可選）",
+    "authorizationHint": "啟用此連線後，應用程式可啟動所選 MCP 服務。安裝插件不會安裝程式或執行套件腳本。",
+    "declaredCommand": "插件聲明的程序",
+    "configurationRequired": "使用此連接器前，請選擇已安裝的程式。",
+    "chooseExecutable": "選擇已安裝的程式",
+    "chooseDirectory": "選擇工作目錄",
+    "argumentsHint": "每項對應一個完整參數，空格原樣傳遞，不解析 shell 指令。",
+    "addArgument": "新增參數",
+    "argumentAt": "第 {index} 個參數",
+    "removeArgument": "刪除第 {index} 個參數"
+  },
+  "changes": "更改端點或授權身分後，需要重新綁定帳號並審核工具權限。",
+  "name": "服務名稱",
+  "descriptionField": "說明（可選）",
+  "discard": {
+    "title": "放棄連接器更改？",
+    "description": "對此連接器的未儲存變更將會遺失。"
+  },
+  "delete": {
+    "title": "刪除 {name}？",
+    "description": "也會刪除該服務的所有連線實例和本機帳號憑證。"
+  }
+}

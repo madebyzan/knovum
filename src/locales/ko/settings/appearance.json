@@ -1,0 +1,41 @@
+{
+  "title": "외관",
+  "description": "테마, 글꼴 크기, 레이아웃 밀도를 맞춤설정하세요.",
+  "saveFailed": "외모 설정을 저장할 수 없습니다.",
+  "theme": {
+    "label": "테마",
+    "description": "밝음, 어두움을 선택하거나 시스템을 따르십시오."
+  },
+  "textSize": {
+    "label": "글꼴 크기",
+    "description": "인터페이스 텍스트 크기를 조정합니다."
+  },
+  "density": {
+    "label": "밀도",
+    "description": "컨트롤 크기와 간격을 조정합니다."
+  },
+  "language": {
+    "label": "언어",
+    "description": "표시 언어를 선택하거나 시스템 로캘을 일치시킵니다."
+  },
+  "options": {
+    "followSystem": "시스템 설정 따르기",
+    "theme": {
+      "light": "밝게",
+      "dark": "어둡게"
+    },
+    "textSize": {
+      "small": "소형",
+      "default": "기본값",
+      "large": "대형"
+    },
+    "density": {
+      "compact": "좁게",
+      "comfortable": "넓게"
+    },
+    "language": {
+      "english": "영어",
+      "simplifiedChinese": "중국어 간체"
+    }
+  }
+}

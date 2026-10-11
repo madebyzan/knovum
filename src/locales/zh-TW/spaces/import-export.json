@@ -1,0 +1,42 @@
+{
+  "import": "導入",
+  "importFailed": "匯入失敗，請檢查文件格式。",
+  "website": {
+    "add": "新增網頁",
+    "description": "儲存網頁 URL 並擷取標題與摘要。",
+    "previewUnavailable": "未能抓取網站訊息，連結已儲存。可在詳情中重試。",
+    "refresh": "刷新網頁內容",
+    "captureFailed": "無法添加此鏈接",
+    "loading": "正在抓取網頁元資料…",
+    "refreshFailed": "網頁抓取失敗"
+  },
+  "preview": {
+    "system": "預覽",
+    "show": "預覽視圖",
+    "instantUnavailable": "暫無即時預覽",
+    "instantUnavailableHint": "未提供即時預覽器，擷取的文字仍參與檢索與引用。"
+  },
+  "markdown": {
+    "export": "匯出 Markdown"
+  },
+  "exportCompleted": "匯出完成",
+  "fileName": "檔案名稱",
+  "openExternally": "外部應用程式開啟",
+  "space": {
+    "export": "匯出空間包…",
+    "import": "導入空間包…",
+    "exported": "空間包已匯出",
+    "imported": "空間已成功導入"
+  },
+  "jsonCanvas": {
+    "import": "導入 JSON Canvas…",
+    "export": "導出 JSON Canvas…",
+    "exported": "JSON Canvas 已匯出"
+  },
+  "progress": {
+    "resource": "正在導入資源",
+    "preparing": "正在複製併校驗資源…",
+    "processing": "正在解析資源…"
+  },
+  "openInEditor": "在外部編輯器中開啟"
+}

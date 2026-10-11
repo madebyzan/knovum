@@ -1,0 +1,19 @@
+{
+  "starting": "Aufnahme wird gestartet…",
+  "active": "Aufzeichnung",
+  "paused": "Pausiert",
+  "saving": "Aufzeichnung wird gespeichert…",
+  "stopAndSave": "Aufnahme beenden",
+  "note": "Audio-Notiz",
+  "startFailed": "Die Aufnahme konnte nicht gestartet oder Audio gespeichert werden.",
+  "microphone": {
+    "settingsHint": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Mikrofonzugriff in den Systemeinstellungen."
+  },
+  "problems": {
+    "denied": "Die Erlaubnis zum Mikrofon wurde verweigert.",
+    "missing": "Kein Mikrofongerät erkannt.",
+    "busy": "Das Mikrofon wird von einer anderen Anwendung verwendet.",
+    "unsupported": "Die Audioaufnahme wird in dieser Umgebung nicht unterstützt.",
+    "unknown": "Das Mikrofongerät konnte nicht geöffnet werden."
+  }
+}

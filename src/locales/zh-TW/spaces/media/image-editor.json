@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "裁切",
+    "original": "原始比例",
+    "presets": "預設",
+    "general": "一般",
+    "square": "方塊",
+    "story": "快拍",
+    "portrait": "直向",
+    "landscape": "橫向",
+    "referenceSize": "參考尺寸；實際導出尺寸取決於原圖",
+    "lockAspect": "鎖定裁切比例"
+  },
+  "transform": {
+    "rotateClockwise": "順時針旋轉",
+    "flipHorizontal": "水平翻轉",
+    "flipVertical": "垂直翻轉",
+    "title": "翻轉與旋轉",
+    "rotationDegrees": "旋轉角度"
+  },
+  "removeObject": {
+    "tool": "橡皮擦",
+    "mode": "移除方式",
+    "modes": {
+      "mask": "塗抹選區",
+      "prompt": "文字描述"
+    },
+    "undo": "撤銷選區筆畫",
+    "brushSize": "選區畫筆",
+    "promptLabel": "描述要移除的內容",
+    "promptPlaceholder": "描述要移除的內容…",
+    "generate": "移除並生成",
+    "submitting": "正在建立派生任務…",
+    "sizeLimit": "使用不超過 1600 萬像素、每邊不超過 16,384 像素的圖片。",
+    "limitReached": "選區已達上限，可產生圖片或撤銷筆畫"
+  },
+  "adjust": {
+    "title": "調整",
+    "sections": "圖片調整分組"
+  },
+  "adjustGroups": {
+    "light": "光線",
+    "color": "顏色",
+    "texture": "紋理",
+    "effects": "效果"
+  },
+  "upscale": {
+    "action": "提升解析度",
+    "targetTooSmall": "該檔位不高於目前圖片尺寸",
+    "sourceBudget": "目前圖片尺寸超出所選模型的輸入限制。"
+  },
+  "angle": {
+    "title": "多角度",
+    "mode": "調整對象",
+    "modes": {
+      "subject": "主體",
+      "camera": "網路攝影機"
+    },
+    "preview": "拖曳調整視角，按住 Shift 精細調整，滾輪切換景別",
+    "yaw": "旋轉",
+    "pitch": "傾斜",
+    "zoom": "縮放",
+    "zoomLevels": {
+      "wide": "廣角",
+      "medium": "中等",
+      "close": "特寫"
+    },
+    "tiltUp": "向上傾斜",
+    "tiltDown": "向下傾斜",
+    "turnLeft": "向左旋轉",
+    "turnRight": "向右旋轉"
+  },
+  "layers": {
+    "title": "圖層拆分",
+    "panel": "拆分圖層",
+    "selectContent": "框選內容",
+    "selectContentUnavailable": "目前圖層拆分模型不支援指定圖片區域",
+    "auto": "自動拆分",
+    "custom": "自訂拆分",
+    "prompt": "拆分重點",
+    "promptPlaceholder": "描述想要拆分的內容",
+    "split": "分割",
+    "task": "正在拆分圖片圖層",
+    "failed": "圖層拆分失敗",
+    "stage": {
+      "submitting": "正在提交圖片",
+      "processing": "正在拆分圖層",
+      "downloading": "正在取得圖層",
+      "publishing": "正在保存圖層"
+    },
+    "keyMissing": "圖層拆分需要配置 fal 密鑰",
+    "promptRequired": "請先描述需要拆分的內容"
+  },
+  "comments": {
+    "title": "評論",
+    "prompt": "添加描述",
+    "save": "保存評論",
+    "addToConversation": "新增到對話",
+    "conversationContext": "圖片標註（{kind}；以左上角為原點，座標單位為圖片寬高的百分比）：{coordinates}\n標註內容：{text}",
+    "delete": "刪除評論",
+    "hint": "點擊圖片位置新增評論",
+    "mode": "評論標註方式",
+    "point": "點選評論",
+    "draw": "自由繪製評論",
+    "region": "框選區域評論"
+  },
+  "applyNow": "立即使用",
+  "unsaved": {
+    "title": "要套用圖片更改嗎？",
+    "description": "離開前套用此圖片編輯，或放棄草稿。"
+  },
+  "errors": {
+    "modelUnavailable": "請檢查圖片模型與憑證配置",
+    "providerUnsupported": "當前圖片模型不支援此操作",
+    "credentialUnavailable": "無法讀取圖片模型的憑證",
+    "secretDatabaseUnavailable": "本機憑證資料庫不可用",
+    "capabilityCheckFailed": "無法檢查操作是否可用",
+    "busy": "操作正在進行中"
+  },
+  "openAiSettings": "前往 AI 設定",
+  "status": {
+    "capabilityChecking": "正在檢查影像處理能力…",
+    "imagePreparing": "圖片正在準備中"
+  },
+  "operation": {
+    "execution": "執行模型"
+  },
+  "finishImageEdit": "請先套用或取消目前圖片編輯",
+  "adjustments": {
+    "exposure": "曝光",
+    "contrast": "對比",
+    "highlights": "高光",
+    "shadows": "陰影",
+    "whites": "白色階",
+    "blacks": "黑色階",
+    "saturation": "飽和度",
+    "warmth": "色溫",
+    "sharpness": "銳利度",
+    "vignette": "暗角",
+    "vibrance": "自然飽和度",
+    "tint": "色調",
+    "clarity": "清晰度",
+    "grain": "顆粒感",
+    "softLight": "柔光",
+    "glow": "輝光"
+  },
+  "selection": {
+    "title": "智慧選區",
+    "tools": "選區工具",
+    "include": "前景點",
+    "exclude": "排除點",
+    "box": "框選",
+    "brush": "筆刷補充",
+    "processing": "正在更新選區…",
+    "help": "點選主體，新增排除點或框選，再用筆刷補充。最多六個點提示。",
+    "repair": "修補選區",
+    "extract": "提取選區",
+    "undo": "撤銷選區",
+    "modelUnavailable": "請在設定中選擇可用的智慧選區模型。",
+    "promptLimit": "最多六個提示，請撤銷一個提示後繼續。"
+  },
+  "depth": {
+    "action": "產生相對深度圖"
+  },
+  "results": {
+    "upscale": "已提升解析度",
+    "multiAngle": "新視角",
+    "removeObject": "修補",
+    "removeBackground": "去背影像",
+    "extractSelection": "選區",
+    "generateDepth": "相對深度"
+  }
+}

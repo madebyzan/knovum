@@ -1,0 +1,24 @@
+{
+  "name": "Nombre Skill (debe coincidir con el directorio)",
+  "readOnly": "Este Skill está controlado por su complemento. Cópielo como un Skill personal para editarlo o habilitarlo de forma independiente.",
+  "create": "Crear habilidad",
+  "import": "Directorio de importación",
+  "copy": "Copiar como personal Skill",
+  "binaryResource": "Este es un recurso de referencia binaria. Exporte el Skill para inspeccionar sus bytes originales.",
+  "empty": {
+    "title": "Sin habilidades personales",
+    "description": "Cree un Skill personal o importe un directorio Skill existente."
+  },
+  "actions": "Acciones de habilidad",
+  "unsupportedRequirements": "Requisitos no admitidos: {requirements}",
+  "discard": {
+    "title": "¿Descartar cambios no guardados?",
+    "description": "Las ediciones no guardadas se perderán."
+  },
+  "delete": {
+    "title": "¿Eliminar {name}?",
+    "description": "Esto elimina permanentemente el Skill personal y sus archivos de referencia."
+  },
+  "instructions": "Instrucciones",
+  "requiredConnections": "Conexiones requeridas: {names}"
+}

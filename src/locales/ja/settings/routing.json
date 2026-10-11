@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "AI 実行",
+  "defaultsDescription": "各機能を個別に設定するか、デフォルトの実行方法を使用させます。",
+  "unassigned": "デフォルトの実行方法を使用する",
+  "noCompatibleModel": "このタスクのモデルを構成する",
+  "routes": {
+    "writing": {
+      "label": "書き込み",
+      "description": "原稿作成、リライト、編集補助などを行います。"
+    },
+    "knowledge": {
+      "label": "組み込みエージェント",
+      "description": "会話、タスク計画、ツールの使用、知識の整理。"
+    },
+    "visualUnderstanding": {
+      "label": "視覚的理解",
+      "description": "検索用の画像、ドキュメントのビジュアル、およびビデオのプレビュー画像を理解します。"
+    },
+    "translation": {
+      "label": "翻訳",
+      "description": "アプリケーション全体でコンテンツを翻訳します。"
+    },
+    "imageGeneration": {
+      "label": "イメージ作成",
+      "description": "指示と空間コンテキストから画像を作成します。"
+    },
+    "videoGeneration": {
+      "label": "ビデオ作成",
+      "description": "説明書とソース素材からビデオを作成します。"
+    },
+    "defaultTarget": {
+      "label": "デフォルトの実行方法",
+      "description": "個別の実行を選択することなく、機能によって使用されます。"
+    }
+  },
+  "unselected": "実行方法が選択されていません",
+  "capabilitiesTitle": "機能別"
+}

@@ -1,0 +1,40 @@
+{
+  "title": "사용법",
+  "description": "지난 1년 동안 내장된 AI 토큰 사용 및 활동.",
+  "tokens": {
+    "total": "총 토큰",
+    "input": "입력 토큰",
+    "output": "출력 토큰",
+    "split": "입력 및 출력 혼합"
+  },
+  "requests": "사용",
+  "activeDays": "활성 일수",
+  "streak": {
+    "current": "현재 활성 연속",
+    "longest": "가장 긴 활성 연속"
+  },
+  "activity": {
+    "title": "토큰 활동",
+    "insightsTitle": "활동 개요",
+    "description": "피크 데이 · {peak} 토큰",
+    "tokenCount": "{tokens} 토큰",
+    "less": "더 적은",
+    "more": "자세히",
+    "weekdays": {
+      "monday": "월",
+      "wednesday": "수요일",
+      "friday": "금"
+    },
+    "empty": "지난 1년간 토큰 사용이 없습니다."
+  },
+  "purpose": {
+    "title": "기능별 사용",
+    "editor": "작성 도구",
+    "knowledge": "지식 창출",
+    "knowledgeIndexing": "지식 색인화",
+    "translation": "번역",
+    "visualAnalysis": "시각적 이해",
+    "builtinAgent": "내장 에이전트"
+  },
+  "providerReported": "총계에는 사용량을 보고하는 활동만 포함됩니다. 일부 작업이 누락되었을 수 있습니다."
+}

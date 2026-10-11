@@ -1,0 +1,99 @@
+{
+  "edit": "비디오 편집",
+  "title": "비디오 편집기",
+  "loading": "비디오 편집기 로드 중…",
+  "preview": {
+    "optimizing": "백그라운드에서 미리보기 최적화 중…",
+    "retry": "미리보기 준비 재시도",
+    "sourceUnavailable": "비디오 소스를 사용할 수 없습니다. 편집하려면 비디오를 다시 가져오세요.",
+    "proxyFailed": "반응형 미리보기를 준비할 수 없습니다.",
+    "durationUnavailable": "동영상 길이를 읽을 수 없습니다.",
+    "metadataUnavailable": "비디오의 프레임 크기를 읽을 수 없습니다.",
+    "unavailable": "동영상 미리보기를 열 수 없습니다.",
+    "audioUnavailable": "오디오 미리보기를 준비할 수 없습니다."
+  },
+  "tracks": {
+    "video": "비디오",
+    "audio": "오디오",
+    "text": "텍스트"
+  },
+  "timeline": {
+    "thumbnailFailed": "타임라인 썸네일을 생성할 수 없습니다.",
+    "zoomOut": "타임라인 축소",
+    "zoomIn": "타임라인 확대",
+    "fit": "전체 비디오에 맞추기",
+    "seek": "타임라인 탐색"
+  },
+  "text": {
+    "tools": "텍스트 도구",
+    "invalidColor": "#FFFFFF와 같은 6자리 16진수 색상을 입력하세요.",
+    "presets": {
+      "title": "사전 설정",
+      "plain": "솔직한",
+      "outline": "개요",
+      "shadow": "그림자",
+      "badge": "배지"
+    },
+    "placement": "위치",
+    "add": "텍스트 추가",
+    "content": "텍스트"
+  },
+  "tabs": {
+    "captions": "캡션",
+    "text": "텍스트"
+  },
+  "closeInspector": "편집 패널 닫기",
+  "captions": {
+    "search": "캡션 검색",
+    "none": "아직 캡션이 없습니다. 위에 하나를 추가하세요.",
+    "noMatches": "일치하는 캡션이 없습니다."
+  },
+  "font": {
+    "family": "글꼴",
+    "searchEmpty": "일치하는 글꼴이 없습니다.",
+    "weight": "글꼴 굵기",
+    "unavailable": "이 컴퓨터에는 글꼴 {family}가 설치되어 있지 않습니다. 다른 글꼴을 선택하세요.",
+    "catalogEmpty": "설치된 글꼴을 사용할 수 없습니다.",
+    "size": "크기(720p)",
+    "color": "텍스트 색상"
+  },
+  "videoSettings": "비디오 설정",
+  "clip": {
+    "selected": "선택한 클립",
+    "volume": "볼륨",
+    "rotate": "회전",
+    "split": "분할",
+    "inPoint": "시작 지점(초)",
+    "outPoint": "종료 지점(초)",
+    "startsAt": "시작(초)",
+    "endsAt": "종료(초)"
+  },
+  "top": "상위",
+  "center": "센터",
+  "bottom": "하단",
+  "project": {
+    "saved": "비디오 편집 프로젝트가 저장되었습니다"
+  },
+  "render": {
+    "action": "비디오 렌더링",
+    "task": "비디오 렌더링",
+    "failed": "비디오 렌더링 실패"
+  },
+  "preparingVideoEdit": "편집 준비 중",
+  "renderingVideoEdit": "비디오 렌더링",
+  "savingResource": "리소스 저장",
+  "previousStep": "0.1초 뒤로 이동",
+  "nextStep": "0.1초 앞으로 이동",
+  "trim": {
+    "start": "트림 클립 시작",
+    "end": "클립 끝 다듬기",
+    "textStart": "텍스트 시작 자르기",
+    "textEnd": "텍스트 끝 자르기",
+    "hint": "클립 가장자리를 드래그하여 다듬습니다. 정확한 조정을 위해 Option 또는 Alt를 누르세요."
+  },
+  "unsaved": {
+    "title": "이 동영상의 변경사항을 저장하시겠습니까?",
+    "status": "저장되지 않은 변경 사항",
+    "description": "저장하지 않고 닫으면 수정사항이 손실됩니다."
+  }
+}

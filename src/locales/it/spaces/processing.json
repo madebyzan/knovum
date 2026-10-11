@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "Elaborazione",
+    "pending": "In attesa {count}",
+    "running": "Elaborazione {count}",
+    "failed": "{count} non riuscito"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "Comprensione visiva",
+    "analyze_media": "Durata del supporto e forma d'onda",
+    "transcribe_media": "Trascrizione audio e video",
+    "parse_document": "Estrazione documento",
+    "analyze_document": "Analisi visiva del documento",
+    "align_media_transcript": "Allineamento della trascrizione selezionato",
+    "diarize_media_transcript": "Diarizzazione dell'altoparlante"
+  },
+  "jobStatus": {
+    "pending": "In coda",
+    "running": "In esecuzione",
+    "awaiting_configuration": "Richiede configurazione",
+    "failed": "Fallito",
+    "succeeded": "Completato",
+    "cancelled": "Annullato"
+  },
+  "matchBadge": {
+    "documentOcr": "Testo del documento riconosciuto",
+    "documentInterpretation": "Interpretazione visiva del documento",
+    "imageDescription": "Descrizione immagine",
+    "videoCover": "Copertina video",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "Ricostruisci indice di recupero",
+    "rebuildDone": "Indice ricostruito; voce vettoriale {count} generata. | Indice ricostruito; voci vettoriali {count} generate."
+  },
+  "failed": "Elaborazione non riuscita",
+  "nodeUnavailable": "Il nodo dell'attività non è più disponibile",
+  "imageProgress": "Elaborazione immagine",
+  "mediaProgress": "Supporti di elaborazione",
+  "applyingEdit": "Applicazione delle modifiche in corso",
+  "loadingImage": "Caricamento immagine",
+  "imageUnavailable": "Immagine non disponibile",
+  "document": {
+    "coverage": "Elaborazione dei documenti",
+    "ocrEvidence": "Testo riconosciuto dalla macchina · Sono possibili errori di riconoscimento",
+    "interpretationEvidence": "AI interpretazione visiva · Non è una dichiarazione di documento originale",
+    "textCoverage": "Pagine con testo estratto: {count} di {total}.",
+    "unclassifiedPages": "La pagina {count} non ha corpo di testo estraibile o immagini conosciute. Potrebbe essere vuoto o contenere contenuti non supportati. | Le pagine {count} non hanno corpo di testo estraibile o immagini conosciute. Potrebbero essere vuoti o contenere contenuti non supportati.",
+    "recognitionRequired": "Pagine che richiedono il riconoscimento: {pages}",
+    "visualCoverage": "Fonti analizzate: {count} di {total}.",
+    "visualUnavailable": "L'immagine di riferimento {count} non può essere decodificata dal parser del documento. | Le immagini di riferimento {count} non possono essere decodificate dal parser del documento.",
+    "resources": {
+      "title": "Risorse documento",
+      "open": "Apri la risorsa documento {index}",
+      "occurrences": "Usato il tempo {count} | Usato {count} volte",
+      "embedded": "Immagine incorporata estratta dal documento.",
+      "rendered": "Pagina o area visiva renderizzata da PDF.",
+      "detectedText": "Testo rilevato"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "I disegni vettoriali di Office non vengono analizzati visivamente; rimangono nel file originale.",
+      "spreadsheetImageCellAnchorsUnavailable": "Le immagini del foglio di calcolo vengono posizionate per foglio di lavoro, non per cella.",
+      "spreadsheetChartRenderingUnsupported": "Viene estratto il testo del grafico disponibile; l'aspetto del grafico non viene analizzato.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "Questo formato Office legacy non espone le posizioni complete delle immagini.",
+      "legacySpreadsheetFormulasUnavailable": "I fogli di calcolo legacy espongono valori memorizzati nella cache, non espressioni di formule.",
+      "pdfVisualCoverageLimited": "Le regioni dell'immagine PDF utilizzano i dati di posizione pubblici del parser. Non è garantito che le immagini in linea e la grafica vettoriale siano completamente coperte; il file originale conserva tutto il contenuto."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "Configura un modello di comprensione visiva per analizzare questa immagine o video."
+  }
+}

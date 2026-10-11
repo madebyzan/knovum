@@ -1,0 +1,19 @@
+{
+  "task": "Analyse des médias",
+  "preparing": "Préparation des supports",
+  "unavailable": "La durée et la forme d'onde ne sont pas encore disponibles",
+  "audioPreparing": "Préparation de l'audio",
+  "transcribing": "Transcription locale",
+  "organizing": "Création de chapitres et résumé",
+  "knowledge": {
+    "title": "Connaissance des médias",
+    "pending": "Soumis à la file d’attente d’analyse en arrière-plan.",
+    "stale": "Les données d'analyse ne sont pas synchronisées avec le fichier source ; veuillez réanalyser."
+  },
+  "summary": "Résumé",
+  "inProgress": "Analyser les médias en arrière-plan…",
+  "insights": {
+    "unavailable": "Les données de transcription ne sont pas disponibles ; veuillez d'abord analyser les médias.",
+    "generate": "Générer des chapitres et un résumé"
+  }
+}

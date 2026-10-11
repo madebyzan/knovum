@@ -1,0 +1,19 @@
+{
+  "starting": "Démarrage de l'enregistrement…",
+  "active": "Enregistrement",
+  "paused": "En pause",
+  "saving": "Sauvegarde de l'enregistrement…",
+  "stopAndSave": "Terminer l'enregistrement",
+  "note": "Note audio",
+  "startFailed": "Impossible de démarrer l'enregistrement ou de sauvegarder l'audio.",
+  "microphone": {
+    "settingsHint": "Accès au microphone refusé. Veuillez autoriser l'accès au microphone dans les préférences système."
+  },
+  "problems": {
+    "denied": "L'autorisation du microphone a été refusée.",
+    "missing": "Aucun périphérique microphone détecté.",
+    "busy": "Le microphone est utilisé par une autre application.",
+    "unsupported": "La capture audio n'est pas prise en charge dans cet environnement.",
+    "unknown": "Impossible d'ouvrir le microphone."
+  }
+}

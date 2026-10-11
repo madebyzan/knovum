@@ -1,0 +1,30 @@
+{
+  "title": "任務",
+  "summary": "任務，共 {count} 項",
+  "scopeFilter": "任務範圍",
+  "all": "全部",
+  "currentSpace": "目前空間",
+  "empty": "暫無任務。",
+  "emptyCurrentSpace": "目前空間沒有任務。",
+  "scope": "空間",
+  "subject": "物件",
+  "status": {
+    "queued": "排隊中",
+    "running": "進行中",
+    "attention": "需要處理",
+    "failed": "失敗",
+    "succeeded": "已完成",
+    "cancelled": "已取消"
+  },
+  "clearCompleted": "清除已完成",
+  "openSubject": "開啟相關對象",
+  "dismiss": "移除記錄",
+  "cancel": "取消任務",
+  "cancelling": "正在取消…",
+  "forceDismiss": "從清單移除",
+  "failed": "此任務未能完成。",
+  "verifyingResource": "校驗完整性中…",
+  "preparingLocalInference": "準備本地 AI 元件中…",
+  "localResourceDownloadSize": "首次使用需下載 {size} 本機資源",
+  "installingResource": "正在安裝本地資源…"
+}

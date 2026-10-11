@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "Scrittura AI",
+    "selectText": "Seleziona prima il contenuto del testo.",
+    "failed": "Generazione AI fallita",
+    "applyFailed": "Impossibile applicare il risultato AI",
+    "actions": {
+      "adjustTone": "Regola tono",
+      "fixGrammar": "Correggi grammatica e ortografia",
+      "extend": "Estendi testo",
+      "reduce": "Riepiloga e condensa",
+      "simplify": "Semplifica la frase",
+      "emojify": "Aggiungi emoji",
+      "improve": "Lucidare e migliorare",
+      "complete": "Completamento automatico",
+      "summarize": "Riepiloga",
+      "translate": "Traduci"
+    },
+    "tones": {
+      "academic": "Accademico",
+      "business": "Professionale",
+      "casual": "Informale",
+      "confident": "Fiducioso",
+      "creative": "Creativa",
+      "friendly": "Amichevole",
+      "humorous": "Umoristico",
+      "informative": "Chiara e informativa",
+      "inspirational": "Ispirante",
+      "objective": "Obiettivo",
+      "persuasive": "Persuasiva"
+    },
+    "needContext": "Posiziona il cursore dopo il testo esistente o seleziona il testo come contesto."
+  },
+  "find": {
+    "title": "Trova testo",
+    "placeholder": "Trova nel documento…",
+    "previous": "Corrispondenza precedente",
+    "next": "Partita successiva",
+    "toggleReplace": "Mostra sostituzione",
+    "replace": "Sostituisci",
+    "replaceAll": "Sostituisci tutto",
+    "replacePlaceholder": "Sostituisci con..."
+  },
+  "paragraph": "Paragrafo",
+  "heading1": "Intestazione 1",
+  "heading2": "Intestazione 2",
+  "heading3": "Intestazione 3",
+  "heading4": "Intestazione 4",
+  "heading5": "Intestazione 5",
+  "heading6": "Intestazione 6",
+  "headings": {
+    "menu": "Tipografia"
+  },
+  "bold": "Grassetto",
+  "italic": "Corsivo",
+  "underline": "Sottolineato",
+  "strike": "Barrato",
+  "inlineCode": "Codice in linea",
+  "horizontalRule": "Divisore",
+  "highlight": "Evidenzia",
+  "superscript": "Apice",
+  "subscript": "Pedice",
+  "align": {
+    "left": "Allinea a sinistra",
+    "center": "Allinea al centro",
+    "right": "Allinea a destra",
+    "justify": "Giustifica"
+  },
+  "highlightColor": {
+    "yellow": "Giallo",
+    "green": "Verde",
+    "blue": "Blu",
+    "pink": "Rosa",
+    "clear": "Cancella evidenziazione"
+  },
+  "image": {
+    "insert": "Inserisci immagine",
+    "tabUpload": "File locale",
+    "tabUrl": "URL",
+    "url": "URL immagine",
+    "alt": "Descrizione immagine",
+    "choose": "Seleziona immagine",
+    "uploadFailed": "Inserimento immagine fallito",
+    "dropDocumentHint": "Scegli il file o trascina l'immagine nell'editor di documenti.",
+    "altPlaceholder": "Descrivi l'immagine per gli screen reader",
+    "dropNow": "Rilascia per inserire l'immagine",
+    "urlInvalid": "Inserisci un indirizzo immagine http:// o https:// valido.",
+    "insertFailed": "Impossibile inserire l'immagine"
+  },
+  "link": {
+    "label": "Collegamento ipertestuale",
+    "placeholder": "Inserisci o incolla URL",
+    "remove": "Rimuovi collegamento",
+    "editorTitle": "Modifica collegamento",
+    "editorDescription": "Aggiungi un collegamento web o e-mail al testo selezionato.",
+    "url": "Collegamento URL",
+    "invalid": "Inserisci un collegamento HTTP, HTTPS o mailto valido.",
+    "open": "Apri collegamento",
+    "updateFailed": "Impossibile aggiornare il collegamento",
+    "openFailed": "Impossibile aprire il collegamento"
+  },
+  "bulletList": "Elenco puntato",
+  "orderedList": "Elenco ordinato",
+  "taskList": "Elenco attività",
+  "blockquote": "Citazione",
+  "listMenu": "Stili elenco",
+  "table": {
+    "title": "Tabella",
+    "addRow": "Inserisci riga sotto",
+    "addColumn": "Inserisci colonna a destra",
+    "delete": "Elimina tabella"
+  },
+  "words": "parole",
+  "characters": "caratteri"
+}

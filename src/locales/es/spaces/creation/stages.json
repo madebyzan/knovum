@@ -1,0 +1,12 @@
+{
+  "retrieving": "Lectura del conocimiento seleccionado…",
+  "generating": "Redacción de documento fundamentado…",
+  "generatingImage": "Generando imagen explicativa…",
+  "submittingVideo": "Envío de generación de vídeo",
+  "generatingVideo": "Generando vídeo",
+  "downloadingVideo": "Guardar vídeo",
+  "preparingSubtitles": "Preparando subtítulos de transcripción…",
+  "renderingSubtitles": "Representando subtítulos en el vídeo...",
+  "savingResource": "Guardando vídeo derivado…",
+  "recognizingSubtitles": "Reconociendo subtítulos…"
+}

@@ -2,10 +2,12 @@ import { camelCase } from "es-toolkit";
 import { isPlainObject } from "es-toolkit/predicate";
 import type { LocaleMessageValue } from "vue-i18n";
 
-type Locale = "en" | "zh-CN";
+import type { LocalePreference } from "../shared/contracts/generated/LocalePreference";
+
+type Locale = Exclude<LocalePreference, "system">;
 type Messages = Record<string, LocaleMessageValue>;
 
-const modules = import.meta.glob<{ default: Messages }>("./{en,zh-CN}/**/*.json", { eager: true });
+const modules = import.meta.glob<{ default: Messages }>("./*/**/*.json", { eager: true });
 
 function createLocaleMessages(locale: Locale): Messages {
   const root: Messages = {};
@@ -41,4 +43,13 @@ function createLocaleMessages(locale: Locale): Messages {
 export const localeMessages = {
   en: createLocaleMessages("en"),
   "zh-CN": createLocaleMessages("zh-CN"),
-} as const;
+  "zh-TW": createLocaleMessages("zh-TW"),
+  ja: createLocaleMessages("ja"),
+  ko: createLocaleMessages("ko"),
+  fr: createLocaleMessages("fr"),
+  de: createLocaleMessages("de"),
+  es: createLocaleMessages("es"),
+  "pt-BR": createLocaleMessages("pt-BR"),
+  it: createLocaleMessages("it"),
+  ru: createLocaleMessages("ru"),
+} satisfies Record<Locale, Messages>;

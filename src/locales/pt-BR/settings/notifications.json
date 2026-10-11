@@ -1,0 +1,9 @@
+{
+  "title": "Notificações",
+  "backgroundTasks": {
+    "label": "Notificações de tarefas em segundo plano",
+    "description": "Notificar quando uma tarefa em segundo plano de longa execução for concluída ou falhar enquanto Knovum estiver oculto."
+  },
+  "description": "Escolha quando Knovum envia notificações na área de trabalho.",
+  "saveFailed": "Não foi possível salvar as configurações de notificação"
+}

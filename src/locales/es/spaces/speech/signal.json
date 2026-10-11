@@ -1,0 +1,14 @@
+{
+  "inspect": "Inspeccionar señal de audio",
+  "advisory": "La señal verifica los lugares de la bandera para revisar. No valoran la naturalidad de la voz y pueden señalar pausas intencionadas.",
+  "noFindings": "No se encontraron anomalías de señal en el intervalo escaneado.",
+  "truncated": "La inspección escanea hasta dos horas e informa hasta 100 hallazgos.",
+  "issues": {
+    "empty": "Sin muestras de audio",
+    "silence": "Silencio",
+    "quiet": "Relativamente silenciosa",
+    "loud": "Relativamente ruidoso",
+    "clipping": "Pico casi a gran escala",
+    "invalid": "Muestras de señales no válidas"
+  }
+}

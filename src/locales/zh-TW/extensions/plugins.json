@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "來源",
+    "localDirectory": "本地目錄",
+    "location": "地址或絕對路徑",
+    "gitReference": "Git 引用（HEAD、完整 ref 或 commit）",
+    "subdirectory": "包所在子目錄",
+    "install": "從來源安裝",
+    "description": "選擇本機套件或遠端 URL，確認內容後再安裝。",
+    "revision": "來源版本"
+  },
+  "installation": {
+    "preview": "預覽",
+    "authorizationHint": "安裝不會啟動服務或授權帳號。連線與工具權限需另行配置。",
+    "install": "安裝",
+    "title": "確認安裝內容",
+    "incomplete": "此外掛程式缺少可用能力，或包含尚不支援的必要元件。"
+  },
+  "update": {
+    "action": "更新",
+    "revisionChange": "來源修訂變化",
+    "added": "新增元件",
+    "removed": "移除組件",
+    "check": "檢查更新",
+    "title": "確認更新內容"
+  },
+  "bundled": "應用程式內建",
+  "verification": {
+    "unverified": "發布者身分未驗證",
+    "title": "包校驗資訊"
+  },
+  "uninstall": {
+    "action": "解除安裝",
+    "title": "卸載 {name}？",
+    "description": "插件及其提供的擴充能力將被移除。之後可重新安裝。"
+  },
+  "catalogs": {
+    "sourceType": "目錄來源類型",
+    "add": "新增目錄來源",
+    "all": "全部來源",
+    "title": "管理目錄來源",
+    "description": "新增或刷新提供插件清單的目錄來源。",
+    "empty": {
+      "title": "暫無可發現的插件",
+      "description": "瀏覽內建目錄，或新增其他插件目錄來源。"
+    },
+    "remove": {
+      "title": "移除目錄來源？",
+      "description": "該目錄將不再用於發現插件，已安裝的插件仍會保留。"
+    }
+  },
+  "discovery": {
+    "title": "發現插件",
+    "installed": "已安裝 · 查看"
+  },
+  "empty": {
+    "title": "尚未安裝插件",
+    "description": "發現新插件，或從本地與遠端來源安裝。"
+  },
+  "tasks": {
+    "inspect": "檢查插件",
+    "install": "安裝插件",
+    "update": "更新插件",
+    "catalog": "讀取插件目錄",
+    "cancelled": "插件操作已取消"
+  },
+  "stages": {
+    "reading": "讀取包或目錄來源",
+    "validating": "驗證包內容",
+    "committing": "提交更改"
+  },
+  "title": "已安裝插件",
+  "search": {
+    "empty": "沒有匹配的結果",
+    "hint": "嘗試其他關鍵字，或清空搜尋。"
+  },
+  "disable": "停用 {name}",
+  "enable": "啟用 {name}",
+  "actions": "插件操作",
+  "capabilities": "包含的能力"
+}

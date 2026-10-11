@@ -1,0 +1,29 @@
+{
+  "chapters": {
+    "title": "Capítulos",
+    "edit": "Editar capítulo",
+    "seek": "Ir al capítulo",
+    "titleField": "Título del capítulo",
+    "summary": "Resumen del capítulo"
+  },
+  "text": {
+    "title": "Texto de transcripción",
+    "editSegment": "Editar segmento de transcripción",
+    "search": "Buscar transcripción",
+    "noMatches": "No hay texto de transcripción coincidente",
+    "live": "Transcripción en vivo",
+    "liveHint": "El texto de la transcripción en vivo aparecerá aquí como reconocido.",
+    "alignSelected": "Alinear seleccionado",
+    "alignmentLimit": "Hasta 8 segmentos / 5 minutos",
+    "alignmentFirstUse": "El primer uso descarga el modelo seleccionado y los recursos necesarios automáticamente. Administre las opciones de modelo en Configuración.",
+    "selectForAlignment": "Seleccionar para alineación"
+  },
+  "speakers": {
+    "title": "Pistas de altavoz",
+    "durationLimit": "La registro del hablante admite grabaciones de hasta dos horas.",
+    "generate": "Identificar hablantes",
+    "firstUse": "Los recursos locales se descargan automáticamente en el primer uso; cancelar en el Centro de tareas.",
+    "count": "Recuento de hablantes conocidos (opcional)",
+    "automatic": "Automático"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "create": "Mit Agent erstellen",
+  "description": "Informieren Sie einen Desktop-Agenten, überprüfen Sie seine Dateien und importieren Sie dann ausgewählte Ergebnisse in diesen Arbeitsbereich.",
+  "unavailable": "Aktivieren Sie einen installierten Desktop-Agenten, um fortzufahren.",
+  "configure": "Desktop-Agenten konfigurieren",
+  "desktopAgent": "Desktop-Agent",
+  "prompt": "Beschreiben Sie, was der Agent erstellen soll.",
+  "context": {
+    "add": "Kontext anhängen",
+    "remove": "Entfernen Sie {name}"
+  },
+  "knowledgeConnected": "Das Wissen dieses Arbeitsbereichs wird automatisch über MCP verbunden.",
+  "starting": "Startagent…",
+  "task": "Erstellen mit Desktop Agent",
+  "artifacts": {
+    "ready": "Die {count}-Datei kann jetzt überprüft werden. | Die {count}-Dateien können jetzt überprüft werden.",
+    "none": "Der Agent wurde abgeschlossen, ohne Dateien zu erstellen.",
+    "import": "Importieren Sie die {count}-Datei | Importieren Sie {count}-Dateien",
+    "discard": "Ergebnisse verwerfen",
+    "discardFailed": "Agent-Ergebnisse konnten nicht verworfen werden"
+  },
+  "recovered": {
+    "runs": "Wiederherstellbarer Agent wird ausgeführt",
+    "run": "Führen Sie die Datei {index} · {count} aus | Führen Sie die Dateien {index} · {count} aus"
+  },
+  "failed": "Agent-Erstellung fehlgeschlagen",
+  "run": "Führen Sie den Agenten aus"
+}

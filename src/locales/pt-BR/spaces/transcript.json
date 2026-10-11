@@ -1,0 +1,29 @@
+{
+  "chapters": {
+    "title": "Capítulos",
+    "edit": "Editar capítulo",
+    "seek": "Pular para o capítulo",
+    "titleField": "Título do capítulo",
+    "summary": "Resumo do capítulo"
+  },
+  "text": {
+    "title": "Texto transcrito",
+    "editSegment": "Editar segmento de transcrição",
+    "search": "Transcrição da pesquisa",
+    "noMatches": "Nenhum texto de transcrição correspondente",
+    "live": "Transcrição ao vivo",
+    "liveHint": "O texto da transcrição ao vivo aparecerá aqui como reconhecido.",
+    "alignSelected": "Alinhar selecionado",
+    "alignmentLimit": "Até 8 segmentos/5 minutos",
+    "alignmentFirstUse": "O primeiro uso baixa automaticamente o modelo selecionado e os recursos necessários. Gerencie as opções de modelo em Configurações.",
+    "selectForAlignment": "Selecionar para alinhamento"
+  },
+  "speakers": {
+    "title": "Faixas de alto-falante",
+    "durationLimit": "A diarização do alto-falante suporta gravações de até duas horas.",
+    "generate": "Identificar alto-falantes",
+    "firstUse": "Os recursos locais são baixados automaticamente na primeira utilização; cancelar no Centro de Tarefas.",
+    "count": "Contagem de alto-falantes conhecida (opcional)",
+    "automatic": "Automático"
+  }
+}

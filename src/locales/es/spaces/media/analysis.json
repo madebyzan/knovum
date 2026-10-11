@@ -1,0 +1,19 @@
+{
+  "task": "Análisis de medios",
+  "preparing": "Preparando medios",
+  "unavailable": "La duración y la forma de onda aún no están disponibles",
+  "audioPreparing": "Preparando audio",
+  "transcribing": "Transcripción local",
+  "organizing": "Creación de capítulos y resumen",
+  "knowledge": {
+    "title": "Conocimiento de los medios",
+    "pending": "Enviado a la cola de análisis en segundo plano.",
+    "stale": "Los datos del análisis no están sincronizados con el archivo fuente; por favor vuelva a analizar."
+  },
+  "summary": "Resumen",
+  "inProgress": "Analizando medios en segundo plano...",
+  "insights": {
+    "unavailable": "Los datos de la transcripción no están disponibles; Por favor analice los medios primero.",
+    "generate": "Generar capítulos y resumen"
+  }
+}

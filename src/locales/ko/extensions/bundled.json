@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "우주 지식",
+    "description": "추적 가능한 소스가 포함된 작업 공간 지식을 읽고, 구성하고, 게시하세요."
+  },
+  "evidence-research": {
+    "name": "증거 조사",
+    "description": "소스를 비교하고 연구 또는 결정 요약을 준비합니다."
+  },
+  "meeting-notes": {
+    "name": "회의 메모",
+    "description": "회의 기록에서 결정 사항 및 작업 항목을 추출합니다."
+  },
+  "document-delivery": {
+    "name": "문서 전달",
+    "description": "소스 기반 보고서를 준비하고 요청된 형식을 제공합니다."
+  },
+  "study-companion": {
+    "name": "학습 동반자",
+    "description": "작업 공간 자료를 학습 가이드, 연습 및 검토 계획으로 전환하세요."
+  },
+  "github-work": {
+    "name": "GitHub 작업",
+    "description": "GitHub를 연결하여 리포지토리를 조사하고 근거 있는 문제를 준비하세요."
+  },
+  "notion-work": {
+    "name": "개념 지식",
+    "description": "Notion을 연구 페이지에 연결하고 체계적인 지식을 게시하세요."
+  },
+  "linear-work": {
+    "name": "선형 작업",
+    "description": "Linear를 연결하여 의사결정을 추적 가능한 프로젝트 작업으로 전환하세요."
+  }
+}

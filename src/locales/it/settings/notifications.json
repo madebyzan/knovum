@@ -1,0 +1,9 @@
+{
+  "title": "Notifiche",
+  "backgroundTasks": {
+    "label": "Notifiche delle attività in background",
+    "description": "Avvisa quando un'attività in background di lunga durata termina o fallisce mentre Knovum è nascosto."
+  },
+  "description": "Scegli quando Knovum invia notifiche sul desktop.",
+  "saveFailed": "Impossibile salvare le impostazioni di notifica"
+}

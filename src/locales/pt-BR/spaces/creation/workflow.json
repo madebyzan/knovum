@@ -1,0 +1,109 @@
+{
+  "title": "Fluxos de trabalho",
+  "select": "Escolha um fluxo de trabalho",
+  "createFromSelection": "Salvar cadeia de derivação como fluxo de trabalho",
+  "derivation": {
+    "loading": "Inspecionando derivação…",
+    "separateChains": "A seleção contém cadeia de derivação desconectada {count}. Selecione as saídas pretendidas separadamente. | A seleção contém cadeias de derivação desconectadas {count}. Selecione as saídas pretendidas separadamente.",
+    "chain": "Corrente {index}",
+    "steps": "Ações verificadas",
+    "inputs": "Entradas do processo",
+    "issues": "Peças que não podem ser reutilizadas",
+    "empty": "A seleção não possui ações de derivação reproduzíveis.",
+    "sources": "Fontes: {sources}"
+  },
+  "name": "Nome do fluxo de trabalho",
+  "namePlaceholder": "Nomeie este fluxo de trabalho",
+  "saveCaptured": "Salvar como fluxo de trabalho",
+  "saved": "Salvo na sua biblioteca de fluxo de trabalho",
+  "useSaved": "Usar fluxo de trabalho",
+  "inputs": {
+    "slot": "Insira {index}",
+    "bind": "Vincule materiais selecionados a insumos",
+    "select": "Selecionar material",
+    "sequenceLimit": "Processe na ordem abaixo, até o item {count} | Processe na ordem abaixo, até itens {count}",
+    "moveUp": "Mover material para cima",
+    "moveDown": "Mover material para baixo",
+    "missing": "A seleção não possui um tipo de material exigido por este fluxo de trabalho."
+  },
+  "summary": "Ações {steps} · Saídas {outputs}",
+  "outputs": {
+    "title": "Saídas",
+    "select": "Mantenha o resultado de “{action}”",
+    "locate": "Localize “{name}”",
+    "name": "Resultado {index}",
+    "namesUnique": "Dê a cada resultado um nome diferente, com até 120 caracteres."
+  },
+  "steps": {
+    "title": "Etapas",
+    "keep": "Mantenha o passo “{action}”",
+    "required": "Usado por uma etapa posterior"
+  },
+  "run": {
+    "start": "Executar fluxo de trabalho",
+    "state": "Estado de execução: {state}. O progresso permanece na Central de Tarefas após fechar este painel.",
+    "recent": "Execuções recentes",
+    "new": "Nova execução",
+    "retryFailedSteps": "Repetir etapas com falha",
+    "cancel": "Cancelar execução"
+  },
+  "edit": "Editar fluxo de trabalho",
+  "parameters": {
+    "title": "Título",
+    "purpose": "Finalidade",
+    "content": "Conteúdo",
+    "question": "Pergunta",
+    "prompt": "Prompt",
+    "summaryPurpose": "Objetivo de resumo",
+    "audience": "Público",
+    "goal": "Objetivo",
+    "tone": "Tom",
+    "intent": "Intenção",
+    "style": "Estilo",
+    "imageStyle": "Estilo de imagem",
+    "aspectRatio": "Proporção",
+    "durationSeconds": "Duração (segundos)",
+    "platform": "Plataforma"
+  },
+  "delete": "Excluir fluxo de trabalho",
+  "deleteConfirm": "Excluir “{name}”? As execuções concluídas e seus resultados permanecerão.",
+  "states": {
+    "queued": "Na fila",
+    "running": "Em execução",
+    "waiting": "Aguardando",
+    "paused": "Pausada",
+    "succeeded": "Concluído",
+    "completedWithErrors": "Concluído com erros",
+    "failed": "Falha",
+    "cancelled": "Cancelado",
+    "cancelling": "Cancelamento"
+  },
+  "captureIssues": {
+    "resourceUnavailable": "O recurso foi excluído ou está fora deste espaço de trabalho.",
+    "derivationIncomplete": "A derivação não foi concluída com êxito.",
+    "executionSpecUnavailable": "Os parâmetros de ação verificados ou o destino de execução estão ausentes, portanto, esta etapa não pode ser repetida.",
+    "derivationInputsUnavailable": "Nenhuma entrada de fonte verificável foi registrada.",
+    "sourceUnavailable": "Um recurso de origem não está mais disponível.",
+    "sourceMismatch": "As fontes de derivação ou sua ordem diferem da ação executada, portanto esta etapa não pode ser repetida.",
+    "sourceIdentityUnavailable": "O registro de origem não possui identidade de recurso.",
+    "parameterInstanceReference": "Um parâmetro de ação refere-se a um recurso de tela original e não pode ser reutilizado como um fluxo de trabalho.",
+    "candidateBindingUnavailable": "Uma entrada de etapa não pode ser vinculada a uma entrada de fluxo de trabalho ou a uma saída anterior.",
+    "noDerivedOutputSelected": "Selecione uma saída criada por uma ação."
+  },
+  "captureActions": {
+    "draftDocument": "Criar documento",
+    "draftScript": "Rascunho de script de vídeo",
+    "summarizeMeeting": "Resumir reunião",
+    "draftSocialPost": "Rascunho de postagem social",
+    "generateVisualization": "Criar visualização",
+    "generateImage": "Gerar imagem",
+    "generateVideo": "Gerar vídeo",
+    "renderPresentation": "Criar apresentação",
+    "addVideoSubtitles": "Adicionar legendas",
+    "convertDocx": "Converter para Word",
+    "convertPdf": "Converter para PDF",
+    "convertTxt": "Converter em texto",
+    "convertHtml": "Converter para HTML"
+  },
+  "empty": "Ainda não há fluxos de trabalho salvos. Selecione um recurso derivado concluído e escolha “Salvar como fluxo de trabalho”."
+}

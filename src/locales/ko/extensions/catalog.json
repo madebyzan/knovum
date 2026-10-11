@@ -1,0 +1,12 @@
+{
+  "counts": "리소스 {resources} · 템플릿 {templates} · 프롬프트 {prompts}",
+  "browse": "리소스 및 프롬프트 찾아보기",
+  "kind": "콘텐츠 종류",
+  "item": "콘텐츠",
+  "resources": "리소스",
+  "templates": "리소스 템플릿",
+  "prompts": "프롬프트",
+  "parameters": "매개변수(JSON)",
+  "read": "선택한 콘텐츠 읽기",
+  "source": "소스 선택"
+}

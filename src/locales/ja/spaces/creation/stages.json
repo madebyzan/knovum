@@ -1,0 +1,12 @@
+{
+  "retrieving": "選択された知識の読み取り…",
+  "generating": "Drafting grounded document...",
+  "generatingImage": "説明画像を生成中…",
+  "submittingVideo": "ビデオ生成の送信",
+  "generatingVideo": "ビデオの生成",
+  "downloadingVideo": "ビデオの保存",
+  "preparingSubtitles": "トランスクリプトの字幕を準備中…",
+  "renderingSubtitles": "ビデオに字幕をレンダリングしています…",
+  "savingResource": "派生ビデオの保存…",
+  "recognizingSubtitles": "字幕を認識中…"
+}

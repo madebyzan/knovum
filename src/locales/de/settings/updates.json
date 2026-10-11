@@ -1,0 +1,46 @@
+{
+  "title": "Software-Update",
+  "description": "Knovum prüft nach dem Start und alle sechs Stunden. Downloads und Installation bedürfen Ihrer Bestätigung.",
+  "connection": {
+    "loading": "Updater-Status wird gelesen…",
+    "retry": "Updater-Verbindung erneut versuchen"
+  },
+  "action": {
+    "failed": "Die Aktualisierungsaktion konnte nicht abgeschlossen werden. Überprüfen Sie den Update-Status und versuchen Sie es erneut."
+  },
+  "check": {
+    "action": "Nach Updates suchen"
+  },
+  "download": {
+    "action": "Update herunterladen",
+    "cancel": "Download abbrechen"
+  },
+  "install": {
+    "action": "Neu starten und installieren",
+    "blocked": "Beenden oder brechen Sie laufende Hintergrundaufgaben vor dem Neustart ab.",
+    "title": "Vorbereitung zum Neustart Knovum",
+    "description": "Speichern Sie Ihre Änderungen und installieren Sie das verifizierte Update. Schließen Sie die Anwendung nicht."
+  },
+  "available": {
+    "review": "Update überprüfen",
+    "title": "Version {version} ist verfügbar",
+    "notes": "Versionshinweise"
+  },
+  "status": {
+    "disabled": "Updates sind in diesem Build nicht aktiviert.",
+    "idle": "Bereit, nach Updates zu suchen.",
+    "checking": "Nach Updates suchen…",
+    "current": "Knovum ist auf dem neuesten Stand.",
+    "available": "Lesen Sie die Versionshinweise und laden Sie dann das signierte Update herunter.",
+    "downloading": "Update wird heruntergeladen…",
+    "verifying": "Überprüfung der Update-Signatur…",
+    "ready": "Heruntergeladen und überprüft. Starten Sie neu, wenn Sie bereit sind.",
+    "installing": "Update wird installiert…"
+  },
+  "failure": {
+    "check": "Es konnte nicht nach Updates gesucht werden. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "download": "Der Download ist fehlgeschlagen. Überprüfen Sie Ihre Verbindung und den freien Speicherplatz und versuchen Sie es dann erneut.",
+    "signature": "Die Update-Signatur ist ungültig. Die Installation wurde abgelehnt. Überprüfen Sie es erneut, nachdem der Herausgeber die Veröffentlichung korrigiert hat.",
+    "install": "Die Installation ist fehlgeschlagen. Ihre Änderungen wurden gespeichert. Überprüfen Sie die Berechtigungen und den Speicher, bevor Sie eine erneute Überprüfung durchführen."
+  }
+}

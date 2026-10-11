@@ -1,0 +1,12 @@
+{
+  "counts": "資源 {resources} · 模板 {templates} · prompts {prompts}",
+  "browse": "瀏覽資源與提示詞",
+  "kind": "內容類型",
+  "item": "內容",
+  "resources": "資源",
+  "templates": "資源模板",
+  "prompts": "提示詞",
+  "parameters": "參數（JSON）",
+  "read": "讀取所選內容",
+  "source": "選擇來源"
+}

@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "{count} Element ausgewählt | {count} Elemente ausgewählt",
+  "title": "Details",
+  "basicInformation": "Allgemein",
+  "showSource": "Quellenansicht",
+  "fields": {
+    "type": "Typ",
+    "source": "Quelle",
+    "size": "Größe",
+    "originalUrl": "Original-URL",
+    "provider": "Plattform",
+    "siteName": "Webseite",
+    "description": "Beschreibung",
+    "canonicalUrl": "Kanonische URL",
+    "modified": "Änderungsdatum"
+  },
+  "extractedDocumentText": "Extrahierter Text",
+  "visualDetectedText": "OCR-erkannter Text",
+  "excerpts": {
+    "title": "Auszug · {title}",
+    "line": "— {title} · {location}",
+    "content": "Inhaltsauszug"
+  },
+  "openSource": "Quellknoten suchen",
+  "targetSpace": "Zielarbeitsbereich",
+  "none": "Nicht festgelegt",
+  "renameHint": "Zum Umbenennen klicken",
+  "openContent": "Offener Inhalt",
+  "content": "Inhalt",
+  "playVideo": "Video abspielen",
+  "related": {
+    "title": "Verwandter Inhalt",
+    "show": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "unavailable": "Verwandte Inhalte sind vorübergehend nicht verfügbar.",
+    "indexing": "Erstellen des Inhaltsindex. Verwandte Inhalte werden angezeigt, sobald sie fertig sind.",
+    "notIndexed": "Für diesen Artikel sind noch keine zugehörigen Inhalte vorbereitet.",
+    "prepare": "Jetzt vorbereiten",
+    "noContent": "Dieser Artikel hat noch keinen durchsuchbaren Inhalt.",
+    "empty": "Noch kein verwandter Inhalt in diesem Arbeitsbereich.",
+    "explanation": "Entdecken Sie verwandte Inhalte in diesem Arbeitsbereich nach Bedeutung. Ergebnisse schaffen keine Verbindungen."
+  },
+  "containedItems": "{count} enthielt Elemente"
+}

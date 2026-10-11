@@ -1,0 +1,41 @@
+{
+  "title": "Apparence",
+  "description": "Personnalisez le thème, l'échelle de police et la densité de la mise en page.",
+  "saveFailed": "Les paramètres d'apparence n'ont pas pu être enregistrés",
+  "theme": {
+    "label": "Thème",
+    "description": "Choisissez clair, sombre ou suivez le système."
+  },
+  "textSize": {
+    "label": "Taille de la police",
+    "description": "Ajustez la taille du texte de l’interface."
+  },
+  "density": {
+    "label": "Densité",
+    "description": "Ajustez la taille et l’espacement des contrôles."
+  },
+  "language": {
+    "label": "Langue",
+    "description": "Choisissez la langue d’affichage ou faites correspondre les paramètres régionaux du système."
+  },
+  "options": {
+    "followSystem": "Suivre le système",
+    "theme": {
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "textSize": {
+      "small": "Petit",
+      "default": "Par défaut",
+      "large": "Grand"
+    },
+    "density": {
+      "compact": "Compact",
+      "comfortable": "Aéré"
+    },
+    "language": {
+      "english": "Anglais",
+      "simplifiedChinese": "Chinois simplifié"
+    }
+  }
+}

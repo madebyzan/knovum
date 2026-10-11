@@ -1,0 +1,24 @@
+{
+  "name": "Skill-Name (muss mit dem Verzeichnis übereinstimmen)",
+  "readOnly": "Dieser Skill wird durch sein Plugin gesteuert. Kopieren Sie es als persönliches Skill, um es unabhängig zu bearbeiten oder zu aktivieren.",
+  "create": "Skill erstellen",
+  "import": "Verzeichnis importieren",
+  "copy": "Als persönliches Skill kopieren",
+  "binaryResource": "Dies ist eine binäre Referenzressource. Exportieren Sie Skill, um seine ursprünglichen Bytes zu überprüfen.",
+  "empty": {
+    "title": "Keine persönlichen Fähigkeiten",
+    "description": "Erstellen Sie ein persönliches Skill-Verzeichnis oder importieren Sie ein vorhandenes Skill-Verzeichnis."
+  },
+  "actions": "Skill-Aktionen",
+  "unsupportedRequirements": "Nicht unterstützte Anforderungen: {requirements}",
+  "discard": {
+    "title": "Nicht gespeicherte Änderungen verwerfen?",
+    "description": "Nicht gespeicherte Änderungen gehen verloren."
+  },
+  "delete": {
+    "title": "{name} löschen?",
+    "description": "Dadurch werden das persönliche Skill und seine Referenzdateien dauerhaft gelöscht."
+  },
+  "instructions": "Anleitung",
+  "requiredConnections": "Erforderliche Anschlüsse: {names}"
+}

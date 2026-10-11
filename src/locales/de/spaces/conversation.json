@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "Kein Textinhalt am Quellort.",
+    "open": "An der Quelle lokalisieren"
+  },
+  "title": "Konversation",
+  "agents": {
+    "builtinAgent": "Knovum-Agent",
+    "desktop": "Desktop-Agenten",
+    "select": "Wählen Sie einen Agenten",
+    "noModel": "Aktivieren Sie ein Modell, das den Werkzeugaufruf in den AI-Einstellungen unterstützt.",
+    "manage": "Modelle und Agenten konfigurieren…"
+  },
+  "empty": {
+    "title": "Probieren Sie eine dieser Aufgaben aus",
+    "topic": "[Thema]",
+    "search": "Quellen finden",
+    "searchPrompt": "Finden Sie in diesem Arbeitsbereich Quellen zu {topic} und listen Sie auf, woher die einzelnen Quellen stammen.",
+    "document": "Dokument erstellen",
+    "documentPrompt": "Erstellen Sie in diesem Arbeitsbereich ein bearbeitbares Übersichtsdokument aus Quellen zu {topic}.",
+    "compare": "Ideen vergleichen",
+    "comparePrompt": "Vergleichen Sie in diesem Arbeitsbereich Ideen zu {topic}, einschließlich Gemeinsamkeiten, Unterschieden und Beweisen."
+  },
+  "input": {
+    "placeholder": "Beschreiben Sie eine Aufgabe für den Agenten ...",
+    "send": "Senden",
+    "shortcutHint": "Eingeben"
+  },
+  "conversations": {
+    "preparing": "Konversation wird gestartet…",
+    "create": "Neue Konversation",
+    "history": "Gesprächsverlauf",
+    "none": "Noch keine Gespräche",
+    "actions": "Konversationsaktionen",
+    "exportFailed": "Konversation konnte nicht exportiert werden",
+    "deleteConfirm": "„{title}“ und seinen Aufgabenverlauf löschen? Dies kann nicht rückgängig gemacht werden.",
+    "search": "Konversationen suchen",
+    "archived": "Archiviert",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "viewArchived": "Archivierte Konversationen anzeigen",
+    "backToRecent": "Zurück zu den letzten Gesprächen",
+    "branch": "Hier verzweigen",
+    "branchNumber": "Zweig {number}",
+    "regenerateAttachments": "Hängen Sie die ursprünglichen Ressourcen erneut an, bevor Sie diese Anfrage erneut senden",
+    "branchCreated": "Auf die neue Filiale umgestiegen",
+    "returnToRunning": "Eine Konversationsaufgabe wird ausgeführt. Kehren Sie zu seinem Gespräch zurück."
+  },
+  "evidence": {
+    "sourceRationale": "Quellen und Beweise",
+    "ask": "Frage stellen",
+    "useCurrent": "Verwenden Sie die aktuelle Auswahl als Beweis",
+    "remove": "Beweise entfernen",
+    "stale": "Die Version der Beweisquelle hat sich geändert",
+    "extract": "Als Beweis extrahieren"
+  },
+  "attachments": {
+    "add": "Ressource hinzufügen",
+    "attached": "Angehängte Ressourcen. Scrollen Sie horizontal, um mehr zu sehen",
+    "citeCanvasNode": "Referenz-Canvas-Inhalt",
+    "citeCanvasNodeHint": "Wählen Sie Inhalte aus diesem Arbeitsbereich aus",
+    "canvasNodeShort": "Canvas-Referenz",
+    "uploadLocalFile": "Lokale Datei hinzufügen",
+    "uploadLocalFileHint": "Bilder, PDFs oder Dokumente",
+    "localFileShort": "Lokale Datei",
+    "dropFiles": "Legen Sie Dateien zum Anhängen ab",
+    "limit": "Sie können bis zu 32 Elemente an eine Nachricht anhängen.",
+    "addCurrentSelection": "Aktuelle Auswahl hinzufügen ({count})",
+    "search": "Durchsuchen Sie Ressourcen in diesem Arbeitsbereich",
+    "none": "Keine passenden Ressourcen",
+    "remove": "Ressource entfernen: {name}",
+    "preview": "Vorschauressource: {name}"
+  },
+  "uploads": {
+    "sizeError": "Dateien dürfen nicht leer sein. Bilder dürfen höchstens 10 MiB groß sein; andere Dateien maximal 20 MiB.",
+    "typeError": "Dieser Dateityp wird nicht unterstützt. Wählen Sie ein Bild, einen Text, ein PDF oder ein Office-Dokument.",
+    "invalidError": "Diese Datei konnte nicht gelesen werden. Überprüfen Sie den Inhalt und das Format.",
+    "permissionError": "Diese Datei ist nicht verfügbar. Wählen Sie es im Systemdateidialog erneut aus.",
+    "reacquire": "Wählen Sie diese externen Dateien erneut aus, um sie erneut anzuhängen: {names}"
+  },
+  "tasks": {
+    "waitingForResult": "Warten auf den Abschluss des Vorgangs …",
+    "failed": "Die Konversationsaufgabe ist fehlgeschlagen. Für weitere Einzelheiten kehren Sie zum Gespräch zurück.",
+    "paused": "Diese Aufgabe ist pausiert. Sie können damit fortfahren, wenn Sie bereit sind.",
+    "resume": "Aufgabe fortsetzen",
+    "modelOutcomeUnknown": "Die Modellanfrage endete ohne ein wiederherstellbares Ergebnis. Die Ausführung wartet auf Ihre Entscheidung.",
+    "modelResponseUncommitted": "Das Modell hat geantwortet, sein Ausführungsergebnis wurde jedoch nicht festgeschrieben. Die automatische Wiederherstellung kann nicht sicher fortgesetzt werden.",
+    "modelUsageUnknown": "Das Model antwortete ohne Nutzungsinformationen. Weitere Modellaufrufe wurden eingestellt.",
+    "modelRetryCost": "Wenn Sie fortfahren, senden Sie möglicherweise eine weitere kostenpflichtige Anfrage. Frühere Anklagen sind weiterhin erfasst oder unbekannt.",
+    "retryModel": "Autorisieren Sie einen neuen Modellversuch"
+  },
+  "response": {
+    "stopped": "Gestoppt",
+    "incomplete": "Antwort unvollständig"
+  },
+  "outputs": {
+    "added": "Zur Leinwand hinzugefügt · {count}"
+  },
+  "messages": {
+    "copy": "Nachricht kopieren",
+    "copied": "Kopiert",
+    "copyFailed": "Die Nachricht konnte nicht kopiert werden. Versuchen Sie es erneut.",
+    "new": "Zum Neuesten springen ↓",
+    "loadOlder": "Frühere Nachrichten laden"
+  },
+  "regenerate": "Regenerieren",
+  "stop": "Stopp",
+  "sources": "Quellen · {count}",
+  "actions": {
+    "viewCreated": "Ergebnis suchen"
+  },
+  "activity": {
+    "generating": "Antwort wird generiert…",
+    "running": "Funktioniert · {count} Aktion | Arbeiten · {count}-Aktionen",
+    "finished": "Abgeschlossen · {count}-Aktion | Abgeschlossene · {count}-Aktionen",
+    "recorded": "Aktivität · {count} Aktion | Aktivität · {count} Aktionen",
+    "tool": "Werkzeugaktion",
+    "invalidResult": "Suchergebnisse konnten nicht angezeigt werden",
+    "noSources": "Keine passenden Quellen",
+    "plan": "Planen"
+  },
+  "askSelection": "Auswahl fragen",
+  "extensions": {
+    "label": "Konversationserweiterungen",
+    "unavailable": "Eine ausgewählte Erweiterung ist nicht verfügbar. Überprüfen Sie die Auswahl.",
+    "clearSelection": "Erweiterungsauswahl löschen",
+    "manage": "Erweiterungen verwalten",
+    "empty": "Keine Erweiterungen verfügbar. Fügen Sie sie in den Einstellungen hinzu."
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "Der externe Betrieb ist genehmigungspflichtig",
+      "allow": "Zulassen",
+      "deny": "Verweigern"
+    },
+    "outcomeUnknown": {
+      "title": "Externes Ergebnis unbekannt",
+      "retry": "Geprüft; Wiederholung zulassen",
+      "stop": "Aufgabe stoppen",
+      "description": "Der Vorgang ist möglicherweise abgeschlossen. Überprüfen Sie den Dienst, bevor Sie einen erneuten Versuch autorisieren."
+    },
+    "attempt": "Versuch",
+    "history": {
+      "title": "Werkzeugverlauf",
+      "empty": "Noch keine Werkzeugoperationen"
+    },
+    "progress": "Fortschritt"
+  },
+  "interactions": {
+    "title": "Externer Service braucht Input",
+    "openAuthorizationPage": "Autorisierungsseite öffnen",
+    "submit": "Senden",
+    "decline": "Ablehnen",
+    "invalid": "Der externe Dienst hat ein ungültiges Formular gesendet."
+  },
+  "extensionResources": {
+    "import": "In den Arbeitsbereich importieren",
+    "select": "Wählen Sie eine Ressource",
+    "readOnly": "Dieser Arbeitsbereich ist schreibgeschützt"
+  }
+}

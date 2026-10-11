@@ -1,0 +1,8 @@
+{
+  "title": "Importar medios",
+  "failed": "No se pudieron importar los medios.",
+  "preparing": "Preparando soporte multimedia…",
+  "resolving": "Leyendo información multimedia…",
+  "downloading": "Descargando medios…",
+  "finalizing": "Agregando medios a este espacio de trabajo..."
+}

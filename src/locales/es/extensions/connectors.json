@@ -1,0 +1,27 @@
+{
+  "process": {
+    "executable": "Ejecutable del servicio instalado (ruta absoluta)",
+    "arguments": "Argumentos",
+    "workingDirectory": "Directorio de trabajo (opcional)",
+    "authorizationHint": "Habilitar esta conexión permite que la aplicación inicie el servicio MCP seleccionado. La instalación de un complemento nunca instala programas ni ejecuta scripts de paquetes.",
+    "declaredCommand": "Programa solicitado por complemento",
+    "configurationRequired": "Elija un programa instalado antes de usar este conector.",
+    "chooseExecutable": "Elegir programa instalado",
+    "chooseDirectory": "Elegir directorio de trabajo",
+    "argumentsHint": "Cada campo es un argumento literal, incluidos los espacios. No se realiza ningún análisis de shell.",
+    "addArgument": "Agregar argumento",
+    "argumentAt": "Argumento {index}",
+    "removeArgument": "Eliminar argumento {index}"
+  },
+  "changes": "Cambiar el punto final o la identidad de autorización requiere volver a conectar la cuenta y revisar los permisos de la herramienta.",
+  "name": "Nombre del servicio",
+  "descriptionField": "Descripción (opcional)",
+  "discard": {
+    "title": "¿Descartar cambios de conector?",
+    "description": "Se perderán los cambios no guardados en este conector."
+  },
+  "delete": {
+    "title": "¿Eliminar {name}?",
+    "description": "Esto también elimina todas las conexiones al servicio y las credenciales de su cuenta local."
+  }
+}

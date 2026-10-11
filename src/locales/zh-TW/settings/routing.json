@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "AI 執行方式",
+  "defaultsDescription": "各項能力可單獨設置，未設定時跟隨預設執行方式。",
+  "unassigned": "跟隨預設執行方式",
+  "noCompatibleModel": "配置支援此任務的模型",
+  "routes": {
+    "writing": {
+      "label": "寫作",
+      "description": "起草、改寫與編輯器輔助。"
+    },
+    "knowledge": {
+      "label": "智慧助理",
+      "description": "用於對話、任務規劃、工具呼叫與知識整理。"
+    },
+    "visualUnderstanding": {
+      "label": "視覺理解",
+      "description": "理解圖片、文件視覺及影片預覽圖，用於知識檢索。"
+    },
+    "translation": {
+      "label": "翻譯",
+      "description": "翻譯應用程式內需要處理的內容。"
+    },
+    "imageGeneration": {
+      "label": "圖片創作",
+      "description": "根據創作要求與空間上下文生成圖片。"
+    },
+    "videoGeneration": {
+      "label": "影片創作",
+      "description": "根據創作要求與素材生成影片。"
+    },
+    "defaultTarget": {
+      "label": "預設執行方式",
+      "description": "未單獨設定執行方式的功能使用此選擇。"
+    }
+  },
+  "unselected": "未選擇執行方式",
+  "capabilitiesTitle": "按能力設定"
+}

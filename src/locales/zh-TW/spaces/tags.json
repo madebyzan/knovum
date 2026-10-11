@@ -1,0 +1,8 @@
+{
+  "title": "標籤",
+  "selectionHint": "選取畫布節點以管理標籤。",
+  "add": "添加標籤",
+  "empty": "當前空間暫無標籤。",
+  "showNodes": "篩選此標籤節點",
+  "remove": "移除標籤 {tag}"
+}

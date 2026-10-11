@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "切り抜き",
+    "original": "オリジナル",
+    "presets": "プリセット",
+    "general": "全般",
+    "square": "四角",
+    "story": "ストーリー",
+    "portrait": "縦長",
+    "landscape": "横長",
+    "referenceSize": "参考サイズ；エクスポートされたピクセルはソース画像に依存します",
+    "lockAspect": "クロップのアスペクト比をロックする"
+  },
+  "transform": {
+    "rotateClockwise": "時計回りに回転",
+    "flipHorizontal": "水平方向に反転",
+    "flipVertical": "垂直方向に反転",
+    "title": "反転して回転",
+    "rotationDegrees": "回転角度"
+  },
+  "removeObject": {
+    "tool": "消しゴム",
+    "mode": "削除入力",
+    "modes": {
+      "mask": "マスクをペイントする",
+      "prompt": "説明"
+    },
+    "undo": "選択ストロークを元に戻す",
+    "brushSize": "選択ブラシ",
+    "promptLabel": "何を削除するかを説明する",
+    "promptPlaceholder": "何を削除するかを説明してください…",
+    "generate": "削除して生成",
+    "submitting": "派生イメージ タスクを作成しています…",
+    "sizeLimit": "16 メガピクセル、片面あたり 16,384 ピクセル以内のソースを使用してください。",
+    "limitReached": "選択制限に達しました。画像を生成するか、ストロークを元に戻します。"
+  },
+  "adjust": {
+    "title": "調整",
+    "sections": "画像調整セクション"
+  },
+  "adjustGroups": {
+    "light": "明るさ",
+    "color": "カラー",
+    "texture": "質感",
+    "effects": "エフェクト"
+  },
+  "upscale": {
+    "action": "解像度を上げる",
+    "targetTooSmall": "このサイズは現在の画像より大きくありません",
+    "sourceBudget": "このレンダリングされたイメージは、選択したモデルの入力バジェットを超えています。"
+  },
+  "angle": {
+    "title": "マルチアングル",
+    "mode": "ターゲットの調整",
+    "modes": {
+      "subject": "件名",
+      "camera": "カメラ"
+    },
+    "preview": "ドラッグしてビューを調整します。 Shift キーを押して精度を高めるか、スクロールしてフレームを変更します",
+    "yaw": "回転",
+    "pitch": "傾ける",
+    "zoom": "ズーム",
+    "zoomLevels": {
+      "wide": "広角",
+      "medium": "中",
+      "close": "クローズアップ"
+    },
+    "tiltUp": "チルトアップ",
+    "tiltDown": "チルトダウン",
+    "turnLeft": "左に曲がる",
+    "turnRight": "右に曲がる"
+  },
+  "layers": {
+    "title": "レイヤーの分割",
+    "panel": "レイヤーの分割",
+    "selectContent": "地域の選択",
+    "selectContentUnavailable": "現在のレイヤー モデルは選択した領域を分割できません",
+    "auto": "自動分割",
+    "custom": "カスタム分割",
+    "prompt": "分離フォーカス",
+    "promptPlaceholder": "何をレイヤーに分割するかを説明する",
+    "split": "分割",
+    "task": "画像レイヤーの分割",
+    "failed": "レイヤー分割に失敗しました",
+    "stage": {
+      "submitting": "画像の送信",
+      "processing": "レイヤーの分割",
+      "downloading": "レイヤーの取得",
+      "publishing": "レイヤーの保存"
+    },
+    "keyMissing": "レイヤー分割には false API キーが必要です",
+    "promptRequired": "最初に何を分離する必要があるかを説明する"
+  },
+  "comments": {
+    "title": "コメント",
+    "prompt": "説明を追加",
+    "save": "コメントを保存",
+    "addToConversation": "会話に追加",
+    "conversationContext": "画像の注釈 ({kind}、原点は左上、座標は画像の幅と高さのパーセンテージ): {coordinates}\n注釈: {text}",
+    "delete": "コメントの削除",
+    "hint": "コメントするには画像の場所をクリックしてください",
+    "mode": "コメント注釈モード",
+    "point": "ポイント コメント",
+    "draw": "コメントを描画",
+    "region": "地域コメント"
+  },
+  "applyNow": "今すぐ使用",
+  "unsaved": {
+    "title": "画像の変更を適用しますか?",
+    "description": "終了する前にこの画像編集を適用するか、下書きを破棄してください。"
+  },
+  "errors": {
+    "modelUnavailable": "イメージモデルと認証情報の設定を確認してください",
+    "providerUnsupported": "選択した画像モデルはこの操作をサポートしていません",
+    "credentialUnavailable": "イメージ モデルの認証情報を読み取れませんでした",
+    "secretDatabaseUnavailable": "ローカル認証情報データベースが使用できません",
+    "capabilityCheckFailed": "このアクションが利用可能かどうかを確認できませんでした",
+    "busy": "操作が進行中です"
+  },
+  "openAiSettings": "AI 設定を開く",
+  "status": {
+    "capabilityChecking": "画像機能をチェックしています…",
+    "imagePreparing": "画像はまだ準備中です"
+  },
+  "operation": {
+    "execution": "実行モデル"
+  },
+  "finishImageEdit": "まず現在の画像編集を適用またはキャンセルしてください",
+  "adjustments": {
+    "exposure": "露出",
+    "contrast": "コントラスト",
+    "highlights": "ハイライト",
+    "shadows": "シャドウ",
+    "whites": "白レベル",
+    "blacks": "黒レベル",
+    "saturation": "彩度",
+    "warmth": "温もり",
+    "sharpness": "シャープネス",
+    "vignette": "周辺光量",
+    "vibrance": "自然な彩度",
+    "tint": "色合い",
+    "clarity": "明瞭度",
+    "grain": "粒子感",
+    "softLight": "ソフトライト",
+    "glow": "グロー"
+  },
+  "selection": {
+    "title": "スマート選択",
+    "tools": "選択ツール",
+    "include": "前景ポイント",
+    "exclude": "ポイントを除外",
+    "box": "ボックスを描く",
+    "brush": "ブラシで調整",
+    "processing": "選択内容を更新中…",
+    "help": "件名をクリックします。除外ポイントまたはボックスを追加します。ブラシで細部を含めます。最大 6 つのポイント プロンプト。",
+    "repair": "修復",
+    "extract": "抽出",
+    "undo": "選択を元に戻す",
+    "modelUnavailable": "[設定] で利用可能な選択モデルを選択します。",
+    "promptLimit": "最大 6 つのプロンプト。続行するにはプロンプトを元に戻します。"
+  },
+  "depth": {
+    "action": "相対深度の生成"
+  },
+  "results": {
+    "upscale": "高解像度化済み",
+    "multiAngle": "新しいビュー",
+    "removeObject": "修復済み",
+    "removeBackground": "切り抜き画像",
+    "extractSelection": "選択",
+    "generateDepth": "相対深度"
+  }
+}

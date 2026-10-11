@@ -1,0 +1,46 @@
+{
+  "title": "Mise à jour du logiciel",
+  "description": "Knovum vérifie après le démarrage et toutes les six heures. Les téléchargements et l'installation nécessitent votre confirmation.",
+  "connection": {
+    "loading": "Lecture de l'état du programme de mise à jour…",
+    "retry": "Réessayer la connexion au programme de mise à jour"
+  },
+  "action": {
+    "failed": "L'action de mise à jour n'a pas pu se terminer. Vérifiez l'état de la mise à jour et réessayez."
+  },
+  "check": {
+    "action": "Vérifier les mises à jour"
+  },
+  "download": {
+    "action": "Télécharger la mise à jour",
+    "cancel": "Annuler le téléchargement"
+  },
+  "install": {
+    "action": "Redémarrer et installer",
+    "blocked": "Terminez ou annulez l'exécution des tâches en arrière-plan avant de redémarrer.",
+    "title": "Préparation du redémarrage de Knovum",
+    "description": "Enregistrez vos modifications et installez la mise à jour vérifiée. Ne fermez pas l'application."
+  },
+  "available": {
+    "review": "Réviser la mise à jour",
+    "title": "La version {version} est disponible",
+    "notes": "Notes de version"
+  },
+  "status": {
+    "disabled": "Les mises à jour ne sont pas activées dans cette version.",
+    "idle": "Prêt à vérifier les mises à jour.",
+    "checking": "Vérification des mises à jour…",
+    "current": "Knovum est à jour.",
+    "available": "Consultez les notes de version, puis téléchargez la mise à jour signée.",
+    "downloading": "Téléchargement de la mise à jour…",
+    "verifying": "Vérification de la signature de mise à jour…",
+    "ready": "Téléchargé et vérifié. Redémarrez lorsque vous êtes prêt.",
+    "installing": "Installation de la mise à jour…"
+  },
+  "failure": {
+    "check": "Impossible de vérifier les mises à jour. Vérifiez votre connexion et réessayez.",
+    "download": "Le téléchargement a échoué. Vérifiez votre connexion et votre espace libre, puis réessayez.",
+    "signature": "La signature de mise à jour n'est pas valide. L'installation a été refusée. Vérifiez à nouveau une fois que l'éditeur a corrigé la version.",
+    "install": "L'installation a échoué. Vos modifications ont été enregistrées. Vérifiez les autorisations et le stockage avant de vérifier à nouveau."
+  }
+}
