@@ -7,6 +7,7 @@ pub(crate) mod creation;
 pub(crate) mod deletion;
 mod deletion_transaction;
 pub(crate) mod edit_contract;
+pub(crate) mod editor_protection;
 mod geometry;
 pub(crate) mod history;
 mod node_reference_remap;

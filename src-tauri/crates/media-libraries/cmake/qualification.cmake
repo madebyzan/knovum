@@ -52,7 +52,7 @@ else()
 endif()
 execute_process(COMMAND "${executable}" -hide_banner -encoders OUTPUT_VARIABLE encoders COMMAND_ERROR_IS_FATAL ANY)
 if(NOT encoders MATCHES " ${encoder} ")
-  message(FATAL_ERROR "FFmpeg lacks native H.264 encoder: ${encoder}")
+  message(FATAL_ERROR "FFmpeg lacks required H.264 encoder: ${encoder}")
 endif()
 execute_process(COMMAND "${executable}" -hide_banner -loglevel error -nostdin -y
   -f lavfi -i color=c=black:s=96x64:d=0.3 -vf "scale=64:48,crop=48:32,format=yuv420p"

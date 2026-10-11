@@ -11,8 +11,8 @@ import { sceneNodesInPaintOrder } from "./use-canvas-scene-layer-projection";
 
 const props = defineProps<{
   scene: CanvasScene;
-  interactionEnabled: boolean;
-  renderingEnabled: boolean;
+  isInteractionEnabled: boolean;
+  isRenderingEnabled: boolean;
   layoutPreviewByNodeId: ReadonlyMap<string, CanvasNodeLayoutV1>;
   interactiveNodeId: string | undefined;
   viewport: CanvasViewport;
@@ -29,7 +29,7 @@ const previewPolicy = computed(() =>
 const visibleNodes = computed(() =>
   sceneNodesInPaintOrder(
     props.scene,
-    props.renderingEnabled
+    props.isRenderingEnabled
       ? props.visibleNodeIds
       : new Set(props.interactiveNodeId ? [props.interactiveNodeId] : []),
   ),
@@ -41,7 +41,7 @@ const worldStyle = computed(() => ({
 
 <template>
   <div
-    :inert="!interactionEnabled || !renderingEnabled"
+    :inert="!isInteractionEnabled || !isRenderingEnabled"
     class="pointer-events-none absolute inset-0 z-[17] overflow-hidden select-none"
   >
     <div class="absolute top-0 left-0 origin-top-left" :style="worldStyle">

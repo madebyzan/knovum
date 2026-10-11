@@ -27,6 +27,9 @@
     "rendered": "剪輯影片已完成",
     "viewResult": "查看結果",
     "next": "下一個工作分頁",
-    "previous": "上一個工作分頁"
+    "previous": "上一個工作分頁",
+    "protected": "請先關閉相關編輯 Tab，再刪除內容或將其移到其他 Space。",
+    "goToEditor": "前往編輯 Tab",
+    "opened": "已在編輯 Tab 開啟"
   }
 }

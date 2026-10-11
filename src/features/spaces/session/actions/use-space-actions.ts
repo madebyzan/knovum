@@ -6,7 +6,6 @@ import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
-import { prepareEditorRemoval } from "../../workspace/editor-removal";
 import { createEditorSessions } from "../../workspace/editor-sessions";
 import { createEditorSurfaceActions } from "../../workspace/editor-surface-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
@@ -30,7 +29,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     relations: state.relations,
     history: state.history,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
-    prepareContentRemoval: (roots) => prepareEditorRemoval(spaceContext, roots),
+    editorTabs: state.editorTabs,
   });
   const mutations = createSpaceMutations({
     nodes: state.nodes,
@@ -78,7 +77,8 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     nodes: state.nodes,
     relations: state.relations,
     recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
-    prepareContentRemoval: (roots) => prepareEditorRemoval(spaceContext, roots),
+    editorTabs: state.editorTabs,
+    history: state.history,
   });
   const editors = createEditorSurfaceActions(spaceContext);
   useEditorSessionProjection(state, editors);

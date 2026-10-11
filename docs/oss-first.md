@@ -165,7 +165,7 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   [`srt-vtt-parser`](https://github.com/plussub/srt-vtt-parser) lacks strict timestamp validation.
   Adding a second parser to recover discarded cues would duplicate the same responsibility. Reassess
   this exception when an upstream parser passes the malformed and mixed-validity import regressions.
-- Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The media-native Cargo/CMake build downloads exact immutable archives by hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
+- Core FFmpeg uses pinned static builds from [Martin Riedl](https://ffmpeg.martin-riedl.de/) on macOS and [Gyan](https://www.gyan.dev/ffmpeg/builds/) on Windows, both upstream-listed third-party suppliers. Conda-forge's maintained recipe was evaluated and previously used; its many-file shared-library closure adds relocation/signing surface without additional Knovum functionality or demonstrated performance benefit. Older `ffmpeg-static` npm artifacts were rejected because they lag the selected FFmpeg release. The media-libraries Cargo/CMake build downloads exact immutable archives by hash, extracts only FFmpeg plus notices, rejects non-system dynamic dependencies and qualifies the actual export/filter/encoding capabilities. Source and complete license review remain required; packaging owns exact sources and target evidence.
 - yt-dlp's extractor registry owns supported rich-media sites. Rust invokes the pinned standalone
   executable with ambient config, plugins, cookies, playlists, self-update and remote components
   disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.
@@ -188,7 +188,7 @@ construction and approval gates are in [packaging.md](packaging.md) and [release
   output is qualified against the official F32 reference, and the new index identity rejects old data.
 - whisper.cpp replaces MLX and Faster Whisper. The upstream MIT C API is used directly; whisper-rs
   was rejected because its Unlicense dependency is outside the repository's approved policy.
-- Sherpa owns public ungated diarization and Spleeter separation. Its native build disables TTS
+- Sherpa owns public ungated diarization and Spleeter separation. Its compiled build disables TTS
   and eSpeak, Python, PortAudio and server examples. No training framework is conveyed.
 - reqwest is the existing maintained streaming client for pinned Hub HTTP protocols. hf-hub was
   compared but does not cover ModelScope plus this strict resume contract. The narrow Rust code
@@ -208,7 +208,7 @@ Its new frozen identity is `moss-tts-nano-100m-onnx-native-v2`.
 VoxCPM2 uses the frozen upstream audio.cpp supplier and GGUF exports. A narrow C++ callback bridge
 is required because the public pull API exposes output after synchronous generation; callback ABI 3
 passes an explicit context, bounds chunks and supports cancellation. Vendor source is unchanged.
-Forced alignment uses the public C API directly and native F16/Q8 exports.
+Forced alignment uses the public C API directly and F16/Q8 model exports.
 
 Node media production uses yauzl for selected ZIP extraction and OS signing/dependency tools.
 Model qualification uses actual engine tests and reviewed measurement artifacts; do not maintain
@@ -278,8 +278,8 @@ filters/encoders, license review and resource manifest are concrete Knovum requi
 
 ## Desktop build ownership
 
-Cargo owns native build outputs in `OUT_DIR`; CMake ExternalProject owns the immutable supplier
-download/configure/build/install graph. The native crates use the CMake CLI directly, without Rust
+Cargo owns compiled build outputs in `OUT_DIR`; CMake ExternalProject owns the immutable supplier
+download/configure/build/install graph. The compiled library crates use the CMake CLI directly, without Rust
 build dependencies whose feature unification can produce duplicate supplier build units. This is a
 standard project build, without a parallel recipe hash, cache or provisioner.
 
@@ -290,7 +290,7 @@ requirements are honored through Tauri's macOS directory-copy option. Onefile wa
 per-launch extraction adds startup/lifecycle surface; standalone Python archives and Conda
 assembly were rejected because they make Knovum own interpreter installation and environment repair.
 Nuitka was considered; compiling this orchestration process has no demonstrated requirement and
-adds a C/C++ build graph for the retained Python SDKs. Existing SDK versions and native suppliers
+adds a C/C++ build graph for the retained Python SDKs. Existing SDK versions and compiled suppliers
 remain selected; this change transfers their build ownership, not the engines.
 
 References: [Cargo build scripts](https://doc.rust-lang.org/cargo/reference/build-scripts.html),

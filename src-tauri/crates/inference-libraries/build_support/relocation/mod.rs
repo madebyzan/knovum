@@ -1,12 +1,12 @@
 use std::{fs, io, path::Path, process::Command};
 fn output(program: &str, args: &[&str], path: &Path) -> io::Result<String> {
-    let result = Command::new(program).args(args).arg(path).output()?;
-    if !result.status.success() {
+    let process_output = Command::new(program).args(args).arg(path).output()?;
+    if !process_output.status.success() {
         return Err(io::Error::other(
-            String::from_utf8_lossy(&result.stderr).to_string(),
+            String::from_utf8_lossy(&process_output.stderr).to_string(),
         ));
     }
-    Ok(String::from_utf8_lossy(&result.stdout).into_owned())
+    Ok(String::from_utf8_lossy(&process_output.stdout).into_owned())
 }
 fn run(args: &[&str], path: &Path) -> io::Result<()> {
     output("install_name_tool", args, path).map(|_| ())
@@ -19,7 +19,7 @@ pub fn materialize(root: &Path, at: &Path) -> io::Result<()> {
         } else if entry.file_type()?.is_symlink() {
             let target = entry.path().canonicalize()?;
             if !target.starts_with(root.canonicalize()?) {
-                return Err(io::Error::other("Native alias escapes install tree"));
+                return Err(io::Error::other("Compiled alias escapes install tree"));
             }
             let bytes = fs::read(target)?;
             fs::remove_file(entry.path())?;
@@ -129,11 +129,10 @@ fn dependency_owner<'a>(file: &str, name: &str, libraries: &[&'a String]) -> io:
         Ok(candidates[0].as_str())
     } else {
         Err(io::Error::other(format!(
-            "Native dependency has no unique packaged owner: {file}: {name}"
+            "Compiled dependency has no unique packaged owner: {file}: {name}"
         )))
     }
 }
 
 #[cfg(test)]
-#[path = "relocation/tests.rs"]
 mod tests;

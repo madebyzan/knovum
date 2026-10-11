@@ -9,7 +9,7 @@ import { mediaLegalSourceIdentity, validateMediaLicenseReview } from "../media-l
 function fixture(context, reviewStatus = "pending") {
   const repository = mkdtempSync(join(tmpdir(), "knovum-media-license-review-"));
   context.after(() => rmSync(repository, { recursive: true, force: true }));
-  const runtime = join(repository, "src-tauri/crates/media-native/native");
+  const runtime = join(repository, "src-tauri/crates/media-libraries/cmake");
   mkdirSync(runtime, { recursive: true });
   const source = {
     schemaVersion: 1,

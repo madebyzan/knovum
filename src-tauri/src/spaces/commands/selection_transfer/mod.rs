@@ -11,10 +11,12 @@ use crate::app_error::AppError;
 use crate::spaces::{db, knowledge, structure};
 use contracts::TransferSelectionRequest;
 use contracts::TransferSelectionResponse;
+use structure::editor_protection::{EditorResourceProtection, SpaceEditorResource};
 
 pub async fn transfer_selection<R: Runtime>(
     app: &AppHandle<R>,
     request: TransferSelectionRequest,
+    editor_resources: &[SpaceEditorResource],
 ) -> Result<TransferSelectionResponse, AppError> {
     if request.source_space_id == request.target_space_id
         || request.root_structure_node_ids.is_empty()
@@ -31,6 +33,7 @@ pub async fn transfer_selection<R: Runtime>(
         tx.commit().await.map_err(db::sql_error)?;
         return Ok(transfer_receipt);
     }
+    let protection = EditorResourceProtection::capture(&mut tx, editor_resources).await?;
     validation::ensure_target_space(&mut tx, &request.target_space_id).await?;
     let (mut source_snapshot, source_revision) =
         structure::repository::load_in_transaction(&mut tx, &request.source_space_id).await?;
@@ -167,7 +170,8 @@ pub async fn transfer_selection<R: Runtime>(
         },
     )
     .await?;
+    protection.ensure_preserved(&mut tx).await?;
     tx.commit().await.map_err(db::sql_error)?;
-    crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(app, pool).await;
+    crate::spaces::knowledge::retrieval::invalidation_outbox::settle(app, pool).await;
     Ok(transfer_receipt)
 }

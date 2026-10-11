@@ -13,7 +13,7 @@ import {
   contentNodeIdsWithin,
   isStructureNodeEffectivelyLocked,
 } from "../../model/structure/structure-queries";
-import { dissolveGroupCapability, groupCapability } from "../../structure/structure-capabilities";
+import { dissolveGroupAvailability, groupAvailability } from "../../structure/action-availability";
 
 export interface CanvasSelectionProductState {
   allLocked: boolean;
@@ -122,8 +122,8 @@ function selectionCapabilities(context: SelectionCapabilityContext) {
       context.roots.length === 2 &&
       context.roots.every(({ kind }) => kind === "content") &&
       context.explicitlySelectedSemanticCount === 2,
-    canCreateGroup: groupCapability(context.snapshot, context.structureNodeIds).enabled,
-    canDissolveGroup: dissolveGroupCapability(context.snapshot, context.structureNodeIds).enabled,
+    canCreateGroup: groupAvailability(context.snapshot, context.structureNodeIds).enabled,
+    canDissolveGroup: dissolveGroupAvailability(context.snapshot, context.structureNodeIds).enabled,
     canToggleLock: context.structureNodeIds.every(
       (id) => !ancestorsOf(id, context.index).some(({ locked }) => locked),
     ),

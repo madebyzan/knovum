@@ -140,7 +140,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(app, pool).await;
+    crate::spaces::knowledge::retrieval::invalidation_outbox::settle(app, pool).await;
     Ok(response)
 }
 

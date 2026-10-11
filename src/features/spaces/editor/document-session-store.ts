@@ -28,8 +28,8 @@ export const useDocumentSessionStore = defineStore("spaces-document-sessions", (
     });
     sessions.value = new Map(sessions.value).set(tab.id, session);
   }
-  function synchronize(id: string, node: SpaceCanvasNode | undefined) {
-    const session = sessions.value.get(id);
+  function synchronize(tabId: string, node: SpaceCanvasNode | undefined) {
+    const session = sessions.value.get(tabId);
     if (!session || session.saving.value) return;
     if (!isSpaceEditorNode(node)) {
       session.error.value = "missing";
@@ -47,9 +47,9 @@ export const useDocumentSessionStore = defineStore("spaces-document-sessions", (
     if (contentChanged) session.contentVersion.value += 1;
     if (!wasDirty) session.state.title.value = node.data.title;
   }
-  function release(id: string) {
+  function release(tabId: string) {
     const next = new Map(sessions.value);
-    next.delete(id);
+    next.delete(tabId);
     sessions.value = next;
   }
   return { sessions, open, synchronize, release };

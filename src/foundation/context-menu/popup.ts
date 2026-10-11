@@ -99,7 +99,7 @@ export function flattenMenuGroups(
     if (isMenuGroup(entry)) {
       if (!entry.length) continue;
       if (menuEntries.length > 0) menuEntries.push(separator);
-      for (const groupEntry of entry) menuEntries.push(prepareMenuItem(groupEntry, scope));
+      for (const groupItem of entry) menuEntries.push(prepareMenuItem(groupItem, scope));
     } else {
       menuEntries.push(prepareMenuItem(entry, scope));
     }

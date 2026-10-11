@@ -146,7 +146,7 @@ async fn drain_batch(
     }
 }
 
-pub(crate) async fn drain_and_report<R: Runtime>(app: &AppHandle<R>, pool: &sqlx::SqlitePool) {
+pub(crate) async fn settle<R: Runtime>(app: &AppHandle<R>, pool: &sqlx::SqlitePool) {
     if let Err(error) = drain(app, pool).await {
         log::error!("{error}");
     }

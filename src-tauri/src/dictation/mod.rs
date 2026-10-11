@@ -5,6 +5,8 @@ mod actor;
 #[cfg(knovum_supported_desktop)]
 mod completion;
 #[cfg(knovum_supported_desktop)]
+mod engine;
+#[cfg(knovum_supported_desktop)]
 mod insertion;
 #[cfg(knovum_supported_desktop)]
 mod lifecycle;
@@ -12,8 +14,6 @@ mod lifecycle;
 mod progress;
 #[cfg(knovum_supported_desktop)]
 mod recorder;
-#[cfg(knovum_supported_desktop)]
-mod service;
 #[cfg(knovum_supported_desktop)]
 mod transcription;
 
@@ -26,8 +26,8 @@ mod runtime {
 
     use super::{
         contracts::DictationSnapshot,
+        engine::{DictationAction, DictationEngine},
         insertion,
-        service::{DictationAction, DictationService},
     };
     use crate::app_error::{AppError, AppResult};
 
@@ -42,8 +42,8 @@ mod runtime {
                     ShortcutState::Pressed => DictationAction::Press,
                     ShortcutState::Released => DictationAction::Release,
                 };
-                if let Some(service) = app.try_state::<Arc<DictationService>>() {
-                    service.dispatch(action);
+                if let Some(engine) = app.try_state::<Arc<DictationEngine>>() {
+                    engine.dispatch(action);
                 }
             })
             .build()
@@ -52,13 +52,13 @@ mod runtime {
     pub(crate) fn plugin() -> TauriPlugin<Wry> {
         tauri::plugin::Builder::new("dictation")
             .setup(|app, _api| {
-                app.manage(Arc::new(DictationService::start(app.clone())));
+                app.manage(Arc::new(DictationEngine::start(app.clone())));
                 Ok(())
             })
             .on_event(|app, event| {
                 if matches!(event, tauri::RunEvent::Exit) {
-                    if let Some(service) = app.try_state::<Arc<DictationService>>() {
-                        service.dispatch(DictationAction::Shutdown);
+                    if let Some(engine) = app.try_state::<Arc<DictationEngine>>() {
+                        engine.dispatch(DictationAction::Shutdown);
                     }
                 }
             })
@@ -72,23 +72,23 @@ mod runtime {
     }
 
     #[tauri::command]
-    fn get_state(service: State<'_, Arc<DictationService>>) -> AppResult<DictationSnapshot> {
-        service.snapshot().map_err(AppError::from)
+    fn get_state(engine: State<'_, Arc<DictationEngine>>) -> AppResult<DictationSnapshot> {
+        engine.snapshot().map_err(AppError::from)
     }
 
     #[tauri::command]
-    fn cancel(service: State<'_, Arc<DictationService>>) {
-        service.dispatch(DictationAction::Cancel);
+    fn cancel(engine: State<'_, Arc<DictationEngine>>) {
+        engine.dispatch(DictationAction::Cancel);
     }
 
     #[tauri::command]
-    fn dismiss_transcription(service: State<'_, Arc<DictationService>>) {
-        service.dispatch(DictationAction::Dismiss);
+    fn dismiss_transcription(engine: State<'_, Arc<DictationEngine>>) {
+        engine.dispatch(DictationAction::Dismiss);
     }
 
     #[tauri::command]
-    async fn copy_transcription(service: State<'_, Arc<DictationService>>) -> AppResult<()> {
-        let text = service
+    async fn copy_transcription(engine: State<'_, Arc<DictationEngine>>) -> AppResult<()> {
+        let text = engine
             .snapshot()
             .map_err(AppError::from)?
             .text

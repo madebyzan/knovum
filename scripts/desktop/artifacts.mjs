@@ -33,10 +33,10 @@ export function prepareArtifacts(repository, options, cargo) {
       ],
       { stdio: "inherit" },
     );
-  const nativeSigning = signCompiledFiles(inference, options.target, mode, {
+  const librarySigning = signCompiledFiles(inference, options.target, mode, {
     preserveMicrosoftRuntime: true,
   });
-  writeFileSync(join(inference, "build-evidence/signing.json"), JSON.stringify(nativeSigning));
+  writeFileSync(join(inference, "build-evidence/signing.json"), JSON.stringify(librarySigning));
   const original = JSON.parse(readFileSync(join(cargo.inference, "inference-runtime-manifest.json"), "utf8"));
   const inferenceManifest = seal(inference, "inference-runtime-manifest.json", {
     target: options.target,

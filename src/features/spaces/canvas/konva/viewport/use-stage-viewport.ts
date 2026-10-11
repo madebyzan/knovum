@@ -11,7 +11,7 @@ import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
 interface StageViewportOptions {
   host: Readonly<Ref<HTMLElement | null>>;
   initialViewport: CanvasViewport;
-  navigationEnabled(): boolean;
+  isNavigationEnabled(): boolean;
   update(viewport: CanvasViewport): void;
 }
 
@@ -105,7 +105,7 @@ export function useStageViewport(options: StageViewportOptions) {
   function wheel(event: Konva.KonvaEventObject<WheelEvent>) {
     if (isScrollableTarget(event.evt.target)) return;
     event.evt.preventDefault();
-    if (!options.navigationEnabled()) return;
+    if (!options.isNavigationEnabled()) return;
     const pointer = event.target.getStage()?.getPointerPosition();
     if (!pointer) return;
     const current = getViewport();
@@ -122,7 +122,7 @@ export function useStageViewport(options: StageViewportOptions) {
   }
 
   function beginPan(event: Konva.KonvaEventObject<PointerEvent>, handTool = false) {
-    if (!options.navigationEnabled()) return false;
+    if (!options.isNavigationEnabled()) return false;
     if (event.evt.button !== 1 && !(event.evt.button === 0 && (handTool || spacePressed.value))) return false;
     if (panStart.value) return true;
     const pointer = event.target.getStage()?.getPointerPosition();
@@ -161,7 +161,7 @@ export function useStageViewport(options: StageViewportOptions) {
     publishViewport();
   }
 
-  watch(options.navigationEnabled, (enabled) => {
+  watch(options.isNavigationEnabled, (enabled) => {
     if (!enabled) flushViewport();
   });
   onBeforeUnmount(flushViewport);

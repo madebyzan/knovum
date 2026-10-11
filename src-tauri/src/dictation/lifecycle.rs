@@ -6,9 +6,10 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     actor::ActiveSession,
-    completion, insertion,
+    completion,
+    engine::DictationAction,
+    insertion,
     recorder::{RecordedAudio, Recorder},
-    service::DictationAction,
     transcription,
 };
 use crate::dictation::contracts::{DictationFailure, DictationPhase, DictationSnapshot};

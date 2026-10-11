@@ -118,12 +118,12 @@ only. Obsolete pre-release protocols fail visibly without compatibility readers 
 
 ### Cargo and CMake ownership
 
-`inference-native` owns pinned ONNX, audio.cpp, Sherpa and Whisper suppliers, CMake projects,
+`inference-libraries` owns pinned ONNX, audio.cpp, Sherpa and Whisper suppliers, CMake projects,
 notices and the voice bridge. Independent ExternalProject builds avoid GGML target collisions.
-`media-native` owns the pinned FFmpeg archive, legal records and qualification. Both are normal
+`media-libraries` owns the pinned FFmpeg archive, legal records and qualification. Both are normal
 Cargo dependencies and install inside their own `OUT_DIR/runtime`; CMake uses hashed supplier
-archives and Cargo tracks native sources and build parameters. Window/Tauri configuration does
-not participate in a handwritten native cache key. There is no manual preparation command.
+archives and Cargo tracks CMake sources and build parameters. Window/Tauri configuration does
+not participate in a handwritten compiled-library cache key. There is no manual preparation command.
 
 CMake's configure and build processes limit Git discovery to the supplier build directory with
 `GIT_CEILING_DIRECTORIES`. Extracted upstream archives must not inherit Knovum's Git commit as
@@ -165,12 +165,12 @@ product code. Model provider imports occur at execution, not control initializat
 ### Desktop orchestration and verification
 
 The small desktop helper consumes Cargo's JSON artifact records, builds the frozen Agent,
-assembles resources, signs native bytes, seals inventories and invokes Tauri. Worker profiles
-follow Tauri debug/custom profiles. Frozen builds require the native target host; cross-host
+assembles resources, signs compiled libraries, seals inventories and invokes Tauri. Worker profiles
+follow Tauri debug/custom profiles. Frozen builds require the matching target host; cross-host
 packaging is rejected explicitly. `--no-bundle` assembles resources beside the Cargo executable.
 
 Final macOS app and extracted Windows NSIS/MSI inventories are compared with trusted build
-inputs before upload. Production signing/notarization verification remains mandatory. Native
+inputs before upload. Production signing/notarization verification remains mandatory. Compiled libraries
 inventories include the worker executable after signing, before the host embeds their hashes.
 
 CI installs pinned Protobuf/CMake and Windows libclang through `setup-rust-build`. Project gates
@@ -191,7 +191,7 @@ supported-target behavior are release evidence; changing CI does not claim unava
 ## QA packaging workflow
 
 The manual `workflow_dispatch` entry of `.github/workflows/release-candidate.yml` produces internal
-QA artifacts from the selected commit, using the same native target matrix and project
+QA artifacts from the selected commit, using the same platform target matrix and project
 builds as signed candidates:
 
 - macOS uses ad-hoc signing so test artifacts are structurally signed without pretending to be a notarized production release;

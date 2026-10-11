@@ -3,14 +3,14 @@ use std::{path::Path, process::Command};
 // Cargo owns OUT_DIR; CMake owns supplier dependency tracking and installation.
 pub fn install(target: &str, platform: &str, root: &Path) {
     if root.exists() {
-        std::fs::remove_dir_all(root).expect("Native install tree must be replaceable");
+        std::fs::remove_dir_all(root).expect("CMake install tree must be replaceable");
     }
     let build = root.parent().unwrap().join("build");
     let mut configure = Command::new("cmake");
     configure
         // Archived suppliers must not discover the surrounding application's Git repository.
         .env("GIT_CEILING_DIRECTORIES", &build)
-        .args(["-S", "native", "-B"])
+        .args(["-S", "cmake", "-B"])
         .arg(&build)
         .arg(format!("-DKNOVUM_TARGET={platform}"))
         .arg(format!("-DCMAKE_INSTALL_PREFIX={}", root.display()))
@@ -28,7 +28,7 @@ pub fn install(target: &str, platform: &str, root: &Path) {
     }
     assert!(
         configure.status().expect("CMake is required").success(),
-        "Native CMake configuration failed"
+        "CMake configuration failed"
     );
     assert!(
         Command::new("cmake")
@@ -46,6 +46,6 @@ pub fn install(target: &str, platform: &str, root: &Path) {
             .status()
             .expect("CMake is required")
             .success(),
-        "Native CMake build failed"
+        "CMake build failed"
     );
 }

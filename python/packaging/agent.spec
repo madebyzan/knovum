@@ -61,8 +61,8 @@ analysis = Analysis(
     excludes=["pytest", "mypy", "ruff", "PyInstaller", "setuptools"],
     noarchive=False,
 )
-native_inputs = Path(CONF["workpath"]) / "agent-native-inputs.json"
-native_inputs.write_text(
+compiled_inputs = Path(CONF["workpath"]) / "agent-compiled-inputs.json"
+compiled_inputs.write_text(
     json.dumps(
         {
             "schemaVersion": 1,
@@ -94,7 +94,7 @@ COLLECT(
     executable,
     analysis.binaries,
     analysis.datas,
-    [("build-evidence/agent-native-inputs.json", str(native_inputs), "DATA")],
+    [("build-evidence/agent-compiled-inputs.json", str(compiled_inputs), "DATA")],
     strip=False,
     upx=False,
     name="knovum-agent",

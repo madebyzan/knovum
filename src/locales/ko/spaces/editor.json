@@ -27,6 +27,9 @@
     "rendered": "편집한 동영상이 준비되었습니다",
     "viewResult": "결과 보기",
     "next": "다음 작업 탭",
-    "previous": "이전 작업 탭"
+    "previous": "이전 작업 탭",
+    "protected": "삭제하거나 다른 Space로 이동하기 전에 관련 편집 탭을 닫으세요.",
+    "goToEditor": "편집 탭으로 이동",
+    "opened": "편집 탭에서 열림"
   }
 }

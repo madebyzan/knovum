@@ -61,8 +61,8 @@ fn perform_macos(command: EditingCommand) -> Result<bool, AppError> {
         EditingCommand::Copy => sel!(copy:),
         EditingCommand::Paste => sel!(paste:),
     };
-    let application = NSApplication::sharedApplication(marker);
+    let appkit = NSApplication::sharedApplication(marker);
     // SAFETY: the selector is chosen only from AppKit's fixed Cut/Copy/Paste responder actions.
     // Nil target and sender ask NSApplication to resolve the current first responder.
-    Ok(unsafe { application.sendAction_to_from(selector, None, None) })
+    Ok(unsafe { appkit.sendAction_to_from(selector, None, None) })
 }

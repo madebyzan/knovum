@@ -3,7 +3,7 @@ import { FileOutput } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
+import { canRunAction, shouldShowAction } from "../../../../shared/contracts/action-availability";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import {
   DOCUMENT_CONVERSION_DEFINITIONS,
@@ -15,7 +15,7 @@ const props = defineProps<{ decisions: CreationIntentDecisions }>();
 const emit = defineEmits<{ invoke: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const conversionActions = computed(() =>
-  DOCUMENT_CONVERSION_DEFINITIONS.filter(({ id }) => showsAction(props.decisions[id])),
+  DOCUMENT_CONVERSION_DEFINITIONS.filter(({ id }) => shouldShowAction(props.decisions[id])),
 );
 </script>
 

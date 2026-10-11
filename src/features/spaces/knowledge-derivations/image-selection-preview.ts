@@ -16,12 +16,12 @@ export async function previewImageSelection({
   spaceId,
   execution,
   selection,
-  id,
-}: SelectionPreviewInput & { id: string }) {
+  jobId,
+}: SelectionPreviewInput & { jobId: string }) {
   if (source.data.kind !== "image" || !source.data.sourceRevision || execution.type !== "local")
     throw new Error("Local selection source is unavailable");
   const request: ImageSelectionPreviewRequest = {
-    id,
+    id: jobId,
     spaceId,
     nodeId: source.id,
     sourceRevision: source.data.sourceRevision,

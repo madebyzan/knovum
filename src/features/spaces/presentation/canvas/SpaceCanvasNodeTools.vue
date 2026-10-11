@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
-import { showsAction } from "../../../../shared/contracts/action-availability";
+import { shouldShowAction } from "../../../../shared/contracts/action-availability";
 import {
   DOCUMENT_CONVERSION_ACTION_IDS,
   type CreationIntentDecisions,
@@ -40,7 +40,7 @@ const { primaryLabel, primaryIcon, showPrimary, runPrimaryAction } = useNodePrim
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
 const canConvert = computed(() =>
-  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => showsAction(props.derivations[id])),
+  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => shouldShowAction(props.derivations[id])),
 );
 </script>
 

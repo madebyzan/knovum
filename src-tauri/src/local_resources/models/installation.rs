@@ -63,7 +63,7 @@ pub(crate) async fn install<R: Runtime>(
     let verify_path = staging.clone();
     let verify_cancellation = cancellation.clone();
     crate::blocking::run(move || {
-        verify_and_record(&verify_path, &snapshot.files(), &verify_cancellation)
+        record_verification(&verify_path, &snapshot.files(), &verify_cancellation)
     })
     .await?;
     if cancellation.is_cancelled() {
@@ -76,7 +76,7 @@ pub(crate) async fn install<R: Runtime>(
     Ok(())
 }
 
-fn verify_and_record(
+fn record_verification(
     directory: &Path,
     files: &[super::snapshots::SnapshotFile],
     cancellation: &CancellationToken,
@@ -97,7 +97,7 @@ fn verify_and_record(
                 file.path
             ));
         }
-        if !verification::verify_and_record_cancellable(
+        if !verification::record_verification(
             &path,
             file.sha256,
             cancellation,

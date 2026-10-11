@@ -95,7 +95,7 @@ export async function generateImageLayers(
         if (node.data.kind === "image")
           await store.saveNodeContentForSpace(spaceId, {
             id: node.id,
-            expectedData: node.data,
+            expectedContent: node.data,
             data: { ...node.data, processingState: "failed" },
           });
       if (store.activeSpaceId === spaceId) await store.refreshActiveSpace();

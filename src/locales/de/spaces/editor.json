@@ -27,6 +27,9 @@
     "rendered": "Bearbeitetes Video ist fertig",
     "viewResult": "Ergebnis anzeigen",
     "next": "Nächster Arbeitstab",
-    "previous": "Vorheriger Arbeitstab"
+    "previous": "Vorheriger Arbeitstab",
+    "protected": "Schließe die zugehörigen Editor-Tabs, bevor du diesen Inhalt löschst oder in einen anderen Space verschiebst.",
+    "goToEditor": "Zum Editor-Tab",
+    "opened": "Im Editor-Tab geöffnet"
   }
 }

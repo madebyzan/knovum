@@ -10,7 +10,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import { revealStructureNode } from "../../canvas/structure-navigation";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { useSpaceStore } from "../../session/space-store";
-import { canRenameStructureNode } from "../../structure/structure-capabilities";
+import { canRenameStructureNode } from "../../structure/action-availability";
 import { useCanvasSelectionActions } from "../canvas/use-canvas-selection-actions";
 
 const store = useSpaceStore();

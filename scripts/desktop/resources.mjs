@@ -7,7 +7,7 @@ function visit(at, prefix, allowLinks) {
     const name = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.isSymbolicLink()) {
       if (allowLinks) return [];
-      throw new Error("Native resource contains an undeclared link");
+      throw new Error("Bundled resource contains an undeclared link");
     }
     if (entry.isDirectory()) return visit(join(at, entry.name), name, allowLinks);
     if (!entry.isFile()) throw new Error("Bundle contains a special file");
@@ -28,7 +28,7 @@ export function seal(root, manifestName, identity) {
   const files = regularFiles(root)
     .filter((path) => path !== manifestName)
     .map((path) => ({ path, size: lstatSync(join(root, path)).size, sha256: hash(join(root, path)) }));
-  if (!files.length || files.length > 256) throw new Error("Native resource inventory exceeds its bound");
+  if (!files.length || files.length > 256) throw new Error("Bundled resource inventory exceeds its bound");
   const manifest = { schemaVersion: 1, ...identity, files };
   writeFileSync(join(root, manifestName), JSON.stringify(manifest));
   return manifest;

@@ -41,13 +41,13 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
     } as unknown as CanvasEditorPort),
   );
   const wrapper = shallowMount(SpaceCanvas, {
-    props: { renderingEnabled: true },
+    props: { isRenderingEnabled: true },
     global: { plugins: [pinia, i18n], provide: { [workspaceRightSidebarKey as symbol]: { open: () => {} } } },
   });
   onTestFinished(() => wrapper.unmount());
   const host = wrapper.findComponent(CanvasSurfaceHost);
   const chrome = wrapper.findComponent(SpaceCanvasProductLayer);
-  expect(host.props("navigationEnabled")).toBe(false);
+  expect(host.props("isNavigationEnabled")).toBe(false);
   expect(chrome.props("empty")).toBe(true);
   store.urlCaptures = [
     {
@@ -79,7 +79,7 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
     ],
   };
   await wrapper.vm.$nextTick();
-  expect(host.props("navigationEnabled")).toBe(true);
+  expect(host.props("isNavigationEnabled")).toBe(true);
   expect(store.nodes).toEqual([]);
   expect(chrome.props("empty")).toBe(false);
   store.nodes = [
@@ -93,9 +93,9 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
   };
   await wrapper.vm.$nextTick();
   expect(chrome.props("empty")).toBe(false);
-  expect(host.props("navigationEnabled")).toBe(true);
-  await wrapper.setProps({ renderingEnabled: false });
-  expect(host.props("interactionEnabled")).toBe(false);
+  expect(host.props("isNavigationEnabled")).toBe(true);
+  await wrapper.setProps({ isRenderingEnabled: false });
+  expect(host.props("isInteractionEnabled")).toBe(false);
   expect(wrapper.attributes("inert")).toBeDefined();
   expect((wrapper.element as HTMLElement).style.display).toBe("none");
   useCanvasToolStore().resetTool();

@@ -7,7 +7,7 @@ import {
 } from "../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../model/structure/structure-queries";
 
-export type StructureCapability =
+export type StructureActionAvailability =
   | { enabled: true; roots: readonly StructureNode[] }
   | { enabled: false; reason: string };
 
@@ -16,10 +16,10 @@ export interface StructureParentTarget {
   title: string;
 }
 
-export function groupCapability(
+export function groupAvailability(
   snapshot: SpaceEditSnapshot,
   selectedIds: readonly StructureNodeId[],
-): StructureCapability {
+): StructureActionAvailability {
   const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(selectedIds, index);
   if (roots.length < 2) return { enabled: false, reason: "Select at least two nodes" };
@@ -33,10 +33,10 @@ export function groupCapability(
   return { enabled: true, roots };
 }
 
-export function dissolveGroupCapability(
+export function dissolveGroupAvailability(
   snapshot: SpaceEditSnapshot,
   selectedIds: readonly StructureNodeId[],
-): StructureCapability {
+): StructureActionAvailability {
   const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(selectedIds, index);
   if (!roots.length || roots.some((structureNode) => structureNode.kind !== "group"))

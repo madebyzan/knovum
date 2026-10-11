@@ -27,6 +27,9 @@
     "rendered": "O vídeo editado está pronto",
     "viewResult": "Ver resultado",
     "next": "Próxima aba de trabalho",
-    "previous": "Aba de trabalho anterior"
+    "previous": "Aba de trabalho anterior",
+    "protected": "Feche as abas de edição correspondentes antes de excluir este conteúdo ou movê-lo para outro Space.",
+    "goToEditor": "Ir para a aba de edição",
+    "opened": "Aberto em uma aba de edição"
   }
 }

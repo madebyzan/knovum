@@ -20,8 +20,8 @@ function recipeBytes(value) {
 const reviewName = "license-review.json";
 
 export function validateMediaLicenseReview(repository, target, { requireApproved = true } = {}) {
-  const source = readJson(join(repository, "src-tauri/crates/media-native/native/source.json"));
-  const reviewPath = join(repository, "src-tauri/crates/media-native/native", reviewName);
+  const source = readJson(join(repository, "src-tauri/crates/media-libraries/cmake/source.json"));
+  const reviewPath = join(repository, "src-tauri/crates/media-libraries/cmake", reviewName);
   const reviewBytes = readFileSync(reviewPath);
   const review = JSON.parse(reviewBytes);
   const targets = validatePolicy(review, source, target);

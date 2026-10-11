@@ -43,7 +43,7 @@ export async function persistSpaceTiptapContent(options: PersistOptions): Promis
     return;
   }
   return editorWrites.run(pending.id, async () => {
-    const committed = await options.save({ id: pending.id, expectedData: node.data, data: pending.data });
+    const committed = await options.save({ id: pending.id, expectedContent: node.data, data: pending.data });
     options.onSaved(committed);
     state.persistedRevision.value = Math.max(state.persistedRevision.value, pending.revision);
   });

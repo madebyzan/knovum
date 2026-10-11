@@ -31,8 +31,8 @@ export const useVideoSessionStore = defineStore("spaces-video-sessions", () => {
     });
     sessions.value = new Map(sessions.value).set(tab.id, session);
   }
-  function synchronize(id: string, node: SpaceCanvasNode | undefined) {
-    const session = sessions.value.get(id);
+  function synchronize(tabId: string, node: SpaceCanvasNode | undefined) {
+    const session = sessions.value.get(tabId);
     if (!session || session.saving.value) return;
     if (!node || node.data.kind !== "video") {
       session.error.value = "missing";
@@ -55,9 +55,9 @@ export const useVideoSessionStore = defineStore("spaces-video-sessions", () => {
       session.selectedTextId.value = undefined;
     }
   }
-  function release(id: string) {
+  function release(tabId: string) {
     const next = new Map(sessions.value);
-    next.delete(id);
+    next.delete(tabId);
     sessions.value = next;
   }
   return { sessions, open, synchronize, release };

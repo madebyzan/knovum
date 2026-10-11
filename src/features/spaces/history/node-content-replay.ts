@@ -14,7 +14,7 @@ interface MutationProjection {
 
 interface ContentReplayInput extends MutationProjection {
   spaceId: string;
-  changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[];
+  changes: readonly { id: string; expectedContent: SpaceNodePayload; data: SpaceNodePayload }[];
 }
 
 export async function replayNodeContent(input: ContentReplayInput) {

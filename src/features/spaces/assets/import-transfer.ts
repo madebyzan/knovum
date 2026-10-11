@@ -58,7 +58,7 @@ async function performManagedImport(options: CommitManagedImportOptions, progres
   const data = importedSpaceNodePayload(copied, externalSource);
   await context.savePendingNodeContentForSpace(spaceId, {
     id: node.id,
-    expectedData: node.data,
+    expectedContent: node.data,
     data,
   });
   node.data = data;

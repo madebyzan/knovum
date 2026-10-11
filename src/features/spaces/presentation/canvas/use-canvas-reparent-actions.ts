@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { useSpaceStore } from "../../session/space-store";
-import { structureParentTargets } from "../../structure/structure-capabilities";
+import { structureParentTargets } from "../../structure/action-availability";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
 interface CanvasReparentActionsInput {

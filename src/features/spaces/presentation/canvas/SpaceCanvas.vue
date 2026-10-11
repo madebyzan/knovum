@@ -27,17 +27,17 @@ import { useSpaceCanvasImports } from "./use-space-canvas-imports";
 import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 
-const props = defineProps<{ renderingEnabled: boolean }>();
+const props = defineProps<{ isRenderingEnabled: boolean }>();
 provide(
   overlayScopeVisibleKey,
-  computed(() => props.renderingEnabled),
+  computed(() => props.isRenderingEnabled),
 );
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
 const editorSession = getCanvasEditorSession();
 const operations = useNodeOperationGate();
-const canvasGesturesEnabled = computed(() => operations.allowsGestureCommit());
+const canCommitCanvasGestures = computed(() => operations.allowsGestureCommit());
 const dock = useContextDock();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
 const selection = createCanvasSelectionActions();
@@ -119,8 +119,8 @@ const canvasEvents = createSpaceCanvasEvents({
 
 <template>
   <section
-    v-show="renderingEnabled"
-    :inert="!renderingEnabled"
+    v-show="isRenderingEnabled"
+    :inert="!isRenderingEnabled"
     ref="canvasRoot"
     class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none"
   >
@@ -132,16 +132,16 @@ const canvasEvents = createSpaceCanvasEvents({
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
-      :rendering-enabled="renderingEnabled"
+      :is-rendering-enabled="isRenderingEnabled"
       :events="canvasEvents"
       :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
       :ensure-persisted="store.ensureActiveSpacePersisted"
       :import-json-canvas="store.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
       :group-scope-path="store.groupScopePath"
-      :interaction-enabled="renderingEnabled && !editorSession.transitioning.value"
-      :navigation-enabled="hasCanvasObjects"
-      :canvas-gestures-enabled="canvasGesturesEnabled"
+      :is-interaction-enabled="isRenderingEnabled && !editorSession.transitioning.value"
+      :is-navigation-enabled="hasCanvasObjects"
+      :can-commit-canvas-gestures="canCommitCanvasGestures"
       :tool="tools.tool"
       :space-id="spaceId"
       :scene-input="sceneInput"
@@ -160,11 +160,11 @@ const canvasEvents = createSpaceCanvasEvents({
       </template>
     </CanvasSurfaceHost>
     <SpaceCanvasProductLayer
-      v-if="renderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
+      v-if="isRenderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
       :captures="captures"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :empty="initialEmpty"
-      :navigation-enabled="hasCanvasObjects"
+      :is-navigation-enabled="hasCanvasObjects"
       :file-hover="imports.fileHover.value"
       v-bind="{
         ...(canvasError ? { error: canvasError } : {}),

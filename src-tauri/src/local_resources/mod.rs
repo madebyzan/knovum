@@ -27,7 +27,7 @@ pub struct LocalResourcesStatus {
     yt_dlp: ToolStatus,
     deno: ToolStatus,
     builtin_agent: crate::agent_runtime::runtime::AgentRuntimeStatus,
-    native_inference: bool,
+    has_bundled_inference: bool,
     models: ModelStatuses,
 }
 
@@ -68,7 +68,7 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         ffmpeg: tool_status_from_path(tools::resolve_ffmpeg(app)?),
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
-        native_inference: true,
+        has_bundled_inference: true,
         builtin_agent: crate::agent_runtime::runtime::status(app),
         models: model_statuses(app)?,
     })

@@ -27,6 +27,9 @@
     "rendered": "編集した動画が完成しました",
     "viewResult": "結果を表示",
     "next": "次の作業タブ",
-    "previous": "前の作業タブ"
+    "previous": "前の作業タブ",
+    "protected": "削除または別の Space に移動する前に、関連する編集タブを閉じてください。",
+    "goToEditor": "編集タブへ移動",
+    "opened": "編集タブで開いています"
   }
 }

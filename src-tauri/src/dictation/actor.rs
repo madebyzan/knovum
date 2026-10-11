@@ -5,7 +5,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    completion, insertion::InsertionTarget, lifecycle, recorder::Recorder, service::DictationAction,
+    completion, engine::DictationAction, insertion::InsertionTarget, lifecycle, recorder::Recorder,
 };
 use crate::dictation::contracts::DictationSnapshot;
 

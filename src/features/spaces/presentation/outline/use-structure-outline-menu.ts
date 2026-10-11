@@ -8,7 +8,7 @@ import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapsh
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import { useSpaceStore } from "../../session/space-store";
-import { structureParentTargets } from "../../structure/structure-capabilities";
+import { structureParentTargets } from "../../structure/action-availability";
 import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu";
 
 interface StructureOutlineMenuOptions {

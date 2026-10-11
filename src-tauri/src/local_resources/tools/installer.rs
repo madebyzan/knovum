@@ -29,7 +29,7 @@ pub(super) async fn install_tool<R: Runtime>(
         });
     }
     if installed_binary.is_file()
-        && filesystem::verify_and_record_file(
+        && filesystem::record_file_verification(
             installed_binary,
             descriptor.binary_sha256.clone(),
             cancellation.clone(),

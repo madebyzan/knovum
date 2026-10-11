@@ -63,7 +63,7 @@ async function save() {
   };
   if (!summary.value.trim()) delete next.summary;
   try {
-    await store.saveNodeContent({ id: props.nodeId, expectedData: props.data, data: next });
+    await store.saveNodeContent({ id: props.nodeId, expectedContent: props.data, data: next });
     emit("saved");
   } catch (error) {
     toast.error(getErrorMessage(error));

@@ -12,7 +12,7 @@ function resources(): LocalResourcesStatus {
     ytDlp: tool,
     deno: tool,
     builtinAgent: { state: "ready" },
-    nativeInference: true,
+    hasBundledInference: true,
     models: {
       transcription: [],
       imageSegmentation: model,
@@ -41,9 +41,9 @@ it("indexes verified embeddings without unrelated Agent availability", () => {
 it("keeps background indexing unprepared when its own runtime or snapshot is unavailable", () => {
   expect(textEmbeddingReady()).toBe(false);
   const status = resources();
-  status.nativeInference = false;
+  status.hasBundledInference = false;
   expect(textEmbeddingReady(status)).toBe(false);
-  status.nativeInference = true;
+  status.hasBundledInference = true;
   status.models.textEmbeddingConfig.verified = false;
   expect(textEmbeddingReady(status)).toBe(false);
 });

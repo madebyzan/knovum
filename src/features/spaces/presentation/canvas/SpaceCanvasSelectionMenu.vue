@@ -76,7 +76,11 @@ const excludedActions = computed(() => [
       <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
         <MessageSquareText class="size-3.5" />{{ t("spaces.conversation.askSelection") }}
       </UiDropdownMenuItem>
-      <SpaceSelectionMoveMenu submenu @move="actions.moveToSpace" />
+      <SpaceSelectionMoveMenu
+        submenu
+        :disabled="!actions.editorProtection.canTransfer.value"
+        @move="actions.moveToSpace"
+      />
       <UiDropdownMenuItem v-if="actions.state.value.canCreateGroup" @select="actions.createGroup">
         <Group class="size-3.5" />{{ t("spaces.canvas.groups.create") }}
       </UiDropdownMenuItem>
@@ -157,7 +161,20 @@ const excludedActions = computed(() => [
       {{ t(actions.state.value.allLocked ? "spaces.canvas.unlock" : "spaces.canvas.lock") }}
       <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.lockSelection" class="ml-auto" />
     </UiDropdownMenuItem>
-    <UiDropdownMenuItem destructive @select="actions.remove">
+    <UiDropdownMenuItem
+      v-if="actions.editorProtection.tabs.value.length"
+      @select="actions.editorProtection.goToEditor"
+    >
+      {{ t("spaces.editor.tabs.goToEditor") }}
+    </UiDropdownMenuItem>
+    <p v-if="!actions.editorProtection.canRemove.value" class="px-2 py-1 text-caption text-fg-secondary">
+      {{ t("spaces.editor.tabs.protected") }}
+    </p>
+    <UiDropdownMenuItem
+      destructive
+      :disabled="!actions.editorProtection.canRemove.value"
+      @select="actions.remove"
+    >
       <Trash2 class="size-3.5" />{{ t("spaces.canvas.selection.delete") }}
       <UiKbd :shortcut="deleteShortcut" class="ml-auto" />
     </UiDropdownMenuItem>

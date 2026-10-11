@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.3)
-project(KnovumMediaNative LANGUAGES C CXX)
+project(KnovumMediaLibraries LANGUAGES C CXX)
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/source.json" source)
 string(JSON supplier GET "${source}" targets ${KNOVUM_TARGET})
 function(download record output)

@@ -13,12 +13,12 @@ pub fn inventory(root: &Path) -> io::Result<Vec<String>> {
                         .strip_prefix(root)
                         .unwrap()
                         .to_str()
-                        .ok_or_else(|| io::Error::other("Non UTF-8 native path"))?
+                        .ok_or_else(|| io::Error::other("Non UTF-8 compiled path"))?
                         .replace('\\', "/"),
                 );
             } else {
                 return Err(io::Error::other(
-                    "Native inventory contains a link or special file",
+                    "Compiled inventory contains a link or special file",
                 ));
             }
         }
@@ -28,7 +28,7 @@ pub fn inventory(root: &Path) -> io::Result<Vec<String>> {
     visit(root, root, &mut files)?;
     files.sort();
     if files.is_empty() || files.len() > 256 {
-        return Err(io::Error::other("Native inventory exceeds its bound"));
+        return Err(io::Error::other("Compiled inventory exceeds its bound"));
     }
     Ok(files)
 }
@@ -47,7 +47,7 @@ pub fn require_libraries(files: &[String], windows: bool) -> io::Result<()> {
         if windows { "" } else { "lib" }
     ));
     if required.iter().any(|name| !files.contains(name)) {
-        return Err(io::Error::other("Native runtime is incomplete"));
+        return Err(io::Error::other("Compiled runtime is incomplete"));
     }
     Ok(())
 }

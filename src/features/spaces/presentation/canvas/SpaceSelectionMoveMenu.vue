@@ -13,7 +13,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useSpaceStore } from "../../session/space-store";
 
 const emit = defineEmits<{ move: [spaceId: string] }>();
-defineProps<{ submenu?: boolean }>();
+defineProps<{ submenu?: boolean; disabled?: boolean }>();
 const store = useSpaceStore();
 const { activeSpaceId, spaces } = storeToRefs(store);
 const { t } = useI18n();
@@ -37,6 +37,8 @@ const menuItems = computed(() =>
 <template>
   <DropdownMenuSub v-if="submenu">
     <DropdownMenuSubTrigger
+      :disabled="disabled"
+      :title="disabled ? t('spaces.editor.tabs.protected') : undefined"
       class="flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
       <FolderInput class="size-3.5" />
@@ -62,7 +64,12 @@ const menuItems = computed(() =>
     :items="menuItems.length ? menuItems : undefined"
   >
     <template #trigger>
-      <UiIconButton :label="t('spaces.space.moveTo')" :title="t('spaces.space.moveTo')" size="sm">
+      <UiIconButton
+        :disabled="disabled"
+        :label="t('spaces.space.moveTo')"
+        :title="disabled ? t('spaces.editor.tabs.protected') : t('spaces.space.moveTo')"
+        size="sm"
+      >
         <FolderInput class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </template>

@@ -39,7 +39,7 @@ export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[
   return invokeCommand("plugin:local-resources|list_resource_preparations");
 }
 export function textEmbeddingReady(status?: LocalResourcesStatus) {
-  if (status?.nativeInference !== true) return false;
+  if (status?.hasBundledInference !== true) return false;
   const { models } = status;
   return [
     models.textEmbeddingConfig,

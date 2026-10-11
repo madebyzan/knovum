@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 4.3)
-project(KnovumInferenceNative LANGUAGES C CXX)
+project(KnovumInferenceLibraries LANGUAGES C CXX)
 include(ExternalProject)
 include(sources.cmake)
 string(JSON required_cmake GET "${audio_record}" cmakeVersion)
 if(NOT CMAKE_VERSION VERSION_EQUAL required_cmake)
-  message(FATAL_ERROR "The qualified native toolchain requires CMake ${required_cmake}")
+  message(FATAL_ERROR "The qualified compiled toolchain requires CMake ${required_cmake}")
 endif()
 include(onnx.cmake)
 set(common -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
@@ -60,7 +60,7 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/onnx-source.json ${CMAKE_CURRENT_SOURC
   ${CMAKE_CURRENT_SOURCE_DIR}/sherpa-source.json ${CMAKE_CURRENT_SOURCE_DIR}/whisper-source.json DESTINATION build-evidence)
 configure_file(build-evidence.json.in build-evidence.json @ONLY)
 install(FILES "${CMAKE_BINARY_DIR}/build-evidence.json" DESTINATION build-evidence)
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/" DESTINATION build-evidence/native-build-inputs
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/" DESTINATION build-evidence/cmake-build-inputs
   FILES_MATCHING PATTERN "*.cmake" PATTERN "CMakeLists.txt" PATTERN "*.cpp" PATTERN "*.in")
 
 if(WIN32)
