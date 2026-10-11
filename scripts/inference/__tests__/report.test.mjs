@@ -156,3 +156,16 @@ test("alignment partial timestamps cannot qualify", (context) => {
   });
   assert.throws(() => evaluateFiles(f.corpus, f.capture), /boundaries/u);
 });
+
+test("evidence rejects unsafe attempt epochs and undeclared nested fields", (context) => {
+  const f = fixture(context);
+  mutateOutput(f, "embedding", (v) => {
+    v.source.invocations[0].attemptEpoch = 1e30;
+  });
+  assert.throws(() => evaluateFiles(f.corpus, f.capture), /Invalid embedding-output/u);
+  mutateOutput(f, "embedding", (v) => {
+    v.source.invocations[0].attemptEpoch = 0;
+    v.source.invocations[0].unverified = true;
+  });
+  assert.throws(() => evaluateFiles(f.corpus, f.capture), /Invalid embedding-output/u);
+});

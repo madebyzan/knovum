@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -14,7 +15,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 function fixture(context) {
-  const root = mkdtempSync(join(tmpdir(), "knovum-desktop-startup-"));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "knovum-desktop-startup-")));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   for (const directory of ["scripts/desktop", "scripts/runtime", "node_modules/@tauri-apps/cli"]) {
     mkdirSync(join(root, directory), { recursive: true });
@@ -49,21 +50,34 @@ function fixture(context) {
   `,
   );
   writeFileSync(
-    join(root, "scripts/runtime/native-worker.mjs"),
+    join(root, "scripts/runtime/native.mjs"),
     `
     import { appendFileSync, existsSync } from 'node:fs';
     import { join } from 'node:path';
-    export async function prepareNativeWorker(repository) {
+    export async function prepareNativeRuntime(repository) {
       if (existsSync(join(repository,'broken-native'))) throw new Error('Native worker verification failed');
       appendFileSync(join(repository,'events.jsonl'),JSON.stringify({stage:'native'})+'\\n');
     }
+  `,
+  );
+  writeFileSync(
+    join(root, "cargo-fixture.mjs"),
+    `
+    import childProcess from 'node:child_process';
+    import { syncBuiltinESMExports } from 'node:module';
+    import { appendFileSync, existsSync } from 'node:fs';
+    childProcess.execFileSync = (command, args, options) => {
+      if (existsSync('broken-build')) throw new Error('Native worker compilation failed');
+      appendFileSync('events.jsonl', JSON.stringify({ stage: command, args, cwd: options.cwd }) + '\\n');
+    };
+    syncBuiltinESMExports();
   `,
   );
   return root;
 }
 
 const launch = (root, args) =>
-  spawnSync(process.execPath, ["scripts/desktop/dev.mjs", ...args], {
+  spawnSync(process.execPath, ["--import", "./cargo-fixture.mjs", "scripts/desktop/dev.mjs", ...args], {
     cwd: root,
     encoding: "utf8",
     timeout: 5000,
@@ -78,7 +92,23 @@ for (const args of [
     const root = fixture(context);
     const execution = launch(root, args);
     assert.equal(execution.status, 0, execution.stderr);
-    assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "native" }, { stage: "tauri", args }]);
+    assert.deepEqual(events(root), [
+      { stage: "prepared" },
+      { stage: "native" },
+      {
+        stage: "cargo",
+        args: [
+          "build",
+          "--locked",
+          "--manifest-path",
+          "src-tauri/Cargo.toml",
+          "-p",
+          "knovum-inference-worker",
+        ],
+        cwd: root,
+      },
+      { stage: "tauri", args },
+    ]);
   });
 }
 
@@ -118,4 +148,13 @@ test("invalid native worker prevents launching the desktop", (context) => {
   assert.equal(execution.status, 1);
   assert.match(execution.stderr, /Native worker verification failed/u);
   assert.deepEqual(events(root), [{ stage: "prepared" }]);
+});
+
+test("failed worker compilation prevents launching the desktop", (context) => {
+  const root = fixture(context);
+  writeFileSync(join(root, "broken-build"), "");
+  const execution = launch(root, ["dev"]);
+  assert.equal(execution.status, 1);
+  assert.match(execution.stderr, /Native worker compilation failed/u);
+  assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "native" }]);
 });

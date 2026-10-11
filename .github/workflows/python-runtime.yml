@@ -1,4 +1,4 @@
-name: Controlled Python runtime
+name: Controlled Agent and media resources
 
 on:
   workflow_dispatch:
@@ -18,7 +18,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [agent]
         platform:
           - os: macos-15
             target: macos-arm64
@@ -40,7 +39,7 @@ jobs:
         with:
           version: "0.12.23"
       - name: Audit locked Python dependency graph
-        run: uv audit --project python/runtimes/${{ matrix.profile }} --locked --no-default-groups --output-format json
+        run: uv audit --project python/runtimes/agent --locked --no-default-groups --output-format json
       - name: Import macOS signing certificate
         if: inputs.production && runner.os == 'macOS'
         env:
@@ -77,18 +76,16 @@ jobs:
           KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
         shell: bash
-        run: npm run runtime:build -- --profile ${{ matrix.profile }} --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz"
+        run: npm run runtime:build -- --profile agent --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.platform.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/python-agent-${{ matrix.platform.target }}.tar.gz"
       - name: Name the target descriptor
         shell: bash
-        run: mv runtime-artifacts/runtime-descriptor.json runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}-descriptor.json
+        run: mv runtime-artifacts/runtime-descriptor.json runtime-artifacts/python-agent-${{ matrix.platform.target }}-descriptor.json
       - name: Install Node producer dependencies
         shell: bash
         run: |
           corepack enable
-          corepack prepare pnpm@11.17.0 --activate
           pnpm install --frozen-lockfile
       - name: Produce locked core media and verify relocation
-        if: matrix.profile == 'agent'
         env:
           KNOVUM_RUNTIME_ARCHIVE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
@@ -99,15 +96,14 @@ jobs:
       - name: Attest produced archive
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: runtime-artifacts/python-${{ matrix.profile }}-${{ matrix.platform.target }}.tar.gz
+          subject-path: runtime-artifacts/python-agent-${{ matrix.platform.target }}.tar.gz
       - name: Attest core media archive
-        if: matrix.profile == 'agent'
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: core-media-artifacts/ffmpeg-${{ matrix.platform.target }}.tar.gz
       - uses: actions/upload-artifact@v6
         with:
-          name: python-${{ matrix.profile }}-${{ matrix.platform.target }}
+          name: python-agent-${{ matrix.platform.target }}
           path: |
             runtime-artifacts/*.tar.gz
             runtime-artifacts/*-descriptor.json

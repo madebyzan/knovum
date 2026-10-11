@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   chmodSync,
   copyFileSync,
@@ -23,25 +23,19 @@ import { installWindowsNativeDependencies } from "./windows-vc-runtime.mjs";
 export async function prepareNativePackage(repository, { production = false } = {}) {
   const target = hostRuntimeTarget();
   const supplierManifest = await prepareNativeRuntime(repository, target);
-  await new Promise((resolve, reject) => {
-    const build = spawn(
-      "cargo",
-      [
-        "build",
-        "--locked",
-        "--manifest-path",
-        "src-tauri/Cargo.toml",
-        "-p",
-        "knovum-inference-worker",
-        "--release",
-      ],
-      { cwd: repository, stdio: "inherit" },
-    );
-    build.on("error", reject);
-    build.on("exit", (code) =>
-      code === 0 ? resolve() : reject(new Error(`Native worker build failed (${code})`)),
-    );
-  });
+  execFileSync(
+    "cargo",
+    [
+      "build",
+      "--locked",
+      "--manifest-path",
+      "src-tauri/Cargo.toml",
+      "-p",
+      "knovum-inference-worker",
+      "--release",
+    ],
+    { cwd: repository, stdio: "inherit" },
+  );
   const destination = join(repository, "src-tauri/resources/native-runtime");
   mkdirSync(dirname(destination), { recursive: true });
   const staging = mkdtempSync(join(dirname(destination), ".native-package-"));

@@ -25,10 +25,9 @@
     "runtime:prepare": "node scripts/runtime/development.mjs",
     "runtime:provision": "node scripts/runtime/provision.mjs",
     "inference:acceptance": "node scripts/inference/report.mjs",
-    "check:scripts": "node scripts/checks/scripts.mjs",
+    "check:scripts": "node scripts/checks/source-layout.mjs scripts && node --test \"scripts/**/__tests__/*.test.mjs\"",
     "security:python": "node scripts/checks/python-audit.mjs",
-    "contracts:check": "node scripts/checks/contracts.mjs",
-    "runtime:native": "node scripts/runtime/native.mjs"
+    "contracts:check": "node scripts/checks/contracts.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
@@ -97,8 +96,6 @@
     "@wdio/spec-reporter": "9.30.1",
     "@wdio/tauri-plugin": "^1.4.0",
     "@wdio/tauri-service": "^1.4.0",
-    "ajv": "8.20.0",
-    "ajv-formats": "3.0.1",
     "dependency-cruiser": "^18.5.0",
     "fastest-levenshtein": "1.0.16",
     "happy-dom": "^20.14.5",

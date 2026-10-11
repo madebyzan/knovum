@@ -211,8 +211,10 @@ passes an explicit context, bounds chunks and supports cancellation. Vendor sour
 Forced alignment uses the public C API directly and native F16/Q8 exports.
 
 Node media production uses yauzl for selected ZIP extraction and OS signing/dependency tools.
-Node acceptance uses Ajv with strict JSON Schemas, npyjs for numeric tensors and maintained
-fastest-levenshtein for token error scoring. Qualification stays outside the shipped application.
+Node acceptance reuses the admitted Zod dependency for shared strict evidence contracts, npyjs
+for numeric tensors and fastest-levenshtein for token error scoring. It does not retain a second
+schema validator or separately maintained copies of common evidence definitions. Qualification
+stays outside the shipped application.
 Source/model identities, controls and platform acceptance remain in the owning model/release docs.
 
 ## Agents, protocols and extensibility

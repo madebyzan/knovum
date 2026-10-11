@@ -2,16 +2,13 @@ import { createHash } from "node:crypto";
 import { lstatSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
-import formats from "ajv-formats";
-import Ajv from "ajv/dist/2020.js";
-
 import { sha256File } from "../runtime/files.mjs";
+import { coreContracts } from "./core-contracts.mjs";
+import { imageContracts } from "./image-contracts.mjs";
 
 export class EvidenceError extends Error {}
 export class EvidenceUnavailable extends EvidenceError {}
-const ajv = new Ajv({ strict: true, strictRequired: false, allErrors: true });
-formats(ajv);
-const validators = new Map();
+const evidenceContracts = { ...coreContracts, ...imageContracts };
 export const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 export const fileDigest = sha256File;
 
@@ -26,15 +23,9 @@ export function loadEvidence(path, schemaName) {
     if (error.code === "ENOENT") throw new EvidenceUnavailable(`Required evidence is unavailable: ${path}`);
     throw error;
   }
-  if (!validators.has(schemaName))
-    validators.set(
-      schemaName,
-      ajv.compile(JSON.parse(readFileSync(new URL(`./schemas/${schemaName}.json`, import.meta.url), "utf8"))),
-    );
-  const value = JSON.parse(bytes);
-  const validate = validators.get(schemaName);
-  if (!validate(value)) throw new EvidenceError(`Invalid ${schemaName}: ${ajv.errorsText(validate.errors)}`);
-  return value;
+  const result = evidenceContracts[schemaName].safeParse(JSON.parse(bytes));
+  if (!result.success) throw new EvidenceError(`Invalid ${schemaName}: ${result.error.message}`);
+  return result.data;
 }
 
 export function hashedFile(reference, base) {
