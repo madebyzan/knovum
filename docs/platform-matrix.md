@@ -34,6 +34,11 @@ Both macOS architectures are separate release targets with distinct runtime publ
 and update artifacts. An arm64 result does not qualify x86_64, and an adapter test does not qualify an
 installed application.
 
+Both platforms use the application context-menu policy defined in [desktop-foundation.md](desktop-foundation.md).
+Installed release acceptance must verify that non-editable surfaces expose no default browser menu,
+capability-owned native menus still open, editable controls retain their editing menus, and the WebView
+Inspector cannot be opened.
+
 ## Compiled resources and inference
 
 FFmpeg is a bundled core resource on every supported target. The retained Agent environment, model weights, and optional

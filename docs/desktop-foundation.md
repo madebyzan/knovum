@@ -61,6 +61,14 @@ interactive shell configuration, and does not guess vendor installation paths.
 
 ## Files, clipboard, and dialogs
 
+The application entry installs one document-level context-menu policy before mounting Vue. Development
+keeps the WebView default menu. Production frontend builds cancel the default menu outside editable
+controls, including overlays mounted outside the application root. Capture-phase cancellation does not
+stop event propagation: capability-owned handlers still display their Tauri native menus. Inputs,
+textareas, selects and rich-text editors retain their native editing menus. Inspector availability
+follows Tauri's build contract: development/debug builds enable it; release builds do not enable the
+`devtools` Cargo feature.
+
 The application does not grant `$HOME/**`. Native dialogs and Tauri drops authorize paths for the
 current session. A feature that needs durable ownership copies or streams the resource into its managed
 AppData boundary. Persisted external scopes require an explicit product contract.
