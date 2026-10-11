@@ -23,7 +23,7 @@ import SpaceWorkspaceTab from "./SpaceWorkspaceTab.vue";
 const store = useSpaceStore();
 const { show: showSpaceMenu } = useSpaceManagementMenu();
 const route = useRoute();
-const { spaces, draftSpace, activeSpaceId, openSpaceIds, closedSpaceIds, workspaceMode } = storeToRefs(store);
+const { spaces, draftSpace, activeSpaceId, openSpaceIds, closedSpaceIds, surface } = storeToRefs(store);
 const { locale, t } = useI18n();
 const tabsViewport = useTemplateRef<HTMLDivElement>("tabsViewport");
 const newSpaceButtonHost = useTemplateRef<HTMLElement>("newSpaceButtonHost");
@@ -119,7 +119,7 @@ function reportTabFailure(error: unknown) {
 
 <template>
   <div class="flex min-w-0 flex-1 items-center gap-1">
-    <div v-if="workspaceMode === 'library'" ref="newSpaceButtonHost" class="contents">
+    <div v-if="surface.kind === 'library'" ref="newSpaceButtonHost" class="contents">
       <SpaceLibraryToolbar @create="createSpace" />
     </div>
     <TabsRoot

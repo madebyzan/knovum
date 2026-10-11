@@ -32,7 +32,7 @@ function defaultSessionContext(): SpaceSessionContext {
     relations: ref([]),
     ready: ref(true),
     loading: ref(false),
-    focusedEditorId: ref(),
+    surface: ref({ kind: "canvas" }),
     history: { undoStack: [], redoStack: [], busy: false, pendingMutations: 0 },
     runtime: { openGeneration: 0, historyBySpace: new Map() },
     openSpaceIds: ref(["inbox"]),

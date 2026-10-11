@@ -24,7 +24,6 @@ export function createSpaceContentState() {
   const relations = ref<SpaceRelation[]>([]);
   const ready = ref(false);
   const loading = ref(false);
-  const workspaceMode = ref<"library" | "space">("space");
   const libraryScope = ref<SpaceLibraryScope>("all");
   const libraryLayout = ref<"grid" | "list">("grid");
   const libraryQuery = ref("");
@@ -47,7 +46,6 @@ export function createSpaceContentState() {
     relations,
     ready,
     loading,
-    workspaceMode,
     libraryScope,
     libraryLayout,
     libraryQuery,

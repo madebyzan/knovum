@@ -24,6 +24,7 @@ const props = defineProps<{
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
+  navigationEnabled: boolean;
   renderingEnabled: boolean;
   canvasGesturesEnabled: boolean;
   tool: CanvasTool;
@@ -102,6 +103,7 @@ onBeforeUnmount(() => {
     :focus-node-ids="focusNodeIds"
     :group-scope-path="groupScopePath"
     :interaction-enabled="interactionEnabled"
+    :navigation-enabled="navigationEnabled"
     :rendering-enabled="renderingEnabled"
     :canvas-gestures-enabled="canvasGesturesEnabled"
     :tool="tool"

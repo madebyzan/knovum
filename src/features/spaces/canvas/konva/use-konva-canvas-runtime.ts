@@ -114,7 +114,7 @@ export function useKonvaCanvasRuntime(
     scene: projections.scene,
     viewport,
   });
-  const { cancelInteraction } = useCanvasInteractionCancellation({
+  const cancellation = useCanvasInteractionCancellation({
     cancelConnector: connectors.cancel,
     cancelGesture,
     cancelNodeDrag: nodeDrag.cancel,
@@ -139,7 +139,7 @@ export function useKonvaCanvasRuntime(
   );
   useCanvasDocumentSync(() => props.document, model, viewport.setViewport, viewport.getViewport);
   useRuntimeEditorRegistration({
-    cancelInteraction,
+    ...cancellation,
     gestures,
     nudgeSelection: structureGestures.nudge,
     host,

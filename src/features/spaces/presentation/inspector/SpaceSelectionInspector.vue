@@ -16,12 +16,23 @@ import SpaceNodeCapabilitySections from "./SpaceNodeCapabilitySections.vue";
 import SpaceNodeIdentity from "./SpaceNodeIdentity.vue";
 import SpaceNodeMetadata from "./SpaceNodeMetadata.vue";
 import SpaceNodeOverview from "./SpaceNodeOverview.vue";
+import SpaceRelationInspector from "./SpaceRelationInspector.vue";
 import SpaceStructureInspector from "./SpaceStructureInspector.vue";
 
 const store = useSpaceStore();
 const editor = getCanvasEditorSession();
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const selectedNode = computed(() => (selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined));
+
+const selectedRelations = computed(() =>
+  store.relations.filter(({ id }) => editor.selection.value.relationIds.includes(id)),
+);
+const objectTitles = computed(() => [
+  ...selectedNodes.value.map(({ data }) => data.title),
+  ...store.editSnapshot.structure.flatMap((node) =>
+    node.kind !== "content" && editor.selection.value.structureNodeIds.includes(node.id) ? [node.title] : [],
+  ),
+]);
 
 function saveTitle(node: SpaceCanvasNode, value: string) {
   return store.saveNodeContent({
@@ -33,7 +44,13 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
 </script>
 
 <template>
-  <SpaceStructureInspector v-if="editor.selection.value.structureNodeIds.length" />
+  <SpaceRelationInspector
+    v-if="selectedRelations.length"
+    :relations="selectedRelations"
+    :nodes="store.nodes"
+    :object-titles="objectTitles"
+  />
+  <SpaceStructureInspector v-else-if="editor.selection.value.structureNodeIds.length" />
   <div
     v-else-if="selectedNode"
     :key="selectedNode.id"

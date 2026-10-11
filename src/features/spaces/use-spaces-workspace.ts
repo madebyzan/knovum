@@ -16,7 +16,7 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
       store.workflowMode = undefined;
       store.setRightSidebarView("ask");
     },
-    rightSidebarAvailable: computed(() => store.workspaceMode === "space" && Boolean(store.activeSpaceId)),
+    rightSidebarAvailable: computed(() => store.workbench.rightSidebar),
     currentScope: computed(() =>
       store.activeSpace
         ? { kind: "space", id: store.activeSpace.id, label: store.activeSpace.title }

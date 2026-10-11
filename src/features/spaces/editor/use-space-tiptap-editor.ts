@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { currentCanvasEditor } from "../canvas/editor-session";
 import { isSpaceEditorNode, type SpaceEditorNode } from "../canvas/node-capabilities";
 import { useContextDock } from "../canvas/use-context-dock";
@@ -17,18 +18,20 @@ import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings } from "./tiptap-outline";
 import { createEditingState, persistSpaceTiptapContent, type EditingState } from "./tiptap-persistence";
-import { persistTiptapSession, registerTiptapSessionParticipant } from "./tiptap-session-participant";
+import { registerTiptapSessionParticipant } from "./tiptap-session-participant";
 import { createTiptapTextStatistics } from "./tiptap-text-statistics";
 import { useHeadingNavigation } from "./use-heading-navigation";
 
 export function useSpaceTiptapEditor() {
   const store = useSpaceStore();
-  const { editorLocateRequest, focusedEditorId, nodes } = storeToRefs(store);
+  const { editorLocateRequest, surface, nodes } = storeToRefs(store);
   const { t } = useI18n();
   const dock = useContextDock();
   const state = createEditingState();
   const saveStatus = ref<"saved" | "saving" | "unsaved">("saved");
-  const editorNode = computed(() => findEditorNode(nodes.value, focusedEditorId.value));
+  const editorNode = computed(() =>
+    findEditorNode(nodes.value, surface.value.kind === "document" ? surface.value.nodeId : undefined),
+  );
   initializeEditingState(state, editorNode.value);
   const initialContent = editorContent(editorNode.value);
   const statistics = createTiptapTextStatistics();
@@ -113,13 +116,10 @@ export function useSpaceTiptapEditor() {
 
   async function close() {
     try {
-      await persistTiptapSession(persist, () => {
-        state.loadedId = undefined;
-        focusedEditorId.value = undefined;
-      });
+      await store.returnToCanvas();
       await nextTick().then(() => currentCanvasEditor()?.focus());
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
     }
   }
 

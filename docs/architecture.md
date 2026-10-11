@@ -139,6 +139,13 @@ persistence leave barrier. Editor owners prepare saves or decisions and defer dr
 that barrier accepts all participants. `canvas/editor-session.ts` owns canvas editor state and
 suspension, consuming a readonly participant snapshot rather than hosting workspace policy.
 
+`workspace/space-surface.ts` defines one mutually exclusive canvas, document, video or library
+surface. The session store exposes it readonly; workspace actions change it only after the existing
+leave barrier accepts the active editors. Target ownership is validated before and after that barrier.
+Canvas activity, its Outline and its contextual right sidebar are derived from this surface, rather
+than independent editor IDs or visibility flags. Editor command ports own their histories and local
+navigation. Shell consumes the feature's capabilities and retains user layout preferences.
+
 The Rust boundary is divided by business responsibility:
 
 - `actions/` owns the versioned action contract and catalog; the domain owner validates and commits

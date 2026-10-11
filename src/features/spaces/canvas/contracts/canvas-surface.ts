@@ -18,6 +18,7 @@ export interface CanvasSurfaceProps {
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
+  navigationEnabled: boolean;
   renderingEnabled: boolean;
   canvasGesturesEnabled: boolean;
   tool: CanvasTool;

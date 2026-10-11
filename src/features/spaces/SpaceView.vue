@@ -50,19 +50,13 @@ const SpaceRecentlyDeleted = defineAsyncComponent(
 const store = useSpaceStore();
 const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
-const canvasVisible = computed(
-  () =>
-    workspaceVisible.value &&
-    store.workspaceMode === "space" &&
-    !store.focusedEditorId &&
-    !store.videoEditorNodeId &&
-    store.recentlyDeletedSpaceId === undefined,
-);
-const { focusedEditorId, ready } = storeToRefs(store);
+const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
+const { ready, surface } = storeToRefs(store);
+const documentNodeId = computed(() => (surface.value.kind === "document" ? surface.value.nodeId : undefined));
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
-const mountedEditorId = useDeferredEditorMount(focusedEditorId);
+const mountedEditorId = useDeferredEditorMount(documentNodeId);
 onBeforeUnmount(registerWindowCloseCommit(store.commitActiveSession));
 const dock = useContextDock();
 const enrichmentJobs = useEnrichmentTaskProjection({
@@ -123,10 +117,10 @@ onMounted(() => void initialize());
     <template v-else-if="store.ready">
       <SpaceCanvas :rendering-enabled="canvasVisible" />
       <SpaceAudioRecordingDock class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2" />
-      <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
+      <section v-if="surface.kind === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
         <SpaceLibrary />
       </section>
-      <SpaceEditorLoading v-if="focusedEditorId && !mountedEditorId" />
+      <SpaceEditorLoading v-if="documentNodeId && !mountedEditorId" />
       <SpaceTiptapEditor v-if="mountedEditorId" :key="mountedEditorId" />
       <SpaceRecentlyDeleted
         v-if="store.recentlyDeletedSpaceId !== undefined"
@@ -135,7 +129,7 @@ onMounted(() => void initialize());
         :open="true"
         @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
       />
-      <SpaceVideoEditor v-if="store.videoEditorNodeId" />
+      <SpaceVideoEditor v-if="surface.kind === 'video'" :key="surface.nodeId" />
       <SpaceImageEditLeaveDialog />
     </template>
   </main>

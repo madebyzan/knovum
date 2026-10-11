@@ -37,10 +37,8 @@ export async function activateDraftSpace(
     context.runtime.openGeneration += 1;
     context.runtime.pendingSpaceId = undefined;
     context.loading.value = false;
-    if (context.focusedEditorId.value) {
-      context.focusedEditorId.value = undefined;
-      await nextTick();
-    }
+    context.surface.value = { kind: "canvas" };
+    await nextTick();
     switchSpaceHistory(context, space.id);
     context.activeSpaceId.value = space.id;
     context.nodes.value = [];

@@ -59,9 +59,17 @@ export function revealCanvasTargets(
     context.setViewport(ensureBoundsVisible(bounds, context.viewport(), context.size()));
 }
 
-export function fitCanvasLayouts(context: CanvasNavigationContext, layouts: readonly CanvasNodeLayoutV1[]) {
+function fitCanvasLayouts(context: CanvasNavigationContext, layouts: readonly CanvasNodeLayoutV1[]) {
   if (!layouts.length) return;
   fitCanvasBounds(context, layoutBounds(layouts));
+}
+
+export function fitCanvasObjects(
+  context: Pick<CanvasNavigationContext, "setViewport" | "size" | "viewport">,
+  objects: Iterable<CanvasRect>,
+) {
+  const bounds = mergeBounds([...objects]);
+  if (bounds) fitCanvasBounds(context, bounds);
 }
 
 export function fitCanvasBounds(

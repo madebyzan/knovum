@@ -29,10 +29,10 @@ defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
   captures: readonly SpaceUrlCaptureProjection[];
   empty: boolean;
+  navigationEnabled: boolean;
   error?: string;
   fileHover: boolean;
   fileHoverPosition?: { x: number; y: number };
-  spaceId: string;
 }>();
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
@@ -72,7 +72,7 @@ const selectionBarGap = computed(() =>
 <template>
   <div ref="chromeRoot" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
     <div ref="topChrome" class="pointer-events-auto absolute top-4 left-1/2 -translate-x-1/2">
-      <SpaceCanvasToolbar />
+      <SpaceCanvasToolbar :navigation-enabled="navigationEnabled" />
     </div>
     <div
       v-if="store.canvasFocusIds.length"
@@ -82,7 +82,7 @@ const selectionBarGap = computed(() =>
       <SpaceCanvasFocusBadge :count="store.canvasFocusIds.length" @exit="store.clearCanvasFocus" />
     </div>
     <div
-      v-if="!empty"
+      v-if="navigationEnabled"
       ref="viewChrome"
       class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
     >
@@ -156,7 +156,6 @@ const selectionBarGap = computed(() =>
       :captures="captures"
       :empty="empty"
       :file-hover="fileHover"
-      :space-id="spaceId"
       v-bind="{
         ...(error ? { error } : {}),
         ...(fileHoverPosition ? { fileHoverPosition } : {}),

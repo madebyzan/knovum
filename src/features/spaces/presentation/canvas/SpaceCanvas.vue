@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, provide, useTemplateRef, watch } from "vue";
 
+import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasSceneInput } from "../../canvas/contracts/canvas-surface";
 import {
@@ -26,7 +27,11 @@ import { useSpaceCanvasImports } from "./use-space-canvas-imports";
 import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 
-defineProps<{ renderingEnabled: boolean }>();
+const props = defineProps<{ renderingEnabled: boolean }>();
+provide(
+  overlayScopeVisibleKey,
+  computed(() => props.renderingEnabled),
+);
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
@@ -37,7 +42,7 @@ const dock = useContextDock();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
 const selection = createCanvasSelectionActions();
 const persistNodeContent = createCanvasNodeContentPersistence();
-const { visibleNodes, visibleRelations } = useVisibleCanvasContent({
+const { visibleRelations } = useVisibleCanvasContent({
   nodes: () => store.nodes,
   relations: () => store.relations,
   relationKinds: () => store.relationKindFilter,
@@ -48,6 +53,12 @@ const sceneInput = computed<CanvasSceneInput>(() => ({
   nodes: store.nodes,
   relations: visibleRelations.value,
 }));
+const captures = computed(() => store.urlCaptures.filter(({ spaceId }) => spaceId === store.activeSpaceId));
+const hasCanvasObjects = computed(() => store.editSnapshot.structure.length > 0);
+const initialEmpty = computed(
+  () =>
+    !hasCanvasObjects.value && !captures.value.length && (tools.tool === "select" || tools.tool === "pan"),
+);
 const navigationRequests = useCanvasNavigationRequests();
 const contentLayout = createCanvasContentLayoutCoordinator({
   directManipulation: () => editorSession.directManipulation.value,
@@ -107,7 +118,12 @@ const canvasEvents = createSpaceCanvasEvents({
 </script>
 
 <template>
-  <section ref="canvasRoot" class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none">
+  <section
+    v-show="renderingEnabled"
+    :inert="!renderingEnabled"
+    ref="canvasRoot"
+    class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none"
+  >
     <div
       v-if="lifecycle.error.value && !editorSession.activeEditor.value"
       class="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6 text-fg-secondary"
@@ -123,7 +139,8 @@ const canvasEvents = createSpaceCanvasEvents({
       :import-json-canvas="store.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
       :group-scope-path="store.groupScopePath"
-      :interaction-enabled="!editorSession.transitioning.value"
+      :interaction-enabled="renderingEnabled && !editorSession.transitioning.value"
+      :navigation-enabled="hasCanvasObjects"
       :canvas-gestures-enabled="canvasGesturesEnabled"
       :tool="tools.tool"
       :space-id="spaceId"
@@ -143,12 +160,12 @@ const canvasEvents = createSpaceCanvasEvents({
       </template>
     </CanvasSurfaceHost>
     <SpaceCanvasProductLayer
-      v-if="editorSession.activeEditor.value && !editorSession.transitioning.value"
-      :captures="store.urlCaptures"
+      v-if="renderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
+      :captures="captures"
       :canvas-to-viewport-point="canvasToViewportPoint"
-      :empty="visibleNodes.length === 0 && store.urlCaptures.length === 0"
+      :empty="initialEmpty"
+      :navigation-enabled="hasCanvasObjects"
       :file-hover="imports.fileHover.value"
-      :space-id="spaceId"
       v-bind="{
         ...(canvasError ? { error: canvasError } : {}),
         ...(imports.fileHoverPosition.value ? { fileHoverPosition: imports.fileHoverPosition.value } : {}),

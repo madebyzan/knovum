@@ -74,10 +74,7 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     queryFilter: state.savedQueryFilter,
   };
   const initialize = (title: string) => initializeSpaces(spaceContext, title);
-  const openSpace = async (spaceId: string) => {
-    state.workspaceMode.value = "space";
-    await navigateToSpace(spaceContext, spaceId);
-  };
+  const openSpace = (spaceId: string) => navigateToSpace(spaceContext, spaceId);
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
   };
@@ -105,11 +102,9 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
   return {
     initialize,
     commitActiveSession: () => commitActiveSpaceSession(spaceContext),
-    createSpace: async (title: string) => {
-      await createSpace(spaceContext, title);
-      state.workspaceMode.value = "space";
-    },
-    showSpaceLibrary: (scope: Parameters<typeof showSpaceLibrary>[1]) => showSpaceLibrary(state, scope),
+    createSpace: (title: string) => createSpace(spaceContext, title),
+    showSpaceLibrary: (scope: Parameters<typeof showSpaceLibrary>[2]) =>
+      showSpaceLibrary(state, spaceContext, scope),
     focusSpaceLibrarySearch: () => (state.librarySearchNonce.value += 1),
     setSpaceFavorite: async (spaceId: string, favorite: boolean) => {
       await setSpaceFavorite(spaceId, favorite);

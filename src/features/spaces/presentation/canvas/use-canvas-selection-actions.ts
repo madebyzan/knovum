@@ -64,7 +64,7 @@ export function useCanvasSelectionActions() {
   function editVideo() {
     if (!allows("edit")) return;
     const node = selectedVideoNode.value;
-    if (node) store.openVideoEditor(node.id);
+    if (node) runNodeOperation("edit", () => store.openVideoEditor(node.id));
   }
 
   function open() {

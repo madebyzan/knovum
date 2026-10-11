@@ -144,7 +144,8 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
       .attach(
         listenForFileDrops({
           hover(active, position) {
-            fileHover.value = active && isFileDropInside(dropTarget.value, position);
+            fileHover.value =
+              active && operations.allows("create") && isFileDropInside(dropTarget.value, position);
             fileHoverPosition.value = fileHover.value ? position : undefined;
           },
           async drop(payload) {

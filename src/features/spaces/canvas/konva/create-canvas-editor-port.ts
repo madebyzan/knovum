@@ -8,7 +8,7 @@ import { createCanvasContentHeightFitting } from "./content-height-fitting";
 import { captureCanvasOverview, captureCanvasViewport } from "./overview/capture";
 import {
   fitCanvasBounds,
-  fitCanvasLayouts,
+  fitCanvasObjects,
   revealCanvasTargets,
   setCanvasZoom,
   zoomCanvasViewport,
@@ -22,6 +22,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   const contentHeight = createCanvasContentHeightFitting(options);
   return {
     cancelInteraction: options.cancelInteraction,
+    suspendInteraction: options.suspendInteraction,
     focus: () => options.host().focus({ preventScroll: true }),
     copySelection: () => options.onCopyNodes(selection.placements()),
     cutSelection: async () => {
@@ -77,7 +78,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     getDocument: () => options.model.document,
     observeDocument: (observer) => options.model.observe(observer),
     adoptDocument: (document) => options.model.applyLocalDocument(document),
-    zoomToFit: () => fitCanvasLayouts(animatedNavigation, options.layouts()),
+    zoomToFit: () => fitCanvasObjects(animatedNavigation, options.structureBoundsById().values()),
     zoomToSelection: () => {
       const bounds = selection.bounds();
       if (bounds) fitCanvasBounds(animatedNavigation, bounds);

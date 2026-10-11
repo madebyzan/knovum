@@ -6,6 +6,7 @@ import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
+import { createEditorSurfaceActions } from "../../workspace/editor-surface-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import type { SpaceState } from "../session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
@@ -74,7 +75,13 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     relations: state.relations,
     recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
   });
-  const context = createRightSidebarActions(state, placement, media.requestMediaSeek);
+  const editors = createEditorSurfaceActions(spaceContext);
+  const context = createRightSidebarActions(
+    state,
+    placement,
+    media.requestMediaSeek,
+    editors.openDocumentEditor,
+  );
   const view = createSpaceViewActions(state, placement);
   const actions = assembleSpaceActions({
     state,
@@ -95,6 +102,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   });
   return {
     ...actions,
+    ...editors,
     ...createWorkflowPanelActions(state),
     ...audioRecording,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
@@ -116,7 +124,7 @@ function createSpaceContext(state: SpaceState): SpaceSessionContext {
     relations: state.relations,
     ready: state.ready,
     loading: state.loading,
-    focusedEditorId: state.focusedEditorId,
+    surface: state.surface,
     history: state.history,
     runtime: { openGeneration: 0, historyBySpace: new Map() },
     openSpaceIds: state.openSpaceIds,

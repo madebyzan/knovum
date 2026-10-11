@@ -1,24 +1,30 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, onTestFinished, vi } from "vitest";
 
-import { persistTiptapSession } from "../editor/tiptap-session-participant";
+import { registerTiptapSessionParticipant } from "../editor/tiptap-session-participant";
+import { createEditorSurfaceActions } from "../workspace/editor-surface-actions";
+import { createTestSessionContext } from "./support/session-context";
 
-describe("Tiptap editor close", () => {
-  it("keeps the editor loaded when persistence fails", async () => {
-    const failure = new Error("disk full");
-    const leave = vi.fn<() => void>();
-
-    await expect(
-      persistTiptapSession(vi.fn<() => Promise<void>>().mockRejectedValue(failure), leave),
-    ).rejects.toBe(failure);
-
-    expect(leave).not.toHaveBeenCalled();
-  });
-
-  it("leaves only after persistence succeeds", async () => {
-    const leave = vi.fn<() => void>();
-
-    await persistTiptapSession(vi.fn<() => Promise<void>>().mockResolvedValue(undefined), leave);
-
-    expect(leave).toHaveBeenCalledOnce();
-  });
+it.each(["saved", "failed"])("closes the document only after its session is %s", async (outcome) => {
+  const context = createTestSessionContext();
+  context.surface.value = { kind: "document", nodeId: "note" };
+  const failure = new Error("disk full");
+  const persist = vi.fn<() => Promise<void>>();
+  if (outcome === "saved") persist.mockResolvedValue();
+  else persist.mockRejectedValue(failure);
+  onTestFinished(
+    registerTiptapSessionParticipant({
+      cancelAutoSave: () => {},
+      editor: () => undefined,
+      persist,
+    }),
+  );
+  const result = await createEditorSurfaceActions(context)
+    .returnToCanvas()
+    .then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+  expect(result).toBe(outcome === "saved" ? undefined : failure);
+  expect(context.surface.value.kind).toBe(outcome === "saved" ? "canvas" : "document");
+  expect(persist).toHaveBeenCalledOnce();
 });

@@ -6,6 +6,7 @@ import { createSpaceState } from "../session/session-state";
 
 function setup() {
   const state = createSpaceState();
+  state.activeSpaceId.value = "inbox";
   const placement = createSpacePlacement({
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,
@@ -17,7 +18,7 @@ function setup() {
   const requestMediaSeek = vi.fn<(nodeId: string, timeMs: number) => void>();
   return {
     state,
-    actions: createRightSidebarActions(state, placement, requestMediaSeek),
+    actions: createRightSidebarActions(state, placement, requestMediaSeek, async () => {}),
     requestMediaSeek,
   };
 }

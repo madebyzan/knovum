@@ -52,13 +52,13 @@ const emit = defineEmits<{
       >
         <TaskCenter :current-scope="workspace.currentScope?.value" />
         <UiIconButton
+          v-if="workspace.rightSidebarAvailable.value"
           id="workspace-right-sidebar-toggle"
           :label="$t('shell.layout.toggleRightSidebar')"
           aria-controls="spaces-right-sidebar"
           :aria-expanded="rightSidebarOpen"
           shortcut="$mod+Shift+B"
           :active="rightSidebarOpen"
-          :disabled="!workspace.rightSidebarAvailable.value"
           size="md"
           @click="emit('toggle-right-sidebar')"
         >

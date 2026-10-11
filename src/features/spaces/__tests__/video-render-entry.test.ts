@@ -16,7 +16,7 @@ import { deferred } from "./support/canvas-fixtures";
 const context = vi.hoisted(() => ({
   store: {
     activeSpaceId: "origin",
-    videoEditorNodeId: "source",
+    surface: { kind: "video", nodeId: "source" },
     updateNodeContents: vi.fn<() => Promise<void>>(),
     closeVideoEditor: vi.fn<() => void>(),
   },
@@ -34,11 +34,11 @@ let wrapper: ReturnType<typeof mount> | undefined;
 beforeEach(() => {
   vi.clearAllMocks();
   context.store.activeSpaceId = "origin";
-  context.store.videoEditorNodeId = "source";
+  context.store.surface = { kind: "video", nodeId: "source" };
 });
 afterEach(() => wrapper?.unmount());
 
-it.each(["space", "video", "project"])(
+it.each(["space", "video", "reopened", "project"])(
   "retains the render target when %s changes during save",
   async (change) => {
     const saving = deferred<void>();
@@ -60,7 +60,7 @@ it.each(["space", "video", "project"])(
       sourceWidth: 640,
       sourceHeight: 480,
     });
-    const node = shallowRef<SpaceCanvasNode>(source);
+    const node = shallowRef<SpaceCanvasNode<SpaceVideoPayload>>(source);
     const project = shallowRef<VideoEditProject | undefined>(originalProject);
     let actions!: ReturnType<typeof useVideoEditActions>;
     wrapper = mount(
@@ -96,8 +96,9 @@ it.each(["space", "video", "project"])(
     if (change === "space") context.store.activeSpaceId = "other";
     else if (change === "video") {
       node.value = { ...source, id: "other" };
-      context.store.videoEditorNodeId = "other";
-    } else project.value = { ...originalProject, sourceRevision: "new-revision" };
+      context.store.surface = { kind: "video", nodeId: "other" };
+    } else if (change === "reopened") context.store.surface = { kind: "video", nodeId: "source" };
+    else project.value = { ...originalProject, sourceRevision: "new-revision" };
     saving.resolve();
     await rendering;
     expect(context.render.mock.calls).toEqual(change === "project" ? [[source, originalProject]] : []);

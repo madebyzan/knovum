@@ -7,6 +7,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../editor/knowledge-capture";
@@ -59,13 +60,21 @@ export function useSourcePeek() {
     () => sourceContextQuery.error.value,
     (error) => toast.error(getErrorMessage(error)),
   );
-  function revealSource() {
-    if (sourcePeek.value) getCanvasEditorSession().reveal([sourcePeek.value.nodeId], "focus");
+  async function revealSource() {
+    const target = sourcePeek.value;
+    if (!target) return;
+    try {
+      await store.returnToCanvas();
+      getCanvasEditorSession().reveal([target.nodeId], "focus");
+    } catch (error) {
+      if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
+    }
   }
   async function extractSource() {
     const target = sourcePeek.value;
     if (!target) return;
     try {
+      await store.returnToCanvas();
       await createSourceEvidence({
         target,
         title: t("spaces.inspector.excerpts.title", { title: target.nodeTitle }),
@@ -76,7 +85,7 @@ export function useSourcePeek() {
         rationale: t("spaces.conversation.evidence.sourceRationale"),
       });
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
     }
   }
   async function openSourceExternally() {

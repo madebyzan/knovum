@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ArrowLeft, Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
+import { useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
+import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
 import { useSpaceTiptapEditor } from "../../editor/use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../../editor/use-space-tiptap-image-drop";
 import { useSpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
 import SpaceDocumentOutline from "./SpaceDocumentOutline.vue";
+import SpaceDocumentSource from "./SpaceDocumentSource.vue";
 import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
 import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
 import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
@@ -34,6 +37,34 @@ const {
 } = useSpaceTiptapEditor();
 const writing = useSpaceTiptapWritingTools(editor);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot);
+const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");
+const outline = useTemplateRef<InstanceType<typeof SpaceDocumentOutline>>("outline");
+watch(
+  editor,
+  (instance, _previous, cleanup) => {
+    if (!instance) return;
+    cleanup(
+      registerDocumentEditCommands({
+        canUndo: () => instance.can().undo(),
+        canRedo: () => instance.can().redo(),
+        undo: () => {
+          instance.commands.undo();
+        },
+        redo: () => {
+          instance.commands.redo();
+        },
+        find: () => search.value?.show(),
+        hasOutline: () => headings.value.length > 0,
+        focusOutline: () => {
+          void outline.value?.focus();
+        },
+        save: persist,
+        close,
+      }),
+    );
+  },
+  { immediate: true },
+);
 async function exportMarkdown() {
   if (!editor.value) return;
   try {
@@ -70,7 +101,7 @@ async function exportMarkdown() {
               : t("common.saved")
         }}
       </span>
-      <SpaceTiptapSearch v-if="editor" :editor="editor" />
+      <SpaceTiptapSearch ref="search" v-if="editor" :editor="editor" />
       <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
         <Download class="size-3.5" />
       </UiIconButton>
@@ -106,7 +137,13 @@ async function exportMarkdown() {
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>
-      <SpaceDocumentOutline :headings="headings" :active-id="activeHeadingId" @select="revealHeading" />
+      <SpaceDocumentOutline
+        ref="outline"
+        :headings="headings"
+        :active-id="activeHeadingId"
+        @select="revealHeading"
+      />
+      <SpaceDocumentSource />
     </div>
   </section>
 </template>

@@ -39,6 +39,11 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     ...CANVAS_TOOL_COMMANDS.map((toolCommand) =>
       command(`spaces.tool-${toolCommand.tool}`, t(toolCommand.title), {
         shortcut: toolCommand.shortcut,
+        availability: () =>
+          availableWhen(
+            toolCommand.tool !== "pan" || store.editSnapshot.structure.length > 0,
+            "selection_not_eligible",
+          ),
         run: () => tools.selectTool(toolCommand.tool),
       }),
     ),
@@ -50,19 +55,23 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     command("spaces.zoom-in", t("spaces.canvas.zoom.in"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomIn,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomIn,
+      availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
       run: () => session.activeEditor.value?.zoomIn(),
     }),
     command("spaces.zoom-out", t("spaces.canvas.zoom.out"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomOut,
+      availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
       run: () => session.activeEditor.value?.zoomOut(),
     }),
     command("spaces.zoom-reset", t("spaces.canvas.shortcuts.zoomReset"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.resetZoom,
+      availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
       run: () => session.activeEditor.value?.setZoom(1),
     }),
     command("spaces.zoom-to-fit", t("spaces.canvas.zoom.toFitContent"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToFit,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToFit,
+      availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
       run: () => session.activeEditor.value?.zoomToFit(),
     }),
     command("spaces.zoom-to-selection", t("spaces.canvas.zoom.toSelection"), {
