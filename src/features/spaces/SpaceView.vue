@@ -134,7 +134,7 @@ onMounted(() => void initialize());
           v-show="surface.kind === 'canvas'"
           class="absolute inset-0 outline-none"
         >
-          <SpaceCanvas :is-rendering-enabled="canvasVisible" />
+          <SpaceCanvas :rendering-enabled="canvasVisible" />
         </TabsContent>
         <SpaceAudioRecordingDock
           class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2"

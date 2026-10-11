@@ -12,7 +12,7 @@ export function useRuntimeViewport(
 ) {
   const viewport = useStageViewport({
     host,
-    isNavigationEnabled: () => props.isInteractionEnabled && props.isNavigationEnabled,
+    navigationEnabled: () => props.interactionEnabled && props.navigationEnabled,
     initialViewport: model.document.viewport,
     update: (next) => model.setViewport(next),
   });

@@ -27,10 +27,10 @@ import { useSpaceCanvasImports } from "./use-space-canvas-imports";
 import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 
-const props = defineProps<{ isRenderingEnabled: boolean }>();
+const props = defineProps<{ renderingEnabled: boolean }>();
 provide(
   overlayScopeVisibleKey,
-  computed(() => props.isRenderingEnabled),
+  computed(() => props.renderingEnabled),
 );
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
@@ -119,8 +119,8 @@ const canvasEvents = createSpaceCanvasEvents({
 
 <template>
   <section
-    v-show="isRenderingEnabled"
-    :inert="!isRenderingEnabled"
+    v-show="renderingEnabled"
+    :inert="!renderingEnabled"
     ref="canvasRoot"
     class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none"
   >
@@ -132,15 +132,15 @@ const canvasEvents = createSpaceCanvasEvents({
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
-      :is-rendering-enabled="isRenderingEnabled"
+      :rendering-enabled="renderingEnabled"
       :events="canvasEvents"
       :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
       :ensure-persisted="store.ensureActiveSpacePersisted"
       :import-json-canvas="store.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
       :group-scope-path="store.groupScopePath"
-      :is-interaction-enabled="isRenderingEnabled && !editorSession.transitioning.value"
-      :is-navigation-enabled="hasCanvasObjects"
+      :interaction-enabled="renderingEnabled && !editorSession.transitioning.value"
+      :navigation-enabled="hasCanvasObjects"
       :can-commit-canvas-gestures="canCommitCanvasGestures"
       :tool="tools.tool"
       :space-id="spaceId"
@@ -160,11 +160,11 @@ const canvasEvents = createSpaceCanvasEvents({
       </template>
     </CanvasSurfaceHost>
     <SpaceCanvasProductLayer
-      v-if="isRenderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
+      v-if="renderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
       :captures="captures"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :empty="initialEmpty"
-      :is-navigation-enabled="hasCanvasObjects"
+      :navigation-enabled="hasCanvasObjects"
       :file-hover="imports.fileHover.value"
       v-bind="{
         ...(canvasError ? { error: canvasError } : {}),

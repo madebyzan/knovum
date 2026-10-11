@@ -10,7 +10,7 @@ import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/use
 import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
 import SpaceAddMenu from "../creation/SpaceAddMenu.vue";
 
-const props = defineProps<{ isNavigationEnabled: boolean }>();
+const props = defineProps<{ navigationEnabled: boolean }>();
 const tools = useCanvasToolStore();
 const nodeOperations = useNodeOperationGate();
 const ICONS = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: SquareDashed };
@@ -19,7 +19,7 @@ function toolEffect(tool: keyof typeof ICONS): NodeOperationEffect {
   return tool === "select" || tool === "pan" ? "structure" : "create";
 }
 function canUseTool(tool: keyof typeof ICONS) {
-  return nodeOperations.allows(toolEffect(tool)) && (tool !== "pan" || props.isNavigationEnabled);
+  return nodeOperations.allows(toolEffect(tool)) && (tool !== "pan" || props.navigationEnabled);
 }
 </script>
 
