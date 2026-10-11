@@ -18,6 +18,7 @@ import type { useStageViewport } from "./viewport/use-stage-viewport";
 
 interface RuntimeEditorRegistrationOptions {
   cancelInteraction(): void;
+  suspendInteraction(): void;
   gestures: ReturnType<typeof createCanvasGestureSession>;
   nudgeSelection(offset: CanvasPoint): Promise<void>;
   host: Readonly<Ref<HTMLElement | null>>;
@@ -38,6 +39,7 @@ export function useRuntimeEditorRegistration(options: RuntimeEditorRegistrationO
   const { props } = options;
   useEditorRegistration({
     cancelInteraction: options.cancelInteraction,
+    suspendInteraction: options.suspendInteraction,
     events: props.events,
     focusNodeIds: () => props.focusNodeIds,
     host: options.host,

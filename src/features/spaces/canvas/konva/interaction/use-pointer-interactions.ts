@@ -134,11 +134,12 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
   function beginToolInteraction(event: Konva.KonvaEventObject<PointerEvent>) {
     if (options.viewport.beginPan(event, options.tool.value === "pan")) return true;
     const tool = options.tool.value;
-    if (event.evt.button !== 0 || tool === "select" || tool === "pan") return false;
+    if (tool === "pan" || options.viewport.spacePressed.value) return true;
+    if (event.evt.button !== 0 || tool === "select") return false;
     const point = lastCanvasPoint.value;
-    if (tool === "section" && point) beginSection(point);
-    else if (point && !creating && isTextCreationTool(tool))
-      runCreation(() => options.createTextNode(tool, point));
+    if (!point || creating) return true;
+    if (tool === "section") beginSection(point);
+    else runCreation(() => options.createTextNode(tool, point));
     return true;
   }
   function beginSection(point: CanvasPoint) {
@@ -174,8 +175,4 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
       if (pressedSelection) pressedSelection.moved = true;
     },
   };
-}
-
-function isTextCreationTool(tool: CanvasTool): tool is "note" | "text" {
-  return tool === "note" || tool === "text";
 }

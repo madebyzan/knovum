@@ -15,14 +15,26 @@ export const useSpaceStore = defineStore("spaces", () => {
     selectionClearNonce: state.selectionClearNonce,
     sceneCue: state.sceneCue,
   });
-  watch([state.nodes, state.focusedEditorId], ([nodes, focusedEditorId]) => {
-    if (focusedEditorId && !nodes.some((node) => node.id === focusedEditorId))
-      state.focusedEditorId.value = undefined;
+  watch([state.nodes, state.surface], ([nodes, surface]) => {
+    if (
+      (surface.kind === "document" || surface.kind === "video") &&
+      !nodes.some(({ id }) => id === surface.nodeId)
+    )
+      state.surface.value = { kind: "canvas" };
   });
-  watch(state.nodes, (nodes) => {
-    if (state.videoEditorNodeId.value && !nodes.some(({ id }) => id === state.videoEditorNodeId.value))
-      state.videoEditorNodeId.value = undefined;
-  });
+  watch(
+    state.surface,
+    () => {
+      state.sourcePeek.value = undefined;
+      if (state.rightSidebarView.value === "source")
+        state.rightSidebarView.value = state.sourceReturnView.value;
+      state.editorLocateRequest.value = undefined;
+      state.workflowMode.value = undefined;
+      state.findOpen.value = false;
+      state.globalFindOpen.value = false;
+    },
+    { flush: "sync" },
+  );
   watch([state.nodes, state.relations], () => {
     state.thumbnailDirty.value = true;
   });
@@ -32,12 +44,6 @@ export const useSpaceStore = defineStore("spaces", () => {
     ...useSpaceActions(state, placement),
     markCanvasOverviewDirty: () => {
       state.thumbnailDirty.value = true;
-    },
-    openVideoEditor: (nodeId: string) => {
-      state.videoEditorNodeId.value = nodeId;
-    },
-    closeVideoEditor: () => {
-      state.videoEditorNodeId.value = undefined;
     },
   };
 });

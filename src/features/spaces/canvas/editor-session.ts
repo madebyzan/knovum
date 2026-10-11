@@ -97,7 +97,7 @@ export function updateCanvasTextEditorProjection(nodeId: string, active: boolean
 export function runCanvasSessionTransition<T>(transition: () => Promise<T>) {
   if (pendingTransitions === 0) {
     suspendedEditor = activeEditor.value;
-    suspendedEditor?.cancelInteraction();
+    suspendedEditor?.suspendInteraction();
     if (activeEditor.value === suspendedEditor) activeEditor.value = undefined;
     suspendedParticipants = snapshotSpaceSessionParticipants();
     for (const participant of suspendedParticipants) participant.suspend?.();

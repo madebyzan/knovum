@@ -31,6 +31,11 @@ watch(open, async (value) => {
     props.editor.commands.clearSearch();
   }
 });
+defineExpose({
+  show: () => {
+    open.value = true;
+  },
+});
 function move(direction: "next" | "previous") {
   if (!query.value) return;
   if (direction === "next") props.editor.commands.goToNextResult();

@@ -1,14 +1,21 @@
+import { computed, readonly } from "vue";
+
 import { createSpaceHistoryState } from "../history/history-state";
 import { createSpaceMediaState } from "../media/media-state";
 import { createWorkspaceNavigationState } from "../workspace/navigation-history";
+import { spaceWorkbenchCapabilities } from "../workspace/space-surface";
 import { createSpaceContentState } from "./content-state";
 import { createSpaceUiState } from "./workbench-state";
 
 export function createSpaceState() {
   const ui = createSpaceUiState();
+  const content = createSpaceContentState();
   return {
-    ...createSpaceContentState(),
+    ...content,
     ...ui,
+    workbench: computed(() =>
+      spaceWorkbenchCapabilities(ui.surface.value, Boolean(content.activeSpaceId.value)),
+    ),
     ...createSpaceMediaState(),
     ...createSpaceHistoryState(),
     ...createWorkspaceNavigationState(),
@@ -31,7 +38,6 @@ export function spaceSessionBindings(state: SpaceState) {
     activeSpaceId: state.activeSpaceId,
     ready: state.ready,
     loading: state.loading,
-    workspaceMode: state.workspaceMode,
     libraryScope: state.libraryScope,
     libraryLayout: state.libraryLayout,
     libraryQuery: state.libraryQuery,
@@ -43,8 +49,8 @@ export function spaceSessionBindings(state: SpaceState) {
     rightSidebarView: state.rightSidebarView,
     workflowMode: state.workflowMode,
     workflowCaptureSelection: state.workflowCaptureSelection,
-    focusedEditorId: state.focusedEditorId,
-    videoEditorNodeId: state.videoEditorNodeId,
+    surface: readonly(state.surface),
+    workbench: state.workbench,
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,
     viewportRequest: state.viewportRequest,

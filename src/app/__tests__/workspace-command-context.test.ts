@@ -26,7 +26,8 @@ vi.mock("../../foundation/preferences/preferences-store", () => ({
 }));
 
 const store = reactive({
-  workspaceMode: "library",
+  surface: { kind: "library" },
+  workbench: { canvas: false, rightSidebar: false, outline: false },
   activeSpaceId: undefined,
   activeSpace: undefined,
   openSpaceIds: [],

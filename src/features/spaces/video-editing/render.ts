@@ -27,6 +27,7 @@ export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>
   const store = useSpaceStore();
   const tasks = useTaskStore();
   const spaceId = store.activeSpaceId;
+  const sourceSurface = store.surface;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
   const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_edit_output_path");
@@ -79,10 +80,7 @@ export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>
     store.applyNodeContentForSpace(spaceId, completed.nodeId, videoPayload);
     tasks.succeed(taskId);
     await refreshOriginSpace();
-    if (store.activeSpaceId === spaceId && store.videoEditorNodeId === source.id) {
-      store.closeVideoEditor();
-      store.requestReveal([completed.nodeId], "ensure-visible");
-    }
+    revealRenderedVideo(completed.nodeId);
   } catch (error) {
     if (decodeAppError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
     else {
@@ -90,6 +88,19 @@ export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>
       toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     }
     await refreshOriginSpace();
+  }
+
+  function revealRenderedVideo(outputNodeId: string) {
+    const surface = store.surface;
+    if (
+      store.activeSpaceId !== spaceId ||
+      surface !== sourceSurface ||
+      surface.kind !== "video" ||
+      surface.nodeId !== source.id
+    )
+      return;
+    store.closeVideoEditor();
+    store.requestReveal([outputNodeId], "ensure-visible");
   }
 
   async function refreshOriginSpace() {

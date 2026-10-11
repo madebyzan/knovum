@@ -1,5 +1,4 @@
 import { error as logError } from "@tauri-apps/plugin-log";
-import { debounce } from "es-toolkit";
 import pLimit from "p-limit";
 
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
@@ -10,28 +9,13 @@ import type { SpaceState } from "../session/session-state";
 import { updateSpaceThumbnail } from "../workspace/space-operations";
 import { currentCanvasEditor } from "./editor-session";
 
-const SETTLE_DELAY_MS = 800;
 const publications = pLimit(1);
 const captureBySpaceId = new Map<string, symbol>();
-const persistScheduledThumbnail = debounce((state: SpaceState) => {
-  void persistActiveCanvasThumbnail(state).catch((error) =>
-    logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
-  );
-}, SETTLE_DELAY_MS);
-
-export function scheduleCanvasThumbnail(state: SpaceState) {
-  persistScheduledThumbnail.cancel();
-  const space = state.activeSpace.value;
-  if (!space || !needsCapture(state, space)) return;
-  persistScheduledThumbnail(state);
-}
-
 function needsCapture(state: SpaceState, space: Space) {
   return state.thumbnailDirty.value || (!space.thumbnailPath && !captureBySpaceId.has(space.id));
 }
 
 export function captureActiveCanvasThumbnail(state: SpaceState) {
-  persistScheduledThumbnail.cancel();
   void persistActiveCanvasThumbnail(state).catch((error) =>
     logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
   );

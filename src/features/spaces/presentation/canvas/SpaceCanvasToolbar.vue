@@ -3,18 +3,23 @@ import { Hand, MousePointer2, SquareDashed, StickyNote, Type } from "@lucide/vue
 import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
+import { runAppCommandById } from "../../../../foundation/commands/run-app-command";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/use-node-operation-gate";
 import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
 import SpaceAddMenu from "../creation/SpaceAddMenu.vue";
 
+const props = defineProps<{ navigationEnabled: boolean }>();
 const tools = useCanvasToolStore();
 const nodeOperations = useNodeOperationGate();
 const ICONS = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: SquareDashed };
 const { t } = useI18n();
 function toolEffect(tool: keyof typeof ICONS): NodeOperationEffect {
   return tool === "select" || tool === "pan" ? "structure" : "create";
+}
+function canUseTool(tool: keyof typeof ICONS) {
+  return nodeOperations.allows(toolEffect(tool)) && (tool !== "pan" || props.navigationEnabled);
 }
 </script>
 
@@ -30,11 +35,11 @@ function toolEffect(tool: keyof typeof ICONS): NodeOperationEffect {
           :label="t(toolCommand.title)"
           :shortcut="toolCommand.shortcut"
           :active="tools.tool === toolCommand.tool"
-          :disabled="!nodeOperations.allows(toolEffect(toolCommand.tool))"
+          :disabled="!canUseTool(toolCommand.tool)"
           class="data-[active=true]:bg-surface-selected data-[active=true]:text-fg-accent"
           tooltip-side="bottom"
           size="sm"
-          @click="nodeOperations.allows(toolEffect(toolCommand.tool)) && tools.selectTool(toolCommand.tool)"
+          @click="runAppCommandById(`spaces.tool-${toolCommand.tool}`)"
         >
           <component :is="ICONS[toolCommand.tool]" class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>

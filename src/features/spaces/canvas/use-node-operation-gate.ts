@@ -36,20 +36,24 @@ export function useNodeOperationGate() {
     if (imageComment.activeNodeId) return { kind: "image-comment", nodeId: imageComment.activeNodeId };
     if (canvas.activeTextEditorNodeId.value)
       return { kind: "text-edit", nodeId: canvas.activeTextEditorNodeId.value };
-    if (space.focusedEditorId) return { kind: "document-edit", nodeId: space.focusedEditorId };
-    if (space.videoEditorNodeId) return { kind: "video-edit", nodeId: space.videoEditorNodeId };
+    if (space.surface.kind === "document") return { kind: "document-edit", nodeId: space.surface.nodeId };
+    if (space.surface.kind === "video") return { kind: "video-edit", nodeId: space.surface.nodeId };
     if (drafts.active) return { kind: "node-draft", nodeId: drafts.active.nodeId };
     if (canvas.directManipulation.value) return { kind: "canvas-gesture" };
     return undefined;
   });
 
   function allows(effect: NodeOperationEffect) {
-    return effect === "inspect" || !active.value;
+    return space.workbench.canvas && !canvas.transitioning.value && (effect === "inspect" || !active.value);
   }
 
   // The canvas gesture owns its completion callback while direct manipulation is projected.
   function allowsGestureCommit() {
-    return !active.value || active.value.kind === "canvas-gesture";
+    return (
+      space.workbench.canvas &&
+      !canvas.transitioning.value &&
+      (!active.value || active.value.kind === "canvas-gesture")
+    );
   }
 
   return { active, allows, allowsGestureCommit };

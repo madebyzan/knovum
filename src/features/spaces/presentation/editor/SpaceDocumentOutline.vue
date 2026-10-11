@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PopoverContent, PopoverRoot, PopoverTrigger } from "reka-ui";
-import { computed, shallowRef } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { SpaceTiptapHeading } from "../../editor/tiptap-outline";
@@ -9,6 +9,14 @@ const props = defineProps<{ headings: readonly SpaceTiptapHeading[]; activeId?: 
 const emit = defineEmits<{ select: [position: number] }>();
 const { t } = useI18n();
 const open = shallowRef(false);
+const trigger = useTemplateRef<HTMLButtonElement>("trigger");
+defineExpose({
+  focus: async () => {
+    open.value = props.headings.length > 0;
+    await nextTick();
+    trigger.value?.focus();
+  },
+});
 
 // Keep long documents' orientation marks quiet; the expanded directory includes every heading.
 const minibarHeadings = computed(() => {
@@ -20,7 +28,8 @@ const minibarHeadings = computed(() => {
 <template>
   <div
     v-if="headings.length"
-    class="pointer-events-auto absolute top-5 right-4 z-10 hidden xl:block"
+    class="pointer-events-auto absolute top-5 right-4 z-10"
+    :class="open ? 'block' : 'hidden xl:block'"
     data-testid="document-outline"
     @mouseenter="open = true"
     @mouseleave="open = false"
@@ -28,6 +37,7 @@ const minibarHeadings = computed(() => {
     <PopoverRoot v-model:open="open" :modal="false">
       <PopoverTrigger as-child>
         <button
+          ref="trigger"
           type="button"
           class="flex w-8 flex-col items-end gap-1 rounded-md px-1.5 py-2.5 text-fg-tertiary transition-colors hover:bg-surface-control-hover hover:text-fg-secondary"
           :aria-label="t('spaces.sidebar.editorOutline.title')"

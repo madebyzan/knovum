@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, watch } from "vue";
 
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { useVideoEditProxy } from "../../video-editing/use-video-edit-proxy";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
@@ -20,7 +22,12 @@ import { useVideoEditorMedia } from "./use-video-editor-media";
 import { useVideoProjectPlayback } from "./use-video-project-playback";
 
 const store = useSpaceStore();
-const node = computed(() => store.nodes.find(({ id }) => id === store.videoEditorNodeId));
+const node = computed(() =>
+  store.nodes.find(
+    (candidate): candidate is SpaceCanvasNode<SpaceVideoPayload> =>
+      candidate.type === "video" && store.surface.kind === "video" && candidate.id === store.surface.nodeId,
+  ),
+);
 const data = computed(() => (node.value?.data.kind === "video" ? node.value.data : undefined));
 const {
   path: proxyPath,

@@ -17,13 +17,16 @@ export function createRightSidebarActions(
   state: SpaceState,
   placement: SpacePlacement,
   requestMediaSeek: (nodeId: string, timeMs: number) => void,
+  openDocumentEditor: (nodeId: string) => Promise<void>,
 ) {
   function setRightSidebarView(mode: RightSidebarPrimaryView) {
+    if (!state.workbench.value.rightSidebar) throw new Error("Canvas context is unavailable");
     state.sourcePeek.value = undefined;
     state.rightSidebarView.value = mode;
   }
 
   function requestAsk(scope: ConversationScope, options: AskSidebarOptions = {}) {
+    if (!state.workbench.value.rightSidebar) throw new Error("Canvas context is unavailable");
     state.sourcePeek.value = undefined;
     state.rightSidebarView.value = "ask";
     state.askScopeRequest.value = {
@@ -39,12 +42,15 @@ export function createRightSidebarActions(
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
+    if (!["canvas", "document"].includes(state.surface.value.kind))
+      throw new Error("Source context is unavailable");
     const currentView = state.rightSidebarView.value;
     if (currentView !== "source") state.sourceReturnView.value = currentView;
     state.sourcePeek.value = target;
     state.rightSidebarView.value = "source";
-    if (options.reveal !== false) placement.requestReveal([target.nodeId], "ensure-visible");
-    if (target.locator.location.kind === "media") {
+    if (state.surface.value.kind === "canvas" && options.reveal !== false)
+      placement.requestReveal([target.nodeId], "ensure-visible");
+    if (state.surface.value.kind === "canvas" && target.locator.location.kind === "media") {
       requestMediaSeek(target.nodeId, target.locator.location.startMs);
     }
   }
@@ -54,12 +60,12 @@ export function createRightSidebarActions(
     state.rightSidebarView.value = state.sourceReturnView.value;
   }
 
-  function openEditorAtSource(target: KnowledgePeekTarget) {
+  async function openEditorAtSource(target: KnowledgePeekTarget) {
     const node = state.nodes.value.find((candidate) => candidate.id === target.nodeId);
     if (!node || !["note", "markdown"].includes(node.data.kind)) {
       throw new Error("Source is not editable in Knovum");
     }
-    state.focusedEditorId.value = node.id;
+    await openDocumentEditor(node.id);
     state.editorLocateRequest.value = { nodeId: node.id, locator: target.locator, nonce: Date.now() };
   }
 

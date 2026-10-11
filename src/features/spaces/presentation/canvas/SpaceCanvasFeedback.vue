@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { AlertCircle, X } from "@lucide/vue";
 import { clamp } from "es-toolkit";
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -18,7 +17,6 @@ const props = defineProps<{
   error?: string;
   fileHover: boolean;
   fileHoverPosition?: { x: number; y: number };
-  spaceId: string;
 }>();
 const emit = defineEmits<{
   dismissError: [];
@@ -27,7 +25,6 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const editorSession = getCanvasEditorSession();
-const visibleCaptures = computed(() => props.captures.filter((capture) => capture.spaceId === props.spaceId));
 
 function captureStyle(capture: SpaceUrlCaptureProjection) {
   const position = props.canvasToViewportPoint(capture.position);
@@ -50,7 +47,7 @@ function captureStyle(capture: SpaceUrlCaptureProjection) {
     leave-to-class="opacity-0"
   >
     <SpaceCanvasMediaImport
-      v-for="capture in visibleCaptures"
+      v-for="capture in captures"
       :key="capture.id"
       class="pointer-events-auto absolute top-0 left-0 z-20 origin-top-left"
       :style="captureStyle(capture)"

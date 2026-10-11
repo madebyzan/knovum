@@ -41,7 +41,7 @@ const project = createVideoEditProject({ sourceRevision: "source-revision", dura
 function createStore() {
   return (mocks.current = {
     activeSpaceId: "space-id",
-    videoEditorNodeId: source.id,
+    surface: { kind: "video", nodeId: source.id },
     createPendingContentForSpace: vi
       .fn<ReturnType<typeof useSpaceStore>["createPendingContentForSpace"]>()
       .mockResolvedValue([pending]),
@@ -167,7 +167,7 @@ describe("video render IPC boundary", () => {
     expect(mocks.logError).toHaveBeenCalledWith(expect.stringContaining("Refresh failed"));
   });
 
-  it("keeps a deferred render in its origin Space without closing a newer editor", async () => {
+  it.each(["other-video", "reopened"])("preserves a %s editor after a late render", async (target) => {
     const allocation = deferred<string>();
     mocks.allocate.mockReturnValueOnce(allocation.promise);
     mocks.invoke.mockResolvedValueOnce({ nodeId: pending.id, data: source.data });
@@ -175,8 +175,8 @@ describe("video render IPC boundary", () => {
     const rendering = renderVideoEdit(source, project);
     await vi.waitFor(() => expect(mocks.allocate).toHaveBeenCalledOnce());
 
-    store.activeSpaceId = "space-b";
-    store.videoEditorNodeId = "new-source";
+    store.activeSpaceId = target === "reopened" ? "space-id" : "space-b";
+    store.surface = { kind: "video", nodeId: target === "reopened" ? source.id : "new-source" };
     const newerStore = createStore();
     allocation.resolve("/assets/edited-reserved.mp4");
     await rendering;
@@ -186,7 +186,7 @@ describe("video render IPC boundary", () => {
       expect.objectContaining({ assetPath: "/assets/edited-reserved.mp4" }),
     );
     expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
-    expect(store.refreshActiveSpace).not.toHaveBeenCalled();
+    expect(store.refreshActiveSpace).toHaveBeenCalledTimes(target === "reopened" ? 1 : 0);
     expect(newerStore.refreshActiveSpace).not.toHaveBeenCalled();
     expect(store.closeVideoEditor).not.toHaveBeenCalled();
     expect(store.requestReveal).not.toHaveBeenCalled();

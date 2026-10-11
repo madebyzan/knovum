@@ -539,11 +539,24 @@ The toolbar is part of the knowledge-space workflow. It contains Space navigatio
 task progress and contextual controls; it is not an application switcher. Settings temporarily
 replaces the workspace and returns to the last knowledge-space route.
 
-In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline stays inside the editor: a quiet minibar at the upper right expands on hover or explicit keyboard activation into a compact 288px overlay. The minibar shows at most 16 orientation marks, preferring H1/H2 when at least three exist; the expanded directory includes every heading, highlights the current section and scrolls within a bounded height without a visible scrollbar. It does not resize the document or open the workspace right sidebar. Documents without headings omit the minibar; it appears at the xl breakpoint, matching the original editor layout. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
+In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline stays inside the editor: a quiet minibar at the upper right expands on hover or explicit keyboard activation into a compact 288px overlay. The minibar shows at most 16 orientation marks, preferring H1/H2 when at least three exist; the expanded directory includes every heading, highlights the current section and scrolls within a bounded height without a visible scrollbar. It does not resize the document or open the workspace right sidebar. Documents without headings omit the minibar; passive orientation marks appear at the xl breakpoint, while explicit keyboard activation can open the outline at any width. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
 
 AI writing actions belong to the selection bubble menu. The document toolbar has no AI writing entry.
 
 The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation and Details views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
+
+The canvas Outline, Conversation/Details pane and canvas commands are available only on the active
+canvas surface. Document and video editors retain Space navigation but own their outlines, histories,
+search and editing controls. Document citations open a document-local source preview; returning to
+canvas or another editor clears that preview. The shell's requested right-sidebar visibility survives
+surface changes, but the pane and its toggle are absent where the capability is unavailable.
+
+A canvas is initially empty only when authored Structure and current-Space captures are absent, and
+no placement tool is active. Empty Sections, Groups and hidden/offscreen objects count as authored
+content. A canvas without authored objects accepts creation, selection and import but does not accept
+wheel pan/zoom or drag panning; it preserves the camera for Undo. The inactive retained canvas is hidden
+and inert, with input, canvas overlays and contextual commands suspended. Surface suspension cancels
+transient gestures without using Escape's deselection or Group-exit behavior.
 
 There is no permanent global status bar. Task progress appears contextually in the top toolbar;
 offline state appears only when offline. Toolbar controls are limited to knowledge-space or truly

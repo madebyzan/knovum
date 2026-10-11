@@ -22,7 +22,7 @@ import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
 interface VideoEditActionsOptions {
-  node: Ref<SpaceCanvasNode | undefined>;
+  node: Ref<SpaceCanvasNode<SpaceVideoPayload> | undefined>;
   data: Ref<SpaceVideoPayload | undefined>;
   project: Ref<VideoEditProject | undefined>;
   video: Ref<HTMLVideoElement | null>;
@@ -118,11 +118,12 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
     const sourceNode = node.value;
     const renderProject = project.value;
     const spaceId = store.activeSpaceId;
-    if (rendering.value || !sourceNode || sourceNode.type !== "video" || !renderProject) return;
+    const sourceSurface = store.surface;
+    if (rendering.value || !sourceNode || !renderProject) return;
     rendering.value = true;
     try {
       if (history.dirty.value && !(await save())) return;
-      if (store.activeSpaceId !== spaceId || store.videoEditorNodeId !== sourceNode.id) return;
+      if (store.activeSpaceId !== spaceId || store.surface !== sourceSurface) return;
       await renderVideoEdit(sourceNode, renderProject);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);

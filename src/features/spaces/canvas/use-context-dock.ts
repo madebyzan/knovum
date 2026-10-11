@@ -41,7 +41,7 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
     store.workflowMode = undefined;
     store.openSource(target, options);
-    rightSidebar.open();
+    if (store.workbench.rightSidebar) rightSidebar.open();
   }
 
   function openWorkflowCapture(nodeIds: string[]) {

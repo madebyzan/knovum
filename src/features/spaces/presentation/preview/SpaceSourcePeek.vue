@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ArrowUpRight, FilePlus2, LocateFixed } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { knowledgeLocationLabel } from "../knowledge/knowledge-location-label";
@@ -10,6 +13,15 @@ import SpaceTextQuote from "./SpaceTextQuote.vue";
 
 const { t } = useI18n();
 const store = useSpaceStore();
+async function openEditor() {
+  const target = store.sourcePeek;
+  if (!target) return;
+  try {
+    await store.openEditorAtSource(target);
+  } catch (error) {
+    if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
+  }
+}
 const {
   sourcePeek,
   sourceContext,
@@ -73,7 +85,7 @@ const {
       <UiButton size="sm" variant="ghost" @click="revealSource">
         <LocateFixed class="size-3" />{{ t("spaces.canvas.revealInCanvas") }}
       </UiButton>
-      <UiButton v-if="editableSource" size="sm" @click="store.openEditorAtSource(sourcePeek)">
+      <UiButton v-if="editableSource" size="sm" @click="openEditor">
         {{ t("spaces.importExport.openInEditor") }}
       </UiButton>
       <template v-if="hasAsset">

@@ -10,19 +10,19 @@ export function useCanvasNavigationRequests() {
   const { revealRequest, selectionClearNonce, viewportRequest, zoomRequest } = storeToRefs(store);
   function consumeRevealRequest() {
     const request = revealRequest.value;
-    if (!request || !editorSession.activeEditor.value) return;
+    if (!store.workbench.canvas || !request || !editorSession.activeEditor.value) return;
     editorSession.activeEditor.value.reveal(request.ids, request.mode);
     revealRequest.value = undefined;
   }
   function consumeViewportRequest() {
-    if (!viewportRequest.value || !editorSession.activeEditor.value) return;
+    if (!store.workbench.canvas || !viewportRequest.value || !editorSession.activeEditor.value) return;
     editorSession.activeEditor.value.navigateViewport(viewportRequest.value.viewport);
     viewportRequest.value = undefined;
   }
   function consumeZoomRequest() {
     const request = zoomRequest.value;
     const editor = editorSession.activeEditor.value;
-    if (!request || !editor) return;
+    if (!store.workbench.canvas || !request || !editor) return;
     if (request.mode === "in") editor.zoomIn();
     else if (request.mode === "out") editor.zoomOut();
     else if (request.mode === "selection") editor.zoomToSelection();
@@ -34,11 +34,11 @@ export function useCanvasNavigationRequests() {
   watch(zoomRequest, consumeZoomRequest);
   watch(selectionClearNonce, () => editorSession.activeEditor.value?.clearSelection());
 
-  return {
-    consumePending() {
-      consumeRevealRequest();
-      consumeViewportRequest();
-      consumeZoomRequest();
-    },
-  };
+  function consumePending() {
+    consumeRevealRequest();
+    consumeViewportRequest();
+    consumeZoomRequest();
+  }
+  watch([() => store.workbench.canvas, editorSession.activeEditor], consumePending);
+  return { consumePending };
 }

@@ -9,6 +9,21 @@ the edit lease. Failed saves retain the draft, restore input focus and show a lo
 inside a multi-product container. Its sidebar, toolbar and selection-driven inspector are composed
 into the stable desktop shell, while Settings is a separate application route.
 
+## Work surfaces and session ownership
+
+One active Space can show its canvas, one document editor, one video editor or the library. These
+surfaces are mutually exclusive session state, not independent layers. Library navigation, editor
+replacement, same-Space return and Space changes prepare content/layout/persistence through the
+existing leave barrier. Cancelled leave or failed save keeps the active surface and destination filter.
+Video close/render completion may finish the owning editor only after its Save/Discard decision or
+successful publication; a late result cannot close a newer editor.
+
+The retained canvas preserves camera, selection and Group scope. Transient gestures and inline input
+are suspended during a surface handoff; inactive canvas navigation requests wait until the canvas
+becomes active again. A missing editor owner explicitly returns to canvas when its content is removed.
+Details inspects content, containers, relations and mixed selections; Space Knowledge Health appears
+only when nothing is selected. Editor-local citation preview does not request the canvas right pane.
+
 ## Product model
 
 ```text
@@ -33,7 +48,7 @@ A **Space** is an infinite spatial surface and the durable boundary for Relation
 
 Space catalog covers and Saved View previews are rendered from the neutral canvas scene through one non-interactive Konva thumbnail renderer. Whole-Space covers fit all knowledge content into the catalog frame; Saved Views project the current canvas viewport into the same frame. Product chrome, selection state, resize handles, toolbars, zoom controls and the editing grid never enter the render input. The renderer uses the same canvas geometry, canvas background and bounded local preview resources as the active scene without cloning the mounted DOM.
 
-Canvas tools are transient Space session state, separate from persisted canvas geometry. The top-center Reka toolbar exposes Select (V), Pan (H), Note (N) and Text (T). Outline belongs to the current-Space region of the sidebar; Space management belongs to native context menus, not the tab strip. Tool shortcuts enter through AppCommand, not feature-level keyboard listeners. Opening Outline reveals the sidebar through its neutral presentation contract. Note and Text place empty knowledge at the next canvas click without changing the viewport, then return to Select and activate inline editing. Pan routes left drags through the existing viewport controller and disables node manipulation, relation hit testing and DOM content interaction. Held Space and middle-button drags use that same controller; trackpad scrolling remains unchanged. Switching Spaces resets the tool.
+Canvas tools are transient Space session state, separate from persisted canvas geometry. The top-center Reka toolbar exposes Select (V), Pan (H), Note (N) and Text (T). Outline belongs to the current-Space region of the sidebar; Space management belongs to native context menus, not the tab strip. Tool shortcuts enter through AppCommand, not feature-level keyboard listeners. Opening Outline reveals the sidebar through its neutral presentation contract. Note and Text place empty knowledge at the next canvas click without changing the viewport, then return to Select and activate inline editing. Pan routes left drags through the existing viewport controller and disables node manipulation, relation hit testing and DOM content interaction. Held Space and middle-button drags use that same controller; trackpad scrolling uses the same authored-content navigation admission. Switching Spaces resets the tool.
 
 Space management is available through native context menus on Space cards, tabs and Inbox. These entries share one feature-owned menu composition and always bind to the selected Space. Knowledge Health opens the actual inspection capability, not a misleading Space Details page; entering the library closes the contextual Inspector. Space package import belongs to the library toolbar and creates a new Space. Space package export commits the active session before collecting its transactional snapshot. JSON Canvas export is an advanced exchange option for the active canvas, not a knowledge backup; JSON Canvas import remains available through the command palette. The incomplete automatic backup capability is removed; existing backup files are not deleted and remain importable Space packages.
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { fitCanvasObjects } from "../canvas/konva/viewport/canvas-editor-navigation";
 import { canvasPointFromScreen, zoomViewportAt } from "../canvas/konva/viewport/viewport-math";
 
 describe("Konva canvas viewport", () => {
@@ -17,5 +18,19 @@ describe("Konva canvas viewport", () => {
       x: 100,
       y: 75,
     });
+  });
+  it("fits an empty Section even when no content node layout exists", () => {
+    let viewport = { x: 0, y: 0, zoom: 1 };
+    fitCanvasObjects(
+      {
+        setViewport: (next) => {
+          viewport = next;
+        },
+        size: () => ({ width: 1000, height: 800 }),
+        viewport: () => viewport,
+      },
+      [{ x: 2000, y: 1000, width: 400, height: 300 }],
+    );
+    expect(viewport).toEqual({ x: -3900, y: -1900, zoom: 2 });
   });
 });

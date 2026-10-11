@@ -1,7 +1,5 @@
 import type { Editor } from "@tiptap/vue-3";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 
 interface TiptapSessionParticipantOptions {
@@ -12,23 +10,11 @@ interface TiptapSessionParticipantOptions {
 
 export function registerTiptapSessionParticipant(options: TiptapSessionParticipantOptions) {
   return registerSpaceSessionParticipant({
-    async commit() {
-      try {
-        await persistTiptapSession(options.persist);
-      } catch (error) {
-        toast.error(getErrorMessage(error));
-        throw error;
-      }
-    },
+    commit: options.persist,
     suspend() {
       options.cancelAutoSave();
       options.editor()?.setEditable(false);
     },
     resume: () => options.editor()?.setEditable(true),
   });
-}
-
-export async function persistTiptapSession(persist: () => Promise<void>, afterPersist = () => {}) {
-  await persist();
-  afterPersist();
 }

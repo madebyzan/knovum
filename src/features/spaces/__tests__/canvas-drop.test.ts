@@ -17,7 +17,7 @@ vi.mock("../assets/import-context", () => ({ spaceImportContext: mocks.spaceImpo
 function store() {
   return (mocks.current = {
     activeSpaceId: "space-a",
-    focusedEditorId: undefined,
+    workbench: { canvas: true },
     requestReveal: vi.fn<(ids: readonly string[]) => void>(),
   });
 }

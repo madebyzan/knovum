@@ -6,6 +6,7 @@ import type { SpaceRelation } from "../model/relations/relation";
 import type { Space } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
+import type { SpaceSurface } from "./space-surface";
 
 export interface SpaceSessionContext {
   captureOverview(): void;
@@ -19,7 +20,7 @@ export interface SpaceSessionContext {
   relations: Ref<SpaceRelation[]>;
   ready: Ref<boolean>;
   loading: Ref<boolean>;
-  focusedEditorId: Ref<string | undefined>;
+  surface: Ref<SpaceSurface>;
   history: SpaceHistoryState;
   runtime: {
     openGeneration: number;

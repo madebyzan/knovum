@@ -49,7 +49,7 @@ type OpenHandler = (node: SpaceCanvasNode) => void | Promise<void>;
 
 function openEditorNode(node: SpaceCanvasNode) {
   const store = useSpaceStore();
-  store.focusedEditorId = node.id;
+  return store.openDocumentEditor(node.id);
 }
 
 const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {

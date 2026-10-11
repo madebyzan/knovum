@@ -7,7 +7,7 @@ import type { CanvasPoint } from "./contracts/canvas-editor-port";
 
 export async function importDroppedFiles(payload: FileDrop, origin: CanvasPoint) {
   const store = useSpaceStore();
-  if (store.focusedEditorId) return;
+  if (!store.workbench.canvas) return;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
   const labels = {

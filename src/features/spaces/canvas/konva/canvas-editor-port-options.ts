@@ -15,6 +15,7 @@ export type CanvasFrameMutation = () =>
 export interface KonvaEditorPortOptions extends CanvasHostEvents {
   animateViewport(viewport: CanvasViewport): void;
   cancelInteraction(): void;
+  suspendInteraction(): void;
   runFrameMutation(mutation: CanvasFrameMutation): Promise<void>;
   host(): HTMLElement;
   layouts(): readonly CanvasNodeLayoutV1[];

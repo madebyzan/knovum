@@ -18,6 +18,7 @@ import type { useStageViewport } from "./viewport/use-stage-viewport";
 
 interface EditorRegistrationOptions {
   cancelInteraction(): void;
+  suspendInteraction(): void;
   events: CanvasHostEvents;
   focusNodeIds(): readonly string[];
   host: Readonly<Ref<HTMLElement | null>>;
@@ -52,6 +53,7 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
     editor = createKonvaEditorPort({
       ...options.events,
       cancelInteraction: options.cancelInteraction,
+      suspendInteraction: options.suspendInteraction,
       runFrameMutation: options.runFrameMutation,
       host: () => options.host.value!,
       layouts: () => options.layouts.value,

@@ -9,7 +9,7 @@ import { switchSpaceHistory } from "./session-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
 import { listSpaces } from "./space-operations";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
-import { transitionActiveSpaceSession } from "./space-transition";
+import { transitionActiveSpaceSession, transitionSpaceSurface } from "./space-transition";
 
 export async function initializeSpaces(context: SpaceSessionContext, inboxTitle: string) {
   if (context.ready.value) return;
@@ -31,7 +31,8 @@ export async function openSpace(context: SpaceSessionContext, spaceId: string) {
 async function activateSpace(context: SpaceSessionContext, spaceId: string, recordNavigation: boolean) {
   if (context.runtime.pendingSpaceId === spaceId) return false;
   if (context.activeSpaceId.value === spaceId) {
-    if (context.runtime.pendingSpaceId) cancelPendingSpaceOpen(context);
+    cancelPendingSpaceOpen(context);
+    if (context.surface.value.kind !== "canvas") await transitionSpaceSurface(context, { kind: "canvas" });
     return true;
   }
   if (context.draftSpace.value?.id === spaceId)
@@ -135,8 +136,8 @@ async function loadSpace(context: SpaceSessionContext, spaceId: string, options:
       if (options.markOpened) await markSpaceOpenedAndTrack(context, spaceId);
       if (generation !== context.runtime.openGeneration) return false;
       if (options.resetHistory) switchSpaceHistory(context, spaceId);
-      if (context.focusedEditorId.value) {
-        context.focusedEditorId.value = undefined;
+      if (options.resetHistory) {
+        context.surface.value = { kind: "canvas" };
         await nextTick();
       }
       context.activeSpaceId.value = spaceId;
