@@ -1,7 +1,7 @@
 import { camelCase, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
-const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
+const localeFragments = import.meta.glob("/src/locales/{en,zh-CN}/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, unknown>;
@@ -18,7 +18,7 @@ interface ValueIssues {
 }
 
 function parseModulePath(path: string): ModulePath {
-  const match = path.match(/\/locales\/(en|zh-cn)\/(.+)\.json$/u);
+  const match = path.match(/\/locales\/(en|zh-CN)\/(.+)\.json$/u);
   if (!match) throw new Error(`Unexpected locale module path: ${path}`);
   return { locale: match[1]!, segments: match[2]!.split("/") };
 }

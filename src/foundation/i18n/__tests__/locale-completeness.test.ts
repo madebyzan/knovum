@@ -22,7 +22,7 @@ const sourceModules = import.meta.glob(
   },
 ) as Record<string, string>;
 
-const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
+const localeFragments = import.meta.glob("/src/locales/{en,zh-CN}/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, Record<string, unknown>>;
@@ -52,7 +52,7 @@ function placeholders(message: string) {
 }
 
 function localeModulePath(path: string) {
-  return path.replace(/^.*\/locales\/(?:en|zh-cn)\//u, "");
+  return path.replace(/^.*\/locales\/(?:en|zh-CN)\//u, "");
 }
 
 function nonCamelCaseKeys(tree: Record<string, unknown>, parent = "", keys: string[] = []) {
@@ -121,7 +121,7 @@ describe("locale completeness", () => {
   it("keeps locale module paths aligned", () => {
     const paths = Object.keys(localeFragments);
     const enPaths = paths.filter((path) => path.includes("/locales/en/")).map(localeModulePath);
-    const zhCNPaths = paths.filter((path) => path.includes("/locales/zh-cn/")).map(localeModulePath);
+    const zhCNPaths = paths.filter((path) => path.includes("/locales/zh-CN/")).map(localeModulePath);
     expect(difference(enPaths, zhCNPaths)).toEqual([]);
     expect(difference(zhCNPaths, enPaths)).toEqual([]);
   });

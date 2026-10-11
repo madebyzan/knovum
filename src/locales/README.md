@@ -1,9 +1,12 @@
 # Locale organization
 
-`locale-registry.ts` is the only registry. It eagerly imports `./{en,zh-cn}/**/*.json` and derives
+`locale-registry.ts` is the only registry. It eagerly imports `./{en,zh-CN}/**/*.json` and derives
 namespaces from paths: `spaces/media/image-editor.json` owns `spaces.media.imageEditor.*`.
-Paths use kebab-case; object keys use lowerCamelCase. Each language has the same module tree.
-Directory `zh-cn` maps to application locale `zh-CN`.
+Language root directories use the recommended [BCP 47 casing](https://www.rfc-editor.org/rfc/rfc5646.html#section-2.1.1)
+and match application locale identifiers: language lowercase (`en`), script title case (`Hans`),
+and alphabetic region uppercase (`CN`), for example `zh-CN` or `zh-Hans-CN`. A region is optional;
+`en` identifies general English. Module paths below each language root use kebab-case; object keys
+use lowerCamelCase. Each language has the same module tree.
 
 ## Module boundaries
 
