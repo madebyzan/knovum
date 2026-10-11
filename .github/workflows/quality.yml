@@ -116,16 +116,3 @@ jobs:
         run: |
           test "$AUDIT_RESULT" = "success"
           test "$CHECK_RESULT" = "success"
-
-  release-policy:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      - run: sudo apt-get update && sudo apt-get install -y minisign
-      - name: Verify publishing signatures and rejection
-        run: node --test scripts/release/__tests__/*.integration.mjs

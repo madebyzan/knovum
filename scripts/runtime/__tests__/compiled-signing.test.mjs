@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { mock, test } from "node:test";
 
 import { signCompiledFiles } from "../compiled-signing.mjs";
+import { verifyWindowsApplicationPackage } from "../windows-package-verification.mjs";
 
 test("Windows production signing verifies the approved signer and preserves vendor CRT only explicitly", () => {
   const directory = mkdtempSync(join(tmpdir(), "knovum-signing-test-"));
@@ -47,5 +48,36 @@ test("Windows production signing verifies the approved signer and preserves vend
       else process.env[name] = previous[index];
     });
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("invalid production installer signatures block NSIS and MSI extraction", () => {
+  const root = mkdtempSync(join(tmpdir(), "knovum-distribution-signature-"));
+  const calls = [];
+  const replacement = mock.method(childProcess, "execFileSync", (command, _args, options) => {
+    calls.push({ command, path: options.env.KNOVUM_SIGNATURE_VERIFY_PATH });
+    throw new Error("Invalid timestamped distribution signature");
+  });
+  syncBuiltinESMExports();
+  try {
+    for (const extension of ["exe", "msi"]) {
+      const path = join(root, `Knovum.${extension}`);
+      writeFileSync(path, "installer");
+      assert.throws(
+        () =>
+          verifyWindowsApplicationPackage(path, {
+            target: "windows-x64",
+            repository: root,
+            production: true,
+          }),
+        /Invalid timestamped distribution signature/u,
+      );
+      assert.deepEqual(calls.at(-1), { command: "powershell.exe", path });
+    }
+    assert.equal(calls.length, 2);
+  } finally {
+    replacement.mock.restore();
+    syncBuiltinESMExports();
+    rmSync(root, { recursive: true, force: true });
   }
 });

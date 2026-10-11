@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "desktop:dev": "node scripts/desktop/dev.mjs dev",
-    "package": "node scripts/desktop/package.mjs",
+    "desktop:dev": "node scripts/desktop/tauri.mjs dev",
+    "package": "node scripts/desktop/tauri.mjs build",
     "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "lint": "oxlint .",
     "format": "oxfmt .",

@@ -57,7 +57,6 @@
   },
   "producerSources": [
     "media.mjs",
-    "media-build.mjs",
     "media-binary.mjs",
     "media-smoke.mjs",
     "compiled-signing.mjs",
@@ -66,7 +65,6 @@
     "windows-system-libraries.json",
     "media-license-policy.mjs",
     "media-manifest.mjs",
-    "media-descriptor.mjs",
     "media-runtime-content.mjs",
     "profiles.mjs",
     "provenance.mjs",

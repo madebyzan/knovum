@@ -1,16 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { validateRuntimeDescriptor } from "../runtime/distribution.mjs";
-import { runtimeProfiles, runtimeTargets } from "../runtime/profiles.mjs";
+import { runtimeTargets } from "../runtime/profiles.mjs";
 
-export const releaseTargets = {
-  "aarch64-apple-darwin": "darwin-aarch64",
-  "x86_64-apple-darwin": "darwin-x86_64",
-  "x86_64-pc-windows-msvc": "windows-x86_64",
-};
-
-export function requireValue(value, name) {
+function requireValue(value, name) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${name} is required`);
   return value.trim();
 }
@@ -30,16 +23,7 @@ export function stableVersion(value) {
   return value;
 }
 
-export function compareVersions(left, right) {
-  const a = stableVersion(left).split(".").map(BigInt);
-  const b = stableVersion(right).split(".").map(BigInt);
-  for (let index = 0; index < a.length; index += 1) {
-    if (a[index] !== b[index]) return a[index] > b[index] ? 1 : -1;
-  }
-  return 0;
-}
-
-export function decodeSigningText(value, name) {
+function decodeSigningText(value, name) {
   const encoded = requireValue(value, name);
   const bytes = Buffer.from(encoded, "base64");
   if (bytes.toString("base64") !== encoded) throw new Error(`${name} must contain canonical base64`);
@@ -78,14 +62,6 @@ export function updaterConfiguration(env) {
   };
 }
 
-export function distributionRepository(value) {
-  const repository = requireValue(value, "KNOVUM_DISTRIBUTION_REPOSITORY");
-  if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(repository)) {
-    throw new Error("KNOVUM_DISTRIBUTION_REPOSITORY must be owner/repository");
-  }
-  return repository;
-}
-
 export function platformSigningConfiguration(target, env) {
   if (!Object.values(runtimeTargets).includes(target)) {
     throw new Error(`Unsupported signing target: ${target}`);
@@ -109,39 +85,14 @@ export function validateReleaseArguments(args) {
   const seen = new Set();
   for (let index = 0; index < args.length; index += 2) {
     const name = args[index];
-    if (!["--target", "--bundles"].includes(name) || seen.has(name)) {
-      throw new Error("Release packaging only accepts --target and --bundles once each");
+    if (!["--target", "--bundles", "--config"].includes(name) || seen.has(name)) {
+      throw new Error(
+        "Release packaging only accepts --target, --bundles and the owned release config once each",
+      );
     }
-    requireValue(args[index + 1], name);
+    const value = requireValue(args[index + 1], name);
+    if (name === "--config" && value !== "src-tauri/tauri.release.conf.json")
+      throw new Error("Release packaging requires the owned release config");
     seen.add(name);
   }
-}
-
-export function validateRuntimePublications(value, target) {
-  if (!value || !/^[a-f0-9]{64}$/u.test(value.workerDigest ?? ""))
-    throw new Error("Candidate requires the packaged Worker identity");
-  validateNativePublication(value.nativeInference, target);
-  const runtimes = value.pythonRuntimes;
-  if (
-    !Array.isArray(runtimes) ||
-    runtimes.length !== runtimeProfiles.length ||
-    new Set(runtimes.map((runtime) => runtime.profile)).size !== runtimeProfiles.length
-  )
-    throw new Error("Candidate requires each independent Python runtime publication");
-  for (const profile of runtimeProfiles) {
-    const runtime = runtimes.find((entry) => entry.profile === profile);
-    if (!runtime) throw new Error(`Candidate runtime publication is missing: ${profile}`);
-    validateRuntimeDescriptor(runtime, target, profile);
-  }
-}
-
-function validateNativePublication(native, target) {
-  if (
-    !native ||
-    Object.keys(native).toSorted().join(",") !== "runtimeDigest,schemaVersion,target,workerDigest" ||
-    native.schemaVersion !== 1 ||
-    native.target !== target ||
-    [native.runtimeDigest, native.workerDigest].some((hash) => !/^[a-f0-9]{64}$/u.test(hash ?? ""))
-  )
-    throw new Error("Candidate requires the target-bound native inference worker and manifest");
 }

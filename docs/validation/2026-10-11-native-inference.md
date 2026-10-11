@@ -68,6 +68,10 @@ CI 保留三平台编译、依赖审计和签名拒绝门禁；QA 和正式包�
 
 进一步删减后的实际检查：135项 Node 脚本测试、35项工具/契约 Python 测试和44项 Agent 测试通过；Ruff、Mypy、Oxc、Knip、dependency-cruiser、结构化 capability 检查、全仓格式检查及 actionlint 通过。uv 直接审计根工具锁及 Agent 锁均通过；冻结 pnpm 安装只移除七项评分相关包，没有升级其他依赖。原生供应配方与产品源码没有变化，本轮不重复模型测量、桌面构建或打包。日志在 `.runtime-development/qualification/tooling-removal/`。
 
+本轮继续按实际维护价值删除自建发布框架：移除候选元数据、GitHub 客户端、channel 晋级及 CDN 迁站代码，改用固定提交的官方 Tauri action 上传草稿并生成标准 `latest.json`，正式发布由维护者在完成三平台验收后通过 GitHub 执行。FFmpeg 直接在开发/打包机器按固定来源准备，取消它的归档、独立发布、描述文件和二次下载。Agent 取消独立资源目录协议，改用官方 GitHub CLI 获取三个目标产物并验证 owning workflow、main ref 和发布 tag 对应的 source commit；解压、当前配方、依赖、签名和许可校验继续保留。Windows 安装包签名验证合入原有安装包校验入口，删除独立 PowerShell 包装。`scripts` 跟踪文件由119个降为104个，非测试工具代码由67个降为57个；workflow 由4个降为3个。现有工具代码主要用于原生推理供应构建与保留的 Deep Agent，不属于日常开发入口。
+
+实际验证：123项 Node 回归、Oxc、Knip 和 actionlint 通过；正式构建路由、帮助不触发准备、构建失败传播、不可信来源及篡改/跨目标描述文件在解压前拒绝、NSIS/MSI 签名失败在解压前拒绝均有回归。本机新 FFmpeg 配方完成真实供应下载、静态依赖检查、ad-hoc 签名和中文/空格路径的媒体功能 smoke。未执行桌面打包、三平台发布 CI、正式签名或匿名线上更新验证；本机没有 GitHub CLI，本轮来源验证测试使用受控传输替身，真实 GitHub attestation 接受仍需配置后的 CI 证明。旧 runtime publication 的描述文件/证据缺少新 attestation 要求时必须重新生产，禁止回退读取旧目录协议。本轮不新增产品依赖、不改动原生模型供应配方和业务源码。日志在 `.runtime-development/qualification/tooling-removal/third-*.log`。
+
 ## 发布门禁与限制
 
 - 本机不能提供 Windows x64/macOS arm64 实机、GPU 路径及对应安装包的通过证据。CI 已按原生目标接入构建和校验，未执行的 job 不计通过。

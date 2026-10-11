@@ -5,8 +5,6 @@ import { join } from "node:path";
 import { test } from "node:test";
 
 import {
-  compareVersions,
-  distributionRepository,
   httpsUrl,
   platformSigningConfiguration,
   publicKey,
@@ -14,7 +12,7 @@ import {
   stableVersion,
   updaterConfiguration,
   validateReleaseArguments,
-} from "../policy.mjs";
+} from "../packaging-policy.mjs";
 
 const record = Buffer.alloc(42);
 record.write("Ed");
@@ -64,10 +62,8 @@ test("public key validation rejects paths, malformed encodings and non-key mater
   assert.equal(publicKey(key), key);
 });
 
-test("stable versions sort numerically without precision loss and exclude prereleases", () => {
-  assert.equal(compareVersions("1.10.0", "1.9.9"), 1);
-  assert.equal(compareVersions("9007199254740993.0.0", "9007199254740992.0.0"), 1);
-  assert.equal(compareVersions("1.2.3", "1.2.3"), 0);
+test("stable versions exclude prereleases and ambiguous numeric forms", () => {
+  assert.equal(stableVersion("1.2.3"), "1.2.3");
   for (const version of ["v1.0.0", "1.0.0-beta", "01.0.0", "1.0", "1.0.0+build"])
     assert.throws(() => stableVersion(version));
 });
@@ -92,7 +88,9 @@ test("release metadata has one aligned version source", () => {
 
 test("release builds reject switches that bypass signing or inject unrelated configuration", () => {
   validateReleaseArguments(["--target", "aarch64-apple-darwin", "--bundles", "app,dmg"]);
+  validateReleaseArguments(["--config", "src-tauri/tauri.release.conf.json"]);
   for (const args of [
+    ["--config", "src-tauri/tauri.release.conf.json", "--config", "other.json"],
     ["--debug"],
     ["--config", "other.json"],
     ["--no-sign"],
@@ -119,16 +117,4 @@ test("production packaging requires an explicit platform signing policy", () => 
     APPLE_API_KEY_PATH: "/tmp/key.p8",
   };
   assert.deepEqual(platformSigningConfiguration("macos-arm64", env), {});
-});
-
-test("distribution repository configuration cannot inject API paths", () => {
-  assert.equal(distributionRepository("madebyzan/knovum-releases"), "madebyzan/knovum-releases");
-  for (const value of [
-    "../releases",
-    "owner/../../secrets",
-    "owner/repo?token=x",
-    "https://github.com/owner/repo",
-  ]) {
-    assert.throws(() => distributionRepository(value));
-  }
 });
