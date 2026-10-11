@@ -1,0 +1,136 @@
+Knovum Personal Noncommercial License
+Version 1.0
+SPDX-License-Identifier: LicenseRef-Knovum-Personal-Noncommercial-1.0
+
+Copyright (c) 2026 Zan and other respective contributors.
+
+This is a custom source-available license. It is not an OSI-approved
+open-source license. Read all terms before exercising the rights below.
+
+1. Definitions and scope
+
+"Software" means the original Knovum source code, object code, documentation,
+and other original material made available under this license, including the
+Knovum portions of modified versions and derivative works.
+
+"Licensor" means each copyright holder offering their own material under
+this license. Each Licensor grants rights only to material and patent claims
+that they have authority to license. "You" means the recipient.
+
+Third-party software, libraries, copied vendor material, models, fonts, and
+other material with separate license terms are excluded from the Software.
+Their respective licenses govern that material. This license does not
+replace, narrow, or add restrictions to rights granted by those licenses.
+
+2. Personal noncommercial permission
+
+Subject to these terms, each Licensor grants You a worldwide, nonexclusive,
+royalty-free copyright license to access, run, copy, study, modify, and make
+derivative works of their Software solely as a natural person for Your own
+personal, noncommercial purposes. Examples include private learning,
+personal knowledge management, experimentation, and hobby projects that
+are not directed toward commercial advantage or monetary compensation.
+
+You may also share original or modified copies, in source or binary form,
+without charge, solely for recipients' use under this license, provided
+that Your sharing has no commercial purpose and complies with section 4.
+You need not publish Your private modifications.
+
+These permissions do not authorize use by or on behalf of any company,
+employer, client, government body, educational institution, nonprofit, or
+other organization. Being an employee does not prevent Your independent
+personal use outside work and outside any organizational purpose.
+
+3. Uses requiring separate authorization
+
+Any use outside section 2 requires a separate written license from all
+relevant rights holders, or a party authorized to license their rights,
+before that use begins. No commercial or organizational rights are granted
+by this license. In particular, this license does not authorize:
+
+(a) internal organizational deployment or use, including use without fees;
+(b) use in employment, professional practice, freelance work, consulting,
+    client work, or business operations;
+(c) selling, renting, licensing for a fee, or otherwise monetizing copies,
+    modifications, or access to the Software;
+(d) providing paid hosting, SaaS, managed services, or paid support or
+    training involving the Software;
+(e) incorporating the Software into, or using it to operate or develop,
+    a commercial product or service; or
+(f) use or distribution directed toward commercial advantage or monetary
+    compensation, including advertising, affiliate revenue, or payments
+    tied to providing the Software or services involving it.
+
+These restrictions apply even if the Software is modified, renamed,
+distributed at no charge, or used as only one part of a larger offering.
+Public availability, a fork, a contribution, silence from a maintainer, or
+an informal discussion does not constitute separate written authorization.
+
+4. Sharing and modifications
+
+Every copy or substantial portion You share must include this complete
+license, applicable copyright and attribution notices, and applicable
+third-party license notices. Recipients receive permission for the
+Software directly from its Licensors under these terms.
+
+You must clearly identify a modified version as modified and describe the
+changes. You must not imply that a modified version is an official Knovum
+release or that its Licensors endorse it.
+
+You may not remove these conditions from the Software or offer rights in
+the Software that this license does not grant. You may license Your own
+independent material separately, but that does not change these terms for
+the Software included in or used by Your work.
+
+5. Reserved rights, patents, and trademarks
+
+All rights not expressly granted are reserved. This license does not
+transfer ownership, authorize sublicensing of the Software, or prevent a
+Licensor from separately licensing material they have authority to license.
+
+Each Licensor grants You a nonexclusive, worldwide, royalty-free patent
+license, for the purposes permitted in section 2 only, under patent claims
+they control that are necessarily infringed by their contribution alone
+or by its combination with the Software as they provided it. If You bring
+a patent claim alleging that the Software or a contribution infringes a
+patent, Your patent permissions under this license terminate.
+
+No trademark, logo, trade name, or endorsement rights are granted, except
+for identifying the Software truthfully and preserving required notices.
+
+6. User content and statutory rights
+
+This license does not give a Licensor ownership of Your notes, files,
+inputs, or outputs, and does not automatically place them under this
+license. Material copied from the Software remains subject to its terms.
+Using the Software to produce work for a commercial or organizational
+purpose still requires the authorization described in section 3.
+
+Nothing here restricts rights or exceptions that applicable law grants
+independently of this license, or overrides mandatory rights under law.
+
+7. Acceptance, duration, and termination
+
+Exercising a permission granted by this license constitutes acceptance of
+its conditions. The license continues for the duration of the applicable
+rights while You comply with its terms. A later license version does not
+automatically change the terms for copies You received under this version.
+
+Your permissions terminate automatically if You violate these terms.
+They are reinstated if this is Your first violation and You cure it within
+30 days after becoming aware of it, or if the relevant Licensors expressly
+reinstate them in writing. Reinstatement does not erase liability for past
+violations. After termination, stop activities requiring these permissions.
+Compliant recipients' direct licenses are not terminated by Your breach.
+
+8. No warranty or liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED
+"AS IS", WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NONINFRINGEMENT. TO THE SAME EXTENT, NO LICENSOR IS LIABLE FOR ANY CLAIM,
+DAMAGE, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE, WHETHER
+IN CONTRACT, TORT, OR OTHERWISE.
+
+The English text in this file is the authoritative license. Explanatory
+summaries and translations do not amend or expand its permissions.

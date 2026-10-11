@@ -10,6 +10,13 @@ The project author and bundle publisher are Zan. Keep `package.json`'s `author`,
 `src-tauri/Cargo.toml`'s `authors`, and `src-tauri/tauri.conf.json`'s `bundle.publisher`
 consistent with this attribution.
 
+## License delivery
+
+Distributions must include the applicable Knovum [LICENSE](../LICENSE) and third-party notices
+required by the components actually shipped. Cargo packages reference the root license;
+`python/LICENSE` is the standalone Python package's copy and must remain identical to it.
+Verify these files in the actual distribution.
+
 ## Local commands
 
 Compile development code without bundling:

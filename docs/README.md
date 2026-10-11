@@ -6,6 +6,7 @@ Use one authoritative document per concern.
 
 - `../README.md` — project overview and quick start.
 - `../CONTRIBUTING.md` — team contribution workflow.
+- [licensing.md](licensing.md) — Chinese summary of the project [LICENSE](../LICENSE).
 - `../AGENTS.md` — repository contract for coding agents and AI-assisted work.
 - `../DESIGN.md` — canonical product, interaction and Knowledge Derivation design contract.
 - `installation.md` — developer setup and end-user installation expectations.

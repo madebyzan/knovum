@@ -2,6 +2,9 @@
 members = [".", "crates/inference-contracts", "crates/inference-worker"]
 resolver = "2"
 
+[workspace.package]
+license-file = "../LICENSE"
+
 [package]
 name = "knovum"
 publish = false
@@ -9,6 +12,7 @@ default-run = "knovum"
 version = "0.0.1"
 description = "Local-first desktop knowledge space"
 authors = ["Zan"]
+license-file.workspace = true
 edition = "2021"
 rust-version = "1.94"
 

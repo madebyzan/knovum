@@ -1,5 +1,12 @@
 # Contributing to Knovum
 
+## Contribution license
+
+Unless separately agreed in writing, original contributions intentionally submitted for inclusion
+are offered under [LICENSE](LICENSE). Contributors retain copyright; commercial relicensing requires
+their separate permission. Submit only material you have authority to license, and identify the
+source, license and required notices of any third-party material in the PR.
+
 ## Start here
 
 Read these before the first product change:

@@ -1,0 +1,8 @@
+[package]
+name = "knovum-inference-native"
+version = "0.1.0"
+publish = false
+license-file.workspace = true
+edition = "2021"
+rust-version = "1.94"
+links = "knovum_inference_native"
