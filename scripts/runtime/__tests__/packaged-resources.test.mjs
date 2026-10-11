@@ -9,7 +9,6 @@ import { readRuntimeDescriptor, validateRuntimeDescriptor } from "../distributio
 import { validateMediaLicenseReview } from "../media-license-policy.mjs";
 import { mediaSource, writeMediaManifest } from "../media-manifest.mjs";
 import { validatePackagedResources, workerDigest } from "../packaged-resources.mjs";
-import { runtimeProfiles } from "../profiles.mjs";
 
 function fixture(context) {
   const repository = mkdtempSync(join(tmpdir(), "knovum-small-package-"));
@@ -62,13 +61,6 @@ function fixture(context) {
   const save = () => writeFileSync(path, JSON.stringify(descriptor));
   save();
   copyFileSync(path, join(publication, "runtime-descriptor.json"));
-  for (const profile of runtimeProfiles.filter((name) => name !== "agent")) {
-    const profilePublication = join(repository, "runtime-artifacts", profile, "windows-x64");
-    mkdirSync(profilePublication, { recursive: true });
-    const encoded = JSON.stringify({ ...descriptor, profile });
-    writeFileSync(join(resources, `python-${profile}-descriptor.json`), encoded);
-    writeFileSync(join(profilePublication, "runtime-descriptor.json"), encoded);
-  }
   return {
     repository,
     resources,

@@ -13,7 +13,6 @@
   },
   "ignorePatterns": [
     "dist/**",
-    "scripts/inference/__tests__/fixtures/**",
     "src-tauri/resources/native-runtime/**",
     "src-tauri/crates/inference-contracts/inference.schema.json",
     "node_modules/**",

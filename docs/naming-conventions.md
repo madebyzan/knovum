@@ -470,26 +470,26 @@ the `.test.ts` suffix. A unit test should make its tested owner obvious, for exa
 and `UiButton.test.ts`. Name a cross-owner integration scenario for the user capability it covers
 rather than pretending it maps to one source file. Shared test fixtures and mocks belong under that
 owner's `__tests__/support/`, so they remain outside production typechecking and business imports.
-Production source must not import test files, Vitest or Vue Test Utils. Complete Vue SFCs, including template and style, are limited to 180 nonblank lines by the source-layout gate.
-Python worker/qualification tests live in `python/tests/`, repository tooling policy tests (Python
+Production source must not import test files, Vitest or Vue Test Utils. Complete Vue SFCs, including template and style, are limited to 180 nonblank lines; review the complete component alongside the Oxc script limits.
+Python worker tests live in `python/tests/`, repository tooling policy tests (Python
 and Node) in each tooling owner's `__tests__/` (the standalone generator uses `scripts/__tests__/`), and desktop E2E
 scenarios in `tests/e2e/`. Test-specific imports belong in test files, not business modules.
 
 ## Automated checks
 
 A repository-specific check earns its maintenance cost only when it reads authoritative structured
-configuration, uses an established tool's rule, or verifies an explicit source-layout contract
-that existing language tools do not enforce. Source-layout gates have fixture-based regression
-coverage and do not attempt to infer business behavior. What remains:
+configuration or exercises a concrete product boundary not already covered by established tools.
+Do not build a directory/name scanner alongside the language linters. What remains:
 
 - the capability policy check rejects WebView SQL, `fs:default` on the main window and persistent
   filesystem mutation in the Spaces capability by reading the capability JSON directly;
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment script lines, complexity 10 and four
   parameters;
 - Knip reports dead code and unused dependencies;
-- `scripts/checks/source-layout.mjs` rejects `index.ts` and checks sibling
-  stems, test placement and the Rust/Python/Vue size limits specified in `architecture.md`.
-  Descriptive naming, including the `native` convention, remains a code-review responsibility.
+
+Path names, test placement, sibling stems, complete-component size and descriptive naming remain
+code-review responsibilities. Use language tooling for syntax/complexity and dependency-cruiser for
+production/test dependency boundaries.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
 catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging

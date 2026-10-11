@@ -14,7 +14,6 @@ import {
   requirementsArguments,
   producerBytes,
   runtimeRecipeBytes,
-  runtimeProfiles,
   runtimeTargetFromTriple,
 } from "../profiles.mjs";
 
@@ -74,17 +73,6 @@ test("producer identity follows the selected resource's actual source closure", 
   assert.notEqual(mediaRecipeIdentity(root, "macos-x64"), mediaBefore);
   assert(producerBytes(root, "agent").equals(before));
   assert.throws(() => producerBytes(root, "media"), /Unsupported/u);
-});
-
-test("production profiles export only their own independent frozen dependency project", () => {
-  assert.deepEqual(runtimeProfiles, ["agent"]);
-  for (const profile of runtimeProfiles) {
-    const args = requirementsArguments(repository, profile);
-    assert.equal(args[args.indexOf("--project") + 1], `${repository}/python/runtimes/${profile}`);
-    assert.equal(args.includes("--extra"), false);
-    assert.equal(args.includes("--no-emit-package"), true);
-  }
-  assert.throws(() => requirementsArguments(repository, "inference"), /Unsupported/);
 });
 
 test("Agent Runtime requirements select their independent project and exclude inference extras", () => {

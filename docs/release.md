@@ -38,81 +38,27 @@ offline inference without credentials or external configuration. Alignment accep
 
 ### Target-platform inference quality evidence
 
-`scripts/inference/report.mjs` is the model qualification evaluator. It reads a fixed corpus
-manifest, candidate outputs captured from the private worker and hash-bound reference/baseline outputs;
-it does not generate inference, substitute fixture values or infer a pass from imports. Capture target-platform outputs on each supported target, then score their retained evidence with the
-locked Node development dependencies. The scoring libraries are not installed in the bundled worker:
+Model qualification uses real candidate execution, behavioral tests and reviewed measurement
+artifacts. The repository does not maintain a separate scoring CLI, corpus protocol or report
+framework. Record application commit, worker/runtime digests, model snapshot and configuration,
+input/output hashes, OS/architecture, device, driver and power mode with the measurements.
+Missing execution or review evidence blocks qualification; synthetic unit fixtures and reference-only
+runs cannot qualify the candidate. Retain raw results so a reviewer can reproduce the calculation.
 
-Evidence formats use the existing Zod dependency in the core and image contracts alongside
-`scripts/inference/contracts.mjs`. Common source, file, device and invocation constraints are shared across capabilities;
-unknown fields, malformed timestamps and unsafe integer counters are rejected. Do not maintain
-copied schema documents or a separate schema-generation toolchain for qualification.
+Freeze the corpus, baseline and thresholds before measuring, and cover every supported target:
 
-```text
-pnpm inference:acceptance \
-  --corpus <corpus.json> --capture <target-capture.json> --output <acceptance-report.json>
-```
+| Capability | Required evidence                                                                                                                                                                                                                                                                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Embedding  | Documents, notes, code and transcripts with relevance judgments; official Sentence Transformers CPU/float32 reference; paired cosine at least 0.9999 and Recall@10/nDCG@10 loss at most 0.01.                                                                                                                                       |
+| ASR        | Chinese/English human transcripts, mixed language, names, numbers, silence, noise, overlap and long recordings; at least two sample rates and one recording of at least ten minutes. Micro-aggregate CER/WER including insertions on silence; regression against the frozen matching model/configuration baseline above 0.01 fails. |
+| Alignment  | Chinese/English human unit boundaries; coverage, median and P95 boundary errors against preregistered limits, by language and overall.                                                                                                                                                                                              |
+| TTS        | At least 30 fixed Chinese/English statements, each reviewed by at least three independent blinded raters before assignment disclosure. Apply preregistered 1–5 mean-score limits for pronunciation, naturalness, voice consistency, reference similarity and emotion control. ASR round-trip scores do not replace listening.       |
+| Images     | Model-specific output, visual review, memory, latency and active cancellation evidence described in `local-models.md`.                                                                                                                                                                                                              |
 
-The release workflows build candidate artifacts; they do not capture this corpus or run the evaluator
-automatically. Target-platform quality acceptance remains an explicit release requirement. Unit fixtures are
-never acceptance evidence.
-
-Exit code `0` means every scored capability passed. Exit code `1` means invalid evidence or a failed
-threshold. Exit code `2` means at least one capability or required input is unavailable. Only `passed`
-is release evidence; `unavailable` is deliberately not treated as a skip or success.
-
-The corpus manifest is schema version 1 and has exactly these top-level fields: `schemaVersion`,
-`corpusId`, `corpusVersion`, `description`, `embedding`, `asr`, `alignment` and `tts`. Its bytes are
-SHA-256 bound into the capture provenance. The versioned corpus must contain:
-
-- embedding documents, notes, code and transcripts with non-empty query relevance judgments, plus the official
-  Sentence Transformers CPU/float32 reference profile;
-- Chinese and English ASR audio, SHA-256 identities, duration, sample rate, human reference text and coverage
-  tags for mixed language, proper nouns, numbers, silence, noise, speaker overlap and long recordings; the set
-  includes at least two sample rates and a recording of at least ten minutes. Its `baselineProfile` freezes
-  `modelSpecId`, `configId`, `modelFamily` and `modelSize`; candidate ASR config parameters must match the latter two;
-- Chinese and English alignment audio with human unit start/end boundaries and preregistered coverage,
-  median-error and P95-error limits;
-- at least 30 fixed Chinese/English TTS statements and preregistered 1-to-5 mean-score limits for
-  pronunciation, naturalness, voice consistency, reference similarity and emotion control.
-
-Audio paths are relative to the corpus manifest, cannot escape that directory and must match their
-declared digest. Licensed/private recordings may live in the controlled QA evidence store rather than
-Git, but the immutable corpus manifest, audio bytes and annotations must remain reviewable under the
-recorded corpus version. Missing assets make the run unavailable.
-
-The target capture manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
-capability states and provenance containing the application version/full commit, shipped Worker digest, runtime version/digest, target, model
-spec IDs and identity digests, execution config IDs and parameters, corpus digest, and complete device,
-OS, driver and power-mode information. It accepts only `macos-arm64` and `windows-x64`. Every capability
-must say `completed` or `unavailable` with a reason; omission is invalid evidence.
-
-Completed capabilities refer to hash-bound raw JSON files beside the capture manifest. Each raw file
-uses schema version 1 with `source`, `values`, and one or more request identities/timestamps. Candidate
-sources must identify `bundled_worker`, the actual JSON-RPC method, the shipped `workerDigest`, candidate runtime manifest digest, frozen
-model spec and config. Reference embedding evidence identifies `official_python_reference`; ASR
-comparison evidence identifies `product_baseline`. The raw value shapes are:
-
-- embedding: `queries` and `documents` maps from corpus ID to the full numeric vector;
-- ASR: `transcripts` from every corpus sample ID to the actual transcript;
-- alignment: every sample ID maps to every annotated unit ID and its returned nullable start/end time;
-- TTS: every sample ID maps to one hash-bound generated audio artifact.
-
-The evaluator calculates paired cosine, Recall@10 and nDCG@10. CPU/float32 paired cosine must be at
-least `0.9999`; retrieval metric loss against the official reference must not exceed `0.01`. It reports
-Chinese CER and English WER using JiWER after fixed NFKC/casefold and language tokenization.
-Counts are micro-aggregated across recordings, including insertions on silent references, for the
-previous product baseline and candidate; either regression above
-`0.01` fails. Alignment reports coverage and median/P95 absolute boundary error by language and overall,
-using NumPy linear percentiles, then applies the limits fixed in the corpus before execution.
-
-TTS evidence includes the hash-bound concealed sample-assignment file and the time at which it was revealed.
-Every generated sample must receive one complete score set from at least three distinct blinded raters;
-duplicate reviews from one rater do not count. The evaluator verifies all audio hashes and requires each
-review's `reviewedAt` to precede assignment disclosure. It reports criterion means and applies the
-preregistered limits. An ASR round-trip score cannot replace these human
-records. The acceptance report remains attached to the exact candidate artifacts and is regenerated for
-every runtime, model, execution-config or corpus change.
+Licensed/private corpus data may stay in the controlled QA evidence store. Keep its version,
+source/license, immutable input bytes and annotations reviewable. Measure actual load/warm latency,
+peak memory, cancellation and recovery as well as output quality. Requalify changes to candidate
+runtime, model, execution configuration or corpus; attach the record to the exact release artifacts.
 
 The selected native Sherpa build disables TTS/eSpeak and contains only the required diarization
 and separation closure. Its frozen supplier notices and source identity must be reviewed with the
@@ -371,9 +317,8 @@ provider, a model's quality, system TLS/proxy behavior or either release platfor
 
 Run `pnpm contracts:generate`, `pnpm check:web`, `pnpm check:rust`, `pnpm check:python` on the same
 checkout before target-platform acceptance. `check:python` shares Ruff policy but runs Builtin Agent Mypy/pytest
-inside its own locked environment. Provision/build commands select one of the five strict
-profiles explicitly. Packaging verifies every profile and ships only current owned source
-and the Agent descriptors. The maintainer owns target build/signing/installation acceptance.
+inside its own locked environment. Provision/build commands select the retained Agent explicitly.
+Packaging verifies its descriptor and ships only current owned source. The maintainer owns target build/signing/installation acceptance.
 
 ### Provider qualification record
 
@@ -443,7 +388,7 @@ and remeasurement; do not declare improvement from a constructed mock.
 ### Managed-runtime/control matrix
 
 On **macOS 14+ arm64/x64** and **Windows x64**, record clean installation without system Python,
-anonymous first download of all five profiles through the application-managed sources, cancellation, separate dependency
+anonymous first download of the retained Agent through the application-managed sources, cancellation, dependency
 imports, restart/offline use, system CA/proxy behavior, protocol initialization, process-tree
 termination, application exit, checkpoint/input recovery, Task Center waiting/pause/cancel and
 asset publication. The producer performs relocation imports from a path with spaces and Chinese

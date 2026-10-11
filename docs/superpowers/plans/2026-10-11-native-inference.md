@@ -1,5 +1,7 @@
 # Native inference implementation plan
 
+> 历史实施记录。后续辅助工具精简已移除独立验收评分工具和 source-layout 扫描器；当前命令与要求以权威架构、模型、发布文档及 `scripts/README.md` 为准。
+
 > **For agentic workers:** Use `executing-plans` task by task. User explicitly requires one agent and has authorized continuous execution without further process reviews.
 
 **Goal:** Move every non-Agent Knovum Python capability and its development/runtime supply chain into Rust and the existing Node tooling.
