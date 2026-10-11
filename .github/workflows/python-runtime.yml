@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: mv runtime-artifacts/runtime-descriptor.json runtime-artifacts/python-agent-${{ matrix.platform.target }}-descriptor.json
       - name: Attest Agent archives and descriptor
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             runtime-artifacts/*.tar.gz
