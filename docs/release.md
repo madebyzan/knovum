@@ -43,6 +43,11 @@ manifest, candidate outputs captured from the private worker and hash-bound refe
 it does not generate inference, substitute fixture values or infer a pass from imports. Capture target-platform outputs on each supported target, then score their retained evidence with the
 locked Node development dependencies. The scoring libraries are not installed in the bundled worker:
 
+Evidence formats use the existing Zod dependency in the core and image contracts alongside
+`scripts/inference/contracts.mjs`. Common source, file, device and invocation constraints are shared across capabilities;
+unknown fields, malformed timestamps and unsafe integer counters are rejected. Do not maintain
+copied schema documents or a separate schema-generation toolchain for qualification.
+
 ```text
 pnpm inference:acceptance \
   --corpus <corpus.json> --capture <target-capture.json> --output <acceptance-report.json>

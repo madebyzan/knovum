@@ -1,62 +1,38 @@
-# Repository scripts
+# Repository tools
 
-These tools support the Tauri desktop product: development, cross-language contracts,
-controlled resources and signed distribution. The installed application consumes finished
-resources; it does not run repository producers or install dependencies with uv/pip.
+Daily development uses five commands: `pnpm desktop:dev`, `pnpm test`, `pnpm format`,
+`pnpm check` and `pnpm package`. Use the vendor CLI's flags for watch, fix and bundle variants.
+`dev` and `build` are Tauri's Vite hooks. `desktop:dev` prepares FFmpeg and native libraries,
+builds the worker with Cargo, then starts Tauri; it does not prepare Python.
 
-## Everyday commands
+These are auxiliary tools for one desktop product. Prefer package scripts and existing vendor
+CLIs. Retain custom code for concrete resource, contract, verification or publication policy;
+do not build a task runner, installer framework or a second dependency manager. Avoid extra
+public commands and handwritten duplicate schemas. Test fixtures are not developer entry points.
 
-Use `pnpm desktop:dev`, `pnpm test`, `pnpm format`, `pnpm check` and `pnpm package`.
-`dev` and `build` are Tauri's Vite hooks, not a separate browser product.
-`desktop:dev` prepares core FFmpeg and the native inference worker before starting the official Tauri CLI; invoking
-`pnpm exec tauri dev` directly bypasses that preparation. Use vendor flags for watch,
-fix and bundle variants instead of adding aliases.
+## Occasional operations
 
-| Command                                                    | Purpose                                                    |
-| ---------------------------------------------------------- | ---------------------------------------------------------- |
-| `check:web`, `check:rust`, `check:python`, `check:scripts` | Verify the owning source scope and its tests.              |
-| `security:web`, `security:python`                          | Audit the committed production dependency graphs.          |
-| `contracts:generate`, `contracts:check`                    | Generate Rust-owned TS/Python contracts and verify drift.  |
-| `e2e`                                                      | Build and exercise the dedicated desktop E2E flavor.       |
-| `runtime:prepare --profile agent`                          | Prepare the retained Deep Agent Python runtime explicitly. |
-| `runtime:build --profile agent …`                          | Produce a controlled Agent publication on its target host. |
-| `runtime:provision --profile agent --publication <file>`   | Verify and stage an existing Agent publication.            |
-| `runtime:native`                                           | Build the frozen native inference supplier libraries.      |
-| `inference:acceptance`                                     | Score retained model acceptance evidence.                  |
+- `contracts:generate` / `contracts:check`: Rust-owned TS/Agent contracts and drift checks.
+- `e2e`: the isolated desktop test flavor.
+- `inference:acceptance`: offline evidence scoring with shared strict Zod contracts. Real
+  inference remains in the Rust worker.
+- `runtime:prepare`, `runtime:build`, `runtime:provision`: the retained Agent and controlled
+  resource supply. These serve explicit resource preparation and release workflows. The installed
+  product consumes finished resources and never invokes repository producers or uv/pip.
 
-## Owners
+## CI and ownership
 
-- `desktop/`: core-media and native inference development preflight, Tauri resource assembly, final installer
-  verification and Windows application signatures.
-- `runtime/`: resource producers, frozen inputs, safe file/archive handling, manifests,
-  installed inventories, license evidence and OS signatures. Agent Python production uses the
-  locked publication tooling group. FFmpeg and native inference preparation use Node and
-  supplier native build tools. `media.mjs --write-manifest` is the media producer's manifest
-  entry; compiled native resources use the Node signing owner.
-- `inference/`: strict corpus/capture validation and offline acceptance scoring through maintained
-  numerical and edit-distance libraries. Actual inference belongs to the Rust worker.
-- `release/`: version/signing policy, artifact collection, immutable draft candidates and
-  stable updater promotion. Publication entries are invoked by their workflows.
-- `checks/`: source layout, structured Tauri permission policy and language/test gates.
-  Layout checks scope web, Rust, Python and tooling separately; no Rust token scanner or
-  filename-prefix scanner claims to prove architectural ownership.
-- `contracts.mjs` and `generate_python_contracts.py`: one generated-output inventory and
-  Rust-to-TypeScript export and Agent-only schema-to-Python generation through the existing vendor generator.
+| Workflow                | Responsibility                                                                                     |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `quality.yml`           | Source/unit/audit gates, all three desktop compilation targets and actual signing rejection tests. |
+| `python-runtime.yml`    | Explicit Agent and FFmpeg publication on their target hosts.                                       |
+| `release-candidate.yml` | Shared QA/candidate build preparation; only protected tag releases sign and publish candidates.    |
+| `promote-update.yml`    | Explicit promotion of a verified candidate.                                                        |
 
-`voice_bridge.cpp` and `voice_bridge.cmake` are compiled voice-library build inputs.
-Supplier-specific Node modules build the selected pinned audio.cpp, Sherpa and whisper.cpp resources;
-the worker loads catalog-owned MOSS ONNX models directly.
-Agent, media and native source configurations own their respective producer source closures; each recipe identity
-binds selected target/profile inputs, producer bytes and dependency locks. Development
-paths and publication receipts consume the same identity.
+`desktop/` owns desktop preflight and resource assembly; `runtime/` owns controlled resource
+production and verification; `inference/` owns offline qualification; `release/` owns distribution
+policy; `checks/` owns source gates. Each owner's `__tests__/` contains its regressions.
+`pnpm check:scripts` discovers Node tests; `check:python` covers retained Python tooling.
 
-Each directory's `__tests__/` owns its regression tests. `pnpm check:scripts` discovers Node
-unit tests. Python tooling tests run in `check:python`; OS-signing integration and real model
-acceptance remain separate. CI's Quality workflow owns shared source/unit checks; Platform
-smoke owns per-platform compilation, and Update policy owns actual signing integration.
-
-Build controlled runtimes separately, then select their immutable `runtime-*` release for
-QA or signed desktop packaging. Packaging verifies the selected bytes and rejects stale
-producer recipes and builds the current Rust worker with its native supply closure. Required inputs and target-platform
-acceptance are documented in [packaging.md](../docs/packaging.md) and
-[release.md](../docs/release.md).
+Exact supply, signing and platform obligations belong to [packaging](../docs/packaging.md)
+and [release](../docs/release.md), rather than a separate tooling contract.

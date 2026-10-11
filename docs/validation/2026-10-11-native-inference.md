@@ -56,6 +56,14 @@ OS 合成语音 smoke 的离线评分：Tiny/Small/Large 英文 WER 均为1/12=0
 
 Agent QA：实际84,525,179字节归档，SHA256 `d919b2f3f6b19d5327ebaa57d25d3899aae903829462ab4959ca90d5771df4b3`；21962项 TAR inventory 完成安全预检、提取和封闭清单校验。FFmpeg QA：33,957,215字节，SHA256 `e4e4169414951c1f54a6a75133d09c9ec1a2b0e896ac52fba543eafe400910c2`，发布/提取/哈希校验通过。这些归档使用本地 QA URL，没有对外发布。
 
+## 辅助工具精简复核
+
+迁移后的工具维护面另行收敛，不改产品或模型实现：工作流从7个合并为4个，公共 action 从2个合并为1个；移除自制 Node 测试扫描器和 worker 构建包装，直接使用 Node/Cargo CLI。8份重复 JSON Schema 改为共享的严格 Zod 契约，删除 Ajv/Ajv-formats 两项直接依赖及四项仅被它们使用的间接依赖，没有新增依赖或工具框架。上述历史检查中的 `native-worker.mjs` 已删除，开发入口直接准备原生供应并调用 Cargo。
+
+本次实际复核：173项脚本测试和3项官方 minisign 签名接受/错误密钥/篡改拒绝集成测试通过；Oxc、Knip、四套类型检查、全仓格式检查及 actionlint 通过。原生供应准备复用已验证缓存，默认 Cargo profile 的 worker 构建成功；桌面帮助入口通过且不触发资源准备。6911项旧/新契约样本与字段变异对照没有新增接受，28项差异均为拒绝不安全整数。日志和对照结果位于 `.runtime-development/qualification/tooling/`。
+
+CI 保留三平台编译、依赖审计和签名拒绝门禁；QA 和正式包共用准备步骤，生产签名、公证及候选发布仅允许版本 tag push，手动 QA 使用独立环境。本次只验证工作流配置，没有触发远程 CI 或桌面打包，不将未执行的平台 job 计为通过。
+
 ## 发布门禁与限制
 
 - 本机不能提供 Windows x64/macOS arm64 实机、GPU 路径及对应安装包的通过证据。CI 已按原生目标接入构建和校验，未执行的 job 不计通过。

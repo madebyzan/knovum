@@ -1,10 +1,11 @@
+import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { run } from "@tauri-apps/cli";
 
 import { prepareCoreMedia } from "../runtime/media.mjs";
-import { prepareNativeWorker } from "../runtime/native-worker.mjs";
+import { prepareNativeRuntime } from "../runtime/native.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
@@ -16,7 +17,12 @@ try {
   // Resource production precedes Tauri's bounded wait for the frontend server.
   if (command === "dev" && !informational) {
     await prepareCoreMedia(repository);
-    await prepareNativeWorker(repository);
+    await prepareNativeRuntime(repository);
+    execFileSync(
+      "cargo",
+      ["build", "--locked", "--manifest-path", "src-tauri/Cargo.toml", "-p", "knovum-inference-worker"],
+      { cwd: repository, stdio: "inherit" },
+    );
   }
   await run(args, "pnpm tauri");
 } catch (error) {

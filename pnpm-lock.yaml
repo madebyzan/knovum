@@ -204,12 +204,6 @@ importers:
       '@wdio/tauri-service':
         specifier: ^1.4.0
         version: 1.4.0(expect-webdriverio@5.7.0)(supports-color@8.1.1)(tsx@4.23.15)(webdriverio@9.32.0(supports-color@8.1.1))
-      ajv:
-        specifier: 8.20.0
-        version: 8.20.0
-      ajv-formats:
-        specifier: 3.0.1
-        version: 3.0.1(ajv@8.20.0)
       dependency-cruiser:
         specifier: ^18.5.0
         version: 18.5.0
@@ -2055,17 +2049,6 @@ packages:
     resolution: {integrity: sha512-JVzqkCNRT+VfqzzgPWDPnwvDheSAUdiMUn3NoLXpDJF5lRqeJqyC9iGsAxIOAW+mzIdq+uP1TvcX6bMtrH0agg==}
     engines: {node: '>= 14'}
 
-  ajv-formats@3.0.1:
-    resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
-    peerDependencies:
-      ajv: ^8.0.0
-    peerDependenciesMeta:
-      ajv:
-        optional: true
-
-  ajv@8.20.0:
-    resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
-
   alien-signals@3.2.1:
     resolution: {integrity: sha512-I8FjmltrfnDFoZedi5CG8DghVYNhzb/Ijluz7tCSJH0xpd0484Kowhbb1XDYOxfJpU1p5wnM2X54dA+IfGyD1g==}
 
@@ -2638,17 +2621,11 @@ packages:
   fast-deep-equal@2.0.1:
     resolution: {integrity: sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==}
 
-  fast-deep-equal@3.1.3:
-    resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
-
   fast-fifo@1.3.2:
     resolution: {integrity: sha512-/d9sfos4yxzpwkDkuN7k2SqFKtYNmCTzgfEpz82x34IM9/zc8KGxQoXg1liNC/izpRM/MBdt44Nmx41ZWqk+FQ==}
 
   fast-fuzzy@1.12.0:
     resolution: {integrity: sha512-sXxGgHS+ubYpsdLnvOvJ9w5GYYZrtL9mkosG3nfuD446ahvoWEsSKBP7ieGmWIKVLnaxRDgUJkZMdxRgA2Ni+Q==}
-
-  fast-uri@3.1.8:
-    resolution: {integrity: sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==}
 
   fastest-levenshtein@1.0.16:
     resolution: {integrity: sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==}
@@ -3049,9 +3026,6 @@ packages:
   json-parse-even-better-errors@3.0.0:
     resolution: {integrity: sha512-iZbGHafX/59r39gPwVPRBGw0QQKnA7tte5pSMrhWOW7swGsVvVTjmfyAV9pNqk8YGT7tRCdxRu8uzcgZwoDooA==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
-
-  json-schema-traverse@1.0.0:
-    resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
 
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
@@ -3764,10 +3738,6 @@ packages:
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
-    engines: {node: '>=0.10.0'}
-
-  require-from-string@2.0.2:
-    resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
 
   resolve-pkg-maps@1.0.0:
@@ -6111,17 +6081,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ajv-formats@3.0.1(ajv@8.20.0):
-    optionalDependencies:
-      ajv: 8.20.0
-
-  ajv@8.20.0:
-    dependencies:
-      fast-deep-equal: 3.1.3
-      fast-uri: 3.1.8
-      json-schema-traverse: 1.0.0
-      require-from-string: 2.0.2
-
   alien-signals@3.2.1: {}
 
   ansi-colors@4.1.3: {}
@@ -6750,15 +6709,11 @@ snapshots:
 
   fast-deep-equal@2.0.1: {}
 
-  fast-deep-equal@3.1.3: {}
-
   fast-fifo@1.3.2: {}
 
   fast-fuzzy@1.12.0:
     dependencies:
       graphemesplit: 2.6.0
-
-  fast-uri@3.1.8: {}
 
   fastest-levenshtein@1.0.16: {}
 
@@ -7151,8 +7106,6 @@ snapshots:
       jscpd-windows-x64-msvc: 5.4.0
 
   json-parse-even-better-errors@3.0.0: {}
-
-  json-schema-traverse@1.0.0: {}
 
   json5@2.2.3: {}
 
@@ -7923,8 +7876,6 @@ snapshots:
   remove-accents@0.5.0: {}
 
   require-directory@2.1.1: {}
-
-  require-from-string@2.0.2: {}
 
   resolve-pkg-maps@1.0.0: {}
 

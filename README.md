@@ -67,7 +67,7 @@ pnpm check:rust
 pnpm check
 ```
 
-`check:web` runs Vue/TypeScript type checking, Oxlint, dependency graph rules, Vitest, Knip, jscpd and Oxfmt verification. `check:rust` runs rustfmt, Clippy with warnings denied and Rust tests. The Quality workflow additionally runs production npm advisory/signature checks and Rust advisory checks before a release commit can be promoted. Desktop-affecting PRs also compile-check macOS and Windows through `.github/workflows/platform-smoke.yml`.
+`check:web` runs Vue/TypeScript type checking, Oxlint, dependency graph rules, Vitest, Knip, jscpd and Oxfmt verification. `check:rust` runs rustfmt, Clippy with warnings denied and Rust tests. The Quality workflow additionally runs production npm advisory/signature checks, Rust advisory checks, signing rejection tests and desktop compile checks on macOS arm64/x64 and Windows x64 before a release commit can be promoted.
 
 Before feature work, read `AGENTS.md` and `docs/README.md`. The documentation map points to the authoritative architecture, UI, platform, OSS-first, packaging and release contracts.
 

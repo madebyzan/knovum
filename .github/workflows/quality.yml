@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: corepack enable && corepack prepare pnpm@11.17.0 --activate && pnpm install --frozen-lockfile
+      - run: corepack enable && pnpm install --frozen-lockfile
       - run: pnpm check:scripts
 
   python:
@@ -50,19 +51,13 @@ jobs:
           node-version: "22"
           check-latest: false
       - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.17.0 --activate
-      - name: Require committed lockfile
-        run: test -f pnpm-lock.yaml
+        run: corepack enable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Audit production dependencies
         run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
-      - name: Check Rust duplication
-        run: pnpm exec jscpd src-tauri/src src-tauri/crates --min-lines 6 --min-tokens 80 --threshold 1
 
   rust-audit:
     name: Rust dependency audit
@@ -79,8 +74,12 @@ jobs:
           command: check advisories licenses
 
   rust-check:
-    name: Rust compile and tests
-    runs-on: macos-15
+    name: Rust compile and tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-2025]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -89,34 +88,19 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           version: "0.12.23"
-      - uses: ./.github/actions/setup-protoc
-      - run: corepack enable && corepack prepare pnpm@11.17.0 --activate && pnpm install --frozen-lockfile
+      - run: corepack enable && pnpm install --frozen-lockfile
+        shell: bash
       - uses: ./.github/actions/setup-native-build
-      - name: Prepare native worker and suppliers
-        run: node scripts/runtime/native-worker.mjs
-      - name: Require committed lockfile
-        run: test -f src-tauri/Cargo.lock
-      - name: Verify source and capability boundaries
-        run: |
-          node scripts/checks/source-layout.mjs rust
-          node scripts/checks/capabilities.mjs
-      - name: Verify Rust toolchain
-        id: toolchain
-        run: rustc --version && cargo --version
-      - name: Check Rust formatting
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
-      - name: Run Clippy
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --workspace --all-targets -- -D warnings
-      - name: Run Rust unit tests
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
-        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --workspace
+      - name: Prepare native suppliers
+        run: node scripts/runtime/native.mjs
+      - name: Run Rust gates
+        run: pnpm check:rust
+      - name: Compile desktop application
+        run: pnpm exec tauri build --no-bundle --debug
       - name: Verify generated Rust, TypeScript and Python contracts
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        if: ${{ !cancelled() && matrix.os == 'macos-15' }}
         run: npm run contracts:check
       - name: Verify dependency inputs were not rewritten
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock
 
   rust:
@@ -132,3 +116,16 @@ jobs:
         run: |
           test "$AUDIT_RESULT" = "success"
           test "$CHECK_RESULT" = "success"
+
+  release-policy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: sudo apt-get update && sudo apt-get install -y minisign
+      - name: Verify publishing signatures and rejection
+        run: node --test scripts/release/__tests__/*.integration.mjs

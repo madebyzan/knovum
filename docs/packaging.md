@@ -175,8 +175,12 @@ Tauri CLI; `beforeDevCommand` starts only Vite. Native build tooling requires pi
 normal Rust/Clang toolchain and macOS Metal tooling or the frozen Windows Vulkan SDK. The SDK's
 `copy_only=1` mode stays in build scratch and does not change system drivers or registry. Python is
 required only for retained Agent production and contract/build tools, never local model execution.
-CI's `setup-native-build` action installs CMake and selects the Windows runner's LLVM `libclang.dll`
-for bindgen. Missing compiler libraries fail the build before inference packaging.
+CI's single `setup-native-build` action installs the pinned Protobuf compiler and CMake, and selects
+the Windows runner's LLVM `libclang.dll` for bindgen. Missing compiler libraries fail the build
+before inference packaging. Quality runs the same `pnpm check:rust` entry as local development
+and compiles the desktop on all three supported targets; signing integration belongs to that
+workflow too. CI prepares supplier libraries once; Cargo gates or packaging build the worker
+in the required profile rather than first building a disposable debug worker.
 
 Packaging verifies the exact Agent source/descriptor payload and forbids bundled interpreters.
 NSIS extraction uses pinned 7-Zip; MSI uses a Windows Installer administrative image. macOS verifies
@@ -196,11 +200,17 @@ evidence. Editing CI does not claim a run on hardware unavailable to the impleme
 
 ## QA packaging workflow
 
-`.github/workflows/package.yml` is a manual workflow for internal QA artifacts:
+The manual `workflow_dispatch` entry of `.github/workflows/release-candidate.yml` produces internal
+QA artifacts from the selected `runtime_publication_tag`, using the same target matrix and
+provisioning as signed candidates:
 
 - macOS uses ad-hoc signing so test artifacts are structurally signed without pretending to be a notarized production release;
 - Windows NSIS artifacts are unsigned and may trigger SmartScreen warnings;
 - artifacts are uploaded to the workflow run, not published as a production GitHub Release.
+
+Manual QA uses the `runtime-qa` environment. Production signing steps, signing secrets,
+notarization and candidate publication execute only for version-tag pushes in their protected
+release environments. Sharing build preparation does not grant the QA entry production authority.
 
 This workflow requires committed pnpm and Cargo lockfiles plus configured controlled bundled-runtime archive URLs/SHA-256 values for the runner architecture. It refuses to package if provisioning or verification fails.
 
