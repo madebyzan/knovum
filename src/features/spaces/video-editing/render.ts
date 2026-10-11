@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { CompletedDerivationOutput } from "../contracts/generated/CompletedDerivationOutput";

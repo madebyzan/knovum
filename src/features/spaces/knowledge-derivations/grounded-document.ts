@@ -1,4 +1,4 @@
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
 import { startDerivationAction, type DerivationActionStore } from "./start-action";

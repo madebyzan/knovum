@@ -95,19 +95,19 @@ async fn complete(
 #[tokio::test]
 async fn depth_publication_preserves_source_and_creates_one_related_output() {
     let (pool, request, original) = fixture().await;
-    let result = complete(&pool, &request, &CancellationToken::new())
+    let publication = complete(&pool, &request, &CancellationToken::new())
         .await
         .unwrap();
     assert_eq!(
-        result.data["imageDepth"]["encoding"],
+        publication.data["imageDepth"]["encoding"],
         "relative-inverse-depth-u16-v1"
     );
     assert_eq!(
-        result.data["imageDepth"]["modelSpecId"],
+        publication.data["imageDepth"]["modelSpecId"],
         LocalModelId::DepthAnythingV2Small.image_spec().unwrap()
     );
-    assert!(result.data.get("processingState").is_none());
-    assert!(result.data.get("imageEdit").is_none());
+    assert!(publication.data.get("processingState").is_none());
+    assert!(publication.data.get("imageEdit").is_none());
     let stored: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='source'")
         .fetch_one(&pool)
         .await
@@ -167,11 +167,11 @@ async fn selection_extraction_publishes_a_photo_without_depth_metadata() {
         model,
         spec_id: model.image_spec().unwrap(),
     };
-    let result = complete(&pool, &request, &CancellationToken::new())
+    let publication = complete(&pool, &request, &CancellationToken::new())
         .await
         .unwrap();
-    assert!(result.data.get("imageDepth").is_none());
-    assert_eq!(result.data["assetPath"], "/owned/depth.png");
+    assert!(publication.data.get("imageDepth").is_none());
+    assert_eq!(publication.data["assetPath"], "/owned/depth.png");
 }
 
 async fn assert_unpublished(pool: &SqlitePool) {

@@ -1,4 +1,4 @@
-import { i18n } from "../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { DocumentFormat } from "../catalog/creation-intent";
 import { startDerivationAction, type DerivationActionStore } from "../start-action";
 import type { DocumentConversionSource } from "./conversion-source";

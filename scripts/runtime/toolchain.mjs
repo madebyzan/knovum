@@ -5,9 +5,12 @@ import { join } from "node:path";
 import { sha256File } from "./files.mjs";
 import { downloadArtifact } from "./transfer.mjs";
 
-export const ensureUv = (repository, target, source) => ensureTool(repository, target, source, "uv");
-export const ensureMicromamba = (repository, target, source) =>
-  ensureTool(repository, target, source, "micromamba");
+export function ensureUv(repository, target, source) {
+  return ensureTool(repository, target, source, "uv");
+}
+export function ensureMicromamba(repository, target, source) {
+  return ensureTool(repository, target, source, "micromamba");
+}
 
 async function ensureTool(repository, target, source, tool) {
   const name = target === "windows-x64" ? `${tool}.exe` : tool;

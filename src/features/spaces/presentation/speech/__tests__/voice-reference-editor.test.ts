@@ -3,7 +3,7 @@ import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
 
 import { createAppError } from "../../../../../foundation/errors/app-error";
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { PreparedVoiceReference } from "../../../contracts/generated/PreparedVoiceReference";
 import type { prepareVoiceReference } from "../../../speech/voice-reference-ipc";
 import VoiceReferenceEditor from "../VoiceReferenceEditor.vue";

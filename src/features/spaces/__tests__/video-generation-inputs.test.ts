@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { useSpaceStore } from "../session/space-store";
 const observed = vi.hoisted(() => vi.fn<(...args: unknown[]) => void>());
 vi.mock("../runs/resource-run-observation", () => ({ observeResourceRun: observed }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 import { generateVideoFromSources } from "../knowledge-derivations/video/generation";
 
 afterEach(() => {

@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
-import type { GenerationActionOption } from "../../generation-action-option";
+import type { GenerationActionOption } from "../../creation/action-option";
 import { useSettingsLeaveDecision } from "../../use-settings-leave-decision";
 import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SavedGenerationPresets from "../SavedGenerationPresets.vue";

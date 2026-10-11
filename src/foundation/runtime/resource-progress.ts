@@ -1,7 +1,7 @@
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { formatBytes } from "../format/bytes";
-import { i18n } from "../i18n/i18n";
+import { i18n } from "../i18n/instance";
 import type { useTaskStore } from "../tasks/task-store";
 
 export function formatResourceProgressMessage(progress: ResourcePreparationProgress): string {

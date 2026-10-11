@@ -11,7 +11,7 @@ fn embedding_profile_matches_compiled_backend() {
     assert_eq!(profile.device, device);
     assert_eq!(
         profile.execution_profile_id,
-        format!("{device}-f32-threads{}-native-v2", profile.cpu_threads)
+        format!("{device}-f32-threads{}-inference-v2", profile.cpu_threads)
     );
     assert!(memory_requirement(RuntimeCapability::Embedding, &profile).is_ok());
 }

@@ -90,9 +90,9 @@ jobs:
           version: "0.12.23"
       - run: corepack enable && pnpm install --frozen-lockfile
         shell: bash
-      - uses: ./.github/actions/setup-native-build
-      - name: Prepare native suppliers
-        run: node scripts/runtime/native.mjs
+      - uses: ./.github/actions/setup-rust-build
+      - name: Prepare inference suppliers
+        run: node scripts/runtime/inference/preparation.mjs
       - name: Run Rust gates
         run: pnpm check:rust
       - name: Compile desktop application

@@ -13,7 +13,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("vue-sonner", () => ({ toast: { error: state.toastError } }));
 vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => state.tasks }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("../knowledge-derivations/canvas-yield", () => ({ yieldToCanvas: async () => undefined }));
 
 beforeEach(() => {

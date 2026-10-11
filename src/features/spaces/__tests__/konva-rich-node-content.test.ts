@@ -2,7 +2,7 @@ import { shallowMount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { describe, expect, it } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceCodePayload, SpaceFilePayload } from "../model/nodes/node-payload";
 import SpaceCanvasCode from "../presentation/canvas/nodes/SpaceCanvasCode.vue";
 import SpaceCanvasNodeBody from "../presentation/canvas/nodes/SpaceCanvasNodeBody.vue";

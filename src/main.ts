@@ -32,7 +32,7 @@ async function start(): Promise<void> {
   const [{ bootstrap }, { router }, { i18n }, { queryClient }] = await Promise.all([
     import("./app/bootstrap"),
     import("./app/router"),
-    import("./foundation/i18n/i18n"),
+    import("./foundation/i18n/instance"),
     import("./foundation/query/query-client"),
   ]);
   const pinia = createPinia();

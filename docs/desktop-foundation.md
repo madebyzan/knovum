@@ -182,5 +182,5 @@ normal initialization until resolved. A successful backup reports any staging cl
 Credentials, downloaded models, runtimes, caches and logs are excluded. Restore removes existing credentials together with
 publication, requiring explicit reauthorization. Maintenance results remain visible until dismissed.
 
-The supported OS floor is owned by `docs/platform-matrix.md`. Native inference requires Windows
+The supported OS floor is owned by `docs/platform-matrix.md`. Rust inference requires Windows
 10 2004/build 19041 or newer; a lower build fails visibly before loading the sealed runtime.

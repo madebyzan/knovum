@@ -1,7 +1,7 @@
 use crate::{artifact, images::Images};
 use knovum_inference_contracts::{
-    native_manifest::NativeRuntimeManifest,
     runtime::{RuntimeInitializeParams, RuntimeLimits, RuntimeSession, PROTOCOL_VERSION},
+    runtime_manifest::RuntimeManifest,
 };
 use sha2::{Digest, Sha256};
 use std::{
@@ -91,12 +91,12 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
     #[cfg(windows)]
     if windows_version::OsVersion::current() < windows_version::OsVersion::new(10, 0, 0, 19041) {
         return Err(
-            "unsupported_device: native inference requires Windows 10 2004 (build 19041) or later"
+            "unsupported_device: Rust inference requires Windows 10 2004 (build 19041) or later"
                 .into(),
         );
     }
     if !path.is_absolute() {
-        return Err("runtime_mismatch: native manifest path is relative".into());
+        return Err("runtime_mismatch: inference manifest path is relative".into());
     }
     let mut bytes = Vec::new();
     artifact::open_regular(path)?
@@ -104,15 +104,15 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
         .read_to_end(&mut bytes)
         .map_err(|error| error.to_string())?;
     if bytes.len() > 1_048_576 || hex::encode(Sha256::digest(&bytes)) != expected_digest {
-        return Err("runtime_mismatch: native manifest digest differs".into());
+        return Err("runtime_mismatch: inference manifest digest differs".into());
     }
-    let manifest: NativeRuntimeManifest =
+    let manifest: RuntimeManifest =
         serde_json::from_slice(&bytes).map_err(|error| format!("runtime_mismatch: {error}"))?;
     let target = match (std::env::consts::OS, std::env::consts::ARCH) {
         ("macos", "x86_64") => "macos-x64",
         ("macos", "aarch64") => "macos-arm64",
         ("windows", "x86_64") => "windows-x64",
-        _ => return Err("unsupported_device: native runtime target is unsupported".into()),
+        _ => return Err("unsupported_device: inference runtime target is unsupported".into()),
     };
     if manifest.schema_version != 1
         || manifest.target != target
@@ -123,18 +123,18 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
             .iter()
             .any(|file| file.path == manifest.onnx_runtime)
     {
-        return Err("runtime_mismatch: native runtime manifest is invalid".into());
+        return Err("runtime_mismatch: inference runtime manifest is invalid".into());
     }
     let directory = path
         .parent()
-        .ok_or("runtime_mismatch: native manifest parent is missing")?;
+        .ok_or("runtime_mismatch: inference manifest parent is missing")?;
     artifact::require_directory(directory)?;
     let mut actual = 0;
     for entry in walkdir::WalkDir::new(directory).follow_links(false) {
         let entry = entry.map_err(|error| format!("runtime_mismatch: {error}"))?;
         let metadata = fs::symlink_metadata(entry.path()).map_err(|error| error.to_string())?;
         if metadata.file_type().is_symlink() {
-            return Err("runtime_mismatch: native runtime contains a link".into());
+            return Err("runtime_mismatch: inference runtime contains a link".into());
         }
         #[cfg(windows)]
         {
@@ -143,7 +143,7 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
                 & windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT
                 != 0
             {
-                return Err("runtime_mismatch: native runtime contains a reparse point".into());
+                return Err("runtime_mismatch: inference runtime contains a reparse point".into());
             }
         }
         if metadata.is_dir() {
@@ -156,18 +156,18 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
             .to_string_lossy()
             .replace('\\', "/");
         if !metadata.is_file()
-            || relative != "native-runtime-manifest.json"
+            || relative != "inference-runtime-manifest.json"
                 && !manifest.files.iter().any(|file| file.path == relative)
         {
-            return Err("runtime_mismatch: native runtime contains an unverified file".into());
+            return Err("runtime_mismatch: inference runtime contains an unverified file".into());
         }
         actual += 1;
         if actual > 257 {
-            return Err("runtime_mismatch: native inventory exceeds its bound".into());
+            return Err("runtime_mismatch: inference inventory exceeds its bound".into());
         }
     }
     if actual != manifest.files.len() + 1 {
-        return Err("runtime_mismatch: native inventory is incomplete".into());
+        return Err("runtime_mismatch: inference inventory is incomplete".into());
     }
     let mut names = std::collections::HashSet::new();
     for file in &manifest.files {
@@ -176,11 +176,11 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
             || file.size == 0
             || file.size > 2 * 1024 * 1024 * 1024
         {
-            return Err("runtime_mismatch: invalid native runtime file inventory".into());
+            return Err("runtime_mismatch: invalid inference runtime file inventory".into());
         }
         let mut stream = artifact::open_regular(&directory.join(&file.path))?;
         if stream.metadata().map_err(|error| error.to_string())?.len() != file.size {
-            return Err("runtime_mismatch: native runtime file size differs".into());
+            return Err("runtime_mismatch: inference runtime file size differs".into());
         }
         let mut hash = Sha256::new();
         let mut buffer = [0u8; 65536];
@@ -194,11 +194,11 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
             hash.update(&buffer[..count]);
         }
         if hex::encode(hash.finalize()) != file.sha256 {
-            return Err("runtime_mismatch: native runtime file hash differs".into());
+            return Err("runtime_mismatch: inference runtime file hash differs".into());
         }
     }
     #[cfg(windows)]
-    crate::speech::native::prepare_search_directory(directory)?;
+    crate::speech::ffi::prepare_search_directory(directory)?;
     ort::init_from(directory.join(&manifest.onnx_runtime))
         .map_err(|error| format!("runtime_mismatch: {error}"))?
         .with_telemetry(false)

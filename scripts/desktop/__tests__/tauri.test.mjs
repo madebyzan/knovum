@@ -17,7 +17,7 @@ import test from "node:test";
 function fixture(context) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "knovum-desktop-startup-")));
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  for (const directory of ["scripts/desktop", "scripts/runtime", "node_modules/@tauri-apps/cli"]) {
+  for (const directory of ["scripts/desktop", "scripts/runtime/inference", "node_modules/@tauri-apps/cli"]) {
     mkdirSync(join(root, directory), { recursive: true });
   }
   copyFileSync(new URL("../tauri.mjs", import.meta.url), join(root, "scripts/desktop/tauri.mjs"));
@@ -50,13 +50,13 @@ function fixture(context) {
   `,
   );
   writeFileSync(
-    join(root, "scripts/runtime/native.mjs"),
+    join(root, "scripts/runtime/inference/preparation.mjs"),
     `
     import { appendFileSync, existsSync } from 'node:fs';
     import { join } from 'node:path';
-    export async function prepareNativeRuntime(repository) {
-      if (existsSync(join(repository,'broken-native'))) throw new Error('Native worker verification failed');
-      appendFileSync(join(repository,'events.jsonl'),JSON.stringify({stage:'native'})+'\\n');
+    export async function prepareInferenceRuntime(repository) {
+      if (existsSync(join(repository,'broken-inference'))) throw new Error('Inference worker verification failed');
+      appendFileSync(join(repository,'events.jsonl'),JSON.stringify({stage:'inference'})+'\\n');
     }
   `,
   );
@@ -67,7 +67,7 @@ function fixture(context) {
     import { syncBuiltinESMExports } from 'node:module';
     import { appendFileSync, existsSync } from 'node:fs';
     childProcess.execFileSync = (command, args, options) => {
-      if (existsSync('broken-build')) throw new Error('Native worker compilation failed');
+      if (existsSync('broken-build')) throw new Error('Inference worker compilation failed');
       appendFileSync('events.jsonl', JSON.stringify({ stage: command, args, cwd: options.cwd }) + '\\n');
     };
     syncBuiltinESMExports();
@@ -94,7 +94,7 @@ for (const args of [
     assert.equal(execution.status, 0, execution.stderr);
     assert.deepEqual(events(root), [
       { stage: "prepared" },
-      { stage: "native" },
+      { stage: "inference" },
       {
         stage: "cargo",
         args: [
@@ -131,12 +131,12 @@ for (const args of [["dev", "--help"], ["dev", "-h"], ["dev", "--version"], ["in
   });
 }
 
-test("invalid native worker prevents launching the desktop", (context) => {
+test("invalid inference worker prevents launching the desktop", (context) => {
   const root = fixture(context);
-  writeFileSync(join(root, "broken-native"), "");
+  writeFileSync(join(root, "broken-inference"), "");
   const execution = launch(root, ["dev"]);
   assert.equal(execution.status, 1);
-  assert.match(execution.stderr, /Native worker verification failed/u);
+  assert.match(execution.stderr, /Inference worker verification failed/u);
   assert.deepEqual(events(root), [{ stage: "prepared" }]);
 });
 
@@ -145,8 +145,8 @@ test("failed worker compilation prevents launching the desktop", (context) => {
   writeFileSync(join(root, "broken-build"), "");
   const execution = launch(root, ["dev"]);
   assert.equal(execution.status, 1);
-  assert.match(execution.stderr, /Native worker compilation failed/u);
-  assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "native" }]);
+  assert.match(execution.stderr, /Inference worker compilation failed/u);
+  assert.deepEqual(events(root), [{ stage: "prepared" }, { stage: "inference" }]);
 });
 
 test("the official action's build command reaches resource-aware packaging", (context) => {

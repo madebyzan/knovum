@@ -3,7 +3,7 @@ import { lstatSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 
-import { validateNativePackage } from "./native-package.mjs";
+import { validateInferencePackage } from "./inference/package.mjs";
 import { validatePackagedResources } from "./packaged-resources.mjs";
 
 const windowsTarget = "windows-x64";
@@ -31,10 +31,10 @@ function verifyExtractedWindowsApplication(extractionRoot, options) {
   const resources = locateApplicationResources(extractionRoot, options.target);
   validatePackagedResources(resources, resolve(options.repository), options.target);
   if (options.production) verifyDistributionSignature(join(dirname(resources), "knovum.exe"));
-  validateNativePackage(
-    join(resources, "native-runtime"),
+  validateInferencePackage(
+    join(resources, "inference-runtime"),
     options.target,
-    options.nativeManifest,
+    options.inferenceManifest,
     options.production,
   );
   return resources;

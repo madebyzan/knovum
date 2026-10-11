@@ -1,4 +1,4 @@
-use crate::local_resources::runtimes::native;
+use crate::local_resources::runtimes::inference;
 use worker_start::{start_worker, WorkerStart};
 mod worker_start;
 use std::{
@@ -70,7 +70,7 @@ where
     let deadline = super::super::deadline_duration(identity.deadline_ms)?;
     let exit = super::super::exit_token();
     let capability = params.capability();
-    let runtime = native::resolve(app)?;
+    let runtime = inference::resolve(app)?;
     super::super::prepare_worker_for_admission(priority, |worker| {
         worker.matches(
             &runtime.digest,

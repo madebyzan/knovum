@@ -9,7 +9,7 @@ import { routingCapabilities } from "../../../shared/contracts/generated/contrac
 import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../shared/ui/UiButton.vue";
-import { useAiConnectionEditing } from "../use-ai-connection-editing";
+import { useAiConnectionEditing } from "../connections/use-ai-connection-editing";
 import AiConnectionConfiguration from "./AiConnectionConfiguration.vue";
 import AiConnectionEditor from "./AiConnectionEditor.vue";
 

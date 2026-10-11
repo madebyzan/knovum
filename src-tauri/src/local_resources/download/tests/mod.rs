@@ -139,7 +139,7 @@ async fn interrupted_immutable_transfer_resumes_from_the_saved_offset() {
     ));
     let path = destination();
     std::fs::write(&path, b"da").unwrap();
-    let result = to_path(
+    let download = to_path(
         reqwest::Client::new().get(url),
         &path,
         policy(),
@@ -148,7 +148,7 @@ async fn interrupted_immutable_transfer_resumes_from_the_saved_offset() {
     )
     .await;
     let request = server.await.unwrap();
-    assert!(result.is_ok(), "{result:?}");
+    assert!(download.is_ok(), "{download:?}");
     assert!(request.contains("range: bytes=2-"));
     assert_eq!(std::fs::read(&path).unwrap(), b"data");
     std::fs::remove_file(path).unwrap();
@@ -164,7 +164,7 @@ async fn mismatched_range_does_not_append_or_truncate_the_partial_file() {
     ));
     let path = destination();
     std::fs::write(&path, b"da").unwrap();
-    let result = to_path(
+    let download = to_path(
         reqwest::Client::new().get(url),
         &path,
         policy(),
@@ -172,7 +172,7 @@ async fn mismatched_range_does_not_append_or_truncate_the_partial_file() {
         &mut |_, _| {},
     )
     .await;
-    assert!(result.is_err());
+    assert!(download.is_err());
     server.await.unwrap();
     assert_eq!(std::fs::read(&path).unwrap(), b"da");
     std::fs::remove_file(path).unwrap();

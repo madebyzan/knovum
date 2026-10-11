@@ -24,7 +24,7 @@ fn main() {
             r"audiocpp_(abi_version|last_error|registry_create|registry_free|model_load|model_free|session_create|session_free|session_run|request_create|request_free|request_set_(text|text_language|audio)|result_free|result_word_count|result_word)",
         ),
     ] {
-        let header = format!("native-api/{file}");
+        let header = format!("ffi-headers/{file}");
         println!("cargo:rerun-if-changed={header}");
         bindgen::Builder::default()
             .header(header)
@@ -35,8 +35,8 @@ fn main() {
             .generate_comments(false)
             .layout_tests(false)
             .generate()
-            .expect("pinned native C API bindings")
+            .expect("pinned C API bindings")
             .write_to_file(output.join(format!("{name}.rs")))
-            .expect("write native bindings");
+            .expect("write C API bindings");
     }
 }

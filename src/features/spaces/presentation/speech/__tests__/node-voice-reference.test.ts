@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type * as ipc from "../../../speech/voice-reference-ipc";
 import VoiceReferenceEditor from "../VoiceReferenceEditor.vue";

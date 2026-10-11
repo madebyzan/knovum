@@ -52,8 +52,8 @@ Names are part of the architecture contract. Prefer domain language over impleme
 The retained Python package is `knovum_agent_runtime` under `python/src/`; `knovum-python` names
 its distribution and `knovum-agent-runtime` its process entry. Agent tests live in
 `python/tests/agent_runtime/` and its Rust-owned wire schema in `python/schemas/agent_runtime.schema.json`.
-Native inference lives in the Rust `knovum-inference-worker` package; shared wire types and its
-schema belong to `inference-contracts`. Managed Agent CPython resources and native inference
+Inference runs in the `knovum-inference-worker` Rust package; shared wire types and its
+schema belong to `inference-contracts`. Managed Agent CPython resources and Rust inference
 resources are separate owners.
 
 Paths describe ownership; file names describe the responsibility within that owner. Do not

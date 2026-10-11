@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeDragPosition } from "../file-drop";
+import { normalizeDragPosition } from "../events";
 
 describe("normalizeDragPosition", () => {
   it("preserves AppKit logical webview coordinates on macOS", () => {

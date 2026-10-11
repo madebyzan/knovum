@@ -63,27 +63,27 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             (1, 2, "Depth Anything Small CPU")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-tiny-{device}-q8_0-native-v2") =>
+            if id == format!("whisper-tiny-{device}-q8_0-inference-v2") =>
         {
             (1, 2, "Whisper.cpp tiny Q8")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-small-{device}-q8_0-native-v2") =>
+            if id == format!("whisper-small-{device}-q8_0-inference-v2") =>
         {
             (2, 3, "Whisper.cpp small Q8")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-large-v3-{device}-f16-native-v2") =>
+            if id == format!("whisper-large-v3-{device}-f16-inference-v2") =>
         {
             (5, 7, "Whisper.cpp large-v3 F16")
         }
         (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
-            if id == format!("qwen3-forced-aligner-0.6b-f16-{device}-native-v2") =>
+            if id == format!("qwen3-forced-aligner-0.6b-f16-{device}-inference-v2") =>
         {
             (5, 6, "Qwen3 forced aligner CPU")
         }
         (RuntimeCapability::SpeechAlignment, _, "cpu" | "mps" | "vulkan")
-            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-native-v2") =>
+            if id == format!("qwen3-forced-aligner-0.6b-q8_0-{device}-inference-v2") =>
         {
             (5, 6, "Qwen3 forced aligner Q8 GGUF")
         }
@@ -129,7 +129,7 @@ fn valid_threaded_profile(profile: &RuntimeDeviceProfile, prefix: &str) -> bool 
     profile
         .execution_profile_id
         .strip_prefix(prefix)
-        .and_then(|value| value.strip_suffix("-native-v2"))
+        .and_then(|value| value.strip_suffix("-inference-v2"))
         .and_then(|value| value.parse::<u8>().ok())
         .is_some_and(|threads| (1..=4).contains(&threads) && threads == profile.cpu_threads)
 }

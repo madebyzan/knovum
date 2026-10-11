@@ -4,7 +4,7 @@ import { createSpaceNode } from "../canvas/node";
 import { creationIntentCatalog } from "../knowledge-derivations/catalog/creation-intent-catalog";
 import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
-import { transcriptFixture } from "./media-transcript-fixture";
+import { transcriptFixture } from "./support/media-transcript-fixture";
 
 const note = () =>
   createSpaceNode(

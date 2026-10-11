@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { DocumentResourceProjection } from "../presentation/document/document-resource-projection";
 import SpaceDocumentResourceGrid from "../presentation/document/SpaceDocumentResourceGrid.vue";
 

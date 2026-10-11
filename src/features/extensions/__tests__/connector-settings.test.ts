@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { cloneDeep } from "es-toolkit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";

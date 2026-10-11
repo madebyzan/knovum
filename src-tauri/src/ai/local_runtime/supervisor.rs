@@ -1,4 +1,4 @@
-use crate::local_resources::runtimes::native;
+use crate::local_resources::runtimes::inference;
 use std::{
     path::Path,
     time::{Duration, Instant},
@@ -40,7 +40,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         EmbeddingRole::Query => super::admission::Priority::Interactive,
         EmbeddingRole::Document => super::admission::Priority::Background,
     };
-    let runtime = native::resolve(app)?;
+    let runtime = inference::resolve(app)?;
     let model_directory = embedding_directory(resources)?;
     let device_profile = super::device_profiles::embedding::profile()?;
     super::prepare_worker_for_admission(priority, |worker| {

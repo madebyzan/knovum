@@ -43,9 +43,9 @@ pub(crate) fn run(
     cancel.check()?;
     let options = cancel.run_options()?;
     let inputs = feeds.into_iter().collect::<Vec<_>>();
-    let result = session.run_with_options(inputs, &options);
+    let execution = session.run_with_options(inputs, &options);
     cancel.check()?;
-    let outputs = result.map_err(|error| format!("inference_failed: {error}"))?;
+    let outputs = execution.map_err(|error| format!("inference_failed: {error}"))?;
     Ok(outputs
         .into_iter()
         .map(|(name, value)| (name.to_owned(), value))

@@ -68,7 +68,7 @@ pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError
 }
 
 fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
-    runtimes::native::resolve(app)?;
+    runtimes::inference::resolve(app)?;
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
         ffmpeg: tool_status_from_path(tools::resolve_ffmpeg(app)?),

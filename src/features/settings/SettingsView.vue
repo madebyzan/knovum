@@ -15,7 +15,7 @@ import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsP
 import NotificationsSettingsPane from "./components/panes/NotificationsSettingsPane.vue";
 import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
-import type { GenerationActionOption } from "./generation-action-option";
+import type { GenerationActionOption } from "./creation/action-option";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
 import { getSettingsDefinition } from "./settings-registry";
 import { useSettingsLeaveCoordinator } from "./use-settings-leave-coordinator";

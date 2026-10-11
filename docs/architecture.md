@@ -40,7 +40,7 @@ quality and restricted imports; it is not a dependency-graph engine.
 The Spaces core/presentation rule exempts tests in any capability-owned `__tests__/` directory.
 All other dependency rules remain in force, including the prohibition on production imports of tests.
 
-## Native inference boundary
+## Rust inference boundary
 
 The Cargo workspace contains the Tauri host, `inference-contracts` and `inference-worker`. The neutral
 contracts crate depends on serialization/schema tooling only. The worker imports those contracts and
@@ -185,22 +185,22 @@ and owns durable publication.
 compose resource removal with consumers that must release an active model, while
 `local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app_resources` composes catalog facts with that policy for product availability.
 
-Runtime selection, native and Agent processes, model/device policy, downloads, packaging, and GPU behavior are
+Runtime selection, Rust inference and Agent processes, model/device policy, downloads, packaging, and GPU behavior are
 specified in [system-architecture.md](system-architecture.md) and
 [local-models.md](local-models.md). The WebView never starts Python directly, chooses unverified
 resource paths, or publishes engine results to Space storage.
 
-### Native inference and retained Agent Python
+### Rust inference and retained Agent Python
 
 `src-tauri/crates/inference-contracts` owns the strict neutral wire types shared by the host and
 private worker. The host depends on this package alone, never on the inference engines.
 `inference-worker` owns bounded framing, request admission and independent reader/compute threads;
-`embedding`, `images` and `speech` own their capability adapters. Native libraries receive only
+`embedding`, `images` and `speech` own their capability adapters. Compiled libraries receive only
 verified models and request-scoped inputs. Business authorization and publication remain with the
 calling host capability. `local_resources` owns model acquisition without a Python process.
 
 `python/` retains only `knovum_agent_runtime` and its generated Agent contracts under the standard
-`src/` layout. Agent modules do not import native inference implementations. Package `__init__.py`
+`src/` layout. Agent modules do not import Rust inference implementations. Package `__init__.py`
 files do not re-export implementation symbols. Python cannot authorize Space data, create durable
 runs, choose replacement models after failures or publish results independently of Rust authority.
 
@@ -374,7 +374,7 @@ The repository enforces these boundaries through:
 - `pnpm check:scripts`: owned Node script unit tests discovered by Node itself from `scripts/**/__tests__/*.test.mjs`; signing/platform acceptance stays separate;
 - `pnpm check`: all four groups;
 - `pnpm contracts:generate`: reproducible Rust-to-TypeScript/Python wire generation;
-- `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including the native worker schema and retained Agent contracts.
+- `pnpm contracts:check`: regeneration plus committed/untracked drift checks over the generator-owned output list, including the Rust worker schema and retained Agent contracts.
 
 Add or change an owner only with matching dependency rules and focused tests. Do not weaken a gate
 to admit a boundary violation; repair the ownership or record a narrow, explicit architectural

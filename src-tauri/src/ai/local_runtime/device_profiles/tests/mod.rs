@@ -15,49 +15,49 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-native-v2", 4),
+            profile("cpu", "cpu-f32-threads4-inference-v2", 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("mps", "mps-f32-threads4-native-v2", 4),
+            profile("mps", "mps-f32-threads4-inference-v2", 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads2-native-v2", 2),
+            profile("cpu", "cpu-f32-threads2-inference-v2", 2),
             4,
         ),
         (
             RuntimeCapability::ImageSegmentation,
-            profile("cpu", "cpu-f32-threads2-native-v2", 2),
+            profile("cpu", "cpu-f32-threads2-inference-v2", 2),
             1,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("mps", "whisper-small-mps-q8_0-native-v2", 4),
+            profile("mps", "whisper-small-mps-q8_0-inference-v2", 4),
             3,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("cpu", "whisper-small-cpu-q8_0-native-v2", 4),
+            profile("cpu", "whisper-small-cpu-q8_0-inference-v2", 4),
             3,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("cpu", "qwen3-forced-aligner-0.6b-f16-cpu-native-v2", 4),
+            profile("cpu", "qwen3-forced-aligner-0.6b-f16-cpu-inference-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("mps", "qwen3-forced-aligner-0.6b-f16-mps-native-v2", 4),
+            profile("mps", "qwen3-forced-aligner-0.6b-f16-mps-inference-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
             profile(
                 "vulkan",
-                "qwen3-forced-aligner-0.6b-f16-vulkan-native-v2",
+                "qwen3-forced-aligner-0.6b-f16-vulkan-inference-v2",
                 4,
             ),
             6,
@@ -104,7 +104,7 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
         ),
         (
             RuntimeCapability::SpeechSynthesis,
-            profile("cpu", "moss-nano-cpu-f32-threads1-native-v2", 1),
+            profile("cpu", "moss-nano-cpu-f32-threads1-inference-v2", 1),
             2,
         ),
     ];
@@ -123,15 +123,15 @@ fn profile_manifest_rejects_device_thread_and_capability_mismatches() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("mps", "cpu-f32-threads4-native-v2", 4),
+            profile("mps", "cpu-f32-threads4-inference-v2", 4),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-native-v2", 3),
+            profile("cpu", "cpu-f32-threads4-inference-v2", 3),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads5-native-v2", 5),
+            profile("cpu", "cpu-f32-threads5-inference-v2", 5),
         ),
         (
             RuntimeCapability::SpeechAlignment,
@@ -164,7 +164,7 @@ fn alignment_model_profiles_reject_unqualified_devices_before_execution() {
     for model in [M::Qwen3Aligner, M::Qwen3AlignerQ8] {
         for device in ["cpu", "mps", "vulkan"] {
             let id = super::alignment::execution_id(model, device).unwrap();
-            assert!(id.ends_with("-native-v2"));
+            assert!(id.ends_with("-inference-v2"));
             let value = profile(device, &id, 2);
             assert_eq!(
                 super::memory_requirement(RuntimeCapability::SpeechAlignment, &value)

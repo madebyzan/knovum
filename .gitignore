@@ -51,5 +51,5 @@ src-tauri/resources/python-*-descriptor.json
 /package-local.sh
 /.package-local/
 
-src-tauri/resources/native-runtime/
-src-tauri/resources/.native-package-*/
+src-tauri/resources/*-runtime/
+src-tauri/resources/.*-package-*/

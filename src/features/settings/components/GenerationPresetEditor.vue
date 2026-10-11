@@ -11,7 +11,7 @@ import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import type { GenerationActionOption } from "../generation-action-option";
+import type { GenerationActionOption } from "../creation/action-option";
 import { useSettingsLeaveDecision } from "../use-settings-leave-decision";
 import CreationParameterFields from "./CreationParameterFields.vue";
 

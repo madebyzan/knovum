@@ -2,7 +2,7 @@ use super::{credits::Credits, moss::Moss, stream::Publisher, voxcpm::VoxCpm};
 use crate::{cancellation::Cancellation, protocol::Output};
 use knovum_inference_contracts::{
     runtime::{RuntimeAckChunkParams, RuntimeInitializeParams},
-    speech_wire::*,
+    speech_wire::{SpeechSynthesis, SpeechSynthesisEngine, SpeechSynthesizeParams},
 };
 use std::{
     path::Path,
@@ -67,7 +67,7 @@ impl Synthesizer {
             .lock()
             .map_err(|_| "worker_crashed: synthesis acknowledgement lock poisoned")? =
             Some(credits.clone());
-        let result = (|| {
+        let synthesis = (|| {
             let mut publisher = Publisher::new(work, &params.identity, credits, output, cancel)?;
             match self {
                 Self::Moss(engine) => engine.generate(&params, &mut publisher, cancel)?,
@@ -80,6 +80,6 @@ impl Synthesizer {
             .lock()
             .map_err(|_| "worker_crashed: synthesis acknowledgement lock poisoned")?
             .take();
-        result
+        synthesis
     }
 }

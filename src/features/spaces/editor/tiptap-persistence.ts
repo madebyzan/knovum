@@ -1,7 +1,7 @@
 import { ref, type Ref } from "vue";
 
 import { createKeyedSerialQueue } from "../../../foundation/async/keyed-serial-queue";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload } from "../model/nodes/node-payload";
 import { tiptapContentSchema } from "../model/nodes/schema/content";

@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef } from "vue";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import { overlayScopeVisibleKey } from "../../../../../shared/contracts/overlay-scope-visibility";
 import SpeechMediaPlayer from "../SpeechMediaPlayer.vue";
 

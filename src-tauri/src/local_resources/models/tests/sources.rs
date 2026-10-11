@@ -108,7 +108,7 @@ fn compiled_voice_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
 }
 
 #[test]
-fn forced_alignment_uses_the_native_f16_package() {
+fn forced_alignment_uses_the_inference_f16_package() {
     let snapshot = SnapshotKind::SpeechAlignment;
     assert!(sources::for_snapshot(snapshot).is_none());
     assert_eq!(

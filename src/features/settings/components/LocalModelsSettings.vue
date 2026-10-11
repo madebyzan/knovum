@@ -9,7 +9,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
-import { buildLocalModelGroups } from "../local-model-groups";
+import { buildLocalModelGroups } from "../local-models/groups";
 import LocalModelCapability from "./LocalModelCapability.vue";
 
 const { t } = useI18n();

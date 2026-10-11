@@ -2,7 +2,7 @@
 
 Daily development uses five commands: `pnpm desktop:dev`, `pnpm test`, `pnpm format`,
 `pnpm check` and `pnpm package`. Use the vendor CLI's flags for watch, fix and bundle variants.
-`dev` and `build` are Tauri's Vite hooks. `desktop:dev` prepares FFmpeg and native libraries,
+`dev` and `build` are Tauri's Vite hooks. `desktop:dev` prepares FFmpeg and compiled libraries,
 builds the worker with Cargo, then starts Tauri; it does not prepare Python.
 
 These are auxiliary tools for one desktop product. Prefer package scripts and existing vendor

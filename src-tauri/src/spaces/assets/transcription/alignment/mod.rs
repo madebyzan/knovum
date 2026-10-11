@@ -91,7 +91,7 @@ pub(crate) async fn align_media(
     let deadline_ms = profile::deadline(total_duration)?;
     let handle = app.clone();
     let runtime =
-        crate::blocking::run(move || crate::local_resources::runtimes::native::resolve(&handle))
+        crate::blocking::run(move || crate::local_resources::runtimes::inference::resolve(&handle))
             .await?;
     let device =
         device_profiles::alignment::profile(&runtime, request.model, cancellation, deadline_ms)

@@ -1,4 +1,4 @@
-use crate::local_resources::runtimes::native::NativeRuntimePaths;
+use crate::local_resources::runtimes::inference::InferenceRuntimePaths;
 use serde::de::DeserializeOwned;
 use std::{process::Stdio, time::Duration};
 use tokio::process::Command;
@@ -9,7 +9,7 @@ pub(in crate::ai::local_runtime) enum Probe {
     CompiledLibrary(u64),
 }
 pub(in crate::ai::local_runtime) async fn report<T: DeserializeOwned>(
-    runtime: &NativeRuntimePaths,
+    runtime: &InferenceRuntimePaths,
     probe: Probe,
     cancellation: &CancellationToken,
     exit: &CancellationToken,
@@ -21,7 +21,7 @@ pub(in crate::ai::local_runtime) async fn report<T: DeserializeOwned>(
 }
 
 async fn detect(
-    runtime: &NativeRuntimePaths,
+    runtime: &InferenceRuntimePaths,
     probe: Probe,
     cancellation: &CancellationToken,
     exit: &CancellationToken,
@@ -32,8 +32,8 @@ async fn detect(
         _ = exit.cancelled() => return Err("cancelled".into()),
         _ = cancellation.cancelled() => return Err("cancelled".into()),
         verified = tokio::time::timeout(super::super::deadline_duration(deadline_ms)?,
-            tokio::task::spawn_blocking({let runtime=runtime.clone();move || crate::local_resources::runtimes::native::verify_before_spawn(&runtime)})) =>
-            verified.map_err(|_| "deadline_exceeded: GPU probe verification timed out")?.map_err(|_|"runtime_mismatch: native verification task stopped")??,
+            tokio::task::spawn_blocking({let runtime=runtime.clone();move || crate::local_resources::runtimes::inference::verify_before_spawn(&runtime)})) =>
+            verified.map_err(|_| "deadline_exceeded: GPU probe verification timed out")?.map_err(|_|"runtime_mismatch: inference verification task stopped")??,
     }
     let Probe::CompiledLibrary(reserve) = probe;
     let mut command = Command::new(&runtime.executable);
@@ -43,7 +43,7 @@ async fn detect(
             runtime
                 .manifest_path
                 .to_str()
-                .ok_or("runtime_mismatch: native manifest path is invalid")?,
+                .ok_or("runtime_mismatch: inference manifest path is invalid")?,
             &runtime.digest,
             &reserve.to_string(),
         ])

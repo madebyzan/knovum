@@ -1,4 +1,4 @@
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";

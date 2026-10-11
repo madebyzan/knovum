@@ -4,7 +4,7 @@ import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
 import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import {
   settingsLeaveCoordinatorKey,

@@ -1,4 +1,4 @@
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceMediaAnalysisLabels } from "./actions";
 
 export function spaceMediaAnalysisLabels(): SpaceMediaAnalysisLabels {

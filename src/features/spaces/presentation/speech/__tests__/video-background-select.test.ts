@@ -23,7 +23,7 @@ vi.mock("../../../session/space-store", () => ({
 vi.mock("../../../../../foundation/tasks/task-store", () => ({
   useTaskStore: () => ({ restoreRunning: vi.fn<() => void>(), setOpen: vi.fn<() => void>() }),
 }));
-vi.mock("../../../../../foundation/i18n/i18n", () => ({
+vi.mock("../../../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
 vi.mock("../../../speech/source-separation-ipc", () => ({ listSourceSeparations: mocks.list }));

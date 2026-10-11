@@ -1,4 +1,4 @@
-import { i18n } from "../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { SpaceRelationKind } from "../../model/relations/relation";
 import { popupSpaceContextMenu, spaceCheckItem } from "../../workspace/space-menu";
 

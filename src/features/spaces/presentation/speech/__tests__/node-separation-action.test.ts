@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { RunObservation } from "../../../contracts/generated/RunObservation";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { useSourceSeparation } from "../../../speech/use-source-separation";

@@ -2,7 +2,7 @@ import type { Editor } from "@tiptap/vue-3";
 import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import SpaceCanvasTextSelectionBar from "../presentation/canvas/nodes/SpaceCanvasTextSelectionBar.vue";
 
 describe("canvas text selection bar", () => {

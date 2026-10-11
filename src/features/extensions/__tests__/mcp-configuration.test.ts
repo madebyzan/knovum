@@ -2,7 +2,7 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import type { SettingsLeaveParticipant } from "../../../shared/contracts/settings-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";

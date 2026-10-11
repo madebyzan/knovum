@@ -36,12 +36,12 @@ function move(direction: "next" | "previous") {
   if (direction === "next") props.editor.commands.goToNextResult();
   else props.editor.commands.goToPreviousResult();
 }
-function doReplace() {
+function replaceMatch() {
   if (!query.value) return;
   props.editor.commands.replace();
   move("next");
 }
-function doReplaceAll() {
+function replaceAllMatches() {
   if (!query.value) return;
   props.editor.commands.replaceAll();
 }
@@ -106,7 +106,7 @@ function doReplaceAll() {
           v-model="replaceTerm"
           class="min-w-0 flex-1 bg-transparent px-1 text-label text-fg-primary outline-none placeholder:text-fg-tertiary"
           :placeholder="t('spaces.richtext.find.replacePlaceholder')"
-          @keydown.enter.prevent="doReplace"
+          @keydown.enter.prevent="replaceMatch"
           @keydown.esc.prevent="open = false"
         />
         <UiIconButton
@@ -114,7 +114,7 @@ function doReplaceAll() {
           tooltip
           size="sm"
           :disabled="!query"
-          @click="doReplace"
+          @click="replaceMatch"
         >
           <ReplaceIcon class="size-3" />
         </UiIconButton>
@@ -123,7 +123,7 @@ function doReplaceAll() {
           tooltip
           size="sm"
           :disabled="!query"
-          @click="doReplaceAll"
+          @click="replaceAllMatches"
         >
           <ReplaceAll class="size-3" />
         </UiIconButton>

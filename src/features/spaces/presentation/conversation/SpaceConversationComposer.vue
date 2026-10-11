@@ -5,7 +5,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef }
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
+import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";

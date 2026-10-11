@@ -1,7 +1,13 @@
-use super::{audio, native};
+use super::{audio, ffi};
 use crate::cancellation::Cancellation;
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
-use native::audio::*;
+use ffi::audio::*;
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{
+        alignment_execution_id, AlignedSpeechUnit, AlignmentUnitKind, SpeechAlignParams,
+        SpeechAlignment,
+    },
+};
 use std::{ffi::CStr, path::PathBuf, ptr};
 
 pub(crate) struct Aligner {
@@ -33,10 +39,10 @@ impl Engine {
         if request.is_null() {
             return Err("resource_exhausted: alignment request allocation failed".into());
         }
-        let mut result = ptr::null_mut();
+        let mut alignment = ptr::null_mut();
         let outcome = (|| {
-            let text_c = native::string(text)?;
-            let language = native::string(language)?;
+            let text_c = ffi::string(text)?;
+            let language = ffi::string(language)?;
             self.check(unsafe {
                 self.api
                     .audiocpp_request_set_text(request, text_c.as_ptr(), ptr::null())
@@ -56,12 +62,12 @@ impl Engine {
             })?;
             self.check(unsafe {
                 self.api
-                    .audiocpp_session_run(self.session, request, &mut result)
+                    .audiocpp_session_run(self.session, request, &mut alignment)
             })?;
-            if result.is_null() {
+            if alignment.is_null() {
                 return Err("invalid_output: alignment returned no result".into());
             }
-            let count = unsafe { self.api.audiocpp_result_word_count(result) };
+            let count = unsafe { self.api.audiocpp_result_word_count(alignment) };
             if count > text.chars().count() {
                 return Err("invalid_output: alignment exceeds its transcript length".into());
             }
@@ -71,7 +77,7 @@ impl Engine {
                 let (mut start, mut end) = (0i64, 0i64);
                 self.check(unsafe {
                     self.api.audiocpp_result_word(
-                        result,
+                        alignment,
                         index,
                         &mut word,
                         &mut start,
@@ -100,7 +106,7 @@ impl Engine {
             Ok(words)
         })();
         unsafe {
-            self.api.audiocpp_result_free(result);
+            self.api.audiocpp_result_free(alignment);
             self.api.audiocpp_request_free(request);
         }
         outcome
@@ -124,7 +130,7 @@ impl Aligner {
     fn load(&mut self) -> Result<&Engine, String> {
         if self.engine.is_none() {
             let api = unsafe {
-                AudioApi::from_library(native::load(&native::path(&self.params, "audiocpp")?)?)
+                AudioApi::from_library(ffi::load(&ffi::path(&self.params, "audiocpp")?)?)
             }
             .map_err(|error| format!("runtime_mismatch: {error}"))?;
             if unsafe { api.audiocpp_abi_version() } != 0x000200 {
@@ -143,7 +149,7 @@ impl Aligner {
                 } else {
                     directory.join("qwen3-forced-aligner-0.6b-q8_0.gguf")
                 };
-            let path = native::string(
+            let path = ffi::string(
                 model_path
                     .to_str()
                     .ok_or("model_corrupt: alignment path is invalid")?,
@@ -154,7 +160,7 @@ impl Aligner {
             check(&api, unsafe {
                 api.audiocpp_registry_create(ptr::null(), &mut registry)
             })?;
-            let result = (|| {
+            let initialization = (|| {
                 let config = audiocpp_model_config {
                     family_hint: c"qwen3_forced_aligner".as_ptr(),
                     config_id: ptr::null(),
@@ -196,7 +202,7 @@ impl Aligner {
                 api.audiocpp_model_free(model);
                 api.audiocpp_registry_free(registry);
             }
-            if let Err(error) = result {
+            if let Err(error) = initialization {
                 unsafe {
                     api.audiocpp_session_free(session);
                 }
@@ -298,7 +304,7 @@ fn check(api: &AudioApi, status: u32) -> Result<(), String> {
     }
     let error = unsafe { api.audiocpp_last_error() };
     let message = if error.is_null() {
-        "native alignment failed".into()
+        "C ABI alignment failed".into()
     } else {
         unsafe { CStr::from_ptr(error) }.to_string_lossy()
     };

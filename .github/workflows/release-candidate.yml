@@ -83,9 +83,9 @@ jobs:
           RUNTIME_TAG: ${{ github.event_name == 'push' && vars.KNOVUM_RUNTIME_PUBLICATION_TAG || inputs.runtime_publication_tag }}
         shell: bash
         run: pnpm runtime:provision --tag "$RUNTIME_TAG" --repository "$DISTRIBUTION_REPOSITORY" --source-repository "$GITHUB_REPOSITORY"
-      - uses: ./.github/actions/setup-native-build
-      - name: Prepare native suppliers
-        run: node scripts/runtime/native.mjs
+      - uses: ./.github/actions/setup-rust-build
+      - name: Prepare inference suppliers
+        run: node scripts/runtime/inference/preparation.mjs
       - name: Audit production web dependencies
         run: pnpm security:web
       - name: Install cargo-deny

@@ -66,7 +66,7 @@ test("producer identity follows the selected resource's actual source closure", 
   cpSync(join(repository, "scripts/runtime"), join(root, "scripts/runtime"), { recursive: true });
   const before = producerBytes(root, "agent"),
     mediaBefore = mediaRecipeIdentity(root, "macos-x64");
-  writeFileSync(join(root, "scripts/runtime/voice_bridge.cpp"), "changed voice supplier");
+  writeFileSync(join(root, "scripts/runtime/inference/voice_bridge.cpp"), "changed voice supplier");
   assert(producerBytes(root, "agent").equals(before));
   assert.equal(mediaRecipeIdentity(root, "macos-x64"), mediaBefore);
   writeFileSync(join(root, "scripts/runtime/media-binary.mjs"), "changed static FFmpeg installer");

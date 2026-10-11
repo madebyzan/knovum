@@ -1,11 +1,11 @@
-use crate::local_resources::runtimes::{native::NativeRuntimePaths, RuntimeLease};
+use crate::local_resources::runtimes::{inference::InferenceRuntimePaths, RuntimeLease};
 use std::{process::Stdio, sync::Arc};
 use tokio::process::Command;
 
 #[derive(Clone)]
-pub(in crate::ai::local_runtime) struct WorkerPackage(NativeRuntimePaths);
-impl From<&NativeRuntimePaths> for WorkerPackage {
-    fn from(paths: &NativeRuntimePaths) -> Self {
+pub(in crate::ai::local_runtime) struct WorkerPackage(InferenceRuntimePaths);
+impl From<&InferenceRuntimePaths> for WorkerPackage {
+    fn from(paths: &InferenceRuntimePaths) -> Self {
         Self(paths.clone())
     }
 }
@@ -14,10 +14,10 @@ impl WorkerPackage {
     pub(super) async fn verify(&self) -> Result<(), String> {
         let paths = self.0.clone();
         tokio::task::spawn_blocking(move || {
-            crate::local_resources::runtimes::native::verify_before_spawn(&paths)
+            crate::local_resources::runtimes::inference::verify_before_spawn(&paths)
         })
         .await
-        .map_err(|error| format!("Native verification task failed: {error}"))?
+        .map_err(|error| format!("Inference verification task failed: {error}"))?
     }
     pub(super) fn digest(&self) -> &str {
         &self.0.digest
@@ -31,7 +31,7 @@ impl WorkerPackage {
             .0
             .manifest_path
             .parent()
-            .expect("Verified native manifest has a parent")
+            .expect("Verified inference manifest has a parent")
             .join("bin");
         command
             .current_dir(bin)

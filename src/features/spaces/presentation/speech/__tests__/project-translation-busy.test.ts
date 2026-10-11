@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished } from "vitest";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpeechProjectSnapshot } from "../../../contracts/generated/SpeechProjectSnapshot";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import SpeechProjectEditor from "../SpeechProjectEditor.vue";

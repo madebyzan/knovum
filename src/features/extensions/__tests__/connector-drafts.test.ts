@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import {
   settingsLeaveCoordinatorKey,
   type SettingsLeaveParticipant,

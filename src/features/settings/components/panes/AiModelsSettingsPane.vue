@@ -16,7 +16,7 @@ import type { RoutingPurpose } from "../../../../shared/contracts/generated/Rout
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
-import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
+import { useProtectedExecutionTargets } from "../../connections/use-protected-execution-targets";
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
 import AiRoutingSettings from "../AiRoutingSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
@@ -77,7 +77,7 @@ async function resetSection() {
 
 onMounted(hydrateStores);
 
-async function manageModels(purpose: RoutingPurpose) {
+async function requestModelCreation(purpose: RoutingPurpose) {
   const request = { purpose };
   createModelRequest.value = request;
   await nextTick();
@@ -108,7 +108,7 @@ async function manageModels(purpose: RoutingPurpose) {
           :defaults="settings.defaults"
           :connections="settings.connections"
           :desktop-agents="settings.desktopAgents"
-          @manage-models="manageModels"
+          @request-model-creation="requestModelCreation"
           @update-route="updateDefaultRoute"
         />
       </div>

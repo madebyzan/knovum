@@ -21,7 +21,7 @@ const props = defineProps<{
   desktopAgents: DesktopAgentSettings[];
 }>();
 const emit = defineEmits<{
-  manageModels: [purpose: RoutingPurpose];
+  requestModelCreation: [purpose: RoutingPurpose];
   updateRoute: [key: keyof AiRoutingDefaults, target: TaskTargetRef | null];
 }>();
 const { t } = useI18n();
@@ -113,7 +113,12 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
           class="w-52"
           @update:model-value="update(row.key, $event)"
         />
-        <UiButton v-else size="sm" variant="ghost" @click="emit('manageModels', row.purpose ?? 'knowledge')">
+        <UiButton
+          v-else
+          size="sm"
+          variant="ghost"
+          @click="emit('requestModelCreation', row.purpose ?? 'knowledge')"
+        >
           {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
         </UiButton>
       </PreferenceField>

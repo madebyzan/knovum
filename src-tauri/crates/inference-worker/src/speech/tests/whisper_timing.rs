@@ -8,7 +8,7 @@ fn whisper_zero_padding_is_not_published_as_source_audio() {
 }
 
 #[test]
-fn timestamps_outside_the_native_padded_context_are_rejected() {
+fn timestamps_outside_the_inference_padded_context_are_rejected() {
     for timestamp in [-1, 3_574, i64::MAX] {
         assert!(time(timestamp, 91_744).is_err());
     }

@@ -6,7 +6,7 @@ import type { AiConnectionSettings } from "../../../shared/contracts/generated/A
 import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { providerLogos } from "../ai-provider-logos";
+import { providerLogos } from "../connections/provider-logos";
 import AiConnectionModels from "./AiConnectionModels.vue";
 
 defineProps<{

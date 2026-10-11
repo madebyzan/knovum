@@ -6,7 +6,15 @@ use std::{
 };
 use zip::{write::SimpleFileOptions, CompressionMethod, ZipArchive, ZipWriter};
 
-use super::{archive, contracts::*, database, file_publication, files, paths::AppPaths};
+use super::{
+    archive,
+    contracts::{
+        ArchiveFile, Manifest, APPLICATION_ID, ARCHIVE_SCHEMA, MANIFEST_PATH, MAX_FILES,
+        MAX_FILE_BYTES, MAX_MANIFEST_BYTES, MAX_TOTAL_BYTES, ROOTS,
+    },
+    database, file_publication, files,
+    paths::AppPaths,
+};
 
 pub fn write(
     destination: &Path,

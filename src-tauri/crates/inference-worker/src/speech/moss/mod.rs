@@ -4,7 +4,10 @@ mod metadata;
 use super::stream::Publisher;
 use crate::{artifact, cancellation::Cancellation, onnx};
 use codec::Codec;
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{SpeechSynthesizeParams, VoiceSourceKind},
+};
 use ort::session::Session;
 use sentencepiece::SentencePieceProcessor;
 use std::{io::Read, path::PathBuf};

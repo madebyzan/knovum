@@ -8,7 +8,7 @@ import type { ImageOperationCapabilities } from "../contracts/generated/ImageOpe
 import { decideCreationIntents } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
-import { blockedImageCapabilities, imageSourceNode } from "./image-operation-fixtures";
+import { blockedImageCapabilities, imageSourceNode } from "./support/image-operation-fixtures";
 
 const context = vi.hoisted(() => ({
   space: null as null | { activeSpaceId: string; nodes: SpaceCanvasNode[] },

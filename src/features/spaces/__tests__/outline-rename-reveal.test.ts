@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { reactive, shallowRef } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import SpaceOutline from "../presentation/outline/SpaceOutline.vue";
 

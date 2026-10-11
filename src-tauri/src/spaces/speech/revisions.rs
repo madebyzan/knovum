@@ -1,6 +1,10 @@
 use crate::{app_error::AppError, spaces::db};
 
-use super::{contracts::*, project_config::ProjectOutputConfig, repository, text};
+use super::{
+    contracts::{SaveSpeechProjectRevisionRequest, SpeechProjectSnapshot, SpeechSegmentInput},
+    project_config::ProjectOutputConfig,
+    repository, text,
+};
 
 fn validate_segment(segment: &SpeechSegmentInput) -> Result<(), String> {
     if segment.id.trim().is_empty() {

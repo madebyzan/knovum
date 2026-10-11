@@ -3,7 +3,7 @@ import { afterEach, expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import SpaceNodeSpeechEditor from "../SpaceNodeSpeechEditor.vue";
 

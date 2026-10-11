@@ -7,7 +7,9 @@ import {
 } from "../comments/image-comment-session-store";
 import { useSpaceStore } from "../session/space-store";
 
-const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
+function percent(value: number) {
+  return `${Math.round(value * 1000) / 10}%`;
+}
 
 function coordinates(comment: DeepReadonly<ImageCommentContext>) {
   const shape = comment.shape;

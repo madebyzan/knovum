@@ -5,7 +5,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick, shallowRef } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { enrichmentProjectionKey } from "../enrichment/enrichment-projection-key";

@@ -8,7 +8,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { isSecretConfigured } from "../../../foundation/secrets/secret-store";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import type { AiConnectionSecretChange } from "../ai-connection-draft";
+import type { AiConnectionSecretChange } from "../connections/draft";
 
 const secret = defineModel<AiConnectionSecretChange>({ required: true });
 const props = defineProps<{ connectionId: string; existing: boolean; disabled: boolean }>();

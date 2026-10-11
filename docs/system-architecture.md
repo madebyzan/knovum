@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified compiled tools, native inference workers, retained Deep Agent CPython and private document workers
+      +-- verified compiled tools, Rust inference workers, retained Deep Agent CPython and private document workers
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -47,9 +47,9 @@ thread. Vue's long-document statistics Worker remains separate.
 
 Local inference runs in the private Rust `knovum-inference-worker` process over bounded JSON-RPC stdio.
 The host owns downloads, model identity, resource verification, admission, cancellation and publication.
-The native worker owns model execution only; it has no database or secret authority. Stable DTOs live in
+The Rust worker owns model execution only; it has no database or secret authority. Stable DTOs live in
 `src-tauri/crates/inference-contracts` and generate TypeScript contracts. Deep Agents/LangGraph is the
-only retained Python business runtime. Native libraries and the release worker are bundled, signed
+only retained Python business runtime. Compiled libraries and the release worker are bundled, signed
 and sealed in one manifest; model weights remain on demand. Fixed development and installed paths
 replace executable discovery. Required resources fail visibly. Local IPC queries and mutations use TanStack
 `networkMode: always`. Only Renderer-owned network requests use browser connectivity admission.

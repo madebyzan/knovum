@@ -88,20 +88,20 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 
 ## Distribution boundaries
 
-The installer contains FFmpeg, the Rust inference worker, its native library/notice closure, the
+The installer contains FFmpeg, the Rust inference worker, its compiled library/notice closure, the
 current Deep Agent `.py` source and exactly one `python-agent-descriptor.json`. The Agent interpreter
 and its third-party packages remain an independently published on-demand resource. The installer
 never includes Torch, MLX, inference Python packages or a model-download Python worker.
 
-`inference-contracts` owns neutral wire DTOs. Rust exports TypeScript and native inference JSON
+`inference-contracts` owns neutral wire DTOs. Rust exports TypeScript and Rust inference JSON
 Schema; Python generation consumes only Agent contracts. Obsolete pre-release request, index and
 runtime identities fail strictly, with no compatibility reader or alternate engine.
 
-### Native inference package
+### Rust inference package
 
-`node scripts/runtime/native.mjs` builds the controlled native closure for the actual host target.
+`node scripts/runtime/inference/preparation.mjs` builds the controlled library closure for the actual host target.
 Source archives, public ONNX headers, source revisions, sizes and hashes are fixed in the four
-`native-*-source.json` supplier records. ONNX Runtime 1.22.1's official wheel is an archive supplier:
+`scripts/runtime/inference/*-source.json` supplier records. ONNX Runtime 1.22.1's official wheel is an archive supplier:
 only its C library and notices are extracted; no interpreter, Python binding or package is installed.
 CMake 4.3.4 builds frozen audio.cpp, Sherpa-ONNX 1.13.8 and whisper.cpp 1.8.3. Sherpa TTS/eSpeak,
 Python, PortAudio and server examples are disabled. The callback bridge changes no vendor source.
@@ -118,19 +118,19 @@ The host removes inherited and command-local `DYLD_*`, `LD_*`, `GGML_*` and `VK_
 before worker execution or backend probing, alongside Python path settings and provider tokens.
 
 `pnpm package` builds the Rust worker, copies the verified closure into
-`src-tauri/resources/native-runtime`, signs its compiled resources, preserves verified Microsoft
+`src-tauri/resources/inference-runtime`, signs its compiled resources, preserves verified Microsoft
 runtime signatures, and seals the final file inventory.
 The worker lives at `bin/knovum-inference-worker[.exe]` inside that inventory. Host compilation embeds
 this exact manifest. At runtime, the host checks the manifest against its embedded trusted copy,
 rejects extra files/links/reparse directories, checks every hash, then starts the verified executable.
-Worker initialization repeats the bounded inventory check before loading native code. The packaged
+Worker initialization repeats the bounded inventory check before loading compiled libraries. The packaged
 manifest does not authorize itself. Final package verification detects any bundler-induced changes
 instead of relaxing hashes after signing.
 
 Production uses the application's real Developer ID/Authenticode identity for Knovum resources;
 Microsoft runtime files retain their verified vendor signatures. QA uses ad-hoc
 macOS signing and unsigned Windows output. Signature verification invokes native OS tools directly
-from Node. Native build inputs, notices and signing receipts accompany the sealed package. Exact
+from Node. Rust build inputs, notices and signing receipts accompany the sealed package. Exact
 license inventory and target execution evidence remain required before release promotion.
 
 ### Retained Deep Agent publication
@@ -150,7 +150,7 @@ pnpm runtime:provision --tag runtime-<commit>-<run>-<attempt> \
   --repository <public-distribution-owner/repo> --source-repository <private-source-owner/repo>
 ```
 
-`python-runtime.yml` produces only Agent on all three native runners and attests the interpreter
+`python-runtime.yml` produces only Agent on all three OS runners and attests the interpreter
 archive, evidence archive and descriptor. It publishes these assets to the initialized public
 distribution repository, keeping private source separate. QA and release builds select an explicit
 immutable tag. `gh release download` fetches its three target assets; `gh attestation verify` checks
@@ -165,8 +165,8 @@ the same read access. Application clients download the public archive anonymousl
 
 Agent installation uses existing bounded streaming, Task Center progress, complete verification,
 atomic activation and OS file leases. Its namespace is
-`local-resources/runtimes/python/agent/<target>/<archive-sha256>`. Native development publications
-use `.runtime-development/native/<target>/<recipe-sha256>` and separate lease anchors. Active
+`local-resources/runtimes/python/agent/<target>/<archive-sha256>`. Inference development publications
+use `.runtime-development/inference/<target>/<recipe-sha256>` and separate lease anchors. Active
 workers retain leases; stale identities are reclaimed only when unleased. Cargo uses the checkout's
 ordinary target and default profiles; shared-target builds are serialized.
 
@@ -183,7 +183,7 @@ the URL and underlying error, and remove rejected partial files. Integrity failu
 ### Core FFmpeg and developer startup
 
 FFmpeg 9.0.2 remains one static executable plus notices and owned evidence. The Node producer uses
-pinned source archives, yauzl selected-entry extraction, native dependency checks and OS signing.
+pinned source archives, yauzl selected-entry extraction, compiled-library dependency checks and OS signing.
 FFmpeg is prepared directly on the development/packaging host and included in the app; it has
 no independent archive, descriptor, release or provisioning step. Production preparation requires
 approved license evidence and signs the actual executable before sealing its manifest.
@@ -194,12 +194,12 @@ smokes run from relocated paths including Chinese characters. There is no Python
 `media-license-review.json` remains an accountable release input; pending approval permits QA only.
 Source/license changes invalidate its receipt. No tooling or QA result constitutes legal approval.
 
-`pnpm desktop:dev` prepares core FFmpeg, native suppliers and the Rust worker before invoking the
-Tauri CLI; `beforeDevCommand` starts only Vite. Native build tooling requires pinned CMake, the
+`pnpm desktop:dev` prepares core FFmpeg, inference suppliers and the Rust worker before invoking the
+Tauri CLI; `beforeDevCommand` starts only Vite. Rust build tooling requires pinned CMake, the
 normal Rust/Clang toolchain and macOS Metal tooling or the frozen Windows Vulkan SDK. The SDK's
 `copy_only=1` mode stays in build scratch and does not change system drivers or registry. Python is
 required only for retained Agent production and contract/build tools, never local model execution.
-CI's single `setup-native-build` action installs the pinned Protobuf compiler and CMake, and selects
+CI's single `setup-rust-build` action installs the pinned Protobuf compiler and CMake, and selects
 the Windows runner's LLVM `libclang.dll` for bindgen. Missing compiler libraries fail the build
 before inference packaging. Quality runs the same `pnpm check:rust` entry as local development
 and compiles the desktop on all three supported targets. Final signing/notarization
@@ -208,7 +208,7 @@ in the required profile rather than first building a disposable debug worker.
 
 Packaging verifies the exact Agent source/descriptor payload and forbids bundled interpreters.
 NSIS extraction uses pinned 7-Zip; MSI uses a Windows Installer administrative image. macOS verifies
-the actual `.app` resource inventory. Native package checks cover the sealed worker and libraries in
+the actual `.app` resource inventory. Inference package checks cover the sealed worker and libraries in
 addition to Agent payload validation. Real installation, launch, first-use model download, offline
 execution, signing/notarization and Windows/macOS target acceptance are separate mandatory release
 evidence. Editing CI does not claim a run on hardware unavailable to the implementer.
@@ -270,11 +270,11 @@ account is revoked. External HTTPS package downloads and MCP endpoints pin valid
 addresses and do not inherit environment proxies that bypass that policy. Release support remains
 macOS arm64/x64 and Windows x64. Agent RPC/graph v1 and profile v1 reject obsolete internal envelopes.
 
-### Windows native resource closure
+### Windows compiled resource closure
 
 VoxCPM2 and alignment may use the verified Vulkan backend after capacity admission. Embedding and
 Whisper use the explicit CPU profile on Windows. No CUDA/Torch/Tensor closure is shipped. Agent
-CPython preserves the documented UTF-8 activation manifest; the Rust inference worker and native
+CPython preserves the documented UTF-8 activation manifest; the Rust inference worker and compiled
 libraries require actual non-ASCII-path qualification on Windows.
 
 Windows packaging uses CMake's `InstallRequiredSystemLibraries` to select the licensed build
@@ -286,7 +286,7 @@ evidence. `dumpbin /DEPENDENTS` checks every packaged PE binary: imports must re
 the importing binary, in sealed `bin`, or in the Windows system-library/API-set allowlist.
 Missing MSVC, Vulkan or other non-system DLLs fail packaging rather than relying on a developer
 machine's installed copies. Microsoft redistribution permission remains a release review item.
-Windows development requires the MSVC runtime and Vulkan loader installed with its native
+Windows development requires the MSVC runtime and Vulkan loader installed with its C++
 development toolchain; fresh development-machine qualification is separate from installer QA.
 
 ## Environment ownership

@@ -1,6 +1,6 @@
 use crate::{
     ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile},
-    local_resources::runtimes::native::NativeRuntimePaths,
+    local_resources::runtimes::inference::InferenceRuntimePaths,
 };
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -29,7 +29,7 @@ pub(crate) fn require_memory(model_spec_id: &str) -> Result<(), String> {
     }
 }
 pub(crate) async fn profile(
-    runtime: &NativeRuntimePaths,
+    runtime: &InferenceRuntimePaths,
     model_spec_id: &str,
     cancellation: &CancellationToken,
 ) -> Result<RuntimeDeviceProfile, String> {

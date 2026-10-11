@@ -12,7 +12,7 @@ import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiProgress from "../../../shared/ui/UiProgress.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import { useLocalModelOperations } from "../use-local-model-operations";
+import { useLocalModelOperations } from "../local-models/use-local-model-operations";
 
 const props = defineProps<{ model: LocalModelAvailability }>();
 const emit = defineEmits<{ preparationChange: [active: boolean]; failure: [] }>();

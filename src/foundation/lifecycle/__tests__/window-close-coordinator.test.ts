@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-sonner", () => ({ toast: { error: vi.fn<(message: string) => void>() } }));
 
 vi.mock("@tauri-apps/api/event", () => ({

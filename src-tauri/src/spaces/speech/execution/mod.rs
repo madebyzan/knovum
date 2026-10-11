@@ -8,7 +8,15 @@ pub(in crate::spaces::speech) use resources::{prepare_synthesis, synthesis_devic
 use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
 
-use super::{cancellation, contracts::*, publication, run_start};
+use super::{
+    cancellation,
+    contracts::{
+        parse_synthesis_config, GenerateSpeechProjectRequest, PreviewVoiceRequest,
+        SpeechAudioOutput, SpeechGenerationProgress, SpeechPreviewAudioChunk, VoiceExecution,
+        VoicePreviewSource, VoiceSynthesisConfig,
+    },
+    publication, run_start,
+};
 use crate::{
     ai::{
         contracts::runtime::RuntimeDeviceProfile,

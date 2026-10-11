@@ -1,7 +1,10 @@
-use super::{artifacts, audio, native};
+use super::{artifacts, audio, ffi};
 use crate::cancellation::Cancellation;
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
-use native::sherpa::*;
+use ffi::sherpa::*;
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{SpeechSeparateParams, SpeechSeparation},
+};
 use std::{
     path::{Path, PathBuf},
     ptr,
@@ -59,21 +62,18 @@ impl Separator {
                     format!("{stem}.onnx")
                 })
             };
-            let vocals = native::string(
+            let vocals = ffi::string(
                 name("vocals")
                     .to_str()
                     .ok_or("model_corrupt: model path is invalid")?,
             )?;
-            let accompaniment = native::string(
+            let accompaniment = ffi::string(
                 name("accompaniment")
                     .to_str()
                     .ok_or("model_corrupt: model path is invalid")?,
             )?;
             let api = unsafe {
-                SherpaApi::from_library(native::load(&native::path(
-                    &self.params,
-                    "sherpa-onnx-c-api",
-                )?)?)
+                SherpaApi::from_library(ffi::load(&ffi::path(&self.params, "sherpa-onnx-c-api")?)?)
             }
             .map_err(|error| format!("runtime_mismatch: {error}"))?;
             let version = unsafe { std::ffi::CStr::from_ptr(api.SherpaOnnxGetVersionStr()) }
@@ -133,9 +133,9 @@ impl Separator {
         };
         if output.is_null() {
             cancel.check()?;
-            return Err("separation_failed: native engine returned no stems".into());
+            return Err("separation_failed: inference engine returned no stems".into());
         }
-        let result = (|| {
+        let separation = (|| {
             cancel.check()?;
             // The pinned engine owns this result and its two channel arrays until DestroyOutput.
             let output = unsafe { &*output };
@@ -178,6 +178,6 @@ impl Separator {
         unsafe {
             engine.api.SherpaOnnxDestroySourceSeparationOutput(output);
         }
-        result
+        separation
     }
 }

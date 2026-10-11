@@ -2,7 +2,7 @@ use knovum_inference_contracts::runtime::RuntimeInitializeParams;
 
 fn params(spec: &str, execution: &str, model: &str) -> RuntimeInitializeParams {
     serde_json::from_value(serde_json::json!({
-        "runtimeManifestPath": "/native/manifest.json", "runtimeDigest": "digest",
+        "runtimeManifestPath": "/inference/manifest.json", "runtimeDigest": "digest",
         "protocolVersion": 1, "sessionId": "session", "capability": "speech_transcription",
         "capabilitySpecId": spec,
         "deviceProfile": {"device": "cpu", "executionProfileId": execution, "cpuThreads": 4},
@@ -27,7 +27,7 @@ fn transcription_rejects_an_execution_identity_that_does_not_match_its_model() {
 }
 
 #[test]
-fn vox_rejects_unadmitted_profiles_before_loading_a_native_library() {
+fn vox_rejects_unadmitted_profiles_before_loading_a_inference_library() {
     for quantization in ["orig", "q8_0"] {
         let spec = format!("voxcpm2-2b-gguf-{quantization}-v1");
         let profile = format!("voxcpm2-cpu-gguf-{quantization}-v1");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { reactive } from "vue";
 
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
-import { createAiConnectionDraft, finalizeAiConnectionDraft } from "../ai-connection-draft";
+import { createAiConnectionDraft, finalizeAiConnectionDraft } from "../connections/draft";
 
 const connection: AiConnectionSettings = {
   id: "openai-main",

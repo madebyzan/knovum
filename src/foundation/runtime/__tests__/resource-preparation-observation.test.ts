@@ -11,7 +11,7 @@ import {
 import { restoreResourcePreparationTasks } from "../resource-preparation";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
-vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("../local-resources", () => ({
   prepareResources: vi.fn<typeof prepareResources>(),
   cancelResourcePreparation: vi.fn<typeof cancelResourcePreparation>().mockResolvedValue(undefined),

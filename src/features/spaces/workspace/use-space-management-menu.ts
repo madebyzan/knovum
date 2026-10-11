@@ -1,7 +1,7 @@
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { ContextMenuItem } from "../../../foundation/context-menu/context-menu";
+import type { ContextMenuItem } from "../../../foundation/context-menu/popup";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { CanvasExchangePort } from "../canvas-exchange/canvas-exchange-port";
 import { activeCanvasExchangePort as activePort } from "../canvas-exchange/canvas-exchange-session";

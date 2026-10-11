@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import { transcriptFixture } from "./media-transcript-fixture";
+import { transcriptFixture } from "./support/media-transcript-fixture";
 
 const mediaKnowledge = {
   transcript: transcriptFixture("sha256:test", [

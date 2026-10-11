@@ -6,7 +6,7 @@ import pLimit from "p-limit";
 import { defineStore } from "pinia";
 import { reactive, toRefs } from "vue";
 
-import { i18n, systemLocale, type AppLocale } from "../i18n/i18n";
+import { i18n, systemLocale, type AppLocale } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import {

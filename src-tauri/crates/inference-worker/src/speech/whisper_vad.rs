@@ -1,4 +1,4 @@
-use super::native::whisper::{whisper_vad_context, whisper_vad_segments, WhisperApi};
+use super::ffi::whisper::{whisper_vad_context, whisper_vad_segments, WhisperApi};
 use crate::cancellation::Cancellation;
 use std::{ffi::CStr, ops::Range};
 
@@ -55,20 +55,20 @@ pub(super) fn regions(
         return Err("invalid_output: Silero VAD segment count exceeds its budget".into());
     }
     let duration_ms = samples.len() as u64 / 16;
-    let mut result = Vec::with_capacity(count as usize);
+    let mut intervals = Vec::with_capacity(count as usize);
     for index in 0..count {
         let start = unsafe { api.whisper_vad_segments_get_segment_t0(detector.segments, index) };
         let end = unsafe { api.whisper_vad_segments_get_segment_t1(detector.segments, index) };
         let interval = checked_region(start, end, duration_ms)?;
-        if result
+        if intervals
             .last()
             .is_some_and(|last: &Range<u64>| last.end > interval.start)
         {
             return Err("invalid_output: Silero VAD regions overlap or are unordered".into());
         }
-        result.push(interval);
+        intervals.push(interval);
     }
-    Ok(result)
+    Ok(intervals)
 }
 
 fn checked_region(start: f32, end: f32, duration_ms: u64) -> Result<Range<u64>, String> {

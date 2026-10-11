@@ -10,7 +10,7 @@ import type { ProviderDescriptor } from "../../../shared/contracts/generated/Pro
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { useAiModelEditing } from "../use-ai-model-editing";
+import { useAiModelEditing } from "../connections/use-ai-model-editing";
 import AiModelEditor from "./AiModelEditor.vue";
 
 const props = defineProps<{
