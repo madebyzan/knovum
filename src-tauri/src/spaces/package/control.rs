@@ -27,13 +27,6 @@ pub(super) fn begin(
         .map_err(AppError::from)
 }
 
-#[cfg(test)]
-pub(crate) fn begin_test_job(operation_id: &str) -> Result<JobLease<CancellationToken>, String> {
-    begin(operation_id)
-        .map(|(_, lease)| lease)
-        .map_err(|error| error.message)
-}
-
 pub(super) fn cancel(operation_id: &str) -> Result<(), AppError> {
     validate_operation_id(operation_id)?;
     jobs()
@@ -77,4 +70,4 @@ pub(super) fn with_cleanup_error(
 
 #[cfg(test)]
 #[path = "tests/control.rs"]
-mod tests;
+pub(crate) mod tests;

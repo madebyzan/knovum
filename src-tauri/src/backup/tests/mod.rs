@@ -118,20 +118,22 @@ fn settings_validation_rejects_duplicate_presets_and_unknown_preferences() {
 
 #[test]
 fn active_space_package_job_blocks_backup_admission() {
-    let lease =
-        crate::spaces::package::control::begin_test_job("00000000-0000-4000-8000-000000000001")
-            .expect("package job");
+    let lease = crate::spaces::package::control::tests::begin_test_job(
+        "00000000-0000-4000-8000-000000000001",
+    )
+    .expect("package job");
     assert!(crate::spaces::backup::reserve_maintenance().is_err());
     drop(lease);
     let admission = crate::spaces::backup::reserve_maintenance().expect("idle engines reserved");
-    assert!(crate::spaces::package::control::begin_test_job(
+    assert!(crate::spaces::package::control::tests::begin_test_job(
         "00000000-0000-4000-8000-000000000002"
     )
     .is_err());
     drop(admission);
-    let _lease =
-        crate::spaces::package::control::begin_test_job("00000000-0000-4000-8000-000000000002")
-            .expect("failed scheduling reopens package admission");
+    let _lease = crate::spaces::package::control::tests::begin_test_job(
+        "00000000-0000-4000-8000-000000000002",
+    )
+    .expect("failed scheduling reopens package admission");
 }
 
 #[test]

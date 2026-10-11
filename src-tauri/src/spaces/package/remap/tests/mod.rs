@@ -2,6 +2,14 @@ use super::*;
 
 mod separation;
 
+fn prepare(
+    source: &str,
+    assets: &[ImportedPackageAsset],
+    target_space: &str,
+) -> Result<RestorePackageRequest, crate::app_error::AppError> {
+    prepare_cancellable(source, assets, target_space, &CancellationToken::new())
+}
+
 fn manifest() -> Value {
     let mut manifest = json!({"format":"knovum-space", "version":super::super::PACKAGE_VERSION, "exportedAt":1,
         "space":{"id":"original", "kind":"space", "title":"Imported", "archivedAt":null, "lastOpenedAt":1, "createdAt":1, "updatedAt":1}});
