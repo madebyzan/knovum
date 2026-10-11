@@ -55,7 +55,7 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
             {"id":"output","kind":"video","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}
         ]
     })).unwrap();
-    crate::spaces::nodes::insert_many_in_transaction(&mut tx, nodes, None)
+    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, nodes, None)
         .await
         .unwrap();
     tx.commit().await.unwrap();

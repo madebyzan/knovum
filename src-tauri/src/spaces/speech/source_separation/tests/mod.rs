@@ -35,7 +35,7 @@ async fn database() -> sqlx::SqlitePool {
     let request = serde_json::from_value(json!({"spaceId":"space","mutationId":"source-create",
         "expectedEditRevision":0,"targetParentId":null,"nodes":[{"id":"media","kind":"video",
         "initialX":0,"initialY":0,"width":320,"height":220,"sizingMode":"content","sourceChunks":[],"data":node_content}]})).unwrap();
-    crate::spaces::nodes::insert_many_in_transaction(&mut tx, request, None)
+    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, request, None)
         .await
         .unwrap();
     tx.commit().await.unwrap();

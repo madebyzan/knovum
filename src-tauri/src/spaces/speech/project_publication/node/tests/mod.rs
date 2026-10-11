@@ -17,7 +17,7 @@ async fn fixture() -> sqlx::SqlitePool {
             "sizingMode":"content","sourceChunks":[],"data":{"kind":"note","title":"Source",
                 "plainText":"Hello","tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}}}]
     })).unwrap();
-    nodes::insert_many_in_transaction(&mut tx, request, None)
+    nodes::tests::insert_many_in_transaction(&mut tx, request, None)
         .await
         .unwrap();
     sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES('project','space','source','short_dubbing','Narration',1,1)")
