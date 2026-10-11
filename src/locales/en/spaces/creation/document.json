@@ -1,15 +1,17 @@
 {
   "conversion": {
-    "docx": "Convert to Word document",
-    "pdf": "Convert to PDF",
-    "docxRunTitle": "Generating Word document",
-    "pdfRunTitle": "Generating PDF",
-    "txt": "Convert to plain text",
-    "txtRunTitle": "Generating plain text",
-    "html": "Convert to HTML",
-    "htmlRunTitle": "Generating HTML document"
-  },
-  "convert": {
+    "actions": {
+      "docx": "Convert to Word document",
+      "pdf": "Convert to PDF",
+      "txt": "Convert to plain text",
+      "html": "Convert to HTML"
+    },
+    "tasks": {
+      "docx": "Generating Word document",
+      "pdf": "Generating PDF",
+      "txt": "Generating plain text",
+      "html": "Generating HTML document"
+    },
     "label": "Convert to",
     "formats": {
       "docx": "Word document (.docx)",
@@ -24,8 +26,10 @@
   "title": "Create a document from selected knowledge",
   "description": "Draft a cited Markdown resource beside the selected sources.",
   "defaultTitle": "Knowledge draft",
-  "purpose": "Document brief",
-  "purposePlaceholder": "Describe the document’s goal, format, and key points.",
+  "purpose": {
+    "label": "Document brief",
+    "placeholder": "Describe the document’s goal, format, and key points."
+  },
   "sources": "{count} knowledge source | {count} knowledge sources",
   "task": "Generating document",
   "generating": "Generating from selected knowledge…",

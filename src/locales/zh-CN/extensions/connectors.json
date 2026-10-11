@@ -1,17 +1,7 @@
 {
   "process": {
-    "executable": "已安装服务的可执行文件（绝对路径）",
-    "arguments": "参数",
-    "workingDirectory": "工作目录（可选）",
-    "authorizationHint": "启用此连接后，应用可启动所选 MCP 服务。安装插件不会安装程序或运行包脚本。",
     "declaredCommand": "插件声明的程序",
-    "configurationRequired": "使用此连接器前，请选择已安装的程序。",
-    "chooseExecutable": "选择已安装的程序",
-    "chooseDirectory": "选择工作目录",
-    "argumentsHint": "每项对应一个完整参数，空格按原样传递，不解析 shell 命令。",
-    "addArgument": "添加参数",
-    "argumentAt": "第 {index} 个参数",
-    "removeArgument": "删除第 {index} 个参数"
+    "configurationRequired": "使用此连接器前，请选择已安装的程序。"
   },
   "changes": "更改端点或授权身份后，需要重新绑定账号并审核工具权限。",
   "name": "服务名称",
@@ -23,5 +13,6 @@
   "delete": {
     "title": "删除 {name}？",
     "description": "还会删除该服务的所有连接实例和本地账号凭据。"
-  }
+  },
+  "conflict": "此连接器已在其他位置更改。你的编辑已保留。请放弃编辑并重新打开连接器后再保存。"
 }

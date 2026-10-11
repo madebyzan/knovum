@@ -23,8 +23,10 @@
   "cancelling": "Abbrechen…",
   "forceDismiss": "Aus Liste entfernen",
   "failed": "Diese Aufgabe konnte nicht abgeschlossen werden.",
-  "verifyingResource": "Überprüfung der Integrität…",
-  "preparingLocalInference": "Vorbereiten lokaler AI-Komponenten…",
-  "localResourceDownloadSize": "Für die erste Verwendung sind {size} lokale Ressourcen-Downloads erforderlich",
-  "installingResource": "Lokale Ressourcen werden installiert…"
+  "resources": {
+    "verifying": "Überprüfung der Integrität…",
+    "preparingInference": "Vorbereiten lokaler AI-Komponenten…",
+    "downloadSize": "Für die erste Verwendung sind {size} lokale Ressourcen-Downloads erforderlich",
+    "installing": "Lokale Ressourcen werden installiert…"
+  }
 }

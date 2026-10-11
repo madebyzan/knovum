@@ -1,0 +1,18 @@
+{
+  "provider": "模型服务商",
+  "baseUrl": "API Base URL",
+  "title": "服务商连接",
+  "description": "按服务商管理连接与可用模型。",
+  "empty": "尚未添加服务商。",
+  "name": "连接名称",
+  "add": "添加服务商",
+  "edit": "编辑服务商",
+  "invalidBaseUrl": "请输入有效的 HTTP 或 HTTPS 地址",
+  "delete": {
+    "title": "删除“{name}”及其模型和凭据？",
+    "action": "删除连接"
+  },
+  "credentials": {
+    "saveFailed": "连接已保存，但密钥保存失败。请重试"
+  }
+}

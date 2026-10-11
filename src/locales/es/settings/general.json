@@ -3,8 +3,10 @@
   "search": "Configuración de búsqueda…",
   "noResults": "No se encontraron configuraciones coincidentes.",
   "load": {
-    "failed": "No se pudieron cargar las configuraciones",
-    "failedDescription": "Los datos guardados no son compatibles con el formato actual. Vuelva a intentarlo o restablezca esta sección."
+    "failure": {
+      "title": "No se pudieron cargar las configuraciones",
+      "description": "Los datos guardados no son compatibles con el formato actual. Vuelva a intentarlo o restablezca esta sección."
+    }
   },
   "reset": {
     "action": "Restablecer sección",
@@ -13,34 +15,17 @@
   "about": {
     "title": "Acerca de",
     "author": "Autor",
-    "description": "Información de versión y sistema."
+    "description": "Información de versión y sistema.",
+    "version": {
+      "value": "Versión {version}",
+      "loading": "Versión de lectura…"
+    }
   },
-  "version": "Versión {version}",
-  "readingVersion": "Versión de lectura…",
-  "archived": {
-    "title": "Espacios Archivados",
-    "description": "Restaurar o eliminar permanentemente espacios de trabajo archivados.",
-    "restore": "Restaurar espacio",
-    "restoreFailed": "No se pudo restaurar el espacio de trabajo",
-    "loadFailed": "No se pudieron cargar espacios de trabajo archivados",
-    "delete": {
-      "label": "Eliminar permanentemente",
-      "title": "¿Eliminar permanentemente “{title}”?",
-      "description": "Esto elimina permanentemente el espacio de trabajo y todos los datos asociados de este dispositivo. Esta acción no se puede deshacer.",
-      "failed": "No se pudo eliminar el espacio de trabajo"
-    },
-    "deleteAll": {
-      "label": "Eliminar todo",
-      "title": "¿Eliminar permanentemente todos los espacios de trabajo archivados?",
-      "description": "¿Eliminar permanentemente el espacio de trabajo archivado {count} y su contenido? Esto no se puede deshacer. | ¿Eliminar permanentemente los espacios de trabajo archivados {count} y su contenido? Esto no se puede deshacer."
-    },
-    "empty": "No hay espacios archivados"
-  },
-  "inboxSpace": "Bandeja de entrada",
   "groups": {
     "intelligence": "Inteligencia",
     "general": "General",
     "data": "Datos y archivos",
     "information": "Información"
-  }
+  },
+  "saveFailed": "No se pudo guardar la configuración"
 }

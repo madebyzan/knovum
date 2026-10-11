@@ -59,9 +59,11 @@
     "empty": "노드 앵커를 드래그하거나 여러 항목을 선택하여 관계를 생성합니다.",
     "inspect": "연결 세부정보",
     "kind": "관계 유형",
-    "rationale": "이것들이 왜 연결되어 있는지",
-    "addRationale": "추가",
-    "rationalePlaceholder": "이 항목들이 어떻게 연결되어 있는지 설명하십시오…",
+    "rationale": {
+      "label": "이것들이 왜 연결되어 있는지",
+      "add": "추가",
+      "placeholder": "이 항목들이 어떻게 연결되어 있는지 설명하십시오…"
+    },
     "color": "관계선 색상",
     "colors": {
       "neutral": "중립",
@@ -71,8 +73,10 @@
       "red": "빨간색",
       "purple": "보라색"
     },
-    "remove": "관계 제거",
-    "removeConfirm": "“{title}”와의 관계를 제거하시겠습니까?",
+    "remove": {
+      "action": "관계 제거",
+      "confirmation": "“{title}”와의 관계를 제거하시겠습니까?"
+    },
     "kinds": {
       "reference": "참조",
       "related": "관련",
@@ -88,13 +92,17 @@
   },
   "provenance": "소스",
   "portal": {
-    "create": "새 포털 노드",
-    "createDescription": "다른 작업 공간으로 빠르게 이동할 수 있도록 포털 노드를 만듭니다."
+    "create": {
+      "action": "새 포털 노드",
+      "description": "다른 작업 공간으로 빠르게 이동할 수 있도록 포털 노드를 만듭니다."
+    }
   },
   "objects": {
     "custom": "사용자 정의 지식 개체",
-    "create": "새 사용자 정의 개체",
-    "createDescription": "선택한 스키마를 사용하여 지식 개체 노드를 생성합니다."
+    "create": {
+      "action": "새 사용자 정의 개체",
+      "description": "선택한 스키마를 사용하여 지식 개체 노드를 생성합니다."
+    }
   },
   "fields": {
     "add": "필드 추가",
@@ -133,12 +141,16 @@
     "description": "설명",
     "icon": "아이콘",
     "name": "유형 이름",
-    "manage": "지식 유형 관리",
-    "manageDescription": "이 작업 공간에서 구조화된 지식의 속성을 정의합니다.",
-    "delete": "유형 삭제…",
+    "manage": {
+      "action": "지식 유형 관리",
+      "description": "이 작업 공간에서 구조화된 지식의 속성을 정의합니다."
+    },
+    "delete": {
+      "action": "유형 삭제…",
+      "description": "'{name}'를 삭제하시겠습니까? Knowledge 객체에 사용되는 유형은 삭제할 수 없습니다."
+    },
     "discardChanges": "이 유형에 대한 저장되지 않은 변경사항을 삭제하시겠습니까?",
     "emptyFields": "이러한 종류의 지식에 필요한 속성을 추가합니다.",
-    "deleteConfirmation": "'{name}'를 삭제하시겠습니까? Knowledge 객체에 사용되는 유형은 삭제할 수 없습니다.",
     "create": "새 유형",
     "none": "사용자 정의 스키마 유형이 없습니다.",
     "loadFailed": "스키마 유형을 로드할 수 없습니다."

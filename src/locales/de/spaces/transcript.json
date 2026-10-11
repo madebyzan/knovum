@@ -11,8 +11,10 @@
     "editSegment": "Transkriptsegment bearbeiten",
     "search": "Transkript suchen",
     "noMatches": "Kein passender Transkripttext",
-    "live": "Live-Transkription",
-    "liveHint": "Der Live-Transkripttext wird hier als erkannt angezeigt.",
+    "live": {
+      "label": "Live-Transkription",
+      "hint": "Der Live-Transkripttext wird hier als erkannt angezeigt."
+    },
     "alignSelected": "Ausgewählte ausrichten",
     "alignmentLimit": "Bis zu 8 Segmente / 5 Minuten",
     "alignmentFirstUse": "Bei der ersten Verwendung werden das ausgewählte Modell und die erforderlichen Ressourcen automatisch heruntergeladen. Verwalten Sie die Modellauswahl in den Einstellungen.",

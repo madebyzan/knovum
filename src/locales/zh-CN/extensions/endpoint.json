@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "请求头",
+    "environment": "环境变量",
+    "secretsHint": "这里只填写公开配置。令牌等凭据请在保存后通过授权设置。",
+    "invalidName": "请填写字段名，且不要包含首尾空格。",
+    "duplicateName": "字段名不能重复；HTTP 请求头名称不区分大小写。",
+    "fieldName": "名称",
+    "fieldValue": "值",
+    "fieldNameAt": "第 {index} 个字段名称",
+    "fieldValueAt": "第 {index} 个字段值",
+    "removeField": "删除第 {index} 个字段",
+    "addHeader": "添加请求头",
+    "addVariable": "添加变量",
+    "serverUrl": "服务器地址",
+    "authorizationHint": "选择服务器要求的授权方式。具体凭据在保存后单独配置。",
+    "advanced": "环境变量与请求头"
+  },
+  "transport": "传输方式",
+  "allowLocalNetwork": "允许访问配置的本机或局域网地址",
+  "process": {
+    "executable": {
+      "label": "已安装服务的可执行文件（绝对路径）",
+      "choose": "选择已安装的程序"
+    },
+    "arguments": {
+      "label": "参数",
+      "hint": "每项对应一个完整参数，空格按原样传递，不解析 shell 命令。",
+      "add": "添加参数",
+      "at": "第 {index} 个参数",
+      "remove": "删除第 {index} 个参数"
+    },
+    "directory": {
+      "label": "工作目录（可选）",
+      "choose": "选择工作目录"
+    },
+    "authorizationHint": "启用此连接后，应用可启动所选 MCP 服务。安装插件不会安装程序或运行包脚本。"
+  }
+}

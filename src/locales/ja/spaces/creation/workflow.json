@@ -12,8 +12,10 @@
     "empty": "この選択には、再生可能な派生アクションがありません。",
     "sources": "出典: {sources}"
   },
-  "name": "ワークフロー名",
-  "namePlaceholder": "このワークフローに名前を付けます",
+  "name": {
+    "label": "ワークフロー名",
+    "placeholder": "このワークフローに名前を付けます"
+  },
   "saveCaptured": "ワークフローとして保存",
   "saved": "ワークフロー ライブラリに保存されました",
   "useSaved": "ワークフローを使用",
@@ -65,8 +67,10 @@
     "durationSeconds": "期間 (秒)",
     "platform": "プラットフォーム"
   },
-  "delete": "ワークフローの削除",
-  "deleteConfirm": "「{name}」を削除しますか?完了した実行とその出力は残ります。",
+  "delete": {
+    "action": "ワークフローの削除",
+    "confirmation": "「{name}」を削除しますか?完了した実行とその出力は残ります。"
+  },
   "states": {
     "queued": "キューに入れられました",
     "running": "実行中",

@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "AI-Ausführung",
-  "defaultsDescription": "Legen Sie jede Funktion einzeln fest oder lassen Sie sie die Standardausführungsmethode verwenden.",
+  "defaults": {
+    "title": "AI-Ausführung",
+    "description": "Legen Sie jede Funktion einzeln fest oder lassen Sie sie die Standardausführungsmethode verwenden."
+  },
   "unassigned": "Verwenden Sie die Standardausführungsmethode",
   "noCompatibleModel": "Konfigurieren Sie ein Modell für diese Aufgabe",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "Keine Ausführungsmethode ausgewählt",
-  "capabilitiesTitle": "Nach Fähigkeit"
+  "capabilities": {
+    "title": "Nach Fähigkeit"
+  }
 }

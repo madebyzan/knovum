@@ -1,0 +1,18 @@
+{
+  "provider": "모델 공급자",
+  "baseUrl": "API 기본 URL",
+  "title": "공급자 연결",
+  "description": "공급자별로 연결 및 사용 가능한 모델을 관리합니다.",
+  "empty": "아직 제공업체가 없습니다.",
+  "name": "연결 이름",
+  "add": "공급자 추가",
+  "edit": "공급자 편집",
+  "invalidBaseUrl": "유효한 HTTP 또는 HTTPS URL를 입력하세요.",
+  "delete": {
+    "title": "{name}와 해당 모델 및 사용자 인증 정보를 삭제하시겠습니까?",
+    "action": "연결 삭제"
+  },
+  "credentials": {
+    "saveFailed": "연결이 저장되었지만 키를 저장할 수 없습니다. 다시 시도하세요"
+  }
+}

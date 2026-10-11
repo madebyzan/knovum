@@ -75,7 +75,7 @@ export async function renderVideoEdit(
   );
   const progress = new Channel<VideoEditProgress>((event) => {
     const { stage, progress: value } = videoEditProgressSchema.parse(event);
-    tasks.progress(taskId, value, i18n.global.t(`spaces.media.videoEditor.${stage}`));
+    tasks.progress(taskId, value, i18n.global.t(`spaces.media.videoEditor.render.stages.${stage}`));
   });
   try {
     const completed = await invokeCommand<CompletedDerivationOutput>("plugin:spaces|render_video_edit", {

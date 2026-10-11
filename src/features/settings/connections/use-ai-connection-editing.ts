@@ -60,7 +60,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     admittedMutation = runMutation(async () => {
       const receipt = await saveAiConnection(submission.connection, submission.secret);
       if (receipt.status === "credential-failed") {
-        error.value = `${t("settings.ai.secretSaveFailed")}: ${getErrorMessage(receipt.cause)}`;
+        error.value = `${t("settings.ai.connections.credentials.saveFailed")}: ${getErrorMessage(receipt.cause)}`;
         return false;
       }
       expandedId.value = submission.connection.id;
@@ -75,7 +75,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     if (
       !(await confirmAction({
         title: t("common.delete"),
-        description: t("settings.ai.deleteConnectionConfirm", { name: connection.name }),
+        description: t("settings.ai.connections.delete.title", { name: connection.name }),
         confirmLabel: t("common.delete"),
         danger: true,
       }))
@@ -94,7 +94,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     error.value = "";
     const admitted: Promise<boolean> = mutation()
       .catch((cause) => {
-        error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
+        error.value = `${t("settings.general.saveFailed")}: ${getErrorMessage(cause)}`;
         return false;
       })
       .finally(() => {
@@ -106,8 +106,8 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
 
   function confirmDiscard() {
     return confirmAction({
-      title: t("settings.ai.discardChangesTitle"),
-      description: t("settings.ai.discardChanges"),
+      title: t("settings.ai.editor.discard.title"),
+      description: t("settings.ai.editor.discard.description"),
       confirmLabel: t("common.discardChanges"),
       danger: true,
     });

@@ -7,7 +7,8 @@
     "subdirectory": "패키지 하위 디렉터리",
     "install": "소스에서 설치",
     "description": "로컬 패키지 또는 원격 URL를 선택한 다음 설치하기 전에 검토하십시오.",
-    "revision": "소스 개정판"
+    "revision": "소스 개정판",
+    "choose": "소스 선택"
   },
   "installation": {
     "preview": "미리보기",
@@ -70,12 +71,6 @@
     "committing": "변경 사항 커밋 중"
   },
   "title": "설치된 플러그인",
-  "search": {
-    "empty": "일치하는 결과 없음",
-    "hint": "다른 키워드를 시도하거나 검색어를 삭제하세요."
-  },
-  "disable": "{name} 비활성화",
-  "enable": "{name} 활성화",
   "actions": "플러그인 작업",
   "capabilities": "포함된 기능"
 }

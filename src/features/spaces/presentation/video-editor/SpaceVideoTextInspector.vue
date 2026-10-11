@@ -135,7 +135,7 @@ function changeSize(event: Event) {
           size="sm"
           :variant="item.placement === placement ? 'primary' : 'secondary'"
           @click="patch({ placement })"
-          >{{ $t(`spaces.media.videoEditor.${placement}`) }}</UiButton
+          >{{ $t(`spaces.media.videoEditor.text.verticalAlignment.${placement}`) }}</UiButton
         >
       </div>
     </section>

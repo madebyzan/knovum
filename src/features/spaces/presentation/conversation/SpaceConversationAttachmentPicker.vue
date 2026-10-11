@@ -76,10 +76,10 @@ function chooseFiles() {
         </span>
         <span class="min-w-0 flex-1">
           <span class="block truncate text-label font-medium text-fg-primary">{{
-            $t("spaces.conversation.attachments.citeCanvasNode")
+            $t("spaces.conversation.attachments.canvasReference.label")
           }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{
-            $t("spaces.conversation.attachments.citeCanvasNodeHint")
+            $t("spaces.conversation.attachments.canvasReference.hint")
           }}</span>
         </span>
         <ArrowRight class="size-3.5 shrink-0 text-fg-tertiary" />
@@ -97,10 +97,10 @@ function chooseFiles() {
         </span>
         <span class="min-w-0 flex-1">
           <span class="block truncate text-label font-medium text-fg-primary">{{
-            $t("spaces.conversation.attachments.uploadLocalFile")
+            $t("spaces.conversation.attachments.localFile.label")
           }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{
-            $t("spaces.conversation.attachments.uploadLocalFileHint")
+            $t("spaces.conversation.attachments.localFile.hint")
           }}</span>
         </span>
       </button>
@@ -111,7 +111,7 @@ function chooseFiles() {
           <ArrowLeft class="size-3.5" />
         </UiIconButton>
         <span class="text-caption font-medium">{{
-          $t("spaces.conversation.attachments.citeCanvasNode")
+          $t("spaces.conversation.attachments.canvasReference.label")
         }}</span>
       </div>
       <div class="px-1 pb-1">

@@ -56,13 +56,13 @@ const routeRows = computed(() =>
 const routeGroups = computed(() => [
   {
     id: "settings-ai-default-route",
-    title: t("settings.routing.defaultsTitle"),
+    title: t("settings.routing.defaults.title"),
     rows: routeRows.value.slice(0, 1),
   },
   {
     id: "settings-ai-routing",
-    title: t("settings.routing.capabilitiesTitle"),
-    description: t("settings.routing.defaultsDescription"),
+    title: t("settings.routing.capabilities.title"),
+    description: t("settings.routing.defaults.description"),
     rows: routeRows.value.slice(1),
   },
 ]);
@@ -120,7 +120,7 @@ function serializeTarget(target: AiRoutingDefaults[keyof AiRoutingDefaults]) {
           variant="ghost"
           @click="emit('requestModelCreation', row.purpose ?? 'knowledge')"
         >
-          {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
+          {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.connections.add") }}
         </UiButton>
       </PreferenceField>
     </UiSettingsSection>

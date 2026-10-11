@@ -1,15 +1,25 @@
 {
-  "target": "执行目标",
-  "targetModelApi": "模型 API · 直接执行",
-  "targetExternalAgent": "桌面 Agent · 产出取决于当前工具与 Skills",
-  "noCompatibleTarget": "没有兼容的执行目标",
-  "desktopAgentNotInstalled": "未检测到",
-  "disabledTitle": "没有兼容的 AI 执行目标",
-  "disabledDescription": "请为当前操作配置兼容模型，或启用已安装的桌面 Agent。",
-  "openSettings": "配置模型",
-  "settingsUnavailable": "AI 设置加载失败",
-  "executedWithModel": "由 {provider} · {model} 执行",
-  "executedWithAgent": "由 {name} · 桌面 Agent 执行",
+  "target": {
+    "label": "执行目标",
+    "modelApi": "模型 API · 直接执行",
+    "desktopAgent": "桌面 Agent · 产出取决于当前工具与 Skills",
+    "none": "没有兼容的执行目标"
+  },
+  "desktopAgent": {
+    "notDetected": "未检测到"
+  },
+  "unavailable": {
+    "title": "没有兼容的 AI 执行目标",
+    "description": "请为当前操作配置兼容模型，或启用已安装的桌面 Agent。"
+  },
+  "configuration": {
+    "open": "配置模型",
+    "unavailable": "AI 设置加载失败"
+  },
+  "execution": {
+    "model": "由 {provider} · {model} 执行",
+    "desktopAgent": "由 {name} · 桌面 Agent 执行"
+  },
   "languages": {
     "zhCn": "简体中文",
     "zhTw": "繁體中文",
@@ -23,5 +33,10 @@
     "it": "Italiano",
     "ru": "Русский",
     "ar": "العربية"
+  },
+  "localModels": {
+    "unavailable": {
+      "memory": "内存不足，需要至少 32 GiB。可改用 MOSS-TTS-Nano。"
+    }
   }
 }

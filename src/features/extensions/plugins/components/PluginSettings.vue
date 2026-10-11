@@ -111,8 +111,8 @@ async function uninstallPlugin(plugin: PluginInstallation) {
     />
     <ExtensionEmptyState
       v-else-if="pluginId && !plugins.isPending.value && !plugins.error.value"
-      :title="$t('extensions.overview.notFound')"
-      :description="$t('extensions.overview.notFoundHint')"
+      :title="$t('extensions.overview.notFound.title')"
+      :description="$t('extensions.overview.notFound.description')"
       ><UiButton @click="$emit('navigate', { tab: 'plugins' })">{{
         $t("extensions.overview.back")
       }}</UiButton></ExtensionEmptyState
@@ -133,8 +133,8 @@ async function uninstallPlugin(plugin: PluginInstallation) {
     </div>
     <ExtensionEmptyState
       v-else-if="!plugins.error.value && !visiblePlugins.length"
-      :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.plugins.empty.title')"
-      :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.plugins.empty.description')"
+      :title="$t(search ? 'common.search.empty' : 'extensions.plugins.empty.title')"
+      :description="$t(search ? 'common.search.hint' : 'extensions.plugins.empty.description')"
       ><UiButton
         v-if="!search"
         class="mt-4"

@@ -5,11 +5,15 @@
     "title": "Preimpostazioni di generazione",
     "description": "Impostazioni del modello salvate per la creazione di contenuti.",
     "empty": "Nessun preset di generazione è stato ancora salvato.",
-    "deleteConfirm": "Elimina questa preimpostazione?",
+    "delete": {
+      "title": "Elimina questa preimpostazione?"
+    },
     "name": "Nome preimpostato",
     "edit": "Modifica preimpostazione di generazione",
-    "discardTitle": "Scarta modifiche preimpostate?",
-    "discardDescription": "Le modifiche non salvate a questa preimpostazione di generazione andranno perse."
+    "discard": {
+      "title": "Scarta modifiche preimpostate?",
+      "description": "Le modifiche non salvate a questa preimpostazione di generazione andranno perse."
+    }
   },
   "parameters": "Parametri",
   "copyName": "Copia {name}",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "Suddivisione del livello dell'immagine",
     "description": "Connetti fal per la suddivisione del livello dell'immagine.",
-    "apiKey": "tasto fal API",
-    "apiKeyDescription": "Memorizzato solo su questo dispositivo."
+    "apiKey": {
+      "label": "tasto fal API",
+      "description": "Memorizzato solo su questo dispositivo."
+    }
   }
 }

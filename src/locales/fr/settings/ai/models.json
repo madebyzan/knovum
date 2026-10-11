@@ -1,0 +1,30 @@
+{
+  "empty": "Aucun modèle ajouté pour l'instant.",
+  "edit": "Modifier le modèle",
+  "delete": {
+    "title": "Supprimer le modèle {name} ?"
+  },
+  "duplicateIdentifier": "Cet identifiant de modèle est déjà ajouté à cette connexion",
+  "capabilities": {
+    "label": "Capacités prises en charge",
+    "required": "Sélectionnez au moins une fonctionnalité",
+    "text": "Génération de texte",
+    "vision": "Compréhension visuelle",
+    "image": "Génération d'images",
+    "video": "Génération vidéo"
+  },
+  "inUse": "Ce modèle est utilisé. Modifiez les valeurs par défaut des tâches ou les préréglages de création avant de supprimer les fonctionnalités sélectionnées ou le modèle.",
+  "title": "Modèles",
+  "count": "Modèle {count} | Modèles {count}",
+  "add": "Ajouter un modèle",
+  "displayName": "Nom d'affichage du modèle",
+  "identifier": "Identifiant du modèle du fournisseur",
+  "builtinAgent": {
+    "enabled": "À utiliser pour l'agent intégré",
+    "help": "Seuls les modèles avec appel d'outil peuvent être activés. Utilisez le contexte documenté et les limites de sortie du fournisseur.",
+    "protocol": "Modèle de protocole API",
+    "contextWindow": "Fenêtre contextuelle (jetons)",
+    "maxOutputTokens": "Limite de sortie par requête (jetons)",
+    "invalidLimits": "Le contexte doit être d'au moins 8 192 jetons ; le résultat doit être positif et plus petit que le contexte."
+  }
+}

@@ -3,8 +3,10 @@
   "search": "搜尋設定項…",
   "noResults": "未找到符合的設定項。",
   "load": {
-    "failed": "無法載入設定",
-    "failedDescription": "已儲存資料與目前格式不相容。請重試或重設此區域。"
+    "failure": {
+      "title": "無法載入設定",
+      "description": "已儲存資料與目前格式不相容。請重試或重設此區域。"
+    }
   },
   "reset": {
     "action": "重置此區域",
@@ -13,34 +15,17 @@
   "about": {
     "title": "關於",
     "author": "作者",
-    "description": "版本與系統資訊。"
+    "description": "版本與系統資訊。",
+    "version": {
+      "value": "版本 {version}",
+      "loading": "正在讀取版本…"
+    }
   },
-  "version": "版本 {version}",
-  "readingVersion": "正在讀取版本…",
-  "archived": {
-    "title": "已歸檔空間",
-    "description": "恢復或永久刪除歸檔的空間。",
-    "restore": "復原空間",
-    "restoreFailed": "復原空間失敗",
-    "loadFailed": "無法載入已歸檔空間",
-    "delete": {
-      "label": "永久刪除",
-      "title": "永久刪除“{title}”？",
-      "description": "此操作將從設備中徹底清除該空間及其所有關聯數據，且不可恢復。",
-      "failed": "刪除空間失敗"
-    },
-    "deleteAll": {
-      "label": "全部刪除",
-      "title": "永久刪除所有歸檔空間？",
-      "description": "永久刪除全部 {count} 個已歸檔空間及其中的內容？此操作無法撤銷。"
-    },
-    "empty": "暫無歸檔的空間。"
-  },
-  "inboxSpace": "收集箱",
   "groups": {
     "intelligence": "智慧能力",
     "general": "一般",
     "data": "數據與歸檔",
     "information": "資訊"
-  }
+  },
+  "saveFailed": "無法儲存配置"
 }

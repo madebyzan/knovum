@@ -1,0 +1,23 @@
+{
+  "title": "Spazi archiviati",
+  "description": "Ripristina o elimina permanentemente gli spazi di lavoro archiviati.",
+  "restore": {
+    "action": "Ripristina spazio",
+    "failed": "Impossibile ripristinare l'area di lavoro"
+  },
+  "load": {
+    "failed": "Impossibile caricare gli spazi di lavoro archiviati"
+  },
+  "delete": {
+    "action": "Elimina permanentemente",
+    "title": "Eliminare definitivamente \"{title}\"?",
+    "description": "Questa operazione rimuoverà definitivamente lo spazio di lavoro e tutti i dati associati da questo dispositivo. Questa azione non può essere annullata.",
+    "failed": "Impossibile eliminare l'area di lavoro"
+  },
+  "deleteAll": {
+    "action": "Elimina tutto",
+    "title": "Eliminare definitivamente tutte le aree di lavoro archiviate?",
+    "description": "Eliminare definitivamente l'area di lavoro archiviata {count} e i suoi contenuti? Questa operazione non può essere annullata. | Eliminare definitivamente gli spazi di lavoro archiviati {count} e i relativi contenuti? Questa operazione non può essere annullata."
+  },
+  "empty": "Nessuno spazio archiviato."
+}

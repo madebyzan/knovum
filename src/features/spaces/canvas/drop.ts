@@ -30,7 +30,7 @@ export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, o
     if (failures.length === 1) throw failures[0]!.error;
     throw new AggregateError(
       failures.map(({ error }) => error),
-      i18n.global.t("spaces.importExport.importFailed"),
+      i18n.global.t("spaces.importExport.import.failed"),
     );
   }
 }

@@ -36,8 +36,10 @@
   "favorite": "收藏空间",
   "unfavorite": "取消收藏",
   "open": "打开空间",
-  "loadFailed": "无法打开空间",
-  "loadFailedHint": "无法加载空间数据库。本地文件不受影响，请重试。",
+  "load": {
+    "failed": "无法打开空间",
+    "hint": "无法加载空间数据库。本地文件不受影响，请重试。"
+  },
   "archive": "归档空间",
   "moveTo": "移动至空间",
   "moveNoTargets": "无其他可移动的空间。",

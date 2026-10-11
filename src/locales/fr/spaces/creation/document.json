@@ -1,15 +1,17 @@
 {
   "conversion": {
-    "docx": "Convertir en document Word",
-    "pdf": "Convertir en PDF",
-    "docxRunTitle": "Génération d'un document Word",
-    "pdfRunTitle": "Génération de PDF",
-    "txt": "Convertir en texte brut",
-    "txtRunTitle": "Génération de texte brut",
-    "html": "Convertir en HTML",
-    "htmlRunTitle": "Génération d'un document HTML"
-  },
-  "convert": {
+    "actions": {
+      "docx": "Convertir en document Word",
+      "pdf": "Convertir en PDF",
+      "txt": "Convertir en texte brut",
+      "html": "Convertir en HTML"
+    },
+    "tasks": {
+      "docx": "Génération d'un document Word",
+      "pdf": "Génération de PDF",
+      "txt": "Génération de texte brut",
+      "html": "Génération d'un document HTML"
+    },
     "label": "Convertir en",
     "formats": {
       "docx": "Document Word (.docx)",
@@ -24,8 +26,10 @@
   "title": "Créer un document à partir de connaissances sélectionnées",
   "description": "Rédigez une ressource Markdown citée à côté des sources sélectionnées.",
   "defaultTitle": "Brouillon de connaissances",
-  "purpose": "Résumé du document",
-  "purposePlaceholder": "Décrivez l’objectif, le format et les points clés du document.",
+  "purpose": {
+    "label": "Résumé du document",
+    "placeholder": "Décrivez l’objectif, le format et les points clés du document."
+  },
   "sources": "Source de connaissances {count} | Sources de connaissances {count}",
   "task": "Génération du document",
   "generating": "Générer à partir de connaissances sélectionnées…",

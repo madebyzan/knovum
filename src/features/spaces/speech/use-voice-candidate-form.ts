@@ -51,8 +51,8 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       if (sourceKind) mode.value = sourceKind;
     });
   const modes = computed(() => [
-    { value: "reference", label: t("spaces.speech.voice.clone") },
-    { value: "designed", label: t("spaces.speech.voice.design") },
+    { value: "reference", label: t("spaces.speech.voice.clone.fromReference") },
+    { value: "designed", label: t("spaces.speech.voice.design.action") },
   ]);
   const languages = [
     { value: "zh-CN", label: "中文" },

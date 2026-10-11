@@ -126,7 +126,7 @@ async function decideExitRequest(requestId: number, approved: boolean) {
 }
 
 function reportCloseFailure(error: unknown, retry?: () => void) {
-  toast.error(`${i18n.global.t("common.closeSaveFailed")}: ${getErrorMessage(error)}`, {
+  toast.error(`${i18n.global.t("errors.windowClose.saveFailed")}: ${getErrorMessage(error)}`, {
     id: "window-close-save-failed",
     ...(retry ? { action: { label: i18n.global.t("common.retry"), onClick: retry } } : {}),
   });

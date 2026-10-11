@@ -1,0 +1,13 @@
+{
+  "title": "Commento",
+  "prompt": "Aggiungi una descrizione",
+  "save": "Salva commento",
+  "addToConversation": "Aggiungi alla conversazione",
+  "conversationContext": "Annotazione immagine ({kind}; origine in alto a sinistra; le coordinate sono percentuali della larghezza e dell'altezza dell'immagine): {coordinates}\nAnnotazione: {text}",
+  "delete": "Elimina commento",
+  "hint": "Fare clic sulla posizione di un'immagine per commentare",
+  "mode": "Modalità annotazione commenti",
+  "point": "Punto commento",
+  "draw": "Disegna un commento",
+  "region": "Commento regione"
+}

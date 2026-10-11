@@ -37,9 +37,11 @@
     "previous": "前回の一致",
     "next": "次の一致",
     "toggleReplace": "置換を表示",
-    "replace": "置換",
-    "replaceAll": "すべて置換",
-    "replacePlaceholder": "置換…"
+    "replace": {
+      "action": "置換",
+      "placeholder": "置換…"
+    },
+    "replaceAll": "すべて置換"
   },
   "paragraph": "段落",
   "heading1": "見出し 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "画像の挿入",
-    "tabUpload": "ローカル ファイル",
-    "tabUrl": "URL",
-    "url": "画像 URL",
-    "alt": "画像の説明",
+    "source": {
+      "localFile": "ローカル ファイル",
+      "url": "URL"
+    },
+    "url": {
+      "label": "画像 URL",
+      "invalid": "有効な http:// または https:// 画像アドレスを入力してください。"
+    },
+    "alt": {
+      "label": "画像の説明",
+      "placeholder": "スクリーンリーダー用に画像を説明する"
+    },
     "choose": "画像の選択",
     "uploadFailed": "画像の挿入に失敗しました",
     "dropDocumentHint": "ファイルを選択するか、画像をドキュメントエディタにドラッグします。",
-    "altPlaceholder": "スクリーンリーダー用に画像を説明する",
     "dropNow": "ドロップして画像を挿入",
-    "urlInvalid": "有効な http:// または https:// 画像アドレスを入力してください。",
     "insertFailed": "画像を挿入できませんでした"
   },
   "link": {
     "label": "ハイパーリンク",
     "placeholder": "URL を入力または貼り付けます",
     "remove": "リンクの削除",
-    "editorTitle": "リンクの編集",
-    "editorDescription": "選択したテキストに Web または電子メールのリンクを追加します。",
+    "editor": {
+      "title": "リンクの編集",
+      "description": "選択したテキストに Web または電子メールのリンクを追加します。"
+    },
     "url": "リンク URL",
     "invalid": "有効な HTTP、HTTPS、または mailto リンクを入力してください。",
     "open": "リンクを開く",
@@ -110,6 +120,8 @@
     "addColumn": "右に列を挿入",
     "delete": "テーブルの削除"
   },
-  "words": "言葉",
-  "characters": "キャラクター"
+  "statistics": {
+    "words": "{count} 語",
+    "characters": "{count} 文字"
+  }
 }

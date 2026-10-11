@@ -76,14 +76,14 @@ export function videoEditCommands(t: (key: string) => string): AppCommand[] {
     },
     {
       id: "video-edit.previous-step",
-      title: t("spaces.media.videoEditor.previousStep"),
+      title: t("spaces.media.videoEditor.playback.stepBackward"),
       shortcut: "ArrowLeft",
       category: "editing",
       run: () => activeEditor.value?.step(-100),
     },
     {
       id: "video-edit.next-step",
-      title: t("spaces.media.videoEditor.nextStep"),
+      title: t("spaces.media.videoEditor.playback.stepForward"),
       shortcut: "ArrowRight",
       category: "editing",
       run: () => activeEditor.value?.step(100),

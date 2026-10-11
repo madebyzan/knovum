@@ -7,6 +7,5 @@
   "templates": "资源模板",
   "prompts": "提示词",
   "parameters": "参数（JSON）",
-  "read": "读取所选内容",
-  "source": "选择来源"
+  "read": "读取所选内容"
 }

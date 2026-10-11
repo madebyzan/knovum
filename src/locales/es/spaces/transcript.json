@@ -11,8 +11,10 @@
     "editSegment": "Editar segmento de transcripción",
     "search": "Buscar transcripción",
     "noMatches": "No hay texto de transcripción coincidente",
-    "live": "Transcripción en vivo",
-    "liveHint": "El texto de la transcripción en vivo aparecerá aquí como reconocido.",
+    "live": {
+      "label": "Transcripción en vivo",
+      "hint": "El texto de la transcripción en vivo aparecerá aquí como reconocido."
+    },
     "alignSelected": "Alinear seleccionado",
     "alignmentLimit": "Hasta 8 segmentos / 5 minutos",
     "alignmentFirstUse": "El primer uso descarga el modelo seleccionado y los recursos necesarios automáticamente. Administre las opciones de modelo en Configuración.",

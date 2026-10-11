@@ -1,13 +1,18 @@
 {
   "new": "Iniciar otro",
   "language": "Idioma",
-  "scriptPlaceholder": "Ingrese el script para esta revisión",
-  "unsavedTitle": "¿Guardar los cambios del proyecto de voz?",
-  "unsavedDescription": "Guarde esta revisión antes de salir o descarte los cambios no guardados.",
-  "incompleteTitle": "¿Descartar ediciones sin terminar?",
-  "incompleteDescription": "Vuelva para finalizar la edición o descarte estos cambios.",
-  "preview": "Vista previa",
-  "stopListening": "Dejar de escuchar",
+  "script": {
+    "placeholder": "Ingrese el script para esta revisión",
+    "label": "Guion"
+  },
+  "unsaved": {
+    "title": "¿Guardar los cambios del proyecto de voz?",
+    "description": "Guarde esta revisión antes de salir o descarte los cambios no guardados."
+  },
+  "incomplete": {
+    "title": "¿Descartar ediciones sin terminar?",
+    "description": "Vuelva para finalizar la edición o descarte estos cambios."
+  },
   "saving": "Guardar",
   "starting": "Preparando generación",
   "generatedAudio": "Audio generado",
@@ -17,13 +22,17 @@
   "loudness": "Sonoridad (LUFS)",
   "truePeak": "Pico verdadero (dB)",
   "role": "Rol de orador",
-  "roleBindings": "Voces de rol",
-  "roleBindingsHint": "Elige una voz para cada rol.",
+  "roleBindings": {
+    "label": "Voces de rol",
+    "hint": "Elige una voz para cada rol."
+  },
   "addRole": "Agregar rol",
   "removeRole": "Eliminar rol",
   "defaultRole": "Narrador",
-  "deliveryInstruction": "Instrucciones de entrega",
-  "deliveryInstructionPlaceholder": "Opcional: describa el ritmo, el tono y la entrega de este segmento (hasta 500 caracteres)",
+  "deliveryInstruction": {
+    "label": "Instrucciones de entrega",
+    "placeholder": "Opcional: describa el ritmo, el tono y la entrega de este segmento (hasta 500 caracteres)"
+  },
   "stages": {
     "preparing": "Preparando recursos",
     "synthesizing": "Vista previa de síntesis",
@@ -34,15 +43,11 @@
     "audiobook": "Audiolibro",
     "videoDubbing": "Doblaje de vídeo"
   },
-  "previewText": "Ingresa hasta 500 caracteres para escuchar esta voz.",
   "generateFromNode": "Generar voz",
   "nodeProjects": "Doblaje guardado",
-  "script": "Guion",
   "settings": "Configuración",
   "editorPages": "Secciones del editor de voz",
   "importManuscript": "Importar manuscrito del nodo",
-  "noVoices": "No hay voces para elegir. Agregue una voz para comenzar.",
-  "selectVoice": "Seleccione una voz",
   "sourceNotReady": "El vídeo aún no está listo para ser doblado.",
   "emptyManuscript": "Importe el manuscrito o agregue un capítulo para comenzar.",
   "emptyVideoScript": "Importa subtítulos o agrega una línea de doblaje.",

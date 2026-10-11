@@ -11,13 +11,6 @@
     "referenceSize": "Tamanho de referência; pixels exportados dependem da imagem de origem",
     "lockAspect": "Bloquear proporção de corte"
   },
-  "transform": {
-    "rotateClockwise": "Girar no sentido horário",
-    "flipHorizontal": "Virar horizontalmente",
-    "flipVertical": "Virar verticalmente",
-    "title": "Inverter e girar",
-    "rotationDegrees": "Ângulo de rotação"
-  },
   "removeObject": {
     "tool": "Borracha",
     "mode": "Entrada de remoção",
@@ -27,8 +20,10 @@
     },
     "undo": "Desfazer curso de seleção",
     "brushSize": "Pincel de seleção",
-    "promptLabel": "Descreva o que remover",
-    "promptPlaceholder": "Descreva o que remover…",
+    "prompt": {
+      "label": "Descreva o que remover",
+      "placeholder": "Descreva o que remover…"
+    },
     "generate": "Remover e gerar",
     "submitting": "Criando a tarefa de imagem derivada…",
     "sizeLimit": "Use uma fonte de 16 megapixels e 16.384 pixels de cada lado.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Camadas divididas",
-    "panel": "Camadas divididas",
     "selectContent": "Selecionar região",
     "selectContentUnavailable": "O modelo de camada atual não pode dividir uma região selecionada",
     "auto": "Divisão automática",
     "custom": "Divisão personalizada",
-    "prompt": "Foco de separação",
-    "promptPlaceholder": "Descreva o que dividir em camadas",
+    "prompt": {
+      "label": "Foco de separação",
+      "placeholder": "Descreva o que dividir em camadas"
+    },
     "split": "Dividir",
     "task": "Dividindo camadas de imagem",
     "failed": "Falha na divisão da camada",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "A divisão de camadas requer uma chave fal API",
     "promptRequired": "Descreva o que deve ser separado primeiro"
-  },
-  "comments": {
-    "title": "Comentário",
-    "prompt": "Adicionar uma descrição",
-    "save": "Salvar comentário",
-    "addToConversation": "Adicionar à conversa",
-    "conversationContext": "Anotação da imagem ({kind}; origem no canto superior esquerdo; as coordenadas são porcentagens da largura e altura da imagem): {coordinates}\nAnotação: {text}",
-    "delete": "Excluir comentário",
-    "hint": "Clique no local da imagem para comentar",
-    "mode": "Modo de anotação de comentários",
-    "point": "Ponto de comentário",
-    "draw": "Desenhe um comentário",
-    "region": "Comentário da região"
   },
   "applyNow": "Usar agora",
   "unsaved": {

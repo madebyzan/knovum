@@ -37,9 +37,11 @@
     "previous": "Correspondência anterior",
     "next": "Próxima partida",
     "toggleReplace": "Mostrar substituição",
-    "replace": "Substituir",
-    "replaceAll": "Substituir tudo",
-    "replacePlaceholder": "Substituir por…"
+    "replace": {
+      "action": "Substituir",
+      "placeholder": "Substituir por…"
+    },
+    "replaceAll": "Substituir tudo"
   },
   "paragraph": "Parágrafo",
   "heading1": "Título 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Inserir imagem",
-    "tabUpload": "Arquivo local",
-    "tabUrl": "URL",
-    "url": "URL da imagem",
-    "alt": "Descrição da imagem",
+    "source": {
+      "localFile": "Arquivo local",
+      "url": "URL"
+    },
+    "url": {
+      "label": "URL da imagem",
+      "invalid": "Insira um endereço de imagem http:// ou https:// válido."
+    },
+    "alt": {
+      "label": "Descrição da imagem",
+      "placeholder": "Descreva a imagem para leitores de tela"
+    },
     "choose": "Selecionar imagem",
     "uploadFailed": "Falha na inserção da imagem",
     "dropDocumentHint": "Escolha o arquivo ou arraste a imagem para o editor de documentos.",
-    "altPlaceholder": "Descreva a imagem para leitores de tela",
     "dropNow": "Solte para inserir a imagem",
-    "urlInvalid": "Insira um endereço de imagem http:// ou https:// válido.",
     "insertFailed": "Não foi possível inserir a imagem"
   },
   "link": {
     "label": "Hiperlink",
     "placeholder": "Digite ou cole URL",
     "remove": "Remover link",
-    "editorTitle": "Editar link",
-    "editorDescription": "Adicione um link da web ou de e-mail ao texto selecionado.",
+    "editor": {
+      "title": "Editar link",
+      "description": "Adicione um link da web ou de e-mail ao texto selecionado."
+    },
     "url": "URL do link",
     "invalid": "Insira um link HTTP, HTTPS ou mailto válido.",
     "open": "Link aberto",
@@ -110,6 +120,8 @@
     "addColumn": "Inserir coluna à direita",
     "delete": "Excluir tabela"
   },
-  "words": "palavras",
-  "characters": "personagens"
+  "statistics": {
+    "words": "{count} palavra | {count} palavras",
+    "characters": "{count} caractere | {count} caracteres"
+  }
 }

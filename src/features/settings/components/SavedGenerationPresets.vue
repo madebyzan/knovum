@@ -30,7 +30,7 @@ const editorOpen = shallowRef(false);
 async function removePreset(presetId: string) {
   const confirmed = await confirmAction({
     title: t("common.delete"),
-    description: t("settings.creation.presets.deleteConfirm"),
+    description: t("settings.creation.presets.delete.title"),
     confirmLabel: t("common.delete"),
     danger: true,
   });

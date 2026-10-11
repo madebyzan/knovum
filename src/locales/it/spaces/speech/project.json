@@ -1,13 +1,18 @@
 {
   "new": "Avviane un altro",
   "language": "Lingua",
-  "scriptPlaceholder": "Inserisci lo script per questa revisione",
-  "unsavedTitle": "Vuoi salvare le modifiche al progetto vocale?",
-  "unsavedDescription": "Salva questa revisione prima di uscire o elimina le modifiche non salvate.",
-  "incompleteTitle": "Scartare le modifiche non completate?",
-  "incompleteDescription": "Torna per terminare la modifica o ignora queste modifiche.",
-  "preview": "Anteprima",
-  "stopListening": "Smetti di ascoltare",
+  "script": {
+    "placeholder": "Inserisci lo script per questa revisione",
+    "label": "Copione"
+  },
+  "unsaved": {
+    "title": "Vuoi salvare le modifiche al progetto vocale?",
+    "description": "Salva questa revisione prima di uscire o elimina le modifiche non salvate."
+  },
+  "incomplete": {
+    "title": "Scartare le modifiche non completate?",
+    "description": "Torna per terminare la modifica o ignora queste modifiche."
+  },
   "saving": "Salvataggio in corso",
   "starting": "Preparazione della generazione",
   "generatedAudio": "Audio generato",
@@ -17,13 +22,17 @@
   "loudness": "Loudness (LUFS)",
   "truePeak": "Picco reale (dB)",
   "role": "Ruolo oratore",
-  "roleBindings": "Voci di ruolo",
-  "roleBindingsHint": "Scegli una voce per ogni ruolo.",
+  "roleBindings": {
+    "label": "Voci di ruolo",
+    "hint": "Scegli una voce per ogni ruolo."
+  },
   "addRole": "Aggiungi ruolo",
   "removeRole": "Rimuovi ruolo",
   "defaultRole": "Narratore",
-  "deliveryInstruction": "Istruzioni per la consegna",
-  "deliveryInstructionPlaceholder": "Facoltativo: descrivi il ritmo, il tono e la consegna di questo segmento (fino a 500 caratteri)",
+  "deliveryInstruction": {
+    "label": "Istruzioni per la consegna",
+    "placeholder": "Facoltativo: descrivi il ritmo, il tono e la consegna di questo segmento (fino a 500 caratteri)"
+  },
   "stages": {
     "preparing": "Preparazione delle risorse",
     "synthesizing": "Anteprima di sintesi",
@@ -34,15 +43,11 @@
     "audiobook": "Audiolibro",
     "videoDubbing": "Doppiaggio video"
   },
-  "previewText": "Inserisci fino a 500 caratteri per ascoltare questa voce",
   "generateFromNode": "Genera voce",
   "nodeProjects": "Duplicazione salvata",
-  "script": "Copione",
   "settings": "Impostazioni",
   "editorPages": "Sezioni dell'editor vocale",
   "importManuscript": "Importa manoscritto del nodo",
-  "noVoices": "Nessuna voce tra cui scegliere. Aggiungi una voce per iniziare.",
-  "selectVoice": "Seleziona una voce",
   "sourceNotReady": "Il video non è ancora pronto per il doppiaggio.",
   "emptyManuscript": "Importa il manoscritto o aggiungi un capitolo per iniziare.",
   "emptyVideoScript": "Importa i sottotitoli o aggiungi una linea di doppiaggio.",

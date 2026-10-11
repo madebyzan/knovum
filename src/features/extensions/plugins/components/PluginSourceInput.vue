@@ -63,7 +63,7 @@ async function choose() {
       :disabled="busy"
       data-testid="choose-plugin-source"
       @click="choose"
-      >{{ $t("extensions.catalog.source") }}</UiButton
+      >{{ $t("extensions.plugins.source.choose") }}</UiButton
     >
     <p v-if="pickerError" role="alert" class="text-caption text-fg-danger">{{ pickerError }}</p>
     <label v-if="form.type === 'https_zip'" class="block space-y-1.5 text-caption text-fg-secondary"

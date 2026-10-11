@@ -23,8 +23,10 @@
   "cancelling": "Annulation…",
   "forceDismiss": "Supprimer de la liste",
   "failed": "Cette tâche n'a pas pu être complétée.",
-  "verifyingResource": "Vérification de l'intégrité…",
-  "preparingLocalInference": "Préparation des composants locaux AI…",
-  "localResourceDownloadSize": "La première utilisation nécessite {size} de téléchargements de ressources locales",
-  "installingResource": "Installation des ressources locales…"
+  "resources": {
+    "verifying": "Vérification de l'intégrité…",
+    "preparingInference": "Préparation des composants locaux AI…",
+    "downloadSize": "La première utilisation nécessite {size} de téléchargements de ressources locales",
+    "installing": "Installation des ressources locales…"
+  }
 }

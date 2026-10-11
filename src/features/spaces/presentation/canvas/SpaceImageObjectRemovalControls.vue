@@ -85,10 +85,10 @@ const brushSize = computed({
       @update="brushSize = $event"
     />
     <label v-else class="grid text-label">
-      <span class="sr-only">{{ t("spaces.media.imageEditor.removeObject.promptLabel") }}</span>
+      <span class="sr-only">{{ t("spaces.media.imageEditor.removeObject.prompt.label") }}</span>
       <UiTextarea
         :model-value="prompt"
-        :placeholder="t('spaces.media.imageEditor.removeObject.promptPlaceholder')"
+        :placeholder="t('spaces.media.imageEditor.removeObject.prompt.placeholder')"
         :disabled="submitting"
         :maxlength="1000"
         :rows="2"

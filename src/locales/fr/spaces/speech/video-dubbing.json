@@ -21,6 +21,5 @@
   "multipleAudioTracks": "Vidéo avec plusieurs pistes audio",
   "audioTracksHint": "Sélectionnez jusqu'à huit révisions publiées de la même vidéo source, dans l'ordre des pistes de lecture.",
   "currentBackground": "Piste d'arrière-plan actuelle",
-  "mixingSettings": "Mixage audio",
-  "translationTitle": "Traduire le script"
+  "mixingSettings": "Mixage audio"
 }

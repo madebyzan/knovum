@@ -59,9 +59,11 @@
     "empty": "Faites glisser les ancres de nœud ou sélectionnez plusieurs éléments pour créer des relations.",
     "inspect": "Détails de connexion",
     "kind": "Type de relation",
-    "rationale": "Pourquoi ils sont connectés",
-    "addRationale": "Ajouter",
-    "rationalePlaceholder": "Décrivez comment ces éléments sont connectés…",
+    "rationale": {
+      "label": "Pourquoi ils sont connectés",
+      "add": "Ajouter",
+      "placeholder": "Décrivez comment ces éléments sont connectés…"
+    },
     "color": "Couleur de la ligne de relation",
     "colors": {
       "neutral": "Neutre",
@@ -71,8 +73,10 @@
       "red": "Rouge",
       "purple": "Violet"
     },
-    "remove": "Supprimer la relation",
-    "removeConfirm": "Supprimer la relation avec « {title} » ?",
+    "remove": {
+      "action": "Supprimer la relation",
+      "confirmation": "Supprimer la relation avec « {title} » ?"
+    },
     "kinds": {
       "reference": "Référence",
       "related": "Associé",
@@ -88,13 +92,17 @@
   },
   "provenance": "Source",
   "portal": {
-    "create": "Nouveau nœud du portail",
-    "createDescription": "Créez un nœud de portail pour une navigation rapide vers un autre espace de travail."
+    "create": {
+      "action": "Nouveau nœud du portail",
+      "description": "Créez un nœud de portail pour une navigation rapide vers un autre espace de travail."
+    }
   },
   "objects": {
     "custom": "Objet de connaissances personnalisé",
-    "create": "Nouvel objet personnalisé",
-    "createDescription": "Créez un nœud d'objet de connaissances à l'aide d'un schéma sélectionné."
+    "create": {
+      "action": "Nouvel objet personnalisé",
+      "description": "Créez un nœud d'objet de connaissances à l'aide d'un schéma sélectionné."
+    }
   },
   "fields": {
     "add": "Ajouter un champ",
@@ -133,12 +141,16 @@
     "description": "Description",
     "icon": "Icône",
     "name": "Nom du type",
-    "manage": "Gérer les types de connaissances",
-    "manageDescription": "Définissez les propriétés des connaissances structurées dans cet espace de travail.",
-    "delete": "Supprimer le type…",
+    "manage": {
+      "action": "Gérer les types de connaissances",
+      "description": "Définissez les propriétés des connaissances structurées dans cet espace de travail."
+    },
+    "delete": {
+      "action": "Supprimer le type…",
+      "description": "Supprimer « {name} » ? Les types utilisés par les objets de connaissances ne peuvent pas être supprimés."
+    },
     "discardChanges": "Supprimer les modifications non enregistrées pour ce type ?",
     "emptyFields": "Ajoutez les propriétés dont ce type de connaissances a besoin.",
-    "deleteConfirmation": "Supprimer « {name} » ? Les types utilisés par les objets de connaissances ne peuvent pas être supprimés.",
     "create": "Nouveau type",
     "none": "Aucun type de schéma personnalisé.",
     "loadFailed": "Impossible de charger les types de schéma"

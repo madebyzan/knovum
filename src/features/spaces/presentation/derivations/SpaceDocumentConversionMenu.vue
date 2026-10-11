@@ -31,7 +31,7 @@ const { t } = useI18n();
       class="flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
       <FileOutput class="size-3.5" />
-      <span class="min-w-0 flex-1">{{ t("spaces.creation.document.convert.label") }}</span>
+      <span class="min-w-0 flex-1">{{ t("spaces.creation.document.conversion.label") }}</span>
       <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
@@ -47,12 +47,12 @@ const { t } = useI18n();
           type="button"
           data-testid="document-conversion-trigger"
           :class="CANVAS_ACTION_BUTTON_CLASSES"
-          :aria-label="t('spaces.creation.document.convert.label')"
-          :title="isCompact ? t('spaces.creation.document.convert.label') : undefined"
+          :aria-label="t('spaces.creation.document.conversion.label')"
+          :title="isCompact ? t('spaces.creation.document.conversion.label') : undefined"
         >
           <FileOutput class="size-4.5" :stroke-width="1.6" />
           <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(isCompact))]">
-            {{ t("spaces.creation.document.convert.label") }}
+            {{ t("spaces.creation.document.conversion.label") }}
           </span>
         </button>
       </ToolbarButton>

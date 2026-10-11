@@ -3,8 +3,10 @@
   "search": "Search settings…",
   "noResults": "No matching settings found.",
   "load": {
-    "failed": "Settings could not be loaded",
-    "failedDescription": "Saved data is incompatible with the current format. Retry or reset this section."
+    "failure": {
+      "title": "Settings could not be loaded",
+      "description": "Saved data is incompatible with the current format. Retry or reset this section."
+    }
   },
   "reset": {
     "action": "Reset section",
@@ -13,34 +15,17 @@
   "about": {
     "title": "About",
     "author": "Author",
-    "description": "Version and system information."
+    "description": "Version and system information.",
+    "version": {
+      "value": "Version {version}",
+      "loading": "Reading version…"
+    }
   },
-  "version": "Version {version}",
-  "readingVersion": "Reading version…",
-  "archived": {
-    "title": "Archived Spaces",
-    "description": "Restore or permanently delete archived Spaces.",
-    "restore": "Restore Space",
-    "restoreFailed": "Could not restore Space",
-    "loadFailed": "Could not load archived Spaces",
-    "delete": {
-      "label": "Delete permanently",
-      "title": "Permanently delete “{title}”?",
-      "description": "This permanently removes the Space and all associated data from this device. This action cannot be undone.",
-      "failed": "Could not delete Space"
-    },
-    "deleteAll": {
-      "label": "Delete all",
-      "title": "Permanently delete all archived Spaces?",
-      "description": "Permanently delete {count} archived Space and its contents? This cannot be undone. | Permanently delete {count} archived Spaces and their contents? This cannot be undone."
-    },
-    "empty": "No archived Spaces."
-  },
-  "inboxSpace": "Inbox",
   "groups": {
     "intelligence": "Intelligence",
     "general": "General",
     "data": "Data & archives",
     "information": "Information"
-  }
+  },
+  "saveFailed": "Could not save settings"
 }

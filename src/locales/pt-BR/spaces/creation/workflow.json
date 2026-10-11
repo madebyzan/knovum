@@ -12,8 +12,10 @@
     "empty": "A seleção não possui ações de derivação reproduzíveis.",
     "sources": "Fontes: {sources}"
   },
-  "name": "Nome do fluxo de trabalho",
-  "namePlaceholder": "Nomeie este fluxo de trabalho",
+  "name": {
+    "label": "Nome do fluxo de trabalho",
+    "placeholder": "Nomeie este fluxo de trabalho"
+  },
   "saveCaptured": "Salvar como fluxo de trabalho",
   "saved": "Salvo na sua biblioteca de fluxo de trabalho",
   "useSaved": "Usar fluxo de trabalho",
@@ -65,8 +67,10 @@
     "durationSeconds": "Duração (segundos)",
     "platform": "Plataforma"
   },
-  "delete": "Excluir fluxo de trabalho",
-  "deleteConfirm": "Excluir “{name}”? As execuções concluídas e seus resultados permanecerão.",
+  "delete": {
+    "action": "Excluir fluxo de trabalho",
+    "confirmation": "Excluir “{name}”? As execuções concluídas e seus resultados permanecerão."
+  },
   "states": {
     "queued": "Na fila",
     "running": "Em execução",

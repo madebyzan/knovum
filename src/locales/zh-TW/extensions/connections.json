@@ -1,24 +1,5 @@
 {
   "name": "連接名稱",
-  "configuration": {
-    "headers": "請求頭",
-    "environment": "環境變數",
-    "secretsHint": "這裡只填寫公開配置。令牌等憑證請在儲存後通過授權設定。",
-    "invalidName": "請填寫欄位名，且不要包含首尾空格。",
-    "duplicateName": "欄位名稱不能重複；HTTP 請求頭名稱不區分大小寫。",
-    "fieldName": "名稱",
-    "fieldValue": "值",
-    "fieldNameAt": "第 {index} 個欄位名稱",
-    "fieldValueAt": "第 {index} 個欄位值",
-    "removeField": "刪除第 {index} 個字段",
-    "addHeader": "添加請求頭",
-    "addVariable": "新增變數",
-    "serverUrl": "伺服器位址",
-    "authorizationHint": "選擇伺服器要求的授權方式。具體憑證在儲存後單獨配置。",
-    "advanced": "環境變數與請求頭"
-  },
-  "transport": "傳輸方式",
-  "allowLocalNetwork": "允許存取設定的本機或區域網路位址",
   "tools": {
     "policyHint": "工具預設拒絕。請自行確認工具是否唯讀，服務端標記僅供參考。研究任務只能使用你標記為唯讀的工具。",
     "policy": "調用策略",
@@ -48,11 +29,17 @@
   "title": "連線實例",
   "addServer": "新增 MCP 服務",
   "description": "配置 MCP 服務、帳號和工具權限。插件內的服務隨插件整體使用。",
-  "emptyServers": "尚未新增 MCP 服務",
-  "emptyHint": "新增自己的 MCP 服務。插件提供的服務請在所屬插件中設定。",
+  "emptyServers": {
+    "title": "尚未新增 MCP 服務",
+    "description": "新增自己的 MCP 服務。插件提供的服務請在所屬插件中設定。"
+  },
   "serviceAndAccounts": "管理服務與帳號",
   "configureServiceFirst": "請先完成此服務的配置。",
   "conflict": "連線已在其他位置變更。目前修改已保留，請放棄修改並重新開啟後再儲存。",
   "saveBeforeCheck": "先儲存目前修改，再更換帳號或重新檢查目錄。",
-  "services": "服務"
+  "services": "服務",
+  "discard": {
+    "title": "放棄連線變更？",
+    "description": "此連線未儲存的變更將遺失。"
+  }
 }

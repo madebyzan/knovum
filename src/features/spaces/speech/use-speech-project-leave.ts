@@ -17,12 +17,12 @@ export function useSpeechProjectLeave(
   const dirty = shallowRef(false);
   const draft = shallowRef<RevisionInput>();
   const dialogTitle = computed(() =>
-    draft.value ? t("spaces.speech.project.unsavedTitle") : t("spaces.speech.project.incompleteTitle"),
+    draft.value ? t("spaces.speech.project.unsaved.title") : t("spaces.speech.project.incomplete.title"),
   );
   const dialogDescription = computed(() =>
     draft.value
-      ? t("spaces.speech.project.unsavedDescription")
-      : t("spaces.speech.project.incompleteDescription"),
+      ? t("spaces.speech.project.unsaved.description")
+      : t("spaces.speech.project.incomplete.description"),
   );
   const leave = useUnsavedSessionParticipant({
     dirty,

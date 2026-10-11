@@ -1,0 +1,23 @@
+{
+  "title": "Espaces archivés",
+  "description": "Restaurez ou supprimez définitivement les espaces de travail archivés.",
+  "restore": {
+    "action": "Restaurer l'espace de travail",
+    "failed": "Impossible de restaurer l'espace de travail"
+  },
+  "load": {
+    "failed": "Impossible de charger les espaces de travail archivés"
+  },
+  "delete": {
+    "action": "Supprimer définitivement",
+    "title": "Supprimer définitivement « {title} » ?",
+    "description": "Cela supprime définitivement l'espace de travail et toutes les données associées de cet appareil. Cette action ne peut pas être annulée.",
+    "failed": "Impossible de supprimer l'espace de travail"
+  },
+  "deleteAll": {
+    "action": "Supprimer tout",
+    "title": "Supprimer définitivement tous les espaces de travail archivés ?",
+    "description": "Supprimer définitivement l'espace de travail archivé {count} et son contenu ? Cela ne peut pas être annulé. | Supprimer définitivement les espaces de travail archivés {count} et leur contenu ? Cela ne peut pas être annulé."
+  },
+  "empty": "Aucun espace archivé."
+}

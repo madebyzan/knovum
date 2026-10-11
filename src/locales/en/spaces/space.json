@@ -36,8 +36,10 @@
   "favorite": "Favorite space",
   "unfavorite": "Remove from favorites",
   "open": "Open Space",
-  "loadFailed": "Could not open Space",
-  "loadFailedHint": "Failed to load Space database. Local files are unaffected; please try again.",
+  "load": {
+    "failed": "Could not open Space",
+    "hint": "Failed to load Space database. Local files are unaffected; please try again."
+  },
   "archive": "Archive Space",
   "moveTo": "Move to Space",
   "moveNoTargets": "No other available Spaces to move to.",

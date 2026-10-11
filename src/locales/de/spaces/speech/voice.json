@@ -1,4 +1,12 @@
 {
+  "candidate": {
+    "generate": "Beispiel generieren",
+    "auditionRequired": "Spielen Sie den Kandidaten einmal durch, bevor Sie diese Stimme speichern.",
+    "save": "Stimme speichern",
+    "discard": "Probe verwerfen",
+    "sample": "Willkommen. Heute ist der 3. Oktober 2026 und die Projektnummer ist 108. Achten Sie auf klare Aussprache, gleichmäßiges Tempo und natürliche Satzenden.",
+    "auditions": "Prüfungsergebnisse"
+  },
   "name": "Stimmenname",
   "add": "Hinzufügen",
   "usage": "Referenzierte {count}-Zeit | Referenzierte {count}-Zeiten",
@@ -11,19 +19,15 @@
     "description": "Löschen Sie diese archivierte Stimme und alle ihre Überarbeitungen. Eine von einem Projekt verwendete Stimme kann nicht gelöscht werden."
   },
   "label": "Stimme",
-  "clone": "Von Referenz klonen",
-  "design": "Entwerfen Sie eine Stimme",
-  "mode": "Sprachquelle",
-  "designDescription": "Beschreiben Sie die Stimme, den Vortrag, die Altersspanne und den Ton",
-  "candidate": {
-    "text": "Beispieltext",
-    "generate": "Beispiel generieren",
-    "auditionRequired": "Spielen Sie den Kandidaten einmal durch, bevor Sie diese Stimme speichern.",
-    "save": "Stimme speichern",
-    "discard": "Probe verwerfen",
-    "sample": "Willkommen. Heute ist der 3. Oktober 2026 und die Projektnummer ist 108. Achten Sie auf klare Aussprache, gleichmäßiges Tempo und natürliche Satzenden.",
-    "auditions": "Prüfungsergebnisse"
+  "clone": {
+    "fromReference": "Von Referenz klonen",
+    "action": "Stimme klonen"
   },
+  "design": {
+    "action": "Entwerfen Sie eine Stimme",
+    "placeholder": "Beschreiben Sie die Stimme, den Vortrag, die Altersspanne und den Ton"
+  },
+  "mode": "Sprachquelle",
   "gender": {
     "female": "Weiblich",
     "male": "Männlich"
@@ -33,6 +37,5 @@
     "reference": "Referenzstimme",
     "designed": "Gestaltete Stimme"
   },
-  "options": "Spracheinstellungen",
-  "cloneShort": "Stimme klonen"
+  "options": "Spracheinstellungen"
 }

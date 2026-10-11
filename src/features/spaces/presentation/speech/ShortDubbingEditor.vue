@@ -70,13 +70,13 @@ watchEffect(() =>
 
 <template>
   <div class="space-y-3">
-    <p class="text-caption font-medium text-fg-secondary">{{ t("spaces.speech.project.script") }}</p>
+    <p class="text-caption font-medium text-fg-secondary">{{ t("spaces.speech.project.script.label") }}</p>
     <UiTextarea
       v-model="text"
       :rows="6"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.project.scriptPlaceholder')"
-      :aria-label="t('spaces.speech.project.script')"
+      :placeholder="t('spaces.speech.project.script.placeholder')"
+      :aria-label="t('spaces.speech.project.script.label')"
     />
     <label v-if="voiceOptions.length" class="block space-y-1.5 text-caption font-medium text-fg-secondary">
       <span>{{ t("spaces.speech.voice.label") }}</span>
@@ -85,7 +85,7 @@ watchEffect(() =>
         size="sm"
         :label="t('spaces.speech.voice.label')"
         :options="voiceOptions"
-        :placeholder="t('spaces.speech.project.selectVoice')"
+        :placeholder="t('spaces.speech.library.selection.placeholder')"
         :disabled="disabled"
       />
     </label>
@@ -95,12 +95,12 @@ watchEffect(() =>
       :rows="2"
       :maxlength="500"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
-      :aria-label="t('spaces.speech.project.deliveryInstruction')"
+      :placeholder="t('spaces.speech.project.deliveryInstruction.placeholder')"
+      :aria-label="t('spaces.speech.project.deliveryInstruction.label')"
     />
     <div v-if="voiceOptions.length" class="flex gap-2">
       <UiButton size="sm" :disabled="disabled || !valid" @click="preview">
-        <Play class="size-3.5" />{{ t("spaces.speech.project.preview") }}
+        <Play class="size-3.5" />{{ t("spaces.speech.preview.action") }}
       </UiButton>
     </div>
     <SpeechSettingsDisclosure

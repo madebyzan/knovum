@@ -23,8 +23,10 @@
   "cancelling": "Annullamento in corso...",
   "forceDismiss": "Rimuovi dall'elenco",
   "failed": "Impossibile completare questa attività.",
-  "verifyingResource": "Verifica integrità…",
-  "preparingLocalInference": "Preparazione dei componenti AI locali…",
-  "localResourceDownloadSize": "Il primo utilizzo richiede {size} di download di risorse locali",
-  "installingResource": "Installazione delle risorse locali…"
+  "resources": {
+    "verifying": "Verifica integrità…",
+    "preparingInference": "Preparazione dei componenti AI locali…",
+    "downloadSize": "Il primo utilizzo richiede {size} di download di risorse locali",
+    "installing": "Installazione delle risorse locali…"
+  }
 }

@@ -1,6 +1,8 @@
 {
-  "import": "Importar",
-  "importFailed": "Falha na importação. Verifique o formato do arquivo e tente novamente.",
+  "import": {
+    "action": "Importar",
+    "failed": "Falha na importação. Verifique o formato do arquivo e tente novamente."
+  },
   "website": {
     "add": "Adicionar site",
     "description": "Salve web URL e extraia título e resumo.",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "Visualização",
     "show": "Visualização prévia",
-    "instantUnavailable": "Sem visualização instantânea",
-    "instantUnavailableHint": "A visualização instantânea não está disponível; o texto extraído permanece pesquisável."
+    "instantUnavailable": {
+      "title": "Sem visualização instantânea",
+      "description": "A visualização instantânea não está disponível; o texto extraído permanece pesquisável."
+    }
   },
   "markdown": {
     "export": "Remarcação de exportação"
   },
-  "exportCompleted": "Exportação concluída",
+  "export": {
+    "completed": "Exportação concluída"
+  },
   "fileName": "Nome do arquivo",
   "openExternally": "Abrir em aplicativo externo",
   "space": {

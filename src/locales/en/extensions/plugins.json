@@ -7,7 +7,8 @@
     "subdirectory": "Package subdirectory",
     "install": "Install from source",
     "description": "Choose a local package or remote URL, then review it before installing.",
-    "revision": "Source revision"
+    "revision": "Source revision",
+    "choose": "Choose source"
   },
   "installation": {
     "preview": "Preview",
@@ -70,12 +71,6 @@
     "committing": "Committing changes"
   },
   "title": "Installed plugins",
-  "search": {
-    "empty": "No matching results",
-    "hint": "Try another keyword or clear the search."
-  },
-  "disable": "Disable {name}",
-  "enable": "Enable {name}",
   "actions": "Plugin actions",
   "capabilities": "Included capabilities"
 }

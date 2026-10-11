@@ -1,0 +1,8 @@
+{
+  "action": "Vista previa",
+  "stop": "Dejar de escuchar",
+  "text": {
+    "placeholder": "Ingresa hasta 500 caracteres para escuchar esta voz.",
+    "label": "Texto de muestra"
+  }
+}

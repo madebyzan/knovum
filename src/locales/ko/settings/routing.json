@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "AI 실행",
-  "defaultsDescription": "각 기능을 개별적으로 설정하거나 기본 실행 방법을 사용하도록 합니다.",
+  "defaults": {
+    "title": "AI 실행",
+    "description": "각 기능을 개별적으로 설정하거나 기본 실행 방법을 사용하도록 합니다."
+  },
   "unassigned": "기본 실행 방법 사용",
   "noCompatibleModel": "이 작업에 대한 모델 구성",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "실행 방법을 선택하지 않았습니다.",
-  "capabilitiesTitle": "기능별"
+  "capabilities": {
+    "title": "기능별"
+  }
 }

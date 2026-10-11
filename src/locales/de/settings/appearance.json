@@ -35,7 +35,16 @@
     },
     "language": {
       "english": "Englisch",
-      "simplifiedChinese": "Chinesisch (vereinfacht)"
+      "simplifiedChinese": "Chinesisch (vereinfacht)",
+      "traditionalChinese": "Chinesisch (traditionell)",
+      "japanese": "Japanisch",
+      "korean": "Koreanisch",
+      "french": "Französisch",
+      "german": "Deutsch",
+      "spanish": "Spanisch",
+      "italian": "Italienisch",
+      "russian": "Russisch",
+      "brazilianPortuguese": "Brasilianisches Portugiesisch"
     }
   }
 }

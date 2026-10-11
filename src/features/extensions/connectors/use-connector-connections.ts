@@ -130,8 +130,8 @@ export function useConnectorConnections(options: ConnectorConnectionsOptions) {
 
   function confirmDiscard() {
     return confirmAction({
-      title: t("extensions.connectors.discard.title"),
-      description: t("extensions.connectors.discard.description"),
+      title: t("extensions.connections.discard.title"),
+      description: t("extensions.connections.discard.description"),
       confirmLabel: t("common.discardChanges"),
       danger: true,
     });

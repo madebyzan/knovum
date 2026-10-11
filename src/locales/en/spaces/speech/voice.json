@@ -1,4 +1,12 @@
 {
+  "candidate": {
+    "generate": "Generate sample",
+    "auditionRequired": "Play the candidate through once before saving this voice.",
+    "save": "Save voice",
+    "discard": "Discard sample",
+    "sample": "Welcome. Today is October 3, 2026, and the project number is 108. Listen for clear pronunciation, steady pacing, and natural sentence endings.",
+    "auditions": "Audition results"
+  },
   "name": "Voice name",
   "add": "Add",
   "usage": "Referenced {count} time | Referenced {count} times",
@@ -11,19 +19,15 @@
     "description": "Delete this archived voice and all of its revisions. A voice used by a project cannot be deleted."
   },
   "label": "Voice",
-  "clone": "Clone from reference",
-  "design": "Design a voice",
-  "mode": "Voice source",
-  "designDescription": "Describe the voice, delivery, age range, and tone",
-  "candidate": {
-    "text": "Sample text",
-    "generate": "Generate sample",
-    "auditionRequired": "Play the candidate through once before saving this voice.",
-    "save": "Save voice",
-    "discard": "Discard sample",
-    "sample": "Welcome. Today is October 3, 2026, and the project number is 108. Listen for clear pronunciation, steady pacing, and natural sentence endings.",
-    "auditions": "Audition results"
+  "clone": {
+    "fromReference": "Clone from reference",
+    "action": "Clone voice"
   },
+  "design": {
+    "action": "Design a voice",
+    "placeholder": "Describe the voice, delivery, age range, and tone"
+  },
+  "mode": "Voice source",
   "gender": {
     "female": "Female",
     "male": "Male"
@@ -33,6 +37,5 @@
     "reference": "Reference voice",
     "designed": "Designed voice"
   },
-  "options": "Voice settings",
-  "cloneShort": "Clone voice"
+  "options": "Voice settings"
 }

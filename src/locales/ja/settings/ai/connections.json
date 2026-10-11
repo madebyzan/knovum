@@ -1,0 +1,18 @@
+{
+  "provider": "モデル プロバイダー",
+  "baseUrl": "API ベース URL",
+  "title": "プロバイダー接続",
+  "description": "プロバイダーごとに接続と利用可能なモデルを管理します。",
+  "empty": "まだプロバイダーがありません。",
+  "name": "接続名",
+  "add": "プロバイダーの追加",
+  "edit": "プロバイダーの編集",
+  "invalidBaseUrl": "有効な HTTP または HTTPS URL を入力してください",
+  "delete": {
+    "title": "{name} とそのモデルと資格情報を削除しますか?",
+    "action": "接続の削除"
+  },
+  "credentials": {
+    "saveFailed": "接続は保存されましたが、キーを保存できませんでした。もう一度やり直してください"
+  }
+}

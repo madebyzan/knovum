@@ -57,12 +57,16 @@
   "attachments": {
     "add": "리소스 추가",
     "attached": "첨부된 리소스, 더 보려면 가로로 스크롤하세요.",
-    "citeCanvasNode": "참조 캔버스 콘텐츠",
-    "citeCanvasNodeHint": "이 작업공간에서 콘텐츠 선택",
-    "canvasNodeShort": "캔버스 참조",
-    "uploadLocalFile": "로컬 파일 추가",
-    "uploadLocalFileHint": "이미지, PDF 또는 문서",
-    "localFileShort": "로컬 파일",
+    "canvasReference": {
+      "label": "참조 캔버스 콘텐츠",
+      "hint": "이 작업공간에서 콘텐츠 선택",
+      "shortLabel": "캔버스 참조"
+    },
+    "localFile": {
+      "label": "로컬 파일 추가",
+      "hint": "이미지, PDF 또는 문서",
+      "shortLabel": "로컬 파일"
+    },
     "dropFiles": "첨부할 파일 삭제",
     "limit": "하나의 메시지에 최대 32개의 항목을 첨부할 수 있습니다.",
     "addCurrentSelection": "현재 선택 추가({count})",

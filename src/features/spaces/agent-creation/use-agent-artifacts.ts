@@ -113,7 +113,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
         removeConsumed(artifact.relativePath);
       }
     } catch (error) {
-      toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
+      toast.error(t("spaces.importExport.import.failed"), { description: getErrorMessage(error) });
       return;
     }
     open.value = false;

@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Ressource hinzufügen",
     "attached": "Angehängte Ressourcen. Scrollen Sie horizontal, um mehr zu sehen",
-    "citeCanvasNode": "Referenz-Canvas-Inhalt",
-    "citeCanvasNodeHint": "Wählen Sie Inhalte aus diesem Arbeitsbereich aus",
-    "canvasNodeShort": "Canvas-Referenz",
-    "uploadLocalFile": "Lokale Datei hinzufügen",
-    "uploadLocalFileHint": "Bilder, PDFs oder Dokumente",
-    "localFileShort": "Lokale Datei",
+    "canvasReference": {
+      "label": "Referenz-Canvas-Inhalt",
+      "hint": "Wählen Sie Inhalte aus diesem Arbeitsbereich aus",
+      "shortLabel": "Canvas-Referenz"
+    },
+    "localFile": {
+      "label": "Lokale Datei hinzufügen",
+      "hint": "Bilder, PDFs oder Dokumente",
+      "shortLabel": "Lokale Datei"
+    },
     "dropFiles": "Legen Sie Dateien zum Anhängen ab",
     "limit": "Sie können bis zu 32 Elemente an eine Nachricht anhängen.",
     "addCurrentSelection": "Aktuelle Auswahl hinzufügen ({count})",

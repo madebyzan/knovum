@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "Das Quellmedium konnte nicht wiedergegeben werden. Prüfen Sie, ob die Mediendatei lesbar ist.",
   "followPlayback": "Wiedergabe folgen",
   "load": "Laden Sie {title}",
   "play": "Wiedergeben",

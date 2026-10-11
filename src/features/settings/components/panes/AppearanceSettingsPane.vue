@@ -46,16 +46,16 @@ const densities = computed<readonly SelectOption<DensityPreference>[]>(() => [
 const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
   { value: "system", label: t("settings.appearance.options.followSystem") },
   { value: "zh-CN", label: t("settings.appearance.options.language.simplifiedChinese") },
-  { value: "zh-TW", label: t("ai.languages.zhTw") },
+  { value: "zh-TW", label: t("settings.appearance.options.language.traditionalChinese") },
   { value: "en", label: t("settings.appearance.options.language.english") },
-  { value: "ja", label: t("ai.languages.ja") },
-  { value: "ko", label: t("ai.languages.ko") },
-  { value: "fr", label: t("ai.languages.fr") },
-  { value: "de", label: t("ai.languages.de") },
-  { value: "es", label: t("ai.languages.es") },
-  { value: "pt-BR", label: t("ai.languages.pt") },
-  { value: "it", label: t("ai.languages.it") },
-  { value: "ru", label: t("ai.languages.ru") },
+  { value: "ja", label: t("settings.appearance.options.language.japanese") },
+  { value: "ko", label: t("settings.appearance.options.language.korean") },
+  { value: "fr", label: t("settings.appearance.options.language.french") },
+  { value: "de", label: t("settings.appearance.options.language.german") },
+  { value: "es", label: t("settings.appearance.options.language.spanish") },
+  { value: "pt-BR", label: t("settings.appearance.options.language.brazilianPortuguese") },
+  { value: "it", label: t("settings.appearance.options.language.italian") },
+  { value: "ru", label: t("settings.appearance.options.language.russian") },
 ]);
 </script>
 

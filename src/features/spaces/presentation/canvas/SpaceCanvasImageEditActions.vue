@@ -17,17 +17,17 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <UiTooltip :text="t('spaces.media.imageEditor.comments.title')" :disabled="!compact" side="top">
+  <UiTooltip :text="t('spaces.media.imageComments.title')" :disabled="!compact" side="top">
     <ToolbarButton as-child>
       <button
         type="button"
         :class="CANVAS_ACTION_BUTTON_CLASSES"
-        :aria-label="t('spaces.media.imageEditor.comments.title')"
+        :aria-label="t('spaces.media.imageComments.title')"
         @click="emit('beginComment')"
       >
         <MessageCircle class="size-4.5" :stroke-width="1.6" />
         <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
-          t("spaces.media.imageEditor.comments.title")
+          t("spaces.media.imageComments.title")
         }}</span>
       </button>
     </ToolbarButton>

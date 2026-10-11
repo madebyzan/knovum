@@ -40,6 +40,11 @@
   "archive": "アーカイブ",
   "restore": "復元",
   "required": "必須",
-  "closeSaveFailed": "変更を保存できませんでした。アプリケーションは開いたままでした",
-  "clearSearch": "検索をクリア"
+  "clearSearch": "検索をクリア",
+  "search": {
+    "empty": "一致する結果はありません",
+    "hint": "別のキーワードを試すか、検索をクリアしてください。"
+  },
+  "enable": "{name}を有効にする",
+  "disable": "{name}を無効にする"
 }

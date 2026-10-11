@@ -84,7 +84,7 @@ it("shows measured transfer progress and removes the percentage during verificat
   onProgress({ stage: "verifying", downloaded: 100, total: 100, percent: 100 });
   await wrapper.vm.$nextTick();
   expect(wrapper.findComponent(UiProgress).exists()).toBe(false);
-  expect(wrapper.get('[role="status"]').text()).toContain("tasks.verifyingResource");
+  expect(wrapper.get('[role="status"]').text()).toContain("tasks.resources.verifying");
   finish();
   await flushPromises();
 });

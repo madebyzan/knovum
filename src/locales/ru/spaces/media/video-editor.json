@@ -36,7 +36,12 @@
     },
     "placement": "Позиция",
     "add": "Добавить текст",
-    "content": "Текст"
+    "content": "Текст",
+    "verticalAlignment": {
+      "top": "Вершина",
+      "center": "Центр",
+      "bottom": "Низ"
+    }
   },
   "tabs": {
     "captions": "Субтитры",
@@ -68,22 +73,23 @@
     "startsAt": "Начало (секунды)",
     "endsAt": "Завершение (секунды)"
   },
-  "top": "Вершина",
-  "center": "Центр",
-  "bottom": "Низ",
   "project": {
     "saved": "Проект редактирования видео сохранен."
   },
   "render": {
     "action": "Рендеринг видео",
     "task": "Рендеринг видео",
-    "failed": "Ошибка рендеринга видео"
+    "failed": "Ошибка рендеринга видео",
+    "stages": {
+      "preparingVideoEdit": "Подготовка редактирования",
+      "renderingVideoEdit": "Рендеринг видео",
+      "savingResource": "Экономия ресурсов"
+    }
   },
-  "preparingVideoEdit": "Подготовка редактирования",
-  "renderingVideoEdit": "Рендеринг видео",
-  "savingResource": "Экономия ресурсов",
-  "previousStep": "Шаг назад на 0,1 секунду",
-  "nextStep": "Шаг вперед на 0,1 секунды",
+  "playback": {
+    "stepBackward": "Шаг назад на 0,1 секунду",
+    "stepForward": "Шаг вперед на 0,1 секунды"
+  },
   "trim": {
     "start": "Обрезать начало клипа",
     "end": "Обрезать конец клипа",

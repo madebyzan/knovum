@@ -36,8 +36,10 @@
   "favorite": "Espacio favorito",
   "unfavorite": "Eliminar de favoritos",
   "open": "Espacio abierto",
-  "loadFailed": "No se pudo abrir el espacio de trabajo",
-  "loadFailedHint": "No se pudo cargar la base de datos del espacio de trabajo. Los archivos locales no se ven afectados; por favor inténtalo de nuevo.",
+  "load": {
+    "failed": "No se pudo abrir el espacio de trabajo",
+    "hint": "No se pudo cargar la base de datos del espacio de trabajo. Los archivos locales no se ven afectados; por favor inténtalo de nuevo."
+  },
   "archive": "Espacio de archivo",
   "moveTo": "Mover al espacio",
   "moveNoTargets": "No hay otros espacios de trabajo disponibles a los que mudarse.",

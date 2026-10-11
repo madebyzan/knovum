@@ -36,8 +36,8 @@ export function useImageCommentDraft(spaceId: Ref<string | undefined>, prompt: R
       if (!draft || !spaceId.value || !store.nodes.some(({ id }) => id === draft.nodeId)) return;
       const shape = draft.comment.shape?.kind;
       const kind = shape === "stroke" ? "draw" : (shape ?? "point");
-      const context = t("spaces.media.imageEditor.comments.conversationContext", {
-        kind: t(`spaces.media.imageEditor.comments.${kind}`),
+      const context = t("spaces.media.imageComments.conversationContext", {
+        kind: t(`spaces.media.imageComments.${kind}`),
         coordinates: coordinates(draft.comment),
         text: draft.comment.text,
       });

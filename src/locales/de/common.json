@@ -40,6 +40,11 @@
   "archive": "Archivieren",
   "restore": "Wiederherstellen",
   "required": "Erforderlich",
-  "closeSaveFailed": "Änderungen konnten nicht gespeichert werden; Die Bewerbung blieb offen",
-  "clearSearch": "Suche löschen"
+  "clearSearch": "Suche löschen",
+  "search": {
+    "empty": "Keine passenden Ergebnisse",
+    "hint": "Versuchen Sie es mit einem anderen Schlüsselwort oder löschen Sie die Suche."
+  },
+  "enable": "Aktivieren Sie {name}",
+  "disable": "Deaktivieren Sie {name}"
 }

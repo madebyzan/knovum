@@ -133,21 +133,21 @@ function setColor(value: string) {
     <UiPopover v-model:open="rationaleOpen" side="top" align="center" :side-offset="8" class="w-72">
       <template #trigger>
         <UiIconButton
-          :label="t('spaces.knowledge.relations.rationale')"
-          :title="t('spaces.knowledge.relations.rationale')"
+          :label="t('spaces.knowledge.relations.rationale.label')"
+          :title="t('spaces.knowledge.relations.rationale.label')"
           size="sm"
         >
           <MessageSquareText class="size-3.5" :stroke-width="1.55" />
         </UiIconButton>
       </template>
       <label class="text-caption-sm font-medium text-fg-tertiary">
-        {{ t("spaces.knowledge.relations.rationale") }}
+        {{ t("spaces.knowledge.relations.rationale.label") }}
       </label>
       <UiTextarea
         v-model="rationale"
         class="mt-1.5"
         :rows="3"
-        :placeholder="t('spaces.knowledge.relations.rationalePlaceholder')"
+        :placeholder="t('spaces.knowledge.relations.rationale.placeholder')"
       />
       <div class="mt-2 flex justify-end">
         <UiButton size="sm" variant="secondary" :disabled="mutationPending" @click="saveRationale">

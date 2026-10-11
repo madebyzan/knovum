@@ -74,8 +74,8 @@ function selectVoice(voiceRevisionId: string) {
       :model-value="line.text"
       :rows="3"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.project.scriptPlaceholder')"
-      :aria-label="t('spaces.speech.project.script')"
+      :placeholder="t('spaces.speech.project.script.placeholder')"
+      :aria-label="t('spaces.speech.project.script.label')"
       @update:model-value="update('text', $event)"
     />
     <p v-if="showSource && line.sourceText" class="text-caption text-fg-tertiary">
@@ -105,7 +105,7 @@ function selectVoice(voiceRevisionId: string) {
         size="sm"
         class="min-w-0 flex-1"
         :label="t('spaces.speech.voice.label')"
-        :placeholder="t('spaces.speech.project.selectVoice')"
+        :placeholder="t('spaces.speech.library.selection.placeholder')"
         :options="voiceOptions"
         :disabled="disabled"
         @update:model-value="selectVoice"
@@ -113,7 +113,7 @@ function selectVoice(voiceRevisionId: string) {
       <UiIconButton
         size="sm"
         tooltip
-        :label="t('spaces.speech.project.preview')"
+        :label="t('spaces.speech.preview.action')"
         :disabled="disabled || !lexiconValid || !line.text.trim() || !line.voiceRevisionId"
         @click="
           emit(
@@ -141,8 +141,8 @@ function selectVoice(voiceRevisionId: string) {
       :rows="2"
       :maxlength="500"
       :disabled="disabled"
-      :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
-      :aria-label="t('spaces.speech.project.deliveryInstruction')"
+      :placeholder="t('spaces.speech.project.deliveryInstruction.placeholder')"
+      :aria-label="t('spaces.speech.project.deliveryInstruction.label')"
       @update:model-value="update('deliveryInstruction', $event)"
     />
     <p v-if="line.needsTimingEdit" class="text-caption text-fg-danger">

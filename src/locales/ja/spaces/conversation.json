@@ -57,12 +57,16 @@
   "attachments": {
     "add": "リソースの追加",
     "attached": "添付されたリソース。水平にスクロールして詳細を表示します",
-    "citeCanvasNode": "参照キャンバス コンテンツ",
-    "citeCanvasNodeHint": "このワークスペースからコンテンツを選択してください",
-    "canvasNodeShort": "キャンバス リファレンス",
-    "uploadLocalFile": "ローカル ファイルの追加",
-    "uploadLocalFileHint": "画像、PDF、またはドキュメント",
-    "localFileShort": "ローカル ファイル",
+    "canvasReference": {
+      "label": "参照キャンバス コンテンツ",
+      "hint": "このワークスペースからコンテンツを選択してください",
+      "shortLabel": "キャンバス リファレンス"
+    },
+    "localFile": {
+      "label": "ローカル ファイルの追加",
+      "hint": "画像、PDF、またはドキュメント",
+      "shortLabel": "ローカル ファイル"
+    },
     "dropFiles": "ファイルをドロップして添付する",
     "limit": "1 つのメッセージに最大 32 件のアイテムを添付できます。",
     "addCurrentSelection": "現在の選択を追加 ({count})",

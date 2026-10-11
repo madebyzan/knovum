@@ -1,15 +1,17 @@
 {
   "conversion": {
-    "docx": "Converti in documento Word",
-    "pdf": "Converti in PDF",
-    "docxRunTitle": "Generazione di documenti Word",
-    "pdfRunTitle": "Generazione PDF in corso",
-    "txt": "Converti in testo semplice",
-    "txtRunTitle": "Generazione di testo semplice",
-    "html": "Converti in HTML",
-    "htmlRunTitle": "Generazione di documento HTML"
-  },
-  "convert": {
+    "actions": {
+      "docx": "Converti in documento Word",
+      "pdf": "Converti in PDF",
+      "txt": "Converti in testo semplice",
+      "html": "Converti in HTML"
+    },
+    "tasks": {
+      "docx": "Generazione di documenti Word",
+      "pdf": "Generazione PDF in corso",
+      "txt": "Generazione di testo semplice",
+      "html": "Generazione di documento HTML"
+    },
     "label": "Converti in",
     "formats": {
       "docx": "Documento Word (.docx)",
@@ -24,8 +26,10 @@
   "title": "Crea un documento dalla conoscenza selezionata",
   "description": "Crea una risorsa Markdown citata accanto alle fonti selezionate.",
   "defaultTitle": "Bozza della conoscenza",
-  "purpose": "Breve documento",
-  "purposePlaceholder": "Descrivi l’obiettivo, il formato e i punti chiave del documento.",
+  "purpose": {
+    "label": "Breve documento",
+    "placeholder": "Descrivi l’obiettivo, il formato e i punti chiave del documento."
+  },
   "sources": "Fonte di conoscenza {count} | {count} fonti di conoscenza",
   "task": "Generazione documento in corso",
   "generating": "Generare da conoscenze selezionate...",

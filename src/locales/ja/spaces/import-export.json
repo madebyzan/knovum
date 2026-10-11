@@ -1,6 +1,8 @@
 {
-  "import": "インポート",
-  "importFailed": "インポートに失敗しました。ファイル形式を確認して、再試行してください。",
+  "import": {
+    "action": "インポート",
+    "failed": "インポートに失敗しました。ファイル形式を確認して、再試行してください。"
+  },
   "website": {
     "add": "Web サイトを追加",
     "description": "ウェブ URL を保存し、タイトルと概要を抽出します。",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "プレビュー",
     "show": "プレビュー ビュー",
-    "instantUnavailable": "インスタント プレビューなし",
-    "instantUnavailableHint": "インスタント プレビューは利用できません。抽出されたテキストは引き続き検索可能です。"
+    "instantUnavailable": {
+      "title": "インスタント プレビューなし",
+      "description": "インスタント プレビューは利用できません。抽出されたテキストは引き続き検索可能です。"
+    }
   },
   "markdown": {
     "export": "マークダウンのエクスポート"
   },
-  "exportCompleted": "エクスポート完了",
+  "export": {
+    "completed": "エクスポート完了"
+  },
   "fileName": "ファイル名",
   "openExternally": "外部アプリで開く",
   "space": {

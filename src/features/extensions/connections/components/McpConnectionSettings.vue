@@ -90,8 +90,8 @@ async function prepareLeave() {
   if (admittedSave && !(await admittedSave)) return false;
   if (!dirty.value) return true;
   return confirmAction({
-    title: t("extensions.connectors.discard.title"),
-    description: t("extensions.connectors.discard.description"),
+    title: t("extensions.connections.discard.title"),
+    description: t("extensions.connections.discard.description"),
     confirmLabel: t("common.discardChanges"),
     danger: true,
   });

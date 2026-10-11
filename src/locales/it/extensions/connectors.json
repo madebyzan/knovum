@@ -1,17 +1,7 @@
 {
   "process": {
-    "executable": "Eseguibile del servizio installato (percorso assoluto)",
-    "arguments": "Argomenti",
-    "workingDirectory": "Directory di lavoro (opzionale)",
-    "authorizationHint": "L'abilitazione di questa connessione consente all'applicazione di avviare il servizio MCP selezionato. L'installazione di un plug-in non installa mai programmi né esegue script di pacchetti.",
     "declaredCommand": "Programma richiesto dal plugin",
-    "configurationRequired": "Scegli un programma installato prima di utilizzare questo connettore.",
-    "chooseExecutable": "Scegli il programma installato",
-    "chooseDirectory": "Scegli la directory di lavoro",
-    "argumentsHint": "Ogni campo è un argomento letterale, compresi gli spazi. Non viene eseguita alcuna analisi della shell.",
-    "addArgument": "Aggiungi argomento",
-    "argumentAt": "Argomento {index}",
-    "removeArgument": "Rimuovere l'argomento {index}"
+    "configurationRequired": "Scegli un programma installato prima di utilizzare questo connettore."
   },
   "changes": "La modifica dell'endpoint o dell'identità dell'autorizzazione richiede la riconnessione dell'account e la revisione delle autorizzazioni dello strumento.",
   "name": "Nome del servizio",
@@ -23,5 +13,6 @@
   "delete": {
     "title": "Eliminare {name}?",
     "description": "Ciò elimina anche tutte le connessioni al servizio e le credenziali dell'account locale."
-  }
+  },
+  "conflict": "Questo connettore è stato modificato altrove. Le tue modifiche sono conservate. Scartale e riapri il connettore prima di salvare."
 }

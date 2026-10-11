@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "En-têtes de requête",
+    "environment": "Variables d'environnement",
+    "secretsHint": "Configuration publique uniquement. Définissez les jetons et autres informations d'identification dans Autorisation après l'enregistrement.",
+    "invalidName": "Entrez un nom de champ sans espaces de début ou de fin.",
+    "duplicateName": "Les noms de champs doivent être uniques. Les noms d’en-tête HTTP ne sont pas sensibles à la casse.",
+    "fieldName": "Nom",
+    "fieldValue": "Valeur",
+    "fieldNameAt": "Nom du champ {index}",
+    "fieldValueAt": "Valeur du champ {index}",
+    "removeField": "Supprimer le champ {index}",
+    "addHeader": "Ajouter un en-tête",
+    "addVariable": "Ajouter une variable",
+    "serverUrl": "URL du serveur",
+    "authorizationHint": "Choisissez la méthode d'autorisation requise par le serveur. Les informations d'identification sont configurées séparément après l'enregistrement.",
+    "advanced": "Variables d'environnement et en-têtes"
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Autoriser l'accès à l'hôte local ou à l'adresse LAN configurée",
+  "process": {
+    "executable": {
+      "label": "Exécutable du service installé (chemin absolu)",
+      "choose": "Choisir le programme installé"
+    },
+    "arguments": {
+      "label": "Arguments",
+      "hint": "Chaque champ est un argument littéral, espaces compris. Aucune analyse du shell n’est effectuée.",
+      "add": "Ajouter un argument",
+      "at": "Argument {index}",
+      "remove": "Supprimer l'argument {index}"
+    },
+    "directory": {
+      "label": "Répertoire de travail (facultatif)",
+      "choose": "Choisir le répertoire de travail"
+    },
+    "authorizationHint": "L'activation de cette connexion permet à l'application de lancer le service MCP sélectionné. L'installation d'un plugin n'installe jamais de programmes ni n'exécute de scripts de package."
+  }
+}

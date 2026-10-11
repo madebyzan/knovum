@@ -70,7 +70,7 @@ watch(
       </ToolbarButton>
     </template>
     <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
-      <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
+      <span>{{ t("spaces.speech.preview.text.label") }}</span>
       <UiTextarea v-model="form.text" :rows="3" :disabled="form.busy" />
     </label>
     <template v-if="form.referenceTranscript === 'optionalConfirmed'">

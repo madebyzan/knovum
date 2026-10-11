@@ -40,6 +40,11 @@
   "archive": "归档",
   "restore": "恢复",
   "required": "请填写此项",
-  "closeSaveFailed": "无法保存更改，应用程序保持打开状态",
-  "clearSearch": "清除搜索"
+  "clearSearch": "清除搜索",
+  "search": {
+    "empty": "没有匹配的结果",
+    "hint": "尝试其他关键词，或清空搜索。"
+  },
+  "enable": "启用 {name}",
+  "disable": "停用 {name}"
 }

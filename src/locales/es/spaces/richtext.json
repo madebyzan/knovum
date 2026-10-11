@@ -37,9 +37,11 @@
     "previous": "Partido anterior",
     "next": "Próximo partido",
     "toggleReplace": "Mostrar reemplazar",
-    "replace": "Reemplazar",
-    "replaceAll": "Reemplazar todo",
-    "replacePlaceholder": "Reemplazar con…"
+    "replace": {
+      "action": "Reemplazar",
+      "placeholder": "Reemplazar con…"
+    },
+    "replaceAll": "Reemplazar todo"
   },
   "paragraph": "Párrafo",
   "heading1": "Título 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Insertar imagen",
-    "tabUpload": "Archivo local",
-    "tabUrl": "URL",
-    "url": "URL de la imagen",
-    "alt": "Descripción de la imagen",
+    "source": {
+      "localFile": "Archivo local",
+      "url": "URL"
+    },
+    "url": {
+      "label": "URL de la imagen",
+      "invalid": "Introduzca una dirección de imagen http:// o https:// válida."
+    },
+    "alt": {
+      "label": "Descripción de la imagen",
+      "placeholder": "Describe la imagen para lectores de pantalla."
+    },
     "choose": "Seleccionar imagen",
     "uploadFailed": "Error al insertar la imagen",
     "dropDocumentHint": "Elija el archivo o arrastre la imagen al editor de documentos.",
-    "altPlaceholder": "Describe la imagen para lectores de pantalla.",
     "dropNow": "Soltar para insertar imagen",
-    "urlInvalid": "Introduzca una dirección de imagen http:// o https:// válida.",
     "insertFailed": "No se pudo insertar la imagen"
   },
   "link": {
     "label": "Hipervínculo",
     "placeholder": "Ingrese o pegue URL",
     "remove": "Eliminar enlace",
-    "editorTitle": "Editar enlace",
-    "editorDescription": "Agregue un enlace web o de correo electrónico al texto seleccionado.",
+    "editor": {
+      "title": "Editar enlace",
+      "description": "Agregue un enlace web o de correo electrónico al texto seleccionado."
+    },
     "url": "URL del enlace",
     "invalid": "Ingrese un enlace HTTP, HTTPS o mailto válido.",
     "open": "Abrir enlace",
@@ -110,6 +120,8 @@
     "addColumn": "Insertar columna a la derecha",
     "delete": "Eliminar tabla"
   },
-  "words": "palabras",
-  "characters": "caracteres"
+  "statistics": {
+    "words": "{count} palabra | {count} palabras",
+    "characters": "{count} carácter | {count} caracteres"
+  }
 }

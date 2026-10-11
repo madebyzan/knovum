@@ -52,8 +52,8 @@ async function addChapter() {
   chaptersRef.value?.focusLastChapter();
 }
 const pages = computed(() => [
-  { value: "script", label: t("spaces.speech.project.script") },
-  { value: "voices", label: t("spaces.speech.project.roleBindings") },
+  { value: "script", label: t("spaces.speech.project.script.label") },
+  { value: "voices", label: t("spaces.speech.project.roleBindings.label") },
   { value: "settings", label: t("spaces.speech.project.settings") },
 ]);
 const draft = useAudiobookDraft(

@@ -1,0 +1,23 @@
+{
+  "title": "Archivierte Bereiche",
+  "description": "Archivierte Arbeitsbereiche wiederherstellen oder dauerhaft löschen.",
+  "restore": {
+    "action": "Speicherplatz wiederherstellen",
+    "failed": "Der Arbeitsbereich konnte nicht wiederhergestellt werden"
+  },
+  "load": {
+    "failed": "Archivierte Arbeitsbereiche konnten nicht geladen werden"
+  },
+  "delete": {
+    "action": "Endgültig löschen",
+    "title": "„{title}“ dauerhaft löschen?",
+    "description": "Dadurch werden der Arbeitsbereich und alle zugehörigen Daten dauerhaft von diesem Gerät entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "failed": "Der Arbeitsbereich konnte nicht gelöscht werden"
+  },
+  "deleteAll": {
+    "action": "Alle löschen",
+    "title": "Alle archivierten Arbeitsbereiche dauerhaft löschen?",
+    "description": "Den archivierten Arbeitsbereich {count} und seinen Inhalt dauerhaft löschen? Dies kann nicht rückgängig gemacht werden. | {count} archivierte Arbeitsbereiche und deren Inhalte dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
+  },
+  "empty": "Keine archivierten Leerzeichen."
+}

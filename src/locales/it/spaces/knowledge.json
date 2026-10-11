@@ -59,9 +59,11 @@
     "empty": "Trascina gli ancoraggi dei nodi o seleziona più elementi per creare relazioni.",
     "inspect": "Dettagli di connessione",
     "kind": "Tipo di relazione",
-    "rationale": "Perché questi sono collegati",
-    "addRationale": "Aggiungi",
-    "rationalePlaceholder": "Descrivi come questi elementi sono collegati...",
+    "rationale": {
+      "label": "Perché questi sono collegati",
+      "add": "Aggiungi",
+      "placeholder": "Descrivi come questi elementi sono collegati..."
+    },
     "color": "Colore della linea di relazione",
     "colors": {
       "neutral": "Neutro",
@@ -71,8 +73,10 @@
       "red": "Rosso",
       "purple": "Viola"
     },
-    "remove": "Rimuovi relazione",
-    "removeConfirm": "Rimuovere la relazione con “{title}”?",
+    "remove": {
+      "action": "Rimuovi relazione",
+      "confirmation": "Rimuovere la relazione con “{title}”?"
+    },
     "kinds": {
       "reference": "Riferimento",
       "related": "Correlato",
@@ -88,13 +92,17 @@
   },
   "provenance": "Sorgente",
   "portal": {
-    "create": "Nuovo nodo Portale",
-    "createDescription": "Crea un nodo del portale per la navigazione rapida in un'altra area di lavoro."
+    "create": {
+      "action": "Nuovo nodo Portale",
+      "description": "Crea un nodo del portale per la navigazione rapida in un'altra area di lavoro."
+    }
   },
   "objects": {
     "custom": "Oggetto di conoscenza personalizzato",
-    "create": "Nuovo oggetto personalizzato",
-    "createDescription": "Crea un nodo oggetto di conoscenza utilizzando uno schema selezionato."
+    "create": {
+      "action": "Nuovo oggetto personalizzato",
+      "description": "Crea un nodo oggetto di conoscenza utilizzando uno schema selezionato."
+    }
   },
   "fields": {
     "add": "Aggiungi campo",
@@ -133,12 +141,16 @@
     "description": "Descrizione",
     "icon": "Icona",
     "name": "Nome tipo",
-    "manage": "Gestisci tipi di conoscenza",
-    "manageDescription": "Definire le proprietà della conoscenza strutturata in questo spazio di lavoro.",
-    "delete": "Cancella tipo…",
+    "manage": {
+      "action": "Gestisci tipi di conoscenza",
+      "description": "Definire le proprietà della conoscenza strutturata in questo spazio di lavoro."
+    },
+    "delete": {
+      "action": "Cancella tipo…",
+      "description": "Eliminare \"{name}\"? I tipi utilizzati dagli oggetti di conoscenza non possono essere eliminati."
+    },
     "discardChanges": "Eliminare le modifiche non salvate di questo tipo?",
     "emptyFields": "Aggiungi le proprietà necessarie per questo tipo di conoscenza.",
-    "deleteConfirmation": "Eliminare \"{name}\"? I tipi utilizzati dagli oggetti di conoscenza non possono essere eliminati.",
     "create": "Nuovo tipo",
     "none": "Nessun tipo di schema personalizzato.",
     "loadFailed": "Impossibile caricare i tipi di schema"

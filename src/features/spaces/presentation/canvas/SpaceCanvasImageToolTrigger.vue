@@ -19,7 +19,7 @@ const { t } = useI18n();
 const TOOL_LABEL_KEYS: Record<ImageEditTool, string> = {
   adjust: "spaces.media.imageEditor.adjust.title",
   crop: "spaces.media.imageEditor.crop.title",
-  transform: "spaces.media.imageEditor.transform.title",
+  transform: "spaces.media.transform.title",
 };
 const ICONS = { adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
 </script>

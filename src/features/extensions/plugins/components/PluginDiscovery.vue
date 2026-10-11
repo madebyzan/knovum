@@ -97,16 +97,12 @@ function openRelease(item: (typeof releases.value)[number]) {
     <ExtensionEmptyState
       v-else-if="!marketplaces.error.value && !releases.length"
       :title="
-        $t(
-          search || sourceId !== 'all'
-            ? 'extensions.plugins.search.empty'
-            : 'extensions.plugins.catalogs.empty.title',
-        )
+        $t(search || sourceId !== 'all' ? 'common.search.empty' : 'extensions.plugins.catalogs.empty.title')
       "
       :description="
         $t(
           marketplaces.data.value?.length
-            ? 'extensions.plugins.search.hint'
+            ? 'common.search.hint'
             : 'extensions.plugins.catalogs.empty.description',
         )
       "

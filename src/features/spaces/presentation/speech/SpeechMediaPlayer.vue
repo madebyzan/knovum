@@ -98,7 +98,7 @@ defineExpose({ seekTo, pause });
       :src="source"
       preload="metadata"
       @loadedmetadata="loaded"
-      @error="error = t('spaces.speech.reference.playbackFailed')"
+      @error="error = t('spaces.media.player.playbackFailed')"
       @play="emit('play')"
       @pause="emit('pause')"
       @ended="emit('ended')"

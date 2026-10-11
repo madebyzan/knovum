@@ -7,7 +7,8 @@
     "subdirectory": "Subdiretório do pacote",
     "install": "Instalar da fonte",
     "description": "Escolha um pacote local ou URL remoto e revise-o antes de instalar.",
-    "revision": "Revisão da fonte"
+    "revision": "Revisão da fonte",
+    "choose": "Escolha a fonte"
   },
   "installation": {
     "preview": "Visualização",
@@ -70,12 +71,6 @@
     "committing": "Confirmando alterações"
   },
   "title": "Plugins instalados",
-  "search": {
-    "empty": "Nenhum resultado correspondente",
-    "hint": "Tente outra palavra-chave ou limpe a pesquisa."
-  },
-  "disable": "Desativar {name}",
-  "enable": "Habilitar {name}",
   "actions": "Ações do plug-in",
   "capabilities": "Capacidades incluídas"
 }

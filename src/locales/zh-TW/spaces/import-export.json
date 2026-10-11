@@ -1,6 +1,8 @@
 {
-  "import": "導入",
-  "importFailed": "匯入失敗，請檢查文件格式。",
+  "import": {
+    "action": "導入",
+    "failed": "匯入失敗，請檢查文件格式。"
+  },
   "website": {
     "add": "新增網頁",
     "description": "儲存網頁 URL 並擷取標題與摘要。",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "預覽",
     "show": "預覽視圖",
-    "instantUnavailable": "暫無即時預覽",
-    "instantUnavailableHint": "未提供即時預覽器，擷取的文字仍參與檢索與引用。"
+    "instantUnavailable": {
+      "title": "暫無即時預覽",
+      "description": "未提供即時預覽器，擷取的文字仍參與檢索與引用。"
+    }
   },
   "markdown": {
     "export": "匯出 Markdown"
   },
-  "exportCompleted": "匯出完成",
+  "export": {
+    "completed": "匯出完成"
+  },
   "fileName": "檔案名稱",
   "openExternally": "外部應用程式開啟",
   "space": {

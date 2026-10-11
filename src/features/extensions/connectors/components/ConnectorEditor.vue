@@ -51,7 +51,7 @@ function changeTransport() {
       <McpEndpointFields v-model="connector.endpoint" :disabled="busy" @change-transport="changeTransport" />
       <details class="group space-y-3" :open="endpointFields.length > 0">
         <summary class="cursor-default text-label text-fg-secondary">
-          {{ $t("extensions.connections.configuration.advanced") }}
+          {{ $t("extensions.endpoint.configuration.advanced") }}
         </summary>
         <McpPublicFields v-model="endpointFields" :transport="connector.endpoint.type" :disabled="busy" />
       </details>
@@ -64,7 +64,7 @@ function changeTransport() {
         :http="connector.endpoint.type === 'streamable_http'"
       />
       <p class="text-caption text-fg-secondary">
-        {{ $t("extensions.connections.configuration.authorizationHint") }}
+        {{ $t("extensions.endpoint.configuration.authorizationHint") }}
       </p>
     </section>
   </form>

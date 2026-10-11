@@ -1,0 +1,23 @@
+{
+  "title": "Espaços arquivados",
+  "description": "Restaure ou exclua permanentemente espaços de trabalho arquivados.",
+  "restore": {
+    "action": "Restaurar espaço de trabalho",
+    "failed": "Não foi possível restaurar o espaço de trabalho"
+  },
+  "load": {
+    "failed": "Não foi possível carregar os espaços de trabalho arquivados"
+  },
+  "delete": {
+    "action": "Excluir permanentemente",
+    "title": "Excluir “{title}” permanentemente?",
+    "description": "Isso remove permanentemente o espaço de trabalho e todos os dados associados deste dispositivo. Esta ação não pode ser desfeita.",
+    "failed": "Não foi possível excluir o espaço de trabalho"
+  },
+  "deleteAll": {
+    "action": "Excluir tudo",
+    "title": "Excluir permanentemente todos os espaços de trabalho arquivados?",
+    "description": "Excluir permanentemente o espaço de trabalho arquivado {count} e seu conteúdo? Isto não pode ser desfeito. | Excluir permanentemente os espaços de trabalho arquivados {count} e seu conteúdo? Isto não pode ser desfeito."
+  },
+  "empty": "Nenhum espaço arquivado."
+}

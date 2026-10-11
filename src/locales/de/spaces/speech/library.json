@@ -1,11 +1,19 @@
 {
+  "selection": {
+    "empty": "Keine Stimmen zur Auswahl. Fügen Sie eine Stimme hinzu, um loszulegen.",
+    "placeholder": "Wählen Sie eine Stimme aus"
+  },
   "title": "Sprachverwaltung",
-  "collectionTitle": "Sprachbibliothek",
+  "collection": {
+    "title": "Sprachbibliothek"
+  },
   "empty": "Noch keine Stimmen.",
   "manage": "Verwalten Sie Stimmen und referenzieren Sie Audio",
   "description": "Verwalten Sie Stimmen, Referenzaudio und Beispielrevisionen, die in der gesamten Anwendung geteilt werden. Jeder Arbeitsbereich kann hier gespeicherte Stimmen verwenden.",
-  "discardTitle": "Sprachänderungen verwerfen",
-  "discardDescription": "Nicht gespeicherte Spracheinstellungen gehen verloren.",
+  "discard": {
+    "title": "Sprachänderungen verwerfen",
+    "description": "Nicht gespeicherte Spracheinstellungen gehen verloren."
+  },
   "presets": "Voreingestellte Stimmen",
-  "addTitle": "Stimme hinzufügen"
+  "add": "Stimme hinzufügen"
 }

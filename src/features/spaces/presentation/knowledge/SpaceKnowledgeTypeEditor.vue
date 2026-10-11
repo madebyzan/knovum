@@ -66,8 +66,8 @@ async function changeEditor(action: () => void) {
         open = $event;
       })
     "
-    :title="t('spaces.knowledge.types.manage')"
-    :description="t('spaces.knowledge.types.manageDescription')"
+    :title="t('spaces.knowledge.types.manage.action')"
+    :description="t('spaces.knowledge.types.manage.description')"
     size="wide"
     class="h-[min(40rem,calc(100dvh-5rem))] max-w-[840px] bg-surface-canvas"
     body-class="flex overflow-hidden"
@@ -143,7 +143,7 @@ async function changeEditor(action: () => void) {
           />
           <p v-if="error" role="alert" class="mt-3 text-caption text-fg-danger">{{ error }}</p>
           <UiButton v-if="editingId" class="mt-5 text-fg-danger" size="sm" variant="ghost" @click="remove">
-            <Trash2 class="size-3.5" />{{ t("spaces.knowledge.types.delete") }}
+            <Trash2 class="size-3.5" />{{ t("spaces.knowledge.types.delete.action") }}
           </UiButton>
         </fieldset>
       </UiScrollArea>

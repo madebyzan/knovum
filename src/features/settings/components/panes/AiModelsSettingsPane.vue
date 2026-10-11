@@ -51,7 +51,7 @@ async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTarg
   try {
     await setDefaultExecutionTarget(key, target);
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
+    toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
   }
 }
 
@@ -95,7 +95,7 @@ async function requestModelCreation(purpose: RoutingPurpose) {
       @reset="resetSection"
     />
     <div v-else-if="ready">
-      <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
+      <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.overview.description") }}</p>
       <div class="grid gap-6">
         <AiConnectionsSettings
           :connections="settings.connections"

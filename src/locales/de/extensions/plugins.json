@@ -7,7 +7,8 @@
     "subdirectory": "Paketunterverzeichnis",
     "install": "Von Quelle installieren",
     "description": "Wählen Sie ein lokales Paket oder ein Remote-Paket URL und überprüfen Sie es vor der Installation.",
-    "revision": "Quellenrevision"
+    "revision": "Quellenrevision",
+    "choose": "Quelle auswählen"
   },
   "installation": {
     "preview": "Vorschau",
@@ -70,12 +71,6 @@
     "committing": "Änderungen werden übernommen"
   },
   "title": "Installierte Plugins",
-  "search": {
-    "empty": "Keine passenden Ergebnisse",
-    "hint": "Versuchen Sie es mit einem anderen Schlüsselwort oder löschen Sie die Suche."
-  },
-  "disable": "Deaktivieren Sie {name}",
-  "enable": "Aktivieren Sie {name}",
   "actions": "Plugin-Aktionen",
   "capabilities": "Enthaltene Funktionen"
 }

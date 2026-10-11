@@ -11,13 +11,6 @@
     "referenceSize": "Referenzgröße; Die exportierten Pixel hängen vom Quellbild ab",
     "lockAspect": "Seitenverhältnis des Zuschnitts sperren"
   },
-  "transform": {
-    "rotateClockwise": "Im Uhrzeigersinn drehen",
-    "flipHorizontal": "Horizontal spiegeln",
-    "flipVertical": "Vertikal spiegeln",
-    "title": "Spiegeln und drehen",
-    "rotationDegrees": "Rotationswinkel"
-  },
   "removeObject": {
     "tool": "Radiergummi",
     "mode": "Entfernungseingabe",
@@ -27,8 +20,10 @@
     },
     "undo": "Auswahlstrich rückgängig machen",
     "brushSize": "Auswahlpinsel",
-    "promptLabel": "Beschreiben Sie, was entfernt werden soll",
-    "promptPlaceholder": "Beschreiben Sie, was entfernt werden soll …",
+    "prompt": {
+      "label": "Beschreiben Sie, was entfernt werden soll",
+      "placeholder": "Beschreiben Sie, was entfernt werden soll …"
+    },
     "generate": "Entfernen und generieren",
     "submitting": "Erstellen der abgeleiteten Bildaufgabe…",
     "sizeLimit": "Verwenden Sie eine Quelle mit maximal 16 Megapixeln und 16.384 Pixeln pro Seite.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Geteilte Ebenen",
-    "panel": "Geteilte Ebenen",
     "selectContent": "Region auswählen",
     "selectContentUnavailable": "Das aktuelle Ebenenmodell kann eine ausgewählte Region nicht teilen",
     "auto": "Automatische Aufteilung",
     "custom": "Benutzerdefinierte Aufteilung",
-    "prompt": "Trennungsfokus",
-    "promptPlaceholder": "Beschreiben Sie, was in Schichten aufgeteilt werden soll",
+    "prompt": {
+      "label": "Trennungsfokus",
+      "placeholder": "Beschreiben Sie, was in Schichten aufgeteilt werden soll"
+    },
     "split": "Teilen",
     "task": "Bildebenen teilen",
     "failed": "Ebenenaufteilung fehlgeschlagen",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "Für die Ebenenaufteilung ist ein falscher API-Schlüssel erforderlich",
     "promptRequired": "Beschreiben Sie, was zuerst getrennt werden soll"
-  },
-  "comments": {
-    "title": "Kommentar",
-    "prompt": "Beschreibung hinzufügen",
-    "save": "Kommentar speichern",
-    "addToConversation": "Zur Konversation hinzufügen",
-    "conversationContext": "Bildanmerkung ({kind}; Ursprung oben links; Koordinaten sind Prozentsätze der Bildbreite und -höhe): {coordinates}\nAnmerkung: {text}",
-    "delete": "Kommentar löschen",
-    "hint": "Klicken Sie auf eine Bildposition, um einen Kommentar abzugeben",
-    "mode": "Kommentaranmerkungsmodus",
-    "point": "Punktkommentar",
-    "draw": "Kommentar zeichnen",
-    "region": "Regionskommentar"
   },
   "applyNow": "Jetzt verwenden",
   "unsaved": {

@@ -23,7 +23,7 @@ export function useWorkbenchLayoutPreferences() {
         rightSidebarWidth: rightSidebarWidth.value,
       })
       .catch((error) => {
-        toast.error(t("shell.layoutSaveFailed"), { id: "workbench-layout-save-failed" });
+        toast.error(t("shell.layout.saveFailed"), { id: "workbench-layout-save-failed" });
         return logError(`Failed to save workbench layout: ${formatErrorDiagnostic(error)}`);
       });
   }

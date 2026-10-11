@@ -34,7 +34,7 @@ const options = computed(() =>
               ({ kind }) => option.target.type === "agent" && kind === option.target.runtimeKind,
             )?.displayName ?? option.label)
           : option.label,
-      description: t(option.target.type === "model" ? "ai.targetModelApi" : "ai.targetExternalAgent"),
+      description: t(option.target.type === "model" ? "ai.target.modelApi" : "ai.target.desktopAgent"),
     }),
   ),
 );
@@ -85,7 +85,7 @@ onMounted(load);
       "
     >
       <p :class="compact ? 'truncate' : 'text-label font-medium'">
-        {{ t("ai.settingsUnavailable") }}
+        {{ t("ai.configuration.unavailable") }}
       </p>
       <p v-if="!compact" class="text-caption wrap-break-word text-fg-secondary">
         {{ getErrorMessage(loadError) }}
@@ -95,10 +95,10 @@ onMounted(load);
     <template v-else-if="compact">
       <UiSelect
         :model-value="value"
-        :label="t('ai.target')"
+        :label="t('ai.target.label')"
         :options="options"
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
-        :placeholder="t('ai.noCompatibleTarget')"
+        :placeholder="t('ai.target.none')"
         size="sm"
         class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-surface-control-hover"
         @update:model-value="selectTarget"
@@ -109,9 +109,9 @@ onMounted(load);
       class="space-y-2 rounded-md border border-stroke-default/70 bg-surface-panel/60 p-3"
     >
       <div class="space-y-0.5">
-        <p class="text-label font-medium text-fg-primary">{{ t("ai.disabledTitle") }}</p>
+        <p class="text-label font-medium text-fg-primary">{{ t("ai.unavailable.title") }}</p>
         <p class="text-caption leading-relaxed text-fg-secondary">
-          {{ t("ai.disabledDescription") }}
+          {{ t("ai.unavailable.description") }}
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -120,18 +120,18 @@ onMounted(load);
           variant="secondary"
           @click="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
         >
-          {{ t("ai.openSettings") }}
+          {{ t("ai.configuration.open") }}
         </UiButton>
       </div>
     </div>
     <label v-else class="block space-y-1.5 text-label font-medium">
-      {{ t("ai.target") }}
+      {{ t("ai.target.label") }}
       <UiSelect
         :model-value="value"
-        :label="t('ai.target')"
+        :label="t('ai.target.label')"
         :options="options"
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
-        :placeholder="t('ai.noCompatibleTarget')"
+        :placeholder="t('ai.target.none')"
         @update:model-value="selectTarget"
       />
     </label>

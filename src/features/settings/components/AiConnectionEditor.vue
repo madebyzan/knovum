@@ -87,31 +87,31 @@ function save() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t(props.connection ? 'settings.ai.editConnection' : 'settings.ai.addConnection')"
+    :title="t(props.connection ? 'settings.ai.connections.edit' : 'settings.ai.connections.add')"
   >
     <fieldset :disabled="busy" class="min-w-0 border-0 p-0">
       <div class="grid gap-4">
         <div v-if="!props.connection" class="grid gap-1.5 text-caption font-medium text-fg-secondary">
-          {{ t("settings.ai.provider") }}
+          {{ t("settings.ai.connections.provider") }}
           <UiSelect
             :model-value="draft.provider"
-            :label="t('settings.ai.provider')"
+            :label="t('settings.ai.connections.provider')"
             :options="options"
             @update:model-value="selectProvider($event)"
           />
         </div>
         <label class="grid gap-1.5 text-caption font-medium text-fg-secondary">
-          {{ t("settings.ai.connectionName") }}
+          {{ t("settings.ai.connections.name") }}
           <UiInput v-model="draft.name" />
           <span v-if="attempted && !draft.name.trim()" class="text-fg-danger">{{
             t("common.required")
           }}</span>
         </label>
         <label class="grid min-w-0 gap-1.5 text-caption font-medium text-fg-secondary">
-          {{ t("settings.ai.baseUrl") }}
+          {{ t("settings.ai.connections.baseUrl") }}
           <UiInput v-model="draft.baseUrl" />
           <span v-if="attempted && !validUrl" class="text-fg-danger">{{
-            t("settings.ai.invalidBaseUrl")
+            t("settings.ai.connections.invalidBaseUrl")
           }}</span>
         </label>
         <AiConnectionCredentialField

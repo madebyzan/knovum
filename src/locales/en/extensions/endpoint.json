@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "Request headers",
+    "environment": "Environment variables",
+    "secretsHint": "Public configuration only. Set tokens and other credentials in Authorization after saving.",
+    "invalidName": "Enter a field name without leading or trailing spaces.",
+    "duplicateName": "Field names must be unique. HTTP header names are case-insensitive.",
+    "fieldName": "Name",
+    "fieldValue": "Value",
+    "fieldNameAt": "Field {index} name",
+    "fieldValueAt": "Field {index} value",
+    "removeField": "Remove field {index}",
+    "addHeader": "Add header",
+    "addVariable": "Add variable",
+    "serverUrl": "Server URL",
+    "authorizationHint": "Choose the authorization method required by the server. Credentials are configured separately after saving.",
+    "advanced": "Environment variables and headers"
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Allow access to the configured localhost or LAN address",
+  "process": {
+    "executable": {
+      "label": "Installed service executable (absolute path)",
+      "choose": "Choose installed program"
+    },
+    "arguments": {
+      "label": "Arguments",
+      "hint": "Each field is one literal argument, including spaces. No shell parsing is performed.",
+      "add": "Add argument",
+      "at": "Argument {index}",
+      "remove": "Remove argument {index}"
+    },
+    "directory": {
+      "label": "Working directory (optional)",
+      "choose": "Choose working directory"
+    },
+    "authorizationHint": "Enabling this connection allows the application to launch the selected MCP service. Installing a plugin never installs programs or runs package scripts."
+  }
+}

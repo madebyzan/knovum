@@ -1,0 +1,30 @@
+{
+  "empty": "Nessun modello ancora aggiunto.",
+  "edit": "Modifica modello",
+  "delete": {
+    "title": "Eliminare il modello {name}?"
+  },
+  "duplicateIdentifier": "Questo identificatore di modello è già aggiunto a questa connessione",
+  "capabilities": {
+    "label": "Funzionalità supportate",
+    "required": "Seleziona almeno una funzionalità",
+    "text": "Generazione testo",
+    "vision": "Comprensione visiva",
+    "image": "Generazione di immagini",
+    "video": "Generazione video"
+  },
+  "inUse": "Questo modello è in uso. Modificare le impostazioni predefinite dell'attività o le preimpostazioni di creazione prima di rimuovere le funzionalità selezionate o il modello.",
+  "title": "Modelli",
+  "count": "Modello {count} | Modelli {count}",
+  "add": "Aggiungi modello",
+  "displayName": "Nome visualizzato del modello",
+  "identifier": "Identificativo del modello del provider",
+  "builtinAgent": {
+    "enabled": "Utilizzare per l'agente integrato",
+    "help": "È possibile abilitare solo i modelli con chiamata utensile. Utilizzare il contesto documentato e i limiti di output del fornitore.",
+    "protocol": "Protocollo API modello",
+    "contextWindow": "Finestra di contesto (token)",
+    "maxOutputTokens": "Limite di output per richiesta (token)",
+    "invalidLimits": "Il contesto deve contenere almeno 8.192 token; l'output deve essere positivo e inferiore al contesto."
+  }
+}

@@ -115,7 +115,7 @@ describe("video render IPC boundary", () => {
     expect(mocks.tasks.progress).toHaveBeenCalledWith(
       "task-id",
       45,
-      "spaces.media.videoEditor.renderingVideoEdit",
+      "spaces.media.videoEditor.render.stages.renderingVideoEdit",
     );
     expect(store.applyNodeContentForSpace).toHaveBeenCalledWith("space-id", pending.id, source.data);
     expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);

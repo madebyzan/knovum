@@ -28,7 +28,7 @@ const notifiedVersions = new Set<string>();
 onMounted(() => {
   void updates.initialize().catch((error) => {
     void logError(`Updater initialization failed: ${formatErrorDiagnostic(error)}`);
-    toast.error(t("settings.updates.action.failed"));
+    toast.error(t("updates.action.failed"));
   });
 });
 
@@ -39,8 +39,8 @@ function reviewUpdate() {
 function announceUpdate(state: UpdateState) {
   if (state.status !== "available" || notifiedVersions.has(state.release.version)) return;
   notifiedVersions.add(state.release.version);
-  toast.info(t("settings.updates.available.title", { version: state.release.version }), {
-    action: { label: t("settings.updates.available.review"), onClick: reviewUpdate },
+  toast.info(t("updates.available.title", { version: state.release.version }), {
+    action: { label: t("updates.available.review"), onClick: reviewUpdate },
   });
 }
 
@@ -48,7 +48,7 @@ function reflectProgress(state: Extract<UpdateState, { status: "downloading" | "
   if (!tasks.running.some((task) => task.id === UPDATE_TASK_ID)) {
     tasks.dismiss(UPDATE_TASK_ID);
     tasks.restoreRunning(
-      { id: UPDATE_TASK_ID, title: t("settings.updates.title"), startedAt: Date.now() },
+      { id: UPDATE_TASK_ID, title: t("updates.title"), startedAt: Date.now() },
       updates.cancelDownload,
     );
     tasks.setOpen(UPDATE_TASK_ID, reviewUpdate);
@@ -102,8 +102,8 @@ watch(
         @pointer-down-outside.prevent
         @interact-outside.prevent
       >
-        <DialogTitle class="font-semibold">{{ t("settings.updates.install.title") }}</DialogTitle>
-        <DialogDescription>{{ t("settings.updates.install.description") }}</DialogDescription>
+        <DialogTitle class="font-semibold">{{ t("updates.install.title") }}</DialogTitle>
+        <DialogDescription>{{ t("updates.install.description") }}</DialogDescription>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

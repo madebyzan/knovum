@@ -37,9 +37,11 @@
     "previous": "上一个匹配项",
     "next": "下一个匹配项",
     "toggleReplace": "显示替换",
-    "replace": "替换",
-    "replaceAll": "全部替换",
-    "replacePlaceholder": "替换为…"
+    "replace": {
+      "action": "替换",
+      "placeholder": "替换为…"
+    },
+    "replaceAll": "全部替换"
   },
   "paragraph": "正文",
   "heading1": "一级标题",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "插入图片",
-    "tabUpload": "本地文件",
-    "tabUrl": "链接",
-    "url": "图片 URL",
-    "alt": "图片说明",
+    "source": {
+      "localFile": "本地文件",
+      "url": "链接"
+    },
+    "url": {
+      "label": "图片 URL",
+      "invalid": "请输入有效的 http:// 或 https:// 图片地址。"
+    },
+    "alt": {
+      "label": "图片说明",
+      "placeholder": "为使用屏幕阅读器的用户描述图片"
+    },
     "choose": "选择本地图片",
     "uploadFailed": "图片插入失败",
     "dropDocumentHint": "选择文件或拖拽图片至文档编辑器中。",
-    "altPlaceholder": "为使用屏幕阅读器的用户描述图片",
     "dropNow": "松开即可插入图片",
-    "urlInvalid": "请输入有效的 http:// 或 https:// 图片地址。",
     "insertFailed": "插入图片失败"
   },
   "link": {
     "label": "超链接",
     "placeholder": "输入或粘贴 URL 链接",
     "remove": "移除链接",
-    "editorTitle": "编辑链接",
-    "editorDescription": "为选中文本添加网页或邮箱链接。",
+    "editor": {
+      "title": "编辑链接",
+      "description": "为选中文本添加网页或邮箱链接。"
+    },
     "url": "链接地址",
     "invalid": "请输入有效的 HTTP、HTTPS 或 mailto 格式链接。",
     "open": "访问",
@@ -110,6 +120,8 @@
     "addColumn": "右侧插入列",
     "delete": "删除表格"
   },
-  "words": "词数",
-  "characters": "字符数"
+  "statistics": {
+    "words": "{count} 字词",
+    "characters": "{count} 字符"
+  }
 }

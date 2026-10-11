@@ -108,13 +108,13 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
           size="sm"
           :variant="project.transform.flipHorizontal ? 'primary' : 'secondary'"
           @click="flip('flipHorizontal')"
-          >{{ $t("spaces.media.imageEditor.transform.flipHorizontal") }}</UiButton
+          >{{ $t("spaces.media.transform.flipHorizontal") }}</UiButton
         >
         <UiButton
           size="sm"
           :variant="project.transform.flipVertical ? 'primary' : 'secondary'"
           @click="flip('flipVertical')"
-          >{{ $t("spaces.media.imageEditor.transform.flipVertical") }}</UiButton
+          >{{ $t("spaces.media.transform.flipVertical") }}</UiButton
         >
       </div>
     </section>

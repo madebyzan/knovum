@@ -11,6 +11,5 @@
   "play": "試聽選區",
   "sourceChanged": "音訊節點的來源檔案已變化，請更新節點後重新準備參考音訊。",
   "selection": "已選擇 {seconds} 秒 · 拖曳兩端調整",
-  "prepared": "選區已識別",
-  "playbackFailed": "無法播放來源音頻，請檢查媒體檔案是否可讀取。"
+  "prepared": "選區已識別"
 }

@@ -5,11 +5,15 @@
     "title": "Generation presets",
     "description": "Saved model settings for content creation.",
     "empty": "No generation presets have been saved yet.",
-    "deleteConfirm": "Delete this preset?",
+    "delete": {
+      "title": "Delete this preset?"
+    },
     "name": "Preset name",
     "edit": "Edit generation preset",
-    "discardTitle": "Discard preset changes?",
-    "discardDescription": "Unsaved changes to this generation preset will be lost."
+    "discard": {
+      "title": "Discard preset changes?",
+      "description": "Unsaved changes to this generation preset will be lost."
+    }
   },
   "parameters": "Parameters",
   "copyName": "{name} copy",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "Image layer splitting",
     "description": "Connect fal for image layer splitting.",
-    "apiKey": "fal API key",
-    "apiKeyDescription": "Stored only on this device."
+    "apiKey": {
+      "label": "fal API key",
+      "description": "Stored only on this device."
+    }
   }
 }

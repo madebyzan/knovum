@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Aggiungi risorsa",
     "attached": "Risorse allegate, scorri orizzontalmente per vedere di più",
-    "citeCanvasNode": "Contenuto dell'area di riferimento",
-    "citeCanvasNodeHint": "Scegli il contenuto da questa area di lavoro",
-    "canvasNodeShort": "Riferimento Canvas",
-    "uploadLocalFile": "Aggiungi file locale",
-    "uploadLocalFileHint": "Immagini, PDF o documenti",
-    "localFileShort": "File locale",
+    "canvasReference": {
+      "label": "Contenuto dell'area di riferimento",
+      "hint": "Scegli il contenuto da questa area di lavoro",
+      "shortLabel": "Riferimento Canvas"
+    },
+    "localFile": {
+      "label": "Aggiungi file locale",
+      "hint": "Immagini, PDF o documenti",
+      "shortLabel": "File locale"
+    },
     "dropFiles": "Rilascia i file da allegare",
     "limit": "Puoi allegare fino a 32 elementi a un messaggio.",
     "addCurrentSelection": "Aggiungi la selezione corrente ({count})",

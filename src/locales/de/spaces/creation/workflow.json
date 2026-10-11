@@ -12,8 +12,10 @@
     "empty": "Die Auswahl verfügt über keine wiederholbaren Ableitungsaktionen.",
     "sources": "Quellen: {sources}"
   },
-  "name": "Workflow-Name",
-  "namePlaceholder": "Diesen Workflow benennen",
+  "name": {
+    "label": "Workflow-Name",
+    "placeholder": "Diesen Workflow benennen"
+  },
   "saveCaptured": "Als Workflow speichern",
   "saved": "In Ihrer Workflow-Bibliothek gespeichert",
   "useSaved": "Workflow verwenden",
@@ -65,8 +67,10 @@
     "durationSeconds": "Dauer (Sekunden)",
     "platform": "Plattform"
   },
-  "delete": "Workflow löschen",
-  "deleteConfirm": "„{name}“ löschen? Abgeschlossene Läufe und deren Ausgaben bleiben erhalten.",
+  "delete": {
+    "action": "Workflow löschen",
+    "confirmation": "„{name}“ löschen? Abgeschlossene Läufe und deren Ausgaben bleiben erhalten."
+  },
   "states": {
     "queued": "In der Warteschlange",
     "running": "Wird ausgeführt",

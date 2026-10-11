@@ -11,8 +11,10 @@
     "editSegment": "編輯轉錄文本",
     "search": "搜尋轉錄文本",
     "noMatches": "無匹配的轉錄文本",
-    "live": "即時轉錄中",
-    "liveHint": "即時轉錄文字將同步顯示於此。",
+    "live": {
+      "label": "即時轉錄中",
+      "hint": "即時轉錄文字將同步顯示於此。"
+    },
     "alignSelected": "對齊所選片段",
     "alignmentLimit": "最多 8 段 / 5 分鐘",
     "alignmentFirstUse": "首次使用會自動下載所選模型與所需資源；可在設定中下載並選擇其他模型。",

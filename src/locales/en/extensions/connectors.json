@@ -1,17 +1,7 @@
 {
   "process": {
-    "executable": "Installed service executable (absolute path)",
-    "arguments": "Arguments",
-    "workingDirectory": "Working directory (optional)",
-    "authorizationHint": "Enabling this connection allows the application to launch the selected MCP service. Installing a plugin never installs programs or runs package scripts.",
     "declaredCommand": "Program requested by plugin",
-    "configurationRequired": "Choose an installed program before using this connector.",
-    "chooseExecutable": "Choose installed program",
-    "chooseDirectory": "Choose working directory",
-    "argumentsHint": "Each field is one literal argument, including spaces. No shell parsing is performed.",
-    "addArgument": "Add argument",
-    "argumentAt": "Argument {index}",
-    "removeArgument": "Remove argument {index}"
+    "configurationRequired": "Choose an installed program before using this connector."
   },
   "changes": "Changing the endpoint or authorization identity requires reconnecting the account and reviewing tool permissions.",
   "name": "Service name",
@@ -23,5 +13,6 @@
   "delete": {
     "title": "Delete {name}?",
     "description": "This also deletes all connections to the service and its local account credentials."
-  }
+  },
+  "conflict": "This connector changed elsewhere. Your edits are retained. Discard them and reopen the connector before saving."
 }

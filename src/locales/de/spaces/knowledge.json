@@ -59,9 +59,11 @@
     "empty": "Ziehen Sie Knotenanker oder wählen Sie mehrere Elemente aus, um Beziehungen zu erstellen.",
     "inspect": "Verbindungsdetails",
     "kind": "Beziehungstyp",
-    "rationale": "Warum diese miteinander verbunden sind",
-    "addRationale": "Hinzufügen",
-    "rationalePlaceholder": "Beschreiben Sie, wie diese Elemente miteinander verbunden sind ...",
+    "rationale": {
+      "label": "Warum diese miteinander verbunden sind",
+      "add": "Hinzufügen",
+      "placeholder": "Beschreiben Sie, wie diese Elemente miteinander verbunden sind ..."
+    },
     "color": "Farbe der Beziehungslinie",
     "colors": {
       "neutral": "Neutral",
@@ -71,8 +73,10 @@
       "red": "Rot",
       "purple": "Lila"
     },
-    "remove": "Beziehung entfernen",
-    "removeConfirm": "Den Zusammenhang mit „{title}“ entfernen?",
+    "remove": {
+      "action": "Beziehung entfernen",
+      "confirmation": "Den Zusammenhang mit „{title}“ entfernen?"
+    },
     "kinds": {
       "reference": "Referenz",
       "related": "Verwandt",
@@ -88,13 +92,17 @@
   },
   "provenance": "Quelle",
   "portal": {
-    "create": "Neuer Portalknoten",
-    "createDescription": "Erstellen Sie einen Portalknoten für die schnelle Navigation zu einem anderen Arbeitsbereich."
+    "create": {
+      "action": "Neuer Portalknoten",
+      "description": "Erstellen Sie einen Portalknoten für die schnelle Navigation zu einem anderen Arbeitsbereich."
+    }
   },
   "objects": {
     "custom": "Benutzerdefiniertes Wissensobjekt",
-    "create": "Neues benutzerdefiniertes Objekt",
-    "createDescription": "Erstellen Sie einen Wissensobjektknoten mithilfe eines ausgewählten Schemas."
+    "create": {
+      "action": "Neues benutzerdefiniertes Objekt",
+      "description": "Erstellen Sie einen Wissensobjektknoten mithilfe eines ausgewählten Schemas."
+    }
   },
   "fields": {
     "add": "Feld hinzufügen",
@@ -133,12 +141,16 @@
     "description": "Beschreibung",
     "icon": "Symbol",
     "name": "Typname",
-    "manage": "Wissenstypen verwalten",
-    "manageDescription": "Definieren Sie die Eigenschaften von strukturiertem Wissen in diesem Arbeitsbereich.",
-    "delete": "Typ löschen…",
+    "manage": {
+      "action": "Wissenstypen verwalten",
+      "description": "Definieren Sie die Eigenschaften von strukturiertem Wissen in diesem Arbeitsbereich."
+    },
+    "delete": {
+      "action": "Typ löschen…",
+      "description": "„{name}“ löschen? Von Wissensobjekten verwendete Typen können nicht gelöscht werden."
+    },
     "discardChanges": "Nicht gespeicherte Änderungen an diesem Typ verwerfen?",
     "emptyFields": "Fügen Sie die Eigenschaften hinzu, die diese Art von Wissen benötigt.",
-    "deleteConfirmation": "„{name}“ löschen? Von Wissensobjekten verwendete Typen können nicht gelöscht werden.",
     "create": "Neuer Typ",
     "none": "Keine benutzerdefinierten Schematypen.",
     "loadFailed": "Schematypen konnten nicht geladen werden"

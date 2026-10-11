@@ -7,7 +7,8 @@
     "subdirectory": "包所在子目录",
     "install": "从来源安装",
     "description": "选择本地包或远程 URL，确认内容后再安装。",
-    "revision": "来源版本"
+    "revision": "来源版本",
+    "choose": "选择来源"
   },
   "installation": {
     "preview": "预览",
@@ -70,12 +71,6 @@
     "committing": "提交更改"
   },
   "title": "已安装插件",
-  "search": {
-    "empty": "没有匹配的结果",
-    "hint": "尝试其他关键词，或清空搜索。"
-  },
-  "disable": "停用 {name}",
-  "enable": "启用 {name}",
   "actions": "插件操作",
   "capabilities": "包含的能力"
 }

@@ -1,0 +1,18 @@
+{
+  "provider": "Model provider",
+  "baseUrl": "API base URL",
+  "title": "Provider connections",
+  "description": "Manage connections and available models by provider.",
+  "empty": "No providers yet.",
+  "name": "Connection name",
+  "add": "Add provider",
+  "edit": "Edit provider",
+  "invalidBaseUrl": "Enter a valid HTTP or HTTPS URL",
+  "delete": {
+    "title": "Delete {name} and its models and credentials?",
+    "action": "Delete connection"
+  },
+  "credentials": {
+    "saveFailed": "Connection saved, but the key could not be saved. Try again"
+  }
+}

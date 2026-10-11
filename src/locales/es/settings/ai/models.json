@@ -1,0 +1,30 @@
+{
+  "empty": "Aún no se han agregado modelos.",
+  "edit": "Editar modelo",
+  "delete": {
+    "title": "¿Eliminar modelo {name}?"
+  },
+  "duplicateIdentifier": "Este identificador de modelo ya está agregado a esta conexión.",
+  "capabilities": {
+    "label": "Capacidades soportadas",
+    "required": "Seleccione al menos una capacidad",
+    "text": "Generación de texto",
+    "vision": "Comprensión visual",
+    "image": "Generación de imágenes",
+    "video": "Generación de vídeo"
+  },
+  "inUse": "Este modelo está en uso. Cambie los valores predeterminados de las tareas o los ajustes preestablecidos de creación antes de eliminar las capacidades seleccionadas o el modelo.",
+  "title": "Modelos",
+  "count": "modelo {count} | Modelos {count}",
+  "add": "Agregar modelo",
+  "displayName": "Nombre para mostrar del modelo",
+  "identifier": "Identificador de modelo de proveedor",
+  "builtinAgent": {
+    "enabled": "Uso para el Agente integrado",
+    "help": "Solo se pueden habilitar modelos con llamada de herramientas. Utilice el contexto documentado y los límites de salida del proveedor.",
+    "protocol": "Protocolo API modelo",
+    "contextWindow": "Ventana de contexto (tokens)",
+    "maxOutputTokens": "Límite de salida por solicitud (tokens)",
+    "invalidLimits": "El contexto debe tener al menos 8192 tokens; El resultado debe ser positivo y menor que el contexto."
+  }
+}

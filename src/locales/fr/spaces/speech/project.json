@@ -1,13 +1,18 @@
 {
   "new": "Démarrer un autre",
   "language": "Langue",
-  "scriptPlaceholder": "Entrez le script pour cette révision",
-  "unsavedTitle": "Enregistrer les modifications apportées au projet vocal ?",
-  "unsavedDescription": "Enregistrez cette révision avant de quitter ou annulez les modifications non enregistrées.",
-  "incompleteTitle": "Annuler les modifications inachevées ?",
-  "incompleteDescription": "Revenez pour terminer l'édition ou annulez ces modifications.",
-  "preview": "Aperçu",
-  "stopListening": "Arrêtez d'écouter",
+  "script": {
+    "placeholder": "Entrez le script pour cette révision",
+    "label": "Scénario"
+  },
+  "unsaved": {
+    "title": "Enregistrer les modifications apportées au projet vocal ?",
+    "description": "Enregistrez cette révision avant de quitter ou annulez les modifications non enregistrées."
+  },
+  "incomplete": {
+    "title": "Annuler les modifications inachevées ?",
+    "description": "Revenez pour terminer l'édition ou annulez ces modifications."
+  },
   "saving": "Sauvegarde",
   "starting": "Préparation de la génération",
   "generatedAudio": "Audio généré",
@@ -17,13 +22,17 @@
   "loudness": "Sonie (LUFS)",
   "truePeak": "Crête réelle (dB)",
   "role": "Rôle du haut-parleur",
-  "roleBindings": "Voix de rôle",
-  "roleBindingsHint": "Choisissez une voix pour chaque rôle.",
+  "roleBindings": {
+    "label": "Voix de rôle",
+    "hint": "Choisissez une voix pour chaque rôle."
+  },
   "addRole": "Ajouter un rôle",
   "removeRole": "Supprimer le rôle",
   "defaultRole": "Narrateur",
-  "deliveryInstruction": "Instructions de livraison",
-  "deliveryInstructionPlaceholder": "Facultatif : décrivez le rythme, le ton et la diffusion de ce segment (jusqu'à 500 caractères)",
+  "deliveryInstruction": {
+    "label": "Instructions de livraison",
+    "placeholder": "Facultatif : décrivez le rythme, le ton et la diffusion de ce segment (jusqu'à 500 caractères)"
+  },
   "stages": {
     "preparing": "Préparation des ressources",
     "synthesizing": "Aperçu de la synthèse",
@@ -34,15 +43,11 @@
     "audiobook": "Livre audio",
     "videoDubbing": "Doublage vidéo"
   },
-  "previewText": "Entrez jusqu'à 500 caractères pour entendre cette voix",
   "generateFromNode": "Générer la parole",
   "nodeProjects": "Doublage enregistré",
-  "script": "Scénario",
   "settings": "Paramètres",
   "editorPages": "Sections de l'éditeur vocal",
   "importManuscript": "Importer le manuscrit du nœud",
-  "noVoices": "Aucune voix parmi laquelle choisir. Ajoutez une voix pour commencer.",
-  "selectVoice": "Sélectionner une voix",
   "sourceNotReady": "La vidéo n'est pas encore prête pour le doublage.",
   "emptyManuscript": "Importez le manuscrit ou ajoutez un chapitre pour commencer.",
   "emptyVideoScript": "Importez des sous-titres ou ajoutez une ligne de doublage.",

@@ -105,12 +105,12 @@ function replaceAllMatches() {
           ref="replaceInput"
           v-model="replaceTerm"
           class="min-w-0 flex-1 bg-transparent px-1 text-label text-fg-primary outline-none placeholder:text-fg-tertiary"
-          :placeholder="t('spaces.richtext.find.replacePlaceholder')"
+          :placeholder="t('spaces.richtext.find.replace.placeholder')"
           @keydown.enter.prevent="replaceMatch"
           @keydown.esc.prevent="open = false"
         />
         <UiIconButton
-          :label="t('spaces.richtext.find.replace')"
+          :label="t('spaces.richtext.find.replace.action')"
           tooltip
           size="sm"
           :disabled="!query"

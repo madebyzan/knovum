@@ -1,8 +1,10 @@
 {
   "browse": "浏览插件",
   "description": "应用随插件提供，在这里连接账号和配置访问权限。",
-  "empty": "尚未添加应用",
-  "emptyHint": "从插件目录安装需要的应用工作流。",
+  "empty": {
+    "title": "尚未添加应用",
+    "description": "从插件目录安装需要的应用工作流。"
+  },
   "manage": "管理连接",
   "accounts": "账号",
   "access": "访问权限",

@@ -118,7 +118,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       if (
         !(await confirmAction({
           title: t("common.delete"),
-          description: t("spaces.knowledge.types.deleteConfirmation", { name: name.value }),
+          description: t("spaces.knowledge.types.delete.description", { name: name.value }),
           confirmLabel: t("common.delete"),
           danger: true,
         }))

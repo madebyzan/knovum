@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "AI execution",
-  "defaultsDescription": "Set each capability individually, or let it use the default execution method.",
+  "defaults": {
+    "title": "AI execution",
+    "description": "Set each capability individually, or let it use the default execution method."
+  },
   "unassigned": "Use default execution method",
   "noCompatibleModel": "Configure a model for this task",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "No execution method selected",
-  "capabilitiesTitle": "By capability"
+  "capabilities": {
+    "title": "By capability"
+  }
 }

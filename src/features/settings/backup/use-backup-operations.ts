@@ -30,8 +30,8 @@ export function useBackupOperations() {
 
   function confirm(operation: "backup" | "restore") {
     return confirmAction({
-      title: t(`settings.data.${operation}.confirmTitle`),
-      description: t(`settings.data.${operation}.confirmDescription`),
+      title: t(`settings.data.${operation}.confirm.title`),
+      description: t(`settings.data.${operation}.confirm.description`),
       confirmLabel: t(`settings.data.${operation}.action`),
       danger: operation === "restore",
     });

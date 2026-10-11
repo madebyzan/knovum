@@ -7,5 +7,8 @@
     "title": "No se pudo mostrar este contenido",
     "description": "Puede volver a abrir esta área o navegar a otro lugar.",
     "reopen": "Reabrir contenido"
+  },
+  "windowClose": {
+    "saveFailed": "No se pudieron guardar los cambios; la aplicación permaneció abierta"
   }
 }

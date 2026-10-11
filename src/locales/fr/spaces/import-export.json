@@ -1,6 +1,8 @@
 {
-  "import": "Importer",
-  "importFailed": "L'importation a échoué. Vérifiez le format du fichier et réessayez.",
+  "import": {
+    "action": "Importer",
+    "failed": "L'importation a échoué. Vérifiez le format du fichier et réessayez."
+  },
   "website": {
     "add": "Ajouter un site Web",
     "description": "Enregistrez le Web URL et extrayez le titre et le résumé.",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "Aperçu",
     "show": "Vue d'aperçu",
-    "instantUnavailable": "Pas d'aperçu instantané",
-    "instantUnavailableHint": "L'aperçu instantané n'est pas disponible ; le texte extrait reste consultable."
+    "instantUnavailable": {
+      "title": "Pas d'aperçu instantané",
+      "description": "L'aperçu instantané n'est pas disponible ; le texte extrait reste consultable."
+    }
   },
   "markdown": {
     "export": "Exporter la démarque"
   },
-  "exportCompleted": "Exportation terminée",
+  "export": {
+    "completed": "Exportation terminée"
+  },
   "fileName": "Nom du fichier",
   "openExternally": "Ouvrir dans une application externe",
   "space": {

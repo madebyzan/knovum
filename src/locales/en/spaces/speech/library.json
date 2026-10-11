@@ -1,11 +1,19 @@
 {
+  "selection": {
+    "empty": "No voices to choose from. Add a voice to get started.",
+    "placeholder": "Select a voice"
+  },
   "title": "Voice management",
-  "collectionTitle": "Voice library",
+  "collection": {
+    "title": "Voice library"
+  },
   "empty": "No voices yet.",
   "manage": "Manage voices and reference audio",
   "description": "Manage voices, reference audio, and sample revisions shared across the application. Every Space can use voices saved here.",
-  "discardTitle": "Discard voice changes",
-  "discardDescription": "Unsaved voice settings will be lost.",
+  "discard": {
+    "title": "Discard voice changes",
+    "description": "Unsaved voice settings will be lost."
+  },
   "presets": "Preset voices",
-  "addTitle": "Add voice"
+  "add": "Add voice"
 }

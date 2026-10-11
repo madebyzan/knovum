@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "Anforderungsheader",
+    "environment": "Umgebungsvariablen",
+    "secretsHint": "Nur öffentliche Konfiguration. Legen Sie nach dem Speichern Token und andere Anmeldeinformationen in der Autorisierung fest.",
+    "invalidName": "Geben Sie einen Feldnamen ohne führende oder nachgestellte Leerzeichen ein.",
+    "duplicateName": "Feldnamen müssen eindeutig sein. Bei HTTP-Headernamen wird die Groß-/Kleinschreibung nicht beachtet.",
+    "fieldName": "Name",
+    "fieldValue": "Wert",
+    "fieldNameAt": "Name des Feldes {index}",
+    "fieldValueAt": "Wert des Feldes {index}",
+    "removeField": "Entfernen Sie das Feld {index}",
+    "addHeader": "Header hinzufügen",
+    "addVariable": "Variable hinzufügen",
+    "serverUrl": "Server-URL",
+    "authorizationHint": "Wählen Sie die vom Server benötigte Autorisierungsmethode. Anmeldeinformationen werden nach dem Speichern separat konfiguriert.",
+    "advanced": "Umgebungsvariablen und Header"
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Erlauben Sie den Zugriff auf den konfigurierten lokalen Host oder die LAN-Adresse",
+  "process": {
+    "executable": {
+      "label": "Ausführbare Datei des installierten Dienstes (absoluter Pfad)",
+      "choose": "Installiertes Programm auswählen"
+    },
+    "arguments": {
+      "label": "Argumente",
+      "hint": "Jedes Feld ist ein Literalargument, einschließlich Leerzeichen. Es wird kein Shell-Parsing durchgeführt.",
+      "add": "Argument hinzufügen",
+      "at": "Argument {index}",
+      "remove": "Entfernen Sie das Argument {index}"
+    },
+    "directory": {
+      "label": "Arbeitsverzeichnis (optional)",
+      "choose": "Arbeitsverzeichnis auswählen"
+    },
+    "authorizationHint": "Durch die Aktivierung dieser Verbindung kann die Anwendung den ausgewählten MCP-Dienst starten. Durch die Installation eines Plugins werden niemals Programme installiert oder Paketskripte ausgeführt."
+  }
+}

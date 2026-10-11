@@ -11,13 +11,6 @@
     "referenceSize": "Taille de référence ; les pixels exportés dépendent de l'image source",
     "lockAspect": "Verrouiller le rapport hauteur/largeur du recadrage"
   },
-  "transform": {
-    "rotateClockwise": "Rotation dans le sens des aiguilles d'une montre",
-    "flipHorizontal": "Retourner horizontalement",
-    "flipVertical": "Retourner verticalement",
-    "title": "Retourner et faire pivoter",
-    "rotationDegrees": "Angle de rotation"
-  },
   "removeObject": {
     "tool": "Gomme",
     "mode": "Entrée de suppression",
@@ -27,8 +20,10 @@
     },
     "undo": "Annuler le trait de sélection",
     "brushSize": "Pinceau de sélection",
-    "promptLabel": "Décrire ce qu'il faut supprimer",
-    "promptPlaceholder": "Décrivez ce qu'il faut supprimer…",
+    "prompt": {
+      "label": "Décrire ce qu'il faut supprimer",
+      "placeholder": "Décrivez ce qu'il faut supprimer…"
+    },
     "generate": "Supprimer et générer",
     "submitting": "Création de la tâche d'image dérivée…",
     "sizeLimit": "Utilisez une source de 16 mégapixels et 16 384 pixels par côté.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Split layer",
-    "panel": "Split layer",
     "selectContent": "Sélectionner la région",
     "selectContentUnavailable": "Le modèle de calque actuel ne peut pas diviser une région sélectionnée",
     "auto": "Partage automatique",
     "custom": "Partage personnalisé",
-    "prompt": "Focus de séparation",
-    "promptPlaceholder": "Décrire ce qu'il faut diviser en couches",
+    "prompt": {
+      "label": "Focus de séparation",
+      "placeholder": "Décrire ce qu'il faut diviser en couches"
+    },
     "split": "Diviser",
     "task": "Diviser les calques d'images",
     "failed": "Échec du fractionnement des couches",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "La division des couches nécessite une clé fal API",
     "promptRequired": "Décrivez ce qui doit être séparé en premier"
-  },
-  "comments": {
-    "title": "Commentaire",
-    "prompt": "Ajouter une description",
-    "save": "Enregistrer le commentaire",
-    "addToConversation": "Ajouter à la conversation",
-    "conversationContext": "Annotation d'image ({kind} ; origine en haut à gauche ; les coordonnées sont des pourcentages de la largeur et de la hauteur de l'image) : {coordinates}\nAnnotation : {text}",
-    "delete": "Supprimer le commentaire",
-    "hint": "Cliquez sur un emplacement d'image pour commenter",
-    "mode": "Mode d'annotation des commentaires",
-    "point": "Point de commentaire",
-    "draw": "Dessiner un commentaire",
-    "region": "Commentaire de région"
   },
   "applyNow": "Utiliser maintenant",
   "unsaved": {

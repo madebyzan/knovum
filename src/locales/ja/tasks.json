@@ -23,8 +23,10 @@
   "cancelling": "キャンセル中...",
   "forceDismiss": "リストから削除",
   "failed": "このタスクは完了できませんでした。",
-  "verifyingResource": "整合性を検証中…",
-  "preparingLocalInference": "ローカルの AI コンポーネントを準備しています…",
-  "localResourceDownloadSize": "初回使用には {size} のローカル リソースのダウンロードが必要です",
-  "installingResource": "ローカル リソースをインストールしています…"
+  "resources": {
+    "verifying": "整合性を検証中…",
+    "preparingInference": "ローカルの AI コンポーネントを準備しています…",
+    "downloadSize": "初回使用には {size} のローカル リソースのダウンロードが必要です",
+    "installing": "ローカル リソースをインストールしています…"
+  }
 }

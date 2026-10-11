@@ -51,12 +51,12 @@ function submit() {
     @submit.prevent="submit"
   >
     <label class="block text-caption text-fg-secondary" for="capture-workflow-name">{{
-      t("spaces.creation.workflow.name")
+      t("spaces.creation.workflow.name.label")
     }}</label>
     <UiInput
       id="capture-workflow-name"
       v-model="save.name.value"
-      :placeholder="t('spaces.creation.workflow.namePlaceholder')"
+      :placeholder="t('spaces.creation.workflow.name.placeholder')"
     />
     <div v-for="(output, index) in candidate.outputSlots" :key="output.id" class="space-y-1">
       <label class="block text-caption text-fg-secondary" :for="`capture-output-${output.id}`">

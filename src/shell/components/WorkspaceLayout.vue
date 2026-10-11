@@ -153,7 +153,7 @@ function onDrag(active: boolean, commit: () => void) {
         v-if="sidebarPreview"
         type="button"
         class="absolute inset-0 z-30 bg-surface-scrim"
-        :aria-label="t('shell.toggleSidebar')"
+        :aria-label="t('shell.layout.toggleSidebar')"
         @click="emit('close-sidebar-preview')"
       />
     </Transition>

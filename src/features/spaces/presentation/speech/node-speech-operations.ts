@@ -20,6 +20,6 @@ export const NODE_SPEECH_OPERATIONS = {
     icon: Clapperboard,
     label: "spaces.speech.project.types.videoDubbing",
   },
-  clone: { surface: "compact-editor", icon: Mic2, label: "spaces.speech.voice.clone" },
+  clone: { surface: "compact-editor", icon: Mic2, label: "spaces.speech.voice.clone.fromReference" },
   separate: { surface: "compact-editor", icon: Music2, label: "spaces.speech.separation.title" },
 } as const;

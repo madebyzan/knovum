@@ -1,4 +1,12 @@
 {
+  "candidate": {
+    "generate": "生成試聽",
+    "auditionRequired": "請完整試聽一次候選音色，再儲存該音色。",
+    "save": "儲存音色",
+    "discard": "丟棄試聽",
+    "sample": "歡迎試聽。今天是二〇二六年十月三日，項目編號是一百零八。請留意發音是否清晰、節奏是否平穩、句末停頓是否自然。",
+    "auditions": "試聽結果"
+  },
   "name": "音色名稱",
   "add": "添加",
   "usage": "被引用 {count} 次",
@@ -11,19 +19,15 @@
     "description": "刪除已歸檔音色及其全部版本。被項目引用的音色無法刪除。"
   },
   "label": "音色",
-  "clone": "參考音頻克隆",
-  "design": "設計音色",
-  "mode": "音色來源",
-  "designDescription": "描述聲音特徵、表達方式、年齡感和語氣",
-  "candidate": {
-    "text": "試聽文本",
-    "generate": "生成試聽",
-    "auditionRequired": "請完整試聽一次候選音色，再儲存該音色。",
-    "save": "儲存音色",
-    "discard": "丟棄試聽",
-    "sample": "歡迎試聽。今天是二〇二六年十月三日，項目編號是一百零八。請留意發音是否清晰、節奏是否平穩、句末停頓是否自然。",
-    "auditions": "試聽結果"
+  "clone": {
+    "fromReference": "參考音頻克隆",
+    "action": "複製音色"
   },
+  "design": {
+    "action": "設計音色",
+    "placeholder": "描述聲音特徵、表達方式、年齡感和語氣"
+  },
+  "mode": "音色來源",
   "gender": {
     "female": "女聲",
     "male": "男聲"
@@ -33,6 +37,5 @@
     "reference": "參考音色",
     "designed": "設計音色"
   },
-  "options": "聲音設定",
-  "cloneShort": "複製音色"
+  "options": "聲音設定"
 }

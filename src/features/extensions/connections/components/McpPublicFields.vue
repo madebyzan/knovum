@@ -14,7 +14,7 @@ const headingId = useId();
   <section class="space-y-2" :aria-labelledby="headingId" data-testid="mcp-public-fields">
     <header class="flex items-center justify-between gap-2">
       <h3 :id="headingId" class="text-label font-medium">
-        {{ $t(`extensions.connections.configuration.${transport === "stdio" ? "environment" : "headers"}`) }}
+        {{ $t(`extensions.endpoint.configuration.${transport === "stdio" ? "environment" : "headers"}`) }}
       </h3>
       <UiButton
         size="sm"
@@ -24,7 +24,7 @@ const headingId = useId();
         @click="fields.push({ name: '', value: '' })"
       >
         <Plus class="size-3.5" />{{
-          $t(`extensions.connections.configuration.${transport === "stdio" ? "addVariable" : "addHeader"}`)
+          $t(`extensions.endpoint.configuration.${transport === "stdio" ? "addVariable" : "addHeader"}`)
         }}
       </UiButton>
     </header>
@@ -33,26 +33,26 @@ const headingId = useId();
         v-model="field.name"
         :disabled="disabled"
         class="min-w-0 flex-1 font-mono text-caption"
-        :placeholder="$t('extensions.connections.configuration.fieldName')"
-        :aria-label="$t('extensions.connections.configuration.fieldNameAt', { index: index + 1 })"
+        :placeholder="$t('extensions.endpoint.configuration.fieldName')"
+        :aria-label="$t('extensions.endpoint.configuration.fieldNameAt', { index: index + 1 })"
         :data-testid="`endpoint-field-name-${index}`"
       />
       <UiInput
         v-model="field.value"
         :disabled="disabled"
         class="min-w-0 flex-1 font-mono text-caption"
-        :placeholder="$t('extensions.connections.configuration.fieldValue')"
-        :aria-label="$t('extensions.connections.configuration.fieldValueAt', { index: index + 1 })"
+        :placeholder="$t('extensions.endpoint.configuration.fieldValue')"
+        :aria-label="$t('extensions.endpoint.configuration.fieldValueAt', { index: index + 1 })"
         :data-testid="`endpoint-field-value-${index}`"
       />
       <UiIconButton
         size="sm"
         :disabled="disabled"
-        :label="$t('extensions.connections.configuration.removeField', { index: index + 1 })"
+        :label="$t('extensions.endpoint.configuration.removeField', { index: index + 1 })"
         @click="fields.splice(index, 1)"
         ><Trash2 class="size-3.5"
       /></UiIconButton>
     </div>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.configuration.secretsHint") }}</p>
+    <p class="text-caption text-fg-secondary">{{ $t("extensions.endpoint.configuration.secretsHint") }}</p>
   </section>
 </template>

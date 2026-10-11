@@ -48,11 +48,11 @@ function applyPreset(preset: GenerationPreset) {
         ><UiInput v-model="form.title"
       /></label>
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.creation.document.purpose") }}</span
+        ><span class="text-label font-medium">{{ t("spaces.creation.document.purpose.label") }}</span
         ><UiTextarea
           v-model="form.purpose"
           :rows="5"
-          :placeholder="t('spaces.creation.document.purposePlaceholder')"
+          :placeholder="t('spaces.creation.document.purpose.placeholder')"
       /></label>
       <div>
         <p class="text-caption-sm text-fg-tertiary">

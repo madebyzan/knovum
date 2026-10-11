@@ -37,14 +37,16 @@ async function addRole() {
   <section ref="roleBindingsRef" class="space-y-3">
     <div class="flex items-center justify-between gap-2">
       <div class="min-w-0 flex-1">
-        <p class="text-caption font-medium text-fg-primary">{{ t("spaces.speech.project.roleBindings") }}</p>
+        <p class="text-caption font-medium text-fg-primary">
+          {{ t("spaces.speech.project.roleBindings.label") }}
+        </p>
       </div>
       <UiButton size="sm" variant="ghost" :disabled="disabled" @click="addRole">
         <Plus class="size-3.5" />{{ t("spaces.speech.project.addRole") }}
       </UiButton>
     </div>
     <p class="text-caption-sm leading-relaxed text-fg-tertiary">
-      {{ t("spaces.speech.project.roleBindingsHint") }}
+      {{ t("spaces.speech.project.roleBindings.hint") }}
     </p>
     <div v-for="role in roles" :key="role.id" class="flex items-center gap-1">
       <UiInput
@@ -61,7 +63,7 @@ async function addRole() {
         class="min-w-0 flex-1"
         size="sm"
         :label="t('spaces.speech.voice.label')"
-        :placeholder="t('spaces.speech.project.selectVoice')"
+        :placeholder="t('spaces.speech.library.selection.placeholder')"
         :options="voiceOptions"
         :disabled="disabled"
         @update:model-value="emit('voice', role, $event)"

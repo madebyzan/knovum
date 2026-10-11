@@ -12,8 +12,10 @@
     "empty": "La sélection ne comporte aucune action de dérivation rejouable.",
     "sources": "Sources : {sources}"
   },
-  "name": "Nom du workflow",
-  "namePlaceholder": "Nommez ce flux de travail",
+  "name": {
+    "label": "Nom du workflow",
+    "placeholder": "Nommez ce flux de travail"
+  },
   "saveCaptured": "Enregistrer comme workflow",
   "saved": "Enregistré dans votre bibliothèque de flux de travail",
   "useSaved": "Utiliser le workflow",
@@ -65,8 +67,10 @@
     "durationSeconds": "Durée (secondes)",
     "platform": "Plateforme"
   },
-  "delete": "Supprimer le workflow",
-  "deleteConfirm": "Supprimer « {name} » ? Les exécutions terminées et leurs résultats resteront.",
+  "delete": {
+    "action": "Supprimer le workflow",
+    "confirmation": "Supprimer « {name} » ? Les exécutions terminées et leurs résultats resteront."
+  },
   "states": {
     "queued": "En file d'attente",
     "running": "En cours d'exécution",

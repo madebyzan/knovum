@@ -1,8 +1,10 @@
 {
   "browse": "Parcourir les plugins",
   "description": "Les applications sont livrées avec des plugins. Connectez les comptes et configurez l'accès ici.",
-  "empty": "Aucune application ajoutée",
-  "emptyHint": "Installez un workflow d'application à partir du catalogue de plugins.",
+  "empty": {
+    "title": "Aucune application ajoutée",
+    "description": "Installez un workflow d'application à partir du catalogue de plugins."
+  },
   "manage": "Gérer la connexion",
   "accounts": "Comptes",
   "access": "Accès",

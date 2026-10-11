@@ -22,7 +22,7 @@ const emit = defineEmits<{ back: []; close: [] }>();
       :stroke-width="1.6"
     />
     <h2 class="min-w-0 flex-1 text-caption font-medium" :title="node.data.title">
-      {{ $t(isAddingVoice ? "spaces.speech.library.addTitle" : NODE_SPEECH_OPERATIONS[projectType].label) }}
+      {{ $t(isAddingVoice ? "spaces.speech.library.add" : NODE_SPEECH_OPERATIONS[projectType].label) }}
     </h2>
     <UiIconButton :label="$t('common.close')" size="sm" tooltip @click="emit('close')"
       ><X class="size-3.5"

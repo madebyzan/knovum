@@ -144,7 +144,7 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
           :model-value="targetValue"
           :label="t('spaces.speech.translation.model')"
           :options="targets"
-          :placeholder="t('ai.noCompatibleTarget')"
+          :placeholder="t('ai.target.none')"
           :disabled="disabled || translating || !ready || targets.length === 0"
           @update:model-value="target = targets.find(({ value }) => value === $event)?.target"
         />

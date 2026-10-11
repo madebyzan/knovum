@@ -11,13 +11,6 @@
     "referenceSize": "Reference size; exported pixels depend on the source image",
     "lockAspect": "Lock crop aspect ratio"
   },
-  "transform": {
-    "rotateClockwise": "Rotate clockwise",
-    "flipHorizontal": "Flip horizontal",
-    "flipVertical": "Flip vertical",
-    "title": "Flip and rotate",
-    "rotationDegrees": "Rotation angle"
-  },
   "removeObject": {
     "tool": "Eraser",
     "mode": "Removal input",
@@ -27,8 +20,10 @@
     },
     "undo": "Undo selection stroke",
     "brushSize": "Selection brush",
-    "promptLabel": "Describe what to remove",
-    "promptPlaceholder": "Describe what to remove…",
+    "prompt": {
+      "label": "Describe what to remove",
+      "placeholder": "Describe what to remove…"
+    },
     "generate": "Remove and generate",
     "submitting": "Creating the derived image task…",
     "sizeLimit": "Use a source within 16 megapixels and 16,384 pixels per side.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Split layers",
-    "panel": "Split layers",
     "selectContent": "Select region",
     "selectContentUnavailable": "The current layer model cannot split a selected region",
     "auto": "Automatic split",
     "custom": "Custom split",
-    "prompt": "Separation focus",
-    "promptPlaceholder": "Describe what to split into layers",
+    "prompt": {
+      "label": "Separation focus",
+      "placeholder": "Describe what to split into layers"
+    },
     "split": "Split",
     "task": "Splitting image layers",
     "failed": "Layer splitting failed",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "Layer splitting requires a fal API key",
     "promptRequired": "Describe what should be separated first"
-  },
-  "comments": {
-    "title": "Comment",
-    "prompt": "Add a description",
-    "save": "Save comment",
-    "addToConversation": "Add to conversation",
-    "conversationContext": "Image annotation ({kind}; origin at top left; coordinates are percentages of image width and height): {coordinates}\nAnnotation: {text}",
-    "delete": "Delete comment",
-    "hint": "Click an image location to comment",
-    "mode": "Comment annotation mode",
-    "point": "Point comment",
-    "draw": "Draw a comment",
-    "region": "Region comment"
   },
   "applyNow": "Use now",
   "unsaved": {

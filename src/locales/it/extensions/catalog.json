@@ -7,6 +7,5 @@
   "templates": "Modelli di risorse",
   "prompts": "Prompt",
   "parameters": "Parametri (JSON)",
-  "read": "Leggi il contenuto selezionato",
-  "source": "Scegli fonte"
+  "read": "Leggi il contenuto selezionato"
 }

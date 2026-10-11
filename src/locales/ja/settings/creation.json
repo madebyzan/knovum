@@ -5,11 +5,15 @@
     "title": "生成プリセット",
     "description": "コンテンツ作成用に保存されたモデル設定。",
     "empty": "生成プリセットはまだ保存されていません。",
-    "deleteConfirm": "このプリセットを削除しますか?",
+    "delete": {
+      "title": "このプリセットを削除しますか?"
+    },
     "name": "プリセット名",
     "edit": "生成プリセットの編集",
-    "discardTitle": "プリセットの変更を破棄しますか?",
-    "discardDescription": "この世代のプリセットに対する保存されていない変更は失われます。"
+    "discard": {
+      "title": "プリセットの変更を破棄しますか?",
+      "description": "この世代のプリセットに対する保存されていない変更は失われます。"
+    }
   },
   "parameters": "パラメータ",
   "copyName": "{name}コピー",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "画像レイヤー分割",
     "description": "画像レイヤーを分割するには fal を接続します。",
-    "apiKey": "fal API キー",
-    "apiKeyDescription": "このデバイスにのみ保存されます。"
+    "apiKey": {
+      "label": "fal API キー",
+      "description": "このデバイスにのみ保存されます。"
+    }
   }
 }

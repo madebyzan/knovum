@@ -11,13 +11,6 @@
     "referenceSize": "Tamaño de referencia; Los píxeles exportados dependen de la imagen de origen.",
     "lockAspect": "Bloquear relación de aspecto de recorte"
   },
-  "transform": {
-    "rotateClockwise": "Girar en el sentido de las agujas del reloj",
-    "flipHorizontal": "Voltear horizontalmente",
-    "flipVertical": "Voltear verticalmente",
-    "title": "Voltear y rotar",
-    "rotationDegrees": "Ángulo de rotación"
-  },
   "removeObject": {
     "tool": "Borrador",
     "mode": "Entrada de eliminación",
@@ -27,8 +20,10 @@
     },
     "undo": "Deshacer trazo de selección",
     "brushSize": "Pincel de selección",
-    "promptLabel": "Describe qué eliminar",
-    "promptPlaceholder": "Describe qué eliminar...",
+    "prompt": {
+      "label": "Describe qué eliminar",
+      "placeholder": "Describe qué eliminar..."
+    },
     "generate": "Eliminar y generar",
     "submitting": "Creando la tarea de imagen derivada...",
     "sizeLimit": "Utilice una fuente de 16 megapíxeles y 16.384 píxeles por lado.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Dividir capas",
-    "panel": "Dividir capas",
     "selectContent": "Seleccionar región",
     "selectContentUnavailable": "El modelo de capa actual no puede dividir una región seleccionada",
     "auto": "División automática",
     "custom": "División personalizada",
-    "prompt": "Enfoque de separación",
-    "promptPlaceholder": "Describir qué dividir en capas",
+    "prompt": {
+      "label": "Enfoque de separación",
+      "placeholder": "Describir qué dividir en capas"
+    },
     "split": "Dividir",
     "task": "División de capas de imágenes",
     "failed": "Falló la división de capas",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "La división de capas requiere una clave fal API",
     "promptRequired": "Describe qué se debe separar primero."
-  },
-  "comments": {
-    "title": "Comentario",
-    "prompt": "Agregar una descripción",
-    "save": "Guardar comentario",
-    "addToConversation": "Agregar a la conversación",
-    "conversationContext": "Anotación de imagen ({kind}; origen en la parte superior izquierda; las coordenadas son porcentajes del ancho y alto de la imagen): {coordinates}\nAnotación: {text}",
-    "delete": "Eliminar comentario",
-    "hint": "Haga clic en la ubicación de una imagen para comentar",
-    "mode": "Modo de anotación de comentarios",
-    "point": "Comentario puntual",
-    "draw": "Dibujar un comentario",
-    "region": "Comentario de región"
   },
   "applyNow": "Usar ahora",
   "unsaved": {

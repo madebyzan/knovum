@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "Intestazioni della richiesta",
+    "environment": "Variabili d'ambiente",
+    "secretsHint": "Solo configurazione pubblica. Imposta token e altre credenziali in Autorizzazione dopo il salvataggio.",
+    "invalidName": "Inserisci un nome di campo senza spazi iniziali o finali.",
+    "duplicateName": "I nomi dei campi devono essere univoci. I nomi delle intestazioni HTTP non fanno distinzione tra maiuscole e minuscole.",
+    "fieldName": "Nome",
+    "fieldValue": "Valore",
+    "fieldNameAt": "Nome del campo {index}",
+    "fieldValueAt": "Valore del campo {index}",
+    "removeField": "Rimuovere il campo {index}",
+    "addHeader": "Aggiungi intestazione",
+    "addVariable": "Aggiungi variabile",
+    "serverUrl": "URL del server",
+    "authorizationHint": "Scegli il metodo di autorizzazione richiesto dal server. Le credenziali vengono configurate separatamente dopo il salvataggio.",
+    "advanced": "Variabili d'ambiente e intestazioni"
+  },
+  "transport": "Trasporto",
+  "allowLocalNetwork": "Consenti l'accesso all'host locale o all'indirizzo LAN configurato",
+  "process": {
+    "executable": {
+      "label": "Eseguibile del servizio installato (percorso assoluto)",
+      "choose": "Scegli il programma installato"
+    },
+    "arguments": {
+      "label": "Argomenti",
+      "hint": "Ogni campo è un argomento letterale, compresi gli spazi. Non viene eseguita alcuna analisi della shell.",
+      "add": "Aggiungi argomento",
+      "at": "Argomento {index}",
+      "remove": "Rimuovere l'argomento {index}"
+    },
+    "directory": {
+      "label": "Directory di lavoro (opzionale)",
+      "choose": "Scegli la directory di lavoro"
+    },
+    "authorizationHint": "L'abilitazione di questa connessione consente all'applicazione di avviare il servizio MCP selezionato. L'installazione di un plug-in non installa mai programmi né esegue script di pacchetti."
+  }
+}

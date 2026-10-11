@@ -1,11 +1,19 @@
 {
+  "selection": {
+    "empty": "音色庫中沒有可選音色，請加入音色。",
+    "placeholder": "選擇音色"
+  },
   "title": "音色管理",
-  "collectionTitle": "音色庫",
+  "collection": {
+    "title": "音色庫"
+  },
   "empty": "還沒有音色。",
   "manage": "管理音色與參考音頻",
   "description": "管理整個應用程式共享的音色、參考音訊和試聽版本。所有空間都可以直接使用這裡保存的音色。",
-  "discardTitle": "放棄音色更改",
-  "discardDescription": "尚未儲存的音色設定將會遺失。",
+  "discard": {
+    "title": "放棄音色更改",
+    "description": "尚未儲存的音色設定將會遺失。"
+  },
   "presets": "預設音色",
-  "addTitle": "添加音色"
+  "add": "添加音色"
 }

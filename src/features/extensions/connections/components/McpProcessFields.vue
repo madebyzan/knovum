@@ -40,7 +40,7 @@ const cwd = computed({
 <template>
   <div class="space-y-4">
     <div class="space-y-1.5 text-caption text-fg-secondary">
-      <label :for="executableInputId">{{ $t("extensions.connectors.process.executable") }}</label>
+      <label :for="executableInputId">{{ $t("extensions.endpoint.process.executable.label") }}</label>
       <div class="flex gap-2">
         <UiInput
           :id="executableInputId"
@@ -49,7 +49,7 @@ const cwd = computed({
           data-testid="mcp-executable"
           required
         /><UiIconButton
-          :label="$t('extensions.connectors.process.chooseExecutable')"
+          :label="$t('extensions.endpoint.process.executable.choose')"
           :disabled="disabled || choosing"
           @click="choosePath('executable')"
           ><FolderOpen class="size-4"
@@ -58,7 +58,7 @@ const cwd = computed({
     </div>
     <McpArguments v-model="endpoint.args" :disabled="disabled" />
     <div class="space-y-1.5 text-caption text-fg-secondary">
-      <label :for="directoryInputId">{{ $t("extensions.connectors.process.workingDirectory") }}</label>
+      <label :for="directoryInputId">{{ $t("extensions.endpoint.process.directory.label") }}</label>
       <div class="flex gap-2">
         <UiInput
           :id="directoryInputId"
@@ -66,14 +66,14 @@ const cwd = computed({
           v-model="cwd"
           data-testid="mcp-working-directory"
         /><UiIconButton
-          :label="$t('extensions.connectors.process.chooseDirectory')"
+          :label="$t('extensions.endpoint.process.directory.choose')"
           :disabled="disabled || choosing"
           @click="choosePath('cwd')"
           ><FolderOpen class="size-4"
         /></UiIconButton>
       </div>
     </div>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
+    <p class="text-caption text-fg-secondary">{{ $t("extensions.endpoint.process.authorizationHint") }}</p>
     <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
   </div>
 </template>

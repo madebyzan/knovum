@@ -18,9 +18,9 @@ export function validateEndpointFields(
   const names = new Set<string>();
   for (const field of fields) {
     if (!field.name.trim() || field.name !== field.name.trim())
-      return { error: "extensions.connections.configuration.invalidName" };
+      return { error: "extensions.endpoint.configuration.invalidName" };
     const name = transport === "streamable_http" ? field.name.toLowerCase() : field.name;
-    if (names.has(name)) return { error: "extensions.connections.configuration.duplicateName" };
+    if (names.has(name)) return { error: "extensions.endpoint.configuration.duplicateName" };
     names.add(name);
   }
   return { fields: Object.fromEntries(fields.map(({ name, value }) => [name, value])) };

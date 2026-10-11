@@ -23,8 +23,10 @@
   "cancelling": "正在取消…",
   "forceDismiss": "從清單移除",
   "failed": "此任務未能完成。",
-  "verifyingResource": "校驗完整性中…",
-  "preparingLocalInference": "準備本地 AI 元件中…",
-  "localResourceDownloadSize": "首次使用需下載 {size} 本機資源",
-  "installingResource": "正在安裝本地資源…"
+  "resources": {
+    "verifying": "校驗完整性中…",
+    "preparingInference": "準備本地 AI 元件中…",
+    "downloadSize": "首次使用需下載 {size} 本機資源",
+    "installing": "正在安裝本地資源…"
+  }
 }

@@ -7,7 +7,8 @@
     "subdirectory": "パッケージ サブディレクトリ",
     "install": "ソースからインストール",
     "description": "ローカル パッケージまたはリモート URL を選択し、インストールする前に確認してください。",
-    "revision": "ソース リビジョン"
+    "revision": "ソース リビジョン",
+    "choose": "ソースを選択"
   },
   "installation": {
     "preview": "プレビュー",
@@ -70,12 +71,6 @@
     "committing": "変更をコミット中"
   },
   "title": "インストールされているプラ​​グイン",
-  "search": {
-    "empty": "一致する結果はありません",
-    "hint": "別のキーワードを試すか、検索をクリアしてください。"
-  },
-  "disable": "{name}を無効にする",
-  "enable": "{name}を有効にする",
   "actions": "プラグイン アクション",
   "capabilities": "含まれる機能"
 }

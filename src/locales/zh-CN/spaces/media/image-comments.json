@@ -1,0 +1,13 @@
+{
+  "title": "评论",
+  "prompt": "添加描述",
+  "save": "保存评论",
+  "addToConversation": "添加到对话",
+  "conversationContext": "图片标注（{kind}；以左上角为原点，坐标单位为图片宽高的百分比）：{coordinates}\n标注内容：{text}",
+  "delete": "删除评论",
+  "hint": "点击图片位置添加评论",
+  "mode": "评论标注方式",
+  "point": "点选评论",
+  "draw": "自由绘制评论",
+  "region": "框选区域评论"
+}

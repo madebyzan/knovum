@@ -10,8 +10,10 @@
   "version": "Version",
   "sourcePlugin": "View source plugin",
   "pluginPaused": "This plugin is disabled. Its skills and connections are unavailable.",
-  "notFound": "This extension is unavailable",
-  "notFoundHint": "It may have been removed or changed by a plugin update. Return to the list to view the current content.",
+  "notFound": {
+    "title": "This extension is unavailable",
+    "description": "It may have been removed or changed by a plugin update. Return to the list to view the current content."
+  },
   "usage": "Select complete plugins, personal skills or standalone MCP connections in a Space conversation. A plugin includes its skills and services together. Enabling makes it selectable; external access still requires authorization.",
   "search": {
     "plugins": "Search plugins…",

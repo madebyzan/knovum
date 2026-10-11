@@ -37,9 +37,11 @@
     "previous": "Vorherige Übereinstimmung",
     "next": "Nächstes Spiel",
     "toggleReplace": "Ersetzen anzeigen",
-    "replace": "Ersetzen",
-    "replaceAll": "Alle ersetzen",
-    "replacePlaceholder": "Ersetzen durch…"
+    "replace": {
+      "action": "Ersetzen",
+      "placeholder": "Ersetzen durch…"
+    },
+    "replaceAll": "Alle ersetzen"
   },
   "paragraph": "Absatz",
   "heading1": "Überschrift 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Bild einfügen",
-    "tabUpload": "Lokale Datei",
-    "tabUrl": "URL",
-    "url": "Bild-URL",
-    "alt": "Bildbeschreibung",
+    "source": {
+      "localFile": "Lokale Datei",
+      "url": "URL"
+    },
+    "url": {
+      "label": "Bild-URL",
+      "invalid": "Bitte geben Sie eine gültige http://- oder https://-Bildadresse ein."
+    },
+    "alt": {
+      "label": "Bildbeschreibung",
+      "placeholder": "Beschreiben Sie das Bild für Screenreader"
+    },
     "choose": "Bild auswählen",
     "uploadFailed": "Einfügen des Bildes fehlgeschlagen",
     "dropDocumentHint": "Wählen Sie eine Datei aus oder ziehen Sie ein Bild in den Dokumenteditor.",
-    "altPlaceholder": "Beschreiben Sie das Bild für Screenreader",
     "dropNow": "Lassen Sie es fallen, um ein Bild einzufügen",
-    "urlInvalid": "Bitte geben Sie eine gültige http://- oder https://-Bildadresse ein.",
     "insertFailed": "Bild konnte nicht eingefügt werden"
   },
   "link": {
     "label": "Hyperlink",
     "placeholder": "Geben Sie URL ein oder fügen Sie es ein",
     "remove": "Link entfernen",
-    "editorTitle": "Link bearbeiten",
-    "editorDescription": "Fügen Sie dem ausgewählten Text einen Web- oder E-Mail-Link hinzu.",
+    "editor": {
+      "title": "Link bearbeiten",
+      "description": "Fügen Sie dem ausgewählten Text einen Web- oder E-Mail-Link hinzu."
+    },
     "url": "Link-URL",
     "invalid": "Bitte geben Sie einen gültigen HTTP-, HTTPS- oder Mailto-Link ein.",
     "open": "Link öffnen",
@@ -110,6 +120,8 @@
     "addColumn": "Spalte rechts einfügen",
     "delete": "Tabelle löschen"
   },
-  "words": "Wörter",
-  "characters": "Zeichen"
+  "statistics": {
+    "words": "{count} Wort | {count} Wörter",
+    "characters": "{count} Zeichen"
+  }
 }

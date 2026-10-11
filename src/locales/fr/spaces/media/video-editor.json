@@ -36,7 +36,12 @@
     },
     "placement": "Position",
     "add": "Ajouter du texte",
-    "content": "Texte"
+    "content": "Texte",
+    "verticalAlignment": {
+      "top": "Haut",
+      "center": "Centre",
+      "bottom": "Bas"
+    }
   },
   "tabs": {
     "captions": "Légendes",
@@ -68,22 +73,23 @@
     "startsAt": "Démarrages (secondes)",
     "endsAt": "Fin (secondes)"
   },
-  "top": "Haut",
-  "center": "Centre",
-  "bottom": "Bas",
   "project": {
     "saved": "Projet de montage vidéo enregistré"
   },
   "render": {
     "action": "Rendu vidéo",
     "task": "Rendu vidéo",
-    "failed": "Échec du rendu vidéo"
+    "failed": "Échec du rendu vidéo",
+    "stages": {
+      "preparingVideoEdit": "Préparation de l'édition",
+      "renderingVideoEdit": "Rendu vidéo",
+      "savingResource": "Sauvegarde des ressources"
+    }
   },
-  "preparingVideoEdit": "Préparation de l'édition",
-  "renderingVideoEdit": "Rendu vidéo",
-  "savingResource": "Sauvegarde des ressources",
-  "previousStep": "Reculez de 0,1 seconde",
-  "nextStep": "Avancez de 0,1 seconde",
+  "playback": {
+    "stepBackward": "Reculez de 0,1 seconde",
+    "stepForward": "Avancez de 0,1 seconde"
+  },
   "trim": {
     "start": "Démarrage du clip de découpage",
     "end": "Extrémité du clip de garniture",

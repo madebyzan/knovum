@@ -1,0 +1,13 @@
+{
+  "title": "コメント",
+  "prompt": "説明を追加",
+  "save": "コメントを保存",
+  "addToConversation": "会話に追加",
+  "conversationContext": "画像の注釈 ({kind}、原点は左上、座標は画像の幅と高さのパーセンテージ): {coordinates}\n注釈: {text}",
+  "delete": "コメントの削除",
+  "hint": "コメントするには画像の場所をクリックしてください",
+  "mode": "コメント注釈モード",
+  "point": "ポイント コメント",
+  "draw": "コメントを描画",
+  "region": "地域コメント"
+}

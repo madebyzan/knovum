@@ -88,7 +88,11 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "spaces.speech.library.title",
     descriptionKey: "spaces.speech.library.description",
-    searchKeys: ["spaces.speech.reference.title", "spaces.speech.voice.clone", "spaces.speech.voice.design"],
+    searchKeys: [
+      "spaces.speech.reference.title",
+      "spaces.speech.voice.clone.fromReference",
+      "spaces.speech.voice.design.action",
+    ],
     icon: AudioLines,
   },
   {
@@ -146,9 +150,9 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
   {
     id: "archivedSpaces",
     group: "data",
-    titleKey: "settings.general.archived.title",
-    descriptionKey: "settings.general.archived.description",
-    searchKeys: ["settings.general.archived.description"],
+    titleKey: "settings.archivedSpaces.title",
+    descriptionKey: "settings.archivedSpaces.description",
+    searchKeys: ["settings.archivedSpaces.description"],
     icon: Archive,
   },
   {

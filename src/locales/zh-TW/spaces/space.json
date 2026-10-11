@@ -36,8 +36,10 @@
   "favorite": "收藏空間",
   "unfavorite": "取消收藏",
   "open": "打開空間",
-  "loadFailed": "無法打開空間",
-  "loadFailedHint": "無法載入空間資料庫。本機文件不受影響，請重試。",
+  "load": {
+    "failed": "無法打開空間",
+    "hint": "無法載入空間資料庫。本機文件不受影響，請重試。"
+  },
   "archive": "歸檔空間",
   "moveTo": "移動至空間",
   "moveNoTargets": "無其他可移動的空間。",

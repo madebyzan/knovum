@@ -7,6 +7,5 @@
   "templates": "Modèles de ressources",
   "prompts": "Invites",
   "parameters": "Paramètres (JSON)",
-  "read": "Lire le contenu sélectionné",
-  "source": "Choisir la source"
+  "read": "Lire le contenu sélectionné"
 }

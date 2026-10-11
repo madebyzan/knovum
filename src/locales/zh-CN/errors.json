@@ -7,5 +7,8 @@
     "title": "此处内容无法显示",
     "description": "可以重新打开此区域，或切换到其他页面。",
     "reopen": "重新打开内容"
+  },
+  "windowClose": {
+    "saveFailed": "无法保存更改，应用程序保持打开状态"
   }
 }

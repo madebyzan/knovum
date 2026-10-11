@@ -1,0 +1,8 @@
+{
+  "action": "Aperçu",
+  "stop": "Arrêtez d'écouter",
+  "text": {
+    "placeholder": "Entrez jusqu'à 500 caractères pour entendre cette voix",
+    "label": "Exemple de texte"
+  }
+}

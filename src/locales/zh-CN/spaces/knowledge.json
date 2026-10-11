@@ -59,9 +59,11 @@
     "empty": "拖拽节点锚点或选中多项建立关系。",
     "inspect": "关联详情",
     "kind": "关系类型",
-    "rationale": "关联说明",
-    "addRationale": "添加",
-    "rationalePlaceholder": "说明这些内容之间的关联…",
+    "rationale": {
+      "label": "关联说明",
+      "add": "添加",
+      "placeholder": "说明这些内容之间的关联…"
+    },
     "color": "关联线颜色",
     "colors": {
       "neutral": "中性灰",
@@ -71,8 +73,10 @@
       "red": "红色",
       "purple": "紫色"
     },
-    "remove": "移除关系",
-    "removeConfirm": "移除与“{title}”的关系？",
+    "remove": {
+      "action": "移除关系",
+      "confirmation": "移除与“{title}”的关系？"
+    },
     "kinds": {
       "reference": "引用",
       "related": "相关",
@@ -88,13 +92,17 @@
   },
   "provenance": "来源",
   "portal": {
-    "create": "新建空间入口",
-    "createDescription": "创建快速跳转至其他空间的入口节点。"
+    "create": {
+      "action": "新建空间入口",
+      "description": "创建快速跳转至其他空间的入口节点。"
+    }
   },
   "objects": {
     "custom": "自定义知识对象",
-    "create": "新建自定义对象",
-    "createDescription": "根据选定的 Schema 类型创建知识对象节点。"
+    "create": {
+      "action": "新建自定义对象",
+      "description": "根据选定的 Schema 类型创建知识对象节点。"
+    }
   },
   "fields": {
     "add": "添加字段",
@@ -133,12 +141,16 @@
     "description": "描述",
     "icon": "图标",
     "name": "类型名称",
-    "manage": "管理知识类型",
-    "manageDescription": "定义当前空间中结构化知识的属性字段。",
-    "delete": "删除类型…",
+    "manage": {
+      "action": "管理知识类型",
+      "description": "定义当前空间中结构化知识的属性字段。"
+    },
+    "delete": {
+      "action": "删除类型…",
+      "description": "删除“{name}”？已有知识对象使用的类型无法删除。"
+    },
     "discardChanges": "放弃当前类型尚未保存的修改？",
     "emptyFields": "添加这类知识需要记录的属性。",
-    "deleteConfirmation": "删除“{name}”？已有知识对象使用的类型无法删除。",
     "create": "新建类型",
     "none": "暂无自定义 Schema 类型。",
     "loadFailed": "无法加载 Schema 类型"

@@ -12,7 +12,9 @@
     "title": "Markdown 標題",
     "empty": "空 Markdown"
   },
-  "loading": "正在準備編輯器…",
-  "loadingHint": "大型文件需要一些時間才能開啟。",
+  "loading": {
+    "message": "正在準備編輯器…",
+    "hint": "大型文件需要一些時間才能開啟。"
+  },
   "placeholder": "開始寫作…"
 }

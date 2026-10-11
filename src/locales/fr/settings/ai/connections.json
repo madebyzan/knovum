@@ -1,0 +1,18 @@
+{
+  "provider": "Fournisseur de modèles",
+  "baseUrl": "URL de base API",
+  "title": "Connexions du fournisseur",
+  "description": "Gérez les connexions et les modèles disponibles par fournisseur.",
+  "empty": "Aucun fournisseur pour l'instant.",
+  "name": "Nom de la connexion",
+  "add": "Ajouter un fournisseur",
+  "edit": "Modifier le fournisseur",
+  "invalidBaseUrl": "Entrez un HTTP ou un HTTPS URL valide",
+  "delete": {
+    "title": "Supprimer {name}, ses modèles et informations d'identification ?",
+    "action": "Supprimer la connexion"
+  },
+  "credentials": {
+    "saveFailed": "Connexion enregistrée, mais la clé n'a pas pu être enregistrée. Essayer à nouveau"
+  }
+}

@@ -40,6 +40,11 @@
   "archive": "Archivar",
   "restore": "Restaurar",
   "required": "Obligatorio",
-  "closeSaveFailed": "No se pudieron guardar los cambios; la aplicación permaneció abierta",
-  "clearSearch": "Borrar búsqueda"
+  "clearSearch": "Borrar búsqueda",
+  "search": {
+    "empty": "No hay resultados coincidentes",
+    "hint": "Pruebe con otra palabra clave o borre la búsqueda."
+  },
+  "enable": "Habilitar {name}",
+  "disable": "Deshabilitar {name}"
 }

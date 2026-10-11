@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "請求頭",
+    "environment": "環境變數",
+    "secretsHint": "這裡只填寫公開配置。令牌等憑證請在儲存後通過授權設定。",
+    "invalidName": "請填寫欄位名，且不要包含首尾空格。",
+    "duplicateName": "欄位名稱不能重複；HTTP 請求頭名稱不區分大小寫。",
+    "fieldName": "名稱",
+    "fieldValue": "值",
+    "fieldNameAt": "第 {index} 個欄位名稱",
+    "fieldValueAt": "第 {index} 個欄位值",
+    "removeField": "刪除第 {index} 個字段",
+    "addHeader": "添加請求頭",
+    "addVariable": "新增變數",
+    "serverUrl": "伺服器位址",
+    "authorizationHint": "選擇伺服器要求的授權方式。具體憑證在儲存後單獨配置。",
+    "advanced": "環境變數與請求頭"
+  },
+  "transport": "傳輸方式",
+  "allowLocalNetwork": "允許存取設定的本機或區域網路位址",
+  "process": {
+    "executable": {
+      "label": "已安裝服務的可執行檔（絕對路徑）",
+      "choose": "選擇已安裝的程式"
+    },
+    "arguments": {
+      "label": "參數",
+      "hint": "每項對應一個完整參數，空格原樣傳遞，不解析 shell 指令。",
+      "add": "新增參數",
+      "at": "第 {index} 個參數",
+      "remove": "刪除第 {index} 個參數"
+    },
+    "directory": {
+      "label": "工作目錄（可選）",
+      "choose": "選擇工作目錄"
+    },
+    "authorizationHint": "啟用此連線後，應用程式可啟動所選 MCP 服務。安裝插件不會安裝程式或執行套件腳本。"
+  }
+}

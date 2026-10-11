@@ -52,7 +52,7 @@ async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   try {
     await setDesktopAgentEnabled(kind, enabled);
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
+    toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
   } finally {
     saving.value = false;
   }

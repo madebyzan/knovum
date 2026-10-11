@@ -79,7 +79,7 @@ function insertUrl() {
         "
         @click="tab = 'upload'"
       >
-        <Upload class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.tabUpload") }}
+        <Upload class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.source.localFile") }}
       </button>
       <button
         type="button"
@@ -91,7 +91,7 @@ function insertUrl() {
         "
         @click="tab = 'url'"
       >
-        <Link2 class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.tabUrl") }}
+        <Link2 class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.source.url") }}
       </button>
     </div>
 
@@ -113,7 +113,7 @@ function insertUrl() {
     <div v-else class="flex flex-col gap-2.5 px-3 py-3">
       <label class="grid gap-1.5">
         <span class="flex items-center gap-1.5 text-caption font-medium text-fg-secondary">
-          <Link2 class="size-3" />{{ t("spaces.richtext.image.url") }}
+          <Link2 class="size-3" />{{ t("spaces.richtext.image.url.label") }}
         </span>
         <UiInput
           v-model="url"
@@ -124,13 +124,15 @@ function insertUrl() {
         />
       </label>
       <p v-if="invalidUrl" class="-mt-1 text-caption text-fg-danger">
-        {{ t("spaces.richtext.image.urlInvalid") }}
+        {{ t("spaces.richtext.image.url.invalid") }}
       </p>
       <label class="grid gap-1.5">
-        <span class="text-caption font-medium text-fg-secondary">{{ t("spaces.richtext.image.alt") }}</span>
+        <span class="text-caption font-medium text-fg-secondary">{{
+          t("spaces.richtext.image.alt.label")
+        }}</span>
         <UiInput
           v-model="alt"
-          :placeholder="t('spaces.richtext.image.altPlaceholder')"
+          :placeholder="t('spaces.richtext.image.alt.placeholder')"
           @commit.prevent="insertUrl"
         />
       </label>

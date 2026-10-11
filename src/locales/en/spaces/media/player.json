@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "The source media could not be played. Check that the media file is readable.",
   "followPlayback": "Follow playback",
   "load": "Load {title}",
   "play": "Play",

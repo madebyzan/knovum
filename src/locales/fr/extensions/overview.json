@@ -10,8 +10,10 @@
   "version": "Version",
   "sourcePlugin": "Afficher le plugin source",
   "pluginPaused": "Ce plugin est désactivé. Ses compétences et ses connexions ne sont pas disponibles.",
-  "notFound": "Cette extension n'est pas disponible",
-  "notFoundHint": "Il a peut-être été supprimé ou modifié par une mise à jour du plugin. Revenez à la liste pour afficher le contenu actuel.",
+  "notFound": {
+    "title": "Cette extension n'est pas disponible",
+    "description": "Il a peut-être été supprimé ou modifié par une mise à jour du plugin. Revenez à la liste pour afficher le contenu actuel."
+  },
   "usage": "Sélectionnez des plugins complets, des compétences personnelles ou des connexions MCP autonomes dans une conversation dans un espace de travail. Un plugin regroupe ses compétences et ses services. L'activation le rend sélectionnable ; l’accès externe nécessite toujours une autorisation.",
   "search": {
     "plugins": "Plugins de recherche…",

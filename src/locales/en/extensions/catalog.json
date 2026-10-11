@@ -7,6 +7,5 @@
   "templates": "Resource templates",
   "prompts": "Prompts",
   "parameters": "Parameters (JSON)",
-  "read": "Read selected content",
-  "source": "Choose source"
+  "read": "Read selected content"
 }

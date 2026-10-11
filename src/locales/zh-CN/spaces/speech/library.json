@@ -1,11 +1,19 @@
 {
+  "selection": {
+    "empty": "音色库中没有可选音色，请添加音色。",
+    "placeholder": "选择音色"
+  },
   "title": "音色管理",
-  "collectionTitle": "音色库",
+  "collection": {
+    "title": "音色库"
+  },
   "empty": "还没有音色。",
   "manage": "管理音色与参考音频",
   "description": "管理整个应用共享的音色、参考音频和试听版本。所有空间都可以直接使用这里保存的音色。",
-  "discardTitle": "放弃音色更改",
-  "discardDescription": "尚未保存的音色设置将会丢失。",
+  "discard": {
+    "title": "放弃音色更改",
+    "description": "尚未保存的音色设置将会丢失。"
+  },
   "presets": "预设音色",
-  "addTitle": "添加音色"
+  "add": "添加音色"
 }

@@ -12,8 +12,10 @@
     "empty": "La selezione non ha azioni di derivazione rigiocabili.",
     "sources": "Fonti: {sources}"
   },
-  "name": "Nome del flusso di lavoro",
-  "namePlaceholder": "Assegna un nome a questo flusso di lavoro",
+  "name": {
+    "label": "Nome del flusso di lavoro",
+    "placeholder": "Assegna un nome a questo flusso di lavoro"
+  },
   "saveCaptured": "Salva come flusso di lavoro",
   "saved": "Salvato nella libreria del flusso di lavoro",
   "useSaved": "Utilizza flusso di lavoro",
@@ -65,8 +67,10 @@
     "durationSeconds": "Durata (secondi)",
     "platform": "Piattaforma"
   },
-  "delete": "Elimina flusso di lavoro",
-  "deleteConfirm": "Eliminare \"{name}\"? Le esecuzioni completate e i relativi risultati rimarranno.",
+  "delete": {
+    "action": "Elimina flusso di lavoro",
+    "confirmation": "Eliminare \"{name}\"? Le esecuzioni completate e i relativi risultati rimarranno."
+  },
   "states": {
     "queued": "In coda",
     "running": "In esecuzione",

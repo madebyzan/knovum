@@ -30,7 +30,7 @@ onMounted(async () => {
 <template>
   <div class="grid gap-1.5">
     <div class="flex items-center gap-2 text-caption font-medium text-fg-secondary">
-      <label :for="`key-${connectionId}`">{{ t("settings.ai.apiKey") }}</label>
+      <label :for="`key-${connectionId}`">{{ t("settings.credentials.apiKey") }}</label>
       <span
         v-if="hasKey"
         class="rounded-sm bg-surface-success-subtle px-1.5 py-0.5 text-caption-sm text-fg-success"
@@ -48,8 +48,8 @@ onMounted(async () => {
           hasKey === null
             ? ''
             : hasKey
-              ? t('settings.ai.keySavedPlaceholder')
-              : t('settings.ai.keyOptionalPlaceholder')
+              ? t('settings.credentials.savedPlaceholder')
+              : t('settings.credentials.optionalPlaceholder')
         "
         @update:model-value="secret = $event || undefined"
       />
@@ -71,13 +71,13 @@ onMounted(async () => {
       class="w-fit rounded-sm text-caption text-fg-secondary underline-offset-2 hover:text-fg-primary hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
       @click="secret = secret === null ? undefined : null"
     >
-      {{ secret === null ? t("common.cancel") : t("settings.ai.removeSavedKey") }}
+      {{ secret === null ? t("common.cancel") : t("settings.credentials.remove") }}
     </button>
     <p v-if="secret === null" class="text-caption text-fg-secondary">
-      {{ t("settings.ai.keyRemovalPending") }}
+      {{ t("settings.credentials.removalPending") }}
     </p>
     <p v-if="loadError" class="text-caption text-fg-danger" role="alert">
-      {{ t("settings.ai.secretLoadFailed") }}: {{ loadError }}
+      {{ t("settings.credentials.loadFailed") }}: {{ loadError }}
     </p>
   </div>
 </template>

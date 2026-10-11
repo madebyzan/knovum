@@ -1,6 +1,8 @@
 {
-  "import": "Import",
-  "importFailed": "Import failed. Check file format and try again.",
+  "import": {
+    "action": "Import",
+    "failed": "Import failed. Check file format and try again."
+  },
   "website": {
     "add": "Add website",
     "description": "Save web URL and extract title and summary.",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "Preview",
     "show": "Preview view",
-    "instantUnavailable": "No instant preview",
-    "instantUnavailableHint": "Instant preview is unavailable; extracted text remains searchable."
+    "instantUnavailable": {
+      "title": "No instant preview",
+      "description": "Instant preview is unavailable; extracted text remains searchable."
+    }
   },
   "markdown": {
     "export": "Export Markdown"
   },
-  "exportCompleted": "Export complete",
+  "export": {
+    "completed": "Export complete"
+  },
   "fileName": "File name",
   "openExternally": "Open in external app",
   "space": {

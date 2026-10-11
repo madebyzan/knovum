@@ -5,11 +5,15 @@
     "title": "產生預設",
     "description": "用於內容創作的已儲存模型設定。",
     "empty": "尚未儲存生成預設。",
-    "deleteConfirm": "刪除此預設？",
+    "delete": {
+      "title": "刪除此預設？"
+    },
     "name": "預設名稱",
     "edit": "編輯生成預設",
-    "discardTitle": "放棄預設更改？",
-    "discardDescription": "對此產生預設的未儲存變更將會遺失。"
+    "discard": {
+      "title": "放棄預設更改？",
+      "description": "對此產生預設的未儲存變更將會遺失。"
+    }
   },
   "parameters": "參數",
   "copyName": "{name} 副本",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "圖片圖層拆分",
     "description": "接入 fal，用於拆分圖片圖層。",
-    "apiKey": "fal API Key",
-    "apiKeyDescription": "僅保存在這台設備上。"
+    "apiKey": {
+      "label": "fal API Key",
+      "description": "僅保存在這台設備上。"
+    }
   }
 }

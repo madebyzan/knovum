@@ -13,9 +13,11 @@
     "checking": "Vérification de la disponibilité",
     "busy": "Une opération est en cours"
   },
-  "toggleRightSidebar": "Afficher ou masquer la barre latérale droite",
-  "toggleSidebar": "Basculer la barre latérale",
-  "layoutSaveFailed": "La disposition de l'atelier n'a pas pu être enregistrée",
+  "layout": {
+    "toggleRightSidebar": "Afficher ou masquer la barre latérale droite",
+    "toggleSidebar": "Basculer la barre latérale",
+    "saveFailed": "La disposition de l'atelier n'a pas pu être enregistrée"
+  },
   "shortcuts": {
     "title": "Raccourcis clavier",
     "search": "Raccourcis de recherche",

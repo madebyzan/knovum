@@ -102,7 +102,7 @@ describe("AI connection editor", () => {
     await wrapper.findAllComponents(UiButton).at(-1)!.trigger("click");
 
     expect(wrapper.emitted("save")).toBeUndefined();
-    expect(wrapper.text()).toContain("settings.ai.invalidBaseUrl");
+    expect(wrapper.text()).toContain("settings.ai.connections.invalidBaseUrl");
     expect(wrapper.text()).not.toContain("secret");
     wrapper.unmount();
   });

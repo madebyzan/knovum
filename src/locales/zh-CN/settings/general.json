@@ -3,8 +3,10 @@
   "search": "搜索设置项…",
   "noResults": "未找到匹配的设置项。",
   "load": {
-    "failed": "无法载入设置",
-    "failedDescription": "已保存数据与当前格式不兼容。请重试或重置此区域。"
+    "failure": {
+      "title": "无法载入设置",
+      "description": "已保存数据与当前格式不兼容。请重试或重置此区域。"
+    }
   },
   "reset": {
     "action": "重置此区域",
@@ -13,34 +15,17 @@
   "about": {
     "title": "关于",
     "author": "作者",
-    "description": "版本与系统信息。"
+    "description": "版本与系统信息。",
+    "version": {
+      "value": "版本 {version}",
+      "loading": "正在读取版本…"
+    }
   },
-  "version": "版本 {version}",
-  "readingVersion": "正在读取版本…",
-  "archived": {
-    "title": "已归档空间",
-    "description": "恢复或永久删除归档的空间。",
-    "restore": "恢复空间",
-    "restoreFailed": "恢复空间失败",
-    "loadFailed": "无法加载已归档空间",
-    "delete": {
-      "label": "永久删除",
-      "title": "永久删除“{title}”？",
-      "description": "此操作将从设备中彻底清除该空间及其所有关联数据，不可恢复。",
-      "failed": "删除空间失败"
-    },
-    "deleteAll": {
-      "label": "全部删除",
-      "title": "永久删除所有已归档空间？",
-      "description": "永久删除全部 {count} 个已归档空间及其中的内容？此操作无法撤销。"
-    },
-    "empty": "暂无已归档的空间。"
-  },
-  "inboxSpace": "收集箱",
   "groups": {
     "intelligence": "智能能力",
     "general": "通用",
     "data": "数据与归档",
     "information": "信息"
-  }
+  },
+  "saveFailed": "无法保存配置"
 }

@@ -39,7 +39,7 @@ defineEmits<{ toggle: []; update: []; uninstall: [] }>();
     :disabled="busy"
     :data-testid="`toggle-plugin-${plugin.id}`"
     :label="
-      $t(plugin.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', {
+      $t(plugin.enabled ? 'common.disable' : 'common.enable', {
         name: plugin.revision.manifest.name,
       })
     "

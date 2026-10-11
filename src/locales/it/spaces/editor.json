@@ -12,7 +12,9 @@
     "title": "Titolo Markdown",
     "empty": "Vuoto Markdown"
   },
-  "loading": "Preparazione editor…",
-  "loadingHint": "L'apertura di documenti di grandi dimensioni potrebbe richiedere alcuni minuti.",
+  "loading": {
+    "message": "Preparazione editor…",
+    "hint": "L'apertura di documenti di grandi dimensioni potrebbe richiedere alcuni minuti."
+  },
   "placeholder": "Inizia a scrivere…"
 }

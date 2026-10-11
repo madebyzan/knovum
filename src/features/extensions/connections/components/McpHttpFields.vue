@@ -8,7 +8,7 @@ defineProps<{ disabled?: boolean }>();
 <template>
   <div class="space-y-4">
     <label class="block space-y-1.5 text-caption text-fg-secondary">
-      {{ $t("extensions.connections.configuration.serverUrl") }}
+      {{ $t("extensions.endpoint.configuration.serverUrl") }}
       <UiInput
         v-model="endpoint.url"
         :disabled="disabled"
@@ -21,9 +21,9 @@ defineProps<{ disabled?: boolean }>();
       <UiCheckbox
         v-model="endpoint.allowLocalNetwork"
         :disabled="disabled"
-        :label="$t('extensions.connections.allowLocalNetwork')"
+        :label="$t('extensions.endpoint.allowLocalNetwork')"
       />
-      {{ $t("extensions.connections.allowLocalNetwork") }}
+      {{ $t("extensions.endpoint.allowLocalNetwork") }}
     </label>
   </div>
 </template>

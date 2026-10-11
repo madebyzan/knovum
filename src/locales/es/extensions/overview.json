@@ -10,8 +10,10 @@
   "version": "Versión",
   "sourcePlugin": "Ver complemento fuente",
   "pluginPaused": "Este complemento está deshabilitado. Sus habilidades y conexiones no están disponibles.",
-  "notFound": "Esta extensión no está disponible",
-  "notFoundHint": "Es posible que haya sido eliminado o modificado mediante una actualización del complemento. Regrese a la lista para ver el contenido actual.",
+  "notFound": {
+    "title": "Esta extensión no está disponible",
+    "description": "Es posible que haya sido eliminado o modificado mediante una actualización del complemento. Regrese a la lista para ver el contenido actual."
+  },
   "usage": "Seleccione complementos completos, habilidades personales o conexiones MCP independientes en una conversación en el espacio de trabajo. Un complemento incluye sus habilidades y servicios juntos. Habilitarlo lo hace seleccionable; el acceso externo aún requiere autorización.",
   "search": {
     "plugins": "Buscar complementos…",

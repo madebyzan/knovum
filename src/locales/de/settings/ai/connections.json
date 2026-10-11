@@ -1,0 +1,18 @@
+{
+  "provider": "Modellanbieter",
+  "baseUrl": "API-Basis-URL",
+  "title": "Provider-Verbindungen",
+  "description": "Verwalten Sie Verbindungen und verfügbare Modelle nach Anbieter.",
+  "empty": "Noch keine Anbieter.",
+  "name": "Verbindungsname",
+  "add": "Anbieter hinzufügen",
+  "edit": "Anbieter bearbeiten",
+  "invalidBaseUrl": "Geben Sie ein gültiges HTTP oder HTTPS URL ein",
+  "delete": {
+    "title": "{name} und seine Modelle und Anmeldeinformationen löschen?",
+    "action": "Verbindung löschen"
+  },
+  "credentials": {
+    "saveFailed": "Verbindung gespeichert, aber der Schlüssel konnte nicht gespeichert werden. Versuchen Sie es erneut"
+  }
+}

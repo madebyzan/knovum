@@ -24,9 +24,9 @@ function setType(type: string | number) {
   <div class="space-y-4">
     <TabsRoot :model-value="endpoint.type" class="space-y-4" @update:model-value="setType">
       <div class="flex items-center justify-between gap-3">
-        <span class="text-label font-medium">{{ $t("extensions.connections.transport") }}</span>
+        <span class="text-label font-medium">{{ $t("extensions.endpoint.transport") }}</span>
         <TabsList
-          :aria-label="$t('extensions.connections.transport')"
+          :aria-label="$t('extensions.endpoint.transport')"
           class="inline-flex gap-1 rounded-lg bg-surface-control p-1"
         >
           <TabsTrigger

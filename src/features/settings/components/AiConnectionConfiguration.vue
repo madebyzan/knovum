@@ -52,7 +52,7 @@ const { t } = useI18n();
           }}</span
           ><span class="block truncate text-caption text-fg-secondary"
             >{{ connection.name }} ·
-            {{ t("settings.ai.modelCount", { count: connection.models.length }) }}</span
+            {{ t("settings.ai.models.count", { count: connection.models.length }) }}</span
           ></span
         >
         <ChevronDown v-if="expanded" aria-hidden="true" class="size-4 shrink-0 text-fg-secondary" />
@@ -63,7 +63,7 @@ const { t } = useI18n();
         ><Settings class="size-4"
       /></UiIconButton>
       <UiIconButton
-        :label="t('settings.ai.deleteConnection')"
+        :label="t('settings.ai.connections.delete.action')"
         size="sm"
         class="hover:text-fg-danger"
         :disabled="busy || protected"

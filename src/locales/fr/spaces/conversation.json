@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Ajouter une ressource",
     "attached": "Ressources jointes, faites défiler horizontalement pour en voir plus",
-    "citeCanvasNode": "Contenu du canevas de référence",
-    "citeCanvasNodeHint": "Choisir le contenu de cet espace de travail",
-    "canvasNodeShort": "Référence Canvas",
-    "uploadLocalFile": "Ajouter un fichier local",
-    "uploadLocalFileHint": "Images, PDF ou documents",
-    "localFileShort": "Fichier local",
+    "canvasReference": {
+      "label": "Contenu du canevas de référence",
+      "hint": "Choisir le contenu de cet espace de travail",
+      "shortLabel": "Référence Canvas"
+    },
+    "localFile": {
+      "label": "Ajouter un fichier local",
+      "hint": "Images, PDF ou documents",
+      "shortLabel": "Fichier local"
+    },
     "dropFiles": "Déposer les fichiers à joindre",
     "limit": "Vous pouvez joindre jusqu'à 32 éléments à un message.",
     "addCurrentSelection": "Ajouter la sélection actuelle ({count})",

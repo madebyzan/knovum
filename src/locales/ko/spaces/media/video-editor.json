@@ -36,7 +36,12 @@
     },
     "placement": "위치",
     "add": "텍스트 추가",
-    "content": "텍스트"
+    "content": "텍스트",
+    "verticalAlignment": {
+      "top": "상위",
+      "center": "센터",
+      "bottom": "하단"
+    }
   },
   "tabs": {
     "captions": "캡션",
@@ -68,22 +73,23 @@
     "startsAt": "시작(초)",
     "endsAt": "종료(초)"
   },
-  "top": "상위",
-  "center": "센터",
-  "bottom": "하단",
   "project": {
     "saved": "비디오 편집 프로젝트가 저장되었습니다"
   },
   "render": {
     "action": "비디오 렌더링",
     "task": "비디오 렌더링",
-    "failed": "비디오 렌더링 실패"
+    "failed": "비디오 렌더링 실패",
+    "stages": {
+      "preparingVideoEdit": "편집 준비 중",
+      "renderingVideoEdit": "비디오 렌더링",
+      "savingResource": "리소스 저장"
+    }
   },
-  "preparingVideoEdit": "편집 준비 중",
-  "renderingVideoEdit": "비디오 렌더링",
-  "savingResource": "리소스 저장",
-  "previousStep": "0.1초 뒤로 이동",
-  "nextStep": "0.1초 앞으로 이동",
+  "playback": {
+    "stepBackward": "0.1초 뒤로 이동",
+    "stepForward": "0.1초 앞으로 이동"
+  },
   "trim": {
     "start": "트림 클립 시작",
     "end": "클립 끝 다듬기",

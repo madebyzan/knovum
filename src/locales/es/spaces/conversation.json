@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Agregar recurso",
     "attached": "Recursos adjuntos, desplácese horizontalmente para ver más",
-    "citeCanvasNode": "Contenido del lienzo de referencia",
-    "citeCanvasNodeHint": "Elija contenido de este espacio de trabajo",
-    "canvasNodeShort": "Referencia del lienzo",
-    "uploadLocalFile": "Agregar archivo local",
-    "uploadLocalFileHint": "Imágenes, archivos PDF o documentos",
-    "localFileShort": "Archivo local",
+    "canvasReference": {
+      "label": "Contenido del lienzo de referencia",
+      "hint": "Elija contenido de este espacio de trabajo",
+      "shortLabel": "Referencia del lienzo"
+    },
+    "localFile": {
+      "label": "Agregar archivo local",
+      "hint": "Imágenes, archivos PDF o documentos",
+      "shortLabel": "Archivo local"
+    },
     "dropFiles": "Soltar archivos para adjuntar",
     "limit": "Puede adjuntar hasta 32 elementos a un mensaje.",
     "addCurrentSelection": "Agregar selección actual ({count})",

@@ -34,7 +34,7 @@ const generationLabelKey = computed(() => {
 <template>
   <footer class="flex shrink-0 flex-wrap items-center gap-2 border-t border-stroke-divider px-3 py-2">
     <UiButton v-if="isPreviewListening" size="sm" variant="ghost" @click="emit('stopListening')">
-      <Square class="size-3.5" />{{ t("spaces.speech.project.stopListening") }}
+      <Square class="size-3.5" />{{ t("spaces.speech.preview.stop") }}
     </UiButton>
     <div class="ml-auto flex items-center gap-2">
       <UiButton

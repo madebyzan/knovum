@@ -1,17 +1,7 @@
 {
   "process": {
-    "executable": "설치된 서비스 실행 파일(절대 경로)",
-    "arguments": "인수",
-    "workingDirectory": "작업 디렉터리(선택 사항)",
-    "authorizationHint": "이 연결을 활성화하면 애플리케이션이 선택한 MCP 서비스를 시작할 수 있습니다. 플러그인을 설치해도 프로그램이 설치되거나 패키지 스크립트가 실행되지 않습니다.",
     "declaredCommand": "플러그인에서 요청한 프로그램",
-    "configurationRequired": "이 커넥터를 사용하기 전에 설치된 프로그램을 선택하십시오.",
-    "chooseExecutable": "설치된 프로그램 선택",
-    "chooseDirectory": "작업 디렉터리 선택",
-    "argumentsHint": "각 필드는 공백을 포함한 하나의 리터럴 인수입니다. 쉘 구문 분석은 수행되지 않습니다.",
-    "addArgument": "인수 추가",
-    "argumentAt": "인수 {index}",
-    "removeArgument": "인수 {index} 제거"
+    "configurationRequired": "이 커넥터를 사용하기 전에 설치된 프로그램을 선택하십시오."
   },
   "changes": "엔드포인트 또는 권한 부여 ID를 변경하려면 계정을 다시 연결하고 도구 권한을 검토해야 합니다.",
   "name": "서비스 이름",
@@ -23,5 +13,6 @@
   "delete": {
     "title": "{name}를 삭제하시겠습니까?",
     "description": "그러면 서비스 및 해당 로컬 계정 자격 증명에 대한 모든 연결도 삭제됩니다."
-  }
+  },
+  "conflict": "이 커넥터가 다른 곳에서 변경되었습니다. 편집 내용은 유지됩니다. 저장하기 전에 편집 내용을 취소하고 커넥터를 다시 여세요."
 }

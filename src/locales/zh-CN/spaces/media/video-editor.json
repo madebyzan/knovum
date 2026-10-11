@@ -36,7 +36,12 @@
     },
     "placement": "画面位置",
     "add": "添加文字",
-    "content": "文字内容"
+    "content": "文字内容",
+    "verticalAlignment": {
+      "top": "顶部",
+      "center": "居中",
+      "bottom": "底部"
+    }
   },
   "tabs": {
     "captions": "字幕",
@@ -68,22 +73,23 @@
     "startsAt": "开始（秒）",
     "endsAt": "结束（秒）"
   },
-  "top": "顶部",
-  "center": "居中",
-  "bottom": "底部",
   "project": {
     "saved": "视频编辑工程已保存"
   },
   "render": {
     "action": "渲染视频",
     "task": "视频渲染",
-    "failed": "视频渲染失败"
+    "failed": "视频渲染失败",
+    "stages": {
+      "preparingVideoEdit": "正在准备编辑工程",
+      "renderingVideoEdit": "正在渲染视频",
+      "savingResource": "正在保存资源"
+    }
   },
-  "preparingVideoEdit": "正在准备编辑工程",
-  "renderingVideoEdit": "正在渲染视频",
-  "savingResource": "正在保存资源",
-  "previousStep": "后退 0.1 秒",
-  "nextStep": "前进 0.1 秒",
+  "playback": {
+    "stepBackward": "后退 0.1 秒",
+    "stepForward": "前进 0.1 秒"
+  },
   "trim": {
     "start": "修剪片段起点",
     "end": "修剪片段终点",

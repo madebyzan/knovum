@@ -11,8 +11,10 @@
     "editSegment": "Edit transcript segment",
     "search": "Search transcript",
     "noMatches": "No matching transcript text",
-    "live": "Live transcription",
-    "liveHint": "Live transcript text will appear here as recognized.",
+    "live": {
+      "label": "Live transcription",
+      "hint": "Live transcript text will appear here as recognized."
+    },
     "alignSelected": "Align selected",
     "alignmentLimit": "Up to 8 segments / 5 minutes",
     "alignmentFirstUse": "First use downloads the selected model and required resources automatically. Manage model choices in Settings.",
