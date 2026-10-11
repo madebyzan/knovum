@@ -6,7 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::{installation, operations::PluginOperation, packages, sources};
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 use tauri::{ipc::Channel, AppHandle, Manager};
 
 #[tauri::command]

@@ -1,6 +1,6 @@
 use serde::de::DeserializeOwned;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub const MAX_IMAGE_BYTES: usize = 64 * 1024 * 1024;
 pub const MAX_IMAGE_JSON_BYTES: usize = 96 * 1024 * 1024;
@@ -71,8 +71,11 @@ pub(crate) fn decode_base64(encoded: &str, limit: usize) -> AppResult<Vec<u8>> {
 pub(crate) async fn download_image(url: &str) -> AppResult<Vec<u8>> {
     let url = reqwest::Url::parse(url)
         .map_err(|error| AppError::new("invalid_response", error.to_string()))?;
-    let response = crate::public_network::resource_response(url, reqwest::header::HeaderMap::new())
-        .await
-        .map_err(|error| AppError::new("provider_request_failed", error))?;
+    let response = crate::foundation::public_network::resource_response(
+        url,
+        reqwest::header::HeaderMap::new(),
+    )
+    .await
+    .map_err(|error| AppError::new("provider_request_failed", error))?;
     read_bytes(response, MAX_IMAGE_BYTES).await
 }

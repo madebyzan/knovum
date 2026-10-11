@@ -87,6 +87,8 @@ checkpoint readers exist. Public audio.cpp C APIs own loading, session execution
 Supported Metal/Vulkan devices are selected before inference after capacity checks; CPU is the
 explicit profile on machines without an admitted accelerator. Execution failures remain errors.
 Each durable alignment request freezes a model specification independent of its execution device.
+Host memory admission and worker verification use the execution identity defined by
+`inference-contracts`; obsolete execution profiles are rejected.
 Retries use that specification; transcript provenance retains the selected model and upstream revision.
 The synchronous audio.cpp C API owns one session per worker and does not expose an inference abort hook.
 Cancellation is checked before/after inference and between segments; the host's existing bounded

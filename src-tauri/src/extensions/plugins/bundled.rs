@@ -6,7 +6,7 @@ use super::super::{
     },
     database, ExtensionState,
 };
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 
@@ -125,9 +125,10 @@ pub(super) async fn read(
     #[cfg(debug_assertions)]
     let _ = app;
     let cancellation = cancellation.clone();
-    let files =
-        crate::blocking::run(move || super::sources::directory_files(&directory, &cancellation))
-            .await?;
+    let files = crate::foundation::blocking::run(move || {
+        super::sources::directory_files(&directory, &cancellation)
+    })
+    .await?;
     let revision = content::files_digest(&files);
     Ok((files, revision))
 }

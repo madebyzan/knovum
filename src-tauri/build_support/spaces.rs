@@ -1,5 +1,5 @@
 #[macro_use]
-#[path = "../spaces_commands.rs"]
+#[path = "../src/spaces/command_registry/declarations.rs"]
 mod declarations;
 macro_rules! command_name {
     ($name:ident) => { stringify!($name) };

@@ -6,7 +6,7 @@ use std::{
 use serde::Serialize;
 use tauri_plugin_fs::FsExt;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 const MAX_FILE_BYTES: u64 = 20 * 1024 * 1024;
 const MAX_IMAGE_BYTES: u64 = 10 * 1024 * 1024;
@@ -32,7 +32,7 @@ pub async fn inspect_conversation_upload(
     app: tauri::AppHandle,
     path: String,
 ) -> Result<InspectedConversationUpload, AppError> {
-    crate::blocking::run(move || inspect(&app, &path)).await
+    crate::foundation::blocking::run(move || inspect(&app, &path)).await
 }
 
 #[tauri::command]
@@ -42,7 +42,7 @@ pub async fn preview_conversation_upload(
 ) -> Result<(), AppError> {
     let source = authorize(&app, &path)?;
     classify(&source)?;
-    crate::system_preview::open(app, source).await?;
+    crate::desktop::system_preview::open(app, source).await?;
     Ok(())
 }
 

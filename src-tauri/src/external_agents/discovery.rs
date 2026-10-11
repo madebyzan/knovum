@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::ai::contracts::ExternalAgentInstallation;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub async fn system_path() -> AppResult<String> {
     #[cfg(target_os = "macos")]

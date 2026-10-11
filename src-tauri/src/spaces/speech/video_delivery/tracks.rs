@@ -1,8 +1,8 @@
 use super::super::{cancellation, publication::hash_file, video_publication::policy};
 use super::{contracts::ExportVideoAudioTracksRequest, files, repository};
 use crate::{
-    app_error::AppError,
     file_inspection::verify_content_revision,
+    foundation::app_error::AppError,
     local_resources::tools,
     spaces::{assets, db},
 };
@@ -65,33 +65,35 @@ pub async fn export_video_audio_tracks(
         &request.revision_ids[0],
         &request.job_id,
     )?;
-    Ok(crate::blocking::run(move || -> Result<_, String> {
-        let encoding = (|| {
-            for track in &tracks {
-                verify_track(track)?;
-            }
-            let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
-            let output = work.join("tracks.mp4");
-            mux_tracks(
-                TrackMuxRequest {
-                    ffmpeg: &ffmpeg,
-                    source: &source,
-                    tracks: &tracks,
-                    output: &output,
-                    duration_ms: video.duration_ms,
-                    retain_original_track: request.retain_original_track,
-                },
-                &cancellation,
-            )?;
-            verify_content_revision(&source, &video.source_revision)?;
-            for track in &tracks {
-                verify_track(track)?;
-            }
-            files::commit(&output, &destination, &cancellation)
-        })();
-        files::finish(encoding, &work)
-    })
-    .await?)
+    Ok(
+        crate::foundation::blocking::run(move || -> Result<_, String> {
+            let encoding = (|| {
+                for track in &tracks {
+                    verify_track(track)?;
+                }
+                let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
+                let output = work.join("tracks.mp4");
+                mux_tracks(
+                    TrackMuxRequest {
+                        ffmpeg: &ffmpeg,
+                        source: &source,
+                        tracks: &tracks,
+                        output: &output,
+                        duration_ms: video.duration_ms,
+                        retain_original_track: request.retain_original_track,
+                    },
+                    &cancellation,
+                )?;
+                verify_content_revision(&source, &video.source_revision)?;
+                for track in &tracks {
+                    verify_track(track)?;
+                }
+                files::commit(&output, &destination, &cancellation)
+            })();
+            files::finish(encoding, &work)
+        })
+        .await?,
+    )
 }
 fn verify_track(track: &Track) -> Result<(), String> {
     if hash_file(&track.path)? == track.sha256 {

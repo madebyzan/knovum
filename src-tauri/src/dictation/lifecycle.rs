@@ -95,7 +95,7 @@ pub(super) async fn stop<R: Runtime>(
         return;
     };
     let output = wav.clone();
-    let recording = match crate::blocking::run(move || recorder.finish(&output)).await {
+    let recording = match crate::foundation::blocking::run(move || recorder.finish(&output)).await {
         Ok(value) => value,
         Err(error) => {
             let _ = tokio::fs::remove_file(&wav).await;

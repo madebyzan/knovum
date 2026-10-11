@@ -1,6 +1,6 @@
 use crate::{
-    app_error::{AppError, AppResult},
-    job_registry::{JobAdmissionReservation, JobLease, JobRegistry},
+    foundation::app_error::{AppError, AppResult},
+    foundation::job_registry::{JobAdmissionReservation, JobLease, JobRegistry},
 };
 use std::{
     future::Future,

@@ -3,7 +3,7 @@ use sqlx::{Sqlite, Transaction};
 
 use super::change_commit::{self, KnowledgeChange};
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{authorization::Principal, db},
 };
 

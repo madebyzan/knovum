@@ -11,7 +11,7 @@ use super::super::{
     generation_attempt, publication,
 };
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         db,
         runs::{AttemptClaim, StepOutcome},

@@ -4,7 +4,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::{contracts::DeriveImageRequest, output::CanonicalImage, output_file, validation};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output, relations, source_validation, CompletedDerivationOutput},
@@ -53,7 +53,7 @@ pub async fn start(
         .ok_or("Image operation output node is unavailable")?;
     let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
     pending_output::validate_separate_asset(&output, &source_path)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(request.operation.action_kind())
@@ -141,7 +141,7 @@ async fn persist(
     image: &CanonicalImage,
     path: &Path,
 ) -> Result<super::super::DerivationRelation, AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
         .as_object_mut()
         .ok_or("Image operation node data is invalid")?;

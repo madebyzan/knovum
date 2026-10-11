@@ -1,5 +1,5 @@
 use super::*;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 fn operation() -> (String, PluginOperation) {

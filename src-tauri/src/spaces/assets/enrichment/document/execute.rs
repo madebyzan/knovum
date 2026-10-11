@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::assets::enrichment::{commit, jobs::RunEnrichmentJobRequest};
 use crate::spaces::knowledge::model::document_coverage::{
     validate_analysis, DocumentCoverage, VisualState,
@@ -33,7 +33,7 @@ pub(in crate::spaces) async fn analyze(
     let fingerprint = source_fingerprint(&source)?;
     let checked_source = source.clone();
     let revision = report.source_revision.clone();
-    crate::blocking::run(move || -> Result<(), AppError> {
+    crate::foundation::blocking::run(move || -> Result<(), AppError> {
         if crate::file_inspection::content_revision(&checked_source)? != revision {
             return Err("Document source bytes changed before analysis".into());
         }

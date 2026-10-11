@@ -2,7 +2,7 @@ pub(crate) mod alignment;
 pub(crate) mod diarization;
 
 use super::job::EnrichmentJobType;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 use serde::{de::IntoDeserializer, Deserialize};
 use sqlx::Row;
@@ -59,7 +59,7 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
         }
     }
     let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,updated_at=$1 WHERE id=$2 AND status IN ('failed','cancelled')")
-        .bind(crate::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(
         executed,
         "Only failed or cancelled enrichment can be retried",
@@ -99,7 +99,7 @@ pub async fn request_media_transcription(
                 .into(),
         );
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
     let row = sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'transcribe_media','pending',$4,0,$5,$5) ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') DO UPDATE SET updated_at=excluded.updated_at RETURNING id")
         .bind(id).bind(space_id).bind(node_id).bind(revision).bind(now).fetch_one(&mut *tx).await.map_err(db::sql_error)?;

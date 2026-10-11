@@ -7,7 +7,7 @@ use sqlx::{Executor, Sqlite};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{grounded_document, subtitled_video, video_generation, visualization};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Handler {

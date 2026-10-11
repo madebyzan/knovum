@@ -45,19 +45,19 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("cpu", "qwen3-forced-aligner-0.6b-f16-cpu-inference-v2", 4),
+            profile("cpu", "qwen3-forced-aligner-0.6b-f16-cpu-native-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
-            profile("mps", "qwen3-forced-aligner-0.6b-f16-mps-inference-v2", 4),
+            profile("mps", "qwen3-forced-aligner-0.6b-f16-mps-native-v2", 4),
             6,
         ),
         (
             RuntimeCapability::SpeechAlignment,
             profile(
                 "vulkan",
-                "qwen3-forced-aligner-0.6b-f16-vulkan-inference-v2",
+                "qwen3-forced-aligner-0.6b-f16-vulkan-native-v2",
                 4,
             ),
             6,
@@ -164,7 +164,7 @@ fn alignment_model_profiles_reject_unqualified_devices_before_execution() {
     for model in [M::Qwen3Aligner, M::Qwen3AlignerQ8] {
         for device in ["cpu", "mps", "vulkan"] {
             let id = super::alignment::execution_id(model, device).unwrap();
-            assert!(id.ends_with("-inference-v2"));
+            assert!(id.ends_with("-native-v2"));
             let value = profile(device, &id, 2);
             assert_eq!(
                 super::memory_requirement(RuntimeCapability::SpeechAlignment, &value)
@@ -172,6 +172,12 @@ fn alignment_model_profiles_reject_unqualified_devices_before_execution() {
                     .peak_bytes(),
                 6 * super::GIB
             );
+            let obsolete = id.replace("-native-v2", "-inference-v2");
+            assert!(super::memory_requirement(
+                RuntimeCapability::SpeechAlignment,
+                &profile(device, &obsolete, 2),
+            )
+            .is_err());
         }
     }
     assert!(super::alignment::execution_id(M::Qwen3Aligner, "cuda").is_err());

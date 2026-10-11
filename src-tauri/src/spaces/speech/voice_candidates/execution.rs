@@ -16,7 +16,7 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         db,
         runs::{AttemptClaim, StepOutcome},
@@ -72,7 +72,7 @@ async fn require_application_authority(
         .ok_or("permission-denied: Voice candidate Run authorization grant is missing")?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
-    grant.require_application(crate::clock::unix_time_millis()?)?;
+    grant.require_application(crate::foundation::clock::unix_time_millis()?)?;
     let principal: Option<(String, String)> = sqlx::query_as(
         "SELECT principal_kind,principal_id FROM spaces_runs \
          WHERE id=? AND scope_kind='application'",

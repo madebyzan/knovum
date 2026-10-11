@@ -9,13 +9,13 @@ import type { CanvasEditorPort } from "../canvas/contracts/canvas-editor-port";
 import { registerCanvasEditor } from "../canvas/editor-session";
 import CanvasSurfaceHost from "../canvas/host/CanvasSurfaceHost.vue";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import SpaceCanvas from "../presentation/canvas/SpaceCanvas.vue";
-import SpaceCanvasProductLayer from "../presentation/canvas/SpaceCanvasProductLayer.vue";
+import SpaceCanvas from "../canvas/presentation/SpaceCanvas.vue";
+import SpaceCanvasProductLayer from "../canvas/presentation/SpaceCanvasProductLayer.vue";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
 
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));
-vi.mock("../presentation/canvas/use-space-canvas-imports", () => ({
+vi.mock("../canvas/presentation/use-space-canvas-imports", () => ({
   useSpaceCanvasImports: () => ({
     fileHover: { value: false },
     error: { value: undefined },

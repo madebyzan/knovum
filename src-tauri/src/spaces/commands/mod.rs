@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 pub(crate) mod catalog;
 mod permanent_deletion;
 pub(crate) mod relations;

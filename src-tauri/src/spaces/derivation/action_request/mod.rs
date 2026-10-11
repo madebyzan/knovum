@@ -4,7 +4,7 @@ mod output;
 use serde_json::{Map, Value};
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::actions;
 
 pub(super) async fn prepare(

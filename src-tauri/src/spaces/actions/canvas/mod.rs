@@ -6,7 +6,7 @@ use super::{
     ActionInvocationOutcome, ActionInvocationRequest, SpaceActionExecutionMode, SpaceActionImpact,
 };
 use crate::ai::tasks::TaskTargetRef;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     authorization::{create_grant, local_user_grant, PrincipalKind, RunScope},
     db,
@@ -110,7 +110,7 @@ async fn accept(
             );
         }
     } else {
-        let now = crate::clock::unix_time_millis()?;
+        let now = crate::foundation::clock::unix_time_millis()?;
         let grant = local_user_grant(
             request.request_id.clone(),
             RunScope::Space {

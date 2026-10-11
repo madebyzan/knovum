@@ -11,7 +11,7 @@ import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { importSkillDirectory, exportSkillDirectory } from "../skill-directory";
 import { useSkillManagement } from "../use-skill-management";
 import SkillContentEditor from "./SkillContentEditor.vue";

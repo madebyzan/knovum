@@ -67,7 +67,7 @@ pub async fn reconcile_interrupted<R: Runtime>(app: &AppHandle<R>) -> Result<(),
             "UPDATE spaces_speech_segments SET state='ready',state_reason='interrupted',updated_at=? \
              WHERE id=? AND state='rendering'",
         )
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .bind(&segment_id)
         .execute(&mut *tx)
         .await

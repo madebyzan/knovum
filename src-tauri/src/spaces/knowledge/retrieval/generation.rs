@@ -74,7 +74,7 @@ pub(super) async fn begin_rebuild(
         id: uuid::Uuid::new_v4().to_string(),
         embedding_spec_id: embedding_spec_id.to_owned(),
     };
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "INSERT INTO spaces_retrieval_generations(\
            id,space_id,embedding_spec_id,status,created_at\
@@ -115,7 +115,7 @@ pub(super) async fn activate(
             "Knowledge index generation is incomplete: {missing} chunks are missing"
         ));
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let changed = sqlx::query(
         "UPDATE spaces_retrieval_generations SET status='active',activated_at=$1 \
          WHERE id=$2 AND space_id=$3 AND embedding_spec_id=$4 AND status='building'",

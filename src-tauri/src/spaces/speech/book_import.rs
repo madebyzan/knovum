@@ -4,7 +4,9 @@ use serde::Serialize;
 use tauri::AppHandle;
 
 use super::cancellation;
-use crate::{app_error::AppError, documents::extraction, file_inspection, spaces::assets};
+use crate::{
+    documents::extraction, file_inspection, foundation::app_error::AppError, spaces::assets,
+};
 
 const MAX_SOURCE_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_TEXT_BYTES: usize = 16 * 1024 * 1024;
@@ -50,7 +52,7 @@ pub async fn read_audiobook_source(
         .ok_or("Audiobook document has no source revision")?
         .to_owned();
     let source = assets::authorize_spaces_asset(&app, Path::new(source_path))?;
-    Ok(crate::blocking::run(move || -> Result<_, String> {
+    Ok(crate::foundation::blocking::run(move || -> Result<_, String> {
         let metadata = fs::metadata(&source).map_err(|error| error.to_string())?;
         if !metadata.is_file() || metadata.len() > MAX_SOURCE_BYTES { return Err("Audiobook source exceeds 128 MiB".into()); }
         file_inspection::verify_content_revision(&source, &expected_revision)?;

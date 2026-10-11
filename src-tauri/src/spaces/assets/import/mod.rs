@@ -10,7 +10,7 @@ pub(crate) mod registry;
 pub(crate) mod web;
 
 pub(crate) fn reserve_maintenance(
-) -> Result<[crate::job_registry::JobAdmissionReservation; 2], String> {
+) -> Result<[crate::foundation::job_registry::JobAdmissionReservation; 2], String> {
     let imports = registry::reserve_maintenance()?;
     let media = media::reserve_maintenance()?;
     Ok([imports, media])

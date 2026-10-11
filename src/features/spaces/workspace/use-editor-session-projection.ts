@@ -3,7 +3,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
-import { useDocumentSessionStore } from "../editor/document-session-store";
+import { useDocumentSessionStore } from "../document-editing/document-session-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceState } from "../session/session-state";
 import { useVideoSessionStore } from "../video-editing/video-session-store";

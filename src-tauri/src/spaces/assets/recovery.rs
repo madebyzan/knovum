@@ -4,7 +4,7 @@ use serde_json::Value;
 use sqlx::Row;
 
 use super::{asset_directory, audio, enrichment, transfer::remove_path};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
 const INTERRUPTED_ASSETS: &str =

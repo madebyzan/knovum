@@ -3,7 +3,7 @@ mod protocol;
 mod tests;
 
 use crate::ai::tasks::completion::TaskInput;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 pub(crate) fn input(text: String, target_language: String) -> AppResult<TaskInput> {
     let language = protocol::language_name(&target_language)?;

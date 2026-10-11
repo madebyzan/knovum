@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::ai::contracts::ProviderKind;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ts_rs::TS)]
 #[serde(

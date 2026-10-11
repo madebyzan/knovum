@@ -9,7 +9,7 @@ pub(in crate::spaces::conversations) async fn prune(
     pool: &SqlitePool,
     peer: &Peer,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let cutoff = now - 30 * 24 * 60 * 60 * 1_000;
     let threads: Vec<String> = sqlx::query_scalar("SELECT s.id FROM spaces_builtin_agent_execution_segments s
         WHERE s.checkpoint_deleted_at IS NULL AND s.projection_checkpoint_id IS NOT NULL

@@ -34,10 +34,10 @@ vi.mock("vue-i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof VueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
+import { useImageNodeBarState } from "../canvas/presentation/images/use-image-node-bar-state";
+import SpaceCanvasObjectRemoval from "../image-editing/presentation/SpaceCanvasObjectRemoval.vue";
+import SpaceImageObjectRemovalControls from "../image-editing/presentation/SpaceImageObjectRemovalControls.vue";
 import { useImageRemovalSessionStore } from "../knowledge-derivations/image-removal-session-store";
-import SpaceCanvasObjectRemoval from "../presentation/canvas/SpaceCanvasObjectRemoval.vue";
-import SpaceImageObjectRemovalControls from "../presentation/canvas/SpaceImageObjectRemovalControls.vue";
-import { useImageNodeBarState } from "../presentation/canvas/use-image-node-bar-state";
 
 let node: SpaceCanvasNode<SpaceImagePayload>;
 beforeEach(() => {

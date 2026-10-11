@@ -2,7 +2,7 @@ use serde_json::{json, Map, Value};
 use tauri::AppHandle;
 
 use super::inputs::ResolvedInputs;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     knowledge::{indexing::KnowledgeChunkInput, model::revision},
@@ -161,7 +161,7 @@ async fn insert_output(
         space_id,
         &[node],
         crate::spaces::knowledge::events::EventActor::new("system", Some(&authority.run_id)),
-        crate::clock::unix_time_millis()?,
+        crate::foundation::clock::unix_time_millis()?,
         crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await?;

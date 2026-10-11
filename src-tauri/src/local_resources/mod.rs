@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::path::PathBuf;
 
 use serde::Serialize;
@@ -58,7 +58,7 @@ struct ModelStatuses {
 
 #[tauri::command]
 pub async fn get_status(app: AppHandle) -> Result<LocalResourcesStatus, AppError> {
-    Ok(crate::blocking::run(move || status(&app)).await?)
+    Ok(crate::foundation::blocking::run(move || status(&app)).await?)
 }
 
 fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {

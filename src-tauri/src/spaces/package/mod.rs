@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 pub(crate) mod control;
 mod import;
 mod manifest_assets;
@@ -89,7 +89,7 @@ pub async fn export_space_package(
     let snapshot = crate::spaces::queries::package_snapshot::collect(&app, space_id).await?;
     control::check(&cancellation)?;
     let manifest = serde_json::to_string(&snapshot.manifest).map_err(|e| e.to_string())?;
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let target = PathBuf::from(destination_path);
         crate::spaces::assets::authorize_destination(&app, &target)?;
         write::write_package(

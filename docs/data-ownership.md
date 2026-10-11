@@ -7,7 +7,7 @@ SQLite is a storage primitive, not a shared application service.
 Spaces owns its persisted domain data, schema, Rust repository and tests. Do not create a global `DatabaseService` or expose arbitrary SQL across IPC.
 
 The application database is `spaces.db`. SQLx owns its current v1 baseline in
-`src-tauri/migrations/spaces/` and records the installed version and checksum in `_sqlx_migrations`.
+`src-tauri/src/spaces/db/migrations/` and records the installed version and checksum in `_sqlx_migrations`.
 
 The database resolves from Tauri's AppConfig directory through the connection policy in `src-tauri/src/sqlite.rs`. Spaces repositories own their SQL and domain rules.
 

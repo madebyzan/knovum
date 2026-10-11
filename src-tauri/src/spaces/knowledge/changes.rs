@@ -3,7 +3,7 @@ use serde_json::Value;
 use tauri::{AppHandle, Runtime};
 
 use super::change_commit::{self, KnowledgeChange};
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -34,7 +34,7 @@ pub async fn commit_knowledge_changes<R: Runtime>(
         return Err("Knowledge Change Set target Space does not exist".into());
     }
     change_commit::validate_references(&mut tx, &changes.space_id, &changes.operations).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let committed_changes = change_commit::apply(
         &mut tx,
         &changes.space_id,

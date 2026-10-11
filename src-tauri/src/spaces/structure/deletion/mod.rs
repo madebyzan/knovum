@@ -1,6 +1,6 @@
 use super::edit_contract::SpaceEditReceipt;
 use super::{history, repository, StructureNode};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
@@ -88,7 +88,7 @@ pub(crate) async fn restore<R: Runtime>(
         })
         .map(|structure_node| structure_node.id().to_owned())
         .collect::<Vec<_>>();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     crate::spaces::nodes::restore_in_transaction(&mut tx, &request.space_id, &node_ids, now)
         .await?;
     for relation in &restored.relations {

@@ -39,7 +39,7 @@ pub(super) async fn persist_snapshot(
             }
         }
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let moving_ids = snapshot
         .structure
         .iter()

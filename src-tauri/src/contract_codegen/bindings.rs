@@ -4,7 +4,7 @@ type ContractExporter = fn(&Config) -> Result<(), ts_rs::ExportError>;
 
 pub(super) fn export(config: &Config) -> Result<(), String> {
     let exporters: &[ContractExporter] = &[
-        crate::desktop_task::DesktopTask::export_all,
+        crate::desktop::tasks::contracts::DesktopTask::export_all,
         crate::desktop::AppExitRequest::export_all,
         crate::desktop::EditingCommand::export_all,
         crate::dictation::contracts::DictationPhase::export_all,
@@ -80,14 +80,14 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::structure::deletion::discard::DiscardPendingContentRequest::export_all,
         crate::spaces::structure::deletion::discard::DiscardPendingContentResponse::export_all,
         crate::spaces::canvas_exchange::import::JsonCanvasImportReceipt::export_all,
-        crate::updater::UpdateSnapshot::export_all,
+        crate::desktop::updater::UpdateSnapshot::export_all,
         crate::spaces::derivation::queries::DerivationFailure::export_all,
         crate::spaces::derivation::image_operations::contracts::ImageOperation::export_all,
         crate::spaces::derivation::image_operations::selection_preview::ImageSelectionPreviewRequest::export_all,
         crate::spaces::derivation::image_operations::selection_preview::ImageSelectionPreview::export_all,
         crate::spaces::derivation::image_operations::contracts::ImageOperationCapabilities::export_all,
         crate::spaces::package::SpacePackageProgress::export_all,
-        crate::app_error::AppError::export_all,
+        crate::foundation::app_error::AppError::export_all,
         crate::backup::contracts::MaintenanceReceipt::export_all,
         crate::preferences::Preferences::export_all,
         crate::preferences::WorkbenchPreferences::export_all,

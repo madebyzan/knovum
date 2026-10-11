@@ -23,7 +23,7 @@ pub(super) async fn analyze(
     let revision = request.source_revision.clone();
     let token = cancellation.clone();
     transcription::send_progress(progress, "analyzing", 5);
-    let prepared = crate::blocking::run(move || {
+    let prepared = crate::foundation::blocking::run(move || {
         media_analysis::prepare(&app, Path::new(&source), &revision, &token)
     })
     .await?;
@@ -70,7 +70,7 @@ pub(super) async fn transcribe(
     )
     .await?;
     let revision = request.source_revision.clone();
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         crate::file_inspection::verify_content_revision(Path::new(&source), &revision)
     })
     .await?;

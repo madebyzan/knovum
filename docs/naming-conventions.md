@@ -49,8 +49,8 @@ Names are part of the architecture contract. Prefer domain language over impleme
 
 ## Source paths and files
 
-The retained Python package is `knovum_agent_runtime` under `python/src/`; `knovum-python` names
-its distribution and `knovum-agent-runtime` its process entry. Agent tests live in
+The retained Python package is `knovum_agent_runtime` under `python/src/`; `knovum-agent` names
+its distribution and process entry. Agent tests live in
 `python/tests/agent_runtime/` and its Rust-owned wire schema in `python/schemas/agent_runtime.schema.json`.
 Inference runs in the `knovum-inference-worker` Rust package; shared wire types and its
 schema belong to `inference-contracts`. Managed Agent CPython resources and Rust inference
@@ -63,7 +63,7 @@ files.
 
 | Source object              | Rule                                                   | Example                                  |
 | -------------------------- | ------------------------------------------------------ | ---------------------------------------- |
-| Python directory/module    | `snake_case`, named within its concrete owner          | `speech/synthesis/kokoro.py`             |
+| Python directory/module    | `snake_case`, named within its concrete owner          | `knovum_agent_runtime/checkpoints.py`    |
 | Rust directory/module/file | `snake_case`                                           | `status/parser.rs`                       |
 | TypeScript directory/file  | `kebab-case`                                           | `relation-repository.ts`                 |
 | Vue SFC                    | `PascalCase.vue`                                       | `SpaceRelationEditor.vue`                |
@@ -80,11 +80,17 @@ move to `<name>/mod.rs`; do not keep both `<name>.rs` and `<name>/` as siblings.
 empty directory for a file-only module or use `#[path]` to preserve the old physical layout.
 
 Feature roots contain only the module entry, primary view and genuine top-level owners. Non-route UI
-belongs to its capability's `components/` or, for Spaces, `presentation/<capability>/`; secondary routed pages belong in `views/`. Composables stay beside their
+belongs to its capability's `components/` or, for Spaces, `<capability>/presentation/`; secondary routed pages belong in `views/`. Composables stay beside their
 owning capability rather than in a catch-all directory. Small features do not create empty layering
 directories. Renderer directories name product capabilities or concrete technical ownership;
 `model/` is reserved for shared typed contracts and pure transforms. Generic
 `application/`, `domain/` and `infrastructure/` directories are not Renderer ownership names.
+
+Settings pane files stay with the capability they configure. Assets such as provider logos stay
+with their sole consumer. Shared controls retain a feature-local `components/` owner only when
+several capabilities consume them. Tests follow the nearest common implementation owner rather
+than a parallel feature-wide test tree. Ownership and dependency direction are specified in
+[architecture.md](architecture.md).
 
 `native` is not a naming prefix for paths, files, types, commands or variables. Knovum is one desktop
 product, so it separates nothing; name the mechanism that actually differs, such as `rust`, `webview`,
@@ -346,7 +352,7 @@ identify their owning module. In-process plugin registration cannot claim that v
 An app command has four touch points, and missing any one of them makes it unreachable or ungranted:
 
 1. the `#[tauri::command]` function itself;
-2. the `tauri::generate_handler![...]` list in `src-tauri/src/app_builder/mod.rs`;
+2. the `tauri::generate_handler![...]` list in `src-tauri/src/app/mod.rs`;
 3. a manual `commands.allow` entry in `src-tauri/permissions/<feature>.toml` and a capability grant
    naming that permission;
 4. a Renderer `invoke("<verb>_<entity>")` literal.

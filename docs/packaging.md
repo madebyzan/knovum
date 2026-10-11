@@ -113,6 +113,9 @@ complete frozen Agent onedir distribution, and bundled Agent plugin data. Agent 
 are built from the one `python/uv.lock`; users do not download an interpreter or install packages.
 Model weights and optional yt-dlp/Deno remain independently prepared resources.
 
+The Tauri host package contains only the product binary. Contract generation belongs to the
+separate `tools/contract-exporter` Cargo workspace package and is not distributed with the app.
+
 `inference-contracts` owns neutral Rust worker DTOs; Python generation consumes Agent contracts
 only. Obsolete pre-release protocols fail visibly without compatibility readers or alternate engines.
 

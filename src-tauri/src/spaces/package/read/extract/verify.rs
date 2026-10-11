@@ -7,7 +7,7 @@ pub(super) fn verify_assets(
     targets: &HashMap<String, (PathBuf, bool)>,
     index: &[AssetIndex],
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     for asset in index {
         super::super::super::control::check(cancellation)?;
         let (path, directory) = targets

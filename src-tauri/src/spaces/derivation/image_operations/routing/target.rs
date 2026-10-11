@@ -1,7 +1,7 @@
 use super::super::contracts::{ImageExecutionTarget, ImageOperation};
 use crate::{
     ai::{contracts::ExecutionCapability, settings, tasks::TaskExecutionTarget},
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::model_catalog::{LocalModelCapability, LocalModelId},
 };
 use tauri::AppHandle;

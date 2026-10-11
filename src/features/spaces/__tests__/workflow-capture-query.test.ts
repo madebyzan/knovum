@@ -25,9 +25,9 @@ vi.mock("../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space-1", workflowCaptureSelection: ["output-1"], nodes: [] }),
 }));
 vi.mock("../workflows/captured-workflow-ipc", () => ({ previewWorkflowCapture: captured.preview }));
-vi.mock("../presentation/workflows/SpaceWorkflowSaveForm.vue", () => ({ default: { template: "<div />" } }));
+vi.mock("../workflows/presentation/SpaceWorkflowSaveForm.vue", () => ({ default: { template: "<div />" } }));
 
-import SpaceWorkflowCapture from "../presentation/workflows/SpaceWorkflowCapture.vue";
+import SpaceWorkflowCapture from "../workflows/presentation/SpaceWorkflowCapture.vue";
 
 describe("workflow capture query", () => {
   it("submits the selected node ids rather than the query namespace", async () => {

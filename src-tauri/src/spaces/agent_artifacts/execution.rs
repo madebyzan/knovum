@@ -3,8 +3,8 @@ use std::sync::Arc;
 use tauri::{ipc::Channel, AppHandle};
 
 use crate::ai::executions;
-use crate::app_error::{AppError, AppResult};
 use crate::external_agents;
+use crate::foundation::app_error::{AppError, AppResult};
 
 use super::contracts;
 
@@ -109,7 +109,7 @@ async fn record_update(
         None,
         kind,
         &payload,
-        crate::clock::unix_time_millis()?,
+        crate::foundation::clock::unix_time_millis()?,
     )
     .await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)

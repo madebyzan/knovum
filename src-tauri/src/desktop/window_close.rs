@@ -9,7 +9,7 @@ use std::{
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 const MAIN_WINDOW_LABEL: &str = "main";
 static NEXT_REQUEST: AtomicU64 = AtomicU64::new(1);

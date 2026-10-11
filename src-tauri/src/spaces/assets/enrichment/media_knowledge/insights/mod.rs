@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::{
     ai::{
         self,
@@ -113,7 +113,7 @@ pub(super) async fn generate_with(
         parse_candidate(&completion.text).map_err(invalid_output)?
     };
     let mut next = knowledge.clone();
-    next["insights"] = json!({"summary":candidate["summary"],"chapters":chapters(&candidate["chapters"], transcript).map_err(invalid_output)?,"promptVersion":1,"generatedAt":crate::clock::unix_time_millis()?,"executionSource":execution_source});
+    next["insights"] = json!({"summary":candidate["summary"],"chapters":chapters(&candidate["chapters"], transcript).map_err(invalid_output)?,"promptVersion":1,"generatedAt":crate::foundation::clock::unix_time_millis()?,"executionSource":execution_source});
     transcription::send_progress(progress, "organizing", 95);
     Ok(next)
 }

@@ -3,7 +3,7 @@ use super::super::{
     SubmitConversationTaskRequest,
 };
 use crate::ai::tasks::TaskTargetSelection;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[tauri::command]
 pub async fn start_conversation_task(

@@ -1,5 +1,5 @@
 use super::*;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 fn fixture() -> std::path::PathBuf {
     let path = std::env::temp_dir().join(format!("knovum-revision-test-{}", uuid::Uuid::new_v4()));

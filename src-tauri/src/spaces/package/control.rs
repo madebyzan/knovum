@@ -3,8 +3,8 @@ use std::sync::OnceLock;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    app_error::AppError,
-    job_registry::{JobAdmissionReservation, JobLease, JobRegistry},
+    foundation::app_error::AppError,
+    foundation::job_registry::{JobAdmissionReservation, JobLease, JobRegistry},
 };
 
 const CANCELLED: &str = "Space package transfer cancelled";

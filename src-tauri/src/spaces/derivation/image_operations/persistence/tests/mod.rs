@@ -72,7 +72,10 @@ async fn complete(
     pool: &SqlitePool,
     request: &DeriveImageRequest,
     token: &CancellationToken,
-) -> Result<crate::spaces::derivation::CompletedDerivationOutput, crate::app_error::AppError> {
+) -> Result<
+    crate::spaces::derivation::CompletedDerivationOutput,
+    crate::foundation::app_error::AppError,
+> {
     super::complete_persistence(
         pool,
         request,

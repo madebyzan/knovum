@@ -2,8 +2,8 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it } from "vitest";
 
 import { createSpaceNode } from "../canvas/node";
-import { useDocumentSessionStore } from "../editor/document-session-store";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { useDocumentSessionStore } from "../document-editing/document-session-store";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { createVideoEditProject } from "../video-editing/project";
 import { useVideoSessionStore } from "../video-editing/video-session-store";
 

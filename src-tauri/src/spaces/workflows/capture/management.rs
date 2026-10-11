@@ -91,7 +91,7 @@ pub(super) async fn revise(
         .version
         .checked_add(1)
         .ok_or("workflow-change-limit: version overflow")?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let workflow_write = sqlx::query(
         "UPDATE spaces_workflow_templates SET definition=$1,updated_at=$2 WHERE id=$3
          AND json_extract(definition,'$.version')=$4",
@@ -151,7 +151,7 @@ pub(super) async fn rename(
     )
     .bind(name)
     .bind(sqlx::types::Json(&saved))
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .bind(workflow_id)
     .execute(&mut *tx)
     .await

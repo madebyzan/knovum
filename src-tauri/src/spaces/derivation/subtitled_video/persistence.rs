@@ -4,7 +4,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::super::video_output::RenderedVideo;
 use super::super::{pending_output, relations, CompletedDerivationOutput};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{db, knowledge::model::revision};
 
 pub struct VideoSubtitleSource {
@@ -31,7 +31,7 @@ pub async fn complete(
     ).bind(derivation_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Subtitle derivation is no longer running")?;
     super::super::inputs::validate_current(&mut tx, derivation_id).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&data)?;
     apply_output(&mut data, &output, now)?;

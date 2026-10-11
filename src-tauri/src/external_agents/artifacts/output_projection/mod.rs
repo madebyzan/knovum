@@ -7,7 +7,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 const MANIFEST_NAME: &str = ".agent-output-projection.json";
 const MANIFEST_VERSION: u32 = 1;

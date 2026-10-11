@@ -23,7 +23,7 @@ pub(super) fn plan_assets(
     assets: &[PackageAsset],
     manifest_assets: &super::super::manifest_assets::ManifestAssets,
     cancellation: &CancellationToken,
-) -> Result<Vec<AssetPlan>, crate::app_error::AppError> {
+) -> Result<Vec<AssetPlan>, crate::foundation::app_error::AppError> {
     if manifest.len() as u64 > MAX_MANIFEST || assets.len() > MAX_ASSETS {
         return Err("Space package exceeds export limits".into());
     }
@@ -97,7 +97,7 @@ fn validate_source_revision(
 fn inspect_asset(
     source: &Path,
     cancellation: &CancellationToken,
-) -> Result<(usize, u64), crate::app_error::AppError> {
+) -> Result<(usize, u64), crate::foundation::app_error::AppError> {
     super::super::control::check(cancellation)?;
     if source.is_file() {
         return Ok((
@@ -141,7 +141,7 @@ fn inspect_asset(
 pub(super) fn verify_unchanged(
     plans: &[AssetPlan],
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     for plan in plans {
         super::super::control::check(cancellation)?;
         let expected = plan

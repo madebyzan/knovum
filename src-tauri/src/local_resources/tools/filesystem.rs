@@ -51,7 +51,7 @@ pub(super) async fn record_file_verification(
     expected_sha256: String,
     cancellation: CancellationToken,
 ) -> Result<bool, String> {
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         super::super::verification::record_verification(
             &path,
             &expected_sha256,
@@ -70,7 +70,7 @@ pub(super) async fn finalize_executable(
     if !verify_file(path.clone(), expected_sha256, cancellation).await? {
         return Ok(false);
     }
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         make_executable(&path)?;
         fs::File::open(path)
             .and_then(|file| file.sync_all())

@@ -5,9 +5,9 @@ import { nextTick, shallowRef } from "vue";
 import { createI18n } from "vue-i18n";
 
 import { createSpaceNode } from "../canvas/node";
-import { useDocumentSessionStore } from "../editor/document-session-store";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { useSpaceTiptapEditor } from "../editor/use-space-tiptap-editor";
+import { useDocumentSessionStore } from "../document-editing/document-session-store";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
+import { useSpaceTiptapEditor } from "../document-editing/use-space-tiptap-editor";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { prepareEditorSessionClose } from "../workspace/session-participants";
@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
 vi.mock("../canvas/use-context-dock", () => ({ useContextDock: () => ({}) }));
-vi.mock("../editor/tiptap-text-statistics", () => ({
+vi.mock("../document-editing/tiptap-text-statistics", () => ({
   createTiptapTextStatistics: () => ({
     wordCount: 0,
     characterCount: 0,
@@ -30,7 +30,7 @@ vi.mock("../editor/tiptap-text-statistics", () => ({
     dispose: () => {},
   }),
 }));
-vi.mock("../editor/tiptap-extensions", async () => {
+vi.mock("../document-editing/tiptap-extensions", async () => {
   const { StarterKit } = await import("@tiptap/starter-kit");
   const { Markdown } = await import("@tiptap/markdown");
   return { createSpaceTiptapExtensions: () => [StarterKit, Markdown] };

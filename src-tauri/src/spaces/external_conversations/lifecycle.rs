@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError> {
     crate::external_agents::conversation::finish(conversation_id).await?;
@@ -62,7 +62,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     super::updates::release(&conversation_id);
     let _ownership = super::publication_ownership::acquire(run_id).await?;
     crate::spaces::runs::drain_children(pool, run_id).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
         "UPDATE spaces_external_agent_conversations SET state='closed',
@@ -193,7 +193,7 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
             log::warn!("Could not remove committed Agent workspace {id}: {error}");
         }
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "UPDATE spaces_external_agent_conversations SET state='disconnected',
          error='External Agent session ended with the application',updated_at=$1

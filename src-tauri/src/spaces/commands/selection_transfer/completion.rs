@@ -1,7 +1,7 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{TransferSelectionRequest, TransferSelectionResponse};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{db, knowledge::events, structure};
 
 pub(super) struct TransferCompletion<'a> {

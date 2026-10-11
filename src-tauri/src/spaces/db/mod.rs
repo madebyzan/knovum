@@ -3,7 +3,7 @@ use tauri::{AppHandle, Runtime};
 use tokio::sync::OnceCell;
 
 static SPACE_DATABASE: OnceCell<SqlitePool> = OnceCell::const_new();
-static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations/spaces");
+static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("src/spaces/db/migrations");
 pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool, String> {
     SPACE_DATABASE
         .get_or_try_init(|| async {

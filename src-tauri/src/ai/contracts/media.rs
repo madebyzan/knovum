@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::transport::SecurityContext;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 #[derive(Debug, Clone)]
 pub struct ImageGenerationInput {

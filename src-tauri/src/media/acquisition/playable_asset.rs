@@ -11,7 +11,7 @@ use super::{
     contracts::{AcquisitionProgress, MediaKind},
     metadata::YtDlpMetadata,
 };
-use crate::subprocess;
+use crate::foundation::subprocess;
 
 pub(crate) struct Preparation<'a> {
     pub source: &'a Path,

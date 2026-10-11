@@ -1,6 +1,10 @@
+pub(crate) mod contracts;
 mod presentation;
 
-use crate::{app_error::AppError, desktop_task::DesktopTask, preferences::LocalePreference};
+use crate::{
+    desktop::tasks::contracts::DesktopTask, foundation::app_error::AppError,
+    preferences::LocalePreference,
+};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -106,8 +110,8 @@ pub(crate) fn publish<R: Runtime>(
         merged.values().filter(|task| {
             matches!(
                 task.state,
-                crate::desktop_task::DesktopTaskState::Queued
-                    | crate::desktop_task::DesktopTaskState::Running
+                crate::desktop::tasks::contracts::DesktopTaskState::Queued
+                    | crate::desktop::tasks::contracts::DesktopTaskState::Running
             )
         }),
     )
@@ -128,12 +132,12 @@ pub(crate) fn maintenance<R: Runtime>(
         .map(|task| task.started_at);
     let started_at = match previous_start {
         Some(value) => value,
-        None => crate::clock::unix_time_millis()?,
+        None => crate::foundation::clock::unix_time_millis()?,
     };
     let state = match outcome {
-        None => crate::desktop_task::DesktopTaskState::Running,
-        Some(true) => crate::desktop_task::DesktopTaskState::Succeeded,
-        Some(false) => crate::desktop_task::DesktopTaskState::Failed,
+        None => crate::desktop::tasks::contracts::DesktopTaskState::Running,
+        Some(true) => crate::desktop::tasks::contracts::DesktopTaskState::Succeeded,
+        Some(false) => crate::desktop::tasks::contracts::DesktopTaskState::Failed,
     };
     publish(
         app,

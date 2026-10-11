@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::ai::contracts::AgentArtifactKind;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) fn classify(path: &Path) -> AppResult<AgentArtifactKind> {
     if let Some(detected) =

@@ -119,7 +119,7 @@ pub async fn commit_project_output(
         }
         return Err("cancelled".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let updated = sqlx::query(
         "UPDATE spaces_speech_project_revisions SET output_asset_path=?,output_sha256=?,          output_sample_rate=?,output_sample_count=?,output_published_at=? WHERE id=? AND project_id=?          AND EXISTS(SELECT 1 FROM spaces_speech_projects p WHERE p.id=? AND p.active_revision_id=?)          AND EXISTS(SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs run ON run.id=a.run_id            WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing'              AND a.execution_epoch=? AND a.lease_until>? AND run.execution_epoch=a.execution_epoch              AND run.cancel_requested_at IS NULL AND run.completed_at IS NULL)          AND NOT EXISTS(SELECT 1 FROM spaces_speech_segments WHERE project_revision_id=? AND state<>'rendered')",
     )

@@ -8,7 +8,7 @@ pub use contracts::{
     ReviseVoiceProfileRequest, UnarchiveVoiceProfileRequest, VoiceProfileHistory, VoiceRevision,
 };
 
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 pub(super) fn validate_name(name: &str) -> Result<(), String> {
     if !(1..=120).contains(&name.trim().chars().count()) {
@@ -34,7 +34,7 @@ pub async fn rename_voice_profile(
         "UPDATE spaces_voice_profiles SET name=?,updated_at=? WHERE id=? AND updated_at=?",
     )
     .bind(request.name.trim())
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .bind(&request.profile_id)
     .bind(request.expected_updated_at)
     .execute(db::pool(&app).await?)
@@ -74,7 +74,7 @@ pub async fn revise_voice_profile(
     }
     let config = revision_config(&current.engine_id, request.speed, previous.seed)?;
     let revision_id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,reference_asset_id,reference_source_revision,reference_text,design_description,synthesis_config,authorization,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         .bind(&revision_id).bind(&request.profile_id).bind(current.revision + 1).bind(&current.engine_id)
         .bind(&current.model_spec_id).bind(&request.language).bind(&current.preset_voice_id)

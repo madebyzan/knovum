@@ -8,7 +8,7 @@ use super::{
 };
 use crate::ai::channel::send_channel_event;
 use crate::ai::models::{CompletionRequest, CompletionStreamEvent};
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(tag = "event", rename_all = "snake_case")]

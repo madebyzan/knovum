@@ -39,7 +39,7 @@ async fn packaged_connection_enablement_follows_the_package_and_missing_owners_f
         .connect("sqlite::memory:")
         .await
         .unwrap();
-    sqlx::migrate!("migrations/extensions")
+    sqlx::migrate!("src/extensions/migrations")
         .run(&pool)
         .await
         .unwrap();

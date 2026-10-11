@@ -21,7 +21,7 @@ async fn invalid_reauthorization_input_leaves_current_authority_unchanged() {
         .connect("sqlite::memory:")
         .await
         .unwrap();
-    sqlx::migrate!("migrations/extensions")
+    sqlx::migrate!("src/extensions/migrations")
         .run(&pool)
         .await
         .unwrap();

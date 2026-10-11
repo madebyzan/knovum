@@ -1,5 +1,5 @@
 use super::SpacePackageProgress;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use serde_json::{json, Value};
 use std::{
     fs,
@@ -13,14 +13,14 @@ pub(super) async fn execute(
     source: PathBuf,
     progress: Channel<SpacePackageProgress>,
     cancellation: CancellationToken,
-    _lease: crate::job_registry::JobLease<CancellationToken>,
+    _lease: crate::foundation::job_registry::JobLease<CancellationToken>,
 ) -> Result<Value, AppError> {
     super::control::check(&cancellation)?;
     let target_id = uuid::Uuid::new_v4().to_string();
     let worker_app = app.clone();
     let worker_id = target_id.clone();
     let worker_cancellation = cancellation.clone();
-    let unpacked = crate::blocking::run(move || {
+    let unpacked = crate::foundation::blocking::run(move || {
         super::control::check(&worker_cancellation)?;
         crate::spaces::assets::authorize_source(&worker_app, &source).map_err(AppError::from)?;
         super::read::read_package(

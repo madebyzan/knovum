@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createRightSidebarActions } from "../right-sidebar/right-sidebar-actions";
 import { createSpaceState } from "../session/session-state";
+import { createRightSidebarActions } from "../workspace/right-sidebar-actions";
 
 function setup() {
   const state = createSpaceState();

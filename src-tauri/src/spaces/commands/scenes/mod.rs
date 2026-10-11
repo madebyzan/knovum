@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 mod validation;
 
 use serde::Deserialize;
@@ -39,7 +39,7 @@ pub async fn create_scene<R: Runtime>(
     scene: SpaceSceneInput,
 ) -> Result<(), AppError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     validate_scene(&mut tx, &scene).await?;
@@ -73,7 +73,7 @@ pub async fn update_scene<R: Runtime>(
     scene: SpaceSceneInput,
 ) -> Result<Vec<String>, AppError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     validate_scene(&mut tx, &scene).await?;
@@ -136,7 +136,7 @@ pub async fn update_scene_orders<R: Runtime>(
     if scenes.is_empty() {
         return Ok(());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     for scene in scenes {

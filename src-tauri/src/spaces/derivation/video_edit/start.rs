@@ -54,7 +54,7 @@ pub async fn start(
     .ok_or("Video edit output is unavailable")?;
     let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
     pending_output::validate_separate_asset(&output, path)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'render-video-edit',1,'ffmpeg:filter-complex','running',$4,$4)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;

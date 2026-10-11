@@ -1,5 +1,5 @@
 import { isSpaceEditorNode } from "../canvas/node-capabilities";
-import { useDocumentSessionStore } from "../editor/document-session-store";
+import { useDocumentSessionStore } from "../document-editing/document-session-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { useVideoSessionStore } from "../video-editing/video-session-store";

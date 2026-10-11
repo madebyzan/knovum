@@ -61,7 +61,7 @@ pub(crate) async fn insert_typed<T: Serialize>(
     selection: &[String],
     committed_projection: &T,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,committed_projection,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(sqlx::types::Json(selection)).bind(sqlx::types::Json(committed_projection)).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

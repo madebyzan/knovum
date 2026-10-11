@@ -23,7 +23,7 @@ pub fn read_package(
     progress: &Channel<SpacePackageProgress>,
     target_space: &str,
     cancellation: &CancellationToken,
-) -> Result<PackageImport, crate::app_error::AppError> {
+) -> Result<PackageImport, crate::foundation::app_error::AppError> {
     super::control::check(cancellation)?;
     let file = fs::File::open(source).map_err(|error| error.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|error| error.to_string())?;
@@ -59,7 +59,7 @@ fn validate_index(
     index: &[AssetIndex],
     manifest: &ManifestAssets,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     if index.len() > MAX_ASSETS {
         return Err("Space package contains too many assets".into());
     }
@@ -97,7 +97,7 @@ fn read_text_entry(
     name: &str,
     limit: u64,
     cancellation: &CancellationToken,
-) -> Result<String, crate::app_error::AppError> {
+) -> Result<String, crate::foundation::app_error::AppError> {
     let mut entry = archive
         .by_name(name)
         .map_err(|_| format!("Space package is missing {name}"))?;

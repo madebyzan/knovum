@@ -6,8 +6,8 @@ import {
 } from "../../../shared/contracts/workspace-right-sidebar";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
-import type { AskSidebarOptions, OpenSourceOptions } from "../right-sidebar/right-sidebar-actions";
 import { useSpaceStore } from "../session/space-store";
+import type { AskSidebarOptions, OpenSourceOptions } from "../workspace/right-sidebar-actions";
 import { getCanvasEditorSession } from "./editor-session";
 
 export function useContextDock() {

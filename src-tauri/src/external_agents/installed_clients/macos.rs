@@ -4,7 +4,7 @@ use objc2::{class, msg_send, rc::Retained, runtime::AnyObject};
 use objc2_foundation::{NSString, NSURL};
 
 use crate::ai::contracts::ExternalAgentKind;
-use crate::app_error::AppResult;
+use crate::foundation::app_error::AppResult;
 
 pub(crate) fn detect() -> AppResult<HashSet<ExternalAgentKind>> {
     // NSWorkspace is supplied by the desktop host's AppKit framework. objc2 owns

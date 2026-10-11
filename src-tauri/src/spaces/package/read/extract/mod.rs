@@ -28,7 +28,7 @@ pub(super) fn extract_assets(
     total: u64,
     target_space: &str,
     cancellation: &CancellationToken,
-) -> Result<ExtractedAssets, crate::app_error::AppError> {
+) -> Result<ExtractedAssets, crate::foundation::app_error::AppError> {
     super::super::control::check(cancellation)?;
     let root = crate::spaces::assets::asset_directory(app)?;
     let namespace = root.join(format!("package-import-{target_space}"));
@@ -72,7 +72,7 @@ fn package_targets(
     root: &Path,
     index: &[AssetIndex],
     cancellation: &CancellationToken,
-) -> Result<HashMap<String, (PathBuf, bool)>, crate::app_error::AppError> {
+) -> Result<HashMap<String, (PathBuf, bool)>, crate::foundation::app_error::AppError> {
     let mut targets = HashMap::new();
     for asset in index {
         super::super::control::check(cancellation)?;
@@ -88,7 +88,7 @@ fn package_targets(
 fn create_package_directories(
     targets: &HashMap<String, (PathBuf, bool)>,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     for (target, directory) in targets.values() {
         super::super::control::check(cancellation)?;
         if *directory {
@@ -104,7 +104,7 @@ fn extract_entries(
     progress: &Channel<SpacePackageProgress>,
     total: u64,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     let mut processed = 0_u64;
     let mut seen_file_tokens = HashSet::new();
     for index in 0..archive.len() {
@@ -165,7 +165,7 @@ fn copy_entry(
     total: u64,
     progress: &Channel<SpacePackageProgress>,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     if let Some(parent) = output.parent() {
         fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     }

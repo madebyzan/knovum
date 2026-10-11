@@ -44,7 +44,8 @@ pub(super) async fn resolve(
                 );
             }
             let file = source.clone();
-            let extracted = crate::blocking::run(move || extract_text(&file, kind)).await?;
+            let extracted =
+                crate::foundation::blocking::run(move || extract_text(&file, kind)).await?;
             let text: String = extracted.chars().take(remaining).collect();
             let count = text.chars().count();
             (
@@ -86,7 +87,7 @@ pub(super) async fn resolve(
 }
 
 async fn verify_revision(source: std::path::PathBuf, revision: String) -> Result<(), String> {
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         crate::file_inspection::verify_content_revision(&source, &revision)
     })
     .await

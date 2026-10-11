@@ -6,7 +6,7 @@ use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
     transport::{http_client, response, SecurityContext},
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub struct GrokFileUploadAdapter;
 

@@ -19,7 +19,7 @@ pub(super) fn write(
     progress: &Channel<SpacePackageProgress>,
     total: u64,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     let mut archive = ArchiveWriter::new(file, progress, total, cancellation);
     archive.write_bytes("manifest.json", manifest.as_bytes())?;
     for plan in plans {
@@ -56,11 +56,14 @@ impl<'a> ArchiveWriter<'a> {
         }
     }
 
-    fn check_cancelled(&self) -> Result<(), crate::app_error::AppError> {
+    fn check_cancelled(&self) -> Result<(), crate::foundation::app_error::AppError> {
         super::super::control::check(self.cancellation)
     }
 
-    fn write_asset(&mut self, plan: &AssetPlan) -> Result<(), crate::app_error::AppError> {
+    fn write_asset(
+        &mut self,
+        plan: &AssetPlan,
+    ) -> Result<(), crate::foundation::app_error::AppError> {
         if plan.source.is_file() {
             return self.write_file(&plan.source, &format!("assets/{}/content", plan.token));
         }
@@ -92,7 +95,11 @@ impl<'a> ArchiveWriter<'a> {
         Ok(())
     }
 
-    fn write_file(&mut self, source: &Path, name: &str) -> Result<(), crate::app_error::AppError> {
+    fn write_file(
+        &mut self,
+        source: &Path,
+        name: &str,
+    ) -> Result<(), crate::foundation::app_error::AppError> {
         self.zip
             .start_file(name, self.options)
             .map_err(|error| error.to_string())?;
@@ -112,7 +119,11 @@ impl<'a> ArchiveWriter<'a> {
         Ok(())
     }
 
-    fn write_bytes(&mut self, name: &str, bytes: &[u8]) -> Result<(), crate::app_error::AppError> {
+    fn write_bytes(
+        &mut self,
+        name: &str,
+        bytes: &[u8],
+    ) -> Result<(), crate::foundation::app_error::AppError> {
         self.check_cancelled()?;
         self.zip
             .start_file(name, self.options)
@@ -128,7 +139,7 @@ impl<'a> ArchiveWriter<'a> {
         &mut self,
         chunk: &[u8],
         size_error: &str,
-    ) -> Result<(), crate::app_error::AppError> {
+    ) -> Result<(), crate::foundation::app_error::AppError> {
         let next = self
             .processed
             .checked_add(chunk.len() as u64)
@@ -148,7 +159,7 @@ impl<'a> ArchiveWriter<'a> {
         )?)
     }
 
-    fn finish(self) -> Result<(), crate::app_error::AppError> {
+    fn finish(self) -> Result<(), crate::foundation::app_error::AppError> {
         self.check_cancelled()?;
         let file = self.zip.finish().map_err(|error| error.to_string())?;
         file.sync_all().map_err(|error| error.to_string())?;

@@ -12,7 +12,7 @@ import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import ExtensionCleanupNotice from "../../components/ExtensionCleanupNotice.vue";
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { usePluginInstallations } from "../use-plugin-installations";
 import { usePluginLabels } from "../use-plugin-labels";
 import InstalledPlugin from "./InstalledPlugin.vue";

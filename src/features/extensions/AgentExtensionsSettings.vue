@@ -13,10 +13,10 @@ import UiSearchInput from "../../shared/ui/UiSearchInput.vue";
 import AppSettings from "./apps/components/AppSettings.vue";
 import McpSettings from "./connections/components/McpSettings.vue";
 import { isAppConnector } from "./connectors/app-connector";
-import { EXTENSION_TABS } from "./extension-destination";
+import { EXTENSION_TABS } from "./navigation/extension-destination";
+import { useExtensionNavigation } from "./navigation/use-extension-navigation";
 import PluginSettings from "./plugins/components/PluginSettings.vue";
 import SkillSettings from "./skills/components/SkillSettings.vue";
-import { useExtensionNavigation } from "./use-extension-navigation";
 
 const { activeTab, extensionId, connectorId, action, isBrowsing, search, error, navigate, selectTab } =
   useExtensionNavigation();

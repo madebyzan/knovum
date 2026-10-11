@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::spaces::db;
@@ -58,7 +58,7 @@ pub(crate) async fn record_tokens_in_transaction(
     .bind(input)
     .bind(output)
     .bind(total)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;

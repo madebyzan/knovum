@@ -20,7 +20,7 @@ vi.mock("../image-editing/use-image-render-worker", () => ({ useImageRenderWorke
 vi.mock("@tauri-apps/plugin-log", () => ({
   error: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
 }));
-import { useCanvasImageRaster } from "../presentation/canvas/nodes/use-canvas-image-raster";
+import { useCanvasImageRaster } from "../canvas/presentation/nodes/use-canvas-image-raster";
 
 afterEach(() => vi.unstubAllGlobals());
 it("captures a transferable edit snapshot even when a crop view contains nested readonly proxies", async () => {

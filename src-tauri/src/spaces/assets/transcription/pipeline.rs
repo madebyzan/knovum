@@ -19,7 +19,8 @@ use crate::{
         },
         local_runtime::{admission::Priority, speech},
     },
-    blocking, file_inspection,
+    file_inspection,
+    foundation::blocking,
     local_resources::preparation::PreparedModels,
     media::{
         prepared_audio::PreparedMediaAudio,

@@ -42,7 +42,7 @@ pub async fn activate(
            SELECT 1 FROM spaces_conversation_messages WHERE conversation_id=$3 AND branch_id=$1)",
     )
     .bind(branch_id)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .bind(conversation_id)
     .execute(&mut *tx)
     .await
@@ -87,7 +87,7 @@ pub async fn branch(
         .await
         .map_err(db::sql_error)?;
     let branch_id = uuid::Uuid::new_v4().to_string();
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let message_count = rows.len();
     let mut tx = db::begin_write(pool).await?;
     super::conversations::ensure_branch_idle(&mut tx, conversation_id, source_branch_id).await?;

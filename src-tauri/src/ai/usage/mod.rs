@@ -10,7 +10,7 @@ use tauri::{AppHandle, Runtime};
 pub use contracts::UsagePurpose;
 
 use crate::ai::contracts::{ModelTurnResponse, TokenUsage};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub async fn initialize<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     db::initialize(app).await

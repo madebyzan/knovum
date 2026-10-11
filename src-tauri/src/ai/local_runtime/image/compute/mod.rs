@@ -136,7 +136,7 @@ pub(crate) async fn execute<R: Runtime>(
         }
         let path = work.join(&response.tensor_ref.file_name);
         let reference = response.tensor_ref;
-        crate::blocking::run(move || read_output(&path, reference)).await
+        crate::foundation::blocking::run(move || read_output(&path, reference)).await
     }
     .await;
     let _ = tokio::fs::remove_file(work.join(format!("image-{request_id}.tensor"))).await;

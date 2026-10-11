@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::PreparedAsset;
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::knowledge::indexing::KnowledgeChunkInput;
 
 pub(in crate::spaces) struct PublicationGuard<'a> {

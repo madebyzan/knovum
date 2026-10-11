@@ -2,9 +2,9 @@ import { afterEach, expect, it } from "vitest";
 import { computed } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import { imageActionHelp } from "../canvas/presentation/images/image-action-help";
 import { videoEditCommands } from "../commands/video-edit-commands";
-import { imageActionHelp } from "../presentation/canvas/image-action-help";
-import { captureActionLabel } from "../presentation/workflows/workflow-capture-labels";
+import { captureActionLabel } from "../workflows/presentation/workflow-capture-labels";
 
 const originalLocale = i18n.global.locale.value;
 afterEach(() => {

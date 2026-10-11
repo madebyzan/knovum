@@ -37,8 +37,10 @@ pub(super) async fn prepare(
     }
     let path = authorize_spaces_asset(app, Path::new(&source.path))?;
     let expected = request.source_revision.clone();
-    crate::blocking::run(move || crate::file_inspection::verify_content_revision(&path, &expected))
-        .await?;
+    crate::foundation::blocking::run(move || {
+        crate::file_inspection::verify_content_revision(&path, &expected)
+    })
+    .await?;
     let srt = match source.subtitles {
         PreparedSubtitles::Ready(srt) => srt,
         PreparedSubtitles::Recognize => {

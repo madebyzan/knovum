@@ -4,12 +4,12 @@ use tauri::AppHandle;
 use crate::spaces::db;
 
 pub(super) fn with_settlement(
-    primary: crate::app_error::AppError,
+    primary: crate::foundation::app_error::AppError,
     settlement: Result<(), String>,
-) -> crate::app_error::AppError {
+) -> crate::foundation::app_error::AppError {
     match settlement {
         Ok(()) => primary,
-        Err(error) => crate::app_error::AppError {
+        Err(error) => crate::foundation::app_error::AppError {
             code: primary.code,
             message: format!(
                 "{}; derivation failure settlement also failed: {error}",
@@ -96,7 +96,7 @@ pub async fn fail_pending(
     data[key] = "failed".into();
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND space_id=$4")
         .bind(sqlx::types::Json(&data))
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .bind(node_id)
         .bind(space_id)
         .execute(&mut *tx)
@@ -126,7 +126,7 @@ async fn mark_failed(
     derivation_id: &str,
     error: &str,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let row: Option<(String, String)> = sqlx::query_as(
         "SELECT n.data,d.action_kind FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
     )

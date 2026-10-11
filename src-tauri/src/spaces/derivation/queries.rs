@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use super::{
     grounded_document, image_layers, image_operations, video_edit, video_generation, visualization,
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
 #[derive(Serialize, ts_rs::TS)]
@@ -71,5 +71,8 @@ pub async fn get_image_operation_capabilities(
 
 #[tauri::command]
 pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, AppError> {
-    Ok(crate::blocking::run(|| Ok::<_, String>(video_edit::fonts::installed())).await?)
+    Ok(
+        crate::foundation::blocking::run(|| Ok::<_, String>(video_edit::fonts::installed()))
+            .await?,
+    )
 }

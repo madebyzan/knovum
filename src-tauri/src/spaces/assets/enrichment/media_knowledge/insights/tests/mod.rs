@@ -117,7 +117,8 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
             _: ai::models::ModelExecutionTarget,
             _: TaskInput,
             _: CancellationToken,
-        ) -> crate::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput> {
+        ) -> crate::foundation::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput>
+        {
             panic!("Agent task must not reach model transport");
         }
         async fn agent(
@@ -125,18 +126,21 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
             _: ai::contracts::ExternalAgentKind,
             _: TaskInput,
             cancellation: CancellationToken,
-        ) -> crate::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput> {
+        ) -> crate::foundation::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput>
+        {
             let position = self.started.fetch_add(1, Ordering::SeqCst);
             if position == 1 {
                 self.settled.fetch_add(1, Ordering::SeqCst);
-                return Err(crate::app_error::AppError::new(
+                return Err(crate::foundation::app_error::AppError::new(
                     "authentication_failed",
                     "Login required",
                 ));
             }
             cancellation.cancelled().await;
             self.settled.fetch_add(1, Ordering::SeqCst);
-            Err(crate::app_error::AppError::cancelled("Sibling failed"))
+            Err(crate::foundation::app_error::AppError::cancelled(
+                "Sibling failed",
+            ))
         }
     }
     let executor = FailingExecutor {

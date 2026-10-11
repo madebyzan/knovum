@@ -76,7 +76,7 @@ pub async fn rename(pool: &SqlitePool, conversation_id: &str, title: &str) -> Re
     let conversation_write =
         sqlx::query("UPDATE spaces_conversations SET title=$1,updated_at=$2 WHERE id=$3")
             .bind(title)
-            .bind(crate::clock::unix_time_millis()?)
+            .bind(crate::foundation::clock::unix_time_millis()?)
             .bind(conversation_id)
             .execute(pool)
             .await
@@ -97,7 +97,7 @@ async fn set_archived(
     conversation_id: &str,
     archived: bool,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let archived_at = archived.then_some(now);
     let conversation_write =
         sqlx::query("UPDATE spaces_conversations SET archived_at=$1,updated_at=$2 WHERE id=$3")

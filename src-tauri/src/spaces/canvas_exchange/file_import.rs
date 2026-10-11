@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{contracts::JsonCanvasDocumentV1, import::JsonCanvasImportReceipt};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     assets::import::commit::AssetImportProgress,
     db,
@@ -40,7 +40,7 @@ pub(super) async fn import(
     }
     let read_app = app.clone();
     let source = PathBuf::from(&request.source_path);
-    let (document, directory, raw) = crate::blocking::run(move || {
+    let (document, directory, raw) = crate::foundation::blocking::run(move || {
         crate::spaces::assets::authorize_source(&read_app, &source)?;
         let source = source.canonicalize().map_err(|error| error.to_string())?;
         if std::fs::metadata(&source)
@@ -84,7 +84,7 @@ pub(super) async fn import(
     super::import_control::check(&cancellation)?;
     let worker_app = app.clone();
     let worker_cancellation = cancellation.clone();
-    let (prepared, acquired) = crate::blocking::run(move || {
+    let (prepared, acquired) = crate::foundation::blocking::run(move || {
         let mut acquired = Vec::new();
         let prepared = super::conversion::prepare(
             &request,

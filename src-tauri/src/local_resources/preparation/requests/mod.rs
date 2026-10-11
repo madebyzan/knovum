@@ -16,7 +16,7 @@ use super::{
     },
     RESOURCE_PREPARATION_CANCELLED,
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 const COMPLETED_LIMIT: usize = 32;
 const COMPLETED_TTL_MS: u64 = 10 * 60 * 1_000;

@@ -11,7 +11,7 @@ import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeade
 import McpConnectionSettings from "../../connections/components/McpConnectionSettings.vue";
 import ConnectorAccounts from "../../connectors/components/ConnectorAccounts.vue";
 import PluginConnectorConfiguration from "../../connectors/components/PluginConnectorConfiguration.vue";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { usePluginLabels } from "../../plugins/use-plugin-labels";
 
 const props = defineProps<{ connector: ConnectorDefinition }>();

@@ -110,7 +110,7 @@ Intermediate document visual results belong to the enrichment job and are stored
 ## Database migrations
 
 `spaces.db` is created from the single pre-release SQLx v1 baseline at
-`src-tauri/migrations/spaces/0001_spaces.sql`. SQLx records its version and checksum in
+`src-tauri/src/spaces/db/migrations/0001_spaces.sql`. SQLx records its version and checksum in
 `_sqlx_migrations`; there is no parallel `user_version`, schema-contract table, repair table, or
 compatibility reader. Schema changes are folded into the baseline while the product remains in
 pre-release development, and obsolete development databases are deleted explicitly. The baseline

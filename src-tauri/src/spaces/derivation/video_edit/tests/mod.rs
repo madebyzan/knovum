@@ -34,7 +34,7 @@ fn project() -> VideoEditProject {
                 text: "Title".into(),
                 placement: TextPlacement::Bottom,
                 style: TextStyle {
-                    family: crate::system_font::SYSTEM_SANS_FAMILY.into(),
+                    family: crate::desktop::system_font::SYSTEM_SANS_FAMILY.into(),
                     weight: 400,
                     size: 30,
                     color: "#FFFFFF".into(),

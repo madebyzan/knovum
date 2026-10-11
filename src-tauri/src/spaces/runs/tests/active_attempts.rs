@@ -10,7 +10,7 @@ async fn claim(pool: &sqlx::SqlitePool, parent: Option<&str>) -> AttemptClaim {
         .bind(&step_instance_id).bind(&run_id).execute(pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_run_attempts(id,run_id,step_instance_id,attempt_number,state,request_digest,executor_id,idempotency_key,execution_epoch,lease_until,started_at) VALUES(?,?,?,1,'executing',?,'desktop',?,0,?,1)")
         .bind(&attempt_id).bind(&run_id).bind(&step_instance_id).bind("a".repeat(64))
-        .bind(&attempt_id).bind(crate::clock::unix_time_millis().unwrap()+60_000)
+        .bind(&attempt_id).bind(crate::foundation::clock::unix_time_millis().unwrap()+60_000)
         .execute(pool).await.unwrap();
     AttemptClaim {
         attempt_id,

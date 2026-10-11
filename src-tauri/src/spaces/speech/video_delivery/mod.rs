@@ -9,8 +9,8 @@ use super::{
     video_publication::{final_mix::MixOutput, mixing, policy},
 };
 use crate::{
-    app_error::AppError, file_inspection::verify_content_revision, local_resources::tools,
-    spaces::db,
+    file_inspection::verify_content_revision, foundation::app_error::AppError,
+    local_resources::tools, spaces::db,
 };
 use contracts::{ExportVideoDubbingAssetRequest, VideoAudioTrack, VideoDeliveryAsset};
 use std::{fs, path::Path};
@@ -67,68 +67,75 @@ pub async fn export_video_dubbing_asset(
         &request.revision_id,
         &request.job_id,
     )?;
-    Ok(crate::blocking::run(move || -> Result<_, String> {
-        let delivery = (|| {
-            let output = if let Some(subtitle) = subtitle {
-                let path = work.join(format!("subtitles.{extension}"));
-                fs::write(&path, subtitle).map_err(|error| error.to_string())?;
-                path
-            } else {
-                let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
-                let video = policy::verified_source(
-                    &app,
-                    &config.video.asset_path,
-                    &config.video.source_revision,
-                )?;
-                let background = config
-                    .background
-                    .as_ref()
-                    .map(|source| {
-                        policy::verified_source(&app, &source.asset_path, &source.source_revision)
-                    })
-                    .transpose()?;
-                let duration = policy::verified_duration_us(
-                    &ffmpeg,
-                    &video,
-                    "0:v:0",
-                    config.video.duration_ms,
-                    &cancellation,
-                )?;
-                let samples = policy::samples_for_duration(duration)?;
-                let renders = renders
-                    .into_iter()
-                    .map(|render| publication::validate_cached(&app, render))
-                    .collect::<Result<Vec<_>, _>>()?;
-                let timed = mixing::timed_renders(&renders, &windows, samples)?;
-                let kind = match request.asset {
-                    VideoDeliveryAsset::DialogueWav => MixOutput::Dialogue,
-                    VideoDeliveryAsset::BackgroundWav => MixOutput::Background,
-                    _ => return Err("Video stem selection is invalid".into()),
+    Ok(
+        crate::foundation::blocking::run(move || -> Result<_, String> {
+            let delivery = (|| {
+                let output = if let Some(subtitle) = subtitle {
+                    let path = work.join(format!("subtitles.{extension}"));
+                    fs::write(&path, subtitle).map_err(|error| error.to_string())?;
+                    path
+                } else {
+                    let ffmpeg =
+                        tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
+                    let video = policy::verified_source(
+                        &app,
+                        &config.video.asset_path,
+                        &config.video.source_revision,
+                    )?;
+                    let background = config
+                        .background
+                        .as_ref()
+                        .map(|source| {
+                            policy::verified_source(
+                                &app,
+                                &source.asset_path,
+                                &source.source_revision,
+                            )
+                        })
+                        .transpose()?;
+                    let duration = policy::verified_duration_us(
+                        &ffmpeg,
+                        &video,
+                        "0:v:0",
+                        config.video.duration_ms,
+                        &cancellation,
+                    )?;
+                    let samples = policy::samples_for_duration(duration)?;
+                    let renders = renders
+                        .into_iter()
+                        .map(|render| publication::validate_cached(&app, render))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let timed = mixing::timed_renders(&renders, &windows, samples)?;
+                    let kind = match request.asset {
+                        VideoDeliveryAsset::DialogueWav => MixOutput::Dialogue,
+                        VideoDeliveryAsset::BackgroundWav => MixOutput::Background,
+                        _ => return Err("Video stem selection is invalid".into()),
+                    };
+                    let output = mixing::build_stem(
+                        mixing::MixRequest {
+                            ffmpeg: &ffmpeg,
+                            work: &work,
+                            timed: &timed,
+                            video_samples: samples,
+                            background: background.as_deref(),
+                            config: &config,
+                            cancellation: &cancellation,
+                        },
+                        kind,
+                    )?;
+                    verify_content_revision(&video, &config.video.source_revision)?;
+                    if let (Some(path), Some(source)) = (background, &config.background) {
+                        verify_content_revision(&path, &source.source_revision)?;
+                    }
+                    for render in renders {
+                        publication::validate_cached(&app, render)?;
+                    }
+                    output
                 };
-                let output = mixing::build_stem(
-                    mixing::MixRequest {
-                        ffmpeg: &ffmpeg,
-                        work: &work,
-                        timed: &timed,
-                        video_samples: samples,
-                        background: background.as_deref(),
-                        config: &config,
-                        cancellation: &cancellation,
-                    },
-                    kind,
-                )?;
-                verify_content_revision(&video, &config.video.source_revision)?;
-                if let (Some(path), Some(source)) = (background, &config.background) {
-                    verify_content_revision(&path, &source.source_revision)?;
-                }
-                for render in renders {
-                    publication::validate_cached(&app, render)?;
-                }
-                output
-            };
-            files::commit(&output, &destination, &cancellation)
-        })();
-        files::finish(delivery, &work)
-    })
-    .await?)
+                files::commit(&output, &destination, &cancellation)
+            })();
+            files::finish(delivery, &work)
+        })
+        .await?,
+    )
 }

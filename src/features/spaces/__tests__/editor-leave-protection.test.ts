@@ -3,8 +3,8 @@ import { describe, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, nextTick, shallowRef } from "vue";
 
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
-import { useVideoEditLeave } from "../presentation/video-editor/use-video-edit-leave";
 import { useSpeechProjectLeave } from "../speech/use-speech-project-leave";
+import { useVideoEditLeave } from "../video-editing/presentation/use-video-edit-leave";
 import { flushSpaceSessionContent } from "../workspace/session-participants";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

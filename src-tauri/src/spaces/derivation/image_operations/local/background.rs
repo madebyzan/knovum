@@ -1,7 +1,7 @@
 use super::super::{output::CanonicalImage, source::SourceImage};
 use crate::{
     ai::contracts::image_wire::ImageSegmentationExecutionIdentity,
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::{model_catalog::LocalModelId, preparation},
 };
 use tauri::AppHandle;
@@ -33,7 +33,7 @@ pub(super) async fn execute(
             "sha256:{}",
             hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&source.bytes))
         ),
-        deadline_ms: u64::try_from(crate::clock::unix_time_millis()?)
+        deadline_ms: u64::try_from(crate::foundation::clock::unix_time_millis()?)
             .map_err(|_| "System clock is before the Unix epoch")?
             .saturating_add(120_000),
     };

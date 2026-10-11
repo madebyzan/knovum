@@ -12,7 +12,7 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: assets.remove }));
 
-import { insertSpaceTiptapImagePaths, type SpaceTiptapImageEditor } from "../editor/tiptap-images";
+import { insertSpaceTiptapImagePaths, type SpaceTiptapImageEditor } from "../document-editing/tiptap-images";
 
 interface ChainStub {
   focus(): ChainStub;

@@ -42,7 +42,7 @@ pub(super) async fn verify_source_snapshot(
             }
             let expected = snapshot.source_revision.clone();
             let duration_ms = snapshot.duration_ms;
-            crate::blocking::run(move || -> Result<(), String> {
+            crate::foundation::blocking::run(move || -> Result<(), String> {
                 let audio = super::super::voice_assets::reference_metadata(&path)?;
                 let samples = u64::from(
                     hound::WavReader::open(&path)

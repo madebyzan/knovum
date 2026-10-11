@@ -6,7 +6,7 @@ import {
   createCanvasScenePreviewIndex,
   projectCanvasScenePreview,
 } from "../canvas/konva/scene/scene-preview";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
 describe("Konva scene preview", () => {

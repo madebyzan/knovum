@@ -34,7 +34,7 @@ pub(super) async fn admit(
     sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at)
         VALUES($1,$2,$3,$4,$5,$6,$7,'requesting',$8)")
         .bind(request.request_id).bind(task_id).bind(serde_json::to_value(request.purpose).map_err(db::json_error)?.as_str().ok_or("builtin-agent-purpose-invalid")?)
-        .bind(request.graph_namespace.rsplit_once('|').map(|(scope, _)| scope).unwrap_or("")).bind(checkpoint).bind(i64::try_from(request.estimated_input_tokens).map_err(|_| "builtin-agent-model-input-limit")?).bind(i64::from(request.max_output_tokens)).bind(crate::clock::unix_time_millis()?)
+        .bind(request.graph_namespace.rsplit_once('|').map(|(scope, _)| scope).unwrap_or("")).bind(checkpoint).bind(i64::try_from(request.estimated_input_tokens).map_err(|_| "builtin-agent-model-input-limit")?).bind(i64::from(request.max_output_tokens)).bind(crate::foundation::clock::unix_time_millis()?)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(Value::Null)
@@ -45,7 +45,7 @@ pub(super) async fn complete(
     task_id: &str,
     request: AgentModelCompletion,
 ) -> Result<Value, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let input = request
         .input_tokens
@@ -144,7 +144,7 @@ pub(super) async fn admit_tool(
         .bind(run_id).bind(task_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
     allowed.ok_or("builtin-agent-tool-budget-exhausted")?;
     sqlx::query("INSERT INTO spaces_builtin_agent_tool_admissions(id,task_id,name,created_at) VALUES($1,$2,$3,$4)")
-        .bind(key).bind(task_id).bind(name).bind(crate::clock::unix_time_millis()?).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(key).bind(task_id).bind(name).bind(crate::foundation::clock::unix_time_millis()?).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(Value::Null)
 }

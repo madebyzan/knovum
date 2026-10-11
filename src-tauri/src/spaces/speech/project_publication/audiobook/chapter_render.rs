@@ -37,7 +37,7 @@ pub(super) async fn render<R: Runtime>(
         })
         .collect::<Result<Vec<_>, String>>()?;
     let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
-    let mut normalized = crate::blocking::run({
+    let mut normalized = crate::foundation::blocking::run({
         let ffmpeg = ffmpeg.clone();
         let sources = sources.clone();
         let renders = request.renders.to_vec();
@@ -60,7 +60,7 @@ pub(super) async fn render<R: Runtime>(
     let pause_ms = request.paragraph_pause_ms;
     let pause_directory = work.to_owned();
     let pause_cancellation = cancellation.clone();
-    normalized = crate::blocking::run(move || {
+    normalized = crate::foundation::blocking::run(move || {
         super::super::pauses::insert(
             &normalized,
             pause_rate,
@@ -76,7 +76,7 @@ pub(super) async fn render<R: Runtime>(
             .ok_or_else(|| "Chapter sample count overflow".to_owned())
     })?;
     let concat = write_concat_file(work, &normalized)?;
-    crate::blocking::run({
+    crate::foundation::blocking::run({
         let part = part.clone();
         let cancellation = cancellation.clone();
         let sample_rate = request.sample_rate;

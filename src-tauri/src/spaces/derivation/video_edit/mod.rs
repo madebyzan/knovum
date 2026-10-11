@@ -16,7 +16,7 @@ mod tests;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
-use crate::{app_error::AppError, blocking};
+use crate::{foundation::app_error::AppError, foundation::blocking};
 
 pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,

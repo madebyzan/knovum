@@ -9,7 +9,7 @@ use super::{
     node_payload::{load_node_content, optional_string, required_string, set_optional},
     persistence::{persist_processing_state, take_chunks},
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::knowledge::model::revision;
 
 pub(in crate::spaces::assets) async fn refresh_node(
@@ -51,7 +51,7 @@ async fn refresh_content(
     let known_size = payload.get("size").and_then(Value::as_u64);
     let known_modified_at = payload.get("modifiedAt").and_then(Value::as_u64);
     let app_handle = app.clone();
-    let refreshed = crate::blocking::run(move || {
+    let refreshed = crate::foundation::blocking::run(move || {
         files::refresh_asset(
             &app_handle,
             files::RefreshAssetRequest {

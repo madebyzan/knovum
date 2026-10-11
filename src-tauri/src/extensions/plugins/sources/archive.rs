@@ -5,7 +5,7 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(in crate::extensions::plugins) fn read_bounded(
     path: &Path,

@@ -9,10 +9,10 @@ mod conversion;
 mod file_import;
 mod import_control;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
-pub(crate) fn reserve_maintenance() -> Result<crate::job_registry::JobAdmissionReservation, String>
-{
+pub(crate) fn reserve_maintenance(
+) -> Result<crate::foundation::job_registry::JobAdmissionReservation, String> {
     import_control::reserve_maintenance()
 }
 
@@ -26,7 +26,7 @@ pub(crate) async fn export_json_canvas_file(
     app: tauri::AppHandle,
     request: export::ExportRequest,
 ) -> Result<(), AppError> {
-    Ok(crate::blocking::run(move || export::write(&app, request)).await?)
+    Ok(crate::foundation::blocking::run(move || export::write(&app, request)).await?)
 }
 
 #[tauri::command]

@@ -2,7 +2,7 @@ use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 
 use super::{contracts::ImageOperation, source::SourceImage};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::{
     ai::contracts::ExternalAgentKind,
     external_agents::task::{self, ArtifactFormat},

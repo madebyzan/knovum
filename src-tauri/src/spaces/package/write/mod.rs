@@ -22,7 +22,7 @@ pub fn write_package(
     assets: &[PackageAsset],
     progress: &Channel<SpacePackageProgress>,
     cancellation: &CancellationToken,
-) -> Result<(), crate::app_error::AppError> {
+) -> Result<(), crate::foundation::app_error::AppError> {
     super::control::check(cancellation)?;
     validation::validate_manifest_version(manifest)?;
     let manifest_assets = super::manifest_assets::parse_cancellable(manifest, cancellation)?;

@@ -11,7 +11,7 @@ pub(super) async fn apply(
     let row = sqlx::query("SELECT run_id,state,approval,resolution FROM spaces_conversation_tool_operations WHERE id=$1").bind(operation_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
     let run_id: String = row.try_get("run_id").map_err(db::sql_error)?;
     let state: String = row.try_get("state").map_err(db::sql_error)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let active: Option<i64> = sqlx::query_scalar("SELECT 1 FROM spaces_runs WHERE id=$1 AND completed_at IS NULL AND cancel_requested_at IS NULL")
         .bind(&run_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
     active.ok_or("conversation-tool-run-inactive")?;

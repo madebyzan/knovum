@@ -1,7 +1,7 @@
 use sqlx::SqliteConnection;
 
 pub(crate) fn reserve_maintenance(
-) -> Result<[crate::job_registry::JobAdmissionReservation; 4], String> {
+) -> Result<[crate::foundation::job_registry::JobAdmissionReservation; 4], String> {
     let packages = super::package::control::reserve_maintenance()?;
     let [imports, media] = super::assets::import::reserve_maintenance()?;
     let canvas = super::canvas_exchange::reserve_maintenance()?;

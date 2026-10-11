@@ -34,7 +34,7 @@ pub(crate) async fn profile(
     cancellation: &CancellationToken,
 ) -> Result<RuntimeDeviceProfile, String> {
     require_memory(model_spec_id)?;
-    let deadline = crate::clock::unix_time_millis()?
+    let deadline = crate::foundation::clock::unix_time_millis()?
         .checked_add(30_000)
         .ok_or("GPU probe deadline overflow")?;
     let backend: Backend = super::backend_probe::report(

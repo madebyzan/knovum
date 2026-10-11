@@ -1,7 +1,7 @@
 use agent_client_protocol::{AcpAgent, AcpAgentConfig};
 
 use crate::ai::contracts::{ExternalAgentDescriptor, ExternalAgentKind};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 use super::{
     catalog::{AcpLaunch, RegisteredAgent, AGENTS},

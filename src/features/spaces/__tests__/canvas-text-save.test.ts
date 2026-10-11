@@ -3,9 +3,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { useCanvasTextEditor } from "../canvas/presentation/nodes/use-canvas-text-editor";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
-import { useCanvasTextEditor } from "../presentation/canvas/nodes/use-canvas-text-editor";
 
 const notices = vi.hoisted(() => ({ error: vi.fn<(message: string) => void>() }));
 vi.mock("vue-sonner", () => ({ toast: notices }));

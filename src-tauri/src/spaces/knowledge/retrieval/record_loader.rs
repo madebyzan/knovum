@@ -24,7 +24,7 @@ pub(super) async fn load_records(
     if embeddings.is_empty() {
         return Ok(Vec::new());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
 
     let chunk_ids: Vec<&str> = embeddings.iter().map(|e| e.chunk_id.as_str()).collect();
     let rows = sqlx::query(

@@ -93,7 +93,7 @@ fn validate_video_project(object: &serde_json::Map<String, Value>) -> Result<(),
     let project = serde_json::from_value(value.clone())
         .map_err(|error| format!("Invalid video edit project: {error}"))?;
     let source_revision = required_string(object, "sourceRevision", 128)?;
-    crate::spaces::derivation::video_edit::validate_project(&project, &source_revision)
+    crate::spaces::derivation::video_edit::validate_project(&project, source_revision)
 }
 
 #[cfg(test)]

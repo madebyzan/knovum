@@ -1,5 +1,4 @@
 import type { createSpaceMediaActions } from "../../media/actions";
-import type { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import {
   createSpaceScene,
   duplicateSpaceScene,
@@ -11,6 +10,7 @@ import {
 import { searchSpace } from "../../search/search-actions";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../../workspace/archive-actions";
 import { showSpaceLibrary } from "../../workspace/library-actions";
+import type { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
 import { setSpaceFavorite } from "../../workspace/space-operations";
 import {
   closeOtherSpaceTabs,

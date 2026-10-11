@@ -62,7 +62,7 @@ pub(crate) async fn install<R: Runtime>(
     progress(update(snapshot, ResourcePreparationStage::Verifying));
     let verify_path = staging.clone();
     let verify_cancellation = cancellation.clone();
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         record_verification(&verify_path, &snapshot.files(), &verify_cancellation)
     })
     .await?;

@@ -37,7 +37,7 @@ pub(in crate::spaces::runs) async fn wait(
 ) -> Result<(), String> {
     match deadline {
         Some(deadline) => {
-            let now = crate::clock::unix_time_millis()?;
+            let now = crate::foundation::clock::unix_time_millis()?;
             let remaining = Duration::from_millis(deadline.saturating_sub(now).max(0) as u64);
             tokio::select! {
                 changed = changes.changed() => changed.map_err(|_| "Run change signal closed".to_owned()),

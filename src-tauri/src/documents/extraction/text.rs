@@ -10,10 +10,10 @@ pub(crate) fn bounded_extracted(text: &str) -> Option<String> {
 }
 
 pub(crate) fn bounded_utf16_text(value: &str, limit: usize) -> String {
-    crate::utf16::truncate_with_suffix(value, limit, "")
+    crate::foundation::utf16::truncate_with_suffix(value, limit, "")
 }
 
 fn bounded_utf16(text: &str, limit: usize) -> Option<String> {
     let text = text.trim();
-    (!text.is_empty()).then(|| crate::utf16::truncate_with_suffix(text, limit, "…"))
+    (!text.is_empty()).then(|| crate::foundation::utf16::truncate_with_suffix(text, limit, "…"))
 }

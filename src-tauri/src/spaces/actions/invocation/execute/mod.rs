@@ -4,7 +4,7 @@ mod authorization;
 mod durable;
 
 use super::{digest::request_digest, store, ActionInvocationOutcome, ActionInvocationRequest};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     actions::{SpaceActionExecutionMode, SpaceActionImpact},
     authorization::load_grant,
@@ -29,7 +29,7 @@ pub(crate) async fn invoke_in_transaction(
     let definition = crate::spaces::actions::require(&request.action_id)?;
     validate_definition(definition, request)?;
     let digest = request_digest(request)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let authorization = load_grant(tx, &request.grant_id).await?;
     authorization::authorize(&authorization, definition, request, now)?;
     authorization::require_active_parent(tx, request.parent_run_id.as_deref()).await?;

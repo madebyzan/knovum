@@ -4,7 +4,7 @@ use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
     transport::{http_client, response, SecurityContext},
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub struct GeminiFileUploadAdapter;
 
@@ -70,7 +70,7 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                     AppError::new("invalid_response", "Gemini returned an invalid upload URL")
                 })?;
             let authority = crate::ai::transport::validate_endpoint(endpoint)?;
-            if !crate::public_network::same_origin(&authority, &upload_url) {
+            if !crate::foundation::public_network::same_origin(&authority, &upload_url) {
                 return Err(AppError::new(
                     "invalid_response",
                     "Gemini upload URL changed the configured API origin",

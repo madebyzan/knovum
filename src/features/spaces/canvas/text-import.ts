@@ -1,4 +1,4 @@
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { truncateUtf16 } from "../model/text";
 
 export function noteFromPlainText(value: string, defaultTitle: string) {

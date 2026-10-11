@@ -17,7 +17,7 @@ pub(super) async fn erase(
     node_ids: &HashSet<String>,
     remaining_roots: Vec<String>,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let nodes = node_ids.iter().cloned().collect::<Vec<_>>();
     crate::spaces::knowledge::retrieval::invalidation_outbox::enqueue_nodes(
         tx, space_id, &nodes, now,

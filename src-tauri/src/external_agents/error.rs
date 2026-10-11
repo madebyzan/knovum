@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 impl From<agent_client_protocol::Error> for AppError {
     fn from(error: agent_client_protocol::Error) -> Self {

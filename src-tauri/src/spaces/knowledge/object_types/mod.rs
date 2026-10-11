@@ -5,7 +5,7 @@ use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{events, validation as node_validation};
-use crate::{app_error::AppError, spaces::db};
+use crate::{foundation::app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,7 +40,7 @@ pub async fn create_object_type<R: Runtime>(
     input: ObjectTypeInput,
 ) -> Result<(), AppError> {
     validate_input(&input)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
@@ -70,7 +70,7 @@ pub async fn update_object_type<R: Runtime>(
     input: ObjectTypeInput,
 ) -> Result<(), AppError> {
     validate_input(&input)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let executed = sqlx::query(

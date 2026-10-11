@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
 const MIN_ZOOM: f64 = 0.05;
@@ -73,7 +73,7 @@ pub(crate) async fn save_canvas_view_state<R: Runtime>(
     .bind(request.view.x)
     .bind(request.view.y)
     .bind(request.view.zoom)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .execute(pool)
     .await
     .map_err(db::sql_error)?;

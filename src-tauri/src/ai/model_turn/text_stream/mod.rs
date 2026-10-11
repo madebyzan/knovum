@@ -8,7 +8,7 @@ use crate::ai::{
     transport::SecurityContext,
     usage::UsagePurpose,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) async fn stream_text(
     adapter: AdapterKind,

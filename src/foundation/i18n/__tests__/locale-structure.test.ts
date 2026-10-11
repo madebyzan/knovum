@@ -1,7 +1,7 @@
 import { camelCase, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
-const localeFragments = import.meta.glob("/src/locales/*/**/*.json", {
+const localeFragments = import.meta.glob("/src/foundation/i18n/locales/*/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, unknown>;

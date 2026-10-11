@@ -7,7 +7,7 @@ use super::{
     SeparationConfiguration, WORKFLOW,
 };
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         authorization::{create_grant, local_user_grant, RunScope},
         db,
@@ -73,7 +73,7 @@ pub async fn start_speech_source_separation(
     .await?;
     let model = crate::local_resources::model_selection::speech_separation(&app)?;
     crate::ai::local_runtime::device_profiles::speech_separation(model)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let scope = RunScope::Space {
         space_id: request.space_id.clone(),
     };

@@ -12,7 +12,7 @@ use crate::ai::{
     contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse},
     transport::SecurityContext,
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(crate) use request::{to_genai_options, to_genai_request};
 

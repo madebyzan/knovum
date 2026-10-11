@@ -9,7 +9,7 @@ async fn pool() -> SqlitePool {
         .connect("sqlite::memory:")
         .await
         .unwrap();
-    sqlx::migrate!("migrations/extensions")
+    sqlx::migrate!("src/extensions/migrations")
         .run(&pool)
         .await
         .unwrap();

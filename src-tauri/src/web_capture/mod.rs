@@ -7,7 +7,7 @@ use reqwest::{
 };
 use std::time::Duration;
 
-use crate::public_network::public_address;
+use crate::foundation::public_network::public_address;
 
 pub use media_type::WebDocumentKind;
 

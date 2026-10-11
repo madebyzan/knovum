@@ -1,6 +1,6 @@
 import Konva from "konva";
 
-import type { CanvasPalette } from "../presentation/use-canvas-palette";
+import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 interface CanvasOverviewNodeOptions {

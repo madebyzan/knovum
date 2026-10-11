@@ -9,7 +9,7 @@ import { useStructureGestureSession } from "../../canvas/konva/interaction/use-s
 import { projectCanvasScene } from "../../canvas/konva/scene/scene-projection";
 import { createSpaceNode } from "../../canvas/node";
 import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditCommand";
-import { createSpaceNotePayload } from "../../editor/tiptap-content";
+import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { deferred } from "./canvas-fixtures";

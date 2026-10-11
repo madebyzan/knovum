@@ -46,7 +46,7 @@ async fn cancel(
 ) -> Result<(), String> {
     sqlx::query("UPDATE spaces_builtin_agent_tasks SET error=$1,updated_at=$2 WHERE run_id=$3")
         .bind(error)
-        .bind(crate::clock::unix_time_millis()?)
+        .bind(crate::foundation::clock::unix_time_millis()?)
         .bind(run_id)
         .execute(pool)
         .await

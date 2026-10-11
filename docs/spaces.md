@@ -613,7 +613,7 @@ retains failed drafts. Type deletion is confirmed, and the database refuses dele
 still referenced by knowledge objects. This editor does not introduce a second type model.
 
 Spaces owns `spaces.db` and its single pre-release SQLx v1 baseline at
-`src-tauri/migrations/spaces/0001_spaces.sql`. The embedded migrator installs that complete schema
+`src-tauri/src/spaces/db/migrations/0001_spaces.sql`. The embedded migrator installs that complete schema
 before repositories receive the pool. During pre-release development, schema changes belong in
 this baseline, with an explicit data transition for existing local databases; the application must
 not silently delete a user's Space data. New derivations capture immutable source metadata when created.

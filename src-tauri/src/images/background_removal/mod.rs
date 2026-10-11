@@ -27,7 +27,7 @@ pub(crate) async fn remove_background<R: Runtime>(
     resources: &PreparedModels,
     cancellation: &CancellationToken,
 ) -> Result<BackgroundRemovalOutput, String> {
-    let (image, input) = crate::blocking::run(move || prepare_input(&source)).await?;
+    let (image, input) = crate::foundation::blocking::run(move || prepare_input(&source)).await?;
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
@@ -37,7 +37,7 @@ pub(crate) async fn remove_background<R: Runtime>(
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
-    let output = crate::blocking::run(move || compose_output(image, mask)).await?;
+    let output = crate::foundation::blocking::run(move || compose_output(image, mask)).await?;
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }

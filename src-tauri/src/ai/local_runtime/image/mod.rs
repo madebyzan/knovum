@@ -128,7 +128,7 @@ pub(crate) async fn segment_image<R: Runtime>(
     }
     let mask_path = work_directory.join(expected_mask);
     let mask_sha256 = output.mask_ref.sha256;
-    let mask = crate::blocking::run(move || read_mask(&mask_path, &mask_sha256)).await;
+    let mask = crate::foundation::blocking::run(move || read_mask(&mask_path, &mask_sha256)).await;
     let mask_path = work_directory.join(format!("mask-{request_id}.f32"));
     let _ = tokio::fs::remove_file(&mask_path).await;
     let mask = match mask {

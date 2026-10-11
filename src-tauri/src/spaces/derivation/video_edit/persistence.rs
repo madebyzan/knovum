@@ -5,7 +5,7 @@ use super::super::{
     inputs, pending_output, relations, video_output::RenderedVideo, CompletedDerivationOutput,
 };
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{db, knowledge::model::revision},
 };
 
@@ -23,7 +23,7 @@ pub async fn complete(
          JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
     ).bind(derivation_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Video edit is no longer rendering")?;
     inputs::validate_current(&mut tx, derivation_id).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     pending_output::validate_separate_asset(&data, &row.4)?;
     apply_output(&mut data, &output, now)?;

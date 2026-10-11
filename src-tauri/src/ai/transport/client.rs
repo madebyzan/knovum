@@ -12,11 +12,9 @@ pub fn http_client() -> &'static reqwest::Client {
             .redirect(reqwest::redirect::Policy::custom(|attempt| {
                 if attempt.previous().len() >= 5 {
                     attempt.error("AI endpoint exceeded the redirect limit")
-                } else if attempt
-                    .previous()
-                    .first()
-                    .is_some_and(|origin| crate::public_network::same_origin(origin, attempt.url()))
-                {
+                } else if attempt.previous().first().is_some_and(|origin| {
+                    crate::foundation::public_network::same_origin(origin, attempt.url())
+                }) {
                     attempt.follow()
                 } else {
                     attempt.error("AI credentials cannot follow a redirect to another origin")

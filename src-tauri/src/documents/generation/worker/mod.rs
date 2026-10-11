@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 use tokio_util::sync::CancellationToken;
 
 use super::{input::DocumentInput, DocumentFormat};
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(crate) async fn render(
     format: DocumentFormat,

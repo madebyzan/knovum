@@ -11,7 +11,7 @@ import type { CanvasNodeLayoutV1 } from "../schema/document";
 import type { CanvasFrameMutation } from "./canvas-editor-port-options";
 import { createKonvaEditorPort } from "./create-canvas-editor-port";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
-import type { CanvasPalette } from "./presentation/use-canvas-palette";
+import type { CanvasPalette } from "./rendering/use-canvas-palette";
 import type { CanvasScene } from "./scene/canvas-scene";
 import type { useCanvasSelection } from "./selection/use-canvas-selection";
 import type { useStageViewport } from "./viewport/use-stage-viewport";

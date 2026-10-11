@@ -30,7 +30,7 @@ pub(crate) async fn collect<R: Runtime>(
 ) -> Result<SpacePackageSnapshot, String> {
     let pool = db::pool(app).await?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
-    let exported_at = crate::clock::unix_time_millis()?;
+    let exported_at = crate::foundation::clock::unix_time_millis()?;
 
     let space = content::load_space(&mut tx, &space_id).await?;
     let scenes = content::list_scenes(&mut tx, &space_id).await?;

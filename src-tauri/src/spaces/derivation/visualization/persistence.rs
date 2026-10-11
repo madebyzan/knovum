@@ -8,7 +8,7 @@ use super::{validation, GenerateVisualizationRequest, VisualizationContent, Visu
 use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
     ai::tasks::TaskExecutionTarget,
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{assets::asset_directory, db, knowledge::model::revision},
 };
 
@@ -47,7 +47,7 @@ pub async fn start(
     if Path::new(path).parent() != Some(asset_directory(app)?.as_path()) {
         return Err("Visualization output path is outside the Space asset directory".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,(SELECT json_extract(input_snapshot,'$.actionId') FROM spaces_runs WHERE id=$1 AND kind='action'),1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(target.engine()).bind(now)
@@ -141,7 +141,7 @@ async fn persist_completion(
     width: u32,
     height: u32,
 ) -> Result<Vec<super::super::DerivationRelation>, AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
         .as_object_mut()
         .ok_or("Visualization node data is invalid")?;

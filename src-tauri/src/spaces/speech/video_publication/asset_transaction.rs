@@ -69,7 +69,7 @@ pub(super) async fn publish<R: Runtime>(
     let mux_audio = mixed;
     let mux_part = part.clone();
     let mux_cancellation = cancellation.clone();
-    let muxed = crate::blocking::run(move || {
+    let muxed = crate::foundation::blocking::run(move || {
         super::video_mux::mux_video(
             &mux_ffmpeg,
             &mux_source,
@@ -85,7 +85,7 @@ pub(super) async fn publish<R: Runtime>(
     }
     let verify_part = part.clone();
     let verify_cancellation = cancellation.clone();
-    let postcheck = crate::blocking::run(move || {
+    let postcheck = crate::foundation::blocking::run(move || {
         verify_content_revision(&postcheck_video, &video_revision)?;
         if let (Some(path), Some(revision)) = (
             postcheck_background.as_deref(),

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     knowledge::{contracts, events, invalidation},
@@ -36,7 +36,7 @@ async fn prepare_relation_write<R: Runtime>(
 > {
     validate_relation(relation)?;
     let (source_id, target_id) = canonical_endpoints(relation);
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     crate::spaces::knowledge::relations::validate_endpoints(
@@ -54,7 +54,7 @@ pub async fn create_relation<R: Runtime>(
     app: AppHandle<R>,
     relation: SpaceRelationInput,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     create_relation_in_transaction(&mut tx, &relation, "human", None, now).await?;
@@ -131,7 +131,7 @@ pub async fn revoke_relation<R: Runtime>(
     app: AppHandle<R>,
     relation_id: String,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     if !invalidation::invalidate_relation(&mut tx, &relation_id, "human", None, now).await? {
@@ -145,7 +145,7 @@ pub async fn restore_relation<R: Runtime>(
     app: AppHandle<R>,
     relation_id: String,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     invalidation::restore_relation(&mut tx, &relation_id, "human", None, now).await?;

@@ -10,7 +10,7 @@ use super::paths;
 
 #[cfg(target_os = "macos")]
 pub(crate) fn reserve(app: &tauri::AppHandle, source: &Path) -> Result<Option<PathBuf>, String> {
-    if !crate::system_preview::thumbnail::policy::supports(source) {
+    if !crate::desktop::system_preview::thumbnail::policy::supports(source) {
         return Ok(None);
     }
     paths::preview_path(
@@ -23,7 +23,7 @@ pub(crate) fn reserve(app: &tauri::AppHandle, source: &Path) -> Result<Option<Pa
 
 #[cfg(target_os = "windows")]
 pub(crate) fn reserve(app: &tauri::AppHandle, source: &Path) -> Result<Option<PathBuf>, String> {
-    if !crate::system_preview::thumbnail::policy::supports(source) {
+    if !crate::desktop::system_preview::thumbnail::policy::supports(source) {
         return Ok(None);
     }
     paths::preview_path(app, source, &format!("{}.shell.png", uuid::Uuid::new_v4())).map(Some)
@@ -43,9 +43,12 @@ pub(crate) fn generate_at(
     claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<PathBuf, String> {
     ensure_active(cancellation)?;
-    if let Err(error) =
-        crate::system_preview::thumbnail::save_owned(source, target, cancellation, claim_path)
-    {
+    if let Err(error) = crate::desktop::system_preview::thumbnail::save_owned(
+        source,
+        target,
+        cancellation,
+        claim_path,
+    ) {
         if target.is_file() {
             if let Err(cleanup) = std::fs::remove_file(target) {
                 log::warn!("failed thumbnail cleanup: {cleanup}");

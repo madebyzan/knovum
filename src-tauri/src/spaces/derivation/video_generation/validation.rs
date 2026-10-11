@@ -25,7 +25,7 @@ pub(super) async fn validate(
         return Err("Generated video must be an MP4 container".into());
     }
     let cancellation = cancellation.clone();
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let child = Command::new(ffmpeg)
             .args(["-nostdin", "-v", "error", "-xerror", "-i"])
             .arg(path)
@@ -34,14 +34,14 @@ pub(super) async fn validate(
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|error| format!("Could not launch generated video validation: {error}"))?;
-        let output = crate::subprocess::wait_with_stderr(
+        let output = crate::foundation::subprocess::wait_with_stderr(
             child,
             &cancellation,
             "Video validation was cancelled",
             |_| Ok(()),
         )?;
         if !output.status.success() {
-            return Err(crate::subprocess::diagnostic_error(
+            return Err(crate::foundation::subprocess::diagnostic_error(
                 &output.diagnostics,
                 "Generated video is not decodable",
             ));

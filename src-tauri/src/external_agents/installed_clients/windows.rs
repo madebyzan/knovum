@@ -13,7 +13,7 @@ use windows::{
 };
 
 use crate::ai::contracts::ExternalAgentKind;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 const UNINSTALL_KEY: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 

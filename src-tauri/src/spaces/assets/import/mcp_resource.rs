@@ -74,7 +74,7 @@ pub async fn stage_mcp_resource_import(
     let directory = staging_root(&app)?.join(&staging_id);
     let source = directory.join(format!("mcp-resource.{extension}"));
     let cleanup = directory.clone();
-    let prepared = crate::blocking::run(move || {
+    let prepared = crate::foundation::blocking::run(move || {
         std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
         std::fs::write(&source, &bytes).map_err(|error| error.to_string())?;
         super::prepare::prepare_owned_asset(
@@ -98,7 +98,7 @@ pub async fn stage_mcp_resource_import(
         catalog_digest,
         uri: read.uri,
         content_digest,
-        captured_at: crate::clock::unix_time_millis()?,
+        captured_at: crate::foundation::clock::unix_time_millis()?,
     };
     Ok(PreparedMcpResourceImport {
         prepared,

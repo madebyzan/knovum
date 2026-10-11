@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::{inputs, pending_output, relations, source_validation};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{assets::asset_directory, db, knowledge::model::revision};
 
 #[derive(Deserialize)]
@@ -42,7 +42,7 @@ pub(super) async fn start(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(action_id).bind(engine).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     let sources = request
@@ -145,7 +145,7 @@ async fn persist(
     action_id: &str,
     engine: &str,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
         .as_object_mut()
         .ok_or("Document node data is invalid")?;

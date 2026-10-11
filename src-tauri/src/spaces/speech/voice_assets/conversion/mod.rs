@@ -1,4 +1,4 @@
-use crate::subprocess::{diagnostic_error, wait_with_stderr};
+use crate::foundation::subprocess::{diagnostic_error, wait_with_stderr};
 use std::{
     path::Path,
     process::{Command, Stdio},

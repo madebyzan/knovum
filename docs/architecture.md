@@ -37,13 +37,17 @@ contracts, and injected operations; it must not create a global registry that by
 `dependency-cruiser` enforces the frontend graph and presentation boundaries. Oxlint owns source
 quality and restricted imports; it is not a dependency-graph engine.
 
-The Spaces core/presentation rule exempts tests in any capability-owned `__tests__/` directory.
-All other dependency rules remain in force, including the prohibition on production imports of tests.
+The Spaces core/presentation and Konva composition rules exempt tests in capability-owned
+`__tests__/` directories. Production code cannot import tests. Moving a test beside its owner does
+not grant production code access to presentation or adapter internals.
 
 ## Rust inference boundary
 
 The Cargo workspace contains the Tauri host, `inference-contracts`, `inference-worker` and the
-project-owned compiled library crates. The neutral
+project-owned compiled library crates. `tools/contract-exporter` is the developer-only entry for
+wire generation. Export definitions stay in `src/contract_codegen` beside the native contracts,
+where they can access feature-private Rust types. The host package owns only the `knovum` product binary so Cargo discovery cannot
+add developer executables to the application bundle. The neutral
 contracts crate depends on serialization/schema tooling only. Cargo also owns `inference-libraries`
 and `media-libraries`, whose CMake builds expose install metadata to the host. The worker imports those contracts and
 maintained execution libraries; it never imports the host or feature storage. The host imports the
@@ -67,11 +71,17 @@ exclusively to the retained Deep Agent.
   and persistence adapters.
 - `shared/contracts/` owns stable neutral contracts with several consumers.
 - `shared/ui/` owns durable Knovum visual compositions. Reka remains the primitive behavior owner.
-- `src-tauri/src/desktop/` owns desktop lifecycle that must remain correct while the WebView is hidden
-  or unavailable.
-- `src-tauri/src/app_builder/` composes producer task observation. Desktop task presentation consumes
+- `src-tauri/src/desktop/` owns desktop lifecycle, window activation, system fonts, system previews
+  and application updates. Lifecycle remains correct while the WebView is hidden or unavailable.
+  `desktop/tasks/contracts.rs` defines the neutral task projections consumed by desktop presentation.
+- `src-tauri/src/app/` composes plugins, resource facts with AI policy, and producer task observation.
+  Desktop task presentation consumes
   neutral snapshots and does not open feature databases or enumerate their work.
-- `src-tauri/src/job_registry/` owns job leases and atomic maintenance admission. Engines expose
+- `src-tauri/src/foundation/` owns independent error envelopes, blocking execution, clocks, job
+  admission, public-network validation, subprocess control and UTF-16 operations. It does not compose
+  product capabilities. Concrete `sqlite`, `preferences` and `secrets` owners remain explicit;
+  persistence readiness depends on backup maintenance and is not neutral infrastructure.
+- `src-tauri/src/foundation/job_registry/` owns job leases and atomic maintenance admission. Engines expose
   reservations for their own registries; `backup/admission.rs` holds them while composing
   reconciliation, durable checks and restart scheduling. Resource preparation retains its own
   registry because it also owns completed task snapshots.
@@ -99,6 +109,37 @@ without closing retained editors; the resident view owns all-session window-clos
 Directories express stable ownership, not temporary implementation stages. Start a capability flat
 and split it only when distinct responsibilities exist. Once split, move its implementation under
 the owner instead of retaining prefixed siblings.
+
+Related implementation, UI, resources and focused tests live under their capability. This follows
+the feature-area organization and colocation principles in the
+[Angular style guide](https://angular.dev/style-guide), without adopting Angular-specific APIs or
+file names. UI directories describe a local responsibility, not a second feature hierarchy.
+There is no feature-wide component warehouse or parallel Spaces presentation tree.
+
+| Owner                    | Source organization                                                                                                                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spaces capability        | `<capability>/` holds operations and state; `<capability>/presentation/` holds its view components and UI projections.                                                                              |
+| Spaces workspace         | `workspace/` composes work surfaces, editor tabs and sidebar intent; `workspace/presentation/` composes their views, library and creation UI.                                                       |
+| Spaces canvas            | `canvas/host/` assembles the neutral surface, `canvas/konva/` implements the adapter, and `canvas/presentation/` owns product chrome, selection controls and node views.                            |
+| Settings AI              | `settings/ai/` composes AI settings; `connections/` owns providers, credentials and logos, `models/` owns definitions and routing, and `local-models/` owns installation controls.                  |
+| Other settings           | `desktop-agents/`, `creation/`, `backup/`, `archives/`, `appearance/`, `notifications/`, `usage/` and `about/` own their panes. `navigation/` owns pane registration and leave coordination.        |
+| Shared settings controls | `settings/components/` holds only controls reused by settings capabilities.                                                                                                                         |
+| Extensions               | Existing `plugins/`, `skills/`, `connectors/`, `connections/` and `apps/` retain their UI and operations; `navigation/` owns destination and leave behavior.                                        |
+| Shell                    | `layout/` owns workbench geometry and containers; `commands/` owns the palette and shortcut UI; `tasks/` owns Task Center UI. Root files compose them or define application error/startup surfaces. |
+| I18n                     | `foundation/i18n/locales/` holds the registry, dynamic-key declarations and translation resources. Locale namespaces continue to identify their semantic capability.                                |
+
+Focused tests live in the owning capability's `__tests__/`; tests exercising several capabilities
+stay at their nearest common owner. Shared fixtures remain in that owner's `__tests__/support/`.
+Vitest's existing `src/**/*.test.ts` discovery includes both, with no extra test registry.
+Global style tokens stay in `src/styles/`; Space-wide visual tokens stay in
+`features/spaces/space-tokens.css` rather than under one capability's UI.
+
+Rust SQLite baselines stay with their persistence owner: `spaces/db/migrations/`,
+`extensions/migrations/`, `ai/usage/migrations/` and `secrets/migrations/` under
+`src-tauri/src/`. Moving a baseline does not change its version, SQL or checksum.
+`spaces/command_registry/declarations.rs` owns the single command declaration consumed by both
+the runtime handlers and Tauri ACL generation. Platform-specific modules, including unsupported
+platform rejection, stay within their capability rather than at the host root.
 
 Do not create catch-all feature directories such as `application`, `domain`, `infrastructure`,
 `services`, `utils`, `helpers`, `composables`, `common`, `misc`, or `platform`. A feature's
@@ -141,7 +182,7 @@ aggregate; aliases and dual command registrations are forbidden.
 Renderer `workspace/work-items.ts` owns typed document/video tab identities and per-Space activation.
 The destination and selected work item derive the readonly `workspace/space-surface.ts` projection.
 `workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
-editor registry. Document drafts belong to `editor/document-session-store.ts`; video project/history
+editor registry. Document drafts belong to `document-editing/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
 instances alive and mounts heavy video media only while active.
 `workspace/editor-resource-protection.ts` projects open tabs into neutral Space/node identities and
@@ -213,14 +254,23 @@ spatial/tree-policy boundaries consumed by transactions and transfer. Neutral im
 caller-authorized paths; Spaces performs authorization before invocation, and the engine never
 imports Spaces.
 
-The Renderer presentation root may compose capability operations and query contracts, but it never
+Each capability's Renderer presentation may compose operations and query contracts, but it never
 imports persistence adapters. Canvas geometry and engine state stay in the canvas adapter; rich
 content stays in its product presentation owner. Detailed Space behavior, operation effects,
 revision semantics, node ownership, and persistence are specified in [spaces.md](spaces.md).
 
+Document editing owns editable drafts and Tiptap sessions in `document-editing/`; imported-file
+previews and embedded resource coverage belong to `assets/presentation/documents/`. Video editing
+owns both sessions and timeline controls in `video-editing/`. Image editing owns editor controls in
+`image-editing/presentation/`; canvas image action bars and overlays remain canvas presentation.
+`inspection/presentation/` owns selection metadata views, while `outline/presentation/` owns the
+structure outline. Source peek and quotation views belong to knowledge presentation.
+Konva's internal layers, overlays and palette live in `canvas/konva/rendering/`. They implement the
+adapter's rendering contract; they are not the capability's product presentation layer.
+
 ### Engines and local resources
 
-`documents/`, `media/`, `images/`, `file_inspection/`, `web_capture/`, `system_preview/`, and
+`documents/`, `media/`, `images/`, `file_inspection/`, `web_capture/`, `desktop/system_preview/`, and
 `local_resources/` are independent crate-level capabilities. They do not depend on Spaces or emit
 Space domain types. A Space use case authorizes inputs, calls an engine through its typed boundary,
 and owns durable publication.
@@ -229,9 +279,9 @@ and owns durable publication.
 `local_resources/tools` owns verified tool installation and bundled executable discovery;
 `local_resources/runtimes/inference` verifies the bundled compiled-library inventory;
 `agent_runtime/runtime` resolves the editable Agent or verifies its frozen bundled inventory; and
-`local_resources/preparation` coordinates preparation and execution leases. `app_resources` may
+`local_resources/preparation` coordinates preparation and execution leases. `app/resources.rs` may
 compose resource removal with consumers that must release an active model, while
-`local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app_resources` composes catalog facts with that policy for product availability.
+`local_resources` remains independent from AI and Spaces. System memory is a resource fact; device eligibility and execution admission remain AI policy. `app/resources.rs` composes catalog facts with that policy for product availability.
 
 Runtime selection, Rust inference and Agent processes, model/device policy, downloads, packaging, and GPU behavior are
 specified in [system-architecture.md](system-architecture.md) and

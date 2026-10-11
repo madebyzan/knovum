@@ -43,7 +43,7 @@ pub(super) fn notify_pending() {
 
 pub(crate) async fn drain<R: Runtime>(app: &AppHandle<R>, pool: &SqlitePool) -> Result<(), String> {
     let index = lancedb_store::connect_retrieval_db(app).await?;
-    drain_with_connection(&index, pool, crate::clock::unix_time_millis()?).await
+    drain_with_connection(&index, pool, crate::foundation::clock::unix_time_millis()?).await
 }
 
 pub(super) async fn drain_with_connection(
@@ -106,7 +106,7 @@ pub(super) async fn drain_with_connection(
             .map_err(|error| format!("Failed to prune retired generation history: {error}"))?;
     }
     // Retention starts after physical compaction, including a long maintenance pass.
-    let completed_at = crate::clock::unix_time_millis()?.max(now);
+    let completed_at = crate::foundation::clock::unix_time_millis()?.max(now);
     for generation in retired {
         if generation.cleanup_started_at.is_some() {
             sqlx::query(

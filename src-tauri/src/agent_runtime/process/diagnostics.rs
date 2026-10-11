@@ -43,7 +43,7 @@ pub(super) struct AgentDiagnostic {
 
 pub(super) async fn observe(stream: impl AsyncRead + Unpin) {
     if let Err(error) =
-        crate::subprocess::diagnostic_lines::consume(stream, 16 * 1024, report).await
+        crate::foundation::subprocess::diagnostic_lines::consume(stream, 16 * 1024, report).await
     {
         log::warn!("agent runtime diagnostic stream failed: {error}");
     }

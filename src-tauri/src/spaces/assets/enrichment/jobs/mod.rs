@@ -16,7 +16,7 @@ pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJo
 
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 use job::{FROM_LIVE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCEEDED};
 
@@ -42,7 +42,7 @@ pub async fn list_actionable_enrichment_jobs<R: Runtime>(
 }
 
 pub(crate) async fn reconcile_interrupted(app: &tauri::AppHandle) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     persistence::reconcile_interrupted(pool, now).await
 }
@@ -58,7 +58,7 @@ async fn set_status<R: Runtime>(
     if job_id.trim().is_empty() {
         return Err("Enrichment job id is required".to_owned());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     persistence::set_status(pool, job_id, from, status, error, now, increment_attempts).await
 }
@@ -78,7 +78,7 @@ async fn claim<R: Runtime>(
     job_id: &str,
     request: &EnqueueEnrichmentJobRequest,
 ) -> Result<bool, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     persistence::claim_job(pool, job_id, request, now).await
 }

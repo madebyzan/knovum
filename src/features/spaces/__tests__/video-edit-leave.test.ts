@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, nextTick, shallowRef } from "vue";
 
-import { useVideoEditLeave } from "../presentation/video-editor/use-video-edit-leave";
+import { useVideoEditLeave } from "../video-editing/presentation/use-video-edit-leave";
 import { prepareEditorSessionClose } from "../workspace/session-participants";
 
 it("prepares a video discard and applies it only after close succeeds", async () => {

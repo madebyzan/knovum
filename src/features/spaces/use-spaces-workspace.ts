@@ -8,9 +8,9 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
   const store = useSpaceStore();
   return {
     view: defineAsyncComponent(() => import("./SpaceView.vue")),
-    sidebar: defineAsyncComponent(() => import("./presentation/workspace/SpaceSidebar.vue")),
-    rightSidebar: defineAsyncComponent(() => import("./presentation/workspace/SpaceRightSidebar.vue")),
-    toolbarLeading: defineAsyncComponent(() => import("./presentation/workspace/SpaceHistoryControls.vue")),
+    sidebar: defineAsyncComponent(() => import("./workspace/presentation/SpaceSidebar.vue")),
+    rightSidebar: defineAsyncComponent(() => import("./workspace/presentation/SpaceRightSidebar.vue")),
+    toolbarLeading: defineAsyncComponent(() => import("./workspace/presentation/SpaceHistoryControls.vue")),
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },
     openDefaultRightSidebar: () => {
       store.workflowMode = undefined;
@@ -22,7 +22,7 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
         ? { kind: "space", id: store.activeSpace.id, label: store.activeSpace.title }
         : undefined,
     ),
-    toolbar: defineAsyncComponent(() => import("./presentation/workspace/SpaceWorkspaceTabs.vue")),
+    toolbar: defineAsyncComponent(() => import("./workspace/presentation/SpaceWorkspaceTabs.vue")),
     useCommands: useSpaceCommands,
   };
 }

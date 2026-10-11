@@ -5,7 +5,7 @@ use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         conversations::ConversationMessageOutput,
         db, knowledge,
@@ -93,7 +93,7 @@ async fn commit(
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let (snapshot, is_retry): (String, bool) = sqlx::query_as(
         "SELECT r.input_snapshot,c.output_publication_error IS NOT NULL FROM spaces_runs r JOIN spaces_external_agent_conversations c ON c.run_id=r.id
          WHERE r.id=$1 AND r.cancel_requested_at IS NULL AND r.state<>'cancelled'

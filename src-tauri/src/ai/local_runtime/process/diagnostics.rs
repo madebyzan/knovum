@@ -4,7 +4,7 @@ use crate::ai::contracts::diagnostics::RuntimeDiagnostic;
 
 pub(super) async fn observe(stream: impl AsyncRead + Unpin) {
     if let Err(error) =
-        crate::subprocess::diagnostic_lines::consume(stream, 16 * 1024, report).await
+        crate::foundation::subprocess::diagnostic_lines::consume(stream, 16 * 1024, report).await
     {
         log::warn!("local inference diagnostic stream failed: {error}");
     }

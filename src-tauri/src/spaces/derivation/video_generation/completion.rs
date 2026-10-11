@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use super::{GenerateVideoRequest, VideoContent, VideoOutput};
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::{
         db,
         derivation::{pending_output, relations, source_validation},
@@ -49,7 +49,7 @@ pub async fn complete(
         )
         .await?;
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let object = data
         .as_object_mut()
         .ok_or("Generated video node data is invalid")?;

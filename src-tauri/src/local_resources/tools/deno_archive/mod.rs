@@ -14,7 +14,7 @@ pub(super) async fn extract(
     binary_name: String,
     cancellation: CancellationToken,
 ) -> Result<(), String> {
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         extract_blocking(&archive_path, &binary, &binary_name, &cancellation)
     })
     .await

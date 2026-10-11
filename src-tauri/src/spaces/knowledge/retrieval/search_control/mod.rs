@@ -1,4 +1,4 @@
-use crate::job_registry::{JobLease, JobRegistry};
+use crate::foundation::job_registry::{JobLease, JobRegistry};
 use tokio_util::sync::CancellationToken;
 
 fn searches() -> &'static JobRegistry {

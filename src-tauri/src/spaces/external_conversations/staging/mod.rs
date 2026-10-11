@@ -42,14 +42,14 @@ pub(super) async fn stage(
     workspace: &Path,
 ) -> Result<Vec<InsertNode>, String> {
     let workspace = workspace.to_path_buf();
-    let artifacts = crate::blocking::run({
+    let artifacts = crate::foundation::blocking::run({
         let workspace = workspace.clone();
         move || agent_artifacts::collect(&workspace).map_err(|error| error.to_string())
     })
     .await?;
     let mut outputs = Vec::with_capacity(artifacts.len());
     for artifact in artifacts {
-        let prepared = crate::blocking::run({
+        let prepared = crate::foundation::blocking::run({
             let app = app.clone();
             let workspace = workspace.clone();
             move || {
@@ -94,12 +94,15 @@ async fn stage_prepared(
     }
     let asset = match prepared.job_id {
         Some(job_id) => {
-            crate::blocking::run(move || assets::import::commit::copy_owned_import(&job_id)).await?
+            crate::foundation::blocking::run(move || {
+                assets::import::commit::copy_owned_import(&job_id)
+            })
+            .await?
         }
         None => prepared.asset,
     };
     let reserved_preview = assets::enrichment::reserve_import_preview(app, &asset)?;
-    let finalized = crate::blocking::run({
+    let finalized = crate::foundation::blocking::run({
         let app = app.clone();
         let pool = pool.clone();
         let run_id = run_id.to_owned();
@@ -182,7 +185,7 @@ async fn record_path(
     .bind(run_id)
     .bind(path)
     .bind(role.as_str())
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .execute(pool)
     .await
     .map_err(db::sql_error)?;

@@ -4,14 +4,14 @@ import { Stage as KonvaStage } from "vue-konva/core";
 
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentV1 } from "../schema/document";
-import CanvasDomOverlay from "./presentation/CanvasDomOverlay.vue";
-import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
-import CanvasMarquee from "./presentation/CanvasMarquee.vue";
-import CanvasSceneLayers from "./presentation/CanvasSceneLayers.vue";
-import CanvasSectionCandidateFeedback from "./presentation/CanvasSectionCandidateFeedback.vue";
-import CanvasStructureEditingLayers from "./presentation/CanvasStructureEditingLayers.vue";
-import CanvasStructureHud from "./presentation/CanvasStructureHud.vue";
-import CanvasStructureSectionsLayer from "./presentation/CanvasStructureSectionsLayer.vue";
+import CanvasDomOverlay from "./rendering/CanvasDomOverlay.vue";
+import CanvasGridLayer from "./rendering/CanvasGridLayer.vue";
+import CanvasMarquee from "./rendering/CanvasMarquee.vue";
+import CanvasSceneLayers from "./rendering/CanvasSceneLayers.vue";
+import CanvasSectionCandidateFeedback from "./rendering/CanvasSectionCandidateFeedback.vue";
+import CanvasStructureEditingLayers from "./rendering/CanvasStructureEditingLayers.vue";
+import CanvasStructureHud from "./rendering/CanvasStructureHud.vue";
+import CanvasStructureSectionsLayer from "./rendering/CanvasStructureSectionsLayer.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();

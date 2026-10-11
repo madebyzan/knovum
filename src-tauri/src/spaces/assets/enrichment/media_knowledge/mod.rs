@@ -3,7 +3,7 @@ pub(crate) mod insights;
 use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::assets::transcription::MediaTranscriptionProgress;
 
 pub(crate) fn validate_input(current: &Value, expected: &Value) -> Result<(), String> {

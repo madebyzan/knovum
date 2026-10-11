@@ -2,7 +2,7 @@ import { expect, it, onTestFinished, vi } from "vitest";
 
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { createEditorSurfaceActions } from "../workspace/editor-surface-actions";
 import {
   prepareEditorSessionClose,

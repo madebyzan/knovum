@@ -21,6 +21,7 @@ import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-clo
 import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
+import SpaceCanvas from "./canvas/presentation/SpaceCanvas.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
 import { useContextDock } from "./canvas/use-context-dock";
 import {
@@ -30,16 +31,15 @@ import {
 import { useConversationSessionStore } from "./conversation/conversation-session-store";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
-import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
-import SpaceImageEditLeaveDialog from "./presentation/canvas/SpaceImageEditLeaveDialog.vue";
-import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
-import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
-import SpaceEditorTabs from "./presentation/workspace/SpaceEditorTabs.vue";
-import SpaceWorkTabs from "./presentation/workspace/SpaceWorkTabs.vue";
+import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEditLeaveDialog.vue";
+import SpaceAudioRecordingDock from "./media/presentation/SpaceAudioRecordingDock.vue";
 import { useSpaceStore } from "./session/space-store";
+import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
+import SpaceEditorTabs from "./workspace/presentation/SpaceEditorTabs.vue";
+import SpaceWorkTabs from "./workspace/presentation/SpaceWorkTabs.vue";
 
 const SpaceRecentlyDeleted = defineAsyncComponent(
-  () => import("./presentation/deletion/SpaceRecentlyDeleted.vue"),
+  () => import("./deletion/presentation/SpaceRecentlyDeleted.vue"),
 );
 const store = useSpaceStore();
 const conversationSession = useConversationSessionStore();

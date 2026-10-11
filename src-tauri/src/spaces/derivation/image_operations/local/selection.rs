@@ -4,7 +4,7 @@ use crate::{
         contracts::image_wire::TensorDataType,
         local_runtime::image::compute::{ImageTensor, ImageTensorOperation},
     },
-    app_error::AppError,
+    foundation::app_error::AppError,
     local_resources::model_catalog::{LocalModelCapability, LocalModelId},
 };
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -29,7 +29,8 @@ pub(super) async fn compute(
         return Err("Model is not an image selection model".into());
     }
     let bytes = source.bytes.clone();
-    let (original, input) = crate::blocking::run(move || prepare_source(&bytes)).await?;
+    let (original, input) =
+        crate::foundation::blocking::run(move || prepare_source(&bytes)).await?;
     let tensor = super::infer(
         app,
         model,
@@ -45,7 +46,7 @@ pub(super) async fn compute(
     .await?;
     let selection = selection.clone();
     let token = cancellation.clone();
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let field = image::GrayImage::from_raw(tensor.shape[3], tensor.shape[2], tensor.bytes)
             .ok_or("Invalid selected-region mask")?;
         let mut field = imageops::resize(
@@ -91,7 +92,7 @@ pub(in super::super) async fn preview(
     cancellation: &CancellationToken,
 ) -> Result<String, AppError> {
     let (_, mask) = compute(app, model, selection, source, owner_id, cancellation).await?;
-    crate::blocking::run(move || {
+    crate::foundation::blocking::run(move || {
         let field = image::GrayImage::from_raw(mask.shape[3], mask.shape[2], mask.bytes)
             .ok_or("Invalid selected-region mask")?;
         let mut png = Vec::new();

@@ -1,5 +1,5 @@
 use super::super::contracts::ResourcePreparationState;
-use crate::desktop_task::{DesktopTask, DesktopTaskState};
+use crate::desktop::tasks::contracts::{DesktopTask, DesktopTaskState};
 use std::sync::OnceLock;
 use tokio::sync::watch;
 

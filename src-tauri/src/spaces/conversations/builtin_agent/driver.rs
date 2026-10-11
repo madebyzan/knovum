@@ -235,10 +235,10 @@ async fn paused(host: &Gateway) -> Result<(), String> {
     let mut tx = db::begin_write(&host.pool).await?;
     let updated = sqlx::query("UPDATE spaces_runs SET state='paused',wait_reason=NULL,state_version=state_version+1,updated_at=$1
         WHERE id=$2 AND pause_requested_at IS NOT NULL AND cancel_requested_at IS NULL AND completed_at IS NULL")
-        .bind(crate::clock::unix_time_millis()?).bind(&host.ids.run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(crate::foundation::clock::unix_time_millis()?).bind(&host.ids.run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(updated, "builtin-agent-pause-inactive")?;
     crate::spaces::runs::append_event(&mut tx, &host.ids.run_id, None, None, crate::spaces::runs::RunEventKind::BuiltinAgentPausedCheckpoint,
-        &json!({"threadId":host.session.thread_id,"graphVersion":crate::agent_runtime::protocol::GRAPH_VERSION}), crate::clock::unix_time_millis()?).await?;
+        &json!({"threadId":host.session.thread_id,"graphVersion":crate::agent_runtime::protocol::GRAPH_VERSION}), crate::foundation::clock::unix_time_millis()?).await?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     Ok(())
@@ -253,7 +253,7 @@ async fn set_running(host: &Gateway) -> Result<(), String> {
 async fn set_state(host: &Gateway, state: &str, reason: Option<&str>) -> Result<(), String> {
     let changed = sqlx::query("UPDATE spaces_runs SET state=$1,wait_reason=$2,state_version=state_version+1,updated_at=$3
         WHERE id=$4 AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND completed_at IS NULL")
-        .bind(state).bind(reason).bind(crate::clock::unix_time_millis()?).bind(&host.ids.run_id).execute(&host.pool).await.map_err(db::sql_error)?;
+        .bind(state).bind(reason).bind(crate::foundation::clock::unix_time_millis()?).bind(&host.ids.run_id).execute(&host.pool).await.map_err(db::sql_error)?;
     db::require_one(changed, "builtin-agent-execution-inactive")?;
     crate::spaces::runs::announce_change();
     Ok(())

@@ -15,7 +15,7 @@ pub(crate) async fn require_read(
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
     let grant = load_grant(&mut tx, grant_id).await?;
-    grant.require_read(space_id, crate::clock::unix_time_millis()?)
+    grant.require_read(space_id, crate::foundation::clock::unix_time_millis()?)
 }
 
 pub(crate) async fn require_run_control(
@@ -27,7 +27,7 @@ pub(crate) async fn require_run_control(
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
     let grant = load_grant(&mut tx, grant_id).await?;
-    grant.require_read(space_id, crate::clock::unix_time_millis()?)?;
+    grant.require_read(space_id, crate::foundation::clock::unix_time_millis()?)?;
     let owner: Option<(String, Option<String>, String, String)> = sqlx::query_as(
         "SELECT scope_kind,home_space_id,principal_kind,principal_id FROM spaces_runs WHERE id=$1",
     )
@@ -55,7 +55,7 @@ pub(crate) async fn create_external_agent_grant(
     actor_id: &str,
     action_ids: Vec<String>,
 ) -> Result<String, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let grant = external_agent_grant(
         uuid::Uuid::new_v4().to_string(),
         space_id.to_owned(),

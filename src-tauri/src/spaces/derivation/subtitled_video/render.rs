@@ -11,6 +11,8 @@ use uuid::Uuid;
 use super::persistence::VideoSubtitleSource;
 use super::{progress, SubtitledVideoProgress, CANCELLED};
 use crate::{
+    desktop::system_font::SYSTEM_SANS_FAMILY,
+    foundation::subprocess,
     local_resources::tools,
     spaces::{
         assets::asset_directory,
@@ -19,8 +21,6 @@ use crate::{
             video_output::{self, RenderedVideo},
         },
     },
-    subprocess,
-    system_font::SYSTEM_SANS_FAMILY,
 };
 
 pub fn render(

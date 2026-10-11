@@ -79,7 +79,7 @@ pub(crate) async fn files(app: &AppHandle, skill: &SkillRevision) -> Result<Pack
             .join("revisions")
             .join(&skill.digest)
     };
-    let files = crate::blocking::run(move || {
+    let files = crate::foundation::blocking::run(move || {
         super::super::plugins::sources::directory_files(
             &directory,
             &tokio_util::sync::CancellationToken::new(),
@@ -103,7 +103,7 @@ pub(super) async fn publish(
         .join(&skill.id)
         .join("revisions")
         .join(&skill.digest);
-    crate::blocking::run(move || content::publish(&directory, &files)).await?;
+    crate::foundation::blocking::run(move || content::publish(&directory, &files)).await?;
     save(&database::pool(app).await?, skill).await
 }
 

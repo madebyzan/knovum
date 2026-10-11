@@ -3,7 +3,7 @@ use tauri::{AppHandle, Runtime};
 use tokio::sync::OnceCell;
 
 static DATABASE: OnceCell<SqlitePool> = OnceCell::const_new();
-static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations/ai_usage");
+static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("src/ai/usage/migrations");
 
 pub async fn initialize<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     let _ = pool(app).await?;

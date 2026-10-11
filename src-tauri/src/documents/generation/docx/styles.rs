@@ -1,6 +1,6 @@
 use docx_rs::{Docx, RunFonts, Style, StyleType};
 
-use crate::system_font::SYSTEM_SANS_FAMILY;
+use crate::desktop::system_font::SYSTEM_SANS_FAMILY;
 
 pub(super) fn document() -> Docx {
     let normal = Style::new("KnovumBody", StyleType::Paragraph)

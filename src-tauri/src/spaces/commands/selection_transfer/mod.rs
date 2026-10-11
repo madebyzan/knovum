@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{db, knowledge, structure};
 use contracts::TransferSelectionRequest;
 use contracts::TransferSelectionResponse;
@@ -23,7 +23,7 @@ pub async fn transfer_selection<R: Runtime>(
     {
         return Err("Cross-Space move requires distinct Spaces and structure roots".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let digest = structure::receipts::digest(&request)?;

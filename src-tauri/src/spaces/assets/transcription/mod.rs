@@ -5,7 +5,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    blocking,
+    foundation::blocking,
     local_resources::preparation,
     media::transcript::{MediaTranscript, TranscriptSegment},
     spaces::assets::{authorize_spaces_asset, media_analysis},

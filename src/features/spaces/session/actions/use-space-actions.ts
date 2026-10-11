@@ -4,10 +4,10 @@ import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions"
 import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
-import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
 import { createEditorSessions } from "../../workspace/editor-sessions";
 import { createEditorSurfaceActions } from "../../workspace/editor-surface-actions";
+import { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import { useEditorSessionProjection } from "../../workspace/use-editor-session-projection";
 import type { SpaceState } from "../session-state";

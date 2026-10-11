@@ -31,7 +31,7 @@ pub(crate) async fn await_runtime(app: &AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn await_ai_runtime(app: AppHandle) -> Result<(), crate::app_error::AppError> {
+async fn await_ai_runtime(app: AppHandle) -> Result<(), crate::foundation::app_error::AppError> {
     Ok(await_runtime(&app).await?)
 }
 

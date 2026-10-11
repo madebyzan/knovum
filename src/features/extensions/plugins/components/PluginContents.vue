@@ -13,7 +13,7 @@ import ExtensionCleanupNotice from "../../components/ExtensionCleanupNotice.vue"
 import ExtensionIdentity from "../../components/ExtensionIdentity.vue";
 import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeader.vue";
 import { isAppConnector } from "../../connectors/app-connector";
-import type { ExtensionDestination } from "../../extension-destination";
+import type { ExtensionDestination } from "../../navigation/extension-destination";
 import SkillContents from "../../skills/components/SkillContents.vue";
 import { exportSkillDirectory } from "../../skills/skill-directory";
 import { useExtensionChanges } from "../../use-extension-changes";

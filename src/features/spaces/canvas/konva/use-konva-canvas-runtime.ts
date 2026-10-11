@@ -14,7 +14,7 @@ import { useConnectorCreation } from "./interaction/use-connector-creation";
 import { useNodeContentActivation } from "./interaction/use-node-content-activation";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import { useStructureDragAutoPan } from "./interaction/use-structure-drag-auto-pan";
-import { useCanvasPalette } from "./presentation/use-canvas-palette";
+import { useCanvasPalette } from "./rendering/use-canvas-palette";
 import { useCanvasScenePreview } from "./scene/use-canvas-scene-preview";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
 import { useCanvasSceneProjections } from "./use-canvas-scene-projections";

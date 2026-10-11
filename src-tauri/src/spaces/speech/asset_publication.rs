@@ -72,7 +72,7 @@ async fn stage_in_transaction(
     if claim.cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
     let (scope_kind, space_id) = claim.scope.db_values();
     let inserted = sqlx::query(
@@ -143,7 +143,7 @@ pub(crate) async fn stage_unowned(
             .map(|path| path.to_string_lossy().into_owned()),
     )
     .bind(asset.sha256)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .execute(pool)
     .await
     .map_err(db::sql_error)?;

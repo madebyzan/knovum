@@ -7,7 +7,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use super::contracts::AcquisitionProgress;
-use crate::subprocess;
+use crate::foundation::subprocess;
 
 pub(crate) const ACQUISITION_CANCELLED: &str = "media-acquisition-cancelled";
 const FORMAT: &str = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best";

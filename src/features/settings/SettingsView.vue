@@ -4,21 +4,21 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
-import LocalModelsSettings from "./components/LocalModelsSettings.vue";
-import AboutSettingsPane from "./components/panes/AboutSettingsPane.vue";
-import AiModelsSettingsPane from "./components/panes/AiModelsSettingsPane.vue";
-import AppearanceSettingsPane from "./components/panes/AppearanceSettingsPane.vue";
-import ArchivedSpacesSettingsPane from "./components/panes/ArchivedSpacesSettingsPane.vue";
-import BackupSettingsPane from "./components/panes/BackupSettingsPane.vue";
-import CreationSettingsPane from "./components/panes/CreationSettingsPane.vue";
-import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
-import NotificationsSettingsPane from "./components/panes/NotificationsSettingsPane.vue";
-import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
+import AboutSettingsPane from "./about/AboutSettingsPane.vue";
+import AiModelsSettingsPane from "./ai/AiModelsSettingsPane.vue";
+import LocalModelsSettings from "./ai/local-models/components/LocalModelsSettings.vue";
+import AppearanceSettingsPane from "./appearance/AppearanceSettingsPane.vue";
+import ArchivedSpacesSettingsPane from "./archives/ArchivedSpacesSettingsPane.vue";
+import BackupSettingsPane from "./backup/BackupSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
 import type { GenerationActionOption } from "./creation/action-option";
-import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
-import { getSettingsDefinition } from "./settings-registry";
-import { useSettingsLeaveCoordinator } from "./use-settings-leave-coordinator";
+import CreationSettingsPane from "./creation/CreationSettingsPane.vue";
+import DesktopAgentsSettingsPane from "./desktop-agents/DesktopAgentsSettingsPane.vue";
+import { resolveSettingsPaneId, type SettingsPaneId } from "./navigation/settings-pane";
+import { getSettingsDefinition } from "./navigation/settings-registry";
+import { useSettingsLeaveCoordinator } from "./navigation/use-settings-leave-coordinator";
+import NotificationsSettingsPane from "./notifications/NotificationsSettingsPane.vue";
+import UsageSettingsPane from "./usage/UsageSettingsPane.vue";
 
 const props = defineProps<{
   loadGenerationActions: () => Promise<GenerationActionOption[]>;

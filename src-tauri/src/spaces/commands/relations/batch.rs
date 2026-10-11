@@ -1,4 +1,4 @@
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use std::collections::HashSet;
 
 use tauri::{AppHandle, Runtime};
@@ -11,7 +11,7 @@ pub(crate) async fn revoke_relations<R: Runtime>(
     relation_ids: Vec<String>,
 ) -> Result<(), AppError> {
     validate_relation_ids(&relation_ids)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     for relation_id in relation_ids {
@@ -28,7 +28,7 @@ pub(crate) async fn restore_relations<R: Runtime>(
     relation_ids: Vec<String>,
 ) -> Result<(), AppError> {
     validate_relation_ids(&relation_ids)?;
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     for relation_id in relation_ids {

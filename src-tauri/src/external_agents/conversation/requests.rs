@@ -6,7 +6,7 @@ use std::{
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) struct TurnRequest {
     pub(super) prompt: super::super::prompt::AgentPrompt,

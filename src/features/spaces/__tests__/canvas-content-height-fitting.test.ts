@@ -5,7 +5,7 @@ import { createCanvasContentHeightFitting } from "../canvas/konva/content-height
 import type { CanvasScene, CanvasSceneNode } from "../canvas/konva/scene/canvas-scene";
 import { createSpaceNode } from "../canvas/node";
 import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
-import { createSpaceTextPayload } from "../editor/tiptap-content";
+import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 
 function fixture(count: number) {

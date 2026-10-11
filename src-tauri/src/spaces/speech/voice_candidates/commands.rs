@@ -2,7 +2,7 @@ use super::{
     repository::{discard_candidate, list_ready, load_candidate, load_record, mark_auditioned},
     DraftVoiceCandidateRequest, VoiceCandidate, WORKFLOW,
 };
-use crate::{app_error::AppError, spaces::db, spaces::runs::RunObservation};
+use crate::{foundation::app_error::AppError, spaces::db, spaces::runs::RunObservation};
 
 #[tauri::command]
 pub async fn draft_voice_candidate(
@@ -58,11 +58,18 @@ pub async fn mark_voice_candidate_auditioned(
         std::path::Path::new(&record.candidate.audio.path),
     )?;
     let expected = record.candidate.audio.sha256;
-    let actual = crate::blocking::run(move || super::super::publication::hash_file(&path)).await?;
+    let actual =
+        crate::foundation::blocking::run(move || super::super::publication::hash_file(&path))
+            .await?;
     if actual != expected {
         return Err("stale_revision: voice candidate changed before audition review".into());
     }
-    mark_auditioned(pool, &candidate_id, crate::clock::unix_time_millis()?).await?;
+    mark_auditioned(
+        pool,
+        &candidate_id,
+        crate::foundation::clock::unix_time_millis()?,
+    )
+    .await?;
     Ok(load_candidate(pool, &candidate_id).await?)
 }
 

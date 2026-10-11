@@ -13,7 +13,7 @@ use crate::ai::{
         TaskExecutionTarget, TaskTargetSelection,
     },
 };
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 async fn execute(
     app: &tauri::AppHandle,

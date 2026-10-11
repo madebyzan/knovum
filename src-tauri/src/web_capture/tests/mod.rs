@@ -1,5 +1,5 @@
 use super::{decode_document, parse_url, validate_derived_url};
-use crate::public_network::public_address;
+use crate::foundation::public_network::public_address;
 
 #[test]
 fn accepts_http_and_https_urls() {

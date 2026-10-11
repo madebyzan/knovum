@@ -2,8 +2,8 @@ use std::{fs, io::Read, path::Path};
 
 use sha2::{Digest, Sha256};
 
-use crate::app_error::{AppError, AppResult};
 use crate::external_agents::artifacts;
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) fn read(root: &Path, name: &str, limit: u64) -> AppResult<Vec<u8>> {
     let invalid = |message| AppError::new("invalid_response", message);

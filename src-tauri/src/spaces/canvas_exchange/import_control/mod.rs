@@ -1,5 +1,5 @@
-use crate::app_error::AppError;
-use crate::job_registry::{JobAdmissionReservation, JobLease, JobRegistry};
+use crate::foundation::app_error::AppError;
+use crate::foundation::job_registry::{JobAdmissionReservation, JobLease, JobRegistry};
 use std::sync::OnceLock;
 use tokio_util::sync::CancellationToken;
 

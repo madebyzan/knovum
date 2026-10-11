@@ -65,7 +65,7 @@ pub(crate) async fn diarize_media(
     let source_path = source.to_owned();
     let revision = source_revision.to_owned();
     let token = cancellation.clone();
-    let audio = crate::blocking::run(move || {
+    let audio = crate::foundation::blocking::run(move || {
         media_analysis::prepare(&app_for_audio, Path::new(&source_path), &revision, &token)
     })
     .await?;
@@ -90,7 +90,7 @@ pub(crate) async fn diarize_media(
     )
     .await?;
     let model = PreparedDiarizationModel::from_models(models, variant)?;
-    let audio_ref = crate::blocking::run({
+    let audio_ref = crate::foundation::blocking::run({
         let wav = audio.wav.clone();
         move || audio_reference(&wav)
     })
@@ -201,7 +201,7 @@ fn publish(
         engine_id: "sherpa_onnx".into(),
         model_spec_id: variant.spec_id().into(),
         model_revision: variant.revision().into(),
-        diarized_at: u64::try_from(crate::clock::unix_time_millis()?)
+        diarized_at: u64::try_from(crate::foundation::clock::unix_time_millis()?)
             .map_err(|error| error.to_string())?,
     });
     payload["mediaKnowledge"]["transcript"] =

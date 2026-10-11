@@ -10,7 +10,7 @@ pub(super) async fn clone_nodes(
     node_id_by_source_id: &HashMap<String, String>,
     structure_node_id_by_source_id: &HashMap<String, String>,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     for (old_id, new_id) in node_id_by_source_id {
         let row = sqlx::query("SELECT n.kind,n.object_type_id,n.initial_x,n.initial_y,n.data,t.fields AS object_fields FROM spaces_nodes n LEFT JOIN spaces_object_types t ON t.id=n.object_type_id WHERE n.id=$1 AND n.space_id=$2 AND n.deleted_at IS NULL")
             .bind(old_id).bind(space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?

@@ -20,7 +20,7 @@ fn burns_subtitles_into_h264_video() {
         .any(|value| value.starts_with("subtitles=subtitle-job.srt:")));
     assert!(arguments
         .iter()
-        .any(|value| value.contains(crate::system_font::SYSTEM_SANS_FAMILY)));
+        .any(|value| value.contains(crate::desktop::system_font::SYSTEM_SANS_FAMILY)));
     assert!(arguments.iter().any(|value| value.contains("WrapStyle=0")));
     let expected = if cfg!(target_os = "macos") {
         "h264_videotoolbox"

@@ -5,7 +5,7 @@ use futures::FutureExt;
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
-use crate::public_network::resource_response;
+use crate::foundation::public_network::resource_response;
 
 const MAX_REMOTE_RESOURCE_BYTES: usize = 64 * 1024 * 1024;
 const MAX_REMOTE_IMAGE_BYTES: usize = 64 * 1024 * 1024;

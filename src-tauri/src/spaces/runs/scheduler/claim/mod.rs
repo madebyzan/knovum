@@ -7,7 +7,7 @@ mod parsing;
 const LEASE_MILLIS: i64 = 30_000;
 
 pub(crate) async fn renew_lease(pool: &SqlitePool, claim: &AttemptClaim) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let changed = sqlx::query(
         "UPDATE spaces_run_attempts SET lease_until=$1 WHERE id=$2 AND state='executing'
          AND execution_epoch=$3",
@@ -28,7 +28,7 @@ pub(crate) async fn claim_ready_step(
     pool: &SqlitePool,
     executor_id: &str,
 ) -> Result<Option<AttemptClaim>, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let ready: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM spaces_run_steps s JOIN spaces_runs r ON r.id=s.run_id
          WHERE s.state='ready' AND s.available_at<=$1 AND r.state IN ('queued','running')

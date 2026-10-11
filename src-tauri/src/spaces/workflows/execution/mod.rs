@@ -3,7 +3,7 @@ mod shared;
 
 use sqlx::SqlitePool;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::runs::{AttemptClaim, StepOutcome};
 
 pub(crate) async fn execute_captured_step(

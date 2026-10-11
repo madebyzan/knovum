@@ -147,7 +147,10 @@ async fn inference_failure_keeps_its_code_and_message() {
         "provider_request_failed",
         "cancelled",
     ] {
-        let spy = ExecutorSpy::fails(crate::app_error::AppError::new(code, "Original failure"));
+        let spy = ExecutorSpy::fails(crate::foundation::app_error::AppError::new(
+            code,
+            "Original failure",
+        ));
         let error = interpret(
             &spy,
             agent_target(ExecutionCapability::VisionUnderstanding),

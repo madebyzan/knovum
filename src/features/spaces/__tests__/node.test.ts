@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { reactive } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { transcriptFixture } from "./support/media-transcript-fixture";
 

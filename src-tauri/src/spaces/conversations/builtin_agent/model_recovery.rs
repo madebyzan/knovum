@@ -22,7 +22,7 @@ pub(super) async fn wait(
     let reason = serde_json::to_value(reason).map_err(db::json_error)?;
     sqlx::query("UPDATE spaces_runs SET state='waiting',wait_reason=$1,state_version=state_version+1,updated_at=$2
         WHERE id=$3 AND completed_at IS NULL AND cancel_requested_at IS NULL")
-        .bind(reason.as_str()).bind(crate::clock::unix_time_millis()?).bind(run_id).execute(pool).await.map_err(db::sql_error)?;
+        .bind(reason.as_str()).bind(crate::foundation::clock::unix_time_millis()?).bind(run_id).execute(pool).await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     Ok(())
 }

@@ -2,7 +2,7 @@ use agent_client_protocol::AcpAgent;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::contracts::ExternalAgentKind;
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) const INITIALIZE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 pub(super) const START_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);

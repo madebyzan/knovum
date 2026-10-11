@@ -4,7 +4,7 @@ mod package;
 pub(super) use environment::isolate_environment;
 mod request;
 mod startup;
-use crate::subprocess::process_tree::{KillHandle, ProcessTree};
+use crate::foundation::subprocess::process_tree::{KillHandle, ProcessTree};
 use std::{
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
@@ -19,7 +19,7 @@ use crate::ai::contracts::runtime::{
 };
 
 #[cfg(windows)]
-use crate::subprocess::windows_job;
+use crate::foundation::subprocess::windows_job;
 pub(super) struct Worker {
     pub(super) child: Child,
     process_tree: ProcessTree,

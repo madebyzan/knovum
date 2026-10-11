@@ -111,7 +111,7 @@ async fn publish_snapshot(
     let handle = app.clone();
     let cancel = cancellation.clone();
     let preparation: Result<ReferenceSourceSnapshot, String> = async {
-        let audio = crate::blocking::run(move || -> Result<_, String> {
+        let audio = crate::foundation::blocking::run(move || -> Result<_, String> {
             let (revision, audio) = super::super::voice_assets::prepare_reference_clip(
                 &handle,
                 &original,

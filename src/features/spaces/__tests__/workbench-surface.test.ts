@@ -3,7 +3,7 @@ import { expect, it, onTestFinished } from "vitest";
 
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { createSpaceState } from "../session/session-state";
 import { createEditorSurfaceActions } from "../workspace/editor-surface-actions";
 import { showSpaceLibrary } from "../workspace/library-actions";

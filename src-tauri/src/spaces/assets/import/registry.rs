@@ -4,7 +4,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     file_inspection::ResourceClassification,
-    job_registry::{JobAdmissionReservation, JobRegistry},
+    foundation::job_registry::{JobAdmissionReservation, JobRegistry},
 };
 
 #[derive(Clone)]

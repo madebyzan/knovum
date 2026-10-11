@@ -29,7 +29,7 @@ pub(crate) mod visualization;
 
 use tauri::AppHandle;
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 pub(crate) use action_execution::{execute as execute_action, ExecutionAuthority};
 pub use contracts::{CompletedDerivationOutput, DerivationRelation};
 

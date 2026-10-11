@@ -6,9 +6,9 @@ import { createI18n } from "vue-i18n";
 
 import { createSpaceNode } from "../canvas/node";
 import { videoEditCommands } from "../commands/video-edit-commands";
-import { useVideoEditActions } from "../presentation/video-editor/use-video-edit-actions";
-import { useVideoEditSelection } from "../presentation/video-editor/use-video-edit-selection";
-import { useVideoProjectPlayback } from "../presentation/video-editor/use-video-project-playback";
+import { useVideoEditActions } from "../video-editing/presentation/use-video-edit-actions";
+import { useVideoEditSelection } from "../video-editing/presentation/use-video-edit-selection";
+import { useVideoProjectPlayback } from "../video-editing/presentation/use-video-project-playback";
 import { createVideoEditProject } from "../video-editing/project";
 import { useVideoSessionStore } from "../video-editing/video-session-store";
 import { deferred } from "./support/canvas-fixtures";

@@ -15,7 +15,7 @@ pub(super) async fn apply(
     snapshot: &mut SpaceStructureSnapshot,
     deletion: &Deletion,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     repository::store_deletion_in_transaction(
         tx,
         repository::DeletionBatch {

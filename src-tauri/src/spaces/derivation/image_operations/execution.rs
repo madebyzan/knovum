@@ -1,7 +1,7 @@
 use super::{
     agent, contracts::DeriveImageRequest, local, output, persistence, provider, routing, source,
 };
-use crate::{app_error::AppError, spaces::derivation::CompletedDerivationOutput};
+use crate::{foundation::app_error::AppError, spaces::derivation::CompletedDerivationOutput};
 use tauri::{ipc::Channel, AppHandle};
 
 pub(crate) async fn derive_for_action(
@@ -35,7 +35,7 @@ pub(crate) async fn derive_for_action(
             Ok(value) => value,
             Err(error) => return fail_running(&app, &request, error.into()).await,
         };
-    let rendered = crate::blocking::run({
+    let rendered = crate::foundation::blocking::run({
         let render_app = app.clone();
         let source_edit = request.source_edit.clone();
         let source_revision = request.source_revision.clone();
@@ -52,10 +52,12 @@ pub(crate) async fn derive_for_action(
     })
     .await;
     let source = match rendered {
-        Ok(value) => match crate::blocking::run(move || source::from_rendered(value)).await {
-            Ok(source) => source,
-            Err(error) => return fail_running(&app, &request, error.into()).await,
-        },
+        Ok(value) => {
+            match crate::foundation::blocking::run(move || source::from_rendered(value)).await {
+                Ok(source) => source,
+                Err(error) => return fail_running(&app, &request, error.into()).await,
+            }
+        }
         Err(error) => return fail_running(&app, &request, error.into()).await,
     };
     if let Err(error) = super::super::stage(&stages, "processing") {
@@ -98,7 +100,7 @@ pub(crate) async fn derive_for_action(
                         .await?
                     }
                 };
-                crate::blocking::run(move || output::canonicalize(&bytes)).await?
+                crate::foundation::blocking::run(move || output::canonicalize(&bytes)).await?
             }
         };
         super::super::stage(&stages, "publishing")?;

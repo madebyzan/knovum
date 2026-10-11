@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime};
 
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::{db, structure};
 
 #[derive(Debug, Deserialize)]
@@ -20,7 +20,7 @@ pub async fn create_space<R: Runtime>(
     if !matches!(space.kind.as_str(), "inbox" | "space") {
         return Err("Unsupported Space kind".into());
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
@@ -46,7 +46,7 @@ pub async fn update_space_title<R: Runtime>(
     space_id: String,
     title: String,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed =
         sqlx::query("UPDATE spaces SET title = ?, updated_at = ? WHERE id = ? AND kind = 'space'")
@@ -80,7 +80,7 @@ pub async fn mark_space_opened<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query("UPDATE spaces SET last_opened_at = ? WHERE id = ?")
         .bind(now)
@@ -97,7 +97,7 @@ pub async fn set_space_favorite<R: Runtime>(
     space_id: String,
     favorite: bool,
 ) -> Result<(), AppError> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query(
         "UPDATE spaces SET favorite = ?, updated_at = ? WHERE id = ? AND kind = 'space'",
@@ -148,7 +148,7 @@ async fn set_archived<R: Runtime>(
     space_id: String,
     archived: bool,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let archived_at = archived.then_some(now);
     let pool = db::pool(app).await?;
     let executed = sqlx::query(

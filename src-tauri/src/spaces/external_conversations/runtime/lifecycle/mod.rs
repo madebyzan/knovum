@@ -10,7 +10,7 @@ pub(super) async fn mark_connected(
     run_id: &str,
     session: &crate::external_agents::conversation::ConversationSession,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let connected = sqlx::query(
         "UPDATE spaces_external_agent_conversations SET state='connected',runtime_session_id=$1,
@@ -43,7 +43,7 @@ pub(crate) async fn mark_disconnected(
     run_id: &str,
     error: &str,
 ) -> Result<bool, String> {
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let disconnected = sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2,
         output_publication_state=CASE WHEN output_publication_state='pending' AND EXISTS(

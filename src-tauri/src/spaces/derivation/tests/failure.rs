@@ -56,7 +56,10 @@ async fn database_settlement_failure_retains_the_producer_error_code_and_both_ca
     pending(&pool).await;
     sqlx::query("CREATE TRIGGER reject_failure BEFORE UPDATE ON spaces_knowledge_derivations BEGIN SELECT RAISE(ABORT,'settlement unavailable'); END")
         .execute(&pool).await.unwrap();
-    let primary = crate::app_error::AppError::new("provider_request_failed", "generation rejected");
+    let primary = crate::foundation::app_error::AppError::new(
+        "provider_request_failed",
+        "generation rejected",
+    );
     let settlement = fail_messages(&pool, &["first".into()], &primary.message).await;
     let error = super::super::failure::with_settlement(primary, settlement);
     assert_eq!(error.code, "provider_request_failed");

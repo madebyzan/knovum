@@ -5,10 +5,10 @@ import { expect, it, onTestFinished, vi } from "vitest";
 import { i18n } from "../../../foundation/i18n/instance";
 import { getCanvasEditorSession, updateCanvasSelectionProjection } from "../canvas/editor-session";
 import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import SpaceRelationInspector from "../presentation/inspector/SpaceRelationInspector.vue";
-import SpaceSelectionInspector from "../presentation/inspector/SpaceSelectionInspector.vue";
-import SpaceKnowledgeHealth from "../presentation/knowledge/SpaceKnowledgeHealth.vue";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
+import SpaceRelationInspector from "../inspection/presentation/SpaceRelationInspector.vue";
+import SpaceSelectionInspector from "../inspection/presentation/SpaceSelectionInspector.vue";
+import SpaceKnowledgeHealth from "../knowledge/presentation/SpaceKnowledgeHealth.vue";
 import { useSpaceStore } from "../session/space-store";
 
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));

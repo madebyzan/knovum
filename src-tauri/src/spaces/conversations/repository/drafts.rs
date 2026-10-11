@@ -82,7 +82,7 @@ pub async fn save_draft(
     .bind(&attachments_json)
     .bind(&extensions_json)
     .bind(&reacquire_json)
-    .bind(crate::clock::unix_time_millis()?)
+    .bind(crate::foundation::clock::unix_time_millis()?)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;

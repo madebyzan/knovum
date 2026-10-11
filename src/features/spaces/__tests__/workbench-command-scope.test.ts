@@ -7,7 +7,7 @@ import { createSpaceNode } from "../canvas/node";
 import { createContextDock } from "../canvas/use-context-dock";
 import { registerDocumentEditCommands } from "../commands/document-edit-commands";
 import { useSpaceCommands } from "../commands/use-space-commands";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 import { deferred } from "./support/canvas-fixtures";

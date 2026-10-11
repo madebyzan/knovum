@@ -6,7 +6,7 @@ fn prepare(
     source: &str,
     assets: &[ImportedPackageAsset],
     target_space: &str,
-) -> Result<RestorePackageRequest, crate::app_error::AppError> {
+) -> Result<RestorePackageRequest, crate::foundation::app_error::AppError> {
     prepare_cancellable(source, assets, target_space, &CancellationToken::new())
 }
 

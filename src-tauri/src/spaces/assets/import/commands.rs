@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use super::super::{enrichment, PreparedAsset};
 use super::{commit, prepare, registry};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -22,7 +22,7 @@ pub async fn stage_asset_import(
         ImportSourceAccess::Scoped => None,
         ImportSourceAccess::Clipboard => Some(clipboard.read_files()?),
     };
-    Ok((crate::blocking::run(move || {
+    Ok((crate::foundation::blocking::run(move || {
         let source = PathBuf::from(source_path);
         match clipboard_paths {
             Some(paths) => prepare::prepare_clipboard_asset(&app, source, &paths),
@@ -37,7 +37,7 @@ pub async fn commit_asset_import(
     job_id: String,
     on_progress: tauri::ipc::Channel<commit::AssetImportProgress>,
 ) -> Result<PreparedAsset, AppError> {
-    crate::blocking::run(move || commit::copy_pending_import(&job_id, &on_progress))
+    crate::foundation::blocking::run(move || commit::copy_pending_import(&job_id, &on_progress))
         .await
         .map_err(enrichment::processing_error)
 }

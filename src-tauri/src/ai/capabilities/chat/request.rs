@@ -7,7 +7,7 @@ use crate::ai::{
     },
     models::{CompletionRequest, ModelExecutionTarget},
 };
-use crate::app_error::{AppError, AppResult};
+use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) fn prepare(request: CompletionRequest) -> (ModelExecutionTarget, ChatRequest) {
     let chat_request = ChatRequest {

@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::{GenerateGroundedDocumentRequest, GeneratedDocument, GroundedDocumentOutput};
-use crate::app_error::AppError;
+use crate::foundation::app_error::AppError;
 use crate::spaces::derivation::relations;
 use crate::spaces::derivation::source_validation;
 use crate::spaces::{db, knowledge::model::revision};
@@ -30,7 +30,7 @@ pub async fn complete(
         )
         .await?;
     }
-    let now = crate::clock::unix_time_millis()?;
+    let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     apply_document(&mut data, &generated.text)?;
     crate::spaces::knowledge::validation::validate_node(

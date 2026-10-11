@@ -4,7 +4,7 @@ import { reactive, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
-import SpaceOutline from "../presentation/outline/SpaceOutline.vue";
+import SpaceOutline from "../outline/presentation/SpaceOutline.vue";
 
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => store }));
 vi.mock("../canvas/editor-session", () => ({
@@ -21,7 +21,7 @@ vi.mock("../session/node-operation-drafts-store", () => ({
     end: () => {},
   }),
 }));
-vi.mock("../presentation/outline/use-structure-outline-menu", () => ({
+vi.mock("../outline/presentation/use-structure-outline-menu", () => ({
   useStructureOutlineMenu: () => ({ show: () => {} }),
 }));
 

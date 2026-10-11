@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use tauri::AppHandle;
 
 use crate::{
-    app_error::AppError,
+    foundation::app_error::AppError,
     spaces::runs::{AttemptClaim, SchedulerHooks, StepOutcome},
 };
 
