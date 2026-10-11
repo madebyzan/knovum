@@ -1,5 +1,7 @@
+import type { SpacePoint } from "../contracts/generated/SpacePoint";
 import type { SpaceRect } from "../contracts/generated/SpaceRect";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import { SECTION_DEFAULT_SIZE, SECTION_MINIMUM_SIZE } from "../model/structure/section-metrics";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { boundsForOperationRoots } from "../model/structure/world-bounds";
 
@@ -20,4 +22,18 @@ export function sectionDrawCandidateIds(snapshot: SpaceEditSnapshot, frame: Spac
       ? [root.id]
       : [];
   });
+}
+
+export function sectionDrawFrame(origin: SpacePoint, point: SpacePoint): SpaceRect {
+  const dx = point.x - origin.x;
+  const dy = point.y - origin.y;
+  if (Math.hypot(dx, dy) < 4) return { ...origin, ...SECTION_DEFAULT_SIZE };
+  const width = Math.max(Math.abs(dx), SECTION_MINIMUM_SIZE.width);
+  const height = Math.max(Math.abs(dy), SECTION_MINIMUM_SIZE.height);
+  return {
+    x: dx < 0 ? origin.x - width : origin.x,
+    y: dy < 0 ? origin.y - height : origin.y,
+    width,
+    height,
+  };
 }

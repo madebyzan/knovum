@@ -23,6 +23,18 @@ export function composeTransforms(parent: LocalTransform, local: LocalTransform)
   return worldTransform;
 }
 
+export function relativeTransform(world: LocalTransform, parent: LocalTransform): LocalTransform {
+  const radians = (parent.rotation * Math.PI) / 180;
+  const x = world.x - parent.x;
+  const y = world.y - parent.y;
+  return {
+    x: (x * Math.cos(radians) + y * Math.sin(radians)) / parent.scale,
+    y: (-x * Math.sin(radians) + y * Math.cos(radians)) / parent.scale,
+    rotation: world.rotation - parent.rotation,
+    scale: world.scale / parent.scale,
+  };
+}
+
 export function worldTransformFor(
   structureNodeId: StructureNodeId,
   index: StructureIndex,

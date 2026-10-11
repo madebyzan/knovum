@@ -22,5 +22,11 @@ export function useRuntimeSelection(
   const transformPolicy = computed(() =>
     projectSelectionTransformPolicy(projections.scene.value.nodes, selection.nodeIds.value),
   );
-  return { selection, transformPolicy };
+  const canTransformGroups = computed(
+    () =>
+      !props.sceneInput.editSnapshot.structure.some(
+        ({ id, kind }) => kind === "section" && selection.structureNodeIds.value.has(id),
+      ),
+  );
+  return { selection, transformPolicy, canTransformGroups };
 }

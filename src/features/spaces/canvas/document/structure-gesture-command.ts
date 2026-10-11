@@ -4,7 +4,7 @@ import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditComman
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import type { LocalTransform } from "../../model/structure/schema/structure";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
-import { worldTransformFor } from "../../model/structure/world-transform";
+import { relativeTransform, worldTransformFor } from "../../model/structure/world-transform";
 import {
   serializeCanvasAppearance,
   type CanvasDocumentV1,
@@ -71,7 +71,7 @@ function contentLayoutCommand(
     structureNode.parentId === null
       ? { x: 0, y: 0, rotation: 0, scale: 1 }
       : worldTransformFor(structureNode.parentId, index, layoutByStructureNodeId);
-  const transform = localFromWorld(
+  const transform = relativeTransform(
     {
       x: next.frame.x,
       y: next.frame.y,
@@ -92,18 +92,6 @@ function contentLayoutCommand(
     appearance: next.appearance
       ? { kind: "set", value: serializeCanvasAppearance(next.appearance) }
       : { kind: "clear" },
-  };
-}
-
-function localFromWorld(world: LocalTransform, parent: LocalTransform): LocalTransform {
-  const radians = (parent.rotation * Math.PI) / 180;
-  const dx = world.x - parent.x;
-  const dy = world.y - parent.y;
-  return {
-    x: (dx * Math.cos(radians) + dy * Math.sin(radians)) / parent.scale,
-    y: (-dx * Math.sin(radians) + dy * Math.cos(radians)) / parent.scale,
-    rotation: world.rotation - parent.rotation,
-    scale: world.scale / parent.scale,
   };
 }
 

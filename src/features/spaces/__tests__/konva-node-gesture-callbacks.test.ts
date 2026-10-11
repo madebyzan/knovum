@@ -26,7 +26,6 @@ describe("Konva node gesture callbacks", () => {
           initialPosition: { x: 0, y: 0 },
         },
       ],
-      lockedNodeIds: () => new Set(),
       previewFrames,
       selectedNodeIds: () => new Set(["note"]),
       stage: () => ({ find: () => [node], findOne: () => node }) as unknown as Konva.Stage,
@@ -34,9 +33,7 @@ describe("Konva node gesture callbacks", () => {
       zoom: () => 1,
     });
     gestures.beginTransform();
-    const { beginDrag, moveDrag, previewTransform } = gestures;
-    beginDrag("note");
-    moveDrag("note");
+    const { previewTransform } = gestures;
     previewTransform();
     expect(previewFrames).toHaveBeenCalled();
   });

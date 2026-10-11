@@ -39,6 +39,19 @@ describe("canvasSelectionProductState", () => {
     expect(state.content.map(({ id }) => id)).toEqual(["a", "b"]);
     expect(state.allLocked).toBe(true);
     expect(state.canCreateGroup).toBe(false);
+    expect(state.canFitSection).toBe(false);
+    expect(state.canDissolveSection).toBe(false);
+  });
+  it("fits only an editable Section with contained content", () => {
+    const populated = snapshot();
+    expect(select(populated).canFitSection).toBe(true);
+    const empty = {
+      ...populated,
+      structure: populated.structure.slice(0, 1),
+      layouts: populated.layouts.slice(0, 1),
+    };
+    expect(select(empty).canFitSection).toBe(false);
+    expect(select(empty).canDissolveSection).toBe(true);
   });
 });
 
@@ -75,4 +88,13 @@ function snapshot(locked = false): SpaceEditSnapshot {
       },
     ],
   };
+}
+
+function select(value: SpaceEditSnapshot) {
+  return canvasSelectionProductState({
+    nodes,
+    selectedIds: [],
+    selectedStructureNodeIds: ["section"],
+    snapshot: value,
+  });
 }

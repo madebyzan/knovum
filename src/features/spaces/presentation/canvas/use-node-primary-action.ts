@@ -1,4 +1,4 @@
-import { Focus, Info } from "@lucide/vue";
+import { Info } from "@lucide/vue";
 import { computed, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,24 +12,19 @@ export function useNodePrimaryAction(
 ) {
   const { t } = useI18n();
   const primaryLabel = computed(() => {
-    if (actions.state.value.section && actions.state.value.content.length)
-      return t("spaces.scenes.focus.selection");
     const kind = node.value?.data.kind;
     return t(kind && actions.state.value.canOpen ? nodeOpenLabels[kind] : "spaces.inspector.title");
   });
   const primaryIcon = computed(() => {
-    if (actions.state.value.section && actions.state.value.content.length) return Focus;
     const kind = node.value?.data.kind;
     return kind && actions.state.value.canOpen ? nodeOpenIcons[kind] : Info;
   });
   const showPrimary = computed(() => {
-    if (actions.state.value.section && actions.state.value.content.length) return true;
     const kind = node.value?.data.kind;
     return Boolean(kind && actions.state.value.canOpen && nodeOpenLabels[kind] !== "spaces.inspector.title");
   });
   function runPrimaryAction() {
-    if (actions.state.value.section && actions.state.value.content.length) actions.focus();
-    else if (actions.state.value.canOpen) actions.open();
+    if (actions.state.value.canOpen) actions.open();
     else actions.inspect();
   }
   return { primaryLabel, primaryIcon, showPrimary, runPrimaryAction };

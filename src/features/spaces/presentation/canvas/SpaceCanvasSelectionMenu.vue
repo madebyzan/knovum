@@ -104,12 +104,14 @@ const excludedActions = computed(() => [
             )
           }}
         </UiDropdownMenuItem>
-        <UiDropdownMenuItem @select="actions.fitSection">{{
+        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
           t("spaces.canvas.sections.fitToContents")
         }}</UiDropdownMenuItem>
-        <UiDropdownMenuItem @select="actions.dissolveSection">{{
-          t("spaces.canvas.sections.removeOnly")
-        }}</UiDropdownMenuItem>
+        <UiDropdownMenuItem
+          :disabled="!actions.state.value.canDissolveSection"
+          @select="actions.dissolveSection"
+          >{{ t("spaces.canvas.sections.removeOnly") }}</UiDropdownMenuItem
+        >
       </template>
       <UiDropdownMenuItem v-if="actions.state.value.content.length" @select="actions.focus">
         <Focus class="size-3.5" />{{ t("spaces.scenes.focus.selection") }}

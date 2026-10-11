@@ -39,5 +39,6 @@
     "noContent": "This item has no searchable content yet.",
     "empty": "No related content in this Space yet.",
     "explanation": "Discover related content in this Space by meaning. Results do not create connections."
-  }
+  },
+  "containedItems": "{count} contained items"
 }

@@ -51,6 +51,7 @@
     "create": "创建分区",
     "createEmpty": "新建分区",
     "removeOnly": "仅移除分区",
+    "backgroundFailed": "无法加载分区背景图片",
     "fitToContents": "适应分区内容",
     "untitled": "未命名分区",
     "collapse": "折叠分区",

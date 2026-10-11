@@ -44,7 +44,8 @@ export function createCanvasStructureSelectionActions({
 
   function fitSection() {
     const section = state.value.section;
-    if (section) run(() => store.executeSpaceEdit({ kind: "section.fit", structureNodeId: section.id }));
+    if (section && state.value.canFitSection)
+      run(() => store.executeSpaceEdit({ kind: "section.fit", structureNodeId: section.id }));
   }
 
   function toggleSectionCollapsed() {
@@ -61,7 +62,8 @@ export function createCanvasStructureSelectionActions({
 
   function dissolveSection() {
     const section = state.value.section;
-    if (section) run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
+    if (section && state.value.canDissolveSection)
+      run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
   }
 
   return { createGroup, createSection, dissolveGroup, dissolveSection, fitSection, toggleSectionCollapsed };

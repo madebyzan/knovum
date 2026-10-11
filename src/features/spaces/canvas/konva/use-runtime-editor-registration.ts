@@ -2,6 +2,7 @@ import type Konva from "konva";
 import type { Ref } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
+import type { CanvasPoint } from "../contracts/canvas-editor-port";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
@@ -18,6 +19,7 @@ import type { useStageViewport } from "./viewport/use-stage-viewport";
 interface RuntimeEditorRegistrationOptions {
   cancelInteraction(): void;
   gestures: ReturnType<typeof createCanvasGestureSession>;
+  nudgeSelection(offset: CanvasPoint): Promise<void>;
   host: Readonly<Ref<HTMLElement | null>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   model: CanvasDocumentModel;
@@ -44,7 +46,7 @@ export function useRuntimeEditorRegistration(options: RuntimeEditorRegistrationO
     model: options.model,
     nodeById: (nodeId) => options.scene.value.nodesById.get(nodeId)?.node,
     runFrameMutation: options.gestures.runFrameMutation,
-    nudgeSelection: options.gestures.nudge,
+    nudgeSelection: options.nudgeSelection,
     nodes: () => props.sceneInput.nodes,
     palette: () => options.palette.value,
     relations: () => props.sceneInput.relations,

@@ -1,4 +1,3 @@
-import { compact } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
 import type { CanvasRect, CanvasSelectionSnapshot } from "../../contracts/canvas-editor-port";
@@ -98,18 +97,16 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
       nodeIds: nodeIds.value,
       relationIds: relationIds.value,
       relationBoundsById: options.relationBoundsById.value,
+      structureNodeIds: structureNodeIds.value,
+      structureBoundsById: options.structureBoundsById.value,
     });
-    const bounds = selectedStructureBounds(structureNodeIds.value, options.structureBoundsById.value);
-    options.changed({
-      ...snapshot,
-      structureNodeIds: [...structureNodeIds.value],
-      ...(bounds ? { bounds } : {}),
-    });
+    options.changed(snapshot);
   }
 
   function selectStructureNode(structureNodeId: string, event: PointerEvent) {
     if (event.button !== 0) return;
     const additive = isAdditiveSelection(event);
+    if (!additive && structureNodeIds.value.has(structureNodeId)) return;
     const next = new Set(additive ? structureNodeIds.value : []);
     if (next.has(structureNodeId) && additive) next.delete(structureNodeId);
     else next.add(structureNodeId);
@@ -167,20 +164,8 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     setNodeIds,
     setStructureNodeIds,
     structureNodeIds,
+    structureSelectionForNode: options.structureSelectionForNode,
   };
-}
-
-function selectedStructureBounds(
-  structureNodeIds: ReadonlySet<string>,
-  boundsByStructureNodeId: ReadonlyMap<string, CanvasRect>,
-) {
-  const frames = compact([...structureNodeIds].map((id) => boundsByStructureNodeId.get(id)));
-  if (!frames.length) return undefined;
-  const left = Math.min(...frames.map(({ x }) => x));
-  const top = Math.min(...frames.map(({ y }) => y));
-  const right = Math.max(...frames.map(({ x, width }) => x + width));
-  const bottom = Math.max(...frames.map(({ y, height }) => y + height));
-  return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
 function isAdditiveSelection(event: PointerEvent) {

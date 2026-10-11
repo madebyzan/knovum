@@ -61,7 +61,12 @@ const singleCanvasObjectSelected = computed(
     1,
 );
 const selectionBarGap = computed(() =>
-  canvasSelectionGap(selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined),
+  canvasSelectionGap(
+    selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined,
+    store.editSnapshot.structure.some(
+      ({ id, kind }) => kind === "group" && editorSession.selection.value.structureNodeIds.includes(id),
+    ),
+  ),
 );
 </script>
 <template>
@@ -108,7 +113,7 @@ const selectionBarGap = computed(() =>
       </div>
     </div>
     <SpaceCanvasSelectionAnchor
-      v-if="tools.tool === 'select' && showSelectionActions"
+      v-if="tools.tool === 'select' && showSelectionActions && !editorSession.directManipulation.value"
       :bounds="editorSession.selection.value.bounds"
       :members="editorSession.selection.value.members"
       :canvas-to-viewport-point="canvasToViewportPoint"
@@ -116,7 +121,13 @@ const selectionBarGap = computed(() =>
       :reserved="chromeRects"
       :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
-      :gap="selectionSurfaceKind === 'actions' ? (singleCanvasObjectSelected ? selectionBarGap : 34) : 12"
+      :gap="
+        selectionSurfaceKind === 'actions'
+          ? singleCanvasObjectSelected
+            ? selectionBarGap
+            : Math.max(34, selectionBarGap)
+          : 12
+      "
       v-slot="{ availableWidth, availableHeight }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
