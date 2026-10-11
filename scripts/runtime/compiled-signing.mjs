@@ -1,11 +1,22 @@
 import { execFileSync } from "node:child_process";
 import { openSync, readSync, closeSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 
 import { listRuntimeFiles } from "./files.mjs";
 import { isMicrosoftRuntime, verifyMicrosoftRuntime } from "./windows-runtime-signature.mjs";
 
-const mach = new Set(["cefaedfe", "cffaedfe", "feedface", "feedfacf", "cafebabe", "bebafeca"]);
+const mach = new Set([
+  "cefaedfe",
+  "cffaedfe",
+  "feedface",
+  "feedfacf",
+  "cafebabe",
+  "bebafeca",
+  "cafebabf",
+  "bfbafeca",
+]);
 export function compiledFiles(directory, target) {
   return listRuntimeFiles(directory)
     .filter((name) => {
@@ -116,4 +127,25 @@ function signWindows(files, target, mode, preserveMicrosoftRuntime) {
   }
 
   return identity;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const { values } = parseArgs({
+    options: {
+      directory: { type: "string" },
+      target: { type: "string" },
+      mode: { type: "string" },
+      list: { type: "boolean" },
+    },
+  });
+  if (!values.directory || !["macos-arm64", "macos-x64", "windows-x64"].includes(values.target))
+    throw new Error("Compiled resource inspection requires a directory and supported target");
+  const result = values.list
+    ? compiledFiles(values.directory, values.target).map((file) =>
+        relative(values.directory, file).replaceAll("\\", "/"),
+      )
+    : signCompiledFiles(values.directory, values.target, values.mode);
+  if (!values.list && result.compiledBinaryCount === 0)
+    throw new Error("Runtime contains no compiled executable files");
+  process.stdout.write(JSON.stringify(result));
 }

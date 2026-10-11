@@ -20,7 +20,7 @@ from cyclonedx.validation.json import JsonStrictValidator
 from packageurl import PackageURL
 
 from runtime.artifacts import digest
-from runtime.binaries import compiled_binaries
+from runtime.commands import run
 
 
 def canonical(name: str) -> str:
@@ -176,11 +176,19 @@ def runtime_installation_inventory(root: Path, configuration_path: Path, target:
             continue
         if any(token in path.name.lower() for token in ("license", "copying", "notice")):
             notices.append({"path": path.relative_to(root).as_posix(), "sha256": digest(path)})
-    binaries = [
-        path.relative_to(root).as_posix()
-        for path in compiled_binaries(root, target)
-        if not path.is_relative_to(root / "packages")
-    ]
+    compiled = json.loads(
+        run(
+            "node",
+            str(Path(__file__).with_name("compiled-signing.mjs")),
+            "--directory",
+            str(root),
+            "--target",
+            target,
+            "--list",
+            capture=True,
+        )
+    )
+    binaries = [path for path in compiled if not path.startswith("packages/")]
     if not binaries:
         raise ValueError("Runtime installation inventory has no compiled files")
     return {

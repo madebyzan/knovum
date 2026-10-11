@@ -139,6 +139,9 @@ Only `python/runtimes/agent/uv.lock` and the base Conda-forge CPython 3.11.17 lo
 archives contain an independent interpreter/package root, notices, requirements and strict v1
 runtime manifest. Worker source remains part of the application; its digest covers the entire
 current Agent source tree. Agent environments load no local inference or model-download code.
+Agent binary inventory and signing reuse `scripts/runtime/compiled-signing.mjs`, the same OS-native
+implementation used by other compiled resources. Local preparation still provisions its managed
+uv/micromamba tools automatically; development and packaging commands are unchanged.
 
 ```bash
 pnpm runtime:build --profile agent --output <fresh-directory> --signing <adhoc|unsigned|production> \

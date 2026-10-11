@@ -19,12 +19,29 @@ from runtime.commands import run
 from runtime.conda_packages import dependency_digest, install_conda_packages
 from runtime.dependencies import install_dependencies
 from runtime.host import host_target
-from runtime.signing import sign_runtime
 from runtime.windows_process import configure_utf8
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 PROJECT = REPOSITORY / "python"
 ISOLATED_PYTHON_ARGS = ("-I", "-B", "-X", "utf8")
+
+
+def sign_runtime(root: Path, target: str, mode: str) -> dict[str, str | int]:
+    return dict(
+        json.loads(
+            run(
+                "node",
+                str(REPOSITORY / "scripts/runtime/compiled-signing.mjs"),
+                "--directory",
+                str(root),
+                "--target",
+                target,
+                "--mode",
+                mode,
+                capture=True,
+            )
+        )
+    )
 
 
 def relocated_smoke(runtime: Path, target: str, version: str, profile: str) -> None:
