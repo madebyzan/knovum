@@ -1,7 +1,13 @@
-use super::{artifacts, audio, native};
+use super::{artifacts, audio, ffi};
 use crate::{artifact, cancellation::Cancellation, protocol::Output};
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
-use native::whisper::*;
+use ffi::whisper::*;
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{
+        AsrEngine, LanguagePolicy, SpeechTranscribeParams, SpeechTranscriptArtifact,
+        SpeechTranscription,
+    },
+};
 use std::path::{Path, PathBuf};
 
 pub(crate) struct Transcriber {
@@ -65,15 +71,15 @@ impl Transcriber {
             {
                 return Err("model_corrupt: Whisper weight size is invalid".into());
             }
-            let library = native::path(&self.params, "whisper")?;
+            let library = ffi::path(&self.params, "whisper")?;
             let ggml_library = library.with_file_name(if cfg!(windows) {
                 "ggml.dll"
             } else {
                 "libggml.0.dylib"
             });
-            let ggml = unsafe { GgmlApi::from_library(native::load(&ggml_library)?) }
+            let ggml = unsafe { GgmlApi::from_library(ffi::load(&ggml_library)?) }
                 .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let backends = native::string(
+            let backends = ffi::string(
                 library
                     .parent()
                     .and_then(Path::to_str)
@@ -82,9 +88,9 @@ impl Transcriber {
             // Upstream selects the best supported CPU variant only from the sealed supplier directory.
             unsafe { ggml.ggml_backend_load_all_from_path(backends.as_ptr()) };
             require_device(&ggml, &self.params.device_profile.device)?;
-            let api = unsafe { WhisperApi::from_library(native::load(&library)?) }
+            let api = unsafe { WhisperApi::from_library(ffi::load(&library)?) }
                 .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let path = native::string(
+            let path = ffi::string(
                 model
                     .to_str()
                     .ok_or("model_corrupt: Whisper path is invalid")?,
@@ -144,7 +150,7 @@ impl Transcriber {
                 .as_ref()
                 .ok_or("model_missing: transcription model is missing")?,
         );
-        let vad = native::string(
+        let vad = ffi::string(
             directory
                 .join("vad.bin")
                 .to_str()
@@ -153,9 +159,9 @@ impl Transcriber {
         let engine = self.load()?;
         cancel.check()?;
         let language = match params.profile.language_policy {
-            LanguagePolicy::Detect => native::string("auto")?,
+            LanguagePolicy::Detect => ffi::string("auto")?,
             LanguagePolicy::Fixed => {
-                let selected = native::string(
+                let selected = ffi::string(
                     params
                         .profile
                         .language
@@ -205,11 +211,11 @@ fn require_device(api: &GgmlApi, device: &str) -> Result<(), String> {
         return Err("runtime_mismatch: Whisper backend inventory is invalid".into());
     }
     for index in 0..count {
-        let native_device = unsafe { api.ggml_backend_dev_get(index) };
-        if native_device.is_null() {
+        let backend_device = unsafe { api.ggml_backend_dev_get(index) };
+        if backend_device.is_null() {
             return Err("runtime_mismatch: Whisper returned an invalid device".into());
         }
-        let kind = unsafe { api.ggml_backend_dev_type(native_device) };
+        let kind = unsafe { api.ggml_backend_dev_type(backend_device) };
         if device == "cpu" && kind == ggml_backend_dev_type_GGML_BACKEND_DEVICE_TYPE_CPU
             || device == "mps"
                 && (kind == ggml_backend_dev_type_GGML_BACKEND_DEVICE_TYPE_GPU

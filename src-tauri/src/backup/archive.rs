@@ -7,7 +7,10 @@ use zip::ZipArchive;
 
 use super::{
     archive_format,
-    contracts::*,
+    contracts::{
+        ArchiveFile, Manifest, APPLICATION_ID, ARCHIVE_SCHEMA, MANIFEST_PATH, MAX_FILES,
+        MAX_FILE_BYTES, MAX_TOTAL_BYTES,
+    },
     database, files,
     paths::{self, AppPaths},
     settings, staging,

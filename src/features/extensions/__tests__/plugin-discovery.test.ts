@@ -2,7 +2,7 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import PluginDiscovery from "../plugins/components/PluginDiscovery.vue";
 
 const invoke = vi.hoisted(() => vi.fn<(command: string) => Promise<unknown>>());

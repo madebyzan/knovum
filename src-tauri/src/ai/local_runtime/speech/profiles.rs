@@ -27,12 +27,12 @@ pub(crate) fn transcription_budget_ms(
 pub(crate) fn transcription_profile(model: LocalModelId) -> Result<TranscriptionProfile, String> {
     let metal = cfg!(all(target_os = "macos", target_arch = "aarch64"));
     let (compute_type, id) = match (model, metal) {
-        (LocalModelId::WhisperTiny, false) => ("q8_0", "whisper-tiny-cpu-q8_0-native-v2"),
-        (LocalModelId::WhisperSmall, false) => ("q8_0", "whisper-small-cpu-q8_0-native-v2"),
-        (LocalModelId::WhisperLargeV3, false) => ("f16", "whisper-large-v3-cpu-f16-native-v2"),
-        (LocalModelId::WhisperTiny, true) => ("q8_0", "whisper-tiny-mps-q8_0-native-v2"),
-        (LocalModelId::WhisperSmall, true) => ("q8_0", "whisper-small-mps-q8_0-native-v2"),
-        (LocalModelId::WhisperLargeV3, true) => ("f16", "whisper-large-v3-mps-f16-native-v2"),
+        (LocalModelId::WhisperTiny, false) => ("q8_0", "whisper-tiny-cpu-q8_0-inference-v2"),
+        (LocalModelId::WhisperSmall, false) => ("q8_0", "whisper-small-cpu-q8_0-inference-v2"),
+        (LocalModelId::WhisperLargeV3, false) => ("f16", "whisper-large-v3-cpu-f16-inference-v2"),
+        (LocalModelId::WhisperTiny, true) => ("q8_0", "whisper-tiny-mps-q8_0-inference-v2"),
+        (LocalModelId::WhisperSmall, true) => ("q8_0", "whisper-small-mps-q8_0-inference-v2"),
+        (LocalModelId::WhisperLargeV3, true) => ("f16", "whisper-large-v3-mps-f16-inference-v2"),
         _ => return Err("Selected model cannot transcribe audio".into()),
     };
     Ok(TranscriptionProfile {

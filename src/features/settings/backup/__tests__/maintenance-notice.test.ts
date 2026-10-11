@@ -13,7 +13,7 @@ const calls = vi.hoisted(() => ({
 vi.mock("../../../../foundation/ipc/invoke-command", () => ({ invokeCommand: calls.invoke }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: calls.log }));
 vi.mock("vue-sonner", () => ({ toast: calls }));
-vi.mock("../../../../foundation/i18n/i18n", () => ({
+vi.mock("../../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
 

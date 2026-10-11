@@ -47,7 +47,7 @@ pub(super) async fn resolve(
         let profile = profile_for_engine(&engine)?;
         digests.insert(
             profile,
-            crate::local_resources::runtimes::native::resolve(app)?.digest,
+            crate::local_resources::runtimes::inference::resolve(app)?.digest,
         );
     }
     validate(&digests)?;

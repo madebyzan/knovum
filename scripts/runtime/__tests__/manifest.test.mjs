@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { commit, fixture } from "./manifest-fixture.mjs";
+import { FIXTURE_COMMIT, fixture } from "./support/manifest-fixture.mjs";
 
 test("consumer binds interpreter, runtime requirements and frozen voice source bytes", (context) => {
   const sample = fixture(context);
@@ -81,7 +81,7 @@ test("any changed dependency lock invalidates the frozen runtime identity", (con
   sample.write(
     sample.python,
     "uv.lock",
-    `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`,
+    `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${FIXTURE_COMMIT}#${FIXTURE_COMMIT}" }\n`,
   );
   assert.throws(sample.validate, /dependency lock differs/);
 });

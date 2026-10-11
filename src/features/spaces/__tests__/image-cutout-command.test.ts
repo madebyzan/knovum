@@ -6,7 +6,7 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 const calls = vi.hoisted(() => ({ start: vi.fn<(...args: unknown[]) => Promise<unknown>>() }));
 vi.mock("../knowledge-derivations/start-action", () => ({ startDerivationAction: calls.start }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 const source: SpaceCanvasNode<SpaceImagePayload> = {
   id: "source",
   type: "image",

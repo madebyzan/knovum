@@ -2,7 +2,7 @@ import type { ComputedRef, ShallowRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
 import type { Conversation } from "../contracts/generated/Conversation";

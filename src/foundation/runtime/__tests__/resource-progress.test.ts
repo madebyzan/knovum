@@ -5,7 +5,7 @@ import type { ResourcePreparationProgress } from "../../../shared/contracts/gene
 import { useTaskStore } from "../../tasks/task-store";
 import { buildResourcePreparationTask, updateTaskProgress } from "../resource-progress";
 
-vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 beforeEach(() => setActivePinia(createPinia()));
 
 it("keeps an unknown-size runtime transfer visible without inventing a total or failing the task", () => {

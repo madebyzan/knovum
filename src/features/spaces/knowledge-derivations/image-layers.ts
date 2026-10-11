@@ -1,6 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { getCanvasEditorSession } from "../canvas/editor-session";

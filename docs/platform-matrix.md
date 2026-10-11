@@ -95,16 +95,16 @@ Any change to lifecycle, window chrome, menus, shortcuts, files, clipboard, noti
 processes, compiled resources, or device selection reopens the relevant acceptance rows. Release evidence
 retention and promotion rules are defined in [release.md](release.md).
 
-## Native inference target gate
+## Rust inference target gate
 
-All targets ship the private Rust worker and hash-sealed native libraries. Apple Silicon uses Candle/
+All targets ship the private Rust worker and hash-sealed compiled libraries. Apple Silicon uses Candle/
 Whisper Metal and admitted audio.cpp Metal; Intel macOS uses CPU for embedding/ASR and admitted
 audio.cpp devices; Windows uses CPU embedding/ASR with optional qualified audio.cpp Vulkan. Images,
 Sherpa and MOSS use CPU. Target-specific compile, real package, installed launch, cancellation and
 model tests are required independently. Intel macOS evidence cannot approve Apple Silicon or Windows.
 
-The native ONNX Runtime 1.22.1 supplier raises the product's Windows floor to 2004 (19041),
+The ONNX Runtime 1.22.1 supplier raises the product's Windows floor to 2004 (19041),
 matching its [official release contract](https://github.com/microsoft/onnxruntime/releases/tag/v1.22.1).
-The host and worker reject older builds visibly before loading native libraries. Windows version
+The host and worker reject older builds visibly before loading compiled libraries. Windows version
 detection imports Microsoft's `windows-version` 0.1.7 directly; no replacement OS probe or
 older-runtime compatibility path is maintained.

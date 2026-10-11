@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { computed, readonly, shallowReactive, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { ImageOperationTargetOption } from "../contracts/generated/ImageOperationTargetOption";
 import type { ImageSelection } from "../contracts/generated/ImageSelection";

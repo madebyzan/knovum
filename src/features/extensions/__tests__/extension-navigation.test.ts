@@ -5,7 +5,7 @@ import { defineComponent } from "vue";
 import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
 import { skillQuery } from "../../../foundation/extensions/extension-query";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import AgentExtensionsSettings from "../AgentExtensionsSettings.vue";

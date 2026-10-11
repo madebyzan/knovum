@@ -133,7 +133,9 @@ function exactKeys(value, keys) {
   );
 }
 
-const validSize = (size) => Number.isSafeInteger(size) && size >= 0 && size <= 4 * 1024 ** 3;
+function validSize(size) {
+  return Number.isSafeInteger(size) && size >= 0 && size <= 4 * 1024 ** 3;
+}
 
 function validateManifestFile(file, declared) {
   if (

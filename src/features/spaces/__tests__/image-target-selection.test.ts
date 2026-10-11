@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { selectedImageTarget } from "../knowledge-derivations/image-operation";
-import { blockedImageCapabilities } from "./image-operation-fixtures";
+import { blockedImageCapabilities } from "./support/image-operation-fixtures";
 
 it("uses the selected target rather than the first available model", () => {
   const chosen = blockedImageCapabilities().targets[0]!;

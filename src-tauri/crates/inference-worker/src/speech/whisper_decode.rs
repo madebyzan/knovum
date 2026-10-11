@@ -1,6 +1,9 @@
-use super::{audio::Audio, native::whisper::*, transcription::Engine};
+use super::{audio::Audio, ffi::whisper::*, transcription::Engine};
 use crate::{cancellation::Cancellation, protocol::Output};
-use knovum_inference_contracts::speech_wire::*;
+use knovum_inference_contracts::speech_wire::{
+    InferenceRequestIdentity, LanguagePolicy, SpeechProgressEvent, SpeechProgressEventType,
+    SpeechTranscribeParams, SpeechTranscriptSegment,
+};
 use std::{
     ffi::{c_void, CStr},
     ops::Range,
@@ -60,7 +63,7 @@ pub(super) fn decode(
     options.abort_callback_user_data = std::ptr::from_ref(cancel).cast_mut().cast();
     options.progress_callback = Some(progress);
     options.progress_callback_user_data = std::ptr::from_mut(&mut observer).cast();
-    // Native callbacks are synchronous; both stack-owned userdata values remain live until full returns.
+    // C ABI callbacks are synchronous; both stack-owned userdata values remain live until full returns.
     let status = unsafe {
         engine.api.whisper_full_with_state(
             engine.context,
@@ -126,7 +129,7 @@ unsafe extern "C" fn progress(
     }
     observer.last = percent;
     observer.seq += 1;
-    let result = observer.output.notification(
+    let publication = observer.output.notification(
         "speech.progress",
         &SpeechProgressEvent {
             request_id: observer.identity.request_id.clone(),
@@ -139,7 +142,7 @@ unsafe extern "C" fn progress(
             partial: None,
         },
     );
-    if let Err(error) = result {
+    if let Err(error) = publication {
         observer.error = Some(error);
         observer.cancel.cancel();
     }

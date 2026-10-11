@@ -1,11 +1,11 @@
 use super::*;
 use crate::ai::contracts::runtime::{RuntimeInitializeParams, RuntimeModelPaths, PROTOCOL_VERSION};
-use crate::local_resources::runtimes::native::NativeRuntimePaths;
+use crate::local_resources::runtimes::inference::InferenceRuntimePaths;
 
 #[tokio::test]
-async fn missing_native_runtime_is_rejected_before_admission_or_workspace_creation() {
+async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_creation() {
     let directory = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
-    let runtime = NativeRuntimePaths {
+    let runtime = InferenceRuntimePaths {
         manifest_path: directory.join("runtime-manifest.json"),
         executable: directory.join("knovum-inference-worker"),
         digest: "a".repeat(64),
@@ -20,7 +20,7 @@ async fn missing_native_runtime_is_rejected_before_admission_or_workspace_creati
         capability_spec_id: "qwen3-embedding-0.6b".into(),
         device_profile: RuntimeDeviceProfile {
             device: "cpu".into(),
-            execution_profile_id: "cpu-f32-threads4-native-v2".into(),
+            execution_profile_id: "cpu-f32-threads4-inference-v2".into(),
             cpu_threads: 4,
         },
         work_directory: directory.to_string_lossy().into_owned(),

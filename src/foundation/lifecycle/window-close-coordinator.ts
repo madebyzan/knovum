@@ -8,7 +8,7 @@ import {
 } from "../../shared/contracts/application-leave";
 import type { AppExitRequest } from "../../shared/contracts/generated/AppExitRequest";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
-import { i18n } from "../i18n/i18n";
+import { i18n } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { isApplicationTransitioning, runApplicationTransition } from "./application-transition";
 import { startRequestHeartbeat } from "./request-heartbeat";

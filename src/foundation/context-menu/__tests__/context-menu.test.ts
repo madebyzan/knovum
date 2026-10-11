@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { flattenMenuGroups, menuItem, normalizeAccelerator } from "../context-menu";
+import { flattenMenuGroups, menuItem, normalizeAccelerator } from "../popup";
 
 describe("context-menu", () => {
   it("normalizes $mod accelerators to CmdOrCtrl", () => {

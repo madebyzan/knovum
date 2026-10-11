@@ -4,7 +4,7 @@ import { reactive } from "vue";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import { transcriptFixture } from "./media-transcript-fixture";
+import { transcriptFixture } from "./support/media-transcript-fixture";
 
 describe("createSpaceNode", () => {
   it("keeps renderer state out of the domain node contract", () => {

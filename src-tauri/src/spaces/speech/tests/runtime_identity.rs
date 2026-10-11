@@ -2,7 +2,7 @@ use super::*;
 use serde_json::json;
 
 #[test]
-fn mixed_voice_runs_freeze_one_native_package_and_reject_obsolete_identity() {
+fn mixed_voice_runs_freeze_one_inference_package_and_reject_obsolete_identity() {
     let snapshot = json!({"runtimeDigests": {"native-inference-v2": "a".repeat(64)}});
     let digests = read_snapshot(&snapshot).unwrap();
     assert_eq!(

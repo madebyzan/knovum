@@ -19,7 +19,7 @@ fn source(markdown: &str) -> DocumentSource {
 fn fixture() -> DocumentSource {
     DocumentSource {
         title: "中文 English document".into(),
-        markdown: include_str!("common.md").into(),
+        markdown: include_str!("markdown_syntax.md").into(),
         ..DocumentSource::default()
     }
 }

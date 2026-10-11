@@ -3,7 +3,7 @@ import { toast } from "vue-sonner";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import { acquireMediaSource } from "../media/import/acquisition";
 import type { MediaImportProgress } from "../media/import/schema/import";

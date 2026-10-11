@@ -19,7 +19,7 @@ vi.mock("../../enrichment/use-node-enrichment-status", () => ({
   useNodeEnrichmentStatus: () => ({ status }),
 }));
 vi.mock("../../enrichment/enrichment-jobs-query", () => ({ refreshEnrichmentJobs: mocks.refresh }));
-vi.mock("../../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.error } }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const allowed = shallowRef(true);

@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading() {
     let mut params: RuntimeInitializeParams = serde_json::from_value(serde_json::json!({
-        "runtimeManifestPath": "/native/manifest.json", "runtimeDigest": "digest",
+        "runtimeManifestPath": "/inference/manifest.json", "runtimeDigest": "digest",
         "protocolVersion": 1, "sessionId": "session", "capability": "embedding",
         "capabilitySpecId": EMBEDDING_SPEC_ID,
         "deviceProfile": {"device": "cpu", "executionProfileId": "cpu-f32-threads4-native-v2", "cpuThreads": 4},

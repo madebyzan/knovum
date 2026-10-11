@@ -1,7 +1,10 @@
-use super::{audio, native, stream::Publisher};
+use super::{audio, ffi, stream::Publisher};
 use crate::cancellation::Cancellation;
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
-use native::voice::*;
+use ffi::voice::*;
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{SpeechSynthesizeParams, VoiceSourceKind},
+};
 use std::{
     ffi::{c_void, CStr},
     path::PathBuf,
@@ -47,7 +50,7 @@ impl VoxCpm {
     fn load(&mut self) -> Result<&Engine, String> {
         if self.engine.is_none() {
             let api = unsafe {
-                VoiceApi::from_library(native::load(&native::path(&self.params, "knovum_voice")?)?)
+                VoiceApi::from_library(ffi::load(&ffi::path(&self.params, "knovum_voice")?)?)
             }
             .map_err(|error| format!("runtime_mismatch: {error}"))?;
             if unsafe { api.knovum_voice_abi() } != 3 {
@@ -78,7 +81,7 @@ impl VoxCpm {
             } else {
                 "voxcpm2-q8_0.gguf"
             };
-            let path = native::string(
+            let path = ffi::string(
                 directory
                     .join(file)
                     .to_str()
@@ -107,8 +110,8 @@ impl VoxCpm {
         cancel: &Cancellation,
     ) -> Result<(), String> {
         let (text, reference, transcript) = inputs(params, cancel)?;
-        let text = native::string(&text)?;
-        let transcript = transcript.as_deref().map(native::string).transpose()?;
+        let text = ffi::string(&text)?;
+        let transcript = transcript.as_deref().map(ffi::string).transpose()?;
         let engine = self.load()?;
         cancel.check()?;
         let mut observer = Observer {
@@ -216,7 +219,7 @@ unsafe extern "C" fn publish(
     rate: i32,
 ) -> i32 {
     let observer = unsafe { &mut *context.cast::<Observer<'_>>() };
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+    let synthesis = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         if pointer.is_null() || count == 0 || count > 16 * 1024 || rate != 48_000 {
             return Err("invalid_output: VoxCPM2 chunk format differs".into());
         }
@@ -225,7 +228,7 @@ unsafe extern "C" fn publish(
             rate as u32,
         )
     }));
-    match result {
+    match synthesis {
         Ok(Ok(())) => 0,
         Ok(Err(error)) => {
             observer.error = Some(error);

@@ -8,7 +8,9 @@ type FileAttachment = Extract<ConversationAttachment, { kind: "file" }>;
 export function isConversationImagePath(path: string) {
   return /\.(png|jpe?g|webp)$/i.test(path);
 }
-const previewKey = ({ path, sourceRevision }: FileAttachment) => `${path}\0${sourceRevision}`;
+function previewKey({ path, sourceRevision }: FileAttachment) {
+  return `${path}\0${sourceRevision}`;
+}
 
 async function createPreview(path: string) {
   const bytes = await readFile(path);

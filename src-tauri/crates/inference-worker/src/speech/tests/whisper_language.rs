@@ -1,7 +1,7 @@
 use super::window;
 
 #[test]
-fn detection_starts_at_source_speech_and_uses_at_most_one_native_window() {
+fn detection_starts_at_source_speech_and_uses_at_most_one_inference_window() {
     let mut samples = vec![0.0; 16_000 * 95];
     samples[16_000 * 60] = 0.5;
     let speech = window(&samples, 60_000).unwrap();

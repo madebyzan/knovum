@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import SpaceVideoPlayer from "../presentation/media/SpaceVideoPlayer.vue";
 

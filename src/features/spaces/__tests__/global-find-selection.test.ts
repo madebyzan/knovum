@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import SpaceGlobalFind from "../presentation/search/SpaceGlobalFind.vue";
 import type { GlobalSearchMatch } from "../search/search-match";
 

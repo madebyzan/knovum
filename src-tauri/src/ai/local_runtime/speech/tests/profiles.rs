@@ -7,7 +7,7 @@ use crate::{
     local_resources::model_catalog::LocalModelId,
 };
 #[test]
-fn every_native_transcription_model_has_a_memory_identity() {
+fn every_inference_transcription_model_has_a_memory_identity() {
     for model in [
         LocalModelId::WhisperTiny,
         LocalModelId::WhisperSmall,

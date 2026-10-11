@@ -15,10 +15,10 @@ import { fileURLToPath } from "node:url";
 
 import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
+import { prepareInferencePackage, validateInferencePackage } from "../runtime/inference/package.mjs";
 import { validateMediaLicenseReview } from "../runtime/media-license-policy.mjs";
 import { validateMediaRuntime } from "../runtime/media-manifest.mjs";
 import { prepareCoreMedia } from "../runtime/media.mjs";
-import { prepareNativePackage, validateNativePackage } from "../runtime/native-package.mjs";
 import { validatePackagedResources } from "../runtime/packaged-resources.mjs";
 import { hostRuntimeTarget, runtimeProfiles, runtimeTargetFromTriple } from "../runtime/profiles.mjs";
 import { verifyCompiledResourceSignatures, verifyRuntimeSignatures } from "../runtime/signatures.mjs";
@@ -38,7 +38,7 @@ const target = runtimeTargetFromTriple(buildTarget) ?? hostRuntimeTarget();
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
 await prepareCoreMedia(repository, { production: release });
-const nativeManifest = await prepareNativePackage(repository, { production: release });
+const inferenceManifest = await prepareInferencePackage(repository, { production: release });
 requireRuntime(target);
 for (const profile of runtimeProfiles) {
   const distribution = distributionDirectory(repository, target, profile);
@@ -58,8 +58,8 @@ validatePackagedResources(join(repository, "src-tauri", "resources"), repository
 
 const bundleResources = [
   "resources/agent-plugins/**/*",
-  ...listRuntimeFiles(join(repository, "src-tauri/resources/native-runtime")).map(
-    (path) => `resources/native-runtime/${path}`,
+  ...listRuntimeFiles(join(repository, "src-tauri/resources/inference-runtime")).map(
+    (path) => `resources/inference-runtime/${path}`,
   ),
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
@@ -101,7 +101,7 @@ if (target === "windows-x64") {
         target,
         repository,
         production: release,
-        nativeManifest,
+        inferenceManifest,
       });
     }
   }
@@ -110,7 +110,7 @@ if (target.startsWith("macos-")) {
   const name = readJson("src-tauri/tauri.conf.json").productName;
   const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
   validatePackagedResources(packaged, repository, target);
-  validateNativePackage(join(packaged, "native-runtime"), target, nativeManifest, release);
+  validateInferencePackage(join(packaged, "inference-runtime"), target, inferenceManifest, release);
   if (release) {
     const app = join(bundleRoot, "macos", `${name}.app`);
     execFileSync("codesign", ["--verify", "--deep", "--strict", app], { stdio: "inherit" });

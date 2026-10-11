@@ -16,8 +16,8 @@ import {
   finalizeAiConnectionDraft,
   type AiConnectionSecretChange,
   type AiConnectionSubmission,
-} from "../ai-connection-draft";
-import { providerOptions } from "../ai-provider-options";
+} from "../connections/draft";
+import { providerOptions } from "../connections/provider-options";
 import AiConnectionCredentialField from "./AiConnectionCredentialField.vue";
 
 const open = defineModel<boolean>("open", { required: true });

@@ -1,17 +1,17 @@
-use super::native;
+use super::ffi;
 use std::path::Path;
 
 pub(crate) fn devices(manifest: &Path, digest: &str, reserve: u64) -> Result<String, String> {
     crate::initialization::initialize_ort(manifest, digest)?;
-    let path = native::library_path(manifest, "knovum_voice")?;
-    let api = unsafe { native::voice::VoiceApi::from_library(native::load(&path)?) }
+    let path = ffi::library_path(manifest, "knovum_voice")?;
+    let api = unsafe { ffi::voice::VoiceApi::from_library(ffi::load(&path)?) }
         .map_err(|error| format!("runtime_mismatch: {error}"))?;
     if unsafe { api.knovum_voice_abi() } != 3 {
-        return Err("runtime_mismatch: native voice ABI differs".into());
+        return Err("runtime_mismatch: voice C ABI differs".into());
     }
     let flags = unsafe { api.knovum_audio_devices(reserve) };
     if flags < 0 {
-        return Err("unsupported_device: native device enumeration failed".into());
+        return Err("unsupported_device: voice device enumeration failed".into());
     }
     let device = if flags & 2 != 0 {
         "mps"

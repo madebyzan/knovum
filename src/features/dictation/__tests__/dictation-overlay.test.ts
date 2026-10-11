@@ -8,7 +8,7 @@ import type { useDictationSession } from "../use-dictation-session";
 
 const mocks = vi.hoisted(() => ({ session: vi.fn<typeof useDictationSession>() }));
 vi.mock("../use-dictation-session", () => ({ useDictationSession: mocks.session }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 it("shows resource preparation and cancellation, then switches to transcription after preparation", async () => {
   const state = shallowRef<DictationSnapshot>({

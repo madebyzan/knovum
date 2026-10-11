@@ -140,12 +140,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   });
   if (!values.directory || !["macos-arm64", "macos-x64", "windows-x64"].includes(values.target))
     throw new Error("Compiled resource inspection requires a directory and supported target");
-  const result = values.list
+  const compiledFileReport = values.list
     ? compiledFiles(values.directory, values.target).map((file) =>
         relative(values.directory, file).replaceAll("\\", "/"),
       )
     : signCompiledFiles(values.directory, values.target, values.mode);
-  if (!values.list && result.compiledBinaryCount === 0)
+  if (!values.list && compiledFileReport.compiledBinaryCount === 0)
     throw new Error("Runtime contains no compiled executable files");
-  process.stdout.write(JSON.stringify(result));
+  process.stdout.write(JSON.stringify(compiledFileReport));
 }

@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type * as PluginOperations from "../../../foundation/extensions/plugin-operations";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { PluginInspection } from "../../../shared/contracts/generated/PluginInspection";
 import type { PluginInstallation } from "../../../shared/contracts/generated/PluginInstallation";
 import PluginSettings from "../plugins/components/PluginSettings.vue";

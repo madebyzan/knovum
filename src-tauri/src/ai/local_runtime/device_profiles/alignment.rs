@@ -1,6 +1,6 @@
 use crate::{
     ai::contracts::runtime::RuntimeDeviceProfile,
-    local_resources::{model_catalog::LocalModelId, runtimes::native::NativeRuntimePaths},
+    local_resources::{model_catalog::LocalModelId, runtimes::inference::InferenceRuntimePaths},
 };
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -17,7 +17,7 @@ pub(crate) fn execution_id(model: LocalModelId, device: &str) -> Result<String, 
 }
 
 pub(crate) async fn profile(
-    runtime: &NativeRuntimePaths,
+    runtime: &InferenceRuntimePaths,
     model: LocalModelId,
     cancellation: &CancellationToken,
     deadline_ms: u64,

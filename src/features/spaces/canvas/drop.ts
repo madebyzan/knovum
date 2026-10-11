@@ -1,5 +1,5 @@
-import type { FileDrop } from "../../../foundation/file-drop/file-drop";
-import { i18n } from "../../../foundation/i18n/i18n";
+import type { FileDrop } from "../../../foundation/file-drop/events";
+import { i18n } from "../../../foundation/i18n/instance";
 import { importSpaceBatch } from "../assets/import-batch";
 import { spaceImportContext, type SpaceImportStore } from "../assets/import-context";
 import type { useSpaceStore } from "../session/space-store";

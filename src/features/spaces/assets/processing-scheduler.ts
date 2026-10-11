@@ -1,6 +1,6 @@
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";

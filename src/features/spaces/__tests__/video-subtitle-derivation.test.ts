@@ -6,7 +6,7 @@ import type { useSpaceStore } from "../session/space-store";
 
 const context = vi.hoisted(() => ({ observe: vi.fn<(...args: unknown[]) => void>() }));
 vi.mock("../runs/resource-run-observation", () => ({ observeResourceRun: context.observe }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 import { addVideoSubtitles } from "../knowledge-derivations/subtitled-video";
 
 afterEach(() => {

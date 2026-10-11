@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { defaultImageEdit } from "../image-editing/image-edit";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import { imageSourceNode } from "./image-operation-fixtures";
+import { imageSourceNode } from "./support/image-operation-fixtures";
 const calls = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args: unknown) => Promise<void>>(),
   save: vi.fn<(options: unknown) => Promise<string | null>>(),

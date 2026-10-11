@@ -3,7 +3,7 @@ import { ToolbarRoot } from "reka-ui";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { computed, defineComponent, h, reactive, shallowRef } from "vue";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import { useVoiceCandidateForm } from "../../../speech/use-voice-candidate-form";
 import type { useVoiceCandidates } from "../../../speech/use-voice-candidates";
 import type { PlayableVoiceCandidate } from "../../../speech/voice-candidate-selection";

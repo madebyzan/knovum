@@ -2,7 +2,7 @@ import { debounce } from "es-toolkit";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { useTaskStore } from "../../../foundation/tasks/task-store";

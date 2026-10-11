@@ -2,7 +2,7 @@ import { onBeforeUnmount, onMounted, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
+import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { SpaceImportSourceAccess } from "../../assets/asset-operations";
 import { addImportedSpaceAsset } from "../../assets/import";

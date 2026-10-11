@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
 vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => mocks.tasks }));
-vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
 const source: SpaceCanvasNode<SpaceVideoPayload> = {
   id: "source-node",

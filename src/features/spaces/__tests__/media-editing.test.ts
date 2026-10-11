@@ -8,7 +8,7 @@ import {
   shiftMediaChapterStart,
 } from "../media/knowledge-editing";
 import type { SpaceMediaKnowledge } from "../media/schema/knowledge";
-import { transcriptFixture } from "./media-transcript-fixture";
+import { transcriptFixture } from "./support/media-transcript-fixture";
 
 function knowledge(): SpaceMediaKnowledge {
   return {

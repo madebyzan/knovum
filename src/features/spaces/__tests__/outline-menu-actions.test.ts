@@ -5,19 +5,19 @@ import type * as Reka from "reka-ui";
 import { beforeEach, expect, it, vi } from "vitest";
 import { h, reactive, shallowRef } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import SpaceOutline from "../presentation/outline/SpaceOutline.vue";
 
-const native = vi.hoisted(() => ({ items: [] as MenuItemOptions[] }));
+const menuMocks = vi.hoisted(() => ({ items: [] as MenuItemOptions[] }));
 vi.mock("@tauri-apps/api/menu", () => ({
   Menu: { new: async () => ({ popup: async () => {}, close: async () => {} }) },
   MenuItem: {
     new: async (options: MenuItemOptions) => {
-      native.items.push(options);
-      return { rid: native.items.length, close: async () => {} };
+      menuMocks.items.push(options);
+      return { rid: menuMocks.items.length, close: async () => {} };
     },
   },
   PredefinedMenuItem: { new: async () => ({ rid: 0, close: async () => {} }) },
@@ -83,7 +83,7 @@ const store = reactive({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  native.items.length = 0;
+  menuMocks.items.length = 0;
   store.nodes[0]!.data.title = "Original";
   store.editSnapshot.structure[0]!.locked = false;
 });
@@ -104,7 +104,7 @@ async function renderMenu() {
 it("focuses the canvas object from its native locate action", async () => {
   const wrapper = await renderMenu();
   try {
-    native.items[0]!.action!("locate");
+    menuMocks.items[0]!.action!("locate");
     await flushPromises();
     expect(editor.selectNodes).toHaveBeenCalledWith(["image"]);
     expect(editor.reveal).toHaveBeenCalledExactlyOnceWith(["image"], "focus");
@@ -116,7 +116,7 @@ it("focuses the canvas object from its native locate action", async () => {
 it("opens the inline rename field and persists the name from its native action", async () => {
   const wrapper = await renderMenu();
   try {
-    native.items[1]!.action!("rename");
+    menuMocks.items[1]!.action!("rename");
     await flushPromises();
     expect(document.activeElement).toBe(wrapper.get("input").element);
     await wrapper.get("input").setValue("Renamed");
@@ -133,7 +133,7 @@ it("opens the inline rename field and persists the name from its native action",
 it("locks and unlocks the object from successive native menus", async () => {
   const wrapper = await renderMenu();
   try {
-    native.items[2]!.action!("lock");
+    menuMocks.items[2]!.action!("lock");
     await flushPromises();
     expect(store.executeSpaceEdit).toHaveBeenLastCalledWith({
       kind: "structure.set-lock",
@@ -143,7 +143,7 @@ it("locks and unlocks the object from successive native menus", async () => {
     expect(wrapper.find(".lucide-lock-keyhole").exists()).toBe(true);
     await wrapper.get('[role="treeitem"]').trigger("contextmenu");
     await flushPromises();
-    native.items[5]!.action!("unlock");
+    menuMocks.items[5]!.action!("unlock");
     await flushPromises();
     expect(store.executeSpaceEdit).toHaveBeenLastCalledWith({
       kind: "structure.set-lock",

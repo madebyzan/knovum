@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
-import { buildLocalModelGroups } from "../local-model-groups";
+import { buildLocalModelGroups } from "../local-models/groups";
 
 function model(
   modelId: LocalModelAvailability["id"],

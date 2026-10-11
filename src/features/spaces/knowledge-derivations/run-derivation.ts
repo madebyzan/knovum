@@ -1,7 +1,7 @@
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { useSpaceStore } from "../session/space-store";
 import { yieldToCanvas } from "./canvas-yield";

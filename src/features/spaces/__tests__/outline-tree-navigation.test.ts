@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, shallowRef } from "vue";
 
 import { isInteractiveTarget } from "../../../foundation/dom/interactive-target";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { OutlineTreeItem } from "../presentation/outline/outline-tree-items";
 import SpaceStructureTreeItem from "../presentation/outline/SpaceStructureTreeItem.vue";
 

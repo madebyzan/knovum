@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { VideoDubbingOutputConfig } from "../../../contracts/generated/VideoDubbingOutputConfig";
 import VideoSourceControls from "../VideoSourceControls.vue";
 

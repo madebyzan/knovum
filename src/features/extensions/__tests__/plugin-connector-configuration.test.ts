@@ -3,7 +3,7 @@ import type { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import { settingsLeaveCoordinatorKey } from "../../../shared/contracts/settings-leave";
 import PluginConnectorConfiguration from "../connectors/components/PluginConnectorConfiguration.vue";

@@ -1,6 +1,6 @@
 import { nextTick, type Ref } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { CanvasViewport } from "../canvas/contracts/canvas-editor-port";
 import type { Space } from "../model/space";
 import type { useSpaceStore } from "../session/space-store";

@@ -9,7 +9,7 @@ import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
-import type { GenerationActionOption } from "../generation-action-option";
+import type { GenerationActionOption } from "../creation/action-option";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";
 
 const props = defineProps<{

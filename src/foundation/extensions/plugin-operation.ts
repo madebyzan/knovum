@@ -3,7 +3,7 @@ import { Channel } from "@tauri-apps/api/core";
 import type { PluginOperationStage } from "../../shared/contracts/generated/PluginOperationStage";
 import { decodeAppError } from "../errors/app-error";
 import { getErrorMessage } from "../errors/error-format";
-import { i18n } from "../i18n/i18n";
+import { i18n } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { useTaskStore } from "../tasks/task-store";
 

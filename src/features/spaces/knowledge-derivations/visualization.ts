@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";

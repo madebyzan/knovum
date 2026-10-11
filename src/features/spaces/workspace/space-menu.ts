@@ -4,7 +4,7 @@ import {
   popupContextMenu,
   type ContextMenuItem,
   type PopupContextMenuOptions,
-} from "../../../foundation/context-menu/context-menu";
+} from "../../../foundation/context-menu/popup";
 
 export function spaceMenuItem(
   text: string,

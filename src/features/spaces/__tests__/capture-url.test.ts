@@ -32,7 +32,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logWarn }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
-vi.mock("../../../foundation/i18n/i18n", () => ({
+vi.mock("../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));

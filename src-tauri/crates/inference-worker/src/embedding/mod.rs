@@ -2,7 +2,10 @@ use crate::{artifact, cancellation::Cancellation};
 use candle_core::{DType, Device, IndexOp, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::qwen3::{Config, Model};
-use knovum_inference_contracts::{embedding_wire::*, runtime::RuntimeInitializeParams};
+use knovum_inference_contracts::{
+    embedding_wire::{EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingRole, EMBEDDING_SPEC_ID},
+    runtime::RuntimeInitializeParams,
+};
 use std::path::Path;
 use tokenizers::Tokenizer;
 

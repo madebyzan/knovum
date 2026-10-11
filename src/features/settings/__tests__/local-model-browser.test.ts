@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, shallowRef } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import LocalModelCapability from "../components/LocalModelCapability.vue";

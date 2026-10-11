@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, effectScope, shallowRef } from "vue";
 
-import { i18n } from "../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { SpeechSignalReport } from "../../contracts/generated/SpeechSignalReport";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { ImportedAudiobookScript } from "../audiobook-script";

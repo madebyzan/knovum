@@ -2,7 +2,7 @@ import { listen } from "@tauri-apps/api/event";
 import { onScopeDispose, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { updateTaskProgress } from "../../../foundation/runtime/resource-progress";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { EnrichmentJobUpdate } from "../contracts/generated/EnrichmentJobUpdate";

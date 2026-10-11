@@ -1,7 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, onTestFinished } from "vitest";
 
-import { i18n } from "../../../../../foundation/i18n/i18n";
+import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpaceTiptapHeading } from "../../../editor/tiptap-outline";
 import SpaceDocumentOutline from "../SpaceDocumentOutline.vue";
 

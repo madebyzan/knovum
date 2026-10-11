@@ -2,7 +2,7 @@ import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import SpaceDocumentCoverage from "../presentation/document/SpaceDocumentCoverage.vue";
 

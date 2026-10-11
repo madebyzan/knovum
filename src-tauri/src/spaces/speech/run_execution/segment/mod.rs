@@ -87,7 +87,7 @@ pub(super) async fn execute(
     }
     let voice = load_voice(pool, &segment.voice_revision_id).await?;
     let profile = super::super::runtime_identity::profile_for_engine(&voice.engine_id)?;
-    let runtime_digest = crate::local_resources::runtimes::native::resolve(app)?.digest;
+    let runtime_digest = crate::local_resources::runtimes::inference::resolve(app)?.digest;
     if frozen_runtimes.get(&profile) != Some(&runtime_digest) {
         return Err("runtime_mismatch: Speech Run runtime package changed".into());
     }

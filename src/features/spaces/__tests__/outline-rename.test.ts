@@ -3,7 +3,7 @@ import { TreeRoot } from "reka-ui";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h } from "vue";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import SpaceStructureTreeItem from "../presentation/outline/SpaceStructureTreeItem.vue";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));

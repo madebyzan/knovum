@@ -41,7 +41,7 @@ fn tensor_wire_requires_exact_rank_unsigned_shape_and_current_dtype() {
 }
 
 #[test]
-fn native_engine_and_alignment_identities_do_not_reinterpret_obsolete_values() {
+fn inference_engine_and_alignment_identities_do_not_reinterpret_obsolete_values() {
     for engine in ["faster_whisper", "mlx_whisper"] {
         assert!(serde_json::from_value::<AsrEngine>(json!(engine)).is_err());
     }

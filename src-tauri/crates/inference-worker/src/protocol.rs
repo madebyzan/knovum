@@ -49,8 +49,8 @@ impl Output {
         self.send(&json!({"jsonrpc":"2.0","method":method,"params":params}))
     }
 
-    pub(crate) fn result(&self, id: &str, result: &impl Serialize) -> Result<(), String> {
-        self.send(&json!({"jsonrpc":"2.0", "id":id, "result":result}))
+    pub(crate) fn respond(&self, id: &str, response: &impl Serialize) -> Result<(), String> {
+        self.send(&json!({"jsonrpc":"2.0", "id":id, "result":response}))
     }
 
     pub(crate) fn error(&self, id: Option<&str>, error: &str) -> Result<(), String> {

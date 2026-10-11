@@ -2,7 +2,7 @@ use super::isolate_environment;
 use std::{ffi::OsStr, process::Command};
 
 #[test]
-fn native_environment_removes_private_python_and_provider_credentials() {
+fn inference_environment_removes_private_python_and_provider_credentials() {
     let mut command = Command::new("unused-test-command");
     for name in ["PYTHONPATH", "HF_TOKEN", "ORT_DYLIB_PATH"] {
         command.env(name, "untrusted");
@@ -28,7 +28,7 @@ fn native_environment_removes_private_python_and_provider_credentials() {
 }
 
 #[test]
-fn native_environment_rejects_loader_and_backend_overrides_beyond_known_names() {
+fn inference_environment_rejects_loader_and_backend_overrides_beyond_known_names() {
     let names = [
         "DYLD_VERSIONED_LIBRARY_PATH",
         "DYLD_IMAGE_SUFFIX",
@@ -50,7 +50,7 @@ fn native_environment_rejects_loader_and_backend_overrides_beyond_known_names() 
                 .unwrap()
                 .1
                 .is_none(),
-            "Native loader override survived: {name}"
+            "Shared-library loader override survived: {name}"
         );
     }
 }

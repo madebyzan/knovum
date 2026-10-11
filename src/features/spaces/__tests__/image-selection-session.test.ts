@@ -3,7 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { nextTick, reactive } from "vue";
 
 import type { ImageOperationTargetOption } from "../contracts/generated/ImageOperationTargetOption";
-import { imageSourceNode } from "./image-operation-fixtures";
+import { imageSourceNode } from "./support/image-operation-fixtures";
 
 const context = vi.hoisted(() => ({ space: null as null | Record<string, unknown> }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));

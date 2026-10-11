@@ -60,7 +60,7 @@ source/license, immutable input bytes and annotations reviewable. Measure actual
 peak memory, cancellation and recovery as well as output quality. Requalify changes to candidate
 runtime, model, execution configuration or corpus; attach the record to the exact release artifacts.
 
-The selected native Sherpa build disables TTS/eSpeak and contains only the required diarization
+The selected Sherpa C API build disables TTS/eSpeak and contains only the required diarization
 and separation closure. Its frozen supplier notices and source identity must be reviewed with the
 candidate; the removed Python Sherpa wheel and its eSpeak closure are not distributed. Retained
 Agent compiled dependencies still require their independent corresponding-source review.
@@ -71,7 +71,7 @@ Exercise the full embedded Spaces SQLx migration history and packaged applicatio
 Fresh-database tests alone are not upgrade acceptance. Final product icons and publisher metadata
 must be approved before the first public distribution.
 
-FFmpeg, the sealed native inference package and the retained Agent runtime must be prepared for each target. Pinned yt-dlp/Deno downloads must
+FFmpeg, the sealed Rust inference package and the retained Agent runtime must be prepared for each target. Pinned yt-dlp/Deno downloads must
 remain available and match their embedded hashes. Clean-profile tests must install that pair and
 exercise representative PDF, media and transcription workflows. Hashes prove artifact identity,
 not publisher signing or successful target execution. The inspected macOS arm64 yt-dlp standalone
@@ -79,7 +79,7 @@ asset is ad-hoc signed, not publisher-signed. Never remove quarantine metadata o
 to make an unsigned tool run. Where policy requires publisher signatures, use controlled signed
 artifacts, review their provenance/hashes and repeat target-platform acceptance.
 
-Record the installed Agent descriptor/tree digest and the sealed native worker/runtime digests
+Record the installed Agent descriptor/tree digest and the sealed Rust worker/runtime digests
 with each platform's installer hash in the acceptance evidence. These identities come from the
 actual package; there is no separate candidate metadata format or collection framework.
 
@@ -179,7 +179,7 @@ Authenticode signatures and timestamps. Signing does not promise immediate Smart
 `.github/workflows/release-candidate.yml` builds signed macOS arm64/x64 and Windows x64 from a
 reviewed `v<version>` tag on `main`. First produce the retained Agent with `python-runtime.yml`
 on `main` and `production: true`, then select its immutable `runtime-*` tag through
-`KNOVUM_RUNTIME_PUBLICATION_TAG`. FFmpeg and native inference resources are prepared directly
+`KNOVUM_RUNTIME_PUBLICATION_TAG`. FFmpeg and Rust inference resources are prepared directly
 from pinned suppliers on each packaging runner; there is no second FFmpeg release.
 
 The package command verifies final resources, platform signatures and macOS notarization before
@@ -257,17 +257,17 @@ database. After the first public persisted schema is frozen, maintain reviewed m
 recovery policy and test restored data against the intended binary. Keep rescue installers and the
 previous release available. Do not claim automatic application/database rollback without evidence.
 
-## Agent and native distribution acceptance
+## Agent and inference distribution acceptance
 
 The desktop installer excludes CPython/third-party packages and includes the current application
 Worker and trusted runtime descriptor. Target-platform acceptance must cover anonymous first download,
-cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Native model execution uses the bundled Rust worker; native model weights are prepared before inference deadlines. Release acceptance records the actual packaged Agent descriptor/tree digest and the native
+cancellation/retry, concurrent sharing and offline use after preparation, for Deep Agent. Local model execution uses the bundled Rust worker; local model weights are prepared before inference deadlines. Release acceptance records the actual packaged Agent descriptor/tree digest and the Rust
 inference worker/manifest digests beside installer hashes; no duplicate JSON release protocol remains.
 The Agent Worker digest hashes sorted `.py` entries as UTF-8 `path + NUL + file-sha256 + LF`,
 with paths relative to the application-owned `python/src` tree. `scripts/runtime/packaged-resources.mjs` owns this
 calculation. Agent execution binds that digest and the Agent descriptor's `manifestSha256`.
 Inference capture provenance and every candidate execution source bind the bundled Rust binary
-digest and the sealed native runtime manifest digest; outputs from another worker or runtime are rejected.
+digest and the sealed inference runtime manifest digest; outputs from another worker or runtime are rejected.
 Runtime archives and corresponding evidence/source attachments must be published at the actual
 immutable URLs before distributing an application that requires them. Workflow artifact uploads
 are build outputs, not confirmation that those public locations exist.
@@ -385,12 +385,12 @@ the release binary/package delta for gix and rmcp client/auth features on each t
 size result is inferred from source or a development binary. Signing, installer acceptance and
 physical platform qualification are maintainer release tasks.
 
-## Native inference candidate identity
+## Rust inference candidate identity
 
-The native package is built and sealed before host compilation. Record the SHA-256 of the shipped
-Rust worker, final signed native manifest and complete compiled-library inventory alongside each
-target artifact. Inference capture uses these native digests; the Python tree digest belongs only to
-Deep Agent and cannot authorize native inference evidence. Measurements retain strict hash/provenance checks, CER/WER micro-aggregation, retrieval, alignment
+The inference package is built and sealed before host compilation. Record the SHA-256 of the shipped
+Rust worker, final signed inference manifest and complete compiled-library inventory alongside each
+target artifact. Inference capture uses these inference digests; the Python tree digest belongs only to
+Deep Agent and cannot authorize Rust inference evidence. Measurements retain strict hash/provenance checks, CER/WER micro-aggregation, retrieval, alignment
 and independent blind TTS review thresholds. Record reviewed results from real executions;
 synthetic fixtures do not qualify models or hardware.
 

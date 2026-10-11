@@ -7,7 +7,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 
 import { defaultCreationLibrary } from "../../../foundation/ai/schema/creation-library";
 import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
 import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
 import SettingsSidebar from "../components/SettingsSidebar.vue";

@@ -2,11 +2,11 @@ import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-import type { isFileDropInside, listenForFileDrops } from "../../../foundation/file-drop/file-drop";
+import type { isFileDropInside, listenForFileDrops } from "../../../foundation/file-drop/events";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import SpaceConversationComposer from "../presentation/conversation/SpaceConversationComposer.vue";
 
-vi.mock("../../../foundation/file-drop/file-drop", () => ({
+vi.mock("../../../foundation/file-drop/events", () => ({
   listenForFileDrops: vi.fn<typeof listenForFileDrops>(async () => () => {}),
   isFileDropInside: vi.fn<typeof isFileDropInside>(() => false),
 }));

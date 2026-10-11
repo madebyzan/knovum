@@ -5,8 +5,14 @@ use crate::{
     protocol::{self, Output, Request},
 };
 use knovum_inference_contracts::{
-    embedding_wire::EmbeddingEncodeParams, image_compute::ImageComputeParams,
-    image_wire::ImageSegmentParams, runtime::*,
+    embedding_wire::EmbeddingEncodeParams,
+    image_compute::ImageComputeParams,
+    image_wire::ImageSegmentParams,
+    runtime::{
+        RuntimeAckChunkParams, RuntimeCancelParams, RuntimeCancellationAcknowledgement,
+        RuntimeHealthObservation, RuntimeHealthParams, RuntimeShutdownAcknowledgement,
+        RuntimeShutdownParams, MAX_MESSAGE_BYTES,
+    },
 };
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -38,14 +44,14 @@ pub fn serve() -> Result<(), String> {
                 .id
                 .as_deref()
                 .ok_or("invalid_input: compute request has no identifier")?;
-            let result = execute(
+            let execution = execute(
                 &mut session,
                 &job.request,
                 &job.cancellation,
                 &compute_output,
                 &compute_acknowledgements,
             );
-            let result = job.cancellation.check().and(result);
+            let execution = job.cancellation.check().and(execution);
             if let Some(session) = &session {
                 *compute_session_id
                     .lock()
@@ -53,14 +59,14 @@ pub fn serve() -> Result<(), String> {
                     Some(session.identity.session_id.clone());
             }
             compute_active.finish()?;
-            match result {
-                Ok(result) => compute_output.result(id, &result)?,
+            match execution {
+                Ok(execution) => compute_output.respond(id, &execution)?,
                 Err(error) => compute_output.error(Some(id), &error)?,
             }
         }
         Ok(())
     });
-    let result = read_requests(
+    let reception = read_requests(
         &mut io::stdin().lock(),
         &sender,
         &active,
@@ -76,8 +82,8 @@ pub fn serve() -> Result<(), String> {
     drop(sender);
     let settled = compute
         .join()
-        .map_err(|_| "worker_crashed: native compute thread panicked")?;
-    result.and(settled)
+        .map_err(|_| "worker_crashed: inference compute thread panicked")?;
+    reception.and(settled)
 }
 
 fn read_requests(
@@ -107,7 +113,7 @@ fn read_requests(
                 let params: RuntimeCancelParams = decode(&request.params)?;
                 let accepted = active.cancel(&params.target_request_id, params.attempt_epoch)?;
                 if let Some(id) = &request.id {
-                    output.result(id, &RuntimeCancellationAcknowledgement { accepted })?;
+                    output.respond(id, &RuntimeCancellationAcknowledgement { accepted })?;
                 }
             }
             "runtime.health" => {
@@ -132,7 +138,7 @@ fn read_requests(
                     .map(|(id, _, _)| id.clone());
                 let memory = memory_stats::memory_stats()
                     .ok_or("resource_exhausted: resident memory is unavailable")?;
-                output.result(
+                output.respond(
                     request
                         .id
                         .as_deref()
@@ -164,7 +170,7 @@ fn read_requests(
                     )?;
                     continue;
                 }
-                output.result(
+                output.respond(
                     request
                         .id
                         .as_deref()
@@ -225,10 +231,10 @@ fn execute(
             return Err("runtime_mismatch: worker is already initialized".into());
         }
         let initialized = Session::initialize(decode(&request.params)?)?;
-        let result =
+        let identity =
             serde_json::to_value(&initialized.identity).map_err(|error| error.to_string())?;
         *session = Some(initialized);
-        return Ok(result);
+        return Ok(identity);
     }
     let session = session
         .as_mut()
@@ -240,7 +246,7 @@ fn execute(
     {
         return Err("runtime_mismatch: request identity or capability differs".into());
     }
-    let result = match (&mut session.engine, request.method.as_str()) {
+    let response = match (&mut session.engine, request.method.as_str()) {
         (Engine::Images(images), "image.segment") => serde_json::to_value(images.segment(
             &session.work,
             decode::<ImageSegmentParams>(&request.params)?,
@@ -280,7 +286,7 @@ fn execute(
         }
         _ => return Err("runtime_mismatch: worker does not own requested method".into()),
     };
-    result.map_err(|error| format!("invalid_output: {error}"))
+    response.map_err(|error| format!("invalid_output: {error}"))
 }
 
 fn decode<T: DeserializeOwned>(value: &Value) -> Result<T, String> {

@@ -72,12 +72,12 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     (root / "bin").mkdir(parents=True)
     (root / "bin/python.exe").write_bytes(b"MZ\0\0interpreter")
     (root / "LICENSE.python.txt").write_text("fixture CPython license\n")
-    source_license = root / "source-notices/native-module/LICENSE"
+    source_license = root / "source-notices/compiled-module/LICENSE"
     source_license.parent.mkdir(parents=True)
-    source_license.write_text("fixture native module license\n")
-    native_library = root / "Library/bin/native.dll"
-    native_library.parent.mkdir(parents=True)
-    native_library.write_bytes(b"MZ\0\0native")
+    source_license.write_text("fixture compiled module license\n")
+    compiled_library = root / "Library/bin/compiled.dll"
+    compiled_library.parent.mkdir(parents=True)
+    compiled_library.write_bytes(b"MZ\0\0native")
     write_distribution(root)
     configuration = tmp_path / "runtime-source.json"
     write_interpreter_configuration(configuration)
@@ -115,12 +115,12 @@ def test_inventory_separates_cpython_source_from_runtime_installation_files(
     assert evidence["cpython"]["version"] == "3.11.17"
     assert evidence["cpython"]["source"]["url"] == "https://example.test/cpython.tar.gz"
     assert evidence["runtimeInstallation"]["compiledBinaries"] == [
-        "Library/bin/native.dll",
+        "Library/bin/compiled.dll",
         "bin/python.exe",
     ]
     assert evidence["runtimeInstallation"]["notices"][0]["path"] == "LICENSE.python.txt"
     assert {notice["path"]: notice["sha256"] for notice in evidence["runtimeInstallation"]["notices"]}[
-        "source-notices/native-module/LICENSE"
+        "source-notices/compiled-module/LICENSE"
     ] == sha256(source_license)
     assert "interpreter" not in evidence
     assert "sourceComponents" not in evidence

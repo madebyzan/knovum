@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { AgentExtensionAvailability } from "../../../shared/contracts/generated/AgentExtensionAvailability";
 import AgentExtensionPicker from "../presentation/conversation/AgentExtensionPicker.vue";
 

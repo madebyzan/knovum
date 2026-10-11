@@ -1,6 +1,9 @@
 use super::{artifacts, credits::Credits};
 use crate::{artifact, cancellation::Cancellation, protocol::Output};
-use knovum_inference_contracts::speech_wire::*;
+use knovum_inference_contracts::speech_wire::{
+    InferenceRequestIdentity, SpeechSynthesis, SpeechSynthesisChunkEvent,
+    SpeechSynthesisChunkGranularity, SynthesizedAudioFileReference,
+};
 use sha2::{Digest, Sha256};
 use std::{
     path::{Path, PathBuf},

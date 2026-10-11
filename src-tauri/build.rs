@@ -12,7 +12,7 @@ fn main() {
         println!("cargo:rustc-cfg=knovum_supported_desktop");
     }
     build_support::python_runtime::embed_descriptors();
-    build_support::native_runtime::embed_manifest();
+    build_support::inference_runtime::embed_manifest();
     tauri_build::try_build(
         tauri_build::Attributes::new()
             .app_manifest(tauri_build::AppManifest::new().commands(&[

@@ -28,12 +28,12 @@ export function applyImageTexture(
     strength: (settings.sharpness / 100) * 1.2,
   };
   for (let y = 0; y < settings.height; y++) {
-    for (let x = 0; x < settings.width; x++) processPixel(context, x, y);
+    for (let x = 0; x < settings.width; x++) applyPixelTexture(context, x, y);
   }
   return output;
 }
 
-function processPixel(context: ImageTextureContext, x: number, y: number) {
+function applyPixelTexture(context: ImageTextureContext, x: number, y: number) {
   const { source, output, neighbors, settings, strength } = context;
   const offset = (y * settings.width + x) * 4;
   if (source[offset + 3] === 0) return;

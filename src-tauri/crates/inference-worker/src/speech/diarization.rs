@@ -1,7 +1,10 @@
-use super::{audio, native};
+use super::{audio, ffi};
 use crate::cancellation::Cancellation;
-use knovum_inference_contracts::{runtime::RuntimeInitializeParams, speech_wire::*};
-use native::sherpa::*;
+use ffi::sherpa::*;
+use knovum_inference_contracts::{
+    runtime::RuntimeInitializeParams,
+    speech_wire::{SpeakerTurn, SpeechDiarization, SpeechDiarizeParams},
+};
 use std::{path::PathBuf, ptr};
 
 pub(crate) struct Diarizer {
@@ -48,23 +51,20 @@ impl Diarizer {
                     .as_ref()
                     .ok_or("model_missing: diarization model is missing")?,
             );
-            let segment = native::string(
+            let segment = ffi::string(
                 directory
                     .join("segmentation.onnx")
                     .to_str()
                     .ok_or("model_corrupt: model path is invalid")?,
             )?;
-            let embedding = native::string(
+            let embedding = ffi::string(
                 directory
                     .join("embedding.onnx")
                     .to_str()
                     .ok_or("model_corrupt: model path is invalid")?,
             )?;
             let api = unsafe {
-                SherpaApi::from_library(native::load(&native::path(
-                    &self.params,
-                    "sherpa-onnx-c-api",
-                )?)?)
+                SherpaApi::from_library(ffi::load(&ffi::path(&self.params, "sherpa-onnx-c-api")?)?)
             }
             .map_err(|error| format!("runtime_mismatch: {error}"))?;
             let mut config = configuration(-1);
@@ -107,7 +107,7 @@ impl Diarizer {
                 .SherpaOnnxOfflineSpeakerDiarizationSetConfig(engine.handle, &config);
         }
         // This upstream callback cannot interrupt inference. The host's five-second kill owns hard cancellation.
-        let result = unsafe {
+        let diarization = unsafe {
             engine
                 .api
                 .SherpaOnnxOfflineSpeakerDiarizationProcessWithCallback(
@@ -118,16 +118,16 @@ impl Diarizer {
                     std::ptr::from_ref(cancel).cast_mut().cast(),
                 )
         };
-        if result.is_null() {
+        if diarization.is_null() {
             cancel.check()?;
-            return Err("diarization_failed: native engine returned no result".into());
+            return Err("diarization_failed: inference engine returned no result".into());
         }
         let outcome = (|| {
             cancel.check()?;
             let count = unsafe {
                 engine
                     .api
-                    .SherpaOnnxOfflineSpeakerDiarizationResultGetNumSegments(result)
+                    .SherpaOnnxOfflineSpeakerDiarizationResultGetNumSegments(diarization)
             };
             if !(0..=100_000).contains(&count) {
                 return Err("invalid_output: diarization returned excessive segments".into());
@@ -137,7 +137,7 @@ impl Diarizer {
                 let segments = unsafe {
                     engine
                         .api
-                        .SherpaOnnxOfflineSpeakerDiarizationResultSortByStartTime(result)
+                        .SherpaOnnxOfflineSpeakerDiarizationResultSortByStartTime(diarization)
                 };
                 if segments.is_null() {
                     return Err("resource_exhausted: diarization segment allocation failed".into());
@@ -184,7 +184,7 @@ impl Diarizer {
         unsafe {
             engine
                 .api
-                .SherpaOnnxOfflineSpeakerDiarizationDestroyResult(result);
+                .SherpaOnnxOfflineSpeakerDiarizationDestroyResult(diarization);
         }
         outcome
     }

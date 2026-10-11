@@ -109,7 +109,7 @@ fn time(centiseconds: i64, end: usize) -> Result<u64, String> {
         .and_then(|value| value.checked_mul(10))
         .ok_or("invalid_output: Whisper timestamp is invalid")?;
     // Upstream pads the final inference window with 30 seconds of zeros.
-    // Validate that native context, then publish only the original audio timeline.
+    // Validate that Whisper context, then publish only the original audio timeline.
     if ms > end as u64 / 16 + 30_000 {
         return Err(format!(
             "invalid_output: Whisper timestamp {ms} exceeds its {} ms source audio",

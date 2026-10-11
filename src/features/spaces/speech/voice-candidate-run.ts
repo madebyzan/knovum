@@ -1,5 +1,5 @@
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/i18n";
+import { i18n } from "../../../foundation/i18n/instance";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
 import { observeResourceRun } from "../runs/resource-run-observation";
