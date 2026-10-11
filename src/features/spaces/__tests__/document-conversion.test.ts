@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  space: { activeSpaceId: "space" as string | undefined },
   invoke: vi.fn<(command: string, args?: unknown) => Promise<unknown>>(),
 }));
 
+vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.space }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
 vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("../runs/resource-run-observation", () => ({
@@ -22,19 +24,14 @@ const source: DocumentConversionOptions["source"] = {
   data: { kind: "markdown", title: "Report", knowledgeRevision: "revision-1", text: "Body" },
 };
 
-function store(activeSpaceId: string | undefined) {
-  return {
-    activeSpaceId,
-  } as unknown as DocumentConversionOptions["store"];
-}
-
 describe("document conversion", () => {
   beforeEach(() => {
+    mocks.space.activeSpaceId = "space";
     mocks.invoke.mockReset().mockResolvedValue({ nodeId: "output", data: {} });
   });
 
   it.each(["docx", "pdf", "txt", "html"] as const)("preserves source identity for %s", async (format) => {
-    await convertDocument({ store: store("space"), source, format });
+    await convertDocument({ source, format });
     expect(mocks.invoke).toHaveBeenCalledTimes(1);
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|start_space_action", {
       request: {
@@ -49,8 +46,8 @@ describe("document conversion", () => {
   });
 
   it("does not invoke Rust without an active Space", async () => {
-    const inactive = store(undefined);
-    await convertDocument({ store: inactive, source, format: "txt" });
+    mocks.space.activeSpaceId = undefined;
+    await convertDocument({ source, format: "txt" });
     expect(mocks.invoke).not.toHaveBeenCalled();
   });
 
@@ -69,7 +66,7 @@ describe("document conversion", () => {
         extractedText: "Cached partial text",
       },
     };
-    await convertDocument({ store: store("space"), source: file, format: "docx" });
+    await convertDocument({ source: file, format: "docx" });
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|start_space_action", {
       request: {
         requestId: expect.any(String),

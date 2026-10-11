@@ -1,5 +1,4 @@
 import { computed, shallowRef, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
@@ -13,7 +12,6 @@ import { deriveImage } from "../../knowledge-derivations/image-operation";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { useSpaceStore } from "../../session/space-store";
 import { imageActionAvailability, upscaleAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
 import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
@@ -26,9 +24,7 @@ interface ImageDerivationActionsInput {
 }
 
 export function useImageDerivationActions({ node, mode, open, close }: ImageDerivationActionsInput) {
-  const { t } = useI18n();
   const router = useRouter();
-  const store = useSpaceStore();
   const imageDimensions = useImageSourceDimensionsStore();
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
@@ -64,7 +60,7 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
       busy: busy.value,
     }),
   );
-  const help = computed(() => imageActionHelp(availability.value, t));
+  const help = computed(() => imageActionHelp(availability.value));
 
   function targetDimensions(longEdge: number) {
     const source = dimensions.value;
@@ -91,7 +87,7 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     close();
     busy.value = true;
     try {
-      await deriveImage(store, node.value, operation, {
+      await deriveImage(node.value, operation, {
         execution: mode === "upscale" ? executionOption.value?.execution : undefined,
       });
     } catch (error) {

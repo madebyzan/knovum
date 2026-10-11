@@ -1,12 +1,9 @@
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { SYSTEM_OBJECT_TYPE_IDS } from "../knowledge/model/object-types";
 import { attachProvenanceFromPeek } from "../knowledge/provenance-actions";
-import type { useSpaceStore } from "../session/space-store";
-
-type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpace" | "addContent" | "createRelation">;
+import { useSpaceStore } from "../session/space-store";
 
 interface SourceEvidenceInput {
-  store: SpaceStore;
   target: KnowledgePeekTarget;
   title: string;
   sourceLine: string;
@@ -14,8 +11,11 @@ interface SourceEvidenceInput {
 }
 
 export async function createSourceEvidence(input: SourceEvidenceInput) {
-  const { store, target, title, sourceLine, rationale } = input;
-  const spaceId = requiredSpaceId(store);
+  const store = useSpaceStore();
+
+  const { target, title, sourceLine, rationale } = input;
+  const spaceId = store.activeSpace?.id;
+  if (!spaceId) throw new Error("No active Space");
   const quote = target.locator.quote?.exact ?? target.text ?? "";
   const [evidence] = await store.addContent({
     kind: "object",
@@ -36,10 +36,4 @@ export async function createSourceEvidence(input: SourceEvidenceInput) {
   );
   await store.createRelation(evidence.id, target.nodeId, "derives-from", { rationale, spaceId });
   return evidence;
-}
-
-function requiredSpaceId(store: SpaceStore) {
-  const id = store.activeSpace?.id;
-  if (!id) throw new Error("No active Space");
-  return id;
 }

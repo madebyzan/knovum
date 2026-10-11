@@ -1,3 +1,4 @@
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueReason";
 
 export const CAPTURE_ISSUE_LABELS: Record<CaptureIssueReason, string> = {
@@ -30,7 +31,9 @@ const labelKeyByActionId = new Map([
   ["convert-document-to-html", "convertHtml"],
 ]);
 
-export function captureActionLabel(actionId: string, translate: (key: string) => string) {
+export function captureActionLabel(actionId: string) {
+  const translate = i18n.global.t;
+
   const labelKey = labelKeyByActionId.get(actionId);
   return labelKey ? translate(`spaces.creation.workflow.captureActions.${labelKey}`) : actionId;
 }

@@ -1,27 +1,23 @@
 import type { Ref } from "vue";
 
-import type { useSpaceStore } from "../../session/space-store";
+import { i18n } from "../../../../foundation/i18n/instance";
+import { useSpaceStore } from "../../session/space-store";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
 interface CanvasStructureSelectionActionsInput {
-  store: ReturnType<typeof useSpaceStore>;
   state: Readonly<Ref<CanvasSelectionProductState>>;
-  titles: { group: string; section: string };
   run: (operation: () => Promise<unknown>) => void;
 }
 
-export function createCanvasStructureSelectionActions({
-  store,
-  state,
-  titles,
-  run,
-}: CanvasStructureSelectionActionsInput) {
+export function createCanvasStructureSelectionActions({ state, run }: CanvasStructureSelectionActionsInput) {
+  const store = useSpaceStore();
+
   function createSection() {
     run(() =>
       store.executeSpaceEdit({
         kind: "section.wrap-selection",
         sectionId: crypto.randomUUID(),
-        title: titles.section,
+        title: i18n.global.t("spaces.canvas.sections.untitled"),
         rootIds: state.value.structureNodeIds,
       }),
     );
@@ -33,7 +29,7 @@ export function createCanvasStructureSelectionActions({
         kind: "group.create",
         groupId: crypto.randomUUID(),
         rootIds: state.value.structureNodeIds,
-        title: titles.group,
+        title: i18n.global.t("spaces.canvas.groups.untitled"),
       }),
     );
   }

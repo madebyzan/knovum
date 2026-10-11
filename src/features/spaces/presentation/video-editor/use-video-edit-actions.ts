@@ -116,11 +116,14 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
 
   async function render() {
     const sourceNode = node.value;
-    if (rendering.value || !sourceNode || sourceNode.type !== "video" || !project.value) return;
+    const renderProject = project.value;
+    const spaceId = store.activeSpaceId;
+    if (rendering.value || !sourceNode || sourceNode.type !== "video" || !renderProject) return;
     rendering.value = true;
     try {
       if (history.dirty.value && !(await save())) return;
-      await renderVideoEdit(store, sourceNode, project.value);
+      if (store.activeSpaceId !== spaceId || store.videoEditorNodeId !== sourceNode.id) return;
+      await renderVideoEdit(sourceNode, renderProject);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {

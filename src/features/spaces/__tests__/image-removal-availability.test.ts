@@ -28,6 +28,7 @@ vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage: contex
 vi.mock("../knowledge-derivations/use-image-capabilities", () => ({
   useImageOperationCapabilities: () => context.capabilities!,
 }));
+vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn<() => Promise<void>>() }) }));
 vi.mock("vue-i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof VueI18n>()),
@@ -125,7 +126,7 @@ describe("local brush repair and remote described removal", () => {
     expect(panel.props("canGenerate")).toBe(true);
     panel.vm.$emit("generate");
     expect(context.derive).toHaveBeenCalledOnce();
-    expect(context.derive.mock.calls[0]?.[2]).toEqual({
+    expect(context.derive.mock.calls[0]?.[1]).toEqual({
       kind: "remove-object",
       strokes: [{ diameter: 0.045, points: [0.2, 0.3, 0.4, 0.5] }],
     });
@@ -165,7 +166,7 @@ describe("local brush repair and remote described removal", () => {
     expect(removal.active?.strokes).toHaveLength(1);
     panel.vm.$emit("generate");
     expect(context.derive).toHaveBeenCalledOnce();
-    expect(context.derive.mock.calls[0]?.[2]).toEqual({
+    expect(context.derive.mock.calls[0]?.[1]).toEqual({
       kind: "remove-object-prompt",
       prompt: "remove the sign",
     });

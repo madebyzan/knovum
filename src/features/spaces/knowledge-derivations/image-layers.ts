@@ -9,21 +9,11 @@ import { spaceNodeDimensions } from "../canvas/node-size";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import { applyDerivationOutput } from "./apply-output";
 import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
-type SpaceStore = Pick<
-  ReturnType<typeof useSpaceStore>,
-  | "activeSpaceId"
-  | "addContents"
-  | "applyNodeContentForSpace"
-  | "refreshActiveSpace"
-  | "relations"
-  | "requestReveal"
-  | "saveNodeContentForSpace"
->;
 export type LayerAvailability =
   | { state: "ready" }
   | { state: "blocked"; reason: "missing_credential" | "secret_database_unavailable" };
@@ -38,11 +28,12 @@ export function getImageLayerAvailability() {
 }
 
 export async function generateImageLayers(
-  store: SpaceStore,
   source: SpaceCanvasNode<SpaceImagePayload>,
   count: number,
   prompt?: string,
 ) {
+  const store = useSpaceStore();
+  const tasks = useTaskStore();
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision || !Number.isInteger(count) || count < 2 || count > 8)
@@ -59,12 +50,13 @@ export async function generateImageLayers(
       );
     }),
   );
+  if (store.activeSpaceId !== spaceId) throw new Error("Image layer target Space changed");
   const pending = await store.addContents(nodes);
   const first = pending[0];
   if (!first) throw new Error("Image layer outputs were not created");
   const generationId = crypto.randomUUID();
   return runDerivation<LayerOutput[]>({
-    store,
+    spaceId,
     pendingId: first.id,
     task: {
       id: generationId,
@@ -77,10 +69,7 @@ export async function generateImageLayers(
       const onStage = new Channel<string>(
         taskId
           ? (stage) =>
-              useTaskStore().setStatusMessage(
-                taskId,
-                i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`),
-              )
+              tasks.setStatusMessage(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
           : undefined,
       );
       return invokeCommand<LayerOutput[]>("plugin:spaces|generate_image_layers", {
@@ -98,8 +87,8 @@ export async function generateImageLayers(
     },
     onSuccess: async (outputs, currentSpaceId) => {
       for (const output of outputs)
-        applyDerivationOutput(store, { ...output, spaceId: currentSpaceId, relations: [output.relation] });
-      await store.refreshActiveSpace();
+        applyDerivationOutput({ ...output, spaceId: currentSpaceId, relations: [output.relation] });
+      if (store.activeSpaceId === currentSpaceId) await store.refreshActiveSpace();
     },
     onError: async () => {
       for (const node of pending)
@@ -109,7 +98,7 @@ export async function generateImageLayers(
             expectedData: node.data,
             data: { ...node.data, processingState: "failed" },
           });
-      await store.refreshActiveSpace();
+      if (store.activeSpaceId === spaceId) await store.refreshActiveSpace();
     },
   });
 }

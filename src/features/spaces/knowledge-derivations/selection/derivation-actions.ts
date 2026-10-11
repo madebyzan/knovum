@@ -1,7 +1,6 @@
 import type { Ref, ShallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { useSpaceStore } from "../../session/space-store";
 import type { DocumentFormat } from "../catalog/creation-intent";
 import type { CreationIntentId } from "../catalog/creation-intent-definitions";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
@@ -17,7 +16,7 @@ import type { CreationDialogId } from "./creation-dialog";
 interface DerivationActionsOptions {
   canRun(actionId: CreationIntentId): boolean;
   canSubmit(): boolean;
-  store: ReturnType<typeof useSpaceStore>;
+
   selection: Ref<SpaceCanvasNode[]>;
   single: Ref<SpaceCanvasNode | undefined>;
   sources: Ref<readonly GroundedDocumentSource[] | undefined>;
@@ -27,15 +26,14 @@ interface DerivationActionsOptions {
 export function createDerivationActions({
   canRun,
   canSubmit,
-  store,
   selection,
   single,
   sources,
   dialog,
 }: DerivationActionsOptions) {
   const handlers: Record<CreationIntentId, () => void> = {
-    "remove-image-background": () => void (single.value && createImageCutout(store, single.value)),
-    "add-video-subtitles": () => void (single.value && addVideoSubtitles(store, single.value)),
+    "remove-image-background": () => void (single.value && createImageCutout(single.value)),
+    "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
     "draft-document": () => (dialog.value = "document"),
     "generate-visualization": () => (dialog.value = "visualization"),
     "convert-document-to-docx": () => void convertSelectedDocument("docx"),
@@ -49,7 +47,6 @@ export function createDerivationActions({
   function convertSelectedDocument(format: DocumentFormat) {
     if (!single.value || !isDocumentConversionSource(single.value)) return;
     return convertDocument({
-      store,
       source: single.value,
       format,
     });
@@ -59,7 +56,6 @@ export function createDerivationActions({
     if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void generateGroundedDocument({
-      store,
       sources: sources.value,
       draft,
     });
@@ -69,7 +65,6 @@ export function createDerivationActions({
     if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void generateVisualization({
-      store,
       sources: sources.value,
       draft,
     });
@@ -86,7 +81,6 @@ export function createDerivationActions({
     if (videoSources.some((source) => !source.sourceRevision)) return;
     dialog.value = undefined;
     void generateVideoFromSources({
-      store,
       sources: videoSources,
       draft,
     });

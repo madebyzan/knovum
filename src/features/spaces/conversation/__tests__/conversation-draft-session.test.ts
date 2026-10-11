@@ -5,6 +5,9 @@ import { deferred } from "../../__tests__/support/canvas-fixtures";
 import type { ConversationDraft } from "../../contracts/generated/ConversationDraft";
 import { createConversationDraftSession } from "../conversation-draft-session";
 
+const current = vi.hoisted(() => ({ drafts: undefined as unknown }));
+vi.mock("../conversation-draft-store", () => ({ useConversationDraftStore: () => current.drafts }));
+
 type ComposerDraft = Omit<ConversationDraft, "spaceId" | "conversationId">;
 
 function draft(prompt: string): ComposerDraft {
@@ -24,7 +27,7 @@ describe("conversation draft session", () => {
     const save = vi
       .fn<(spaceId: string, conversationId: string, draft: ComposerDraft) => Promise<void>>()
       .mockResolvedValue(undefined);
-    const drafts = {
+    current.drafts = {
       read: vi.fn<(spaceId: string, conversationId: string) => ComposerDraft | undefined>(),
       load: vi
         .fn<(spaceId: string, conversationId: string) => Promise<ComposerDraft | undefined>>()
@@ -46,7 +49,6 @@ describe("conversation draft session", () => {
     const extensions = ref({ pluginIds: [], skillIds: [] as string[], connections: [] });
     const reacquireFileNames = ref<string[]>([]);
     const session = createConversationDraftSession({
-      drafts,
       spaceId,
       selectedConversationId,
       prompt,

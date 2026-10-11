@@ -24,8 +24,8 @@ const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const { t } = useI18n();
 const router = useRouter();
 const panel = useTemplateRef<HTMLElement>("panel");
-const imageDimensions = useImageSourceDimensionsStore();
 const removal = useImageRemovalSessionStore();
+const dimensions = useImageSourceDimensionsStore();
 const open = computed(() => removal.active?.nodeId === props.node.id);
 const capability = useImageOperationCapabilities(open);
 const mode = computed(() => removal.active?.mode ?? "mask");
@@ -53,7 +53,9 @@ const availability = computed(() =>
     busy: removal.submitting,
   }),
 );
-const size = computed(() => imageRemovalSize(props.node, imageDimensions));
+const size = computed(() =>
+  imageRemovalSize(props.node, dimensions.forNode(props.node.id, props.node.data.sourceRevision)),
+);
 const sizeValid = computed(() => imageRemovalSizeValid(size.value));
 const canGenerate = computed(
   () =>
@@ -71,7 +73,7 @@ const hint = computed(() => {
   return undefined;
 });
 const help = computed(
-  () => imageActionHelp(availability.value, t) ?? (hint.value ? { label: hint.value } : undefined),
+  () => imageActionHelp(availability.value) ?? (hint.value ? { label: hint.value } : undefined),
 );
 
 function openAiSettings() {

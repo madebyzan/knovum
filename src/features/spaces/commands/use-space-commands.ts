@@ -21,8 +21,8 @@ import {
 } from "./node-operation-command-policy";
 import { NUDGE_COMMANDS } from "./nudge-commands";
 import { spacePreviewCommand } from "./space-preview-command";
-import { createSpaceStructureCommands } from "./space-structure-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
+import { useSpaceStructureCommands } from "./use-space-structure-commands";
 import { videoEditCommands } from "./video-edit-commands";
 
 export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandContext) {
@@ -34,13 +34,12 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
   const libraryCommands = useSpaceLibraryCommands();
   const canvasNavigationCommands = useCanvasNavigationCommands(rightSidebar);
   const selectedIds = () => selection.value.nodeIds;
+  const selectedStructureNodeIds = () => {
+    const index = createStructureIndex(store.editSnapshot.structure);
+    return currentSelectionRoots(selectedIds(), selection.value.structureNodeIds, index).map(({ id }) => id);
+  };
+  const structureCommands = useSpaceStructureCommands({ selectedStructureNodeIds, sidebar });
   return computed<readonly AppCommand[]>(() => {
-    const selectedStructureNodeIds = () => {
-      const index = createStructureIndex(store.editSnapshot.structure);
-      return currentSelectionRoots(selectedIds(), selection.value.structureNodeIds, index).map(
-        ({ id }) => id,
-      );
-    };
     const searchAllCommand: AppCommand = {
       id: "spaces.find-all",
       title: t("spaces.search.allSpaces.title"),
@@ -52,11 +51,11 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
     };
     if (store.workspaceMode === "library") return [...workspaceTabCommands.value, ...libraryCommands.value];
     if (!store.activeSpaceId) return [...workspaceTabCommands.value, searchAllCommand];
-    if (store.videoEditorNodeId) return videoEditCommands(t);
+    if (store.videoEditorNodeId) return videoEditCommands();
 
     const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
-      ...createSpaceStructureCommands({ store, selectedStructureNodeIds, t, sidebar }),
+      ...structureCommands.value,
       {
         id: "spaces.focus-outline",
         title: t("spaces.sidebar.outline.title"),
@@ -120,7 +119,7 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
           run: () => activeEditor.value?.nudgeSelection({ x: input.x, y: input.y }),
         }))
       : [];
-    const preview = spacePreviewCommand(store, selectedIds(), t("spaces.importExport.preview.system"));
+    const preview = spacePreviewCommand(store.nodes, selectedIds(), t("spaces.importExport.preview.system"));
     return [
       ...workspaceTabCommands.value,
       ...guardSelectionCommands(editingCommands, nodeOperations.allows),

@@ -1,18 +1,12 @@
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor, sectionAncestorOf } from "../model/structure/structure-queries";
-import type { useSpaceStore } from "../session/space-store";
-import type { getCanvasEditorSession } from "./editor-session";
+import { useSpaceStore } from "../session/space-store";
+import { getCanvasEditorSession } from "./editor-session";
 
-type SpaceStore = Pick<
-  ReturnType<typeof useSpaceStore>,
-  "editSnapshot" | "executeSpaceEdit" | "groupScopePath"
->;
-type EditorSession = Pick<
-  ReturnType<typeof getCanvasEditorSession>,
-  "selectNodes" | "selectStructureNodes" | "reveal"
->;
+export async function revealStructureNode(structureNodeId: string) {
+  const store = useSpaceStore();
+  const editor = getCanvasEditorSession();
 
-export async function revealStructureNode(store: SpaceStore, editor: EditorSession, structureNodeId: string) {
   const index = createStructureIndex(store.editSnapshot.structure);
   const structureNode = index.structureById.get(structureNodeId);
   if (!structureNode) throw new Error("Structure search result is no longer available");
@@ -34,9 +28,11 @@ export async function revealStructureNode(store: SpaceStore, editor: EditorSessi
   editor.reveal([structureNode.kind === "content" ? structureNode.nodeId : structureNodeId], "focus");
 }
 
-export async function revealContentNode(store: SpaceStore, editor: EditorSession, nodeId: string) {
+export async function revealContentNode(nodeId: string) {
+  const store = useSpaceStore();
+
   const index = createStructureIndex(store.editSnapshot.structure);
   const structureNodeId = index.structureNodeIdByNodeId.get(nodeId);
   if (!structureNodeId) throw new Error("Search result is unavailable in the Space structure");
-  await revealStructureNode(store, editor, structureNodeId);
+  await revealStructureNode(structureNodeId);
 }

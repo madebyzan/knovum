@@ -43,7 +43,7 @@ export function useSpaceTiptapEditor() {
   const persist = async () => {
     saveStatus.value = "saving";
     try {
-      await persistSpaceTiptapContent({ store, nodes: nodes.value, state, editor: editor.value });
+      await persistSpaceTiptapContent({ nodes: nodes.value, state, editor: editor.value });
       saveStatus.value = "saved";
     } catch (error) {
       saveStatus.value = "unsaved";

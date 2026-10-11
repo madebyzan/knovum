@@ -171,6 +171,6 @@ export function useConversationAttachments() {
     addNodeAttachments,
     chooseFiles,
     removeAttachment,
-    previewAttachment: (key: string) => previewConversationAttachment(attachments.value, store, key),
+    previewAttachment: (key: string) => previewConversationAttachment(attachments.value, key),
   };
 }

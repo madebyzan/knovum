@@ -4,7 +4,7 @@ import { i18n } from "../../../foundation/i18n/instance";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
-import { startDerivationAction, type DerivationActionStore } from "./start-action";
+import { startDerivationAction } from "./start-action";
 
 export interface VisualizationDraft {
   title: string;
@@ -22,14 +22,12 @@ export const imageAspectRatioSchema = z.enum([
   "9:16",
 ]) satisfies z.ZodType<ImageAspectRatio>;
 interface GenerateVisualizationContext {
-  store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: VisualizationDraft;
 }
 
-export function generateVisualization({ store, sources, draft }: GenerateVisualizationContext) {
+export function generateVisualization({ sources, draft }: GenerateVisualizationContext) {
   return startDerivationAction({
-    store,
     sources,
     actionId: "generate-visualization",
     title: i18n.global.t("spaces.creation.image.visualization.task"),

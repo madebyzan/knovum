@@ -97,7 +97,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
         if (!operations.allows("create")) return;
         // oxlint-disable-next-line eslint/no-await-in-loop -- Managed Space imports are intentionally serialized.
         const imported = await importSpaceSource({
-          context: spaceImportContext(store),
+          context: spaceImportContext(),
           spaceId,
           source: {
             prepare: () => prepareAgentArtifactImport(spaceId, currentSessionId, artifact.relativePath),

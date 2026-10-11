@@ -1,7 +1,7 @@
 import { i18n } from "../../../foundation/i18n/instance";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
-import { startDerivationAction, type DerivationActionStore } from "./start-action";
+import { startDerivationAction } from "./start-action";
 
 export interface GroundedDocumentDraft {
   title: string;
@@ -9,14 +9,12 @@ export interface GroundedDocumentDraft {
   target?: TaskTargetRef | undefined;
 }
 interface GenerateGroundedDocumentContext {
-  store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: GroundedDocumentDraft;
 }
 
-export function generateGroundedDocument({ store, sources, draft }: GenerateGroundedDocumentContext) {
+export function generateGroundedDocument({ sources, draft }: GenerateGroundedDocumentContext) {
   return startDerivationAction({
-    store,
     sources,
     actionId: "draft-document",
     parameters: { title: draft.title.trim(), purpose: draft.purpose.trim() },

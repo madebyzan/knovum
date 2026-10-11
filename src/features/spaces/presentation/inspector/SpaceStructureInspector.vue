@@ -7,7 +7,6 @@ import { toast } from "vue-sonner";
 import { runAppCommandById } from "../../../../foundation/commands/run-app-command";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { revealStructureNode } from "../../canvas/structure-navigation";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { useSpaceStore } from "../../session/space-store";
@@ -15,7 +14,6 @@ import { canRenameStructureNode } from "../../structure/structure-capabilities";
 import { useCanvasSelectionActions } from "../canvas/use-canvas-selection-actions";
 
 const store = useSpaceStore();
-const editor = getCanvasEditorSession();
 const actions = useCanvasSelectionActions();
 const { t } = useI18n();
 const roots = computed(() => {
@@ -32,7 +30,7 @@ const canRename = computed(() =>
 async function reveal() {
   if (!container.value) return;
   try {
-    await revealStructureNode(store, editor, container.value.id);
+    await revealStructureNode(container.value.id);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }

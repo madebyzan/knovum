@@ -4,7 +4,7 @@ import { shallowRef, type Ref } from "vue";
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
-import type { useConversationDraftStore } from "./conversation-draft-store";
+import { useConversationDraftStore } from "./conversation-draft-store";
 
 function sameAttachments(left: readonly ConversationAttachment[], right: readonly ConversationAttachment[]) {
   return (
@@ -32,7 +32,6 @@ function matchesRequest(
 }
 
 interface ConversationDraftSessionInput {
-  drafts: Pick<ReturnType<typeof useConversationDraftStore>, "read" | "load" | "save" | "move" | "remove">;
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   prompt: Ref<string>;
@@ -42,7 +41,8 @@ interface ConversationDraftSessionInput {
 }
 
 export function createConversationDraftSession(input: ConversationDraftSessionInput) {
-  const { drafts } = input;
+  const drafts = useConversationDraftStore();
+
   const restoring = shallowRef(false);
   let owner: { spaceId: string; conversationId: string } | undefined;
   let restoreGeneration = 0;

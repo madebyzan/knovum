@@ -86,7 +86,7 @@ async function open(structureNodeId: string) {
     node &&
     operations.allows(node.data.kind === "note" || node.data.kind === "markdown" ? "edit" : "inspect")
   )
-    await openSpaceNode(store, node);
+    await openSpaceNode(node);
 }
 
 async function rename(structureNodeId: string) {

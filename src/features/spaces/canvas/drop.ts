@@ -1,14 +1,12 @@
 import type { FileDrop } from "../../../foundation/file-drop/events";
 import { i18n } from "../../../foundation/i18n/instance";
 import { importSpaceBatch } from "../assets/import-batch";
-import { spaceImportContext, type SpaceImportStore } from "../assets/import-context";
-import type { useSpaceStore } from "../session/space-store";
+import { spaceImportContext } from "../assets/import-context";
+import { useSpaceStore } from "../session/space-store";
 import type { CanvasPoint } from "./contracts/canvas-editor-port";
 
-type SpaceStore = SpaceImportStore &
-  Pick<ReturnType<typeof useSpaceStore>, "focusedEditorId" | "requestReveal">;
-
-export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, origin: CanvasPoint) {
+export async function importDroppedFiles(payload: FileDrop, origin: CanvasPoint) {
+  const store = useSpaceStore();
   if (store.focusedEditorId) return;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
@@ -17,7 +15,7 @@ export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, o
     preparing: i18n.global.t("spaces.importExport.progress.preparing"),
   };
   const outcomes = await importSpaceBatch({
-    context: spaceImportContext(store),
+    context: spaceImportContext(),
     spaceId,
     requests: payload.paths.map((path) => ({ key: path, path, sourceAccess: "scoped" as const })),
     origin,

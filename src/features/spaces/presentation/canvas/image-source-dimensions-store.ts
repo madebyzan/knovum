@@ -8,9 +8,8 @@ import { useSpaceStore } from "../../session/space-store";
 
 export function imageRemovalSize(
   node: SpaceCanvasNode<SpaceImagePayload>,
-  dimensions: ReturnType<typeof useImageSourceDimensionsStore>,
+  loaded: { width: number; height: number } | undefined,
 ) {
-  const loaded = dimensions.forNode(node.id, node.data.sourceRevision);
   const width = node.data.intrinsicWidth ?? loaded?.width;
   const height = node.data.intrinsicHeight ?? loaded?.height;
   if (!width || !height) return undefined;

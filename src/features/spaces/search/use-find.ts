@@ -3,7 +3,6 @@ import { refDebounced } from "@vueuse/core";
 import { take } from "es-toolkit";
 import { computed, ref, watch, type Ref } from "vue";
 
-import { getCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
@@ -19,7 +18,6 @@ export interface StructureTitleMatch {
 export function useFind(open: Ref<boolean>) {
   const store = useSpaceStore();
   const semanticSearch = useSemanticSearch(open);
-  const editorSession = getCanvasEditorSession();
   const dock = useContextDock();
   const query = ref("");
   const debouncedQuery = refDebounced(query, 300);
@@ -71,14 +69,14 @@ export function useFind(open: Ref<boolean>) {
       );
       if (!match) return;
       open.value = false;
-      await revealStructureNode(store, editorSession, match.structureNodeId);
+      await revealStructureNode(match.structureNodeId);
       return;
     }
     if (value.startsWith("match:")) {
       const match = matches.value.find(({ chunkId }) => chunkId === value.slice("match:".length));
       if (!match) return;
       open.value = false;
-      await revealContentNode(store, editorSession, match.nodeId);
+      await revealContentNode(match.nodeId);
       dock.openSource({
         nodeId: match.nodeId,
         nodeTitle: match.nodeTitle,
@@ -92,7 +90,7 @@ export function useFind(open: Ref<boolean>) {
       const node = defaultNodes.value.find(({ id }) => id === value.slice("node:".length));
       if (!node) return;
       open.value = false;
-      await revealContentNode(store, editorSession, node.id);
+      await revealContentNode(node.id);
     }
   }
 

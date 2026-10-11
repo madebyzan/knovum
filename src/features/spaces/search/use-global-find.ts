@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/vue-query";
 import { refDebounced } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
-import { getCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
@@ -11,7 +10,6 @@ import type { GlobalSearchMatch } from "./search-match";
 
 export function useGlobalFind(open: Ref<boolean>) {
   const store = useSpaceStore();
-  const editorSession = getCanvasEditorSession();
   const dock = useContextDock();
   const query = shallowRef("");
   const debouncedQuery = refDebounced(query, 240);
@@ -34,10 +32,10 @@ export function useGlobalFind(open: Ref<boolean>) {
     open.value = false;
     if (store.activeSpaceId !== match.spaceId) await store.openSpace(match.spaceId);
     if (match.kind === "structure") {
-      await revealStructureNode(store, editorSession, match.structureNodeId);
+      await revealStructureNode(match.structureNodeId);
       return;
     }
-    await revealContentNode(store, editorSession, match.nodeId);
+    await revealContentNode(match.nodeId);
     dock.openSource({
       nodeId: match.nodeId,
       nodeTitle: match.nodeTitle,

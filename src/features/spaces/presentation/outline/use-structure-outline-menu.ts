@@ -31,9 +31,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     else editor.selectStructureNodes([structureNodeId]);
     const effectivelyLocked = isStructureNodeEffectivelyLocked(structureNodeId, index);
     const primary = [
-      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () =>
-        revealStructureNode(store, editor, structureNodeId),
-      ),
+      spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => revealStructureNode(structureNodeId)),
       spaceMenuItem(t("common.rename"), () => options.rename(structureNodeId), {
         enabled: !effectivelyLocked,
       }),

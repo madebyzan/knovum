@@ -49,7 +49,7 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
 
   async function insertUrl(url: string, point: { x: number; y: number }) {
     if (!operations.allows("create")) return;
-    void captureSpaceUrl(urlCaptureContext(store), url, point).catch(reportError);
+    void captureSpaceUrl(urlCaptureContext(), url, point).catch(reportError);
   }
 
   function retryCapture(capture: SpaceUrlCaptureProjection) {
@@ -64,7 +64,7 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
     if (!spaceId) throw new Error("A Space must be active to paste canvas content");
     return pasteSpaceClipboard({
       imageName: t("spaces.nodeTypes.image"),
-      pasteNodes: (html) => pasteSpaceClipboardAt(store, point, html),
+      pasteNodes: (html) => pasteSpaceClipboardAt(point, html),
       importFiles: async (paths) => {
         await importBatch(
           paths.map((path, key) => ({ key, path, sourceAccess: "clipboard" as const })),
@@ -117,7 +117,7 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
       preparing: t("spaces.importExport.progress.preparing"),
     };
     const outcomes = await importSpaceBatch({
-      context: spaceImportContext(store),
+      context: spaceImportContext(),
       spaceId,
       requests,
       origin,
@@ -152,7 +152,7 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
             if (!isFileDropInside(dropTarget.value, payload.position)) return;
             const editor = editorSession.activeEditor.value;
             if (!editor) return;
-            await importDroppedFiles(payload, store, editor.screenToCanvasPoint(payload.position)).catch(
+            await importDroppedFiles(payload, editor.screenToCanvasPoint(payload.position)).catch(
               reportError,
             );
           },

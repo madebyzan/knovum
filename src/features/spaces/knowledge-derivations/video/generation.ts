@@ -1,7 +1,7 @@
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
-import { startDerivationAction, type DerivationActionStore } from "../start-action";
+import { startDerivationAction } from "../start-action";
 
 export interface VideoDraft {
   title: string;
@@ -12,14 +12,12 @@ export interface VideoDraft {
 }
 
 interface VideoGenerationInput {
-  store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: VideoDraft;
 }
 
-export function generateVideoFromSources({ store, sources, draft }: VideoGenerationInput) {
+export function generateVideoFromSources({ sources, draft }: VideoGenerationInput) {
   return startDerivationAction({
-    store,
     sources,
     actionId: "generate-video",
     title: i18n.global.t("spaces.creation.video.generation.task"),

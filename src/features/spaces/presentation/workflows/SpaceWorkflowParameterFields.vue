@@ -26,7 +26,7 @@ const emit = defineEmits<{
 const { t, te } = useI18n();
 
 function actionLabel(actionId: string) {
-  return captureActionLabel(actionId, t);
+  return captureActionLabel(actionId);
 }
 
 function parameterLabel(key: string) {

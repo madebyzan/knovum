@@ -6,7 +6,7 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload } from "../model/nodes/node-payload";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
 import { truncateUtf16 } from "../model/text";
-import type { useSpaceStore } from "../session/space-store";
+import { useSpaceStore } from "../session/space-store";
 import { emptyTiptapContent } from "./tiptap-content";
 import type { TiptapJsonNode } from "./tiptap-document";
 
@@ -48,7 +48,6 @@ export function createEditingState(): EditingState {
 }
 
 export interface PersistOptions {
-  store: Pick<ReturnType<typeof useSpaceStore>, "saveNodeContent">;
   nodes: readonly SpaceCanvasNode[];
   state: EditingState;
   editor?: PersistEditor | undefined;
@@ -60,7 +59,9 @@ interface SaveContext {
 }
 
 export function persistSpaceTiptapContent(options: PersistOptions): Promise<void> {
-  const { store, nodes, state, editor } = options;
+  const store = useSpaceStore();
+
+  const { nodes, state, editor } = options;
   const node = state.loadedId ? nodes.find((candidate) => candidate.id === state.loadedId) : undefined;
   if (!node) return Promise.resolve();
   const pending = editor ? pendingSave(node, { state, editor }) : undefined;

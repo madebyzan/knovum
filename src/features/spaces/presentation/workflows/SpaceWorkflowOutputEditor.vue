@@ -17,7 +17,7 @@ function outputFor(stepId: string) {
 }
 
 function label(step: Step) {
-  return captureActionLabel(step.actionId, t);
+  return captureActionLabel(step.actionId);
 }
 
 function choose(step: Step, selected: boolean) {

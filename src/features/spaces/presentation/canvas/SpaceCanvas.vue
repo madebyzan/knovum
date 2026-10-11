@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
 
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasSceneInput } from "../../canvas/contracts/canvas-surface";
@@ -35,10 +34,9 @@ const editorSession = getCanvasEditorSession();
 const operations = useNodeOperationGate();
 const canvasGesturesEnabled = computed(() => operations.allowsGestureCommit());
 const dock = useContextDock();
-const { t } = useI18n();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
-const selection = createCanvasSelectionActions(store);
-const persistNodeContent = createCanvasNodeContentPersistence(store);
+const selection = createCanvasSelectionActions();
+const persistNodeContent = createCanvasNodeContentPersistence();
 const { visibleNodes, visibleRelations } = useVisibleCanvasContent({
   nodes: () => store.nodes,
   relations: () => store.relations,
@@ -92,7 +90,7 @@ async function activateNode(nodeId: string) {
   if (!operations.allows(node.data.kind === "note" || node.data.kind === "markdown" ? "edit" : "inspect"))
     return;
   editorSession.selectNodes([nodeId]);
-  if (isSpaceNodeOpenable(node)) await openSpaceNode(store, node);
+  if (isSpaceNodeOpenable(node)) await openSpaceNode(node);
   else dock.openInspect();
 }
 
@@ -105,9 +103,6 @@ const canvasEvents = createSpaceCanvasEvents({
   operations,
   reportError: lifecycle.reportError,
   selection,
-  store,
-  tools,
-  untitledSection: t("spaces.canvas.sections.untitled"),
 });
 </script>
 

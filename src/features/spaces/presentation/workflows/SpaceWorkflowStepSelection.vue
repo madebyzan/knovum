@@ -25,7 +25,7 @@ const dependentStepIds = computed(() => {
 });
 
 function label(step: Step) {
-  return captureActionLabel(step.actionId, t);
+  return captureActionLabel(step.actionId);
 }
 
 function choose(stepId: string, selected: boolean) {

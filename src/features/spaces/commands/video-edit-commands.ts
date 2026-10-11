@@ -1,5 +1,6 @@
 import { shallowRef } from "vue";
 
+import { i18n } from "../../../foundation/i18n/instance";
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 
@@ -26,7 +27,9 @@ export function registerVideoEditCommands(port: VideoEditCommandPort) {
   };
 }
 
-export function videoEditCommands(t: (key: string) => string): AppCommand[] {
+export function videoEditCommands(): AppCommand[] {
+  const t = i18n.global.t;
+
   return [
     {
       id: "video-edit.undo",

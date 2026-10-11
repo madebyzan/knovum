@@ -19,7 +19,6 @@ export function useSceneNavigation() {
     { immediate: false },
   );
   const context: SceneNavigationContext = {
-    store,
     scenes,
     activeSpace,
     viewport: editorSession.viewport,
