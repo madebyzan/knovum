@@ -10,7 +10,7 @@ export const useCanvasToolStore = defineStore("spaces-canvas-tools", () => {
 
   async function selectTool(next: CanvasTool) {
     const current = ++request;
-    await flushSpaceSessionContent();
+    await flushSpaceSessionContent({ purpose: "switch", spaceIds: [] });
     if (current === request) tool.value = next;
   }
 

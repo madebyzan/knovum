@@ -7,9 +7,9 @@ import { locateTimelineTime, projectDurationMs, type VideoEditProject } from "..
 export function useVideoProjectPlayback(
   video: Ref<HTMLVideoElement | null>,
   project: Ref<VideoEditProject | undefined>,
+  timelineMs = shallowRef(0),
 ) {
   const { t } = useI18n();
-  const timelineMs = shallowRef(0);
   const playing = shallowRef(false);
   const audioError = shallowRef<string>();
   const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
@@ -87,6 +87,7 @@ export function useVideoProjectPlayback(
   watch(video, (element, previous) => {
     awaitingSeek = false;
     if (previous && frameRequest !== undefined) previous.cancelVideoFrameCallback(frameRequest);
+    previous?.pause();
     previous?.removeEventListener("seeked", onSeeked);
     previous?.removeEventListener("ended", onEnded);
     disconnectAudio();

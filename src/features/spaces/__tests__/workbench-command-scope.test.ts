@@ -85,6 +85,8 @@ it("routes commands and contextual panes to the active work surface", async () =
   expect(commands.value.map(({ id }) => id)).not.toContain("document.undo");
   expect(store.workbench.rightSidebar).toBe(false);
   await store.openSpace("inbox");
+  expect(store.surface.kind).toBe("video");
+  await store.returnToCanvas();
   expect(store.surface.kind).toBe("canvas");
   expect(store.workbench.outline).toBe(true);
 });

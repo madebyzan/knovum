@@ -63,6 +63,7 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
         "video" => {
             resource::validate_visual_asset(object)?;
             resource::validate_media_metadata(object)?;
+            validate_video_project(object)?;
             super::visual::validate(object.get("visualKnowledge"))?;
             super::media::validate(
                 object.get("mediaKnowledge"),
@@ -83,6 +84,16 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
         "object" | "portal" => Ok(()),
         _ => Err("Unsupported Space node kind".into()),
     }
+}
+
+fn validate_video_project(object: &serde_json::Map<String, Value>) -> Result<(), String> {
+    let Some(value) = object.get("videoEditProject") else {
+        return Ok(());
+    };
+    let project = serde_json::from_value(value.clone())
+        .map_err(|error| format!("Invalid video edit project: {error}"))?;
+    let source_revision = required_string(object, "sourceRevision", 128)?;
+    crate::spaces::derivation::video_edit::validate_project(&project, &source_revision)
 }
 
 #[cfg(test)]

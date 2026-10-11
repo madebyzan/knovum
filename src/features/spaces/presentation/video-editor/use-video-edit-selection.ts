@@ -2,10 +2,11 @@ import { shallowRef, watch, type Ref } from "vue";
 
 import { removeClip, type VideoEditProject } from "../../video-editing/project";
 
-export function useVideoEditSelection(project: Ref<VideoEditProject | undefined>) {
-  const selectedClipId = shallowRef<string>();
-  const selectedTextId = shallowRef<string>();
-
+export function useVideoEditSelection(
+  project: Ref<VideoEditProject | undefined>,
+  selectedClipId = shallowRef<string>(),
+  selectedTextId = shallowRef<string>(),
+) {
   function selectClip(clipId: string) {
     selectedClipId.value = clipId;
     selectedTextId.value = undefined;

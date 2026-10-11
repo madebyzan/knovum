@@ -6,7 +6,6 @@ import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
-import type { SpaceSurface } from "../workspace/space-surface";
 
 export interface RevealRequest {
   ids: string[];
@@ -52,7 +51,6 @@ export function createSpaceUiState() {
     rightSidebarView: ref<RightSidebarView>("ask"),
     workflowMode: shallowRef<"capture" | "use">(),
     workflowCaptureSelection: ref<string[]>([]),
-    surface: shallowRef<SpaceSurface>({ kind: "canvas" }),
     insertionPoint: ref({ x: 96, y: 84 }),
     revealRequest: ref<RevealRequest>(),
     viewportRequest: ref<ViewportRequest>(),

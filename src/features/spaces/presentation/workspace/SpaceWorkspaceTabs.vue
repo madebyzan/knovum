@@ -48,7 +48,8 @@ watchEffect(() => {
   void locale.value;
   void syncWorkspaceMenuState({
     workspaceActive: route.name === "spaces",
-    canClose: openSpaceIds.value.length > 1,
+    canClose:
+      openSpaceIds.value.length > 1 || surface.value.kind === "document" || surface.value.kind === "video",
     canReopen: closedSpaceIds.value.length > 0,
   }).catch((error) =>
     logError(`Failed to synchronize workspace menu state: ${formatErrorDiagnostic(error)}`),

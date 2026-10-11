@@ -15,6 +15,10 @@ pub(super) fn validate_canvas_text(object: &Map<String, Value>) -> Result<(), St
         .get("tiptapContent")
         .filter(|value| value.is_object())
         .ok_or_else(|| "Canvas text tiptapContent must be an object".to_string())?;
+    validate_document(root)
+}
+
+pub(super) fn validate_document(root: &Value) -> Result<(), String> {
     if root.get("type").and_then(Value::as_str) != Some("doc") {
         return Err("Tiptap root must be doc".into());
     }

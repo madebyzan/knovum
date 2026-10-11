@@ -23,11 +23,13 @@ const videoEditProgressSchema: z.ZodType<VideoEditProgress> = z
   .object({ stage: z.string().min(1), progress: z.number().int().min(0).max(100) })
   .strict();
 
-export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>, project: VideoEditProject) {
+export async function renderVideoEdit(
+  spaceId: string,
+  source: SpaceCanvasNode<SpaceVideoPayload>,
+  project: VideoEditProject,
+) {
   const store = useSpaceStore();
   const tasks = useTaskStore();
-  const spaceId = store.activeSpaceId;
-  const sourceSurface = store.surface;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
   const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_edit_output_path");
@@ -80,7 +82,18 @@ export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>
     store.applyNodeContentForSpace(spaceId, completed.nodeId, videoPayload);
     tasks.succeed(taskId);
     await refreshOriginSpace();
-    revealRenderedVideo(completed.nodeId);
+    toast.success(i18n.global.t("spaces.editor.tabs.rendered"), {
+      action: {
+        label: i18n.global.t("spaces.editor.tabs.viewResult"),
+        onClick: () => {
+          void store
+            .openSpace(spaceId)
+            .then(() => store.returnToCanvas())
+            .then(() => store.requestReveal([completed.nodeId], "ensure-visible"))
+            .catch((error: unknown) => toast.error(getErrorMessage(error)));
+        },
+      },
+    });
   } catch (error) {
     if (decodeAppError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
     else {
@@ -88,19 +101,6 @@ export async function renderVideoEdit(source: SpaceCanvasNode<SpaceVideoPayload>
       toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     }
     await refreshOriginSpace();
-  }
-
-  function revealRenderedVideo(outputNodeId: string) {
-    const surface = store.surface;
-    if (
-      store.activeSpaceId !== spaceId ||
-      surface !== sourceSurface ||
-      surface.kind !== "video" ||
-      surface.nodeId !== source.id
-    )
-      return;
-    store.closeVideoEditor();
-    store.requestReveal([outputNodeId], "ensure-visible");
   }
 
   async function refreshOriginSpace() {

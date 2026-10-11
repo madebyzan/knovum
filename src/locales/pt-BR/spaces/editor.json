@@ -16,5 +16,17 @@
     "message": "Preparando editor…",
     "hint": "Documentos grandes podem demorar um pouco para serem abertos."
   },
-  "placeholder": "Comece a escrever…"
+  "placeholder": "Comece a escrever…",
+  "tabs": {
+    "label": "Conteúdos abertos",
+    "canvas": "Tela",
+    "close": "Fechar {title}",
+    "missing": "Este recurso não está mais disponível. O rascunho foi preservado. Descarte-o explicitamente para fechar.",
+    "conflict": "Este recurso foi alterado fora do editor. O rascunho foi preservado e não pode substituir o conteúdo mais recente.",
+    "discardClose": "Descartar rascunho e fechar",
+    "rendered": "O vídeo editado está pronto",
+    "viewResult": "Ver resultado",
+    "next": "Próxima aba de trabalho",
+    "previous": "Aba de trabalho anterior"
+  }
 }

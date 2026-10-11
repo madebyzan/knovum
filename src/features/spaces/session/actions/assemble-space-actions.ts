@@ -25,7 +25,7 @@ import {
 } from "../../workspace/space-session-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import { renameSpace } from "../../workspace/space-title-actions";
-import { commitActiveSpaceSession } from "../../workspace/space-transition";
+import { commitActiveSpaceSession, transitionActiveSpaceSession } from "../../workspace/space-transition";
 import type { SpaceState } from "../session-state";
 import type { createSpaceMutations } from "./node-mutations";
 import type { createPlacementActions } from "./placement-actions";
@@ -102,6 +102,7 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
   return {
     initialize,
     commitActiveSession: () => commitActiveSpaceSession(spaceContext),
+    commitWorkspaceNavigation: () => transitionActiveSpaceSession(spaceContext, async () => {}),
     createSpace: (title: string) => createSpace(spaceContext, title),
     showSpaceLibrary: (scope: Parameters<typeof showSpaceLibrary>[2]) =>
       showSpaceLibrary(state, spaceContext, scope),

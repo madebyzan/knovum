@@ -39,8 +39,14 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
   }
 
   async function saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput) {
-    await persistNodeContent(spaceId, change);
-    afterSaved(spaceId, change.id);
+    const releaseMutation = beginSpaceMutation(context.history);
+    try {
+      const committed = await persistNodeContent(spaceId, change);
+      afterSaved(spaceId, change.id);
+      return committed;
+    } finally {
+      releaseMutation();
+    }
   }
 
   async function savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput) {
@@ -57,6 +63,7 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
       committed.editSnapshot.editRevision > context.editSnapshot.value.editRevision
     )
       context.editSnapshot.value = committed.editSnapshot;
+    return committed.data;
   }
 
   function applyNodeContentForSpace(spaceId: string, nodeId: string, payload: SpaceNodePayload) {

@@ -1,15 +1,15 @@
 import { difference, without } from "es-toolkit";
-import { nextTick } from "vue";
 
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { loadSpaceSessionProjection } from "../session/space-projection";
 import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
+import { prepareSpaceEditorClose } from "./editor-tab-lifecycle";
 import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
 import { switchSpaceHistory } from "./session-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
 import { listSpaces } from "./space-operations";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
-import { transitionActiveSpaceSession, transitionSpaceSurface } from "./space-transition";
+import { transitionActiveSpaceSession } from "./space-transition";
 
 export async function initializeSpaces(context: SpaceSessionContext, inboxTitle: string) {
   if (context.ready.value) return;
@@ -32,7 +32,7 @@ async function activateSpace(context: SpaceSessionContext, spaceId: string, reco
   if (context.runtime.pendingSpaceId === spaceId) return false;
   if (context.activeSpaceId.value === spaceId) {
     cancelPendingSpaceOpen(context);
-    if (context.surface.value.kind !== "canvas") await transitionSpaceSurface(context, { kind: "canvas" });
+    context.workspaceDestination.value = "workbench";
     return true;
   }
   if (context.draftSpace.value?.id === spaceId)
@@ -51,10 +51,12 @@ async function activateSpace(context: SpaceSessionContext, spaceId: string, reco
 export async function closeSpaceTab(context: SpaceSessionContext, spaceId: string) {
   const index = context.openSpaceIds.value.indexOf(spaceId);
   if (index < 0 || context.openSpaceIds.value.length === 1) return;
+  const finishClose = await prepareSpaceEditorClose(context, [spaceId]);
   if (context.activeSpaceId.value === spaceId) {
     const nextId = context.openSpaceIds.value[index + 1] ?? context.openSpaceIds.value[index - 1];
     if (nextId && !(await activateSpace(context, nextId, false))) return;
   }
+  await finishClose();
   context.openSpaceIds.value.splice(index, 1);
   if (context.draftSpace.value?.id === spaceId) context.draftSpace.value = undefined;
   else context.closedSpaceIds.value = [spaceId, ...without(context.closedSpaceIds.value, spaceId)];
@@ -64,7 +66,9 @@ export async function closeSpaceTab(context: SpaceSessionContext, spaceId: strin
 export async function closeOtherSpaceTabs(context: SpaceSessionContext, spaceId: string) {
   if (!context.openSpaceIds.value.includes(spaceId)) return;
   const closed = without(context.openSpaceIds.value, spaceId);
+  const finishClose = await prepareSpaceEditorClose(context, closed);
   if (!(await activateSpace(context, spaceId, false))) return;
+  await finishClose();
   context.openSpaceIds.value = [spaceId];
   retireClosedSpaceTabs(context, closed);
 }
@@ -73,8 +77,10 @@ export async function closeSpaceTabsToRight(context: SpaceSessionContext, spaceI
   const index = context.openSpaceIds.value.indexOf(spaceId);
   if (index < 0) return;
   const closed = context.openSpaceIds.value.slice(index + 1);
+  const finishClose = await prepareSpaceEditorClose(context, closed);
   if (closed.includes(context.activeSpaceId.value ?? "") && !(await activateSpace(context, spaceId, false)))
     return;
+  await finishClose();
   context.openSpaceIds.value = context.openSpaceIds.value.slice(0, index + 1);
   retireClosedSpaceTabs(context, closed);
 }
@@ -135,10 +141,9 @@ async function loadSpace(context: SpaceSessionContext, spaceId: string, options:
       if (generation !== context.runtime.openGeneration) return false;
       if (options.markOpened) await markSpaceOpenedAndTrack(context, spaceId);
       if (generation !== context.runtime.openGeneration) return false;
-      if (options.resetHistory) switchSpaceHistory(context, spaceId);
       if (options.resetHistory) {
-        context.surface.value = { kind: "canvas" };
-        await nextTick();
+        switchSpaceHistory(context, spaceId);
+        context.workspaceDestination.value = "workbench";
       }
       context.activeSpaceId.value = spaceId;
       context.nodes.value = nodes;

@@ -16,5 +16,17 @@
     "message": "正在准备编辑器…",
     "hint": "大型文档需要一些时间才能打开。"
   },
-  "placeholder": "开始写作…"
+  "placeholder": "开始写作…",
+  "tabs": {
+    "label": "已打开的工作内容",
+    "canvas": "画布",
+    "close": "关闭 {title}",
+    "missing": "此资源已不可用。草稿已保留，请明确放弃草稿后关闭。",
+    "conflict": "资源已在编辑器外发生变化。草稿已保留，不能覆盖较新的内容。",
+    "discardClose": "放弃草稿并关闭",
+    "rendered": "剪辑视频已完成",
+    "viewResult": "查看结果",
+    "next": "下一个工作标签",
+    "previous": "上一个工作标签"
+  }
 }

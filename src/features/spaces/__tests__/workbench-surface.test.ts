@@ -8,14 +8,20 @@ import { createSpaceState } from "../session/session-state";
 import { createEditorSurfaceActions } from "../workspace/editor-surface-actions";
 import { showSpaceLibrary } from "../workspace/library-actions";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
-import { createTestSessionContext, createTestSpace } from "./support/session-context";
+import { activateTestEditor, createTestSessionContext, createTestSpace } from "./support/session-context";
 
 function setup() {
   const state = createSpaceState();
   state.spaces.value = [createTestSpace({ thumbnailPath: "/cover.jpg" })];
   state.thumbnailDirty.value = false;
   state.activeSpaceId.value = "inbox";
-  const context = createTestSessionContext({ surface: state.surface, nodes: state.nodes });
+  const context = createTestSessionContext({
+    surface: state.surface,
+    nodes: state.nodes,
+    editorTabs: state.editorTabs,
+    activeWorkItems: state.activeWorkItems,
+    workspaceDestination: state.workspaceDestination,
+  });
   return { state, context };
 }
 
@@ -50,7 +56,7 @@ it("preserves the current surface when an editor cancels library navigation", as
 
 it("keeps a video editor and its library filter after a failed save", async () => {
   const { state, context } = setup();
-  state.surface.value = { kind: "video", nodeId: "video-1" };
+  activateTestEditor(context, "video", "video-1");
   state.libraryScope.value = "favorites";
   onTestFinished(
     registerSpaceSessionParticipant({
@@ -66,7 +72,7 @@ it("keeps a video editor and its library filter after a failed save", async () =
 
 it.each(["retained", "removed"])("saves before replacing a document whose target is %s", async (target) => {
   const { state, context } = setup();
-  state.surface.value = { kind: "document", nodeId: "first" };
+  activateTestEditor(context, "document", "first");
   state.nodes.value = ["first", "second"].map((id) =>
     createSpaceNode(createSpaceNotePayload(id), { x: 0, y: 0 }, id),
   );

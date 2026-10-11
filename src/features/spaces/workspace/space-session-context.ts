@@ -6,9 +6,11 @@ import type { SpaceRelation } from "../model/relations/relation";
 import type { Space } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
-import type { SpaceSurface } from "./space-surface";
+import type { createEditorSessions } from "./editor-sessions";
+import type { SpaceWorkItemState } from "./work-items";
 
-export interface SpaceSessionContext {
+export interface SpaceSessionContext extends SpaceWorkItemState {
+  editors: ReturnType<typeof createEditorSessions>;
   captureOverview(): void;
   spaces: Ref<Space[]>;
   draftSpace: Ref<Space | undefined>;
@@ -20,7 +22,6 @@ export interface SpaceSessionContext {
   relations: Ref<SpaceRelation[]>;
   ready: Ref<boolean>;
   loading: Ref<boolean>;
-  surface: Ref<SpaceSurface>;
   history: SpaceHistoryState;
   runtime: {
     openGeneration: number;

@@ -1,8 +1,7 @@
 use serde_json::Value;
 use tauri::AppHandle;
-use uuid::Uuid;
 
-use super::{fonts, RenderVideoEditRequest, VideoEditProject};
+use super::{fonts, validate_project, RenderVideoEditRequest, VideoEditProject};
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output},
@@ -78,41 +77,10 @@ pub async fn start(
 }
 
 fn validate_request(request: &RenderVideoEditRequest) -> Result<(), String> {
-    if request.id.is_empty() || request.id.len() > 64 || request.project.version != 1 {
+    if request.id.is_empty() || request.id.len() > 64 {
         return Err("Video edit request is invalid".into());
     }
-    if request.project.source_revision != request.source_revision
-        || !(1..=16_384).contains(&request.project.source_width)
-        || !(1..=16_384).contains(&request.project.source_height)
-        || request.project.source_width > request.project.source_height * 10
-        || request.project.source_height > request.project.source_width * 10
-        || request.project.video_track.clips.is_empty()
-        || request.project.video_track.clips.len() > 500
-        || request.project.text_track.items.len() > 500
-    {
-        return Err("Video edit project does not match the source".into());
-    }
-    if request.project.video_track.clips.iter().any(|clip| {
-        Uuid::parse_str(&clip.id).is_err()
-            || clip.end_ms <= clip.start_ms
-            || !(0.0..=2.0).contains(&clip.volume)
-    }) {
-        return Err("Video edit project contains an invalid clip".into());
-    }
-    if request.project.text_track.items.iter().any(|item| {
-        Uuid::parse_str(&item.id).is_err()
-            || item.end_ms <= item.start_ms
-            || item.text.trim().is_empty()
-            || item.text.len() > 500
-            || !(16..=96).contains(&item.style.size)
-            || item.style.color.len() != 7
-            || !item.style.color.starts_with('#')
-            || !item.style.color[1..]
-                .bytes()
-                .all(|byte| byte.is_ascii_hexdigit())
-    }) {
-        return Err("Video edit project contains invalid timed text".into());
-    }
+    validate_project(&request.project, &request.source_revision)?;
     if let Some(item) = request
         .project
         .text_track
@@ -124,9 +92,6 @@ fn validate_request(request: &RenderVideoEditRequest) -> Result<(), String> {
             "Font {} at weight {} is not installed on this computer",
             item.style.family, item.style.weight
         ));
-    }
-    if !matches!(request.project.transform.rotation, 0 | 90 | 180 | 270) {
-        return Err("Video rotation is invalid".into());
     }
     Ok(())
 }

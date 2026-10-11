@@ -9,6 +9,9 @@ use super::{MAX_PREVIEW_TEXT, MAX_TEXT};
 
 pub(super) fn validate_markdown(object: &Map<String, Value>) -> Result<(), String> {
     required_string_allow_empty(object, "text", MAX_TEXT)?;
+    if let Some(content) = object.get("tiptapContent") {
+        super::tiptap::validate_document(content)?;
+    }
     if let Some(state) =
         super::super::scalars::optional_string(object, "derivationState", 16, false)?
     {

@@ -12,11 +12,12 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 describe("editor leave protection", () => {
   it("rejects the Space leave when a dirty video editor cancels", async () => {
     const discard = vi.fn<() => void>();
-    const close = vi.fn<() => void>();
+    const close = vi.fn<() => Promise<void>>().mockResolvedValue();
     let leave: ReturnType<typeof useVideoEditLeave> | undefined;
     const Harness = defineComponent({
       setup() {
         leave = useVideoEditLeave({
+          tab: { id: "video-tab", kind: "video", spaceId: "space", nodeId: "video" },
           dirty: shallowRef(true),
           saving: shallowRef(false),
           save: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),

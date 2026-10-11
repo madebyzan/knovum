@@ -8,6 +8,7 @@ mod proxy_registry;
 mod registry;
 mod render;
 mod start;
+mod validation;
 
 #[cfg(test)]
 mod tests;
@@ -21,6 +22,7 @@ pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
 };
 use contracts::{TextPlacement, TextPreset};
+pub(in crate::spaces) use validation::validate_project;
 
 pub const CANCELLED: &str = "video-edit-render-cancelled";
 

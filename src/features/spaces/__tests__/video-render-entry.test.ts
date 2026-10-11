@@ -1,107 +1,116 @@
 import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { shallowRef } from "vue";
+import { nextTick, shallowRef } from "vue";
 import { createI18n } from "vue-i18n";
 
 import { createSpaceNode } from "../canvas/node";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import { videoEditCommands } from "../commands/video-edit-commands";
 import { useVideoEditActions } from "../presentation/video-editor/use-video-edit-actions";
-import { useVideoEditHistory } from "../presentation/video-editor/use-video-edit-history";
 import { useVideoEditSelection } from "../presentation/video-editor/use-video-edit-selection";
 import { useVideoProjectPlayback } from "../presentation/video-editor/use-video-project-playback";
-import { createVideoEditProject, type VideoEditProject } from "../video-editing/project";
+import { createVideoEditProject } from "../video-editing/project";
+import { useVideoSessionStore } from "../video-editing/video-session-store";
 import { deferred } from "./support/canvas-fixtures";
 
 const context = vi.hoisted(() => ({
-  store: {
-    activeSpaceId: "origin",
-    surface: { kind: "video", nodeId: "source" },
-    updateNodeContents: vi.fn<() => Promise<void>>(),
-    closeVideoEditor: vi.fn<() => void>(),
-  },
-  save: vi.fn<() => Promise<void>>(),
-  render: vi.fn<(source: SpaceCanvasNode<SpaceVideoPayload>, project: VideoEditProject) => Promise<void>>(),
+  store: { activeSpaceId: "origin", closeEditorTab: vi.fn<() => Promise<void>>() },
+  save: vi.fn<() => Promise<boolean>>(),
+  render: vi.fn<(...args: unknown[]) => Promise<void>>(),
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.store }));
-vi.mock("../video-editing/save", () => ({ saveVideoEditProject: context.save }));
+vi.mock("../video-editing/use-video-project-save", () => ({ useVideoProjectSave: () => context.save }));
 vi.mock("../video-editing/render", () => ({ renderVideoEdit: context.render }));
-vi.mock("vue-sonner", () => ({
-  toast: { success: vi.fn<(message: string) => void>(), error: vi.fn<(message: string) => void>() },
-}));
-
+vi.mock("vue-sonner", () => ({ toast: { success: vi.fn<() => void>(), error: vi.fn<() => void>() } }));
 let wrapper: ReturnType<typeof mount> | undefined;
 beforeEach(() => {
   vi.clearAllMocks();
-  context.store.activeSpaceId = "origin";
-  context.store.surface = { kind: "video", nodeId: "source" };
+  setActivePinia(createPinia());
 });
 afterEach(() => wrapper?.unmount());
 
-it.each(["space", "video", "reopened", "project"])(
-  "retains the render target when %s changes during save",
-  async (change) => {
-    const saving = deferred<void>();
-    context.save.mockReturnValueOnce(saving.promise);
-    const source = createSpaceNode<SpaceVideoPayload>(
-      {
-        kind: "video",
-        title: "Video",
-        fileName: "video.mp4",
-        assetPath: "/video.mp4",
-        sourceRevision: "revision",
-      },
-      { x: 0, y: 0 },
-      "source",
-    );
-    const originalProject = createVideoEditProject({
+function setup() {
+  const source = createSpaceNode(
+    {
+      kind: "video",
+      title: "Video",
+      fileName: "video.mp4",
+      assetPath: "/video.mp4",
       sourceRevision: "revision",
-      durationMs: 2000,
-      sourceWidth: 640,
-      sourceHeight: 480,
-    });
-    const node = shallowRef<SpaceCanvasNode<SpaceVideoPayload>>(source);
-    const project = shallowRef<VideoEditProject | undefined>(originalProject);
-    let actions!: ReturnType<typeof useVideoEditActions>;
-    wrapper = mount(
-      {
-        setup() {
-          const video = shallowRef<HTMLVideoElement | null>(null);
-          actions = useVideoEditActions({
-            node,
-            data: shallowRef(source.data),
-            project,
-            video,
-            history: useVideoEditHistory(project),
-            selection: useVideoEditSelection(project),
-            playback: useVideoProjectPlayback(video, project),
-          });
-          return () => null;
-        },
+    },
+    { x: 0, y: 0 },
+    "source",
+  );
+  const sessions = useVideoSessionStore();
+  sessions.open({ id: "tab", kind: "video", spaceId: "origin", nodeId: source.id }, source);
+  const session = sessions.sessions.get("tab")!;
+  const originalProject = createVideoEditProject({
+    sourceRevision: "revision",
+    durationMs: 2000,
+    sourceWidth: 640,
+    sourceHeight: 480,
+  });
+  session.project.value = originalProject;
+  const active = shallowRef(true);
+  let actions!: ReturnType<typeof useVideoEditActions>;
+  wrapper = mount(
+    {
+      setup() {
+        const video = shallowRef<HTMLVideoElement | null>(null);
+        actions = useVideoEditActions({
+          session,
+          active,
+          node: session.node,
+          project: session.project,
+          video,
+          history: session.history,
+          selection: useVideoEditSelection(session.project),
+          playback: useVideoProjectPlayback(video, session.project, session.timelineMs),
+        });
+        return () => null;
       },
-      {
-        global: {
-          plugins: [
-            createI18n({
-              legacy: false,
-              locale: "en",
-              messages: { en: { spaces: { media: { videoEditor: { project: { saved: "Saved" } } } } } },
-            }),
-          ],
-        },
-      },
-    );
+    },
+    { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en: {} } })] } },
+  );
+  return { source, session, originalProject, actions, active };
+}
+
+it.each(["space", "project"])(
+  "keeps the admitted source snapshot when %s changes during save",
+  async (change) => {
+    const saving = deferred<boolean>();
+    context.save.mockReturnValueOnce(saving.promise);
+    const { source, session, originalProject, actions } = setup();
     const rendering = actions.render();
     await vi.waitFor(() => expect(context.save).toHaveBeenCalledOnce());
     if (change === "space") context.store.activeSpaceId = "other";
-    else if (change === "video") {
-      node.value = { ...source, id: "other" };
-      context.store.surface = { kind: "video", nodeId: "other" };
-    } else if (change === "reopened") context.store.surface = { kind: "video", nodeId: "source" };
-    else project.value = { ...originalProject, sourceRevision: "new-revision" };
-    saving.resolve();
+    else session.project.value = { ...originalProject, sourceRevision: "new-revision" };
+    saving.resolve(true);
     await rendering;
-    expect(context.render.mock.calls).toEqual(change === "project" ? [[source, originalProject]] : []);
+    expect(context.render.mock.calls).toEqual([["origin", source, originalProject]]);
     expect(actions.rendering.value).toBe(false);
   },
 );
+
+it("unregisters hidden video commands and restores the owning history on activation", async () => {
+  const { session, active } = setup();
+  session.timelineMs.value = 1000;
+  active.value = false;
+  await nextTick();
+  videoEditCommands()
+    .find(({ id }) => id === "video-edit.split")!
+    .run();
+  expect(session.project.value!.videoTrack.clips).toHaveLength(1);
+  active.value = true;
+  await nextTick();
+  videoEditCommands()
+    .find(({ id }) => id === "video-edit.split")!
+    .run();
+  expect(session.project.value!.videoTrack.clips).toHaveLength(2);
+  active.value = false;
+  await nextTick();
+  videoEditCommands()
+    .find(({ id }) => id === "video-edit.undo")!
+    .run();
+  expect(session.project.value!.videoTrack.clips).toHaveLength(2);
+});

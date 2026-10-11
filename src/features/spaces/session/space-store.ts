@@ -15,13 +15,6 @@ export const useSpaceStore = defineStore("spaces", () => {
     selectionClearNonce: state.selectionClearNonce,
     sceneCue: state.sceneCue,
   });
-  watch([state.nodes, state.surface], ([nodes, surface]) => {
-    if (
-      (surface.kind === "document" || surface.kind === "video") &&
-      !nodes.some(({ id }) => id === surface.nodeId)
-    )
-      state.surface.value = { kind: "canvas" };
-  });
   watch(
     state.surface,
     () => {

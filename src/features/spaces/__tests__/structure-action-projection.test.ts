@@ -44,6 +44,7 @@ function setup() {
       ],
       relationStyles: [],
     }),
+    prepareContentRemoval: async () => async () => {},
     ensureActiveSpacePersisted: async () => undefined,
   };
   return { context, actions: createStructureActions(context) };

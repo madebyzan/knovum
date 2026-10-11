@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
-import { useTemplateRef, watch } from "vue";
+import { toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -12,17 +12,23 @@ import { registerDocumentEditCommands } from "../../commands/document-edit-comma
 import { useSpaceTiptapEditor } from "../../editor/use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../../editor/use-space-tiptap-image-drop";
 import { useSpaceTiptapWritingTools } from "../../editor/use-space-tiptap-writing-tools";
+import { useSpaceStore } from "../../session/space-store";
+import type { SpaceEditorTab } from "../../workspace/work-items";
 import SpaceDocumentOutline from "./SpaceDocumentOutline.vue";
 import SpaceDocumentSource from "./SpaceDocumentSource.vue";
+import SpaceEditorProblem from "./SpaceEditorProblem.vue";
 import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
 import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
 import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
 
+const props = defineProps<{ tab: SpaceEditorTab; active: boolean }>();
+const store = useSpaceStore();
 const { t } = useI18n();
 const {
   activeHeadingId,
   characterCount,
   close,
+  error,
   editorLabel,
   editorNode,
   editor,
@@ -30,19 +36,20 @@ const {
   persist,
   revealHeading,
   saveStatus,
+  suspended,
   scrollRoot,
   syncActiveHeading,
   title,
   wordCount,
-} = useSpaceTiptapEditor();
+} = useSpaceTiptapEditor(props.tab, toRef(props, "active"));
 const writing = useSpaceTiptapWritingTools(editor);
-const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot);
+const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, toRef(props, "active"));
 const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");
 const outline = useTemplateRef<InstanceType<typeof SpaceDocumentOutline>>("outline");
 watch(
-  editor,
-  (instance, _previous, cleanup) => {
-    if (!instance) return;
+  [editor, () => props.active, error, suspended],
+  ([instance], _previous, cleanup) => {
+    if (!instance || !props.active || error.value || suspended.value) return;
     cleanup(
       registerDocumentEditCommands({
         canUndo: () => instance.can().undo(),
@@ -71,14 +78,14 @@ async function exportMarkdown() {
     await persist();
     if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
       toast.success(t("spaces.importExport.export.completed"));
-  } catch (error) {
-    toast.error(getErrorMessage(error));
+  } catch (caught) {
+    toast.error(getErrorMessage(caught));
   }
 }
 </script>
 
 <template>
-  <section v-if="editorNode" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
+  <section v-show="active" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
     <header
       class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
@@ -101,7 +108,7 @@ async function exportMarkdown() {
               : t("common.saved")
         }}
       </span>
-      <SpaceTiptapSearch ref="search" v-if="editor" :editor="editor" />
+      <SpaceTiptapSearch ref="search" v-if="editor && active" :editor="editor" />
       <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
         <Download class="size-3.5" />
       </UiIconButton>
@@ -110,7 +117,8 @@ async function exportMarkdown() {
         {{ t("spaces.richtext.statistics.characters", { count: characterCount }, characterCount) }}
       </span>
     </header>
-    <div v-if="editor" class="border-b border-stroke-divider bg-surface-chrome/80">
+    <SpaceEditorProblem v-if="error" :error="error" @discard="store.discardUnavailableEditorTab(tab.id)" />
+    <div v-if="editor && !error && !suspended" class="border-b border-stroke-divider bg-surface-chrome/80">
       <SpaceTiptapToolbar :editor="editor" />
     </div>
     <div class="relative flex min-h-0 flex-1">
@@ -124,6 +132,7 @@ async function exportMarkdown() {
         <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
           <input
             v-model="title"
+            :disabled="!!error || suspended"
             class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
             :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
@@ -133,7 +142,11 @@ async function exportMarkdown() {
             "
             @blur="persist"
           />
-          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
+          <SpaceTiptapBubbleMenu
+            v-if="editor && active && !error && !suspended"
+            :editor="editor"
+            :writing="writing"
+          />
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>
@@ -143,7 +156,7 @@ async function exportMarkdown() {
         :active-id="activeHeadingId"
         @select="revealHeading"
       />
-      <SpaceDocumentSource />
+      <SpaceDocumentSource v-if="active" />
     </div>
   </section>
 </template>

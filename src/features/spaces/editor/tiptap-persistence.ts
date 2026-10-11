@@ -1,14 +1,11 @@
-import { ref, type Ref } from "vue";
-
 import { createKeyedSerialQueue } from "../../../foundation/async/keyed-serial-queue";
 import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceMarkdownPayload, SpaceNotePayload } from "../model/nodes/node-payload";
+import type { SpaceMarkdownPayload, SpaceNotePayload, SpaceNodePayload } from "../model/nodes/node-payload";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
 import { truncateUtf16 } from "../model/text";
-import { useSpaceStore } from "../session/space-store";
-import { emptyTiptapContent } from "./tiptap-content";
-import type { TiptapJsonNode } from "./tiptap-document";
+import type { NodePayloadChangeInput } from "../nodes/node-operations";
+import type { EditingState } from "./editing-state";
 
 type MarkdownNode = { id: string; data: SpaceMarkdownPayload };
 type NoteNode = { id: string; data: SpaceNotePayload };
@@ -23,32 +20,10 @@ type PersistEditor = {
 
 const editorWrites = createKeyedSerialQueue<string>();
 
-export interface EditingState {
-  title: Ref<string>;
-  markdown: Ref<string>;
-  tiptapContent: Ref<TiptapJsonNode>;
-  plainText: Ref<string>;
-  revision: Ref<number>;
-  persistedRevision: number;
-  selection: Ref<number>;
-  loadedId: string | undefined;
-}
-
-export function createEditingState(): EditingState {
-  return {
-    title: ref(""),
-    markdown: ref(""),
-    tiptapContent: ref(emptyTiptapContent()),
-    plainText: ref(""),
-    revision: ref(0),
-    persistedRevision: 0,
-    selection: ref(0),
-    loadedId: undefined,
-  };
-}
-
 export interface PersistOptions {
-  nodes: readonly SpaceCanvasNode[];
+  node: SpaceCanvasNode;
+  save(change: NodePayloadChangeInput): Promise<SpaceNodePayload>;
+  onSaved(payload: SpaceNodePayload): void;
   state: EditingState;
   editor?: PersistEditor | undefined;
 }
@@ -58,17 +33,19 @@ interface SaveContext {
   editor: PersistEditor;
 }
 
-export function persistSpaceTiptapContent(options: PersistOptions): Promise<void> {
-  const store = useSpaceStore();
-
-  const { nodes, state, editor } = options;
-  const node = state.loadedId ? nodes.find((candidate) => candidate.id === state.loadedId) : undefined;
-  if (!node) return Promise.resolve();
-  const pending = editor ? pendingSave(node, { state, editor }) : undefined;
-  if (!pending) return Promise.resolve();
+export async function persistSpaceTiptapContent(options: PersistOptions): Promise<void> {
+  const { node, state, editor } = options;
+  if (!editor) throw new Error("Document editor is not ready to save");
+  const pending = pendingSave(node, { state, editor });
+  if (!pending) {
+    options.onSaved(node.data);
+    state.persistedRevision.value = state.revision.value;
+    return;
+  }
   return editorWrites.run(pending.id, async () => {
-    await store.saveNodeContent({ id: pending.id, expectedData: node.data, data: pending.data });
-    state.persistedRevision = Math.max(state.persistedRevision, pending.revision);
+    const committed = await options.save({ id: pending.id, expectedData: node.data, data: pending.data });
+    options.onSaved(committed);
+    state.persistedRevision.value = Math.max(state.persistedRevision.value, pending.revision);
   });
 }
 
@@ -86,13 +63,15 @@ function markdownSave(node: MarkdownNode, context: SaveContext) {
   const text = editor.getMarkdown();
   const title =
     state.title.value.trim() || firstLine(text) || i18n.global.t("spaces.editor.markdown.untitled");
-  if (node.data.title === title && node.data.text === text) return undefined;
-  return { id: node.id, data: { ...node.data, title, text }, revision: state.revision.value };
+  const contentChanged = state.revision.value > state.persistedRevision.value;
+  if (!contentChanged && node.data.title === title && node.data.text === text) return undefined;
+  const tiptapContent = tiptapContentSchema.parse(editor.getJSON());
+  return { id: node.id, data: { ...node.data, title, text, tiptapContent }, revision: state.revision.value };
 }
 
 function noteSave(node: NoteNode, context: SaveContext) {
   const { state, editor } = context;
-  const contentChanged = state.revision.value > state.persistedRevision;
+  const contentChanged = state.revision.value > state.persistedRevision.value;
   const plainText = editor.state.doc.textBetween(0, editor.state.doc.content.size, "\n", "\n");
   const title = state.title.value.trim() || firstLine(plainText) || i18n.global.t("spaces.editor.note.new");
   if (!contentChanged && node.data.title === title && node.data.plainText === plainText) return undefined;

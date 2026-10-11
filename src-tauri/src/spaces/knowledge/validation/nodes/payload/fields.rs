@@ -28,6 +28,7 @@ const MEDIA_ASSET_FIELDS: &[&str] = &[
     "durationSeconds",
 ];
 const VIDEO_ASSET_FIELDS: &[&str] = &[
+    "videoEditProject",
     "assetPath",
     "fileName",
     "previewPath",
@@ -71,7 +72,7 @@ const CODE_ASSET_FIELDS: &[&str] = &[
 pub(super) fn specific_fields_for_kind(kind: &str) -> Result<&'static [&'static str], String> {
     match kind {
         "note" | "text" => Ok(&["tiptapContent", "plainText"]),
-        "markdown" => Ok(&["text", "derivationState"]),
+        "markdown" => Ok(&["text", "tiptapContent", "derivationState"]),
         "website" => Ok(super::website::FIELDS),
         "image" => Ok(IMAGE_ASSET_FIELDS),
         "video" => Ok(VIDEO_ASSET_FIELDS),

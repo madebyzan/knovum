@@ -89,8 +89,8 @@ connection instances retain their own entity-specific confirmations and conflict
 `spaces.media.imageComments` owns annotations, and `spaces.speech.preview` owns audition controls
 shared by voices and projects. Neutral actions and search empty states belong to `common`.
 Workspace command composables receive explicit shell presentation operations during shell setup;
-they do not resolve descendant providers from the application root. The application router commits
-the resident workspace before leaving its destination; the resident view owns window-close commits.
+they do not resolve descendant providers from the application root. The application router prepares navigation
+without closing retained editors; the resident view owns all-session window-close commits.
 
 Directories express stable ownership, not temporary implementation stages. Start a capability flat
 and split it only when distinct responsibilities exist. Once split, move its implementation under
@@ -134,17 +134,23 @@ Space. The Spaces Browser is application navigation rather than a second domain 
 database tables, commands, types, and UI use `spaces` for the bounded context and `space` for one
 aggregate; aliases and dual command registrations are forbidden.
 
-Renderer `workspace/session-participants.ts` owns registration and the ordered content, layout and
-persistence leave barrier. Editor owners prepare saves or decisions and defer draft cleanup until
-that barrier accepts all participants. `canvas/editor-session.ts` owns canvas editor state and
-suspension, consuming a readonly participant snapshot rather than hosting workspace policy.
+Renderer `workspace/work-items.ts` owns typed document/video tab identities and per-Space activation.
+The destination and selected work item derive the readonly `workspace/space-surface.ts` projection.
+`workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
+editor registry. Document drafts belong to `editor/document-session-store.ts`; video project/history
+state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
+instances alive and mounts heavy video media only while active.
 
-`workspace/space-surface.ts` defines one mutually exclusive canvas, document, video or library
-surface. The session store exposes it readonly; workspace actions change it only after the existing
-leave barrier accepts the active editors. Target ownership is validated before and after that barrier.
-Canvas activity, its Outline and its contextual right sidebar are derived from this surface, rather
-than independent editor IDs or visibility flags. Editor command ports own their histories and local
-navigation. Shell consumes the feature's capabilities and retains user layout preferences.
+`workspace/session-participants.ts` owns scoped, ordered content/layout/persistence preparation.
+Navigation commits documents and non-tab editors without closing retained video sessions; close
+preparation targets one tab, one or more Spaces, or all editor owners. Draft discards and resource
+release occur only after the whole preparation succeeds. `canvas/editor-session.ts` owns canvas
+interaction suspension and reads participants without deciding their close policy.
+
+Canvas activity, Outline and the contextual right sidebar derive from the current work surface.
+Editor command ports register only for active views; the shell consumes capability availability and
+retains layout preferences. Editor writes and long jobs capture their Space/node identity before
+awaiting; UI visibility never chooses a persistence target or controls task completion publication.
 
 The Rust boundary is divided by business responsibility:
 

@@ -44,7 +44,7 @@ export const router = createRouter({
 router.beforeEach(async (to, from) => {
   if (from.name !== "spaces" || to.name === "spaces") return true;
   try {
-    await useSpaceStore().commitActiveSession();
+    await useSpaceStore().commitWorkspaceNavigation();
     return true;
   } catch (error) {
     if (!isApplicationLeaveCancelled(error)) {
