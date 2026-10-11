@@ -72,6 +72,10 @@ CI 保留三平台编译、依赖审计和签名拒绝门禁；QA 和正式包�
 
 实际验证：123项 Node 回归、Oxc、Knip 和 actionlint 通过；正式构建路由、帮助不触发准备、构建失败传播、不可信来源及篡改/跨目标描述文件在解压前拒绝、NSIS/MSI 签名失败在解压前拒绝均有回归。本机新 FFmpeg 配方完成真实供应下载、静态依赖检查、ad-hoc 签名和中文/空格路径的媒体功能 smoke。未执行桌面打包、三平台发布 CI、正式签名或匿名线上更新验证；本机没有 GitHub CLI，本轮来源验证测试使用受控传输替身，真实 GitHub attestation 接受仍需配置后的 CI 证明。旧 runtime publication 的描述文件/证据缺少新 attestation 要求时必须重新生产，禁止回退读取旧目录协议。本轮不新增产品依赖、不改动原生模型供应配方和业务源码。日志在 `.runtime-development/qualification/tooling-removal/third-*.log`。
 
+最后收敛为重复实现清理：删除 Agent 专用 `signing.py` 和 `binaries.py`，二进制识别、签名与安装清单统一复用现有 Node 实现。`scripts` 跟踪文件从104个减为102个，非测试工具代码从57个减为55个。自动 uv/micromamba 准备、原生供应构建方式以及开发/打包入口保持原有契约，没有增加人工配置步骤。
+
+本轮125项 Node 回归、30项工具/契约 Python 测试、44项 Agent 测试、Ruff、Mypy、脚本 Oxc、Knip、格式检查和 actionlint 通过。真实 macOS x64 Agent 准备及随后缓存复用均退出0；250个编译文件完成 ad-hoc 签名，中文路径的 Deep Agent/各 provider 导入、20526项文件清单及当前配方校验通过。未执行应用打包或正式签名。本轮日志位于 `.runtime-development/qualification/tooling-removal/fourth-*.log`。
+
 ## 发布门禁与限制
 
 - 本机不能提供 Windows x64/macOS arm64 实机、GPU 路径及对应安装包的通过证据。CI 已按原生目标接入构建和校验，未执行的 job 不计通过。

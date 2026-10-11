@@ -62,10 +62,10 @@
     "common": [
       "__init__.py",
       "artifacts.py",
-      "binaries.py",
+      "compiled-signing.mjs",
       "commands.py",
       "host.py",
-      "signing.py",
+      "windows-runtime-signature.mjs",
       "producer.mjs",
       "toolchain.mjs",
       "transfer.mjs"
