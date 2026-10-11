@@ -1,0 +1,99 @@
+{
+  "edit": "Video bearbeiten",
+  "title": "Video-Editor",
+  "loading": "Video-Editor wird geladen…",
+  "preview": {
+    "optimizing": "Vorschau im Hintergrund optimieren…",
+    "retry": "Vorschauvorbereitung erneut versuchen",
+    "sourceUnavailable": "Die Videoquelle ist nicht verfügbar. Importieren Sie das Video erneut, um es zu bearbeiten.",
+    "proxyFailed": "Es konnte keine responsive Vorschau vorbereitet werden",
+    "durationUnavailable": "Die Dauer des Videos konnte nicht gelesen werden",
+    "metadataUnavailable": "Die Bildabmessungen des Videos konnten nicht gelesen werden",
+    "unavailable": "Die Videovorschau konnte nicht geöffnet werden",
+    "audioUnavailable": "Die Audiovorschau konnte nicht vorbereitet werden"
+  },
+  "tracks": {
+    "video": "Video",
+    "audio": "Audio",
+    "text": "Text"
+  },
+  "timeline": {
+    "thumbnailFailed": "Es konnten keine Timeline-Miniaturansichten generiert werden",
+    "zoomOut": "Zeitleiste verkleinern",
+    "zoomIn": "Zoom in der Zeitleiste",
+    "fit": "Gesamtes Video anpassen",
+    "seek": "Zeitleiste suchen"
+  },
+  "text": {
+    "tools": "Texttools",
+    "invalidColor": "Geben Sie eine sechsstellige Hexadezimalfarbe ein, z. B. #FFFFFF.",
+    "presets": {
+      "title": "Voreinstellungen",
+      "plain": "Schmucklos",
+      "outline": "Gliederung",
+      "shadow": "Schatten",
+      "badge": "Abzeichen"
+    },
+    "placement": "Position",
+    "add": "Text hinzufügen",
+    "content": "Text"
+  },
+  "tabs": {
+    "captions": "Untertitel",
+    "text": "Text"
+  },
+  "closeInspector": "Bearbeitungsfeld schließen",
+  "captions": {
+    "search": "Suchuntertitel",
+    "none": "Noch keine Untertitel. Fügen Sie oben eines hinzu.",
+    "noMatches": "Keine passenden Untertitel."
+  },
+  "font": {
+    "family": "Schriftart",
+    "searchEmpty": "Keine passenden Schriftarten.",
+    "weight": "Schriftstärke",
+    "unavailable": "Die Schriftart {family} ist auf diesem Computer nicht installiert. Wählen Sie eine andere Schriftart.",
+    "catalogEmpty": "Es sind keine installierten Schriftarten verfügbar.",
+    "size": "Größe (720p)",
+    "color": "Textfarbe"
+  },
+  "videoSettings": "Videoeinstellungen",
+  "clip": {
+    "selected": "Ausgewählter Clip",
+    "volume": "Lautstärke",
+    "rotate": "Drehen",
+    "split": "Teilen",
+    "inPoint": "Einstieg (Sekunden)",
+    "outPoint": "Ausstieg (Sekunden)",
+    "startsAt": "Startet (Sekunden)",
+    "endsAt": "Endet (Sekunden)"
+  },
+  "top": "Spitze",
+  "center": "Center",
+  "bottom": "Unten",
+  "project": {
+    "saved": "Videobearbeitungsprojekt gespeichert"
+  },
+  "render": {
+    "action": "Video rendern",
+    "task": "Video rendern",
+    "failed": "Video-Rendering fehlgeschlagen"
+  },
+  "preparingVideoEdit": "Bearbeitung wird vorbereitet",
+  "renderingVideoEdit": "Video rendern",
+  "savingResource": "Ressourcen sparen",
+  "previousStep": "Machen Sie einen Schritt zurück um 0,1 Sekunde",
+  "nextStep": "Machen Sie einen Schritt vorwärts um 0,1 Sekunde",
+  "trim": {
+    "start": "Clipanfang zuschneiden",
+    "end": "Clip-Ende trimmen",
+    "textStart": "Textanfang kürzen",
+    "textEnd": "Textende zuschneiden",
+    "hint": "Ziehen Sie zum Zuschneiden eine Clipkante. Halten Sie Option oder Alt gedrückt, um eine präzise Anpassung vorzunehmen."
+  },
+  "unsaved": {
+    "title": "Änderungen an diesem Video speichern?",
+    "status": "Nicht gespeicherte Änderungen",
+    "description": "Ihre Änderungen gehen verloren, wenn Sie schließen, ohne zu speichern."
+  }
+}

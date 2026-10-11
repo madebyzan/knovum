@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "KI-Schreiben",
+    "selectText": "Wählen Sie zunächst den Textinhalt aus.",
+    "failed": "KI-Generierung fehlgeschlagen",
+    "applyFailed": "Das AI-Ergebnis konnte nicht angewendet werden",
+    "actions": {
+      "adjustTone": "Ton anpassen",
+      "fixGrammar": "Korrigieren Sie Grammatik und Rechtschreibung",
+      "extend": "Text erweitern",
+      "reduce": "Zusammenfassen und verdichten",
+      "simplify": "Formulierung vereinfachen",
+      "emojify": "Emoji hinzufügen",
+      "improve": "Polieren und verbessern",
+      "complete": "AutoVervollständigen",
+      "summarize": "Zusammenfassen",
+      "translate": "Übersetzen"
+    },
+    "tones": {
+      "academic": "Akademisch",
+      "business": "Professionell",
+      "casual": "Locker",
+      "confident": "Selbstbewusst",
+      "creative": "Kreativ",
+      "friendly": "Freundlich",
+      "humorous": "Humorvoll",
+      "informative": "Klar und informativ",
+      "inspirational": "Inspirierend",
+      "objective": "Ziel",
+      "persuasive": "Überzeugend"
+    },
+    "needContext": "Platzieren Sie den Cursor hinter vorhandenem Text oder wählen Sie Text als Kontext aus."
+  },
+  "find": {
+    "title": "Text suchen",
+    "placeholder": "Im Dokument suchen…",
+    "previous": "Vorherige Übereinstimmung",
+    "next": "Nächstes Spiel",
+    "toggleReplace": "Ersetzen anzeigen",
+    "replace": "Ersetzen",
+    "replaceAll": "Alle ersetzen",
+    "replacePlaceholder": "Ersetzen durch…"
+  },
+  "paragraph": "Absatz",
+  "heading1": "Überschrift 1",
+  "heading2": "Überschrift 2",
+  "heading3": "Überschrift 3",
+  "heading4": "Überschrift 4",
+  "heading5": "Überschrift 5",
+  "heading6": "Überschrift 6",
+  "headings": {
+    "menu": "Typografie"
+  },
+  "bold": "Fett",
+  "italic": "Kursiv",
+  "underline": "Unterstrichen",
+  "strike": "Durchgestrichen",
+  "inlineCode": "Inline-Code",
+  "horizontalRule": "Teiler",
+  "highlight": "Hervorheben",
+  "superscript": "Hochgestellt",
+  "subscript": "Index",
+  "align": {
+    "left": "Links ausrichten",
+    "center": "Mitte ausrichten",
+    "right": "Rechts ausrichten",
+    "justify": "Rechtfertigen"
+  },
+  "highlightColor": {
+    "yellow": "Gelb",
+    "green": "Grün",
+    "blue": "Blau",
+    "pink": "Rosa",
+    "clear": "Hervorhebung löschen"
+  },
+  "image": {
+    "insert": "Bild einfügen",
+    "tabUpload": "Lokale Datei",
+    "tabUrl": "URL",
+    "url": "Bild-URL",
+    "alt": "Bildbeschreibung",
+    "choose": "Bild auswählen",
+    "uploadFailed": "Einfügen des Bildes fehlgeschlagen",
+    "dropDocumentHint": "Wählen Sie eine Datei aus oder ziehen Sie ein Bild in den Dokumenteditor.",
+    "altPlaceholder": "Beschreiben Sie das Bild für Screenreader",
+    "dropNow": "Lassen Sie es fallen, um ein Bild einzufügen",
+    "urlInvalid": "Bitte geben Sie eine gültige http://- oder https://-Bildadresse ein.",
+    "insertFailed": "Bild konnte nicht eingefügt werden"
+  },
+  "link": {
+    "label": "Hyperlink",
+    "placeholder": "Geben Sie URL ein oder fügen Sie es ein",
+    "remove": "Link entfernen",
+    "editorTitle": "Link bearbeiten",
+    "editorDescription": "Fügen Sie dem ausgewählten Text einen Web- oder E-Mail-Link hinzu.",
+    "url": "Link-URL",
+    "invalid": "Bitte geben Sie einen gültigen HTTP-, HTTPS- oder Mailto-Link ein.",
+    "open": "Link öffnen",
+    "updateFailed": "Link konnte nicht aktualisiert werden",
+    "openFailed": "Link konnte nicht geöffnet werden"
+  },
+  "bulletList": "Bullet-Liste",
+  "orderedList": "Geordnete Liste",
+  "taskList": "Aufgabenliste",
+  "blockquote": "Zitatblock",
+  "listMenu": "Listenstile",
+  "table": {
+    "title": "Tabelle",
+    "addRow": "Zeile unten einfügen",
+    "addColumn": "Spalte rechts einfügen",
+    "delete": "Tabelle löschen"
+  },
+  "words": "Wörter",
+  "characters": "Zeichen"
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Gestión de voz",
+  "collectionTitle": "Biblioteca de voz",
+  "empty": "Aún no hay voces",
+  "manage": "Administrar voces y audio de referencia.",
+  "description": "Administre voces, audio de referencia y revisiones de muestras compartidas en toda la aplicación. Cada espacio de trabajo puede usar voces guardadas aquí.",
+  "discardTitle": "Descartar cambios de voz",
+  "discardDescription": "Se perderán las configuraciones de voz no guardadas.",
+  "presets": "Voces preestablecidas",
+  "addTitle": "Agregar voz"
+}

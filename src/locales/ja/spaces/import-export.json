@@ -1,0 +1,42 @@
+{
+  "import": "インポート",
+  "importFailed": "インポートに失敗しました。ファイル形式を確認して、再試行してください。",
+  "website": {
+    "add": "Web サイトを追加",
+    "description": "ウェブ URL を保存し、タイトルと概要を抽出します。",
+    "previewUnavailable": "ウェブサイトの詳細を取得できませんでした。 URL は保存されます。詳細から再試行してください。",
+    "refresh": "Web コンテンツを更新",
+    "captureFailed": "このリンクを追加できませんでした",
+    "loading": "Web メタデータを取得中…",
+    "refreshFailed": "Web コンテンツの取得に失敗しました"
+  },
+  "preview": {
+    "system": "プレビュー",
+    "show": "プレビュー ビュー",
+    "instantUnavailable": "インスタント プレビューなし",
+    "instantUnavailableHint": "インスタント プレビューは利用できません。抽出されたテキストは引き続き検索可能です。"
+  },
+  "markdown": {
+    "export": "マークダウンのエクスポート"
+  },
+  "exportCompleted": "エクスポート完了",
+  "fileName": "ファイル名",
+  "openExternally": "外部アプリで開く",
+  "space": {
+    "export": "ワークスペース パッケージをエクスポート…",
+    "import": "スペース パッケージのインポート…",
+    "exported": "スペース パッケージがエクスポートされました",
+    "imported": "スペースは正常にインポートされました"
+  },
+  "jsonCanvas": {
+    "import": "JSON Canvas のインポート…",
+    "export": "JSON キャンバスをエクスポート…",
+    "exported": "JSON Canvas がエクスポートされました"
+  },
+  "progress": {
+    "resource": "リソースのインポート",
+    "preparing": "リソースをコピーして検証しています…",
+    "processing": "リソースを解析中…"
+  },
+  "openInEditor": "外部エディタで開く"
+}

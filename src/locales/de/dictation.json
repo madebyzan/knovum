@@ -1,0 +1,25 @@
+{
+  "recording": "Hören Sie ... lassen Sie die Tastenkombination los, um zu transkribieren",
+  "transcribing": "Diktat wird transkribiert…",
+  "errors": {
+    "microphonePermissionDenied": "Der Zugriff auf das Mikrofon wurde verweigert. Erlauben Sie den Mikrofonzugriff für Knovum in den Systemeinstellungen.",
+    "microphoneUnavailable": "Das Mikrofon war nicht mehr verfügbar. Überprüfen Sie das ausgewählte Eingabegerät und versuchen Sie es erneut.",
+    "recordingLimitReached": "Die Aufnahme erreichte die Zwei-Minuten-Grenze und wurde abgebrochen.",
+    "audioCaptureEmpty": "Das Mikrofon hat keinen Ton aufgenommen.",
+    "unsupportedAudioFormat": "Das ausgewählte Mikrofonformat wird für das Diktat nicht unterstützt.",
+    "unsupportedDevice": "Dieses Gerät verfügt nicht über ein qualifiziertes Desktop-Diktierprofil.",
+    "dictationFocusChanged": "Die Zielanwendung hat sich geändert, daher wurde kein Text eingefügt.",
+    "dictationPermissionDenied": "Das Betriebssystem hat das Einfügen von Text blockiert. Der erkannte Text ist unten erhalten.",
+    "dictationEmptyResult": "Es wurde kein einfügbarer Text erkannt.",
+    "dictationInsertionFailed": "Das Einfügen des Textes ist fehlgeschlagen. Der erkannte Text ist unten erhalten.",
+    "dictationFailed": "Das Diktat konnte nicht abgeschlossen werden."
+  },
+  "result": {
+    "title": "Diktierergebnis",
+    "description": "Das automatische Einfügen wurde nicht abgeschlossen. Der erkannte Text bleibt hier erhalten.",
+    "noText": "Es wurde kein Text erkannt.",
+    "copy": "Text kopieren",
+    "copied": "Diktat kopiert"
+  },
+  "preparingResources": "Vorbereiten lokaler Ressourcen für das Diktat…"
+}

@@ -1,0 +1,27 @@
+{
+  "target": "Cible d'exécution",
+  "targetModelApi": "Modèle API · exécution directe",
+  "targetExternalAgent": "Desktop Agent · la sortie dépend de ses outils actuels et de Skills",
+  "noCompatibleTarget": "Aucune cible d'exécution compatible",
+  "desktopAgentNotInstalled": "Non détecté",
+  "disabledTitle": "Aucune cible AI compatible",
+  "disabledDescription": "Configurez un modèle compatible ou activez un agent de bureau installé pour cette action.",
+  "openSettings": "Configurer les modèles",
+  "settingsUnavailable": "Les paramètres AI n'ont pas pu être chargés",
+  "executedWithModel": "Exécuté avec {provider} · {model}",
+  "executedWithAgent": "Exécuté par {name} · Agent de bureau",
+  "languages": {
+    "zhCn": "Chinois simplifié",
+    "zhTw": "Chinois traditionnel",
+    "en": "Anglais",
+    "ja": "Japonais",
+    "ko": "Coréen",
+    "fr": "Français",
+    "de": "Allemand",
+    "es": "Espagnol",
+    "pt": "Portugais",
+    "it": "Italien",
+    "ru": "Russe",
+    "ar": "Arabe"
+  }
+}

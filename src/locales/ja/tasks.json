@@ -1,0 +1,30 @@
+{
+  "title": "タスク",
+  "summary": "タスク、合計 {count}",
+  "scopeFilter": "タスク スコープ",
+  "all": "すべて",
+  "currentSpace": "現在のワークスペース",
+  "empty": "タスクなし。",
+  "emptyCurrentSpace": "このワークスペースにはタスクがありません。",
+  "scope": "ワークスペース",
+  "subject": "アイテム",
+  "status": {
+    "queued": "キューに入れられました",
+    "running": "実行中",
+    "attention": "要注意",
+    "failed": "失敗",
+    "succeeded": "完了",
+    "cancelled": "キャンセル"
+  },
+  "clearCompleted": "クリア完了",
+  "openSubject": "関連アイテムを開く",
+  "dismiss": "閉じる",
+  "cancel": "タスクのキャンセル",
+  "cancelling": "キャンセル中...",
+  "forceDismiss": "リストから削除",
+  "failed": "このタスクは完了できませんでした。",
+  "verifyingResource": "整合性を検証中…",
+  "preparingLocalInference": "ローカルの AI コンポーネントを準備しています…",
+  "localResourceDownloadSize": "初回使用には {size} のローカル リソースのダウンロードが必要です",
+  "installingResource": "ローカル リソースをインストールしています…"
+}

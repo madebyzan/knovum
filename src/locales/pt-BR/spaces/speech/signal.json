@@ -1,0 +1,14 @@
+{
+  "inspect": "Inspecionar sinal de áudio",
+  "advisory": "Verificações de sinal sinalizam locais para revisão. Eles não avaliam a naturalidade da voz e podem sinalizar pausas intencionais.",
+  "noFindings": "Nenhuma anomalia de sinal encontrada no intervalo varrido.",
+  "truncated": "A inspeção verifica até duas horas e relata até 100 descobertas.",
+  "issues": {
+    "empty": "Sem amostras de áudio",
+    "silence": "Silêncio",
+    "quiet": "Relativamente silenciosa",
+    "loud": "Relativamente alto",
+    "clipping": "Próximo ao pico total",
+    "invalid": "Amostras de sinal inválidas"
+  }
+}

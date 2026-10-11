@@ -56,12 +56,24 @@ pub(super) fn notify<R: Runtime>(app: &AppHandle<R>, hub: &TaskHub, task: &Deskt
     if !background {
         return;
     }
-    let chinese = hub.chinese.load(Ordering::SeqCst);
-    let body = match (chinese, task.state == DesktopTaskState::Failed) {
-        (true, true) => "任务失败。打开任务中心查看详情。",
-        (true, false) => "任务已完成。",
-        (false, true) => "Task failed. Open Task Center for details.",
-        (false, false) => "Task completed.",
+    let locale = match hub.locale.lock() {
+        Ok(locale) => *locale,
+        Err(error) => {
+            log::error!("Desktop task language is unavailable: {error}");
+            return;
+        }
+    };
+    let labels = match super::super::locale::labels(locale) {
+        Ok(labels) => labels,
+        Err(error) => {
+            log::error!("Desktop notification labels are unavailable: {error}");
+            return;
+        }
+    };
+    let body = if task.state == DesktopTaskState::Failed {
+        labels.failed
+    } else {
+        labels.completed
     };
     // Notification copy never contains prompts, output, credentials, or producer diagnostics.
     if let Err(error) = app

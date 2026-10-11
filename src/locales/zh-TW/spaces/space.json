@@ -1,0 +1,45 @@
+{
+  "title": "空間",
+  "new": "新建空間",
+  "untitled": "未命名空間",
+  "inbox": "收集箱",
+  "empty": {
+    "title": "空間暫無內容",
+    "description": "雙擊空白處建立筆記 · 貼上剪貼簿內容 · 拖曳到檔案匯入"
+  },
+  "rename": "重新命名空間",
+  "tabs": {
+    "close": "關閉標籤頁",
+    "closeOthers": "關閉其他標籤頁",
+    "closeToRight": "關閉右側標籤頁",
+    "actionFailed": "工作區標籤頁操作失敗",
+    "reopen": "重新開啟關閉的標籤頁",
+    "switchTo": "切換到標籤頁 {number}"
+  },
+  "back": "後退",
+  "forward": "前進",
+  "sections": {
+    "open": "已開啟空間",
+    "all": "全部空間",
+    "recent": "最近打開",
+    "favorites": "收藏"
+  },
+  "views": {
+    "grid": "網格視圖",
+    "list": "清單視圖"
+  },
+  "search": {
+    "placeholder": "搜尋空間…",
+    "noResults": "沒有符合條件的空間"
+  },
+  "nodeCount": "{count} 項內容",
+  "favorite": "收藏空間",
+  "unfavorite": "取消收藏",
+  "open": "打開空間",
+  "loadFailed": "無法打開空間",
+  "loadFailedHint": "無法載入空間資料庫。本機文件不受影響，請重試。",
+  "archive": "歸檔空間",
+  "moveTo": "移動至空間",
+  "moveNoTargets": "無其他可移動的空間。",
+  "archived": "已歸檔“{title}”"
+}

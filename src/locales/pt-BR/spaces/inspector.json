@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "Item {count} selecionado | Itens {count} selecionados",
+  "title": "Detalhes",
+  "basicInformation": "Geral",
+  "showSource": "Visualização da fonte",
+  "fields": {
+    "type": "Tipo",
+    "source": "Fonte",
+    "size": "Tamanho",
+    "originalUrl": "URL original",
+    "provider": "Plataforma",
+    "siteName": "Site",
+    "description": "Descrição",
+    "canonicalUrl": "URL canônico",
+    "modified": "Data de modificação"
+  },
+  "extractedDocumentText": "Texto extraído",
+  "visualDetectedText": "Texto reconhecido por OCR",
+  "excerpts": {
+    "title": "Trecho · {title}",
+    "line": "— {title} · {location}",
+    "content": "Trecho do conteúdo"
+  },
+  "openSource": "Localizar nó de origem",
+  "targetSpace": "Espaço de destino",
+  "none": "Não definido",
+  "renameHint": "Clique para renomear",
+  "openContent": "Conteúdo aberto",
+  "content": "Conteúdo",
+  "playVideo": "Reproduzir vídeo",
+  "related": {
+    "title": "Conteúdo relacionado",
+    "show": "Mostrar mais",
+    "showLess": "Mostrar menos",
+    "unavailable": "O conteúdo relacionado está temporariamente indisponível.",
+    "indexing": "Construindo o índice de conteúdo. O conteúdo relacionado aparecerá quando estiver pronto.",
+    "notIndexed": "O conteúdo relacionado ainda não está preparado para este item.",
+    "prepare": "Prepare agora",
+    "noContent": "Este item ainda não possui conteúdo pesquisável.",
+    "empty": "Ainda não há conteúdo relacionado neste espaço de trabalho.",
+    "explanation": "Descubra conteúdo relacionado neste espaço de trabalho por significado. Os resultados não criam conexões."
+  },
+  "containedItems": "{count} continha itens"
+}

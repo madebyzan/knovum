@@ -1,0 +1,99 @@
+{
+  "edit": "Modifier la vidéo",
+  "title": "Éditeur vidéo",
+  "loading": "Chargement de l'éditeur vidéo…",
+  "preview": {
+    "optimizing": "Optimisation de l'aperçu en arrière-plan…",
+    "retry": "Réessayer la préparation de l'aperçu",
+    "sourceUnavailable": "La source vidéo n'est pas disponible. Réimportez la vidéo pour la modifier.",
+    "proxyFailed": "Impossible de préparer un aperçu réactif",
+    "durationUnavailable": "Impossible de lire la durée de la vidéo",
+    "metadataUnavailable": "Impossible de lire les dimensions du cadre de la vidéo",
+    "unavailable": "Impossible d'ouvrir l'aperçu vidéo",
+    "audioUnavailable": "Impossible de préparer l'aperçu audio"
+  },
+  "tracks": {
+    "video": "Vidéo",
+    "audio": "Audio",
+    "text": "Texte"
+  },
+  "timeline": {
+    "thumbnailFailed": "Impossible de générer des miniatures de chronologie",
+    "zoomOut": "Zoom arrière sur la chronologie",
+    "zoomIn": "Zoom sur la chronologie",
+    "fit": "Ajuster la vidéo entière",
+    "seek": "Rechercher la chronologie"
+  },
+  "text": {
+    "tools": "Outils texte",
+    "invalidColor": "Entrez une couleur hexadécimale à six chiffres, telle que #FFFFFF.",
+    "presets": {
+      "title": "Préréglages",
+      "plain": "Plaine",
+      "outline": "Contour",
+      "shadow": "Ombre",
+      "badge": "Badge"
+    },
+    "placement": "Position",
+    "add": "Ajouter du texte",
+    "content": "Texte"
+  },
+  "tabs": {
+    "captions": "Légendes",
+    "text": "Texte"
+  },
+  "closeInspector": "Fermer le panneau d'édition",
+  "captions": {
+    "search": "Légendes de recherche",
+    "none": "Pas encore de légendes. Ajoutez-en un ci-dessus.",
+    "noMatches": "Aucune légende correspondante."
+  },
+  "font": {
+    "family": "Police",
+    "searchEmpty": "Aucune police correspondante.",
+    "weight": "Graisse",
+    "unavailable": "La police {family} n’est pas installée sur cet ordinateur. Choisissez une autre police.",
+    "catalogEmpty": "Aucune police installée n'est disponible.",
+    "size": "Taille (720p)",
+    "color": "Couleur du texte"
+  },
+  "videoSettings": "Paramètres vidéo",
+  "clip": {
+    "selected": "Clip sélectionné",
+    "volume": "Volume",
+    "rotate": "Rotation",
+    "split": "Diviser",
+    "inPoint": "Point d’entrée (secondes)",
+    "outPoint": "Point de sortie (secondes)",
+    "startsAt": "Démarrages (secondes)",
+    "endsAt": "Fin (secondes)"
+  },
+  "top": "Haut",
+  "center": "Centre",
+  "bottom": "Bas",
+  "project": {
+    "saved": "Projet de montage vidéo enregistré"
+  },
+  "render": {
+    "action": "Rendu vidéo",
+    "task": "Rendu vidéo",
+    "failed": "Échec du rendu vidéo"
+  },
+  "preparingVideoEdit": "Préparation de l'édition",
+  "renderingVideoEdit": "Rendu vidéo",
+  "savingResource": "Sauvegarde des ressources",
+  "previousStep": "Reculez de 0,1 seconde",
+  "nextStep": "Avancez de 0,1 seconde",
+  "trim": {
+    "start": "Démarrage du clip de découpage",
+    "end": "Extrémité du clip de garniture",
+    "textStart": "Démarrage du texte Trim",
+    "textEnd": "Couper la fin du texte",
+    "hint": "Faites glisser un bord de clip pour le découper. Maintenez Option ou Alt pour un réglage précis."
+  },
+  "unsaved": {
+    "title": "Enregistrer les modifications apportées à cette vidéo ?",
+    "status": "Modifications non enregistrées",
+    "description": "Vos modifications seront perdues si vous fermez sans enregistrer."
+  }
+}

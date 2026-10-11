@@ -1,0 +1,26 @@
+{
+  "title": "Scene",
+  "previous": "Scena precedente",
+  "next": "Scena successiva",
+  "focus": {
+    "mode": "Vista mirata · Articolo {count} | Visualizzazione mirata · Elementi {count}",
+    "exit": "Esci dal focus",
+    "selection": "Selezione messa a fuoco",
+    "unavailable": "Questa vista salvata fa riferimento a una struttura che non esiste più"
+  },
+  "collapse": "Comprimi controlli scena",
+  "expand": "Espandi i controlli della scena",
+  "defaultName": "Scena {index}",
+  "saved": "Scena salvata “{title}”",
+  "updated": "Scena aggiornata “{title}”",
+  "opened": "Passato alla scena “{title}”",
+  "save": "Salva scena corrente",
+  "delete": "Elimina scena",
+  "empty": "Salva la posizione della vista per tornare rapidamente ad aree specifiche.",
+  "open": "Naviga alla scena",
+  "update": "Aggiorna alla vista corrente",
+  "duplicate": "Scena duplicata",
+  "moveUp": "Sposta su",
+  "moveDown": "Sposta giù",
+  "rename": "Rinomina scena"
+}

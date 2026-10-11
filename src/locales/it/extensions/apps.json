@@ -1,0 +1,10 @@
+{
+  "browse": "Plugin di navigazione",
+  "description": "Le app sono dotate di plug-in. Collega gli account e configura l'accesso qui.",
+  "empty": "Nessuna app aggiunta",
+  "emptyHint": "Installa un flusso di lavoro dell'app dal catalogo dei plug-in.",
+  "manage": "Gestisci connessione",
+  "accounts": "Account",
+  "access": "Accesso",
+  "configurationRequired": "Questa app ha una connessione incompleta. Controlla il suo plugin sorgente."
+}

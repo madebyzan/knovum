@@ -1,0 +1,11 @@
+{
+  "bootstrap": {
+    "title": "Error de inicio",
+    "description": "Knovum no pudo iniciarse porque sus servicios o configuraciones principales no se pudieron cargar."
+  },
+  "feature": {
+    "title": "No se pudo mostrar este contenido",
+    "description": "Puede volver a abrir esta área o navegar a otro lugar.",
+    "reopen": "Reabrir contenido"
+  }
+}

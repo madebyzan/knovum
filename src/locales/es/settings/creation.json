@@ -1,0 +1,36 @@
+{
+  "title": "Creación",
+  "description": "Administre los ajustes preestablecidos de creación y el servicio utilizado para dividir capas de imágenes.",
+  "presets": {
+    "title": "Preajustes de generación",
+    "description": "Configuración del modelo guardada para la creación de contenido.",
+    "empty": "Aún no se han guardado ajustes preestablecidos de generación.",
+    "deleteConfirm": "¿Eliminar este ajuste preestablecido?",
+    "name": "Nombre preestablecido",
+    "edit": "Editar valor preestablecido de generación",
+    "discardTitle": "¿Descartar cambios preestablecidos?",
+    "discardDescription": "Los cambios no guardados en este ajuste preestablecido de generación se perderán."
+  },
+  "parameters": "Parámetros",
+  "copyName": "Copia {name}",
+  "saveFailed": "No se pudo guardar la configuración de creación",
+  "knowledgeActions": {
+    "groundedAnswer": "Respuesta fundamentada",
+    "structureDocument": "Documento estructurado",
+    "writeScript": "Guion",
+    "summarizeMeeting": "Resumen de la reunión",
+    "writeSocialCopy": "Copia social",
+    "visualization": "Visualización",
+    "createCompanionImage": "Imagen complementaria",
+    "generateVideo": "Vídeo generado",
+    "extractSubtitles": "Extracción de subtítulos",
+    "renderSubtitledVideo": "Vídeo subtitulado",
+    "renderPresentation": "Presentación"
+  },
+  "imageLayers": {
+    "title": "División de capa de imagen",
+    "description": "Conecte fal para dividir la capa de imagen.",
+    "apiKey": "clave API fal",
+    "apiKeyDescription": "Almacenado solo en este dispositivo."
+  }
+}

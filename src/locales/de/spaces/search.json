@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "Suchen",
+    "placeholder": "Durchsuchen Sie Notizen, Websites, Transkripte, Dateien, Tags ...",
+    "noResults": "Keine passenden Elemente in diesem Arbeitsbereich.",
+    "defaultTitle": "Aktueller Speicherplatz",
+    "defaultContentLabel": "Canvas-Inhalt",
+    "emptyHint": "In diesem Arbeitsbereich sind keine Inhalte für die Suche verfügbar."
+  },
+  "allSpaces": {
+    "title": "Alle Bereiche durchsuchen",
+    "placeholder": "In allen Arbeitsbereichen suchen…",
+    "hint": "Durchsuchen Sie Wissen global in allen Arbeitsbereichen.",
+    "noResults": "In allen Arbeitsbereichen wurden keine passenden Elemente gefunden."
+  },
+  "failed": "Suche fehlgeschlagen; Bitte versuchen Sie es noch einmal.",
+  "semantic": {
+    "enable": "Semantische Suche",
+    "preparing": "Semantische Suche wird vorbereitet",
+    "indexing": "Indizierung von Inhalten für die semantische Suche"
+  }
+}

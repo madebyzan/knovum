@@ -1,0 +1,16 @@
+{
+  "subtitles": {
+    "task": "Criando vídeo legendado",
+    "add": "Adicionar legendas"
+  },
+  "generation": {
+    "title": "Crie vídeos a partir do conhecimento",
+    "description": "Gere um vídeo a partir dos conhecimentos e imagens selecionados, vinculados às suas fontes.",
+    "name": "Nome do vídeo",
+    "prompt": "Descreva a cena, o movimento, a câmera e o estilo visual",
+    "duration": "Duração",
+    "create": "Gerar vídeo",
+    "task": "Gerando vídeo",
+    "tooManyImages": "Selecione no máximo 10 imagens de referência para geração de vídeo."
+  }
+}

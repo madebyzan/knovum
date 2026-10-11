@@ -1,7 +1,7 @@
 import { camelCase, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
-const localeFragments = import.meta.glob("/src/locales/{en,zh-CN}/**/*.json", {
+const localeFragments = import.meta.glob("/src/locales/*/**/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, unknown>;
@@ -18,7 +18,7 @@ interface ValueIssues {
 }
 
 function parseModulePath(path: string): ModulePath {
-  const match = path.match(/\/locales\/(en|zh-CN)\/(.+)\.json$/u);
+  const match = path.match(/\/locales\/([^/]+)\/(.+)\.json$/u);
   if (!match) throw new Error(`Unexpected locale module path: ${path}`);
   return { locale: match[1]!, segments: match[2]!.split("/") };
 }
@@ -76,6 +76,11 @@ function collectValueIssues(): ValueIssues {
 }
 
 describe("locale structure", () => {
+  it("uses canonical BCP 47 language roots", () => {
+    const roots = [...new Set(Object.keys(localeFragments).map((path) => parseModulePath(path).locale))];
+    expect(roots.filter((locale) => Intl.getCanonicalLocales(locale)[0] !== locale)).toEqual([]);
+  });
+
   it("uses kebab-case segments in every locale module path", () => {
     const invalidPaths = Object.keys(localeFragments)
       .filter((path) =>

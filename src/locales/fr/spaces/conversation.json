@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "Aucun contenu textuel à l'emplacement source.",
+    "open": "Localiser à la source"
+  },
+  "title": "Conversation",
+  "agents": {
+    "builtinAgent": "Agent Knovum",
+    "desktop": "Agents de bureau",
+    "select": "Choisir un agent",
+    "noModel": "Activez un modèle qui prend en charge l'appel d'outil dans les paramètres AI.",
+    "manage": "Configurer les modèles et les agents…"
+  },
+  "empty": {
+    "title": "Essayez l'une de ces tâches",
+    "topic": "[sujet]",
+    "search": "Rechercher les sources",
+    "searchPrompt": "Recherchez des sources sur {topic} dans cet espace de travail et indiquez la provenance de chacune.",
+    "document": "Créer un document",
+    "documentPrompt": "Créez un document de présentation modifiable à partir de sources sur {topic} dans cet espace de travail.",
+    "compare": "Comparer les idées",
+    "comparePrompt": "Comparez les idées sur {topic} dans cet espace de travail, y compris les points communs, les différences et les preuves."
+  },
+  "input": {
+    "placeholder": "Décrire une tâche pour l'agent…",
+    "send": "Envoyer",
+    "shortcutHint": "Entrée"
+  },
+  "conversations": {
+    "preparing": "Démarrage de la conversation…",
+    "create": "Nouvelle conversation",
+    "history": "Historique des conversations",
+    "none": "Aucune conversation pour l'instant",
+    "actions": "Actions de conversation",
+    "exportFailed": "Impossible d'exporter la conversation",
+    "deleteConfirm": "Supprimer « {title} » et son historique des tâches ? Cela ne peut pas être annulé.",
+    "search": "Rechercher des conversations",
+    "archived": "Archivé",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "viewArchived": "Afficher les conversations archivées",
+    "backToRecent": "Retour aux conversations récentes",
+    "branch": "Branchez ici",
+    "branchNumber": "Branche {number}",
+    "regenerateAttachments": "Rattachez les ressources d'origine avant de renvoyer cette demande",
+    "branchCreated": "Passé à la nouvelle branche",
+    "returnToRunning": "Une tâche de conversation est en cours d'exécution. Revenez à sa conversation."
+  },
+  "evidence": {
+    "sourceRationale": "Sources et preuves",
+    "ask": "Poser une question",
+    "useCurrent": "Utiliser la sélection actuelle comme preuve",
+    "remove": "Supprimer les preuves",
+    "stale": "La version de la source des preuves a changé",
+    "extract": "Extraire comme preuve"
+  },
+  "attachments": {
+    "add": "Ajouter une ressource",
+    "attached": "Ressources jointes, faites défiler horizontalement pour en voir plus",
+    "citeCanvasNode": "Contenu du canevas de référence",
+    "citeCanvasNodeHint": "Choisir le contenu de cet espace de travail",
+    "canvasNodeShort": "Référence Canvas",
+    "uploadLocalFile": "Ajouter un fichier local",
+    "uploadLocalFileHint": "Images, PDF ou documents",
+    "localFileShort": "Fichier local",
+    "dropFiles": "Déposer les fichiers à joindre",
+    "limit": "Vous pouvez joindre jusqu'à 32 éléments à un message.",
+    "addCurrentSelection": "Ajouter la sélection actuelle ({count})",
+    "search": "Rechercher des ressources dans cet espace de travail",
+    "none": "Aucune ressource correspondante",
+    "remove": "Supprimer la ressource : {name}",
+    "preview": "Ressource d'aperçu : {name}"
+  },
+  "uploads": {
+    "sizeError": "Les fichiers ne peuvent pas être vides. Les images doivent faire au maximum 10 Mio ; autres fichiers au maximum 20 Mio.",
+    "typeError": "Ce type de fichier n'est pas pris en charge. Choisissez une image, un texte, un PDF ou un document Office.",
+    "invalidError": "Ce fichier n'a pas pu être lu. Vérifiez son contenu et son format.",
+    "permissionError": "Ce fichier n'est pas disponible. Sélectionnez-le à nouveau dans la boîte de dialogue du fichier système.",
+    "reacquire": "Sélectionnez à nouveau ces fichiers externes pour les rattacher : {names}"
+  },
+  "tasks": {
+    "waitingForResult": "En attendant la fin de l’opération…",
+    "failed": "La tâche de conversation a échoué. Revenez à la conversation pour plus de détails.",
+    "paused": "Cette tâche est suspendue. Vous pouvez le continuer lorsque vous êtes prêt.",
+    "resume": "Reprendre la tâche",
+    "modelOutcomeUnknown": "La demande de modèle s'est terminée sans résultat récupérable. L'exécution attend votre décision.",
+    "modelResponseUncommitted": "Le modèle a répondu, mais le résultat de son exécution n'a pas été validé. La récupération automatique ne peut pas continuer en toute sécurité.",
+    "modelUsageUnknown": "Le modèle a répondu sans informations d'utilisation. D'autres appels de modèles ont été arrêtés.",
+    "modelRetryCost": "Continuer peut envoyer une autre demande payante. Les accusations antérieures restent enregistrées ou inconnues.",
+    "retryModel": "Autoriser une nouvelle tentative de modèle"
+  },
+  "response": {
+    "stopped": "Arrêté",
+    "incomplete": "Réponse incomplète"
+  },
+  "outputs": {
+    "added": "Ajouté à la toile · {count}"
+  },
+  "messages": {
+    "copy": "Copier le message",
+    "copied": "Copié",
+    "copyFailed": "Impossible de copier le message. Essayer à nouveau.",
+    "new": "Aller au dernier ↓",
+    "loadOlder": "Charger les messages antérieurs"
+  },
+  "regenerate": "Régénérer",
+  "stop": "Arrêt",
+  "sources": "Sources · {count}",
+  "actions": {
+    "viewCreated": "Localiser le résultat"
+  },
+  "activity": {
+    "generating": "Générer une réponse…",
+    "running": "Travail · Action {count} | Travailler · Actions {count}",
+    "finished": "Terminé · Action {count} | Terminé · Actions {count}",
+    "recorded": "Activité · Action {count} | Activité · Actions {count}",
+    "tool": "Action de l'outil",
+    "invalidResult": "Les résultats de la recherche n'ont pas pu être affichés",
+    "noSources": "Aucune source correspondante",
+    "plan": "Plan"
+  },
+  "askSelection": "Demander la sélection",
+  "extensions": {
+    "label": "Extensions de conversation",
+    "unavailable": "Une extension sélectionnée n'est pas disponible. Vérifiez la sélection.",
+    "clearSelection": "Effacer la sélection de l'extension",
+    "manage": "Gérer les extensions",
+    "empty": "Aucune extension disponible. Ajoutez-les dans les paramètres."
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "L’opération externe doit être approuvée",
+      "allow": "Autoriser",
+      "deny": "Refuser"
+    },
+    "outcomeUnknown": {
+      "title": "Résultat externe inconnu",
+      "retry": "Vérifié ; autoriser une nouvelle tentative",
+      "stop": "Arrêter la tâche",
+      "description": "L’opération est peut-être terminée. Vérifiez le service avant d'autoriser une nouvelle tentative."
+    },
+    "attempt": "Tentative",
+    "history": {
+      "title": "Historique de l'outil",
+      "empty": "Aucune opération d'outil pour l'instant"
+    },
+    "progress": "Progrès"
+  },
+  "interactions": {
+    "title": "Le service externe nécessite une contribution",
+    "openAuthorizationPage": "Ouvrir la page d'autorisation",
+    "submit": "Soumettre",
+    "decline": "Refuser",
+    "invalid": "Le service externe a envoyé un formulaire invalide."
+  },
+  "extensionResources": {
+    "import": "Importer dans l'espace",
+    "select": "Choisir une ressource",
+    "readOnly": "Cet espace de travail est en lecture seule"
+  }
+}

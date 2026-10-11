@@ -29,7 +29,7 @@ pub enum TextSizePreference {
     Large,
 }
 
-#[derive(Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
+#[derive(Clone, Copy, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]
 pub enum LocalePreference {
     #[serde(rename = "system")]
     System,
@@ -37,6 +37,24 @@ pub enum LocalePreference {
     English,
     #[serde(rename = "zh-CN")]
     SimplifiedChinese,
+    #[serde(rename = "zh-TW")]
+    TraditionalChinese,
+    #[serde(rename = "ja")]
+    Japanese,
+    #[serde(rename = "ko")]
+    Korean,
+    #[serde(rename = "fr")]
+    French,
+    #[serde(rename = "de")]
+    German,
+    #[serde(rename = "es")]
+    Spanish,
+    #[serde(rename = "pt-BR")]
+    BrazilianPortuguese,
+    #[serde(rename = "it")]
+    Italian,
+    #[serde(rename = "ru")]
+    Russian,
 }
 
 #[derive(Deserialize, Serialize, ts_rs::TS)]

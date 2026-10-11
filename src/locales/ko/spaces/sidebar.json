@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "개요",
+    "empty": "캔버스에 추가된 항목이 여기에 표시됩니다."
+  },
+  "editorOutline": {
+    "title": "문서 개요"
+  },
+  "rightSidebarViews": "오른쪽 사이드바 보기",
+  "rename": {
+    "nameRequired": "이름을 입력하세요.",
+    "failed": "이름을 저장할 수 없습니다. 다시 시도하려면 Enter 키를 누르세요."
+  }
+}

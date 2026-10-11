@@ -1,0 +1,36 @@
+{
+  "title": "Création",
+  "description": "Gérez les préréglages de création et le service utilisé pour le fractionnement des calques d'image.",
+  "presets": {
+    "title": "Préréglages de génération",
+    "description": "Paramètres de modèle enregistrés pour la création de contenu.",
+    "empty": "Aucun préréglage de génération n'a encore été enregistré.",
+    "deleteConfirm": "Supprimer ce préréglage ?",
+    "name": "Nom du préréglage",
+    "edit": "Modifier le préréglage de génération",
+    "discardTitle": "Annuler les modifications prédéfinies ?",
+    "discardDescription": "Les modifications non enregistrées apportées à ce préréglage de génération seront perdues."
+  },
+  "parameters": "Paramètres",
+  "copyName": "Copie {name}",
+  "saveFailed": "Impossible d'enregistrer les paramètres de création",
+  "knowledgeActions": {
+    "groundedAnswer": "Réponse fondée",
+    "structureDocument": "Document structuré",
+    "writeScript": "Scénario",
+    "summarizeMeeting": "Résumé de la réunion",
+    "writeSocialCopy": "Copie sociale",
+    "visualization": "Visualisation",
+    "createCompanionImage": "Image compagnon",
+    "generateVideo": "Vidéo générée",
+    "extractSubtitles": "Extraction des sous-titres",
+    "renderSubtitledVideo": "Vidéo sous-titrée",
+    "renderPresentation": "Présentation"
+  },
+  "imageLayers": {
+    "title": "Répartition des couches d'images",
+    "description": "Connectez fal pour le fractionnement des calques d'image.",
+    "apiKey": "clé API fal",
+    "apiKeyDescription": "Stocké uniquement sur cet appareil."
+  }
+}

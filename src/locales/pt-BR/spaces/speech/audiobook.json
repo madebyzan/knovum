@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "Título do capítulo",
+  "configurationInvalid": "Esta revisão de audiolivro de pré-lançamento não possui vínculos de função válidos. Importe ou reconstrua o script e salve uma nova revisão.",
+  "lexicon": {
+    "title": "Dicionário de pronúncia",
+    "hint": "Substitua nomes ou termos pela leitura exata usada durante a síntese.",
+    "word": "Palavra ou termo",
+    "reading": "Pronúncia",
+    "add": "Adicionar pronúncia",
+    "remove": "Remover pronúncia",
+    "invalid": "Complete todas as entradas e remova palavras duplicadas."
+  },
+  "moveUp": "Mover capítulo para cima",
+  "moveDown": "Mover capítulo para baixo",
+  "removeChapter": "Remover capítulo",
+  "removeParagraph": "Remover parágrafo",
+  "addParagraph": "Adicionar parágrafo",
+  "addChapter": "Adicionar capítulo",
+  "wavPrecision": "Precisão WAV",
+  "paragraphPause": "Pausa de parágrafo (ms)",
+  "chapterPause": "Pausa do capítulo (ms)",
+  "title": "Título do livro",
+  "author": "Autor",
+  "narrator": "Narrador",
+  "cover": "Capa",
+  "noCover": "Sem cobertura",
+  "boundCover": "Revisão da capa salva",
+  "coverRequiresEncodedOutput": "Escolha MP3 ou M4B para incorporar uma capa.",
+  "outputSettings": "Configurações de saída",
+  "metadataSettings": "Detalhes do livro"
+}

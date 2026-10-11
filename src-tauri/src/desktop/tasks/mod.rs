@@ -1,6 +1,6 @@
 mod presentation;
 
-use crate::{app_error::AppError, desktop_task::DesktopTask};
+use crate::{app_error::AppError, desktop_task::DesktopTask, preferences::LocalePreference};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -8,21 +8,35 @@ use std::sync::{
 };
 use tauri::{AppHandle, Manager, Runtime};
 
-#[derive(Default)]
 pub(crate) struct TaskHub {
     groups: Mutex<HashMap<&'static str, BTreeMap<String, DesktopTask>>>,
     notifications: AtomicBool,
-    chinese: AtomicBool,
+    locale: Mutex<LocalePreference>,
+}
+
+impl Default for TaskHub {
+    fn default() -> Self {
+        Self {
+            groups: Mutex::default(),
+            notifications: AtomicBool::new(false),
+            locale: Mutex::new(LocalePreference::English),
+        }
+    }
 }
 
 pub(crate) fn install(app: &AppHandle) {
     app.manage(TaskHub::default());
 }
 
-pub(crate) fn set_locale<R: Runtime>(app: &AppHandle<R>, locale: &str) {
-    app.state::<TaskHub>()
-        .chinese
-        .store(locale == "zh-CN", Ordering::SeqCst);
+pub(crate) fn set_locale<R: Runtime>(
+    app: &AppHandle<R>,
+    locale: LocalePreference,
+) -> Result<(), String> {
+    *app.state::<TaskHub>()
+        .locale
+        .lock()
+        .map_err(|_| "Desktop task language is unavailable")? = locale;
+    Ok(())
 }
 
 #[tauri::command]

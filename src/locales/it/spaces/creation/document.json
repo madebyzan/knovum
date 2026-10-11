@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "Converti in documento Word",
+    "pdf": "Converti in PDF",
+    "docxRunTitle": "Generazione di documenti Word",
+    "pdfRunTitle": "Generazione PDF in corso",
+    "txt": "Converti in testo semplice",
+    "txtRunTitle": "Generazione di testo semplice",
+    "html": "Converti in HTML",
+    "htmlRunTitle": "Generazione di documento HTML"
+  },
+  "convert": {
+    "label": "Converti in",
+    "formats": {
+      "docx": "Documento Word (.docx)",
+      "pdf": "Documento PDF (.pdf)",
+      "txt": "Testo normale (.txt)",
+      "html": "Documento HTML (.html)",
+      "pptx": "Presentazione (.pptx)"
+    },
+    "help": "Crea un file correlato. Il contenuto PDF viene ridisposto senza immagini; Office to Word/HTML mantiene le tabelle e le immagini supportate. I file Office con immagini non possono essere convertiti in PDF. Il layout originale, le animazioni e i PDF scansionati non sono supportati."
+  },
+  "generate": "Genera documento",
+  "title": "Crea un documento dalla conoscenza selezionata",
+  "description": "Crea una risorsa Markdown citata accanto alle fonti selezionate.",
+  "defaultTitle": "Bozza della conoscenza",
+  "purpose": "Breve documento",
+  "purposePlaceholder": "Descrivi l’obiettivo, il formato e i punti chiave del documento.",
+  "sources": "Fonte di conoscenza {count} | {count} fonti di conoscenza",
+  "task": "Generazione documento in corso",
+  "generating": "Generare da conoscenze selezionate...",
+  "failed": "Impossibile generare il documento"
+}

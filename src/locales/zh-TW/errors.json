@@ -1,0 +1,11 @@
+{
+  "bootstrap": {
+    "title": "啟動失敗",
+    "description": "核心服務或設定載入失敗，知生知無法啟動。"
+  },
+  "feature": {
+    "title": "此處內容無法顯示",
+    "description": "可以重新開啟此區域，或切換到其他頁面。",
+    "reopen": "重新開啟內容"
+  }
+}

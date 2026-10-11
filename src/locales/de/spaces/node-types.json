@@ -1,0 +1,16 @@
+{
+  "note": "Haftnotiz",
+  "text": "Text",
+  "markdown": "Abschlag",
+  "website": "Webseite",
+  "image": "Bild",
+  "video": "Video",
+  "audio": "Audio",
+  "file": "Datei",
+  "code": "Code",
+  "credential": "Ausweis",
+  "object": "Wissensobjekt",
+  "portal": "Weltraumportal",
+  "group": "Gruppe",
+  "section": "Abschnitt"
+}

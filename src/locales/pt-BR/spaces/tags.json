@@ -1,0 +1,8 @@
+{
+  "title": "Etiquetas",
+  "selectionHint": "Selecione nós de tela para gerenciar tags.",
+  "add": "Adicionar tag",
+  "empty": "Não há tags neste espaço de trabalho.",
+  "showNodes": "Filtrar nós marcados",
+  "remove": "Remover etiqueta {tag}"
+}

@@ -1,0 +1,46 @@
+{
+  "title": "軟體更新",
+  "description": "Knovum 會在啟動後和每六小時檢查更新。下載和安裝均需要你的確認。",
+  "connection": {
+    "loading": "正在讀取更新狀態…",
+    "retry": "重新連接更新器"
+  },
+  "action": {
+    "failed": "更新操作未完成，請查看更新狀態後重試。"
+  },
+  "check": {
+    "action": "檢查更新"
+  },
+  "download": {
+    "action": "下載更新",
+    "cancel": "取消下載"
+  },
+  "install": {
+    "action": "重新啟動並安裝",
+    "blocked": "請先完成或取消正在執行的後台任務，再重新啟動安裝。",
+    "title": "正在準備重啟 Knovum",
+    "description": "正在儲存修改並安裝已驗證的更新，請勿關閉應用程式。"
+  },
+  "available": {
+    "review": "查看更新",
+    "title": "發現新版本 {version}",
+    "notes": "更新說明"
+  },
+  "status": {
+    "disabled": "目前建置未啟用更新。",
+    "idle": "可以檢查更新。",
+    "checking": "正在檢查更新…",
+    "current": "Knovum 已是最新版本。",
+    "available": "請查看更新說明，再下載簽章更新包。",
+    "downloading": "正在下載更新…",
+    "verifying": "正在驗證更新簽章…",
+    "ready": "更新已下載並通過驗證，可在準備好後重新啟動安裝。",
+    "installing": "正在安裝更新…"
+  },
+  "failure": {
+    "check": "無法檢查更新。請檢查網路連線後重試。",
+    "download": "下載失敗。請檢查網路連線和可用空間後重試。",
+    "signature": "更新簽章無效，已拒絕安裝。請等待發布者修復後重新檢查更新。",
+    "install": "安裝失敗，修改已儲存。請檢查權限及可用儲存空間後重新檢查更新。"
+  }
+}

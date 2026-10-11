@@ -1,0 +1,23 @@
+{
+  "authorization": {
+    "label": "Autorización",
+    "none": "Sin autorización",
+    "secretFields": "Encabezados secretos y variables de entorno.",
+    "clientId": "ID de cliente público (déjelo en blanco para el registro automático)",
+    "fieldNames": "Nombres de campos secretos (separados por espacios)"
+  },
+  "cleanupPending": "Desconectado · Limpieza de credenciales pendiente",
+  "authorized": "Autorizado",
+  "required": "Se requiere autorización",
+  "authorizeInBrowser": "Autorizar en el navegador",
+  "authorize": "Autorizar",
+  "disconnect": "Desconectar y eliminar credenciales locales",
+  "name": "Nombre para mostrar de la cuenta",
+  "add": "Agregar cuenta",
+  "billingHint": "Los servicios externos podrán cobrar por separado; Estos cargos no están incluidos en el uso del token de aplicación.",
+  "pending": "La autorización está en curso. Complétalo o cancélalo antes de abandonar esta página.",
+  "discard": {
+    "title": "¿Descartar la información de la cuenta no guardada?",
+    "description": "Se borrarán los campos de autorización o nombre de cuenta no enviados."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "task": "미디어 분석",
+  "preparing": "미디어 준비 중",
+  "unavailable": "기간 및 파형은 아직 사용할 수 없습니다.",
+  "audioPreparing": "오디오 준비 중",
+  "transcribing": "로컬에서 전사하는 중",
+  "organizing": "장 및 요약 만들기",
+  "knowledge": {
+    "title": "미디어 지식",
+    "pending": "백그라운드 분석 대기열에 제출되었습니다.",
+    "stale": "분석 데이터가 소스 파일과 동기화되지 않았습니다. 재분석해주세요."
+  },
+  "summary": "요약",
+  "inProgress": "백그라운드에서 미디어 분석 중…",
+  "insights": {
+    "unavailable": "성적 증명서 데이터를 사용할 수 없습니다. 먼저 언론을 분석해 보세요.",
+    "generate": "장 및 요약 생성"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Nombre de la conexión",
+  "configuration": {
+    "headers": "Encabezados de solicitud",
+    "environment": "Variables de entorno",
+    "secretsHint": "Sólo configuración pública. Configure tokens y otras credenciales en Autorización después de guardar.",
+    "invalidName": "Introduzca un nombre de campo sin espacios iniciales ni finales.",
+    "duplicateName": "Los nombres de los campos deben ser únicos. Los nombres de encabezado HTTP no distinguen entre mayúsculas y minúsculas.",
+    "fieldName": "Nombre",
+    "fieldValue": "Valor",
+    "fieldNameAt": "Nombre del campo {index}",
+    "fieldValueAt": "Valor del campo {index}",
+    "removeField": "Eliminar campo {index}",
+    "addHeader": "Agregar encabezado",
+    "addVariable": "Agregar variable",
+    "serverUrl": "URL del servidor",
+    "authorizationHint": "Elija el método de autorización requerido por el servidor. Las credenciales se configuran por separado después de guardarlas.",
+    "advanced": "Variables de entorno y encabezados"
+  },
+  "transport": "Transporte",
+  "allowLocalNetwork": "Permitir el acceso al host local configurado o a la dirección LAN",
+  "tools": {
+    "policyHint": "Las herramientas están denegadas de forma predeterminada. Verifique usted mismo las herramientas de solo lectura; Las etiquetas del servidor son solo afirmaciones. La investigación solo puede utilizar herramientas que usted marque como de solo lectura.",
+    "policy": "Política de invocación",
+    "deny": "Denegar",
+    "confirm": "Confirmar cada invocación",
+    "allow": "Permitir",
+    "reviewedReadOnly": "Revisado como de solo lectura",
+    "serverReadOnlyHint": "El servidor afirma que es de solo lectura",
+    "savePermissions": "Guardar permisos de herramienta"
+  },
+  "account": {
+    "label": "Cuenta utilizada por esta conexión",
+    "none": "Sin vinculación a cuenta",
+    "changeHint": "Al cambiar de cuenta se borran los permisos de la herramienta. Revise los permisos antes de volver a utilizar la conexión."
+  },
+  "add": "Agregar conexión",
+  "configure": "Configurar",
+  "accountsAndTools": "Cuentas y herramientas",
+  "check": "Comprobar conexión y leer catálogo.",
+  "empty": "No hay conexiones para este servicio.",
+  "cleanupPending": "Los cambios se guardaron, pero la limpieza está incompleta. Las cuentas afectadas siguen no disponibles.",
+  "delete": {
+    "title": "¿Eliminar conexión {name}?",
+    "description": "Sólo se elimina esta conexión. Se mantienen otras conexiones al servicio."
+  },
+  "accounts": "Cuentas",
+  "title": "Conexiones",
+  "addServer": "Agregar servidor MCP",
+  "description": "Configure los servicios, cuentas y permisos de herramientas de MCP. Los servicios complementarios se configuran como parte de su paquete.",
+  "emptyServers": "Sin servidores MCP",
+  "emptyHint": "Agregue su servidor MCP. Configure los servicios proporcionados por el complemento dentro del complemento de su propiedad.",
+  "serviceAndAccounts": "Administrar servicios y cuentas.",
+  "configureServiceFirst": "Primero complete la configuración de este servicio.",
+  "conflict": "Esta conexión cambió en otros lugares. Tus ediciones se conservan. Deséchelos y vuelva a abrir la conexión antes de guardar.",
+  "saveBeforeCheck": "Guarde sus cambios antes de cambiar de cuenta o consultar el catálogo nuevamente.",
+  "services": "Servicios"
+}

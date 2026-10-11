@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "大綱",
+    "empty": "新增到畫布的內容會顯示在這裡。"
+  },
+  "editorOutline": {
+    "title": "文件大綱"
+  },
+  "rightSidebarViews": "右側欄視圖",
+  "rename": {
+    "nameRequired": "請輸入名稱。",
+    "failed": "名稱未能儲存，請按 Enter 重試。"
+  }
+}

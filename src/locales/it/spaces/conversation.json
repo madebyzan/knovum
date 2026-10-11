@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "Nessun contenuto testuale nella posizione di origine.",
+    "open": "Localizza alla fonte"
+  },
+  "title": "Conversazione",
+  "agents": {
+    "builtinAgent": "Agente Knovum",
+    "desktop": "Agenti desktop",
+    "select": "Scegli un agente",
+    "noModel": "Abilita un modello che supporti la chiamata degli strumenti nelle impostazioni AI.",
+    "manage": "Configura modelli e agenti..."
+  },
+  "empty": {
+    "title": "Prova una di queste attività",
+    "topic": "[argomento]",
+    "search": "Trova fonti",
+    "searchPrompt": "Trova le fonti su {topic} in quest'area di lavoro ed elenca da dove provengono ciascuna.",
+    "document": "Crea un documento",
+    "documentPrompt": "Crea un documento di panoramica modificabile dalle fonti su {topic} in questa area di lavoro.",
+    "compare": "Confronta idee",
+    "comparePrompt": "Confronta le idee su {topic} in questo spazio di lavoro, compresi i punti comuni, le differenze e le prove."
+  },
+  "input": {
+    "placeholder": "Descrivi un compito per l'agente...",
+    "send": "Invia",
+    "shortcutHint": "Invio"
+  },
+  "conversations": {
+    "preparing": "Avvio conversazione…",
+    "create": "Nuova conversazione",
+    "history": "Cronologia conversazioni",
+    "none": "Ancora nessuna conversazione",
+    "actions": "Azioni di conversazione",
+    "exportFailed": "Impossibile esportare la conversazione",
+    "deleteConfirm": "Eliminare \"{title}\" e la relativa cronologia delle attività? Questa operazione non può essere annullata.",
+    "search": "Cerca conversazioni",
+    "archived": "Archiviato",
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "viewArchived": "Visualizza conversazioni archiviate",
+    "backToRecent": "Torniamo alle conversazioni recenti",
+    "branch": "Diramazione qui",
+    "branchNumber": "Ramo {number}",
+    "regenerateAttachments": "Ricollega le risorse originali prima di inviare nuovamente questa richiesta",
+    "branchCreated": "Passato alla nuova filiale",
+    "returnToRunning": "È in esecuzione un'attività di conversazione. Ritorna alla sua conversazione."
+  },
+  "evidence": {
+    "sourceRationale": "Fonti ed evidenze",
+    "ask": "Fai una domanda",
+    "useCurrent": "Utilizza la selezione corrente come prova",
+    "remove": "Rimuovi prove",
+    "stale": "La versione della fonte delle prove è cambiata",
+    "extract": "Estrai come prova"
+  },
+  "attachments": {
+    "add": "Aggiungi risorsa",
+    "attached": "Risorse allegate, scorri orizzontalmente per vedere di più",
+    "citeCanvasNode": "Contenuto dell'area di riferimento",
+    "citeCanvasNodeHint": "Scegli il contenuto da questa area di lavoro",
+    "canvasNodeShort": "Riferimento Canvas",
+    "uploadLocalFile": "Aggiungi file locale",
+    "uploadLocalFileHint": "Immagini, PDF o documenti",
+    "localFileShort": "File locale",
+    "dropFiles": "Rilascia i file da allegare",
+    "limit": "Puoi allegare fino a 32 elementi a un messaggio.",
+    "addCurrentSelection": "Aggiungi la selezione corrente ({count})",
+    "search": "Cerca risorse in quest'area di lavoro",
+    "none": "Nessuna risorsa corrispondente",
+    "remove": "Rimuovi risorsa: {name}",
+    "preview": "Risorsa di anteprima: {name}"
+  },
+  "uploads": {
+    "sizeError": "I file non possono essere vuoti. Le immagini devono avere una dimensione massima di 10 MiB; altri file al massimo 20 MiB.",
+    "typeError": "Questo tipo di file non è supportato. Scegli un'immagine, testo, PDF o un documento Office.",
+    "invalidError": "Impossibile leggere questo file. Controllane il contenuto e il formato.",
+    "permissionError": "Questo file non è disponibile. Selezionalo di nuovo nella finestra di dialogo del file di sistema.",
+    "reacquire": "Seleziona nuovamente questi file esterni per ricollegarli: {names}"
+  },
+  "tasks": {
+    "waitingForResult": "In attesa che l’operazione finisca…",
+    "failed": "L'attività di conversazione non è riuscita. Ritorna alla conversazione per i dettagli.",
+    "paused": "Questa attività è sospesa. Puoi continuarlo quando sei pronto.",
+    "resume": "Riprendi attività",
+    "modelOutcomeUnknown": "La richiesta del modello si è conclusa senza un risultato recuperabile. L'esecuzione attende la tua decisione.",
+    "modelResponseUncommitted": "Il modello ha risposto, ma il risultato della sua esecuzione non è stato confermato. Il ripristino automatico non può continuare in sicurezza.",
+    "modelUsageUnknown": "Il modello ha risposto senza informazioni sull'utilizzo. Ulteriori chiamate di modelli sono state interrotte.",
+    "modelRetryCost": "Proseguendo è possibile inviare un'altra richiesta a pagamento. Le accuse precedenti rimangono registrate o sconosciute.",
+    "retryModel": "Autorizzare un nuovo tentativo di modello"
+  },
+  "response": {
+    "stopped": "Fermato",
+    "incomplete": "Risposta incompleta"
+  },
+  "outputs": {
+    "added": "Aggiunto alla tela · {count}"
+  },
+  "messages": {
+    "copy": "Copia messaggio",
+    "copied": "Copiato",
+    "copyFailed": "Impossibile copiare il messaggio. Riprova.",
+    "new": "Vai all'ultima ↓",
+    "loadOlder": "Carica messaggi precedenti"
+  },
+  "regenerate": "Rigenera",
+  "stop": "Fermare",
+  "sources": "Fonti · {count}",
+  "actions": {
+    "viewCreated": "Localizza risultato"
+  },
+  "activity": {
+    "generating": "Generazione di risposta…",
+    "running": "Funzionante · Azione {count} | Funzionante · Azioni {count}",
+    "finished": "Completato · Azione {count} | Completato · Azioni {count}",
+    "recorded": "Attività · Azione {count} | Attività · Azioni {count}",
+    "tool": "Azione strumento",
+    "invalidResult": "Impossibile visualizzare i risultati della ricerca",
+    "noSources": "Nessuna fonte corrispondente",
+    "plan": "Piano"
+  },
+  "askSelection": "Chiedi selezione",
+  "extensions": {
+    "label": "Estensioni di conversazione",
+    "unavailable": "Un'estensione selezionata non è disponibile. Rivedi la selezione.",
+    "clearSelection": "Cancella selezione estensione",
+    "manage": "Gestisci estensioni",
+    "empty": "Nessuna estensione disponibile. Aggiungili nelle impostazioni."
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "L'operazione esterna necessita di approvazione",
+      "allow": "Consenti",
+      "deny": "Nega"
+    },
+    "outcomeUnknown": {
+      "title": "Risultato esterno sconosciuto",
+      "retry": "Checked; consentire il nuovo tentativo",
+      "stop": "Interrompi attività",
+      "description": "L'operazione potrebbe essere stata completata. Controllare il servizio prima di autorizzare un nuovo tentativo."
+    },
+    "attempt": "Tentativo",
+    "history": {
+      "title": "Storico strumento",
+      "empty": "Nessuna operazione con lo strumento ancora"
+    },
+    "progress": "Progresso"
+  },
+  "interactions": {
+    "title": "Il servizio esterno necessita di input",
+    "openAuthorizationPage": "Apri pagina di autorizzazione",
+    "submit": "Invia",
+    "decline": "Rifiuta",
+    "invalid": "Il servizio esterno ha inviato un modulo non valido."
+  },
+  "extensionResources": {
+    "import": "Importa nello spazio",
+    "select": "Scegli una risorsa",
+    "readOnly": "Questo spazio di lavoro è di sola lettura"
+  }
+}

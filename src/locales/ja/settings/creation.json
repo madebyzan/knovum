@@ -1,0 +1,36 @@
+{
+  "title": "創造",
+  "description": "作成プリセットと画像レイヤーの分割に使用されるサービスを管理します。",
+  "presets": {
+    "title": "生成プリセット",
+    "description": "コンテンツ作成用に保存されたモデル設定。",
+    "empty": "生成プリセットはまだ保存されていません。",
+    "deleteConfirm": "このプリセットを削除しますか?",
+    "name": "プリセット名",
+    "edit": "生成プリセットの編集",
+    "discardTitle": "プリセットの変更を破棄しますか?",
+    "discardDescription": "この世代のプリセットに対する保存されていない変更は失われます。"
+  },
+  "parameters": "パラメータ",
+  "copyName": "{name}コピー",
+  "saveFailed": "作成設定を保存できませんでした",
+  "knowledgeActions": {
+    "groundedAnswer": "根拠のある回答",
+    "structureDocument": "構造化ドキュメント",
+    "writeScript": "スクリプト",
+    "summarizeMeeting": "会議の概要",
+    "writeSocialCopy": "ソーシャル コピー",
+    "visualization": "視覚化",
+    "createCompanionImage": "コンパニオン イメージ",
+    "generateVideo": "生成されたビデオ",
+    "extractSubtitles": "字幕抽出",
+    "renderSubtitledVideo": "字幕付きビデオ",
+    "renderPresentation": "プレゼンテーション"
+  },
+  "imageLayers": {
+    "title": "画像レイヤー分割",
+    "description": "画像レイヤーを分割するには fal を接続します。",
+    "apiKey": "fal API キー",
+    "apiKeyDescription": "このデバイスにのみ保存されます。"
+  }
+}

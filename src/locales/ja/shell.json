@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "コマンド パレット",
+    "searchPlaceholder": "検索コマンド…",
+    "noMatches": "一致するコマンドはありません"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "何も元に戻せません",
+    "nothingToRedo": "何もやり直すことはありません",
+    "noSelection": "最初にコンテンツを選択",
+    "notEnoughScenes": "他のシーンはありません",
+    "selectionNotEligible": "この選択ではアクションを使用できません",
+    "checking": "可用性を確認中",
+    "busy": "操作が進行中です"
+  },
+  "toggleRightSidebar": "右サイドバーの表示または非表示",
+  "toggleSidebar": "サイドバーの切り替え",
+  "layoutSaveFailed": "ワークベンチのレイアウトを保存できませんでした",
+  "shortcuts": {
+    "title": "キーボード ショートカット",
+    "search": "検索ショートカット",
+    "categories": {
+      "general": "全般",
+      "navigation": "ナビゲーション",
+      "canvas": "キャンバス",
+      "editing": "編集"
+    },
+    "noMatches": "一致するショートカットはありません"
+  },
+  "startup": {
+    "starting": "Knovum を開始しています…"
+  }
+}

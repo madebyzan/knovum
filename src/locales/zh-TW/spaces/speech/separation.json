@@ -1,0 +1,15 @@
+{
+  "task": "人聲與背景分離",
+  "title": "人聲與背景分離",
+  "stems": {
+    "vocals": "人聲",
+    "background": "背景聲"
+  },
+  "background": "分離的背景聲",
+  "running": "正在分離",
+  "starting": "準備分離…",
+  "cancelling": "正在取消…",
+  "completed": "人聲與背景聲已加入畫布",
+  "sourceUnavailable": "音訊資訊尚未就緒",
+  "tooLong": "請選擇不超過 10 分鐘的音頻"
+}

@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "AI 寫作",
+    "selectText": "請先選中文字內容。",
+    "failed": "AI 生成失敗",
+    "applyFailed": "應用 AI 結果失敗",
+    "actions": {
+      "adjustTone": "調整語氣",
+      "fixGrammar": "文法與拼字校對",
+      "extend": "文字擴寫",
+      "reduce": "精簡凝練",
+      "simplify": "簡化表述",
+      "emojify": "添加 Emoji",
+      "improve": "潤飾優化",
+      "complete": "智慧續寫",
+      "summarize": "生成總結",
+      "translate": "翻譯"
+    },
+    "tones": {
+      "academic": "學術嚴謹",
+      "business": "專業",
+      "casual": "隨意",
+      "confident": "自信堅定",
+      "creative": "創意富有想像",
+      "friendly": "親切友善",
+      "humorous": "幽默風趣",
+      "informative": "清晰易懂",
+      "inspirational": "鼓舞人心",
+      "objective": "客觀中立",
+      "persuasive": "具說服力"
+    },
+    "needContext": "請選取文字或將遊標置於段落末尾作為上下文。"
+  },
+  "find": {
+    "title": "尋找文本",
+    "placeholder": "在目前文檔中尋找…",
+    "previous": "上一個匹配項",
+    "next": "下一個匹配項",
+    "toggleReplace": "顯示替換",
+    "replace": "替換",
+    "replaceAll": "全部替換",
+    "replacePlaceholder": "替換為…"
+  },
+  "paragraph": "正文",
+  "heading1": "一級標題",
+  "heading2": "二級標題",
+  "heading3": "三級標題",
+  "heading4": "四級標題",
+  "heading5": "五級標題",
+  "heading6": "六級標題",
+  "headings": {
+    "menu": "文字排版"
+  },
+  "bold": "加粗",
+  "italic": "斜體",
+  "underline": "底線",
+  "strike": "刪除線",
+  "inlineCode": "行內程式碼",
+  "horizontalRule": "分隔線",
+  "highlight": "高亮",
+  "superscript": "上標",
+  "subscript": "下標",
+  "align": {
+    "left": "左對齊",
+    "center": "居中對齊",
+    "right": "右對齊",
+    "justify": "兩端對齊"
+  },
+  "highlightColor": {
+    "yellow": "黃色",
+    "green": "綠色",
+    "blue": "藍色",
+    "pink": "粉紅色",
+    "clear": "清除高亮"
+  },
+  "image": {
+    "insert": "插入圖片",
+    "tabUpload": "本地文件",
+    "tabUrl": "URL",
+    "url": "圖片 URL",
+    "alt": "圖片說明",
+    "choose": "選擇本地圖片",
+    "uploadFailed": "圖片插入失敗",
+    "dropDocumentHint": "選擇文件或拖曳圖片至文件編輯器。",
+    "altPlaceholder": "為使用螢幕閱讀器的使用者描述圖片",
+    "dropNow": "鬆開即可插入圖片",
+    "urlInvalid": "請輸入有效的 http:// 或 https:// 圖片位址。",
+    "insertFailed": "插入圖片失敗"
+  },
+  "link": {
+    "label": "超連結",
+    "placeholder": "輸入或貼上 URL 鏈接",
+    "remove": "移除連結",
+    "editorTitle": "編輯連結",
+    "editorDescription": "為選取文字新增網頁或郵件信箱連結。",
+    "url": "連結地址",
+    "invalid": "請輸入有效的 HTTP、HTTPS 或 mailto 格式連結。",
+    "open": "訪問",
+    "updateFailed": "更新連結失敗",
+    "openFailed": "無法開啟連結"
+  },
+  "bulletList": "無序列表",
+  "orderedList": "有序列表",
+  "taskList": "任務清單",
+  "blockquote": "引用區塊",
+  "listMenu": "清單樣式",
+  "table": {
+    "title": "表格",
+    "addRow": "下方插入行",
+    "addColumn": "右側插入列",
+    "delete": "刪除表格"
+  },
+  "words": "詞數",
+  "characters": "字元數"
+}

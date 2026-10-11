@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "命令面板",
+    "searchPlaceholder": "搜尋指令…",
+    "noMatches": "未找到匹配的命令"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "沒有可撤銷的操作",
+    "nothingToRedo": "沒有可重做的操作",
+    "noSelection": "請先選擇內容",
+    "notEnoughScenes": "目前沒有其他場景",
+    "selectionNotEligible": "當前選擇不支援此操作",
+    "checking": "正在檢查可用性",
+    "busy": "操作正在進行中"
+  },
+  "toggleRightSidebar": "顯示或隱藏右側欄",
+  "toggleSidebar": "切換側邊欄",
+  "layoutSaveFailed": "無法儲存工作台佈局",
+  "shortcuts": {
+    "title": "快速鍵",
+    "search": "搜尋快速鍵",
+    "categories": {
+      "general": "一般",
+      "navigation": "導航",
+      "canvas": "畫布",
+      "editing": "編輯"
+    },
+    "noMatches": "未找到符合的快速鍵"
+  },
+  "startup": {
+    "starting": "正在啟動知生知…"
+  }
+}

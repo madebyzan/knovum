@@ -1,0 +1,39 @@
+{
+  "title": "Dados",
+  "description": "Crie e restaure backups completos dos dados gerenciados do Knovum.",
+  "tasksActive": "Conclua ou cancele tarefas ativas antes de iniciar a manutenção dos dados.",
+  "backup": {
+    "title": "Backup",
+    "description": "Cria um arquivo consistente enquanto Knovum reinicia no modo de manutenção.",
+    "contentsTitle": "Dados gerenciados",
+    "contentsDescription": "Inclui espaços de trabalho, histórico de uso, preferências, espaço de trabalho gerenciado e ativos de voz e extensões instaladas. Credenciais, modelos baixados, tempos de execução, caches e logs são excluídos.",
+    "action": "Criar backup",
+    "confirmTitle": "Reiniciar Knovum para criar este backup?",
+    "confirmDescription": "Knovum salvará as alterações pendentes, reiniciará, criará o backup selecionado antes de abrir seus bancos de dados e continuará a inicialização. As execuções ativas e os trabalhos de processamento devem ser concluídos ou cancelados primeiro.",
+    "failed": "Não foi possível iniciar o backup"
+  },
+  "restore": {
+    "title": "Restaurar backup",
+    "description": "Valida o arquivo completo antes de substituir os dados gerenciados, com reversão se a publicação falhar. Backups completos são restaurados apenas no mesmo local de dados Knovum; use pacotes de espaço de trabalho para mover espaços de trabalho entre instalações.",
+    "credentialsTitle": "As credenciais nunca são restauradas",
+    "credentialsDescription": "A restauração remove as credenciais salvas atuais para evitar que autorizações antigas correspondam aos registros restaurados. Configure novamente as credenciais do provedor e do conector.",
+    "action": "Restaurar backup",
+    "confirmTitle": "Reiniciar Knovum e restaurar este backup?",
+    "confirmDescription": "Knovum salvará as alterações pendentes e reiniciará. O arquivo deve corresponder exatamente a esta versão. Os dados gerenciados atuais permanecem disponíveis para reversão até que a restauração seja bem-sucedida.",
+    "failed": "A restauração não pôde ser iniciada"
+  },
+  "receipt": {
+    "backup": {
+      "success": "Backup criado",
+      "failed": "Falha no backup"
+    },
+    "restore": {
+      "success": "Backup restaurado",
+      "failed": "Falha na restauração"
+    },
+    "credentials": "As credenciais não foram incluídas. Configure novamente as credenciais do provedor e do conector antes de usá-las.",
+    "exclusions": "Credenciais, modelos baixados, tempos de execução, caches e logs foram excluídos.",
+    "readFailed": "O resultado da manutenção não pôde ser lido",
+    "acknowledgeFailed": "O resultado da manutenção não pôde ser descartado"
+  }
+}

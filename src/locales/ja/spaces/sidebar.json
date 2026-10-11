@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "アウトライン",
+    "empty": "キャンバスに追加されたアイテムがここに表示されます。"
+  },
+  "editorOutline": {
+    "title": "ドキュメント アウトライン"
+  },
+  "rightSidebarViews": "右側のサイドバー ビュー",
+  "rename": {
+    "nameRequired": "名前を入力してください。",
+    "failed": "名前を保存できませんでした。 Enter キーを押して再試行してください。"
+  }
+}

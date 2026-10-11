@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "{count} 項目が選択されました",
+  "title": "詳細",
+  "basicInformation": "全般",
+  "showSource": "ソース ビュー",
+  "fields": {
+    "type": "タイプ",
+    "source": "ソース",
+    "size": "サイズ",
+    "originalUrl": "元の URL",
+    "provider": "プラットフォーム",
+    "siteName": "Web サイト",
+    "description": "説明",
+    "canonicalUrl": "正規 URL",
+    "modified": "変更日"
+  },
+  "extractedDocumentText": "抽出されたテキスト",
+  "visualDetectedText": "OCR 認識テキスト",
+  "excerpts": {
+    "title": "抜粋・{title}",
+    "line": "— {title} · {location}",
+    "content": "内容の抜粋"
+  },
+  "openSource": "ソース ノードの検索",
+  "targetSpace": "ターゲット スペース",
+  "none": "未設定",
+  "renameHint": "クリックして名前を変更",
+  "openContent": "コンテンツを開く",
+  "content": "コンテンツ",
+  "playVideo": "ビデオの再生",
+  "related": {
+    "title": "関連コンテンツ",
+    "show": "もっと見る",
+    "showLess": "表示を減らす",
+    "unavailable": "関連コンテンツは一時的に利用できなくなります。",
+    "indexing": "コンテンツインデックスを構築します。準備が整うと、関連コンテンツが表示されます。",
+    "notIndexed": "この項目には関連コンテンツがまだ用意されていません。",
+    "prepare": "今すぐ準備",
+    "noContent": "このアイテムにはまだ検索可能なコンテンツがありません。",
+    "empty": "このワークスペースにはまだ関連コンテンツがありません。",
+    "explanation": "このワークスペース内の関連コンテンツを意味別に見つけます。結果はつながりを生み出しません。"
+  },
+  "containedItems": "{count} に含まれるアイテム"
+}

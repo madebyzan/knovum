@@ -1,0 +1,19 @@
+{
+  "task": "Medienanalyse",
+  "preparing": "Medien werden vorbereitet",
+  "unavailable": "Dauer und Wellenform sind noch nicht verfügbar",
+  "audioPreparing": "Audio wird vorbereitet",
+  "transcribing": "Lokal transkribieren",
+  "organizing": "Erstellen von Kapiteln und Zusammenfassungen",
+  "knowledge": {
+    "title": "Medienwissen",
+    "pending": "An die Hintergrundanalyse-Warteschlange gesendet.",
+    "stale": "Die Analysedaten stimmen nicht mit der Quelldatei überein. Bitte analysieren Sie noch einmal."
+  },
+  "summary": "Zusammenfassung",
+  "inProgress": "Medien im Hintergrund analysieren…",
+  "insights": {
+    "unavailable": "Transkriptdaten sind nicht verfügbar; Bitte analysieren Sie zuerst die Medien.",
+    "generate": "Generieren Sie Kapitel und Zusammenfassungen"
+  }
+}

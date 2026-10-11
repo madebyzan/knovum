@@ -1,0 +1,11 @@
+{
+  "bootstrap": {
+    "title": "Avvio fallito",
+    "description": "Impossibile avviare Knovum perché i servizi o le impostazioni principali non sono stati caricati."
+  },
+  "feature": {
+    "title": "Impossibile visualizzare questo contenuto",
+    "description": "Puoi riaprire quest'area o navigare altrove.",
+    "reopen": "Riapri contenuto"
+  }
+}

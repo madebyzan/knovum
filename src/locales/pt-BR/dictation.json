@@ -1,0 +1,25 @@
+{
+  "recording": "Ouvindo… solte o atalho para transcrever",
+  "transcribing": "Transcrever ditado…",
+  "errors": {
+    "microphonePermissionDenied": "O acesso ao microfone foi negado. Permitir acesso ao microfone para Knovum nas configurações do sistema.",
+    "microphoneUnavailable": "O microfone ficou indisponível. Verifique o dispositivo de entrada selecionado e tente novamente.",
+    "recordingLimitReached": "A gravação atingiu o limite de dois minutos e foi cancelada.",
+    "audioCaptureEmpty": "O microfone não capturou nenhum áudio.",
+    "unsupportedAudioFormat": "O formato de microfone selecionado não é compatível com ditado.",
+    "unsupportedDevice": "Este dispositivo não possui um perfil de ditado de desktop qualificado.",
+    "dictationFocusChanged": "O aplicativo de destino foi alterado e nenhum texto foi inserido.",
+    "dictationPermissionDenied": "O sistema operacional bloqueou a inserção de texto. O texto reconhecido é preservado abaixo.",
+    "dictationEmptyResult": "Nenhum texto inserível foi reconhecido.",
+    "dictationInsertionFailed": "Falha na inserção de texto. O texto reconhecido é preservado abaixo.",
+    "dictationFailed": "O ditado não pôde ser concluído."
+  },
+  "result": {
+    "title": "Resultado do ditado",
+    "description": "A inserção automática não foi concluída. O texto reconhecido é preservado aqui.",
+    "noText": "Nenhum texto foi reconhecido.",
+    "copy": "Copiar texto",
+    "copied": "Ditado copiado"
+  },
+  "preparingResources": "Preparando recursos locais para ditado…"
+}

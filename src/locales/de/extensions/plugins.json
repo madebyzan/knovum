@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "Quelle",
+    "localDirectory": "Lokales Verzeichnis",
+    "location": "URL oder absoluter Pfad",
+    "gitReference": "Git-Referenz (HEAD, vollständige Referenz oder Commit)",
+    "subdirectory": "Paketunterverzeichnis",
+    "install": "Von Quelle installieren",
+    "description": "Wählen Sie ein lokales Paket oder ein Remote-Paket URL und überprüfen Sie es vor der Installation.",
+    "revision": "Quellenrevision"
+  },
+  "installation": {
+    "preview": "Vorschau",
+    "authorizationHint": "Durch die Installation werden keine Dienste gestartet oder Konten autorisiert. Konfigurieren Sie Verbindungen und Werkzeugberechtigungen separat.",
+    "install": "Installieren",
+    "title": "Installation überprüfen",
+    "incomplete": "Dieses Plugin verfügt über keine nutzbare Funktion oder enthält eine nicht unterstützte erforderliche Komponente."
+  },
+  "update": {
+    "action": "Aktualisieren",
+    "revisionChange": "Änderungen der Quellrevision",
+    "added": "Hinzugefügte Komponenten",
+    "removed": "Entfernte Komponenten",
+    "check": "Nach Updates suchen",
+    "title": "Update überprüfen"
+  },
+  "bundled": "Im Lieferumfang von Knovum enthalten",
+  "verification": {
+    "unverified": "Identität des Herausgebers nicht bestätigt",
+    "title": "Paketverifizierung"
+  },
+  "uninstall": {
+    "action": "Deinstallieren",
+    "title": "{name} deinstallieren?",
+    "description": "Dadurch werden das Plugin und seine Funktionen entfernt. Sie können es später erneut installieren."
+  },
+  "catalogs": {
+    "sourceType": "Katalogquellentyp",
+    "add": "Katalogquelle hinzufügen",
+    "all": "Alle Quellen",
+    "title": "Kataloge verwalten",
+    "description": "Fügen Sie Kataloge hinzu oder aktualisieren Sie sie, die verfügbare Plugins auflisten.",
+    "empty": {
+      "title": "Keine Plugins zu entdecken",
+      "description": "Durchsuchen Sie den gebündelten Katalog oder fügen Sie eine weitere Plugin-Quelle hinzu."
+    },
+    "remove": {
+      "title": "Katalog entfernen?",
+      "description": "Dieser Katalog wird nicht mehr in Discovery angezeigt. Installierte Plugins bleiben erhalten."
+    }
+  },
+  "discovery": {
+    "title": "Plugins entdecken",
+    "installed": "Installiert · Anzeigen"
+  },
+  "empty": {
+    "title": "Keine installierten Plugins",
+    "description": "Entdecken Sie Plugins oder installieren Sie sie von einer lokalen oder Remote-Quelle."
+  },
+  "tasks": {
+    "inspect": "Plugin prüfen",
+    "install": "Plugin installieren",
+    "update": "Plugin aktualisieren",
+    "catalog": "Plugin-Katalog lesen",
+    "cancelled": "Plugin-Vorgang abgebrochen"
+  },
+  "stages": {
+    "reading": "Lesepaket oder Katalog",
+    "validating": "Paketinhalt wird validiert",
+    "committing": "Änderungen werden übernommen"
+  },
+  "title": "Installierte Plugins",
+  "search": {
+    "empty": "Keine passenden Ergebnisse",
+    "hint": "Versuchen Sie es mit einem anderen Schlüsselwort oder löschen Sie die Suche."
+  },
+  "disable": "Deaktivieren Sie {name}",
+  "enable": "Aktivieren Sie {name}",
+  "actions": "Plugin-Aktionen",
+  "capabilities": "Enthaltene Funktionen"
+}

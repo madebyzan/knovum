@@ -1,0 +1,30 @@
+{
+  "title": "Задачи",
+  "summary": "Задачи, всего {count}",
+  "scopeFilter": "Объем задачи",
+  "all": "Все",
+  "currentSpace": "Текущее пространство",
+  "empty": "Нет задач",
+  "emptyCurrentSpace": "В этой рабочей области нет задач.",
+  "scope": "Пространство",
+  "subject": "Элемент",
+  "status": {
+    "queued": "В очереди",
+    "running": "Работает",
+    "attention": "Требует внимания",
+    "failed": "Ошибка",
+    "succeeded": "Завершено",
+    "cancelled": "Отменено"
+  },
+  "clearCompleted": "Очистить завершено",
+  "openSubject": "Открыть связанный элемент",
+  "dismiss": "Отключить",
+  "cancel": "Отменить задачу",
+  "cancelling": "Отмена…",
+  "forceDismiss": "Удалить из списка",
+  "failed": "Эту задачу выполнить не удалось.",
+  "verifyingResource": "Проверка целостности…",
+  "preparingLocalInference": "Подготовка локальных компонентов AI…",
+  "localResourceDownloadSize": "Для первого использования требуется {size} загрузок локальных ресурсов.",
+  "installingResource": "Установка локальных ресурсов…"
+}

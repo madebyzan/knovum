@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "キャンバス ツール",
+    "select": "選択",
+    "section": "描画セクション"
+  },
+  "nodeActions": {
+    "label": "ノード アクション",
+    "openOriginal": "オリジナルを開く",
+    "goToTarget": "ターゲットに移動",
+    "viewLarge": "画像を表示",
+    "openVideo": "ビデオを開く",
+    "openAudio": "オープン オーディオ",
+    "viewCode": "コードの表示",
+    "openFile": "ファイルを開く",
+    "export": "エクスポート"
+  },
+  "zoom": {
+    "out": "ズームアウト",
+    "in": "ズームイン",
+    "options": "ズーム オプション",
+    "toFitContent": "コンテンツに合わせてズームする",
+    "toSelection": "選択範囲にズーム"
+  },
+  "arrange": {
+    "title": "アレンジ",
+    "toFront": "前面に移動",
+    "forward": "前倒し",
+    "backward": "逆方向に送信",
+    "toBack": "戻る",
+    "autoHorizontal": "自動レイアウト (水平)",
+    "autoVertical": "自動レイアウト (垂直)"
+  },
+  "layerOrder": "レイヤー順序",
+  "selection": {
+    "label": "選択",
+    "selectAll": "すべて選択",
+    "delete": "選択したものを削除",
+    "toggleLock": "選択をロックまたはロック解除する"
+  },
+  "kinds": {
+    "group": "グループ",
+    "section": "セクション"
+  },
+  "groups": {
+    "create": "グループ選択",
+    "ungroup": "選択のグループ化を解除",
+    "untitled": "無題グループ"
+  },
+  "sections": {
+    "create": "セクションの作成",
+    "createEmpty": "新しいセクション",
+    "removeOnly": "セクションのみを削除",
+    "backgroundFailed": "セクションの背景画像をロードできません",
+    "drop": {
+      "enter": "放すとセクションに移動します",
+      "leave": "放すとセクションから移動します"
+    },
+    "fitToContents": "セクションをコンテンツに合わせる",
+    "untitled": "無題セクション",
+    "collapse": "セクションを折りたたむ",
+    "expand": "セクションを展開"
+  },
+  "lock": "ロック",
+  "locked": "ロック",
+  "unlock": "ロック解除",
+  "align": {
+    "left": "左",
+    "center": "水平中心",
+    "right": "右",
+    "top": "トップ",
+    "middle": "垂直中央",
+    "bottom": "下"
+  },
+  "distribute": {
+    "horizontal": "水平方向",
+    "vertical": "垂直"
+  },
+  "nudge": {
+    "left": "左に微調整",
+    "right": "右に微調整",
+    "up": "上に軽く押し上げる",
+    "down": "ナッジダウン",
+    "leftLarge": "左に 10 ポイント移動",
+    "rightLarge": "右に 10 ポイント移動",
+    "upLarge": "10 ポイント上に移動",
+    "downLarge": "10 ポイント下に移動"
+  },
+  "relations": {
+    "connect": "接続"
+  },
+  "typography": "タイポグラフィ",
+  "noteBackground": "メモの背景",
+  "textColor": "テキストの色",
+  "fontSize": "フォント サイズ",
+  "noteFills": {
+    "yellow": "黄色",
+    "green": "緑",
+    "blue": "青",
+    "pink": "ピンク",
+    "gray": "グレー"
+  },
+  "textColors": {
+    "ink": "インク",
+    "muted": "グレー",
+    "red": "赤",
+    "blue": "青",
+    "green": "緑",
+    "purple": "紫"
+  },
+  "selectionTextColors": {
+    "default": "デフォルト",
+    "gray": "グレー",
+    "red": "赤",
+    "amber": "オレンジ",
+    "yellow": "黄色",
+    "green": "緑",
+    "teal": "ティール",
+    "cyan": "シアン",
+    "blue": "青",
+    "purple": "紫",
+    "pink": "ピンク",
+    "white": "白"
+  },
+  "textAlignments": {
+    "left": "左",
+    "center": "中心",
+    "right": "右"
+  },
+  "verticalAlignments": {
+    "top": "トップ",
+    "middle": "真ん中",
+    "bottom": "下"
+  },
+  "revealInCanvas": "キャンバスに表示",
+  "shortcuts": {
+    "panCanvas": "パン キャンバス",
+    "zoomReset": "ズームをリセット",
+    "nudgeSelection": "ナッジ選択",
+    "nudgeLarge": "10pxずつ移動"
+  },
+  "dropToSave": "ドロップして現在のワークスペースに保存します",
+  "cancelInteraction": "キャンバス インタラクションをキャンセル",
+  "htmlSandboxAssetsBlocked": "現在の HTML には {count} アセットがありません。フォルダー全体をインポートすることをお勧めします。",
+  "moveToContainer": "コンテナに移動",
+  "spaceRoot": "スペース ルート",
+  "addContent": {
+    "title": "コンテンツの追加",
+    "importFiles": "ファイルをインポート…"
+  }
+}

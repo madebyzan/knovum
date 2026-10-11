@@ -1,0 +1,12 @@
+{
+  "retrieving": "선택한 지식 읽기…",
+  "generating": "기본 문서 초안 작성 중…",
+  "generatingImage": "설명 이미지 생성 중…",
+  "submittingVideo": "비디오 생성 제출 중",
+  "generatingVideo": "비디오 생성 중",
+  "downloadingVideo": "비디오 저장",
+  "preparingSubtitles": "대본 자막 준비 중...",
+  "renderingSubtitles": "영상에 자막을 렌더링하는 중…",
+  "savingResource": "파생된 비디오 저장 중…",
+  "recognizingSubtitles": "자막 인식 중…"
+}

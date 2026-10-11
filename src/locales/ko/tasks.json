@@ -1,0 +1,30 @@
+{
+  "title": "작업",
+  "summary": "작업, 총 {count}",
+  "scopeFilter": "작업 범위",
+  "all": "모두",
+  "currentSpace": "현재 작업공간",
+  "empty": "작업 없음",
+  "emptyCurrentSpace": "이 작업공간에는 작업이 없습니다.",
+  "scope": "작업 공간",
+  "subject": "항목",
+  "status": {
+    "queued": "대기 중",
+    "running": "실행 중",
+    "attention": "주의가 필요함",
+    "failed": "실패",
+    "succeeded": "완료",
+    "cancelled": "취소됨"
+  },
+  "clearCompleted": "삭제 완료",
+  "openSubject": "관련 항목 열기",
+  "dismiss": "해제",
+  "cancel": "작업 취소",
+  "cancelling": "취소 중…",
+  "forceDismiss": "목록에서 제거",
+  "failed": "이 작업을 완료할 수 없습니다.",
+  "verifyingResource": "무결성 확인 중…",
+  "preparingLocalInference": "로컬 AI 구성요소 준비 중…",
+  "localResourceDownloadSize": "처음 사용하려면 로컬 리소스 다운로드의 {size}가 필요합니다.",
+  "installingResource": "로컬 리소스 설치 중..."
+}

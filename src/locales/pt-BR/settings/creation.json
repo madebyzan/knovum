@@ -1,0 +1,36 @@
+{
+  "title": "Criação",
+  "description": "Gerencie predefinições de criação e o serviço usado para divisão de camadas de imagens.",
+  "presets": {
+    "title": "Predefinições de geração",
+    "description": "Configurações de modelo salvas para criação de conteúdo.",
+    "empty": "Nenhuma predefinição de geração foi salva ainda.",
+    "deleteConfirm": "Excluir esta predefinição?",
+    "name": "Nome predefinido",
+    "edit": "Editar predefinição de geração",
+    "discardTitle": "Descartar alterações predefinidas?",
+    "discardDescription": "As alterações não salvas nesta predefinição de geração serão perdidas."
+  },
+  "parameters": "Parâmetros",
+  "copyName": "Cópia {name}",
+  "saveFailed": "Não foi possível salvar as configurações de criação",
+  "knowledgeActions": {
+    "groundedAnswer": "Resposta fundamentada",
+    "structureDocument": "Documento estruturado",
+    "writeScript": "Roteiro",
+    "summarizeMeeting": "Resumo da reunião",
+    "writeSocialCopy": "Cópia social",
+    "visualization": "Visualização",
+    "createCompanionImage": "Imagem complementar",
+    "generateVideo": "Vídeo gerado",
+    "extractSubtitles": "Extração de legendas",
+    "renderSubtitledVideo": "Vídeo legendado",
+    "renderPresentation": "Apresentação"
+  },
+  "imageLayers": {
+    "title": "Divisão da camada de imagem",
+    "description": "Conecte fal para divisão da camada de imagem.",
+    "apiKey": "chave API fal",
+    "apiKeyDescription": "Armazenado apenas neste dispositivo."
+  }
+}

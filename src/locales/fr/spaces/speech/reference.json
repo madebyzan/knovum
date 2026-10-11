@@ -1,0 +1,16 @@
+{
+  "title": "Audio de référence",
+  "choose": "Choisir l'audio de référence",
+  "transcript": "Transcription de référence (facultatif)",
+  "transcriptConfirmed": "La transcription correspond à l'enregistrement",
+  "requirements": "Choisissez 5 à 30 secondes de discours clair d'une seule personne.",
+  "tooShort": "Cet audio dure moins de cinq secondes. Choisissez un enregistrement de référence plus long.",
+  "start": "Début(s) de sélection",
+  "end": "Fin(s) de sélection",
+  "prepare": "Préparer la référence",
+  "play": "Sélection de lecture",
+  "sourceChanged": "La source du nœud audio a changé. Actualisez le nœud avant de préparer une référence vocale.",
+  "selection": "{seconds}s sélectionnés · Faites glisser l'une ou l'autre extrémité",
+  "prepared": "Sélection reconnue",
+  "playbackFailed": "L'audio source n'a pas pu être lu. Vérifiez que le fichier multimédia est lisible."
+}

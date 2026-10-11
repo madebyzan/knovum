@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "Ferramentas de tela",
+    "select": "Selecionar",
+    "section": "Seção de desenho"
+  },
+  "nodeActions": {
+    "label": "Ações do nó",
+    "openOriginal": "Abrir original",
+    "goToTarget": "Ir para o destino",
+    "viewLarge": "Ver imagem",
+    "openVideo": "Abrir vídeo",
+    "openAudio": "Áudio aberto",
+    "viewCode": "Ver código",
+    "openFile": "Abrir arquivo",
+    "export": "Exportar"
+  },
+  "zoom": {
+    "out": "Diminuir zoom",
+    "in": "Ampliar",
+    "options": "Opções de zoom",
+    "toFitContent": "Zoom para ajustar o conteúdo",
+    "toSelection": "Zoom para seleção"
+  },
+  "arrange": {
+    "title": "Organizar",
+    "toFront": "Trazer para frente",
+    "forward": "Trazer adiante",
+    "backward": "Enviar para trás",
+    "toBack": "Enviar para trás",
+    "autoHorizontal": "Layout automático (horizontal)",
+    "autoVertical": "Layout automático (vertical)"
+  },
+  "layerOrder": "Ordenação de camadas",
+  "selection": {
+    "label": "Seleção",
+    "selectAll": "Selecionar tudo",
+    "delete": "Excluir selecionados",
+    "toggleLock": "Bloquear ou desbloquear seleção"
+  },
+  "kinds": {
+    "group": "Grupo",
+    "section": "Seção"
+  },
+  "groups": {
+    "create": "Seleção de grupo",
+    "ungroup": "Seleção de desagrupar",
+    "untitled": "Grupo sem título"
+  },
+  "sections": {
+    "create": "Criar seção",
+    "createEmpty": "Nova seção",
+    "removeOnly": "Remover apenas seção",
+    "backgroundFailed": "Não foi possível carregar a imagem de plano de fundo da seção",
+    "drop": {
+      "enter": "Solte para passar para a seção",
+      "leave": "Solte para sair da seção"
+    },
+    "fitToContents": "Ajustar seção ao conteúdo",
+    "untitled": "Seção sem título",
+    "collapse": "Recolher seção",
+    "expand": "Expandir seção"
+  },
+  "lock": "Bloquear",
+  "locked": "Bloqueado",
+  "unlock": "Desbloquear",
+  "align": {
+    "left": "Esquerda",
+    "center": "Centro horizontal",
+    "right": "Direita",
+    "top": "Topo",
+    "middle": "Centro vertical",
+    "bottom": "Inferior"
+  },
+  "distribute": {
+    "horizontal": "Horizontalmente",
+    "vertical": "Verticalmente"
+  },
+  "nudge": {
+    "left": "Deslocar para a esquerda",
+    "right": "Deslocar para a direita",
+    "up": "Empurre para cima",
+    "down": "Empurre para baixo",
+    "leftLarge": "Mover para a esquerda 10 pontos",
+    "rightLarge": "Mover para a direita 10 pontos",
+    "upLarge": "Subir 10 pontos",
+    "downLarge": "Mover para baixo 10 pontos"
+  },
+  "relations": {
+    "connect": "Conectar"
+  },
+  "typography": "Tipografia",
+  "noteBackground": "Nota de fundo",
+  "textColor": "Cor do texto",
+  "fontSize": "Tamanho da fonte",
+  "noteFills": {
+    "yellow": "Amarelo",
+    "green": "Verde",
+    "blue": "Azul",
+    "pink": "Rosa",
+    "gray": "Cinza"
+  },
+  "textColors": {
+    "ink": "Tinta",
+    "muted": "Cinza",
+    "red": "Vermelho",
+    "blue": "Azul",
+    "green": "Verde",
+    "purple": "Roxo"
+  },
+  "selectionTextColors": {
+    "default": "Padrão",
+    "gray": "Cinza",
+    "red": "Vermelho",
+    "amber": "Laranja",
+    "yellow": "Amarelo",
+    "green": "Verde",
+    "teal": "Cerceta",
+    "cyan": "Ciano",
+    "blue": "Azul",
+    "purple": "Roxo",
+    "pink": "Rosa",
+    "white": "Branco"
+  },
+  "textAlignments": {
+    "left": "Esquerda",
+    "center": "Centro",
+    "right": "Direita"
+  },
+  "verticalAlignments": {
+    "top": "Topo",
+    "middle": "Meio",
+    "bottom": "Inferior"
+  },
+  "revealInCanvas": "Revelar na tela",
+  "shortcuts": {
+    "panCanvas": "Tela panorâmica",
+    "zoomReset": "Redefinir zoom",
+    "nudgeSelection": "Seleção de deslocamento",
+    "nudgeLarge": "Mover em 10px"
+  },
+  "dropToSave": "Solte para salvar no espaço de trabalho atual",
+  "cancelInteraction": "Cancelar interação com a tela",
+  "htmlSandboxAssetsBlocked": "O HTML atual não possui o ativo {count}. É recomendado importar a pasta completa. | O HTML atual não possui ativos {count}. É recomendado importar a pasta completa.",
+  "moveToContainer": "Mover para contêiner",
+  "spaceRoot": "raiz do espaço de trabalho",
+  "addContent": {
+    "title": "Adicionar conteúdo",
+    "importFiles": "Importar arquivos…"
+  }
+}

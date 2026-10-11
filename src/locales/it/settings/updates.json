@@ -1,0 +1,46 @@
+{
+  "title": "Aggiornamento software",
+  "description": "Knovum controlla dopo l'avvio e ogni sei ore. I download e l'installazione richiedono la tua conferma.",
+  "connection": {
+    "loading": "Lettura stato aggiornamento…",
+    "retry": "Riprova connessione aggiornamento"
+  },
+  "action": {
+    "failed": "Impossibile completare l'azione di aggiornamento. Controlla lo stato dell'aggiornamento e riprova."
+  },
+  "check": {
+    "action": "Verifica aggiornamenti"
+  },
+  "download": {
+    "action": "Scarica aggiornamento",
+    "cancel": "Annulla download"
+  },
+  "install": {
+    "action": "Riavvia e installa",
+    "blocked": "Termina o annulla l'esecuzione delle attività in background prima di riavviare.",
+    "title": "Preparazione al riavvio di Knovum",
+    "description": "Salvataggio delle modifiche e installazione dell'aggiornamento verificato. Non chiudere l'applicazione."
+  },
+  "available": {
+    "review": "Revisione aggiornamento",
+    "title": "È disponibile la versione {version}",
+    "notes": "Note sulla versione"
+  },
+  "status": {
+    "disabled": "Gli aggiornamenti non sono abilitati in questa build.",
+    "idle": "Pronto per verificare gli aggiornamenti.",
+    "checking": "Verifica aggiornamenti in corso...",
+    "current": "Knovum è aggiornato.",
+    "available": "Rivedi le note sulla versione, quindi scarica l'aggiornamento firmato.",
+    "downloading": "Download aggiornamento…",
+    "verifying": "Verifica della firma dell'aggiornamento…",
+    "ready": "Scaricato e verificato. Ricomincia quando sei pronto.",
+    "installing": "Installazione dell'aggiornamento…"
+  },
+  "failure": {
+    "check": "Impossibile verificare la presenza di aggiornamenti. Controlla la connessione e riprova.",
+    "download": "Download non riuscito. Controlla la connessione e lo spazio libero, quindi riprova.",
+    "signature": "La firma di aggiornamento non è valida. L'installazione è stata rifiutata. Controlla di nuovo dopo che l'editore ha corretto la versione.",
+    "install": "Installazione non riuscita. Le tue modifiche sono state salvate. Controlla le autorizzazioni e l'archiviazione prima di controllare nuovamente."
+  }
+}

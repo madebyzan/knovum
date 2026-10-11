@@ -1,0 +1,16 @@
+{
+  "title": "Audio di riferimento",
+  "choose": "Scegli l'audio di riferimento",
+  "transcript": "Trascrizione di riferimento (opzionale)",
+  "transcriptConfirmed": "La trascrizione corrisponde alla registrazione",
+  "requirements": "Scegli 5-30 secondi di discorso chiaro da parte di una persona.",
+  "tooShort": "Questo audio dura meno di cinque secondi. Scegli una registrazione di riferimento più lunga.",
+  "start": "Inizio/i di selezione",
+  "end": "Fine selezione/i",
+  "prepare": "Prepara riferimento",
+  "play": "Riproduci selezione",
+  "sourceChanged": "La sorgente del nodo audio è cambiata. Aggiorna il nodo prima di preparare un riferimento vocale.",
+  "selection": "{seconds} selezionati · Trascina una delle estremità",
+  "prepared": "Selezione riconosciuta",
+  "playbackFailed": "Non è stato possibile riprodurre l'audio sorgente. Verificare che il file multimediale sia leggibile."
+}

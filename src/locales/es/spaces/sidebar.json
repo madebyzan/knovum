@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "Esquema",
+    "empty": "Los elementos agregados al lienzo aparecen aquí."
+  },
+  "editorOutline": {
+    "title": "Esquema del documento"
+  },
+  "rightSidebarViews": "Vistas de la barra lateral derecha",
+  "rename": {
+    "nameRequired": "Ingrese un nombre",
+    "failed": "No se pudo guardar el nombre. Presione Entrar para intentarlo nuevamente."
+  }
+}

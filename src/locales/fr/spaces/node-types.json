@@ -1,0 +1,16 @@
+{
+  "note": "Pense-bête",
+  "text": "Texte",
+  "markdown": "Réduction",
+  "website": "Site Web",
+  "image": "Image",
+  "video": "Vidéo",
+  "audio": "Audio",
+  "file": "Fichier",
+  "code": "Code",
+  "credential": "Informations d'identification",
+  "object": "Objet de connaissance",
+  "portal": "Portail de l'espace de travail",
+  "group": "Groupe",
+  "section": "Section"
+}

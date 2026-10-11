@@ -1,0 +1,38 @@
+{
+  "name": "音色名稱",
+  "add": "添加",
+  "usage": "被引用 {count} 次",
+  "revise": "新版本",
+  "history": "版本歷史",
+  "speed": "語速",
+  "archived": "已歸檔",
+  "delete": {
+    "title": "永久刪除音色",
+    "description": "刪除已歸檔音色及其全部版本。被項目引用的音色無法刪除。"
+  },
+  "label": "音色",
+  "clone": "參考音頻克隆",
+  "design": "設計音色",
+  "mode": "音色來源",
+  "designDescription": "描述聲音特徵、表達方式、年齡感和語氣",
+  "candidate": {
+    "text": "試聽文本",
+    "generate": "生成試聽",
+    "auditionRequired": "請完整試聽一次候選音色，再儲存該音色。",
+    "save": "儲存音色",
+    "discard": "丟棄試聽",
+    "sample": "歡迎試聽。今天是二〇二六年十月三日，項目編號是一百零八。請留意發音是否清晰、節奏是否平穩、句末停頓是否自然。",
+    "auditions": "試聽結果"
+  },
+  "gender": {
+    "female": "女聲",
+    "male": "男聲"
+  },
+  "origins": {
+    "preset": "預設音色",
+    "reference": "參考音色",
+    "designed": "設計音色"
+  },
+  "options": "聲音設定",
+  "cloneShort": "複製音色"
+}

@@ -1,0 +1,28 @@
+{
+  "create": "에이전트로 생성",
+  "description": "데스크톱 에이전트에 브리핑하고 해당 파일을 검토한 다음 선택한 결과를 이 작업 공간으로 가져옵니다.",
+  "unavailable": "계속하려면 설치된 데스크톱 에이전트를 활성화하세요.",
+  "configure": "데스크톱 에이전트 구성",
+  "desktopAgent": "데스크탑 에이전트",
+  "prompt": "에이전트가 무엇을 생성하길 원하는지 설명하세요.",
+  "context": {
+    "add": "컨텍스트 연결",
+    "remove": "{name} 제거"
+  },
+  "knowledgeConnected": "이 작업공간의 지식은 MCP를 통해 자동으로 연결됩니다.",
+  "starting": "에이전트 시작 중...",
+  "task": "Desktop Agent로 생성",
+  "artifacts": {
+    "ready": "{count} 파일을 검토할 준비가 되었습니다.",
+    "none": "파일을 생성하지 않고 에이전트가 완료되었습니다.",
+    "import": "{count} 파일 가져오기",
+    "discard": "결과 삭제",
+    "discardFailed": "에이전트 결과를 삭제할 수 없습니다."
+  },
+  "recovered": {
+    "runs": "복구 가능한 에이전트 실행",
+    "run": "{index} · {count} 파일 실행"
+  },
+  "failed": "에이전트 생성 실패",
+  "run": "에이전트 실행"
+}

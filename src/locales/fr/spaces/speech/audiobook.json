@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "Titre du chapitre",
+  "configurationInvalid": "Cette révision préliminaire du livre audio n'a aucune liaison de rôle valide. Importez ou reconstruisez le script, puis enregistrez une nouvelle révision.",
+  "lexicon": {
+    "title": "Dictionnaire de prononciation",
+    "hint": "Remplacez les noms ou les termes par la lecture exacte utilisée lors de la synthèse.",
+    "word": "Mot ou terme",
+    "reading": "Prononciation",
+    "add": "Ajouter la prononciation",
+    "remove": "Supprimer la prononciation",
+    "invalid": "Complétez chaque entrée et supprimez les mots en double."
+  },
+  "moveUp": "Déplacer le chapitre vers le haut",
+  "moveDown": "Déplacer le chapitre vers le bas",
+  "removeChapter": "Supprimer le chapitre",
+  "removeParagraph": "Supprimer le paragraphe",
+  "addParagraph": "Ajouter un paragraphe",
+  "addChapter": "Ajouter un chapitre",
+  "wavPrecision": "Précision WAV",
+  "paragraphPause": "Paragraphe pause (ms)",
+  "chapterPause": "Pause de chapitre (ms)",
+  "title": "Titre du livre",
+  "author": "Auteur",
+  "narrator": "Narrateur",
+  "cover": "Couverture",
+  "noCover": "Pas de couverture",
+  "boundCover": "Révision de couverture enregistrée",
+  "coverRequiresEncodedOutput": "Choisissez MP3 ou M4B pour intégrer une couverture.",
+  "outputSettings": "Paramètres de sortie",
+  "metadataSettings": "Détails du livre"
+}

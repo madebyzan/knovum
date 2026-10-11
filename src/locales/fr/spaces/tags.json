@@ -1,0 +1,8 @@
+{
+  "title": "Balises",
+  "selectionHint": "Sélectionnez les nœuds de canevas pour gérer les balises.",
+  "add": "Ajouter une balise",
+  "empty": "Aucune balise dans cet espace de travail.",
+  "showNodes": "Filtrer les nœuds étiquetés",
+  "remove": "Supprimer le tag {tag}"
+}

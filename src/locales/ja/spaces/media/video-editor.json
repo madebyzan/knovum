@@ -1,0 +1,99 @@
+{
+  "edit": "ビデオの編集",
+  "title": "ビデオ エディター",
+  "loading": "ビデオ エディターを読み込み中…",
+  "preview": {
+    "optimizing": "バックグラウンドでプレビューを最適化しています…",
+    "retry": "プレビューの準備を再試行",
+    "sourceUnavailable": "ビデオソースが利用できません。ビデオを再インポートして編集します。",
+    "proxyFailed": "レスポンシブなプレビューを準備できませんでした",
+    "durationUnavailable": "動画の長さを読み取れませんでした",
+    "metadataUnavailable": "ビデオのフレーム寸法を読み取れませんでした",
+    "unavailable": "ビデオプレビューを開けませんでした",
+    "audioUnavailable": "オーディオプレビューを準備できませんでした"
+  },
+  "tracks": {
+    "video": "ビデオ",
+    "audio": "オーディオ",
+    "text": "テキスト"
+  },
+  "timeline": {
+    "thumbnailFailed": "タイムラインのサムネイルを生成できませんでした",
+    "zoomOut": "タイムラインのズームアウト",
+    "zoomIn": "タイムラインのズーム",
+    "fit": "ビデオ全体をフィット",
+    "seek": "シーク タイムライン"
+  },
+  "text": {
+    "tools": "テキスト ツール",
+    "invalidColor": "#FFFFFF などの 6 桁の 16 進数の色を入力します。",
+    "presets": {
+      "title": "プリセット",
+      "plain": "無地",
+      "outline": "アウトライン",
+      "shadow": "影",
+      "badge": "バッジ"
+    },
+    "placement": "位置",
+    "add": "テキストの追加",
+    "content": "テキスト"
+  },
+  "tabs": {
+    "captions": "キャプション",
+    "text": "テキスト"
+  },
+  "closeInspector": "編集パネルを閉じる",
+  "captions": {
+    "search": "検索キャプション",
+    "none": "まだキャプションはありません。上に 1 つ追加します。",
+    "noMatches": "一致するキャプションがありません。"
+  },
+  "font": {
+    "family": "フォント",
+    "searchEmpty": "一致するフォントがありません。",
+    "weight": "文字の太さ",
+    "unavailable": "フォント {family} はこのコンピュータにインストールされていません。別のフォントを選択してください。",
+    "catalogEmpty": "インストールされているフォントは使用できません。",
+    "size": "サイズ (720p)",
+    "color": "テキストの色"
+  },
+  "videoSettings": "ビデオ設定",
+  "clip": {
+    "selected": "選択されたクリップ",
+    "volume": "ボリューム",
+    "rotate": "回転",
+    "split": "分割",
+    "inPoint": "開始位置（秒）",
+    "outPoint": "終了位置（秒）",
+    "startsAt": "開始 (秒)",
+    "endsAt": "終了 (秒)"
+  },
+  "top": "トップ",
+  "center": "中心",
+  "bottom": "下",
+  "project": {
+    "saved": "ビデオ編集プロジェクトが保存されました"
+  },
+  "render": {
+    "action": "ビデオのレンダリング",
+    "task": "ビデオ レンダリング",
+    "failed": "ビデオ レンダリングに失敗しました"
+  },
+  "preparingVideoEdit": "編集準備中",
+  "renderingVideoEdit": "レンダリング ビデオ",
+  "savingResource": "リソースの保存",
+  "previousStep": "0.1 秒後退",
+  "nextStep": "0.1 秒前進",
+  "trim": {
+    "start": "クリップ開始のトリム",
+    "end": "クリップの端をトリム",
+    "textStart": "テキストの開始をトリムする",
+    "textEnd": "テキストの終了をトリミング",
+    "hint": "クリップの端をドラッグしてトリミングします。正確に調整するには、Option キーまたは Alt キーを押したままにします。"
+  },
+  "unsaved": {
+    "title": "このビデオへの変更を保存しますか?",
+    "status": "未保存の変更",
+    "description": "保存せずに閉じると、編集内容は失われます。"
+  }
+}

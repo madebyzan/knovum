@@ -1,0 +1,27 @@
+{
+  "target": "실행 대상",
+  "targetModelApi": "모델 API · 직접 실행",
+  "targetExternalAgent": "Desktop Agent · 출력은 현재 도구 및 Skills에 따라 다릅니다.",
+  "noCompatibleTarget": "호환되는 실행 대상이 없습니다.",
+  "desktopAgentNotInstalled": "감지되지 않음",
+  "disabledTitle": "호환되는 AI 대상이 없습니다.",
+  "disabledDescription": "이 작업을 위해 호환되는 모델을 구성하거나 설치된 데스크톱 에이전트를 활성화하십시오.",
+  "openSettings": "모델 구성",
+  "settingsUnavailable": "AI 설정을 로드할 수 없습니다.",
+  "executedWithModel": "{provider}·{model}로 실행됨",
+  "executedWithAgent": "{name} · 데스크탑 에이전트에 의해 실행됨",
+  "languages": {
+    "zhCn": "중국어 간체",
+    "zhTw": "중국어 번체",
+    "en": "영어",
+    "ja": "일본어",
+    "ko": "한국어",
+    "fr": "프랑스어",
+    "de": "독일어",
+    "es": "스페인어",
+    "pt": "포르투갈어",
+    "it": "이탈리아어",
+    "ru": "러시아어",
+    "ar": "아랍어"
+  }
+}

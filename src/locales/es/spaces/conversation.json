@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "No hay contenido de texto en la ubicación de origen.",
+    "open": "Ubicar en origen"
+  },
+  "title": "Conversación",
+  "agents": {
+    "builtinAgent": "Agente Knovum",
+    "desktop": "Agentes de escritorio",
+    "select": "Elija un agente",
+    "noModel": "Habilite un modelo que admita la llamada de herramientas en la configuración de AI.",
+    "manage": "Configurar modelos y agentes…"
+  },
+  "empty": {
+    "title": "Pruebe una de estas tareas",
+    "topic": "[tema]",
+    "search": "Buscar fuentes",
+    "searchPrompt": "Encuentre fuentes sobre {topic} en este espacio de trabajo y enumere de dónde vino cada una.",
+    "document": "Crear un documento",
+    "documentPrompt": "Cree un documento de descripción general editable a partir de fuentes sobre {topic} en este espacio de trabajo.",
+    "compare": "Comparar ideas",
+    "comparePrompt": "Compare ideas sobre {topic} en este espacio de trabajo, incluidos puntos en común, diferencias y evidencia."
+  },
+  "input": {
+    "placeholder": "Describe una tarea para el Agente...",
+    "send": "Enviar",
+    "shortcutHint": "Entrar"
+  },
+  "conversations": {
+    "preparing": "Iniciando conversación…",
+    "create": "Nueva conversación",
+    "history": "Historial de conversaciones",
+    "none": "Aún no hay conversaciones",
+    "actions": "Acciones de conversación",
+    "exportFailed": "No se pudo exportar la conversación",
+    "deleteConfirm": "¿Eliminar “{title}” y su historial de tareas? Esto no se puede deshacer.",
+    "search": "Buscar conversaciones",
+    "archived": "Archivado",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "viewArchived": "Ver conversaciones archivadas",
+    "backToRecent": "Volver a conversaciones recientes",
+    "branch": "Sucursal aquí",
+    "branchNumber": "Sucursal {number}",
+    "regenerateAttachments": "Vuelva a adjuntar los recursos originales antes de volver a enviar esta solicitud.",
+    "branchCreated": "Cambiado a la nueva sucursal.",
+    "returnToRunning": "Se está ejecutando una tarea de conversación. Regrese a su conversación."
+  },
+  "evidence": {
+    "sourceRationale": "Fuentes y evidencias",
+    "ask": "Hacer pregunta",
+    "useCurrent": "Utilice la selección actual como evidencia",
+    "remove": "Eliminar evidencia",
+    "stale": "La versión de la fuente de evidencia ha cambiado",
+    "extract": "Extraer como evidencia"
+  },
+  "attachments": {
+    "add": "Agregar recurso",
+    "attached": "Recursos adjuntos, desplácese horizontalmente para ver más",
+    "citeCanvasNode": "Contenido del lienzo de referencia",
+    "citeCanvasNodeHint": "Elija contenido de este espacio de trabajo",
+    "canvasNodeShort": "Referencia del lienzo",
+    "uploadLocalFile": "Agregar archivo local",
+    "uploadLocalFileHint": "Imágenes, archivos PDF o documentos",
+    "localFileShort": "Archivo local",
+    "dropFiles": "Soltar archivos para adjuntar",
+    "limit": "Puede adjuntar hasta 32 elementos a un mensaje.",
+    "addCurrentSelection": "Agregar selección actual ({count})",
+    "search": "Buscar recursos en este espacio de trabajo",
+    "none": "No hay recursos coincidentes",
+    "remove": "Eliminar recurso: {name}",
+    "preview": "Recurso de vista previa: {name}"
+  },
+  "uploads": {
+    "sizeError": "Los archivos no pueden estar vacíos. Las imágenes deben tener como máximo 10 MiB; otros archivos como máximo 20 MiB.",
+    "typeError": "Este tipo de archivo no es compatible. Elija una imagen, texto, PDF o documento de Office.",
+    "invalidError": "Este archivo no se pudo leer. Consulta su contenido y formato.",
+    "permissionError": "Este archivo no está disponible. Selecciónelo nuevamente en el cuadro de diálogo del archivo del sistema.",
+    "reacquire": "Seleccione estos archivos externos nuevamente para volver a adjuntarlos: {names}"
+  },
+  "tasks": {
+    "waitingForResult": "Esperando a que termine la operación...",
+    "failed": "La tarea de conversación falló. Regrese a la conversación para más detalles.",
+    "paused": "Esta tarea está en pausa. Puedes continuar cuando estés listo.",
+    "resume": "Reanudar tarea",
+    "modelOutcomeUnknown": "La solicitud del modelo finalizó sin resultado recuperable. La ejecución está esperando su decisión.",
+    "modelResponseUncommitted": "El modelo respondió, pero el resultado de su ejecución no fue confirmado. La recuperación automática no puede continuar de forma segura.",
+    "modelUsageUnknown": "La modelo respondió sin información de uso. Se han detenido más llamadas de modelos.",
+    "modelRetryCost": "Continuar puede enviar otra solicitud paga. Los cargos anteriores siguen registrados o se desconocen.",
+    "retryModel": "Autorizar un nuevo intento de modelo"
+  },
+  "response": {
+    "stopped": "Detenido",
+    "incomplete": "Respuesta incompleta"
+  },
+  "outputs": {
+    "added": "Añadido al lienzo · {count}"
+  },
+  "messages": {
+    "copy": "Copiar mensaje",
+    "copied": "Copiado",
+    "copyFailed": "No se pudo copiar el mensaje. Intentar otra vez.",
+    "new": "Saltar a lo último ↓",
+    "loadOlder": "Cargar mensajes anteriores"
+  },
+  "regenerate": "Regenerar",
+  "stop": "Detener",
+  "sources": "Fuentes · {count}",
+  "actions": {
+    "viewCreated": "Ubicar resultado"
+  },
+  "activity": {
+    "generating": "Generando respuesta…",
+    "running": "Trabajando · Acción {count} | Trabajando · Acciones {count}",
+    "finished": "Completado · Acción {count} | Completado · Acciones {count}",
+    "recorded": "Actividad · Acción {count} | Actividad · Acciones {count}",
+    "tool": "Acción de herramienta",
+    "invalidResult": "No se pudieron mostrar los resultados de la búsqueda",
+    "noSources": "No hay fuentes coincidentes",
+    "plan": "Plan"
+  },
+  "askSelection": "Preguntar selección",
+  "extensions": {
+    "label": "Extensiones de conversación",
+    "unavailable": "Una extensión seleccionada no está disponible. Revisa la selección.",
+    "clearSelection": "Borrar selección de extensión",
+    "manage": "Administrar extensiones",
+    "empty": "No hay extensiones disponibles. Agréguelos en la configuración."
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "La operación externa necesita aprobación",
+      "allow": "Permitir",
+      "deny": "Denegar"
+    },
+    "outcomeUnknown": {
+      "title": "Resultado externo desconocido",
+      "retry": "Comprobado; permitir reintento",
+      "stop": "Detener tarea",
+      "description": "Es posible que la operación se haya completado. Verifique el servicio antes de autorizar un reintento."
+    },
+    "attempt": "Intento",
+    "history": {
+      "title": "Historial de herramientas",
+      "empty": "Aún no hay operaciones con herramientas"
+    },
+    "progress": "Progreso"
+  },
+  "interactions": {
+    "title": "El servicio externo necesita información",
+    "openAuthorizationPage": "Abrir página de autorización",
+    "submit": "Enviar",
+    "decline": "Rechazar",
+    "invalid": "El servicio externo envió un formulario no válido."
+  },
+  "extensionResources": {
+    "import": "Importar al espacio",
+    "select": "Elija un recurso",
+    "readOnly": "Este espacio de trabajo es de solo lectura"
+  }
+}

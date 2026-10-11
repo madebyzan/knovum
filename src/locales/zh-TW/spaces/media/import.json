@@ -1,0 +1,8 @@
+{
+  "title": "導入媒體",
+  "failed": "無法導入媒體。",
+  "preparing": "正在準備媒體導入能力…",
+  "resolving": "正在讀取媒體資訊…",
+  "downloading": "正在下載媒體…",
+  "finalizing": "正在添加到空間…"
+}

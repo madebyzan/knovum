@@ -1,0 +1,12 @@
+{
+  "counts": "Ressourcen {resources} · Vorlagen {templates} · Eingabeaufforderungen {prompts}",
+  "browse": "Durchsuchen Sie Ressourcen und Eingabeaufforderungen",
+  "kind": "Inhaltsart",
+  "item": "Inhalt",
+  "resources": "Ressourcen",
+  "templates": "Ressourcenvorlagen",
+  "prompts": "Eingabeaufforderungen",
+  "parameters": "Parameter (JSON)",
+  "read": "Ausgewählten Inhalt lesen",
+  "source": "Quelle auswählen"
+}

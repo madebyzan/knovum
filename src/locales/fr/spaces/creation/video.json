@@ -1,0 +1,16 @@
+{
+  "subtitles": {
+    "task": "Création de vidéo sous-titrée",
+    "add": "Ajouter des sous-titres"
+  },
+  "generation": {
+    "title": "Créer une vidéo à partir de connaissances",
+    "description": "Générez une vidéo à partir des connaissances et des images sélectionnées, liées à ses sources.",
+    "name": "Nom de la vidéo",
+    "prompt": "Décrire la scène, le mouvement, la caméra et le style visuel",
+    "duration": "Durée",
+    "create": "Générer une vidéo",
+    "task": "Génération de vidéo",
+    "tooManyImages": "Ne sélectionnez pas plus de 10 images de référence pour la génération vidéo."
+  }
+}

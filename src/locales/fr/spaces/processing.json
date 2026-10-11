@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "Traitement",
+    "pending": "En attente {count}",
+    "running": "Traitement {count}",
+    "failed": "Échec du {count}"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "Compréhension visuelle",
+    "analyze_media": "Durée du média et forme d'onde",
+    "transcribe_media": "Transcription audio et vidéo",
+    "parse_document": "Extraction de documents",
+    "analyze_document": "Analyse visuelle du document",
+    "align_media_transcript": "Alignement de la transcription sélectionnée",
+    "diarize_media_transcript": "Diarisation des haut-parleurs"
+  },
+  "jobStatus": {
+    "pending": "En file d'attente",
+    "running": "En cours d'exécution",
+    "awaiting_configuration": "Configuration requise",
+    "failed": "Échec",
+    "succeeded": "Terminé",
+    "cancelled": "Annulé"
+  },
+  "matchBadge": {
+    "documentOcr": "Texte du document reconnu",
+    "documentInterpretation": "Interprétation visuelle du document",
+    "imageDescription": "Description de l'image",
+    "videoCover": "Couverture vidéo",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "Reconstruire l'index de récupération",
+    "rebuildDone": "Index reconstruit ; entrée de vecteur {count} générée. | Index reconstruit ; entrées vectorielles {count} générées."
+  },
+  "failed": "Échec du traitement",
+  "nodeUnavailable": "Le nœud de la tâche n'est plus disponible",
+  "imageProgress": "Image de traitement",
+  "mediaProgress": "Supports de traitement",
+  "applyingEdit": "Application des modifications",
+  "loadingImage": "Chargement de l'image",
+  "imageUnavailable": "Image indisponible",
+  "document": {
+    "coverage": "Traitement des documents",
+    "ocrEvidence": "Texte reconnu par machine · Des erreurs de reconnaissance sont possibles",
+    "interpretationEvidence": "Interprétation visuelle AI · Il ne s'agit pas d'une déclaration de document originale",
+    "textCoverage": "Pages avec texte extrait : {count} ou {total}.",
+    "unclassifiedPages": "La page {count} ne contient aucun corps de texte extractible ni aucune image connue. Il peut être vide ou contenir du contenu non pris en charge. | Les pages {count} n'ont pas de corps de texte extractible ni d'images connues. Ils peuvent être vides ou contenir du contenu non pris en charge.",
+    "recognitionRequired": "Pages nécessitant une reconnaissance : {pages}",
+    "visualCoverage": "Sources analysées : {count} de {total}.",
+    "visualUnavailable": "L’image référencée {count} ne peut pas être décodée par l’analyseur de document. | Les images référencées {count} ne peuvent pas être décodées par l'analyseur de documents.",
+    "resources": {
+      "title": "Ressources documentaires",
+      "open": "Ouvrir la ressource documentaire {index}",
+      "occurrences": "Temps {count} utilisé | Utilisé {count} fois",
+      "embedded": "Image intégrée extraite du document.",
+      "rendered": "Page ou région visuelle rendue à partir du PDF.",
+      "detectedText": "Texte détecté"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Les dessins vectoriels du bureau ne sont pas analysés visuellement ; ils restent dans le fichier d'origine.",
+      "spreadsheetImageCellAnchorsUnavailable": "Les images de feuille de calcul sont localisées par feuille de calcul et non par cellule.",
+      "spreadsheetChartRenderingUnsupported": "Le texte du graphique disponible est extrait ; l’apparence du graphique n’est pas analysée.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "Cet ancien format Office n'expose pas les positions complètes des images.",
+      "legacySpreadsheetFormulasUnavailable": "Les anciennes feuilles de calcul exposent les valeurs mises en cache, pas les expressions de formule.",
+      "pdfVisualCoverageLimited": "Les régions d'image PDF utilisent les données de position publique de l'analyseur. Il n’est pas garanti que les images en ligne et les graphiques vectoriels soient entièrement couverts ; le fichier original conserve tout le contenu."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "Configurez un modèle de compréhension visuelle pour analyser cette image ou vidéo."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "retrieving": "Чтение выбранных знаний…",
+  "generating": "Составление обоснованного документа…",
+  "generatingImage": "Создание поясняющего изображения…",
+  "submittingVideo": "Отправка создания видео",
+  "generatingVideo": "Генерация видео",
+  "downloadingVideo": "Сохранение видео",
+  "preparingSubtitles": "Подготовка расшифровки субтитров…",
+  "renderingSubtitles": "Вставка субтитров в видео…",
+  "savingResource": "Сохранение производного видео…",
+  "recognizingSubtitles": "Распознавание субтитров…"
+}

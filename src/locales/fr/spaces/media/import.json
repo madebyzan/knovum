@@ -1,0 +1,8 @@
+{
+  "title": "Importer un support",
+  "failed": "Le média n'a pas pu être importé.",
+  "preparing": "Préparation du support média…",
+  "resolving": "Lecture des informations sur le support…",
+  "downloading": "Téléchargement de médias…",
+  "finalizing": "Ajout de médias à cet espace de travail…"
+}

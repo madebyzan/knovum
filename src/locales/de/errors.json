@@ -1,0 +1,11 @@
+{
+  "bootstrap": {
+    "title": "Start fehlgeschlagen",
+    "description": "Knovum konnte nicht gestartet werden, weil seine Kerndienste oder Einstellungen nicht geladen werden konnten."
+  },
+  "feature": {
+    "title": "Dieser Inhalt konnte nicht angezeigt werden",
+    "description": "Sie können diesen Bereich erneut öffnen oder woanders hin navigieren.",
+    "reopen": "Inhalt erneut öffnen"
+  }
+}

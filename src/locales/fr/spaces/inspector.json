@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "Élément {count} sélectionné | Articles {count} sélectionnés",
+  "title": "Détails",
+  "basicInformation": "Général",
+  "showSource": "Vue source",
+  "fields": {
+    "type": "Taper",
+    "source": "Source",
+    "size": "Taille",
+    "originalUrl": "URL d'origine",
+    "provider": "Plateforme",
+    "siteName": "Site Web",
+    "description": "Description",
+    "canonicalUrl": "URL canonique",
+    "modified": "Date de modification"
+  },
+  "extractedDocumentText": "Texte extrait",
+  "visualDetectedText": "Texte reconnu par OCR",
+  "excerpts": {
+    "title": "Extrait · {title}",
+    "line": "— {title} · {location}",
+    "content": "Extrait du contenu"
+  },
+  "openSource": "Localiser le nœud source",
+  "targetSpace": "Espace de travail cible",
+  "none": "Non défini",
+  "renameHint": "Cliquez pour renommer",
+  "openContent": "Contenu ouvert",
+  "content": "Contenu",
+  "playVideo": "Lire la vidéo",
+  "related": {
+    "title": "Contenu associé",
+    "show": "Afficher plus",
+    "showLess": "Afficher moins",
+    "unavailable": "Le contenu associé est temporairement indisponible.",
+    "indexing": "Construction de l'index de contenu. Le contenu associé apparaîtra lorsqu’il sera prêt.",
+    "notIndexed": "Le contenu associé n'est pas encore préparé pour cet élément.",
+    "prepare": "Préparer maintenant",
+    "noContent": "Cet élément n'a pas encore de contenu consultable.",
+    "empty": "Aucun contenu associé dans cet espace de travail pour le moment.",
+    "explanation": "Découvrez le contenu connexe dans cet espace de travail par sens. Les résultats ne créent pas de liens."
+  },
+  "containedItems": "{count} contenait des éléments"
+}

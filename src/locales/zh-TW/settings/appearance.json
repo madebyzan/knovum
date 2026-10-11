@@ -1,0 +1,41 @@
+{
+  "title": "外觀",
+  "description": "自訂主題、字號與界面密度。",
+  "saveFailed": "外觀設定未能儲存",
+  "theme": {
+    "label": "主題",
+    "description": "選擇淺色、深色或跟隨系統。"
+  },
+  "textSize": {
+    "label": "字體大小",
+    "description": "調整介面字號。"
+  },
+  "density": {
+    "label": "界面密度",
+    "description": "調整控制項大小與介面間距。"
+  },
+  "language": {
+    "label": "語言",
+    "description": "選擇介面語言或跟隨系統。"
+  },
+  "options": {
+    "followSystem": "依系統設定",
+    "theme": {
+      "light": "淺色",
+      "dark": "深色"
+    },
+    "textSize": {
+      "small": "小",
+      "default": "標準",
+      "large": "大"
+    },
+    "density": {
+      "compact": "精簡",
+      "comfortable": "寬鬆"
+    },
+    "language": {
+      "english": "英文",
+      "simplifiedChinese": "簡體中文"
+    }
+  }
+}

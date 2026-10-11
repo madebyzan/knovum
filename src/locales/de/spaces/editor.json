@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "Neue Notiz",
+    "placeholder": "Alles schreiben…"
+  },
+  "text": {
+    "new": "Text",
+    "placeholder": "Tippen Sie, um Text einzugeben"
+  },
+  "markdown": {
+    "untitled": "Unbenannter Markdown",
+    "title": "Markdown-Titel",
+    "empty": "Leerer Markdown"
+  },
+  "loading": "Editor wird vorbereitet…",
+  "loadingHint": "Das Öffnen großer Dokumente kann einen Moment dauern.",
+  "placeholder": "Beginnen Sie mit dem Schreiben…"
+}

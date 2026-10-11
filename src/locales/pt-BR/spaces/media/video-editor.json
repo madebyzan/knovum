@@ -1,0 +1,99 @@
+{
+  "edit": "Editar vídeo",
+  "title": "Editor de vídeo",
+  "loading": "Carregando editor de vídeo…",
+  "preview": {
+    "optimizing": "Otimizando a visualização em segundo plano…",
+    "retry": "Tentar novamente a preparação da visualização",
+    "sourceUnavailable": "A fonte de vídeo não está disponível. Reimporte o vídeo para editá-lo.",
+    "proxyFailed": "Não foi possível preparar uma visualização responsiva",
+    "durationUnavailable": "Não foi possível ler a duração do vídeo",
+    "metadataUnavailable": "Não foi possível ler as dimensões do quadro do vídeo",
+    "unavailable": "Não foi possível abrir a visualização do vídeo",
+    "audioUnavailable": "Não foi possível preparar a visualização do áudio"
+  },
+  "tracks": {
+    "video": "Vídeo",
+    "audio": "Áudio",
+    "text": "Texto"
+  },
+  "timeline": {
+    "thumbnailFailed": "Não foi possível gerar miniaturas da linha do tempo",
+    "zoomOut": "Diminuir linha do tempo",
+    "zoomIn": "Zoom na linha do tempo",
+    "fit": "Ajustar todo o vídeo",
+    "seek": "Procurar linha do tempo"
+  },
+  "text": {
+    "tools": "Ferramentas de texto",
+    "invalidColor": "Insira uma cor hexadecimal de seis dígitos, como #FFFFFF.",
+    "presets": {
+      "title": "Predefinições",
+      "plain": "Simples",
+      "outline": "Esboço",
+      "shadow": "Sombra",
+      "badge": "Distintivo"
+    },
+    "placement": "Posição",
+    "add": "Adicionar texto",
+    "content": "Texto"
+  },
+  "tabs": {
+    "captions": "Legendas",
+    "text": "Texto"
+  },
+  "closeInspector": "Fechar painel de edição",
+  "captions": {
+    "search": "Pesquisar legendas",
+    "none": "Ainda não há legendas. Adicione um acima.",
+    "noMatches": "Sem legendas correspondentes."
+  },
+  "font": {
+    "family": "Fonte",
+    "searchEmpty": "Sem fontes correspondentes.",
+    "weight": "Peso da fonte",
+    "unavailable": "A fonte {family} não está instalada neste computador. Escolha outra fonte.",
+    "catalogEmpty": "Nenhuma fonte instalada está disponível.",
+    "size": "Tamanho (720p)",
+    "color": "Cor do texto"
+  },
+  "videoSettings": "Configurações de vídeo",
+  "clip": {
+    "selected": "Clipe selecionado",
+    "volume": "Volume",
+    "rotate": "Rodar",
+    "split": "Dividir",
+    "inPoint": "Entrada (segundos)",
+    "outPoint": "Saída (segundos)",
+    "startsAt": "Início (segundos)",
+    "endsAt": "Termina (segundos)"
+  },
+  "top": "Topo",
+  "center": "Centro",
+  "bottom": "Inferior",
+  "project": {
+    "saved": "Projeto de edição de vídeo salvo"
+  },
+  "render": {
+    "action": "Renderizar vídeo",
+    "task": "Renderização de vídeo",
+    "failed": "Falha na renderização do vídeo"
+  },
+  "preparingVideoEdit": "Preparando edição",
+  "renderingVideoEdit": "Renderização de vídeo",
+  "savingResource": "Economizando recursos",
+  "previousStep": "Retroceda 0,1 segundo",
+  "nextStep": "Avance 0,1 segundo",
+  "trim": {
+    "start": "Início do clipe de corte",
+    "end": "Aparar o final do clipe",
+    "textStart": "Início do corte do texto",
+    "textEnd": "Cortar final do texto",
+    "hint": "Arraste uma borda do clipe para aparar. Segure Option ou Alt para ajuste preciso."
+  },
+  "unsaved": {
+    "title": "Salvar as alterações neste vídeo?",
+    "status": "Alterações não salvas",
+    "description": "Suas edições serão perdidas se você fechar sem salvar."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Tarefas",
+  "summary": "Tarefas, total {count}",
+  "scopeFilter": "Escopo da tarefa",
+  "all": "Todos",
+  "currentSpace": "Espaço Atual",
+  "empty": "Sem tarefas.",
+  "emptyCurrentSpace": "Nenhuma tarefa neste espaço de trabalho.",
+  "scope": "Espaço",
+  "subject": "Item",
+  "status": {
+    "queued": "Na fila",
+    "running": "Em execução",
+    "attention": "Requer atenção",
+    "failed": "Falha",
+    "succeeded": "Concluído",
+    "cancelled": "Cancelado"
+  },
+  "clearCompleted": "Limpeza concluída",
+  "openSubject": "Abrir item relacionado",
+  "dismiss": "Dispensar",
+  "cancel": "Cancelar tarefa",
+  "cancelling": "Cancelando…",
+  "forceDismiss": "Remover da lista",
+  "failed": "Esta tarefa não pôde ser concluída.",
+  "verifyingResource": "Verificando integridade…",
+  "preparingLocalInference": "Preparando componentes AI locais…",
+  "localResourceDownloadSize": "O primeiro uso precisa de {size} de downloads de recursos locais",
+  "installingResource": "Instalando recursos locais…"
+}

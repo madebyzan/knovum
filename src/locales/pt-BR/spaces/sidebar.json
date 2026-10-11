@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "Esboço",
+    "empty": "Os itens adicionados à tela aparecem aqui."
+  },
+  "editorOutline": {
+    "title": "Esboço do documento"
+  },
+  "rightSidebarViews": "Visualizações da barra lateral direita",
+  "rename": {
+    "nameRequired": "Digite um nome.",
+    "failed": "O nome não pôde ser salvo. Pressione Enter para tentar novamente."
+  }
+}

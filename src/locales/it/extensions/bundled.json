@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "Conoscenza dello spazio",
+    "description": "Leggi, organizza e pubblica la conoscenza dello spazio di lavoro con fonti tracciabili."
+  },
+  "evidence-research": {
+    "name": "Ricerca di prove",
+    "description": "Confrontare le fonti e preparare ricerche o brief decisionali."
+  },
+  "meeting-notes": {
+    "name": "Note della riunione",
+    "description": "Estrai decisioni e azioni dalle trascrizioni delle riunioni."
+  },
+  "document-delivery": {
+    "name": "Consegna documento",
+    "description": "Preparare report basati sulla fonte e fornire il formato richiesto."
+  },
+  "study-companion": {
+    "name": "Compagno di studio",
+    "description": "Trasforma il materiale dello spazio di lavoro in guide di studio, esercizi e piani di revisione."
+  },
+  "github-work": {
+    "name": "GitHub funziona",
+    "description": "Connetti GitHub per indagare sui repository e preparare problemi concreti."
+  },
+  "notion-work": {
+    "name": "Conoscenza delle nozioni",
+    "description": "Collega Notion alle pagine di ricerca e pubblica conoscenza organizzata."
+  },
+  "linear-work": {
+    "name": "Lavoro lineare",
+    "description": "Connetti Linear per trasformare le decisioni in un lavoro di progetto tracciabile."
+  }
+}

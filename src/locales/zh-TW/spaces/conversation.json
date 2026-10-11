@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "目前來源位置無文字內容。",
+    "open": "定位至來源位置"
+  },
+  "title": "對話",
+  "agents": {
+    "builtinAgent": "Knovum Agent",
+    "desktop": "桌面 Agent",
+    "select": "選擇 Agent",
+    "noModel": "請在 AI 設定中為支援工具呼叫的模型啟用內建 Agent。",
+    "manage": "配置模型與 Agent…"
+  },
+  "empty": {
+    "title": "試試這些任務",
+    "topic": "【主題】",
+    "search": "找資料",
+    "searchPrompt": "在這個空間中尋找與{topic}相關的資料，並列出來源。",
+    "document": "建立文檔",
+    "documentPrompt": "結合這個空間中關於{topic}的資料，建立一份可編輯的概覽文件。",
+    "compare": "梳理觀點",
+    "comparePrompt": "比較這個空間中關於{topic}的不同觀點，列出共同點、分歧和依據。"
+  },
+  "input": {
+    "placeholder": "向 Agent 描述任務…",
+    "send": "傳送",
+    "shortcutHint": "Enter"
+  },
+  "conversations": {
+    "preparing": "正在啟動對話…",
+    "create": "新對話",
+    "history": "對話歷史",
+    "none": "暫無對話",
+    "actions": "對話操作",
+    "exportFailed": "匯出對話失敗",
+    "deleteConfirm": "刪除“{title}”及其任務記錄？此操作無法撤銷。",
+    "search": "搜尋對話",
+    "archived": "已歸檔",
+    "today": "今天",
+    "yesterday": "昨天",
+    "viewArchived": "看已歸檔對話",
+    "backToRecent": "回到最近對話",
+    "branch": "從這裡分支",
+    "branchNumber": "分支 {number}",
+    "regenerateAttachments": "這則訊息含有附件，請重新新增資料後發送",
+    "branchCreated": "已切換到新分支",
+    "returnToRunning": "對話任務正在進行中。點擊返回對應對話。"
+  },
+  "evidence": {
+    "sourceRationale": "來源與依據",
+    "ask": "發起問答",
+    "useCurrent": "使用目前選中位置作為證據",
+    "remove": "移除證據",
+    "stale": "證據引用的來源文件版本已變更",
+    "extract": "摘錄為證據"
+  },
+  "attachments": {
+    "add": "新增資料",
+    "attached": "已新增的資料，可橫向捲動",
+    "citeCanvasNode": "引用畫布內容",
+    "citeCanvasNodeHint": "選擇目前空間的內容",
+    "canvasNodeShort": "畫布引用",
+    "uploadLocalFile": "新增本地文件",
+    "uploadLocalFileHint": "圖片、PDF 或文檔",
+    "localFileShort": "本地文件",
+    "dropFiles": "鬆開以添加文件",
+    "limit": "一次對話最多可新增 32 項資料。",
+    "addCurrentSelection": "新增目前選取（{count}）",
+    "search": "搜尋目前空間的資料",
+    "none": "沒有相符的可用資料",
+    "remove": "移除資料：{name}",
+    "preview": "預覽資料：{name}"
+  },
+  "uploads": {
+    "sizeError": "文件不能為空；圖片不能超過 10 MiB，其他文件不能超過 20 MiB。",
+    "typeError": "此文件類型暫不支援。請選擇圖片、文字、PDF 或 Office 文件。",
+    "invalidError": "無法讀取此文件，請確認文件內容和格式。",
+    "permissionError": "無法讀取此文件，請重新從系統文件視窗選擇。",
+    "reacquire": "請重新選擇這些外部檔案以再次附加：{names}"
+  },
+  "tasks": {
+    "waitingForResult": "正在等待操作完成…",
+    "failed": "對話任務失敗，請回到對話查看詳情。",
+    "paused": "任務已暫停，確認後可繼續。",
+    "resume": "繼續任務",
+    "modelOutcomeUnknown": "模型請求沒有可恢復的結果，執行正在等待你的決定。",
+    "modelResponseUncommitted": "已收到模型回應，但執行結果未提交，無法安全地自動繼續。",
+    "modelUsageUnknown": "模型響應缺少用量訊息，後續模型呼叫已停止。",
+    "modelRetryCost": "繼續可能發起新的付費請求；原請求的已知費用與未知用量仍會保留。",
+    "retryModel": "授權新的模型嘗試"
+  },
+  "response": {
+    "stopped": "已停止",
+    "incomplete": "回覆未完成"
+  },
+  "outputs": {
+    "added": "已加入畫布 · {count}"
+  },
+  "messages": {
+    "copy": "複製訊息",
+    "copied": "已複製",
+    "copyFailed": "複製失敗，請重試。",
+    "new": "回到最新 ↓",
+    "loadOlder": "載入更早訊息"
+  },
+  "regenerate": "重新生成",
+  "stop": "停止",
+  "sources": "來源 · {count}",
+  "actions": {
+    "viewCreated": "定位產物"
+  },
+  "activity": {
+    "generating": "正在生成回應…",
+    "running": "正在執行 · {count} 項操作",
+    "finished": "已執行 · {count} 項操作",
+    "recorded": "製程記錄 · {count} 項操作",
+    "tool": "執行工具",
+    "invalidResult": "搜尋結果無法顯示",
+    "noSources": "沒有找到相關資料",
+    "plan": "執行計劃"
+  },
+  "askSelection": "詢問選項",
+  "extensions": {
+    "label": "對話擴充",
+    "unavailable": "所選擴充已不可用，請重新選擇。",
+    "clearSelection": "清空擴展選擇",
+    "manage": "管理擴充",
+    "empty": "暫無可用擴展，可前往設定新增。"
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "外部操作需要授權",
+      "allow": "允許",
+      "deny": "拒絕"
+    },
+    "outcomeUnknown": {
+      "title": "外部操作結果未知",
+      "retry": "已檢查，允許重試",
+      "stop": "終止任務",
+      "description": "操作可能已完成。請先檢查服務狀態，再授權重試。"
+    },
+    "attempt": "嘗試",
+    "history": {
+      "title": "工具史",
+      "empty": "暫無工具操作記錄"
+    },
+    "progress": "進度"
+  },
+  "interactions": {
+    "title": "外部服務需要輸入",
+    "openAuthorizationPage": "開啟授權頁面",
+    "submit": "提交",
+    "decline": "拒絕",
+    "invalid": "外部服務發送的表單無效。"
+  },
+  "extensionResources": {
+    "import": "導入空間",
+    "select": "選擇資源",
+    "readOnly": "目前空間為唯讀"
+  }
+}

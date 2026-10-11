@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "Zuschneiden",
+    "original": "Original",
+    "presets": "Voreinstellungen",
+    "general": "Allgemein",
+    "square": "Quadrat",
+    "story": "Geschichte",
+    "portrait": "Hochformat",
+    "landscape": "Querformat",
+    "referenceSize": "Referenzgröße; Die exportierten Pixel hängen vom Quellbild ab",
+    "lockAspect": "Seitenverhältnis des Zuschnitts sperren"
+  },
+  "transform": {
+    "rotateClockwise": "Im Uhrzeigersinn drehen",
+    "flipHorizontal": "Horizontal spiegeln",
+    "flipVertical": "Vertikal spiegeln",
+    "title": "Spiegeln und drehen",
+    "rotationDegrees": "Rotationswinkel"
+  },
+  "removeObject": {
+    "tool": "Radiergummi",
+    "mode": "Entfernungseingabe",
+    "modes": {
+      "mask": "Maske malen",
+      "prompt": "Beschreiben"
+    },
+    "undo": "Auswahlstrich rückgängig machen",
+    "brushSize": "Auswahlpinsel",
+    "promptLabel": "Beschreiben Sie, was entfernt werden soll",
+    "promptPlaceholder": "Beschreiben Sie, was entfernt werden soll …",
+    "generate": "Entfernen und generieren",
+    "submitting": "Erstellen der abgeleiteten Bildaufgabe…",
+    "sizeLimit": "Verwenden Sie eine Quelle mit maximal 16 Megapixeln und 16.384 Pixeln pro Seite.",
+    "limitReached": "Auswahllimit erreicht. Erzeugen Sie das Bild oder machen Sie einen Strich rückgängig."
+  },
+  "adjust": {
+    "title": "Anpassen",
+    "sections": "Bildanpassungsabschnitte"
+  },
+  "adjustGroups": {
+    "light": "Licht",
+    "color": "Farbe",
+    "texture": "Textur",
+    "effects": "Effekte"
+  },
+  "upscale": {
+    "action": "Auflösung erhöhen",
+    "targetTooSmall": "Diese Größe ist nicht größer als das aktuelle Bild",
+    "sourceBudget": "Dieses gerenderte Bild überschreitet das Eingabebudget des ausgewählten Modells."
+  },
+  "angle": {
+    "title": "Mehrwinkelig",
+    "mode": "Ziel anpassen",
+    "modes": {
+      "subject": "Betreff",
+      "camera": "Kamera"
+    },
+    "preview": "Ziehen Sie, um die Ansicht anzupassen. Halten Sie die Umschalttaste gedrückt, um die Genauigkeit zu erhöhen, oder scrollen Sie, um den Bildausschnitt zu ändern",
+    "yaw": "Drehung",
+    "pitch": "Neigung",
+    "zoom": "Zoom",
+    "zoomLevels": {
+      "wide": "Weitwinkel",
+      "medium": "Mittel",
+      "close": "Nahaufnahme"
+    },
+    "tiltUp": "Nach oben kippen",
+    "tiltDown": "Nach unten kippen",
+    "turnLeft": "Links abbiegen",
+    "turnRight": "Rechts abbiegen"
+  },
+  "layers": {
+    "title": "Geteilte Ebenen",
+    "panel": "Geteilte Ebenen",
+    "selectContent": "Region auswählen",
+    "selectContentUnavailable": "Das aktuelle Ebenenmodell kann eine ausgewählte Region nicht teilen",
+    "auto": "Automatische Aufteilung",
+    "custom": "Benutzerdefinierte Aufteilung",
+    "prompt": "Trennungsfokus",
+    "promptPlaceholder": "Beschreiben Sie, was in Schichten aufgeteilt werden soll",
+    "split": "Teilen",
+    "task": "Bildebenen teilen",
+    "failed": "Ebenenaufteilung fehlgeschlagen",
+    "stage": {
+      "submitting": "Bild wird übermittelt",
+      "processing": "Ebenen teilen",
+      "downloading": "Ebenen abrufen",
+      "publishing": "Ebenen speichern"
+    },
+    "keyMissing": "Für die Ebenenaufteilung ist ein falscher API-Schlüssel erforderlich",
+    "promptRequired": "Beschreiben Sie, was zuerst getrennt werden soll"
+  },
+  "comments": {
+    "title": "Kommentar",
+    "prompt": "Beschreibung hinzufügen",
+    "save": "Kommentar speichern",
+    "addToConversation": "Zur Konversation hinzufügen",
+    "conversationContext": "Bildanmerkung ({kind}; Ursprung oben links; Koordinaten sind Prozentsätze der Bildbreite und -höhe): {coordinates}\nAnmerkung: {text}",
+    "delete": "Kommentar löschen",
+    "hint": "Klicken Sie auf eine Bildposition, um einen Kommentar abzugeben",
+    "mode": "Kommentaranmerkungsmodus",
+    "point": "Punktkommentar",
+    "draw": "Kommentar zeichnen",
+    "region": "Regionskommentar"
+  },
+  "applyNow": "Jetzt verwenden",
+  "unsaved": {
+    "title": "Bildänderungen anwenden?",
+    "description": "Wenden Sie diese Bildbearbeitung vor dem Verlassen an oder verwerfen Sie den Entwurf."
+  },
+  "errors": {
+    "modelUnavailable": "Überprüfen Sie das Bildmodell und die Anmeldeinformationseinstellungen",
+    "providerUnsupported": "Das ausgewählte Bildmodell unterstützt diesen Vorgang nicht",
+    "credentialUnavailable": "Die Anmeldeinformationen des Bildmodells konnten nicht gelesen werden",
+    "secretDatabaseUnavailable": "Die lokale Anmeldeinformationsdatenbank ist nicht verfügbar",
+    "capabilityCheckFailed": "Es konnte nicht überprüft werden, ob diese Aktion verfügbar ist",
+    "busy": "Eine Operation ist im Gange"
+  },
+  "openAiSettings": "AI-Einstellungen öffnen",
+  "status": {
+    "capabilityChecking": "Überprüfung der Bildfunktionen…",
+    "imagePreparing": "Das Bild wird noch vorbereitet"
+  },
+  "operation": {
+    "execution": "Ausführungsmodell"
+  },
+  "finishImageEdit": "Wenden Sie zuerst die aktuelle Bildbearbeitung an oder brechen Sie sie ab",
+  "adjustments": {
+    "exposure": "Belichtung",
+    "contrast": "Kontrast",
+    "highlights": "Höhepunkte",
+    "shadows": "Schatten",
+    "whites": "Weißtöne",
+    "blacks": "Schwarztöne",
+    "saturation": "Sättigung",
+    "warmth": "Wärme",
+    "sharpness": "Schärfe",
+    "vignette": "Vignettierung",
+    "vibrance": "Dynamik",
+    "tint": "Tönung",
+    "clarity": "Klarheit",
+    "grain": "Körnung",
+    "softLight": "Weiches Licht",
+    "glow": "Glühen"
+  },
+  "selection": {
+    "title": "Intelligente Auswahl",
+    "tools": "Auswahltools",
+    "include": "Vordergrundpunkt",
+    "exclude": "Ausschlusspunkt",
+    "box": "Zeichne ein Kästchen",
+    "brush": "Mit Pinsel verfeinern",
+    "processing": "Auswahl wird aktualisiert…",
+    "help": "Klicken Sie auf den Betreff. Fügen Sie Ausschlusspunkte oder ein Kästchen hinzu. Pinsel zum Einbeziehen von Details. Bis zu sechs Punktaufforderungen.",
+    "repair": "Reparieren",
+    "extract": "Extrahieren",
+    "undo": "Auswahl rückgängig machen",
+    "modelUnavailable": "Wählen Sie in den Einstellungen ein verfügbares Auswahlmodell aus.",
+    "promptLimit": "Bis zu sechs Eingabeaufforderungen. Machen Sie eine Aufforderung zum Fortfahren rückgängig."
+  },
+  "depth": {
+    "action": "Relative Tiefe generieren"
+  },
+  "results": {
+    "upscale": "Auflösung erhöht",
+    "multiAngle": "Neue Ansicht",
+    "removeObject": "Repariert",
+    "removeBackground": "Freistellung",
+    "extractSelection": "Auswahl",
+    "generateDepth": "Relative Tiefe"
+  }
+}

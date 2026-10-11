@@ -1,0 +1,99 @@
+{
+  "edit": "Modifica video",
+  "title": "Editor video",
+  "loading": "Caricamento dell'editor video…",
+  "preview": {
+    "optimizing": "Ottimizzazione dell'anteprima in background…",
+    "retry": "Riprova la preparazione dell'anteprima",
+    "sourceUnavailable": "La sorgente video non è disponibile. Reimportare il video per modificarlo.",
+    "proxyFailed": "Impossibile preparare un'anteprima reattiva",
+    "durationUnavailable": "Impossibile leggere la durata del video",
+    "metadataUnavailable": "Impossibile leggere le dimensioni del fotogramma del video",
+    "unavailable": "Impossibile aprire l'anteprima del video",
+    "audioUnavailable": "Impossibile preparare l'anteprima audio"
+  },
+  "tracks": {
+    "video": "Video",
+    "audio": "Audio",
+    "text": "Testo"
+  },
+  "timeline": {
+    "thumbnailFailed": "Impossibile generare le miniature della sequenza temporale",
+    "zoomOut": "Zoom indietro timeline",
+    "zoomIn": "Zoom nella timeline",
+    "fit": "Adatta l'intero video",
+    "seek": "Cerca timeline"
+  },
+  "text": {
+    "tools": "Strumenti di testo",
+    "invalidColor": "Inserisci un colore esadecimale a sei cifre, ad esempio #FFFFFF.",
+    "presets": {
+      "title": "Preimpostazioni",
+      "plain": "Pianura",
+      "outline": "Struttura",
+      "shadow": "Ombra",
+      "badge": "Distintivo"
+    },
+    "placement": "Posizione",
+    "add": "Aggiungi testo",
+    "content": "Testo"
+  },
+  "tabs": {
+    "captions": "Didascalie",
+    "text": "Testo"
+  },
+  "closeInspector": "Chiudi pannello di modifica",
+  "captions": {
+    "search": "Cerca didascalie",
+    "none": "Ancora nessuna didascalia. Aggiungine uno sopra.",
+    "noMatches": "Nessuna didascalia corrispondente."
+  },
+  "font": {
+    "family": "Font",
+    "searchEmpty": "Nessun carattere corrispondente.",
+    "weight": "Spessore",
+    "unavailable": "Il carattere {family} non è installato su questo computer. Scegli un altro carattere.",
+    "catalogEmpty": "Non sono disponibili caratteri installati.",
+    "size": "Dimensione (720p)",
+    "color": "Colore testo"
+  },
+  "videoSettings": "Impostazioni video",
+  "clip": {
+    "selected": "Clip selezionata",
+    "volume": "Volume",
+    "rotate": "Ruota",
+    "split": "Dividi",
+    "inPoint": "Ingresso (secondi)",
+    "outPoint": "Uscita (secondi)",
+    "startsAt": "Avvia (secondi)",
+    "endsAt": "Fine (secondi)"
+  },
+  "top": "Superiore",
+  "center": "Centro",
+  "bottom": "In basso",
+  "project": {
+    "saved": "Progetto di editing video salvato"
+  },
+  "render": {
+    "action": "Renderizza il video",
+    "task": "Rendering video",
+    "failed": "Rendering video fallito"
+  },
+  "preparingVideoEdit": "Preparazione della modifica",
+  "renderingVideoEdit": "Rendering del video",
+  "savingResource": "Risparmio di risorse",
+  "previousStep": "Fai un passo indietro di 0,1 secondi",
+  "nextStep": "Un passo avanti di 0,1 secondi",
+  "trim": {
+    "start": "Inizio clip taglio",
+    "end": "Taglia fine clip",
+    "textStart": "Ritaglia inizio testo",
+    "textEnd": "Taglia fine testo",
+    "hint": "Trascina il bordo della clip per ritagliarla. Tieni premuto Opzione o Alt per una regolazione precisa."
+  },
+  "unsaved": {
+    "title": "Vuoi salvare le modifiche a questo video?",
+    "status": "Modifiche non salvate",
+    "description": "Le modifiche andranno perse se chiudi senza salvare."
+  }
+}

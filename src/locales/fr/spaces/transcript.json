@@ -1,0 +1,29 @@
+{
+  "chapters": {
+    "title": "Chapitres",
+    "edit": "Modifier le chapitre",
+    "seek": "Aller au chapitre",
+    "titleField": "Titre du chapitre",
+    "summary": "Résumé du chapitre"
+  },
+  "text": {
+    "title": "Texte de transcription",
+    "editSegment": "Modifier le segment de transcription",
+    "search": "Transcription de recherche",
+    "noMatches": "Aucun texte de transcription correspondant",
+    "live": "Transcription en direct",
+    "liveHint": "Le texte de la transcription en direct apparaîtra ici comme reconnu.",
+    "alignSelected": "Aligner la sélection",
+    "alignmentLimit": "Jusqu'à 8 segments / 5 minutes",
+    "alignmentFirstUse": "La première utilisation télécharge automatiquement le modèle sélectionné et les ressources requises. Gérez les choix de modèles dans Paramètres.",
+    "selectForAlignment": "Sélectionner pour l'alignement"
+  },
+  "speakers": {
+    "title": "Pistes d'enceintes",
+    "durationLimit": "La diarisation des haut-parleurs prend en charge les enregistrements jusqu'à deux heures.",
+    "generate": "Identifier les intervenants",
+    "firstUse": "Les ressources locales sont téléchargées automatiquement lors de la première utilisation ; annuler dans le centre de tâches.",
+    "count": "Nombre de locuteurs connus (facultatif)",
+    "automatic": "Automatique"
+  }
+}

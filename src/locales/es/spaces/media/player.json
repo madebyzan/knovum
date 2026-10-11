@@ -1,0 +1,10 @@
+{
+  "followPlayback": "Seguir reproducción",
+  "load": "Cargar {title}",
+  "play": "Reproducir",
+  "closePlayback": "Cerrar reproducción",
+  "timeline": "Cronología de los medios",
+  "transcribe": "Transcribir",
+  "transcribed": "Transcrita",
+  "transcribing": "Procesamiento de transcripción"
+}

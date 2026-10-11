@@ -1,0 +1,34 @@
+{
+  "title": "擴充",
+  "description": "管理插件、應用程式連接、自訂 MCP 和個人技能。",
+  "plugins": "外掛",
+  "skills": "Skills",
+  "mcp": "MCP",
+  "back": "返回列表",
+  "information": "資訊",
+  "author": "開發者",
+  "version": "版本",
+  "sourcePlugin": "查看所屬插件",
+  "pluginPaused": "插件已停用，其技能和連接暫不可用。",
+  "notFound": "此擴充功能已不可用",
+  "notFoundHint": "它可能已被刪除或隨插件更新而變化，請返回清單以查看當前內容。",
+  "usage": "在空間對話中選擇完整插件、個人技能或獨立 MCP 連線。插件內的技能和服務會一起使用。啟用表示允許選擇，存取外部服務仍需授權。",
+  "search": {
+    "plugins": "搜尋插件…",
+    "mcp": "搜尋 MCP 服務…",
+    "skills": "搜尋技能…",
+    "apps": "搜尋應用程式…"
+  },
+  "status": {
+    "checking": "正在檢查可用性…",
+    "failed": "無法讀取可用狀態",
+    "pluginPaused": "所屬插件已停用",
+    "disabled": "已停用",
+    "available": "可在對話中使用",
+    "unavailable": "配置或授權不完整"
+  },
+  "homepage": "網站",
+  "repository": "原始碼",
+  "license": "許可證",
+  "apps": "應用"
+}

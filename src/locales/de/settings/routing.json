@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "AI-Ausführung",
+  "defaultsDescription": "Legen Sie jede Funktion einzeln fest oder lassen Sie sie die Standardausführungsmethode verwenden.",
+  "unassigned": "Verwenden Sie die Standardausführungsmethode",
+  "noCompatibleModel": "Konfigurieren Sie ein Modell für diese Aufgabe",
+  "routes": {
+    "writing": {
+      "label": "Schreiben",
+      "description": "Entwurfs-, Umschreibungs- und Redaktionsunterstützung."
+    },
+    "knowledge": {
+      "label": "Eingebauter Agent",
+      "description": "Gespräche, Aufgabenplanung, Werkzeugnutzung und Wissensorganisation."
+    },
+    "visualUnderstanding": {
+      "label": "Visuelles Verständnis",
+      "description": "Verstehen Sie Bilder, Dokumentvisualisierungen und Videovorschaubilder zum Abrufen."
+    },
+    "translation": {
+      "label": "Übersetzung",
+      "description": "Übersetzen Sie Inhalte in der gesamten Anwendung."
+    },
+    "imageGeneration": {
+      "label": "Bilderstellung",
+      "description": "Erstellen Sie Bilder aus Anweisungen und Raumkontext."
+    },
+    "videoGeneration": {
+      "label": "Videoerstellung",
+      "description": "Erstellen Sie Videos aus Anleitungen und Quellmaterial."
+    },
+    "defaultTarget": {
+      "label": "Standardausführungsmethode",
+      "description": "Wird von Funktionen ohne individuelle Ausführungsauswahl verwendet."
+    }
+  },
+  "unselected": "Keine Ausführungsmethode ausgewählt",
+  "capabilitiesTitle": "Nach Fähigkeit"
+}

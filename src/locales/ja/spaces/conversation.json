@@ -1,0 +1,161 @@
+{
+  "sourcePeek": {
+    "noText": "ソースの場所にテキスト コンテンツがありません。",
+    "open": "ソースで検索"
+  },
+  "title": "会話",
+  "agents": {
+    "builtinAgent": "Knovam Agent",
+    "desktop": "デスクトップ エージェント",
+    "select": "エージェントの選択",
+    "noModel": "AI設定でツール呼び出しをサポートするモデルを有効にしてください。",
+    "manage": "モデルとエージェントを構成します…"
+  },
+  "empty": {
+    "title": "これらのタスクのいずれかを試してください",
+    "topic": "[トピック]",
+    "search": "ソースを検索",
+    "searchPrompt": "このワークスペースで {topic} に関する情報源を検索し、それぞれの情報源をリストします。",
+    "document": "ドキュメントの作成",
+    "documentPrompt": "このワークスペースで、{topic} に関するソースから編集可能な概要ドキュメントを作成します。",
+    "compare": "アイデアの比較",
+    "comparePrompt": "このワークスペースで、共通点、相違点、証拠など、{topic} に関するアイデアを比較します。"
+  },
+  "input": {
+    "placeholder": "エージェントのタスクを説明します...",
+    "send": "送信",
+    "shortcutHint": "入力"
+  },
+  "conversations": {
+    "preparing": "会話を開始しています…",
+    "create": "新しい会話",
+    "history": "会話履歴",
+    "none": "会話はまだありません",
+    "actions": "会話アクション",
+    "exportFailed": "会話をエクスポートできませんでした",
+    "deleteConfirm": "「{title}」とそのタスク履歴を削除しますか?これを元に戻すことはできません。",
+    "search": "会話の検索",
+    "archived": "アーカイブ",
+    "today": "今日",
+    "yesterday": "昨日",
+    "viewArchived": "アーカイブされた会話を表示",
+    "backToRecent": "最近の会話に戻る",
+    "branch": "ここに分岐",
+    "branchNumber": "ブランチ {number}",
+    "regenerateAttachments": "このリクエストを再度送信する前に、元のリソースを再接続してください",
+    "branchCreated": "新しい支店に切り替えました",
+    "returnToRunning": "会話タスクが実行中です。会話に戻ります。"
+  },
+  "evidence": {
+    "sourceRationale": "出典と証拠",
+    "ask": "質問する",
+    "useCurrent": "現在の選択を証拠として使用する",
+    "remove": "証拠の削除",
+    "stale": "証拠ソースのバージョンが変更されました",
+    "extract": "証拠として抽出"
+  },
+  "attachments": {
+    "add": "リソースの追加",
+    "attached": "添付されたリソース。水平にスクロールして詳細を表示します",
+    "citeCanvasNode": "参照キャンバス コンテンツ",
+    "citeCanvasNodeHint": "このワークスペースからコンテンツを選択してください",
+    "canvasNodeShort": "キャンバス リファレンス",
+    "uploadLocalFile": "ローカル ファイルの追加",
+    "uploadLocalFileHint": "画像、PDF、またはドキュメント",
+    "localFileShort": "ローカル ファイル",
+    "dropFiles": "ファイルをドロップして添付する",
+    "limit": "1 つのメッセージに最大 32 件のアイテムを添付できます。",
+    "addCurrentSelection": "現在の選択を追加 ({count})",
+    "search": "このワークスペース内のリソースを検索する",
+    "none": "一致するリソースがありません",
+    "remove": "リソースの削除: {name}",
+    "preview": "プレビューリソース: {name}"
+  },
+  "uploads": {
+    "sizeError": "ファイルを空にすることはできません。画像は最大 10 MiB である必要があります。他のファイルは最大 20 MiB。",
+    "typeError": "このファイル形式はサポートされていません。画像、テキスト、PDF、または Office ドキュメントを選択します。",
+    "invalidError": "このファイルを読み取れませんでした。内容と形式を確認してください。",
+    "permissionError": "このファイルは使用できません。システム ファイル ダイアログで再度選択します。",
+    "reacquire": "これらの外部ファイルを再度選択して再添付します: {names}"
+  },
+  "tasks": {
+    "waitingForResult": "操作が完了するのを待っています…",
+    "failed": "会話タスクが失敗しました。詳細については会話に戻ってください。",
+    "paused": "このタスクは一時停止されています。準備ができたら続行できます。",
+    "resume": "タスクを再開",
+    "modelOutcomeUnknown": "モデル リクエストは回復可能な結果が得られずに終了しました。死刑執行はあなたの決断を待っています。",
+    "modelResponseUncommitted": "モデルは応答しましたが、その実行結果はコミットされませんでした。自動リカバリを安全に続行できません。",
+    "modelUsageUnknown": "モデルは使用情報なしで応答しました。それ以降のモデル呼び出しは停止されました。",
+    "modelRetryCost": "続行すると、別の有料リクエストが送信される場合があります。以前の料金は記録されたままであるか、不明です。",
+    "retryModel": "新しいモデルの試行を承認する"
+  },
+  "response": {
+    "stopped": "停止",
+    "incomplete": "応答が不完全"
+  },
+  "outputs": {
+    "added": "キャンバスに追加されました · {count}"
+  },
+  "messages": {
+    "copy": "メッセージをコピー",
+    "copied": "コピー済み",
+    "copyFailed": "メッセージをコピーできませんでした。もう一度やり直してください。",
+    "new": "最新のページへジャンプ↓",
+    "loadOlder": "以前のメッセージをロード"
+  },
+  "regenerate": "再生する",
+  "stop": "停止",
+  "sources": "ソース · {count}",
+  "actions": {
+    "viewCreated": "結果の検索"
+  },
+  "activity": {
+    "generating": "Generating response...",
+    "running": "動作中・{count}アクション",
+    "finished": "完了した · {count} アクション",
+    "recorded": "アクティビティ · {count} アクション",
+    "tool": "ツール アクション",
+    "invalidResult": "検索結果が表示されませんでした",
+    "noSources": "一致するソースはありません",
+    "plan": "計画"
+  },
+  "askSelection": "選択を尋ねる",
+  "extensions": {
+    "label": "会話拡張",
+    "unavailable": "選択した拡張機能は使用できません。選択内容を確認します。",
+    "clearSelection": "拡張子の選択をクリア",
+    "manage": "拡張機能の管理",
+    "empty": "利用可能な拡張機能はありません。設定に追加してください。"
+  },
+  "toolOperations": {
+    "approval": {
+      "title": "外部操作には承認が必要です",
+      "allow": "許可",
+      "deny": "拒否"
+    },
+    "outcomeUnknown": {
+      "title": "外部結果不明",
+      "retry": "チェック済み;再試行を許可する",
+      "stop": "タスクの停止",
+      "description": "操作が完了した可能性があります。再試行を許可する前にサービスを確認してください。"
+    },
+    "attempt": "試み",
+    "history": {
+      "title": "ツール履歴",
+      "empty": "まだツール操作はありません"
+    },
+    "progress": "進捗"
+  },
+  "interactions": {
+    "title": "外部サービスには入力が必要です",
+    "openAuthorizationPage": "認証ページを開く",
+    "submit": "送信",
+    "decline": "衰退",
+    "invalid": "外部サービスが無効なフォームを送信しました。"
+  },
+  "extensionResources": {
+    "import": "ワークスペースにインポートする",
+    "select": "リソースを選択",
+    "readOnly": "このワークスペースは読み取り専用です"
+  }
+}

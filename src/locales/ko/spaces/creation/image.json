@@ -1,0 +1,18 @@
+{
+  "removeBackground": "배경 제거",
+  "visualization": {
+    "title": "이미지 생성",
+    "description": "선택한 소스 옆에 이미지를 생성합니다.",
+    "defaultTitle": "생성된 이미지",
+    "intent": "이미지 초점",
+    "placeholder": "선택한 소스를 기반으로 표시할 개념이나 관계를 설명합니다.",
+    "task": "이미지 생성 중"
+  },
+  "style": "시각적 방향",
+  "aspectRatio": "종횡비",
+  "styles": {
+    "editorial": "사설 일러스트레이션",
+    "diagram": "정보 다이어그램",
+    "concept": "콘셉트 아트"
+  }
+}

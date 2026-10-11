@@ -1,0 +1,8 @@
+{
+  "title": "Schlagworte",
+  "selectionHint": "Wählen Sie Canvas-Knoten aus, um Tags zu verwalten.",
+  "add": "Tag hinzufügen",
+  "empty": "Keine Tags in diesem Arbeitsbereich.",
+  "showNodes": "Mit Tags versehene Knoten filtern",
+  "remove": "Entfernen Sie das Tag {tag}"
+}

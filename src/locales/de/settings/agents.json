@@ -1,0 +1,36 @@
+{
+  "title": "Desktop-Agenten",
+  "description": "Verwenden Sie unterstützte AI-Agenten, die bereits auf diesem Computer installiert und angemeldet sind. Aktivierte Agenten werden mit ihren verfügbaren Tools, MCP-Servern und Fähigkeiten ohne Bestätigung pro Aktion ausgeführt.",
+  "check": "Überprüfen Sie die Agenten",
+  "enable": "Aktivieren",
+  "disable": "Deaktivieren",
+  "status": {
+    "checking": "Überprüft",
+    "checkFailed": "Prüfung fehlgeschlagen"
+  },
+  "entry": {
+    "missing": "Befehlseintrag nicht erkannt",
+    "applicationOnly": "App gefunden; Befehl nicht verfügbar",
+    "commandDetected": "Befehl erkannt"
+  },
+  "requiredCommands": "Erforderlicher Befehl: {commands}",
+  "connectionHelp": "{name}-Verbindungshilfe",
+  "officialDocumentation": "Offizielle Anleitung",
+  "acpSetup": "ACP-Setup",
+  "detectionBoundary": "Überprüft nur die Befehlsverfügbarkeit; Anmeldung und ACP-Konnektivität werden nicht überprüft.",
+  "documentationOpenFailed": "Der offizielle Link des Agenten konnte nicht geöffnet werden",
+  "connections": {
+    "executableCli": {
+      "title": "Direkt ACP",
+      "requirements": "Installieren Sie eine offizielle CLI mit ACP-Unterstützung und fügen Sie deren Befehlsverzeichnis zu PATH hinzu."
+    },
+    "nodeAdapter": {
+      "title": "ACP-Adapter",
+      "requirements": "Erfordert die offizielle CLI und Node.js (npx). Bei der ersten Verwendung kann der ACP-Adapter heruntergeladen werden."
+    },
+    "standaloneServer": {
+      "title": "Standalone-ACP-Server",
+      "requirements": "Laden Sie das offizielle ACP-Archiv herunter, behalten Sie die Begleitdateien und fügen Sie das Serververzeichnis zu PATH hinzu."
+    }
+  }
+}

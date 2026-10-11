@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "Recortar",
+    "original": "Original",
+    "presets": "Predefinições",
+    "general": "Geral",
+    "square": "Quadrado",
+    "story": "História",
+    "portrait": "Retrato",
+    "landscape": "Paisagem",
+    "referenceSize": "Tamanho de referência; pixels exportados dependem da imagem de origem",
+    "lockAspect": "Bloquear proporção de corte"
+  },
+  "transform": {
+    "rotateClockwise": "Girar no sentido horário",
+    "flipHorizontal": "Virar horizontalmente",
+    "flipVertical": "Virar verticalmente",
+    "title": "Inverter e girar",
+    "rotationDegrees": "Ângulo de rotação"
+  },
+  "removeObject": {
+    "tool": "Borracha",
+    "mode": "Entrada de remoção",
+    "modes": {
+      "mask": "Pinte uma máscara",
+      "prompt": "Descrever"
+    },
+    "undo": "Desfazer curso de seleção",
+    "brushSize": "Pincel de seleção",
+    "promptLabel": "Descreva o que remover",
+    "promptPlaceholder": "Descreva o que remover…",
+    "generate": "Remover e gerar",
+    "submitting": "Criando a tarefa de imagem derivada…",
+    "sizeLimit": "Use uma fonte de 16 megapixels e 16.384 pixels de cada lado.",
+    "limitReached": "Limite de seleção atingido. Gere a imagem ou desfaça um traço."
+  },
+  "adjust": {
+    "title": "Ajustar",
+    "sections": "Seções de ajuste de imagem"
+  },
+  "adjustGroups": {
+    "light": "Luz",
+    "color": "Cor",
+    "texture": "Textura",
+    "effects": "Efeitos"
+  },
+  "upscale": {
+    "action": "Aumentar resolução",
+    "targetTooSmall": "Este tamanho não é maior que a imagem atual",
+    "sourceBudget": "Esta imagem renderizada excede o orçamento de entrada do modelo selecionado."
+  },
+  "angle": {
+    "title": "Multi-ângulo",
+    "mode": "Ajustar alvo",
+    "modes": {
+      "subject": "Assunto",
+      "camera": "Câmera"
+    },
+    "preview": "Arraste para ajustar a visualização; segure Shift para precisão ou role para alterar o enquadramento",
+    "yaw": "Rotação",
+    "pitch": "Inclinação",
+    "zoom": "Zoom",
+    "zoomLevels": {
+      "wide": "Grande angular",
+      "medium": "Média",
+      "close": "Close-up"
+    },
+    "tiltUp": "Inclinar para cima",
+    "tiltDown": "Inclinação para baixo",
+    "turnLeft": "Vire à esquerda",
+    "turnRight": "Vire à direita"
+  },
+  "layers": {
+    "title": "Camadas divididas",
+    "panel": "Camadas divididas",
+    "selectContent": "Selecionar região",
+    "selectContentUnavailable": "O modelo de camada atual não pode dividir uma região selecionada",
+    "auto": "Divisão automática",
+    "custom": "Divisão personalizada",
+    "prompt": "Foco de separação",
+    "promptPlaceholder": "Descreva o que dividir em camadas",
+    "split": "Dividir",
+    "task": "Dividindo camadas de imagem",
+    "failed": "Falha na divisão da camada",
+    "stage": {
+      "submitting": "Enviando imagem",
+      "processing": "Dividindo camadas",
+      "downloading": "Recuperando camadas",
+      "publishing": "Salvar camadas"
+    },
+    "keyMissing": "A divisão de camadas requer uma chave fal API",
+    "promptRequired": "Descreva o que deve ser separado primeiro"
+  },
+  "comments": {
+    "title": "Comentário",
+    "prompt": "Adicionar uma descrição",
+    "save": "Salvar comentário",
+    "addToConversation": "Adicionar à conversa",
+    "conversationContext": "Anotação da imagem ({kind}; origem no canto superior esquerdo; as coordenadas são porcentagens da largura e altura da imagem): {coordinates}\nAnotação: {text}",
+    "delete": "Excluir comentário",
+    "hint": "Clique no local da imagem para comentar",
+    "mode": "Modo de anotação de comentários",
+    "point": "Ponto de comentário",
+    "draw": "Desenhe um comentário",
+    "region": "Comentário da região"
+  },
+  "applyNow": "Usar agora",
+  "unsaved": {
+    "title": "Aplicar alterações de imagem?",
+    "description": "Aplique esta edição de imagem antes de sair ou descarte o rascunho."
+  },
+  "errors": {
+    "modelUnavailable": "Verifique o modelo de imagem e as configurações de credencial",
+    "providerUnsupported": "O modelo de imagem selecionado não suporta esta operação",
+    "credentialUnavailable": "Não foi possível ler a credencial do modelo de imagem",
+    "secretDatabaseUnavailable": "O banco de dados de credenciais locais não está disponível",
+    "capabilityCheckFailed": "Não foi possível verificar se esta ação está disponível",
+    "busy": "Uma operação está em andamento"
+  },
+  "openAiSettings": "Abrir configurações de IA",
+  "status": {
+    "capabilityChecking": "Verificando recursos de imagem…",
+    "imagePreparing": "A imagem ainda está sendo preparada"
+  },
+  "operation": {
+    "execution": "Modelo de execução"
+  },
+  "finishImageEdit": "Aplique ou cancele a edição da imagem atual primeiro",
+  "adjustments": {
+    "exposure": "Exposição",
+    "contrast": "Contraste",
+    "highlights": "Destaques",
+    "shadows": "Sombras",
+    "whites": "Brancos",
+    "blacks": "Pretos",
+    "saturation": "Saturação",
+    "warmth": "Calor",
+    "sharpness": "Nitidez",
+    "vignette": "Vinheta",
+    "vibrance": "Vibração",
+    "tint": "Matiz",
+    "clarity": "Clareza",
+    "grain": "Granulação",
+    "softLight": "Luz suave",
+    "glow": "Brilho"
+  },
+  "selection": {
+    "title": "Seleção inteligente",
+    "tools": "Ferramentas de seleção",
+    "include": "Ponto de primeiro plano",
+    "exclude": "Ponto de exclusão",
+    "box": "Desenhe uma caixa",
+    "brush": "Refinar com pincel",
+    "processing": "Atualizando seleção…",
+    "help": "Clique no assunto; adicione pontos de exclusão ou uma caixa. Pincele para incluir detalhes. Avisos de até seis pontos.",
+    "repair": "Reparar",
+    "extract": "Extrair",
+    "undo": "Desfazer seleção",
+    "modelUnavailable": "Selecione um modelo de seleção disponível em Configurações.",
+    "promptLimit": "Até seis avisos. Desfaça uma solicitação para continuar."
+  },
+  "depth": {
+    "action": "Gerar profundidade relativa"
+  },
+  "results": {
+    "upscale": "Resolução aumentada",
+    "multiAngle": "Nova visualização",
+    "removeObject": "Reparado",
+    "removeBackground": "Recorte",
+    "extractSelection": "Seleção",
+    "generateDepth": "Profundidade relativa"
+  }
+}

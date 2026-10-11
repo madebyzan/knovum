@@ -1,0 +1,16 @@
+{
+  "note": "스티커 메모",
+  "text": "텍스트",
+  "markdown": "가격 인하",
+  "website": "웹사이트",
+  "image": "이미지",
+  "video": "비디오",
+  "audio": "오디오",
+  "file": "파일",
+  "code": "코드",
+  "credential": "자격 증명",
+  "object": "지식 객체",
+  "portal": "작업 공간 포털",
+  "group": "그룹",
+  "section": "섹션"
+}

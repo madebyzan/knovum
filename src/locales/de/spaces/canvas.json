@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "Canvas-Tools",
+    "select": "Auswählen",
+    "section": "Abschnitt zeichnen"
+  },
+  "nodeActions": {
+    "label": "Knotenaktionen",
+    "openOriginal": "Original öffnen",
+    "goToTarget": "Zum Ziel gehen",
+    "viewLarge": "Bild anzeigen",
+    "openVideo": "Video öffnen",
+    "openAudio": "Audio öffnen",
+    "viewCode": "Code anzeigen",
+    "openFile": "Datei öffnen",
+    "export": "Exportieren"
+  },
+  "zoom": {
+    "out": "Herauszoomen",
+    "in": "Vergrößern",
+    "options": "Zoom-Optionen",
+    "toFitContent": "Zoomen Sie, um den Inhalt anzupassen",
+    "toSelection": "Zur Auswahl zoomen"
+  },
+  "arrange": {
+    "title": "Anordnen",
+    "toFront": "Nach vorne bringen",
+    "forward": "Nach vorne bringen",
+    "backward": "Rückwärts senden",
+    "toBack": "Nach hinten senden",
+    "autoHorizontal": "Auto-Layout (horizontal)",
+    "autoVertical": "Auto-Layout (vertikal)"
+  },
+  "layerOrder": "Ebenenreihenfolge",
+  "selection": {
+    "label": "Auswahl",
+    "selectAll": "Alle auswählen",
+    "delete": "Ausgewählte löschen",
+    "toggleLock": "Auswahl sperren oder entsperren"
+  },
+  "kinds": {
+    "group": "Gruppe",
+    "section": "Abschnitt"
+  },
+  "groups": {
+    "create": "Gruppenauswahl",
+    "ungroup": "Gruppierungsauswahl aufheben",
+    "untitled": "Unbenannte Gruppe"
+  },
+  "sections": {
+    "create": "Abschnitt erstellen",
+    "createEmpty": "Neuer Abschnitt",
+    "removeOnly": "Nur Abschnitt entfernen",
+    "backgroundFailed": "Das Hintergrundbild des Abschnitts konnte nicht geladen werden",
+    "drop": {
+      "enter": "Lassen Sie die Taste los, um in den Abschnitt zu gelangen",
+      "leave": "Lassen Sie die Taste los, um den Abschnitt zu verlassen"
+    },
+    "fitToContents": "Abschnitt an Inhalt anpassen",
+    "untitled": "Unbenannter Abschnitt",
+    "collapse": "Abschnitt einklappen",
+    "expand": "Abschnitt erweitern"
+  },
+  "lock": "Sperren",
+  "locked": "Gesperrt",
+  "unlock": "Entsperren",
+  "align": {
+    "left": "Links",
+    "center": "Horizontale Mitte",
+    "right": "Rechts",
+    "top": "Spitze",
+    "middle": "Vertikale Mitte",
+    "bottom": "Unten"
+  },
+  "distribute": {
+    "horizontal": "Horizontal",
+    "vertical": "Vertikal"
+  },
+  "nudge": {
+    "left": "Stupse nach links",
+    "right": "Nach rechts schieben",
+    "up": "Anstupsen",
+    "down": "Nach unten schieben",
+    "leftLarge": "Um 10 Punkte nach links verschieben",
+    "rightLarge": "Um 10 Punkte nach rechts verschieben",
+    "upLarge": "Um 10 Punkte nach oben verschieben",
+    "downLarge": "Um 10 Punkte nach unten verschieben"
+  },
+  "relations": {
+    "connect": "Verbinden"
+  },
+  "typography": "Typografie",
+  "noteBackground": "Hintergrund beachten",
+  "textColor": "Textfarbe",
+  "fontSize": "Schriftgröße",
+  "noteFills": {
+    "yellow": "Gelb",
+    "green": "Grün",
+    "blue": "Blau",
+    "pink": "Rosa",
+    "gray": "Grau"
+  },
+  "textColors": {
+    "ink": "Tinte",
+    "muted": "Grau",
+    "red": "Rot",
+    "blue": "Blau",
+    "green": "Grün",
+    "purple": "Lila"
+  },
+  "selectionTextColors": {
+    "default": "Standard",
+    "gray": "Grau",
+    "red": "Rot",
+    "amber": "Orange",
+    "yellow": "Gelb",
+    "green": "Grün",
+    "teal": "Blaugrün",
+    "cyan": "Cyan",
+    "blue": "Blau",
+    "purple": "Lila",
+    "pink": "Rosa",
+    "white": "Weiß"
+  },
+  "textAlignments": {
+    "left": "Links",
+    "center": "Center",
+    "right": "Rechts"
+  },
+  "verticalAlignments": {
+    "top": "Spitze",
+    "middle": "Mittel",
+    "bottom": "Unten"
+  },
+  "revealInCanvas": "Auf Leinwand anzeigen",
+  "shortcuts": {
+    "panCanvas": "Pan-Leinwand",
+    "zoomReset": "Zoom zurücksetzen",
+    "nudgeSelection": "Auswahl anstoßen",
+    "nudgeLarge": "Um 10 Pixel verschieben"
+  },
+  "dropToSave": "Zum Speichern im aktuellen Arbeitsbereich ablegen",
+  "cancelInteraction": "Canvas-Interaktion abbrechen",
+  "htmlSandboxAssetsBlocked": "Dem aktuellen HTML fehlt das {count}-Asset. Es wird empfohlen, den gesamten Ordner zu importieren. | Dem aktuellen HTML fehlen {count}-Assets. Es wird empfohlen, den gesamten Ordner zu importieren.",
+  "moveToContainer": "In Container verschieben",
+  "spaceRoot": "Arbeitsbereichsstamm",
+  "addContent": {
+    "title": "Inhalt hinzufügen",
+    "importFiles": "Dateien importieren…"
+  }
+}

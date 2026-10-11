@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "新しいメモ",
+    "placeholder": "何でも書いて…"
+  },
+  "text": {
+    "new": "テキスト",
+    "placeholder": "文字を入力して入力します"
+  },
+  "markdown": {
+    "untitled": "無題のマークダウン",
+    "title": "マークダウン タイトル",
+    "empty": "空のマークダウン"
+  },
+  "loading": "エディターを準備中…",
+  "loadingHint": "大きなドキュメントを開くには時間がかかる場合があります。",
+  "placeholder": "書き込み開始…"
+}

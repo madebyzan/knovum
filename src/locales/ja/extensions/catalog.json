@@ -1,0 +1,12 @@
+{
+  "counts": "リソース {resources} · テンプレート {templates} · プロンプト {prompts}",
+  "browse": "リソースとプロンプトを参照する",
+  "kind": "コンテンツの種類",
+  "item": "コンテンツ",
+  "resources": "リソース",
+  "templates": "リソース テンプレート",
+  "prompts": "プロンプト",
+  "parameters": "パラメータ (JSON)",
+  "read": "選択したコンテンツを読み取る",
+  "source": "ソースを選択"
+}

@@ -1,0 +1,16 @@
+{
+  "note": "Nota adhesiva",
+  "text": "Texto",
+  "markdown": "Reducción",
+  "website": "Sitio web",
+  "image": "Imagen",
+  "video": "Vídeo",
+  "audio": "Audio",
+  "file": "Archivo",
+  "code": "Código",
+  "credential": "Credencial",
+  "object": "Objeto de conocimiento",
+  "portal": "Portal espacial",
+  "group": "Grupo",
+  "section": "Sección"
+}

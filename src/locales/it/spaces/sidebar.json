@@ -1,0 +1,14 @@
+{
+  "outline": {
+    "title": "Struttura",
+    "empty": "Gli elementi aggiunti all'area di disegno vengono visualizzati qui."
+  },
+  "editorOutline": {
+    "title": "Struttura del documento"
+  },
+  "rightSidebarViews": "Visualizzazioni della barra laterale destra",
+  "rename": {
+    "nameRequired": "Inserisci un nome.",
+    "failed": "Impossibile salvare il nome. Premi Invio per riprovare."
+  }
+}

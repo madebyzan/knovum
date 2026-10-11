@@ -1,0 +1,44 @@
+{
+  "itemsSelected": "{count} elemento seleccionado | Elementos {count} seleccionados",
+  "title": "Detalles",
+  "basicInformation": "General",
+  "showSource": "Vista de código fuente",
+  "fields": {
+    "type": "Tipo",
+    "source": "Fuente",
+    "size": "Tamaño",
+    "originalUrl": "URL original",
+    "provider": "Plataforma",
+    "siteName": "Sitio web",
+    "description": "Descripción",
+    "canonicalUrl": "URL canónica",
+    "modified": "Fecha de modificación"
+  },
+  "extractedDocumentText": "Texto extraído",
+  "visualDetectedText": "Texto reconocido por OCR",
+  "excerpts": {
+    "title": "Extracto · {title}",
+    "line": "— {title} · {location}",
+    "content": "Extracto de contenido"
+  },
+  "openSource": "Ubicar el nodo de origen",
+  "targetSpace": "Espacio de trabajo de destino",
+  "none": "No establecido",
+  "renameHint": "Haga clic para cambiar el nombre",
+  "openContent": "Abrir contenido",
+  "content": "Contenido",
+  "playVideo": "Reproducir vídeo",
+  "related": {
+    "title": "Contenido relacionado",
+    "show": "Mostrar más",
+    "showLess": "Mostrar menos",
+    "unavailable": "El contenido relacionado no está disponible temporalmente.",
+    "indexing": "Construyendo el índice de contenidos. El contenido relacionado aparecerá cuando esté listo.",
+    "notIndexed": "El contenido relacionado aún no está preparado para este artículo.",
+    "prepare": "Prepárese ahora",
+    "noContent": "Este elemento aún no tiene contenido que permita realizar búsquedas.",
+    "empty": "Aún no hay contenido relacionado en este espacio de trabajo.",
+    "explanation": "Descubra contenido relacionado en este espacio de trabajo por significado. Los resultados no crean conexiones."
+  },
+  "containedItems": "{count} elementos contenidos"
+}

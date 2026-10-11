@@ -1,0 +1,19 @@
+{
+  "task": "Análise de mídia",
+  "preparing": "Preparando mídia",
+  "unavailable": "A duração e a forma de onda ainda não estão disponíveis",
+  "audioPreparing": "Preparando áudio",
+  "transcribing": "Transcrever localmente",
+  "organizing": "Criação de capítulos e resumo",
+  "knowledge": {
+    "title": "Conhecimento de mídia",
+    "pending": "Enviado para fila de análise em segundo plano.",
+    "stale": "Os dados de análise estão fora de sincronia com o arquivo de origem; por favor reanalisar."
+  },
+  "summary": "Resumo",
+  "inProgress": "Analisando mídia em segundo plano…",
+  "insights": {
+    "unavailable": "Os dados da transcrição não estão disponíveis; por favor analise a mídia primeiro.",
+    "generate": "Gerar capítulos e resumo"
+  }
+}

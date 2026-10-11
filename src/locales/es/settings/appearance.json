@@ -1,0 +1,41 @@
+{
+  "title": "Apariencia",
+  "description": "Personalice el tema, la escala de fuente y la densidad del diseño.",
+  "saveFailed": "No se pudo guardar la configuración de apariencia",
+  "theme": {
+    "label": "Tema",
+    "description": "Elija claro, oscuro o siga el sistema."
+  },
+  "textSize": {
+    "label": "Tamaño de fuente",
+    "description": "Ajustar el tamaño del texto de la interfaz."
+  },
+  "density": {
+    "label": "Densidad",
+    "description": "Ajuste el tamaño y el espaciado de los controles."
+  },
+  "language": {
+    "label": "Idioma",
+    "description": "Elija el idioma de visualización o coincida con la configuración regional del sistema."
+  },
+  "options": {
+    "followSystem": "Seguir el sistema",
+    "theme": {
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "textSize": {
+      "small": "Pequeño",
+      "default": "Predeterminado",
+      "large": "Grande"
+    },
+    "density": {
+      "compact": "Compacta",
+      "comfortable": "Espaciosa"
+    },
+    "language": {
+      "english": "Inglés",
+      "simplifiedChinese": "Chino simplificado"
+    }
+  }
+}

@@ -4,35 +4,20 @@ use tauri::{
     AppHandle, Runtime,
 };
 
+use super::locale::labels;
+use crate::preferences::LocalePreference;
+
 const TRAY_ID: &str = "knovum-main-tray";
 
-struct Labels {
-    show: &'static str,
-    quit: &'static str,
-}
-
-fn labels(locale: &str) -> Labels {
-    match locale {
-        "zh-CN" => Labels {
-            show: "显示知生知",
-            quit: "退出知生知",
-        },
-        _ => Labels {
-            show: "Show Knovum",
-            quit: "Quit Knovum",
-        },
-    }
-}
-
-fn build_menu<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<Menu<R>> {
-    let labels = labels(locale);
+fn build_menu<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<Menu<R>> {
+    let labels = labels(locale).map_err(std::io::Error::other)?.tray;
     let show = MenuItem::with_id(app, "show", labels.show, true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", labels.quit, true, None::<&str>)?;
     Menu::with_items(app, &[&show, &separator, &quit])
 }
 
-pub fn install<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()> {
+pub fn install<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<()> {
     let menu = build_menu(app, locale)?;
     let mut tray = TrayIconBuilder::with_id(TRAY_ID)
         .tooltip("Knovum")
@@ -71,7 +56,7 @@ pub fn install<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()
     Ok(())
 }
 
-pub fn rebuild<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()> {
+pub fn rebuild<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<()> {
     let menu = build_menu(app, locale)?;
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
         tray.set_menu(Some(menu))?;
@@ -80,7 +65,10 @@ pub fn rebuild<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()
     install(app, locale)
 }
 
-pub fn ensure_installed<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()> {
+pub fn ensure_installed<R: Runtime>(
+    app: &AppHandle<R>,
+    locale: LocalePreference,
+) -> tauri::Result<()> {
     if app.tray_by_id(TRAY_ID).is_none() {
         install(app, locale)?;
     }

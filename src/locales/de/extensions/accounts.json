@@ -1,0 +1,23 @@
+{
+  "authorization": {
+    "label": "Autorisierung",
+    "none": "Keine Autorisierung",
+    "secretFields": "Geheime Header und Umgebungsvariablen",
+    "clientId": "Öffentliche Kunden-ID (für automatische Registrierung leer lassen)",
+    "fieldNames": "Geheime Feldnamen (durch Leerzeichen getrennt)"
+  },
+  "cleanupPending": "Getrennt · Bereinigung der Anmeldedaten steht aus",
+  "authorized": "Autorisiert",
+  "required": "Autorisierung erforderlich",
+  "authorizeInBrowser": "Im Browser autorisieren",
+  "authorize": "Autorisieren",
+  "disconnect": "Trennen und löschen Sie lokale Anmeldeinformationen",
+  "name": "Kontoanzeigename",
+  "add": "Konto hinzufügen",
+  "billingHint": "Externe Dienstleistungen können gesondert berechnet werden; Diese Gebühren sind nicht in der Nutzung des Anwendungstokens enthalten.",
+  "pending": "Die Autorisierung ist in Bearbeitung. Füllen Sie den Vorgang aus oder brechen Sie ihn ab, bevor Sie diese Seite verlassen.",
+  "discard": {
+    "title": "Nicht gespeicherte Kontoinformationen verwerfen?",
+    "description": "Die nicht übermittelten Kontonamen- oder Autorisierungsfelder werden gelöscht."
+  }
+}

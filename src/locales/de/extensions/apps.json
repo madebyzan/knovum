@@ -1,0 +1,10 @@
+{
+  "browse": "Plugins durchsuchen",
+  "description": "Apps werden mit Plugins geliefert. Hier können Sie Konten verbinden und den Zugriff konfigurieren.",
+  "empty": "Keine Apps hinzugefügt",
+  "emptyHint": "Installieren Sie einen App-Workflow aus dem Plugin-Katalog.",
+  "manage": "Verbindung verwalten",
+  "accounts": "Konten",
+  "access": "Zugriff",
+  "configurationRequired": "Diese App hat eine unvollständige Verbindung. Überprüfen Sie das Quell-Plugin."
+}

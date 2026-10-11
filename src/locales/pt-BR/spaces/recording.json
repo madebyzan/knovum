@@ -1,0 +1,19 @@
+{
+  "starting": "Iniciando gravação…",
+  "active": "Gravação",
+  "paused": "Pausada",
+  "saving": "Salvando gravação…",
+  "stopAndSave": "Concluir gravação",
+  "note": "Nota de áudio",
+  "startFailed": "Não foi possível iniciar a gravação ou salvar o áudio.",
+  "microphone": {
+    "settingsHint": "Acesso ao microfone negado. Permita o acesso ao microfone nas preferências do sistema."
+  },
+  "problems": {
+    "denied": "A permissão do microfone foi negada.",
+    "missing": "Nenhum dispositivo de microfone detectado.",
+    "busy": "O microfone está sendo usado por outro aplicativo.",
+    "unsupported": "A captura de áudio não é suportada neste ambiente.",
+    "unknown": "Não foi possível abrir o dispositivo de microfone."
+  }
+}

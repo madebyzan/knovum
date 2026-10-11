@@ -1,0 +1,25 @@
+{
+  "recording": "En écoute… relâchez le raccourci pour transcrire",
+  "transcribing": "Transcription de dictée…",
+  "errors": {
+    "microphonePermissionDenied": "L'accès au microphone a été refusé. Autorisez l’accès au microphone pour Knovum dans les paramètres système.",
+    "microphoneUnavailable": "Le microphone est devenu indisponible. Vérifiez le périphérique d'entrée sélectionné et réessayez.",
+    "recordingLimitReached": "L'enregistrement a atteint la limite de deux minutes et a été annulé.",
+    "audioCaptureEmpty": "Le microphone n’a capté aucun son.",
+    "unsupportedAudioFormat": "Le format de microphone sélectionné n'est pas pris en charge pour la dictée.",
+    "unsupportedDevice": "Cet appareil ne dispose pas d'un profil de dictée de bureau qualifié.",
+    "dictationFocusChanged": "L'application cible a changé, donc aucun texte n'a été inséré.",
+    "dictationPermissionDenied": "Le système d'exploitation a bloqué l'insertion de texte. Le texte reconnu est conservé ci-dessous.",
+    "dictationEmptyResult": "Aucun texte insérable n'a été reconnu.",
+    "dictationInsertionFailed": "L'insertion du texte a échoué. Le texte reconnu est conservé ci-dessous.",
+    "dictationFailed": "La dictée n'a pas pu être complétée."
+  },
+  "result": {
+    "title": "Résultat de la dictée",
+    "description": "L'insertion automatique n'a pas été effectuée. Le texte reconnu est conservé ici.",
+    "noText": "Aucun texte n'a été reconnu.",
+    "copy": "Copier le texte",
+    "copied": "Dictée copiée"
+  },
+  "preparingResources": "Préparer les ressources locales pour la dictée…"
+}

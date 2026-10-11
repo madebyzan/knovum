@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "Palette de commandes",
+    "searchPlaceholder": "Commandes de recherche…",
+    "noMatches": "Aucune commande correspondante"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "Rien à annuler",
+    "nothingToRedo": "Rien à refaire",
+    "noSelection": "Sélectionnez d'abord le contenu",
+    "notEnoughScenes": "Il n'y a pas d'autre scène",
+    "selectionNotEligible": "Cette sélection ne peut pas utiliser l'action",
+    "checking": "Vérification de la disponibilité",
+    "busy": "Une opération est en cours"
+  },
+  "toggleRightSidebar": "Afficher ou masquer la barre latérale droite",
+  "toggleSidebar": "Basculer la barre latérale",
+  "layoutSaveFailed": "La disposition de l'atelier n'a pas pu être enregistrée",
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "search": "Raccourcis de recherche",
+    "categories": {
+      "general": "Général",
+      "navigation": "Navigation",
+      "canvas": "Toile",
+      "editing": "Édition"
+    },
+    "noMatches": "Aucun raccourci correspondant"
+  },
+  "startup": {
+    "starting": "Démarrage de Knovum…"
+  }
+}

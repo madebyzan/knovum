@@ -1,0 +1,40 @@
+{
+  "title": "使用法",
+  "description": "過去 1 年間の組み込みの AI トークンの使用状況とアクティビティ。",
+  "tokens": {
+    "total": "総トークン数",
+    "input": "入力トークン",
+    "output": "出力トークン",
+    "split": "入力と出力のミックス"
+  },
+  "requests": "用途",
+  "activeDays": "アクティブな日",
+  "streak": {
+    "current": "現在のアクティブ ストリーク",
+    "longest": "最長アクティブ ストリーク"
+  },
+  "activity": {
+    "title": "トークン アクティビティ",
+    "insightsTitle": "アクティビティの概要",
+    "description": "ピーク日 · {peak} トークン",
+    "tokenCount": "{tokens} トークン",
+    "less": "少ない",
+    "more": "もっと",
+    "weekdays": {
+      "monday": "月",
+      "wednesday": "水",
+      "friday": "金"
+    },
+    "empty": "過去 1 年間にトークンの使用はありません。"
+  },
+  "purpose": {
+    "title": "機能ごとの使用法",
+    "editor": "ライティング ツール",
+    "knowledge": "知識の創造",
+    "knowledgeIndexing": "ナレッジ インデックス作成",
+    "translation": "翻訳",
+    "visualAnalysis": "視覚的理解",
+    "builtinAgent": "組み込みエージェント"
+  },
+  "providerReported": "合計には、使用状況を報告するアクティビティのみが含まれます。一部の操作が欠落している可能性があります。"
+}

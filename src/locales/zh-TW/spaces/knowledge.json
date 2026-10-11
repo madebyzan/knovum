@@ -1,0 +1,149 @@
+{
+  "health": {
+    "title": "知識檢定",
+    "description": "檢查目前空間中缺少依據、相互衝突或已過期的內容。",
+    "clean": "未發現問題。",
+    "critical": "偵測到 {count} 個嚴重問題",
+    "issues": {
+      "unsupported-claim": "此觀點缺乏支持關係 (Supports)。",
+      "contradicted-claim": "已確認的觀點存在反證關係 (Contradicts)。",
+      "ungrounded-evidence": "該證據缺乏來源溯源追溯。",
+      "answered-open-question": "此開放問題已關聯解答關係。",
+      "stale-provenance": "引用來源版本已變更，需重新核查關聯。"
+    }
+  },
+  "history": {
+    "title": "知識版本歷史",
+    "empty": "暫無變更記錄。",
+    "actor": "由 {actor} 修改",
+    "events": {
+      "created": "已創建",
+      "updated": "已更新",
+      "drafted": "草稿",
+      "accepted": "已確認",
+      "contested": "有爭議",
+      "superseded": "已被替代",
+      "invalidated": "已失效",
+      "opened": "已開啟",
+      "resolved": "已解決",
+      "restored": "已恢復",
+      "linked": "已關聯",
+      "unlinked": "已解除關聯",
+      "applied": "已應用",
+      "rejected": "已拒絕",
+      "moved": "已移動"
+    },
+    "loadFailed": "無法載入知識歷史"
+  },
+  "icons": {
+    "select": "選擇圖示",
+    "general": "一般",
+    "database": "數據",
+    "document": "文件",
+    "bookmark": "書籤",
+    "tag": "標籤",
+    "layers": "圖層",
+    "container": "容器",
+    "intelligence": "智慧",
+    "experiment": "實驗",
+    "decision": "決策",
+    "question": "問題",
+    "idea": "靈感"
+  },
+  "structuredKnowledge": "結構化知識",
+  "relations": {
+    "title": "知識關係",
+    "symmetric": "雙向關係式 ({count})",
+    "incoming": "入向 ({count})",
+    "outgoing": "出向 ({count})",
+    "empty": "拖曳節點錨點或選取多項建立關係。",
+    "inspect": "關聯詳情",
+    "kind": "關係類型",
+    "rationale": "關聯說明",
+    "addRationale": "添加",
+    "rationalePlaceholder": "說明這些內容之間的關聯…",
+    "color": "關聯線顏色",
+    "colors": {
+      "neutral": "中性灰",
+      "blue": "藍色",
+      "green": "綠色",
+      "amber": "琥珀色",
+      "red": "紅色",
+      "purple": "紫色"
+    },
+    "remove": "移除關係",
+    "removeConfirm": "移除與「{title}」的關係？",
+    "kinds": {
+      "reference": "引用",
+      "related": "相關",
+      "supports": "支援",
+      "contradicts": "反證",
+      "depends-on": "依賴",
+      "supersedes": "替代",
+      "answers": "解答",
+      "uses": "使用",
+      "derives-from": "衍生自",
+      "caused-by": "歸因"
+    }
+  },
+  "provenance": "來源",
+  "portal": {
+    "create": "新建空間入口",
+    "createDescription": "建立快速跳轉至其他空間的入口節點。"
+  },
+  "objects": {
+    "custom": "自訂知識對象",
+    "create": "新建自訂對象",
+    "createDescription": "根據選定的 Schema 類型建立知識對象節點。"
+  },
+  "fields": {
+    "add": "新增字段",
+    "title": "屬性字段",
+    "key": "字段標識",
+    "label": "欄位名稱",
+    "kind": "字段類型",
+    "kindLabels": {
+      "text": "文字",
+      "number": "數值",
+      "boolean": "布林值",
+      "date": "日期",
+      "node-ref": "節點引用",
+      "enum": "單選枚舉"
+    },
+    "options": "枚舉值清單（逗號分隔）",
+    "required": "必填",
+    "invalid": "請為每個欄位填寫名稱和唯一識別。",
+    "remove": "移除字段"
+  },
+  "status": {
+    "label": "知識狀態",
+    "labels": {
+      "draft": "草稿",
+      "accepted": "已確認",
+      "contested": "有爭議",
+      "superseded": "已被替代",
+      "invalidated": "已失效",
+      "open": "待解決",
+      "resolved": "已解決"
+    }
+  },
+  "summary": "摘要",
+  "types": {
+    "label": "知識類型",
+    "description": "描述",
+    "icon": "圖示",
+    "name": "類型名稱",
+    "manage": "管理知識類型",
+    "manageDescription": "定義目前空間中結構化知識的屬性欄位。",
+    "delete": "刪除類型…",
+    "discardChanges": "放棄目前類型尚未儲存的修改？",
+    "emptyFields": "新增這類知識需要記錄的屬性。",
+    "deleteConfirmation": "刪除“{name}”？已有知識對象使用的類型無法刪除。",
+    "create": "新類型",
+    "none": "暫無自訂 Schema 類型。",
+    "loadFailed": "無法載入 Schema 類型"
+  },
+  "visual": {
+    "empty": "暫無影像分析內容"
+  }
+}

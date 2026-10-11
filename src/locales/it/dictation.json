@@ -1,0 +1,25 @@
+{
+  "recording": "Ascoltando... rilascia la scorciatoia per trascrivere",
+  "transcribing": "Trascrizione dettatura…",
+  "errors": {
+    "microphonePermissionDenied": "L'accesso al microfono è stato negato. Consenti l'accesso al microfono per Knovum nelle impostazioni di sistema.",
+    "microphoneUnavailable": "Il microfono non è più disponibile. Controlla il dispositivo di input selezionato e riprova.",
+    "recordingLimitReached": "La registrazione ha raggiunto il limite di due minuti ed è stata annullata.",
+    "audioCaptureEmpty": "Il microfono non ha catturato alcun audio.",
+    "unsupportedAudioFormat": "Il formato del microfono selezionato non è supportato per la dettatura.",
+    "unsupportedDevice": "Questo dispositivo non dispone di un profilo di dettatura desktop qualificato.",
+    "dictationFocusChanged": "L'applicazione di destinazione è cambiata, quindi non è stato inserito alcun testo.",
+    "dictationPermissionDenied": "Il sistema operativo ha bloccato l'inserimento del testo. Il testo riconosciuto è conservato di seguito.",
+    "dictationEmptyResult": "Nessun testo inseribile è stato riconosciuto.",
+    "dictationInsertionFailed": "Inserimento del testo non riuscito. Il testo riconosciuto è conservato di seguito.",
+    "dictationFailed": "Impossibile completare la dettatura."
+  },
+  "result": {
+    "title": "Risultato della dettatura",
+    "description": "L'inserimento automatico non è stato completato. Il testo riconosciuto è conservato qui.",
+    "noText": "Nessun testo è stato riconosciuto.",
+    "copy": "Copia testo",
+    "copied": "Dettatura copiata"
+  },
+  "preparingResources": "Preparazione delle risorse locali per la dettatura..."
+}

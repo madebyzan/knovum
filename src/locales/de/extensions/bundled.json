@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "Weltraumwissen",
+    "description": "Lesen, organisieren und veröffentlichen Sie Arbeitsbereichswissen mit nachvollziehbaren Quellen."
+  },
+  "evidence-research": {
+    "name": "Evidenzforschung",
+    "description": "Vergleichen Sie Quellen und bereiten Sie Recherche- oder Entscheidungsberichte vor."
+  },
+  "meeting-notes": {
+    "name": "Besprechungsnotizen",
+    "description": "Extrahieren Sie Entscheidungen und Aktionspunkte aus Besprechungsprotokollen."
+  },
+  "document-delivery": {
+    "name": "Dokumentenlieferung",
+    "description": "Bereiten Sie quellenbasierte Berichte vor und liefern Sie das gewünschte Format."
+  },
+  "study-companion": {
+    "name": "Studienbegleiter",
+    "description": "Verwandeln Sie Arbeitsmaterial in Lernhandbücher, Übungen und Wiederholungspläne."
+  },
+  "github-work": {
+    "name": "GitHub-Arbeit",
+    "description": "Verbinden Sie GitHub, um Repositories zu untersuchen und fundierte Probleme vorzubereiten."
+  },
+  "notion-work": {
+    "name": "Begriffswissen",
+    "description": "Verbinden Sie Notion mit Rechercheseiten und veröffentlichen Sie organisiertes Wissen."
+  },
+  "linear-work": {
+    "name": "Lineare Arbeit",
+    "description": "Verbinden Sie Linear, um Entscheidungen in nachvollziehbare Projektarbeit umzuwandeln."
+  }
+}

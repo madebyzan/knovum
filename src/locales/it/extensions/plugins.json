@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "Sorgente",
+    "localDirectory": "Rubrica locale",
+    "location": "URL o percorso assoluto",
+    "gitReference": "Riferimento Git (HEAD, riferimento completo o commit)",
+    "subdirectory": "Sottodirectory del pacchetto",
+    "install": "Installa dal sorgente",
+    "description": "Scegli un pacchetto locale o URL remoto, quindi esaminalo prima dell'installazione.",
+    "revision": "Revisione sorgente"
+  },
+  "installation": {
+    "preview": "Anteprima",
+    "authorizationHint": "L'installazione non avvia servizi né autorizza account. Configura le connessioni e le autorizzazioni dello strumento separatamente.",
+    "install": "Installa",
+    "title": "Rivedere l'installazione",
+    "incomplete": "Questo plugin non ha funzionalità utilizzabili o contiene un componente richiesto non supportato."
+  },
+  "update": {
+    "action": "Aggiornamento",
+    "revisionChange": "Modifiche alla revisione del sorgente",
+    "added": "Componenti aggiunti",
+    "removed": "Componenti rimossi",
+    "check": "Verifica aggiornamenti",
+    "title": "Revisione aggiornamento"
+  },
+  "bundled": "In bundle con Knovum",
+  "verification": {
+    "unverified": "Identità dell'editore non verificata",
+    "title": "Verifica del pacchetto"
+  },
+  "uninstall": {
+    "action": "Disinstalla",
+    "title": "Disinstallare {name}?",
+    "description": "Ciò rimuove il plugin e le sue funzionalità. Puoi installarlo di nuovo più tardi."
+  },
+  "catalogs": {
+    "sourceType": "Tipo sorgente catalogo",
+    "add": "Aggiungi sorgente catalogo",
+    "all": "Tutte le fonti",
+    "title": "Gestisci cataloghi",
+    "description": "Aggiungi o aggiorna i cataloghi che elencano i plugin disponibili.",
+    "empty": {
+      "title": "Nessun plugin da scoprire",
+      "description": "Sfoglia il catalogo in bundle o aggiungi un'altra fonte di plugin."
+    },
+    "remove": {
+      "title": "Rimuovere il catalogo?",
+      "description": "Questo catalogo non verrà più visualizzato nella scoperta. I plugin installati vengono mantenuti."
+    }
+  },
+  "discovery": {
+    "title": "Scopri plugin",
+    "installed": "Installato · Visualizza"
+  },
+  "empty": {
+    "title": "Nessun plugin installato",
+    "description": "Scopri i plugin o installa da una fonte locale o remota."
+  },
+  "tasks": {
+    "inspect": "Ispeziona plugin",
+    "install": "Installa plugin",
+    "update": "Plugin di aggiornamento",
+    "catalog": "Leggi il catalogo dei plugin",
+    "cancelled": "Operazione plug-in annullata"
+  },
+  "stages": {
+    "reading": "Pacchetto di lettura o catalogo",
+    "validating": "Convalida del contenuto della confezione",
+    "committing": "Conferma modifiche"
+  },
+  "title": "Plugin installati",
+  "search": {
+    "empty": "Nessun risultato corrispondente",
+    "hint": "Prova un'altra parola chiave o cancella la ricerca."
+  },
+  "disable": "Disabilita {name}",
+  "enable": "Abilita {name}",
+  "actions": "Azioni del plug-in",
+  "capabilities": "Funzionalità incluse"
+}

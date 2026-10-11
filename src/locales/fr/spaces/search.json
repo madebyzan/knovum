@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "Rechercher",
+    "placeholder": "Rechercher des notes, des sites Web, des transcriptions, des fichiers, des balises…",
+    "noResults": "Aucun élément correspondant dans cet espace de travail.",
+    "defaultTitle": "Espace actuel",
+    "defaultContentLabel": "Contenu Canvas",
+    "emptyHint": "Aucun contenu disponible pour la recherche dans cet espace de travail."
+  },
+  "allSpaces": {
+    "title": "Rechercher dans tous les espaces",
+    "placeholder": "Effectuez une recherche dans tous les espaces de travail…",
+    "hint": "Recherchez des connaissances à l’échelle mondiale dans tous les espaces de travail.",
+    "noResults": "Aucun élément correspondant trouvé dans tous les espaces de travail."
+  },
+  "failed": "La recherche a échoué ; veuillez réessayer.",
+  "semantic": {
+    "enable": "Recherche sémantique",
+    "preparing": "Préparation de la recherche sémantique",
+    "indexing": "Indexation du contenu pour la recherche sémantique"
+  }
+}

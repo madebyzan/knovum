@@ -1,0 +1,45 @@
+{
+  "title": "작업 공간",
+  "new": "새로운 작업공간",
+  "untitled": "제목 없음 공간",
+  "inbox": "받은편지함",
+  "empty": {
+    "title": "빈 공간",
+    "description": "쓰려면 빈 캔버스를 두 번 클릭하세요. · 클립보드 내용을 붙여넣으세요. · 가져올 파일을 삭제하세요."
+  },
+  "rename": "작업공간 이름 바꾸기",
+  "tabs": {
+    "close": "탭 닫기",
+    "closeOthers": "다른 탭 닫기",
+    "closeToRight": "오른쪽 탭 닫기",
+    "actionFailed": "작업공간 탭 작업이 실패했습니다.",
+    "reopen": "닫은 탭 다시 열기",
+    "switchTo": "{number} 탭으로 전환"
+  },
+  "back": "뒤로 가기",
+  "forward": "앞으로 이동",
+  "sections": {
+    "open": "작업공간 열기",
+    "all": "모든 작업공간",
+    "recent": "최근 열림",
+    "favorites": "즐겨찾기"
+  },
+  "views": {
+    "grid": "그리드 보기",
+    "list": "목록 보기"
+  },
+  "search": {
+    "placeholder": "검색 공간…",
+    "noResults": "일치하는 공백 없음"
+  },
+  "nodeCount": "{count} 아이템",
+  "favorite": "즐겨찾는 공간",
+  "unfavorite": "즐겨찾기에서 제거",
+  "open": "작업공간 열기",
+  "loadFailed": "작업공간을 열 수 없습니다.",
+  "loadFailedHint": "작업공간 데이터베이스를 로드하지 못했습니다. 로컬 파일은 영향을 받지 않습니다. 다시 시도해 주세요.",
+  "archive": "아카이브 공간",
+  "moveTo": "Space로 이동",
+  "moveNoTargets": "이동할 수 있는 다른 작업공간이 없습니다.",
+  "archived": "보관된 “{title}”"
+}

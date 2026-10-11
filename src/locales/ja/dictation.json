@@ -1,0 +1,25 @@
+{
+  "recording": "聞いています…文字起こしするにはショートカットを解除してください",
+  "transcribing": "口述筆記…",
+  "errors": {
+    "microphonePermissionDenied": "マイクへのアクセスが拒否されました。システム設定で Knovum のマイクアクセスを許可します。",
+    "microphoneUnavailable": "マイクが使用できなくなりました。選択した入力デバイスを確認して、再試行してください。",
+    "recordingLimitReached": "録音は 2 分の制限に達したためキャンセルされました。",
+    "audioCaptureEmpty": "マイクは音声をキャプチャしませんでした。",
+    "unsupportedAudioFormat": "選択したマイク形式はディクテーションではサポートされていません。",
+    "unsupportedDevice": "このデバイスには、認定されたデスクトップ ディクテーション プロファイルがありません。",
+    "dictationFocusChanged": "対象アプリケーションが変更されたため、テキストは挿入されませんでした。",
+    "dictationPermissionDenied": "オペレーティング システムがテキストの挿入をブロックしました。認識されたテキストは以下に保存されます。",
+    "dictationEmptyResult": "挿入可能なテキストが認識されませんでした。",
+    "dictationInsertionFailed": "テキストの挿入に失敗しました。認識されたテキストは以下に保存されます。",
+    "dictationFailed": "ディクテーションを完了できませんでした。"
+  },
+  "result": {
+    "title": "ディクテーション結果",
+    "description": "自動挿入が完了しませんでした。認識されたテキストはここに保存されます。",
+    "noText": "テキストが認識されませんでした。",
+    "copy": "テキストをコピー",
+    "copied": "ディクテーションをコピーしました"
+  },
+  "preparingResources": "ディクテーション用にローカル リソースを準備しています…"
+}

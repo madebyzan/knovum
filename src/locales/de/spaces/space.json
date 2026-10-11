@@ -1,0 +1,45 @@
+{
+  "title": "Leerzeichen",
+  "new": "Neuer Arbeitsbereich",
+  "untitled": "Unbenannter Arbeitsbereich",
+  "inbox": "Posteingang",
+  "empty": {
+    "title": "Leerer Arbeitsbereich",
+    "description": "Doppelklicken Sie zum Schreiben auf eine leere Leinwand. · Fügen Sie den Inhalt der Zwischenablage ein. · Legen Sie Dateien zum Importieren ab"
+  },
+  "rename": "Leerzeichen umbenennen",
+  "tabs": {
+    "close": "Tab schließen",
+    "closeOthers": "Andere Registerkarten schließen",
+    "closeToRight": "Tabs rechts schließen",
+    "actionFailed": "Die Aktion auf der Registerkarte „Arbeitsbereich“ ist fehlgeschlagen",
+    "reopen": "Geschlossenen Tab erneut öffnen",
+    "switchTo": "Wechseln Sie zur Registerkarte {number}"
+  },
+  "back": "Zurück",
+  "forward": "Weiter",
+  "sections": {
+    "open": "Offene Arbeitsbereiche",
+    "all": "Alle Bereiche",
+    "recent": "Kürzlich geöffnet",
+    "favorites": "Favoriten"
+  },
+  "views": {
+    "grid": "Rasteransicht",
+    "list": "Listenansicht"
+  },
+  "search": {
+    "placeholder": "Suchbereiche…",
+    "noResults": "Keine passenden Leerzeichen"
+  },
+  "nodeCount": "{count} Artikel | {count} Artikel",
+  "favorite": "Lieblingsplatz",
+  "unfavorite": "Aus Favoriten entfernen",
+  "open": "Arbeitsbereich öffnen",
+  "loadFailed": "Der Arbeitsbereich konnte nicht geöffnet werden",
+  "loadFailedHint": "Die Arbeitsbereichsdatenbank konnte nicht geladen werden. Lokale Dateien sind davon nicht betroffen; Bitte versuchen Sie es noch einmal.",
+  "archive": "Archiv-Arbeitsbereich",
+  "moveTo": "Wechseln Sie zum Arbeitsbereich",
+  "moveNoTargets": "Es sind keine anderen Arbeitsbereiche zum Wechseln verfügbar.",
+  "archived": "Archiviert „{title}“"
+}

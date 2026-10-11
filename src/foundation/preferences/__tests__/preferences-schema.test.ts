@@ -17,6 +17,20 @@ const current = {
 } as const;
 
 describe("preferences schema", () => {
+  it.each(["zh-TW", "ja", "ko", "fr", "de", "es", "pt-BR", "it", "ru"])(
+    "persists the selected display language %s",
+    (locale) => {
+      const value = { ...current, locale };
+      expect(decodePreferences({ schemaVersion: 1, value })).toEqual(value);
+    },
+  );
+
+  it.each(["ar", "pt", "zh-cn", "fr-FR"])("rejects an unsupported display identifier %s", (locale) => {
+    expect(() => decodePreferences({ schemaVersion: 1, value: { ...current, locale } })).toThrow(
+      "Persisted preferences use an unsupported or invalid schema.",
+    );
+  });
+
   it("accepts only the current persisted envelope", () => {
     expect(decodePreferences({ schemaVersion: 1, value: current })).toEqual(current);
   });

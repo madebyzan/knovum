@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "Fuente",
+    "localDirectory": "Directorio local",
+    "location": "URL o ruta absoluta",
+    "gitReference": "Referencia de Git (HEAD, referencia completa o confirmación)",
+    "subdirectory": "Subdirectorio del paquete",
+    "install": "Instalar desde la fuente",
+    "description": "Elija un paquete local o URL remoto, luego revíselo antes de instalar.",
+    "revision": "Revisión fuente"
+  },
+  "installation": {
+    "preview": "Vista previa",
+    "authorizationHint": "La instalación no inicia servicios ni autoriza cuentas. Configure las conexiones y los permisos de herramientas por separado.",
+    "install": "Instalar",
+    "title": "Revisar instalación",
+    "incomplete": "Este complemento no tiene ninguna capacidad utilizable o contiene un componente requerido no compatible."
+  },
+  "update": {
+    "action": "Actualizar",
+    "revisionChange": "Cambios de revisión de fuente",
+    "added": "Componentes agregados",
+    "removed": "Componentes eliminados",
+    "check": "Buscar actualizaciones",
+    "title": "Revisar actualización"
+  },
+  "bundled": "Incluido con Knovum",
+  "verification": {
+    "unverified": "Identidad del editor no verificada",
+    "title": "Verificación del paquete"
+  },
+  "uninstall": {
+    "action": "Desinstalar",
+    "title": "¿Desinstalar {name}?",
+    "description": "Esto elimina el complemento y sus capacidades. Puedes instalarlo nuevamente más tarde."
+  },
+  "catalogs": {
+    "sourceType": "Tipo de fuente del catálogo",
+    "add": "Agregar fuente del catálogo",
+    "all": "Todas las fuentes",
+    "title": "Administrar catálogos",
+    "description": "Agregue o actualice catálogos que enumeren los complementos disponibles.",
+    "empty": {
+      "title": "No hay complementos para descubrir",
+      "description": "Explore el catálogo incluido o agregue otra fuente de complemento."
+    },
+    "remove": {
+      "title": "¿Eliminar catálogo?",
+      "description": "Este catálogo ya no aparecerá en el descubrimiento. Los complementos instalados se mantienen."
+    }
+  },
+  "discovery": {
+    "title": "Descubrir complementos",
+    "installed": "Instalado · Ver"
+  },
+  "empty": {
+    "title": "No hay complementos instalados",
+    "description": "Descubra complementos o instálelos desde una fuente local o remota."
+  },
+  "tasks": {
+    "inspect": "Inspeccionar complemento",
+    "install": "Instalar complemento",
+    "update": "Actualizar complemento",
+    "catalog": "Leer catálogo de complementos",
+    "cancelled": "Operación del complemento cancelada"
+  },
+  "stages": {
+    "reading": "Paquete de lectura o catálogo.",
+    "validating": "Validando el contenido del paquete",
+    "committing": "Confirmando cambios"
+  },
+  "title": "Complementos instalados",
+  "search": {
+    "empty": "No hay resultados coincidentes",
+    "hint": "Pruebe con otra palabra clave o borre la búsqueda."
+  },
+  "disable": "Deshabilitar {name}",
+  "enable": "Habilitar {name}",
+  "actions": "Acciones del complemento",
+  "capabilities": "Capacidades incluidas"
+}

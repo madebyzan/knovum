@@ -1,0 +1,149 @@
+{
+  "health": {
+    "title": "Comprobaciones de conocimientos",
+    "description": "Encuentre conocimientos no respaldados, conflictivos o desactualizados en este espacio de trabajo.",
+    "clean": "No se encontraron problemas",
+    "critical": "Problema crítico {count} detectado | Problemas críticos {count} detectados",
+    "issues": {
+      "unsupported-claim": "El reclamo carece de una relación de soporte (Soportes).",
+      "contradicted-claim": "La afirmación aceptada tiene una contradicción activa (Contradicts).",
+      "ungrounded-evidence": "La evidencia carece de una fuente de procedencia válida.",
+      "answered-open-question": "La pregunta abierta está asociada a una relación de respuesta.",
+      "stale-provenance": "La versión fuente ha cambiado; se requiere una nueva verificación."
+    }
+  },
+  "history": {
+    "title": "Historial de versiones de conocimientos",
+    "empty": "Aún no hay cambios",
+    "actor": "Cambiado por {actor}",
+    "events": {
+      "created": "Creado",
+      "updated": "Actualizado",
+      "drafted": "Redactado",
+      "accepted": "Aceptado",
+      "contested": "Impugnable",
+      "superseded": "Reemplazada",
+      "invalidated": "Invalidado",
+      "opened": "Abierto",
+      "resolved": "Resuelto",
+      "restored": "Restaurado",
+      "linked": "Vinculado",
+      "unlinked": "Desvinculado",
+      "applied": "Aplicado",
+      "rejected": "Rechazado",
+      "moved": "Movido"
+    },
+    "loadFailed": "No se pudo cargar el historial de conocimientos"
+  },
+  "icons": {
+    "select": "Seleccionar icono",
+    "general": "General",
+    "database": "Base de datos",
+    "document": "Documento",
+    "bookmark": "Marcador",
+    "tag": "Etiqueta",
+    "layers": "Capas",
+    "container": "Contenedor",
+    "intelligence": "Inteligencia",
+    "experiment": "Experimento",
+    "decision": "Decisión",
+    "question": "Pregunta",
+    "idea": "Idea"
+  },
+  "structuredKnowledge": "Conocimiento estructurado",
+  "relations": {
+    "title": "Relaciones de conocimiento",
+    "symmetric": "Bidireccional ({count})",
+    "incoming": "Entrante ({count})",
+    "outgoing": "Saliente ({count})",
+    "empty": "Arrastre los anclajes de los nodos o seleccione varios elementos para crear relaciones.",
+    "inspect": "Detalles de conexión",
+    "kind": "Tipo de relación",
+    "rationale": "¿Por qué están conectados?",
+    "addRationale": "Agregar",
+    "rationalePlaceholder": "Describe cómo están conectados estos elementos...",
+    "color": "Color de línea de relación",
+    "colors": {
+      "neutral": "Neutral",
+      "blue": "Azul",
+      "green": "Verde",
+      "amber": "Ámbar",
+      "red": "Rojo",
+      "purple": "Púrpura"
+    },
+    "remove": "Eliminar relación",
+    "removeConfirm": "¿Eliminar la relación con “{title}”?",
+    "kinds": {
+      "reference": "Referencia",
+      "related": "Relacionado",
+      "supports": "Soportes",
+      "contradicts": "Contradictos",
+      "depends-on": "Depende de",
+      "supersedes": "Reemplaza",
+      "answers": "Respuestas",
+      "uses": "Usos",
+      "derives-from": "Deriva de",
+      "caused-by": "Causado por"
+    }
+  },
+  "provenance": "Fuente",
+  "portal": {
+    "create": "Nuevo nodo del Portal",
+    "createDescription": "Cree un nodo de portal para una navegación rápida a otro espacio de trabajo."
+  },
+  "objects": {
+    "custom": "Objeto de conocimiento personalizado",
+    "create": "Nuevo objeto personalizado",
+    "createDescription": "Cree un nodo de objeto de conocimiento utilizando un esquema seleccionado."
+  },
+  "fields": {
+    "add": "Agregar campo",
+    "title": "Campo de propiedad",
+    "key": "Clave de campo",
+    "label": "Nombre de campo",
+    "kind": "Tipo de campo",
+    "kindLabels": {
+      "text": "Texto",
+      "number": "Número",
+      "boolean": "Booleano",
+      "date": "Fecha",
+      "node-ref": "Referencia de nodo",
+      "enum": "Opciones de enumeración"
+    },
+    "options": "Opciones de enumeración (separadas por comas)",
+    "required": "Obligatorio",
+    "invalid": "Cada campo necesita un nombre y un identificador único.",
+    "remove": "Eliminar campo"
+  },
+  "status": {
+    "label": "Estado del conocimiento",
+    "labels": {
+      "draft": "Borrador",
+      "accepted": "Aceptado",
+      "contested": "Impugnable",
+      "superseded": "Reemplazada",
+      "invalidated": "Invalidado",
+      "open": "Abrir",
+      "resolved": "Resuelto"
+    }
+  },
+  "summary": "Resumen",
+  "types": {
+    "label": "Tipo de conocimiento",
+    "description": "Descripción",
+    "icon": "Icono",
+    "name": "Nombre del tipo",
+    "manage": "Gestionar tipos de conocimiento",
+    "manageDescription": "Defina las propiedades del conocimiento estructurado en este espacio de trabajo.",
+    "delete": "Eliminar tipo…",
+    "discardChanges": "¿Descartar cambios no guardados de este tipo?",
+    "emptyFields": "Agregue las propiedades que este tipo de conocimiento necesita.",
+    "deleteConfirmation": "¿Eliminar “{name}”? Los tipos utilizados por los objetos de conocimiento no se pueden eliminar.",
+    "create": "Nuevo tipo",
+    "none": "No hay tipos de esquemas personalizados.",
+    "loadFailed": "No se pudieron cargar los tipos de esquema"
+  },
+  "visual": {
+    "empty": "Aún no hay análisis de imagen"
+  }
+}

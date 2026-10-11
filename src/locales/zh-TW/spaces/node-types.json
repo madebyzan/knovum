@@ -1,0 +1,16 @@
+{
+  "note": "便籤",
+  "text": "文字",
+  "markdown": "Markdown",
+  "website": "網頁",
+  "image": "圖片",
+  "video": "影片",
+  "audio": "音訊",
+  "file": "文件",
+  "code": "程式碼",
+  "credential": "憑證",
+  "object": "知識對象",
+  "portal": "空間入口",
+  "group": "群組",
+  "section": "分割區"
+}

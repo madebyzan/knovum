@@ -1,0 +1,26 @@
+{
+  "title": "Scènes",
+  "previous": "Scène précédente",
+  "next": "Scène suivante",
+  "focus": {
+    "mode": "Vue ciblée · Élément {count} | Vue ciblée · Éléments {count}",
+    "exit": "Quitter le focus",
+    "selection": "Sélection du focus",
+    "unavailable": "Cette vue enregistrée fait référence à une structure qui n'existe plus"
+  },
+  "collapse": "Réduire les commandes de scène",
+  "expand": "Développer les commandes de scène",
+  "defaultName": "Scène {index}",
+  "saved": "Scène enregistrée « {title} »",
+  "updated": "Scène mise à jour « {title} »",
+  "opened": "Navigation vers la scène « {title} »",
+  "save": "Enregistrer la scène actuelle",
+  "delete": "Supprimer la scène",
+  "empty": "Enregistrez la position de la fenêtre pour revenir rapidement à des zones spécifiques.",
+  "open": "Naviguer vers la scène",
+  "update": "Mise à jour vers la fenêtre actuelle",
+  "duplicate": "Scène en double",
+  "moveUp": "Monter",
+  "moveDown": "Descendre",
+  "rename": "Renommer la scène"
+}

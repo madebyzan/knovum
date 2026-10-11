@@ -1,0 +1,34 @@
+{
+  "title": "Extensiones",
+  "description": "Administre complementos, conexiones de aplicaciones, servidores MCP personalizados y habilidades personales.",
+  "plugins": "Complementos",
+  "skills": "Skills",
+  "mcp": "MCP",
+  "back": "Volver a la lista",
+  "information": "Información",
+  "author": "Desarrollador",
+  "version": "Versión",
+  "sourcePlugin": "Ver complemento fuente",
+  "pluginPaused": "Este complemento está deshabilitado. Sus habilidades y conexiones no están disponibles.",
+  "notFound": "Esta extensión no está disponible",
+  "notFoundHint": "Es posible que haya sido eliminado o modificado mediante una actualización del complemento. Regrese a la lista para ver el contenido actual.",
+  "usage": "Seleccione complementos completos, habilidades personales o conexiones MCP independientes en una conversación en el espacio de trabajo. Un complemento incluye sus habilidades y servicios juntos. Habilitarlo lo hace seleccionable; el acceso externo aún requiere autorización.",
+  "search": {
+    "plugins": "Buscar complementos…",
+    "mcp": "Buscar servidores MCP…",
+    "skills": "Habilidades de búsqueda…",
+    "apps": "Buscar aplicaciones…"
+  },
+  "status": {
+    "checking": "Comprobando disponibilidad…",
+    "failed": "No se puede leer la disponibilidad",
+    "pluginPaused": "Complemento fuente deshabilitado",
+    "disabled": "Deshabilitado",
+    "available": "Disponible en conversaciones",
+    "unavailable": "Configuración o autorización incompleta"
+  },
+  "homepage": "Sitio web",
+  "repository": "Repositorio",
+  "license": "Licencia",
+  "apps": "Aplicaciones"
+}

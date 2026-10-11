@@ -1,0 +1,46 @@
+{
+  "title": "Atualização de software",
+  "description": "Verificações Knovum após a inicialização e a cada seis horas. Downloads e instalação requerem sua confirmação.",
+  "connection": {
+    "loading": "Lendo o status do atualizador…",
+    "retry": "Tentar novamente a conexão do atualizador"
+  },
+  "action": {
+    "failed": "A ação de atualização não pôde ser concluída. Revise o status da atualização e tente novamente."
+  },
+  "check": {
+    "action": "Verificar atualizações"
+  },
+  "download": {
+    "action": "Baixar atualização",
+    "cancel": "Cancelar download"
+  },
+  "install": {
+    "action": "Reiniciar e instalar",
+    "blocked": "Conclua ou cancele a execução de tarefas em segundo plano antes de reiniciar.",
+    "title": "Preparando para reiniciar Knovum",
+    "description": "Salvando suas alterações e instalando a atualização verificada. Não feche o aplicativo."
+  },
+  "available": {
+    "review": "Revisar atualização",
+    "title": "A versão {version} está disponível",
+    "notes": "Notas de versão"
+  },
+  "status": {
+    "disabled": "As atualizações não estão habilitadas nesta compilação.",
+    "idle": "Pronto para verificar se há atualizações.",
+    "checking": "Verificando atualizações…",
+    "current": "Knovum está atualizado.",
+    "available": "Revise as notas de versão e baixe a atualização assinada.",
+    "downloading": "Baixando atualização…",
+    "verifying": "Verificando a assinatura da atualização…",
+    "ready": "Baixado e verificado. Reinicie quando estiver pronto.",
+    "installing": "Instalando atualização…"
+  },
+  "failure": {
+    "check": "Não foi possível verificar se há atualizações. Verifique sua conexão e tente novamente.",
+    "download": "Falha no download. Verifique sua conexão e espaço livre e tente novamente.",
+    "signature": "A assinatura de atualização é inválida. A instalação foi recusada. Verifique novamente depois que o editor corrigir o lançamento.",
+    "install": "A instalação falhou. Suas alterações foram salvas. Verifique as permissões e o armazenamento antes de verificar novamente."
+  }
+}

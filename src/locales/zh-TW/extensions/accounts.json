@@ -1,0 +1,23 @@
+{
+  "authorization": {
+    "label": "授權方式",
+    "none": "無需授權",
+    "secretFields": "敏感請求頭與環境變量",
+    "clientId": "公共客戶端 ID（留空時自動註冊）",
+    "fieldNames": "敏感欄位名（以空格分隔）"
+  },
+  "cleanupPending": "已中斷 · 憑證待清理",
+  "authorized": "已授權",
+  "required": "需要授權",
+  "authorizeInBrowser": "在瀏覽器中授權",
+  "authorize": "授權",
+  "disconnect": "斷開並刪除本機憑證",
+  "name": "帳號顯示名稱",
+  "add": "新增帳號",
+  "billingHint": "外部服務可能另行計費，不計入應用程式的 Token 用量。",
+  "pending": "正在處理授權。完成或取消後再離開此頁面。",
+  "discard": {
+    "title": "放棄未儲存的帳號資訊？",
+    "description": "未提交的帳號名稱或授權欄位將被清除。"
+  }
+}

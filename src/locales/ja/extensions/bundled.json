@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "宇宙知識",
+    "description": "追跡可能なソースを使用してワークスペースの知識を読み取り、整理し、公開します。"
+  },
+  "evidence-research": {
+    "name": "証拠調査",
+    "description": "情報源を比較し、調査や決定の概要を準備します。"
+  },
+  "meeting-notes": {
+    "name": "会議ノート",
+    "description": "会議の記録から決定事項と実行項目を抽出します。"
+  },
+  "document-delivery": {
+    "name": "ドキュメント配信",
+    "description": "ソースに基づいたレポートを準備し、要求された形式で提供します。"
+  },
+  "study-companion": {
+    "name": "勉強仲間",
+    "description": "ワークスペースの資料を学習ガイド、演習、復習計画に変えます。"
+  },
+  "github-work": {
+    "name": "GitHubの仕事",
+    "description": "GitHub に接続してリポジトリを調査し、根拠のある問題を準備します。"
+  },
+  "notion-work": {
+    "name": "Notion ナレッジ",
+    "description": "Notion をリサーチ ページに接続し、整理された知識を公開します。"
+  },
+  "linear-work": {
+    "name": "直線的な仕事",
+    "description": "Linear を接続して、意思決定を追跡可能なプロジェクト作業に変換します。"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "task": "Separação de fontes",
+  "title": "Vocais e fundo separados",
+  "stems": {
+    "vocals": "Vocais",
+    "background": "Fundo"
+  },
+  "background": "Fundo separado",
+  "running": "Separando áudio",
+  "starting": "Preparando separação…",
+  "cancelling": "Cancelando…",
+  "completed": "Vocais e fundo adicionados à tela",
+  "sourceUnavailable": "As informações de áudio não estão prontas",
+  "tooLong": "Escolha áudio com até 10 minutos de duração"
+}

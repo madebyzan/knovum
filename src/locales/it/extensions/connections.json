@@ -1,0 +1,58 @@
+{
+  "name": "Nome della connessione",
+  "configuration": {
+    "headers": "Intestazioni della richiesta",
+    "environment": "Variabili d'ambiente",
+    "secretsHint": "Solo configurazione pubblica. Imposta token e altre credenziali in Autorizzazione dopo il salvataggio.",
+    "invalidName": "Inserisci un nome di campo senza spazi iniziali o finali.",
+    "duplicateName": "I nomi dei campi devono essere univoci. I nomi delle intestazioni HTTP non fanno distinzione tra maiuscole e minuscole.",
+    "fieldName": "Nome",
+    "fieldValue": "Valore",
+    "fieldNameAt": "Nome del campo {index}",
+    "fieldValueAt": "Valore del campo {index}",
+    "removeField": "Rimuovere il campo {index}",
+    "addHeader": "Aggiungi intestazione",
+    "addVariable": "Aggiungi variabile",
+    "serverUrl": "URL del server",
+    "authorizationHint": "Scegli il metodo di autorizzazione richiesto dal server. Le credenziali vengono configurate separatamente dopo il salvataggio.",
+    "advanced": "Variabili d'ambiente e intestazioni"
+  },
+  "transport": "Trasporto",
+  "allowLocalNetwork": "Consenti l'accesso all'host locale o all'indirizzo LAN configurato",
+  "tools": {
+    "policyHint": "Gli strumenti sono negati per impostazione predefinita. Verifica tu stesso gli strumenti di sola lettura; le etichette del server sono solo attestazioni. La ricerca può utilizzare solo gli strumenti contrassegnati come di sola lettura.",
+    "policy": "Politica di chiamata",
+    "deny": "Nega",
+    "confirm": "Conferma ogni invocazione",
+    "allow": "Consenti",
+    "reviewedReadOnly": "Revisionato come di sola lettura",
+    "serverReadOnlyHint": "Il server dichiara di sola lettura",
+    "savePermissions": "Salva permessi dello strumento"
+  },
+  "account": {
+    "label": "Account utilizzato da questa connessione",
+    "none": "Nessun account vincolato",
+    "changeHint": "La modifica degli account cancella le autorizzazioni dello strumento. Rivedere le autorizzazioni prima di utilizzare nuovamente la connessione."
+  },
+  "add": "Aggiungi connessione",
+  "configure": "Configura",
+  "accountsAndTools": "Account e strumenti",
+  "check": "Controllare la connessione e leggere il catalogo",
+  "empty": "Nessuna connessione per questo servizio",
+  "cleanupPending": "Modifiche salvate, ma la pulizia è incompleta. Gli account interessati rimangono non disponibili.",
+  "delete": {
+    "title": "Eliminare la connessione {name}?",
+    "description": "Viene eliminata solo questa connessione. Le altre connessioni al servizio vengono mantenute."
+  },
+  "accounts": "Account",
+  "title": "Connessioni",
+  "addServer": "Aggiungi server MCP",
+  "description": "Configura i servizi, gli account e le autorizzazioni degli strumenti MCP. I servizi plugin sono configurati come parte del loro pacchetto.",
+  "emptyServers": "Nessun server MCP",
+  "emptyHint": "Aggiungi il tuo server MCP. Configura i servizi forniti dal plug-in all'interno del plug-in proprietario.",
+  "serviceAndAccounts": "Gestisci servizi e account",
+  "configureServiceFirst": "Completa prima la configurazione di questo servizio.",
+  "conflict": "Questa connessione è cambiata altrove. Le tue modifiche verranno mantenute. Scartateli e riaprite la connessione prima di salvare.",
+  "saveBeforeCheck": "Salva le modifiche prima di cambiare account o controllare nuovamente il catalogo.",
+  "services": "Servizi"
+}

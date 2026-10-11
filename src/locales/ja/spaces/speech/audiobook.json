@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "章のタイトル",
+  "configurationInvalid": "このプレリリースのオーディオブック リビジョンには、有効なロール バインディングがありません。スクリプトをインポートまたは再構築して、新しいリビジョンを保存します。",
+  "lexicon": {
+    "title": "発音辞書",
+    "hint": "名前または用語は、合成中に使用される正確な読みに置き換えてください。",
+    "word": "単語または用語",
+    "reading": "発音",
+    "add": "発音を追加",
+    "remove": "発音の削除",
+    "invalid": "すべての入力を完了し、重複する単語を削除します。"
+  },
+  "moveUp": "章を上に移動",
+  "moveDown": "章を下に移動",
+  "removeChapter": "章を削除",
+  "removeParagraph": "段落の削除",
+  "addParagraph": "段落の追加",
+  "addChapter": "章の追加",
+  "wavPrecision": "WAV精度",
+  "paragraphPause": "段落一時停止 (ミリ秒)",
+  "chapterPause": "章の一時停止 (ミリ秒)",
+  "title": "本のタイトル",
+  "author": "作成者",
+  "narrator": "ナレーター",
+  "cover": "カバー",
+  "noCover": "カバーなし",
+  "boundCover": "保存されたカバー リビジョン",
+  "coverRequiresEncodedOutput": "カバーを埋め込む場合は、MP3 または M4B を選択してください。",
+  "outputSettings": "出力設定",
+  "metadataSettings": "書籍の詳細"
+}

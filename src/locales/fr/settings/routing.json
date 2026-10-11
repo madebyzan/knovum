@@ -1,0 +1,38 @@
+{
+  "defaultsTitle": "Exécution de l'IA",
+  "defaultsDescription": "Définissez chaque fonctionnalité individuellement ou laissez-la utiliser la méthode d'exécution par défaut.",
+  "unassigned": "Utiliser la méthode d'exécution par défaut",
+  "noCompatibleModel": "Configurer un modèle pour cette tâche",
+  "routes": {
+    "writing": {
+      "label": "Écriture",
+      "description": "Aide à la rédaction, à la réécriture et à la rédaction."
+    },
+    "knowledge": {
+      "label": "Builtin Agent",
+      "description": "Conversations, planification des tâches, utilisation des outils et organisation des connaissances."
+    },
+    "visualUnderstanding": {
+      "label": "Compréhension visuelle",
+      "description": "Comprenez les images, les visuels de documents et les images d’aperçu vidéo pour la récupération."
+    },
+    "translation": {
+      "label": "Traduction",
+      "description": "Traduisez le contenu dans toute l’application."
+    },
+    "imageGeneration": {
+      "label": "Création d'images",
+      "description": "Créez des images à partir d’instructions et d’un contexte spatial."
+    },
+    "videoGeneration": {
+      "label": "Création vidéo",
+      "description": "Créez des vidéos à partir d’instructions et de matériel source."
+    },
+    "defaultTarget": {
+      "label": "Méthode d'exécution par défaut",
+      "description": "Utilisé par les fonctionnalités sans choix d’exécution individuel."
+    }
+  },
+  "unselected": "Aucune méthode d'exécution sélectionnée",
+  "capabilitiesTitle": "Par capacité"
+}

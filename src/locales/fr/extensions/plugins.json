@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "Source",
+    "localDirectory": "Répertoire local",
+    "location": "URL ou chemin absolu",
+    "gitReference": "Référence Git (HEAD, référence complète ou commit)",
+    "subdirectory": "Sous-répertoire Package",
+    "install": "Installer à partir des sources",
+    "description": "Choisissez un package local ou un URL distant, puis examinez-le avant l'installation.",
+    "revision": "Révision source"
+  },
+  "installation": {
+    "preview": "Aperçu",
+    "authorizationHint": "L'installation ne lance pas de services et n'autorise pas de comptes. Configurez les connexions et les autorisations des outils séparément.",
+    "install": "Installer",
+    "title": "Vérifier l'installation",
+    "incomplete": "Ce plugin n'a aucune fonctionnalité utilisable ou contient un composant requis non pris en charge."
+  },
+  "update": {
+    "action": "Mise à jour",
+    "revisionChange": "Modifications de la révision source",
+    "added": "Composants ajoutés",
+    "removed": "Composants supprimés",
+    "check": "Vérifier les mises à jour",
+    "title": "Réviser la mise à jour"
+  },
+  "bundled": "Fourni avec Knovum",
+  "verification": {
+    "unverified": "Identité de l'éditeur non vérifiée",
+    "title": "Vérification du package"
+  },
+  "uninstall": {
+    "action": "Désinstaller",
+    "title": "Désinstaller {name} ?",
+    "description": "Cela supprime le plugin et ses fonctionnalités. Vous pourrez le réinstaller plus tard."
+  },
+  "catalogs": {
+    "sourceType": "Type de source du catalogue",
+    "add": "Ajouter une source de catalogue",
+    "all": "Toutes sources",
+    "title": "Gérer les catalogues",
+    "description": "Ajoutez ou actualisez les catalogues répertoriant les plugins disponibles.",
+    "empty": {
+      "title": "Aucun plugin à découvrir",
+      "description": "Parcourez le catalogue fourni ou ajoutez une autre source de plugin."
+    },
+    "remove": {
+      "title": "Supprimer le catalogue ?",
+      "description": "Ce catalogue n'apparaîtra plus en découverte. Les plugins installés sont conservés."
+    }
+  },
+  "discovery": {
+    "title": "Découvrir les plugins",
+    "installed": "Installé · Afficher"
+  },
+  "empty": {
+    "title": "Aucun plugin installé",
+    "description": "Découvrez des plugins ou installez-les à partir d'une source locale ou distante."
+  },
+  "tasks": {
+    "inspect": "Inspecter le plugin",
+    "install": "Installer le plugin",
+    "update": "Plugin de mise à jour",
+    "catalog": "Lire le catalogue des plugins",
+    "cancelled": "Opération du plugin annulée"
+  },
+  "stages": {
+    "reading": "Dossier de lecture ou catalogue",
+    "validating": "Validation du contenu du package",
+    "committing": "Validation des modifications"
+  },
+  "title": "Plugins installés",
+  "search": {
+    "empty": "Aucun résultat correspondant",
+    "hint": "Essayez un autre mot-clé ou effacez la recherche."
+  },
+  "disable": "Désactiver {name}",
+  "enable": "Activer {name}",
+  "actions": "Actions du plugin",
+  "capabilities": "Capacités incluses"
+}

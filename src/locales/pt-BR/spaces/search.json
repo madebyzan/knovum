@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "Localizar",
+    "placeholder": "Pesquise notas, sites, transcrições, arquivos, tags…",
+    "noResults": "Não há itens correspondentes neste espaço de trabalho.",
+    "defaultTitle": "Espaço Atual",
+    "defaultContentLabel": "Conteúdo da tela",
+    "emptyHint": "Nenhum conteúdo disponível para pesquisa neste espaço de trabalho."
+  },
+  "allSpaces": {
+    "title": "Pesquisar todos os espaços",
+    "placeholder": "Pesquise em todos os espaços de trabalho…",
+    "hint": "Pesquise conhecimento globalmente em todos os espaços de trabalho.",
+    "noResults": "Nenhum item correspondente encontrado em todos os espaços de trabalho."
+  },
+  "failed": "A pesquisa falhou; por favor tente novamente.",
+  "semantic": {
+    "enable": "Pesquisa semântica",
+    "preparing": "Preparando pesquisa semântica",
+    "indexing": "Indexação de conteúdo para pesquisa semântica"
+  }
+}

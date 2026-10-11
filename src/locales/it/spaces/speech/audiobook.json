@@ -1,0 +1,31 @@
+{
+  "chapterTitle": "Titolo del capitolo",
+  "configurationInvalid": "Questa revisione dell'audiolibro pre-release non ha vincoli di ruolo validi. Importa o ricostruisci lo script, quindi salva una nuova revisione.",
+  "lexicon": {
+    "title": "Dizionario della pronuncia",
+    "hint": "Sostituisci nomi o termini con la lettura esatta utilizzata durante la sintesi.",
+    "word": "Parola o termine",
+    "reading": "Pronuncia",
+    "add": "Aggiungi pronuncia",
+    "remove": "Rimuovi pronuncia",
+    "invalid": "Completa ogni voce e rimuovi le parole duplicate."
+  },
+  "moveUp": "Sposta capitolo su",
+  "moveDown": "Sposta capitolo giù",
+  "removeChapter": "Rimuovi capitolo",
+  "removeParagraph": "Rimuovi paragrafo",
+  "addParagraph": "Aggiungi paragrafo",
+  "addChapter": "Aggiungi capitolo",
+  "wavPrecision": "Precisione WAV",
+  "paragraphPause": "Pausa paragrafo (ms)",
+  "chapterPause": "Pausa capitolo (ms)",
+  "title": "Titolo del libro",
+  "author": "Autore",
+  "narrator": "Narratore",
+  "cover": "Copertina",
+  "noCover": "Nessuna copertura",
+  "boundCover": "Revisione copertina salvata",
+  "coverRequiresEncodedOutput": "Scegli MP3 o M4B per incorporare una copertina.",
+  "outputSettings": "Impostazioni di output",
+  "metadataSettings": "Dettagli del libro"
+}

@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "尋找",
+    "placeholder": "搜尋筆記、網頁、轉錄、文件、標籤…",
+    "noResults": "目前空間無匹配項。",
+    "defaultTitle": "目前空間",
+    "defaultContentLabel": "畫布內容",
+    "emptyHint": "當前空間暫無內容可供檢索。"
+  },
+  "allSpaces": {
+    "title": "搜尋所有空間",
+    "placeholder": "跨空間搜尋全局知識…",
+    "hint": "在全部知識空間中檢索內容。",
+    "noResults": "所有空間中均未找到匹配項。"
+  },
+  "failed": "檢索失敗，請重試。",
+  "semantic": {
+    "enable": "語意搜尋",
+    "preparing": "正在準備語義搜索",
+    "indexing": "正在建立內容索引"
+  }
+}

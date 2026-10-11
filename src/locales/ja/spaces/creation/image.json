@@ -1,0 +1,18 @@
+{
+  "removeBackground": "背景を削除",
+  "visualization": {
+    "title": "画像の生成",
+    "description": "選択したソースの横に画像を生成します。",
+    "defaultTitle": "生成されたイメージ",
+    "intent": "画像フォーカス",
+    "placeholder": "選択したソースに基づいて、表示する概念または関係を説明します。",
+    "task": "イメージの生成"
+  },
+  "style": "ビジュアル ディレクション",
+  "aspectRatio": "アスペクト比",
+  "styles": {
+    "editorial": "エディトリアルイラスト",
+    "diagram": "情報図",
+    "concept": "コンセプト アート"
+  }
+}

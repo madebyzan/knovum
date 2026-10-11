@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "Escritura AI",
+    "selectText": "Seleccione el contenido del texto primero.",
+    "failed": "Error en la generación de IA",
+    "applyFailed": "No se pudo aplicar el resultado AI",
+    "actions": {
+      "adjustTone": "Ajustar tono",
+      "fixGrammar": "Corregir gramática y ortografía",
+      "extend": "Extender texto",
+      "reduce": "Resumir y condensar",
+      "simplify": "Simplificar fraseo",
+      "emojify": "Agregar emoji",
+      "improve": "Pulir y mejorar",
+      "complete": "Autocompletar",
+      "summarize": "Resumir",
+      "translate": "Traducir"
+    },
+    "tones": {
+      "academic": "Académico",
+      "business": "Profesional",
+      "casual": "Informal",
+      "confident": "Confiado",
+      "creative": "Creativo",
+      "friendly": "Amigable",
+      "humorous": "Humorístico",
+      "informative": "Claro e informativo",
+      "inspirational": "Inspiracional",
+      "objective": "Objetivo",
+      "persuasive": "Persuasivo"
+    },
+    "needContext": "Coloque el cursor después del texto existente o seleccione texto como contexto."
+  },
+  "find": {
+    "title": "Buscar texto",
+    "placeholder": "Buscar en el documento…",
+    "previous": "Partido anterior",
+    "next": "Próximo partido",
+    "toggleReplace": "Mostrar reemplazar",
+    "replace": "Reemplazar",
+    "replaceAll": "Reemplazar todo",
+    "replacePlaceholder": "Reemplazar con…"
+  },
+  "paragraph": "Párrafo",
+  "heading1": "Título 1",
+  "heading2": "Título 2",
+  "heading3": "Título 3",
+  "heading4": "Título 4",
+  "heading5": "Título 5",
+  "heading6": "Título 6",
+  "headings": {
+    "menu": "Tipografía"
+  },
+  "bold": "Negrita",
+  "italic": "Cursiva",
+  "underline": "Subrayado",
+  "strike": "Tachado",
+  "inlineCode": "Código en línea",
+  "horizontalRule": "Divisor",
+  "highlight": "Destacar",
+  "superscript": "Superíndice",
+  "subscript": "Subíndice",
+  "align": {
+    "left": "Alinear a la izquierda",
+    "center": "Alinear al centro",
+    "right": "Alinear a la derecha",
+    "justify": "Justificar"
+  },
+  "highlightColor": {
+    "yellow": "Amarillo",
+    "green": "Verde",
+    "blue": "Azul",
+    "pink": "Rosa",
+    "clear": "Borrar resaltado"
+  },
+  "image": {
+    "insert": "Insertar imagen",
+    "tabUpload": "Archivo local",
+    "tabUrl": "URL",
+    "url": "URL de la imagen",
+    "alt": "Descripción de la imagen",
+    "choose": "Seleccionar imagen",
+    "uploadFailed": "Error al insertar la imagen",
+    "dropDocumentHint": "Elija el archivo o arrastre la imagen al editor de documentos.",
+    "altPlaceholder": "Describe la imagen para lectores de pantalla.",
+    "dropNow": "Soltar para insertar imagen",
+    "urlInvalid": "Introduzca una dirección de imagen http:// o https:// válida.",
+    "insertFailed": "No se pudo insertar la imagen"
+  },
+  "link": {
+    "label": "Hipervínculo",
+    "placeholder": "Ingrese o pegue URL",
+    "remove": "Eliminar enlace",
+    "editorTitle": "Editar enlace",
+    "editorDescription": "Agregue un enlace web o de correo electrónico al texto seleccionado.",
+    "url": "URL del enlace",
+    "invalid": "Ingrese un enlace HTTP, HTTPS o mailto válido.",
+    "open": "Abrir enlace",
+    "updateFailed": "No se pudo actualizar el enlace",
+    "openFailed": "No se pudo abrir el enlace"
+  },
+  "bulletList": "Lista de viñetas",
+  "orderedList": "Lista ordenada",
+  "taskList": "Lista de tareas",
+  "blockquote": "Cita en bloque",
+  "listMenu": "Estilos de lista",
+  "table": {
+    "title": "Tabla",
+    "addRow": "Insertar fila a continuación",
+    "addColumn": "Insertar columna a la derecha",
+    "delete": "Eliminar tabla"
+  },
+  "words": "palabras",
+  "characters": "caracteres"
+}

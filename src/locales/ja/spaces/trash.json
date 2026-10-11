@@ -1,0 +1,27 @@
+{
+  "recent": {
+    "title": "最近削除されました",
+    "description": "削除されたカードを復元するか、構造を完全に削除します。",
+    "loadFailed": "削除された構造をロードできませんでした。",
+    "empty": "このスコープには最近削除されたアイテムはありません。"
+  },
+  "filters": {
+    "space": "スペースによるフィルター"
+  },
+  "structure": {
+    "deletedCount": "{count} ノードが削除されました",
+    "processing": "処理中…",
+    "deletedNotice": "{count} ノードが完全に削除されました",
+    "restoreNode": "ノードの復元",
+    "restoreOperation": "削除全体を復元",
+    "restoreFailed": "ノードを復元できませんでした",
+    "deleteDescription": "「{title}」を完全に削除しますか?この操作は元に戻すことができません。",
+    "deleteFailed": "ノードを完全に削除できませんでした"
+  },
+  "deleteAll": {
+    "action": "すべて完全に削除...",
+    "title": "すべてのアイテムを完全に削除しますか?",
+    "description": "「{scope}」内の{count}削除済みアイテムを完全に削除しますか?アクティブな知識は影響を受けません。この操作は元に戻すことができません。"
+  },
+  "deletePermanently": "完全に削除"
+}

@@ -1,0 +1,26 @@
+{
+  "title": "場景",
+  "previous": "上一個場景",
+  "next": "下一個場景",
+  "focus": {
+    "mode": "聚焦模式 · {count} 項",
+    "exit": "退出聚焦",
+    "selection": "聚焦選取項",
+    "unavailable": "此保存視圖引用的結構已不存在"
+  },
+  "collapse": "收起場景控制",
+  "expand": "展開場景控制",
+  "defaultName": "場景 {index}",
+  "saved": "已儲存場景“{title}”",
+  "updated": "已更新場景“{title}”",
+  "opened": "已跳轉至場景“{title}”",
+  "save": "儲存目前場景",
+  "delete": "刪除場景",
+  "empty": "儲存視口位置後可快速返回特定區域。",
+  "open": "跳轉場景",
+  "update": "更新為目前視口",
+  "duplicate": "複製場景",
+  "moveUp": "上移",
+  "moveDown": "下移",
+  "rename": "重新命名場景"
+}

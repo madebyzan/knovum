@@ -1,0 +1,22 @@
+{
+  "find": {
+    "title": "Buscar",
+    "placeholder": "Busque notas, sitios web, transcripciones, archivos, etiquetas…",
+    "noResults": "No hay elementos coincidentes en este espacio de trabajo.",
+    "defaultTitle": "Espacio actual",
+    "defaultContentLabel": "Contenido del lienzo",
+    "emptyHint": "No hay contenido disponible para buscar en este espacio de trabajo."
+  },
+  "allSpaces": {
+    "title": "Buscar en todos los espacios",
+    "placeholder": "Buscar en todos los espacios de trabajo...",
+    "hint": "Busque conocimiento globalmente en todos los espacios de trabajo.",
+    "noResults": "No se encontraron elementos coincidentes en todos los espacios de trabajo."
+  },
+  "failed": "La búsqueda falló; por favor inténtalo de nuevo.",
+  "semantic": {
+    "enable": "Búsqueda semántica",
+    "preparing": "Preparando la búsqueda semántica",
+    "indexing": "Indexación de contenidos para búsqueda semántica"
+  }
+}

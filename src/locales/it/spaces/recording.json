@@ -1,0 +1,19 @@
+{
+  "starting": "Avvio della registrazione…",
+  "active": "Registrazione",
+  "paused": "In pausa",
+  "saving": "Salvataggio registrazione…",
+  "stopAndSave": "Fine registrazione",
+  "note": "Nota audio",
+  "startFailed": "Impossibile avviare la registrazione o salvare l'audio.",
+  "microphone": {
+    "settingsHint": "Accesso al microfono negato. Consenti l'accesso al microfono nelle preferenze di sistema."
+  },
+  "problems": {
+    "denied": "L'autorizzazione al microfono è stata negata.",
+    "missing": "Nessun dispositivo microfono rilevato.",
+    "busy": "Il microfono è utilizzato da un'altra applicazione.",
+    "unsupported": "L'acquisizione audio non è supportata in questo ambiente.",
+    "unknown": "Impossibile aprire il dispositivo con microfono."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "removeBackground": "去背景",
+  "visualization": {
+    "title": "生成圖片",
+    "description": "在所選來源旁產生圖片。",
+    "defaultTitle": "生成圖片",
+    "intent": "圖片內容",
+    "placeholder": "描述要呈現的概念或關係，並以所選來源為準。",
+    "task": "正在產生圖片"
+  },
+  "style": "視覺方向",
+  "aspectRatio": "畫面比例",
+  "styles": {
+    "editorial": "編輯插畫",
+    "diagram": "資訊圖解",
+    "concept": "概念藝術"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "음성 이름",
+  "add": "추가",
+  "usage": "참조된 {count} 시간",
+  "revise": "새 개정판",
+  "history": "개정 내역",
+  "speed": "속도",
+  "archived": "보관됨",
+  "delete": {
+    "title": "음성을 영구적으로 삭제",
+    "description": "보관된 음성과 모든 버전을 삭제하세요. 프로젝트에서 사용하는 음성은 삭제할 수 없습니다."
+  },
+  "label": "음성",
+  "clone": "참조에서 복제",
+  "design": "음성 디자인",
+  "mode": "음성 소스",
+  "designDescription": "목소리, 전달력, 연령대, 어조를 설명하세요.",
+  "candidate": {
+    "text": "샘플 텍스트",
+    "generate": "샘플 생성",
+    "auditionRequired": "이 음성을 저장하기 전에 후보를 한 번 재생하십시오.",
+    "save": "음성 저장",
+    "discard": "샘플 폐기",
+    "sample": "환영. 오늘은 2026년 10월 3일이고, 프로젝트 번호는 108입니다. 명확한 발음, 꾸준한 속도, 자연스러운 문장 결말을 들어보세요.",
+    "auditions": "오디션 결과"
+  },
+  "gender": {
+    "female": "여성",
+    "male": "남성"
+  },
+  "origins": {
+    "preset": "사전 설정 음성",
+    "reference": "참조 음성",
+    "designed": "디자인된 목소리"
+  },
+  "options": "음성 설정",
+  "cloneShort": "음성 복제"
+}

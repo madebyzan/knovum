@@ -1,0 +1,27 @@
+{
+  "process": {
+    "executable": "Ausführbare Datei des installierten Dienstes (absoluter Pfad)",
+    "arguments": "Argumente",
+    "workingDirectory": "Arbeitsverzeichnis (optional)",
+    "authorizationHint": "Durch die Aktivierung dieser Verbindung kann die Anwendung den ausgewählten MCP-Dienst starten. Durch die Installation eines Plugins werden niemals Programme installiert oder Paketskripte ausgeführt.",
+    "declaredCommand": "Vom Plugin angefordertes Programm",
+    "configurationRequired": "Wählen Sie ein installiertes Programm, bevor Sie diesen Connector verwenden.",
+    "chooseExecutable": "Installiertes Programm auswählen",
+    "chooseDirectory": "Arbeitsverzeichnis auswählen",
+    "argumentsHint": "Jedes Feld ist ein Literalargument, einschließlich Leerzeichen. Es wird kein Shell-Parsing durchgeführt.",
+    "addArgument": "Argument hinzufügen",
+    "argumentAt": "Argument {index}",
+    "removeArgument": "Entfernen Sie das Argument {index}"
+  },
+  "changes": "Das Ändern der Endpunkt- oder Autorisierungsidentität erfordert eine erneute Verbindung des Kontos und eine Überprüfung der Toolberechtigungen.",
+  "name": "Dienstname",
+  "descriptionField": "Beschreibung (optional)",
+  "discard": {
+    "title": "Steckeränderungen verwerfen?",
+    "description": "Nicht gespeicherte Änderungen an diesem Connector gehen verloren."
+  },
+  "delete": {
+    "title": "{name} löschen?",
+    "description": "Dadurch werden auch alle Verbindungen zum Dienst und seine lokalen Kontoanmeldeinformationen gelöscht."
+  }
+}

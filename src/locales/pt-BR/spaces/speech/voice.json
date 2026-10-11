@@ -1,0 +1,38 @@
+{
+  "name": "Nome da voz",
+  "add": "Adicionar",
+  "usage": "Hora {count} referenciada | Tempos {count} referenciados",
+  "revise": "Nova revisão",
+  "history": "Histórico de revisões",
+  "speed": "Velocidade",
+  "archived": "Arquivada",
+  "delete": {
+    "title": "Excluir voz permanentemente",
+    "description": "Exclua esta voz arquivada e todas as suas revisões. Uma voz usada por um projeto não pode ser excluída."
+  },
+  "label": "Voz",
+  "clone": "Clone da referência",
+  "design": "Projete uma voz",
+  "mode": "Fonte de voz",
+  "designDescription": "Descreva a voz, entrega, faixa etária e tom",
+  "candidate": {
+    "text": "Texto de exemplo",
+    "generate": "Gerar amostra",
+    "auditionRequired": "Jogue o candidato uma vez antes de salvar esta voz.",
+    "save": "Salvar voz",
+    "discard": "Descartar amostra",
+    "sample": "Bem-vindo. Hoje é 3 de outubro de 2026 e o ​​número do projeto é 108. Ouça a pronúncia clara, o ritmo constante e os finais de frase naturais.",
+    "auditions": "Resultados da audição"
+  },
+  "gender": {
+    "female": "Fêmea",
+    "male": "Masculino"
+  },
+  "origins": {
+    "preset": "Voz predefinida",
+    "reference": "Voz de referência",
+    "designed": "Voz projetada"
+  },
+  "options": "Configurações de voz",
+  "cloneShort": "Clonar voz"
+}

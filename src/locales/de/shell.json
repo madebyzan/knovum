@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "Befehlspalette",
+    "searchPlaceholder": "Suchbefehle…",
+    "noMatches": "Keine passenden Befehle"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "Nichts rückgängig zu machen",
+    "nothingToRedo": "Nichts zu wiederholen",
+    "noSelection": "Zuerst Inhalt auswählen",
+    "notEnoughScenes": "Es gibt keine andere Szene",
+    "selectionNotEligible": "Diese Auswahl kann die Aktion nicht verwenden",
+    "checking": "Verfügbarkeit prüfen",
+    "busy": "Eine Operation ist im Gange"
+  },
+  "toggleRightSidebar": "Rechte Seitenleiste ein- oder ausblenden",
+  "toggleSidebar": "Seitenleiste umschalten",
+  "layoutSaveFailed": "Das Workbench-Layout konnte nicht gespeichert werden",
+  "shortcuts": {
+    "title": "Tastaturkürzel",
+    "search": "Suchverknüpfungen",
+    "categories": {
+      "general": "Allgemein",
+      "navigation": "Navigation",
+      "canvas": "Leinwand",
+      "editing": "Bearbeiten"
+    },
+    "noMatches": "Keine passenden Verknüpfungen"
+  },
+  "startup": {
+    "starting": "Knovum wird gestartet…"
+  }
+}

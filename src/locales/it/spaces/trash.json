@@ -1,0 +1,27 @@
+{
+  "recent": {
+    "title": "Eliminato di recente",
+    "description": "Ripristina le carte cancellate o rimuovi permanentemente la struttura.",
+    "loadFailed": "Impossibile caricare la struttura eliminata.",
+    "empty": "Nessun elemento eliminato di recente in questo ambito."
+  },
+  "filters": {
+    "space": "Filtra per spazio"
+  },
+  "structure": {
+    "deletedCount": "{count} nodo eliminato | {count} nodi eliminati",
+    "processing": "Elaborazione…",
+    "deletedNotice": "Nodo {count} eliminato definitivamente | Nodi {count} eliminati definitivamente",
+    "restoreNode": "Nodo di ripristino",
+    "restoreOperation": "Ripristina l'intera cancellazione",
+    "restoreFailed": "Impossibile ripristinare il nodo",
+    "deleteDescription": "Eliminare definitivamente \"{title}\"? Questa azione non può essere annullata.",
+    "deleteFailed": "Impossibile eliminare definitivamente il nodo"
+  },
+  "deleteAll": {
+    "action": "Elimina definitivamente tutto…",
+    "title": "Eliminare definitivamente tutti gli elementi?",
+    "description": "Eliminare definitivamente l'elemento eliminato {count} in \"{scope}\"? La conoscenza attiva non viene influenzata. Questa azione non può essere annullata. | Eliminare definitivamente gli elementi eliminati {count} in \"{scope}\"? La conoscenza attiva non viene influenzata. Questa azione non può essere annullata."
+  },
+  "deletePermanently": "Elimina permanentemente"
+}

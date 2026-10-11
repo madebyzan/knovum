@@ -1,0 +1,173 @@
+{
+  "crop": {
+    "title": "자르기",
+    "original": "원본",
+    "presets": "사전 설정",
+    "general": "일반",
+    "square": "정사각형",
+    "story": "이야기",
+    "portrait": "세로",
+    "landscape": "가로",
+    "referenceSize": "참고 사이즈; 내보낸 픽셀은 소스 이미지에 따라 달라집니다.",
+    "lockAspect": "자르기 종횡비 잠금"
+  },
+  "transform": {
+    "rotateClockwise": "시계 방향으로 회전",
+    "flipHorizontal": "수평 뒤집기",
+    "flipVertical": "수직 뒤집기",
+    "title": "뒤집기 및 회전",
+    "rotationDegrees": "회전 각도"
+  },
+  "removeObject": {
+    "tool": "지우개",
+    "mode": "제거 입력",
+    "modes": {
+      "mask": "마스크 페인트",
+      "prompt": "설명"
+    },
+    "undo": "선택 스트로크 실행 취소",
+    "brushSize": "선택 브러시",
+    "promptLabel": "제거할 내용 설명",
+    "promptPlaceholder": "무엇을 제거할지 설명하세요…",
+    "generate": "제거 및 생성",
+    "submitting": "파생된 이미지 작업 생성 중…",
+    "sizeLimit": "16메가픽셀, 한 면당 16,384픽셀 이내의 소스를 사용하세요.",
+    "limitReached": "선택 한도에 도달했습니다. 이미지를 생성하거나 획을 실행 취소합니다."
+  },
+  "adjust": {
+    "title": "조정",
+    "sections": "이미지 조정 섹션"
+  },
+  "adjustGroups": {
+    "light": "밝기",
+    "color": "색상",
+    "texture": "질감",
+    "effects": "효과"
+  },
+  "upscale": {
+    "action": "해상도 높이기",
+    "targetTooSmall": "이 크기는 현재 이미지보다 크지 않습니다.",
+    "sourceBudget": "이 렌더링된 이미지는 선택한 모델의 입력 예산을 초과합니다."
+  },
+  "angle": {
+    "title": "다중 각도",
+    "mode": "대상 조정",
+    "modes": {
+      "subject": "주제",
+      "camera": "카메라"
+    },
+    "preview": "보기를 조정하려면 드래그하세요. Shift 키를 누르고 있으면 정밀하게 볼 수 있고, 스크롤하여 프레임을 변경할 수도 있습니다.",
+    "yaw": "회전",
+    "pitch": "경사",
+    "zoom": "줌",
+    "zoomLevels": {
+      "wide": "광각",
+      "medium": "중간",
+      "close": "클로즈업"
+    },
+    "tiltUp": "틸트 업(Tilt up)",
+    "tiltDown": "아래로 기울이기",
+    "turnLeft": "좌회전",
+    "turnRight": "우회전"
+  },
+  "layers": {
+    "title": "레이어 분할",
+    "panel": "레이어 분할",
+    "selectContent": "지역 선택",
+    "selectContentUnavailable": "현재 레이어 모델은 선택한 영역을 분할할 수 없습니다.",
+    "auto": "자동 분할",
+    "custom": "사용자 정의 분할",
+    "prompt": "분리 초점",
+    "promptPlaceholder": "무엇을 레이어로 분할할지 설명",
+    "split": "분할",
+    "task": "이미지 레이어 분할",
+    "failed": "레이어 분할 실패",
+    "stage": {
+      "submitting": "이미지 제출 중",
+      "processing": "레이어 분할",
+      "downloading": "레이어 검색 중",
+      "publishing": "레이어 저장"
+    },
+    "keyMissing": "레이어 분할에는 fal API 키가 필요합니다.",
+    "promptRequired": "무엇을 먼저 분리해야 하는지 설명하세요."
+  },
+  "comments": {
+    "title": "논평",
+    "prompt": "설명 추가",
+    "save": "댓글 저장",
+    "addToConversation": "대화에 추가",
+    "conversationContext": "이미지 주석({kind}, 원점은 왼쪽 상단, 좌표는 이미지 너비와 높이의 백분율임): {coordinates}\n주석: {text}",
+    "delete": "댓글 삭제",
+    "hint": "댓글을 달려면 이미지 위치를 클릭하세요.",
+    "mode": "코멘트 주석 모드",
+    "point": "포인트 코멘트",
+    "draw": "코멘트 작성",
+    "region": "지역 설명"
+  },
+  "applyNow": "지금 사용",
+  "unsaved": {
+    "title": "이미지 변경 사항을 적용하시겠습니까?",
+    "description": "떠나기 전에 이 이미지 수정사항을 적용하거나 초안을 삭제하세요."
+  },
+  "errors": {
+    "modelUnavailable": "이미지 모델 및 자격 증명 설정 확인",
+    "providerUnsupported": "선택한 이미지 모델은 이 작업을 지원하지 않습니다.",
+    "credentialUnavailable": "이미지 모델 사용자 인증 정보를 읽을 수 없습니다.",
+    "secretDatabaseUnavailable": "로컬 자격 증명 데이터베이스를 사용할 수 없습니다.",
+    "capabilityCheckFailed": "이 작업을 사용할 수 있는지 확인할 수 없습니다.",
+    "busy": "작업이 진행 중입니다."
+  },
+  "openAiSettings": "AI 설정 열기",
+  "status": {
+    "capabilityChecking": "이미지 기능 확인 중...",
+    "imagePreparing": "이미지는 아직 준비 중입니다."
+  },
+  "operation": {
+    "execution": "실행 모델"
+  },
+  "finishImageEdit": "현재 이미지 편집 내용을 먼저 적용하거나 취소하세요.",
+  "adjustments": {
+    "exposure": "노출",
+    "contrast": "대비",
+    "highlights": "하이라이트",
+    "shadows": "그림자",
+    "whites": "화이트",
+    "blacks": "블랙",
+    "saturation": "채도",
+    "warmth": "따뜻함",
+    "sharpness": "선명도",
+    "vignette": "비네팅",
+    "vibrance": "생동감",
+    "tint": "색조",
+    "clarity": "선명도",
+    "grain": "입자감",
+    "softLight": "소프트 라이트",
+    "glow": "불타는 듯한 빛깔"
+  },
+  "selection": {
+    "title": "스마트 선택",
+    "tools": "선택 도구",
+    "include": "전경 지점",
+    "exclude": "점 제외",
+    "box": "상자 그리기",
+    "brush": "브러시로 다듬기",
+    "processing": "선택 항목 업데이트 중…",
+    "help": "주제를 클릭하세요. 제외 지점이나 상자를 추가합니다. 세부 사항을 포함하는 브러시입니다. 최대 6개 포인트 프롬프트.",
+    "repair": "수리",
+    "extract": "추출",
+    "undo": "선택 취소",
+    "modelUnavailable": "설정에서 사용 가능한 선택 모델을 선택하세요.",
+    "promptLimit": "최대 6개의 프롬프트. 계속하려면 프롬프트를 실행 취소하세요."
+  },
+  "depth": {
+    "action": "상대적 깊이 생성"
+  },
+  "results": {
+    "upscale": "해상도 향상됨",
+    "multiAngle": "새 보기",
+    "removeObject": "수리됨",
+    "removeBackground": "배경 제거 이미지",
+    "extractSelection": "선택",
+    "generateDepth": "상대 깊이"
+  }
+}

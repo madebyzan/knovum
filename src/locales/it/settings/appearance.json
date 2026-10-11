@@ -1,0 +1,41 @@
+{
+  "title": "Aspetto",
+  "description": "Personalizza il tema, la scala dei caratteri e la densità del layout.",
+  "saveFailed": "Impossibile salvare le impostazioni dell'aspetto",
+  "theme": {
+    "label": "Tema",
+    "description": "Scegli chiaro, scuro o segui il sistema."
+  },
+  "textSize": {
+    "label": "Dimensione carattere",
+    "description": "Regola la dimensione del testo dell'interfaccia."
+  },
+  "density": {
+    "label": "Densità",
+    "description": "Regola le dimensioni e la spaziatura dei controlli."
+  },
+  "language": {
+    "label": "Lingua",
+    "description": "Scegli la lingua di visualizzazione o utilizza le impostazioni locali del sistema."
+  },
+  "options": {
+    "followSystem": "Segui il sistema",
+    "theme": {
+      "light": "Chiaro",
+      "dark": "Scuro"
+    },
+    "textSize": {
+      "small": "Piccolo",
+      "default": "Predefinita",
+      "large": "Grande"
+    },
+    "density": {
+      "compact": "Compatta",
+      "comfortable": "Spaziosa"
+    },
+    "language": {
+      "english": "Inglese",
+      "simplifiedChinese": "Cinese semplificato"
+    }
+  }
+}

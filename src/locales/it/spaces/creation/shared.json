@@ -1,0 +1,21 @@
+{
+  "failedAttempt": "Creazione fallita",
+  "removeFailedOutput": "Rimuovi elemento non riuscito",
+  "knowledgeDerivation": "Creato dalla conoscenza",
+  "resourceTask": "Attività risorsa",
+  "presets": {
+    "save": "Salva come preimpostazione",
+    "saved": "Preimpostazione di generazione salvata",
+    "label": "Preimpostazione di generazione",
+    "empty": "Nessuna preimpostazione di generazione",
+    "select": "Seleziona un preset di generazione"
+  },
+  "source": {
+    "knowledge": "Conoscenza della fonte",
+    "changed": "Alcune fonti sono cambiate dopo la creazione di questo elemento."
+  },
+  "citations": "Citazioni · {count}",
+  "createFromSelection": "Crea da selezione",
+  "needsIndexedKnowledge": "Gli elementi selezionati non contengono ancora testo ricercabile.",
+  "finishNodeOperation": "Termina o annulla prima l'operazione del nodo corrente."
+}

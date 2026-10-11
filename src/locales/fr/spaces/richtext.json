@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "Écriture IA",
+    "selectText": "Sélectionnez d'abord le contenu du texte.",
+    "failed": "Échec de la génération IA",
+    "applyFailed": "Impossible d'appliquer le résultat AI",
+    "actions": {
+      "adjustTone": "Ajuster la tonalité",
+      "fixGrammar": "Corriger la grammaire et l'orthographe",
+      "extend": "Étendre le texte",
+      "reduce": "Résumer et condenser",
+      "simplify": "Simplifier la formulation",
+      "emojify": "Ajouter un emoji",
+      "improve": "Poliser et améliorer",
+      "complete": "Saisie semi-automatique",
+      "summarize": "Résumer",
+      "translate": "Traduire"
+    },
+    "tones": {
+      "academic": "Académique",
+      "business": "Professionnel",
+      "casual": "Décontracté",
+      "confident": "Confiant",
+      "creative": "Créatif",
+      "friendly": "Convivial",
+      "humorous": "Humour",
+      "informative": "Claire et informative",
+      "inspirational": "Inspirant",
+      "objective": "Objectif",
+      "persuasive": "Persuasif"
+    },
+    "needContext": "Placez le curseur après le texte existant ou sélectionnez le texte comme contexte."
+  },
+  "find": {
+    "title": "Rechercher du texte",
+    "placeholder": "Rechercher dans le document…",
+    "previous": "Correspondance précédente",
+    "next": "Prochain match",
+    "toggleReplace": "Afficher le remplacement",
+    "replace": "Remplacer",
+    "replaceAll": "Remplacer tout",
+    "replacePlaceholder": "Remplacer par…"
+  },
+  "paragraph": "Paragraphe",
+  "heading1": "Rubrique 1",
+  "heading2": "Rubrique 2",
+  "heading3": "Rubrique 3",
+  "heading4": "Rubrique 4",
+  "heading5": "Rubrique 5",
+  "heading6": "Rubrique 6",
+  "headings": {
+    "menu": "Typographie"
+  },
+  "bold": "Gras",
+  "italic": "Italique",
+  "underline": "Souligné",
+  "strike": "Barré",
+  "inlineCode": "Code en ligne",
+  "horizontalRule": "Diviseur",
+  "highlight": "Surligner",
+  "superscript": "Exposant",
+  "subscript": "Indice",
+  "align": {
+    "left": "Aligner à gauche",
+    "center": "Aligner le centre",
+    "right": "Aligner à droite",
+    "justify": "Justifier"
+  },
+  "highlightColor": {
+    "yellow": "Jaune",
+    "green": "Vert",
+    "blue": "Bleu",
+    "pink": "Rose",
+    "clear": "Effacer le surlignage"
+  },
+  "image": {
+    "insert": "Insérer une image",
+    "tabUpload": "Fichier local",
+    "tabUrl": "URL",
+    "url": "URL de l'image",
+    "alt": "Description de l'image",
+    "choose": "Sélectionner une image",
+    "uploadFailed": "Échec de l'insertion de l'image",
+    "dropDocumentHint": "Choisissez un fichier ou faites glisser l'image dans l'éditeur de documents.",
+    "altPlaceholder": "Décrire l'image pour les lecteurs d'écran",
+    "dropNow": "Déposer pour insérer une image",
+    "urlInvalid": "Veuillez saisir une adresse d'image http:// ou https:// valide.",
+    "insertFailed": "Impossible d'insérer l'image"
+  },
+  "link": {
+    "label": "Lien hypertexte",
+    "placeholder": "Saisissez ou collez URL",
+    "remove": "Supprimer le lien",
+    "editorTitle": "Modifier le lien",
+    "editorDescription": "Ajoutez un lien Web ou e-mail au texte sélectionné.",
+    "url": "URL du lien",
+    "invalid": "Veuillez saisir un lien HTTP, HTTPS ou mailto valide.",
+    "open": "Ouvrir le lien",
+    "updateFailed": "Impossible de mettre à jour le lien",
+    "openFailed": "Impossible d'ouvrir le lien"
+  },
+  "bulletList": "Liste à puces",
+  "orderedList": "Liste ordonnée",
+  "taskList": "Liste des tâches",
+  "blockquote": "Citation",
+  "listMenu": "Styles de liste",
+  "table": {
+    "title": "Tableau",
+    "addRow": "Insérer la ligne ci-dessous",
+    "addColumn": "Insérer la colonne de droite",
+    "delete": "Supprimer la table"
+  },
+  "words": "mots",
+  "characters": "caractères"
+}

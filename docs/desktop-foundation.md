@@ -44,6 +44,13 @@ use the bootstrap error state before the main window is revealed.
 
 ## Capability policy
 
+The resolved display language updates native application menus, Tray actions, and Task Center
+notifications together. Rust accepts only the current display-language identifiers; `system` must
+be resolved before IPC. Interface language support is documented in `src/locales/README.md`.
+Traditional Chinese is selected for `zh-Hant` or Taiwan, Hong Kong, and Macau system locales;
+an explicit `zh-Hans` script selects Simplified Chinese. Other supported language families use
+their registered display locale; Portuguese uses `pt-BR`. An unsupported OS language selects English.
+
 Register only plugins used by current product flows. Shell, arbitrary process execution, WebSocket,
 and broad system HTTP access remain absent until an owning feature has a concrete, scoped need.
 Installing a plugin does not grant its commands to a WebView.

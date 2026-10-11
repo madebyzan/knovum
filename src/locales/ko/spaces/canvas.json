@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "캔버스 도구",
+    "select": "선택",
+    "section": "섹션 그리기"
+  },
+  "nodeActions": {
+    "label": "노드 작업",
+    "openOriginal": "원본 열기",
+    "goToTarget": "대상으로 이동",
+    "viewLarge": "이미지 보기",
+    "openVideo": "비디오 열기",
+    "openAudio": "오디오 열기",
+    "viewCode": "코드 보기",
+    "openFile": "파일 열기",
+    "export": "내보내기"
+  },
+  "zoom": {
+    "out": "축소",
+    "in": "확대",
+    "options": "줌 옵션",
+    "toFitContent": "콘텐츠에 맞게 확대/축소",
+    "toSelection": "선택 항목 확대"
+  },
+  "arrange": {
+    "title": "정렬",
+    "toFront": "맨 앞으로 가져오기",
+    "forward": "앞으로 가져오기",
+    "backward": "뒤로 보내기",
+    "toBack": "맨 뒤로 보내기",
+    "autoHorizontal": "자동 레이아웃(수평)",
+    "autoVertical": "자동 레이아웃(수직)"
+  },
+  "layerOrder": "레이어 순서",
+  "selection": {
+    "label": "선택",
+    "selectAll": "모두 선택",
+    "delete": "선택 항목 삭제",
+    "toggleLock": "선택 항목 잠금 또는 잠금 해제"
+  },
+  "kinds": {
+    "group": "그룹",
+    "section": "섹션"
+  },
+  "groups": {
+    "create": "그룹 선택",
+    "ungroup": "그룹 해제 선택",
+    "untitled": "제목 없는 그룹"
+  },
+  "sections": {
+    "create": "섹션 생성",
+    "createEmpty": "새 섹션",
+    "removeOnly": "섹션만 제거",
+    "backgroundFailed": "섹션 배경 이미지를 로드할 수 없습니다.",
+    "drop": {
+      "enter": "섹션으로 이동하려면 손을 떼세요.",
+      "leave": "섹션 밖으로 이동하려면 손을 떼세요."
+    },
+    "fitToContents": "섹션을 내용에 맞추기",
+    "untitled": "제목 없는 섹션",
+    "collapse": "섹션 접기",
+    "expand": "섹션 확장"
+  },
+  "lock": "잠금",
+  "locked": "잠김",
+  "unlock": "잠금 해제",
+  "align": {
+    "left": "왼쪽",
+    "center": "수평 중심",
+    "right": "오른쪽",
+    "top": "상위",
+    "middle": "수직 중심",
+    "bottom": "하단"
+  },
+  "distribute": {
+    "horizontal": "수평",
+    "vertical": "수직"
+  },
+  "nudge": {
+    "left": "왼쪽으로 이동",
+    "right": "오른쪽으로 이동",
+    "up": "조금씩 위로",
+    "down": "아래로 조금씩 이동",
+    "leftLarge": "왼쪽으로 10포인트 이동",
+    "rightLarge": "10pt 오른쪽으로 이동",
+    "upLarge": "10pt 위로 이동",
+    "downLarge": "10pt 아래로 이동"
+  },
+  "relations": {
+    "connect": "연결하다"
+  },
+  "typography": "타이포그래피",
+  "noteBackground": "참고 배경",
+  "textColor": "텍스트 색상",
+  "fontSize": "글꼴 크기",
+  "noteFills": {
+    "yellow": "노란색",
+    "green": "녹색",
+    "blue": "파란색",
+    "pink": "핑크색",
+    "gray": "회색"
+  },
+  "textColors": {
+    "ink": "잉크",
+    "muted": "회색",
+    "red": "빨간색",
+    "blue": "파란색",
+    "green": "녹색",
+    "purple": "보라색"
+  },
+  "selectionTextColors": {
+    "default": "기본값",
+    "gray": "회색",
+    "red": "빨간색",
+    "amber": "주황색",
+    "yellow": "노란색",
+    "green": "녹색",
+    "teal": "물오리",
+    "cyan": "청록색",
+    "blue": "파란색",
+    "purple": "보라색",
+    "pink": "핑크색",
+    "white": "흰색"
+  },
+  "textAlignments": {
+    "left": "왼쪽",
+    "center": "센터",
+    "right": "오른쪽"
+  },
+  "verticalAlignments": {
+    "top": "상위",
+    "middle": "중간",
+    "bottom": "하단"
+  },
+  "revealInCanvas": "캔버스에 표시",
+  "shortcuts": {
+    "panCanvas": "팬 캔버스",
+    "zoomReset": "줌 재설정",
+    "nudgeSelection": "넛지 선택",
+    "nudgeLarge": "10px씩 이동"
+  },
+  "dropToSave": "현재 작업공간에 저장하려면 끌어서 놓으세요.",
+  "cancelInteraction": "캔버스 상호 작용 취소",
+  "htmlSandboxAssetsBlocked": "현재 HTML에 {count} 자산이 없습니다. 전체 폴더를 가져오는 것이 좋습니다.",
+  "moveToContainer": "컨테이너로 이동",
+  "spaceRoot": "작업공간 루트",
+  "addContent": {
+    "title": "콘텐츠 추가",
+    "importFiles": "파일 가져오기…"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "bootstrap": {
+    "title": "Échec du démarrage",
+    "description": "Knovum n'a pas pu démarrer car ses services ou paramètres principaux n'ont pas pu être chargés."
+  },
+  "feature": {
+    "title": "Impossible d'afficher ce contenu",
+    "description": "Vous pouvez rouvrir cette zone ou naviguer ailleurs.",
+    "reopen": "Réouvrir le contenu"
+  }
+}

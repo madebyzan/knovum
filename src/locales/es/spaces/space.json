@@ -1,0 +1,45 @@
+{
+  "title": "Espacios",
+  "new": "Nuevo espacio",
+  "untitled": "Espacio sin título",
+  "inbox": "Bandeja de entrada",
+  "empty": {
+    "title": "Espacio vacío",
+    "description": "Haga doble clic en el lienzo vacío para escribir · Pegue el contenido del portapapeles · Suelte archivos para importar"
+  },
+  "rename": "Cambiar nombre del espacio",
+  "tabs": {
+    "close": "Cerrar pestaña",
+    "closeOthers": "Cerrar otras pestañas",
+    "closeToRight": "Cerrar pestañas a la derecha",
+    "actionFailed": "Error en la acción de la pestaña del espacio de trabajo",
+    "reopen": "Reabrir pestaña cerrada",
+    "switchTo": "Cambiar a la pestaña {number}"
+  },
+  "back": "Regresar",
+  "forward": "Adelante",
+  "sections": {
+    "open": "Espacios abiertos",
+    "all": "Todos los espacios",
+    "recent": "Abierto recientemente",
+    "favorites": "Favoritos"
+  },
+  "views": {
+    "grid": "Vista de cuadrícula",
+    "list": "Vista de lista"
+  },
+  "search": {
+    "placeholder": "Buscar espacios…",
+    "noResults": "No hay espacios coincidentes"
+  },
+  "nodeCount": "{count} artículo | Artículos {count}",
+  "favorite": "Espacio favorito",
+  "unfavorite": "Eliminar de favoritos",
+  "open": "Espacio abierto",
+  "loadFailed": "No se pudo abrir el espacio de trabajo",
+  "loadFailedHint": "No se pudo cargar la base de datos del espacio de trabajo. Los archivos locales no se ven afectados; por favor inténtalo de nuevo.",
+  "archive": "Espacio de archivo",
+  "moveTo": "Mover al espacio",
+  "moveNoTargets": "No hay otros espacios de trabajo disponibles a los que mudarse.",
+  "archived": "Archivado “{title}”"
+}

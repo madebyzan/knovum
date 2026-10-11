@@ -1,0 +1,34 @@
+{
+  "knowledge-work": {
+    "name": "Conocimiento espacial",
+    "description": "Lea, organice y publique conocimientos sobre el espacio de trabajo con fuentes rastreables."
+  },
+  "evidence-research": {
+    "name": "Investigación de evidencia",
+    "description": "Comparar fuentes y preparar resúmenes de investigación o decisiones."
+  },
+  "meeting-notes": {
+    "name": "Notas de la reunión",
+    "description": "Extraiga decisiones y elementos de acción de las transcripciones de las reuniones."
+  },
+  "document-delivery": {
+    "name": "Entrega de documentos",
+    "description": "Elaborar informes fundamentados en fuentes y entregar el formato solicitado."
+  },
+  "study-companion": {
+    "name": "Compañero de estudio",
+    "description": "Convierta el material del espacio de trabajo en guías de estudio, ejercicios y planes de repaso."
+  },
+  "github-work": {
+    "name": "Trabajo de GitHub",
+    "description": "Conecte GitHub para investigar repositorios y preparar problemas fundamentados."
+  },
+  "notion-work": {
+    "name": "Conocimiento de nociones",
+    "description": "Conecte Notion a páginas de investigación y publique conocimientos organizados."
+  },
+  "linear-work": {
+    "name": "Trabajo lineal",
+    "description": "Conecte Linear para convertir las decisiones en trabajos de proyecto rastreables."
+  }
+}

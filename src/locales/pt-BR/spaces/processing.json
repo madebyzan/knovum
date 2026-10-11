@@ -1,0 +1,72 @@
+{
+  "queue": {
+    "title": "Processando",
+    "pending": "Pendente {count}",
+    "running": "Processando {count}",
+    "failed": "Falha {count}"
+  },
+  "enrichmentJobType": {
+    "analyze_visual": "Compreensão visual",
+    "analyze_media": "Duração da mídia e forma de onda",
+    "transcribe_media": "Transcrição de áudio e vídeo",
+    "parse_document": "Extração de documentos",
+    "analyze_document": "Análise visual do documento",
+    "align_media_transcript": "Alinhamento da transcrição selecionada",
+    "diarize_media_transcript": "Diarização do alto-falante"
+  },
+  "jobStatus": {
+    "pending": "Na fila",
+    "running": "Em execução",
+    "awaiting_configuration": "Necessita configuração",
+    "failed": "Falha",
+    "succeeded": "Concluído",
+    "cancelled": "Cancelado"
+  },
+  "matchBadge": {
+    "documentOcr": "Texto do documento reconhecido",
+    "documentInterpretation": "Interpretação visual do documento",
+    "imageDescription": "Descrição da imagem",
+    "videoCover": "Capa do vídeo",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "index": {
+    "rebuild": "Reconstruir índice de recuperação",
+    "rebuildDone": "Índice reconstruído; entrada de vetor {count} gerada. | Índice reconstruído; entradas de vetor {count} geradas."
+  },
+  "failed": "Falha no processamento",
+  "nodeUnavailable": "O nó da tarefa não está mais disponível",
+  "imageProgress": "Processando imagem",
+  "mediaProgress": "Processando mídia",
+  "applyingEdit": "Aplicando edições",
+  "loadingImage": "Carregando imagem",
+  "imageUnavailable": "Imagem indisponível",
+  "document": {
+    "coverage": "Processamento de documentos",
+    "ocrEvidence": "Texto reconhecido por máquina · Possíveis erros de reconhecimento",
+    "interpretationEvidence": "Interpretação visual AI · Não é uma declaração de documento original",
+    "textCoverage": "Páginas com texto extraído: {count} de {total}.",
+    "unclassifiedPages": "A página {count} não possui texto extraível ou imagens conhecidas. Pode estar em branco ou conter conteúdo não suportado. | As páginas {count} não possuem texto extraível ou imagens conhecidas. Eles podem estar em branco ou conter conteúdo não compatível.",
+    "recognitionRequired": "Páginas que requerem reconhecimento: {pages}",
+    "visualCoverage": "Fontes analisadas: {count} de {total}.",
+    "visualUnavailable": "A imagem referenciada {count} não pode ser decodificada pelo analisador de documento. | As imagens referenciadas {count} não podem ser decodificadas pelo analisador de documentos.",
+    "resources": {
+      "title": "Recursos de documentos",
+      "open": "Recurso de documento aberto {index}",
+      "occurrences": "Hora {count} usada | Tempos {count} usados",
+      "embedded": "Imagem incorporada extraída do documento.",
+      "rendered": "Página ou região visual renderizada a partir do PDF.",
+      "detectedText": "Texto detectado"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Os desenhos vetoriais do escritório não são analisados ​​visualmente; eles permanecem no arquivo original.",
+      "spreadsheetImageCellAnchorsUnavailable": "As imagens da planilha são localizadas por planilha, não por célula.",
+      "spreadsheetChartRenderingUnsupported": "O texto do gráfico disponível é extraído; a aparência do gráfico não é analisada.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "Este formato herdado do Office não expõe posições completas de imagem.",
+      "legacySpreadsheetFormulasUnavailable": "As planilhas legadas expõem valores armazenados em cache, não expressões de fórmulas.",
+      "pdfVisualCoverageLimited": "As regiões de imagem PDF usam os dados de posição pública do analisador. Não é garantido que imagens embutidas e gráficos vetoriais sejam totalmente cobertos; o arquivo original retém todo o conteúdo."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "Configure um modelo de compreensão visual para analisar esta imagem ou vídeo."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "Convertir a documento de Word",
+    "pdf": "Convertir a PDF",
+    "docxRunTitle": "Generando documento de Word",
+    "pdfRunTitle": "Generando PDF",
+    "txt": "Convertir a texto sin formato",
+    "txtRunTitle": "Generando texto sin formato",
+    "html": "Convertir a HTML",
+    "htmlRunTitle": "Generando documento HTML"
+  },
+  "convert": {
+    "label": "Convertir a",
+    "formats": {
+      "docx": "Documento de Word (.docx)",
+      "pdf": "Documento PDF (.pdf)",
+      "txt": "Texto sin formato (.txt)",
+      "html": "Documento HTML (.html)",
+      "pptx": "Presentación (.pptx)"
+    },
+    "help": "Crea un archivo relacionado. El contenido PDF se redistribuye sin imágenes; Office to Word/HTML mantiene tablas e imágenes compatibles. Los archivos de Office con imágenes no se pueden convertir a PDF. No se admiten el diseño original, las animaciones ni los archivos PDF escaneados."
+  },
+  "generate": "Generar documento",
+  "title": "Crear un documento a partir de conocimientos seleccionados.",
+  "description": "Redacte un recurso de Markdown citado junto a las fuentes seleccionadas.",
+  "defaultTitle": "Borrador de conocimientos",
+  "purpose": "Resumen del documento",
+  "purposePlaceholder": "Describe el objetivo, el formato y los puntos clave del documento.",
+  "sources": "Fuente de conocimiento {count} | Fuentes de conocimiento {count}",
+  "task": "Generando documento",
+  "generating": "Generando a partir de conocimientos seleccionados…",
+  "failed": "No se pudo generar el documento"
+}

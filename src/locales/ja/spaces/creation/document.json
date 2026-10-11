@@ -1,0 +1,33 @@
+{
+  "conversion": {
+    "docx": "Word文書に変換",
+    "pdf": "PDF に変換",
+    "docxRunTitle": "Word ドキュメントの生成",
+    "pdfRunTitle": "PDF の生成",
+    "txt": "プレーンテキストに変換する",
+    "txtRunTitle": "プレーン テキストの生成",
+    "html": "HTMLに変換",
+    "htmlRunTitle": "HTML ドキュメントの生成"
+  },
+  "convert": {
+    "label": "変換",
+    "formats": {
+      "docx": "Word 文書 (.docx)",
+      "pdf": "PDF ドキュメント (.pdf)",
+      "txt": "プレーン テキスト (.txt)",
+      "html": "HTML ドキュメント (.html)",
+      "pptx": "プレゼンテーション (.pptx)"
+    },
+    "help": "関連ファイルを作成します。 PDF コンテンツは画像なしでリフローされます。 Office to Word/HTML では、サポートされているテーブルと画像が保持されます。画像を含む Office ファイルは PDF に変換できません。オリジナルのレイアウト、アニメーション、スキャンされた PDF はサポートされていません。"
+  },
+  "generate": "ドキュメントの生成",
+  "title": "選択した知識からドキュメントを作成する",
+  "description": "選択したソースの横に、引用された Markdown リソースを下書きします。",
+  "defaultTitle": "ナレッジ ドラフト",
+  "purpose": "ドキュメント概要",
+  "purposePlaceholder": "文書の目的、形式、重要なポイントを説明します。",
+  "sources": "{count} 知識源",
+  "task": "ドキュメントの生成",
+  "generating": "選択された知識から生成…",
+  "failed": "ドキュメントを生成できませんでした"
+}

@@ -1,0 +1,109 @@
+{
+  "title": "Arbeitsabläufe",
+  "select": "Wählen Sie einen Workflow",
+  "createFromSelection": "Ableitungskette als Workflow speichern",
+  "derivation": {
+    "loading": "Inspizieren der Ableitung…",
+    "separateChains": "Die Auswahl enthält eine nicht verbundene Ableitungskette {count}. Wählen Sie die gewünschten Ausgänge separat aus. | Die Auswahl enthält {count} getrennte Ableitungsketten. Wählen Sie die gewünschten Ausgänge separat aus.",
+    "chain": "Kette {index}",
+    "steps": "Verifizierte Aktionen",
+    "inputs": "Prozesseingaben",
+    "issues": "Teile, die nicht wiederverwendet werden können",
+    "empty": "Die Auswahl verfügt über keine wiederholbaren Ableitungsaktionen.",
+    "sources": "Quellen: {sources}"
+  },
+  "name": "Workflow-Name",
+  "namePlaceholder": "Diesen Workflow benennen",
+  "saveCaptured": "Als Workflow speichern",
+  "saved": "In Ihrer Workflow-Bibliothek gespeichert",
+  "useSaved": "Workflow verwenden",
+  "inputs": {
+    "slot": "Geben Sie {index} ein",
+    "bind": "Binden Sie ausgewählte Materialien an Eingaben",
+    "select": "Material auswählen",
+    "sequenceLimit": "In der unten angegebenen Reihenfolge verarbeiten, bis zum Artikel {count} | In der unten angegebenen Reihenfolge verarbeiten, bis zu {count} Artikel",
+    "moveUp": "Material nach oben verschieben",
+    "moveDown": "Material nach unten bewegen",
+    "missing": "Der Auswahl fehlt ein für diesen Workflow erforderlicher Materialtyp."
+  },
+  "summary": "{steps}-Aktionen · {outputs}-Ausgänge",
+  "outputs": {
+    "title": "Ausgänge",
+    "select": "Behalten Sie das Ergebnis von „{action}“",
+    "locate": "Suchen Sie „{name}“",
+    "name": "Ergebnis {index}",
+    "namesUnique": "Geben Sie jedem Ergebnis einen anderen Namen mit bis zu 120 Zeichen."
+  },
+  "steps": {
+    "title": "Schritte",
+    "keep": "Schritt „{action}“ beibehalten",
+    "required": "Wird von einem späteren Schritt verwendet"
+  },
+  "run": {
+    "start": "Workflow ausführen",
+    "state": "Ausführungsstatus: {state}. Der Fortschritt bleibt im Task Center erhalten, nachdem dieses Fenster geschlossen wurde.",
+    "recent": "Letzte Ausführungen",
+    "new": "Neuer Lauf",
+    "retryFailedSteps": "Fehlgeschlagene Schritte wiederholen",
+    "cancel": "Lauf abbrechen"
+  },
+  "edit": "Workflow bearbeiten",
+  "parameters": {
+    "title": "Titel",
+    "purpose": "Zweck",
+    "content": "Inhalt",
+    "question": "Frage",
+    "prompt": "Prompt",
+    "summaryPurpose": "Zusammenfassungszweck",
+    "audience": "Zielgruppe",
+    "goal": "Ziel",
+    "tone": "Ton",
+    "intent": "Absicht",
+    "style": "Stil",
+    "imageStyle": "Bildstil",
+    "aspectRatio": "Seitenverhältnis",
+    "durationSeconds": "Dauer (Sekunden)",
+    "platform": "Plattform"
+  },
+  "delete": "Workflow löschen",
+  "deleteConfirm": "„{name}“ löschen? Abgeschlossene Läufe und deren Ausgaben bleiben erhalten.",
+  "states": {
+    "queued": "In der Warteschlange",
+    "running": "Wird ausgeführt",
+    "waiting": "Warten",
+    "paused": "Pausiert",
+    "succeeded": "Abgeschlossen",
+    "completedWithErrors": "Mit Fehlern abgeschlossen",
+    "failed": "Fehlgeschlagen",
+    "cancelled": "Abgebrochen",
+    "cancelling": "Abbrechen"
+  },
+  "captureIssues": {
+    "resourceUnavailable": "Die Ressource wurde gelöscht oder befindet sich außerhalb dieses Arbeitsbereichs.",
+    "derivationIncomplete": "Die Ableitung wurde nicht erfolgreich abgeschlossen.",
+    "executionSpecUnavailable": "Verifizierte Aktionsparameter oder Ausführungsziele fehlen, daher kann dieser Schritt nicht wiederholt werden.",
+    "derivationInputsUnavailable": "Es wurden keine nachweisbaren Quelleneingaben erfasst.",
+    "sourceUnavailable": "Eine Quellressource ist nicht mehr verfügbar.",
+    "sourceMismatch": "Da die Ableitungsquellen bzw. deren Reihenfolge von der ausgeführten Aktion abweichen, kann dieser Schritt nicht wiederholt werden.",
+    "sourceIdentityUnavailable": "Der Quelldatensatz hat keine Ressourcenidentität.",
+    "parameterInstanceReference": "Ein Aktionsparameter bezieht sich auf eine ursprüngliche Canvas-Ressource und kann nicht als Workflow wiederverwendet werden.",
+    "candidateBindingUnavailable": "Eine Schritteingabe kann nicht an eine Workflow-Eingabe oder frühere Ausgabe gebunden werden.",
+    "noDerivedOutputSelected": "Wählen Sie eine durch eine Aktion erstellte Ausgabe aus."
+  },
+  "captureActions": {
+    "draftDocument": "Dokument erstellen",
+    "draftScript": "Entwurf eines Videoskripts",
+    "summarizeMeeting": "Besprechung zusammenfassen",
+    "draftSocialPost": "Entwurf eines Social-Media-Beitrags",
+    "generateVisualization": "Visualisierung erstellen",
+    "generateImage": "Bild generieren",
+    "generateVideo": "Video generieren",
+    "renderPresentation": "Präsentation erstellen",
+    "addVideoSubtitles": "Untertitel hinzufügen",
+    "convertDocx": "In Word konvertieren",
+    "convertPdf": "In PDF konvertieren",
+    "convertTxt": "In Text konvertieren",
+    "convertHtml": "In HTML konvertieren"
+  },
+  "empty": "Noch keine gespeicherten Workflows. Wählen Sie eine abgeschlossene abgeleitete Ressource aus und wählen Sie „Als Workflow speichern“."
+}

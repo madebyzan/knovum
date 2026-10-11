@@ -1,0 +1,10 @@
+{
+  "browse": "瀏覽插件",
+  "description": "應用程式隨插件提供，在這裡連接帳號和配置存取權限。",
+  "empty": "尚未添加應用",
+  "emptyHint": "從插件目錄安裝所需的應用程式工作流程。",
+  "manage": "管理連線",
+  "accounts": "帳號",
+  "access": "存取權限",
+  "configurationRequired": "此應用程式的連接配置不完整，請檢查來源插件。"
+}

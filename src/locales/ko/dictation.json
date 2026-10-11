@@ -1,0 +1,25 @@
+{
+  "recording": "듣기… 스크립트 작성 단축키를 놓습니다.",
+  "transcribing": "받아쓰기 기록 중…",
+  "errors": {
+    "microphonePermissionDenied": "마이크 액세스가 거부되었습니다. 시스템 설정에서 Knovum에 대한 마이크 액세스를 허용하세요.",
+    "microphoneUnavailable": "마이크를 사용할 수 없게 되었습니다. 선택한 입력 장치를 확인하고 다시 시도하세요.",
+    "recordingLimitReached": "녹화가 2분 제한에 도달하여 취소되었습니다.",
+    "audioCaptureEmpty": "마이크가 오디오를 캡처하지 못했습니다.",
+    "unsupportedAudioFormat": "선택한 마이크 형식은 받아쓰기가 지원되지 않습니다.",
+    "unsupportedDevice": "이 장치에는 적격한 데스크톱 받아쓰기 프로필이 없습니다.",
+    "dictationFocusChanged": "대상 애플리케이션이 변경되어 텍스트가 삽입되지 않았습니다.",
+    "dictationPermissionDenied": "운영 체제에서 텍스트 삽입을 차단했습니다. 인식된 텍스트는 아래에 보존됩니다.",
+    "dictationEmptyResult": "삽입 가능한 텍스트가 인식되지 않았습니다.",
+    "dictationInsertionFailed": "텍스트 삽입에 실패했습니다. 인식된 텍스트는 아래에 보존됩니다.",
+    "dictationFailed": "음성기록을 완료할 수 없습니다."
+  },
+  "result": {
+    "title": "받아쓰기 결과",
+    "description": "자동 삽입이 완료되지 않았습니다. 인식된 텍스트는 여기에 보존됩니다.",
+    "noText": "텍스트가 인식되지 않았습니다.",
+    "copy": "텍스트 복사",
+    "copied": "받아쓰기 복사됨"
+  },
+  "preparingResources": "받아쓰기를 위한 로컬 리소스 준비 중…"
+}

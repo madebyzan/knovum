@@ -1,0 +1,58 @@
+{
+  "name": "Nom de la connexion",
+  "configuration": {
+    "headers": "En-têtes de requête",
+    "environment": "Variables d'environnement",
+    "secretsHint": "Configuration publique uniquement. Définissez les jetons et autres informations d'identification dans Autorisation après l'enregistrement.",
+    "invalidName": "Entrez un nom de champ sans espaces de début ou de fin.",
+    "duplicateName": "Les noms de champs doivent être uniques. Les noms d’en-tête HTTP ne sont pas sensibles à la casse.",
+    "fieldName": "Nom",
+    "fieldValue": "Valeur",
+    "fieldNameAt": "Nom du champ {index}",
+    "fieldValueAt": "Valeur du champ {index}",
+    "removeField": "Supprimer le champ {index}",
+    "addHeader": "Ajouter un en-tête",
+    "addVariable": "Ajouter une variable",
+    "serverUrl": "URL du serveur",
+    "authorizationHint": "Choisissez la méthode d'autorisation requise par le serveur. Les informations d'identification sont configurées séparément après l'enregistrement.",
+    "advanced": "Variables d'environnement et en-têtes"
+  },
+  "transport": "Transport",
+  "allowLocalNetwork": "Autoriser l'accès à l'hôte local ou à l'adresse LAN configurée",
+  "tools": {
+    "policyHint": "Les outils sont refusés par défaut. Vérifiez vous-même les outils en lecture seule ; les étiquettes de serveur ne sont que des réclamations. La recherche ne peut utiliser que les outils que vous marquez en lecture seule.",
+    "policy": "Politique d'appel",
+    "deny": "Refuser",
+    "confirm": "Confirmer chaque invocation",
+    "allow": "Autoriser",
+    "reviewedReadOnly": "Révisé en lecture seule",
+    "serverReadOnlyHint": "Le serveur revendique une lecture seule",
+    "savePermissions": "Enregistrer les autorisations de l'outil"
+  },
+  "account": {
+    "label": "Compte utilisé par cette connexion",
+    "none": "Aucun compte lié",
+    "changeHint": "La modification des comptes efface les autorisations de l'outil. Vérifiez les autorisations avant d’utiliser à nouveau la connexion."
+  },
+  "add": "Ajouter une connexion",
+  "configure": "Configurer",
+  "accountsAndTools": "Comptes et outils",
+  "check": "Vérifier la connexion et lire le catalogue",
+  "empty": "Aucune connexion pour ce service",
+  "cleanupPending": "Modifications enregistrées, mais le nettoyage est incomplet. Les comptes concernés restent indisponibles.",
+  "delete": {
+    "title": "Supprimer la connexion {name} ?",
+    "description": "Seule cette connexion est supprimée. Les autres connexions au service sont conservées."
+  },
+  "accounts": "Comptes",
+  "title": "Connexions",
+  "addServer": "Ajouter un serveur MCP",
+  "description": "Configurez les services, les comptes et les autorisations des outils MCP. Les services de plugin sont configurés dans le cadre de leur package.",
+  "emptyServers": "Pas de serveurs MCP",
+  "emptyHint": "Ajoutez votre serveur MCP. Configurez les services fournis par le plugin dans leur plugin propriétaire.",
+  "serviceAndAccounts": "Gérer le service et les comptes",
+  "configureServiceFirst": "Terminez d’abord la configuration de ce service.",
+  "conflict": "Cette connexion a changé ailleurs. Vos modifications sont conservées. Jetez-les et rouvrez la connexion avant de sauvegarder.",
+  "saveBeforeCheck": "Enregistrez vos modifications avant de changer de compte ou de consulter à nouveau le catalogue.",
+  "services": "Services"
+}

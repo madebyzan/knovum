@@ -1,0 +1,39 @@
+{
+  "title": "Dati",
+  "description": "Crea e ripristina backup completi dei dati gestiti di Knovum.",
+  "tasksActive": "Termina o annulla le attività attive prima di iniziare la manutenzione dei dati.",
+  "backup": {
+    "title": "Backup",
+    "description": "Crea un archivio coerente mentre Knovum si riavvia in modalità di manutenzione.",
+    "contentsTitle": "Dati gestiti",
+    "contentsDescription": "Include aree di lavoro, cronologia di utilizzo, preferenze, aree di lavoro gestite, risorse vocali ed estensioni installate. Sono esclusi credenziali, modelli scaricati, runtime, cache e log.",
+    "action": "Crea backup",
+    "confirmTitle": "Riavviare Knovum per creare questo backup?",
+    "confirmDescription": "Knovum salverà le modifiche in sospeso, si riavvierà, creerà il backup selezionato prima di aprire i suoi database, quindi continuerà l'avvio. Le esecuzioni attive e i lavori di elaborazione devono prima terminare o essere annullati.",
+    "failed": "Impossibile avviare il backup"
+  },
+  "restore": {
+    "title": "Ripristina backup",
+    "description": "Convalida l'archivio completo prima di sostituire i dati gestiti, con rollback se la pubblicazione fallisce. I backup completi ripristinano solo nella stessa posizione dei dati Knovum; utilizzare i pacchetti di aree di lavoro per spostare le aree di lavoro tra installazioni.",
+    "credentialsTitle": "Le credenziali non vengono mai ripristinate",
+    "credentialsDescription": "Il ripristino rimuove le credenziali salvate correnti per impedire che la vecchia autorizzazione corrisponda ai record ripristinati. Successivamente configurare nuovamente le credenziali del provider e del connettore.",
+    "action": "Ripristina backup",
+    "confirmTitle": "Riavviare Knovum e ripristinare questo backup?",
+    "confirmDescription": "Knovum salverà le modifiche in sospeso e si riavvierà. L'archivio deve corrispondere esattamente a questa versione. I dati gestiti correnti rimangono disponibili per il rollback fino al completamento del ripristino.",
+    "failed": "Impossibile avviare il ripristino"
+  },
+  "receipt": {
+    "backup": {
+      "success": "Backup creato",
+      "failed": "Backup fallito"
+    },
+    "restore": {
+      "success": "Backup ripristinato",
+      "failed": "Ripristino non riuscito"
+    },
+    "credentials": "Le credenziali non sono state incluse. Configurare nuovamente le credenziali del provider e del connettore prima di utilizzarli.",
+    "exclusions": "Sono stati esclusi credenziali, modelli scaricati, runtime, cache e log.",
+    "readFailed": "Impossibile leggere il risultato della manutenzione",
+    "acknowledgeFailed": "Impossibile ignorare il risultato della manutenzione"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Aufgaben",
+  "summary": "Aufgaben, {count} insgesamt",
+  "scopeFilter": "Aufgabenumfang",
+  "all": "Alle",
+  "currentSpace": "Aktueller Speicherplatz",
+  "empty": "Keine Aufgaben.",
+  "emptyCurrentSpace": "Keine Aufgaben in diesem Arbeitsbereich.",
+  "scope": "Leerzeichen",
+  "subject": "Artikel",
+  "status": {
+    "queued": "In der Warteschlange",
+    "running": "Wird ausgeführt",
+    "attention": "Benötigt Aufmerksamkeit",
+    "failed": "Fehlgeschlagen",
+    "succeeded": "Abgeschlossen",
+    "cancelled": "Abgebrochen"
+  },
+  "clearCompleted": "Löschen abgeschlossen",
+  "openSubject": "Zugehöriges Element öffnen",
+  "dismiss": "Verwerfen",
+  "cancel": "Aufgabe abbrechen",
+  "cancelling": "Abbrechen…",
+  "forceDismiss": "Aus Liste entfernen",
+  "failed": "Diese Aufgabe konnte nicht abgeschlossen werden.",
+  "verifyingResource": "Überprüfung der Integrität…",
+  "preparingLocalInference": "Vorbereiten lokaler AI-Komponenten…",
+  "localResourceDownloadSize": "Für die erste Verwendung sind {size} lokale Ressourcen-Downloads erforderlich",
+  "installingResource": "Lokale Ressourcen werden installiert…"
+}

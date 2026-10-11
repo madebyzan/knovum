@@ -1,0 +1,27 @@
+{
+  "target": "執行目標",
+  "targetModelApi": "模型 API · 直接執行",
+  "targetExternalAgent": "桌面 Agent · 產出取決於目前工具與 Skills",
+  "noCompatibleTarget": "沒有相容的執行目標",
+  "desktopAgentNotInstalled": "未檢測到",
+  "disabledTitle": "沒有相容的 AI 執行目標",
+  "disabledDescription": "請為目前操作配置相容模型，或啟用已安裝的桌面 Agent。",
+  "openSettings": "配置模型",
+  "settingsUnavailable": "AI 設定載入失敗",
+  "executedWithModel": "由 {provider} · {model} 執行",
+  "executedWithAgent": "由 {name} · 桌面 Agent 執行",
+  "languages": {
+    "zhCn": "簡體中文",
+    "zhTw": "繁體中文",
+    "en": "英文",
+    "ja": "日文",
+    "ko": "韓文",
+    "fr": "法文",
+    "de": "德文",
+    "es": "西班牙文",
+    "pt": "葡萄牙文",
+    "it": "義大利文",
+    "ru": "俄文",
+    "ar": "阿拉伯文"
+  }
+}

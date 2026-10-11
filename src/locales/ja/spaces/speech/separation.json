@@ -1,0 +1,15 @@
+{
+  "task": "ソース分離",
+  "title": "ボーカルとバックグラウンドを分離",
+  "stems": {
+    "vocals": "ボーカル",
+    "background": "背景"
+  },
+  "background": "分離された背景",
+  "running": "オーディオの分離",
+  "starting": "分離準備中…",
+  "cancelling": "キャンセル中...",
+  "completed": "ボーカルと背景をキャンバスに追加",
+  "sourceUnavailable": "音声情報が準備されていません",
+  "tooLong": "最大 10 分間の音声を選択してください"
+}

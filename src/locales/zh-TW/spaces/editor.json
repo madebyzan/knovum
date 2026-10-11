@@ -1,0 +1,18 @@
+{
+  "note": {
+    "new": "新建便簽",
+    "placeholder": "輸入內容…"
+  },
+  "text": {
+    "new": "文字",
+    "placeholder": "輸入文字"
+  },
+  "markdown": {
+    "untitled": "未命名 Markdown",
+    "title": "Markdown 標題",
+    "empty": "空 Markdown"
+  },
+  "loading": "正在準備編輯器…",
+  "loadingHint": "大型文件需要一些時間才能開啟。",
+  "placeholder": "開始寫作…"
+}

@@ -1,0 +1,115 @@
+{
+  "ai": {
+    "title": "AI 쓰기",
+    "selectText": "먼저 텍스트 내용을 선택하세요.",
+    "failed": "AI 생성 실패",
+    "applyFailed": "AI 결과를 적용할 수 없습니다.",
+    "actions": {
+      "adjustTone": "톤 조정",
+      "fixGrammar": "문법 및 철자 수정",
+      "extend": "텍스트 확장",
+      "reduce": "요약 및 요약",
+      "simplify": "문법 단순화",
+      "emojify": "이모지 추가",
+      "improve": "Polish & Improvement",
+      "complete": "자동 완성",
+      "summarize": "요약",
+      "translate": "번역"
+    },
+    "tones": {
+      "academic": "학생",
+      "business": "전문적인",
+      "casual": "편안한",
+      "confident": "Confidential",
+      "creative": "크리에이티브",
+      "friendly": "친숙함",
+      "humorous": "유머러스",
+      "informative": "명확하고 유익함",
+      "inspirational": "영감적",
+      "objective": "목적",
+      "persuasive": "동기"
+    },
+    "needContext": "기존 텍스트 뒤에 커서를 놓거나 텍스트를 컨텍스트로 선택합니다."
+  },
+  "find": {
+    "title": "텍스트 찾기",
+    "placeholder": "문서에서 찾기…",
+    "previous": "이전 일치",
+    "next": "다음 일치",
+    "toggleReplace": "교체 표시",
+    "replace": "교체",
+    "replaceAll": "모두 교체",
+    "replacePlaceholder": "바꾸기..."
+  },
+  "paragraph": "단락",
+  "heading1": "제목 1",
+  "heading2": "제목 2",
+  "heading3": "제목 3",
+  "heading4": "제목 4",
+  "heading5": "제목 5",
+  "heading6": "제목 6",
+  "headings": {
+    "menu": "타이포그래피"
+  },
+  "bold": "용감한",
+  "italic": "기울임꼴",
+  "underline": "밑줄",
+  "strike": "취소선",
+  "inlineCode": "인라인 코드",
+  "horizontalRule": "분할기",
+  "highlight": "가장 밝은 부분",
+  "superscript": "위 첨자",
+  "subscript": "아래 첨자",
+  "align": {
+    "left": "왼쪽 정렬",
+    "center": "중앙 정렬",
+    "right": "오른쪽 정렬",
+    "justify": "신이 옳다고 하다"
+  },
+  "highlightColor": {
+    "yellow": "노란색",
+    "green": "녹색",
+    "blue": "파란색",
+    "pink": "핑크색",
+    "clear": "강조 표시 지우기"
+  },
+  "image": {
+    "insert": "이미지 삽입",
+    "tabUpload": "로컬 파일",
+    "tabUrl": "URL",
+    "url": "이미지 URL",
+    "alt": "이미지 설명",
+    "choose": "이미지 선택",
+    "uploadFailed": "이미지 삽입 실패",
+    "dropDocumentHint": "파일을 선택하거나 이미지를 문서 편집기로 드래그하세요.",
+    "altPlaceholder": "스크린 리더용 이미지 설명",
+    "dropNow": "이미지를 삽입하려면 드롭하세요.",
+    "urlInvalid": "유효한 http:// 또는 https:// 이미지 주소를 입력하세요.",
+    "insertFailed": "이미지를 삽입할 수 없습니다."
+  },
+  "link": {
+    "label": "하이퍼링크",
+    "placeholder": "URL를 입력하거나 붙여넣으세요.",
+    "remove": "링크 제거",
+    "editorTitle": "링크 편집",
+    "editorDescription": "선택한 텍스트에 웹 또는 이메일 링크를 추가합니다.",
+    "url": "링크 URL",
+    "invalid": "유효한 HTTP, HTTPS 또는 mailto 링크를 입력하세요.",
+    "open": "링크 열기",
+    "updateFailed": "링크를 업데이트할 수 없습니다.",
+    "openFailed": "링크를 열 수 없습니다."
+  },
+  "bulletList": "글머리 기호 목록",
+  "orderedList": "주문 목록",
+  "taskList": "작업 목록",
+  "blockquote": "인용 블록",
+  "listMenu": "목록 스타일",
+  "table": {
+    "title": "테이블",
+    "addRow": "아래 행 삽입",
+    "addColumn": "오른쪽에 열 삽입",
+    "delete": "테이블 삭제"
+  },
+  "words": "단어",
+  "characters": "문자"
+}

@@ -1,0 +1,149 @@
+{
+  "health": {
+    "title": "Wissensüberprüfungen",
+    "description": "Finden Sie in diesem Arbeitsbereich nicht unterstütztes, widersprüchliches oder veraltetes Wissen.",
+    "clean": "Keine Probleme gefunden.",
+    "critical": "Kritisches Problem {count} erkannt | {count} Kritische Probleme erkannt",
+    "issues": {
+      "unsupported-claim": "Dem Anspruch fehlt eine unterstützende Beziehung (Supports).",
+      "contradicted-claim": "Akzeptierte Behauptung hat einen aktiven Widerspruch (Widersprüche).",
+      "ungrounded-evidence": "Den Beweisen fehlt eine gültige Herkunftsquelle.",
+      "answered-open-question": "Offene Fragen sind mit einer Antwortrelation verknüpft.",
+      "stale-provenance": "Quellversion hat sich geändert; erneute Überprüfung erforderlich."
+    }
+  },
+  "history": {
+    "title": "Knowledge-Versionsverlauf",
+    "empty": "Noch keine Änderungen.",
+    "actor": "Geändert durch {actor}",
+    "events": {
+      "created": "Erstellt",
+      "updated": "Aktualisiert",
+      "drafted": "Entwurf",
+      "accepted": "Akzeptiert",
+      "contested": "Umstritten",
+      "superseded": "Ersetzt",
+      "invalidated": "Ungültig",
+      "opened": "Geöffnet",
+      "resolved": "Gelöst",
+      "restored": "Wiederhergestellt",
+      "linked": "Verlinkt",
+      "unlinked": "Nicht verknüpft",
+      "applied": "Angewendet",
+      "rejected": "Abgelehnt",
+      "moved": "Verschoben"
+    },
+    "loadFailed": "Der Wissensverlauf konnte nicht geladen werden"
+  },
+  "icons": {
+    "select": "Symbol auswählen",
+    "general": "Allgemein",
+    "database": "Datenbank",
+    "document": "Dokument",
+    "bookmark": "Lesezeichen",
+    "tag": "Etikett",
+    "layers": "Ebenen",
+    "container": "Container",
+    "intelligence": "Intelligenz",
+    "experiment": "Experiment",
+    "decision": "Entscheidung",
+    "question": "Frage",
+    "idea": "Idee"
+  },
+  "structuredKnowledge": "Strukturiertes Wissen",
+  "relations": {
+    "title": "Wissensbeziehungen",
+    "symmetric": "Zwei-Wege ({count})",
+    "incoming": "Eingehend ({count})",
+    "outgoing": "Ausgehend ({count})",
+    "empty": "Ziehen Sie Knotenanker oder wählen Sie mehrere Elemente aus, um Beziehungen zu erstellen.",
+    "inspect": "Verbindungsdetails",
+    "kind": "Beziehungstyp",
+    "rationale": "Warum diese miteinander verbunden sind",
+    "addRationale": "Hinzufügen",
+    "rationalePlaceholder": "Beschreiben Sie, wie diese Elemente miteinander verbunden sind ...",
+    "color": "Farbe der Beziehungslinie",
+    "colors": {
+      "neutral": "Neutral",
+      "blue": "Blau",
+      "green": "Grün",
+      "amber": "Bernstein",
+      "red": "Rot",
+      "purple": "Lila"
+    },
+    "remove": "Beziehung entfernen",
+    "removeConfirm": "Den Zusammenhang mit „{title}“ entfernen?",
+    "kinds": {
+      "reference": "Referenz",
+      "related": "Verwandt",
+      "supports": "Unterstützt",
+      "contradicts": "Widerspricht",
+      "depends-on": "Abhängig von",
+      "supersedes": "Ersetzt",
+      "answers": "Antworten",
+      "uses": "Verwendungen",
+      "derives-from": "Abgeleitet von",
+      "caused-by": "Verursacht durch"
+    }
+  },
+  "provenance": "Quelle",
+  "portal": {
+    "create": "Neuer Portalknoten",
+    "createDescription": "Erstellen Sie einen Portalknoten für die schnelle Navigation zu einem anderen Arbeitsbereich."
+  },
+  "objects": {
+    "custom": "Benutzerdefiniertes Wissensobjekt",
+    "create": "Neues benutzerdefiniertes Objekt",
+    "createDescription": "Erstellen Sie einen Wissensobjektknoten mithilfe eines ausgewählten Schemas."
+  },
+  "fields": {
+    "add": "Feld hinzufügen",
+    "title": "Eigenschaftsfeld",
+    "key": "Feldschlüssel",
+    "label": "Feldname",
+    "kind": "Feldtyp",
+    "kindLabels": {
+      "text": "Text",
+      "number": "Nummer",
+      "boolean": "Boolescher Wert",
+      "date": "Datum",
+      "node-ref": "Knotenreferenz",
+      "enum": "Enum-Optionen"
+    },
+    "options": "Enum-Optionen (durch Kommas getrennt)",
+    "required": "Erforderlich",
+    "invalid": "Jedes Feld benötigt einen Namen und eine eindeutige Kennung.",
+    "remove": "Feld entfernen"
+  },
+  "status": {
+    "label": "Wissensstand",
+    "labels": {
+      "draft": "Entwurf",
+      "accepted": "Akzeptiert",
+      "contested": "Umstritten",
+      "superseded": "Ersetzt",
+      "invalidated": "Ungültig",
+      "open": "Öffnen",
+      "resolved": "Gelöst"
+    }
+  },
+  "summary": "Zusammenfassung",
+  "types": {
+    "label": "Wissenstyp",
+    "description": "Beschreibung",
+    "icon": "Symbol",
+    "name": "Typname",
+    "manage": "Wissenstypen verwalten",
+    "manageDescription": "Definieren Sie die Eigenschaften von strukturiertem Wissen in diesem Arbeitsbereich.",
+    "delete": "Typ löschen…",
+    "discardChanges": "Nicht gespeicherte Änderungen an diesem Typ verwerfen?",
+    "emptyFields": "Fügen Sie die Eigenschaften hinzu, die diese Art von Wissen benötigt.",
+    "deleteConfirmation": "„{name}“ löschen? Von Wissensobjekten verwendete Typen können nicht gelöscht werden.",
+    "create": "Neuer Typ",
+    "none": "Keine benutzerdefinierten Schematypen.",
+    "loadFailed": "Schematypen konnten nicht geladen werden"
+  },
+  "visual": {
+    "empty": "Noch keine Bildanalyse"
+  }
+}

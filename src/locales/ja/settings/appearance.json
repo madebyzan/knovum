@@ -1,0 +1,41 @@
+{
+  "title": "外観",
+  "description": "テーマ、フォント スケール、レイアウト密度をカスタマイズします。",
+  "saveFailed": "外観設定を保存できませんでした",
+  "theme": {
+    "label": "テーマ",
+    "description": "明るいか暗いかを選択するか、システムに従います。"
+  },
+  "textSize": {
+    "label": "フォント サイズ",
+    "description": "インターフェースのテキストサイズを調整します。"
+  },
+  "density": {
+    "label": "密度",
+    "description": "コントロールのサイズと間隔を調整します。"
+  },
+  "language": {
+    "label": "言語",
+    "description": "表示言語を選択するか、システム ロケールに一致させます。"
+  },
+  "options": {
+    "followSystem": "システム設定に従う",
+    "theme": {
+      "light": "ライト",
+      "dark": "ダーク"
+    },
+    "textSize": {
+      "small": "小さい",
+      "default": "デフォルト",
+      "large": "大きい"
+    },
+    "density": {
+      "compact": "コンパクト",
+      "comfortable": "ゆったり"
+    },
+    "language": {
+      "english": "英語",
+      "simplifiedChinese": "簡体字中国語"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "source": {
+    "label": "Fonte",
+    "localDirectory": "Diretório local",
+    "location": "URL ou caminho absoluto",
+    "gitReference": "Referência Git (HEAD, ref completa ou commit)",
+    "subdirectory": "Subdiretório do pacote",
+    "install": "Instalar da fonte",
+    "description": "Escolha um pacote local ou URL remoto e revise-o antes de instalar.",
+    "revision": "Revisão da fonte"
+  },
+  "installation": {
+    "preview": "Visualização",
+    "authorizationHint": "A instalação não inicia serviços nem autoriza contas. Configure conexões e permissões de ferramentas separadamente.",
+    "install": "Instalar",
+    "title": "Revisar instalação",
+    "incomplete": "Este plugin não tem capacidade utilizável ou contém um componente obrigatório não suportado."
+  },
+  "update": {
+    "action": "Atualizar",
+    "revisionChange": "Alterações na revisão da fonte",
+    "added": "Componentes adicionados",
+    "removed": "Componentes removidos",
+    "check": "Verificar atualizações",
+    "title": "Revisar atualização"
+  },
+  "bundled": "Embalado com Knovum",
+  "verification": {
+    "unverified": "Identidade do editor não verificada",
+    "title": "Verificação do pacote"
+  },
+  "uninstall": {
+    "action": "Desinstalar",
+    "title": "Desinstalar {name}?",
+    "description": "Isso remove o plugin e seus recursos. Você pode instalá-lo novamente mais tarde."
+  },
+  "catalogs": {
+    "sourceType": "Tipo de origem do catálogo",
+    "add": "Adicionar fonte de catálogo",
+    "all": "Todas as fontes",
+    "title": "Gerenciar catálogos",
+    "description": "Adicione ou atualize catálogos que listem plug-ins disponíveis.",
+    "empty": {
+      "title": "Nenhum plug-in para descobrir",
+      "description": "Navegue pelo catálogo incluído ou adicione outra fonte de plugin."
+    },
+    "remove": {
+      "title": "Remover catálogo?",
+      "description": "Este catálogo não aparecerá mais na descoberta. Os plug-ins instalados são mantidos."
+    }
+  },
+  "discovery": {
+    "title": "Descubra plug-ins",
+    "installed": "Instalado · Visualizar"
+  },
+  "empty": {
+    "title": "Nenhum plug-in instalado",
+    "description": "Descubra plug-ins ou instale-os de uma fonte local ou remota."
+  },
+  "tasks": {
+    "inspect": "Inspecionar plugin",
+    "install": "Instalar plugin",
+    "update": "Plugin de atualização",
+    "catalog": "Ler catálogo de plug-ins",
+    "cancelled": "Operação do plug-in cancelada"
+  },
+  "stages": {
+    "reading": "Lendo pacote ou catálogo",
+    "validating": "Validando o conteúdo do pacote",
+    "committing": "Confirmando alterações"
+  },
+  "title": "Plugins instalados",
+  "search": {
+    "empty": "Nenhum resultado correspondente",
+    "hint": "Tente outra palavra-chave ou limpe a pesquisa."
+  },
+  "disable": "Desativar {name}",
+  "enable": "Habilitar {name}",
+  "actions": "Ações do plug-in",
+  "capabilities": "Capacidades incluídas"
+}

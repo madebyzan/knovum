@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "title": "Palette dei comandi",
+    "searchPlaceholder": "Comandi di ricerca…",
+    "noMatches": "Nessun comando corrispondente"
+  },
+  "commandUnavailable": {
+    "nothingToUndo": "Niente da annullare",
+    "nothingToRedo": "Niente da ripetere",
+    "noSelection": "Seleziona prima il contenuto",
+    "notEnoughScenes": "Non c'è altra scena",
+    "selectionNotEligible": "Questa selezione non può utilizzare l'azione",
+    "checking": "Verifica disponibilità",
+    "busy": "È in corso un'operazione"
+  },
+  "toggleRightSidebar": "Mostra o nascondi la barra laterale destra",
+  "toggleSidebar": "Attiva/disattiva la barra laterale",
+  "layoutSaveFailed": "Impossibile salvare il layout del workbench",
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "search": "Scorciatoie di ricerca",
+    "categories": {
+      "general": "Generale",
+      "navigation": "Navigazione",
+      "canvas": "Tela",
+      "editing": "Modifica"
+    },
+    "noMatches": "Nessuna scorciatoia corrispondente"
+  },
+  "startup": {
+    "starting": "Avvio di Knovum…"
+  }
+}

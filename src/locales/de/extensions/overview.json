@@ -1,0 +1,34 @@
+{
+  "title": "Erweiterungen",
+  "description": "Verwalten Sie Plugins, App-Verbindungen, benutzerdefinierte MCP-Server und persönliche Fähigkeiten.",
+  "plugins": "Plugins",
+  "skills": "Skills",
+  "mcp": "MCP",
+  "back": "Zurück zur Liste",
+  "information": "Information",
+  "author": "Entwickler",
+  "version": "Version",
+  "sourcePlugin": "Quell-Plugin anzeigen",
+  "pluginPaused": "Dieses Plugin ist deaktiviert. Seine Fähigkeiten und Verbindungen sind nicht verfügbar.",
+  "notFound": "Diese Erweiterung ist nicht verfügbar",
+  "notFoundHint": "Möglicherweise wurde es durch ein Plugin-Update entfernt oder geändert. Kehren Sie zur Liste zurück, um den aktuellen Inhalt anzuzeigen.",
+  "usage": "Wählen Sie in einem Workspace-Gespräch vollständige Plugins, persönliche Fähigkeiten oder eigenständige MCP-Verbindungen aus. Ein Plugin fasst seine Fähigkeiten und Dienste zusammen. Durch die Aktivierung wird es auswählbar; Für den externen Zugriff ist weiterhin eine Autorisierung erforderlich.",
+  "search": {
+    "plugins": "Such-Plugins…",
+    "mcp": "MCP-Server durchsuchen…",
+    "skills": "Suchfähigkeiten…",
+    "apps": "Apps suchen…"
+  },
+  "status": {
+    "checking": "Verfügbarkeit prüfen…",
+    "failed": "Verfügbarkeit kann nicht gelesen werden",
+    "pluginPaused": "Quell-Plugin deaktiviert",
+    "disabled": "Deaktiviert",
+    "available": "In Gesprächen verfügbar",
+    "unavailable": "Konfiguration oder Autorisierung unvollständig"
+  },
+  "homepage": "Webseite",
+  "repository": "Repository",
+  "license": "Lizenz",
+  "apps": "Apps"
+}

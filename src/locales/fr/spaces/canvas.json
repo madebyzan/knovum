@@ -1,0 +1,151 @@
+{
+  "tools": {
+    "title": "Outils Canvas",
+    "select": "Sélectionner",
+    "section": "Section Dessiner"
+  },
+  "nodeActions": {
+    "label": "Actions du nœud",
+    "openOriginal": "Ouvrir l'original",
+    "goToTarget": "Aller à la cible",
+    "viewLarge": "Afficher l'image",
+    "openVideo": "Ouvrir la vidéo",
+    "openAudio": "Ouvrir l'audio",
+    "viewCode": "Afficher le code",
+    "openFile": "Ouvrir le fichier",
+    "export": "Exporter"
+  },
+  "zoom": {
+    "out": "Zoom arrière",
+    "in": "Zoom avant",
+    "options": "Options de zoom",
+    "toFitContent": "Zoom pour adapter le contenu",
+    "toSelection": "Zoom sur la sélection"
+  },
+  "arrange": {
+    "title": "Organiser",
+    "toFront": "Mettre au premier plan",
+    "forward": "Avancer",
+    "backward": "Envoyer en arrière",
+    "toBack": "Envoyer vers l'arrière",
+    "autoHorizontal": "Mise en page automatique (horizontale)",
+    "autoVertical": "Mise en page automatique (verticale)"
+  },
+  "layerOrder": "Ordre des couches",
+  "selection": {
+    "label": "Sélection",
+    "selectAll": "Sélectionner tout",
+    "delete": "Supprimer la sélection",
+    "toggleLock": "Verrouiller ou déverrouiller la sélection"
+  },
+  "kinds": {
+    "group": "Groupe",
+    "section": "Section"
+  },
+  "groups": {
+    "create": "Sélection de groupe",
+    "ungroup": "Dissocier la sélection",
+    "untitled": "Groupe sans titre"
+  },
+  "sections": {
+    "create": "Créer une section",
+    "createEmpty": "Nouvelle section",
+    "removeOnly": "Supprimer la section uniquement",
+    "backgroundFailed": "Impossible de charger l'image d'arrière-plan de la section",
+    "drop": {
+      "enter": "Relâchez pour passer à la section",
+      "leave": "Relâcher pour sortir de la section"
+    },
+    "fitToContents": "Ajuster la section au contenu",
+    "untitled": "Section sans titre",
+    "collapse": "Section Réduire",
+    "expand": "Développer la section"
+  },
+  "lock": "Verrouillage",
+  "locked": "Verrouillé",
+  "unlock": "Déverrouiller",
+  "align": {
+    "left": "Gauche",
+    "center": "Centre horizontal",
+    "right": "Droite",
+    "top": "Haut",
+    "middle": "Centre vertical",
+    "bottom": "Bas"
+  },
+  "distribute": {
+    "horizontal": "Horizontalement",
+    "vertical": "Verticalement"
+  },
+  "nudge": {
+    "left": "Coup de pouce vers la gauche",
+    "right": "Poussez à droite",
+    "up": "Poussez vers le haut",
+    "down": "Poussez vers le bas",
+    "leftLarge": "Déplacer vers la gauche de 10 pts",
+    "rightLarge": "Déplacer vers la droite de 10 pts",
+    "upLarge": "Monter de 10 points",
+    "downLarge": "Descendre de 10 pts"
+  },
+  "relations": {
+    "connect": "Connecter"
+  },
+  "typography": "Typographie",
+  "noteBackground": "Note sur le fond",
+  "textColor": "Couleur du texte",
+  "fontSize": "Taille de la police",
+  "noteFills": {
+    "yellow": "Jaune",
+    "green": "Vert",
+    "blue": "Bleu",
+    "pink": "Rose",
+    "gray": "Gris"
+  },
+  "textColors": {
+    "ink": "Encre",
+    "muted": "Gris",
+    "red": "Rouge",
+    "blue": "Bleu",
+    "green": "Vert",
+    "purple": "Violet"
+  },
+  "selectionTextColors": {
+    "default": "Par défaut",
+    "gray": "Gris",
+    "red": "Rouge",
+    "amber": "Orange",
+    "yellow": "Jaune",
+    "green": "Vert",
+    "teal": "Sarcelle",
+    "cyan": "Cyan",
+    "blue": "Bleu",
+    "purple": "Violet",
+    "pink": "Rose",
+    "white": "Blanc"
+  },
+  "textAlignments": {
+    "left": "Gauche",
+    "center": "Centre",
+    "right": "Droite"
+  },
+  "verticalAlignments": {
+    "top": "Haut",
+    "middle": "Milieu",
+    "bottom": "Bas"
+  },
+  "revealInCanvas": "Révéler dans le canevas",
+  "shortcuts": {
+    "panCanvas": "Toile panoramique",
+    "zoomReset": "Réinitialiser le zoom",
+    "nudgeSelection": "Sélection Nudge",
+    "nudgeLarge": "Déplacer de 10 px"
+  },
+  "dropToSave": "Déposer pour enregistrer dans l'espace de travail actuel",
+  "cancelInteraction": "Annuler l'interaction avec le canevas",
+  "htmlSandboxAssetsBlocked": "Le HTML actuel ne contient pas l'actif {count}. L'importation du dossier complet est recommandée. | Le HTML actuel ne contient pas d'éléments {count}. L'importation du dossier complet est recommandée.",
+  "moveToContainer": "Déplacer vers le conteneur",
+  "spaceRoot": "Espace racine",
+  "addContent": {
+    "title": "Ajouter du contenu",
+    "importFiles": "Importer des fichiers…"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "note": "付箋",
+  "text": "テキスト",
+  "markdown": "マークダウン",
+  "website": "Web サイト",
+  "image": "画像",
+  "video": "ビデオ",
+  "audio": "オーディオ",
+  "file": "ファイル",
+  "code": "コード",
+  "credential": "資格情報",
+  "object": "ナレッジ オブジェクト",
+  "portal": "ワークスペースポータル",
+  "group": "グループ",
+  "section": "セクション"
+}

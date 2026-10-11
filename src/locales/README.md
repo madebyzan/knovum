@@ -1,12 +1,16 @@
 # Locale organization
 
-`locale-registry.ts` is the only registry. It eagerly imports `./{en,zh-CN}/**/*.json` and derives
+`locale-registry.ts` is the only registry. It eagerly imports `./*/**/*.json` and derives
 namespaces from paths: `spaces/media/image-editor.json` owns `spaces.media.imageEditor.*`.
 Language root directories use the recommended [BCP 47 casing](https://www.rfc-editor.org/rfc/rfc5646.html#section-2.1.1)
 and match application locale identifiers: language lowercase (`en`), script title case (`Hans`),
 and alphabetic region uppercase (`CN`), for example `zh-CN` or `zh-Hans-CN`. A region is optional;
 `en` identifies general English. Module paths below each language root use kebab-case; object keys
 use lowerCamelCase. Each language has the same module tree.
+
+The display languages are `en`, `zh-CN`, `zh-TW`, `ja`, `ko`, `fr`, `de`, `es`, `pt-BR`, `it`, and `ru`.
+Portuguese uses Brazilian wording. Arabic is not a display language. The AI translation target
+catalog is a separate capability and may include languages unavailable in the interface.
 
 ## Module boundaries
 
@@ -51,9 +55,10 @@ needed, the next action. Avoid tutorials, implementation descriptions and repeat
 already evident from a control. Keep constraints that affect a choice, permission scope, permanent
 deletion, uncertain external outcomes and actionable error recovery explicit.
 
-Translate a complete sentence, including counts and units. English count messages use vue-i18n
-plural forms; pass named `{ count }` and an explicit plural count when needed. Simplified Chinese
-can use one form. Both languages must expose the same unique placeholder names.
+Translate a complete sentence, including counts and units. Count messages use vue-i18n plural forms;
+pass named `{ count }` and an explicit plural count when needed. Chinese, Japanese, and Korean can use
+one form. Russian uses `one | few | many` forms selected through `Intl.PluralRules`; French and Brazilian
+Portuguese use the singular form for zero and one. All languages expose the same unique placeholder names.
 
 English uses sentence case, retaining proper names, product terms and acronyms. Simplified Chinese
 uses these terms consistently:
@@ -87,10 +92,10 @@ Run `pnpm exec vitest run src/foundation/i18n/__tests__` after locale changes. T
 6. Collision-free normalized paths, nonempty groups and nonblank string leaves.
 
 Declare runtime-resolved keys in `dynamic-keys.ts`, preferring exact keys or a small serialized
-value map. Do not exempt a broad namespace to silence one missing reference. Update both languages,
+value map. Do not exempt a broad namespace to silence one missing reference. Update all languages,
 all consumers and declarations together; do not introduce compatibility aliases.
 
 Local messages remain eagerly loaded so desktop startup and controls do not depend on asynchronous
-language requests. Adding a business module needs only matching files under both language roots.
+language requests. Adding a business module needs only matching files under every language root.
 Adding another language requires updating the supported locale contract and checks as well as its
 complete module tree. Introduce loading by capability only if measured bundle costs justify it.

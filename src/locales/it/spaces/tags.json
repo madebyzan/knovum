@@ -1,0 +1,8 @@
+{
+  "title": "Tag",
+  "selectionHint": "Seleziona i nodi canvas per gestire i tag.",
+  "add": "Aggiungi tag",
+  "empty": "Nessun tag in quest'area di lavoro.",
+  "showNodes": "Filtra nodi contrassegnati",
+  "remove": "Rimuovi il tag {tag}"
+}

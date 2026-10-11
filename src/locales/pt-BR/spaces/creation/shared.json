@@ -1,0 +1,21 @@
+{
+  "failedAttempt": "Falha na criação",
+  "removeFailedOutput": "Remover item com falha",
+  "knowledgeDerivation": "Criado a partir do conhecimento",
+  "resourceTask": "Tarefa de recurso",
+  "presets": {
+    "save": "Salvar como predefinição",
+    "saved": "Predefinição de geração salva",
+    "label": "Predefinição de geração",
+    "empty": "Sem predefinições de geração",
+    "select": "Selecione uma predefinição de geração"
+  },
+  "source": {
+    "knowledge": "Conhecimento de origem",
+    "changed": "Algumas fontes foram alteradas após a criação deste item."
+  },
+  "citations": "Citações · {count}",
+  "createFromSelection": "Criar a partir da seleção",
+  "needsIndexedKnowledge": "Os itens selecionados ainda não contêm texto pesquisável.",
+  "finishNodeOperation": "Conclua ou cancele primeiro a operação do nó atual."
+}

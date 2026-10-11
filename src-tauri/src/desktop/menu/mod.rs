@@ -3,9 +3,8 @@ use tauri::{
     AppHandle, Emitter, Runtime,
 };
 
-use self::labels::labels;
-
-mod labels;
+use super::locale::labels;
+use crate::preferences::LocalePreference;
 mod state;
 
 const COMMAND_EVENT: &str = "knovum-run-command";
@@ -16,8 +15,8 @@ const REOPEN_CLOSED_TAB_ID: &str = "spaces.reopen-closed-tab";
 const CLOSE_TAB_ID: &str = "spaces.close-tab";
 const FILE_MENU_ID: &str = "knovum.file";
 
-pub fn build<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<Menu<R>> {
-    let labels = labels(locale);
+pub fn build<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<Menu<R>> {
+    let labels = labels(locale).map_err(std::io::Error::other)?.menu;
     let menu = Menu::default(app)?;
     let settings = MenuItem::with_id(app, SETTINGS_ID, labels.settings, true, Some("CmdOrCtrl+,"))?;
     let command_palette = MenuItem::with_id(
@@ -100,7 +99,7 @@ fn remove_window_close_item<R: Runtime>(menu: &Menu<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-pub fn rebuild<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Result<()> {
+pub fn rebuild<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<()> {
     let workspace_state = state::read(app)?;
     app.set_menu(build(app, locale)?)?;
     state::write(app, workspace_state.0, workspace_state.1, workspace_state.2)?;

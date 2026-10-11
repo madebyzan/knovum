@@ -1,0 +1,14 @@
+{
+  "inspect": "Audiosignal prüfen",
+  "advisory": "Signalkontrollen kennzeichnen Orte zur Überprüfung. Sie bewerten die Natürlichkeit der Stimme nicht und weisen möglicherweise auf absichtliche Pausen hin.",
+  "noFindings": "Im gescannten Intervall wurden keine Signalanomalien gefunden.",
+  "truncated": "Die Inspektion scannt bis zu zwei Stunden und meldet bis zu 100 Befunde.",
+  "issues": {
+    "empty": "Keine Audiobeispiele",
+    "silence": "Schweigen",
+    "quiet": "Relativ leise",
+    "loud": "Relativ laut",
+    "clipping": "Nahezu vollständiger Spitzenwert",
+    "invalid": "Ungültige Signalproben"
+  }
+}

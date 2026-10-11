@@ -1,0 +1,24 @@
+{
+  "name": "Nome Skill (deve corresponder ao diretório)",
+  "readOnly": "Este Skill é controlado pelo seu plugin. Copie-o como um Skill pessoal para editá-lo ou ativá-lo de forma independente.",
+  "create": "Criar habilidade",
+  "import": "Diretório de importação",
+  "copy": "Copiar como pessoal Skill",
+  "binaryResource": "Este é um recurso de referência binária. Exporte o Skill para inspecionar seus bytes originais.",
+  "empty": {
+    "title": "Sem habilidades pessoais",
+    "description": "Crie um Skill pessoal ou importe um diretório Skill existente."
+  },
+  "actions": "Ações de habilidade",
+  "unsupportedRequirements": "Requisitos não suportados: {requirements}",
+  "discard": {
+    "title": "Descartar alterações não salvas?",
+    "description": "As edições não salvas serão perdidas."
+  },
+  "delete": {
+    "title": "Excluir {name}?",
+    "description": "Isso exclui permanentemente o Skill pessoal e seus arquivos de referência."
+  },
+  "instructions": "Instruções",
+  "requiredConnections": "Conexões necessárias: {names}"
+}

@@ -1,0 +1,109 @@
+{
+  "title": "Flujos de trabajo",
+  "select": "Elija un flujo de trabajo",
+  "createFromSelection": "Guardar la cadena de derivación como flujo de trabajo",
+  "derivation": {
+    "loading": "Inspeccionando derivación…",
+    "separateChains": "La selección contiene una cadena de derivación desconectada {count}. Seleccione las salidas deseadas por separado. | La selección contiene cadenas de derivación desconectadas {count}. Seleccione las salidas deseadas por separado.",
+    "chain": "Cadena {index}",
+    "steps": "Acciones verificadas",
+    "inputs": "Entradas del proceso",
+    "issues": "Piezas que no se pueden reutilizar",
+    "empty": "La selección no tiene acciones de derivación rejugables.",
+    "sources": "Fuentes: {sources}"
+  },
+  "name": "Nombre del flujo de trabajo",
+  "namePlaceholder": "Nombra este flujo de trabajo",
+  "saveCaptured": "Guardar como flujo de trabajo",
+  "saved": "Guardado en su biblioteca de flujo de trabajo",
+  "useSaved": "Usar flujo de trabajo",
+  "inputs": {
+    "slot": "Entrada {index}",
+    "bind": "Vincular materiales seleccionados a entradas",
+    "select": "Seleccionar material",
+    "sequenceLimit": "Procese en el orden siguiente, hasta el artículo {count} | Procese en el orden siguiente, hasta artículos {count}",
+    "moveUp": "Mover material hacia arriba",
+    "moveDown": "Mover material hacia abajo",
+    "missing": "La selección carece de un tipo de material requerido por este flujo de trabajo."
+  },
+  "summary": "Acciones {steps} · Salidas {outputs}",
+  "outputs": {
+    "title": "Salidas",
+    "select": "Mantener el resultado de “{action}”",
+    "locate": "Localice “{name}”",
+    "name": "Resultado {index}",
+    "namesUnique": "Asigne a cada resultado un nombre diferente, hasta 120 caracteres."
+  },
+  "steps": {
+    "title": "Pasos",
+    "keep": "Mantenga el paso “{action}”",
+    "required": "Utilizado por un paso posterior"
+  },
+  "run": {
+    "start": "Ejecutar flujo de trabajo",
+    "state": "Estado de ejecución: {state}. El progreso permanece en el Centro de tareas después de cerrar este panel.",
+    "recent": "Ejecuciones recientes",
+    "new": "Nueva ejecución",
+    "retryFailedSteps": "Reintentar pasos fallidos",
+    "cancel": "Cancelar ejecución"
+  },
+  "edit": "Editar flujo de trabajo",
+  "parameters": {
+    "title": "Título",
+    "purpose": "Propósito",
+    "content": "Contenido",
+    "question": "Pregunta",
+    "prompt": "Instrucción",
+    "summaryPurpose": "Propósito del resumen",
+    "audience": "Audiencia",
+    "goal": "Objetivo",
+    "tone": "Tono",
+    "intent": "Intención",
+    "style": "Estilo",
+    "imageStyle": "Estilo de imagen",
+    "aspectRatio": "Relación de aspecto",
+    "durationSeconds": "Duración (segundos)",
+    "platform": "Plataforma"
+  },
+  "delete": "Eliminar flujo de trabajo",
+  "deleteConfirm": "¿Eliminar “{name}”? Las ejecuciones completadas y sus resultados permanecerán.",
+  "states": {
+    "queued": "En cola",
+    "running": "En ejecución",
+    "waiting": "Esperando",
+    "paused": "Pausado",
+    "succeeded": "Completado",
+    "completedWithErrors": "Completado con errores",
+    "failed": "Error",
+    "cancelled": "Cancelado",
+    "cancelling": "Cancelando"
+  },
+  "captureIssues": {
+    "resourceUnavailable": "El recurso fue eliminado o está fuera de este espacio de trabajo.",
+    "derivationIncomplete": "La derivación no se ha completado correctamente.",
+    "executionSpecUnavailable": "Faltan parámetros de acción verificados o el objetivo de ejecución, por lo que este paso no se puede repetir.",
+    "derivationInputsUnavailable": "No se registraron entradas de fuentes verificables.",
+    "sourceUnavailable": "Un recurso de origen ya no está disponible.",
+    "sourceMismatch": "Las fuentes de derivación o su orden difieren de la acción ejecutada, por lo que este paso no se puede repetir.",
+    "sourceIdentityUnavailable": "El registro de origen no tiene identidad de recurso.",
+    "parameterInstanceReference": "Un parámetro de acción hace referencia a un recurso de lienzo original y no se puede reutilizar como flujo de trabajo.",
+    "candidateBindingUnavailable": "Una entrada de paso no se puede vincular a una entrada de flujo de trabajo ni a una salida anterior.",
+    "noDerivedOutputSelected": "Seleccione una salida creada por una acción."
+  },
+  "captureActions": {
+    "draftDocument": "Crear documento",
+    "draftScript": "Borrador de guión de vídeo",
+    "summarizeMeeting": "Resumir reunión",
+    "draftSocialPost": "Borrador de publicación social",
+    "generateVisualization": "Crear visualización",
+    "generateImage": "Generar imagen",
+    "generateVideo": "Generar vídeo",
+    "renderPresentation": "Crear presentación",
+    "addVideoSubtitles": "Agregar subtítulos",
+    "convertDocx": "Convertir a Word",
+    "convertPdf": "Convertir a PDF",
+    "convertTxt": "Convertir a texto",
+    "convertHtml": "Convertir a HTML"
+  },
+  "empty": "Aún no hay flujos de trabajo guardados. Seleccione un recurso derivado completo y elija \"Guardar como flujo de trabajo\"."
+}

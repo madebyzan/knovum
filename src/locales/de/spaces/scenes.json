@@ -1,0 +1,26 @@
+{
+  "title": "Szenen",
+  "previous": "Vorherige Szene",
+  "next": "Nächste Szene",
+  "focus": {
+    "mode": "Fokussierte Ansicht · {count}-Element | Fokussierte Ansicht · {count}-Artikel",
+    "exit": "Fokus verlassen",
+    "selection": "Fokusauswahl",
+    "unavailable": "Diese gespeicherte Ansicht verweist auf eine Struktur, die nicht mehr vorhanden ist"
+  },
+  "collapse": "Szenensteuerung ausblenden",
+  "expand": "Szenensteuerung erweitern",
+  "defaultName": "Szene {index}",
+  "saved": "Gespeicherte Szene „{title}“",
+  "updated": "Aktualisierte Szene „{title}“",
+  "opened": "Zur Szene „{title}“ navigiert",
+  "save": "Aktuelle Szene speichern",
+  "delete": "Szene löschen",
+  "empty": "Speichern Sie die Position des Ansichtsfensters, um schnell zu bestimmten Bereichen zurückzukehren.",
+  "open": "Zur Szene navigieren",
+  "update": "Auf das aktuelle Ansichtsfenster aktualisieren",
+  "duplicate": "Szene duplizieren",
+  "moveUp": "Nach oben verschieben",
+  "moveDown": "Nach unten bewegen",
+  "rename": "Szene umbenennen"
+}
